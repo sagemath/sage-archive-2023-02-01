@@ -51,7 +51,7 @@ class PALPreader(SageObject):
 
     INPUT:
 
-    - ``dim`` -- integer. The dimension of the poylhedra
+    - ``dim`` -- integer. The dimension of the polyhedra
 
     - ``data_basename`` -- string or ``None`` (default). The directory
       and database base filename (PALP usually uses ``'zzdb'``) name

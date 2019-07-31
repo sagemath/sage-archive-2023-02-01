@@ -17,22 +17,23 @@ sdh_install \
     crime-* \
     cryst \
     crystcat \
-    design \
+    design-* \
     gbnp \
     Hap* \
     HAPcryst \
     hecke-* \
     liealgdb-* \
     liepring-* \
-    liering \
-    loops \
+    liering-* \
+    loops-* \
     MapClass-* \
-    polymaking \
+    PackageManager-* \
+    polymaking-* \
     qpa-* \
-    quagroup \
+    quagroup-* \
     radiroot-* \
-    repsn \
-    sla \
+    repsn-* \
+    sla-* \
     sonata-* \
     Toric-* \
     utils-* \

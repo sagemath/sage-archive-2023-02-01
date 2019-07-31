@@ -563,12 +563,12 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variables(5)
             4
-            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 2.0, 2.0)
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2.0, 2.0)
             sage: p.row(0)
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
-            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 1.0, 1.0, name='foo')
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 1.0, 1.0, name='foo')
             sage: p.row_name(1)
             'foo'
 
@@ -594,8 +594,10 @@ cdef class GLPKBackend(GenericBackend):
         cdef int * row_i
         cdef double * row_values
 
-        row_i = <int*>mem.allocarray(len(coefficients)+1, sizeof(int))
-        row_values = <double*>mem.allocarray(len(coefficients)+1, sizeof(double))
+        coefficients = list(coefficients)
+        cdef int n_coeff = len(coefficients)
+        row_i = <int*>mem.allocarray(n_coeff + 1, sizeof(int))
+        row_values = <double*>mem.allocarray(n_coeff + 1, sizeof(double))
 
         cdef Py_ssize_t i = 1
         for c,v in coefficients:
@@ -604,7 +606,7 @@ cdef class GLPKBackend(GenericBackend):
             i += 1
 
         sig_on()
-        glp_set_mat_row(self.lp, n, len(coefficients), row_i, row_values)
+        glp_set_mat_row(self.lp, n, n_coeff, row_i, row_values)
         sig_off()
 
         if upper_bound is not None and lower_bound is None:

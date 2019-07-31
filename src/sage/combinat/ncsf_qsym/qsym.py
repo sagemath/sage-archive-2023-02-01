@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Quasisymmetric functions
 
@@ -14,7 +15,7 @@ REFERENCES:
 .. [GriRei18]_
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
-   quasi-symetriques et de l'algebre des descentes*,
+   quasi-symétriques et de l'algèbre des descentes*,
    thesis, November 1993.
    http://www1.mat.uniroma1.it/people/malvenuto/Thesis.pdf
 
@@ -61,6 +62,10 @@ REFERENCES:
 .. [AHM2018] Edward Allen, Joshua Hallam, Sarah Mason, *Dual Immaculate
    Quasisymmetric Functions Expand Positively into Young Quasisymmetric
    Schur Functions*. :arxiv:`1606.03519`
+
+.. [SW2010] John Shareshian and Michelle Wachs.
+   *Eulerian quasisymmetric functions*. (2010).
+   :arxiv:`0812.0764v2`
 
 AUTHOR:
 
@@ -2347,12 +2352,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             - ``j`` -- the number of excedances
             - ``k`` -- (optional) if specified, determines the number of fixed
               points of the permutations which are being summed over
-
-            REFERENCES:
-
-            .. [SW2010] John Shareshian and Michelle Wachs.
-               *Eulerian quasisymmetric functions*. (2010).
-               :arxiv:`0812.0764v2`
 
             EXAMPLES::
 

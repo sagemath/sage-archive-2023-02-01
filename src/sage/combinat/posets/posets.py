@@ -105,6 +105,7 @@ List of Poset methods
     :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
     :meth:`~FinitePoset.product` | Return the Cartesian product of the poset with other poset.
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
+    :meth:`~FinitePoset.rees_product` | Return the Rees product of the poset with other poset.
     :meth:`~FinitePoset.lexicographic_sum` | Return the lexicographic sum of posets.
     :meth:`~FinitePoset.star_product` | Return the star product of the poset with other poset.
     :meth:`~FinitePoset.with_bounds` | Return the poset with bottom and top element adjoined.
@@ -270,7 +271,6 @@ Classes and functions
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-# python3
 from __future__ import division, print_function, absolute_import
 
 from six.moves import range, builtins
@@ -300,6 +300,7 @@ from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.subset import Subsets
+
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
@@ -663,7 +664,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                          "different from None. (Did you intend data to be "+
                          "equal to a pair ?)")
 
-    #Convert data to a DiGraph
+    # Convert data to a DiGraph
     elements = None
     D = {}
     if isinstance(data, FinitePoset):
@@ -1031,13 +1032,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         # Work around the fact that, currently, when a DiGraph is
         # created with Integer's as vertices, those vertices are
         # converted to plain int's. This is a bit abusive.
-        self._elements = tuple(Integer(i) if isinstance(i,int) else i for i in elements)
+        self._elements = tuple(Integer(i) if isinstance(i, int) else i
+                               for i in elements)
         # Relabel using the linear_extension.
         # So range(len(D)) becomes a linear extension of the poset.
         rdict = {self._elements[i]: i for i in range(len(self._elements))}
         self._hasse_diagram = HasseDiagram(hasse_diagram.relabel(rdict, inplace=False), data_structure="static_sparse")
-        self._element_to_vertex_dict = dict( (self._elements[i], i)
-                                             for i in range(len(self._elements)) )
+        self._element_to_vertex_dict = {self._elements[i]: i
+                                        for i in range(len(self._elements))}
         self._is_facade = facade
 
     @lazy_attribute
@@ -1667,10 +1669,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_linear_extension(['David', 'McNeil', 'La', 'Lamentable', 'Aventure', 'de', 'Simon', 'Wiesenthal'])
             False
         """
-        index = { x:i for (i,x) in enumerate(l) }
+        index = {x: i for (i, x) in enumerate(l)}
         return (len(l) == self.cardinality() and
                 all(x in index for x in self) and
-                all(index[i] < index[j] for (i,j) in self.cover_relations()))
+                all(index[i] < index[j] for (i, j) in self.cover_relations()))
 
     def list(self):
         """
@@ -1835,16 +1837,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         from collections import defaultdict
         graph = self.hasse_diagram()
 
-        rename = {'element_color':  'vertex_color',
+        rename = {'element_color': 'vertex_color',
                   'element_colors': 'vertex_colors',
-                  'element_size':   'vertex_size',
-                  'element_shape':  'vertex_shape',
-                  'cover_color':    'edge_color',
-                  'cover_labels_background':    'edge_labels_background',
-                  'cover_colors':   'edge_colors',
-                  'cover_style':    'edge_style',
-                  'border':         'graph_border',
-                 }
+                  'element_size': 'vertex_size',
+                  'element_shape': 'vertex_shape',
+                  'cover_color': 'edge_color',
+                  'cover_labels_background': 'edge_labels_background',
+                  'cover_colors': 'edge_colors',
+                  'cover_style': 'edge_style',
+                  'border': 'graph_border'}
         for param in rename:
             tmp = kwds.pop(param, None)
             if tmp is not None:
@@ -2319,7 +2320,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 chain_pairs = [tuple(chain_pair) for chain_pair in m]
             except TypeError:
                 raise TypeError("%s is not a tuple of tuples." % str(tuple(m)))
-            if not all(len(chain_pair) is 2 for chain_pair in chain_pairs):
+            if not all(len(chain_pair) == 2 for chain_pair in chain_pairs):
                 raise ValueError("%r is not a tuple of length-2 tuples." % str(tuple(m)))
             chain_pairs = sorted(chain_pairs, key=min)
         else:
@@ -3201,7 +3202,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         It is known that every poset has a greedy linear extension --
         an extension `[e_1, e_2, \ldots, e_n]` where every `e_{i+1}` is
         an upper cover of `e_i` if that is possible -- with the smallest
-        possible number of jumps; see [Mac1987]_.
+        possible number of jumps; see [Sys1987]_.
 
         Hence it suffices to test only those. We do that by backtracking.
 
@@ -3623,7 +3624,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         i,j = map(self._element_to_vertex,(x,y))
         return self._hasse_diagram.moebius_function(i,j)
-    mobius_function = deprecated_function_alias(19855, moebius_function)
 
     def moebius_function_matrix(self, ring = ZZ, sparse = False):
         r"""
@@ -3665,7 +3665,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         if not sparse:
             M = M.dense_matrix()
         return M
-    mobius_function_matrix = deprecated_function_alias(19855, moebius_function_matrix)
 
     def lequal_matrix(self, ring = ZZ, sparse = False):
         """
@@ -3782,9 +3781,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``algorithm`` -- either ``'singular'`` (default) or ``'sage'``
+        - ``algorithm`` -- optional (default ``'singular'``), possible
+          values are ``'singular'``, ``'sage'``, ``'gap'``,
+          ``'pari'``, ``'maple'``, ``'magma'``, ``'fricas'``
 
-        Beware that using ``'sage'`` is much slower.
+        Beware that speed depends very much on the choice of
+        algorithm. Sage is rather slow, Singular is faster and Pari is
+        fast at least for small sizes.
 
         OUTPUT:
 
@@ -3805,28 +3808,72 @@ class FinitePoset(UniqueRepresentation, Parent):
            sage: prod(P.coxeter_smith_form()) == P.coxeter_polynomial()
            True
 
+        TESTS::
+
+           sage: P = posets.PentagonPoset()
+           sage: P.coxeter_smith_form(algorithm='sage')
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='gap')
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='pari')
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='fricas')  # optional - fricas
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='maple')  # optional - maple
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='magma')  # optional - magma
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+
         .. SEEALSO::
 
             :meth:`coxeter_transformation`, :meth:`coxeter_matrix`
         """
-        from sage.interfaces.singular import singular
         c0 = self.coxeter_transformation()
         x = polygen(QQ, 'x')   # not possible to use ZZ for the moment
 
-        if algorithm == 'sage':  # *very slow*
-            return (x - c0).smith_form()[0].diagonal()
-
-        if algorithm == 'singular':  # quite faster
+        if algorithm == 'singular':  # quite faster than sage
+            from sage.interfaces.singular import singular
             singular.LIB('jacobson.lib')
             sing_m = singular(x - c0)
             L = sing_m.smith().sage().diagonal()
             return sorted([u / u.lc() for u in L],
                           key=lambda p: p.degree())
 
-        if algorithm == 'magma':  # faster, not working for the moment
+        if algorithm == 'sage':  # *very slow*
+            return (x - c0).smith_form(transformation=False).diagonal()
+
+        if algorithm == 'magma':  # also quite fast
             from sage.interfaces.magma import magma
             elem = magma('ElementaryDivisors')
             return elem.evaluate(x - c0).sage()
+
+        if algorithm == 'gap':
+            from sage.libs.gap.libgap import libgap
+            gap_m = libgap(x - c0)
+            elem = gap_m.ElementaryDivisorsMat()
+            return elem.sage()
+
+        if algorithm == 'pari':   # maybe fast, at least for small size
+            from sage.libs.pari import pari
+            pari_m = pari(x - c0)
+            elem = pari_m.matsnf(2)
+            A = x.parent()
+            return sorted((A(f) for f in elem),
+                          key=lambda p: p.degree())
+
+        if algorithm == 'maple':
+            from sage.interfaces.maple import maple
+            maple_m = maple(x - c0)
+            maple.load("MatrixPolynomialAlgebra")
+            maple.load("ArrayTools")
+            elem = maple.SmithForm(maple_m).Diagonal()
+            A = x.parent()
+            return [A(f.sage()) for f in elem]
+
+        if algorithm == 'fricas':
+            from sage.interfaces.fricas import fricas
+            fm = fricas(x-c0)
+            return list(fricas(fm.name()+"::Matrix(UP(x, FRAC INT))").smith().diagonal().sage())
 
     def is_meet_semilattice(self, certificate=False):
         r"""
@@ -4545,6 +4592,58 @@ class FinitePoset(UniqueRepresentation, Parent):
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
     _mul_ = product
+
+    def rees_product(self, other):
+        r"""
+        Return the Rees product of ``self`` and ``other``.
+
+        This is only defined if both posets are graded.
+
+        The underlying set is the set of pairs `(p,q)` in the Cartesian
+        product such that `\operatorname{rk}(p) \geq \operatorname{rk}(q)`.
+
+        This operation was defined by Björner and Welker in [BjWe2005]_.
+        Other references are [MBRe2011]_ and [LSW2012]_.
+
+        EXAMPLES::
+
+            sage: B3 = posets.BooleanLattice(3)
+            sage: B3t = B3.subposet(list(range(1,8)))
+            sage: C3 = posets.ChainPoset(3)
+            sage: D = B3t.rees_product(C3); D
+            Finite poset containing 12 elements
+            sage: sorted(D.minimal_elements())
+            [(1, 0), (2, 0), (4, 0)]
+            sage: sorted(D.maximal_elements())
+            [(7, 0), (7, 1), (7, 2)]
+            sage: D.with_bounds().moebius_function('bottom','top')
+            2
+
+        .. SEEALSO::
+
+            :meth:`product`, :meth:`ordinal_product`, :meth:`star_product`
+
+        TESTS::
+
+            sage: T = posets.TamariLattice(3)
+            sage: T.rees_product(T)
+            Traceback (most recent call last):
+            ...
+            TypeError: the Rees product is defined only for graded posets
+        """
+        if not(self.is_graded() and other.is_graded()):
+            raise TypeError('the Rees product is defined only for graded posets')
+
+        rk0 = self.rank_function()
+        rk1 = other.rank_function()
+        rees_set = [(p, q) for p in self for q in other if rk0(p) >= rk1(q)]
+
+        def covers(pq, ppqq):
+            p, q = pq
+            pp, qq = ppqq
+            return self.covers(p, pp) and (q == qq or other.covers(q, qq))
+
+        return Poset((rees_set, covers), cover_relations=True)
 
     def factor(self):
         """
@@ -6032,13 +6131,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: C.order_ideal_plot([])
             Graphics object consisting of 10 graphics primitives
         """
-        order_ideal = self.order_ideal(elements)    
+        order_ideal = self.order_ideal(elements)
         order_filer = self.order_filter(self.order_ideal_complement_generators(order_ideal))
         order_ideal_color_dictionary = {}
         order_ideal_color_dictionary['green'] = order_ideal
         order_ideal_color_dictionary['red']= order_filer
-        return self.plot(element_colors = order_ideal_color_dictionary)  
-  
+        return self.plot(element_colors = order_ideal_color_dictionary)
+
     def interval(self, x, y):
         r"""
         Return a list of the elements `z` such that `x \le z \le y`.
@@ -8002,6 +8101,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return (set(self).issubset(set(other)) and
                 other.subposet(self).hasse_diagram() == self.hasse_diagram())
 
+
 FinitePoset._dual_class = FinitePoset
 
 # ------- Posets -------
@@ -8112,6 +8212,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
             return Integer(known_values[self._n])
         else:
             return super(FinitePosets_n, self).cardinality()
+
 
 # For backward compatibility of pickles of the former Posets()
 Posets_all = Posets

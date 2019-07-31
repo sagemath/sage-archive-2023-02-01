@@ -13,7 +13,9 @@ List comprehensions
 ===================
 
 *List comprehensions* are a very handy way to construct lists in
-Python. You can use either of the following idioms::
+Python. You can use either of the following idioms:
+
+.. CODE-BLOCK:: python
 
       [ <expr> for <name> in <iterable> ]
       [ <expr> for <name> in <iterable> if <condition> ]
@@ -131,7 +133,7 @@ in memory::
 
             sage: # edit here
 
-    #.  Compute the sum of the gcd's of all co-prime numbers `i, j` for `i<j<10`::
+    #.  Compute the sum of the products of all pairs of co-prime numbers `i, j` for `i<j<10`::
 
             sage: # edit here
 

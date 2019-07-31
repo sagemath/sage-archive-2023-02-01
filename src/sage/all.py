@@ -22,6 +22,7 @@ except for the known bad apples::
     ....:     'IPython', 'prompt_toolkit',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
+    ....:     'signal', 'enum',                # may appear in Python 3
     ....: ]
     sage: def is_not_allowed(frame):
     ....:     module = inspect.getmodule(frame)
@@ -174,8 +175,8 @@ from cysignals.alarm import alarm, cancel_alarm
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
+lazy_import('sage.interacts.debugger', 'debug')
 lazy_import('sage.interacts', 'all', 'interacts')
-from sage.interacts.debugger import debug
 # interact decorator from SageNB (will be overridden by Jupyter)
 lazy_import('sagenb.notebook.interact', 'interact')
 
@@ -282,10 +283,11 @@ def _write_started_file():
 
     TESTS:
 
-    Check that the file exists when Sage is running::
+    Check that the file exists when Sage is running (note, this file is not
+    necessarily installed or used by downstream packages of Sage)::
 
         sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-        sage: os.path.isfile(started_file)
+        sage: os.path.isfile(started_file)  # optional - build
         True
     """
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
@@ -302,11 +304,15 @@ def _write_started_file():
 import warnings
 warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
 # Ignore all deprecations from IPython etc.
-warnings.filterwarnings('ignore',
+warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+# Ignore collections.abc warnings, there are a lot of them but they are
+# harmless.
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
-warnings.filterwarnings('default',
-    r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
+warnings.filterwarnings('default', category=DeprecationWarning,
+    message=r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
 
 
 # Set a new random number seed as the very last thing

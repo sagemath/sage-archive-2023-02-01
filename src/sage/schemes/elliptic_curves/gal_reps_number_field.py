@@ -14,7 +14,7 @@ EXAMPLES::
     sage: rho = E.galois_representation()
     sage: rho.is_surjective(29) # Cyclotomic character not surjective.
     False
-    sage: rho.is_surjective(31) # See Section 5.10 of [Serre72].
+    sage: rho.is_surjective(31) # See Section 5.10 of [Ser1972].
     True
     sage: rho.non_surjective()  # long time (4s on sage.math, 2014)
     [3, 5, 29]
@@ -32,12 +32,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Serre72] Jean-Pierre Serre. *Propriétés galoisiennes des points d'ordre
-             fini des courbes elliptiques*. Inventiones mathematicae, 1972.
-
-.. [Sutherland12] Sutherland. A local-global principle for rational
-    isogenies of prime degree. Journal de Théorie des Nombres de Bordeaux,
-    2012.
+- [Ser1972]_
+- [Sut2012]_
 
 """
 # ****************************************************************************
@@ -183,7 +179,7 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
             sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
             sage: rho = E.galois_representation()
-            sage: rho.non_surjective() # See Section 5.10 of [Serre72].
+            sage: rho.non_surjective() # See Section 5.10 of [Ser1972].
             [3, 5, 29]
             sage: K = NumberField(x**2 + 3, 'a'); a = K.gen()
             sage: E = EllipticCurve([0, -1, 1, -10, -20]).change_ring(K) # X_0(11)
@@ -236,7 +232,7 @@ class GaloisRepresentation(SageObject):
             sage: rho = E.galois_representation()
             sage: rho.is_surjective(29) # Cyclotomic character not surjective.
             False
-            sage: rho.is_surjective(7) # See Section 5.10 of [Serre72].
+            sage: rho.is_surjective(7) # See Section 5.10 of [Ser1972].
             True
 
         If `E` is defined over `\QQ`, then the exceptional primes for `E_{/K}`
@@ -299,14 +295,14 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
             sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
             sage: rho = E.galois_representation()
-            sage: rho.isogeny_bound() # See Section 5.10 of [Serre72].
+            sage: rho.isogeny_bound() # See Section 5.10 of [Ser1972].
             [3, 5]
             sage: K = NumberField(x**2 + 1, 'a')
             sage: EllipticCurve_from_j(K(1728)).galois_representation().isogeny_bound() # CM over K
             [0]
             sage: EllipticCurve_from_j(K(0)).galois_representation().isogeny_bound() # CM NOT over K
             [2, 3]
-            sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sutherland12]
+            sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sut2012]
             sage: E.galois_representation().isogeny_bound() # No 7-isogeny, but...
             [7]
 
@@ -376,7 +372,7 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
             sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
             sage: rho = E.galois_representation()
-            sage: rho.isogeny_bound() # See Section 5.10 of [Serre72].
+            sage: rho.isogeny_bound() # See Section 5.10 of [Ser1972].
             [3, 5]
             sage: rho.reducible_primes()
             [3, 5]
@@ -386,7 +382,7 @@ class GaloisRepresentation(SageObject):
             [0]
             sage: EllipticCurve_from_j(K(0)).galois_representation().reducible_primes() # CM but NOT over K
             [2, 3]
-            sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sutherland12]
+            sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sut2012]
             sage: rho = E.galois_representation()
             sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
             [7]
@@ -432,7 +428,7 @@ def _non_surjective(E, patience=100):
 
         sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
         sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
-        sage: sage.schemes.elliptic_curves.gal_reps_number_field._non_surjective(E) # See Section 5.10 of [Serre72].
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field._non_surjective(E) # See Section 5.10 of [Ser1972].
         [3, 5, 29]
         sage: E = EllipticCurve_from_j(1728).change_ring(K) # CM
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._non_surjective(E)
@@ -510,7 +506,7 @@ def Frobenius_filter(E, L, patience=100):
 
     Example to show that the output may contain primes where the
     representation is in fact reducible.  Over `\QQ` the following is
-    essentially the unique such example by [Sutherland12]_::
+    essentially the unique such example by [Sut2012]_::
 
         sage: E = EllipticCurve_from_j(2268945/128)
         sage: sage.schemes.elliptic_curves.gal_reps_number_field.Frobenius_filter(E, [7, 11])
@@ -542,7 +538,7 @@ def Frobenius_filter(E, L, patience=100):
     L.sort()
 
     include_2 = False
-    if 2 in L: # c.f. Section 5.3(a) of [Serre72].
+    if 2 in L: # c.f. Section 5.3(a) of [Ser1972].
         L.remove(2)
         include_2 = not E.division_polynomial(2).is_irreducible()
 
@@ -582,7 +578,7 @@ def _exceptionals(E, L, patience=1000):
     r"""
     Determine which primes in L are exceptional for E, using Proposition 19
     of Section 2.8 of Serre's ``Propriétés Galoisiennes des Points d'Ordre
-    Fini des Courbes Elliptiques'' [Serre72]_.
+    Fini des Courbes Elliptiques'' [Ser1972]_.
 
     INPUT:
 
@@ -624,13 +620,13 @@ def _exceptionals(E, L, patience=1000):
     L = list(set(L)) # Remove duplicates from L.
 
     for l in L:
-        if l == 2: # c.f. Section 5.3(a) of [Serre72].
+        if l == 2: # c.f. Section 5.3(a) of [Ser1972].
             if (E.j_invariant() - 1728).is_square():
                 output.append(2)
             elif not E.division_polynomial(2).is_irreducible():
                 output.append(2)
 
-        elif l == 3: # c.f. Section 5.3(b) of [Serre72].
+        elif l == 3: # c.f. Section 5.3(b) of [Ser1972].
             if K(-3).is_square():
                 output.append(3)
             elif not (K['x'].gen()**3 - E.j_invariant()).is_irreducible():
@@ -704,7 +700,7 @@ def _exceptionals(E, L, patience=1000):
                 # be contained Borel subgroup.
                 D[l][0] = False
 
-            if det != 0:  # c.f. [Serre72], Section 2.8, Prop. 19
+            if det != 0:  # c.f. [Ser1972], Section 2.8, Prop. 19
                 u = trace**2 / det
                 if u not in (1, 2, 4) and u**2 - 3 * u + 1 != 0:
                     D[l][2] = False
@@ -1503,7 +1499,7 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
 
     An example where a prime is not reducible but passes the test::
 
-        sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sutherland12]
+        sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sut2012]
         sage: reducible_primes_Billerey(E)
         [7]
 

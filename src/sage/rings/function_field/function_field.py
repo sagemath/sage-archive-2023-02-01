@@ -95,7 +95,7 @@ ideals of those maximal orders::
     sage: O.basis()
     (1, y, 1/x*y^2 + 1/x*y, 1/x^3*y^3 + 2/x^3*y^2 + 1/x^3*y)
     sage: I = O.ideal(x,y); I
-    Ideal (x, y + x) of Maximal order of Function field in y defined by y^4 + y + 2*x^5
+    Ideal (x, y) of Maximal order of Function field in y defined by y^4 + y + 2*x^5
     sage: J = I^-1
     sage: J.basis_matrix()
     [  1   0   0   0]
@@ -104,6 +104,38 @@ ideals of those maximal orders::
     [  0   0   0   1]
     sage: L.maximal_order_infinite().basis()
     (1, 1/x^2*y, 1/x^3*y^2, 1/x^4*y^3)
+
+As an example of the most sophisticated computations that Sage can do with a
+global function field, we compute all the Weierstrass places of the Klein
+quartic over `\GF{2}` and gap numbers for ordinary places::
+
+    sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
+    sage: L.genus()
+    3
+    sage: L.weierstrass_places()
+    [Place (1/x, 1/x^3*y^2 + 1/x),
+     Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1),
+     Place (x, y),
+     Place (x + 1, (x^3 + 1)*y + x + 1),
+     Place (x^3 + x + 1, y + 1),
+     Place (x^3 + x + 1, y + x^2),
+     Place (x^3 + x + 1, y + x^2 + 1),
+     Place (x^3 + x^2 + 1, y + x),
+     Place (x^3 + x^2 + 1, y + x^2 + 1),
+     Place (x^3 + x^2 + 1, y + x^2 + x + 1)]
+    sage: L.gaps()
+    [1, 2, 3]
+
+The gap numbers for Weierstrass places are of course not ordinary::
+
+    sage: p1,p2,p3 = L.weierstrass_places()[:3]
+    sage: p1.gaps()
+    [1, 2, 4]
+    sage: p2.gaps()
+    [1, 2, 4]
+    sage: p3.gaps()
+    [1, 2, 4]
 
 AUTHORS:
 
@@ -126,7 +158,7 @@ AUTHORS:
 
 """
 from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2011-2018 Julian Rüth <julian.rueth@gmail.com>
@@ -135,8 +167,8 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.cachefunc import cached_method
 
 from sage.interfaces.all import singular
@@ -146,8 +178,12 @@ from sage.arith.all import lcm
 from sage.rings.ring import Field
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+from sage.modules.free_module_element import vector
+
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
+
+from .differential import DifferentialsSpace, DifferentialsSpace_global
 
 from .element import (
     FunctionFieldElement,
@@ -200,6 +236,8 @@ class FunctionField(Field):
         sage: K
         Rational function field in x over Rational Field
     """
+    _differentials_space = DifferentialsSpace
+
     def __init__(self, base_field, names, category=FunctionFields()):
         """
         Initialize.
@@ -696,7 +734,7 @@ class FunctionField(Field):
 
         OUTPUT:
 
-        - a list of fields; the first entry is ``base``, the last entry is this field.
+        - a list of fields; the first entry is this field, the last entry is ``base``
 
         EXAMPLES::
 
@@ -892,8 +930,7 @@ class FunctionField(Field):
             sage: L.space_of_differentials()
             Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
         """
-        from .differential import DifferentialsSpace
-        return DifferentialsSpace(self)
+        return self._differentials_space(self)
 
     def divisor_group(self):
         """
@@ -2266,12 +2303,8 @@ class FunctionField_polymod(FunctionField):
         Suppose that the constant base field is perfect. If this is a monic
         integral inseparable extension of a rational function field, then the
         defining polynomial is separable if we swap the variables (Proposition
-        4.8 in Chapter VIII of [Lang2002]_.)
+        4.8 in Chapter VIII of [Lan2002]_.)
         The algorithm reduces to this case with :meth:`monic_integral_model`.
-
-        REFERENCES:
-
-        .. [Lang2002] Serge Lang. Algebra. Springer, 2002.
 
         EXAMPLES::
 
@@ -2552,8 +2585,23 @@ class FunctionField_global(FunctionField_polymod):
         sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
         sage: L
         Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+
+    The defining equation needs not be monic::
+
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension((1 - x)*Y^7 - x^3)
+        sage: L.gaps()
+        [1, 2, 3]
+
+    or may define a trivial extension::
+
+        sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y-1)
+        sage: L.genus()
+        0
     """
     Element = FunctionFieldElement_global
+    _differentials_space = DifferentialsSpace_global
 
     def __init__(self, polynomial, names):
         """
@@ -2731,6 +2779,28 @@ class FunctionField_global(FunctionField_polymod):
         """
         return place.residue_field(name=name)
 
+    @cached_method
+    def higher_derivation(self):
+        """
+        Return the higher derivation (also called the Hasse-Schmidt derivation)
+        for the function field.
+
+        The higher derivation of the function field is uniquely determined with
+        respect to the separating element `x` of the base rational function
+        field `k(x)`.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(5)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: L.higher_derivation()
+            Higher derivation map:
+              From: Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+              To:   Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+        """
+        from .maps import FunctionFieldHigherDerivation_global
+        return FunctionFieldHigherDerivation_global(self)
+
     def places(self, degree=1):
         """
         Return a list of the places with ``degree``.
@@ -2841,6 +2911,33 @@ class FunctionField_global(FunctionField_polymod):
             if place.degree() == degree:
                 yield place
 
+    def places_above(self, p):
+        """
+        Return places lying above ``p``.
+
+        INPUT:
+
+        - ``p`` -- place of the base rational function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: all(q.place_below() == p for p in K.places() for q in F.places_above(p))
+            True
+        """
+        R = self.base_field()
+
+        if not p in R.place_set():
+            raise TypeError("not a place of the base rational function field")
+
+        if p.is_infinite_place():
+            dec = self.maximal_order_infinite().decomposition()
+        else:
+            dec = self.maximal_order().decomposition(p.prime_ideal())
+
+        return tuple([p.place() for p, deg, exp in dec])
+
     def different(self):
         """
         Return the different of the function field.
@@ -2940,6 +3037,189 @@ class FunctionField_global(FunctionField_polymod):
         different_degree = self.different().degree() # must be even
         return different_degree // 2 - self.degree() / k.degree() + 1
 
+    def gaps(self):
+        """
+        Return the gaps of the function field.
+
+        These are the gaps at the ordinary places, that is, places which are
+        not Weierstrass places.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: L.gaps()
+            [1, 2, 3]
+        """
+        return self._weierstrass_places()[1]
+
+    def weierstrass_places(self):
+        """
+        Return all Weierstrass places of the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: L.weierstrass_places()
+            [Place (1/x, 1/x^3*y^2 + 1/x),
+             Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1),
+             Place (x, y),
+             Place (x + 1, (x^3 + 1)*y + x + 1),
+             Place (x^3 + x + 1, y + 1),
+             Place (x^3 + x + 1, y + x^2),
+             Place (x^3 + x + 1, y + x^2 + 1),
+             Place (x^3 + x^2 + 1, y + x),
+             Place (x^3 + x^2 + 1, y + x^2 + 1),
+             Place (x^3 + x^2 + 1, y + x^2 + x + 1)]
+        """
+        return self._weierstrass_places()[0].support()
+
+    @cached_method
+    def _weierstrass_places(self):
+        """
+        Return the Weierstrass places together with the gap sequence for
+        ordinary places.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: len(L.weierstrass_places())  # indirect doctest
+            10
+
+        This method implements Algorithm 30 in [Hes2002b]_.
+        """
+        from sage.matrix.constructor import matrix
+
+        W = self(self.base_field().gen()).differential().divisor()
+        basis = W._basis()
+
+        if not basis:
+            return [], []
+        d = len(basis)
+
+        der = self.higher_derivation()
+        M = matrix([basis])
+        e = 1
+        gaps = [1]
+        while M.nrows() < d:
+            row = vector([der._derive(basis[i], e) for i in range(d)])
+            if not row in M.row_space():
+                M = matrix(M.rows() + [row])
+                gaps.append(e+1)
+            e += 1
+
+        # This is faster than M.determinant(). Note that Mx
+        # is a matrix over univariate polynomial ring.
+        Mx = matrix(M.nrows(), [c._x for c in M.list()])
+        detM = self(Mx.determinant() % self._polynomial)
+
+        R = detM.divisor() + sum(gaps)*W  # ramification divisor
+
+        return R, gaps
+
+    @cached_method
+    def completion(self, place, name=None, prec=None, gen_name=None):
+        """
+        Return the completion of the function field at the place.
+
+        INPUT:
+
+        - ``place`` -- place
+
+        - ``name`` -- string; name of the series variable
+
+        - ``prec`` -- positive integer; default precision
+
+        - ``gen_name`` -- string; name of the generator of the residue field;
+          used only when the place is non-rational
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p); m
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Finite Field of size 2
+            sage: m(x,10)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+            sage: m(y,10)
+            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
+        """
+        from .maps import FunctionFieldCompletion_global
+        return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
+
+    @cached_method
+    def L_polynomial(self, name='t'):
+        """
+        Return the L-polynomial of the function field.
+
+        INPUT:
+
+        - ``name`` -- (default: ``t``) name of the variable of the polynomial
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: F.L_polynomial()
+            2*t^2 + t + 1
+        """
+        from sage.rings.all import ZZ
+        q = self.constant_field().order()
+        g = self.genus()
+
+        B = [len(self.places(i+1)) for i in range(g)]
+        N = [sum(d * B[d-1] for d in ZZ(i+1).divisors()) for i in range(g)]
+        S = [N[i] - q**(i+1) - 1 for i in range(g)]
+
+        a = [1]
+        for i in range(1, g+1):
+            a.append(sum(S[j] * a[i-j-1] for j in range(i)) / i)
+        for j in range(1, g+1):
+            a.append(q**j * a[g-j])
+
+        return ZZ[name](a)
+
+    def number_of_rational_places(self, r=1):
+        """
+        Return the number of rational places of the function field whose
+        constant field extended by degree ``r``.
+
+        INPUT:
+
+        - ``r`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: F.number_of_rational_places()
+            4
+            sage: [F.number_of_rational_places(r) for r in [1..10]]
+            [4, 8, 4, 16, 44, 56, 116, 288, 508, 968]
+        """
+        from sage.rings.all import IntegerRing
+
+        q = self.constant_field().order()
+        L = self.L_polynomial()
+        Lp = L.derivative()
+
+        R = IntegerRing()[[L.parent().gen()]] # power series ring
+
+        old_prec = R.default_prec()
+        R.set_default_prec(r)
+
+        f = R(Lp / L)
+        n = f[r-1] + q**r + 1
+
+        R.set_default_prec(old_prec)
+
+        return n
+
 class FunctionField_global_integral(FunctionField_global):
     """
     Global function fields defined by an irreducible and separable polynomial,
@@ -2980,7 +3260,7 @@ class FunctionField_global_integral(FunctionField_global):
         g = sum([v[i].numerator().subs(x) * y**i for i in range(len(v))])
 
         # Singular "normalP" algorithm assumes affine domain over
-        # a prime field. So we constuct gflat lifting g as in
+        # a prime field. So we construct gflat lifting g as in
         # k_prime[yy,xx,zz]/(k_poly) where k = k_prime[zz]/(k_poly)
         R = PolynomialRing(k.prime_subfield(), names='yy,xx,zz')
         gflat = R.zero()
@@ -3163,7 +3443,7 @@ class RationalFunctionField(FunctionField):
             sage: TestSuite(K).run()
 
             sage: FunctionField(QQ[I], 'alpha')
-            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1
+            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
         Must be over a field::
 
@@ -3897,6 +4177,8 @@ class RationalFunctionField_global(RationalFunctionField):
     """
     Rational function field over finite fields.
     """
+    _differentials_space = DifferentialsSpace_global
+
     def places(self, degree=1):
         """
         Return all places of the degree.
@@ -3993,3 +4275,74 @@ class RationalFunctionField_global(RationalFunctionField):
             True
         """
         return place.residue_field(name=name)
+
+    @cached_method
+    def higher_derivation(self):
+        """
+        Return the higher derivation for the function field.
+
+        This is also called the Hasse-Schmidt derivation.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(5))
+            sage: d = F.higher_derivation()
+            sage: [d(x^5,i) for i in range(10)]
+            [x^5, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+            sage: [d(x^7,i) for i in range(10)]
+            [x^7, 2*x^6, x^5, 0, 0, x^2, 2*x, 1, 0, 0]
+        """
+        from .maps import FunctionFieldHigherDerivation_rational
+        return FunctionFieldHigherDerivation_rational(self)
+
+    @cached_method
+    def completion(self, place, name=None, prec=None, gen_name=None):
+        """
+        Return the completion of the function field at the place
+
+        INPUT:
+
+        - ``place`` -- place
+
+        - ``name`` -- string; name of the series variable
+
+        - ``prec`` -- positive integer; default precision
+
+        - ``gen_name`` -- string; name of the generator of the residue field;
+          used only when the place is non-rational
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: p = K.places_finite()[0]; p
+            Place (x)
+            sage: m = K.completion(p); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Laurent Series Ring in s over Finite Field of size 2
+            sage: m(1/(x+1))
+            1 + s + s^2 + s^3 + s^4 + s^5 + s^6 + s^7 + s^8 + s^9 + s^10 + s^11 + s^12
+            + s^13 + s^14 + s^15 + s^16 + s^17 + s^18 + s^19 + O(s^20)
+
+            sage: p = K.place_infinite(); p
+            Place (1/x)
+            sage: m = K.completion(p); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Laurent Series Ring in s over Finite Field of size 2
+            sage: m(x)
+            s^-1 + O(s^19)
+
+            sage: m = K.completion(p, prec=infinity); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Lazy Laurent Series Ring in s over Finite Field of size 2
+            sage: f = m(x); f
+            s^-1 + ...
+            sage: f.coefficient(100)
+            0
+        """
+        from .maps import FunctionFieldCompletion_global
+        return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
+
+

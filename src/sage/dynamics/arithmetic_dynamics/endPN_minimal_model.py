@@ -534,7 +534,7 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
         sage: f = DynamicalSystem([x^3 - 4^2*y^3, x*y^2])
         sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import BM_all_minimal
         sage: cl = BM_all_minimal(f, return_transformation=True)
-        sage: all([f.conjugate(m) == g for g,m in cl])
+        sage: all(f.conjugate(m) == g for g, m in cl)
         True
     """
     mp = copy(vp)
@@ -725,7 +725,7 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
     This function implements the algorithm in Hutz-Stoll [HS2018]_.
     A representatives in each distinct `SL(2,\ZZ)` orbit with minimal
     valuation with respect to the prime ``p`` is returned. The input
-    ``f`` must have minimal resultant in its conguacy class.
+    ``f`` must have minimal resultant in its conjugacy class.
 
     INPUT:
 
@@ -757,7 +757,7 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
            Defn: Defined on coordinates by sending (x : y) to
                  (4*x^5 - 162*y^5 : x^2*y^3)]
         sage: cl = HS_all_minimal_p(2, f, return_transformation=True)
-        sage: all([f.conjugate(m) == g for g,m in cl])
+        sage: all(f.conjugate(m) == g for g, m in cl)
         True
     """
     count = 0
@@ -824,7 +824,7 @@ def HS_all_minimal(f, return_transformation=False, D=None):
 
     This function implements the algorithm in Hutz-Stoll [HS2018]_.
     A representative in each distinct `SL(2,\ZZ)` orbit is returned.
-    The input ``f`` must have minimal resultant in its conguacy class.
+    The input ``f`` must have minimal resultant in its conjugacy class.
 
     INPUT:
 
@@ -874,7 +874,7 @@ def HS_all_minimal(f, return_transformation=False, D=None):
         sage: f = DynamicalSystem([x^3 - 6^2*y^3, x*y^2])
         sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import HS_all_minimal
         sage: cl = HS_all_minimal(f, return_transformation=True)
-        sage: all([f.conjugate(m) == g for g,m in cl])
+        sage: all(f.conjugate(m) == g for g, m in cl)
         True
     """
     MS = MatrixSpace(ZZ, 2)
@@ -915,7 +915,7 @@ def get_bound_dynamical(F, f, m=1, dynatomic=True, prec=53, emb=None):
     The hyperbolic distance from `j` which must contain the smallest map.
 
     This defines the maximum possible distance from `j` to the `z_0` covariant
-    of the assocaited binary form `F` in the hyperbolic 3-space
+    of the associated binary form `F` in the hyperbolic 3-space
     for which the map `f`` could have smaller coefficients.
 
     INPUT:
@@ -927,7 +927,7 @@ def get_bound_dynamical(F, f, m=1, dynatomic=True, prec=53, emb=None):
 
     - ``m`` - positive integer. the period used to create ``F``
 
-    - ``dyantomic`` -- boolean. whether ``F`` is the periodic points or the
+    - ``dynatomic`` -- boolean. whether ``F`` is the periodic points or the
       formal periodic points of period ``m`` for ``f``
 
     - ``prec``-- positive integer. precision to use in CC
@@ -998,7 +998,7 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
 
     - ``f`` -- a dynamical system on `P^1`
 
-    - ``dyantomic`` -- boolean. whether ``F`` is the periodic points or the
+    - ``dynatomic`` -- boolean. whether ``F`` is the periodic points or the
       formal periodic points of period ``m`` for ``f``
 
     - ``start_n`` - positive integer. the period used to start trying to

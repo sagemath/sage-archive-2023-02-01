@@ -103,7 +103,7 @@ Sage example in ./lp.tex, line 360::
   sage: try:
   ....:    p.solve()
   ....:    print("The problem has a solution!")
-  ....: except:
+  ....: except RuntimeError:
   ....:    print("The problem is infeasible!")
   The problem is infeasible!
 

@@ -225,8 +225,15 @@ class MinorMatroid(Matroid):
             sage: from sage.matroids.advanced import *
             sage: M = MinorMatroid(matroids.named_matroids.Vamos(),
             ....:                 contractions=set('c'), deletions={'b', 'f'})
-            sage: sorted(M._max_independent(set(['a', 'd', 'e', 'g'])))
+            sage: X = M._max_independent(set(['a', 'd', 'e', 'g']))
+            sage: sorted(X) # py2
             ['a', 'd', 'e']
+            sage: sorted(X) # py3 # random
+            ['a', 'd', 'e']
+            sage: M.is_independent(X)
+            True
+            sage: all(M.is_dependent(X.union([y])) for y in M.groundset() if y not in X)
+            True
         """
         return self._matroid._augment(self._contractions, X)
 
@@ -272,9 +279,15 @@ class MinorMatroid(Matroid):
             sage: from sage.matroids.advanced import *
             sage: M = MinorMatroid(matroids.named_matroids.Vamos(),
             ....:                 contractions=set('c'), deletions={'b', 'f'})
-            sage: sorted(M._max_coindependent(set(['a', 'd', 'e', 'g'])))
+            sage: X = M._max_coindependent(set(['a', 'd', 'e', 'g']))
+            sage: sorted(X) # py2
             ['d', 'g']
-
+            sage: sorted(X) # py3 random
+            ['d', 'g']
+            sage: M.is_coindependent(X)
+            True
+            sage: all(M.is_codependent(X.union([y])) for y in M.groundset() if y not in X)
+            True
         """
         return X - self._matroid._augment(self._contractions.union(self._groundset - X), X)
 

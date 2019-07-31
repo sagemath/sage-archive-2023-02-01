@@ -112,7 +112,6 @@ Comprehensive Module list
     sage/combinat/designs/subhypergraph_search
     sage/combinat/designs/twographs
     sage/combinat/diagram_algebras
-    sage/combinat/dict_addition
     sage/combinat/dlx
     sage/combinat/dyck_word
     sage/combinat/e_one_star
@@ -145,7 +144,6 @@ Comprehensive Module list
     sage/combinat/k_tableau
     sage/combinat/kazhdan_lusztig
     sage/combinat/knutson_tao_puzzles
-    sage/combinat/lyndon_word
     sage/combinat/matrices/__init__
     sage/combinat/matrices/all
     sage/combinat/matrices/dancing_links
@@ -366,6 +364,7 @@ Comprehensive Module list
     sage/combinat/words/alphabet
     sage/combinat/words/finite_word
     sage/combinat/words/infinite_word
+    sage/combinat/words/lyndon_word
     sage/combinat/words/morphism
     sage/combinat/words/paths
     sage/combinat/words/shuffle_product

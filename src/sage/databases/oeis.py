@@ -287,10 +287,11 @@ class OEIS:
 
     The database can be searched by subsequence::
 
-        sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
-        0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-        1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-        2: ...
+        sage: search = oeis([1,2,3,5,8,13])                         # optional -- internet
+        sage: search = sorted(search, key=lambda x: x.id()); search # optional -- internet
+        [A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.,
+         A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.,
+         A290689: Number of transitive rooted trees with n nodes.]
 
         sage: fibo = search[0]                         # optional -- internet
 
@@ -331,11 +332,11 @@ class OEIS:
 
     The database can be searched by description::
 
-        sage: oeis('prime gap factorization', max_results=4)                # optional -- internet
-        0: A073491: Numbers having no prime gaps in their factorization.
-        1: A073490: Number of prime gaps in factorization of n.
-        2: A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.
-        3: A073492: Numbers having at least one prime gap in their factorization.
+        sage: sorted(oeis('prime gap factorization', max_results=4), key=lambda x: x.id()) # optional --internet
+        [A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.,
+         A073490: Number of prime gaps in factorization of n.,
+         A073491: Numbers having no prime gaps in their factorization.,
+         A073492: Numbers having at least one prime gap in their factorization.]
 
     .. WARNING::
 
@@ -343,9 +344,7 @@ class OEIS:
         database, and once again for creating the sequence ``fibo``)::
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
-            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: ...
+            ...
 
             sage: fibo = oeis('A000045')                # optional -- internet
 
@@ -353,10 +352,10 @@ class OEIS:
         Instead, do the following, to reuse the result of the search to create
         the sequence::
 
-            sage: oeis([1,2,3,5,8,13])                  # optional -- internet
-            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: ...
+            sage: sorted(oeis([1,2,3,5,8,13]), key=lambda x: x.id()) # optional -- internet
+            [A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.,
+             A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.,
+             A290689: Number of transitive rooted trees with n nodes.]
 
             sage: fibo = _[0]                           # optional -- internet
     """
@@ -447,10 +446,10 @@ class OEIS:
 
         EXAMPLES::
 
-            sage: oeis.find_by_description('prime gap factorization')       # optional -- internet
-            0: A073491: Numbers having no prime gaps in their factorization.
-            1: A073490: Number of prime gaps in factorization of n.
-            2: A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.
+            sage: sorted(oeis.find_by_description('prime gap factorization'), key=lambda x: x.id()) # optional -- internet
+            [A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.,
+             A073490: Number of prime gaps in factorization of n.,
+             A073491: Numbers having no prime gaps in their factorization.]
 
             sage: prime_gaps = _[1] ; prime_gaps        # optional -- internet
             A073490: Number of prime gaps in factorization of n.
@@ -927,7 +926,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's ...
+            A087778: Decimal expansion ... Avogadro...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23
@@ -1746,7 +1745,7 @@ class OEISSequence(SageObject):
             A001113: Decimal expansion of e.
 
             sage: ee.programs()[0]                      # optional -- internet
-            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } \\\\ _Harry J. Smith_, Apr 15 2009'
+            '(PARI) default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); \\\\ _Harry J. Smith_, Apr 15 2009'
 
         TESTS::
 
@@ -1808,9 +1807,14 @@ class FancyTuple(tuple):
             2: two
             3: three
             4: 4
+
+            sage: t = FancyTuple(['Français', 'Español', '中文']) ; t
+            0: Français
+            1: Español
+            2: 中文
         """
         length = len(str(len(self) - 1))
-        return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
+        return '\n'.join('{0:>{1}}: {2}'.format(i, length, item) for i, item in enumerate(self))
 
     def __getslice__(self, i, j):
         r"""

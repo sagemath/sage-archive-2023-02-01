@@ -804,6 +804,17 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         275.510983763312
         sage: a.imag_part()    # abs tol 1e-13
         0.0
+
+    This used to be solved by the ``abs_integrate`` Maxima package
+    but can be solved now without it::
+
+        sage: integrate(abs(x), x)
+        1/2*x*abs(x)
+        sage: integral(abs(cos(x))*sin(x),(x,pi/2,pi))
+        1/2
+        sage: f = (x^2)*exp(x) / (1+exp(x))^2
+        sage: integrate(f, (x, -infinity, infinity))
+        1/3*pi^2
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

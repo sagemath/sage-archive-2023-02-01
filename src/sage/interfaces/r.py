@@ -550,7 +550,7 @@ class R(ExtraTabCompletion, Interface):
             sage: r = R()
             sage: r.set_seed(1)
             1
-            sage: r.sample("1:10", 5)
+            sage: r.sample("1:10", 5) # random
             [1] 3 4 5 7 2
         """
         if seed is None:

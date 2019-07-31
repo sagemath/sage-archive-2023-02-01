@@ -1634,7 +1634,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             ((1,43) - (1,45), (1,47), (1,50))
             sage: [ p(x) for x in S.basis() ]
             [(1,43) - (1,45), (1,47), (1,50)]
-            sage: all([p(x)==x for x in S.basis()])
+            sage: all(p(x)==x for x in S.basis())
             True
         """
 

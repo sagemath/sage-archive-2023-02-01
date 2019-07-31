@@ -610,7 +610,7 @@ class CovariantConstructionCategory(FunctorialConstructionCategory):
                 AttributeError: 'JoinCategory_with_category' object has no attribute 'is_construction_defined_by_base'
         """
         base = self.base_category()
-        f = self._functor_category;
+        f = self._functor_category
         return not any(hasattr(C, f) for C in base.super_categories())
 
     def additional_structure(self):

@@ -168,7 +168,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
             ...
         """
-        cmd = 'maxima --very-quiet -r "%s(%s);" '%(command, s)
+        cmd = 'maxima --very-quiet --batch-string="%s(%s);" '%(command, s)
         if sage.server.support.EMBEDDED_MODE:
             cmd += '< /dev/null'
 
@@ -178,9 +178,9 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         if redirect:
             res = bytes_to_str(subprocess.check_output(cmd, shell=True,
                                                        env=env))
-            # We get 4 lines of commented verbosity
-            # every time Maxima starts, so we need to get rid of them
-            for _ in range(4):
+            # We get 4 lines of commented verbosity every time Maxima starts
+            # and the input is echoed, so we need to get rid of them
+            for _ in range(5):
                 res = res[res.find('\n')+1:]
 
             return AsciiArtString(res)
@@ -969,12 +969,12 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: u = maxima.unit_quadratic_integer(101); u
             a + 10
             sage: u.parent()
-            Number Field in a with defining polynomial x^2 - 101
+            Number Field in a with defining polynomial x^2 - 101 with a = 10.04987562112089?
             sage: u = maxima.unit_quadratic_integer(13)
             sage: u
             5*a + 18
             sage: u.parent()
-            Number Field in a with defining polynomial x^2 - 13
+            Number Field in a with defining polynomial x^2 - 13 with a = 3.605551275463990?
         """
         from sage.rings.all import Integer
         from sage.rings.number_field.number_field import QuadraticField

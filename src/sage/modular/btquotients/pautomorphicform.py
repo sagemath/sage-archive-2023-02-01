@@ -4,7 +4,7 @@
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #########################################################################
 r"""
 Spaces of `p`-adic automorphic forms
@@ -13,8 +13,8 @@ Compute with harmonic cocycles and `p`-adic automorphic forms, including
 overconvergent `p`-adic automorphic forms.
 
 For a discussion of nearly rigid analytic modular forms and
-the rigid analytic Shimura-Maass operator, see [F]_. It is worth also
-looking at [FM]_ for information on how these are implemented in this code.
+the rigid analytic Shimura-Maass operator, see [Fra2011]_. It is worth also
+looking at [FM2014]_ for information on how these are implemented in this code.
 
 EXAMPLES:
 
@@ -38,12 +38,6 @@ This can then be lifted to an overconvergent `p`-adic modular form::
 
     sage: A.lift(a) # long time
     p-adic automorphic form of cohomological weight 0
-
-REFERENCES:
-
-.. [F] Nearly rigid analytic modular forms and their values at CM points
-   Cameron Franc
-   Ph.D. thesis, McGill University, 2011.
 """
 from __future__ import print_function, division
 
@@ -69,7 +63,6 @@ from sage.misc.misc import verbose
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
-from sage.misc.superseded import deprecated_function_alias
 
 # Need this to be pickleable
 
@@ -404,11 +397,11 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: X = BruhatTitsQuotient(3,17)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0]._compute_element()
-            (1 + O(3^10), O(3^10), 0)
+            (1 + O(3^10), 0, 0)
             sage: H.basis()[1]._compute_element()
             (0, 1 + O(3^10), 0)
             sage: H.basis()[2]._compute_element()
-            (0, O(3^10), 1 + O(3^10))
+            (0, 0, 1 + O(3^10))
         """
         R = self._R
         A = self.parent().basis_matrix().transpose()
@@ -1531,7 +1524,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
     automorphic form on a definite quaternion algebra over `\QQ`. These
     are required in order to compute moments of measures associated to
     harmonic cocycles on the Bruhat-Tits tree using the overconvergent modules
-    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis [G]_ for
+    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis [Gr2006]_ for
     more details.
 
     INPUT:
@@ -1547,12 +1540,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         sage: a = HH(h)
         sage: a
         p-adic automorphic form of cohomological weight 0
-
-    REFERENCES:
-
-    .. [G] Heegner points and rigid analytic modular forms
-       Matthew Greenberg
-       Ph.D. Thesis, McGill University, 2006.
 
     AUTHORS:
 
@@ -1822,7 +1809,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
 
         REFERENCES:
 
-        For details see [G]_. Alternatively, one can look at
+        For details see [Gr2006]_. Alternatively, one can look at
         [DP]_ for the analogous algorithm in the case of modular symbols.
 
         AUTHORS:
@@ -2343,18 +2330,8 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             sage: H1 = X.padic_automorphic_forms( 2, prec=10)
             sage: H1.zero() == 0
             True
-
-        TESTS::
-
-           sage: H1.zero_element() == 0
-           doctest:...:
-           DeprecationWarning: zero_element is deprecated. Please use zero instead.
-           See http://trac.sagemath.org/24203 for details.
-           True
         """
         return self.element_class(self, [self._U(0) for o in self._list])
-
-    zero_element = deprecated_function_alias(24203, zero)
 
     def __eq__(self, other):
         r"""
@@ -2663,11 +2640,11 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         # Save original moments
         if original_moments is None:
             original_moments = [[fval._moments[ii] for ii in range(self._n + 1)]
-                            for fval in f._value]
+                                for fval in f._value]
 
         Tf = []
         for jj in range(len(self._list)):
-            tmp = self._U(0,normalize=False)
+            tmp = self._U(0, normalize=False)
             for gg, edge_list in HeckeData:
                 u = edge_list[jj]
                 tprec = 2 * (prec_cap + u.power) + 1

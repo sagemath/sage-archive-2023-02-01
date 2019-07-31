@@ -642,20 +642,23 @@ class TriangularModuleMorphism(ModuleMorphism):
 
         Pickling fails (:trac:`17957`) because the attribute
         ``phi._inverse_on_support`` is a ``dict.get`` method which is
-        not yet picklable::
+        not picklable in Python 2::
 
             sage: phi = X.module_morphism(lt, triangular="lower", codomain=X,
             ....:                         inverse_on_support="compute")
-            sage: dumps(phi)
+            sage: dumps(phi) # py2
             Traceback (most recent call last):
             ...
             TypeError: expected string or Unicode object, NoneType found
             sage: phi._inverse_on_support
             <built-in method get of dict object at ...>
-            sage: dumps(phi._inverse_on_support)
+            sage: dumps(phi._inverse_on_support) # py2
             Traceback (most recent call last):
             ...
             TypeError: expected string or Unicode object, NoneType found
+            sage: ldp = loads(dumps(phi._inverse_on_support)) # py3
+            sage: [ldp(i) == phi._inverse_on_support(i) for i in range(1, 4)] # py3
+            [True, True, True]
         """
         if key is not None:
             self._key_kwds = dict(key=key)
@@ -1308,14 +1311,16 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             sage: TestSuite(phi).run(skip=["_test_pickling"])
 
         Pickling fails (:trac:`17957`) because ``phi._on_basis`` is
-        currently a ``dict.__getitem__`` which is not yet picklable::
+        currently a ``dict.__getitem__`` which is not picklable in Python 2::
 
             sage: phi._on_basis
             <built-in method __getitem__ of dict object at ...>
-            sage: dumps(phi._on_basis)
+            sage: dumps(phi._on_basis) # py2
             Traceback (most recent call last):
             ...
             TypeError: expected string or Unicode object, NoneType found
+            sage: loads(dumps(phi)) == phi # py3
+            True
 
         The matrix is stored in the morphism, as if it was for an
         action on the right::

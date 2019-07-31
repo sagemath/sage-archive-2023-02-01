@@ -62,7 +62,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 
 import six
@@ -70,17 +70,18 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
+from sage.categories.groups import Groups
 from sage.groups.free_group import FreeGroup, is_FreeGroup
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.combinat.permutation import Permutations
 from sage.categories.action import Action
 from sage.sets.set import Set
-from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
+from sage.groups.finitely_presented import FinitelyPresentedGroup
 from sage.groups.artin import FiniteTypeArtinGroup, FiniteTypeArtinGroupElement
 from sage.misc.package import PackageNotFoundError
 from sage.structure.richcmp import richcmp, rich_to_bool
-from sage.misc.superseded import deprecated_function_alias
+
 
 class Braid(FiniteTypeArtinGroupElement):
     """
@@ -923,7 +924,7 @@ class Braid(FiniteTypeArtinGroupElement):
         If ``skein_normalization`` if ``False``, this returns an element
         in the symbolic ring as the Jones polynomial of the closure might
         have fractional powers when the closure of the braid is not a knot.
-        Otherwise the result is a Laurant polynomial in ``variab``.
+        Otherwise the result is a Laurent polynomial in ``variab``.
 
         EXAMPLES:
 
@@ -1019,12 +1020,11 @@ class Braid(FiniteTypeArtinGroupElement):
             Remove this method and use the default one from
             :meth:`sage.groups.artin.FiniteTypeArtinGroupElement.left_normal_form`.
         """
-        n = self.parent().strands()
         delta = 0
         Delta = self.parent()._coxeter_group.long_element()
         sr = self.parent()._coxeter_group.simple_reflections()
         l = self.Tietze()
-        if l == ():
+        if not l:
             return (0,)
         form = []
         for i in l:
@@ -1430,7 +1430,8 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             sage: B1
             Braid group on 5 strands
             sage: TestSuite(B1).run()
-
+            sage: B1.category()
+            Category of infinite groups
 
         Check that :trac:`14081` is fixed::
 
@@ -1441,10 +1442,10 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         Check that :trac:`15505` is fixed::
 
-            sage: B=BraidGroup(4)
+            sage: B = BraidGroup(4)
             sage: B.relations()
             (s0*s1*s0*s1^-1*s0^-1*s1^-1, s0*s2*s0^-1*s2^-1, s1*s2*s1*s2^-1*s1^-1*s2^-1)
-            sage: B=BraidGroup('a,b,c,d,e,f')
+            sage: B = BraidGroup('a,b,c,d,e,f')
             sage: B.relations()
             (a*b*a*b^-1*a^-1*b^-1,
              a*c*a^-1*c^-1,
@@ -1473,7 +1474,12 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             rels.append(free_group([i, i+1, i, -i-1, -i, -i-1]))
             for j in range(i+2, n+1):
                 rels.append(free_group([i, j, -i, -j]))
-        FinitelyPresentedGroup.__init__(self, free_group, tuple(rels))
+        if n:
+            cat = Groups().Infinite()
+        else:
+            cat = Groups().Finite()
+        FinitelyPresentedGroup.__init__(self, free_group, tuple(rels),
+                                        category=cat)
         self._nstrands = n+1
         self._coxeter_group = Permutations(self._nstrands)
 
@@ -1583,7 +1589,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         EXAMPLES::
 
-            sage: B=BraidGroup(2)
+            sage: B = BraidGroup(2)
             sage: B.an_element()
             s
         """
@@ -1675,7 +1681,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         TESTS::
 
-            sage: B=BraidGroup(3)
+            sage: B = BraidGroup(3)
             sage: B._LKB_matrix_((2, 1, 2), 'x, y')
             [             0 -x^4*y + x^3*y         -x^4*y]
             [             0         -x^3*y              0]
@@ -1690,7 +1696,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             [0 0 1]
         """
         n = self.strands()
-        if len(braid)>1:
+        if len(braid) > 1:
             A = self._LKB_matrix_(braid[:1], variab)
             for i in braid[1:]:
                 A = A*self._LKB_matrix_((i,), variab)
@@ -1699,7 +1705,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
         R = LaurentPolynomialRing(IntegerRing(), variab)
         q = R.gens()[0]
         t = R.gens()[1]
-        if len(braid)==0:
+        if not braid:
             return identity_matrix(R, len(l), sparse=True)
         A = matrix(R, len(l), sparse=True)
         if braid[0]>0:
@@ -2140,15 +2146,12 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             Result lives in Free Group on generators {f0, f1, f2, f3}
             Free Group on generators {f0, f1, f2, f3}
             sage: cm.explain(b1, f1, operator.mul)
-            Will try _r_action and _l_action
             Unknown result parent.
         """
         import operator
         if is_FreeGroup(S) and op == operator.mul and not self_on_left:
             return self.mapping_class_action(S)
         return None
-
-    Delta = deprecated_function_alias(24664, FiniteTypeArtinGroup.delta)
 
     def _element_from_libbraiding(self, nf):
         """
@@ -2200,7 +2203,7 @@ def BraidGroup(n=None, names='s'):
     or the number of generators and the prefix of the names to be
     given. The default prefix is ``'s'`` ::
 
-        sage: B=BraidGroup(3); B.generators()
+        sage: B = BraidGroup(3); B.generators()
         (s0, s1)
         sage: BraidGroup(3, 'g').generators()
         (g0, g1)
@@ -2339,7 +2342,7 @@ class MappingClassGroupAction(Action):
         """
         t = x.Tietze()
         for j in b.Tietze():
-            s=[]
+            s = []
             for i in t:
                 if j==i and i>0:
                     s += [i, i+1, -i]
@@ -2361,4 +2364,3 @@ class MappingClassGroupAction(Action):
                     s += [i]
             t = s
         return self.codomain()(t)
-

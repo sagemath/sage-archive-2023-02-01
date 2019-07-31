@@ -811,7 +811,7 @@ class P1NFList(SageObject):
 
             sage: Ok = k.ring_of_integers()
             sage: L = [Matrix(Ok, 2, P.lift_to_sl2_Ok(i)) for i in range(len(P))]
-            sage: all([det(L[i]) == 1 for i in range(len(L))])
+            sage: all(det(L[i]) == 1 for i in range(len(L)))
             True
         """
         return self[i].lift_to_sl2_Ok()

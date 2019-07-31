@@ -25,7 +25,7 @@ decision diagrams (ZDDs), which is capable of handling these
 polynomials more efficiently with respect to memory consumption and
 also computational speed. Furthermore, we concentrate on high-level
 algorithmic aspects, taking into account the new data structures as
-well as structural properties of Boolean polynomials." - [BD07]_
+well as structural properties of Boolean polynomials." - [BD2007]_
 
 For details on the internal representation of polynomials see
 
@@ -173,13 +173,6 @@ accepting convenient Sage data types which are slower than their
 native PolyBoRi counterparts. For instance, sets of points can be
 represented as tuples of tuples (Sage) or as ``BooleSet`` (PolyBoRi)
 and naturally the second option is faster.
-
-REFERENCES:
-
-.. [BD07] Michael Brickenstein, Alexander Dreyer\; *PolyBoRi: A
-  Groebner basis framework for Boolean polynomials*; pre-print
-  available at
-  http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
 from __future__ import print_function, absolute_import
 
@@ -1247,10 +1240,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         EXAMPLES::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)  # py2
+            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
             x + y
-            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)  # py3
-            0
             sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
             0
         """
@@ -1329,17 +1320,17 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py2
             [x*y*z, x*y*z, x*y*z, y*z, x*z, z, z, y*z, x*y*z, 1]
-            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py3
+            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py3 random
             [x*y*z, x*y*z, x*y*z, x*y, x*z, x, x, y*z, x*y*z, 1]
         """
         from sage.rings.integer_ring import ZZ
         sample = current_randstate().python_random().sample
-        d = ZZ.random_element(0,degree+1)
+        d = ZZ.random_element(0, degree + 1)
         vars = sample(vars_set, d)
         M = self._monom_monoid
         m = M._one_element
         for j in vars:
-            m*=M.gen(j)
+            m *= M.gen(j)
         return self(m)
 
     def cover_ring(self):
@@ -4774,7 +4765,7 @@ cdef class PolynomialConstruct:
             # So, it is just a conversion. [Simon King]
             return (<BooleanPolynomialRing>ring)._element_constructor_(x)
 
-        raise TypeError("Cannot generate Boolean polynomial from %s , %s%" %
+        raise TypeError("Cannot generate Boolean polynomial from %s , %s" %
                         (type(x), type(ring)))
 
 
@@ -6370,7 +6361,7 @@ cdef class ReductionStrategy:
 
     def cheap_reductions(self, BooleanPolynomial p):
         """
-        Peform 'cheap' reductions on ``p``.
+        Perform 'cheap' reductions on ``p``.
 
         INPUT:
 

@@ -530,8 +530,8 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
                             for x in init_lift]
                 g = gcd(new_lift)
                 new_lift = [x // g for x in new_lift]
-                if  all([abs(x) <= ht_bound for x in new_lift]):
-                    a,b,c,d = new_lift
+                if  all(abs(x) <= ht_bound for x in new_lift):
+                    a, b, c, d = new_lift
                     f = (a*z + b) / (c*z + d)
                     if rational_function(f(z)) == f(rational_function(z)):
                         if return_functions:
@@ -635,19 +635,25 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
         sage: R.<z> = PolynomialRing(QQ)
         sage: f = (3*z^2 - 1)/(z^3 - 3*z)
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_CRT
-        sage: automorphism_group_QQ_CRT(f, 4, True)
-        [z, -z, 1/z, -1/z, (-z + 1)/(z + 1), (z + 1)/(z - 1), (z - 1)/(z + 1),
-        (-z - 1)/(z - 1)]
+        sage: sorted(automorphism_group_QQ_CRT(f, 4, True))
+        [-1/z,
+         1/z,
+         (-z - 1)/(z - 1),
+         (-z + 1)/(z + 1),
+         (z - 1)/(z + 1),
+         (z + 1)/(z - 1),
+         -z,
+         z]
 
     ::
 
         sage: R.<z> = PolynomialRing(QQ)
         sage: f = (3*z^2 - 1)/(z^3 - 3*z)
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_CRT
-        sage: automorphism_group_QQ_CRT(f, 4, False)
+        sage: sorted(automorphism_group_QQ_CRT(f, 4, False))
         [
-        [1 0]  [-1  0]  [0 1]  [ 0 -1]  [-1  1]  [ 1  1]  [ 1 -1]  [-1 -1]
-        [0 1], [ 0  1], [1 0], [ 1  0], [ 1  1], [ 1 -1], [ 1  1], [ 1 -1]
+        [-1 -1]  [-1  0]  [-1  1]  [ 0 -1]  [0 1]  [ 1 -1]  [1 0]  [ 1  1]
+        [ 1 -1], [ 0  1], [ 1  1], [ 1  0], [1 0], [ 1  1], [0 1], [ 1 -1]
         ]
     """
     if rational_function.parent().is_field():
@@ -1453,8 +1459,8 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
         sage: f = (z^2 + 5*z + 5)/(5*z^2 + 5*z + 1)
         sage: L = [[4, 1], [2, 1]]
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphisms_fixing_pair
-        sage: automorphisms_fixing_pair(f, L, False)
-        [(6*z + 6)/z, 6/(z + 1)]
+        sage: sorted(automorphisms_fixing_pair(f, L, False))
+        [6/(z + 1), (6*z + 6)/z]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():

@@ -697,7 +697,7 @@ class Partition(CombinatorialElement):
             sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_list())
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
         """
-        return '[%s]' % ', '.join('%s'%m for m in self)
+        return '[%s]' % ', '.join('%s' % m for m in self)
 
     def _repr_exp_low(self):
         """
@@ -974,7 +974,7 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: mu=Partition([5,5,2,1])
+            sage: mu = Partition([5,5,2,1])
             sage: Partitions.options(diagram_str='*', convention="english")
             sage: print(mu.ferrers_diagram())
             *****
@@ -1004,13 +1004,13 @@ class Partition(CombinatorialElement):
         if not self._list:
             return '-' if diag_str != '-' else "(/)"
         if self.parent().options.convention == "English":
-            return '\n'.join([diag_str * p for p in self])
+            return '\n'.join(diag_str * p for p in self)
         else:
-            return '\n'.join([diag_str * p for p in reversed(self)])
+            return '\n'.join(diag_str * p for p in reversed(self))
 
     def pp(self):
         r"""
-        Prints the Ferrers diagram.
+        Print the Ferrers diagram.
 
         See :meth:`ferrers_diagram` for more on the Ferrers diagram.
 
@@ -1756,14 +1756,14 @@ class Partition(CombinatorialElement):
 
     def up(self):
         r"""
-        Returns a generator for partitions that can be obtained from ``self``
+        Return a generator for partitions that can be obtained from ``self``
         by adding a cell.
 
         EXAMPLES::
 
-            sage: [p for p in Partition([2,1,1]).up()]
+            sage: list(Partition([2,1,1]).up())
             [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
-            sage: [p for p in Partition([3,2]).up()]
+            sage: list(Partition([3,2]).up())
             [[4, 2], [3, 3], [3, 2, 1]]
             sage: [p for p in Partition([]).up()]
             [[1]]
@@ -1772,10 +1772,9 @@ class Partition(CombinatorialElement):
         previous = p.get_part(0) + 1
         for i, current in enumerate(p):
             if current < previous:
-                yield Partition(p[:i] + [ p[i] + 1 ] + p[i+1:])
+                yield Partition(p[:i] + [current + 1] + p[i + 1:])
             previous = current
-        else:
-            yield Partition(p + [1])
+        yield Partition(p + [1])
 
     def up_list(self):
         """
@@ -1791,7 +1790,7 @@ class Partition(CombinatorialElement):
             sage: Partition([]).up_list()
             [[1]]
         """
-        return [p for p in self.up()]
+        return list(self.up())
 
     def down(self):
         r"""
@@ -2159,11 +2158,7 @@ class Partition(CombinatorialElement):
 
         REFERENCES:
 
-        .. [AG1988] George E. Andrews, F. G. Garvan,
-           *Dyson's crank of a partition*.
-           Bull. Amer. Math. Soc. (N.S.) Volume 18, Number 2 (1988),
-           167-171.
-           http://projecteuclid.org/euclid.bams/1183554533
+        - [AG1988]_
 
         EXAMPLES::
 
@@ -2582,13 +2577,6 @@ class Partition(CombinatorialElement):
             Traceback (most recent call last):
             ...
             ValueError: the hook length must be less than n
-
-        REFERENCES:
-
-        .. [Sut2002] Ruedi Suter.
-           *Young's Lattice and Dihedral Symmetries*.
-           Europ. J. Combinatorics (2002) 23, 233--238.
-           http://www.sciencedirect.com/science/article/pii/S0195669801905414
         """
         # Check for valid input
         if len(self) > 0 and len(self) + self._list[0] > n: # >, not >=, since we double count the (0,0) cell
@@ -2761,7 +2749,7 @@ class Partition(CombinatorialElement):
         representation theory because they determine the "straightening" rules
         for the Specht modules. The *top Garnir tableaux* arise in the graded
         representation theory of the symmetric groups and higher level Hecke
-        algebras. They were introduced in [KMR]_.
+        algebras. They were introduced in [KMR2012]_.
 
         If the Garnir node is ``cell=(r,c)`` and `m` and `M` are the entries
         in the cells ``(r,c)`` and ``(r+1,c)``, respectively, in the initial
@@ -2806,9 +2794,9 @@ class Partition(CombinatorialElement):
             ...
             ValueError: (4,2)=(row+1,col) must be inside the diagram
 
-        REFERENCE:
+        REFERENCES:
 
-        - [KMR]_
+        - [KMR2012]_
         """
         (row,col)=cell
         if row+1>=len(self) or col>=self[row+1]:
@@ -3662,7 +3650,7 @@ class Partition(CombinatorialElement):
 
            \prod_{i=1}^{\mathrm{length}(p)} \frac{1 - q^{p_i}}{1 - t^{p_i}}.
 
-        See [Ker]_.
+        See Section 1.3, p. 24, in [Ke1991]_.
 
         EXAMPLES::
 
@@ -3815,7 +3803,7 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 
@@ -3940,13 +3928,7 @@ class Partition(CombinatorialElement):
             15
             sage: Partition([2,1,1]).conjugacy_class_size()
             6
-
-        REFERENCES:
-
-        .. [Ker] Kerber, A. 'Algebraic Combinatorics via Finite Group Actions'
-           1.3 p24
         """
-
         return factorial(sum(self))/self.centralizer_size()
 
     def corners(self):
@@ -4179,7 +4161,7 @@ class Partition(CombinatorialElement):
         One place where these arise is in the affine symmetric group where
         one takes an affine permutation `w` and every `i` such that
         `w(i) \leq 0` corresponds to a 1 and `w(i) > 0` corresponds to a 0.
-        See pages 24-25 of [LLMMSZ13]_ for connections to affine Grassmannian
+        See pages 24-25 of [LLMSSZ2013]_ for connections to affine Grassmannian
         elements (note there they use the French convention for their
         partitions).
 
@@ -4194,12 +4176,6 @@ class Partition(CombinatorialElement):
         0 (unless it is empty, for the empty partition). Its length
         is the sum of the first part of the partition with the
         length of the partition.
-
-        REFERENCES:
-
-        .. [LLMMSZ13] Thomas Lam, Luc Laponte, Jennifer Morse, Anne Schilling,
-           Mark Shimozono, and Mike Zabrocki. `k`-Schur Functions and Affine
-           Schubert Calculus. 2013. :arxiv:`1301.3569`.
 
         EXAMPLES::
 
@@ -4526,9 +4502,7 @@ class Partition(CombinatorialElement):
 
         REFERENCES:
 
-        .. [LM2004] Lapointe, L. and Morse, J. 'Order Ideals in Weak Subposets
-           of Young's Lattice and Associated Unimodality Conjectures'. Ann.
-           Combin. (2004)
+        - [LM2004]_
 
         EXAMPLES::
 
@@ -4599,13 +4573,7 @@ class Partition(CombinatorialElement):
 
         This uses the fact that there is a bijection between `k`-bounded
         partitions and `(k+1)`-cores and an action of the affine nilCoxeter
-        algebra of type `A_k^{(1)}` on `(k+1)`-cores as described in [LM2006]_.
-
-        REFERENCES:
-
-        .. [LM2006] MR2167475 (2006j:05214)
-           L. Lapointe, J. Morse. Tableaux on `k+1`-cores, reduced words for affine permutations, and `k`-Schur expansions.
-           J. Combin. Theory Ser. A 112 (2005), no. 1, 44--81.
+        algebra of type `A_k^{(1)}` on `(k+1)`-cores as described in [LM2006b]_.
 
         EXAMPLES::
 
@@ -5103,14 +5071,6 @@ class Partition(CombinatorialElement):
         ``smaller`` have the same `k`-core, then use the `k`-quotients
         and the same algorithm on each of the `k`-quotients.
 
-        REFERENCES:
-
-        .. [ORV] Grigori Olshanski, Amitai Regev, Anatoly Vershik,
-           *Frobenius-Schur functions*,
-           :arxiv:`math/0110077v1`.
-           Possibly newer version at
-           http://www.wisdom.weizmann.ac.il/~regev/papers/FrobeniusSchurFunctions.ps
-
         AUTHORS:
 
         - Paul-Olivier Dehaye (2011-06-07)
@@ -5273,9 +5233,7 @@ class Partition(CombinatorialElement):
 
         REFERENCES:
 
-        .. [AssafDEG] Sami Assaf. *Dual equivalence graphs and a
-           combinatorial proof of LLT and Macdonald positivity*.
-           (2008). :arxiv:`1005.3759v5`.
+        - [As2008b]_
 
         EXAMPLES::
 
@@ -5730,7 +5688,7 @@ class Partitions(UniqueRepresentation, Parent):
             if (len(kwargs) > 1 and
                 ('parts_in' in kwargs or
                  'starting' in kwargs or
-                 'ending'   in kwargs)):
+                 'ending' in kwargs)):
                 raise ValueError("The parameters 'parts_in', 'starting' and "+
                                  "'ending' cannot be combined with anything else.")
 
@@ -6565,7 +6523,7 @@ class Partitions_n(Partitions):
 
         ALGORITHM:
 
-         - It is a python Implementation of RANDPAR, see [nw]_.  The
+         - It is a python Implementation of RANDPAR, see [NW1978]_.  The
            complexity is unknown, there may be better algorithms.
 
            .. TODO::
@@ -6574,11 +6532,6 @@ class Partitions_n(Partitions):
 
          - There is also certainly a lot of room for optimizations, see
            comments in the code.
-
-        REFERENCES:
-
-        .. [nw] Nijenhuis, Wilf, Combinatorial Algorithms, Academic Press
-           (1978).
 
         AUTHOR:
 
@@ -6600,9 +6553,10 @@ class Partitions_n(Partitions):
             for j in range(1, n+1):
                 d = 1
                 r = n-j        # n - d*j
-                while  r >= 0:
+                while r >= 0:
                     rand -= d * cached_number_of_partitions(r)
-                    if rand < 0: break
+                    if rand < 0:
+                        break
                     d +=1
                     r -= j
                 else:

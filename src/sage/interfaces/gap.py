@@ -514,8 +514,8 @@ class Gap_generic(ExtraTabCompletion, Expect):
             RuntimeError: Error loading Gap package chevie. You may want to install gap_packages SPKG.
         """
         if verbose:
-            print("Loading GAP package {}" % pkg)
-        x = self.eval('LoadPackage("%s")'%pkg)
+            print("Loading GAP package {}".format(pkg))
+        x = self.eval('LoadPackage("{}")'.format(pkg))
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
                                "You may want to install gap_packages SPKG.")
@@ -1176,8 +1176,8 @@ class Gap(Gap_generic):
         """
         if seed is None:
             seed = self.rand_seed()
-        self.eval("Reset(GlobalMersenneTwister,%d)" % seed)
-        self.eval("Reset(GlobalRandomSource,%d)" % seed)
+        self.eval("Reset(GlobalMersenneTwister,%d);;" % seed)
+        self.eval("Reset(GlobalRandomSource,%d);;" % seed)
         self._seed = seed
         return seed
 
@@ -1578,7 +1578,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
     from sage.tests.gap_packages import all_installed_packages
-    for pkg in all_installed_packages():
+    for pkg in all_installed_packages(gap=g):
         try:
             g.load_package(pkg, verbose=verbose)
         except RuntimeError as msg:

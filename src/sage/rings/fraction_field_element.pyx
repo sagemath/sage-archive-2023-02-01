@@ -6,14 +6,7 @@ AUTHORS:
 - William Stein (input from David Joyner, David Kohel, and Joe Wetherell)
 
 - Sebastian Pancratz (2010-01-06): Rewrite of addition, multiplication and
-  derivative to use Henrici's algorithms [Ho72]
-
-REFERENCES:
-
-.. [Ho72] \E. Horowitz, "Algorithms for Rational Function Arithmetic
-   Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
-   the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
-
+  derivative to use Henrici's algorithms [Hor1972]_
 """
 
 #*****************************************************************************
@@ -30,6 +23,7 @@ from __future__ import absolute_import
 
 from sage.structure.element cimport FieldElement, parent
 from sage.structure.richcmp cimport richcmp
+# from sage.rings.polynomial.flatten import SpecializationMorphism
 
 from . import integer_ring
 from .integer_ring import ZZ
@@ -1083,6 +1077,13 @@ cdef class FractionFieldElement(FieldElement):
 
         raise NotImplementedError
 
+    def specialization(self, D=None, phi=None):
+        """
+        Returns the specialization of a fraction element of a polynomial ring
+        """
+        numerator = self.numerator().specialization(D, phi)
+        denominator = self.denominator().specialization(D, phi)
+        return numerator / denominator
 
 cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """

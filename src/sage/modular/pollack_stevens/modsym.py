@@ -2,7 +2,7 @@
 r"""
 Element class for Pollack-Stevens' Modular Symbols
 
-This is the class of elements in the spaces of Pollack-Steven's modular symbols as described in [PS]_.
+This is the class of elements in the spaces of Pollack-Steven's modular symbols as described in [PS2011]_.
 
 EXAMPLES::
 
@@ -209,8 +209,9 @@ class PSModularSymbolElement(ModuleElement):
 
     def values(self):
         r"""
-        Return the values of the symbol self on our chosen generators
-        (generators are listed in ``self.dict().keys()``)
+        Return the values of the symbol ``self`` on our chosen generators.
+
+        The generators are listed in ``self.dict()``.
 
         EXAMPLES::
 
@@ -230,7 +231,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _normalize(self, **kwds):
         """
-        Normalize all of the values of the symbol self
+        Normalize all of the values of the symbol ``self``.
 
         EXAMPLES::
 
@@ -1295,12 +1296,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 twotor = g in manin.reps_with_two_torsion()
                 threetor = g in manin.reps_with_three_torsion()
                 if twotor:
-                    # See [PS] section 4.1
+                    # See [PS2011] section 4.1
                     gam = manin.two_torsion_matrix(g)
                     mu = self._map[g].lift(p, M, new_base_ring)
                     D[g] = (mu - mu * gam) * half
                 elif threetor:
-                    # See [PS] section 4.1
+                    # See [PS2011] section 4.1
                     gam = manin.three_torsion_matrix(g)
                     mu = self._map[g].lift(p, M, new_base_ring)
                     D[g] = (2 * mu - mu * gam - mu * (gam ** 2)) * half
@@ -1321,7 +1322,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             ## t now should be sum Phi(D_i) | (gamma_i - 1) - sum
             ## Phi(D'_i) - sum Phi(D''_i)
 
-            ## (Here I'm using the opposite sign convention of [PS1]
+            ## (Here I'm using the opposite sign convention of [PS2011]
             ## regarding D'_i and D''_i)
 
             D[manin.gen(0)] = -t.solve_difference_equation()  # Check this!

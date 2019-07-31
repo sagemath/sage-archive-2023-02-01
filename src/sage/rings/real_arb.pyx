@@ -1939,6 +1939,29 @@ cdef class RealBall(RingElement):
 
     # Precision and accuracy
 
+    def nbits(self):
+        r"""
+        Return the minimum precision sufficient to represent this ball exactly.
+
+        In other words, return the number of bits needed to represent the
+        absolute value of the mantissa of the midpoint of this ball. The result
+        is 0 if the midpoint is a special value.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).nbits()
+            53
+            sage: RBF(1023, .1).nbits()
+            10
+            sage: RBF(1024, .1).nbits()
+            1
+            sage: RBF(0).nbits()
+            0
+            sage: RBF(infinity).nbits()
+            0
+        """
+        return arb_bits(self.value)
+
     def round(self):
         """
         Return a copy of this ball with center rounded to the precision of the
@@ -3160,6 +3183,36 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def sec(self):
+        """
+        Return the secant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).sec()
+            [1.850815717680925 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sec(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csc(self):
+        """
+        Return the cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).csc()
+            [1.188395105778121 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_csc(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def arcsin(self):
         """
         Return the arcsine of this ball.
@@ -3268,6 +3321,36 @@ cdef class RealBall(RingElement):
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_coth(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sech(self):
+        """
+        Return the hyperbolic secant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).sech()
+            [0.648054273663885 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sech(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csch(self):
+        """
+        Return the hyperbolic cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).csch()
+            [0.850918128239321 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_csch(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 

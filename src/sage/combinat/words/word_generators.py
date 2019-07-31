@@ -420,13 +420,13 @@ class WordGenerator(object):
         W = InfiniteWords(alphabet)
         alphabet = W.alphabet()
         m = alphabet.cardinality()
-        if base < 2 or m < 2 :
-            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2"%(base, m))
+        if base < 2 or m < 2:
+            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2" % (base, m))
         from functools import partial
         f = partial(self._ThueMorseWord_nth_digit, alphabet=alphabet, base=base)
         return W(f, datatype='callable')
 
-    def _ThueMorseWord_nth_digit(self, n, alphabet=(0,1), base=2):
+    def _ThueMorseWord_nth_digit(self, n, alphabet=(0, 1), base=2):
         r"""
         Returns the `n`-th letter of the (Generalized) Thue-Morse word.
 
@@ -477,10 +477,10 @@ class WordGenerator(object):
                 if n == 0:
                     return alphabet[tn & 1]
                 n &= n - 1
-        elif base < 2 or m < 2 :
-            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2"%(base, m))
+        elif base < 2 or m < 2:
+            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2" % (base, m))
         else:
-            return alphabet[ZZ(sum(ZZ(n).digits(base = base))).mod(m)]
+            return alphabet[ZZ(sum(ZZ(n).digits(base=base))).mod(m)]
 
     def FibonacciWord(self, alphabet=(0, 1), construction_method="recursive"):
         r"""
@@ -1091,7 +1091,7 @@ class WordGenerator(object):
             w.pop(0)
         w.pop(0)
         # Letters swap function
-        bar = lambda x : a if x == b else b
+        bar = lambda x: a if x == b else b
         current_letter = bar(w[-1])
         # Now we are ready to go in the recursive part
         while True:
@@ -1237,7 +1237,7 @@ class WordGenerator(object):
         Note that an infinite word is *episturmian* if it has the same set
         of factors as some epistandard word.
 
-        See for instance [DJP01]_, [JP02]_, and [GJ07]_.
+        See for instance [DJP2001]_, [JP2002]_, and [GJ2007]_.
 
         INPUT:
 
@@ -1266,14 +1266,6 @@ class WordGenerator(object):
             Traceback (most recent call last):
             ...
             TypeError: directive_word is not a word, so it cannot be used to build an episturmian word
-
-        REFERENCES:
-
-        .. [JP02] \J. Justin, G. Pirillo, Episturmian words and episturmian
-           morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
-
-        .. [GJ07] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
-           2007, :arxiv:`0801.1655`.
         """
         if not isinstance(directive_word, Word_class):
            raise TypeError("directive_word is not a word, so it cannot be used to build an episturmian word")
@@ -1325,7 +1317,7 @@ class WordGenerator(object):
         This function finds and returns the minimal smooth prefix of length
         ``n``.
 
-        See [BMP07]_ for a definition.
+        See [BMP2007]_ for a definition.
 
         INPUT:
 
@@ -1344,12 +1336,6 @@ class WordGenerator(object):
 
             sage: words.MinimalSmoothPrefix(10)
             word: 1212212112
-
-        REFERENCES:
-
-        .. [BMP07] \S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
-           infinite smooth words, Discrete Math. Theor. Comput. Sci. 9 (2007)
-           33--49.
         """
         tab = []
         W = FiniteWords([1, 2])
@@ -1930,7 +1916,7 @@ class WordGenerator(object):
         r"""
         Return the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
 
-        As described by Brlek, Hamel, Nivat and Reutenauer in [BHNR04]_, this
+        As described by Brlek, Hamel, Nivat and Reutenauer in [BHNR2004]_, this
         finite word `w` is such that the infinite periodic word `w^{\omega}`
         has palindromic defect ``k``.
 

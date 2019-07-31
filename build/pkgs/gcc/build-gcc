@@ -18,6 +18,11 @@ GCC_CONFIGURE="$@ $GCC_CONFIGURE"
 
 # On OSX:
 if [ "$UNAME" = "Darwin" ]; then
+    # /usr/include is the latest victim in Apple's quest to get rid of standard locations
+    SDK_PATH=$(xcrun --show-sdk-path)
+    GCC_CONFIGURE="--with-sysroot=$SDK_PATH $GCC_CONFIGURE" 
+    echo "Building with XCode SDK at $SDK_PATH."
+
     # isl/cloog libraries are almost certainly from Homebrew and won't work
     GCC_CONFIGURE="--without-isl --without-cloog $GCC_CONFIGURE"
 
@@ -56,8 +61,9 @@ fi
 ../src/configure \
     --prefix="$SAGE_LOCAL" \
     --with-local-prefix="$SAGE_LOCAL" \
-    --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" --with-mpc="$SAGE_LOCAL" \
+    $SAGE_CONFIGURE_GMP $SAGE_CONFIGURE_MPFR $SAGE_CONFIGURE_MPC \
     --with-system-zlib \
+    --without-isl \
     --disable-multilib \
     --disable-nls \
     --disable-libitm \

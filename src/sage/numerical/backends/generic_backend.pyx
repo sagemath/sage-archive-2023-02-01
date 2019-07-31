@@ -156,13 +156,13 @@ cdef class GenericBackend:
         if obj is None:
             obj = self.zero()
         for i in range(n):
-            value = self.add_variable(lower_bound = lower_bound,
-                                      upper_bound = upper_bound,
-                                      binary = binary,
-                                      continuous = continuous,
-                                      integer = integer,
-                                      obj = obj,
-                                      name = None if names is None else names[i])
+            value = self.add_variable(lower_bound=lower_bound,
+                                      upper_bound=upper_bound,
+                                      binary=binary,
+                                      continuous=continuous,
+                                      integer=integer,
+                                      obj=obj,
+                                      name=None if names is None else names[i])
         return value
 
     @classmethod
@@ -1729,7 +1729,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         sage: p = get_solver(base_ring=d.base_ring()); p
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
-        Number Field in sqrt5 with defining polynomial x^2 - 5
+        Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         sage: p = get_solver(solver='InteractiveLP', base_ring=QQ); p
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()

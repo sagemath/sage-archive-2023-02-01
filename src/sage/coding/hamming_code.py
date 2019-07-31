@@ -1,17 +1,14 @@
 r"""
-Hamming Code
+Hamming codes
 
-Given an integer `r` and a field `F`, such that `F=GF(q)`,
-the `[n, k, d]` code with length `n=\frac{q^{r}-1}{q-1}`,
-dimension `k=\frac{q^{r}-1}{q-1} - r` and minimum distance
-`d=3` is called the Hamming Code of order `r`.
+Given an integer `r` and a field `F`, such that `F=GF(q)`, the `[n, k, d]` code
+with length `n=\frac{q^{r}-1}{q-1}`, dimension `k=\frac{q^{r}-1}{q-1} - r` and
+minimum distance `d=3` is called the Hamming Code of order `r`.
 
 REFERENCES:
 
 - [Rot2006]_
 """
-from __future__ import absolute_import
-
 # ****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
 #
@@ -21,7 +18,6 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 from .linear_code import AbstractLinearCode
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace

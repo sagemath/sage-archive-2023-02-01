@@ -316,7 +316,7 @@ we can now ask for specific encoder and decoder::
     sage: Evect
     Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over GF(59)
     sage: type(Evect)
-    <class 'sage.coding.grs.GRSEvaluationVectorEncoder'>
+    <class 'sage.coding.grs_code.GRSEvaluationVectorEncoder'>
     sage: msg = random_vector(GF(59), C.dimension()) #random
     sage: c = Evect.encode(msg)
     sage: NN = C.decoder("NearestNeighbor")

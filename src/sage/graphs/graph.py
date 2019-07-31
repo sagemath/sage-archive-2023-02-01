@@ -413,7 +413,6 @@ from six.moves import range
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 import sage.graphs.generic_graph_pyx as generic_graph_pyx

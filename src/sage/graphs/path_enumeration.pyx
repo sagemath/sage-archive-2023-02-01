@@ -2339,19 +2339,19 @@ def all_paths_iterator_cython(self, starting_vertices=None, ending_vertices=None
     # This is necessary if we want to iterate over paths
     # with increasing length
     vertex_iterators = {v: self._all_paths_iterator_cython(v, ending_vertices=ending_vertices,
-                                                       simple=simple, max_length=max_length,
-                                                       trivial=trivial, use_multiedges=use_multiedges,
-                                                       report_edges=report_edges, labels=labels, data=data)
-                                                       for v in starting_vertices}
+                                                           simple=simple, max_length=max_length,
+                                                           trivial=trivial, use_multiedges=use_multiedges,
+                                                           report_edges=report_edges, labels=labels, data=data)
+                                                           for v in starting_vertices}
 
     cdef priority_queue[pair[int, int]] pq
     cdef vector[int] vec
     cdef int idx = 0
-    cdef dict idx_to_path = {}
+    cdef list idx_to_path = []
     for vi in vertex_iterators.values():
         try:
             path = next(vi)
-            idx_to_path[idx] = path
+            idx_to_path.append(path)
             pq.push((-len(path), idx))
             idx = idx + 1
         except(StopIteration):
@@ -2367,10 +2367,9 @@ def all_paths_iterator_cython(self, starting_vertices=None, ending_vertices=None
         try:
             if report_edges:
                 path = next(vertex_iterators[idx_to_path[shortest_path_idx][0][0]])
-                idx_to_path[idx] = path
             else:
                 path = next(vertex_iterators[idx_to_path[shortest_path_idx][0]])
-                idx_to_path[idx] = path
+            idx_to_path.append(path)
             pq.push((-len(path), idx))
             idx = idx + 1
         except(StopIteration):

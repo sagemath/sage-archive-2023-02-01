@@ -12,7 +12,7 @@ and `k` its dimension. Elements of a code `C` are called codewords.
 A linear map from `F^k` to an `[n,k]` code `C` is called an "encoding", and it
 can be represented as a `k \times n` matrix, called a generator matrix.
 Alternatively, `C` can be represented by its orthogonal complement in `F^n`,
-i.e. the `n-k`-dimensional vector space `C^\perp` such that the inner product
+i.e. the `(n-k)`-dimensional vector space `C^\perp` such that the inner product
 of any element from `C` and any element from `C^\perp` is zero. `C^\perp` is
 called the dual code of `C`, and any generator matrix for `C^\perp` is called a
 parity check matrix for `C`.
@@ -506,7 +506,7 @@ class AbstractLinearCode(Module):
             sage: C = MyCodeFamily2(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: not a registered decoder
+            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders
 
         If the name of the default encoder is not known by the class, it will raise
         an exception::
@@ -524,7 +524,7 @@ class AbstractLinearCode(Module):
             sage: C = MyCodeFamily3(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: not a registered encoder
+            ValueError: You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders
 
         A ring instead of a field::
 
@@ -547,9 +547,9 @@ class AbstractLinearCode(Module):
         if not base_field.is_field():
             raise ValueError("{} is not a field".format(base_field))
         if not default_encoder_name in self._registered_encoders:
-            raise ValueError("not a registered encoder")
+            raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
-            raise ValueError("not a registered decoder")
+            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
 
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
@@ -865,7 +865,7 @@ class AbstractLinearCode(Module):
 
     def ambient_space(self):
         r"""
-        Returns the ambient vector space of `self`.
+        Returns the ambient vector space of ``self``.
 
         EXAMPLES::
 
@@ -999,11 +999,11 @@ class AbstractLinearCode(Module):
 
     def basis(self):
         r"""
-        Returns a basis of `self`.
+        Returns a basis of ``self``.
 
         OUTPUT:
 
-        -  ``Sequence`` - an immutable sequence whose universe is ambient space of `self`.
+        -  ``Sequence`` - an immutable sequence whose universe is ambient space of ``self``.
 
         EXAMPLES::
 
@@ -1189,7 +1189,7 @@ class AbstractLinearCode(Module):
 
     def __contains__(self, v):
         r"""
-        Returns True if `v` can be coerced into `self`. Otherwise, returns False.
+        Returns True if `v` can be coerced into ``self``. Otherwise, returns False.
 
         EXAMPLES::
 
@@ -1207,7 +1207,7 @@ class AbstractLinearCode(Module):
 
     def characteristic(self):
         r"""
-        Returns the characteristic of the base ring of `self`.
+        Returns the characteristic of the base ring of ``self``.
 
         EXAMPLES::
 
@@ -3145,66 +3145,6 @@ class AbstractLinearCode(Module):
         c = E.encode(m)
         c.set_immutable()
         return c
-
-    def random_received_vector(self, distance):
-        """
-        Return a random received vector of Hamming distance ``distance`` from a
-        random codeword.
-
-        INPUT:
-
-        - ``distance`` -- positive integer
-
-        EXAMPLES::
-
-            sage: C = codes.random_linear_code(GF(4, 'a'), 7, 3)
-            sage: rv = C.random_received_vector(1)
-            sage: error_vector = C.decode_to_code(rv) - rv
-            sage: error_vector.hamming_weight()
-            1
-        """
-        return self.random_received_vector_and_codeword(distance)[0]
-
-    def random_received_vector_and_codeword(self, distance):
-        """
-        Return the pair of a received vector and a sent codeword.
-
-        The received vector is of Hamming distance ``distance`` from the sent
-        codeword.
-
-        INPUT:
-
-        - ``distance`` -- positive integer
-
-        EXAMPLES::
-
-            sage: C = codes.random_linear_code(GF(16, 'a'), 10, 4)
-            sage: rv, sv = C.random_received_vector_and_codeword(3)
-            sage: (rv - sv).hamming_weight()
-            3
-        """
-        n = self.length()
-        if distance < 0 or distance > n:
-            raise ValueError("distance must be >= 0 and <= {}".format(n))
-
-        A = self.base_ring() # alphabet
-
-        sent_codeword = self.random_element()
-        received_vector = list(sent_codeword)
-        pos = []
-        for i in range(distance):
-            while True:
-                p = random.randint(0, n-1)
-                if not p in pos:
-                    break
-            while True:
-                a = A.random_element()
-                if not a.is_zero():
-                    break
-            received_vector[p] += a
-            pos.append(p)
-
-        return vector(received_vector), sent_codeword
 
     def relative_distance(self):
         r"""

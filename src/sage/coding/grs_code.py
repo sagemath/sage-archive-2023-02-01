@@ -1,5 +1,5 @@
 r"""
-Reed-Solomon codes and GRS codes
+Reed-Solomon codes and Generalized Reed-Solomon codes
 
 Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
 finite field `F`, the corresponding Reed-Solomon code (RS code) of dimension

@@ -222,7 +222,7 @@ class Decoder(SageObject):
 
     def decode_to_code(self, r):
         r"""
-        Corrects the errors in ``r`` and returns a codeword.
+        Correct the errors in ``r`` and returns a codeword.
 
         This is a default implementation which assumes that the method
         :meth:`decode_to_message` has been implemented, else it returns an exception.
@@ -255,14 +255,9 @@ class Decoder(SageObject):
             word = self.decode_to_message(r)
             return self.connected_encoder().encode(word)
 
-    def connected_encoder(self, *args, **kwargs):
+    def connected_encoder(self):
         r"""
-        Returns the connected encoder of ``self``.
-
-        INPUT:
-
-        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
-          this method will return.
+        Return the connected encoder of ``self``.
 
         EXAMPLES::
 
@@ -272,7 +267,7 @@ class Decoder(SageObject):
             sage: D.connected_encoder()
             Generator matrix-based encoder for [7, 4] linear code over GF(2)
         """
-        return self.code().encoder(self._connected_encoder_name, *args, **kwargs)
+        return self.code().encoder(encoder_name=self._connected_encoder_name)
 
     def decode_to_message(self, r):
         r"""
@@ -305,7 +300,7 @@ class Decoder(SageObject):
 
     def code(self):
         r"""
-        Returns the code for this :class:`Decoder`.
+        Return the code for this :class:`Decoder`.
 
         EXAMPLES::
 
@@ -319,7 +314,7 @@ class Decoder(SageObject):
 
     def message_space(self):
         r"""
-        Returns the message space of ``self``'s :meth:`connected_encoder`.
+        Return the message space of ``self``'s :meth:`connected_encoder`.
 
         EXAMPLES::
 
@@ -333,7 +328,7 @@ class Decoder(SageObject):
 
     def input_space(self):
         r"""
-        Returns the input space of ``self``.
+        Return the input space of ``self``.
 
         EXAMPLES::
 
@@ -351,7 +346,7 @@ class Decoder(SageObject):
     @abstract_method(optional = True)
     def decoding_radius(self, **kwargs):
         r"""
-        Returns the maximal number of errors that ``self`` is able to correct.
+        Return the maximal number of errors that ``self`` is able to correct.
 
         This is an abstract method and it should be implemented in subclasses.
 

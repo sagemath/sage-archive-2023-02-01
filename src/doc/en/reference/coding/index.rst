@@ -60,7 +60,7 @@ matrix and has no other a priori knowledge on them:
    sage/coding/self_dual_codes
    sage/coding/binary_code
 
-Code Constructions
+Derived Code Constructions
 --------------------------
 
 Sage supports the following derived code constructions. If the constituent code

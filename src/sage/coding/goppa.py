@@ -11,10 +11,10 @@ EXAMPLES::
     sage: L = [a for a in F.list() if g(a) != 0]
     sage: C = codes.GoppaCode(g, L)
     sage: C
-    [55, 16] Goppa code
+    [55, 16] Goppa code over GF(2)
     sage: E = codes.encoders.GoppaCodeEncoder(C)
     sage: E
-    Encoder for [55, 16] Goppa code
+    Encoder for [55, 16] Goppa code over GF(2)
 
 AUTHORS:
 
@@ -89,7 +89,7 @@ class GoppaCode(AbstractLinearCode):
         sage: L = [a for a in F.list() if g(a) != 0]
         sage: C = codes.GoppaCode(g, L)
         sage: C
-        [55, 16] Goppa code
+        [55, 16] Goppa code over GF(2)
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -135,10 +135,10 @@ class GoppaCode(AbstractLinearCode):
             sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
-            [8, 2] Goppa code
+            [8, 2] Goppa code over GF(2)
         """
-        return "[{}, {}] Goppa code".format(self.length(), self.dimension())
-
+        return "[{}, {}] Goppa code over GF({})".format(
+                self.length(), self.dimension(), self.base_field().cardinality())
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
@@ -151,13 +151,17 @@ class GoppaCode(AbstractLinearCode):
             sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: latex(C)
-            [8, 2]\text{ Goppa code}
+            [8, 2]\text{ Goppa code over }\Bold{F}_{2}
         """
-        return r"[{}, {}]\text{{ Goppa code}}".format(self.length(), self.dimension())
+        return r"[{}, {}]\text{{ Goppa code over }}{}".format(self.length(), self.dimension(),
+                                                              self.base_field()._latex_())
 
     def __eq__(self, other):
         """
         Test equality with ``other``.
+
+        Two Goppa codes are considered the same when defining sets and
+        generating polynomials are the same.
 
         EXAMPLES::
 
@@ -169,6 +173,13 @@ class GoppaCode(AbstractLinearCode):
             sage: D = codes.GoppaCode(g, L)
             sage: C == D
             True
+
+        Note that equality check will be false if ``other`` represents the same
+        linear code as ``self`` but not constructed as a Goppa code::
+
+            sage: E = LinearCode(C.generator_matrix())
+            sage: C == E
+            False
         """
         return (isinstance(other, GoppaCode)
            and self.length() == other.length()
@@ -195,7 +206,7 @@ class GoppaCode(AbstractLinearCode):
             sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
-            [8, 2] Goppa code
+            [8, 2] Goppa code over GF(2)
             sage: C.parity_check_matrix()
             [1 0 0 0 0 0 0 1]
             [0 0 1 0 1 1 1 0]
@@ -245,7 +256,7 @@ class GoppaCode(AbstractLinearCode):
             sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
-            [8, 2] Goppa code
+            [8, 2] Goppa code over GF(2)
             sage: C._parity_check_matrix_vandermonde()
             [1 0 0 0 0 0 0 1]
             [0 0 1 0 1 1 1 0]
@@ -290,7 +301,7 @@ class GoppaCode(AbstractLinearCode):
             sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
-            [8, 2] Goppa code
+            [8, 2] Goppa code over GF(2)
             sage: C.distance_bound()
             3
             sage: C.minimum_distance()
@@ -316,10 +327,10 @@ class GoppaCodeEncoder(Encoder):
         sage: L = [a for a in F.list() if g(a) != 0]
         sage: C = codes.GoppaCode(g, L)
         sage: C
-        [8, 2] Goppa code
+        [8, 2] Goppa code over GF(2)
         sage: E = codes.encoders.GoppaCodeEncoder(C)
         sage: E
-        Encoder for [8, 2] Goppa code
+        Encoder for [8, 2] Goppa code over GF(2)
         sage: word = vector(GF(2), (0, 1))
         sage: c = E.encode(word)
         sage: c
@@ -356,7 +367,7 @@ class GoppaCodeEncoder(Encoder):
             sage: C = codes.GoppaCode(g, L)
             sage: E = codes.encoders.GoppaCodeEncoder(C)
             sage: E
-            Encoder for [8, 2] Goppa code
+            Encoder for [8, 2] Goppa code over GF(2)
         """
         return "Encoder for {}".format(self.code())
 
@@ -373,7 +384,7 @@ class GoppaCodeEncoder(Encoder):
             sage: C = codes.GoppaCode(g, L)
             sage: E = codes.encoders.GoppaCodeEncoder(C)
             sage: latex(E)
-            \text{Encoder for }[8, 2]\text{ Goppa code}
+            \text{Encoder for }[8, 2]\text{ Goppa code over }\Bold{F}_{2}
         """
         return r"\text{{Encoder for }}{}".format(self.code()._latex_())
 
@@ -411,7 +422,7 @@ class GoppaCodeEncoder(Encoder):
             sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
-            [8, 2] Goppa code
+            [8, 2] Goppa code over GF(2)
             sage: C.generator_matrix()
             [1 0 0 1 0 1 1 1]
             [0 1 1 1 1 1 1 0]

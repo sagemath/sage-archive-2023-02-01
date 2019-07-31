@@ -1782,13 +1782,15 @@ def RandomTriangulation(n, set_position=False, k=3):
     OUTPUT:
 
     A random graph chosen uniformly among the inner triangulations of a *rooted*
-    `k`-gon with `n` vertices (including the `k` vertices from the outer face)
-    and a *marked* inner face. This is a planar graph and comes with a
-    combinatorial embedding.
+    `k`-gon with `n` vertices (including the `k` vertices from the outer face).
+    This is a planar graph and comes with a combinatorial embedding. The
+    vertices of the root edge are labelled ``-1`` and ``-2`` and the outer face
+    is the face returned by :meth:`Graph.faces` in which ``-1`` and ``-2`` are
+    consecutive vertices in this order.
 
     Because some triangulations have nontrivial automorphism
     groups, this may not be equal to the uniform distribution among inner
-    triangulations of unrooted `k`-gons and without a marked inner face.
+    triangulations of unrooted `k`-gons.
 
     ALGORITHM:
 
@@ -1898,6 +1900,7 @@ def RandomTriangulation(n, set_position=False, k=3):
 
     graph.add_edges(edges)
     graph.set_embedding(embedding)
+    graph.relabel({0: -2, 1: -1})
     assert graph.num_edges() == 3*n - 3 - k
     assert graph.num_verts() == n
     if set_position:

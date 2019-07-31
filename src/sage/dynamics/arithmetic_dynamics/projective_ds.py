@@ -4968,7 +4968,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         kwds:
 
-        - ``ring`` -- (default: domain of dynamical system) the base ring
+        - ``R`` -- (default: domain of dynamical system) the base ring
           over which the periodic points of the dynamical system are found
 
         - ``prime_bound`` -- (default: ``[1, 20]``) a pair (list or tuple)
@@ -5034,7 +5034,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (1/6*w + 1/4 : 1),
              (1/12*w + 1 : 1)]
         """
-        ring = kwds.pop("ring",None)
+        ring = kwds.pop("R",None)
         if not ring is None:
             DS = self.change_ring(ring)
         else:

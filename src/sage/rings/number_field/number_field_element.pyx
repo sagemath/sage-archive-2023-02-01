@@ -1974,6 +1974,8 @@ cdef class NumberFieldElement(FieldElement):
             ArithmeticError: ideal (a + 1, 2) is not principal, gcd is not defined
             sage: R(2*a - a^2).gcd(0)
             a
+            sage: R(a).gcd(R(2*a)).parent()
+            Maximal Order in Number Field in a with defining polynomial x^3 - 7
         """
         # gcd(0,0) = 0
         if not self and not other:
@@ -1991,7 +1993,7 @@ cdef class NumberFieldElement(FieldElement):
         if len(g) > 1:
             raise ArithmeticError("ideal (%r, %r) is not principal, gcd is not defined" % (self, other) )
 
-        return g[0]
+        return R(g[0])
 
 
     def is_totally_positive(self):

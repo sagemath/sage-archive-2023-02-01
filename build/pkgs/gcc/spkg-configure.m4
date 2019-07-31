@@ -191,4 +191,16 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
             SAGE_SRC="$SAGE_SRC"
         ])
     fi
+], , , [
+    # Trac #27907: Find location of crti.o from the system CC, in case we build our own gcc
+    AC_MSG_CHECKING([for the location of crti.o])
+    CRTI=`$CC -print-file-name=crti.o 2>/dev/null || true`
+    if test -n "$CRTI" ; then
+        SAGE_CRTI_DIR=$(dirname -- "$CRTI")
+        if test "$SAGE_CRTI_DIR" == "." ; then
+            SAGE_CRTI_DIR=
+        fi
+    fi
+    AC_SUBST(SAGE_CRTI_DIR)
+    AC_MSG_RESULT($SAGE_CRTI_DIR)
 ])

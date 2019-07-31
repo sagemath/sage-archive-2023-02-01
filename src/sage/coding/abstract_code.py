@@ -64,12 +64,13 @@ def _explain_constructor(cl):
 
     EXAMPLES::
 
-
         sage: from sage.coding.linear_code import LinearCodeSyndromeDecoder
         sage: from sage.coding.abstract_code import _explain_constructor
         sage: cl = LinearCodeSyndromeDecoder
         sage: _explain_constructor(cl)
-        "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+        "The constructor requires no arguments.\nIt takes the optional
+        arguments ['maximum_error_weight'].\nSee the documentation of
+        sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
 
         sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
         sage: cl = LinearCodeInformationSetDecoder
@@ -136,6 +137,9 @@ class AbstractCode(Parent):
       ``Parent.__init__(self, base, facade, category)`` function in the subclass
       constructor. A good example is in
       :class:`sage.coding.linear_code.AbstractLinearCode`.
+
+    - it is also recommended to override the ``ambient_space`` method, which is
+      required by ``__call__``
 
     - to use the encoder/decoder framework, one has to set up the category and
       related functions ``__iter__`` and ``__contains__``. A good example is in
@@ -337,13 +341,81 @@ class AbstractCode(Parent):
         We check we get a sensible error message while asking if an element is
         in our new class:
 
-            sage: C = MyCode()
+            sage: C = MyCode(3)
             sage: vector((1, 0, 0, 0, 0, 1, 1)) in C
             Traceback (most recent call last):
             ...
             RuntimeError: Please override __contains__ in the implementation of <class '__main__.MyCode'>
         """
         raise RuntimeError("Please override __contains__ in the implementation of {}".format(self.parent()))
+
+    def ambient_space(self):
+        r"""
+        Return an error stating ``ambient_space`` of ``self`` is not implemented.
+
+        This method is required by the :method:`__call__`.
+
+        EXAMPLES::
+
+            sage: from sage.coding.abstract_code import AbstractCode
+            sage: class MyCode(AbstractCode):
+            ....:    def __init__(self, length):
+            ....:        super(MyCode, self).__init__(length)
+            sage: C = MyCode(3)
+            sage: C.ambient_space()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: No ambient space implemented for this code.
+        """
+        raise NotImplementedError("No ambient space implemented for this code.")
+
+    def __call__(self, m):
+        r"""
+        Returns either ``m`` if it is a codeword or ``self.encode(m)``
+        if it is an element of the message space of the encoder used by
+        ``encode``.
+
+        This implementation depends on :meth:`ambient_space`.
+
+        INPUT:
+
+        - ``m`` -- a vector whose length equals to code's length or an element
+          of the message space used by ``encode``
+
+        - ``**kwargs`` -- extra arguments are forwarded to ``encode``
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector((0, 1, 1, 0))
+            sage: C(word)
+            (1, 1, 0, 0, 1, 1, 0)
+
+            sage: c = C.random_element()
+            sage: C(c) == c
+            True
+
+        TESTS:
+
+        If one passes a vector which belongs to the ambient space, it has to be a codeword.
+        Otherwise, an exception is raised::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector((0, 1, 1, 0, 0, 1, 0))
+            sage: C(word)
+            Traceback (most recent call last):
+            ...
+            ValueError: If the input is a vector which belongs to the ambient space, it has to be a codeword
+        """
+        if m in self.ambient_space():
+            if m in self:
+                return m
+            else:
+                raise ValueError("If the input is a vector which belongs to the ambient space, it has to be a codeword")
+        else:
+            return self.encode(m)
 
     def _repr_(self):
         r"""
@@ -354,7 +426,7 @@ class AbstractCode(Parent):
         :class:`AbstractCode`, the generic call to `_repr_` has to fail.
 
         EXAMPLES:
-        
+
         We create a new code class::
 
             sage: from sage.coding.abstract_code import AbstractCode

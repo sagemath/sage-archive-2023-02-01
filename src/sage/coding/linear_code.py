@@ -1446,52 +1446,6 @@ class AbstractLinearCode(AbstractCode, Module):
         """
         return not self == other
 
-    def __call__(self, m):
-        r"""
-        Returns either ``m`` if it is a codeword or ``self.encode(m)``
-        if it is an element of the message space of the encoder used by
-        ``encode``.
-
-        INPUT:
-
-        - ``m`` -- a vector whose length equals to code's length or an element
-          of the message space used by ``encode``
-
-        - ``**kwargs`` -- extra arguments are forwarded to ``encode``
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: word = vector((0, 1, 1, 0))
-            sage: C(word)
-            (1, 1, 0, 0, 1, 1, 0)
-
-            sage: c = C.random_element()
-            sage: C(c) == c
-            True
-
-        TESTS:
-
-        If one passes a vector which belongs to the ambient space, it has to be a codeword.
-        Otherwise, an exception is raised::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: word = vector((0, 1, 1, 0, 0, 1, 0))
-            sage: C(word)
-            Traceback (most recent call last):
-            ...
-            ValueError: If the input is a vector which belongs to the ambient space, it has to be a codeword
-        """
-        if m in self.ambient_space():
-            if m in self:
-                return m
-            else:
-                raise ValueError("If the input is a vector which belongs to the ambient space, it has to be a codeword")
-        else:
-            return self.encode(m)
-
     def extended_code(self):
         r"""
         Returns `self` as an extended code.

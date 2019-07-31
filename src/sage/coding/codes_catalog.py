@@ -3,7 +3,59 @@ Index of code constructions
 
 The ``codes`` object may be used to access the codes that Sage can build.
 
-{INDEX_OF_FUNCTIONS}
+Families of Codes (Rich representation)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: @
+
+    :meth:`~sage.coding.parity_check_code.ParityCheckCode` @ Parity check codes
+    :meth:`~sage.coding.cyclic_code.CyclicCode` @ Cyclic codes
+    :meth:`~sage.coding.bch_code.BCHCode` @ BCH Codes
+    :meth:`~sage.coding.grs_code.GeneralizedReedSolomonCode` @ Generalized Reed-Solomon codes
+    :meth:`~sage.coding.grs_code.ReedSolomonCode` @ Reed-Solomon codes
+    :meth:`~sage.coding.reed_muller_code.BinaryReedMullerCode` @ Binary Reed-Muller codes
+    :meth:`~sage.coding.reed_muller_code.ReedMullerCode` @ q-ary Reed-Muller codes
+    :meth:`~sage.coding.hamming_code.HammingCode` @ Hamming codes
+    :meth:`~sage.coding.golay_code.GolayCode` @ Golay codes
+    :meth:`~sage.coding.goppa.GoppaCode` @ Goppa codes
+
+
+Families of Codes (Generator matrix representation)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: @
+
+    :meth:`~sage.coding.code_constructions.DuadicCodeEvenPair` @ Duadic codes, even pair
+    :meth:`~sage.coding.code_constructions.DuadicCodeOddPair` @ Duadic codes, odd pair
+    :meth:`~sage.coding.code_constructions.QuadraticResidueCode` @  Quadratic residue codes
+    :meth:`~sage.coding.code_constructions.ExtendedQuadraticResidueCode` @ Extended quadratic residue codes
+    :meth:`~sage.coding.code_constructions.QuadraticResidueCodeEvenPair` @ Even-like quadratic residue codes
+    :meth:`~sage.coding.code_constructions.QuadraticResidueCodeOddPair` @ Odd-like quadratic residue codes
+    :meth:`~sage.coding.guava.QuasiQuadraticResidueCode` @ Quasi quadratic residue codes (Requires GAP/Guava)
+    :meth:`~sage.coding.code_constructions.ToricCode` @ Toric codes
+    :meth:`~sage.coding.code_constructions.WalshCode` @ Walsh codes
+    :meth:`~sage.coding.code_constructions.from_parity_check_matrix` @ Construct a code from a parity check matrix
+    :meth:`~sage.coding.code_constructions.random_linear_code` @ Construct a random linear code
+    :meth:`~sage.coding.guava.RandomLinearCodeGuava` @ Construct a random linear code through Guava (Requires GAP/Guava)
+
+
+Derived Codes
+^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: @
+
+    :meth:`~sage.coding.subfield_subcode.SubfieldSubcode` @ Subfield subcodes
+    :meth:`~sage.coding.extended_code.ExtendedCode` @ Extended codes
+    :meth:`~sage.coding.punctured_code.PuncturedCode` @ Puncturedcodes
 
 .. NOTE::
 
@@ -64,9 +116,3 @@ from . import encoders_catalog as encoders
 from . import bounds_catalog as bounds
 
 lazy_import('sage.coding','databases')
-
-from sage.misc.rest_index_of_methods import gen_rest_table_index
-__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__], only_local_functions=False))
-
-# We don't want this to appear in tab completion
-del absolute_import, lazy_import, sys, gen_rest_table_index

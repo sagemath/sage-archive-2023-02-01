@@ -22,7 +22,7 @@ Catalogs for available constructions of the basic objects and for bounds on
 the parameters of linear codes are provided.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/coding/channels_catalog
    sage/coding/codes_catalog

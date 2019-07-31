@@ -5150,8 +5150,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         .. WARNING::
 
-        For degree 1 maps that are conjugate, there is a positive dimensional
-        set of conjugations. This function returns only one such element.
+           For degree 1 maps that are conjugate, there is a positive dimensional
+           set of conjugations. This function returns only one such element.
 
         ALGORITHM:
 

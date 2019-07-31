@@ -207,7 +207,6 @@ from six.moves import range
 from six import iteritems
 
 import inspect
-import random
 from copy import copy
 
 from sage.cpython.string import bytes_to_str

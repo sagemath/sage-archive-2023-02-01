@@ -295,6 +295,9 @@ def shortest_simple_paths(self, source, target, weight_function=None,
     By default ``Yen's`` algorithm [Yen1970]_ is used for undirected graphs and
     ``Feng's`` algorithm is used for directed graphs [Feng2014]_.
 
+    The loops and the multiedges if present in the given graph are ignored and
+    only minimum of the edge labels is kept in case of multiedges.
+
     INPUT:
 
     - ``source`` -- a vertex of the graph, where to start
@@ -380,7 +383,10 @@ def shortest_simple_paths(self, source, target, weight_function=None,
 
     TESTS::
 
-        sage: g = Graph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
+        sage: g = Graph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2),
+        ....:            (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5),
+        ....:            (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10),
+        ....:            (11, 6, 8), (10, 6, 2)])
         sage: list(g.shortest_simple_paths(1, 6, algorithm="Yen", by_weight=True))
         [[1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
@@ -405,7 +411,10 @@ def shortest_simple_paths(self, source, target, weight_function=None,
          [1, 2, 3, 8, 9, 6],
          [1, 2, 3, 8, 9, 10, 6],
          [1, 2, 3, 8, 9, 11, 6]]
-        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
+        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1),
+        ....:              (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1),
+        ....:              (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1),
+        ....:              (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
         sage: list(g.shortest_simple_paths(1, 5, algorithm="Feng"))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
@@ -413,6 +422,27 @@ def shortest_simple_paths(self, source, target, weight_function=None,
          [1, 6, 9, 10, 5],
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
+        sage: G = digraphs.DeBruijn(2, 3)
+        sage: for u,v in G.edges(labels=False):
+        ....:     G.set_edge_label(u, v, 1)  
+        sage: G.allow_multiple_edges(True)
+        sage: for u,v in G.edges(labels=False):
+        ....:     G.add_edge(u, v, 2)     
+        sage: list(G.shortest_simple_paths('000', '111'))
+        [['000', '001', '011', '111'], ['000', '001', '010', '101', '011', '111']]
+        sage: list(G.shortest_simple_paths('000', '111', by_weight=True))
+        [['000', '001', '011', '111'], ['000', '001', '010', '101', '011', '111']]
+        sage: list(G.shortest_simple_paths('000', '111', by_weight=True, report_weight=True))
+        [(3, ['000', '001', '011', '111']),
+         (5, ['000', '001', '010', '101', '011', '111'])]
+        sage: list(G.shortest_simple_paths('000', '111', by_weight=True, report_weight=True, report_edges=True, labels=True))
+        [(3, [('000', '001', 1), ('001', '011', 1), ('011', '111', 1)]),
+         (5,
+          [('000', '001', 1),
+           ('001', '010', 1),
+           ('010', '101', 1),
+           ('101', '011', 1),
+           ('011', '111', 1)])]
 
     Feng's algorithm cannot be used on undirected graphs::
 
@@ -476,10 +506,18 @@ def shortest_simple_paths(self, source, target, weight_function=None,
 
     if target not in self:
         raise ValueError("vertex '{}' is not in the graph".format(target))
-
+    
     if source == target:
-        yield [source]
+        if report_edges:
+            yield []
+        elif report_weight:
+            yield (0, [source])
+        else:
+            yield [source]
         return
+
+    if self.has_loops or self.allows_multiple_edges:
+        self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
 
     if algorithm is None:
         algorithm = "Feng" if self.is_directed() else "Yen"
@@ -517,6 +555,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
     returned -- a list containing the 1-vertex, 0-edge path ``source``.
 
+    The loops and the multiedges if present in the given graph are ignored and
+    only minimum of the edge labels is kept in case of multiedges.
+
     INPUT:
 
     - ``source`` -- a vertex of the graph, where to start
@@ -551,9 +592,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     other `k`-shortest paths.  This algorithm finds the deviations of previous
     shortest paths to determine the next shortest paths.
 
-    Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
-    `m` is the number of edges and `k` is the number of shortest paths needed to
-    find.
+    Time complexity is `O(kn(m+n\log{n}))` where `n` is the number of vertices
+    and `m` is the number of edges and `k` is the number of shortest paths
+    needed to find.
 
     See [Yen1970]_ and the :wikipedia:`Yen's_algorithm` for more details on the
     algorithm.
@@ -610,7 +651,10 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     TESTS::
 
         sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
-        sage: g = Graph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
+        sage: g = Graph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2),
+        ....:            (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5),
+        ....:            (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10),
+        ....:            (11, 6, 8), (10, 6, 2)])
         sage: list(yen_k_shortest_simple_paths(g, 1, 6, by_weight=True))
         [[1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
@@ -636,7 +680,10 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
          [1, 2, 3, 8, 9, 10, 6],
          [1, 2, 3, 8, 9, 11, 6]]
         sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
-        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
+        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1),
+        ....:              (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1),
+        ....:              (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1),
+        ....:              (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
         sage: list(yen_k_shortest_simple_paths(g, 1, 5))
         [[1, 6, 9, 5],
          [1, 7, 8, 5],
@@ -652,8 +699,16 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         raise ValueError("vertex '{}' is not in the graph".format(target))
 
     if source == target:
-        yield [source]
+        if report_edges:
+            yield []
+        elif report_weight:
+            yield (0, [source])
+        else:
+            yield [source]
         return
+
+    if self.has_loops or self.allows_multiple_edges:
+        self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
 
     if weight_function is not None:
         by_weight = True
@@ -812,6 +867,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
     returned -- a list containing the 1-vertex, 0-edge path ``source``.
 
+    The loops and the multiedges if present in the given graph are ignored and
+    only minimum of the edge labels is kept in case of multiedges.
+
     INPUT:
 
     - ``source`` -- a vertex of the graph, where to start
@@ -857,10 +915,10 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     much smaller than n, this algorithm has a much lower average-case running
     time.
 
-    Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
-    `m` is the number of edges and `k` is the number of shortest paths needed to
-    find. Its average running time is much smaller as compared to `Yen's`
-    algorithm.
+    Time complexity is `O(kn(m+n\log{n}))` where `n` is the number of vertices
+    and `m` is the number of edges and `k` is the number of shortest paths
+    needed to find. Its average running time is much smaller as compared to
+    `Yen's` algorithm.
 
     See [Feng2014]_ for more details on this algorithm.
 
@@ -917,7 +975,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     TESTS::
 
         sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
-        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
+        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100),
+        ....:              (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2),
+        ....:              (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
         sage: list(feng_k_shortest_simple_paths(g, 1, 6, by_weight=True))
         [[1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
@@ -949,7 +1009,10 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 8, 9, 10, 6]]
         sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
-        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
+        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1),
+        ....:              (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1),
+        ....:              (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1),
+        ....:              (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
         sage: list(feng_k_shortest_simple_paths(g, 1, 5))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
@@ -965,7 +1028,8 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
         sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
-        sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15), (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
+        sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15),
+        ....:              (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
         sage: list(feng_k_shortest_simple_paths(g, 1, 3))
         [[1, 4, 3], [1, 2, 6, 3]]
         sage: list(feng_k_shortest_simple_paths(g, 1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
@@ -983,8 +1047,17 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         raise ValueError("vertex '{}' is not in the graph".format(target))
 
     if source == target:
-        yield [source]
+        if report_edges:
+            yield []
+        elif report_weight:
+            yield (0, [source])
+        else:
+            yield [source]
         return
+
+    if self.has_loops or self.allows_multiple_edges:
+        self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
+
     G = self.copy()
     # removing the incoming edges to source and outgoing edges from target as
     # they do not contribute towards the k shortest simple paths

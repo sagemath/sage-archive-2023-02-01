@@ -5148,6 +5148,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         fixed points until there are enough points; such that there
         are `n+2` points with all `n+1` subsets linearly independent.
 
+        .. WARNING::
+
+        For degree 1 maps that are conjugate, there is a positive dimensional
+        set of conjugations. This function returns only one such element.
+
         ALGORITHM:
 
         Implementing invariant set algorithm from the paper [FMV2014]_.
@@ -5257,6 +5262,30 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: m = f.conjugating_set(g)[0]
             sage: f.conjugate(m) == g
             True
+
+        note that only one possible conjugation is returned::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(11),2)
+            sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
+            sage: m1 = matrix(GF(11), 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.conjugating_set(g)
+            [
+            [ 1  0  0]
+            [ 9  1  4]
+            [ 4 10  8]
+            ]
+
+        ::
+
+            sage: L.<v> = CyclotomicField(8)
+            sage: P.<x,y,z> = ProjectiveSpace(L, 2)
+            sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
+            sage: m1 = matrix(L, 3, 3, [1,4,v^2,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: m = f.conjugating_set(g)[0]
+            sage: f.conjugate(m) == g
+            True
         """
         f = copy(self)
         g = copy(other)
@@ -5267,27 +5296,60 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             pass
         if f.degree() != g.degree():# checks that maps are of equal degree
             return []
+        gens = f[0].parent().gens()
+        M = len(gens)
+        base = f.base_ring()
         if f.degree() == 0: # all constant maps are conjugate
-            return [matrix(2, 2, [f[0]/g[0],0,0,f[1]/g[1]])]
+            zer = [0 for i in range(M-1)]
+            m = []
+            for i in range(M):
+                m1 = copy(zer)
+                m1.insert(i, f[i]/g[i])
+                m += m1
+            return [matrix(base, M, M, m)]
         if f.degree() == 1: # for degree 1 maps, check if matrix representations are similar
             # make matrix forms of f1 and f2
-            gens = f[0].parent().gens()
-            x = gens[0]
-            y = gens[1]
-            m1 = matrix(f.base_ring(),2,2,[f[0].coefficient(x), f[0].coefficient(y),\
-                f[1].coefficient(x), f[1].coefficient(y)])
-            m2 = matrix(f.base_ring(),2,2,[g[0].coefficient(x), g[0].coefficient(y),\
-                g[1].coefficient(x), g[1].coefficient(y)])
+            m1 = matrix(base,M,M,[F.coefficient(var) for F in f for var in gens])
+            m2 = matrix(base,M,M,[F.coefficient(var) for F in g for var in gens])
             # Note: det_ratio will be nonzero for invertible f1, f2
-            det_ratio = m1.det()/m2.det()
-            # .is_square() Return True if self is a square in its parent number field and otherwise return False
-            if is_square(det_ratio):
-                sqrt_rat = is_square(det_ratio, root=True)[1]
-                # rescale so that determinants are equal
-                m1 = (1/sqrt_rat)*m1
-                return [m1.is_similar(m2, transformation=True)[1].inverse()]
-            else:
-                return []
+            if m1.det() != m2.det():
+                det_ratio = m1.det()/m2.det()
+                # .is_square() Return True if self is a square in its parent number field and otherwise return False
+                try:
+                    det_root = det_ratio.nth_root(M)
+                except ValueError: #no root in field
+                    return []
+                #matrices must have same determinant to be similar, but were in PGL
+                #so we can scale so the determinants are equal
+                m1 = (1/det_root)*m1
+            bol,m = m2.is_similar(m1, transformation=True)
+            if bol:
+                if m.base_ring() == base:
+                    return [m]
+                #else is_similar went to algebraic closure
+                if base in NumberFields():
+                    from sage.rings.qqbar import number_field_elements_from_algebraics
+                    K,mK,phi = number_field_elements_from_algebraics([u for t in list(m) for u in t],\
+                                minimal=True)
+                    if K == base:
+                        return [matrix(K, M, M, mK)]
+                    else: #may be a subfield
+                        embeds = K.embeddings(base)
+                        if len(embeds) == 0:
+                            #not a subfield
+                            return []
+                        else:
+                            for emb in embeds:
+                                m_emb = matrix(base, M,M, [emb(u) for u in mK])
+                                #check that it is the right embedding
+                                if f.conjugate(m_emb) == g:
+                                    return [m_emb]
+                else: #finite field case
+                    #always comes from prime field so an coerce
+                    m = matrix(base, M, M, [base(u.as_finite_field_element()[1]) for t in list(m) for u in t])
+                    return [m]
+            #not similar
+            return []
         # sigma invariants are invariant under conjugacy
         if (R in NumberFields() or R in FiniteFields()) and (f.sigma_invariants(1) != g.sigma_invariants(1)):
             return []
@@ -5422,6 +5484,15 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: g = DynamicalSystem_projective([-x^2 - 2*x*y, 2*x*y + y^2])
             sage: f.is_conjugate(g), f.is_conjugate(g, R=QQbar) # long time
             (False, True)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([7*x + 12*y, 8*y+2*z, x+z])
+            sage: m1 = matrix(QQ, 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.is_conjugate(g)
+            True
         """
         f = copy(self)
         g = copy(other)
@@ -5444,19 +5515,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if f.degree() == 1: # for degree 1 maps, check if matrix representations are similar
             # make matrix forms of f1 and f2
             gens = f[0].parent().gens()
-            x = gens[0]
-            y = gens[1]
-            m1 = matrix(f.base_ring(),2,2,[f[0].coefficient(x), f[0].coefficient(y),\
-                f[1].coefficient(x), f[1].coefficient(y)])
-            m2 = matrix(f.base_ring(),2,2,[g[0].coefficient(x), g[0].coefficient(y),\
-                g[1].coefficient(x), g[1].coefficient(y)])
+            M = len(gens)
+            m1 = matrix(f.base_ring(),M,M,[F.coefficient(var) for F in f for var in gens])
+            m2 = matrix(f.base_ring(),M,M,[F.coefficient(var) for F in g for var in gens])
             # Note: det_ratio will be nonzero for invertible f1, f2
-            det_ratio = m1.det()/m2.det()
-            # .is_square() Return True if self is a square in its parent number field and otherwise return False
-            if is_square(det_ratio):
-                sqrt_rat = is_square(det_ratio, root=True)[1]
-                # rescale so that determinants are equal
-                m1 = (1/sqrt_rat)*m1
+            if m1.det() != m2.det():
+                det_ratio = m1.det()/m2.det()
+                try:
+                    det_root = det_ratio.nth_root(M)
+                except ValueError: #no root in field
+                    return []
+                # matrices must have same determinant to be similar, but were in PGL
+                # so we can scale to have the determinants equal
+                m1 = (1/det_root)*m1
                 return m1.is_similar(m2)
             else:
                 return False

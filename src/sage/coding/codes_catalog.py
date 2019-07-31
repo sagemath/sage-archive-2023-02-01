@@ -63,11 +63,6 @@ Derived Codes
 
         sage: from sage.coding.codes_catalog import *
 
-TESTS::
-
-    sage: import sage.coding.codes_catalog
-    sage: 'absolute_import' in dir(sage.coding.codes_catalog)
-    False
 """
 #*****************************************************************************
 #       Copyright (C) 2009 David Lucas <david.lucas@inria.fr>
@@ -81,38 +76,34 @@ TESTS::
 # This module is imported as "codes" in all.py so that codes.<tab> is
 # available in the global namespace.
 
-from __future__ import absolute_import
-
-import sys
-
-from sage.misc.lazy_import import lazy_import
+from sage.misc.lazy_import import lazy_import as _lazy_import
 
 from .linear_code import LinearCode
 
-lazy_import('sage.coding.code_constructions',
+_lazy_import('sage.coding.code_constructions',
         ['DuadicCodeEvenPair', 'DuadicCodeOddPair',
          'ExtendedQuadraticResidueCode', 'from_parity_check_matrix',
          'QuadraticResidueCode', 'QuadraticResidueCodeEvenPair',
          'QuadraticResidueCodeOddPair', 'random_linear_code',
          'ToricCode', 'WalshCode'])
 
-lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
-lazy_import('sage.coding.extended_code', 'ExtendedCode')
-lazy_import('sage.coding.punctured_code', 'PuncturedCode')
+_lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
+_lazy_import('sage.coding.extended_code', 'ExtendedCode')
+_lazy_import('sage.coding.punctured_code', 'PuncturedCode')
 
-lazy_import('sage.coding.parity_check_code', 'ParityCheckCode')
-lazy_import('sage.coding.cyclic_code', 'CyclicCode')
-lazy_import('sage.coding.bch_code', 'BCHCode')
-lazy_import('sage.coding.grs_code', ['GeneralizedReedSolomonCode', 'ReedSolomonCode'])
-lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode', 'ReedMullerCode'])
-lazy_import('sage.coding.hamming_code', 'HammingCode')
-lazy_import('sage.coding.golay_code', 'GolayCode')
-lazy_import('sage.coding.goppa', 'GoppaCode')
+_lazy_import('sage.coding.parity_check_code', 'ParityCheckCode')
+_lazy_import('sage.coding.cyclic_code', 'CyclicCode')
+_lazy_import('sage.coding.bch_code', 'BCHCode')
+_lazy_import('sage.coding.grs_code', ['GeneralizedReedSolomonCode', 'ReedSolomonCode'])
+_lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode', 'ReedMullerCode'])
+_lazy_import('sage.coding.hamming_code', 'HammingCode')
+_lazy_import('sage.coding.golay_code', 'GolayCode')
+_lazy_import('sage.coding.goppa', 'GoppaCode')
 
-lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
+_lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
 
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders
 from . import bounds_catalog as bounds
 
-lazy_import('sage.coding','databases')
+_lazy_import('sage.coding','databases')

@@ -5700,7 +5700,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):
 
-    def is_postcritically_finite(self):
+    def is_postcritically_finite(self, embedding=None):
         r"""
         Every point is postcritically finite in a finite field.
 

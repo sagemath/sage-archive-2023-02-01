@@ -362,7 +362,7 @@ def line_graph(self, labels=True):
     if self._directed:
         from sage.graphs.digraph import DiGraph
         G = DiGraph()
-        G.add_vertices(self.edges(labels=labels))
+        G.add_vertices(self.edge_iterator(labels=labels))
         for v in self:
             # Connect appropriate incident edges of the vertex v
             G.add_edges((e, f) for e in self.incoming_edge_iterator(v, labels=labels)

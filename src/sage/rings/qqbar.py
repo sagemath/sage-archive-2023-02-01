@@ -508,7 +508,7 @@ This example from :trac:`17896` should run in reasonable time, see also
     sage: z.exactify()
 
 Check that :trac:`17895` is fixed. We check that ``polynomial_root``
-runs under a second::
+runs under 5 seconds (used to take ~40sec)::
 
     sage: x,y = polygens(QQ,"x,y")
     sage: p1 = x^5 + 6*x^4 - 42*x^3 - 142*x^2 + 467*x + 422
@@ -516,7 +516,7 @@ runs under a second::
     sage: p3 = p2(x=x*y).resultant(p2,x).univariate_polynomial()
     sage: p4, = [f[0] for f in p3.factor() if f[0].degree() == 80]
     sage: ival = CIF((0.77, 0.78), (-0.08, -0.07))
-    sage: alarm(1.0)
+    sage: alarm(5.0)
     sage: z2 = QQbar.polynomial_root(p4, ival)
     sage: cancel_alarm()
 """

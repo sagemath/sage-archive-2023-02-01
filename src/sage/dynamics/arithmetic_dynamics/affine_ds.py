@@ -902,6 +902,49 @@ class DynamicalSystem_affine_field(DynamicalSystem_affine,
         F = self.as_scheme_morphism().weil_restriction()
         return F.as_dynamical_system()
 
+    def reduce_base_field(self):
+        """
+        Return this map defined over the field of definition of the coefficients.
+
+        The base field of the map could be strictly larger than
+        the field where all of the coefficients are defined. This function
+        reduces the base field to the minimal possible. This can be done when
+        the base ring is a number field, QQbar, a finite field, or algebraic
+        closure of a finite field.
+
+        OUTPUT: A dynamical system
+
+        EXAMPLES::
+
+            sage: K.<t> = GF(5^2)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: f = DynamicalSystem_affine([x^2 + 3*y^2, 3*y^2])
+            sage: f.reduce_base_field()
+            Dynamical System of Affine Space of dimension 2 over Finite Field of size 5
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x^2 - 2*y^2, -2*y^2)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQbar, 2)
+            sage: f = DynamicalSystem_affine([x^2 + QQbar(sqrt(3))*y^2, QQbar(sqrt(-1))*y^2])
+            sage: f.reduce_base_field()
+            Dynamical System of Affine Space of dimension 2 over Number Field in a with defining polynomial y^4 - y^2 + 1 with a = -0.866025403784439? + 0.50000000000000000?*I
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x^2 + (a^3 - 2*a)*y^2, (a^3)*y^2)
+
+        ::
+
+            sage: K.<v> = CyclotomicField(5)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: f = DynamicalSystem_affine([(3*x^2 + y) / (5*x), (y^2+1) / (x+y)])
+            sage: f.reduce_base_field()
+            Dynamical System of Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    ((3*x^2 + y)/(5*x), (5*y^2 + 5)/(5*x + 5*y))
+        """
+        return self.as_scheme_morphism().reduce_base_field().as_dynamical_system()
+
 class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
                                     SchemeMorphism_polynomial_affine_space_finite_field):
 

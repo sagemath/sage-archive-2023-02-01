@@ -20,7 +20,7 @@ Families of Codes (Rich representation)
     :meth:`~sage.coding.reed_muller_code.ReedMullerCode` @ q-ary Reed-Muller codes
     :meth:`~sage.coding.hamming_code.HammingCode` @ Hamming codes
     :meth:`~sage.coding.golay_code.GolayCode` @ Golay codes
-    :meth:`~sage.coding.goppa.GoppaCode` @ Goppa codes
+    :meth:`~sage.coding.goppa_code.GoppaCode` @ Goppa codes
 
 
 Families of Codes (Generator matrix representation)
@@ -98,7 +98,7 @@ _lazy_import('sage.coding.grs_code', ['GeneralizedReedSolomonCode', 'ReedSolomon
 _lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode', 'ReedMullerCode'])
 _lazy_import('sage.coding.hamming_code', 'HammingCode')
 _lazy_import('sage.coding.golay_code', 'GolayCode')
-_lazy_import('sage.coding.goppa', 'GoppaCode')
+_lazy_import('sage.coding.goppa_code', 'GoppaCode')
 
 _lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
 

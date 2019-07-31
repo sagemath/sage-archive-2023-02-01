@@ -87,7 +87,7 @@ def random_error_vector(n, F, error_positions):
 
     EXAMPLES::
 
-        sage: from sage.coding.channel_constructions import random_error_vector
+        sage: from sage.coding.channel import random_error_vector
         sage: random_error_vector(5, GF(2), [1,3])
         (0, 1, 0, 1, 0)
     """
@@ -116,7 +116,7 @@ def format_interval(t):
 
     TESTS::
 
-        sage: from sage.coding.channel_constructions import format_interval
+        sage: from sage.coding.channel import format_interval
         sage: t = (5, 5)
         sage: format_interval(t)
         '5'
@@ -127,6 +127,7 @@ def format_interval(t):
 
     """
     return str(t[0]) if t[0] == t[1] else 'between %s and %s' % (t[0], t[1])
+
 
 class Channel(SageObject):
     r"""
@@ -169,7 +170,7 @@ class Channel(SageObject):
 
         We first create a new Channel subclass::
 
-            sage: from sage.coding.channel_constructions import Channel
+            sage: from sage.coding.channel import Channel
             sage: class ChannelExample(Channel):
             ....:   def __init__(self, input_space, output_space):
             ....:       super(ChannelExample, self).__init__(input_space, output_space)
@@ -438,14 +439,6 @@ class StaticErrorRateChannel(Channel):
             (3, 3)
         """
         return self._number_errors
-
-
-
-
-
-
-
-
 
 
 class ErrorErasureChannel(Channel):

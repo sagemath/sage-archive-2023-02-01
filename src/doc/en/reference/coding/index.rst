@@ -14,7 +14,7 @@ decoders. The following modules provide the base classes defining them.
    :maxdepth: 1
 
    sage/coding/linear_code
-   sage/coding/channel_constructions
+   sage/coding/channel
    sage/coding/encoder
    sage/coding/decoder
 
@@ -47,7 +47,7 @@ computations for structural invariants are available.
    sage/coding/golay_code
    sage/coding/reed_muller_code
    sage/coding/grs_code
-   sage/coding/goppa
+   sage/coding/goppa_code
 
 In contrast, for some code families Sage can only construct their generator
 matrix and has no other a priori knowledge on them:

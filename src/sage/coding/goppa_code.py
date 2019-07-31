@@ -41,7 +41,7 @@ def _columnize(element):
 
     TESTS::
 
-        sage: from sage.coding.goppa import _columnize
+        sage: from sage.coding.goppa_code import _columnize
         sage: F.<a> = GF(2^6)
         sage: _columnize(a)
         [0]
@@ -62,7 +62,7 @@ def _columnize(element):
     return v.column()
 
 class GoppaCode(AbstractLinearCode):
-    """
+    r"""
     Implementation of Goppa codes.
 
     Goppa codes are a generalization of narrow-sense BCH codes.
@@ -311,7 +311,7 @@ class GoppaCode(AbstractLinearCode):
 
 
 class GoppaCodeEncoder(Encoder):
-    """
+    r"""
     Encoder for Goppa codes
 
     Encodes words represented as vectors of length `k`, where `k` is

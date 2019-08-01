@@ -516,7 +516,7 @@ def shortest_simple_paths(self, source, target, weight_function=None,
             yield [source]
         return
 
-    if self.has_loops or self.allows_multiple_edges:
+    if self.has_loops() or self.allows_multiple_edges():
         self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
 
     if algorithm is None:
@@ -707,7 +707,7 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
             yield [source]
         return
 
-    if self.has_loops or self.allows_multiple_edges:
+    if self.has_loops() or self.allows_multiple_edges():
         self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
 
     if weight_function is not None:
@@ -1055,7 +1055,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             yield [source]
         return
 
-    if self.has_loops or self.allows_multiple_edges:
+    if self.has_loops() or self.allows_multiple_edges():
         self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
 
     G = self.copy()

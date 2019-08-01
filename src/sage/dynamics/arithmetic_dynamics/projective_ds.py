@@ -5286,6 +5286,28 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: m = f.conjugating_set(g)[0]
             sage: f.conjugate(m) == g
             True
+
+        TESTS:
+
+        Make sure the caching problem is fixed, see #28070 ::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
+            sage: m = matrix(QQ, 2, 2, [-1, 3, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.conjugating_set(g)
+            [
+            [-1  3]
+            [ 2  1]
+            ]
+            sage: f = f.change_ring(K)
+            sage: g = g.change_ring(K)
+            sage: f.conjugating_set(g)
+            [
+            [-1  3]
+            [ 2  1]
+            ]
         """
         f = copy(self)
         g = copy(other)
@@ -5314,7 +5336,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             # Note: det_ratio will be nonzero for invertible f1, f2
             if m1.det() != m2.det():
                 det_ratio = m1.det()/m2.det()
-                # .is_square() Return True if self is a square in its parent number field and otherwise return False
                 try:
                     det_root = det_ratio.nth_root(M)
                 except ValueError: #no root in field
@@ -5350,10 +5371,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     return [m]
             #not similar
             return []
-        # sigma invariants are invariant under conjugacy
-        if (R in NumberFields() or R in FiniteFields()) and (f.sigma_invariants(1) != g.sigma_invariants(1)):
-            return []
+        # sigma invariants are invariant under conjugacy but are only implemented in dim 1
         n = f.domain().dimension_relative()
+        if (n == 1) and (R in NumberFields() or R in FiniteFields())\
+            and (f.sigma_invariants(1) != g.sigma_invariants(1)):
+            return []
         L = Set(f.periodic_points(1))
         K = Set(g.periodic_points(1))
         if len(L) != len(K):  # checks maps have the same number of fixed points
@@ -5362,11 +5384,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         r = f.domain().base_ring()
         more = True
         if d >= n+2: # need at least n+2 points
-            for i in Subsets(L, n+2):
+            for i in Subsets(range(len(L)), n+2):
                 # make sure all n+1 subsets are linearly independent
-                Ml = matrix(r, [list(s) for s in i])
+                TL = [L[il] for il in i]
+                Ml = matrix(r, [list(s) for s in TL])
                 if not any(j == 0 for j in Ml.minors(n + 1)):
-                    Tf = list(i)
+                    Tf = list(TL)
                     more = False
                     break
         while more:
@@ -5381,17 +5404,20 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 raise ValueError("not enough rational preimages")
             d = len(L)
             if d >= n + 2: # makes sure all n+1 subsets are linearly independent
-                for i in Subsets(L, n+2):
-                    Ml = matrix(r, [list(s) for s in i])
+                for i in Subsets(range(len(L)), n+2):
+                    TL = [L[il] for il in i]
+                    Ml = matrix(r, [list(s) for s in TL])
                     if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
-                        Tf = list(i)
+                        Tf = list(TL)
                         break
         Conj = []
-        for i in Arrangements(K,(n+2)):
+        for i in Arrangements(range(len(K)),(n+2)):
+            TK = [K[ik] for ik in i]
             # try all possible conjugations between invariant sets
             try: # need all n+1 subsets linearly independent
-                s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
+                s = f.domain().point_transformation_matrix(TK,Tf)
+                # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     Conj.append(s)
             except (ValueError):
@@ -5493,6 +5519,40 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: g = f.conjugate(m1)
             sage: f.is_conjugate(g)
             True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(7), 2)
+            sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
+            sage: m1 = matrix(GF(7), 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.is_conjugate(g)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: f = DynamicalSystem_projective([2*x^2 + 12*y*x, 11*y*x+2*y^2, x^2+z^2])
+            sage: m1 = matrix(QQ, 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.is_conjugate(g) # long time
+            True
+
+        TESTS:
+
+        Make sure the caching problem is fixed, see #28070 ::
+
+            sage: K.<i> = QuadraticField(5)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
+            sage: m = matrix(QQ, 2, 2, [-1, 3, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.is_conjugate(g)
+            True
+            sage: f = f.change_ring(K)
+            sage: g = g.change_ring(K)
+            sage: f.is_conjugate(g)
+            True
         """
         f = copy(self)
         g = copy(other)
@@ -5524,17 +5584,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 try:
                     det_root = det_ratio.nth_root(M)
                 except ValueError: #no root in field
-                    return []
+                    return False
                 # matrices must have same determinant to be similar, but were in PGL
                 # so we can scale to have the determinants equal
                 m1 = (1/det_root)*m1
-                return m1.is_similar(m2)
-            else:
-                return False
-        # sigma invariants are invariant under conjugacy
-        if (R in NumberFields() or R in FiniteFields()) and (f.sigma_invariants(1) != g.sigma_invariants(1)):
-            return False
+            return m1.is_similar(m2)
+        # sigma invariants are invariant under conjugacy but are only implemented in dim 1
         n = f.domain().dimension_relative()
+        if (n==1) and (R in NumberFields() or R in FiniteFields())\
+          and (f.sigma_invariants(1) != g.sigma_invariants(1)):
+            return False
         L = Set(f.periodic_points(1))
         K = Set(g.periodic_points(1))
         if len(L) != len(K): # checks maps have the same number of fixed points
@@ -5543,10 +5602,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         r = f.domain().base_ring()
         more = True
         if d >= n+2: # need at least n+2 points
-            for i in Subsets(L, n+2): # makes sure all n+1 subsets are linearly independent
-                Ml = matrix(r, [list(s) for s in i])
+            for i in Subsets(range(len(L)), n+2):
+                # make sure all n+1 subsets are linearly independent
+                TL = [L[il] for il in i]
+                Ml = matrix(r, [list(s) for s in TL])
                 if not any(j == 0 for j in Ml.minors(n + 1)):
-                    Tf = list(i)
+                    Tf = list(TL)
                     more = False
                     break
         while more:
@@ -5560,18 +5621,20 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if d == len(L):# if no new preimages then not enough points
                 raise ValueError("not enough rational preimages")
             d = len(L)
-            if d >= n + 2:
-                # make sure all n+1 subsets are linearly independent
-                for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
-                    Ml = matrix(r, [list(s) for s in i])
+            if d >= n + 2: # makes sure all n+1 subsets are linearly independent
+                for i in Subsets(range(len(L)), n+2):
+                    TL = [L[il] for il in i]
+                    Ml = matrix(r, [list(s) for s in TL])
                     if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
-                        Tf = list(i)
+                        Tf = list(TL)
                         break
-        for i in Arrangements(K, n+2):
+        for i in Arrangements(range(len(K)),(n+2)):
+            TK = [K[ik] for ik in i]
             # try all possible conjugations between invariant sets
             try: # need all n+1 subsets linearly independent
-                s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
+                s = f.domain().point_transformation_matrix(TK,Tf)
+                # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True
             except (ValueError):

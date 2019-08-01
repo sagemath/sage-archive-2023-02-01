@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # cython: binding=True
+# distutils: language = c++
 r"""
 Graph traversals.
 
@@ -14,6 +15,7 @@ Graph traversals.
     :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
+    :meth:`~lex_M` | Perform a lexicographic UP search (LexUP) on the graph.
 
 Methods
 -------
@@ -37,6 +39,12 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
+
+from cysignals.signals cimport sig_on, sig_off
+
+from libcpp.queue cimport queue
+from libcpp.pair cimport pair
+from libcpp.string cimport string
 
 def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     r"""
@@ -728,3 +736,98 @@ def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
     `label(v)`.
 
     """
+    # Loops and multiple edges are not needed in Lex M
+    if G.allows_loops() or G.allows_multiple_edges():
+        G = G.to_simple(immutable=False)
+
+    cdef int nV = G.order()
+
+    # Base case when G is empty
+    if not nV:
+        if tree:
+            from sage.graphs.digraph import DiGraph
+            g = DiGraph(sparse=True)
+            if labels and triangulation:
+                return [], G, [], g
+            elif labels:
+                return [], [], g
+            elif triangulation:
+                return [], G, g
+            else:
+                return [], g
+        else:
+            if labels and triangulation:
+                return [], G, []
+            elif labels:
+                return [], []
+            elif triangulation:
+                return [], G
+            else:
+                return []
+
+    # Build adjacency list of G
+    cdef list int_to_v = list(G)
+
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
+
+    cdef list label = [[] for i in range(nV)]
+
+    def l_func(x):
+        return label[x]
+
+    cdef list value = []
+
+    # Initialize the triangulation graph
+    if G.is_directed():
+        from sage.graphs.digraph import DiGraph
+        H = DiGraph()
+        H.add_vertices(G.vertices())
+    else:
+        from sage.graphs.graph import Graph
+        H = Graph()
+        H.add_vertices(G.vertices())
+
+    # initialize the predecessors array
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int *pred = <int *>mem.allocarray(nV, sizeof(int))
+    memset(pred, -1, nV * sizeof(int))
+
+    cdef set vertices = set(range(nV))
+
+    cdef int source = 0 if initial_vertex is None else int_to_v.index(initial_vertex)
+    label[source].append(0)
+
+    cdef queue[pair[int, string]] q
+    cdef string s
+
+    cdef int now = 1, v, current_vertex, int_neighbor
+    cdef string max_label_in_path
+    while vertices:
+        v = max(vertices, key=l_func)
+        vertices.remove(v)
+        q = queue[pair[int, string]]() # clear the queue
+        s = "".join(str(code) for code in label[v])
+        q.push([v, s])
+        seen = [v]
+        while not q.empty():
+            current_vertex = q.front().first
+            max_label_in_path = q.front().second
+            q.pop()
+            for i in range(0, out_degree(sd, v)):
+                int_neighbor = sd.neighbors[v][i]
+                if int_neighbor in vertices and not int_neighbor in seen:
+                    s = "".join(str(code) for code in label[int_neighbor])
+                    if s > max_label_in_path:
+                        label[int_neighbor].append(nV - now)
+                        q.push([int_neighbor, s])
+                        seen.append(int_neighbor)
+                    else:
+                        q.push([int_neighbor, max_label_in_path])
+                        seen.append((int_neighbor))
+        value.append(int_to_v[v])
+        now += 1
+
+    free_short_digraph(sd)
+
+    return value

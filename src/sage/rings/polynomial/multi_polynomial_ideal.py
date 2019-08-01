@@ -2644,7 +2644,7 @@ class MPolynomialIdeal_singular_repr(
 
         TESTS:
 
-        Check that :trac:`27483` and :trac: `28110` are fixed::
+        Check that :trac:`27483` and :trac:`28110` are fixed::
 
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3, x*y^2, y^4, x^2*y*z, y^3*z, x^2*z^2, x*y*z^2, x*z^3])

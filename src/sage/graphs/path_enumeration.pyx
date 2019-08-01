@@ -739,8 +739,6 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         if not self.is_directed():
             for u, v in list(edge_labels):
                 edge_labels[v, u] = edge_labels[u, v]
-        for u, v in list(edge_labels):
-            edge_labels[v, u] = edge_labels[u, v]
 
     from heapq import heappush, heappop
 

@@ -23,9 +23,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.structure.parent import Parent
-from sage.arith.all import factorial
 from sage.rings.integer import Integer
-from sage.misc.all import prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.shifted_primed_tableau import PrimedEntry
@@ -789,7 +787,6 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
             sage: st[0].parent() is st
             True
         """
-        import copy
         pi = self.shape
 
         for tableau in StandardTableaux(pi):

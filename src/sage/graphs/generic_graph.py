@@ -3043,21 +3043,23 @@ class GenericGraph(GenericGraph_pyx):
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
             seen = dict()
-            for u,v,l in self.multiple_edges(sort=False):
-                if not (u,v) in seen:
+            keep_min = keep_label == 'min'
+            keep_max = keep_label == 'max'
+            for u, v, l in self.multiple_edges(sort=False):
+                if (u, v) not in seen:
                     # This is the first time we see this edge
-                    seen[u,v] = l
+                    seen[u, v] = l
                 else:
                     # This edge has already been seen: we have to remove
                     # something from the graph.
-                    oldl = seen[u,v]
-                    if ((keep_label == 'min' and l < oldl) or (keep_label == 'max' and l > oldl)):
+                    oldl = seen[u, v]
+                    if (keep_min and l < oldl) or (keep_max and l > oldl):
                         # Keep the new edge, delete the old one
-                        self.delete_edge((u, v, oldl))
-                        seen[u,v] = l
+                        self.delete_edge(u, v, oldl)
+                        seen[u, v] = l
                     else:
                         # Delete the new edge
-                        self.delete_edge((u, v, l))
+                        self.delete_edge(u, v, l)
 
         self._backend.multiple_edges(new)
 

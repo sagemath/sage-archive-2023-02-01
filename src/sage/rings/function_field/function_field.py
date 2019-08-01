@@ -969,6 +969,30 @@ class FunctionField(Field):
         from .place import PlaceSet
         return PlaceSet(self)
 
+class FunctionField_charzero(FunctionField):
+
+    @cached_method
+    def higher_derivation(self):
+        """
+        Return the higher derivation (also called the Hasse-Schmidt derivation)
+        for the function field.
+
+        The higher derivation of the function field is uniquely determined with
+        respect to the separating element `x` of the base rational function
+        field `k(x)`.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(QQ); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: L.higher_derivation()
+            Higher derivation map:
+              From: Function field in y defined by y^3 + (-x^3 + 1)/(x^3 - 2)
+              To:   Function field in y defined by y^3 + (-x^3 + 1)/(x^3 - 2)
+        """
+        from .maps import FunctionFieldHigherDerivation_charzero
+        return FunctionFieldHigherDerivation_charzero(self)
+
 class FunctionField_polymod(FunctionField):
     """
     Function fields defined by a univariate polynomial, as an extension of the
@@ -2603,6 +2627,9 @@ class FunctionField_polymod(FunctionField):
         t = self.hom( [k.gen() for k in ret._intermediate_fields(ret.rational_function_field())] )
         return ret, f, t
 
+class FunctionField_charzero_polymod(FunctionField_polymod, FunctionField_charzero):
+    pass
+
 class FunctionField_global(FunctionField_polymod):
     """
     Global function fields.
@@ -3387,6 +3414,9 @@ class FunctionField_integral(FunctionField_polymod):
         b = self.primitive_integal_element_infinite()
         basis = [b**i for i in range(self.degree())]
         return FunctionFieldOrderInfinite_basis(tuple(basis))
+
+class FunctionField_charzero_integral(FunctionField_charzero, FunctionField_integral):
+    pass
 
 class FunctionField_global_integral(FunctionField_global, FunctionField_integral):
     """

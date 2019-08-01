@@ -199,7 +199,9 @@ class FunctionFieldExtensionFactory(UniqueFactory):
                         return function_field.FunctionField_global(f, names)
             else:
                 if f.is_irreducible() and f.is_monic() and all(e in base_field.maximal_order() for e in f.coefficients()):
-                    return function_field.FunctionField_integral(f, names)
+                    return function_field.FunctionField_charzero_integral(f, names)
+                else:
+                    return function_field.FunctionField_charzero_polymod(f, names)
         return function_field.FunctionField_polymod(f, names)
 
 FunctionFieldExtension=FunctionFieldExtensionFactory(

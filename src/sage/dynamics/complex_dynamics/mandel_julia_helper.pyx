@@ -37,6 +37,8 @@ from sage.functions.other import sqrt
 from sage.ext.fast_callable import fast_callable
 from sage.calculus.all import symbolic_expression
 from sage.calculus.var import var
+from sage.rings.fraction_field import is_FractionField
+from sage.categories.function_fields import FunctionFields
 
 def _color_to_RGB(color):
     """
@@ -426,31 +428,31 @@ cpdef fast_julia_plot(double c_real, double c_imag,
     - ``c_real`` -- double, Real part of `c` value that determines Julia set.
 
     - ``c_imag`` -- double, Imaginary part of `c` value that determines Julia
-     set.
+      set.
 
     - ``x_center`` -- double (optional - default: ``0.0``), Real part of center
-     point.
+      point.
 
     - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of
-     center point.
+      center point.
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image
-     in the complex plane.
+      in the complex plane.
 
     - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
-     iterations the map ``Q_c(z)``.
+      iterations the map ``Q_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
-     image in number of pixels.
+      image in number of pixels.
 
     - ``level_sep`` -- long (optional - default: ``2``), number of iterations
-     between each color level.
+      between each color level.
 
     - ``color_num`` -- long (optional - default: ``40``), number of colors used
-     to plot image.
+      to plot image.
 
     - ``base_color`` -- RGB color (optional - default: ``[50, 50, 50]``), color
-     used to determine the coloring of set.
+      used to determine the coloring of set.
 
     OUTPUT:
 
@@ -541,34 +543,34 @@ cpdef julia_helper(double c_real, double c_imag, double x_center=0,
     - ``c_real`` -- double, Real part of `c` value that determines Julia set.
 
     - ``c_imag`` -- double, Imaginary part of `c` value that determines Julia
-     set.
+      set.
 
     - ``x_center`` -- double (optional - default: ``0.0``), Real part of center
-     point.
+      point.
 
     - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of
-     center point.
+      center point.
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image in
-     the complex plane.
+      the complex plane.
 
     - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
-     iterations the map ``Q_c(z)``.
+      iterations the map ``Q_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
-     image in number of pixels.
+      image in number of pixels.
 
     - ``level_sep`` -- long (optional - default: ``2``), number of iterations
-     between each color level.
+      between each color level.
 
     - ``color_num`` -- long (optional - default: ``40``), number of colors used
-     to plot image.
+      to plot image.
 
     - ``base_color`` -- RGB color (optional - default: ``[50, 50, 50]``), color
-     used to determine the coloring of set.
+      used to determine the coloring of set.
 
     - ``point_color`` -- RGB color (optional - default: ``[255, 0, 0]``), color
-     of the point `c` in the Mandelbrot set.
+      of the point `c` in the Mandelbrot set.
 
     OUTPUT:
 
@@ -621,27 +623,27 @@ cpdef julia_helper(double c_real, double c_imag, double x_center=0,
 
 cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
  double y_center=0, image_width=4, int max_iteration=50, int pixel_count=500,
- int level_sep=1, int color_num=30, base_color='red'):
+ int level_sep=1, int color_num=30, base_color=Color('red')):
     r"""
     Plots the Mandelbrot set in the complex plane for a general polynomial map.
 
     INPUT:
 
     - ``f`` -- polynomial map defined over the multivariate polynomial ring in
-     z, c over the Complex field.
+      z, c over the Complex field.
 
     - ``parameter`` -- designates which variable is used as the parameter.
-     If no parameter is provided, ``c`` will be used as the parameter.
+      If no parameter is provided, ``c`` will be used as the parameter.
 
     - ``x_center`` -- double, real part of the center point in the complex plane.
 
     - ``y_center`` -- double, imaginary part of the center point in the complex
-     plane.
+      plane.
 
     - ``image_width`` -- double, width of the image in the complex plane.
 
     - ``max_iteration`` -- long, maximum number of iterations the map `f(z)`
-     considered.
+      considered.
 
     - ``pixel_count`` -- long, side length of image in number of pixels.
 
@@ -690,18 +692,24 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
 
     P = f.parent()
 
-    if P.base() is CC:
+    if P.base_ring() is CC:
+        if is_FractionField(P):
+            raise NotImplementedError("coefficients must be polynomials in the parameter")
         gen_list = list(P.gens())
         parameter = gen_list.pop(gen_list.index(parameter))
         variable = gen_list.pop()
 
-    elif P.base().base() is CC:
-        parameter = P.gen()
-        variable = P.base().gen()
+    elif P.base_ring().base_ring() is CC:
+        if is_FractionField(P.base_ring()):
+            raise NotImplementedError("coefficients must be polynomials in the parameter")
+        parameter = P.base_ring().gen()
+        variable = P.gen()
+
+    elif P.base_ring() in FunctionFields():
+        raise NotImplementedError("coefficients must be polynomials in the parameter")
 
     else:
-        return ValueError("Base ring must be a complex field.")
-
+        return ValueError("base ring must be a complex field")
 
     # Make sure image_width is positive
     image_width = abs(image_width)

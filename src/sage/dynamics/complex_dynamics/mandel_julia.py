@@ -46,11 +46,13 @@ from sagenb.notebook.interact import (interact,
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import logb
-from sage.rings.all import QQ, CC
+from sage.rings.all import QQ, CC, CDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.prandom import randint
 from sage.calculus.var import var
+from sage.rings.fraction_field import is_FractionField
+from sage.categories.function_fields import FunctionFields
 
 EPS = 0.00001
 
@@ -58,6 +60,9 @@ EPS = 0.00001
 def mandelbrot_plot(f=None, **kwds):
     r"""
     Plot of the Mandelbrot set for a general polynomial map `f_c(z)`.
+    
+    If a general polynomial map `f_c(z)` is passed, parent R must be of the
+    form `R.<z,c> = CC[]`.
 
     REFERENCE:
 
@@ -65,39 +70,38 @@ def mandelbrot_plot(f=None, **kwds):
 
     INPUT:
 
-
     - ``f`` -- map (optional - default: ``z^2 + c``), polynomial map used to
-    plot the Mandelbrot set.
+      plot the Mandelbrot set.
 
     - ``parameter`` -- variable (optional - default: ``c``), parameter variable
-    used to plot the Mandelbrot set.
+      used to plot the Mandelbrot set.
 
     - ``x_center`` -- double (optional - default: ``-1.0``), Real part of center
-    point.
+      point.
 
     - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of
-    center point.
+      center point.
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image
-    in the complex plane.
+      in the complex plane.
 
     - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
-    iterations the map ``f_c(z)``.
+      iterations the map ``f_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
-    image in number of pixels.
+      image in number of pixels.
 
     - ``base_color`` -- Hex color (optional - default: ``tomato``) color
-    used to determine the coloring of set.
+      used to determine the coloring of set.
 
     - ``level_sep`` -- long (optional - default: 1) number of iterations
-    between each color level.
+      between each color level.
 
     - ``number_of_colors`` -- long (optional - default: 30) number of colors
-    used to plot image.
+      used to plot image.
 
     - ``interact`` -- boolean (optional - default: ``False``), controls whether
-    plot will have interactive functionality.
+      plot will have interactive functionality.
 
     OUTPUT:
 
@@ -143,8 +147,8 @@ def mandelbrot_plot(f=None, **kwds):
 
     ::
 
-        sage: B.<z> = CC[]
-        sage: R.<c> = B[]
+        sage: B.<c> = CC[]
+        sage: R.<z> = B[]
         sage: f = z^5 + c
         sage: mandelbrot_plot(f) # not tested
         500x500px 24-bit RGB image
@@ -220,16 +224,23 @@ def mandelbrot_plot(f=None, **kwds):
         P = f.parent()
 
         if P.base_ring() is CC or P.base_ring() is CDF:
+            if is_FractionField(P):
+                raise NotImplementedError("coefficients must be polynomials in the parameter")
             gen_list = list(P.gens())
             parameter = gen_list.pop(gen_list.index(parameter))
             variable = gen_list.pop()
 
         elif P.base_ring().base_ring() is CC or P.base_ring().base_ring() is CDF:
-            parameter = P.gen()
-            variable = P.base().gen()
+            if is_FractionField(P.base_ring()):
+                raise NotImplementedError("coefficients must be polynomials in the parameter")
+            variable = P.gen()
+            parameter = P.base_ring().gen()
+
+        elif P.base_ring() in FunctionFields():
+            raise NotImplementedError("coefficients must be polynomials in the parameter")
 
         else:
-            raise ValueError("Base ring must be a complex field")
+            raise ValueError("base ring must be a complex field")
 
         if f == variable**2 + parameter:
             # Quadratic map f = z^2 + c
@@ -272,27 +283,27 @@ def external_ray(theta, **kwds):
     kwds:
 
     - ``image`` -- 24-bit RGB image (optional - default: None) user specified
-     image of Mandelbrot set.
+      image of Mandelbrot set.
 
     - ``D`` -- long (optional - default: ``25``) depth of the approximation.
-     As ``D`` increases, the external ray gets closer to the boundary of the
-     Mandelbrot set. If the ray doesn't reach the boundary of the Mandelbrot
-     set, increase ``D``.
+      As ``D`` increases, the external ray gets closer to the boundary of the
+      Mandelbrot set. If the ray doesn't reach the boundary of the Mandelbrot
+      set, increase ``D``.
 
     - ``S`` -- long (optional - default: ``10``) sharpness of the approximation.
-     Adjusts the number of points used to approximate the external ray (number
-     of points is equal to ``S*D``). If ray looks jagged, increase ``S``.
+      Adjusts the number of points used to approximate the external ray (number
+      of points is equal to ``S*D``). If ray looks jagged, increase ``S``.
 
     - ``R`` -- long (optional - default: ``100``) radial parameter. If ``R`` is
-     large, the external ray reaches sufficiently close to infinity. If ``R`` is
-     too small, Newton's method may not converge to the correct ray.
+      large, the external ray reaches sufficiently close to infinity. If ``R`` is
+      too small, Newton's method may not converge to the correct ray.
 
     - ``prec`` -- long (optional - default: ``300``) specifies the bits of
-     precision used by the Complex Field when using Newton's method to compute
-     points on the external ray.
+      precision used by the Complex Field when using Newton's method to compute
+      points on the external ray.
 
     - ``ray_color`` -- RGB color (optional - default: ``[255, 255, 255]``) color
-     of the external ray(s).
+      of the external ray(s).
 
     OUTPUT:
 

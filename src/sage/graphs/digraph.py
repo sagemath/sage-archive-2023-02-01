@@ -835,32 +835,17 @@ class DiGraph(GenericGraph):
             if weighted is None:
                 weighted = False
             self.allow_loops(True if loops else False, check=False)
-            self.allow_multiple_edges(True if multiedges else False, check=False)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
             if data < 0:
                 raise ValueError("the number of vertices cannot be strictly negative")
             elif data:
                 self.add_vertices(range(data))
         elif format == 'list_of_edges':
-            self.allow_multiple_edges(False if multiedges is False else True)
-            self.allow_loops(False if loops is False else True)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
+            self.allow_loops(True if loops else False, check=False)
             self.add_edges(data)
-            if multiedges is not True and self.has_multiple_edges():
-                from sage.misc.superseded import deprecation
-                deprecation(15706, "You created a graph with multiple edges "
-                            "from a list. Please set 'multiedges' to 'True' "
-                            "when you do so, as in the future the default "
-                            "behaviour will be to ignore those edges")
-            elif multiedges is None:
-                self.allow_multiple_edges(False)
-
-            if loops is not True and self.has_loops():
-                from sage.misc.superseded import deprecation
-                deprecation(15706, "You created a graph with loops from a list. "+
-                            "Please set 'loops' to 'True' when you do so, as in "+
-                            "the future the default behaviour will be to ignore "+
-                            "those edges")
-            elif loops is None:
-                self.allow_loops(False)
         else:
             raise ValueError("unknown input format '{}'".format(format))
 

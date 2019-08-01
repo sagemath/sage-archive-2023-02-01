@@ -946,6 +946,125 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
             coeffs.append(num / den)
         return self._field(coeffs)
 
+class FunctionFieldHigherDerivation_charzero(FunctionFieldHigherDerivation):
+    """
+    Higher derivations of characteristic zero function fields.
+
+    INPUT:
+
+    - ``field`` -- function field on which the derivation operates
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: h = L.higher_derivation()
+        sage: h
+        Higher derivation map:
+          From: Function field in y defined by y^3 + x^3*y + x
+          To:   Function field in y defined by y^3 + x^3*y + x
+        sage: h(y,1) == -(3*x^2*y+1)/(3*y^2+x^3)
+        True
+        sage: h(y^2,1) == -2*y*(3*x^2*y+1)/(3*y^2+x^3)
+        True
+        sage: e = L.random_element()
+        sage: h(h(e,1),1) == 2*h(e,2)
+        True
+        sage: h(h(h(e,1),1),1) == 3*2*h(e,3)
+        True
+    """
+
+    def __init__(self, field):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: TestSuite(h).run(skip=['_test_category'])
+        """
+        FunctionFieldHigherDerivation.__init__(self, field)
+
+        self._separating_element = field(field.base_field().gen())
+
+        # cache computed higher derivatives to speed up later computations
+        self._cache = {}
+
+    def _call_with_args(self, f, args, kwds):
+        """
+        Call the derivation with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: e = L.random_element()
+            sage: h(h(e,1),1) == 2*h(e,2)  # indirect doctest
+            True
+        """
+        return self._derive(f, *args, **kwds)
+
+    def _derive(self, f, i, separating_element=None):
+        """
+        Return ``i``-th derivative of ``f` with respect to the separating
+        element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: y^3
+            -x^3*y - x
+            sage: h._derive(y^3,0)
+            -x^3*y - x
+            sage: h._derive(y^3,1)
+            (-21/4*x^4/(x^7 + 27/4))*y^2 + ((-9/2*x^9 - 45/2*x^2)/(x^7 + 27/4))*y + (-9/2*x^7 - 27/4)/(x^7 + 27/4)
+        """
+        F = self._field
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            xderinv = ~(x.derivative())
+            derivative = lambda f: xderinv * f.derivative()
+
+        try:
+            cache = self._cache[separating_element]
+        except KeyError:
+            cache = self._cache[separating_element] = {}
+
+        def derive(f, i):
+            # Step 1: zero-th derivative
+            if i == 0:
+                return f
+
+            # Step 1.5: use cached result if available
+            try:
+                return cache[f,i]
+            except KeyError:
+                pass
+
+            # Step 2:
+            # Step 3:
+            s = i
+            e = f
+            while s > 0:
+                e = derivative(e) / F(s)
+                s -= 1
+
+            der = e
+
+            cache[f,i] = der
+            return der
+
+        return derive(f, i)
+
 class FunctionFieldVectorSpaceIsomorphism(Morphism):
     r"""
     Base class for isomorphisms between function fields and vector spaces.

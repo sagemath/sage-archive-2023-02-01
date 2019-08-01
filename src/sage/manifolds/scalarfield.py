@@ -639,7 +639,7 @@ class ScalarField(CommutativeAlgebraElement):
         on U: (x, y) |--> 1/(x**2 + y**2 + 1)
         on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
 
-    Defintion without any coordinate expression and subsequent completion::
+    Definition without any coordinate expression and subsequent completion::
 
         sage: f = M.scalar_field(name='f')
         sage: f.add_expr(1/(1+x^2+y^2), chart=c_xy)

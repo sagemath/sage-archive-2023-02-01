@@ -477,7 +477,7 @@ extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
+    'arxiv': ('https://arxiv.org/abs/%s', 'arXiv '),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
     'doi': ('https://doi.org/%s', 'doi:'),
     'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),

@@ -254,6 +254,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Dynamical System of Product of projective spaces P^2 x P^1 over Rational Field
           Defn: Defined by sending (x : y : z , w : u) to
                 (x^2*u : y^2*w : z^2*u , w^2 : u^2).
+
+    ::
+
+        sage: K.<v> = QuadraticField(-7)
+        sage: P.<x,y> = ProjectiveSpace(K, 1)
+        sage: f = DynamicalSystem([x^3 + v*x*y^2, y^3])
+        sage: fbar = f.change_ring(QQbar)
+        sage: fbar.is_postcritically_finite()
+        False
     """
 
     @staticmethod
@@ -488,7 +497,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         If the dehomogenizing indices are the same for the domain and
         codomain, then a :class:`DynamicalSystem_affine` given by
         dehomogenizing the source and target of `self` with respect to
-        the given indices. is returned. If the dehomogenizing indicies
+        the given indices is returned. If the dehomogenizing indices
         for the domain and codomain are different then the resulting
         affine patches are different and a scheme morphism is returned.
 
@@ -1871,8 +1880,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     f = f.change_ring(K)
                 else:
                     K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
-                    Q = Q.change_ring(K, embedding=phi)
-                    f = f.change_ring(K, embedding=psi)
+                    Q = Q.change_ring(phi)
+                    f = f.change_ring(psi)
         else:
             if not K.is_absolute():
                 raise TypeError("must be an absolute field")
@@ -3725,6 +3734,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - 5/4*y^2, y^2])
             sage: f.sigma_invariants(4, formal=False, type='cycle')
             [170, 5195, 172700, 968615, 1439066, 638125, 0]
+
+        TESTS::
+
+            sage: F.<t> = FunctionField(GF(5))
+            sage: P.<x,y> = ProjectiveSpace(F,1)
+            sage: f = DynamicalSystem_projective([x^2 + (t/(t^2+1))*y^2, y^2], P)
+            sage: f.sigma_invariants(1)
+            [2, 4*t/(t^2 + 1), 0]
         """
         n = ZZ(n)
         if n < 1:
@@ -3745,9 +3762,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         base_ring = dom.base_ring()
         if is_FractionField(base_ring):
             base_ring = base_ring.ring()
-        if (is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)
-            or base_ring in FunctionFields()):
+        if (is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)):
             base_ring = base_ring.base_ring()
+        elif base_ring in FunctionFields():
+            base_ring = base_ring.constant_base_field()
         from sage.rings.number_field.order import is_NumberFieldOrder
         if not (base_ring in NumberFields() or is_NumberFieldOrder(base_ring)
                 or (base_ring in FiniteFields())):

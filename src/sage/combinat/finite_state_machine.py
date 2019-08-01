@@ -11635,7 +11635,8 @@ class Automaton(FiniteStateMachine):
             ....:                ('B', 'C', 0), ('C', 'C', 1), ('C', 'C', 0)],
             ....:               initial_states=['A'], final_states=['C'])
             sage: B = A.minimization(algorithm='Brzozowski')
-            sage: B.transitions(B.states()[1])
+            sage: B_trans = B.transitions(B.states()[1])
+            sage: B_trans # random
             [Transition from frozenset({frozenset({'B', 'C'}),
                                         frozenset({'A', 'C'}),
                                         frozenset({'A', 'B', 'C'})})
@@ -11654,22 +11655,9 @@ class Automaton(FiniteStateMachine):
             sage: len(B.states())
             3
             sage: C = A.minimization(algorithm='Brzozowski')
-            sage: C.transitions(C.states()[1])
-            [Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'C'}),
-                                      frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        0|-,
-             Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        1|-]
+            sage: C_trans = C.transitions(C.states()[1])
+            sage: B_trans == C_trans
+            True
             sage: len(C.states())
             3
 

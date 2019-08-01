@@ -969,6 +969,80 @@ class FunctionField(Field):
         from .place import PlaceSet
         return PlaceSet(self)
 
+    @cached_method
+    def completion(self, place, name=None, prec=None, gen_name=None):
+        """
+        Return the completion of the function field at the place.
+
+        INPUT:
+
+        - ``place`` -- place
+
+        - ``name`` -- string; name of the series variable
+
+        - ``prec`` -- positive integer; default precision
+
+        - ``gen_name`` -- string; name of the generator of the residue field;
+          used only when the place is non-rational
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p); m
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Finite Field of size 2
+            sage: m(x,10)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+            sage: m(y,10)
+            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p); m
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Finite Field of size 2
+            sage: m(x,10)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+            sage: m(y,10)
+            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: p = K.places_finite()[0]; p
+            Place (x)
+            sage: m = K.completion(p); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Laurent Series Ring in s over Finite Field of size 2
+            sage: m(1/(x+1))
+            1 + s + s^2 + s^3 + s^4 + s^5 + s^6 + s^7 + s^8 + s^9 + s^10 + s^11 + s^12
+            + s^13 + s^14 + s^15 + s^16 + s^17 + s^18 + s^19 + O(s^20)
+
+            sage: p = K.place_infinite(); p
+            Place (1/x)
+            sage: m = K.completion(p); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Laurent Series Ring in s over Finite Field of size 2
+            sage: m(x)
+            s^-1 + O(s^19)
+
+            sage: m = K.completion(p, prec=infinity); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Lazy Laurent Series Ring in s over Finite Field of size 2
+            sage: f = m(x); f
+            s^-1 + ...
+            sage: f.coefficient(100)
+            0
+        """
+        from .maps import FunctionFieldCompletion
+        return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name)
+
 class FunctionField_charzero(FunctionField):
 
     @cached_method
@@ -3144,39 +3218,6 @@ class FunctionField_global(FunctionField_polymod):
         return R, gaps
 
     @cached_method
-    def completion(self, place, name=None, prec=None, gen_name=None):
-        """
-        Return the completion of the function field at the place.
-
-        INPUT:
-
-        - ``place`` -- place
-
-        - ``name`` -- string; name of the series variable
-
-        - ``prec`` -- positive integer; default precision
-
-        - ``gen_name`` -- string; name of the generator of the residue field;
-          used only when the place is non-rational
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_finite()[0]
-            sage: m = L.completion(p); m
-            Completion map:
-              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
-              To:   Laurent Series Ring in s over Finite Field of size 2
-            sage: m(x,10)
-            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
-            sage: m(y,10)
-            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
-        """
-        from .maps import FunctionFieldCompletion_global
-        return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
-
-    @cached_method
     def L_polynomial(self, name='t'):
         """
         Return the L-polynomial of the function field.
@@ -4319,55 +4360,4 @@ class RationalFunctionField_global(RationalFunctionField):
         """
         from .maps import FunctionFieldHigherDerivation_rational
         return FunctionFieldHigherDerivation_rational(self)
-
-    @cached_method
-    def completion(self, place, name=None, prec=None, gen_name=None):
-        """
-        Return the completion of the function field at the place
-
-        INPUT:
-
-        - ``place`` -- place
-
-        - ``name`` -- string; name of the series variable
-
-        - ``prec`` -- positive integer; default precision
-
-        - ``gen_name`` -- string; name of the generator of the residue field;
-          used only when the place is non-rational
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: p = K.places_finite()[0]; p
-            Place (x)
-            sage: m = K.completion(p); m
-            Completion map:
-              From: Rational function field in x over Finite Field of size 2
-              To:   Laurent Series Ring in s over Finite Field of size 2
-            sage: m(1/(x+1))
-            1 + s + s^2 + s^3 + s^4 + s^5 + s^6 + s^7 + s^8 + s^9 + s^10 + s^11 + s^12
-            + s^13 + s^14 + s^15 + s^16 + s^17 + s^18 + s^19 + O(s^20)
-
-            sage: p = K.place_infinite(); p
-            Place (1/x)
-            sage: m = K.completion(p); m
-            Completion map:
-              From: Rational function field in x over Finite Field of size 2
-              To:   Laurent Series Ring in s over Finite Field of size 2
-            sage: m(x)
-            s^-1 + O(s^19)
-
-            sage: m = K.completion(p, prec=infinity); m
-            Completion map:
-              From: Rational function field in x over Finite Field of size 2
-              To:   Lazy Laurent Series Ring in s over Finite Field of size 2
-            sage: f = m(x); f
-            s^-1 + ...
-            sage: f.coefficient(100)
-            0
-        """
-        from .maps import FunctionFieldCompletion_global
-        return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
-
 

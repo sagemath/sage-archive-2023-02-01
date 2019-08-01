@@ -1697,27 +1697,6 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
 
 class FunctionFieldCompletion(Map):
     """
-    Base class of completions on function fields.
-    """
-    def _repr_type(self):
-        """
-        Return a string containing the type of the map.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_finite()[0]
-            sage: m = L.completion(p)
-            sage: m  # indirect doctest
-            Completion map:
-              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
-              To:   Laurent Series Ring in s over Finite Field of size 2
-        """
-        return 'Completion'
-
-class FunctionFieldCompletion_global(FunctionFieldCompletion):
-    """
     Completions on global functionf fields.
 
     INPUT:
@@ -1803,7 +1782,27 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
             codomain = LaurentSeriesRing(k, name=name, default_prec=prec)
             self._precision = codomain.default_prec()
 
-        FunctionFieldCompletion.__init__(self, field, codomain)
+        Map.__init__(self, field, codomain)
+
+    """
+    Base class of completions on function fields.
+    """
+    def _repr_type(self):
+        """
+        Return a string containing the type of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m  # indirect doctest
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Finite Field of size 2
+        """
+        return 'Completion'
 
     def _call_(self, f):
         """

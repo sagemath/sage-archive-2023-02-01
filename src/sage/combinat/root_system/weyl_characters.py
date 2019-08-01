@@ -1021,7 +1021,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         hdict = {}
         ddict = mdict.copy()
-        while len(ddict) != 0:
+        while ddict:
             highest = max((x.inner_product(self._space.rho()),x) for x in ddict)[1]
             if not highest.is_dominant():
                 raise ValueError("multiplicity dictionary may not be Weyl group invariant")

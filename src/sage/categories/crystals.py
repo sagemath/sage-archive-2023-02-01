@@ -2239,7 +2239,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         ef = [[]]
         indices = [[]]
 
-        while len(todo) > 0:
+        while todo:
             cur = todo.pop(0)
             cur_ef = ef.pop(0)
             cur_indices = indices.pop(0)

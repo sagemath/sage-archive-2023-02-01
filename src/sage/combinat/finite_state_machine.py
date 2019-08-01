@@ -6982,7 +6982,7 @@ class FiniteStateMachine(SageObject):
                     pass
         else:
             ignore_done = []
-        while len(not_done) > 0:
+        while not_done:
             s = not_done.pop(0)
             for letter in self.input_alphabet:
                 try:
@@ -10035,7 +10035,7 @@ class FiniteStateMachine(SageObject):
                 unhandeled_direct_predecessors[t.to_state].append(t.from_state)
         done = []
         open = [state]
-        while len(open) > 0:
+        while open:
             s = open.pop()
             candidates = unhandeled_direct_predecessors[s]
             if candidates is not None:
@@ -13698,7 +13698,6 @@ class _FSMTapeCache_(SageObject):
             return list(itertools.islice(track_cache, 0, length))
         else:
             return track_cache[0]
-
 
     def compare_to_tape(self, track_number, word):
         """

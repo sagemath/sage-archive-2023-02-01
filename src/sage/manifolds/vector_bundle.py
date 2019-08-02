@@ -136,6 +136,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._transitions = {} # dictionary of transition maps (key: pair of
                     # of trivializations)
         self._frames = []  # list of local frames for self
+        self._frame_changes = {}  # dictionary of changes of frames
         self._def_frame = None  # default frame
         self._coframes = [] # list of local coframes for self
         self._trivial_parts = set() # subsets of base space on which self is
@@ -266,14 +267,39 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
     def _add_local_frame(self, frame):
         r"""
+        Helper method to add local frames to the vector bundle.
+
+        INPUT:
+
+        - ``frame`` -- the local frame that shall be added
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(1, 'E')
+            sage: e = E.local_frame('e')
+            sage: E._add_local_frame(e)
+            sage: E._frames
+            [Local frame (e_0,e_1) on Topological real vector bundle E -> M of
+             rank 1 over the base space 2-dimensional topological manifold M,
+             Local frame (e_0,e_1) on Topological real vector bundle E -> M of
+             rank 1 over the base space 2-dimensional topological manifold M]
 
         """
         self._trivial_parts.add(frame.domain())
         self._frames.append(frame)
 
-    def trivialization(self, domain, name=None, latex_name=None):
+    def trivialization(self, domain=None, name=None, latex_name=None):
         r"""
         Return a trivialization of ``self`` over the domain ``domain``.
+
+        INPUT:
+
+        - ``domain`` -- (default: ``None``) domain on which the trivialization
+          is defined; if ``None`` the base space is assumed
+        - ``name`` -- (default: ``None``) name given to the trivialization
+        - ``latex_name`` -- (default: ``None``) latex name given to the
+          trivialization
 
         OUTPUT:
 
@@ -290,11 +316,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         from .trivialization import Trivialization
-        return Trivialization(self, domain, name=name, latex_name=latex_name)
+        return Trivialization(self, domain=domain, name=name,
+                              latex_name=latex_name)
 
     def transitions(self):
         r"""
-        Return the transition maps defined over subsets of the manifold.
+        Return the transition maps defined over subsets of the base space.
 
         OUTPUT:
 
@@ -302,7 +329,17 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         EXAMPLES::
 
-
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: U = M.open_subset('U')
+            sage: V = M.open_subset('V')
+            sage: X_UV = X.restrict(U.intersection(V))
+            sage: E = M.vector_bundle(2, 'E')
+            sage: phi_U = E.trivialization(U, name='phi_U')
+            sage: phi_V = E.trivialization(V, name='phi_V')
+            sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, 1); phi_U_to_phi_V
+            Transition map from Trivialization (phi_U:E|_M -> M) to
+             Trivialization (phi_V:E|_M -> M)
 
         """
         return self._transitions
@@ -329,7 +366,18 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         EXAMPLES::
 
-
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: U = M.open_subset('U')
+            sage: V = M.open_subset('V')
+            sage: X_UV = X.restrict(U.intersection(V))
+            sage: E = M.vector_bundle(2, 'E')
+            sage: phi_U = E.trivialization(U, name='phi_U')
+            sage: phi_V = E.trivialization(V, name='phi_V')
+            sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, 1)
+            sage: E.transition(phi_V, phi_U)
+            Transition map from Trivialization (phi_V:E|_M -> M) to
+             Trivialization (phi_U:E|_M -> M)
 
         """
         if (triv1, triv2) not in self._transitions:
@@ -407,6 +455,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
           representing the module `\Gamma(E)` of continuous sections on
           `M` taking values on `E`
 
+        EXAMPLES:
+
+            TODO
+
         """
         from sage.manifolds.section_module import \
                                             SectionModule, SectionFreeModule
@@ -432,6 +484,72 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         return VectorBundleFiber(self, point)
+
+    def local_frame(self, symbol=None, latex_symbol=None,
+                    from_frame=None, indices=None, latex_indices=None,
+                    symbol_dual=None, latex_symbol_dual=None, domain=None):
+        r"""
+        Define a local frame on ``self``.
+
+        TODO: BLABLA
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.local_frame.LocalFrame` for complete
+            documentation.
+
+        INPUT:
+
+        - ``symbol`` -- (default: ``None``) either a string, to be used as a
+          common base for the symbols of the sections constituting the
+          local frame, or a list/tuple of strings, representing the individual
+          symbols of the sections; can be ``None`` only if ``from_frame``
+          is not ``None`` (see below)
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the sections
+          constituting the local frame, or a list/tuple of strings,
+          representing the individual LaTeX symbols of the sections;
+          if ``None``, ``symbol`` is used in place of ``latex_symbol``
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices labelling
+          the sections of the frame; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the sections;
+          if ``None``, ``indices`` is used instead
+        - ``symbol_dual`` -- (default: ``None``) same as ``symbol`` but for the
+          dual coframe; if ``None``, ``symbol`` must be a string and is used
+          for the common base of the symbols of the elements of the dual
+          coframe
+        - ``latex_symbol_dual`` -- (default: ``None``) same as ``latex_symbol``
+          but for the dual coframe
+        - ``domain`` -- (default: ``None``) domain on which the local frame
+          is defined; if ``None``, the whole base space is assumed
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.local_frame.LocalFrame` representing the
+          defined local frame
+
+        EXAMPLES:
+
+        Blablabla::
+
+            TODO
+
+        .. SEEALSO::
+
+            For more options, in particular for the choice of symbols and
+            indices, see
+            :class:`~sage.manifolds.local_frame.LocalFrame`.
+
+        """
+        from sage.manifolds.local_frame import LocalFrame
+        sec_module = self.section_module(domain=domain, force_free=True)
+        return LocalFrame(sec_module, symbol=symbol, latex_symbol=latex_symbol,
+                          indices=indices, latex_indices=latex_indices,
+                          symbol_dual=symbol_dual,
+                          latex_symbol_dual=latex_symbol_dual)
 
     def section(self, name=None, latex_name=None):
         r"""
@@ -489,7 +607,15 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         OUTPUT:
 
-        - the total space of ``self`` as an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`
+        - the total space of ``self`` as an instance of
+          :class:`~sage.manifolds.manifold.TopologicalManifold`
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: E.total_space()
+            6-dimensional topological manifold E
 
         """
         from sage.manifolds.manifold import Manifold
@@ -505,6 +631,25 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     def set_change_of_frame(self, frame1, frame2, change_of_frame,
                             compute_inverse=True):
         r"""
+        Relate two vector frames by an automorphism.
+
+        This updates the internal dictionary ``self._frame_changes``.
+
+        INPUT:
+
+        - ``frame1`` -- frame 1, denoted `(e_i)` below
+        - ``frame2`` -- frame 2, denoted `(f_i)` below
+        - ``change_of_frame`` -- instance of class
+          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
+          describing the automorphism `P` that relates the basis `(e_i)` to
+          the basis `(f_i)` according to `f_i = P(e_i)`
+        - ``compute_inverse`` (default: True) -- if set to True, the inverse
+          automorphism is computed and the change from basis `(f_i)` to `(e_i)`
+          is set to it in the internal dictionary ``self._frame_changes``
+
+        EXAMPLES:
+
+            TODO
 
         """
         from sage.tensor.modules.free_module_automorphism import \
@@ -513,17 +658,32 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         if frame2._fmodule != sec_module:
             raise ValueError("the two frames are not defined on the same " +
                              "section module")
-        sec_module.set_change_of_basis(self._frame1, self._frame2,
-                                       change_of_frame,
+        sec_module.set_change_of_basis(frame1, frame2, change_of_frame,
                                        compute_inverse=compute_inverse)
-        sec_module._basis_changes[
-            (self._frame1, self._frame2)] = change_of_frame
+        sec_module._basis_changes[(frame1, frame2)] = change_of_frame
         if compute_inverse:
-            sec_module._basis_changes[
-                (self._frame2, self._frame1)] = ~change_of_frame
+            sec_module._basis_changes[(frame2, frame1)] = ~change_of_frame
 
     def change_of_frame(self, frame1, frame2):
         r"""
+        Return a change of local frames defined on ``self``.
+
+        INPUT:
+
+        - ``frame1`` -- local frame 1
+        - ``frame2`` -- local frame 2
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
+          representing, at each point, the vector space automorphism `P`
+          that relates frame 1, `(e_i)` say, to frame 2, `(f_i)` say,
+          according to `f_i = P(e_i)`
+
+        EXAMPLES:
+
+            TODO
 
         """
         if (frame1, frame2) not in self._frame_changes:
@@ -533,6 +693,16 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
     def changes_of_frame(self):
         r"""
+        Return all the changes of local frames defined on ``self``.
+
+        OUTPUT:
+
+        - dictionary of vector bundle automorphisms representing
+          the changes of frames, the keys being the pair of frames
+
+        EXAMPLES:
+
+            TODO
 
         """
         return self._frame_changes

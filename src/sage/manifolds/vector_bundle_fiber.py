@@ -84,13 +84,11 @@ class VectorBundleFiber(FiniteRankFreeModule):
                                    symbol_dual=coframe._symbol,
                                    latex_symbol_dual=coframe._latex_symbol)
                 self._frame_bases[frame] = basis
-        def_frame = vector_bundle._def_frame
-        if def_frame in self._frame_bases:
-            self._def_basis = self._frame_bases[def_frame]
-        # The basis induced by the default frame of the manifold subset
+        self._def_basis = None
+        # The basis induced by the default frame of the vector bundle
         # in which the point has been created is declared the default
         # basis of self:
-        def_frame = point.parent()._def_frame
+        def_frame = vector_bundle._def_frame
         if def_frame in self._frame_bases:
             self._def_basis = self._frame_bases[def_frame]
         # Initialization of the changes of bases from the existing changes of

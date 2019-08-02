@@ -29,18 +29,32 @@ class SectionModule(UniqueRepresentation, Parent):
 
     """
     Element = Section
-    
-    def __init__(self, vbundle, domain=None):
+
+    @staticmethod
+    def __classcall_private__(cls, vbundle, domain=None):
+        """
+        For unique representation: In case domain is ``None``, the base space is
+        assumed.
+
+        TESTS::
+
+
+
+        """
+        if domain is None:
+            domain = vbundle.base_space()
+        return super(SectionModule, cls).__classcall__(cls, vbundle, domain)
+
+    def __init__(self, vbundle, domain):
         r"""
 
         """
         base_space = vbundle.base_space()
-        if domain is None:
-            domain = base_space
-        elif not domain.is_subset(base_space):
+        if not domain.is_subset(base_space):
             raise ValueError("domain must be a subset of base space")
         name = "C^0({};{})".format(domain._name, vbundle._name)
-        latex_name = r'C^0({};{})'.format(domain._latex_name, vbundle._latex_name)
+        latex_name = r'C^0({};{})'.format(domain._latex_name,
+                                          vbundle._latex_name)
         self._name = name
         self._latex_name = latex_name
         self._vbundle = vbundle
@@ -145,8 +159,22 @@ class SectionFreeModule(FiniteRankFreeModule):
     r"""
 
     """
-
     Element = TrivialSection
+
+    @staticmethod
+    def __classcall_private__(cls, vbundle, domain=None):
+        """
+        For unique representation: In case domain is ``None``, the base space is
+        assumed.
+
+        TESTS::
+
+
+
+        """
+        if domain is None:
+            domain = vbundle.base_space()
+        return super(SectionFreeModule, cls).__classcall__(cls, vbundle, domain)
 
     def __init__(self, vbundle, domain=None):
         r"""
@@ -160,13 +188,14 @@ class SectionFreeModule(FiniteRankFreeModule):
         from .scalarfield import ScalarField
         self._domain = domain
         name = "C^0({};{})".format(domain._name, vbundle._name)
-        latex_name = r'C^0({};{})'.format(domain._latex_name, vbundle._latex_name)
+        latex_name = r'C^0({};{})'.format(domain._latex_name,
+                                          vbundle._latex_name)
         base_space = vbundle.base_space()
         self._base_space = base_space
         self._vbundle = vbundle
         cat = Modules(domain.scalar_field_algebra()).FiniteDimensional()
         FiniteRankFreeModule.__init__(self, domain.scalar_field_algebra(),
-                               base_space._dim, name=name,
+                               vbundle.rank(), name=name,
                                latex_name=latex_name,
                                start_index=base_space._sindex,
                                output_formatter=None,

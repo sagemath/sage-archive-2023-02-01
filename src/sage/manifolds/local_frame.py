@@ -24,13 +24,15 @@ class LocalCoFrame(FreeModuleCoBasis):
     r"""
     Local coframe on a vector bundle.
 
+    TODO: BLABLA
+
     INPUT:
 
     - ``frame`` -- the vector frame dual to the coframe
 
     EXAMPLES:
 
-
+        TODO
 
     """
     def __init__(self, frame, symbol, latex_symbol=None, indices=None,
@@ -40,7 +42,7 @@ class LocalCoFrame(FreeModuleCoBasis):
 
         TESTS::
 
-
+            TODO
 
         """
         self._domain = frame.domain()
@@ -58,6 +60,8 @@ class LocalCoFrame(FreeModuleCoBasis):
 
         TESTS::
 
+            TODO
+
         """
         desc = "Local coframe " + self._name + " "
         desc += "on {}".format(self._basis.module())
@@ -65,24 +69,50 @@ class LocalCoFrame(FreeModuleCoBasis):
 
     def at(self, point):
         r"""
+        Return the value of ``self`` at a given point on the base space, this
+        value being a basis of the dual of the vector bundle at the point.
+
+        INPUT:
+
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` in the domain `U` of the coframe (denoted `f` hereafter)
+
+        OUTPUT:
+
+        - :class:`~sage.tensor.modules.free_module_basis.FreeModuleCoBasis`
+          representing the basis `f(p)` of the vector space `E^*_p`,
+          dual to the vector bundle fiber `E_p`
+
+        EXAMPLES:
+
+            TODO
 
         """
         return self._basis.at(point).dual_basis()
 
     def domain(self):
         r"""
+        Return the domain on which ``self`` is defined.
+
+        TODO
 
         """
         return self._domain
 
     def base_space(self):
         r"""
+        Return the base space on which the overlying vector bundle is defined.
+
+        TODO
 
         """
         return self._base_space
 
     def vector_bundle(self):
         r"""
+        Return the vector bundle on which ``self`` is defined.
+
+        TODO
 
         """
         return self._vbundle
@@ -91,6 +121,9 @@ class LocalCoFrame(FreeModuleCoBasis):
 
 class LocalFrame(FreeModuleBasis):
     r"""
+    Local frame on a vector bundle.
+
+    TODO
 
     """
 
@@ -99,7 +132,7 @@ class LocalFrame(FreeModuleBasis):
 
     @staticmethod
     def __classcall_private__(cls, section_module, symbol,
-                              latex_symbol=None, from_frame=None, indices=None,
+                              latex_symbol=None, indices=None,
                               latex_indices=None, symbol_dual=None,
                               latex_symbol_dual=None):
         """
@@ -108,7 +141,7 @@ class LocalFrame(FreeModuleBasis):
 
         TESTS::
 
-
+            TODO
 
         """
         if isinstance(symbol, list):
@@ -125,15 +158,19 @@ class LocalFrame(FreeModuleBasis):
             latex_symbol_dual = tuple(latex_symbol_dual)
         return super(LocalFrame, cls).__classcall__(cls, section_module,
                                         symbol, latex_symbol=latex_symbol,
-                                        from_frame=from_frame, indices=indices,
+                                        indices=indices,
                                         latex_indices=latex_indices,
                                         symbol_dual=symbol_dual,
                                         latex_symbol_dual=latex_symbol_dual)
 
-    def __init__(self, section_module, symbol, latex_symbol=None,
-                 from_frame=None, indices=None, latex_indices=None,
-                 symbol_dual=None, latex_symbol_dual=None):
+    def __init__(self, section_module, symbol, latex_symbol=None, indices=None,
+                 latex_indices=None, symbol_dual=None, latex_symbol_dual=None):
         r"""
+        Construct a local frame on a vector bundle.
+
+        TESTS:
+
+            TODO
 
         """
         from sage.tensor.modules.finite_rank_free_module import \
@@ -143,20 +180,6 @@ class LocalFrame(FreeModuleBasis):
         self._domain = section_module.domain()
         self._base_space = section_module.base_space()
         self._vbundle = section_module.vector_bundle()
-        self._from_frame = from_frame
-        if from_frame is not None:
-            if not from_frame.domain().is_subset(self._domain):
-                raise ValueError("the domain of the frame 'from_frame' is " +
-                                 "not included in the given domain")
-        if symbol is None:
-            if from_frame is None:
-                raise TypeError("some frame symbol must be provided")
-            symbol = from_frame._symbol
-            latex_symbol = from_frame._latex_symbol
-            indices = from_frame._indices
-            latex_indices = from_frame._latex_indices
-            symbol_dual = from_frame._symbol_dual
-            latex_symbol_dual = from_frame._latex_symbol_dual
         FreeModuleBasis.__init__(self, section_module,
                                  symbol, latex_symbol=latex_symbol,
                                  indices=indices, latex_indices=latex_indices,
@@ -185,21 +208,13 @@ class LocalFrame(FreeModuleBasis):
         TESTS::
 
             sage: M = Manifold(2, 'M')
-            sage: e = M.vector_frame('e')
-            sage: e._repr_()
+            sage: E = M.vector_bundle('E')
+            sage: E.frame('e')
             'Vector frame (M, (e_0,e_1))'
             sage: repr(e)  # indirect doctest
             'Vector frame (M, (e_0,e_1))'
             sage: e  # indirect doctest
             Vector frame (M, (e_0,e_1))
-
-        Test with a nontrivial destination map::
-
-            sage: N = Manifold(3, 'N', start_index=1)
-            sage: phi = M.diff_map(N)
-            sage: h = M.vector_frame('h', dest_map=phi)
-            sage: h._repr_()
-            'Vector frame (M, (h_1,h_2,h_3)) with values on the 3-dimensional differentiable manifold N'
 
         """
         desc = "Local frame " + self._name + " on {}".format(self._vbundle)
@@ -208,12 +223,18 @@ class LocalFrame(FreeModuleBasis):
     def _new_instance(self, symbol, latex_symbol=None, indices=None,
                       latex_indices=None, symbol_dual=None,
                       latex_symbol_dual=None):
+        r"""
+        TODO
+        """
         pass
 
     ###### End of methods to be redefined by derived classes ######
 
     def coframe(self):
         r"""
+        Return the coframe of ``self``.
+
+        TODO
 
         """
         return self._coframe
@@ -222,6 +243,48 @@ class LocalFrame(FreeModuleBasis):
                   indices=None, latex_indices=None, symbol_dual=None,
                   latex_symbol_dual=None):
         r"""
+        Define a new local frame from ``self``.
+
+        The new local frame is defined from vector bundle automorphisms; its
+        module is the same as that of the current frame.
+
+        INPUT:
+
+        - ``change_of_frame`` --
+          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`;
+          vector bundle automorphisms `P` that relates
+          the current frame `(e_i)` to the new frame `(f_i)` according
+          to `f_i = P(e_i)`
+        - ``symbol`` -- either a string, to be used as a common base for the
+          symbols of the sections constituting the local frame, or a
+          list/tuple of strings, representing the individual symbols of the
+          sections
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the sections
+          constituting the local frame, or a list/tuple of strings,
+          representing the individual LaTeX symbols of the sections;
+          if ``None``, ``symbol`` is used in place of ``latex_symbol``
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices labelling
+          the sections of the frame; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the sections;
+          if ``None``, ``indices`` is used instead
+        - ``symbol_dual`` -- (default: ``None``) same as ``symbol`` but for the
+          dual coframe; if ``None``, ``symbol`` must be a string and is used
+          for the common base of the symbols of the elements of the dual
+          coframe
+        - ``latex_symbol_dual`` -- (default: ``None``) same as ``latex_symbol``
+          but for the dual coframe
+
+        OUTPUT:
+
+        - the new frame `(f_i)`, as an instance of :class:`LocalFrame`
+
+        EXAMPLES:
+
+            TODO
 
         """
         the_new_frame = self.new_basis(change_of_frame, symbol,
@@ -252,7 +315,7 @@ class LocalFrame(FreeModuleBasis):
 
         EXAMPLES:
 
-
+            TODO
 
         """
         if subdomain == self._domain:
@@ -293,7 +356,6 @@ class LocalFrame(FreeModuleBasis):
                              latex_indices=self._latex_indices,
                              symbol_dual=self._symbol_dual,
                              latex_symbol_dual=self._latex_symbol_dual)
-            res._from_frame = self._from_frame
             #new_vectors = list()
             #for i in self._fmodule.irange():
             #    vrest = self[i].restrict(subdomain)
@@ -316,6 +378,23 @@ class LocalFrame(FreeModuleBasis):
 
     def at(self, point):
         r"""
+        Return the value of ``self`` at a given point, this value being
+        a basis of the vector bundle fiber at the point.
+
+        INPUT:
+
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`; point
+          `p` in the domain `U` of the local frame (denoted `e` hereafter)
+
+        OUTPUT:
+
+        - :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`
+          representing the basis `e(p)` of the vector bundle fiber
+          `E_p`
+
+        EXAMPLES:
+
+            TODO
 
         """
         # Determination of the vector bundle fiber:
@@ -389,18 +468,27 @@ class LocalFrame(FreeModuleBasis):
 
     def domain(self):
         r"""
+        Return the domain on which ``self`` is defined.
+
+        TODO
 
         """
         return self._domain
 
     def base_space(self):
         r"""
+        Return the base space on which the overlying vector bundle is defined.
+
+        TODO
 
         """
         return self._base_space
 
     def vector_bundle(self):
         r"""
+        Return the vector bundle on which ``self`` is defined.
+
+        TODO
 
         """
         return self._vbundle
@@ -410,9 +498,9 @@ class LocalFrame(FreeModuleBasis):
 
 class TrivializationCoFrame(LocalCoFrame):
     r"""
-
+    TODO
     """
-    def __init__(self, trivialization_frame, symbol, latex_symbol=None,
+    def __init__(self, triv_frame, symbol, latex_symbol=None,
                  indices=None, latex_indices=None):
         r"""
         Construct a local coframe from a local trivialization.
@@ -421,13 +509,13 @@ class TrivializationCoFrame(LocalCoFrame):
 
 
         """
-        if not isinstance(trivialization_frame, TrivializationFrame):
+        if not isinstance(triv_frame, TrivializationFrame):
             raise TypeError("the first argument must be a local trivialization "
                             "frame")
-        LocalCoFrame.__init__(self, trivialization_frame, symbol,
+        LocalCoFrame.__init__(self, triv_frame, symbol,
                               latex_symbol=latex_symbol, indices=indices,
                               latex_indices=latex_indices)
-        self._trivialization = trivialization_frame._trivialization
+        self._trivialization = triv_frame._trivialization
 
     def _repr_(self):
         r"""
@@ -435,7 +523,7 @@ class TrivializationCoFrame(LocalCoFrame):
 
         TESTS::
 
-
+            TODO
 
         """
         return "Trivialization coframe " + self._name
@@ -444,7 +532,7 @@ class TrivializationCoFrame(LocalCoFrame):
 
 class TrivializationFrame(LocalFrame):
     r"""
-
+    TODO
     """
 
     # The following class attribute must be redefined by any derived class:
@@ -493,7 +581,7 @@ class TrivializationFrame(LocalFrame):
 
         TESTS::
 
-
+            TODO
 
         """
         return "Trivialization frame " + self._name
@@ -504,11 +592,11 @@ class TrivializationFrame(LocalFrame):
 
         OUTPUT:
 
-        -
+        - TODO
 
         EXAMPLES::
 
-
+            TODO
 
         """
         return self._trivialization

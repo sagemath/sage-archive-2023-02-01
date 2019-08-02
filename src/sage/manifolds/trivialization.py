@@ -34,6 +34,24 @@ class Trivialization(UniqueRepresentation, SageObject):
     EXAMPLES:
 
     """
+    @staticmethod
+    def __classcall_private__(cls, vbundle, domain=None, name=None,
+                              latex_name=None):
+        """
+        For unique representation: In case domain is ``None``, the base space is
+        assumed.
+
+        TESTS::
+
+
+
+        """
+        if domain is None:
+            domain = vbundle.base_space()
+        return super(Trivialization, cls).__classcall__(cls, vbundle, domain,
+                                                        name=name,
+                                                        latex_name=latex_name)
+
     def __init__(self, vector_bundle, domain, name=None, latex_name=None):
         r"""
         Construct a local trivialization of the vector bundle ``vector_bundle``.
@@ -244,10 +262,9 @@ class TransitionMap(SageObject):
         self._vbundle.set_change_of_frame(self._frame1, self._frame2, auto,
                                           compute_inverse=compute_inverse)
         if compute_inverse:
-            self._inverse = type(self)(self._triv2, self._triv1, ~auto)
+            self._inverse = type(self)(self._triv2, self._triv1, ~auto,
+                                       compute_inverse=False)
             self._inverse._inverse = self
-        else:
-            self._inverse = None
 
     def _repr_(self):
         r"""
@@ -289,8 +306,7 @@ class TransitionMap(SageObject):
 
         """
         if self._inverse is None:
-            self._vbundle.set_change_of_frame(self._frame2, self._frame12,
-                                              ~auto)
+            self._vbundle.set_change_of_frame(self._frame2, self._frame1, ~auto)
             if compute_inverse:
                 self._inverse = type(self)(self._triv2, self._triv1, ~auto)
                 self._inverse._inverse = self

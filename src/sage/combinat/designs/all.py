@@ -25,15 +25,15 @@ lazy_import("sage.combinat.designs.ext_rep", ['designs_from_XML',
                                               'designs_from_XML_url'],
             deprecation=27066)
 
-from .block_design import BlockDesign
+lazy_import('sage.combinat.designs.block_design', 'BlockDesign')
 
-from .incidence_structures import IncidenceStructure
+lazy_import('sage.combinat.designs.incidence_structures', 'IncidenceStructure')
 
-from .incidence_structures import IncidenceStructure as Hypergraph
+lazy_import('sage.combinat.designs.incidence_structures',
+            'IncidenceStructure', as_='Hypergraph')
 
-from .covering_design import (CoveringDesign,
-                             schonheim,
-                             trivial_covering_design)
+lazy_import('sage.combinat.designs.covering_design',
+            ['CoveringDesign', 'schonheim', 'trivial_covering_design'])
 
 from . import design_catalog as designs
 

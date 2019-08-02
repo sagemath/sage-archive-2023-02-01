@@ -678,16 +678,9 @@ class Gap(Parent):
         if name in dir(self.__class__):
             return getattr(self.__class__, name)
 
-        from sage.libs.gap.gap_functions import common_gap_functions
-        from sage.libs.gap.gap_globals import common_gap_globals
-        if name in common_gap_functions:
-            initialize()
-            g = make_GapElement_Function(self, gap_eval(name))
-            assert g.is_function()
-        elif name in common_gap_globals:
-            initialize()
-            g = make_any_gap_element(self, gap_eval(name))
-        else:
+        try:
+            g = self.eval(name)
+        except ValueError:
             raise AttributeError(f'No such attribute: {name}.')
 
         self.__dict__[name] = g

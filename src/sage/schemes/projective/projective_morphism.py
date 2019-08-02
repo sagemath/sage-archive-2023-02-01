@@ -214,7 +214,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 polys = [f.lift() for f in polys]
             if not all(f.is_homogeneous() for f in polys):
                 raise  ValueError("polys (=%s) must be homogeneous" % polys)
-            degs = [f.degree() for f in polys]
+            degs = [f.degree() for f in polys if f]
             if not all(d == degs[0] for d in degs[1:]):
                 raise ValueError("polys (=%s) must be of the same degree" % polys)
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
@@ -629,7 +629,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         Scales by 1/gcd of the coordinate functions.
 
-        Also, scales to clear any denominators from the coefficients. This is done in place.
+        Scales to clear any denominators from the coefficients.
+        Also, makes the leading coefficients of the first polynomial
+        positive. This is done in place.
 
         OUTPUT:
 
@@ -671,39 +673,49 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (x^2 : b*y^2 : z^2)
 
+        ::
+
+            sage: K.<w> = QuadraticField(5)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem([w*x^2 + (1/5*w)*y^2, w*y^2])
+            sage: f.normalize_coordinates();f
+            Dynamical System of Projective Space of dimension 1 over Number Field in
+            w with defining polynomial x^2 - 5 with w = 2.236067977499790?
+              Defn: Defined on coordinates by sending (x : y) to
+                    (5*x^2 + y^2 : 5*y^2)
+
         .. NOTE:: gcd raises an error if the base_ring does not support gcds.
         """
         GCD = gcd(self[0], self[1])
         index = 2
-        if self[0].lc() > 0 or self[1].lc() > 0:
-            neg = 0
-        else:
-            neg = 1
+        R = self.domain().base_ring()
+
         N = self.codomain().ambient_space().dimension_relative() + 1
         while GCD != 1 and index < N:
-            if self[index].lc() > 0:
-                neg = 0
             GCD = gcd(GCD, self[index])
             index += +1
-
         if GCD != 1:
-            R = self.domain().base_ring()
-            if neg == 1:
-                self.scale_by(R(-1) / GCD)
-            else:
-                self.scale_by(R(1) / GCD)
-        else:
-            if neg == 1:
-                self.scale_by(-1)
+            self.scale_by(R(1) / GCD)
 
         #clears any denominators from the coefficients
         LCM = lcm([self[i].denominator() for i in range(N)])
         self.scale_by(LCM)
 
         #scales by 1/gcd of the coefficients.
-        GCD = gcd([self[i].content() for i in range(N)])
+        if R in _NumberFields:
+            O = R.maximal_order()
+        elif is_FiniteField(R):
+            O = R
+        elif isinstance(R, QuotientRing_generic):
+            O = R.ring()
+        else:
+            O = R
+        GCD = gcd([O(c) for poly in self for c in poly.coefficients()])
+
         if GCD != 1:
-            self.scale_by(1 / GCD)
+            self.scale_by(1/GCD)
+        if self[0].lc() < 0:
+            self.scale_by(-1)
 
     def degree(self):
         r"""
@@ -844,6 +856,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Scheme endomorphism of Affine Space of dimension 1 over Maximal Order in Number Field in w with defining polynomial x^2 - 3 with w = 1.732050807568878?
               Defn: Defined on coordinates by sending (x) to
                     (x^2 - w)
+
+        ::
+
+            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P2.<u,v,w> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P2,P1)
+            sage: f = H([u*w,v^2 + w^2])
+            sage: f.dehomogenize((2,1))
+            Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (u, v) to
+                  (u/(v^2 + 1))
         """
         #the dehomogenizations are stored for future use.
         try:
@@ -870,7 +895,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], FS)
             F = []
             G = phi(self._polys[ind[1]])
-            for i in range(0, N + 1):
+            # ind[1] is relative to codomain
+            M = self.codomain().ambient_space().dimension_relative()
+            for i in range(0, M + 1):
                 if i != ind[1]:
                     F.append(phi(self._polys[i]) / G)
             H = Hom(Aff_domain, self.codomain().affine_patch(ind[1]))
@@ -1238,11 +1265,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme([x^2 - z^2])
             sage: H = End(X)
-            sage: f= H([x^2-z^2, y^2, z^2-x^2])
+            sage: f = H([x^2-z^2, y^2, z^2-x^2])
             sage: f.rational_preimages(X([0, 1, 0]))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: subschemes as preimages not implemented
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+            x^2 - z^2,
+            -x^2 + z^2,
+            0,
+            -x^2 + z^2
 
         ::
 
@@ -1299,7 +1328,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         I.append(P[i]*self[j] - P[j]*self[i])
                 X = PS.subscheme(I)
                 if X.dimension() > 0:
-                    raise NotImplementedError("subschemes as preimages not implemented")
+                    return X
                 preimages = []
                 for T in X.rational_points():
                     if not all(g(tuple(T)) == 0 for g in self):

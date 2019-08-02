@@ -29,7 +29,7 @@ valuation ring, as shown in the following example::
     sage: f.valuation(p)
     0
 
-The residue field at the place is defined as the quotient ring of the valuaion
+The residue field at the place is defined as the quotient ring of the valuation
 ring modulo its unique maximal ideal. In a global function field, the
 :meth:`residue_field()` method returns a finite field isomorphic to the residue
 field::
@@ -53,14 +53,14 @@ AUTHORS:
 - Kwankyu Lee (2017-04-30): initial version
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method

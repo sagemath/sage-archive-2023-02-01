@@ -266,6 +266,7 @@ def clebsch_invariants(f):
 
     EXAMPLES::
 
+        sage: from sage.schemes.hyperelliptic_curves.invariants import clebsch_invariants
         sage: R.<x, y> = QQ[]
         sage: clebsch_invariants(x^6 + y^6)
         (2, 2/3, -2/9, 0)
@@ -298,6 +299,7 @@ def igusa_clebsch_invariants(f):
 
     EXAMPLES::
 
+        sage: from sage.schemes.hyperelliptic_curves.invariants import igusa_clebsch_invariants
         sage: R.<x, y> = QQ[]
         sage: igusa_clebsch_invariants(x^6 + y^6)
         (-240, 1620, -119880, -46656)
@@ -339,6 +341,7 @@ def absolute_igusa_invariants_wamelen(f):
 
     EXAMPLES::
 
+        sage: from sage.schemes.hyperelliptic_curves.invariants import absolute_igusa_invariants_wamelen
         sage: R.<x> = QQ[]
         sage: absolute_igusa_invariants_wamelen(x^5 - 1)
         (0, 0, 0)
@@ -371,6 +374,7 @@ def absolute_igusa_invariants_kohel(f):
 
     EXAMPLES::
 
+        sage: from sage.schemes.hyperelliptic_curves.invariants import absolute_igusa_invariants_kohel
         sage: R.<x> = QQ[]
         sage: absolute_igusa_invariants_kohel(x^5 - 1)
         (0, 0, 0)

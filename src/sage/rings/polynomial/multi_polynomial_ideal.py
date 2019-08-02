@@ -3894,20 +3894,19 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         basis, ::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
-            sage: I.groebner_basis('toy:buchberger')
-            [a^2 - a + 2*b^2 + 2*c^2,
-             a*b + b*c - 1/2*b, a + 2*b + 2*c - 1,
-             b^2 + 3*b*c - 1/2*b + 3*c^2 - c,
-             b*c - 1/10*b + 6/5*c^2 - 2/5*c,
-             b + 30*c^3 - 79/7*c^2 + 3/7*c,
-             c^6 - 79/210*c^5 - 229/2100*c^4 + 121/2520*c^3 + 1/3150*c^2 - 11/12600*c,
-             c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            sage: gb = I.groebner_basis('toy:buchberger')
+            sage: gb.is_groebner()
+            True
+            sage: gb == gb.reduced()
+            False
 
         but that ``toy:buchberger2`` does.::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
-            sage: I.groebner_basis('toy:buchberger2')
+            sage: gb = I.groebner_basis('toy:buchberger2'); gb
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            sage: gb == gb.reduced()
+            True
 
         ::
 
@@ -4766,8 +4765,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: P = PolynomialRing(GF(127), 10, 'x')
             sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.random_element(degree=3)
+            sage: f = I.random_element(degree=3)
+            sage: f  # random
             -25*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 + ... + 19*x7*x9 + 40*x8*x9 + 49*x1
+            sage: f.degree()
+            3
 
         We show that the default method does not sample uniformly at random from the ideal::
 
@@ -4782,8 +4784,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: P.<x,y> = QQ[]
             sage: I = P.ideal([x^2,y^2])
+            sage: set_random_seed(5)
             sage: I.random_element(degree=2)
-            -x^2
+            -2*x^2 + 2*y^2
 
         """
         if compute_gb:
@@ -4793,7 +4796,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         R = self.ring()
 
-        r = R(0)
+        r = R.zero()
 
         for f in gens:
             d = degree - f.degree()

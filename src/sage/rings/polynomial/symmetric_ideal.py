@@ -219,7 +219,7 @@ class SymmetricIdeal( Ideal_generic ):
 
         """
         from sage.misc.latex import latex
-        return '\\left(%s\\right)%s[\\mathfrak{S}_{\\infty}]'%(", ".join([latex(g) for g in self.gens()]), latex(self.ring()))
+        return '\\left(%s\\right)%s[\\mathfrak{S}_{\\infty}]' % (", ".join(latex(g) for g in self.gens()), latex(self.ring()))
 
     def _contains_(self, p):
         """

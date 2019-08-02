@@ -1,10 +1,12 @@
-# distutils: libraries = gmp flint arb
+# distutils: libraries = gmp flint ARB_LIBRARY
+# distutils: depends = arb.h
 
 from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 from sage.libs.mpfr.types cimport mpfr_t
 
-cdef extern from "arb.h":
+# arb.h
+cdef extern from "arb_wrap.h":
 
     arf_t arb_midref(arb_t x)
     mag_t arb_radref(arb_t x)

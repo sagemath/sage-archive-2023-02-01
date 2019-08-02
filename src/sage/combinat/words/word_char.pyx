@@ -644,7 +644,7 @@ cdef class WordDatatype_char(WordDatatype):
 
     def is_square(self):
         r"""
-        Returns True if self is a square, and False otherwise.
+        Return True if self is a square, and False otherwise.
 
         EXAMPLES::
 
@@ -677,7 +677,7 @@ cdef class WordDatatype_char(WordDatatype):
             True
         """
         cdef size_t l
-        if self._length % 2 != 0:
+        if self._length % 2:
             return False
         else:
             l = self._length // 2

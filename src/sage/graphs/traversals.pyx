@@ -799,32 +799,36 @@ def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
     label[source].append(0)
 
     cdef queue[pair[int, string]] q
-    cdef string s
+    cdef string s, max_label_string
 
     cdef int now = 1, v, current_vertex, int_neighbor
-    cdef string max_label_in_path
+    cdef list max_label_in_path = [], cur_labe = []
     while vertices:
         v = max(vertices, key=l_func)
         vertices.remove(v)
         q = queue[pair[int, string]]() # clear the queue
-        s = "".join(str(code) for code in label[v])
+        s = ",".join(str(code) for code in label[v])
         q.push([v, s])
         seen = [v]
         while not q.empty():
             current_vertex = q.front().first
-            max_label_in_path = q.front().second
+            max_label_string = q.front().second
+            max_label_in_path = max_label_string.split(",")
+            max_label_in_path = list(map(type(label[v]), max_label_in_path))
             q.pop()
             for i in range(0, out_degree(sd, v)):
                 int_neighbor = sd.neighbors[v][i]
                 if int_neighbor in vertices and not int_neighbor in seen:
-                    s = "".join(str(code) for code in label[int_neighbor])
-                    if s > max_label_in_path:
+                    s = ",".join(str(code) for code in label[int_neighbor])
+                    cur_label = s.split(",")
+                    cur_label = list(map(type(label[v]), cur_label))
+                    if cur_label > max_label_in_path:
                         label[int_neighbor].append(nV - now)
                         q.push([int_neighbor, s])
                         seen.append(int_neighbor)
                     else:
-                        q.push([int_neighbor, max_label_in_path])
-                        seen.append((int_neighbor))
+                        q.push([int_neighbor, max_label_string])
+                        seen.append(int_neighbor)
         value.append(int_to_v[v])
         now += 1
 

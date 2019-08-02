@@ -13,6 +13,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function, division
 from six.moves import range
 import sys
 # import from Sage library
@@ -1693,7 +1694,7 @@ def _contour_and_graph_from_words(pendant_word, forest_word):
          7: [6],
          8: [6]}
     """
-    k = (len(pendant_word)+4) / 2
+    k = (len(pendant_word)+4) // 2
 
     index = 0 # numbering of inner vertices
     word = [('in',0)] # the word representing the contour walk

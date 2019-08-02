@@ -11,10 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
-from sage.env import SAGE_DOC_SRC
-sys.path.append(SAGE_DOC_SRC)
-from common.conf import *
+from sage.docs.conf import release
+from sage.docs.conf import *  # NOQA
 
 # General information about the project.
 project = u'Numerical Computing with Sage'

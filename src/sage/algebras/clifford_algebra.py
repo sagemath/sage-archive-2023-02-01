@@ -1408,13 +1408,6 @@ class ExteriorAlgebra(CliffordAlgebra):
     This class implements the exterior algebra `\Lambda(R^n)` for
     `n` a nonnegative integer.
 
-    .. WARNING::
-
-        We initialize the exterior algebra as an object of the category
-        of Hopf algebras, but this is not really correct, since it is a
-        Hopf superalgebra with the odd-degree components forming the odd
-        part. So use Hopf-algebraic methods with care!
-
     INPUT:
 
     - ``R`` -- the base ring, *or* the free module whose exterior algebra
@@ -1476,15 +1469,14 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: E.category()
-            Category of finite dimensional super hopf algebras with basis
-             over Rational Field
+            Category of finite dimensional supercommutative supercocommutative
+             super hopf algebras with basis over Rational Field
             sage: TestSuite(E).run()
+
+            sage: TestSuite(ExteriorAlgebra(GF(3), ['a', 'b'])).run()
         """
-        cat = HopfAlgebrasWithBasis(R).Super().FiniteDimensional()
+        cat = HopfAlgebrasWithBasis(R).FiniteDimensional().Supercommutative().Supercocommutative()
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, category=cat)
-        # TestSuite will fail if the HopfAlgebra classes will ever have tests for
-        # the coproduct being an algebra morphism -- since this is really a
-        # Hopf superalgebra, not a Hopf algebra.
 
     def _repr_(self):
         r"""
@@ -1520,7 +1512,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         return term
 
     def _ascii_art_term(self, m):
-        """
+        r"""
         Return ascii art for the basis element indexed by ``m``.
 
         EXAMPLES::

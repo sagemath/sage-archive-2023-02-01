@@ -3910,6 +3910,102 @@ class DiGraph(GenericGraph):
         return not any(self.has_edge(u, v) == self.has_edge(v, u)
                            for u,v in itertools.combinations(self, 2))
 
+
+    def _girth_bfs(self, odd=False, certificate=False):
+        r"""
+        Return the girth of the digraph using breadth-first search.
+
+        Loops are ignored, so the returned value is at least 2.
+
+        INPUT:
+
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd
+          girth
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list
+          of vertices of a directed cycle of length ``g`` in the graph,
+          thus providing a certificate that the (odd) girth is at most ``g``,
+          or ``None`` if ``g`` is infinite
+
+        EXAMPLES:
+
+        A digraph with girth 4 and odd girth 5::
+
+            sage: G = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: G._girth_bfs(certificate=True)  # random
+            (4, [1, 3, 4, 0])
+            sage: G._girth_bfs(odd=True)
+            5
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.GenericGraph.girth` -- return the girth of the
+              graph
+            * :meth:`~sage.graphs.GenericGraph.odd_girth` -- return the odd
+              girth of the graph
+        """
+        n = self.num_verts()
+        best = n + 1
+        seen = set()
+        for w in self:
+            seen.add(w)
+            inSpan, outSpan = {w: None}, {w: None}
+            depth = 1
+            outList, inList = set([w]), set([w])
+            while 2 * depth <= best:
+                nextOutList, nextInList = set(), set()
+                for v in outList:
+                    for u in self.neighbor_out_iterator(v):
+                        if u in seen:
+                            continue
+                        if u not in outSpan:
+                            outSpan[u] = v
+                            nextOutList.add(u)
+                        if u in inList:
+                            best = depth * 2 - 1
+                            ends = (v, u)
+                            bestSpans = (outSpan, inSpan)
+                            break
+                    if best == 2 * depth - 1:
+                        break
+                if best == 2 * depth - 1:
+                    break
+                for v in inList:
+                    for u in self.neighbor_in_iterator(v):
+                        if u in seen:
+                            continue
+                        if u not in inSpan:
+                            inSpan[u] = v
+                            nextInList.add(u)
+                        if not odd and u in nextOutList:
+                            best = depth * 2
+                            ends = (u, v)
+                            bestSpans = (outSpan, inSpan)
+                            break
+                    if best == 2 * depth:
+                        break
+                if best <= 2:
+                    break
+                outList = nextOutList
+                inList = nextInList
+                depth += 1
+        if best == n + 1:
+            from sage.rings.infinity import Infinity
+            return (Infinity, None) if certificate else Infinity
+        if certificate:
+            cycles = {}
+            for x, span in zip(ends, bestSpans):
+                cycles[x] = []
+                y = x
+                while span[y] is not None:
+                    cycles[x].append(y)
+                    y = span[y]
+            cycles[x].append(y)
+            u, v = ends
+            return (best, list(reversed(cycles[u])) + cycles[v])
+        return best
+
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive
     from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components

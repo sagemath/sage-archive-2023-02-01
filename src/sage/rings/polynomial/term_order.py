@@ -1680,12 +1680,11 @@ class TermOrder(SageObject):
             sage: T = P.term_order()
             sage: T.macaulay2_str()
             '{GRevLex => 3,Lex => 5}'
-            sage: P._macaulay2_() # optional - macaulay2
-             ZZ
-            ---[x0, x1, x2, x3, x4, x5, x6, x7, Degrees => {8:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
-            127                                                                                 {GRevLex => {3:1}  }
-                                                                                                {Lex => 5          }
-                                                                                                {Position => Up    }
+            sage: P._macaulay2_().options()['MonomialOrder']  # optional - macaulay2
+            {MonomialSize => 16  }
+            {GRevLex => {1, 1, 1}}
+            {Lex => 5            }
+            {Position => Up      }
         """
         return self._macaulay2_str
 

@@ -264,7 +264,14 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         latex += self.base_space()._latex_name
         return latex
 
-    def trivialization(self, domain=None, name=None, latex_name=None):
+    def _add_local_frame(self, frame):
+        r"""
+
+        """
+        self._trivial_parts.add(frame.domain())
+        self._frames.append(frame)
+
+    def trivialization(self, domain, name=None, latex_name=None):
         r"""
         Return a trivialization of ``self`` over the domain ``domain``.
 
@@ -283,8 +290,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         from .trivialization import Trivialization
-        return Trivialization(self, domain=domain, name=name,
-                              latex_name=latex_name)
+        return Trivialization(self, domain, name=name, latex_name=latex_name)
 
     def transitions(self):
         r"""
@@ -358,7 +364,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     def is_manifestly_trivial(self):
         r"""
         Return ``True`` if ``self`` is manifestly a trivial bundle, i.e. there
-        exists a trivialization defined on the whole base space.
+        exists a frame or a trivialization defined on the whole base space.
 
         EXAMPLES::
 
@@ -404,15 +410,9 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         from sage.manifolds.section_module import \
                                             SectionModule, SectionFreeModule
-        if domain is None:
-            domain = self._base_space
-        for triv in self._atlas:
-            if triv.domain() is domain:
-                return SectionFreeModule(domain)
-        for frame in self._frames:
-            if frame.domain() is domain:
-                return True
-        return False
+        if force_free or domain in self._trivial_parts:
+            return SectionFreeModule(self, domain=domain)
+        return SectionModule(self, domain=domain)
 
     def fiber(self, point):
         r"""
@@ -501,3 +501,38 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                                start_index=sindex)
         # TODO: if self._atlas not empty, introduce charts
         return total_space
+
+    def set_change_of_frame(self, frame1, frame2, change_of_frame,
+                            compute_inverse=True):
+        r"""
+
+        """
+        from sage.tensor.modules.free_module_automorphism import \
+            FreeModuleAutomorphism
+        sec_module = frame1._fmodule
+        if frame2._fmodule != sec_module:
+            raise ValueError("the two frames are not defined on the same " +
+                             "section module")
+        sec_module.set_change_of_basis(self._frame1, self._frame2,
+                                       change_of_frame,
+                                       compute_inverse=compute_inverse)
+        sec_module._basis_changes[
+            (self._frame1, self._frame2)] = change_of_frame
+        if compute_inverse:
+            sec_module._basis_changes[
+                (self._frame2, self._frame1)] = ~change_of_frame
+
+    def change_of_frame(self, frame1, frame2):
+        r"""
+
+        """
+        if (frame1, frame2) not in self._frame_changes:
+            raise ValueError("the change of frame from {} to {}".format(frame1, frame2) +
+                             " has not been defined on the {}".format(self))
+        return self._frame_changes[(frame1, frame2)]
+
+    def changes_of_frame(self):
+        r"""
+
+        """
+        return self._frame_changes

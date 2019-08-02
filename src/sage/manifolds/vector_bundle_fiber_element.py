@@ -38,7 +38,7 @@ class VectorBundleFiberElement(FiniteRankFreeModuleElement):
                                              latex_name=latex_name)
         # Extra data (with respect to FiniteRankFreeModuleElement):
         self._point = parent._point
-        self._vector_bundle = parent._vector_bundle
+        self._vbundle = parent._vbundle
 
     def _repr_(self):
         r"""
@@ -50,6 +50,6 @@ class VectorBundleFiberElement(FiniteRankFreeModuleElement):
 
         """
         desc = "Vector {} in the fiber of {} at {}".format(self._name,
-                                                     self._vector_bundle._name,
+                                                     self._vbundle._name,
                                                      self._point)
         return desc

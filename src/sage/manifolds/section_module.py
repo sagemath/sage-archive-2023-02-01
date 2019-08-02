@@ -22,7 +22,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-from sage.manifolds.section import Section
+from sage.manifolds.section import Section, TrivialSection
 
 class SectionModule(UniqueRepresentation, Parent):
     r"""
@@ -133,14 +133,44 @@ class SectionModule(UniqueRepresentation, Parent):
         """
         return self._domain
 
+    def vector_bundle(self):
+        r"""
+
+        """
+        return self._vbundle
+
 #******************************************************************************
 
 class SectionFreeModule(FiniteRankFreeModule):
     r"""
 
     """
-    def __init__(self):
-        pass
+
+    Element = TrivialSection
+
+    def __init__(self, vbundle, domain=None):
+        r"""
+        Construct the free module of sections over a trivialized vector bundle.
+
+        TESTS::
+
+
+
+        """
+        from .scalarfield import ScalarField
+        self._domain = domain
+        name = "C^0({};{})".format(domain._name, vbundle._name)
+        latex_name = r'C^0({};{})'.format(domain._latex_name, vbundle._latex_name)
+        base_space = vbundle.base_space()
+        self._base_space = base_space
+        self._vbundle = vbundle
+        cat = Modules(domain.scalar_field_algebra()).FiniteDimensional()
+        FiniteRankFreeModule.__init__(self, domain.scalar_field_algebra(),
+                               base_space._dim, name=name,
+                               latex_name=latex_name,
+                               start_index=base_space._sindex,
+                               output_formatter=None,
+                               category=cat)
 
     def _repr_(self):
         r"""
@@ -157,3 +187,23 @@ class SectionFreeModule(FiniteRankFreeModule):
         desc += "over the {} ".format(self._domain)
         desc += "with values on the {}".format(self._vbundle)
         return desc
+
+    def domain(self):
+        r"""
+        Return the domain on which ``self`` is defined.
+
+
+        """
+        return self._domain
+
+    def base_space(self):
+        r"""
+
+        """
+        return self._base_space
+
+    def vector_bundle(self):
+        r"""
+
+        """
+        return self._vbundle

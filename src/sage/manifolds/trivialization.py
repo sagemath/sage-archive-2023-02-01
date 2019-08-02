@@ -19,6 +19,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.manifolds.local_frame import TrivializationFrame
 
 class Trivialization(UniqueRepresentation, SageObject):
     r"""
@@ -33,9 +34,9 @@ class Trivialization(UniqueRepresentation, SageObject):
     EXAMPLES:
 
     """
-    def __init__(self, vbundle, domain=None, name=None, latex_name=None):
+    def __init__(self, vector_bundle, domain, name=None, latex_name=None):
         r"""
-        Construct a local trivialization of the vector bundle `vbundle`.
+        Construct a local trivialization of the vector bundle ``vector_bundle``.
 
         TESTS::
 
@@ -46,20 +47,22 @@ class Trivialization(UniqueRepresentation, SageObject):
 
         """
         if domain is None:
-            domain = vbundle.base_space()
+            domain = vector_bundle.base_space()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._base_space = vbundle.base_space()
-        self._vbundle = vbundle
-        self._bdl_rank = vbundle.rank()
-        self._base_field = vbundle.base_field()
+        self._base_space = vector_bundle.base_space()
+        self._vbundle = vector_bundle
+        self._bdl_rank = vector_bundle.rank()
+        self._base_field = vector_bundle.base_field()
         self._sindex = self._base_space.start_index()
+        self._domain = domain
         # Add this trivialization to the atlas of the vector bundle:
-        vbundle._atlas.append(self)
-        vbundle._trivial_parts.add(domain)
+        vector_bundle._atlas.append(self)
+        self._frame = TrivializationFrame(self)
+        self._coframe = self._frame._coframe
 
     def _repr_(self):
         r"""
@@ -98,8 +101,8 @@ class Trivialization(UniqueRepresentation, SageObject):
         latex = str()
         if self._latex_name is not None:
             latex += self._latex_name + r':'
-        latex += r'{} |_{{{}}} \to {} \times {}^{}'.format(self._vbundle._latex_(),
-                            self._base_space._latex_(), self._base_space._latex_(),
+        latex += r'{} |_{{{}}} \to {} \times {}^{}'.format(self._vbundle._latex_name,
+                            self._domain._latex_(), self._domain._latex_(),
                             self._base_field._latex_(), self._bdl_rank)
         return latex
 
@@ -117,7 +120,7 @@ class Trivialization(UniqueRepresentation, SageObject):
         """
         return self._base_space
 
-    def transition_map(self, other, matrix):
+    def transition_map(self, other, transf, compute_inverse=True):
         r"""
         Return the transition map between ``self`` and ``other``.
 
@@ -125,8 +128,7 @@ class Trivialization(UniqueRepresentation, SageObject):
 
         - ``other`` -- the trivialization where the transition map from ``self``
           goes to
-        - ``matrix`` -- transformation matrix of the transition map with entries
-          in :class:`~sage.manifolds.scalar_field_algebra.ScalarFieldAlgebra`
+        - ``transf`` -- transformation of the transition map
 
             sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U')
@@ -140,7 +142,8 @@ class Trivialization(UniqueRepresentation, SageObject):
 
 
         """
-        return TransitionMap(self, other, matrix)
+        return TransitionMap(self, other, transf,
+                             compute_inverse=compute_inverse)
 
     def vector_bundle(self):
         r"""
@@ -159,6 +162,33 @@ class Trivialization(UniqueRepresentation, SageObject):
         """
         return self._vbundle
 
+    def domain(self):
+        r"""
+        Return the domain on which the trivialization is defined.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: phi_U = E.trivialization(U)
+            sage: phi_U.domain()
+            Open subset U of the 2-dimensional topological manifold M
+
+        """
+        return self._domain
+
+    def frame(self):
+        r"""
+
+        """
+        return self._frame
+
+    def coframe(self):
+        r"""
+
+        """
+        return self._frame._coframe
 
 # *****************************************************************************
 
@@ -166,7 +196,7 @@ class TransitionMap(SageObject):
     r"""
 
     """
-    def __init__(self, triv1, triv2, matrix):
+    def __init__(self, triv1, triv2, transf, compute_inverse=True):
         r"""
         Construct a transition map between two trivializations.
 
@@ -197,15 +227,27 @@ class TransitionMap(SageObject):
         dom1 = triv1.domain()
         dom2 = triv2.domain()
         dom = dom1.intersection(dom2)
-        scal_field_alg = dom.scalar_field_algebra()
-        from sage.matrix.matrix_space import MatrixSpace
-        matrix_space = MatrixSpace(scal_field_alg, self._bdl_rank)
-        self._matrix = matrix_space(matrix)
         self._domain = dom
+        self._frame1 = triv1._frame.restrict(dom)
+        self._frame2 = triv2._frame.restrict(dom)
         self._triv1 = triv1
         self._triv2 = triv2
         self._inverse = None
         self._vbundle._transitions[(triv1, triv2)] = self
+        ###
+        # Define the automorphism
+        sec_module = self._vbundle.section_module(dom, force_free=True)
+        auto_group = sec_module.general_linear_group()
+        auto = auto_group(transf, basis=self._frame1)
+        self._automorphism = auto
+        # Add this change of basis to the basis changes
+        self._vbundle.set_change_of_frame(self._frame1, self._frame2, auto,
+                                          compute_inverse=compute_inverse)
+        if compute_inverse:
+            self._inverse = type(self)(self._triv2, self._triv1, ~auto)
+            self._inverse._inverse = self
+        else:
+            self._inverse = None
 
     def _repr_(self):
         r"""
@@ -231,41 +273,25 @@ class TransitionMap(SageObject):
         from sage.misc.latex import latex
         return r'(' + latex(self._triv1) + r') \curvearrowright (' + \
                latex(self._triv2) + r')'
-    
-    def transformation_matrix(self, chart=None):
+
+    def automorphism(self):
         r"""
-        Return the corresponding transformation matrix of ``self``.
-
-        INPUT:
-
-        - ``chart`` -- (default: ``None``) chart given on the intersection of
-          the two trivializations in which the matrix entries shall be
-          expressed; if ``None``, the entries are scalar fields on the
-          intersection
-
-        OUTPUT:
-
-        - matrix with entries in the scalar field algebra (:class:~sage.manifolds.scalarfield_algebra:ScalarFieldAlgebra)
-          (if ``chart=None``) or in the chart function ring (:class:~sage.manifolds.chart_func:ChartFunctionRing)
-
-        EXAMPLES:
 
         """
-        if chart is None:
-            return self._matrix
-        m_list = []
-        for row in self._matrix:
-            for entry in row:
-                m_list.append(entry.expr(chart))
-        from sage.matrix.matrix_space import MatrixSpace
-        parent = m_list[0].parent()
-        matrix_space = MatrixSpace(parent, self._bdl_rank)
-        return matrix_space(m_list)
+        return self._automorphism
+
+    def __mul__(self, other):
+        # TODO: Coming soon...
+        pass
 
     def inverse(self):
         r"""
 
         """
-        self._inverse = type(self)(self._triv2, self._triv1, ~self._matrix)
-        self._inverse._inverse = self
+        if self._inverse is None:
+            self._vbundle.set_change_of_frame(self._frame2, self._frame12,
+                                              ~auto)
+            if compute_inverse:
+                self._inverse = type(self)(self._triv2, self._triv1, ~auto)
+                self._inverse._inverse = self
         return self._inverse

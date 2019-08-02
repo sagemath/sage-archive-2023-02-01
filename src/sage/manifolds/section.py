@@ -24,5 +24,5 @@ class Section(ModuleElement):
 
 #******************************************************************************
 
-class SectionParal(FiniteRankFreeModuleElement, Section):
+class TrivialSection(FiniteRankFreeModuleElement, Section):
     pass

@@ -61,13 +61,70 @@ class VectorBundleFiber(FiniteRankFreeModule):
         latex_name = r'{}_{{{}}}'.format(vector_bundle._latex_name,
                                          point._latex_name)
         self._rank = vector_bundle._rank
-        self._vector_bundle = vector_bundle
+        self._vbundle = vector_bundle
         self._point = point
         self._base_space = point._manifold
         FiniteRankFreeModule.__init__(self, SR, self._rank, name=name,
                                       latex_name=latex_name,
                                       start_index=self._base_space._sindex)
-        # TODO: Local Frames
+        ###
+        # Construct basis
+        self._frame_bases = {} # dictionary of bases of the vector bundle fiber
+                        # derived from local frames around the point
+                        # (keys: local frames)
+        for frame in vector_bundle._frames:
+            # the frame is used to construct a basis of the vector bundle fiber
+            # only if it is a frame for the given point:
+            if point in frame.domain():
+                coframe = frame.coframe()
+                basis = self.basis(frame._symbol,
+                                   latex_symbol=frame._latex_symbol,
+                                   indices=frame._indices,
+                                   latex_indices=frame._latex_indices,
+                                   symbol_dual=coframe._symbol,
+                                   latex_symbol_dual=coframe._latex_symbol)
+                self._frame_bases[frame] = basis
+        def_frame = vector_bundle._def_frame
+        if def_frame in self._frame_bases:
+            self._def_basis = self._frame_bases[def_frame]
+        # The basis induced by the default frame of the manifold subset
+        # in which the point has been created is declared the default
+        # basis of self:
+        def_frame = point.parent()._def_frame
+        if def_frame in self._frame_bases:
+            self._def_basis = self._frame_bases[def_frame]
+        # Initialization of the changes of bases from the existing changes of
+        # frames around the point:
+        for frame_pair, automorph in self._vbundle._frame_changes.items():
+            if point in automorph.domain():
+                frame1, frame2 = frame_pair[0], frame_pair[1]
+                fr1, fr2 = None, None
+                for frame in self._frame_bases:
+                    if frame1 in frame._subframes:
+                        fr1 = frame
+                        break
+                for frame in self._frame_bases:
+                    if frame2 in frame._subframes:
+                        fr2 = frame
+                        break
+                if fr1 is not None and fr2 is not None:
+                    basis1 = self._frame_bases[fr1]
+                    basis2 = self._frame_bases[fr2]
+                    auto = self.automorphism()
+                    for frame, comp in automorph._components.items():
+                        try:
+                            basis = None
+                            if frame is frame1:
+                                basis = basis1
+                            if frame is frame2:
+                                basis = basis2
+                            if basis is not None:
+                                cauto = auto.add_comp(basis)
+                                for ind, val in comp._comp.items():
+                                    cauto._comp[ind] = val(point)
+                        except ValueError:
+                            pass
+                    self._basis_changes[(basis1, basis2)] = auto
 
     def _repr_(self):
         r"""
@@ -83,7 +140,7 @@ class VectorBundleFiber(FiniteRankFreeModule):
             'Fiber of E at Point p on the 3-dimensional topological manifold M'
 
         """
-        return "Fiber of {} at {}".format(self._vector_bundle._name,
+        return "Fiber of {} at {}".format(self._vbundle._name,
                                           self._point)
 
     def dimension(self):
@@ -105,3 +162,28 @@ class VectorBundleFiber(FiniteRankFreeModule):
         return self._rank
 
     dim = dimension
+
+    def _an_element_(self):
+        r"""
+        Construct some (unnamed) vector in ``self``.
+
+        EXAMPLES::
+
+
+
+        """
+        resu = self.element_class(self)
+        if self._def_basis is not None:
+            resu.set_comp()[:] = range(1, self._rank + 1)
+        return resu
+
+    def base_point(self):
+        r"""
+        Return the manifold point over which ``self`` is defined.
+
+        EXAMPLES::
+
+
+
+        """
+        return self._point

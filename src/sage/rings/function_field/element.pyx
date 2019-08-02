@@ -514,6 +514,33 @@ cdef class FunctionFieldElement(FieldElement):
         """
         return self.divisor_of_poles().support()
 
+    def valuation(self, place):
+        """
+        Return the valuation of the element at the place.
+
+        INPUT:
+
+        - ``place`` -- a place of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_infinite()[0]
+            sage: y.valuation(p)
+            -1
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: p = O.ideal(x-1).place()
+            sage: y.valuation(p)
+            0
+        """
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)
+
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
     Elements of a finite extension of a function field.
@@ -1174,26 +1201,6 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
     """
     Elements of global function fields
     """
-    def valuation(self, place):
-        """
-        Return the valuation of the element at the place.
-
-        INPUT:
-
-        - ``place`` -- a place of the function field
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_infinite()[0]
-            sage: y.valuation(p)
-            -1
-        """
-        prime = place.prime_ideal()
-        ideal = prime.ring().ideal(self)
-        return prime.valuation(ideal)
-
     def higher_derivative(self, i, separating_element=None):
         """
         Return the ``i``-th order higher derivative of the element with respect

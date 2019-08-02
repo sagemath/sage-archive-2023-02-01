@@ -1840,6 +1840,22 @@ class FunctionField_polymod(FunctionField):
         from .order import FunctionFieldMaximalOrderInfinite_polymod
         return FunctionFieldMaximalOrderInfinite_polymod(self)
 
+    def different(self):
+        """
+        Return the different of the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: F.different()
+            2*Place (x, (1/(x^3 + x^2 + x))*y^2)
+             + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
+        """
+        O = self.maximal_order()
+        Oinf = self.maximal_order_infinite()
+        return O.different().divisor() + Oinf.different().divisor()
+
     def equation_order(self):
         """
         Return the equation order of the function field.
@@ -3035,22 +3051,6 @@ class FunctionField_global(FunctionField_polymod):
             dec = self.maximal_order().decomposition(p.prime_ideal())
 
         return tuple([p.place() for p, deg, exp in dec])
-
-    def different(self):
-        """
-        Return the different of the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: F.different()
-            2*Place (x, (1/(x^3 + x^2 + x))*y^2)
-             + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
-        """
-        O = self.maximal_order()
-        Oinf = self.maximal_order_infinite()
-        return O.different().divisor() + Oinf.different().divisor()
 
     def constant_field(self):
         """

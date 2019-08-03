@@ -1104,9 +1104,9 @@ cdef class MatrixArgs:
             # Everything known => OK
             return 0
 
-        # When sparse and given a list of vectors, convert to a sparse sequence
+        # When sparse and given a list of sparse vectors, convert to a sparse sequence
         cdef long i, j
-        if isinstance(e[0], Vector):
+        if isinstance(e[0], Vector) and all(vec.is_sparse() for vec in e):
             if self.base is None:
                 self.base = coercion_model.common_parent(*[(<Vector>vec)._parent._base
                                                            for vec in e])
@@ -1115,7 +1115,7 @@ cdef class MatrixArgs:
                 for j, val in (<Vector?>row).iteritems():
                     self.entries.append(make_SparseEntry(i, j, val))
 
-            self.set_ncols(max((<Vector>vec)._parent.rank() for vec in e))
+            self.set_ncols(max((<Vector>vec)._parent.ambient_module().rank() for vec in e))
             self.typ = MA_ENTRIES_SEQ_SPARSE
             return 0
 

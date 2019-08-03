@@ -127,7 +127,7 @@ Check that :trac:`19839` is fixed::
 :trac:`24621`::
 
     sage: CBF(NumberField(polygen(QQ, 'y')^3 + 20, 'a', embedding=CC(1.35,2.35)).gen())
-    [1.357208808297453 +/- ...e-16] + [2.350754612451197 +/- ...e-16]*I
+    [1.35720880829745...] + [2.35075461245119...]*I
 
 Classes and Methods
 ===================
@@ -540,12 +540,16 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.convert_map_from(QuadraticField(-2))
             Conversion via _acb_ method map:
             ...
+            sage: CBF.coerce_map_from(NumberField(x^7 + 2, 'a',
+            ....:                                 embedding=QQbar(-2)^(1/7)))
+            Conversion via _acb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
         elif isinstance(other, ComplexBallField):
             return other._prec >= self._prec
-        elif isinstance(other, number_field.NumberField_quadratic):
+        elif isinstance(other, number_field.NumberField_generic):
             emb = other.coerce_embedding()
             return emb is not None and self.has_coerce_map_from(emb.codomain())
 

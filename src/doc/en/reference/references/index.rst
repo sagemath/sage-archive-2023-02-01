@@ -1665,6 +1665,10 @@ REFERENCES:
           2000, Volume 17, Issue 2, pp 167-177,
           http://link.springer.com/article/10.1023%2FA%3A1006429830221
 
+.. [Feng2014] Gang Feng, *Finding k shortest simple paths in directed
+            graphs: A node classification algorithm*. Networks, 64(1),
+            6–17, 2014. :doi:`10.1002/net.21552`
+
 .. [Fe2012] Hans L. Fetter, "A Polyhedron Full of Surprises",
             Mathematics Magazine 85 (2012), no. 5, 334-342.
 
@@ -4535,6 +4539,11 @@ REFERENCES:
 .. [Yamada2007] Daisuke Yamada. *Scattering rule in soliton cellular automaton
                 associated with crystal base of* `U_q(D_4^{(3)})`.
                 \J. Math. Phys., **48** (4):043509, 28, (2007).
+
+.. [Yen1970] Yen, Jin Y. (1970). *An algorithm for finding shortest routes from
+             all source nodes to a given destination in general networks*.
+             Quarterly of Applied Mathematics. 27 (4): 526–530.
+             :doi:`10.1090/qam/253822`
 
 .. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              collège de France

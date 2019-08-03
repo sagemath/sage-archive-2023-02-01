@@ -284,6 +284,9 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         self._family = family
         self._facade  = facade
         if facade:
+            # Note that family is not copied when it is a finite enumerated
+            # set, thus, any subclass must ensure that it does not mutate this
+            # input.
             if family in FiniteEnumeratedSets():
                 self._facade_for = family
             else:

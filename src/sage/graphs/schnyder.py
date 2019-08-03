@@ -703,8 +703,11 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
 
     OUTPUT:
 
-    a planar graph, with edges oriented and colored. The three outer
-    edges of the initial graph are removed.
+    A planar graph, with edges oriented and colored. The three outer
+    edges of the initial graph are removed. For the three outer vertices the
+    list of the neighbors stored in the combinatorial embedding is in the order
+    of the incident edges between the two incident (and removed) outer edges,
+    and not a cyclic shift of it.
 
     The algorithm is taken from [Brehm2000]_ (section 4.2).
 
@@ -839,9 +842,13 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
     def relabel(w):
         return -3 if w == c else w
 
-    emb = {relabel(v): [relabel(u) for u in emb[v] if not(u in [a, b, c] and
-                                                          v in [a, b, c])]
-           for v in graph}
+    emb = {relabel(v): [relabel(u) for u in emb[v]] for v in graph}
+    for u, v, w in (a, b, -3), (b, -3, a), (-3, a, b):
+        idx = emb[u].index(v)
+        if idx == 0:
+            emb[u] = emb[u][1:-1]
+        else:
+            emb[u] = emb[u][idx+1:] + emb[u][:idx-1]
 
     new_g.set_embedding(emb)
     return new_g

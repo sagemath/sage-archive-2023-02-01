@@ -102,7 +102,7 @@ from sage.symbolic.constants import e
 from copy import copy
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
-from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _fast_possible_periods
+from sage.dynamics.arithmetic_dynamics.projective_ds_helper import (_fast_possible_periods,_all_periodic_points)
 from sage.sets.set import Set
 from sage.combinat.permutation import Arrangements
 from sage.combinat.subset import Subsets
@@ -3325,7 +3325,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           find only the periodic points of minimal period ``n`` and ``False``
           specifies to find all periodic points of period ``n``
 
-        - ``R`` a commutative ring
+        - ``R`` - a commutative ring
 
         - ``algorithm`` -- (default: ``'variety'``) must be one of
           the following:
@@ -3469,6 +3469,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             NotImplementedError: return_subscheme only implemented for minimal=False
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(GF(3), 1)
+            sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
+            sage: f.periodic_points(2, R=GF(3^2,'t'))
+            [(t + 2 : 1), (2*t : 1)]
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -3477,6 +3484,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             R = self.base_ring()
         else:
             f = self.change_ring(R)
+            R = f.base_ring()
         CR = f.coordinate_ring()
         dom = f.domain()
         PS = f.codomain().ambient_space()
@@ -4565,6 +4573,288 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         return(good_points)
 
+    def all_periodic_points(self, **kwds):
+        r"""
+        Determine the set of rational periodic points
+        for this dynamical system.
+
+        The map must be defined over `\QQ` and be an endomorphism of
+        projective space. If the map is a polynomial endomorphism of
+        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
+        the base ring can be an absolute number field.
+        This is done by passing to the Weil restriction.
+
+        The default parameter values are typically good choices for
+        `\mathbb{P}^1`. If you are having trouble getting a particular
+        map to finish, try first computing the possible periods, then
+        try various different ``lifting_prime`` values.
+
+        ALGORITHM:
+
+        Modulo each prime of good reduction `p` determine the set of
+        periodic points modulo `p`. For each cycle modulo `p` compute
+        the set of possible periods (`mrp^e`). Take the intersection
+        of the list of possible periods modulo several primes of good
+        reduction to get a possible list of minimal periods of rational
+        periodic points. Take each point modulo `p` associated to each
+        of these possible periods and try to lift it to a rational point
+        with a combination of `p`-adic approximation and the LLL basis
+        reduction algorithm.
+
+        See [Hutz2015]_.
+
+        INPUT:
+
+        kwds:
+        
+        - ``R`` -- (default: domain of dynamical system) the base ring
+          over which the periodic points of the dynamical system are found
+        
+        - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
+          of positive integers that represent the limits of primes to use
+          in the reduction step or an integer that represents the upper bound
+
+        - ``lifting_prime`` -- (default: 23) a prime integer; argument that
+          specifies modulo which prime to try and perform the lifting
+          
+        - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
+          (max period, max degree) for which the dynatomic polynomial should be solved for
+          
+        - ``algorithm`` -- (optional) specifies which algorithm to use;
+          current options are `dynatomic` and `lifting`; defaults to solving the
+          dynatomic for low periods and degrees and lifts for everything else
+
+        - ``periods`` -- (optional) a list of positive integers that is
+          the list of possible periods
+
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
+          the primes of bad reduction
+
+        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
+
+        OUTPUT: a list of rational points in projective space
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2-3/4*y^2, y^2])
+            sage: sorted(f.all_periodic_points(prime_bound=20, lifting_prime=7)) # long time
+            [(-1/2 : 1), (1 : 0), (3/2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3,
+            ....:                                 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
+            sage: sorted(f.all_periodic_points(prime_bound=[1,20])) # long time
+            [(-3 : -1 : 1), (-3 : 0 : 1), (-3 : 1 : 1), (-3 : 3 : 1), (-1 : -1 : 1),
+             (-1 : 0 : 1), (-1 : 1 : 1), (-1 : 3 : 1), (0 : 1 : 0), (1 : -1 : 1),
+             (1 : 0 : 0), (1 : 0 : 1), (1 : 1 : 1), (1 : 3 : 1), (3 : -1 : 1),
+             (3 : 0 : 1), (3 : 1 : 1), (3 : 3 : 1), (5 : -1 : 1), (5 : 0 : 1),
+             (5 : 1 : 1), (5 : 3 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([-5*x^2 + 4*y^2, 4*x*y])
+            sage: sorted(f.all_periodic_points()) # long time
+            [(-2 : 1), (-2/3 : 1), (2/3 : 1), (1 : 0), (2 : 1)]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2-x+1)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
+            sage: sorted(f.all_periodic_points())
+            [(-w + 1 : 1), (w : 1), (1 : 0)]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2-x+1)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([u^2+v^2,u*v])
+            sage: f.all_periodic_points()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: rational periodic points for number fields only implemented for polynomials
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: K.<v> = QuadraticField(5)
+            sage: phi = QQ.embeddings(K)[0]
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: sorted(f.all_periodic_points(R=phi))
+            [(-1 : 1), (-1/2*v + 1/2 : 1), (0 : 1), (1 : 0), (1/2*v + 1/2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: f = DynamicalSystem_projective([x^2 - (3/4)*w^2, y^2 - 3/4*w^2, z^2 - 3/4*w^2, w^2])
+            sage: sorted(f.all_periodic_points(algorithm="dynatomic"))
+            [(-1/2 : -1/2 : -1/2 : 1),
+             (-1/2 : -1/2 : 3/2 : 1),
+             (-1/2 : 3/2 : -1/2 : 1),
+             (-1/2 : 3/2 : 3/2 : 1),
+             (0 : 0 : 1 : 0),
+             (0 : 1 : 0 : 0),
+             (0 : 1 : 1 : 0),
+             (1 : 0 : 0 : 0),
+             (1 : 0 : 1 : 0),
+             (1 : 1 : 0 : 0),
+             (1 : 1 : 1 : 0),
+             (3/2 : -1/2 : -1/2 : 1),
+             (3/2 : -1/2 : 3/2 : 1),
+             (3/2 : 3/2 : -1/2 : 1),
+             (3/2 : 3/2 : 3/2 : 1)]
+             
+        ::
+             
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: f = DynamicalSystem_projective([x^2 - (3/4)*w^2, y^2 - 3/4*w^2, z^2 - 3/4*w^2, w^2])
+            sage: sorted(f.all_periodic_points(period_degree_bounds=[10,10]))
+            [(-1/2 : -1/2 : -1/2 : 1),
+             (-1/2 : -1/2 : 3/2 : 1),
+             (-1/2 : 3/2 : -1/2 : 1),
+             (-1/2 : 3/2 : 3/2 : 1),
+             (0 : 0 : 1 : 0),
+             (0 : 1 : 0 : 0),
+             (0 : 1 : 1 : 0),
+             (1 : 0 : 0 : 0),
+             (1 : 0 : 1 : 0),
+             (1 : 1 : 0 : 0),
+             (1 : 1 : 1 : 0),
+             (3/2 : -1/2 : -1/2 : 1),
+             (3/2 : -1/2 : 3/2 : 1),
+             (3/2 : 3/2 : -1/2 : 1),
+             (3/2 : 3/2 : 3/2 : 1)]
+             
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([x^2+ y^2, x*y])
+            sage: f.all_periodic_points(algorithm="dnyatomic")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'dynatomic' or 'lifting'
+        """
+        ring = kwds.pop("R", None)
+        if not ring is None:
+            #changes to the new ring
+            DS = self.change_ring(ring)
+            #ensures that the correct method is run, in case user switches to a finite field
+            return DS.all_periodic_points(**kwds)
+        else:
+            DS = self
+        PS = DS.domain()
+        K = PS.base_ring()
+        if K in NumberFields():
+            if not K.is_absolute():
+                raise TypeError("base field must be an absolute field")
+            d = K.absolute_degree()
+            #check that we are not over QQ
+            if d > 1:
+                if PS.dimension_relative() != 1:
+                    raise NotImplementedError("rational periodic points for number fields only implemented in dimension 1")
+                w = K.absolute_generator()
+                #we need to dehomogenize for the Weil restriction and will check that point at infty
+                #separately. We also check here that we are working with a polynomial. If the map
+                #is not a polynomial, the Weil restriction will not be a morphism and we cannot
+                #apply this algorithm.
+                g = DS.dehomogenize(1)
+                inf = PS([1,0])
+                k = 1
+                if isinstance(g[0], FractionFieldElement):
+                    g = DS.dehomogenize(0)
+                    inf = PS([0,1])
+                    k = 0
+                    if isinstance(g[0], FractionFieldElement):
+                        raise NotImplementedError("rational periodic points for number fields only implemented for polynomials")
+                #determine rational periodic points
+                #infinity is a totally ramified fixed point for a polynomial
+                periodic_points = set([inf])
+                #compute the weil restriction
+                G = g.weil_restriction()
+                F = G.homogenize(d)
+                #find the QQ rational periodic points for the weil restriction
+                Fper = F.all_periodic_points(**kwds)
+                for P in Fper:
+                    #take the 'good' points in the weil restriction and find the
+                    #associated number field points.
+                    if P[d] == 1:
+                        pt = [sum([P[i]*w**i for i in range(d)])]
+                        pt.insert(k,1)
+                        Q = PS(pt)
+                        #for each periodic point get the entire cycle
+                        if not Q in periodic_points:
+                            #check periodic not preperiodic and add all points in cycle
+                            orb = set([Q])
+                            Q2 = DS(Q)
+                            while Q2 not in orb:
+                                orb.add(Q2)
+                                Q2 = DS(Q2)
+                            if Q2 == Q:
+                                periodic_points = periodic_points.union(orb)
+                return list(periodic_points)
+            else:
+                primebound = kwds.pop("prime_bound", [1, 20])
+                p = kwds.pop("lifting_prime", 23)
+                pd_bounds = kwds.pop("period_degree_bounds", [4,4])
+                alg = kwds.pop("algorithm", None)
+                periods = kwds.pop("periods", None)
+                badprimes = kwds.pop("bad_primes", None)
+                num_cpus = kwds.pop("ncpus", ncpus())
+                if not alg is None and alg not in ['dynatomic','lifting']:
+                    raise ValueError("algorithm must be 'dynatomic' or 'lifting'")
+
+                if not isinstance(primebound, (list, tuple)):
+                    try:
+                        primebound = [1, ZZ(primebound)]
+                    except TypeError:
+                        raise TypeError("bound on primes must be an integer")
+                else:
+                    try:
+                        primebound[0] = ZZ(primebound[0])
+                        primebound[1] = ZZ(primebound[1])
+                    except TypeError:
+                        raise TypeError("prime bounds must be integers")
+
+                if badprimes is None:
+                    badprimes = DS.primes_of_bad_reduction()
+                if periods is None:
+                    periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
+                PS = DS.domain()
+                periodic = set()
+
+                if alg != 'lifting':
+                    for i in periods[:]:
+                        if (alg == 'dynatomic') or (i <= pd_bounds[0] and DS.degree() <= pd_bounds[1]):
+                            periodic.update(DS.periodic_points(i))
+                            periods.remove(i)
+                    if not periods:
+                        return list(periodic)
+                while p in badprimes:
+                    p = next_prime(p + 1)
+                B = e ** DS.height_difference_bound()
+                f = DS.change_ring(GF(p))
+                all_points = f.possible_periods(True) #return the list of points and their periods.
+                pos_points = []
+                #check period, remove duplicates
+                for i in range(len(all_points)):
+                    if all_points[i][1] in periods and not (all_points[i] in pos_points): 
+                        pos_points.append(all_points[i])
+                periodic_points = DS.lift_to_rational_periodic(pos_points,B)
+                for p,n in periodic_points:
+                    for k in range(n):
+                        p.normalize_coordinates()
+                        periodic.add(p)
+                        p = DS(p)
+                return list(periodic)
+        else:
+            raise TypeError("base field must be an absolute number field")
+
     def rational_periodic_points(self, **kwds):
         r"""
         Determine the set of rational periodic points
@@ -4618,144 +4908,18 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2-3/4*y^2, y^2])
-            sage: sorted(f.rational_periodic_points(prime_bound=20, lifting_prime=7)) # long time
-            [(-1/2 : 1), (1 : 0), (3/2 : 1)]
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3,
-            ....:                                 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
-            sage: sorted(f.rational_periodic_points(prime_bound=[1,20])) # long time
-            [(-3 : -1 : 1), (-3 : 0 : 1), (-3 : 1 : 1), (-3 : 3 : 1), (-1 : -1 : 1),
-             (-1 : 0 : 1), (-1 : 1 : 1), (-1 : 3 : 1), (0 : 1 : 0), (1 : -1 : 1),
-             (1 : 0 : 0), (1 : 0 : 1), (1 : 1 : 1), (1 : 3 : 1), (3 : -1 : 1),
-             (3 : 0 : 1), (3 : 1 : 1), (3 : 3 : 1), (5 : -1 : 1), (5 : 0 : 1),
-             (5 : 1 : 1), (5 : 3 : 1)]
-
-        ::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([-5*x^2 + 4*y^2, 4*x*y])
-            sage: sorted(f.rational_periodic_points()) # long time
-            [(-2 : 1), (-2/3 : 1), (2/3 : 1), (1 : 0), (2 : 1)]
-
-        ::
-
             sage: R.<x> = QQ[]
             sage: K.<w> = NumberField(x^2-x+1)
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
             sage: f.rational_periodic_points()
-            [(w : 1), (1 : 0), (-w + 1 : 1)]
-
-        ::
-
-            sage: R.<x> = QQ[]
-            sage: K.<w> = NumberField(x^2-x+1)
-            sage: P.<u,v> = ProjectiveSpace(K,1)
-            sage: f = DynamicalSystem_projective([u^2+v^2,u*v])
-            sage: f.rational_periodic_points()
-            Traceback (most recent call last):
+            doctest:warning
             ...
-            NotImplementedError: rational periodic points for number fields only implemented for polynomials
+            [(w : 1), (1 : 0), (-w + 1 : 1)]
         """
-        PS = self.domain()
-        K = PS.base_ring()
-        if K in NumberFields():
-            if not K.is_absolute():
-                raise TypeError("base field must be an absolute field")
-            d = K.absolute_degree()
-            #check that we are not over QQ
-            if d > 1:
-                if PS.dimension_relative() != 1:
-                    raise NotImplementedError("rational periodic points for number fields only implemented in dimension 1")
-                w = K.absolute_generator()
-                #we need to dehomogenize for the Weil restriction and will check that point at infty
-                #separately. We also check here that we are working with a polynomial. If the map
-                #is not a polynomial, the Weil restriction will not be a morphism and we cannot
-                #apply this algorithm.
-                g = self.dehomogenize(1)
-                inf = PS([1,0])
-                k = 1
-                if isinstance(g[0], FractionFieldElement):
-                    g = self.dehomogenize(0)
-                    inf = PS([0,1])
-                    k = 0
-                    if isinstance(g[0], FractionFieldElement):
-                        raise NotImplementedError("rational periodic points for number fields only implemented for polynomials")
-                #determine rational periodic points
-                #infinity is a totally ramified fixed point for a polynomial
-                periodic_points = set([inf])
-                #compute the weil restriction
-                G = g.weil_restriction()
-                F = G.homogenize(d)
-                #find the QQ rational periodic points for the weil restriction
-                Fper = F.rational_periodic_points(**kwds)
-                for P in Fper:
-                    #take the 'good' points in the weil restriction and find the
-                    #associated number field points.
-                    if P[d] == 1:
-                        pt = [sum([P[i]*w**i for i in range(d)])]
-                        pt.insert(k,1)
-                        Q = PS(pt)
-                        #for each periodic point get the entire cycle
-                        if not Q in periodic_points:
-                            #check periodic not preperiodic and add all points in cycle
-                            orb = set([Q])
-                            Q2 = self(Q)
-                            while Q2 not in orb:
-                                orb.add(Q2)
-                                Q2 = self(Q2)
-                            if Q2 == Q:
-                                periodic_points = periodic_points.union(orb)
-                return list(periodic_points)
-            else:
-                primebound = kwds.pop("prime_bound", [1, 20])
-                p = kwds.pop("lifting_prime", 23)
-                periods = kwds.pop("periods", None)
-                badprimes = kwds.pop("bad_primes", None)
-                num_cpus = kwds.pop("ncpus", ncpus())
-
-                if not isinstance(primebound, (list, tuple)):
-                    try:
-                        primebound = [1, ZZ(primebound)]
-                    except TypeError:
-                        raise TypeError("bound on primes must be an integer")
-                else:
-                    try:
-                        primebound[0] = ZZ(primebound[0])
-                        primebound[1] = ZZ(primebound[1])
-                    except TypeError:
-                        raise TypeError("prime bounds must be integers")
-
-                if badprimes is None:
-                    badprimes = self.primes_of_bad_reduction()
-                if periods is None:
-                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
-                PS = self.domain()
-                periodic = set()
-                while p in badprimes:
-                    p = next_prime(p + 1)
-                B = e ** self.height_difference_bound()
-
-                f = self.change_ring(GF(p))
-                all_points = f.possible_periods(True) #return the list of points and their periods.
-                pos_points = []
-                for i in range(len(all_points)):
-                    if all_points[i][1] in periods and not (all_points[i] in pos_points):  #check period, remove duplicates
-                        pos_points.append(all_points[i])
-                periodic_points = self.lift_to_rational_periodic(pos_points,B)
-                for p,n in periodic_points:
-                    for k in range(n):
-                        p.normalize_coordinates()
-                        periodic.add(p)
-                        p = self(p)
-                return list(periodic)
-        else:
-            raise TypeError("base field must be an absolute number field")
+        from sage.misc.superseded import deprecation
+        deprecation(28109, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_periodic_points instead")
+        return self.all_periodic_points(**kwds)
 
     def all_rational_preimages(self, points):
         r"""
@@ -4992,7 +5156,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             else:
                 p = kwds.pop("lifting_prime", 23)
                 #find the rational preperiodic points
-                T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p,
+                T = self.all_periodic_points(prime_bound=primebound, lifting_prime=p,
                                                   periods=periods, bad_primes=badprimes,
                                                   ncpus=num_cpus)
                 preper = self.all_rational_preimages(T) #find the preperiodic points
@@ -6347,3 +6511,50 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
 
+    def all_periodic_points(self, **kwds):
+        r"""
+        Returns a list of all periodic points over a finite field.
+
+        INPUT:
+
+        keywords:
+
+        - ``R`` -- (default: base ring of dynamical system) the base ring
+          over which the periodic points of the dynamical system are found
+
+        OUTPUT: a list of elements which are periodic
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(5^2),1)
+            sage: f = DynamicalSystem_projective([x^2+y^2, x*y])
+            sage: f.all_periodic_points()
+            [(1 : 0), (z2 + 2 : 1), (4*z2 + 3 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
+            sage: f = DynamicalSystem_projective([x^2+y^2+z^2, x*y+x*z, z^2])
+            sage: f.all_periodic_points()
+            [(1 : 0 : 0),
+            (0 : 0 : 1),
+            (1 : 0 : 1),
+            (2 : 1 : 1),
+            (1 : 4 : 1),
+            (3 : 0 : 1),
+            (0 : 3 : 1)]
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(GF(3), 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.all_periodic_points(R=GF(3^2, 't'))
+            [(1 : 0), (0 : 1), (2 : 1), (t : 1), (2*t + 1 : 1)]
+        """
+        R = kwds.pop("R", None)
+        if R is None:
+            DS = self
+        else:
+            DS = self.change_ring(R)
+            return DS.all_periodic_points(**kwds)  #ensures that the correct method is run, in case user switches to infinite fields
+        return _all_periodic_points(DS)

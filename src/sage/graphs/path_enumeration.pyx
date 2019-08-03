@@ -1289,7 +1289,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                                 # restoration of edges in the original graph
                                 G.delete_edge(e[1], target)
                             if (e[1], target) in temp_dict:
-                                # restoration of edges in the original graph
+                                # restoration of cost function
                                 reduced_cost[(e[1], target)] = temp_dict[(e[1], target)]
                                 del temp_dict[(e[1], target)]
                         # resetting the expressEdges for node n

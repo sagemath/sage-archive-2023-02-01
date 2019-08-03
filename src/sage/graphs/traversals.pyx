@@ -830,3 +830,101 @@ def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
     free_short_digraph(sd)
 
     return value
+
+def lex_M_slow(G, initial_vertex=None):
+    r"""
+    Return an ordering of the vertices of G according the LexM graph traversal.
+
+    LexM is a lexicographic ordering scheme that is a special type of
+    breadth-first-search. This function implements the algorithm described in
+    Section 4 of [RTL76]_.
+
+    During the search, the vertices are numbered from `n` to `1`. Let
+    `\alpha(i)` denote the vertex numbered `i` and let `\alpha^{-1}(u)` denote
+    the number assigned to `u`. Each vertex `u` has also a label, denoted by
+    `label(u)`, consisting of a list of numbers selected from `[1,n]` and
+    ordered in decreasing order. Given two labels `L_1=[p_1, p_2,\ldots, p_k]`
+    and `L_1=[q_1, q_2,\ldots, q_l]`, we define `L_1<L_2` if, for some `j`,
+    `p_i==q_i` for `i=1,\ldots,j-1` and `p_j<q_j`, or if `p_i==q_i` for
+    `i=1,\ldots,k` and `k<l`. Observe that this is exactly how Python compares
+    two lists.
+    """
+    # ==>Initialization
+    # Assign empty label to all vertices of G and empty list to F
+    cdef list unnumbered_vertices = list(G)
+    cdef int n = G.order()
+    cdef list alpha = [0] * n
+    cdef dict label = {v: [] for v in unnumbered_vertices}
+    cdef list F = []
+    cdef int i
+    cdef set active, reach
+
+    if initial_vertex is not None:
+        i = unnumbered_vertices.index(initial_vertex)
+        unnumbered_vertices[0], unnumbered_vertices[i] = unnumbered_vertices[i], unnumbered_vertices[0]
+
+    for i in range(n-1, -1, -1):
+        # Select: pick an unnumbered vertex u with largest label
+        u = unnumbered_vertices[0]
+        for v in unnumbered_vertices[1:]:
+            if label[u] < label[v]:
+                u = v
+
+        unnumbered_vertices.remove(u)
+        alpha[i] = u
+
+        # Update: for each vertex v in unnumbered_vertices such that there is a
+        # chain u = w_1, w_2, ..., w_{p+1} = v with w_j unnumbered and
+        # label(w_j) < label(v) for all j in {2,...,p}. If so, we add i to the
+        # label of v and add edge {u,v} to F.
+        for v in unnumbered_vertices:
+
+            # We check if there is a chain u = w_1, w_2, ..., w_{p+1} = v with
+            # w_j unnumbered and label(w_j) < label(v) for all j in {2, ..., p}
+            active = set([w for w in unnumbered_vertices if label[w] < label[v]])
+            active.add(v)
+            reach = set([u])
+            while active and reach and v not in reach:
+                w = reach.pop()
+                for x in G.neighbor_iterator(w):
+                    if x in active:
+                        reach.add(x)
+                        active.discard(x)
+
+            if v in reach:
+                label[v].append(i)
+                F.append((u, v))
+
+    return alpha, label, F
+
+def is_valid_lex_M_order(G, alpha, F):
+    """
+    Check if the ordering alpha and the triangulation are valid for G.
+
+    By induction one can see that for every `i \in \{1, ..., n − 1\}` the
+    neighbors of `\alpha(i) \in H\[\{\alpha(i), ..., \alpha(n)\}\] induce a
+    clique. The ordering `\alpha` is a perfect elimination ordering of `H`, so
+    `H` is chordal.
+
+    TESTS::
+
+        sage: from sage.graphs.traversals import lex_M, lex_M_slow, is_valid_lex_M_order
+        sage: G = graphs.PetersenGraph()
+        sage: alpha, _, F = lex_M_slow(G)
+        sage: is_valid_lex_M_order(G, alpha, F)
+        True
+        sage: H = Graph(G.edges(sort=False))
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+    """
+    H = G.copy()
+    H.add_edges(F)
+    s_alpha = set(alpha)
+    for u in alpha:
+        K = H.subgraph(H.neighbors(u))
+        s_alpha.discard(u)
+        K.delete_vertices([v for v in K if v not in s_alpha])
+        if not K.is_clique():
+            return False
+    return True

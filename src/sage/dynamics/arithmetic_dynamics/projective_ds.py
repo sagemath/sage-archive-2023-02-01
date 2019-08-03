@@ -53,7 +53,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-from sage.arith.misc import is_prime
+from sage.arith.misc import (is_prime, is_square)
 from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
@@ -3534,7 +3534,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                                     break
                         return points
                 else:
-                    raise NotImplementedError("ring must a number field or finite field")
+                    raise NotImplementedError("ring must be a number field or finite field")
             else: #a higher dimensional scheme
                 raise TypeError("use return_scheme=True")
         else:
@@ -5170,14 +5170,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         return points[0]
 
-    def conjugating_set(self, other):
+    def conjugating_set(self, other, R=None):
         r"""
-        Return the set of elements in PGL that conjugates one
-        dynamical system to the other.
+        Return the set of elements in PGL over the base ring
+        that conjugates one dynamical system to the other.
 
         Given two nonconstant rational functions of equal degree
-        determine to see if there is an element of PGL that
-        conjugates one rational function to another. It does this
+        determine to see if there is a rational element of PGL that
+        conjugates one rational function to another.
+        The option argument `R` specifies the field of definiton
+        of the PGL elements. The set is determined by
         by taking the fixed points of one map and mapping
         them to all unique permutations of the fixed points of
         the other map. If there are not enough fixed points the
@@ -5185,6 +5187,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         fixed points and the rational preimages of the preimages of
         fixed points until there are enough points; such that there
         are `n+2` points with all `n+1` subsets linearly independent.
+
+        .. WARNING::
+
+           For degree 1 maps that are conjugate, there is a positive dimensional
+           set of conjugations. This function returns only one such element.
 
         ALGORITHM:
 
@@ -5195,8 +5202,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         INPUT:
 
-        - ``other`` -- a nonconstant rational function of same degree
-          as ``self``
+        - ``other`` -- a rational function of same degree
+          as this map
+
+        - ``R`` -- a field or embedding
 
         OUTPUT:
 
@@ -5274,6 +5283,71 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             [0 1 0]
             [0 0 1]
             ]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: R = P.coordinate_ring()
+            sage: f = DynamicalSystem_projective([R(3), R(4)])
+            sage: g = DynamicalSystem_projective([R(5), R(2)])
+            sage: m = f.conjugating_set(g)[0]
+            sage: f.conjugate(m) == g
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([7*x + 12*y, 8*x])
+            sage: g = DynamicalSystem_projective([1645*x - 318*y, 8473*x - 1638*y])
+            sage: m = f.conjugating_set(g)[0]
+            sage: f.conjugate(m) == g
+            True
+
+        note that only one possible conjugation is returned::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(11),2)
+            sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
+            sage: m1 = matrix(GF(11), 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.conjugating_set(g)
+            [
+            [ 1  0  0]
+            [ 9  1  4]
+            [ 4 10  8]
+            ]
+
+        ::
+
+            sage: L.<v> = CyclotomicField(8)
+            sage: P.<x,y,z> = ProjectiveSpace(L, 2)
+            sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
+            sage: m1 = matrix(L, 3, 3, [1,4,v^2,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: m = f.conjugating_set(g)[0]
+            sage: f.conjugate(m) == g
+            True
+
+        TESTS:
+
+        Make sure the caching problem is fixed, see #28070 ::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
+            sage: m = matrix(QQ, 2, 2, [-1, 3, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.conjugating_set(g)
+            [
+            [-1  3]
+            [ 2  1]
+            ]
+            sage: f = f.change_ring(K)
+            sage: g = g.change_ring(K)
+            sage: f.conjugating_set(g)
+            [
+            [-1  3]
+            [ 2  1]
+            ]
         """
         f = copy(self)
         g = copy(other)
@@ -5284,7 +5358,64 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             pass
         if f.degree() != g.degree():# checks that maps are of equal degree
             return []
+        gens = f[0].parent().gens()
+        M = len(gens)
+        base = f.base_ring()
+        if f.degree() == 0: # all constant maps are conjugate
+            zer = [0 for i in range(M-1)]
+            m = []
+            for i in range(M):
+                m1 = copy(zer)
+                m1.insert(i, f[i]/g[i])
+                m += m1
+            return [matrix(base, M, M, m)]
+        if f.degree() == 1: # for degree 1 maps, check if matrix representations are similar
+            # make matrix forms of f1 and f2
+            m1 = matrix(base,M,M,[F.coefficient(var) for F in f for var in gens])
+            m2 = matrix(base,M,M,[F.coefficient(var) for F in g for var in gens])
+            # Note: det_ratio will be nonzero for invertible f1, f2
+            if m1.det() != m2.det():
+                det_ratio = m1.det()/m2.det()
+                try:
+                    det_root = det_ratio.nth_root(M)
+                except ValueError: #no root in field
+                    return []
+                #matrices must have same determinant to be similar, but were in PGL
+                #so we can scale so the determinants are equal
+                m1 = (1/det_root)*m1
+            bol,m = m2.is_similar(m1, transformation=True)
+            if bol:
+                if m.base_ring() == base:
+                    return [m]
+                #else is_similar went to algebraic closure
+                if base in NumberFields():
+                    from sage.rings.qqbar import number_field_elements_from_algebraics
+                    K,mK,phi = number_field_elements_from_algebraics([u for t in list(m) for u in t],\
+                                minimal=True)
+                    if K == base:
+                        return [matrix(K, M, M, mK)]
+                    else: #may be a subfield
+                        embeds = K.embeddings(base)
+                        if len(embeds) == 0:
+                            #not a subfield
+                            return []
+                        else:
+                            for emb in embeds:
+                                m_emb = matrix(base, M,M, [emb(u) for u in mK])
+                                #check that it is the right embedding
+                                if f.conjugate(m_emb) == g:
+                                    return [m_emb]
+                else: #finite field case
+                    #always comes from prime field so an coerce
+                    m = matrix(base, M, M, [base(u.as_finite_field_element()[1]) for t in list(m) for u in t])
+                    return [m]
+            #not similar
+            return []
+        # sigma invariants are invariant under conjugacy but are only implemented in dim 1
         n = f.domain().dimension_relative()
+        if (n == 1) and (R in NumberFields() or R in FiniteFields())\
+            and (f.sigma_invariants(1) != g.sigma_invariants(1)):
+            return []
         L = Set(f.periodic_points(1))
         K = Set(g.periodic_points(1))
         if len(L) != len(K):  # checks maps have the same number of fixed points
@@ -5293,11 +5424,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         r = f.domain().base_ring()
         more = True
         if d >= n+2: # need at least n+2 points
-            for i in Subsets(L, n+2):
+            for i in Subsets(range(len(L)), n+2):
                 # make sure all n+1 subsets are linearly independent
-                Ml = matrix(r, [list(s) for s in i])
+                TL = [L[il] for il in i]
+                Ml = matrix(r, [list(s) for s in TL])
                 if not any(j == 0 for j in Ml.minors(n + 1)):
-                    Tf = list(i)
+                    Tf = list(TL)
                     more = False
                     break
         while more:
@@ -5312,26 +5444,31 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 raise ValueError("not enough rational preimages")
             d = len(L)
             if d >= n + 2: # makes sure all n+1 subsets are linearly independent
-                for i in Subsets(L, n+2):
-                    Ml = matrix(r, [list(s) for s in i])
+                for i in Subsets(range(len(L)), n+2):
+                    TL = [L[il] for il in i]
+                    Ml = matrix(r, [list(s) for s in TL])
                     if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
-                        Tf = list(i)
+                        Tf = list(TL)
                         break
         Conj = []
-        for i in Arrangements(K,(n+2)):
+        for i in Arrangements(range(len(K)),(n+2)):
+            TK = [K[ik] for ik in i]
             # try all possible conjugations between invariant sets
             try: # need all n+1 subsets linearly independent
-                s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
+                s = f.domain().point_transformation_matrix(TK,Tf)
+                # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     Conj.append(s)
             except (ValueError):
                 pass
         return Conj
 
-    def is_conjugate(self, other):
+    def is_conjugate(self, other, R=None):
         r"""
-        Return whether or not two dynamical systems are conjugate.
+        Return whether two dynamical systems are conjugate over their
+        base ring (by default) or over the ring `R` entered as an
+        optional parameter.
 
         ALGORITHM:
 
@@ -5341,8 +5478,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         INPUT:
 
-        - ``other`` -- a nonconstant rational function of same degree
-          as ``self``
+        - ``other`` -- a nonconstant rational function of the same
+          degree as this map
+
+        - ``R`` -- a field or embedding
 
         OUTPUT: boolean
 
@@ -5395,9 +5534,75 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: g = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: f.is_conjugate(g)
             False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([7*x + 12*y, 8*x])
+            sage: g = DynamicalSystem_projective([1645*x - 318*y, 8473*x - 1638*y])
+            sage: f.is_conjugate(g)
+            True
+
+        conjugation is only checked over the base field by default::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([-3*y^2, 3*x^2])
+            sage: g = DynamicalSystem_projective([-x^2 - 2*x*y, 2*x*y + y^2])
+            sage: f.is_conjugate(g), f.is_conjugate(g, R=QQbar) # long time
+            (False, True)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([7*x + 12*y, 8*y+2*z, x+z])
+            sage: m1 = matrix(QQ, 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.is_conjugate(g)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(7), 2)
+            sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
+            sage: m1 = matrix(GF(7), 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.is_conjugate(g)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: f = DynamicalSystem_projective([2*x^2 + 12*y*x, 11*y*x+2*y^2, x^2+z^2])
+            sage: m1 = matrix(QQ, 3, 3, [1,4,1,0,2,1,1,1,1])
+            sage: g = f.conjugate(m1)
+            sage: f.is_conjugate(g) # long time
+            True
+
+        TESTS:
+
+        Make sure the caching problem is fixed, see #28070 ::
+
+            sage: K.<i> = QuadraticField(5)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
+            sage: m = matrix(QQ, 2, 2, [-1, 3, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.is_conjugate(g)
+            True
+            sage: f = f.change_ring(K)
+            sage: g = g.change_ring(K)
+            sage: f.is_conjugate(g)
+            True
         """
         f = copy(self)
         g = copy(other)
+        if R == None:
+            R = f.base_ring()
+        else:
+            f = self.change_ring(R)
+            g = other.change_ring(R)
+        if not (R in NumberFields() or R is QQbar or R in FiniteFields()):
+            raise NotImplementedError("ring must be a number field or finite field")
         try:
             f.normalize_coordinates()
             g.normalize_coordinates()
@@ -5405,7 +5610,30 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             pass
         if f.degree() != g.degree(): # checks that maps are of equal degree
             return False
+        if f.degree() == 0: # all constant maps are conjugate
+            return True
+        if f.degree() == 1: # for degree 1 maps, check if matrix representations are similar
+            # make matrix forms of f1 and f2
+            gens = f[0].parent().gens()
+            M = len(gens)
+            m1 = matrix(f.base_ring(),M,M,[F.coefficient(var) for F in f for var in gens])
+            m2 = matrix(f.base_ring(),M,M,[F.coefficient(var) for F in g for var in gens])
+            # Note: det_ratio will be nonzero for invertible f1, f2
+            if m1.det() != m2.det():
+                det_ratio = m1.det()/m2.det()
+                try:
+                    det_root = det_ratio.nth_root(M)
+                except ValueError: #no root in field
+                    return False
+                # matrices must have same determinant to be similar, but were in PGL
+                # so we can scale to have the determinants equal
+                m1 = (1/det_root)*m1
+            return m1.is_similar(m2)
+        # sigma invariants are invariant under conjugacy but are only implemented in dim 1
         n = f.domain().dimension_relative()
+        if (n==1) and (R in NumberFields() or R in FiniteFields())\
+          and (f.sigma_invariants(1) != g.sigma_invariants(1)):
+            return False
         L = Set(f.periodic_points(1))
         K = Set(g.periodic_points(1))
         if len(L) != len(K): # checks maps have the same number of fixed points
@@ -5414,10 +5642,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         r = f.domain().base_ring()
         more = True
         if d >= n+2: # need at least n+2 points
-            for i in Subsets(L, n+2): # makes sure all n+1 subsets are linearly independent
-                Ml = matrix(r, [list(s) for s in i])
+            for i in Subsets(range(len(L)), n+2):
+                # make sure all n+1 subsets are linearly independent
+                TL = [L[il] for il in i]
+                Ml = matrix(r, [list(s) for s in TL])
                 if not any(j == 0 for j in Ml.minors(n + 1)):
-                    Tf = list(i)
+                    Tf = list(TL)
                     more = False
                     break
         while more:
@@ -5431,18 +5661,20 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if d == len(L):# if no new preimages then not enough points
                 raise ValueError("not enough rational preimages")
             d = len(L)
-            if d >= n + 2:
-                # make sure all n+1 subsets are linearly independent
-                for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
-                    Ml = matrix(r, [list(s) for s in i])
+            if d >= n + 2: # makes sure all n+1 subsets are linearly independent
+                for i in Subsets(range(len(L)), n+2):
+                    TL = [L[il] for il in i]
+                    Ml = matrix(r, [list(s) for s in TL])
                     if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
-                        Tf = list(i)
+                        Tf = list(TL)
                         break
-        for i in Arrangements(K, n+2):
+        for i in Arrangements(range(len(K)),(n+2)):
+            TK = [K[ik] for ik in i]
             # try all possible conjugations between invariant sets
             try: # need all n+1 subsets linearly independent
-                s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
+                s = f.domain().point_transformation_matrix(TK,Tf)
+                # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True
             except (ValueError):

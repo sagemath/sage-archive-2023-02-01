@@ -736,10 +736,6 @@ def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
     `label(v)`.
 
     """
-    # Loops and multiple edges are not needed in Lex M
-    if G.allows_loops() or G.allows_multiple_edges():
-        G = G.to_simple(immutable=False)
-
     cdef int nV = G.order()
 
     # Base case when G is empty
@@ -765,6 +761,10 @@ def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
             else:
                 return []
 
+    # Loops and multiple edges are not needed in Lex M
+    if G.allows_loops() or G.allows_multiple_edges():
+        G = G.to_simple(immutable=True)
+
     # Build adjacency list of G
     cdef list int_to_v = list(G)
 
@@ -788,11 +788,6 @@ def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
         H = Graph()
         H.add_vertices(G.vertices())
 
-    # initialize the predecessors array
-    cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int *pred = <int *>mem.allocarray(nV, sizeof(int))
-    memset(pred, -1, nV * sizeof(int))
-
     cdef set vertices = set(range(nV))
 
     cdef int source = 0 if initial_vertex is None else int_to_v.index(initial_vertex)
@@ -802,33 +797,33 @@ def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
     cdef string s, max_label_string
 
     cdef int now = 1, v, current_vertex, int_neighbor
-    cdef list max_label_in_path = [], cur_labe = []
+    cdef list max_label_in_path, cur_label
+    cdef set seen
     while vertices:
         v = max(vertices, key=l_func)
         vertices.remove(v)
         q = queue[pair[int, string]]() # clear the queue
-        s = ",".join(str(code) for code in label[v])
+        s = b",".join(bytes(code) for code in label[v])
         q.push([v, s])
-        seen = [v]
+        seen = set([v])
         while not q.empty():
             current_vertex = q.front().first
             max_label_string = q.front().second
-            max_label_in_path = max_label_string.split(",")
+            max_label_in_path = max_label_string.split(b",")
             max_label_in_path = list(map(type(label[v]), max_label_in_path))
             q.pop()
-            for i in range(0, out_degree(sd, v)):
+            for i in range(out_degree(sd, v)):
                 int_neighbor = sd.neighbors[v][i]
-                if int_neighbor in vertices and not int_neighbor in seen:
-                    s = ",".join(str(code) for code in label[int_neighbor])
-                    cur_label = s.split(",")
+                if int_neighbor in vertices and int_neighbor not in seen:
+                    s = b",".join(bytes(code) for code in label[int_neighbor])
+                    cur_label = s.split(b",")
                     cur_label = list(map(type(label[v]), cur_label))
                     if cur_label > max_label_in_path:
                         label[int_neighbor].append(nV - now)
                         q.push([int_neighbor, s])
-                        seen.append(int_neighbor)
                     else:
                         q.push([int_neighbor, max_label_string])
-                        seen.append(int_neighbor)
+                    seen.add(int_neighbor)
         value.append(int_to_v[v])
         now += 1
 

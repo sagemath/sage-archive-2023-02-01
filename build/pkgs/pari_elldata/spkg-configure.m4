@@ -16,6 +16,6 @@ SAGE_SPKG_CONFIGURE([pari_elldata], [
             AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
             sage_spkg_install_pari_elldata=yes
             sage_spkg_install_pari=yes
-        fi 
+        fi
     fi
 ])

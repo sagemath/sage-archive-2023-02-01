@@ -29,7 +29,7 @@ cd src/
 
 
 sdh_configure $SAGE_CONFIGURE_NTL \
-              --with-pari="$SAGE_LOCAL" \
+              $SAGE_CONFIGURE_PARI \
               $SAGE_CONFIGURE_FLINT \
               --with-boost="no" \
               --disable-allprogs

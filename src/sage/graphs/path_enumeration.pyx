@@ -1034,6 +1034,15 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         [(11, [(1, 2, 5), (2, 6, 6), (6, 3, 0)]), (15, [(1, 4, 15), (4, 3, 0)])]
         sage: list(feng_k_shortest_simple_paths(g, 1, 3, by_weight=True))
         [[1, 2, 6, 3], [1, 4, 3]]
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
+        sage: G = DiGraph([(0, 1, 9), (0, 3, 1), (0, 4, 2), (1, 6, 4), (1, 7, 1), (2, 0, 5), (2, 1, 4), (2, 7, 1), (3, 1, 7), (3, 2, 4), (3, 4, 2), (4, 0, 8), (4, 1, 10), (4, 3, 3), (4, 7, 10), (5, 2, 5), (5, 4, 9), (6, 2, 9)], weighted=True)
+        sage: list(feng_k_shortest_simple_paths(G, 2, 1, by_weight=True, report_weight=True, report_edges=True, labels=True))
+        [(4, [(2, 1, 4)]),
+         (13, [(2, 0, 5), (0, 3, 1), (3, 1, 7)]),
+         (14, [(2, 0, 5), (0, 1, 9)]),
+         (17, [(2, 0, 5), (0, 4, 2), (4, 1, 10)]),
+         (17, [(2, 0, 5), (0, 4, 2), (4, 3, 3), (3, 1, 7)]),
+         (18, [(2, 0, 5), (0, 3, 1), (3, 4, 2), (4, 1, 10)])]
     """
     if not self.is_directed():
         raise ValueError("this algorithm works only for directed graphs")
@@ -1082,6 +1091,8 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     # a dictionary of the new edges added to the graph used for restoring the
     # graph after the iteration
     dic = {}
+    # used to keep track of temporary edges added to the graph
+    temp_dict = {}
     # father of the path
     father = {}
     if by_weight:
@@ -1133,8 +1144,11 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                     if w != target and not G.has_edge(w, target):
                         G.add_edge(w, target, 0)
                         dic[(w, target)] = 1
+                        reduced_cost[(w, target)] = 0
+                    elif w != target and reduced_cost[(w, target)]!=0:
+                        temp_dict[(w, target)] = reduced_cost[(w, target)]
+                        reduced_cost[(w, target)] = 0
                     include_vertices.add(w)
-                    reduced_cost[(w, target)] = 0
 
     from heapq import heappush, heappop
     from sage.graphs.base.boost_graph import shortest_paths
@@ -1145,9 +1159,11 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     # successor is a child node in the shortest path subtree
     reduced_cost = {}
+    reduced_cost_copy = {}
     for e in G.edge_iterator():
         if e[0] in dist and e[1] in dist:
             reduced_cost[(e[0], e[1])] = weight_function(e) + dist[e[1]] - dist[e[0]]
+    reduced_cost_copy = copy.deepcopy(reduced_cost)
     exclude_vert_set = set(G) - set(dist.keys())
     # finding the parent information from successor
     for key in successor:
@@ -1157,7 +1173,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             parent[successor[key]].append(key)
 
     def length_func(path):
-        return sum(reduced_cost[e] for e in zip(path, path[1:]))
+        return sum(reduced_cost_copy[e] for e in zip(path, path[1:]))
     # shortest path function for weighted/unweighted graph using reduced weights
     shortest_path_func = G._backend.bidirectional_dijkstra_special
     # a set to check if a path is already present in the heap or not
@@ -1216,11 +1232,13 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         prev_path = path1
 
         # deep copy of the exclude vertices set
+        reduced_cost = copy.deepcopy(reduced_cost_copy)
         exclude_vertices = copy.deepcopy(exclude_vert_set)
         exclude_edges = set()
         include_vertices = set()
         expressEdges = {}
         dic = {}
+        temp_dict = {}
         for v in G:
             # coloring all the nodes as green initially
             color[v] = 0
@@ -1270,6 +1288,10 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                             if (e[1], target) in dic:
                                 # restoration of edges in the original graph
                                 G.delete_edge(e[1], target)
+                            if (e[1], target) in temp_dict:
+                                # restoration of edges in the original graph
+                                reduced_cost[(e[1], target)] = temp_dict[(e[1], target)]
+                                del temp_dict[(e[1], target)]
                         # resetting the expressEdges for node n
                         expressEdges[n] = []
                 findExpressEdges(Yu)
@@ -1288,13 +1310,12 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                                             weight_function=weight_function,
                                             reduced_weight=reduced_cost)
                 # finding the spur path in the original graph
-                if spur and (spur[-2], target) in dic:
+                if spur and ((spur[-2], target) in dic or (spur[-2], target) in temp_dict):
                     spur.pop()
                     st = spur[-1]
                     while st != target:
                         st = successor[st]
                         spur.append(st)
-
                 if not spur:
                     exclude_vertices.add(root[-1])
                     continue

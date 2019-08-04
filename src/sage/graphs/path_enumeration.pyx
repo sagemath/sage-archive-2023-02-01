@@ -725,7 +725,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         return
 
     if self.has_loops() or self.allows_multiple_edges():
-        self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
+        G = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
+    else:
+        G = self
 
     if weight_function is not None:
         by_weight = True
@@ -735,26 +737,20 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
             return e[2]
 
     if by_weight:
-        self._check_weight_function(weight_function)
+        G._check_weight_function(weight_function)
         # dictionary to get weight of the edges
-        edge_wt = {}
-        for e in self.edge_iterator():
-            if self.is_directed():
-                edge_wt[(e[0], e[1])] = weight_function(e)
-            else:
-                edge_wt[(e[0], e[1])] = weight_function(e)
-                edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
+        edge_wt = {(e[0], e[1]): weight_function(e) for e in G.edge_iterator()}
+        if not G.is_directed():
+            for u, v in G.edge_iterator(labels=False):
+                edge_wt[v, u] = edge_wt[u, v]
     else:
         def weight_function(e):
             return 1
 
     if report_edges and labels:
-        edge_labels = {}
-        for e in self.edge_iterator():
-            if (e[0], e[1]) not in edge_labels:
-                edge_labels[(e[0], e[1])] = [e]
-        if not self.is_directed():
-            for u, v in list(edge_labels):
+        edge_labels = {(e[0], e[1]): e for e in G.edge_iterator()}
+        if not G.is_directed():
+            for u, v in G.edge_iterator(labels=False):
                 edge_labels[v, u] = edge_labels[u, v]
 
     from heapq import heappush, heappop
@@ -762,12 +758,12 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     if not by_weight:
         length_func = len
         # shortest path function for unweighted graph
-        shortest_path_func = self._backend.shortest_path_special
+        shortest_path_func = G._backend.shortest_path_special
     else:
         def length_func(path):
             return sum(edge_wt[e] for e in zip(path, path[1:]))
         # shortest path function for weighted graph
-        shortest_path_func = self._backend.bidirectional_dijkstra_special
+        shortest_path_func = G._backend.bidirectional_dijkstra_special
 
     # a set to check if a path is already present in the heap or not
     heap_paths = set()
@@ -780,19 +776,18 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     # compute the shortest path between the source and the target
     if by_weight:
         path = shortest_path_func(source, target, weight_function=weight_function)
+        length = length_func(path)
     else:
         path = shortest_path_func(source, target)
-    length = length_func(path)
-    if not by_weight:
-        length -= 1
+        length = length_func(path) - 1
     # corner case
     if not path:
         if report_weight:
             yield (0, [])
-            return
         else:
             yield []
-            return
+        return
+
     # hashing the path to check the existence of a path in the heap
     hash_path = tuple(path)
     # heap push operation
@@ -802,39 +797,37 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     while heap_paths:
         # extracting the next best path from the heap
-        (cost, path1, dev_idx) = heappop(heap_sorted_paths)
+        cost, path1, dev_idx = heappop(heap_sorted_paths)
         hash_path = tuple(path1)
         heap_paths.remove(hash_path)
         if report_weight:
             if report_edges and labels:
-                yield (cost, list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0]))
+                yield (cost, [edge_labels[e] for e in zip(path1[:-1], path1[1:])])
             elif report_edges:
                 yield (cost, list(zip(path1[:-1], path1[1:])))
             else:
                 yield (cost, path1)
         else:
             if report_edges and labels:
-                yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+                yield [edge_labels[e] for e in zip(path1[:-1], path1[1:])]
             elif report_edges:
                 yield list(zip(path1[:-1], path1[1:]))
             else:
                 yield path1
+
         listA.append(path1)
         prev_path = path1
-        exclude_vertices = set()
+        exclude_vertices = set(prev_path[:dev_idx])
         exclude_edges = set()
-        for i in range(dev_idx):
-            exclude_vertices.add(prev_path[i])
+
         # deviating from the previous path to find the candidate paths
         for i in range(dev_idx + 1, len(prev_path)):
             # root part of the previous path
             root = prev_path[:i]
             for path in listA:
                 if path[:i] == root:
-                    if self.is_directed():
-                        exclude_edges.add((path[i - 1], path[i]))
-                    else:
-                        exclude_edges.add((path[i - 1], path[i]))
+                    exclude_edges.add((path[i - 1], path[i]))
+                    if not G.is_directed():
                         exclude_edges.add((path[i], path[i - 1]))
             try:
                 if by_weight:

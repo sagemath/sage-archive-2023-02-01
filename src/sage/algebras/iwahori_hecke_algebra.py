@@ -590,7 +590,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: IwahoriHeckeAlgebra("B2", 1).coxeter_group()
-            Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with Coxeter matrix:
+            Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
             [1 4]
             [4 1]
         """

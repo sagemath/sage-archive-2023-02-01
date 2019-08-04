@@ -710,7 +710,7 @@ class FileDocTestSource(DocTestSource):
 
             sage: import sys
             sage: bitness = '64' if sys.maxsize > (1 << 32) else '32'
-            sage: n = -920390823904823094890238490238484; hash(n) > 0
+            sage: gp.get_precision() == 38
             False # 32-bit
             True  # 64-bit
             sage: ex = doctests[18].examples[13]

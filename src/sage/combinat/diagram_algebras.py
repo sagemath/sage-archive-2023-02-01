@@ -33,7 +33,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
 from sage.structure.global_options import GlobalOptions
-from sage.combinat.combinat_cython import set_partition_iterator, perfect_matchings_iterator
+from sage.combinat.combinat_cython import (set_partition_iterator, perfect_matchings_iterator,
+                                           set_partition_composition)
 from sage.combinat.set_partition import SetPartitions, AbstractSetPartition
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
@@ -4078,39 +4079,6 @@ def identity_set_partition(k):
         return [[i,-i] for i in range(1, k + 1)]
     # Else k in 1/2 ZZ
     return [[i, -i] for i in range(1, k + ZZ(3)/ZZ(2))]
-
-def set_partition_composition(sp1, sp2):
-    r"""
-    Return a tuple consisting of the composition of the set partitions
-    ``sp1`` and ``sp2`` and the number of components removed from the middle
-    rows of the graph.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.diagram_algebras as da
-        sage: sp1 = da.to_set_partition([[1,-2],[2,-1]])
-        sage: sp2 = da.to_set_partition([[1,-2],[2,-1]])
-        sage: p, c = da.set_partition_composition(sp1, sp2)
-        sage: (SetPartition(p), c) == (SetPartition(da.identity_set_partition(2)), 0)
-        True
-    """
-    g = pair_to_graph(sp1, sp2)
-    connected_components = g.connected_components()
-
-    res = []
-    total_removed = 0
-    for cc in connected_components:
-        # Remove the vertices that live in the middle two rows
-        new_cc = [x[0] for x in cc if not ((x[0] < 0 and x[1] == 1) or
-                                           (x[0] > 0 and x[1] == 2))]
-
-        if not new_cc:
-            if len(cc) > 1:
-                total_removed += 1
-        else:
-            res.append(set(new_cc))
-
-    return (res, total_removed)
 
 ##########################################################################
 # END BORROWED CODE

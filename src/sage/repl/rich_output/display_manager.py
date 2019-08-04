@@ -745,11 +745,13 @@ class DisplayManager(SageObject):
             offline threejs graphics
         """
         if online:
-            from sage.misc.package import installed_packages
-            version = installed_packages()['threejs'].split('.')[0]
+            import sage.env, re, os
+            with open(os.path.join(sage.env.THREEJS_DIR, 'build', 'three.min.js')) as f:
+                text = f.read()
+            version = re.search(r'REVISION="(\d+)"', text).group(1)
             return """
-<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@{0}/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@{0}/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r{0}/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r{0}/examples/js/controls/OrbitControls.js"></script>
             """.format(version)
         try:
             return self._backend.threejs_offline_scripts()

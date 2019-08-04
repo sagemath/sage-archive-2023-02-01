@@ -209,6 +209,7 @@ import inspect
 from six.moves import range
 from six import iteritems
 
+from sage.cpython.string import bytes_to_str
 from sage.modules.module import Module
 from sage.categories.modules import Modules
 from copy import copy
@@ -216,9 +217,8 @@ from sage.interfaces.all import gap
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
-from sage.arith.all import GCD, rising_factorial, binomial
+from sage.arith.all import GCD, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
 from sage.misc.functional import is_even
@@ -230,11 +230,10 @@ from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
 from sage.misc.sageinspect import sage_getargspec
-from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.randstate import current_randstate
 from sage.features.gap import GapPackage
 from .encoder import Encoder
-from .decoder import Decoder, DecodingError
+from .decoder import Decoder
 from sage.combinat.subset import Subsets
 from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
@@ -393,6 +392,21 @@ class AbstractLinearCode(Module):
         A lot of methods of the abstract class rely on the knowledge of a generator matrix.
         It is thus strongly recommended to set an encoder with a generator matrix implemented
         as a default encoder.
+
+        TESTS::
+
+        This class uses the following experimental feature:
+        :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+        This test block is here only to trigger the experimental warning so it does not
+        interferes with doctests::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fqm.<aa> = GF(16)
+            sage: Fq.<a> = GF(4)
+            sage: RelativeFiniteFieldExtension(Fqm, Fq)
+            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/20284 for details.
+            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -547,6 +561,21 @@ class AbstractLinearCode(Module):
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
+
+    def __getstate__(self):
+        """
+        Used for pickling codes.
+
+        TESTS::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: '_registered_encoders' in C.__getstate__()
+            True
+        """
+        d = super(AbstractLinearCode, self).__getstate__()
+        d['_registered_encoders'] = self._registered_encoders
+        d['_registered_decoders'] = self._registered_decoders
+        return d
 
     def _repr_(self):
         r"""
@@ -1660,6 +1689,8 @@ class AbstractLinearCode(Module):
 
     def direct_sum(self, other):
         """
+        Direct sum of the codes ``self`` and ``other``
+
         Returns the code given by the direct sum of the codes ``self`` and
         ``other``, which must be linear codes defined over the same base ring.
 
@@ -1686,6 +1717,145 @@ class AbstractLinearCode(Module):
         top = G1.augment(Z2)
         bottom = Z1.augment(G2)
         G = top.stack(bottom)
+        return LinearCode(G)
+
+    def juxtapose(self, other):
+        """
+        Juxtaposition of ``self`` and ``other``
+
+        The two codes must have equal dimension.
+
+        EXAMPLES::
+
+           sage: C1 = codes.HammingCode(GF(2), 3)
+           sage: C2 = C1.juxtapose(C1)
+           sage: C2
+           [14, 4] linear code over GF(2)
+        """
+        G1 = self.generator_matrix()
+        G2 = other.generator_matrix()
+        G = G1.augment(G2)
+        return LinearCode(G)
+
+    def u_u_plus_v_code(self, other):
+        r"""
+        The `(u|u+v)`-construction with ``self=u`` and ``other=v``
+
+        Returns the code obtained through `(u|u+v)`-construction with ``self`` as `u`
+        and ``other`` as `v`. Note that `u` and `v` must have equal lengths.
+        For `u` a `[n, k_1, d_1]`-code and `v` a `[n, k_2, d_2]`-code this returns
+        a `[2n, k_1+k_2, d]`-code, where `d=\min(2d_1,d_2)`.
+
+        EXAMPLES::
+
+            sage: C1 = codes.HammingCode(GF(2), 3)
+            sage: C2 = codes.HammingCode(GF(2), 3)
+            sage: D = C1.u_u_plus_v_code(C2)
+            sage: D
+            [14, 8] linear code over GF(2)
+        """
+        F = self.base_ring()
+        G1 = self.generator_matrix()
+        G2 = other.generator_matrix()
+        k2 = len(G2.rows())
+        n2 = len(G2.columns())
+        MS = MatrixSpace(F,k2,n2)
+        Z = MS(0)
+        top = G1.augment(G1)
+        bot = Z.augment(G2)
+        G = top.stack(bot)
+        return LinearCode(G)
+
+    def product_code(self, other):
+        """
+        Combines ``self`` with ``other`` to give the tensor product code.
+
+        If ``self`` is a `[n_1, k_1, d_1]`-code and ``other`` is
+        a `[n_2, k_2, d_2]`-code, the product is a `[n_1n_2, k_1k_2, d_1d_2]`-code.
+
+        Note that the two codes have to be over the same field.
+
+            EXAMPLES::
+
+                sage: C = codes.HammingCode(GF(2), 3)
+                sage: C
+                [7, 4] Hamming Code over GF(2)
+                sage: D = codes.ReedMullerCode(GF(2), 2, 2)
+                sage: D
+                Binary Reed-Muller Code of order 2 and number of variables 2
+                sage: A = C.product_code(D)
+                sage: A
+                [28, 16] linear code over GF(2)
+                sage: A.length() == C.length()*D.length()
+                True
+                sage: A.dimension() == C.dimension()*D.dimension()
+                True
+                sage: A.minimum_distance() == C.minimum_distance()*D.minimum_distance()
+                True
+
+        """
+        G1 = self.generator_matrix()
+        G2 = other.generator_matrix()
+        G = G1.tensor_product(G2)
+        return LinearCode(G)
+
+    def construction_x(self, other, aux):
+        r"""
+        Construction X applied to ``self=C_1``, ``other=C_2`` and ``aux=C_a``.
+
+        ``other`` must be a subcode of ``self``.
+
+        If `C_1` is a `[n, k_1, d_1]` linear code and `C_2` is
+        a `[n, k_2, d_2]` linear code, then `k_1 > k_2` and `d_1 < d_2`. `C_a` must
+        be a `[n_a, k_a, d_a]` linear code, such that `k_a + k_2 = k_1`
+        and `d_a + d_1 \leq d_2`.
+
+        The method will then return a `[n+n_a, k_1, d_a+d_1]` linear code.
+
+            EXAMPLES::
+
+                sage: C = codes.BCHCode(GF(2),15,7)
+                sage: C
+                [15, 5] BCH Code over GF(2) with designed distance 7
+                sage: D = codes.BCHCode(GF(2),15,5)
+                sage: D
+                [15, 7] BCH Code over GF(2) with designed distance 5
+                sage: C.is_subcode(D)
+                True
+                sage: C.minimum_distance()
+                7
+                sage: D.minimum_distance()
+                5
+                sage: aux = codes.HammingCode(GF(2),2)
+                sage: aux = aux.dual_code()
+                sage: aux.minimum_distance()
+                2
+                sage: Cx = D.construction_x(C,aux)
+                sage: Cx
+                [18, 7] linear code over GF(2)
+                sage: Cx.minimum_distance()
+                7
+        """
+        if other.is_subcode(self) == False:
+            raise ValueError("%s is not a subcode of %s"%(self,other))
+
+        G2 = self.generator_matrix()
+        left = G1 = other.generator_matrix()
+        k = self.dimension()
+
+        for r in G2.rows():
+            if r not in left.row_space():
+                left = left.stack(r)
+
+        Ga = aux.generator_matrix()
+        na = aux.length()
+        ka = aux.dimension()
+
+        F = self.base_field()
+        MS = MatrixSpace(F,k-ka,na)
+        Z = MS(0)
+        right = Z.stack(Ga)
+        G = left.augment(right)
         return LinearCode(G)
 
     def __eq__(self, right):
@@ -2056,7 +2226,7 @@ class AbstractLinearCode(Module):
             sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
             sage: C = LinearCode(C.basis_matrix())
             sage: Clist = C.list()
-            sage: all([C[i]==Clist[i] for i in range(len(C))])
+            sage: all(C[i] == Clist[i] for i in range(len(C)))
             True
 
         Check that only the indices less than the size of the code are
@@ -3184,7 +3354,7 @@ class AbstractLinearCode(Module):
             # to use the already present output parser
             wts = [0] * (n + 1)
             s = 0
-            for L in StringIO(lines).readlines():
+            for L in StringIO(bytes_to_str(lines)).readlines():
                 L = L.strip()
                 if L:
                     o = ord(L[0])
@@ -3778,7 +3948,7 @@ class LinearCode(AbstractLinearCode):
             [1 2 1]
             [2 1 1]
         """
-        if encoder_name is None or encoder_name is 'GeneratorMatrix':
+        if encoder_name is None or encoder_name == 'GeneratorMatrix':
             g = self._generator_matrix
         else:
             g = super(LinearCode, self).generator_matrix(encoder_name, **kwargs)

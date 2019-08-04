@@ -820,7 +820,10 @@ our finite automaton by a counter::
     sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
     sage: C = FiniteStateMachine()
     sage: def update_counter(process, state, output):
-    ....:     l = process.preview_word()
+    ....:     try:
+    ....:         l = process.preview_word()
+    ....:     except RuntimeError:
+    ....:         raise StopIteration
     ....:     process.fsm.counter += 1 if l == 1 else -1
     ....:     if process.fsm.counter > 0:
     ....:         next_state = 'positive'
@@ -1010,13 +1013,13 @@ def full_group_by(l, key=lambda x: x):
         k = key(item)
         s = str(k)
         if s in original_keys:
-            if original_keys[s]!=k:
-                raise ValueError("Two distinct elements with representation "
-                                 "%s " % s)
+            if original_keys[s] != k:
+                raise ValueError(
+                    'two distinct elements with representation {}'.format(s))
         else:
-            original_keys[s]=k
+            original_keys[s] = k
         elements[s].append(item)
-    return [(original_keys[s], values ) for (s, values) in elements.items()]
+    return [(original_keys[s], elements[s]) for s in sorted(elements)]
 
 
 def equal(iterator):
@@ -2415,30 +2418,8 @@ class FSMTransition(SageObject):
         """
         return deepcopy(self, memo)
 
-    def __hash__(self):
-        """
-        Since transitions are mutable, they should not be hashable, so
-        we return a type error.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        The hash of this transition.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMTransition
-            sage: hash(FSMTransition('A', 'B'))
-            Traceback (most recent call last):
-            ...
-            TypeError: Transitions are mutable, and thus not hashable.
-
-        """
-        raise TypeError("Transitions are mutable, and thus not hashable.")
-
+    __hash__ = None
+    # Since transitions are mutable, they should not be hashable
 
     def _repr_(self):
         """
@@ -6166,7 +6147,7 @@ class FiniteStateMachine(SageObject):
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
-        possibilites are followed. This is done by splitting the
+        possibilities are followed. This is done by splitting the
         process into several branches, one for each of the possible
         outgoing transitions.
 
@@ -7001,7 +6982,7 @@ class FiniteStateMachine(SageObject):
                     pass
         else:
             ignore_done = []
-        while len(not_done) > 0:
+        while not_done:
             s = not_done.pop(0)
             for letter in self.input_alphabet:
                 try:
@@ -7339,19 +7320,19 @@ class FiniteStateMachine(SageObject):
             sage: A.transitions()
             [Transition from 0 to 0: 0|-,
              Transition from 0 to 0: 1|-,
-             Transition from 1 to 1: 0|-,
-             Transition from 1 to 2: 1|-,
-             Transition from 2 to 1: 0|-,
-             Transition from 2 to 0: 1|-]
+             Transition from 1 to 2: 0|-,
+             Transition from 1 to 0: 1|-,
+             Transition from 2 to 2: 0|-,
+             Transition from 2 to 1: 1|-]
             sage: A.initial_states()
-            [1]
+            [2]
             sage: A.final_states()
             [1, 2]
             sage: C = A.coaccessible_components()
             sage: C.transitions()
-            [Transition from 1 to 1: 0|-,
-             Transition from 1 to 2: 1|-,
-             Transition from 2 to 1: 0|-]
+            [Transition from 1 to 2: 0|-,
+             Transition from 2 to 2: 0|-,
+             Transition from 2 to 1: 1|-]
 
         .. SEEALSO::
             :meth:`accessible_components`,
@@ -10054,7 +10035,7 @@ class FiniteStateMachine(SageObject):
                 unhandeled_direct_predecessors[t.to_state].append(t.from_state)
         done = []
         open = [state]
-        while len(open) > 0:
+        while open:
             s = open.pop()
             candidates = unhandeled_direct_predecessors[s]
             if candidates is not None:
@@ -10432,12 +10413,12 @@ class FiniteStateMachine(SageObject):
                 sage: block_difference = transducers.sub([0, 1])(product_01x10)
                 sage: T = block_difference.simplification().relabeled()
                 sage: T.transitions()
-                [Transition from 0 to 1: 0|-1,
+                [Transition from 0 to 2: 0|-1,
                  Transition from 0 to 0: 1|0,
-                 Transition from 1 to 1: 0|0,
-                 Transition from 1 to 0: 1|1,
-                 Transition from 2 to 1: 0|0,
-                 Transition from 2 to 0: 1|0]
+                 Transition from 1 to 2: 0|0,
+                 Transition from 1 to 0: 1|0,
+                 Transition from 2 to 2: 0|0,
+                 Transition from 2 to 0: 1|1]
                 sage: moments = T.asymptotic_moments()
                 sage: moments['expectation']
                 Order(1)
@@ -11654,7 +11635,8 @@ class Automaton(FiniteStateMachine):
             ....:                ('B', 'C', 0), ('C', 'C', 1), ('C', 'C', 0)],
             ....:               initial_states=['A'], final_states=['C'])
             sage: B = A.minimization(algorithm='Brzozowski')
-            sage: B.transitions(B.states()[1])
+            sage: B_trans = B.transitions(B.states()[1])
+            sage: B_trans # random
             [Transition from frozenset({frozenset({'B', 'C'}),
                                         frozenset({'A', 'C'}),
                                         frozenset({'A', 'B', 'C'})})
@@ -11673,22 +11655,9 @@ class Automaton(FiniteStateMachine):
             sage: len(B.states())
             3
             sage: C = A.minimization(algorithm='Brzozowski')
-            sage: C.transitions(C.states()[1])
-            [Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'C'}),
-                                      frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        0|-,
-             Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        1|-]
+            sage: C_trans = C.transitions(C.states()[1])
+            sage: B_trans == C_trans
+            True
             sage: len(C.states())
             3
 
@@ -11959,7 +11928,7 @@ class Automaton(FiniteStateMachine):
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
-        possibilites are followed. This is done by splitting the
+        possibilities are followed. This is done by splitting the
         process into several branches, one for each of the possible
         outgoing transitions.
 
@@ -12896,19 +12865,15 @@ class Transducer(FiniteStateMachine):
             sage: fsms
             Transducer with 2 states
             sage: fsms.transitions()
-            [Transition from ('A', 'C')
-                          to ('B', 'D'): 0|1,
-             Transition from ('A', 'C')
-                          to ('B', 'D'): 1|0,
-             Transition from ('B', 'D')
-                          to ('A', 'C'): 0|0,
-             Transition from ('B', 'D')
-                          to ('A', 'C'): 1|1]
+            [Transition from ('B', 'D') to ('A', 'C'): 0|0,
+             Transition from ('B', 'D') to ('A', 'C'): 1|1,
+             Transition from ('A', 'C') to ('B', 'D'): 0|1,
+             Transition from ('A', 'C') to ('B', 'D'): 1|0]
             sage: fsms.relabeled().transitions()
-            [Transition from 0 to 1: 0|1,
-             Transition from 0 to 1: 1|0,
-             Transition from 1 to 0: 0|0,
-             Transition from 1 to 0: 1|1]
+            [Transition from 0 to 1: 0|0,
+             Transition from 0 to 1: 1|1,
+             Transition from 1 to 0: 0|1,
+             Transition from 1 to 0: 1|0]
 
         ::
 
@@ -13076,7 +13041,7 @@ class Transducer(FiniteStateMachine):
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
-        possibilites are followed. This is done by splitting the
+        possibilities are followed. This is done by splitting the
         process into several branches, one for each of the possible
         outgoing transitions.
 
@@ -13138,7 +13103,7 @@ class Transducer(FiniteStateMachine):
             sage: T.state(0).is_initial = True
             sage: T.state(1).is_final = True
 
-        We can see the different possibilites of the output by::
+        We can see the different possibilities of the output by::
 
             sage: [T.process(w) for w in [[1], [0, 1], [0, 0, 1], [0, 1, 1],
             ....:                         [0], [0, 0], [2, 0], [0, 1, 2]]]
@@ -13592,7 +13557,7 @@ class _FSMTapeCache_(SageObject):
             sage: while True:
             ....:     try:
             ....:         word = TC2.preview_word(return_word=True)
-            ....:     except StopIteration:
+            ....:     except RuntimeError:
             ....:         print('stop')
             ....:         break
             ....:     print('cache: {} {}'.format(TC2.cache, TC2))
@@ -13617,7 +13582,7 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.preview_word()
             Traceback (most recent call last):
             ...
-            StopIteration
+            RuntimeError: tape reached the end
             sage: print('cache: {} {}'.format(TC2.cache, TC2))
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
             sage: TC2.read(0)
@@ -13653,8 +13618,8 @@ class _FSMTapeCache_(SageObject):
 
         A single letter or a word.
 
-        An exception ``StopIteration`` is thrown if the tape (at least
-        one track) has reached its end.
+        A :python:`RuntimeError<library/exceptions.html#exceptions.RuntimeError>`
+        is thrown if the tape (at least one track) has reached its end.
 
         Typically, this method is called from a hook-function of a
         state.
@@ -13672,7 +13637,7 @@ class _FSMTapeCache_(SageObject):
             sage: while True:
             ....:     try:
             ....:         word = TC2.preview_word(return_word=True)
-            ....:     except StopIteration:
+            ....:     except RuntimeError:
             ....:         print('stop')
             ....:         break
             ....:     print('read: {}'.format(word))
@@ -13698,7 +13663,7 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.preview_word()
             Traceback (most recent call last):
             ...
-            StopIteration
+            RuntimeError: tape reached the end
             sage: print('cache: {} {}'.format(TC2.cache, TC2))
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
             sage: TC2.preview_word(0)
@@ -13717,7 +13682,7 @@ class _FSMTapeCache_(SageObject):
                 result = tuple(self.preview_word(n, length, return_word)
                                for n, _ in enumerate(self.cache))
                 if len(result) != len(self.cache):
-                    raise StopIteration
+                    raise RuntimeError('tape reached the end')
                 if return_word:
                     return tupleofwords_to_wordoftuples(result)
                 else:
@@ -13728,12 +13693,11 @@ class _FSMTapeCache_(SageObject):
         track_cache = self.cache[track_number]
         while len(track_cache) < length:
             if not self.read(track_number)[0]:
-                raise StopIteration
+                raise RuntimeError('tape reached the end')
         if return_word:
             return list(itertools.islice(track_cache, 0, length))
         else:
             return track_cache[0]
-
 
     def compare_to_tape(self, track_number, word):
         """
@@ -14272,7 +14236,7 @@ class FSMProcessIterator(SageObject,
 
     If the choice of the outgoing transition is not unique (i.e.,
     we have a non-deterministic finite state machine), all
-    possibilites are followed. This is done by splitting the
+    possibilities are followed. This is done by splitting the
     process into several branches, one for each of the possible
     outgoing transitions.
 
@@ -15046,8 +15010,11 @@ class FSMProcessIterator(SageObject,
             ....:     initial_states=['A'], final_states=['A'])
             sage: def state_hook(process, state, output):
             ....:     print("We are now in state %s." % (state.label(),))
-            ....:     print("Next on the tape is a %s." % (
-            ....:         process.preview_word(),))
+            ....:     try:
+            ....:         w = process.preview_word()
+            ....:     except RuntimeError:
+            ....:         raise StopIteration
+            ....:     print("Next on the tape is a %s." % (w,))
             sage: inverter.state('A').hook = state_hook
             sage: it = inverter.iter_process(
             ....:     input_tape=[0, 1, 1],

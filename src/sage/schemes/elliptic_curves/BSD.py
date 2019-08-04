@@ -273,33 +273,16 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
 
     REFERENCES:
 
-    .. [Cha] \B. Cha. Vanishing of some cohomology goups and bounds for the
-       Shafarevich-Tate groups of elliptic curves. J. Number Theory, 111:154-
-       178, 2005.
-    .. [Jetchev] \D. Jetchev. Global divisibility of Heegner points and
-       Tamagawa numbers. Compos. Math. 144 (2008), no. 4, 811--826.
-    .. [Kato] \K. Kato. p-adic Hodge theory and values of zeta functions of
-       modular forms. Astérisque, (295):ix, 117-290, 2004.
-    .. [Kolyvagin] \V. A. Kolyvagin. On the structure of Shafarevich-Tate
-       groups. Algebraic geometry, 94--121, Lecture Notes in Math., 1479,
-       Springer, Berlin, 1991.
-    .. [LawsonWuthrich] \T. Lawson and C. Wuthrich, Vanishing of some Galois
-       cohomology groups for elliptic curves, :arxiv:`1505.02940`
-    .. [LumStein] \A. Lum, W. Stein. Verification of the Birch and
-       Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
-       Multiplication (unpublished)
-    .. [Mazur] \B. Mazur. Modular curves and the Eisenstein ideal. Inst.
-       Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
-    .. [Rubin] \K. Rubin. The "main conjectures" of Iwasawa theory for
-       imaginary quadratic fields. Invent. Math. 103 (1991), no. 1, 25--68.
-    .. [SteinWuthrich] \W. Stein and C. Wuthrich, Algorithms
-       for the Arithmetic of Elliptic Curves using Iwasawa Theory
-       Mathematics of Computation 82 (2013), 1757-1792.
-    .. [SteinEtAl] \G. Grigorov, A. Jorza, S. Patrikis, W. Stein,
-       C. Tarniţǎ. Computational verification of the Birch and
-       Swinnerton-Dyer conjecture for individual elliptic curves.
-       Math. Comp. 78 (2009), no. 268, 2397--2425.
-
+    - [Cha2005]_
+    - [Jet2008]_
+    - [Kat2004]_
+    - [Kol1991]_
+    - [LW2015]_
+    - [LS]
+    - [Maz1978]_
+    - [Rub1991]_
+    - [SW2013]_
+    - [GJPST2009]_
 
     EXAMPLES::
 
@@ -676,7 +659,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
     for p in BSD.primes:
         # the lemma about the vanishing of H^1 is false in Stein et al for p=5 and 11
         # here is the correction from Lawson-Wuthrich. Especially Theorem 14 in
-        # [LawsonWuthrich] above.
+        # [LW2015] above.
         if p in kolyvagin_primes or p == 2 or D_K % p == 0:
             continue
         crit_lw = False

@@ -322,7 +322,7 @@ cdef class Lfunction:
           If -1 is passed, then we attempt to compute it. (Use default if in
           doubt)
         - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
-          the explicit fomula for additional confidence that all the zeros
+          the explicit formula for additional confidence that all the zeros
           have been found and are accurate. This is still being tested, so
           using the default is recommended.
 

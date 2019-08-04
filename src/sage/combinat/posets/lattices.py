@@ -2452,7 +2452,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         EXAMPLES:
 
         The Boolean lattice of `2^3` elements is not upward planar, even if
-        it's covering relations graph is planar::
+        its covering relations graph is planar::
 
             sage: B3 = posets.BooleanLattice(3)
             sage: B3.is_planar()
@@ -3752,7 +3752,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         consecutive interval distmantlings.
 
         A lattice is *minimally interval non-dismantlable* if it is not
-        interval dismantlable, but all of it's sublattices are interval
+        interval dismantlable, but all of its sublattices are interval
         dismantlable.
 
         INPUT:
@@ -3767,7 +3767,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
           * ``(True, list)`` where ``list`` is a nested list showing the
             decomposition; for example ``list[1][0]`` is a lower part of
-            upper part of the lattice when decomposed twise.
+            upper part of the lattice when decomposed twice.
           * ``(False, M)`` where `M` is a minimally interval non-dismantlable
             sublattice of the lattice.
 
@@ -4442,7 +4442,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is regular and ``False`` otherwise.
 
         A congruence of a lattice is *regular* if it is generated
-        by any of it's part. A lattice is regular if it has only
+        by any of its parts. A lattice is regular if it has only
         regular congruences.
 
         INPUT:

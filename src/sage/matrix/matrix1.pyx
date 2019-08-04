@@ -18,9 +18,10 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 
-from cpython cimport *
+from cpython.sequence cimport PySequence_Fast
 
 import sage.modules.free_module
 from sage.structure.coerce cimport coercion_model
@@ -441,7 +442,7 @@ cdef class Matrix(Matrix0):
             | x+1 y+1 |
         """
         base_ring = macaulay2(self.base_ring())
-        entries = map(list, self)
+        entries = list(map(list, self))
         return macaulay2(entries).matrix()
 
 
@@ -1741,21 +1742,17 @@ cdef class Matrix(Matrix0):
             [5 4]
             [0 7]
         """
-        if not isinstance(columns, (list, tuple)):
-            columns = list(columns)
+        columns = PySequence_Fast(columns, "columns is not iterable")
+        cdef Py_ssize_t ncols = len(columns)
 
-        cdef Matrix A
-        cdef Py_ssize_t ncols,k,r
-
-        ncols = PyList_GET_SIZE(columns)
-        A = self.new_matrix(ncols = ncols)
-        k = 0
-        for i from 0 <= i < ncols:
-            if columns[i] < 0 or columns[i] >= self._ncols:
-                raise IndexError("column %s out of range" % columns[i])
-            for r from 0 <= r < self._nrows:
-                A.set_unsafe(r, k, self.get_unsafe(r,columns[i]))
-            k = k + 1
+        # Construct new matrix
+        cdef Matrix A = self.new_matrix(ncols=ncols)
+        cdef Py_ssize_t i, j, col
+        for j, col in enumerate(columns):
+            if col < 0 or col >= self._ncols:
+                raise IndexError("column index out of range")
+            for i in range(self._nrows):
+                A.set_unsafe(i, j, self.get_unsafe(i, col))
         return A
 
     def delete_columns(self, dcols, check=True):
@@ -1842,21 +1839,17 @@ cdef class Matrix(Matrix0):
             [6 7 0]
             [3 4 5]
         """
-        if not isinstance(rows, (list, tuple)):
-            rows = list(rows)
+        rows = PySequence_Fast(rows, "rows is not iterable")
+        cdef Py_ssize_t nrows = len(rows)
 
-        cdef Matrix A
-        cdef Py_ssize_t nrows,k,c
-
-        nrows = PyList_GET_SIZE(rows)
-        A = self.new_matrix(nrows = nrows)
-        k = 0
-        for i from 0 <= i < nrows:
-            if rows[i] < 0 or rows[i] >= self._nrows:
-                raise IndexError("row %s out of range" % rows[i])
-            for c from 0 <= c < self._ncols:
-                A.set_unsafe(k,c, self.get_unsafe(rows[i],c))
-            k += 1
+        # Construct new matrix
+        cdef Matrix A = self.new_matrix(nrows=nrows)
+        cdef Py_ssize_t i, j, row
+        for i, row in enumerate(rows):
+            if row < 0 or row >= self._nrows:
+                raise IndexError("row index out of range")
+            for j in range(self._ncols):
+                A.set_unsafe(i, j, self.get_unsafe(row, j))
         return A
 
     def delete_rows(self, drows, check=True):
@@ -1966,34 +1959,25 @@ cdef class Matrix(Matrix0):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
+        rows = PySequence_Fast(rows, "rows is not iterable")
+        columns = PySequence_Fast(columns, "columns is not iterable")
 
-        if not isinstance(rows, (list, tuple)):
-            rows = list(rows)
+        cdef Py_ssize_t ncols = len(columns)
+        cdef Py_ssize_t nrows = len(rows)
 
-        if not isinstance(columns, (list, tuple)):
-            columns = list(columns)
+        # Check whether column indices are valid
+        cdef Py_ssize_t i, j, row, col
+        for col in columns:
+            if col < 0 or col >= self._ncols:
+                raise IndexError("column index out of range")
 
-        cdef Matrix A
-        cdef Py_ssize_t nrows, ncols,k,r,i,j
-
-        r = 0
-        ncols = PyList_GET_SIZE(columns)
-        nrows = PyList_GET_SIZE(rows)
-        A = self.new_matrix(nrows = nrows, ncols = ncols)
-
-        tmp = [el for el in columns if el >= 0 and el < self._ncols]
-        columns = tmp
-        if ncols != PyList_GET_SIZE(columns):
-            raise IndexError("column index out of range")
-
-        for i from 0 <= i < nrows:
-            if rows[i] < 0 or rows[i] >= self._nrows:
-                raise IndexError("row %s out of range" % i)
-            k = 0
-            for j from 0 <= j < ncols:
-                A.set_unsafe(r,k, self.get_unsafe(rows[i],columns[j]))
-                k += 1
-            r += 1
+        # Construct new matrix
+        cdef Matrix A = self.new_matrix(nrows=nrows, ncols=ncols)
+        for i, row in enumerate(rows):
+            if row < 0 or row >= self._nrows:
+                raise IndexError("row index out of range")
+            for j, col in enumerate(columns):
+                A.set_unsafe(i, j, self.get_unsafe(row, col))
         return A
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,

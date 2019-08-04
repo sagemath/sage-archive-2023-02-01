@@ -224,7 +224,10 @@ class SageSphinxLogger(object):
         if not self._color:
             line = self.ansi_color.sub('', line)
         if not skip_this_line:
-            self._stream.write(line)
+            # sphinx does produce messages in the current locals which
+            # could be non-ascii
+            # see https://trac.sagemath.org/ticket/27706
+            self._stream.write(line if isinstance(line, str) else line.encode('utf8'))
             self._stream.flush()
 
     def raise_errors(self):

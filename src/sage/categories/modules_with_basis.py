@@ -818,7 +818,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                                       unitriangular=unitriangular,
                                       category=category)
 
-        def tensor(*parents):
+        def tensor(*parents, **kwargs):
             """
             Return the tensor product of the parents.
 
@@ -830,7 +830,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 A # A # A
                 sage: A.rename(None)
             """
-            return parents[0].__class__.Tensor(parents, category = tensor.category_from_parents(parents))
+            constructor = kwargs.pop('constructor', tensor)
+            cat = constructor.category_from_parents(parents)
+            return parents[0].__class__.Tensor(parents, category=cat)
 
         def cardinality(self):
             """

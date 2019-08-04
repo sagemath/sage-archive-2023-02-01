@@ -1624,6 +1624,20 @@ cdef class NumberFieldElement(FieldElement):
             sage: t[1].norm(K)
             -a
 
+        Verify that :trac:`27469` has been fixed::
+
+            sage: L.<z24> = CyclotomicField(24); L
+            Cyclotomic Field of order 24 and degree 8
+            sage: K = L.subfield(z24^3, 'z8')[0]; K
+            Number Field in z8 with defining polynomial x^4 + 1 with z8 = 0.7071067811865475? + 0.7071067811865475?*I
+            sage: flag, c = K(-7).is_norm(K, element=True)
+            sage: flag
+            True
+            sage: c.norm(K)
+            -7
+            sage: c in L
+            True
+
         AUTHORS:
 
         - Craig Citro (2008-04-05)
@@ -1640,7 +1654,7 @@ cdef class NumberFieldElement(FieldElement):
 
         from sage.rings.number_field.number_field import is_AbsoluteNumberField
         if is_AbsoluteNumberField(L):
-            Lrel = L.relativize(K.hom(L), (L.variable_name()+'0', K.variable_name()+'0') )
+            Lrel = L.relativize(K.hom(L), L.variable_name() + '0')
             b, x = self.is_norm(Lrel, element=True, proof=proof)
             h = Lrel.structure()[0]
             return b, h(x)
@@ -1941,7 +1955,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: R(1).gcd(R(4*i))
             Traceback (most recent call last):
             ...
-            NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 is not implemented
+            NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I is not implemented
 
         The following field has class number 3, but if the ideal
         ``(self, other)`` happens to be principal, this still works::
@@ -1960,6 +1974,8 @@ cdef class NumberFieldElement(FieldElement):
             ArithmeticError: ideal (a + 1, 2) is not principal, gcd is not defined
             sage: R(2*a - a^2).gcd(0)
             a
+            sage: R(a).gcd(R(2*a)).parent()
+            Maximal Order in Number Field in a with defining polynomial x^3 - 7
         """
         # gcd(0,0) = 0
         if not self and not other:
@@ -1977,7 +1993,7 @@ cdef class NumberFieldElement(FieldElement):
         if len(g) > 1:
             raise ArithmeticError("ideal (%r, %r) is not principal, gcd is not defined" % (self, other) )
 
-        return g[0]
+        return R(g[0])
 
 
     def is_totally_positive(self):
@@ -2229,7 +2245,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a = K(0)^0; a
             1
             sage: a.parent()
-            Number Field in sqrt2 with defining polynomial x^2 - 2
+            Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
 
         TESTS::
 

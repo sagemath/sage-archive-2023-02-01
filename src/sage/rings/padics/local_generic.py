@@ -1569,8 +1569,9 @@ class LocalGeneric(CommutativeRing):
         shift = sum(shift_rows) + sum(shift_cols)
         det = R(1)
 
-        sign = 1;
-        valdet = 0; val = -Infinity
+        sign = 1
+        valdet = 0
+        val = -Infinity
         for piv in range(n):
             curval = Infinity
             for i in range(piv,n):
@@ -1579,8 +1580,10 @@ class LocalGeneric(CommutativeRing):
                     if v < curval:
                         pivi = i; pivj = j
                         curval = v
-                        if v == val: break
-                else: continue
+                        if v == val:
+                            break
+                else:
+                    continue
                 break
             val = curval
             if S[pivi,pivj] == 0:

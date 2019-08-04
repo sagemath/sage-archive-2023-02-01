@@ -86,19 +86,19 @@ cdef class simple_connected_genus_backtracker:
 
         sage: import sage.graphs.genus
         sage: G = graphs.CompleteGraph(6)
-        sage: G = Graph(G, implementation='c_graph', sparse=False)
+        sage: G = Graph(G, sparse=False)
         sage: bt = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
         sage: bt.genus() #long time
         1
         sage: bt.genus(cutoff=1)
         1
         sage: G = graphs.PetersenGraph()
-        sage: G = Graph(G, implementation='c_graph', sparse=False)
+        sage: G = Graph(G, sparse=False)
         sage: bt = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
         sage: bt.genus()
         1
         sage: G = graphs.FlowerSnark()
-        sage: G = Graph(G, implementation='c_graph', sparse=False)
+        sage: G = Graph(G, sparse=False)
         sage: bt = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
         sage: bt.genus()
         2
@@ -120,9 +120,9 @@ cdef class simple_connected_genus_backtracker:
         TESTS::
 
             sage: import sage.graphs.genus
-            sage: G = Graph(implementation='c_graph', sparse=False)  #indirect doctest
+            sage: G = Graph(sparse=False)  # indirect doctest
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
-            sage: G = Graph(graphs.CompleteGraph(4), implementation='c_graph', sparse=False)
+            sage: G = Graph(graphs.CompleteGraph(4), sparse=False)
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
             sage: gb.genus()
             0
@@ -224,18 +224,18 @@ cdef class simple_connected_genus_backtracker:
         EXAMPLES::
 
             sage: import sage.graphs.genus
-            sage: G = Graph(graphs.CompleteGraph(5), implementation='c_graph', sparse=False)
+            sage: G = Graph(graphs.CompleteGraph(5), sparse=False)
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
             sage: gb.genus(record_embedding=True)
             1
             sage: gb.get_embedding()
             {0: [1, 2, 3, 4], 1: [0, 2, 3, 4], 2: [0, 1, 4, 3], 3: [0, 2, 1, 4], 4: [0, 3, 1, 2]}
-            sage: G = Graph(implementation='c_graph', sparse=False)
+            sage: G = Graph(sparse=False)
             sage: G.add_edge(0,1)
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
             sage: gb.get_embedding()
             {0: [1], 1: [0]}
-            sage: G = Graph(implementation='c_graph', sparse=False)
+            sage: G = Graph(sparse=False)
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
             sage: gb.get_embedding()
             {}
@@ -437,7 +437,7 @@ cdef class simple_connected_genus_backtracker:
         EXAMPLES::
 
             sage: import sage.graphs.genus
-            sage: G = Graph(graphs.CompleteGraph(5), implementation='c_graph', sparse=False)
+            sage: G = Graph(graphs.CompleteGraph(5), sparse=False)
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
             sage: gb.genus(cutoff=2, record_embedding=True)
             2
@@ -448,7 +448,7 @@ cdef class simple_connected_genus_backtracker:
             True
             sage: gb.genus(style=2, cutoff=5)
             3
-            sage: G = Graph(implementation='c_graph', sparse=False)
+            sage: G = Graph(sparse=False)
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
             sage: gb.genus()
             0
@@ -614,7 +614,7 @@ def simple_connected_graph_genus(G, set_embedding=False, check=True, minimal=Tru
 
         G, vmap = G.relabel(inplace=False, return_map=True)
         backmap = {u: v for v, u in vmap.items()}
-        G = Graph(G, implementation='c_graph', sparse=False)
+        G = Graph(G, sparse=False)
         GG = simple_connected_genus_backtracker(G._backend.c_graph()[0])
 
         if minimal:

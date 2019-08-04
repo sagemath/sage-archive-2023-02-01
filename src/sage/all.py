@@ -22,6 +22,7 @@ except for the known bad apples::
     ....:     'IPython', 'prompt_toolkit',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
+    ....:     'signal', 'enum',                # may appear in Python 3
     ....: ]
     sage: def is_not_allowed(frame):
     ....:     module = inspect.getmodule(frame)
@@ -282,10 +283,11 @@ def _write_started_file():
 
     TESTS:
 
-    Check that the file exists when Sage is running::
+    Check that the file exists when Sage is running (note, this file is not
+    necessarily installed or used by downstream packages of Sage)::
 
         sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-        sage: os.path.isfile(started_file)
+        sage: os.path.isfile(started_file)  # optional - build
         True
     """
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')

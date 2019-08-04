@@ -37,6 +37,7 @@ from sage.structure.sage_object import SageObject
 
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.regular_supercrystals import RegularSuperCrystals
 from sage.categories.sets_cat import Sets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -180,7 +181,7 @@ class ShiftedPrimedTableau(ClonableArray):
         # Preprocessing list t for primes and other symbols
         T = [[PrimedEntry(entry) for entry in row if entry is not None]
              for row in T]
-        while len(T) > 0 and len(T[-1]) == 0:
+        while T and not T[-1]:
             T = T[:-1]
         row_min = min(len(skew), len(T)) if skew else 0
         T_ = [(None,)*skew[i] + tuple(T[i]) for i in range(row_min)]
@@ -862,7 +863,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
     def f(self, ind):
         r"""
         Compute the action of the crystal operator `f_i` on a shifted primed
-        tableau using cases from the paper [HPS2017]_.
+        tableau using cases from the papers [HPS2017]_ and [AO2018]_.
 
         INPUT:
 
@@ -895,8 +896,103 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
                2  3' 3  3
                   3  4
 
+            sage: SPT = ShiftedPrimedTableaux([2,1])
+            sage: t = SPT([[1,1],[2]])
+            sage: t.f(-1).pp()
+            1  2'
+               2
+            sage: t.f(1).pp()
+            1  2'
+               2
+            sage: t.f(2).pp()
+            1  1
+               3
+
+            sage: r = SPT([[1,'2p'],[2]])
+            sage: r.f(-1) is None
+            True
+            sage: r.f(1) is None
+            True
+            sage: r.f(2).pp()
+            1  2'
+               3
+
+            sage: r = SPT([[1,1],[3]])
+            sage: r.f(-1).pp()
+            1  2'
+               3
+            sage: r.f(1).pp()
+            1  2
+               3
+            sage: r.f(2) is None
+            True
+
+            sage: r = SPT([[1,2],[3]])
+            sage: r.f(-1).pp()
+            2  2
+               3
+            sage: r.f(1).pp()
+            2  2
+               3
+            sage: r.f(2) is None
+            True
+
+            sage: t = SPT([[1,1],[2]])
+            sage: t.f(-1).f(2).f(2).f(-1) == t.f(2).f(1).f(-1).f(2)
+            True
+            sage: t.f(-1).f(2).f(2).f(-1).pp()
+            2  3'
+               3
+            sage: all(t.f(-1).f(2).f(2).f(-1).f(i) is None for i in {-1, 1, 2})
+            True
+
+            sage: SPT = ShiftedPrimedTableaux([4])
+            sage: t = SPT([[1,1,1,1]])
+            sage: t.f(-1).pp()
+            1  1  1  2'
+            sage: t.f(1).pp()
+            1  1  1  2
+            sage: t.f(-1).f(-1) is None
+            True
+            sage: t.f(1).f(-1).pp()
+            1  1  2' 2
+            sage: t.f(1).f(1).pp()
+            1  1  2  2
+            sage: t.f(1).f(1).f(-1).pp()
+            1  2' 2  2
+            sage: t.f(1).f(1).f(1).pp()
+            1  2  2  2
+            sage: t.f(1).f(1).f(1).f(-1).pp()
+            2  2  2  2
+            sage: t.f(1).f(1).f(1).f(1).pp()
+            2  2  2  2
+            sage: t.f(1).f(1).f(1).f(1).f(-1) is None
+            True
+
         """
         T = self._to_matrix()
+
+        # special logic for queer lowering operator f_{-1}
+        if ind == -1:
+            read_word = [num for num in self._reading_word_with_positions() if num[1] in {1, 2}]
+
+            # f_{-1} acts as zero if tableau contains 2'
+            if any(elt == 2 and T[pos[0]][pos[1]].is_primed() for pos, elt in read_word):
+                return None
+
+            ones = sorted([pos for pos, elt in read_word if elt == 1], key=lambda x: x[1])
+
+            # f_{-1} acts as zero if tableau cotnains no entries equal to 1
+            if len(ones) == 0:
+                return None
+            # otherwise, f_{-1} changes last 1 in first row to 2' (if off diagonal) or 2 (if on diagonal)
+            else:
+                r, c = ones[-1]
+                assert r == 0
+                T[r][c] = PrimedEntry('2p') if r != c else PrimedEntry(2)
+                T = [tuple(elmt for elmt in row if elmt is not None) for row in T]
+                return type(self)(self.parent(), T, check=False, preprocessed=True)
+
         read_word = [num for num in self._reading_word_with_positions()
                      if num[1] == ind or num[1] == ind+1]
 
@@ -963,7 +1059,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
     def e(self, ind):
         r"""
         Compute the action of the crystal operator `e_i` on a shifted primed
-        tableau using cases from the paper [HPS2017]_.
+        tableau using cases from the papers [HPS2017]_ and [AO2018]_.
 
         INPUT:
 
@@ -988,8 +1084,93 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
                   3  4
             sage: t == s.f(2)
             True
+
+            sage: SPT = ShiftedPrimedTableaux([2,1])
+            sage: t = SPT([[2,'3p'],[3]])
+            sage: t.e(-1).pp()
+            1  3'
+               3
+            sage: t.e(1).pp()
+            1  3'
+               3
+            sage: t.e(2).pp()
+            2  2
+               3
+
+            sage: r = SPT([[2, 2],[3]])
+            sage: r.e(-1).pp()
+            1  2
+               3
+            sage: r.e(1).pp()
+            1  2
+               3
+            sage: r.e(2) is None
+            True
+
+            sage: r = SPT([[1,'3p'],[3]])
+            sage: r.e(-1) is None
+            True
+            sage: r.e(1) is None
+            True
+            sage: r.e(2).pp()
+            1  2'
+               3
+            sage: r = SPT([[1,'2p'],[3]])
+            sage: r.e(-1).pp()
+            1  1
+               3
+            sage: r.e(1) is None
+            True
+            sage: r.e(2).pp()
+            1  2'
+               2
+            sage: t = SPT([[2,'3p'],[3]])
+            sage: t.e(-1).e(2).e(2).e(-1) == t.e(2).e(1).e(1).e(2)
+            True
+            sage: t.e(-1).e(2).e(2).e(-1).pp()
+            1  1
+               2
+            sage: all(t.e(-1).e(2).e(2).e(-1).e(i) is None for i in {-1, 1, 2})
+            True
+
+            sage: SPT = ShiftedPrimedTableaux([4])
+            sage: t = SPT([[2,2,2,2]])
+            sage: t.e(-1).pp()
+            1  2  2  2
+            sage: t.e(1).pp()
+            1  2  2  2
+            sage: t.e(-1).e(-1) is None
+            True
+            sage: t.e(1).e(1).pp()
+            1  1  2  2
         """
         T = self._to_matrix()
+
+        # special logic for queer raising operator e_{-1}
+        if ind == -1:
+            read_word = [num for num in self._reading_word_with_positions() if num[1] in {1, 2}]
+
+            two_primes = sorted(
+                [pos for pos, elt in read_word if elt == 2 and T[pos[0]][pos[1]].is_primed()],
+                key=lambda x: x[1]
+            )
+
+            # e_{-1} acts as zero if tableau contains no 2' and first diagonal entry is not 2
+            if len(two_primes) == 0:
+                if T[0][0] != PrimedEntry(2):
+                    return None
+                # if tableau has no 2' but first diagonal entry is 2, then e_{-1} changes this to 1
+                else:
+                    T[0][0] = PrimedEntry(1)
+            # if tableau has at least one 2', then e_{-1} changes the first 2' to 1
+            else:
+                r, c = two_primes[0]
+                assert r == 0
+                T[r][c] = PrimedEntry(1)
+
+            T = [tuple(elmt for elmt in row if elmt is not None) for row in T]
+            return type(self)(self.parent(), T, check=False, preprocessed=True)
+
         read_word = [num for num in self._reading_word_with_positions()
                      if num[1] == ind or num[1] == ind+1]
 
@@ -1762,7 +1943,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     The list of module generators consists of all elements of the
     crystal with nonincreasing weight entries.
 
-    The crystal is constructed following operations described in [HPS2017]_.
+    The crystal is constructed following operations described in [HPS2017]_ and [AO2018]_.
 
     EXAMPLES::
 
@@ -1785,6 +1966,18 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         [(1, 1, 1), (2, 2)]
         sage: SPTC.cardinality()
         24
+
+    We compare this implementation with the `q(n)`-crystal on (tensor products) of letters::
+
+        sage: tableau_crystal = crystals.ShiftedPrimedTableaux([4,1], 3)
+        sage: tableau_digraph = tableau_crystal.digraph()
+        sage: c = crystals.Letters(['Q', 3])
+        sage: tensor_crystal = tensor([c]*5)
+        sage: u = tensor_crystal(c(1), c(1), c(1), c(2), c(1))
+        sage: subcrystal = tensor_crystal.subcrystal(generators=[u], index_set=[1,2,-1])
+        sage: tensor_digraph = subcrystal.digraph()
+        sage: tensor_digraph.is_isomorphic(tableau_digraph, edge_labels=True)
+        True
     """
     @staticmethod
     def __classcall_private__(cls, shape, max_entry=None, skew=None):
@@ -1817,6 +2010,13 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
 
             sage: SPT = ShiftedPrimedTableaux([4,2,1], max_entry=4)
             sage: TestSuite(SPT).run()  # long time
+            sage: SPT.cartan_type()
+            ['Q', 4]
+
+            sage: SPT = ShiftedPrimedTableaux([4,2,1])
+            sage: SPT.cartan_type()
+            ['A', NN]
+
         """
         # Determine the correct category
         if max_entry is None:
@@ -1828,8 +2028,8 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
                 category = Sets().Infinite()
         else:
             if skew is None:
-                category = ClassicalCrystals()
-                self._cartan_type = CartanType(['A', max_entry-1])
+                category = RegularSuperCrystals()
+                self._cartan_type = CartanType(['Q', max_entry])
                 self.Element = CrystalElementShiftedPrimedTableau
             else:
                 category = Sets().Finite()

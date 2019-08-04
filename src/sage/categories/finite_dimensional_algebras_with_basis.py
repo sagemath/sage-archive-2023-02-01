@@ -484,7 +484,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 An example of a finite multiplicative monoid: the integers modulo 12
                 sage: A = Z12.algebra(QQ)
                 sage: idempotents = A.orthogonal_idempotents_central_mod_radical()
-                sage: sorted(idempotents, key=str)
+                sage: sorted(idempotents, key=str) # py2
                 [-1/2*B[8] + 1/2*B[4],
                  -B[0] + 1/2*B[8] + 1/2*B[4],
                  -B[0] + 1/2*B[9] + 1/2*B[3],
@@ -494,6 +494,16 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  1/4*B[1] - 1/2*B[4] - 1/4*B[5] + 1/4*B[7] + 1/2*B[8] - 1/4*B[11],
                  B[0],
                  B[0] + 1/4*B[1] - 1/2*B[3] - 1/2*B[4] + 1/4*B[5] + 1/4*B[7] - 1/2*B[8] - 1/2*B[9] + 1/4*B[11]]
+                sage: sorted(idempotents, key=str) # py3
+                [-B[0] + 1/2*B[4] + 1/2*B[8],
+                 1/2*B[4] - 1/2*B[8],
+                 1/2*B[9] + 1/2*B[3] - B[0],
+                 1/2*B[9] - 1/2*B[3],
+                 1/4*B[1] + 1/4*B[11] - 1/4*B[5] - 1/4*B[7],
+                 1/4*B[1] - 1/2*B[9] + 1/4*B[5] - 1/4*B[7] + 1/2*B[3] - 1/4*B[11],
+                 1/4*B[1] - 1/2*B[9] - 1/2*B[3] + 1/4*B[11] + 1/4*B[5] + 1/4*B[7] + B[0] - 1/2*B[4] - 1/2*B[8],
+                 1/4*B[1] - 1/4*B[5] + 1/4*B[7] - 1/4*B[11] - 1/2*B[4] + 1/2*B[8],
+                 B[0]]
                 sage: sum(idempotents) == 1
                 True
                 sage: all(e*e == e for e in idempotents)

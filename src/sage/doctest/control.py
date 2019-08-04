@@ -26,7 +26,7 @@ import random, os, sys, time, json, re, types
 import six
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
-from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
+from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.temporary_file import tmp_dir
 from cysignals.signals import AlarmInterrupt, init_cysignals
 
@@ -48,7 +48,7 @@ class DocTestDefaults(SageObject):
     This class is used for doctesting the Sage doctest module.
 
     It fills in attributes to be the same as the defaults defined in
-    ``SAGE_LOCAL/bin/sage-runtests``, expect for a few places,
+    ``sage-runtests``, expect for a few places,
     which is mostly to make doctesting more predictable.
 
     EXAMPLES::
@@ -291,7 +291,7 @@ class DocTestController(SageObject):
 
         INPUT:
 
-        - options -- either options generated from the command line by SAGE_LOCAL/bin/sage-runtests
+        - options -- either options generated from the command line by sage-runtests
                      or a DocTestDefaults object (possibly with some entries modified)
         - args -- a list of filenames to doctest
 
@@ -1023,9 +1023,9 @@ class DocTestController(SageObject):
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(timeout=123), ["hello_world.py"])
             sage: print(DC._assemble_cmd())
-            python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=123 hello_world.py
+            python "...sage-runtests" --serial --timeout=123 hello_world.py
         """
-        cmd = '''python "%s" --serial '''%(os.path.join("$SAGE_LOCAL","bin","sage-runtests"))
+        cmd = '''python "%s" --serial '''%(os.path.join(SAGE_LOCAL,"bin","sage-runtests"))
         opt = dict_difference(self.options.__dict__, DocTestDefaults().__dict__)
         for o in ("all", "sagenb"):
             if o in opt:
@@ -1059,14 +1059,14 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(gdb=True)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" --args python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=0 hello_world.py
+            exec gdb -x "...sage-gdb-commands" --args python "...sage-runtests" --serial --timeout=0 hello_world.py
 
         ::
 
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_EXTCODE/valgrind/pyalloc.supp" --suppressions="$SAGE_EXTCODE/valgrind/sage.supp" --suppressions="$SAGE_EXTCODE/valgrind/sage-additional.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="...valgrind/pyalloc.supp" --suppressions="...valgrind/sage.supp" --suppressions="...valgrind/sage-additional.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "...sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()
@@ -1075,7 +1075,7 @@ class DocTestController(SageObject):
             return 2
         opt = self.options
         if opt.gdb:
-            cmd = '''exec gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" --args '''
+            cmd = '''exec gdb -x "%s" --args '''%(os.path.join(SAGE_LOCAL,"bin","sage-gdb-commands"))
             flags = ""
             if opt.logfile:
                 sage_cmd += " --logfile %s"%(opt.logfile)
@@ -1096,9 +1096,9 @@ class DocTestController(SageObject):
                 flags = os.getenv("SAGE_MEMCHECK_FLAGS")
                 if flags is None:
                     flags = "--leak-resolution=high --leak-check=full --num-callers=25 "
-                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_EXTCODE","valgrind","pyalloc.supp"))
-                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_EXTCODE","valgrind","sage.supp"))
-                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_EXTCODE","valgrind","sage-additional.supp"))
+                    flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","pyalloc.supp"))
+                    flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","sage.supp"))
+                    flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","sage-additional.supp"))
             elif opt.massif:
                 toolname = "massif"
                 flags = os.getenv("SAGE_MASSIF_FLAGS", "--depth=6 ")

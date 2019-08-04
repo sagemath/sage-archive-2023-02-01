@@ -10,11 +10,9 @@ EXAMPLES:
 The definition of Laurent series rings is not initially imported into the
 global namespace. You need to import it explicitly to use it::
 
-    sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-    sage: L = LazyLaurentSeriesRing(QQ, 'z')
+    sage: L.<z> = LazyLaurentSeriesRing(QQ)
     sage: L.category()
     Category of magmas and additive magmas
-    sage: z = L.gen()
     sage: 1/(1 - z)
     1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
     sage: 1/(1 - z) == 1/(1 - z)
@@ -22,9 +20,8 @@ global namespace. You need to import it explicitly to use it::
 
 Lazy Laurent series ring over a finite field::
 
-    sage: L = LazyLaurentSeriesRing(GF(3), 'z'); L
+    sage: L.<z> = LazyLaurentSeriesRing(GF(3)); L
     Lazy Laurent Series Ring in z over Finite Field of size 3
-    sage: z = L.gen()
     sage: e = 1/(1 + z)
     sage: e.coefficient(100)
     1
@@ -34,16 +31,14 @@ Lazy Laurent series ring over a finite field::
 Generating functions of integer sequences are Laurent series over the integer
 ring::
 
-    sage: L = LazyLaurentSeriesRing(ZZ, 'z'); L
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
     Lazy Laurent Series Ring in z over Integer Ring
-    sage: z = L.gen()
     sage: 1/(1 - 2*z)^3
     1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + ...
 
 Power series can be defined recursively::
 
-    sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-    sage: z = L.gen()
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
     sage: L.series(lambda s,n: (1 + z*s^2)[n], valuation=0)
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
@@ -98,7 +93,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
         sage: LazyLaurentSeriesRing(ZZ, 't')
         Lazy Laurent Series Ring in t over Integer Ring
     """
@@ -110,7 +104,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
             sage: TestSuite(L).run(skip='_test_elements')
         """
@@ -123,7 +116,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: LazyLaurentSeriesRing(GF(2), 'z')
             Lazy Laurent Series Ring in z over Finite Field of size 2
         """
@@ -136,7 +128,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.gen()
             z
@@ -160,11 +151,23 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: R.<t> = ZZ[[]]
-            sage: R.ngens()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.ngens()
             1
         """
         return 1
+
+    def gens(self):
+        """
+        Return the tuple of the generator.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: 1/(1 - z)
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+        """
+        return (self.gen(),)
 
     def _coerce_map_from_(self, S):
         """
@@ -172,7 +175,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
             sage: L.has_coerce_map_from(ZZ)
             True
@@ -199,7 +201,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
             sage: L(2)
             0
@@ -218,7 +219,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.an_element()  # random
             z^-10 + z^-9 + z^-8 + z^-7 + z^-6 + z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + ...
@@ -241,7 +241,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.one()
             1
@@ -254,7 +253,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.zero()
             0
@@ -288,7 +286,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.series(lambda s, i: i, 5, (1,10))
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
@@ -318,7 +315,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: f = L.series([1,2,3,4], -5)
             sage: f

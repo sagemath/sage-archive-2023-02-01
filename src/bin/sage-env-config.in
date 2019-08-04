@@ -97,6 +97,7 @@ if [ -n "$SAGE_PARI_PREFIX" ]; then
     # their ./configure scripts. Thus we deal with this just as with GMP above.
     export SAGE_CONFIGURE_PARI="--with-pari=$SAGE_PARI_PREFIX"
 fi
+export SAGE_PARI_CFG="@SAGE_PARI_CFG@"
 
 export SAGE_FREETYPE_PREFIX="@SAGE_FREETYPE_PREFIX@"
 export SAGE_ARB_LIBRARY="@SAGE_ARB_LIBRARY@"

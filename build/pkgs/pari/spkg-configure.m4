@@ -3,14 +3,20 @@ SAGE_SPKG_CONFIGURE([pari], [
     m4_pushdef([SAGE_PARI_MINVER],["133889"])
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_READLINE])
+    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_ELLDATA])
+    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_GALDATA])
+    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_GALPOL])
+    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_SEADATA])
+    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_SEADATA_SMALL])
     AC_MSG_CHECKING([installing gmp/mpir? ])
     if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
         AC_MSG_RESULT([yes; install pari as well])
         sage_spkg_install_pari=yes
     else
       AC_MSG_RESULT([no])
-      AC_MSG_CHECKING([installing readline? ])
-      if test x$sage_spkg_install_readline = xyes; then
+      AC_MSG_CHECKING([installing readline or PARI/GP packages? ])
+      if test x$sage_spkg_install_readline = xyes -o x$sage_spkg_install_pari_galdata = xyes -o x$sage_spkg_install_pari_galpol = xyes \
+         -o x$sage_spkg_install_pari_seadata_small = xyes -o x$sage_spkg_install_pari_seadata = xyes -o x$sage_spkg_install_pari_elldata = xyes; then
           AC_MSG_RESULT([yes; install pari as well])
           sage_spkg_install_pari=yes
       else
@@ -18,7 +24,6 @@ SAGE_SPKG_CONFIGURE([pari], [
         AC_CHECK_HEADER([pari/pari.h], [], [sage_spkg_install_pari=yes])
         dnl matpermanent appears in pari 2.11
         AC_SEARCH_LIBS([matpermanent], [pari], [
-          AC_PATH_PROG([GP], [gp])
           if test x$GP != x; then
               AC_MSG_CHECKING([getting GP's version ])
               gp_version=`echo "v=version(); v[[1]]<<16 + v[[2]]<<8 + v[[3]]" | $GP -qf`

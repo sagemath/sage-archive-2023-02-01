@@ -1162,7 +1162,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                         G.add_edge(w, target, 0)
                         dic[(w, target)] = 1
                         reduced_cost[(w, target)] = 0
-                    elif w != target and reduced_cost[(w, target)]!=0:
+                    elif w != target and reduced_cost[(w, target)]!= 0:
                         temp_dict[(w, target)] = reduced_cost[(w, target)]
                         reduced_cost[(w, target)] = 0
                     include_vertices.add(w)
@@ -1176,11 +1176,10 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     # successor is a child node in the shortest path subtree
     reduced_cost = {}
-    reduced_cost_copy = {}
     for e in G.edge_iterator():
         if e[0] in dist and e[1] in dist:
             reduced_cost[(e[0], e[1])] = weight_function(e) + dist[e[1]] - dist[e[0]]
-    reduced_cost_copy = copy.deepcopy(reduced_cost)
+
     exclude_vert_set = set(G) - set(dist.keys())
     # finding the parent information from successor
     for key in successor:
@@ -1190,7 +1189,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             parent[successor[key]].append(key)
 
     def length_func(path):
-        return sum(reduced_cost_copy[e] for e in zip(path, path[1:]))
+        return sum(reduced_cost[e] for e in zip(path, path[1:]))
     # shortest path function for weighted/unweighted graph using reduced weights
     shortest_path_func = G._backend.bidirectional_dijkstra_special
     # a set to check if a path is already present in the heap or not
@@ -1249,7 +1248,6 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         prev_path = path1
 
         # deep copy of the exclude vertices set
-        reduced_cost = copy.deepcopy(reduced_cost_copy)
         exclude_vertices = copy.deepcopy(exclude_vert_set)
         exclude_edges = set()
         include_vertices = set()
@@ -1352,6 +1350,8 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         # restoring the original graph here
         for e in dic:
             G.delete_edge(e)
+        for e in temp_dict:
+            reduced_cost[e[0], e[1]] = temp_dict[e[0], e[1]]
 
 def _all_paths_iterator(self, vertex, ending_vertices=None,
                         simple=False, max_length=None, trivial=False,

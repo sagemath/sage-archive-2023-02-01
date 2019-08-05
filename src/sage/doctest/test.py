@@ -240,13 +240,16 @@ doesn't hurt::
 
 Even though the doctester master process has exited, the child process
 is still alive, but it should be killed automatically
-in max(20, 120 * 0.05) = 20 seconds::
+in max(60, 120 * 0.05) = 60 seconds::
 
     sage: pid = int(open(F).read())    # long time
     sage: time.sleep(2)                # long time
     sage: os.kill(pid, signal.SIGQUIT) # long time; 2 seconds passed => still alive
-    sage: time.sleep(23)               # long time
-    sage: os.kill(pid, signal.SIGQUIT) # long time; 25 seconds passed => dead
+    sage: time.sleep(63)               # long time
+    sage: os.kill(pid, signal.SIGQUIT) # long time; 65 seconds passed => dead
+    Traceback (most recent call last):
+    ...
+    OSError: ...
 
 Test a doctest failing with ``abort()``::
 

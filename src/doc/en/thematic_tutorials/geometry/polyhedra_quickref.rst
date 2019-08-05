@@ -54,6 +54,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplex` | test whether a polytope is a simplex
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplicial` |  checks whether all faces of the polyhedron are simplices
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_lawrence_polytope` |  tests whether self is a Lawrence polytope
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_self_dual` |  tests whether the polytope is self-dual
 
 **Enumerative properties**
 

@@ -5,15 +5,6 @@ AUTHORS:
 
 - Mike Hansen (2007): initial version
 
-- Jason Bandlow (2011): updated to use Parent/Element model, and many
-  minor fixes
-
-- Andrew Mathas (2012-13): completed the transition to the parent/element model
-  begun by Jason Bandlow
-
-- Travis Scrimshaw (11-22-2012): Added tuple options, changed ``*katabolism*``
-  to ``*catabolism*``. Cleaned up documentation.
-
 - Chaman Agrawal (2019-07-23): Modify Standard and Semistandard tableaux for
   super tableaux.
 """

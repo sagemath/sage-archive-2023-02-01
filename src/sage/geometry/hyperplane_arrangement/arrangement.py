@@ -1118,12 +1118,12 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        If ``certificate`` is True, returns a tuple containing:
+        If ``certificate`` is ``True``, returns a tuple containing:
 
         1. A boolean
         2. The polyhedron defined to be the intersection of all the hyperplanes
 
-        If ``certificate`` is False, returns a boolean.
+        If ``certificate`` is ``False``, returns a boolean.
 
         EXAMPLES::
 

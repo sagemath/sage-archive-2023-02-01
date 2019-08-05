@@ -331,11 +331,11 @@ def _normal_label(g, comb_emb, external_face):
     # the labels 1 and 2.
     if (v1, v2) in external_face:
         for u in labels:
-            for (v,w) in labels[u]:
-                if labels[u][(v,w)] == 1:
-                    labels[u][(v,w)] = 2
-                elif labels[u][(v,w)] == 2:
-                    labels[u][(v,w)] = 1
+            for v, w in labels[u]:
+                if labels[u][v, w] == 1:
+                    labels[u][v, w] = 2
+                elif labels[u][v, w] == 2:
+                    labels[u][v, w] = 1
         v1, v2 = v2, v1
 
     return labels, (v1, v2, v3)

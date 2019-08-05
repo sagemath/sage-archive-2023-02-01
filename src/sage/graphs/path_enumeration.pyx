@@ -1303,6 +1303,8 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                             if (e[1], target) in dic:
                                 # restoration of edges in the original graph
                                 G.delete_edge(e[1], target)
+                                del dic[(e[1], target)]
+                                del reduced_cost[(e[1], target)]
                             if (e[1], target) in temp_dict:
                                 # restoration of cost function
                                 reduced_cost[(e[1], target)] = temp_dict[(e[1], target)]
@@ -1350,6 +1352,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         # restoring the original graph here
         for e in dic:
             G.delete_edge(e)
+            del reduced_cost[(e[0], e[1])]
         for e in temp_dict:
             reduced_cost[e[0], e[1]] = temp_dict[e[0], e[1]]
 

@@ -35,7 +35,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
      - ``facade``  -- a boolean
 
     This models the enumerated set obtained by concatenating together
-    the specified ordered sets. The later are supposed to be pairwise
+    the specified ordered sets. The latter are supposed to be pairwise
     disjoint; otherwise, a multiset is created.
 
     The argument ``family`` can be a list, a tuple, a dictionary, or a

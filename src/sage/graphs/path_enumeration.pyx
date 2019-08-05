@@ -504,6 +504,23 @@ def shortest_simple_paths(self, source, target, weight_function=None,
         sage: s == t
         True
 
+    Check that "Yen" and "Feng" provide same results on random digraphs::
+
+        sage: G = digraphs.RandomDirectedGNP(30, .05)
+        sage: while not G.is_strongly_connected():
+        ....:     G = digraphs.RandomDirectedGNP(30, .1)
+        sage: for u, v in list(G.edges(labels=False, sort=False)):
+        ....:     G.set_edge_label(u, v, randint(1, 10))
+        sage: V = G.vertices()
+        sage: shuffle(V)
+        sage: u, v = V[:2]
+        sage: it_Y = G.shortest_simple_paths(u, v, by_weight=True, report_weight=True, algorithm='Yen')
+        sage: it_F = G.shortest_simple_paths(u, v, by_weight=True, report_weight=True, algorithm='Feng')
+        sage: for i, (y, f) in enumerate(zip(it_Y, it_F)):
+        ....:     if y[0] != f[0]:
+        ....:         raise ValueError("something goes wrong !")
+        ....:     if i == 100:
+        ....:         break
     """
     if source not in self:
         raise ValueError("vertex '{}' is not in the graph".format(source))
@@ -712,7 +729,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         return
 
     if self.has_loops() or self.allows_multiple_edges():
-        self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
+        G = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
+    else:
+        G = self
 
     if weight_function is not None:
         by_weight = True
@@ -722,41 +741,33 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
             return e[2]
 
     if by_weight:
-        self._check_weight_function(weight_function)
+        G._check_weight_function(weight_function)
         # dictionary to get weight of the edges
-        edge_wt = {}
-        for e in self.edge_iterator():
-            if self.is_directed():
-                edge_wt[(e[0], e[1])] = weight_function(e)
-            else:
-                edge_wt[(e[0], e[1])] = weight_function(e)
-                edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
+        edge_wt = {(e[0], e[1]): weight_function(e) for e in G.edge_iterator()}
+        if not G.is_directed():
+            for u, v in G.edge_iterator(labels=False):
+                edge_wt[v, u] = edge_wt[u, v]
     else:
         def weight_function(e):
             return 1
 
     if report_edges and labels:
-        edge_labels = {}
-        for e in self.edge_iterator():
-            if (e[0], e[1]) not in edge_labels:
-                edge_labels[(e[0], e[1])] = [e]
-        if not self.is_directed():
-            for u, v in list(edge_labels):
+        edge_labels = {(e[0], e[1]): e for e in G.edge_iterator()}
+        if not G.is_directed():
+            for u, v in G.edge_iterator(labels=False):
                 edge_labels[v, u] = edge_labels[u, v]
-        for u, v in list(edge_labels):
-            edge_labels[v, u] = edge_labels[u, v]
 
     from heapq import heappush, heappop
 
     if not by_weight:
         length_func = len
         # shortest path function for unweighted graph
-        shortest_path_func = self._backend.shortest_path_special
+        shortest_path_func = G._backend.shortest_path_special
     else:
         def length_func(path):
             return sum(edge_wt[e] for e in zip(path, path[1:]))
         # shortest path function for weighted graph
-        shortest_path_func = self._backend.bidirectional_dijkstra_special
+        shortest_path_func = G._backend.bidirectional_dijkstra_special
 
     # a set to check if a path is already present in the heap or not
     heap_paths = set()
@@ -769,19 +780,18 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     # compute the shortest path between the source and the target
     if by_weight:
         path = shortest_path_func(source, target, weight_function=weight_function)
+        length = length_func(path)
     else:
         path = shortest_path_func(source, target)
-    length = length_func(path)
-    if not by_weight:
-        length -= 1
+        length = length_func(path) - 1
     # corner case
     if not path:
         if report_weight:
             yield (0, [])
-            return
         else:
             yield []
-            return
+        return
+
     # hashing the path to check the existence of a path in the heap
     hash_path = tuple(path)
     # heap push operation
@@ -791,39 +801,37 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     while heap_paths:
         # extracting the next best path from the heap
-        (cost, path1, dev_idx) = heappop(heap_sorted_paths)
+        cost, path1, dev_idx = heappop(heap_sorted_paths)
         hash_path = tuple(path1)
         heap_paths.remove(hash_path)
         if report_weight:
             if report_edges and labels:
-                yield (cost, list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0]))
+                yield (cost, [edge_labels[e] for e in zip(path1[:-1], path1[1:])])
             elif report_edges:
                 yield (cost, list(zip(path1[:-1], path1[1:])))
             else:
                 yield (cost, path1)
         else:
             if report_edges and labels:
-                yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+                yield [edge_labels[e] for e in zip(path1[:-1], path1[1:])]
             elif report_edges:
                 yield list(zip(path1[:-1], path1[1:]))
             else:
                 yield path1
+
         listA.append(path1)
         prev_path = path1
-        exclude_vertices = set()
+        exclude_vertices = set(prev_path[:dev_idx])
         exclude_edges = set()
-        for i in range(dev_idx):
-            exclude_vertices.add(prev_path[i])
+
         # deviating from the previous path to find the candidate paths
         for i in range(dev_idx + 1, len(prev_path)):
             # root part of the previous path
             root = prev_path[:i]
             for path in listA:
                 if path[:i] == root:
-                    if self.is_directed():
-                        exclude_edges.add((path[i - 1], path[i]))
-                    else:
-                        exclude_edges.add((path[i - 1], path[i]))
+                    exclude_edges.add((path[i - 1], path[i]))
+                    if not G.is_directed():
                         exclude_edges.add((path[i], path[i - 1]))
             try:
                 if by_weight:
@@ -863,10 +871,10 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     Works only for directed graphs.
 
-    For unweighted graphs paths are returned in order of increasing number
+    For unweighted graphs, paths are returned in order of increasing number
     of edges.
 
-    In case of weighted graphs negative weights are not allowed.
+    In case of weighted graphs, negative weights are not allowed.
 
     If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
     returned -- a list containing the 1-vertex, 0-edge path ``source``.
@@ -1040,6 +1048,15 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         [(11, [(1, 2, 5), (2, 6, 6), (6, 3, 0)]), (15, [(1, 4, 15), (4, 3, 0)])]
         sage: list(feng_k_shortest_simple_paths(g, 1, 3, by_weight=True))
         [[1, 2, 6, 3], [1, 4, 3]]
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
+        sage: G = DiGraph([(0, 1, 9), (0, 3, 1), (0, 4, 2), (1, 6, 4), (1, 7, 1), (2, 0, 5), (2, 1, 4), (2, 7, 1), (3, 1, 7), (3, 2, 4), (3, 4, 2), (4, 0, 8), (4, 1, 10), (4, 3, 3), (4, 7, 10), (5, 2, 5), (5, 4, 9), (6, 2, 9)], weighted=True)
+        sage: list(feng_k_shortest_simple_paths(G, 2, 1, by_weight=True, report_weight=True, report_edges=True, labels=True))
+        [(4, [(2, 1, 4)]),
+         (13, [(2, 0, 5), (0, 3, 1), (3, 1, 7)]),
+         (14, [(2, 0, 5), (0, 1, 9)]),
+         (17, [(2, 0, 5), (0, 4, 2), (4, 1, 10)]),
+         (17, [(2, 0, 5), (0, 4, 2), (4, 3, 3), (3, 1, 7)]),
+         (18, [(2, 0, 5), (0, 3, 1), (3, 4, 2), (4, 1, 10)])]
     """
     if not self.is_directed():
         raise ValueError("this algorithm works only for directed graphs")
@@ -1060,17 +1077,14 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         return
 
     if self.has_loops() or self.allows_multiple_edges():
-        self = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
+        G = self.to_simple(to_undirected=False, keep_label='min', immutable=False)
+    else:
+        G = self.copy()
 
-    G = self.copy()
     # removing the incoming edges to source and outgoing edges from target as
     # they do not contribute towards the k shortest simple paths
-    incoming = G.neighbors_in(source)
-    for i in incoming:
-        G.delete_edge(i, source)
-    outgoing = G.neighbors_out(target)
-    for o in outgoing:
-        G.delete_edge(target, o)
+    G.delete_edges(G.incoming_edges(source, labels=False))
+    G.delete_edges(G.outgoing_edges(target, labels=False))
 
     if weight_function is not None:
         by_weight = True
@@ -1078,18 +1092,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     if weight_function is None and by_weight:
         def weight_function(e):
             return e[2]
-    # dictionary of parent node in the shortest path tree of the target vertex
-    parent = {}
-    # assign color to each vertex as green, red or yellow
-    color = {}
-    # express edges are the edges with head node as green and tail node as
-    # yellow or tail node is a deviation node
-    expressEdges = dict()
-    # a dictionary of the new edges added to the graph used for restoring the
-    # graph after the iteration
-    dic = {}
-    # father of the path
-    father = {}
+
     if by_weight:
         G._check_weight_function(weight_function)
         def reverse_weight_function(e):
@@ -1102,21 +1105,35 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             return 1
 
     if report_edges and labels:
-        edge_labels = {}
-        for e in G.edge_iterator():
-            if (e[0], e[1]) not in edge_labels:
-                edge_labels[(e[0], e[1])] = [e]
+        edge_labels = {(e[0], e[1]): e for e in G.edge_iterator()}
         if not G.is_directed():
-            for u, v in list(edge_labels):
+            for u, v in G.edge_iterator(labels=False):
                 edge_labels[v, u] = edge_labels[u, v]    
 
-    # if there exist a path in shortest path subtree of target node from u to v
-    # then u is said to be an upstream node of v
+
+    # dictionary of parent node in the shortest path tree of the target vertex
+    parent = {}
+    # assign color to each vertex as green, red or yellow
+    color = {}
+    # express edges are the edges with head node as green and tail node as
+    # yellow or tail node is a deviation node
+    expressEdges = dict()
+    # a dictionary of the new edges added to the graph used for restoring the
+    # graph after the iteration
+    dic = {}
+    # used to keep track of temporary edges added to the graph
+    temp_dict = {}
+    # father of the path
+    father = {}
+
     def getUpStreamNodes(v):
+        """
+        If there exist a path in shortest path subtree of target node from u to
+        v then u is said to be an upstream node of v
+        """
         ver = list()
-        S = list()
-        S.append(v)
-        while(S):
+        S = [v]
+        while S:
             u = S.pop(0)
             if u in parent:
                 for u_node in parent[u]:
@@ -1126,9 +1143,11 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                         ver.append(u_node)
         return ver
 
-    # finding the express edges whose tail nodes belong to a set Y and update
-    # the head node of each express edge
     def findExpressEdges(Y):
+        """
+        Find the express edges whose tail nodes belong to a set Y and update the
+        head node of each express edge
+        """
         for v in Y:
             for w in G.neighbors_out(v):
                 # if node color is green
@@ -1138,23 +1157,27 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                     expressEdges[w].append((v, w, G.edge_label(v, w)))
                     if w != target and not G.has_edge(w, target):
                         G.add_edge(w, target, 0)
-                        dic[(w, target)] = 1
+                        dic[w, target] = 1
+                        reduced_cost[w, target] = 0
+                    elif w != target and reduced_cost[w, target]:
+                        temp_dict[w, target] = reduced_cost[w, target]
+                        reduced_cost[w, target] = 0
                     include_vertices.add(w)
-                    reduced_cost[(w, target)] = 0
 
     from heapq import heappush, heappop
     from sage.graphs.base.boost_graph import shortest_paths
     import copy
 
     reverse_graph = G.reverse()
-    dist, successor = shortest_paths(reverse_graph, target, weight_function=reverse_weight_function, algorithm="Dijkstra_Boost")
+    dist, successor = shortest_paths(reverse_graph, target, weight_function=reverse_weight_function,
+                                         algorithm="Dijkstra_Boost")
 
     # successor is a child node in the shortest path subtree
-    reduced_cost = {}
-    for e in G.edge_iterator():
-        if e[0] in dist and e[1] in dist:
-            reduced_cost[(e[0], e[1])] = weight_function(e) + dist[e[1]] - dist[e[0]]
-    exclude_vert_set = set(G) - set(dist.keys())
+    reduced_cost = {(e[0], e[1]): weight_function(e) + dist[e[1]] - dist[e[0]]
+                        for e in G.edge_iterator()
+                        if e[0] in dist and e[1] in dist}
+
+    exclude_vert_set = set(G) - set(dist)
     # finding the parent information from successor
     for key in successor:
         if successor[key] and successor[key] not in parent:
@@ -1164,6 +1187,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     def length_func(path):
         return sum(reduced_cost[e] for e in zip(path, path[1:]))
+
     # shortest path function for weighted/unweighted graph using reduced weights
     shortest_path_func = G._backend.bidirectional_dijkstra_special
     # a set to check if a path is already present in the heap or not
@@ -1191,9 +1215,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             yield []
         return
 
-    father[tuple(path)] = None
     # hashing the path to check the existence of a path in the heap
     hash_path = tuple(path)
+    father[hash_path] = None
     # heap push operation
     heappush(heap_sorted_paths, (length, path, 0))
     # adding the path to the heap_paths set
@@ -1201,20 +1225,20 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     shortest_path_len = dist[source]
     while heap_paths:
         # extracting the next best path from the heap
-        (cost, path1, dev_idx) = heappop(heap_sorted_paths)
+        cost, path1, dev_idx = heappop(heap_sorted_paths)
         hash_path = tuple(path1)
         heap_paths.remove(hash_path)
         if len(set(path1)) == len(path1):
             if report_weight:
                 if report_edges and labels:
-                    yield (cost + shortest_path_len, list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0]))
+                    yield (cost + shortest_path_len, [edge_labels[e] for e in zip(path1[:-1], path1[1:])])
                 elif report_edges:
                     yield (cost + shortest_path_len, list(zip(path1[:-1], path1[1:])))
                 else:
                     yield (cost + shortest_path_len, path1)
             else:
                 if report_edges and labels:
-                    yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+                    yield [edge_labels[e] for e in zip(path1[:-1], path1[1:])]
                 elif report_edges:
                     yield list(zip(path1[:-1], path1[1:]))
                 else:
@@ -1227,9 +1251,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         include_vertices = set()
         expressEdges = {}
         dic = {}
-        for v in G:
-            # coloring all the nodes as green initially
-            color[v] = 0
+        temp_dict = {}
+        # coloring all the nodes as green initially
+        color = {v: 0 for v in G}
         # list of yellow nodes
         allY = list()
         for j in range(dev_idx):
@@ -1256,7 +1280,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             if i == dev_idx + 1:
                 p = father[tuple(prev_path)]
                 # comparing the deviation nodes
-                while(p and len(p) > dev_idx + 1 and p[dev_idx] == root[dev_idx]):
+                while p and len(p) > dev_idx + 1 and p[dev_idx] == root[dev_idx]:
                     # using fatherly approach to filter the edges to be removed
                     exclude_edges.add((p[i - 1], p[i]))
                     p = father[tuple(p)]
@@ -1270,12 +1294,18 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                     include_vertices.add(y)
                 Yu.append(root[-1])
                 for n in Yu:
-                    if n in expressEdges and len(expressEdges[n]) > 0:
+                    if n in expressEdges and expressEdges[n]:
                         # recovering the express edges incident to a node n
                         for e in expressEdges[n]:
                             if (e[1], target) in dic:
                                 # restoration of edges in the original graph
                                 G.delete_edge(e[1], target)
+                                del dic[(e[1], target)]
+                                del reduced_cost[(e[1], target)]
+                            if (e[1], target) in temp_dict:
+                                # restoration of cost function
+                                reduced_cost[e[1], target] = temp_dict[e[1], target]
+                                del temp_dict[e[1], target]
                         # resetting the expressEdges for node n
                         expressEdges[n] = []
                 findExpressEdges(Yu)
@@ -1294,13 +1324,12 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                                             weight_function=weight_function,
                                             reduced_weight=reduced_cost)
                 # finding the spur path in the original graph
-                if spur and (spur[-2], target) in dic:
+                if spur and ((spur[-2], target) in dic or (spur[-2], target) in temp_dict):
                     spur.pop()
                     st = spur[-1]
                     while st != target:
                         st = successor[st]
                         spur.append(st)
-
                 if not spur:
                     exclude_vertices.add(root[-1])
                     continue
@@ -1311,7 +1340,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                 hash_path = tuple(path)
                 # if this path is not already present inside the heap
                 if hash_path not in heap_paths:
-                    father[tuple(path)] = prev_path
+                    father[hash_path] = prev_path
                     heappush(heap_sorted_paths, (length, path, len(root) - 1))
                     heap_paths.add(hash_path)
             except Exception:
@@ -1320,6 +1349,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         # restoring the original graph here
         for e in dic:
             G.delete_edge(e)
+            del reduced_cost[(e[0], e[1])]
+        for e in temp_dict:
+            reduced_cost[e[0], e[1]] = temp_dict[e[0], e[1]]
 
 def _all_paths_iterator(self, vertex, ending_vertices=None,
                         simple=False, max_length=None, trivial=False,

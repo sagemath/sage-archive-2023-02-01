@@ -29,10 +29,7 @@ src/sage/functions/
 src/sage/game_theory/
 src/sage/games/
 src/sage/geometry/
-src/sage/graphs/base/
-src/sage/graphs/generators/
-src/sage/graphs/cliquer/
-src/sage/graphs/graph_decompositions/
+src/sage/graphs/
 src/sage/groups/
 src/sage/homology/
 src/sage/interacts/

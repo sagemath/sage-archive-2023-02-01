@@ -2598,7 +2598,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Bugfix from :trac:`7673` ::
 
-            sage: G = Graph([(0, 1, 9),(0, 2, 8),(1, 2, 7)])
+            sage: G = Graph([(0, 1, 9), (0, 2, 8), (1, 2, 7)])
             sage: G.shortest_path_length(0, 1, by_weight=True)
             9
 
@@ -2611,7 +2611,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         Bugfix from :trac:`27464` ::
 
             sage: G = DiGraph({0: [1, 2], 1: [4], 2: [3, 4], 4: [5], 5: [6]}, multiedges=True)
-            sage: for (u, v) in G.edges(labels=None):
+            sage: for u, v in list(G.edges(labels=None, sort=False)):
             ....:    G.set_edge_label(u, v, 1)
             sage: G.distance(0, 5, by_weight=true)
             3

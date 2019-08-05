@@ -413,7 +413,6 @@ from six.moves import range
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
@@ -1244,24 +1243,10 @@ class Graph(GenericGraph):
                 self.add_vertices(range(data))
 
         elif format == 'list_of_edges':
-            self.allow_multiple_edges(False if multiedges is False else True, check=False)
-            self.allow_loops(False if loops is False else True, check=False)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
+            self.allow_loops(True if loops else False, check=False)
             self.add_edges(data)
-            if multiedges is not True and self.has_multiple_edges():
-                deprecation(15706, "You created a graph with multiple edges "
-                            "from a list. Please set 'multiedges' to 'True' "
-                            "when you do so, as in the future the default "
-                            "behaviour will be to ignore those edges")
-            elif multiedges is None:
-                self.allow_multiple_edges(False, check=False)
-
-            if loops is not True and self.has_loops():
-                deprecation(15706, "You created a graph with loops from a list. "+
-                            "Please set 'loops' to 'True' when you do so, as in "+
-                            "the future the default behaviour will be to ignore "+
-                            "those edges")
-            elif loops is None:
-                self.allow_loops(False, check=False)
         else:
             raise ValueError("Unknown input format '{}'".format(format))
 
@@ -3070,73 +3055,6 @@ class Graph(GenericGraph):
 
         return self_complement.is_odd_hole_free(certificate=certificate)
 
-    @doc_index("Graph properties")
-    def odd_girth(self):
-        r"""
-        Returns the odd girth of self.
-
-        The odd girth of a graph is defined as the smallest cycle of odd length.
-
-        OUTPUT:
-
-        The odd girth of ``self``.
-
-        EXAMPLES:
-
-        The McGee graph has girth 7 and therefore its odd girth is 7 as well::
-
-            sage: G = graphs.McGeeGraph()
-            sage: G.odd_girth()
-            7
-
-        Any complete graph on more than 2 vertices contains a triangle and has
-        thus odd girth 3::
-
-            sage: G = graphs.CompleteGraph(10)
-            sage: G.odd_girth()
-            3
-
-        Every bipartite graph has no odd cycles and consequently odd girth of
-        infinity::
-
-            sage: G = graphs.CompleteBipartiteGraph(100,100)
-            sage: G.odd_girth()
-            +Infinity
-
-        .. SEEALSO::
-
-            * :meth:`~sage.graphs.generic_graph.GenericGraph.girth` -- computes
-              the girth of a graph.
-
-        REFERENCES:
-
-        The property relating the odd girth to the coefficients of the
-        characteristic polynomial is an old result from algebraic graph theory
-        see
-
-        .. [Har62] Harary, F (1962). The determinant of the adjacency matrix of
-          a graph, SIAM Review 4, 202-210
-
-        .. [Biggs93] Biggs, N. L. Algebraic Graph Theory, 2nd ed. Cambridge,
-          England: Cambridge University Press, pp. 45, 1993.
-
-        TESTS::
-
-            sage: graphs.CycleGraph(5).odd_girth()
-            5
-            sage: graphs.CycleGraph(11).odd_girth()
-            11
-        """
-        ch = ((self.am()).charpoly()).coefficients(sparse=False)
-        n = self.order()
-
-        for i in range(n-1, -1, -2):
-            if ch[i]:
-                return n-i
-
-        from sage.rings.infinity import Infinity
-
-        return Infinity
 
     @doc_index("Graph properties")
     def is_edge_transitive(self):

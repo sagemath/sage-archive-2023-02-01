@@ -31,7 +31,7 @@ from cysignals.memory cimport check_calloc, sig_free
 
 from collections import Iterator, Sequence
 
-from cpython.int cimport PyInt_FromLong
+from cpython.int cimport PyInt_FromSize_t
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.ext.mod_int cimport *
@@ -42,7 +42,7 @@ from sage.libs.linbox.conversion cimport (
     new_linbox_vector_integer_dense,
     new_sage_vector_integer_dense,
     new_linbox_matrix_integer_sparse,
-    METHOD_DEFAULT, METHOD_BLAS_ELIMINATION,
+    METHOD_DEFAULT, METHOD_DENSE_ELIMINATION,
     METHOD_SPARSE_ELIMINATION, METHOD_BLACKBOX,
     METHOD_WIEDEMANN, get_method)
 
@@ -647,13 +647,13 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         cdef givaro.ZRing givZZ
         cdef linbox.SparseMatrix_integer * M = new_linbox_matrix_integer_sparse(givZZ, self)
-        cdef unsigned long r = 0
+        cdef size_t r = 0
 
         linbox.rank(r, M[0])
 
         del M
 
-        return PyInt_FromLong(r)
+        return PyInt_FromSize_t(r)
 
     def _det_linbox(self):
         r"""
@@ -926,7 +926,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             - ``'linbox'`` or ``'linbox_default'`` - (default) use LinBox
               and let it chooses the appropriate algorithm
 
-            -  ``linbox_blas_elimination'`` - use LinBox dense elimination
+            -  ``linbox_dense_elimination'`` - use LinBox dense elimination
 
             - ``'linbox_sparse_elimination'`` - use LinBox sparse elimination
 
@@ -993,7 +993,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``b`` -- a dense integer vector
 
-        - ``algorithm`` -- (optional) either ``None``, ``'blas_elimination'``,
+        - ``algorithm`` -- (optional) either ``None``, ``'dense_elimination'``,
           ``'sparse_elimination'``, ``'wiedemann'`` or ``'blackbox'``.
 
         OUTPUT: a pair ``(a, d)`` consisting of
@@ -1012,7 +1012,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: b0 = vector((1,1,1,1))
             sage: m._solve_vector_linbox(b0)
             ((-1, -7, -3, -1), 1)
-            sage: m._solve_vector_linbox(b0, 'blas_elimination')
+            sage: m._solve_vector_linbox(b0, 'dense_elimination')
             ((-1, -7, -3, -1), 1)
             sage: m._solve_vector_linbox(b0, 'sparse_elimination')
             ((-1, -7, -3, -1), 1)
@@ -1024,7 +1024,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: b1 = vector((1,2,3,4))
             sage: m._solve_vector_linbox(b1)
             ((-18, -92, -41, -17), 5)
-            sage: m._solve_vector_linbox(b1, 'blas_elimination')
+            sage: m._solve_vector_linbox(b1, 'dense_elimination')
             ((-18, -92, -41, -17), 5)
             sage: m._solve_vector_linbox(b1, 'sparse_elimination')
             ((-18, -92, -41, -17), 5)
@@ -1039,7 +1039,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
             sage: for i in range(20):
             ....:     dim = randint(1, 30)
@@ -1080,8 +1080,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             linbox.solve(res[0], D, A[0], b[0])
         elif method == METHOD_WIEDEMANN:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.Wiedemann())
-        elif method == METHOD_BLAS_ELIMINATION:
-            linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+        elif method == METHOD_DENSE_ELIMINATION:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
         elif method == METHOD_SPARSE_ELIMINATION:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
         elif method == METHOD_BLACKBOX:
@@ -1136,7 +1136,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
 
             sage: for _ in range(10):
@@ -1191,8 +1191,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             # solve the current row
             if algo == METHOD_DEFAULT:
                 linbox.solve(res[0], D, A[0], b[0])
-            elif algo == METHOD_BLAS_ELIMINATION:
-                linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+            elif algo == METHOD_DENSE_ELIMINATION:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
             elif algo == METHOD_SPARSE_ELIMINATION:
                 linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
             elif algo == METHOD_BLACKBOX:

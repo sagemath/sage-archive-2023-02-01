@@ -677,10 +677,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # TODO: bug in linbox (gives segfault)
             return 0, self.base_ring().one()
 
-        # NOTE: the rank would more naturally be size_t but it is unsigned long
-        # in LinBox
-        # see https://github.com/linbox-team/linbox/issues/144
-        cdef unsigned long A_rank = 0
+        cdef size_t A_rank = 0
         cdef uint64_t A_det = 0
 
         if not is_prime(self.p):
@@ -696,9 +693,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if A.rowdim() >= <size_t> UINT_MAX or A.coldim() >= <size_t> UINT_MAX:
             raise ValueError("row/column size unsupported in LinBox")
 
-        dom.InPlaceLinearPivoting(A_rank, A_det, A[0],
-                <unsigned long> A.rowdim(),
-                <unsigned long> A.coldim())
+        dom.InPlaceLinearPivoting(A_rank, A_det, A[0], A.rowdim(), A.coldim())
 
         del A
         del F
@@ -882,7 +877,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             - ``'linbox'`` or ``'linbox_default'`` - (default) use LinBox
               and let it chooses the appropriate algorithm
 
-            -  ``linbox_blas_elimination'`` - use LinBox dense elimination
+            -  ``linbox_dense_elimination'`` - use LinBox dense elimination
 
             - ``'linbox_sparse_elimination'`` - use LinBox sparse elimination
 
@@ -949,7 +944,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         - ``b`` -- a dense integer vector
 
-        - ``algorithm`` -- (optional) either ``None``, ``'blas_elimination'``,
+        - ``algorithm`` -- (optional) either ``None``, ``'dense_elimination'``,
           ``'sparse_elimination'``, ``'wiedemann'`` or ``'blackbox'``.
 
         OUTPUT: a pair ``(a, d)`` consisting of
@@ -968,7 +963,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: b0 = vector((1,1,1,1))
             sage: m._solve_vector_linbox(b0)
             ((-1, -7, -3, -1), 1)
-            sage: m._solve_vector_linbox(b0, 'blas_elimination')
+            sage: m._solve_vector_linbox(b0, 'dense_elimination')
             ((-1, -7, -3, -1), 1)
             sage: m._solve_vector_linbox(b0, 'sparse_elimination')
             ((-1, -7, -3, -1), 1)
@@ -984,7 +979,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
             sage: for i in range(20):
             ....:     dim = randint(1, 30)
@@ -1025,8 +1020,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             linbox.solve(res[0], D, A[0], b[0])
         elif method == METHOD_WIEDEMANN:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.Wiedemann())
-        elif method == METHOD_BLAS_ELIMINATION:
-            linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+        elif method == METHOD_DENSE_ELIMINATION:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
         elif method == METHOD_SPARSE_ELIMINATION:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
         elif method == METHOD_BLACKBOX:
@@ -1081,7 +1076,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
 
             sage: for _ in range(10):
@@ -1136,8 +1131,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # solve the current row
             if algo == METHOD_DEFAULT:
                 linbox.solve(res[0], D, A[0], b[0])
-            elif algo == METHOD_BLAS_ELIMINATION:
-                linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+            elif algo == METHOD_DENSE_ELIMINATION:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
             elif algo == METHOD_SPARSE_ELIMINATION:
                 linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
             elif algo == METHOD_BLACKBOX:

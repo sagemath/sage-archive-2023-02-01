@@ -39,6 +39,7 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
+from libc.stdint cimport uint32_t
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -897,6 +898,124 @@ def lex_M_slow(G, initial_vertex=None):
 
     return alpha, label, F
 
+
+def lex_M_53(G, initial_vertex=None):
+    """
+    Return an ordering of the vertices of G according the LexM graph traversal.
+
+    LexM is a lexicographic ordering scheme that is a special type of
+    breadth-first-search. This function implements the algorithm described in
+    Section 5.3 of [RTL76]_.
+
+    Note that instead of using labels 1, 2, ..., k and adding 1/2, we use labels
+    2, 4, ..., k and add 1, thus avoiding to use floats or rationals.
+    """
+    # ==> Initialization
+
+    cdef list int_to_v = list(G)
+    cdef int i, j, k, v, w, z
+
+    if initial_vertex is not None:
+        # We put the initial vertex at first place in the ordering
+        i = int_to_v.index(initial_vertex)
+        int_to_v[0], int_to_v[i] = int_to_v[i], int_to_v[0]
+
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
+    cdef uint32_t* p_tmp
+    cdef uint32_t* p_end
+
+    cdef int n = G.order()
+
+    cdef list unnumbered_vertices = list(range(n))
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int* label = <int*>mem.allocarray(n, sizeof(int))
+    cdef int* alpha = <int*>mem.allocarray(n, sizeof(int))
+    cdef int* alphainv = <int*>mem.allocarray(n, sizeof(int))
+    cdef bint* reached = <bint*>mem.allocarray(n, sizeof(bint))
+
+    for i in range(n):
+        label[i] = 2
+        alpha[i] = 0
+        alphainv[i] = 0
+        reached[i] = False
+
+    cdef list F = list()
+    cdef dict reach
+
+    k = 2
+    for i in range(n-1, -1, -1):
+
+        # Select: pick an unnumbered vertex v with label(v)==k and assign it
+        # number i
+        for v in unnumbered_vertices:
+            if label[v] == k:
+                alpha[i] = v
+                alphainv[v] = i
+                reached[v] = True
+                unnumbered_vertices.remove(v)
+                break
+        else:
+            raise ValueError('unable to find an unnumbered vertex v with label[v] == k')
+
+        # Mark all unnumbered vertices unreached
+        for w in unnumbered_vertices:
+            reached[w] = False
+
+        reach = dict()
+        for j in range(2, k + 1, 2):
+            reach[j] = set()
+
+        p_tmp = sd.neighbors[v]
+        p_end = sd.neighbors[v + 1]
+        while p_tmp < p_end:
+            w = p_tmp[0]
+            p_tmp += 1
+            if alphainv[w]:
+                continue
+            reach[label[w]].add(w)
+            reached[w] = True
+            label[w] += 1
+            F.append((int_to_v[v], int_to_v[w]))
+
+        # Search
+        for j in range(2, k + 1, 2):
+            while reach[j]:
+                w = reach[j].pop()
+                p_tmp = sd.neighbors[w]
+                p_end = sd.neighbors[w + 1]
+                while p_tmp < p_end:
+                    z = p_tmp[0]
+                    p_tmp += 1
+                    if reached[z]:
+                        continue
+                    reached[z] = True
+                    if label[z] > j:
+                        reach[label[z]].add(z)
+                        label[z] += 1
+                        F.append((int_to_v[v], int_to_v[z]))
+                    else:
+                        reach[j].add(z)
+
+        if unnumbered_vertices:
+            # Sort: sort unnumbered vertices by label(w) value
+            order = sorted( (label[w], w) for w in unnumbered_vertices )
+
+            # Reassign labels as integers from 2 to k, redefining k appropriately
+            k = 2
+            l,_ = order[0]
+            for ll,w in order:
+                if l != ll:
+                    l = ll
+                    k += 2
+                label[w] = k
+
+    free_short_digraph(sd)
+
+    return [int_to_v[alpha[i]] for i in range(n)], {int_to_v[i]: label[i] // 2 for i in range(n)}, F
+
+
 def is_valid_lex_M_order(G, alpha, F):
     """
     Check if the ordering alpha and the triangulation are valid for G.
@@ -911,6 +1030,14 @@ def is_valid_lex_M_order(G, alpha, F):
         sage: from sage.graphs.traversals import lex_M, lex_M_slow, is_valid_lex_M_order
         sage: G = graphs.PetersenGraph()
         sage: alpha, _, F = lex_M_slow(G)
+        sage: is_valid_lex_M_order(G, alpha, F)
+        True
+        sage: H = Graph(G.edges(sort=False))
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+        sage: from sage.graphs.traversals import lex_M_53
+        sage: alpha, _, F = lex_M_53(G)
         sage: is_valid_lex_M_order(G, alpha, F)
         True
         sage: H = Graph(G.edges(sort=False))

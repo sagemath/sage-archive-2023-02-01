@@ -53,9 +53,9 @@ available:
 - Hecke RSK algorithm (:class:`~sage.combinat.rsk.RuleHecke`) , defined
   using the Hecke insertion studied in [BKSTY06]_ (but using rows instead
   of columns).
-- Dual RSK (:class:`~sage.combinat.rsk.RuleDualRSK`).
-- CoRSK (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018v5sol]_.
-- Super RSK (:class:`~sage.combinat.rsk.RuleSuperRSK`), a combiantion of row
+- Dual RSK insertion (:class:`~sage.combinat.rsk.RuleDualRSK`).
+- CoRSK insertion (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018v5sol]_.
+- Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a combiantion of row
   and column insertions defined in [RM2017]_.
 
 Implementing your own insertion rule
@@ -1910,8 +1910,8 @@ class RuleSuperRSK(RuleRSK):
     r"""
     A rule modeling the SuperRSK insertion.
 
-    SuperRSK is based on :math:`\epsilon`-insertion which is a
-    combination of row and column classical RSK insertion.
+    SuperRSK is based on :math:`\epsilon`-insertion, a combination of row
+    and column classical RSK insertion.
 
     Super RSK insertion differs from the classical RSK insertion in the
     following ways:

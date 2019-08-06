@@ -1214,9 +1214,30 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [2*a + 12        2]
                 sage: CombinatorialFreeModule(ZZ, Partitions(4)).random_element() # random
                 2*B[[2, 1, 1]] + B[[2, 2]]
+
+            TESTS:
+
+            Ensure that :trac:`28327` is fixed, and that we don't rely
+            unnecessarily on being able to coerce the base ring's zero
+            into the algebra::
+
+                sage: class Foo(CombinatorialFreeModule):
+                ....:     _no_generic_basering_coercion = True
+                ....:     def _element_constructor_(self,x):
+                ....:         if x in self:
+                ....:             return x
+                ....:         else:
+                ....:             raise ValueError
+                sage: from sage.categories.magmatic_algebras \
+                ....:   import MagmaticAlgebras
+                sage: C = MagmaticAlgebras(QQ).WithBasis().Unital()
+                sage: F = Foo(QQ,(1,),category=C)
+                sage: F.random_element() in F
+                True
+
             """
             indices = self.basis().keys()
-            a = self(0)
+            a = self.zero()
             for i in range(n):
                 a += self.term(indices.random_element(),
                                self.base_ring().random_element())

@@ -15,7 +15,8 @@ Graph traversals.
     :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
-    :meth:`~lex_M` | Perform a lexicographic UP search (LexUP) on the graph.
+    :meth:`~lex_M_slow` | Return an ordering of the vertices of G according the LexM graph traversal. (inefficient)
+    :meth:`~lex_M_fast` | Return an ordering of the vertices of G according the LexM graph traversal. (efficient)
 
 Methods
 -------
@@ -40,12 +41,6 @@ from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
 from libc.stdint cimport uint32_t
-
-from cysignals.signals cimport sig_on, sig_off
-
-from libcpp.queue cimport queue
-from libcpp.pair cimport pair
-from libcpp.string cimport string
 
 def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     r"""
@@ -690,149 +685,7 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
     else:
         return value
 
-def lex_M(G, triangulation=False, labels=True, tree=False, initial_vertex=None):
-    r"""
-    Perform a lexicographic M search (LexM) of the graph.
-
-    INPUT:
-
-    - ``G`` -- a sage graph
-
-    -``triangulation`` -- boolean (default: ``False``); whether to return
-    the triangulation of given graph produced by the method.
-
-    - ``labels`` -- boolean (default: ``True``); whether to return the
-      labels assigned to each vertex
-
-    - ``tree`` -- boolean (default: ``False``); whether to return the
-      discovery directed tree (each vertex being linked to the one that saw
-      it for the first time)
-
-    - ``initial_vertex`` -- (default: ``None``); the first vertex to
-      consider
-
-    OUTPUT:
-
-    Depending on the values of the parameters ``triangulation``, ``labels`` and
-    ``tree`` the method will return one or more of the following:
-
-    - the ordering of vertices of ``G``
-
-    - a triangulation of ``G``
-
-    - the labels assigned to each vertex
-
-    - the discovery directed tree (each vertex being linked to the one that saw
-      it for the first time)
-
-    ALGORITHM:
-
-    This algorithm maintains for each vertex left in the graph a set of
-    labels corresponding to the vertices already removed. The vertex of maximal
-    label (according to the lexicographic order) is then removed, and the
-    labels are updated. In the `i`-th iteration of the algorithm `i`
-    is appended to the label of all non deleted vertices `v` such that there
-    exists a chain `C=u,w_1,w_2,...,w_p,v` (where `u` is the current vertex)
-    with `w_j` non deleted and `label(w_j)` lexicographically smaller than
-    `label(v)`.
-
-    """
-    cdef int nV = G.order()
-
-    # Base case when G is empty
-    if not nV:
-        if tree:
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(sparse=True)
-            if labels and triangulation:
-                return [], G, [], g
-            elif labels:
-                return [], [], g
-            elif triangulation:
-                return [], G, g
-            else:
-                return [], g
-        else:
-            if labels and triangulation:
-                return [], G, []
-            elif labels:
-                return [], []
-            elif triangulation:
-                return [], G
-            else:
-                return []
-
-    # Loops and multiple edges are not needed in Lex M
-    if G.allows_loops() or G.allows_multiple_edges():
-        G = G.to_simple(immutable=True)
-
-    # Build adjacency list of G
-    cdef list int_to_v = list(G)
-
-    cdef short_digraph sd
-    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
-
-    cdef list label = [[] for i in range(nV)]
-
-    def l_func(x):
-        return label[x]
-
-    cdef list value = []
-
-    # Initialize the triangulation graph
-    if G.is_directed():
-        from sage.graphs.digraph import DiGraph
-        H = DiGraph()
-        H.add_vertices(G.vertices())
-    else:
-        from sage.graphs.graph import Graph
-        H = Graph()
-        H.add_vertices(G.vertices())
-
-    cdef set vertices = set(range(nV))
-
-    cdef int source = 0 if initial_vertex is None else int_to_v.index(initial_vertex)
-    label[source].append(0)
-
-    cdef queue[pair[int, string]] q
-    cdef string s, max_label_string
-
-    cdef int now = 1, v, current_vertex, int_neighbor
-    cdef list max_label_in_path, cur_label
-    cdef set seen
-    while vertices:
-        v = max(vertices, key=l_func)
-        vertices.remove(v)
-        q = queue[pair[int, string]]() # clear the queue
-        s = b",".join(bytes(code) for code in label[v])
-        q.push([v, s])
-        seen = set([v])
-        while not q.empty():
-            current_vertex = q.front().first
-            max_label_string = q.front().second
-            max_label_in_path = max_label_string.split(b",")
-            max_label_in_path = list(map(type(label[v]), max_label_in_path))
-            q.pop()
-            for i in range(out_degree(sd, v)):
-                int_neighbor = sd.neighbors[v][i]
-                if int_neighbor in vertices and int_neighbor not in seen:
-                    s = b",".join(bytes(code) for code in label[int_neighbor])
-                    cur_label = s.split(b",")
-                    cur_label = list(map(type(label[v]), cur_label))
-                    if cur_label > max_label_in_path:
-                        label[int_neighbor].append(nV - now)
-                        q.push([int_neighbor, s])
-                    else:
-                        q.push([int_neighbor, max_label_string])
-                    seen.add(int_neighbor)
-        value.append(int_to_v[v])
-        now += 1
-
-    free_short_digraph(sd)
-
-    return value
-
-def lex_M_slow(G, initial_vertex=None):
+def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
     r"""
     Return an ordering of the vertices of G according the LexM graph traversal.
 
@@ -849,7 +702,40 @@ def lex_M_slow(G, initial_vertex=None):
     `p_i==q_i` for `i=1,\ldots,j-1` and `p_j<q_j`, or if `p_i==q_i` for
     `i=1,\ldots,k` and `k<l`. Observe that this is exactly how Python compares
     two lists.
+
+    .. NOTE::
+
+        This method works only for undirected graphs.
+
+    INPUT:
+
+    - ``G`` -- a sage graph
+
+    - ``triangulation`` -- boolean (default: ``False``); whether to return
+    the triangulation of given graph produced by the method.
+
+    - ``labels`` -- boolean (default: ``False`); whether to return the
+      labels assigned to each vertex
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to
+      consider
+
+    OUTPUT:
+
+    Depending on the values of the parameters ``triangulation`` and ``labels``
+    the method will return one or more of the following (in that order):
+
+    - the ordering of vertices of ``G``
+
+    - the labels assigned to each vertex
+
+    - a list of edges that when added to ``G`` will produce a triangulation
+    of ``G``
+
     """
+    if G.is_directed():
+        raise ValueError("input graph must be undirected")
+
     # ==>Initialization
     # Assign empty label to all vertices of G and empty list to F
     cdef list unnumbered_vertices = list(G)
@@ -896,10 +782,17 @@ def lex_M_slow(G, initial_vertex=None):
                 label[v].append(i)
                 F.append((u, v))
 
-    return alpha, label, F
+    if triangulation and labels:
+        return alpha, labels, F
+    elif triangulation:
+        return alpha, F
+    elif labels:
+        return alpha, labels
+    else:
+        return alpha
 
 
-def lex_M_53(G, initial_vertex=None):
+def lex_M_fast(G, triangulation=False, initial_vertex=None):
     """
     Return an ordering of the vertices of G according the LexM graph traversal.
 
@@ -909,7 +802,32 @@ def lex_M_53(G, initial_vertex=None):
 
     Note that instead of using labels 1, 2, ..., k and adding 1/2, we use labels
     2, 4, ..., k and add 1, thus avoiding to use floats or rationals.
+
+    .. NOTE::
+
+        This method works only for undirected graphs.
+
+    INPUT:
+
+    - ``G`` -- a sage graph
+
+    - ``triangulation`` -- boolean (default: ``False``); whether to return
+    the triangulation of given graph produced by the method.
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to
+      consider
+
+    OUTPUT:
+
+    This method will return an ordering of the vertices of ``G`` according to
+    the LexM ordering scheme. Furthermore, if ``triangulation`` is set to
+    ``True`` the method also returns a list of edges ``F`` such that when added
+    to ``G`` the resulting graph is a triangulation of ``G``.
     """
+
+    if G.is_directed():
+        raise ValueError("input graph must be undirected")
+
     # ==> Initialization
 
     cdef list int_to_v = list(G)
@@ -1013,7 +931,12 @@ def lex_M_53(G, initial_vertex=None):
 
     free_short_digraph(sd)
 
-    return [int_to_v[alpha[i]] for i in range(n)], {int_to_v[i]: label[i] // 2 for i in range(n)}, F
+    cdef list ordering = [int_to_v[alpha[i]] for i in range(n)]
+
+    if triangulation:
+        return ordering, F
+    else:
+        return ordering
 
 
 def is_valid_lex_M_order(G, alpha, F):
@@ -1027,17 +950,17 @@ def is_valid_lex_M_order(G, alpha, F):
 
     TESTS::
 
-        sage: from sage.graphs.traversals import lex_M, lex_M_slow, is_valid_lex_M_order
+        sage: from sage.graphs.traversals import lex_M_slow, is_valid_lex_M_order
         sage: G = graphs.PetersenGraph()
-        sage: alpha, _, F = lex_M_slow(G)
+        sage: alpha, F = lex_M_slow(G, triangulation=True)
         sage: is_valid_lex_M_order(G, alpha, F)
         True
         sage: H = Graph(G.edges(sort=False))
         sage: H.add_edges(F)
         sage: H.is_chordal()
         True
-        sage: from sage.graphs.traversals import lex_M_53
-        sage: alpha, _, F = lex_M_53(G)
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: alpha, F = lex_M_fast(G, triangulation=True)
         sage: is_valid_lex_M_order(G, alpha, F)
         True
         sage: H = Graph(G.edges(sort=False))

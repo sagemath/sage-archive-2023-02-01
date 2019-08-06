@@ -3619,7 +3619,7 @@ def multi_graphics(graphics_list):
     EXAMPLES:
 
     ``multi_graphics`` is to be used for plot arrangements that cannot be
-    acheived with :func:`graphics_array`, for instance::
+    achieved with :func:`graphics_array`, for instance::
 
         sage: g1 = plot(sin(x), (x, -10, 10), frame=True)
         sage: g2 = EllipticCurve([0,0,1,-1,0]).plot(color='red', thickness=2,

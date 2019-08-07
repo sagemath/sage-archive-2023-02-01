@@ -712,7 +712,7 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
     - ``G`` -- a sage graph
 
     - ``triangulation`` -- boolean (default: ``False``); whether to return
-    the triangulation of given graph produced by the method.
+      the triangulation of given graph produced by the method.
 
     - ``labels`` -- boolean (default: ``False`); whether to return the
       labels assigned to each vertex
@@ -857,7 +857,7 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
     - ``G`` -- a sage graph
 
     - ``triangulation`` -- boolean (default: ``False``); whether to return
-    the triangulation of given graph produced by the method.
+      the triangulation of given graph produced by the method.
 
     - ``initial_vertex`` -- (default: ``None``); the first vertex to
       consider

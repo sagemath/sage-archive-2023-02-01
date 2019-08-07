@@ -485,6 +485,15 @@ class DyckWord(CombinatorialElement):
     def _repr_list(self):
         r"""
         Return a string representation of ``self`` as a list.
+
+        TESTS::
+
+            sage: DyckWord([])
+            []
+            sage: DyckWord([1, 0])
+            [1, 0]
+            sage: DyckWord('(())')
+            [1, 1, 0, 0]
         """
         return super(DyckWord, self)._repr_()
 

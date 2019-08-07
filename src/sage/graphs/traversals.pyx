@@ -732,6 +732,51 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
     - a list of edges that when added to ``G`` will produce a triangulation
     of ``G``
 
+    EXAMPLES:
+
+    A LexM ordering is obviously an ordering of the vertices::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: g = graphs.CompleteGraph(6)
+        sage: len(lex_M_slow(g)) == g.order()
+        True
+
+    LexM ordering and label assignments on the vertices of the 3-sun graph::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: lex_M_slow(g, labels=True)
+        ([6, 4, 5, 3, 2, 1],
+         {1: [], 2: [5], 3: [5, 4], 4: [4, 2], 5: [4, 3], 6: [3, 2]})
+
+    LexM produces a triangulation of given graph::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: G = graphs.PetersenGraph()
+        sage: _, F = lex_M_slow(G, triangulation=True)
+        sage: H = G.copy()
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+
+    TESTS:
+
+    LexM ordering of empty graph::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: G = Graph()
+        sage: lex_M_slow(G)
+        []
+
+    The method works only for undirected graphs::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: G = digraphs.Circuit(15)
+        sage: lex_M_slow(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: input graph must be undirected
+
     """
     if G.is_directed():
         raise ValueError("input graph must be undirected")
@@ -783,11 +828,11 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
                 F.append((u, v))
 
     if triangulation and labels:
-        return alpha, labels, F
+        return alpha, label, F
     elif triangulation:
         return alpha, F
     elif labels:
-        return alpha, labels
+        return alpha, label
     else:
         return alpha
 
@@ -823,8 +868,52 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
     the LexM ordering scheme. Furthermore, if ``triangulation`` is set to
     ``True`` the method also returns a list of edges ``F`` such that when added
     to ``G`` the resulting graph is a triangulation of ``G``.
-    """
 
+    EXAMPLES:
+
+    A LexM ordering is obviously an ordering of the vertices::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: g = graphs.CompleteGraph(6)
+        sage: len(lex_M_fast(g)) == g.order()
+        True
+
+    LexM ordering of the 3-sun graph::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: lex_M_fast(g)
+        [6, 4, 5, 3, 2, 1]
+
+    LexM produces a triangulation of given graph::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: G = graphs.PetersenGraph()
+        sage: _, F = lex_M_fast(G, triangulation=True)
+        sage: H = G.copy()
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+
+    TESTS:
+
+    LexM ordering of empty graph::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: G = Graph()
+        sage: lex_M_fast(G)
+        []
+
+    The method works only for undirected graphs::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: G = digraphs.Circuit(15)
+        sage: lex_M_fast(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: input graph must be undirected
+
+    """
     if G.is_directed():
         raise ValueError("input graph must be undirected")
 

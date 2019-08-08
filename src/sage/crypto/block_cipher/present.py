@@ -64,7 +64,6 @@ from sage.rings.integer import Integer
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.crypto.sboxes import PRESENT as PRESENTSBOX
-from sage.crypto.sbox import SBox
 from sage.modules.vector_mod2_dense import Vector_mod2_dense
 from six import integer_types
 

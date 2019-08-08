@@ -3611,7 +3611,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             3
         """
         sig_on()
-        cdef unsigned long r = linbox_fmpz_mat_rank(self._matrix)
+        cdef size_t r = linbox_fmpz_mat_rank(self._matrix)
         sig_off()
         return Integer(r)
 
@@ -5023,8 +5023,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
 
         -  ``matrix`` - the Hermite normal form of self.
+
+        A ValueError is raised if the matrix is not square, fixing :trac:`5548`::
+
+            sage: random_matrix(ZZ,16,4)._hnf_mod(100)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not square
         """
         t = verbose('hermite mod %s'%D, caller_name='matrix_integer_dense')
+        if self._nrows != self._ncols:
+            raise ValueError("matrix is not square")
         cdef Matrix_integer_dense res = self._new(self._nrows,self._ncols)
         self._hnf_modn(res, D)
         verbose('finished hnf mod', t, caller_name='matrix_integer_dense')

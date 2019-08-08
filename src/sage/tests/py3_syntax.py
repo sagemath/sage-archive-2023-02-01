@@ -79,7 +79,7 @@ class SortedDirectoryWalkerABC(object):
             sage: name = 'sage/tests/books/computational-mathematics-with-sagemath'
             sage: test = Python3SyntaxTest(name)
             sage: next(iter(test))
-            ('...src/sage/tests/books/computational-mathematics-with-sagemath', 'README', '')
+            ('.../sage/tests/books/computational-mathematics-with-sagemath', 'README', '')
         """
         tree_walk = itertools.chain(*map(os.walk, self._directories))
         for path, _, files in tree_walk:

@@ -545,16 +545,26 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         Check that :trac:`26038` is fixed::
 
-            sage: a = 1
+            sage: a = 1 # py2
             ....: b = 2
             Traceback (most recent call last):
             ...
             SyntaxError: doctest is not a single statement
-            sage: a = 1
+            sage: a = 1 # py3
+            ....: b = 2
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
+            sage: a = 1 # py2
             ....: @syntax error
             Traceback (most recent call last):
             ...
             SyntaxError: invalid syntax
+            sage: a = 1 # py3
+            ....: @syntax error
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
         """
         # Ensure that injecting globals works as expected in doctests
         set_globals(test.globs)
@@ -1963,7 +1973,12 @@ class DocTestDispatcher(SageObject):
             # Hack to ensure multiprocessing leaves these processes
             # alone (in particular, it doesn't wait for them when we
             # exit).
-            multiprocessing.current_process()._children = set()
+            if six.PY2:
+                p = multiprocessing.current_process()
+            else:
+                p = multiprocessing.process
+            assert hasattr(p, '_children')
+            p._children = set()
 
     def dispatch(self):
         """

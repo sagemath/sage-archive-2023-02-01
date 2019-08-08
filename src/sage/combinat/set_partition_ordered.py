@@ -853,22 +853,25 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: OS = OrderedSetPartitions("cat"); OS
+        sage: OS = OrderedSetPartitions("cat")
+        sage: OS # py2
         Ordered set partitions of {'a', 'c', 't'}
-        sage: OS.list()
-        [[{'a'}, {'c'}, {'t'}],
-         [{'a'}, {'t'}, {'c'}],
-         [{'c'}, {'a'}, {'t'}],
-         [{'t'}, {'a'}, {'c'}],
-         [{'c'}, {'t'}, {'a'}],
-         [{'t'}, {'c'}, {'a'}],
-         [{'a'}, {'c', 't'}],
-         [{'c'}, {'a', 't'}],
-         [{'t'}, {'a', 'c'}],
+        sage: OS # py3 random
+        Ordered set partitions of {'a', 't', 'c'}
+        sage: sorted(OS.list(), key=str)
+        [[{'a', 'c', 't'}],
          [{'a', 'c'}, {'t'}],
          [{'a', 't'}, {'c'}],
+         [{'a'}, {'c', 't'}],
+         [{'a'}, {'c'}, {'t'}],
+         [{'a'}, {'t'}, {'c'}],
          [{'c', 't'}, {'a'}],
-         [{'a', 'c', 't'}]]
+         [{'c'}, {'a', 't'}],
+         [{'c'}, {'a'}, {'t'}],
+         [{'c'}, {'t'}, {'a'}],
+         [{'t'}, {'a', 'c'}],
+         [{'t'}, {'a'}, {'c'}],
+         [{'t'}, {'c'}, {'a'}]]
     """
     @staticmethod
     def __classcall_private__(cls, s=None, c=None):
@@ -944,7 +947,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             sage: [set([1,2]), set([3,4])] in OS
             Traceback (most recent call last):
             ...
-            TypeError: X (=set([1, 2])) must be a Set
+            TypeError: X (=...1, 2...) must be a Set
         """
         #x must be a list
         if not isinstance(x, (OrderedSetPartition, list, tuple)):

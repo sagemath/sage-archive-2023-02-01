@@ -319,7 +319,7 @@ class FormalSums(UniqueRepresentation, Module):
         sage: FormalSums(GF(7))
         Abelian Group of all Formal Finite Sums over Finite Field of size 7
         sage: FormalSums(ZZ[sqrt(2)])
-        Abelian Group of all Formal Finite Sums over Order in Number Field in sqrt2 with defining polynomial x^2 - 2
+        Abelian Group of all Formal Finite Sums over Order in Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
         sage: FormalSums(GF(9,'a'))
         Abelian Group of all Formal Finite Sums over Finite Field in a of size 3^2
 

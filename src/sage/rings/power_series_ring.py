@@ -965,7 +965,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             ...
             TypeError: no base extension defined
             sage: R.base_extend(QuadraticField(3,'a'))
-            Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3
+            Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
         """
         return PowerSeriesRing(R, name = self.variable_name(), default_prec = self.default_prec())
 

@@ -248,10 +248,8 @@ class ChainComplexMorphism(Morphism):
         """
         if deg is not None:
             return self.in_degree(deg)
-        row = 0
-        col = 0
         blocks = [self._matrix_dictionary[n]
-                  for n in sorted(self._matrix_dictionary.keys())]
+                  for n in sorted(self._matrix_dictionary)]
         return block_diagonal_matrix(blocks)
 
     def dual(self):

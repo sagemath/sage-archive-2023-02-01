@@ -15,9 +15,9 @@ EXAMPLES::
     1/8
     sage: plot(f)    # not tested
 
-TODO:
+.. TODO::
 
-- Implement max/min location and values,
+    Implement max/min location and values,
 
 AUTHORS:
 
@@ -67,15 +67,14 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from __future__ import absolute_import, division, print_function
 
 from sage.symbolic.function import BuiltinFunction
-from sage.sets.real_set import RealSet, InternalRealInterval
+from sage.sets.real_set import RealSet
 from sage.symbolic.ring import SR
-from sage.rings.rational_field import QQ
 from sage.rings.infinity import minus_infinity, infinity
 
 from six import get_function_code
@@ -793,7 +792,7 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f.integral(definite=True)
                 2
                 sage: f.integral()
-                piecewise(x|-->-1/2*((sgn(x) - 1)*e^(2*x) - 2*e^x*sgn(x) + sgn(x) + 1)*e^(-x) - 1 on (-oo, +oo); x)
+                piecewise(x|-->-integrate(e^(-abs(x)), x, x, +Infinity) on (-oo, +oo); x)
 
             ::
 
@@ -951,13 +950,10 @@ class PiecewiseFunction(BuiltinFunction):
             g = other
             if len(f.end_points())*len(g.end_points()) == 0:
                 raise ValueError('one of the piecewise functions is nowhere defined')
-            M = min(min(f.end_points()),min(g.end_points()))
-            N = max(max(f.end_points()),max(g.end_points()))
             tt = SR.var('tt')
             uu = SR.var('uu')
-            conv = 0
-            fd,f0 = parameters[0]
-            gd,g0 = next(other.items())
+            fd, f0 = parameters[0]
+            gd, g0 = next(other.items())
             if len(f)==1 and len(g)==1:
                 f = f.unextend_zero()
                 g = g.unextend_zero()

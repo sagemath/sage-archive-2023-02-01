@@ -918,10 +918,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: R = QQ['x']
-            sage: macaulay2(R) # optional - macaulay2
-            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+            sage: macaulay2(R).describe()  # optional - macaulay2
+            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32},
                                                                 {GRevLex => {1}    }
                                                                 {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
         """
         if m2 is None:
             import sage.interfaces.macaulay2
@@ -1240,6 +1242,28 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return self.__is_sparse
 
+    def monomial(self, exponent):
+        """
+        Return the monomial with the ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- nonnegative integer
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.monomial(5)
+            x^5
+            sage: e=(10,)
+            sage: R.monomial(*e)
+            x^10
+            sage: m = R.monomial(100)
+            sage: R.monomial(m.degree()) == m
+            True
+        """
+        return self({exponent:self.base_ring().one()})
+
     def krull_dimension(self):
         """
         Return the Krull dimension of this polynomial ring, which is one
@@ -1364,7 +1388,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             else:
                 raise ValueError("No polynomial of degree >= 0 has all coefficients zero")
 
-        # Pick a random degree 
+        # Pick a random degree
         d = randint(degree[0], degree[1])
 
         # If degree is -1, return the 0 polynomial
@@ -3220,7 +3244,7 @@ def polygen(ring_or_element, name="x"):
         return t.gens()
     return t.gen()
 
-def polygens(base_ring, names="x"):
+def polygens(base_ring, names="x", *args):
     """
     Return indeterminates over the given base ring with the given
     names.
@@ -3235,6 +3259,11 @@ def polygens(base_ring, names="x"):
         sage: t = polygens(QQ,['x','yz','abc'])
         sage: t
         (x, yz, abc)
+
+    The number of generators can be passed as a third argument::
+
+        sage: polygens(QQ, 'x', 4)
+        (x0, x1, x2, x3)
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    return PolynomialRing(base_ring, names).gens()
+    return PolynomialRing(base_ring, names, *args).gens()

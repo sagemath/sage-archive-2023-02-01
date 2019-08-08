@@ -310,7 +310,7 @@ cdef class Cache_givaro(SageObject):
         cdef int seed = current_randstate().c_random()
         cdef int res
         cdef GivRandom generator = GivRandomSeeded(seed)
-        res = self.objectptr.random(generator,res)
+        self.objectptr.random(generator,res)
         return make_FiniteField_givaroElement(self,res)
 
     cpdef FiniteField_givaroElement element_from_data(self, e):
@@ -386,16 +386,16 @@ cdef class Cache_givaro(SageObject):
              isinstance(e, long) or is_IntegerMod(e):
             try:
                 e_int = e % self.characteristic()
-                res = self.objectptr.initi(res, e_int)
+                self.objectptr.initi(res, e_int)
             except ArithmeticError:
                 raise TypeError("unable to coerce from a finite field other than the prime subfield")
         elif e is None:
             e_int = 0
-            res = self.objectptr.initi(res, e_int)
+            self.objectptr.initi(res, e_int)
 
         elif isinstance(e, float):
             e_int = int(e) % self.characteristic()
-            res = self.objectptr.initd(res, e_int)
+            self.objectptr.initd(res, e_int)
 
         elif isinstance(e, str):
             return self.parent(eval(e.replace("^","**"),self.parent.gens_dict()))
@@ -406,7 +406,7 @@ cdef class Cache_givaro(SageObject):
             ret = self._zero_element
             for i in range(len(e)):
                 e_int = e[i] % self.characteristic()
-                res = self.objectptr.initi(res, e_int)
+                self.objectptr.initi(res, e_int)
                 to_add = make_FiniteField_givaroElement(self, res)
                 ret = ret + to_add*self.parent.gen()**i
             return ret
@@ -446,7 +446,7 @@ cdef class Cache_givaro(SageObject):
             ret = self._zero_element
             for i in range(len(e)):
                 e_int = e[i] % self.characteristic()
-                res = self.objectptr.initi(res, e_int)
+                self.objectptr.initi(res, e_int)
                 to_add = make_FiniteField_givaroElement(self, res)
                 ret = ret + to_add*self.parent.gen()**i
             return ret
@@ -475,8 +475,8 @@ cdef class Cache_givaro(SageObject):
 
                 for i from 0 <= i <= degpol(t):
                     c = gtolong(gel(t, i+2))
-                    res = self.objectptr.axpyin(res, self.int_to_log(c), x)
-                    x = self.objectptr.mul(x,x,g)
+                    self.objectptr.axpyin(res, self.int_to_log(c), x)
+                    self.objectptr.mulin(x,g)
                 clear_stack()
             else:
                 clear_stack()
@@ -580,21 +580,10 @@ cdef class Cache_givaro(SageObject):
             sage: 2^7 + 2^4 + 2^2 + 2 + 1
             151
         """
-        cdef GivaroGfq *k = self.objectptr
-        cdef int ret = k.zero
-        cdef int a = k.indeterminate()
-        cdef int at = k.one
-        cdef int ch = k.characteristic()
-        cdef int t, i
-
-        if n<0 or n>k.cardinality():
+        if n<0 or n>self.order():
             raise TypeError("n must be between 0 and self.order()")
 
-        for i from 0 <= i < k.exponent():
-            t = k.initi(t, n % ch)
-            ret = k.axpy(ret, t, at, ret)
-            at = k.mul(at,at,a)
-            n //= ch
+        cdef int ret = self.int_to_log(n)
         return make_FiniteField_givaroElement(self, ret)
 
     def _element_repr(self, FiniteField_givaroElement e):
@@ -715,7 +704,7 @@ cdef class Cache_givaro(SageObject):
         """
         cdef int r
 
-        r = self.objectptr.axpy(r, a.element, b.element, c.element)
+        self.objectptr.axpy(r, a.element, b.element, c.element)
         return make_FiniteField_givaroElement(self,r)
 
     def a_times_b_minus_c(self,FiniteField_givaroElement a, FiniteField_givaroElement b, FiniteField_givaroElement c):
@@ -734,7 +723,7 @@ cdef class Cache_givaro(SageObject):
         """
         cdef int r
 
-        r = self.objectptr.axmy(r, a.element, b.element, c.element, )
+        self.objectptr.axmy(r, a.element, b.element, c.element, )
         return make_FiniteField_givaroElement(self,r)
 
     def c_minus_a_times_b(self,FiniteField_givaroElement a,
@@ -754,7 +743,7 @@ cdef class Cache_givaro(SageObject):
         """
         cdef int r
 
-        r = self.objectptr.maxpy(r , a.element, b.element, c.element, )
+        self.objectptr.maxpy(r , a.element, b.element, c.element, )
         return make_FiniteField_givaroElement(self,r)
 
     def __reduce__(self):
@@ -1067,15 +1056,15 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         TESTS::
 
             sage: K = GF(49, 'a')
-            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            sage: all(a.sqrt()*a.sqrt() == a for a in K if a.is_square())
             True
             sage: K = GF(27, 'a')
-            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            sage: all(a.sqrt()*a.sqrt() == a for a in K if a.is_square())
             True
             sage: K = GF(8, 'a')
-            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            sage: all(a.sqrt()*a.sqrt() == a for a in K if a.is_square())
             True
-            sage: K.<a>=FiniteField(9)
+            sage: K.<a> = FiniteField(9)
             sage: a.sqrt(extend = False, all = True)
             []
 
@@ -1108,7 +1097,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             2*b^3 + 2*b^2 + 2*b + 1
         """
         cdef int r
-        r = self._cache.objectptr.add(r, self.element ,
+        self._cache.objectptr.add(r, self.element ,
                                               (<FiniteField_givaroElement>right).element )
         return make_FiniteField_givaroElement(self._cache,r)
 
@@ -1125,7 +1114,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             c^2
         """
         cdef int r
-        r = self._cache.objectptr.mul(r, self.element,
+        self._cache.objectptr.mul(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
 
@@ -1147,7 +1136,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         cdef int r
         if (<FiniteField_givaroElement>right).element == 0:
             raise ZeroDivisionError('division by zero in finite field')
-        r = self._cache.objectptr.div(r, self.element,
+        self._cache.objectptr.div(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
 
@@ -1164,7 +1153,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             2*a^2 + 2*a
         """
         cdef int r
-        r = self._cache.objectptr.sub(r, self.element,
+        self._cache.objectptr.sub(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
 
@@ -1181,7 +1170,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         cdef int r
 
-        r = self._cache.objectptr.neg(r, self.element)
+        self._cache.objectptr.neg(r, self.element)
         return make_FiniteField_givaroElement(self._cache,r)
 
     def __invert__(FiniteField_givaroElement self):

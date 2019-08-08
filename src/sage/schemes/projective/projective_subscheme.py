@@ -10,7 +10,7 @@ AUTHORS:
 - Ben Hutz (2013) refactoring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #       Copyright (C) 2013 Ben Hutz <bn4941@gmail.com>
 #
@@ -19,7 +19,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.arith.misc import binomial
 from sage.categories.fields import Fields
@@ -287,7 +287,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         Return the best affine patch of the ambient projective space.
 
         The "best" affine patch is where you end up dividing by the
-        homogeneous coordinate with the largest absolutue
+        homogeneous coordinate with the largest absolute
         value. Division by small numbers is numerically unstable.
 
         INPUT:
@@ -1036,14 +1036,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         the ambient projective space of `X`. The elimination ideal `I = J' \cap K[u_{ij}]`
         is a principal ideal, let `R` be its generator. The Chow form is obtained by
         writing `R` as a polynomial in Plucker coordinates (i.e. bracket polynomials).
-        [DalbecSturmfels]_.
+        [DS1994]_.
 
         OUTPUT: a homogeneous polynomial.
-
-        REFERENCES:
-
-        .. [DalbecSturmfels] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
-           chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
 
         EXAMPLES::
 

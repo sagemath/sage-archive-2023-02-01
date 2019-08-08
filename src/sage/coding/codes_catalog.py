@@ -57,6 +57,7 @@ lazy_import('sage.coding.punctured_code', 'PuncturedCode')
 lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode',
                                               'ReedMullerCode'])
 lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
+lazy_import('sage.coding.goppa', 'GoppaCode')
 
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders

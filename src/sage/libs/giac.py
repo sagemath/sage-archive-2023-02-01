@@ -2,8 +2,8 @@
 """
 Wrappers for Giac functions
 
-We provide a python function to compute and convert to sage a groebner
-basis using the giacpy_sage module.
+We provide a python function to compute and convert to sage a Groebner
+basis using the ``giacpy_sage`` module.
 
 AUTHORS:
 
@@ -27,7 +27,7 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
 from sage.structure.proof.all import polynomial as proof_polynomial
@@ -92,6 +92,7 @@ class GiacSettingsDefaultContext:
         giacsettings.proba_epsilon = self.proba_epsilon
         giacsettings.threads = self.threads
 
+
 def local_giacsettings(func):
     """
     Decorator to preserve Giac's proba_epsilon and threads settings.
@@ -132,7 +133,7 @@ def local_giacsettings(func):
 def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
                    elim_variables=None, *args, **kwds):
     """
-    Computes a Groebner Basis of an ideal using giacpy_sage. The result is
+    Compute a Groebner Basis of an ideal using ``giacpy_sage``. The result is
     automatically converted to sage.
 
     Supported term orders of the underlying polynomial ring are ``lex``,
@@ -206,13 +207,15 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
         sage: P = PolynomialRing(QQ,5, 'x') # optional - giacpy_sage
         sage: I = ideal([P.random_element(3,7) for j in range(5)]) # optional - giacpy_sage
         sage: B1 = gb_giac(I.gens(),1e-16) # optional - giacpy_sage, long time (1s)
+        ...adding reconstructed ideal generators...
+        ...
         Running a probabilistic check for the reconstructed Groebner basis.
         If successfull, error probability is less than 1e-16 ...
         sage: sage.structure.proof.all.polynomial(True) # optional - giacpy_sage
         sage: B2 = gb_giac(I.gens()) # optional - giacpy_sage, long time (4s)
         <BLANKLINE>
         // Groebner basis computation time...
-        sage: B1==B2 # optional - giacpy_sage, long time
+        sage: B1 == B2 # optional - giacpy_sage, long time
         True
         sage: B1.is_groebner() # optional - giacpy_sage, long time (20s)
         True
@@ -220,7 +223,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
     * multi threaded operations::
 
         sage: P = PolynomialRing(QQ, 8, 'x') # optional - giacpy_sage
-        sage: I=sage.rings.ideal.Cyclic(P) # optional - giacpy_sage
+        sage: I = sage.rings.ideal.Cyclic(P) # optional - giacpy_sage
         sage: time B = gb_giac(I.gens(),1e-6,threads=2) # doctest: +SKIP
         Running a probabilistic check for the reconstructed Groebner basis...
         Time: CPU 168.98 s, Wall: 94.13 s
@@ -229,7 +232,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
 
     ::
 
-        sage: I=sage.rings.ideal.Katsura(P) # optional - giacpy_sage
+        sage: I = sage.rings.ideal.Katsura(P) # optional - giacpy_sage
         sage: gb_giac(I,prot=True)  # optional - giacpy_sage, random, long time (3s)
         9381383 begin computing basis modulo 535718473
         9381501 begin new iteration zmod, number of pairs: 8, base size: 8
@@ -266,7 +269,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
         // Groebner basis computation time...
         Polynomial Sequence with 74 Polynomials in 8 Variables
 
-        sage: I=ideal(P(0),P(0)) # optional - giacpy_sage
+        sage: I = ideal(P(0),P(0)) # optional - giacpy_sage
         sage: I.groebner_basis() == gb_giac(I) # optional - giacpy_sage
         True
 
@@ -313,7 +316,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
     # check for name confusions
     blackgiacconstants = ['i', 'e'] # NB e^k is expanded to exp(k)
     blacklist = blackgiacconstants + [str(j) for j in libgiac.VARS()]
-    problematicnames = list(set(P.gens_dict().keys()).intersection(blacklist))
+    problematicnames = sorted(set(P.gens_dict()).intersection(blacklist))
 
     if problematicnames:
         raise ValueError("Variables names %s conflict in giac. Change them or purge them from in giac with libgiac.purge(\'%s\')"

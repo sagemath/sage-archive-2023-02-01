@@ -1167,7 +1167,7 @@ class Homset(Set_generic):
 
             sage: K = GaussianIntegers()
             sage: End(K).one()
-            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
         """
         return self.identity()
 

@@ -28,15 +28,14 @@ AUTHORS:
 
 .. SEEALSO:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>
 #                          Christian Stump <christian.stump@univie.ac.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from six.moves import range
 
@@ -187,12 +186,12 @@ class ClusterQuiver(SageObject):
         sage: Q = ClusterQuiver(DiGraph([[1,1]]))
         Traceback (most recent call last):
         ...
-        ValueError: the input DiGraph contains a loop
+        ValueError: cannot add edge from 1 to 1 in graph without loops
 
         sage: Q = ClusterQuiver([[1,1]])
         Traceback (most recent call last):
         ...
-        ValueError: the input DiGraph contains a loop
+        ValueError: cannot add edge from 1 to 1 in graph without loops
 
         sage: Q = ClusterQuiver(DiGraph([[1, 0],[0,1]]))
         Traceback (most recent call last):
@@ -711,15 +710,20 @@ class ClusterQuiver(SageObject):
         graph_plot = self.plot(circular=circular)
         graph_plot.save(filename=filename)
 
-    def qmu_save(self,filename=None):
+    def qmu_save(self, filename=None):
         """
-        Saves a .qmu file of ``self`` that can then be opened in Bernhard Keller's Quiver Applet.
+        Save ``self`` in a ``.qmu`` file.
+
+        This file can then be opened in Bernhard Keller's Quiver Applet.
+
+        See https://webusers.imj-prg.fr/~bernhard.keller/quivermutation/
 
         INPUT:
 
         - ``filename`` -- the filename the image is saved to.
 
-        If a filename is not specified, the default name is from_sage.qmu in the current sage directory.
+        If a filename is not specified, the default name is
+        ``from_sage.qmu`` in the current sage directory.
 
         EXAMPLES::
 
@@ -728,23 +732,24 @@ class ClusterQuiver(SageObject):
 
         Make sure we can save quivers with `m != n` frozen variables, see :trac:`14851`::
 
-            sage: S=ClusterSeed(['A',3])
-            sage: T1=S.principal_extension()
-            sage: Q=T1.quiver()
+            sage: S = ClusterSeed(['A',3])
+            sage: T1 = S.principal_extension()
+            sage: Q = T1.quiver()
             sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
         """
         M = self.b_matrix()
-        if self.m() > 0:
+        if self.m():
             from sage.matrix.constructor import Matrix
             from sage.matrix.constructor import block_matrix
             M1 = M.matrix_from_rows(list(range(self.n())))
-            M2 = M.matrix_from_rows(list(range(self.n(),self.n()+self.m())))
-            M3 = Matrix(self.m(),self.m())
-            M = block_matrix([[M1,-M2.transpose()],[M2,M3]])
+            M2 = M.matrix_from_rows(list(range(self.n(), self.n() + self.m())))
+            M3 = Matrix(self.m(), self.m())
+            M = block_matrix([[M1, -M2.transpose()], [M2, M3]])
         dg = self.digraph()
         dg.plot(save_pos=True)
         PP = dg.get_pos()
         m = M.ncols()
+
         if filename is None:
             filename = 'from_sage.qmu'
         try:
@@ -752,32 +757,39 @@ class ClusterQuiver(SageObject):
         except AttributeError:
             pass
         if filename[-4:] != '.qmu':
-            filename = filename + '.qmu'
-        myfile = open(filename, 'w')
-        myfile.write('//Number of points'); myfile.write('\n')
-        myfile.write(str(m)); myfile.write('\n')
-        myfile.write('//Vertex radius'); myfile.write('\n')
-        myfile.write(str(9)); myfile.write('\n')
-        myfile.write('//Labels shown'); myfile.write('\n')
-        myfile.write(str(1)); myfile.write('\n')
-        myfile.write('//Matrix'); myfile.write('\n')
-        myfile.write(str(m)); myfile.write(' '); myfile.write(str(m)); myfile.write('\n')
+            filename += '.qmu'
+
+        string = []
+        string.append('//Number of points')
+        string.append(str(m))
+        string.append('//Vertex radius')
+        string.append('9')
+        string.append('//Labels shown')
+        string.append('1')
+        string.append('//Matrix')
+        string.append(str(m) + ' ' + str(m))
         for i in range(m):
-            for j in range(m):
-                myfile.write(str(M[i,j])); myfile.write(' ')
-            myfile.write('\n')
-        myfile.write('//Points'); myfile.write('\n')
+            string.append(' '.join(str(M[i, j])
+                                   for j in range(m)))
+        string.append('//Points')
+
         for i in range(m):
-            myfile.write(str(9)); myfile.write(' '); myfile.write(str(100*PP[i][0])); myfile.write(' ');
-            myfile.write(str(100*PP[i][1]));
-            if i > self.n()-1:
-                myfile.write(' '); myfile.write(str(1))
-            myfile.write('\n')
-        myfile.write('//Historycounter'); myfile.write('\n')
-        myfile.write(str(-1)); myfile.write('\n')
-        myfile.write('//History'); myfile.write('\n'); myfile.write('\n')
-        myfile.write('//Cluster is null');
-        myfile.close()
+            x, y = PP[i]
+            txt = '9 ' + str(100 * x) + ' ' + str(100 * y)
+            if i >= self.n():
+                txt += ' 1'
+            string.append(txt)
+
+        string.append('//Historycounter')
+        string.append('-1')
+        string.append('//History')
+        string.append('')
+        string.append('//Cluster is null')
+
+        string = '\n'.join(string)
+
+        with open(filename, 'w') as myfile:
+            myfile.write(string)
 
     def b_matrix(self):
         """
@@ -1076,7 +1088,7 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]),
             ....:                   frozen=['b', 'd'])
-            sage: Q.frozen_vertices()
+            sage: sorted(Q.frozen_vertices())
             ['b', 'd']
         """
         return self._mlist
@@ -1650,21 +1662,11 @@ class ClusterQuiver(SageObject):
             Quiver on 3 vertices of type ['A', 3]
 
             sage: it = Q.mutation_class_iter(return_paths=True,up_to_equivalence=False)
-            sage: for T in it: print(T)
+            sage: mutation_class = list(it)
+            sage: len(mutation_class)
+            14
+            sage: mutation_class[0]
             (Quiver on 3 vertices of type ['A', 3], [])
-            (Quiver on 3 vertices of type ['A', 3], [2])
-            (Quiver on 3 vertices of type ['A', 3], [1])
-            (Quiver on 3 vertices of type ['A', 3], [0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 0])
 
             sage: Q = ClusterQuiver(['A',3])
             sage: it = Q.mutation_class_iter(data_type='path')
@@ -1797,21 +1799,10 @@ class ClusterQuiver(SageObject):
             Quiver on 3 vertices of type ['A', 3]
 
             sage: Ts = Q.mutation_class(return_paths=True,up_to_equivalence=False)
-            sage: for T in Ts: print(T)
+            sage: len(Ts)
+            14
+            sage: Ts[0]
             (Quiver on 3 vertices of type ['A', 3], [])
-            (Quiver on 3 vertices of type ['A', 3], [2])
-            (Quiver on 3 vertices of type ['A', 3], [1])
-            (Quiver on 3 vertices of type ['A', 3], [0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 0])
 
             sage: Ts = Q.mutation_class(show_depth=True)
             Depth: 0     found: 1          Time: ... s

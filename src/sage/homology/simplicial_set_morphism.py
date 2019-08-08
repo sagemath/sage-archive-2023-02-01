@@ -197,7 +197,6 @@ class SimplicialSetHomset(Homset):
             ...
             ValueError: codomain is not pointed, so specify a target for the constant map
         """
-        domain = self.domain()
         codomain = self.codomain()
         if point is None:
             if codomain.is_pointed():
@@ -229,7 +228,6 @@ class SimplicialSetHomset(Homset):
             sage: Hom(K,L)(d) == Hom(K,L).an_element()
             True
         """
-        domain = self.domain()
         codomain = self.codomain()
         if codomain.is_pointed():
             target = codomain.base_point()
@@ -1165,10 +1163,9 @@ class SimplicialSetMorphism(Morphism):
             sage: g.coproduct(g).is_bijective()
             False
         """
-        domain = self.domain().coproduct(*[g.domain() for g in others])
         codomain = self.codomain().coproduct(*[g.codomain() for g in others])
         factors = []
-        for (i,f) in enumerate([self] + list(others)):
+        for i, f in enumerate([self] + list(others)):
             factors.append(codomain.inclusion_map(i) * f)
         return codomain.universal_property(*factors)
 

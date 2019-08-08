@@ -355,7 +355,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = DirichletGroup(7, QQ).0
             sage: f = e.change_ring(QuadraticField(3, 'a'))
             sage: f.parent()
-            Group of Dirichlet characters modulo 7 with values in Number Field in a with defining polynomial x^2 - 3
+            Group of Dirichlet characters modulo 7 with values in Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
 
         ::
 

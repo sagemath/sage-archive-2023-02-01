@@ -407,14 +407,12 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 import six
 from six.moves import range
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
@@ -900,8 +898,8 @@ class Graph(GenericGraph):
     _directed = False
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 weighted=None, implementation='c_graph',
-                 data_structure="sparse", vertex_labels=True, name=None,
+                 weighted=None, data_structure="sparse",
+                 vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
         """
@@ -1002,6 +1000,16 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: each column of a non-oriented incidence matrix must sum to 2, but column 0 does not
+
+        Vertex labels are retained in the graph (:trac:`14708`)::
+
+            sage: g = Graph()
+            sage: g.add_vertex(0)
+            sage: g.set_vertex(0, 'foo')
+            sage: g.get_vertices()
+            {0: 'foo'}
+            sage: Graph(g).get_vertices()
+            {0: 'foo'}
         """
         GenericGraph.__init__(self)
 
@@ -1012,12 +1020,6 @@ class Graph(GenericGraph):
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "dense"
-
-        # Choice of the backend
-
-        if implementation != 'c_graph':
-            deprecation(18375,"The 'implementation' keyword is deprecated, "
-                        "and the graphs has been stored as a 'c_graph'")
 
         if multiedges or weighted:
             if data_structure == "dense":
@@ -1166,6 +1168,7 @@ class Graph(GenericGraph):
                 pos = data.get_pos()
             self.name(data.name())
             self.add_vertices(data.vertex_iterator())
+            self.set_vertices(data.get_vertices())
             self.add_edges(data.edge_iterator(), loops=loops)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
@@ -1240,24 +1243,10 @@ class Graph(GenericGraph):
                 self.add_vertices(range(data))
 
         elif format == 'list_of_edges':
-            self.allow_multiple_edges(False if multiedges is False else True, check=False)
-            self.allow_loops(False if loops is False else True, check=False)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
+            self.allow_loops(True if loops else False, check=False)
             self.add_edges(data)
-            if multiedges is not True and self.has_multiple_edges():
-                deprecation(15706, "You created a graph with multiple edges "
-                            "from a list. Please set 'multiedges' to 'True' "
-                            "when you do so, as in the future the default "
-                            "behaviour will be to ignore those edges")
-            elif multiedges is None:
-                self.allow_multiple_edges(False, check=False)
-
-            if loops is not True and self.has_loops():
-                deprecation(15706, "You created a graph with loops from a list. "+
-                            "Please set 'loops' to 'True' when you do so, as in "+
-                            "the future the default behaviour will be to ignore "+
-                            "those edges")
-            elif loops is None:
-                self.allow_loops(False, check=False)
         else:
             raise ValueError("Unknown input format '{}'".format(format))
 
@@ -2611,7 +2600,7 @@ class Graph(GenericGraph):
             sage: g.is_split()
             True
 
-        Another caracterisation of split graph states that a graph is a split
+        Another characterisation of split graph states that a graph is a split
         graph if and only if does not contain the 4-cycle, 5-cycle or `2K_2` as
         an induced subgraph. Hence for the above graph we have::
 
@@ -3066,73 +3055,6 @@ class Graph(GenericGraph):
 
         return self_complement.is_odd_hole_free(certificate=certificate)
 
-    @doc_index("Graph properties")
-    def odd_girth(self):
-        r"""
-        Returns the odd girth of self.
-
-        The odd girth of a graph is defined as the smallest cycle of odd length.
-
-        OUTPUT:
-
-        The odd girth of ``self``.
-
-        EXAMPLES:
-
-        The McGee graph has girth 7 and therefore its odd girth is 7 as well::
-
-            sage: G = graphs.McGeeGraph()
-            sage: G.odd_girth()
-            7
-
-        Any complete graph on more than 2 vertices contains a triangle and has
-        thus odd girth 3::
-
-            sage: G = graphs.CompleteGraph(10)
-            sage: G.odd_girth()
-            3
-
-        Every bipartite graph has no odd cycles and consequently odd girth of
-        infinity::
-
-            sage: G = graphs.CompleteBipartiteGraph(100,100)
-            sage: G.odd_girth()
-            +Infinity
-
-        .. SEEALSO::
-
-            * :meth:`~sage.graphs.generic_graph.GenericGraph.girth` -- computes
-              the girth of a graph.
-
-        REFERENCES:
-
-        The property relating the odd girth to the coefficients of the
-        characteristic polynomial is an old result from algebraic graph theory
-        see
-
-        .. [Har62] Harary, F (1962). The determinant of the adjacency matrix of
-          a graph, SIAM Review 4, 202-210
-
-        .. [Biggs93] Biggs, N. L. Algebraic Graph Theory, 2nd ed. Cambridge,
-          England: Cambridge University Press, pp. 45, 1993.
-
-        TESTS::
-
-            sage: graphs.CycleGraph(5).odd_girth()
-            5
-            sage: graphs.CycleGraph(11).odd_girth()
-            11
-        """
-        ch = ((self.am()).charpoly()).coefficients(sparse=False)
-        n = self.order()
-
-        for i in range(n-1, -1, -2):
-            if ch[i]:
-                return n-i
-
-        from sage.rings.infinity import Infinity
-
-        return Infinity
 
     @doc_index("Graph properties")
     def is_edge_transitive(self):
@@ -3335,7 +3257,7 @@ class Graph(GenericGraph):
 
         OUTPUT:
 
-        - When a solution exists, this method outputs the degree-constained
+        - When a solution exists, this method outputs the degree-constrained
           subgraph as a Graph object.
 
         - When no solution exists, returns ``False``.
@@ -3776,7 +3698,7 @@ class Graph(GenericGraph):
         return D
 
     @doc_index("Connectivity, orientations, trees")
-    def orientations(self, implementation='c_graph', data_structure=None, sparse=None):
+    def orientations(self, data_structure=None, sparse=None):
         r"""
         Return an iterator over orientations of ``self``.
 
@@ -3873,7 +3795,6 @@ class Graph(GenericGraph):
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
-                        implementation=implementation,
                         data_structure=data_structure)
             if hasattr(self, '_embedding'):
                 D._embedding = copy(self._embedding)
@@ -3891,7 +3812,6 @@ class Graph(GenericGraph):
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
-                        implementation=implementation,
                         data_structure=data_structure)
             if hasattr(self, '_embedding'):
                 D._embedding = copy(self._embedding)
@@ -5304,8 +5224,7 @@ class Graph(GenericGraph):
     ### Constructors
 
     @doc_index("Basic methods")
-    def to_directed(self, implementation='c_graph', data_structure=None,
-                    sparse=None):
+    def to_directed(self, data_structure=None, sparse=None):
         """
         Return a directed version of the graph.
 
@@ -5347,6 +5266,16 @@ class Graph(GenericGraph):
             sage: G2.add_vertex(5)
             sage: gp2 = G2.graphplot()
             sage: gp1 = G1.graphplot()
+
+        Vertex labels will be retained (:trac:`14708`)::
+
+            sage: G = Graph({0: [1, 2], 1: [0]})
+            sage: G.set_vertex(0, 'foo')
+            sage: D = G.to_directed()
+            sage: G.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+            sage: D.get_vertices()
+            {0: 'foo', 1: None, 2: None}
         """
         if sparse is not None:
             if data_structure is not None:
@@ -5368,11 +5297,11 @@ class Graph(GenericGraph):
                     pos            = self.get_pos(),
                     multiedges     = self.allows_multiple_edges(),
                     loops          = self.allows_loops(),
-                    implementation = implementation,
                     data_structure = (data_structure if data_structure!="static_sparse"
                                       else "sparse")) # we need a mutable copy
 
         D.add_vertices(self.vertex_iterator())
+        D.set_vertices(self.get_vertices())
         for u,v,l in self.edge_iterator():
             D.add_edge(u,v,l)
             D.add_edge(v,u,l)
@@ -8230,9 +8159,9 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Effective resitances in a straight linear 2-tree on 6 vertices ::
+        Effective resistances in a straight linear 2-tree on 6 vertices ::
 
-            sage: G=Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
             sage: G.effective_resistance(0,1)
             34/55
             sage: G.effective_resistance(0,3)
@@ -8328,7 +8257,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        The effective resitance matrix  for a straight linear 2-tree counting
+        The effective resistance matrix  for a straight linear 2-tree counting
         only non-adjacent vertex pairs ::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -8457,7 +8386,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Pairs of non-adjacent nodes with least effective resitance in a
+        Pairs of non-adjacent nodes with least effective resistance in a
         straight linear 2-tree on 6 vertices::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -8465,12 +8394,12 @@ class Graph(GenericGraph):
             [(1, 4)]
 
         Pairs of (adjacent or non-adjacent) nodes with least effective
-        resitance in a straight linear 2-tree on 6 vertices ::
+        resistance in a straight linear 2-tree on 6 vertices ::
 
             sage: G.least_effective_resistance(nonedgesonly = False)
             [(2, 3)]
 
-        Pairs of non-adjacent nodes with least effective resitance in a fan on
+        Pairs of non-adjacent nodes with least effective resistance in a fan on
         6 vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
@@ -8722,6 +8651,7 @@ class Graph(GenericGraph):
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
+    from sage.graphs.connectivity import is_triconnected
 
 
 _additional_categories = {
@@ -8747,7 +8677,8 @@ _additional_categories = {
     "random_orientation"        : "Connectivity, orientations, trees",
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
-    "spqr_tree"                 : "Connectivity, orientations, trees"
+    "spqr_tree"                 : "Connectivity, orientations, trees",
+    "is_triconnected"           : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

@@ -1094,7 +1094,7 @@ def CirculantGraph(n, adjacency):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     Compare to plotting with the spring-layout algorithm::
@@ -1110,7 +1110,7 @@ def CirculantGraph(n, adjacency):
         ....:  for m in range(3):
         ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:  j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     Passing a 1 into adjacency should give the cycle.
@@ -1179,7 +1179,7 @@ def CubeGraph(n):
         ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:  j.append(n)
         ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show(figsize=[6,4]) # long time
 
     Use the plot options to display larger `n`-cubes
@@ -1397,7 +1397,7 @@ def FriendshipGraph(n):
         ....:     for j in range(3):
         ....:         n.append(A[3*i + j].plot(vertex_size=20, vertex_labels=False))
         ....:     B.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(B)
+        sage: G = graphics_array(B)
         sage: G.show()  # long time
 
     For `n = 1`, the friendship graph `F_1` is isomorphic to the cycle
@@ -2800,7 +2800,7 @@ def WheelGraph(n):
         ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:  j.append(n)
         ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     Next, using the spring-layout algorithm::
@@ -2819,7 +2819,7 @@ def WheelGraph(n):
         ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:  j.append(n)
         ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     Compare the plotting::
@@ -3068,7 +3068,7 @@ def RingedTree(k, vertex_labels = True):
     g.relabel(vertices)
 
     return g
-              
+
 def MathonPseudocyclicMergingGraph(M, t):
     r"""
     Mathon's merging of classes in a pseudo-cyclic 3-class association scheme
@@ -3166,7 +3166,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     Supplying ``G`` and ``L`` (constructed from the automorphism group of ``G``). ::
 
         sage: G = graphs.PaleyGraph(9)
-        sage: a = G.automorphism_group()
+        sage: a = G.automorphism_group(partition=[sorted(G)])
         sage: it = (x for x in a.normal_subgroups() if x.order() == 9)
         sage: subg = next(iter(it))
         sage: r = [matrix(libgap.PermutationMat(libgap(z), 9).sage())
@@ -3184,7 +3184,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         [-4 -3 -2  2  3  4 -1  0  1]
         [-2 -4 -3  4  2  3  1 -1  0]
 
-        sage: G.relabel()
+        sage: G.relabel(range(9))
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)
         (441, 220, 109, 110)
@@ -3228,7 +3228,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     if G is None:
         from sage.graphs.strongly_regular_db import strongly_regular_graph as SRG
         G = SRG(p, 2*t, t-1)
-        G.relabel()
+        G.relabel(range(p))
     if L is None:
         from sage.matrix.constructor import circulant
         L = circulant(list(range(2 * t + 1))+list(range(-2 * t, 0)))

@@ -50,6 +50,7 @@ from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
+from sage.rings.integer_ring import ZZ
 
 cdef class CGraph:
     """
@@ -1040,7 +1041,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
     The appropriate way to use these backends is via Sage graphs::
 
-        sage: G = Graph(30, implementation="c_graph")
+        sage: G = Graph(30)
         sage: G.add_edges([(0,1), (0,3), (4,5), (9, 23)])
         sage: G.edges(labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
@@ -1604,7 +1605,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: P = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: P = Graph(graphs.PetersenGraph())
             sage: list(P._backend.iterator_nbrs(0))
             [1, 4, 5]
         """
@@ -1636,13 +1637,13 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed())
             sage: list(P._backend.iterator_in_nbrs(0))
             [1, 4, 5]
 
         TESTS::
 
-            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed())
             sage: list(P._backend.iterator_in_nbrs(63))
             Traceback (most recent call last):
             ...
@@ -1686,13 +1687,13 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed())
             sage: list(P._backend.iterator_out_nbrs(0))
             [1, 4, 5]
 
         TESTS::
 
-            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed())
             sage: list(P._backend.iterator_out_nbrs(-41))
             Traceback (most recent call last):
             ...
@@ -1733,7 +1734,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: P = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: P = Graph(graphs.PetersenGraph())
             sage: list(P._backend.iterator_verts(P))
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: list(P._backend.iterator_verts())
@@ -1785,7 +1786,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(implementation='c_graph')
+            sage: G = Graph()
             sage: G._backend.loops()
             False
             sage: G._backend.loops(True)
@@ -1820,7 +1821,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: G = Graph(graphs.PetersenGraph())
             sage: G._backend.num_edges(False)
             15
 
@@ -1917,7 +1918,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: G = Graph(graphs.PetersenGraph())
             sage: G._backend.num_verts()
             10
         """
@@ -1937,7 +1938,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: G = Graph(graphs.PetersenGraph())
             sage: G._backend.relabel(range(9,-1,-1), False)
             sage: G.edges()
             [(0, 2, None),
@@ -1988,7 +1989,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: G = Graph(graphs.PetersenGraph())
             sage: G.shortest_path(0, 1)
             [0, 1]
             sage: G.shortest_path_length(0, 1)
@@ -2134,14 +2135,14 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
+            sage: G = Graph(graphs.PetersenGraph())
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G.shortest_path_length(0, 1, by_weight=True)
             1
-            sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
+            sage: G = DiGraph([(1, 2, {'weight':1}), (1, 3, {'weight':5}), (2, 3, {'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
@@ -2151,22 +2152,28 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Bugfix from :trac:`7673` ::
 
-            sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
-            sage: G.shortest_path_length(0,1,by_weight=True)
+            sage: G = Graph([(0, 1, 9), (0, 2, 8), (1, 2, 7)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
             9
+
+        Bugfix from :trac:`28221` ::
+
+            sage: G = Graph([(0, 1, 9.2), (0, 2, 4.5), (1, 2, 4.6)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
+            9.1
 
         Bugfix from :trac:`27464` ::
 
-            sage: G = DiGraph({0:[1,2], 1:[4], 2:[3,4], 4:[5],5:[6]},multiedges=True)
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
-            sage: G.distance(0,5,by_weight=true)
+            sage: G = DiGraph({0:[1, 2], 1:[4], 2:[3, 4], 4:[5], 5:[6]}, multiedges=True)
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
+            sage: G.distance(0, 5,by_weight=true)
             3
         """
         if x == y:
             return 0
 
-        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
+        cdef priority_queue[pair[pair[double, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
@@ -2178,6 +2185,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int w = 0
         cdef int pred
         cdef int side
+        cdef double distance
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -2272,7 +2280,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             # build the shortest path and returns it.
             if distance_flag:
-                return shortest_path_length
+                if shortest_path_length in ZZ:
+                    return int(shortest_path_length)
+                else:
+                    return shortest_path_length
             w = meeting_vertex
 
             while w != x_int:
@@ -2463,7 +2474,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Traversing the Petersen graph using depth-first search::
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: G = Graph(graphs.PetersenGraph())
             sage: list(G.depth_first_search(0))
             [0, 5, 8, 6, 9, 7, 2, 3, 4, 1]
 
@@ -2477,8 +2488,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             ....: "Karlsruhe": ["Mannheim","Augsburg"],
             ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
             ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
-            ....: "Stuttgart": ["Nurnberg"],
-            ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
+            ....: "Stuttgart": ["Nurnberg"], "Erfurt": ["Wurzburg"]})
             sage: list(G.depth_first_search("Stuttgart"))  # py2
             ['Stuttgart', 'Nurnberg', 'Wurzburg', 'Frankfurt', 'Kassel', 'Munchen', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Erfurt']
             sage: list(G.depth_first_search("Stuttgart"))  # py3
@@ -2548,7 +2558,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Breadth-first search of the Petersen graph starting at vertex 0::
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: G = Graph(graphs.PetersenGraph())
             sage: list(G.breadth_first_search(0))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
 
@@ -2572,17 +2582,17 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Petersen's graph is connected::
 
-           sage: DiGraph(graphs.PetersenGraph(),implementation="c_graph").is_connected()
+           sage: DiGraph(graphs.PetersenGraph()).is_connected()
            True
 
         While the disjoint union of two of them is not::
 
-           sage: DiGraph(2*graphs.PetersenGraph(),implementation="c_graph").is_connected()
+           sage: DiGraph(2*graphs.PetersenGraph()).is_connected()
            False
 
         A graph with non-integer vertex labels::
 
-            sage: Graph(graphs.CubeGraph(3), implementation='c_graph').is_connected()
+            sage: Graph(graphs.CubeGraph(3)).is_connected()
             True
         """
         cdef int v_int
@@ -2609,13 +2619,13 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         The circuit on 3 vertices is obviously strongly connected::
 
-            sage: g = DiGraph({0: [1], 1: [2], 2: [0]}, implementation="c_graph")
+            sage: g = DiGraph({0: [1], 1: [2], 2: [0]})
             sage: g.is_strongly_connected()
             True
 
         But a transitive triangle is not::
 
-            sage: g = DiGraph({0: [1,2], 1: [2]}, implementation="c_graph")
+            sage: g = DiGraph({0: [1,2], 1: [2]})
             sage: g.is_strongly_connected()
             False
         """

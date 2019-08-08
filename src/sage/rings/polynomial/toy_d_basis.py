@@ -1,5 +1,5 @@
 r"""
-Educational version of the `d`-Groebner Basis Algorithm over PIDs.
+Educational version of the `d`-Groebner basis algorithm over PIDs
 
 No attempt was made to optimize this algorithm as the emphasis of this
 implementation is a clean and easy presentation.

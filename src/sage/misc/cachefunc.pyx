@@ -459,9 +459,9 @@ def _cached_function_unpickle(module, name, cache=None):
 
     TESTS::
 
-        sage: type(cunningham_prime_factors)
+        sage: type(hilbert_class_polynomial)
         <type 'sage.misc.cachefunc.CachedFunction'>
-        sage: loads(dumps(cunningham_prime_factors)) is cunningham_prime_factors #indirect doctest
+        sage: loads(dumps(hilbert_class_polynomial)) is hilbert_class_polynomial #indirect doctest
         True
 
     Verify that the ``cache`` parameter works::
@@ -822,11 +822,10 @@ cdef class CachedFunction(object):
 
         TESTS::
 
-            sage: type(cunningham_prime_factors)
+            sage: type(hilbert_class_polynomial)
             <type 'sage.misc.cachefunc.CachedFunction'>
-            sage: loads(dumps(cunningham_prime_factors)) is cunningham_prime_factors #indirect doctest
+            sage: loads(dumps(hilbert_class_polynomial)) is hilbert_class_polynomial  #indirect doctest
             True
-
         """
         return _cached_function_unpickle, (self.__module__, self.__name__, self.cache)
 

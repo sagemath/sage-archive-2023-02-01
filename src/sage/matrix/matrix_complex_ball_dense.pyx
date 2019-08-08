@@ -527,14 +527,22 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             Traceback (most recent call last):
             ...
             ArithmeticError: self must be a square matrix
+            sage: mat = matrix(CBF, [[1/3, 1/2], [0, 1]]) - 1/3
+            sage: ~mat
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: unable to compute the inverse, is the matrix singular?
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
         cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
         sig_on()
-        acb_mat_inv(res.value, self.value, prec(self))
+        cdef bint success = acb_mat_inv(res.value, self.value, prec(self))
         sig_off()
-        return res
+        if success:
+            return res
+        else:
+            raise ZeroDivisionError("unable to compute the inverse, is the matrix singular?")
 
     def _solve_right_nonsingular_square(self, Matrix_complex_ball_dense rhs, check_rank=None):
         r"""

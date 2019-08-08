@@ -162,7 +162,6 @@ from __future__ import print_function, absolute_import
 from copy import copy
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
@@ -500,8 +499,8 @@ class DiGraph(GenericGraph):
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 weighted=None, implementation='c_graph',
-                 data_structure="sparse", vertex_labels=True, name=None,
+                 weighted=None, data_structure="sparse",
+                 vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
         """
@@ -603,6 +602,16 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: a *directed* igraph graph was expected. To build an undirected graph, call the Graph constructor
+
+        Vertex labels are retained in the graph (:trac:`14708`)::
+
+            sage: g = DiGraph()
+            sage: g.add_vertex(0)
+            sage: g.set_vertex(0, 'foo')
+            sage: g.get_vertices()
+            {0: 'foo'}
+            sage: DiGraph(g).get_vertices()
+            {0: 'foo'}
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -613,13 +622,6 @@ class DiGraph(GenericGraph):
                 raise ValueError("the 'sparse' argument is an alias for "
                                  "'data_structure', please do not define both")
             data_structure = "dense"
-
-        # Choice of the backend
-
-        if implementation != 'c_graph':
-            from sage.misc.superseded import deprecation
-            deprecation(18375,"The 'implementation' keyword is deprecated, "
-                        "and the graphs has been stored as a 'c_graph'")
 
         if multiedges or weighted:
             if data_structure == "dense":
@@ -758,6 +760,7 @@ class DiGraph(GenericGraph):
             if data.get_pos() is not None:
                 pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
+            self.set_vertices(data.get_vertices())
             self.add_edges(data.edge_iterator())
             self.name(data.name())
         elif format == 'rule':
@@ -831,32 +834,17 @@ class DiGraph(GenericGraph):
             if weighted is None:
                 weighted = False
             self.allow_loops(True if loops else False, check=False)
-            self.allow_multiple_edges(True if multiedges else False, check=False)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
             if data < 0:
                 raise ValueError("the number of vertices cannot be strictly negative")
             elif data:
                 self.add_vertices(range(data))
         elif format == 'list_of_edges':
-            self.allow_multiple_edges(False if multiedges is False else True)
-            self.allow_loops(False if loops is False else True)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
+            self.allow_loops(True if loops else False, check=False)
             self.add_edges(data)
-            if multiedges is not True and self.has_multiple_edges():
-                from sage.misc.superseded import deprecation
-                deprecation(15706, "You created a graph with multiple edges "
-                            "from a list. Please set 'multiedges' to 'True' "
-                            "when you do so, as in the future the default "
-                            "behaviour will be to ignore those edges")
-            elif multiedges is None:
-                self.allow_multiple_edges(False)
-
-            if loops is not True and self.has_loops():
-                from sage.misc.superseded import deprecation
-                deprecation(15706, "You created a graph with loops from a list. "+
-                            "Please set 'loops' to 'True' when you do so, as in "+
-                            "the future the default behaviour will be to ignore "+
-                            "those edges")
-            elif loops is None:
-                self.allow_loops(False)
         else:
             raise ValueError("unknown input format '{}'".format(format))
 
@@ -1026,8 +1014,7 @@ class DiGraph(GenericGraph):
         """
         return self.copy()
 
-    def to_undirected(self, implementation='c_graph', data_structure=None,
-                      sparse=None):
+    def to_undirected(self, data_structure=None, sparse=None):
         """
         Return an undirected version of the graph.
 
@@ -1058,6 +1045,16 @@ class DiGraph(GenericGraph):
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
             <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
+
+        Vertex labels will be retained (:trac:`14708`)::
+
+            sage: D.set_vertex(0, 'foo')
+            sage: G = D.to_undirected()
+            sage: D.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+            sage: G.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+
         """
         if sparse is not None:
             if data_structure is not None:
@@ -1079,11 +1076,11 @@ class DiGraph(GenericGraph):
                   pos            = self._pos,
                   multiedges     = self.allows_multiple_edges(),
                   loops          = self.allows_loops(),
-                  implementation = implementation,
                   data_structure = (data_structure if data_structure!="static_sparse"
                                     else "sparse")) # we need a mutable copy first
 
         G.add_vertices(self.vertex_iterator())
+        G.set_vertices(self.get_vertices())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
             G._embedding = copy(self._embedding)
@@ -1661,7 +1658,7 @@ class DiGraph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # Variables are binary, and their coefficient in the objective is
-            # the number of occurence of the corresponding edge, so 1 if the
+            # the number of occurrences of the corresponding edge, so 1 if the
             # graph is simple
             p.set_objective( p.sum(b[u,v] for u,v in self.edge_iterator(labels=False)))
 
@@ -3425,162 +3422,6 @@ class DiGraph(GenericGraph):
             level = new_level
         return Levels
 
-
-    def immediate_dominators(self, r, reverse=False):
-        r"""
-        Return the immediate dominators of all vertices reachable from `r`.
-
-        A flowgraph `G = (V, A, r)` is a digraph where every vertex in `V` is
-        reachable from a distinguished root vertex `r\in V`. In such digraph, a
-        vertex `w` dominates a vertex `v` if every path from `r` to `v` includes
-        `w`. Let `dom(v)` be the set of the vertices that dominate `v`.
-        Obviously, `r` and `v`, the trivial dominators of `v`, are in
-        `dom(v)`. For `v \neq r`, the immediate dominator of `v`, denoted by
-        `d(v)`, is the unique vertex `w \neq v` that dominates `v` and is
-        dominated by all the vertices in `dom(v)\setminus\{v\}`. The (immediate)
-        dominator tree is a directed tree (or arborescence) rooted at `r` that
-        is formed by the arcs `\{ (d(v), v)\mid v\in V\setminus\{r\}\}`.  See
-        [Ge2005]_ for more details.
-
-        This method implements the algorithm proposed in [CHK2001]_ which
-        performs very well in practice, although its worst case time complexity
-        is in `O(n^2)`.
-
-        INPUT:
-
-        - ``r`` -- a vertex of the digraph, the root of the immediate dominators
-          tree
-
-        - ``reverse`` -- boolean (default: ``False``); when set to ``True``, we
-          consider the reversed digraph in which out-neighbors become the
-          in-neighbors and vice-versa. This option is available only if the
-          backend of the digraph is :mod:`~SparseGraphBackend`.
-
-        OUTPUT: The (immediate) dominator tree rooted at `r`, encoded as a
-        predecessor dictionary.
-
-        EXAMPLES:
-
-        The output encodes a tree rooted at `r`::
-
-            sage: D = digraphs.Complete(4) * 2
-            sage: D.add_edges([(0, 4), (7, 3)])
-            sage: d = D.immediate_dominators(0)
-            doctest:...: DeprecationWarning: immediate_dominators is now deprecated. Please use method dominator_tree instead.
-            See https://trac.sagemath.org/25030 for details.
-            sage: T = DiGraph([(d[u], u) for u in d if u != d[u]])
-            sage: Graph(T).is_tree()
-            True
-            sage: all(T.in_degree(u) <= 1 for u in T)
-            True
-
-        In a strongly connected digraph, the result depends on the root::
-
-            sage: D = digraphs.Circuit(5)
-            sage: D.immediate_dominators(0)
-            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
-            sage: D.immediate_dominators(1)
-            {0: 4, 1: 1, 2: 1, 3: 2, 4: 3}
-
-        The (immediate) dominator tree contains only reachable vertices::
-
-            sage: P = digraphs.Path(5)
-            sage: P.immediate_dominators(0)
-            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
-            sage: P.immediate_dominators(3)
-            {3: 3, 4: 3}
-
-        Immediate dominators in the reverse digraph::
-
-            sage: D = digraphs.Complete(5)+digraphs.Complete(4)
-            sage: D.add_edges([(0, 5), (1, 6), (7, 2)])
-            sage: idom = D.immediate_dominators(0, reverse=True)
-            sage: idom
-            {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 7, 6: 7, 7: 2, 8: 7}
-            sage: D_reverse = D.reverse()
-            sage: D_reverse.immediate_dominators(0) == idom
-            True
-
-        .. SEEALSO::
-
-            - :wikipedia:`Dominator_(graph_theory)`
-            - :meth:`~DiGraph.strong_articulation_points`
-            - :meth:`~DiGraph.strongly_connected_components`
-
-        TESTS:
-
-        When `r` is not in the digraph::
-
-            sage: DiGraph().immediate_dominators(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: the given root must be in the digraph
-
-        The reverse option is available only when the backend of the digraph is
-        :mod:`~SparseGraphBackend`::
-
-            sage: H = DiGraph(D.edges(), data_structure='static_sparse')
-            sage: H.immediate_dominators(0, reverse=True)
-            Traceback (most recent call last):
-            ...
-            ValueError: the reverse option is not available for this digraph
-
-        Comparison with the NetworkX method::
-
-            sage: import networkx
-            sage: D = digraphs.RandomDirectedGNP(20, 0.1)
-            sage: d = D.immediate_dominators(0)
-            sage: dx = networkx.immediate_dominators(D.networkx_graph(), 0)
-            sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
-            True
-        """
-        deprecation(25030, "immediate_dominators is now deprecated."
-                           " Please use method dominator_tree instead.")
-        if r not in self:
-            raise ValueError("the given root must be in the digraph")
-
-        idom = {r: r}
-        n = self.order()
-        if reverse:
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            if isinstance(self._backend, SparseGraphBackend):
-                pre_order = list(self._backend.depth_first_search(r, reverse=True))
-                number = {u: n-i for i, u in enumerate(pre_order)}
-                neighbor_iterator = self.neighbor_out_iterator
-            else:
-                raise ValueError("the reverse option is not available for this digraph")
-        else:
-            pre_order = list(self.depth_first_search(r))
-            number = {u: n-i for i, u in enumerate(pre_order)}
-            neighbor_iterator = self.neighbor_in_iterator
-        pre_order.pop(0)
-
-        def intersect(u, v):
-            while u != v:
-                while number[u] < number[v]:
-                    u = idom[u]
-                while number[u] > number[v]:
-                    v = idom[v]
-            return u
-
-        changed = True
-        while changed:
-            changed = False
-            for u in pre_order:
-                pred = [v for v in neighbor_iterator(u) if v in idom]
-                if not pred:
-                    continue
-                else:
-                    new_idom = pred[0]
-                    for v in pred[1:]:
-                        new_idom = intersect(new_idom, v)
-                if not u in idom or idom[u] != new_idom:
-                    idom[u] = new_idom
-                    changed = True
-
-        return idom
-
-
     def is_aperiodic(self):
         r"""
         Return whether the current ``DiGraph`` is aperiodic.
@@ -3896,6 +3737,102 @@ class DiGraph(GenericGraph):
         import itertools
         return not any(self.has_edge(u, v) == self.has_edge(v, u)
                            for u,v in itertools.combinations(self, 2))
+
+
+    def _girth_bfs(self, odd=False, certificate=False):
+        r"""
+        Return the girth of the digraph using breadth-first search.
+
+        Loops are ignored, so the returned value is at least 2.
+
+        INPUT:
+
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd
+          girth
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list
+          of vertices of a directed cycle of length ``g`` in the graph,
+          thus providing a certificate that the (odd) girth is at most ``g``,
+          or ``None`` if ``g`` is infinite
+
+        EXAMPLES:
+
+        A digraph with girth 4 and odd girth 5::
+
+            sage: G = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: G._girth_bfs(certificate=True)  # random
+            (4, [1, 3, 4, 0])
+            sage: G._girth_bfs(odd=True)
+            5
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.GenericGraph.girth` -- return the girth of the
+              graph
+            * :meth:`~sage.graphs.GenericGraph.odd_girth` -- return the odd
+              girth of the graph
+        """
+        n = self.num_verts()
+        best = n + 1
+        seen = set()
+        for w in self:
+            seen.add(w)
+            inSpan, outSpan = {w: None}, {w: None}
+            depth = 1
+            outList, inList = set([w]), set([w])
+            while 2 * depth <= best:
+                nextOutList, nextInList = set(), set()
+                for v in outList:
+                    for u in self.neighbor_out_iterator(v):
+                        if u in seen:
+                            continue
+                        if u not in outSpan:
+                            outSpan[u] = v
+                            nextOutList.add(u)
+                        if u in inList:
+                            best = depth * 2 - 1
+                            ends = (v, u)
+                            bestSpans = (outSpan, inSpan)
+                            break
+                    if best == 2 * depth - 1:
+                        break
+                if best == 2 * depth - 1:
+                    break
+                for v in inList:
+                    for u in self.neighbor_in_iterator(v):
+                        if u in seen:
+                            continue
+                        if u not in inSpan:
+                            inSpan[u] = v
+                            nextInList.add(u)
+                        if not odd and u in nextOutList:
+                            best = depth * 2
+                            ends = (u, v)
+                            bestSpans = (outSpan, inSpan)
+                            break
+                    if best == 2 * depth:
+                        break
+                if best <= 2:
+                    break
+                outList = nextOutList
+                inList = nextInList
+                depth += 1
+        if best == n + 1:
+            from sage.rings.infinity import Infinity
+            return (Infinity, None) if certificate else Infinity
+        if certificate:
+            cycles = {}
+            for x, span in zip(ends, bestSpans):
+                cycles[x] = []
+                y = x
+                while span[y] is not None:
+                    cycles[x].append(y)
+                    y = span[y]
+            cycles[x].append(y)
+            u, v = ends
+            return (best, list(reversed(cycles[u])) + cycles[v])
+        return best
 
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive

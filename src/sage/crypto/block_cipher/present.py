@@ -647,7 +647,6 @@ class PRESENT_KS(SageObject):
     \dots k_0` is updated as follows:
 
     .. MATH::
-        :nowrap:
 
         \begin{aligned}
         \ [k_{79}k_{78}\dots k_{1}k_{0}] &= [k_{18}k_{17}\dots k_{20}k_{19}] \\
@@ -676,7 +675,6 @@ class PRESENT_KS(SageObject):
     \dots k_0` is updated as follows:
 
     .. MATH::
-        :nowrap:
 
         \begin{aligned}
         \ [k_{127}k_{126}\dots k_{1}k_{0}] &= [k_{66}k_{65}\dots k_{68}k_{67}]

@@ -50,6 +50,15 @@ Validate the Sample Round Outputs for DES (cf. [KeSm1998]_ p. 124)::
     sage: DES().encrypt(P, K).hex()
     '82dcbafbdeab6602'
 
+Change cipher internals::
+
+    sage: from sage.crypto.sbox import SBox
+    sage: cipher = DES(rounds=1, doFinalRound=False)
+    sage: cipher.sboxes = [[SBox(range(16))]*4]*8
+    sage: cipher.keySchedule = lambda x: [0]  # return the 0 key as round key
+    sage: cipher.encrypt(plaintext=0x1234, key=0x0).hex()
+    '80004000d08100'
+
 AUTHORS:
 
 - Lukas Stennes (2019-03-29): initial version

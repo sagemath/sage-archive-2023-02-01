@@ -597,7 +597,7 @@ class DES(SageObject):
             (0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
              0, 1, 1, 0, 1, 1, 1, 0, 1, 1)
         """
-        return self._permutaion(self._sboxes(self._expand(right)+subkey))
+        return self._permutaion(self.sbox_layer(self._expand(right)+subkey))
 
     def _expand(self, right):
         r"""
@@ -624,7 +624,7 @@ class DES(SageObject):
              28, 29, 30, 31, 32,  1]
         return vector(GF(2), 48, [right[i-1] for i in E])
 
-    def _sboxes(self, block):
+    def sbox_layer(self, block):
         r"""
         Apply the Sboxes to ``block``.
 
@@ -635,7 +635,7 @@ class DES(SageObject):
             sage: B = vector(GF(2), 48, [0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,1,0,1,
             ....:                        1,1,0,1,0,1,0,0,0,0,1,1,0,0,1,1,0,0,1,
             ....:                        0,1,0,0,1,0,0,1,1,1])
-            sage: des._sboxes(B)
+            sage: des.sbox_layer(B)
             (0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1,
              0, 1, 1, 0, 0, 1, 0, 1, 1, 1)
 

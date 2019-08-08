@@ -71,6 +71,25 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.modules.vector_mod2_dense import Vector_mod2_dense
 from six import integer_types
 from sage.rings.integer import Integer
+from sage.crypto.sboxes import DES_S1_1, DES_S1_2, DES_S1_3, DES_S1_4
+from sage.crypto.sboxes import DES_S2_1, DES_S2_2, DES_S2_3, DES_S2_4
+from sage.crypto.sboxes import DES_S3_1, DES_S3_2, DES_S3_3, DES_S3_4
+from sage.crypto.sboxes import DES_S4_1, DES_S4_2, DES_S4_3, DES_S4_4
+from sage.crypto.sboxes import DES_S5_1, DES_S5_2, DES_S5_3, DES_S5_4
+from sage.crypto.sboxes import DES_S6_1, DES_S6_2, DES_S6_3, DES_S6_4
+from sage.crypto.sboxes import DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4
+from sage.crypto.sboxes import DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4
+from itertools import chain
+
+
+sboxes = [[DES_S1_1, DES_S1_2, DES_S1_3, DES_S1_4],
+          [DES_S2_1, DES_S2_2, DES_S2_3, DES_S2_4],
+          [DES_S3_1, DES_S3_2, DES_S3_3, DES_S3_4],
+          [DES_S4_1, DES_S4_2, DES_S4_3, DES_S4_4],
+          [DES_S5_1, DES_S5_2, DES_S5_3, DES_S5_4],
+          [DES_S6_1, DES_S6_2, DES_S6_3, DES_S6_4],
+          [DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4],
+          [DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4]]
 
 
 class DES(SageObject):
@@ -367,6 +386,7 @@ class DES(SageObject):
         self._keySize = keySize
         if keySize not in (56, 64):
             raise ValueError('key size must be 56 or 64')
+        self.sboxes = sboxes
         self._doFinalRound = doFinalRound
         self._blocksize = 64
 
@@ -656,25 +676,9 @@ class DES(SageObject):
 
             :mod:`sage.crypto.sboxes`
         """
-        from sage.crypto.sboxes import DES_S1_1, DES_S1_2, DES_S1_3, DES_S1_4
-        from sage.crypto.sboxes import DES_S2_1, DES_S2_2, DES_S2_3, DES_S2_4
-        from sage.crypto.sboxes import DES_S3_1, DES_S3_2, DES_S3_3, DES_S3_4
-        from sage.crypto.sboxes import DES_S4_1, DES_S4_2, DES_S4_3, DES_S4_4
-        from sage.crypto.sboxes import DES_S5_1, DES_S5_2, DES_S5_3, DES_S5_4
-        from sage.crypto.sboxes import DES_S6_1, DES_S6_2, DES_S6_3, DES_S6_4
-        from sage.crypto.sboxes import DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4
-        from sage.crypto.sboxes import DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4
-        from itertools import chain
-        sbox = [[DES_S1_1, DES_S1_2, DES_S1_3, DES_S1_4],
-                [DES_S2_1, DES_S2_2, DES_S2_3, DES_S2_4],
-                [DES_S3_1, DES_S3_2, DES_S3_3, DES_S3_4],
-                [DES_S4_1, DES_S4_2, DES_S4_3, DES_S4_4],
-                [DES_S5_1, DES_S5_2, DES_S5_3, DES_S5_4],
-                [DES_S6_1, DES_S6_2, DES_S6_3, DES_S6_4],
-                [DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4],
-                [DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4]]
+        s = self.sboxes
         block = [block[i:i+6] for i in range(0, 48, 6)]
-        block = list(chain.from_iterable([sbox[i][ZZ([b[5], b[0]], 2)](b[1:5])
+        block = list(chain.from_iterable([s[i][ZZ([b[5], b[0]], 2)](b[1:5])
                                           for i, b in enumerate(block)]))
         return vector(GF(2), 32, block)
 

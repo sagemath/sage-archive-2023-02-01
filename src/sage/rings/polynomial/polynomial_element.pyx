@@ -835,7 +835,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _fast_float_(self, *vars):
         """
-        Returns a quickly-evaluating function on floats.
+        Return a quickly-evaluating function on floats.
 
         EXAMPLES::
 
@@ -1763,7 +1763,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def square(self):
         """
-        Returns the square of this polynomial.
+        Return the square of this polynomial.
 
         .. TODO::
 
@@ -1820,7 +1820,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_square(self, root=False):
         """
-        Returns whether or not polynomial is square. If the optional
+        Return whether or not polynomial is square.
+
+        If the optional
         argument ``root`` is set to ``True``, then also returns the square root
         (or ``None``, if the polynomial is not square).
 
@@ -1902,7 +1904,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
           this is the coefficient ring.
 
         - ``degree`` (None or nonzero integer) -- Used for polynomials
-          over finite fields.  Returns a root of degree
+          over finite fields.  Return a root of degree
           ``abs(degree)`` over the ground field.  If negative, also
           assumes that all factors of this polynomial are of degree
           ``abs(degree)``.  If None, returns a root of minimal degree
@@ -2885,7 +2887,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _mul_fateman(self, right):
         r"""
-        Returns the product of two polynomials using Kronecker's trick to
+        Return the product of two polynomials using Kronecker's trick to
         do the multiplication. This could be used over a generic base
         ring.
 
@@ -4262,7 +4264,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if not (ch == 0 or is_prime(ch)):
             raise NotImplementedError("factorization of polynomials over rings with composite characteristic is not implemented")
 
-        from sage.rings.number_field.all import NumberField
         from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
         n = None
@@ -4722,7 +4723,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_primitive(self, n=None, n_prime_divs=None):
         """
-        Returns ``True`` if the polynomial is primitive.  The semantics of
+        Return ``True`` if the polynomial is primitive.  The semantics of
         "primitive" depend on the polynomial coefficients.
 
         - (field theory) A polynomial of degree `m` over a finite field
@@ -4893,7 +4894,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_monomial(self):
         """
-        Returns True if self is a monomial, i.e., a power of the generator.
+        Return True if self is a monomial, i.e., a power of the generator.
 
         EXAMPLES::
 
@@ -5036,7 +5037,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def sylvester_matrix(self, right, variable = None):
         """
-        Returns the Sylvester matrix of self and right.
+        Return the Sylvester matrix of self and right.
 
         Note that the Sylvester matrix is not defined if one of the polynomials
         is zero.
@@ -8496,10 +8497,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         t1 = t1 / c
         return t1, t0
 
-
     def variables(self):
         """
-        Returns the tuple of variables occurring in this polynomial.
+        Return the tuple of variables occurring in this polynomial.
 
         EXAMPLES::
 
@@ -8521,7 +8521,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def args(self):
         """
-        Returns the generator of this polynomial ring, which is the (only)
+        Return the generator of this polynomial ring, which is the (only)
         argument used when calling self.
 
         EXAMPLES::
@@ -8615,7 +8615,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def add_bigoh(self, prec):
         r"""
-        Returns the power series of precision at most prec got by adding
+        Return the power series of precision at most prec got by adding
         `O(q^\text{prec})` to self, where q is its variable.
 
         EXAMPLES::
@@ -8717,7 +8717,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def shift(self, n):
         r"""
-        Returns this polynomial multiplied by the power `x^n`. If
+        Return this polynomial multiplied by the power `x^n`. If
         `n` is negative, terms below `x^n` will be
         discarded. Does not change this polynomial (since polynomials are
         immutable).
@@ -8794,7 +8794,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     cpdef Polynomial truncate(self, long n):
         r"""
-        Returns the polynomial of degree ` < n` which is equivalent
+        Return the polynomial of degree ` < n` which is equivalent
         to self modulo `x^n`.
 
         EXAMPLES::
@@ -8982,7 +8982,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def radical(self):
         """
-        Returns the radical of self; over a field, this is the product of
+        Return the radical of self.
+
+        Over a field, this is the product of
         the distinct irreducible factors of self. (This is also sometimes
         called the "square-free part" of self, but that term is ambiguous;
         it is sometimes used to mean the quotient of self by its maximal
@@ -9116,8 +9118,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     cpdef long number_of_terms(self):
         """
-        Returns the number of non-zero coefficients of self. Also called weight,
-        hamming weight or sparsity.
+        Return the number of non-zero coefficients of ``self``.
+
+        Also called weight, Hamming weight or sparsity.
 
         EXAMPLES::
 
@@ -9152,7 +9155,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def map_coefficients(self, f, new_base_ring=None):
         """
-        Returns the polynomial obtained by applying ``f`` to the non-zero
+        Return the polynomial obtained by applying ``f`` to the non-zero
         coefficients of ``self``.
 
         If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
@@ -10085,8 +10088,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<c> = PolynomialRing(ZZ)
             sage: S.<z> = PolynomialRing(R)
             sage: F = c*z^2 + c^2
-            sage: F.specialization(dict({c:2}))
+            sage: F.specialization({c:2})
             2*z^2 + 4
+
+        ::
+
+            sage: A.<c> = QQ[]
+            sage: R.<x> = Frac(A)[]
+            sage: X = (1 + x/c).specialization({c:20})
+            sage: X
+            1/20*x + 1
+            sage: X.parent()
+            Univariate Polynomial Ring in x over Rational Field
         """
         if D is None:
             if phi is None:
@@ -10264,7 +10277,7 @@ cdef list do_schoolbook_product(list x, list y, Py_ssize_t deg):
     lists, using the schoolbook algorithm.
 
     This is the core of _mul_generic and the code that is used by
-    _mul_karatsuba bellow a threshold.
+    _mul_karatsuba below a threshold.
 
     INPUT:
 
@@ -10925,9 +10938,10 @@ cdef class Polynomial_generic_dense(Polynomial):
 
     def shift(self, Py_ssize_t n):
         r"""
-        Returns this polynomial multiplied by the power `x^n`. If
-        `n` is negative, terms below `x^n` will be
-        discarded. Does not change this polynomial.
+        Return this polynomial multiplied by the power `x^n`.
+
+        If `n` is negative, terms below `x^n` will be discarded. Does
+        not change this polynomial.
 
         EXAMPLES::
 
@@ -11068,7 +11082,7 @@ cdef class Polynomial_generic_dense(Polynomial):
 
     cpdef Polynomial truncate(self, long n):
         r"""
-        Returns the polynomial of degree ` < n` which is equivalent
+        Return the polynomial of degree ` < n` which is equivalent
         to self modulo `x^n`.
 
         EXAMPLES::
@@ -11347,7 +11361,7 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
 
     def prec_degree(self):
         r"""
-        Returns the largest `n` so that precision information is
+        Return the largest `n` so that precision information is
         stored about the coefficient of `x^n`.
 
         Always greater than or equal to degree.

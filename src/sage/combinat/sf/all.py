@@ -7,7 +7,7 @@ from sage.misc.lazy_import import lazy_import
 
 # In the long run, this will be the single entry point
 # Nothing else will be exported
-from .sf import SymmetricFunctions
+lazy_import('sage.combinat.sf.sf', 'SymmetricFunctions')
 
 # Advanced stuff:
 

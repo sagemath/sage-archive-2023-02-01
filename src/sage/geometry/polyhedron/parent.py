@@ -81,7 +81,12 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         sage: Polyhedra(RR, 3)
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        ValueError: no default backend for computations with Real Field with 53 bits of precision
+        sage: Polyhedra(QQ[I], 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid base ring: Number Field in I with defining polynomial x^2 + 1 with I = 1*I cannot be coerced to a real field
+
     """
     if backend is None:
         if base_ring is ZZ or base_ring is QQ:
@@ -92,11 +97,12 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
             # TODO: find a more robust way of checking that the coefficients are indeed
             # real numbers
             if not RDF.has_coerce_map_from(base_ring):
-                raise ValueError("invalid base ring")
+                raise ValueError("invalid base ring: {} cannot be coerced to a real field".format(base_ring))
             backend = 'field'
         else:
-            raise ValueError("no appropriate backend for computations with {}".format(base_ring))
+            raise ValueError("no default backend for computations with {}".format(base_ring))
 
+    from sage.symbolic.ring import SR
     if backend == 'ppl' and base_ring is QQ:
         return Polyhedra_QQ_ppl(base_ring, ambient_dim, backend)
     elif backend == 'ppl' and base_ring is ZZ:
@@ -105,6 +111,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         return Polyhedra_QQ_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'normaliz' and base_ring is ZZ:
         return Polyhedra_ZZ_normaliz(base_ring, ambient_dim, backend)
+    elif backend == 'normaliz' and (base_ring is SR or base_ring.is_exact()):
+        return Polyhedra_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'cdd' and base_ring in (ZZ, QQ):
         return Polyhedra_QQ_cdd(QQ, ambient_dim, backend)
     elif backend == 'cdd' and base_ring is RDF:

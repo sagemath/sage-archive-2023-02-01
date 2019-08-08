@@ -75,11 +75,12 @@ except ValueError:
 from sage.env import cython_aliases
 aliases = cython_aliases()
 
+arb_dylib_name = aliases["ARB_LIBRARY"]
 library_order_list = aliases["SINGULAR_LIBRARIES"] + [
     "ec", "ecm",
 ] + aliases["LINBOX_LIBRARIES"] + aliases["FFLASFFPACK_LIBRARIES"] + aliases["GSL_LIBRARIES"] + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
-    "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
+    arb_dylib_name, "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
     "brial",
     "brial_groebner",
     "m4rie",
@@ -354,6 +355,9 @@ ext_modules = [
     Extension('sage.graphs.generic_graph_pyx',
               sources = ['sage/graphs/generic_graph_pyx.pyx']),
 
+    Extension('sage.graphs.traversals',
+              sources = ['sage/graphs/traversals.pyx']),
+
     Extension('sage.graphs.graph_generators_pyx',
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
 
@@ -372,6 +376,12 @@ ext_modules = [
 
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
+
+    Extension('sage.graphs.graph_coloring',
+              sources = ['sage/graphs/graph_coloring.pyx']),
+
+    Extension('sage.graphs.line_graph',
+              sources = ['sage/graphs/line_graph.pyx']),
 
     Extension('sage.graphs.weakly_chordal',
               sources = ['sage/graphs/weakly_chordal.pyx']),
@@ -765,7 +775,7 @@ ext_modules = [
 
     Extension("sage.matrix.matrix_complex_ball_dense",
               ["sage/matrix/matrix_complex_ball_dense.pyx"],
-              libraries=['arb']),
+              libraries=[arb_dylib_name]),
 
     Extension('sage.matrix.matrix_complex_double_dense',
               sources = ['sage/matrix/matrix_complex_double_dense.pyx']),

@@ -128,8 +128,8 @@ REFERENCES:
 .. [AK1994] \S. Ariki and K. Koike.
             *A Hecke algebra of* `(\mathbb{Z}/r\mathbb{Z})\wr\mathfrak{S}_n`
             *and construction of its irreducible representations.*
-            Adv. Math. **106** (1994), 216–243.
-            mathscinet:`MR1279219`
+            Adv. Math. **106** (1994), 216–243,
+            :mathscinet:`MR1279219`
 
 .. [AKMMMP2002] Sang Yook An, Seog Young Kim, David C. Marshall,
                 Susan H. Marshall, William G. McCallum,
@@ -227,6 +227,10 @@ REFERENCES:
             graphs*. FPSAC 2008, 141-152, Discrete
             Math. Theor. Comput. Sci. Proc., AJ, Assoc. Discrete
             Math. Theor. Comput. Sci., (2008). :arxiv:`0804.1587v1`
+
+.. [AO2018] Sami Assaf and Ezgi Kantarci Oguz. *A local characterization
+            of crystals for the quantum queer superalgebra*.
+            Preprint (2018). :arxiv:`1803.06317`
 
 .. [As2008b] Sami Assaf. *Dual equivalence graphs and a
              combinatorial proof of LLT and Macdonald positivity*.
@@ -420,7 +424,7 @@ REFERENCES:
                  A. Schilling, M. Yip. *A minimaj-preserving crystal on ordered
                  multiset partitions*.
                  Advances in Applied Math. 95 (2018) 96-115,
-                 :doi:`10.1016/j.aam.2017.11.006`. :arXiv:`1707.08709v2`.
+                 :doi:`10.1016/j.aam.2017.11.006`. :arxiv:`1707.08709v2`.
 
 .. [BCJ2007] Gregory V. Bard, and Nicolas T. Courtois, and Chris
              Jefferson.  *Efficient Methods for Conversion and
@@ -431,7 +435,7 @@ REFERENCES:
 
 .. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
            Fast and Simple Computation of Top-k Closeness Centralities.
-           :arXiv:`1507.01490`.
+           :arxiv:`1507.01490`.
 
 .. [BCN1989] Andries E. Brouwer, Arjeh M. Cohen, and Arnold Neumaier.
              *Distance-Regular Graphs*, Springer, 1989.
@@ -469,7 +473,7 @@ REFERENCES:
 
 .. [BdVO2012] Christopher Bowman, Maud De Visscher, Rosa Orellana.
               *The partition algebra and the Kronecker coefficients*.
-              :arXiv:`1210.5579v6`.
+              :arxiv:`1210.5579v6`.
 
 .. [Bec1992] Bernhard Beckermann. "A reliable method for computing M-Padé
              approximants on arbitrary staircases". J. Comput. Appl. Math.,
@@ -568,7 +572,7 @@ REFERENCES:
 .. [BH2017] Georgia Benkart and Tom Halverson. *Partition algebras*
             `\mathsf{P}_k(n)` *with* `2k > n` *and the fundamental theorems
             of invariant theory for the symmetric group* `\mathsf{S}_n`.
-            Preprint (2017). :arXiv:`1707.1410`
+            Preprint (2017). :arxiv:`1707.1410`
 
 .. [BHS2008] Robert Bradshaw, David Harvey and William
              Stein. strassen_window_multiply_c. strassen.pyx, Sage
@@ -584,6 +588,10 @@ REFERENCES:
 .. [BHZ2005] \N. Bergeron, C. Hohlweg, and M. Zabrocki, *Posets
              related to the Connectivity Set of Coxeter Groups*.
              :arxiv:`math/0509271v3`
+
+.. [Big1993] Norman Linstead Biggs. *Algebraic Graph Theory*, 2nd ed.
+             Cambridge University Press, 1993.
+             :doi:`10.1017/CBO9780511608704`
 
 .. [Big1999] Stephen J. Bigelow. The Burau representation is not
              faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
@@ -810,7 +818,7 @@ REFERENCES:
 .. [Bre1993] Richard P. Brent.
              *On computing factors of cyclotomic polynomials*.
              Mathematics of Computation. **61** (1993). No. 203. pp 131--149.
-             :arXiv:`1004.5466v1`. http://www.jstor.org/stable/2152941
+             :arxiv:`1004.5466v1`. http://www.jstor.org/stable/2152941
 
 .. [Bre1997] \T. Breuer "Integral bases for subfields of cyclotomic
              fields" AAECC 8, 279--289 (1997).
@@ -1079,6 +1087,11 @@ REFERENCES:
             algebraic geometry*, volume 68 of *Mathematical Surveys
             and Monographs*. American Mathematical Society,
             Providence, RI, 1999.
+
+.. [CK2008] Derek G. Corneil and Richard M. Krueger, *A Unified View
+            of Graph Searching*, SIAM Jounal on Discrete Mathematics,
+            22(4), 1259–-1276, 2008.
+            :doi:`10.1137/050623498`
 
 .. [CK2001] \M. Casella and W. Kühnel, "A triangulated K3 surface with
             the minimum number of vertices", Topology 40 (2001),
@@ -1570,7 +1583,7 @@ REFERENCES:
 .. [EGHLSVY] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
              Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
              "Introduction to representation theory",
-             :arXiv:`0901.0827v5`.
+             :arxiv:`0901.0827v5`.
 
 .. [EKLP1992] \N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
               *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic
@@ -1660,7 +1673,7 @@ REFERENCES:
 
 .. [Feingold2004] Alex J. Feingold. *Fusion rules for affine Kac-Moody algebras*.
                   Contemp. Math., **343** (2004), pp. 53-96.
-                  :arXiv:`math/0212387`
+                  :arxiv:`math/0212387`
 
 .. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
              Canonical Representatives of Their Semilinear Isometry
@@ -1761,7 +1774,7 @@ REFERENCES:
 
 .. [Fuchs1994] \J. Fuchs. *Fusion Rules for Conformal Field Theory*.
                Fortsch. Phys. **42** (1994), no. 1, pp. 1-48.
-               :doi:`10.1002/prop.2190420102`, :arXiv:`hep-th/9306162`.
+               :doi:`10.1002/prop.2190420102`, :arxiv:`hep-th/9306162`.
 
 .. [Ful1989] \W. Fulton. Algebraic curves: an introduction to algebraic geometry. Addison-Wesley,
              Redwood City CA (1989).
@@ -2075,6 +2088,10 @@ REFERENCES:
              Canadian Journal of Mathematics,
              1960
              http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
+
+.. [Har1962] Frank Harary. *The determinant of the adjacency matrix of a graph*.
+             SIAM Review 4 (1962), pp. 202-210.
+             :doi:`10.1137/1004057`
 
 .. [Har1977] \R. Hartshorne. Algebraic Geometry. Springer-Verlag, New York, 1977.
 
@@ -2706,8 +2723,7 @@ REFERENCES:
 .. [KSV2011] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts
              of projective congruence groups", J. London
              Math. Soc. (2011) 83 (1): 96-120,
-             :doi:`10.1112/jlms/jdq062`. Arxiv version:
-             :arxiv:`0905.4798`.
+             :doi:`10.1112/jlms/jdq062`, :arxiv:`0905.4798`.
 
 .. [KT1986] \N. Kerzman and M. R. Trummer. "Numerical Conformal
             Mapping via the Szego kernel". Journal of Computational
@@ -2915,7 +2931,7 @@ REFERENCES:
 
 .. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
                *A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.*
-               DMTCS proc, to appear ( :arXiv:`1211.6019` )
+               DMTCS proc, to appear ( :arxiv:`1211.6019` )
 
 .. [Lod1995] Jean-Louis Loday. *Cup-product for Leibniz cohomology and
              dual Leibniz algebras*. Math. Scand., pp. 189--196
@@ -2970,7 +2986,7 @@ REFERENCES:
 .. [LR0102066] Jean-Louis Loday and Maria O. Ronco.
                Order structure on the algebra of permutations
                and of planar binary trees.
-               :arXiv:`math/0102066v1`.
+               :arxiv:`math/0102066v1`.
 
 .. [LS] \A. Lum, W. Stein. Verification of the Birch and
         Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
@@ -2992,7 +3008,7 @@ REFERENCES:
 
 .. [LS2012] \K.-H. Lee and B. Salisbury.
             Young tableaux, canonical bases, and the Gindikin-Karpelevich formula.
-            :arXiv:`1205.6006`.
+            :arxiv:`1205.6006`.
 
 .. [LS2017] Xuan Liu and Travis Scrimshaw. *A uniform approach to soliton
             cellular automata using rigged configurations*.
@@ -3202,6 +3218,10 @@ REFERENCES:
 
 .. [Mil2004] Victor S. Miller, "The Weil pairing, and its
              efficient calculation", J. Cryptol., 17(4):235-261, 2004
+
+.. [Mil2017] Arthur Milchior, *(Quasi-)linear time algorithm to compute
+             LexDFS, LexUP and LexDown orderings*. (2017)
+             :arxiv:`1701.00305`
 
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
@@ -3758,7 +3778,7 @@ REFERENCES:
 
 .. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.
              *Spectra of Symmetrized Shuffling Operators*.
-             :arXiv:`1102.2460v2`.
+             :arxiv:`1102.2460v2`.
 
 .. [Rub1991] \K. Rubin. The "main conjectures" of Iwasawa theory for
              imaginary quadratic fields. Invent. Math. 103 (1991),
@@ -4122,7 +4142,7 @@ REFERENCES:
 
 .. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
              permutations and on colored permutations, Preprint.
-             :arXiv:`0808.2822`.
+             :arxiv:`0808.2822`.
 
 .. [STW2013] \J. Schejbal, E. Tews, and J. Wälde,
              *Reverse engineering of chiasmus from gstool*; in

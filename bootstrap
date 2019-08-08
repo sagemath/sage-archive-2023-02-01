@@ -151,7 +151,7 @@ save () {
     echo "$NEWCONFVERSION" >$PKG/package-version.txt
     
     # Compute checksum
-    sage --package fix-checksum configure
+    ./sage --package fix-checksum configure
 }
 
 

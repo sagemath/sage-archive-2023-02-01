@@ -6,6 +6,8 @@ for dir in bin include; do
     fi
 done
 
+. ./set-library-path
+
 # Install gcc
 cd gcc-build
 sdh_make_install

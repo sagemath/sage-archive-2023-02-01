@@ -30,7 +30,7 @@ cd src/
 
 sdh_configure $SAGE_CONFIGURE_NTL \
               $SAGE_CONFIGURE_PARI \
-              $SAGE_CONFIGURE_FLINT \
+              --with-flint=$SAGE_FLINT_PREFIX \
               --with-boost="no" \
               --disable-allprogs
 sdh_make

@@ -543,10 +543,9 @@ class DES(SageObject):
             key = vector(GF(2), 64, key)
         roundKeys = self.keySchedule(key)
         state = self._ip(state)
-        L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds][::-1]:
-            L, R = R, L + self._f(R, k)
-        state = vector(GF(2), 64, list(R)+list(L))
+            state = self.round(state, k)
+        state = vector(GF(2), 64, list(state[32:64])+list(state[0:32]))
         state = self._inv_ip(state)
         return state if inputType == 'vector' else ZZ(list(state)[::-1], 2)
 

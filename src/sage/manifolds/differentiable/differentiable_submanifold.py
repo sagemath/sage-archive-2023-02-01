@@ -77,10 +77,10 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
     - ``structure`` -- manifold structure (see
       :class:`~sage.manifolds.structure.TopologicalStructure` or
       :class:`~sage.manifolds.structure.RealTopologicalStructure`)
-    - ``ambient`` -- (default: ``None``) manifold of destination
-      of the immersion. If ``None``, set to ``self``
+    - ``ambient`` -- (default: ``None``) codomain of the immersion `\phi`;
+      must be a differentiable manifold. If ``None``, it is set to ``self``
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
-      topological manifold; the created object is then an open subset of
+      differentiable manifold; the created object is then an open subset of
       ``base_manifold``
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the manifold; if none are provided, it is set to ``name``
@@ -111,16 +111,25 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
         sage: CM.<x,y,z> = M.chart()
         sage: CN.<u,v> = N.chart()
 
-    Let us define a 1-dimension foliation indexed by `t`. The inverse map is
-    needed in order to compute the adapted chart in the ambient manifold::
+    Let us define a 1-dimensional foliation indexed by `t`::
 
         sage: t = var('t')
-        sage: phi = N.diff_map(M,{(CN, CM):[u, v, t+u**2+v**2]}); phi
-        Differentiable map from the 2-dimensional differentiable submanifold N
-         embedded in 3-dimensional differentiable manifold M to the
-         3-dimensional differentiable manifold M
-        sage: phi_inv = M.diff_map(N, {(CM, CN):[x, y]})
-        sage: phi_inv_t = M.scalar_field({CM: z-x**2-y**2})
+        sage: phi = N.continuous_map(M, {(CN,CM): [u, v, t+u^2+v^2]})
+        sage: phi.display()
+        N --> M
+           (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+
+    The foliation inverse maps are needed for computing the adapted chart on
+    the ambient manifold::
+
+        sage: phi_inv = M.continuous_map(N, {(CM, CN): [x, y]})
+        sage: phi_inv.display()
+        M --> N
+           (x, y, z) |--> (u, v) = (x, y)
+        sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
+        sage: phi_inv_t.display()
+        M --> R
+        (x, y, z) |--> -x^2 - y^2 + z
 
     `\phi` can then be declared as an embedding `N\to M`::
 
@@ -134,6 +143,8 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
 
         sage: N.adapted_chart()
         [Chart (M, (u_M, v_M, t_M))]
+        sage: M.atlas()
+        [Chart (M, (x, y, z)), Chart (M, (u_M, v_M, t_M))]
         sage: len(M.coord_changes())
         2
 
@@ -150,13 +161,19 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
         r"""
         Construct a submanifold of a differentiable manifold.
 
-        EXAMPLES::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: N = Manifold(2, 'N', ambient=M)
             sage: N
             2-dimensional differentiable submanifold N embedded in 3-dimensional
              differentiable manifold M
+            sage: S = Manifold(2, 'S', latex_name=r'\Sigma', ambient=M,
+            ....:              start_index=1)
+            sage: latex(S)
+            \Sigma
+            sage: S.start_index()
+            1
 
         """
         DifferentiableManifold.__init__(self, n, name, field, structure,
@@ -165,10 +182,7 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
                                         latex_name=latex_name,
                                         start_index=start_index,
                                         category=category)
-        TopologicalSubmanifold.__init__(self, n, name, field, structure,
-                                        ambient=ambient,
-                                        base_manifold=base_manifold,
-                                        category=category)
+        self._init_immersion(ambient=ambient)
 
     def _repr_(self):
         r"""

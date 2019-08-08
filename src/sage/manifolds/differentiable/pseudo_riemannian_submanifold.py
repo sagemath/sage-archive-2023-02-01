@@ -19,10 +19,10 @@ Riemannian or Lorentzian.
 The following example explains how to compute the various quantities associated
 with the hyperbolic slicing of the 3-dimensional Minkowski space.
 
-The manifolds must first be declared::
+Let us first declare the ambient manifold `M` and the submanifold `N`::
 
     sage: M = Manifold(3, 'M', structure="Lorentzian")
-    sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
+    sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian", start_index=1)
 
 The considered slice being spacelike hypersurfaces, they are Riemannian
 manifolds.
@@ -31,9 +31,9 @@ Let us continue with chart declarations and various free variables::
 
     sage: E.<w,x,y> = M.chart()
     sage: C.<rh,th> = N.chart(r'rh:(0,+oo):\rho th:(0,2*pi):\theta')
-    sage: b = var('b',domain='real')
+    sage: b = var('b', domain='real')
     sage: assume(b>0)
-    sage: t = var('t',domain='real')
+    sage: t = var('t', domain='real')
 
 Here `b` is the hyperbola semi major axis, and `t` is the parameter of the
 foliation.
@@ -41,13 +41,13 @@ foliation.
 One must then define the embedding, as well as the inverse embedding and the
 inverse concerning the foliation parameter::
 
-    sage: phi = N.diff_map(M,{(C,E): [b*cosh(rh)+t,
-    ....:                             b*sinh(rh)*cos(th),
-    ....:                             b*sinh(rh)*sin(th)]})
-    sage: phi_inv = M.diff_map(N,{(E,C):[log(sqrt(x^2+y^2+b^2)/b+
-    ....:                                sqrt((x^2+y^2+b^2)/b^2-1)),
-    ....:                                atan2(y,x)]})
-    sage: phi_inv_t = M.scalar_field({E:w-sqrt(x^2+y^2+b^2)})
+    sage: phi = N.diff_map(M, {(C,E): [b*cosh(rh)+t,
+    ....:                              b*sinh(rh)*cos(th),
+    ....:                              b*sinh(rh)*sin(th)]})
+    sage: phi_inv = M.diff_map(N, {(E,C): [log(sqrt(x^2+y^2+b^2)/b+
+    ....:                                  sqrt((x^2+y^2+b^2)/b^2-1)),
+    ....:                                  atan2(y,x)]})
+    sage: phi_inv_t = M.scalar_field({E: w-sqrt(x^2+y^2+b^2)})
 
 One can check that the inverse is correct with::
 
@@ -66,24 +66,23 @@ in the result::
     w
     sage: forget(w-t>0)
 
-The immersion can then be declared::
+The embedding can then be declared::
 
-    sage: N.set_immersion(phi, inverse=phi_inv, var=t,
+    sage: N.set_embedding(phi, inverse=phi_inv, var=t,
     ....:                 t_inverse = {t: phi_inv_t})
 
-This line doesn't do any calculation yet. It just check the coherence of the
-arguments, but not the inverse, the user is trusted on this point. The user can
-also declare that the immersion is in fact an embedding::
+This line does not perform any calculation yet. It just check the coherence of
+the arguments, but not the inverse, the user is trusted on this point.
 
-    sage: N.declare_embedding()
-
-Finally, we initialize the metric of the Minkowski space::
+Finally, we initialize the metric `M` to be that of Minkowski space::
 
     sage: g = M.metric()
     sage: g[0,0], g[1,1], g[2,2] = -1, 1, 1
+    sage: g.display()
+    g = -dw*dw + dx*dx + dy*dy
 
-With this, the declaration the ambient manifold and its foliation is finished,
-and calculations can be performed.
+With this, the declaration the ambient manifold and its foliation parametrized
+by `t` is finished, and calculations can be performed.
 
 The first step is always to find a chart adapted to the foliation. This is done
 by the method "adapted_chart"::
@@ -91,20 +90,28 @@ by the method "adapted_chart"::
     sage: T = N.adapted_chart(); T
     [Chart (M, (rh_M, th_M, t_M))]
 
-``T`` contains a new chart defined on M. By default, the name of a coordinate
-will be the name of the coordinate in the submanifold chart indexed by the name
-of the ambient manifold.
+``T`` contains a new chart defined on `M`. By default, the coordinate names
+are constructed from the names of the submanifold coordinates and the foliation
+parameter indexed by the name of the ambient manifold. By this can be
+customized, see
+:meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.adapted_chart`.
 
-One can check that some coordinates changes have been introduced on `M`::
+One can check that the adapted chart has been added to `M`'s atlas, along with
+some coordinates changes::
 
+    sage: M.atlas()
+    [Chart (M, (w, x, y)), Chart (M, (rh_M, th_M, t_M))]
     sage: len(M.coord_changes())
     2
 
 Let us compute the induced metric (or first fundamental form)::
 
-    sage: N.induced_metric()[:] # long time
+    sage: gamma = N.induced_metric()  # long time
+    sage: gamma[:]
     [           b^2              0]
     [             0 b^2*sinh(rh)^2]
+    sage: gamma[1,1]
+    b^2
 
 the normal vector::
 
@@ -211,10 +218,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
     - ``structure`` -- manifold structure (see
       :class:`~sage.manifolds.structure.TopologicalStructure` or
       :class:`~sage.manifolds.structure.RealTopologicalStructure`)
-    - ``ambient`` -- (default: ``None``) manifold of destination
-      of the immersion. If ``None``, set to ``self``
+    - ``ambient`` -- (default: ``None``) codomain of the immersion; must be a
+      pseudo-Riemannian manifold. If ``None``, it is set to ``self``
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
-      topological manifold; the created object is then an open subset of
+      pseudo-Riemannian manifold; the created object is then an open subset of
       ``base_manifold``
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the manifold; if none are provided, it is set to ``name``
@@ -284,13 +291,19 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         r"""
         Construct a pseudo-Riemannian submanifold.
 
-        EXAMPLES::
+        TESTS::
 
             sage: M = Manifold(3, 'M', structure="pseudo-Riemannian")
             sage: N = Manifold(2, 'N', ambient=M, structure="pseudo-Riemannian")
             sage: N
             2-dimensional pseudo-Riemannian submanifold N embedded in
              3-dimensional differentiable manifold M
+            sage: S = Manifold(2, 'S', latex_name=r"\Sigma", ambient=M,
+            ....:              structure="pseudo-Riemannian", start_index=1)
+            sage: latex(S)
+            \Sigma
+            sage: S.start_index()
+            1
 
         """
 
@@ -303,13 +316,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                           metric_latex_name=metric_latex_name,
                                           start_index=start_index,
                                           category=category)
-        DifferentiableSubmanifold.__init__(self, n, name, self._field,
-                                           self._structure, ambient=ambient,
-                                           base_manifold=base_manifold,
-                                           latex_name=latex_name,
-                                           start_index=start_index,
-                                           category=category)
-
+        self._init_immersion(ambient=ambient)
         self._difft = None
         self._gradt = None
         self._normal = None
@@ -561,13 +568,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         where the star stands for the Hodge dual operator and the wedge for the
         exterior product.
 
-        This formula does not always define a proper vector field when multiple
-        charts overlap, because of the arbitrariness of the direction of the
-        normal vector. To avoid this problem, this function considers the graph
-        defined by the atlas of the submanifold and the changes of coordinates,
-        and only calculate the normal vector once by connected component. The
-        expression is then propagate by restriction, continuation, or change of
-        coordinates using a breadth-first exploration of the graph.
+        This formula does not always define a proper vector field when
+        multiple charts overlap, because of the arbitrariness of the direction
+        of the normal vector. To avoid this problem, the method ``normal()``
+        considers the graph defined by the atlas of the submanifold and the
+        changes of coordinates, and only calculate the normal vector once by
+        connected component. The expression is then propagate by restriction,
+        continuation, or change of coordinates using a breadth-first
+        exploration of the graph.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
@@ -669,7 +677,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._dim_foliation != 0:    # case foliation
             self._normal = self._sgn*self.lapse()*self.gradt()
-            self._normal.set_name("n", r"n")
+            self._normal.set_name("n")
             return self._normal
 
         # case no foliation:
@@ -851,7 +859,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                              "to perform this calculation")
         self._lapse = 1 / (self._sgn * self.ambient_metric()(
             self.gradt(), self.gradt())).sqrt()
-        self._lapse.set_name("N", r"N")
+        self._lapse.set_name("N")
         return self._lapse
 
     @cached_method
@@ -893,7 +901,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed "
                              "to perform this calculation")
-        self._shift = self._adapted_charts[0].frame()[self._dim]\
+        sia = self._ambient._sindex
+        self._shift = self._adapted_charts[0].frame()[self._dim + sia]\
             - self.lapse() * self.normal()
         self._shift.set_name("beta", r"\beta")
         return self._shift
@@ -949,13 +958,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         if self._ambient._dim-self._dim != 1:
-            raise ValueError("'ambient_second_fundamental_form' is defined"+
-                                      " only for hypersurfaces.")
+            raise ValueError("ambient_second_fundamental_form is defined"
+                             + " only for hypersurfaces")
         if self._ambient_second_fundamental_form is None:
             if self._dim_foliation == 0:
-                self._ambient_second_fundamental_form = \
-                               self.tensor_field(0, 2, sym=[(0, 1)], antisym=[],
-                                                 dest_map=self._immersion)
+                self._ambient_second_fundamental_form = self.tensor_field(0, 2,
+                                        sym=[(0, 1)], dest_map=self._immersion)
                 k = self.second_fundamental_form()
                 g = self.ambient_metric().along(self._immersion)
                 max_frame = self._ambient.default_frame().along(self._immersion)
@@ -985,7 +993,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                     - nab(self.normal()).contract(self.normal())\
                     .contract(self.ambient_metric())\
                     * self.normal().contract(self.ambient_metric())
-            self._ambient_second_fundamental_form.set_name("K", r"K")
+            self._ambient_second_fundamental_form.set_name("K")
         return self._ambient_second_fundamental_form
 
     ambient_extrinsic_curvature  = ambient_second_fundamental_form
@@ -1037,20 +1045,21 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         if self._ambient._dim-self._dim != 1:
-            raise ValueError("'second_fundamental_form' is defined"+
-                                      " only for hypersurfaces.")
+            raise ValueError("second_fundamental_form is defined only for"
+                             + " hypersurfaces")
         if self._second_fundamental_form is None:
-            resu = self.vector_field_module() \
-                .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
+            resu = self.vector_field_module().tensor((0, 2), name='K',
+                                                     sym=[(0, 1)])
             if self._dim_foliation != 0:
                 inverse_subs = {v: k for k, v in self._subs[0].items()}
-                self.ambient_extrinsic_curvature()
-                r = list(self._ambient.irange())
+                asff = self.ambient_second_fundamental_form()
+                adapted_chart = self._adapted_charts[0]
+                dsi = self._ambient._sindex - self._sindex
                 for i in self.irange():
-                    for j in self.irange():
-                        resu[i, j] = self.ambient_extrinsic_curvature()[
-                            self._adapted_charts[0].frame(), [r[i], r[j]]].expr(
-                            self._adapted_charts[0]).subs(inverse_subs)
+                    for j in self.irange(start=i):
+                        resu[i, j] = asff[adapted_chart.frame(),
+                                          i + dsi, j + dsi,
+                                          adapted_chart].expr().subs(inverse_subs)
             else:
                 nab = self.ambient_metric().connection('nabla', r'\nabla')
                 n = self.normal()

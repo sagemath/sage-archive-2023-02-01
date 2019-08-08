@@ -489,9 +489,9 @@ class DifferentiableManifold(TopologicalManifold):
     - ``structure`` -- manifold structure (see
       :class:`~sage.manifolds.structure.DifferentialStructure` or
       :class:`~sage.manifolds.structure.RealDifferentialStructure`)
-    - ``ambient`` -- (default: ``None``) if not ``None``, must be a
+    - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       differentiable manifold; the created object is then an open subset of
-      ``ambient``
+      ``base_manifold``
     - ``diff_degree`` -- (default: ``infinity``) degree `k` of
       differentiability
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to

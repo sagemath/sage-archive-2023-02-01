@@ -68,6 +68,9 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.modules.vector_mod2_dense import Vector_mod2_dense
+from six import integer_types
+from sage.rings.integer import Integer
 
 
 class DES(SageObject):
@@ -480,8 +483,12 @@ class DES(SageObject):
             sage: des.encrypt(P, K56) == C
             True
         """
-        state, inputType = _convert_to_vector(plaintext, self._blocksize)
-        key, _ = _convert_to_vector(key, self._keySize)
+        if isinstance(plaintext, (list, tuple, Vector_mod2_dense)):
+            inputType = 'vector'
+        elif isinstance(plaintext, integer_types + (Integer,)):
+            inputType = 'integer'
+        state = convert_to_vector(plaintext, self._blocksize)
+        key = convert_to_vector(key, self._keySize)
         if self._keySize == 56:
             # insert 'parity' bits
             key = list(key)
@@ -533,8 +540,12 @@ class DES(SageObject):
             sage: des.decrypt(C, K56).hex() == P
             True
         """
-        state, inputType = _convert_to_vector(ciphertext, 64)
-        key, _ = _convert_to_vector(key, self._keySize)
+        if isinstance(ciphertext, (list, tuple, Vector_mod2_dense)):
+            inputType = 'vector'
+        elif isinstance(ciphertext, integer_types + (Integer,)):
+            inputType = 'integer'
+        state = convert_to_vector(ciphertext, 64)
+        key = convert_to_vector(key, self._keySize)
         if self._keySize == 56:
             # insert 'parity' bits
             key = list(key)
@@ -832,7 +843,11 @@ class DES_KS(SageObject):
             pass a ``masterKey`` value on initialisation. Otherwise you can
             omit ``masterKey`` and pass a key when you call the object.
         """
-        key, inputType = _convert_to_vector(key, self._keySize)
+        if isinstance(key, (list, tuple, Vector_mod2_dense)):
+            inputType = 'vector'
+        elif isinstance(key, integer_types + (Integer,)):
+            inputType = 'integer'
+        key = convert_to_vector(key, self._keySize)
         roundKeys = []
         C, D = self._pc1(key)
         for i in range(16):
@@ -992,7 +1007,7 @@ class DES_KS(SageObject):
                       list(half[amount[i]:]) + list(half[0:amount[i]]))
 
 
-def _convert_to_vector(I, L):
+def convert_to_vector(I, L):
     r"""
     Convert ``I`` to a bit vector of length ``L``.
 
@@ -1002,26 +1017,24 @@ def _convert_to_vector(I, L):
 
     - ``L`` -- integer; the desired bit length of the ouput
 
-    OUTPUT: a tuple of
+    OUTPUT:
 
     - the ``L``-bit vector representation of ``I``
 
-    - a flag indicating the input type. Either ``'integer'`` or ``'vector'``.
-
     EXAMPLES::
 
-        sage: from sage.crypto.block_cipher.des import _convert_to_vector
-        sage: _convert_to_vector(0x1F, 8)
-        ((0, 0, 0, 1, 1, 1, 1, 1), 'integer')
+        sage: from sage.crypto.block_cipher.des import convert_to_vector
+        sage: convert_to_vector(0x1F, 8)
+        (0, 0, 0, 1, 1, 1, 1, 1)
         sage: v = vector(GF(2), 4, [1,0,1,0])
-        sage: _convert_to_vector(v, 4)
-        ((1, 0, 1, 0), 'vector')
+        sage: convert_to_vector(v, 4)
+        (1, 0, 1, 0)
     """
     try:
         state = vector(GF(2), L, ZZ(I).digits(2, padto=L)[::-1])
-        return state, 'integer'
+        return state
     except TypeError:
         # ignore the error and try list-like types
         pass
     state = vector(GF(2), L, [0]*(L-len(I))+list(I))
-    return state, 'vector'
+    return state

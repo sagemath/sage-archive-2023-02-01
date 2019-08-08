@@ -41,7 +41,7 @@ Validate the Sample Round Outputs for DES (cf. [KeSm1998]_ p. 124)::
     sage: P = 0
     sage: K = 0x10316E028C8F3B4A
     sage: for r in range(1, 17):
-    ....:     DES(rounds=r, doFinalRound=True).encrypt(P, K).hex()
+    ....:     DES(rounds=r, doFinalRound=False).encrypt(P, K).hex()
     '47092b5b'
     '47092b5b53f372af'
     '53f372af9f1d158b'
@@ -309,7 +309,7 @@ class DES(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, rounds=None, keySchedule='DES_KS', keySize=64, doFinalRound=False):
+    def __init__(self, rounds=None, keySchedule='DES_KS', keySize=64, doFinalRound=True):
         r"""
         Construct an instance of DES.
 
@@ -325,9 +325,9 @@ class DES(SageObject):
         - ``keySize`` -- (default: ``64``); the key length in bits. Must be
           ``56`` of ``64``. In the latter case the key contains 8 parity bits.
 
-        - ``doFinalRound`` -- (default: ``False``); if ``True`` a swap takes
-          places but the inverse initial permutation is omitted (i.e. you can
-          get the state after ``rounds``). This only effects encryption.
+        - ``doFinalRound`` -- boolean (default: ``True``); if ``False`` a swap
+          takes places but the inverse initial permutation is omitted (i.e. you
+          can get the state after ``rounds``). This only effects encryption.
 
         EXAMPLES::
 

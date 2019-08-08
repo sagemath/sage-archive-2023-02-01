@@ -714,7 +714,7 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
     - ``triangulation`` -- boolean (default: ``False``); whether to return
       the triangulation of given graph produced by the method.
 
-    - ``labels`` -- boolean (default: ``False`); whether to return the
+    - ``labels`` -- boolean (default: ``False``); whether to return the
       labels assigned to each vertex
 
     - ``initial_vertex`` -- (default: ``None``); the first vertex to

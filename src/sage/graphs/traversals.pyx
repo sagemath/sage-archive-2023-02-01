@@ -730,7 +730,7 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
     - the labels assigned to each vertex
 
     - a list of edges that when added to ``G`` will produce a triangulation
-    of ``G``
+      of ``G``
 
     EXAMPLES:
 

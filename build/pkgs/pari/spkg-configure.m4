@@ -3,28 +3,65 @@ SAGE_SPKG_CONFIGURE([pari], [
     m4_pushdef([SAGE_PARI_MINVER],["133889"])
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_READLINE])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_ELLDATA])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_GALDATA])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_GALPOL])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_SEADATA])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_PARI_SEADATA_SMALL])
-    AC_MSG_CHECKING([installing gmp/mpir? ])
-    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
+    AC_MSG_CHECKING([installing gmp/mpir or readline? ])
+    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes -o x$sage_spkg_install_readline = xyes; then dnl deps test
         AC_MSG_RESULT([yes; install pari as well])
         sage_spkg_install_pari=yes
     else
       AC_MSG_RESULT([no])
-      AC_MSG_CHECKING([installing readline or PARI/GP packages? ])
-      if test x$sage_spkg_install_readline = xyes -o x$sage_spkg_install_pari_galdata = xyes -o x$sage_spkg_install_pari_galpol = xyes \
-         -o x$sage_spkg_install_pari_seadata_small = xyes -o x$sage_spkg_install_pari_seadata = xyes -o x$sage_spkg_install_pari_elldata = xyes; then
-          AC_MSG_RESULT([yes; install pari as well])
-          sage_spkg_install_pari=yes
-      else
+      AC_MSG_CHECKING([installing PARI/GP packages? ])
+    AC_PATH_PROG([GP], [gp])
+    if test x$GP = x; then dnl GP test
+        AC_MSG_NOTICE([gp is not found])
+        sage_spkg_install_pari=yes
+    else
+        AC_MSG_CHECKING([is pari_elldata installed? ])
+        gp_ell_check=`echo "r=ellinit(\"11a1\"); r[[11]]" | $GP -qf`
+        if test x$gp_ell_check = x20008; then
+            AC_MSG_RESULT([yes])
+        else
+            AC_MSG_RESULT([no; cannot use system pari/GP without elldata package])
+            AC_MSG_NOTICE([Install elldata package and reconfigure.])
+            AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+            sage_spkg_install_pari=yes
+        fi
+        AC_MSG_CHECKING([is pari_galdata installed? ])
+        gp_gal_check=`echo "polgalois(x^8-2)[[1]]" | $GP -qf`
+        if test x$gp_gal_check = x16; then
+            AC_MSG_RESULT([yes])
+        else
+            AC_MSG_RESULT([no; cannot use system pari/GP without gapdata package])
+            AC_MSG_NOTICE([Install galdata package and reconfigure.])
+            AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+            sage_spkg_install_pari=yes
+        fi
+        AC_MSG_CHECKING([is pari_galpol installed? ])
+        gp_galp_check=`echo "galoisgetname(12,1)" | $GP -qf`
+        if test "x$gp_galp_check = xC3\ \:\ C4"; then
+            AC_MSG_RESULT([yes])
+        else
+            AC_MSG_RESULT([no; cannot use system pari/GP without galpol package])
+            AC_MSG_NOTICE([Install galpol package and reconfigure.])
+            AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+            sage_spkg_install_pari=yes
+        fi
+        AC_MSG_CHECKING([is pari_seadata installed? ])
+        gp_seadat_check=`echo "poldegree(ellmodulareqn(211)[[1]])" | $GP -qf`
+        if test x$gp_seadat_check = x212; then
+            AC_MSG_RESULT([yes])
+        else
+            AC_MSG_RESULT([no; cannot use system pari/GP without seadata package])
+            AC_MSG_NOTICE([Install seadata package and reconfigure.])
+            AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+            sage_spkg_install_pari=yes
+        fi
+    fi dnl end GP test
+
+      if test x$sage_spkg_install_pari = x; then dnl main PARI test
         AC_MSG_RESULT([no])
         AC_CHECK_HEADER([pari/pari.h], [], [sage_spkg_install_pari=yes])
         dnl matpermanent appears in pari 2.11
         AC_SEARCH_LIBS([matpermanent], [pari], [
-          if test x$GP != x; then
               AC_MSG_CHECKING([getting GP's version ])
               gp_version=`echo "v=version(); v[[1]]<<16 + v[[2]]<<8 + v[[3]]" | $GP -qf`
               AC_MSG_RESULT([$gp_version])
@@ -61,12 +98,9 @@ SAGE_SPKG_CONFIGURE([pari], [
                   AC_MSG_RESULT([no])
                   sage_spkg_install_pari=yes])
               AC_LANG_POP()
-          else
-              sage_spkg_install_pari=yes
-          fi
         ], [sage_spkg_install_pari=yes])
-      fi
-    fi
+      fi dnl end main PARI test
+    fi dnl end deps test
     m4_popdef([SAGE_PARI_MINVER])
 ], [], [], [
     if test x$sage_spkg_install_pari = xyes; then

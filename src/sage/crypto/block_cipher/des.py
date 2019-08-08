@@ -490,13 +490,10 @@ class DES(SageObject):
             key = vector(GF(2), 64, key)
         roundKeys = self.keySchedule(key)
         state = self._ip(state)
-        L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds]:
-            L, R = R, L + self._f(R, k)
+            state = self.round(state, k)
         if self._doFinalRound:
-            state = vector(GF(2), 64, list(L)+list(R))
-        else:
-            state = vector(GF(2), 64, list(R)+list(L))
+            state = vector(GF(2), 64, list(state[32:64])+list(state[0:32]))
             state = self._inv_ip(state)
         return state if inputType == 'vector' else ZZ(list(state)[::-1], 2)
 
@@ -579,6 +576,12 @@ class DES(SageObject):
               61, 53, 45, 37, 29, 21, 13, 5,
               63, 55, 47, 39, 31, 23, 15, 7]
         return vector(GF(2), 64, [block[i-1] for i in IP])
+
+    def round(self, state, round_key):
+        L, R = state[0:32], state[32:64]
+        L, R = R, L + self._f(R, round_key)
+        state = vector(GF(2), 64, list(L)+list(R))
+        return state
 
     def _f(self, right, subkey):
         r"""

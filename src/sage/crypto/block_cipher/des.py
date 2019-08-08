@@ -356,9 +356,9 @@ class DES(SageObject):
             DES block cipher with 11 rounds and the following key schedule:
             Original DES key schedule with 11 rounds
         """
-        self._keySchedule = DES_KS() if keySchedule == 'DES_KS' else keySchedule
-        self._rounds = self._keySchedule._rounds if rounds is None else rounds
-        if self._rounds > self._keySchedule._rounds:
+        self.keySchedule = DES_KS() if keySchedule == 'DES_KS' else keySchedule
+        self._rounds = self.keySchedule._rounds if rounds is None else rounds
+        if self._rounds > self.keySchedule._rounds:
             raise ValueError('number of rounds must be less or equal to the '
                              'number of rounds of the key schedule')
         self._keySize = keySize
@@ -442,7 +442,7 @@ class DES(SageObject):
             Original DES key schedule with 16 rounds
         """
         return('DES block cipher with %s rounds and the following key '
-               'schedule:\n%s' % (self._rounds, self._keySchedule.__repr__()))
+               'schedule:\n%s' % (self._rounds, self.keySchedule.__repr__()))
 
     def encrypt(self, plaintext, key):
         r"""
@@ -488,7 +488,7 @@ class DES(SageObject):
             for i in range(7, 64, 8):
                 key.insert(i, 0)
             key = vector(GF(2), 64, key)
-        roundKeys = self._keySchedule(key)
+        roundKeys = self.keySchedule(key)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds]:
@@ -544,7 +544,7 @@ class DES(SageObject):
             for i in range(7, 64, 8):
                 key.insert(i, 0)
             key = vector(GF(2), 64, key)
-        roundKeys = self._keySchedule(key)
+        roundKeys = self.keySchedule(key)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds][::-1]:

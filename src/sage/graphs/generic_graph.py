@@ -202,6 +202,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~GenericGraph.lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
+    :meth:`~lex_M` | Return an ordering of the vertices of G according the LexM graph traversal.
 
 **Distances:**
 
@@ -23625,6 +23626,29 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.traversals import lex_UP
     from sage.graphs.traversals import lex_DFS
     from sage.graphs.traversals import lex_DOWN
+
+    def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorithm=None):
+        r"""
+        Return an ordering of the vertices of G according the LexM graph traversal.
+
+        """
+        if algorithm == None:
+            if labels == True:
+                algorithm = "lex_M_slow"
+            else:
+                algorithm = "lex_M_fast"
+
+        if algorithm not in ["lex_M_slow", "lex_M_fast"]:
+            raise ValueError("unknown algorithm '{}'".format(algorithm))
+
+        if algorithm == "lex_M_slow":
+            from sage.graphs.traversals import lex_M_slow
+            return lex_M_slow(self, triangulation=triangulation, labels=labels, initial_vertex=initial_vertex)
+        else:
+            if labels:
+                raise ValueError("'{}' cannot return labels assigned to vertices".format(algorithm))
+            from sage.graphs.traversals import lex_M_fast
+            return lex_M_fast(self, triangulation=triangulation, initial_vertex=initial_vertex)
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""

@@ -661,9 +661,11 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         r"""
         Return the determinant computed with LinBox.
 
-        NOTE: This method is much slower than converting to a dense matrix and
-        computing the determinant there. There is not much point in making it
-        available. See :trac:`28318`.
+        .. NOTE::
+
+            This method is much slower than converting to a dense matrix and
+            computing the determinant there. There is not much point in making
+            it available. See :trac:`28318`.
 
         EXAMPLES::
 

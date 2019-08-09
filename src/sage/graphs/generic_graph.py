@@ -23629,7 +23629,52 @@ class GenericGraph(GenericGraph_pyx):
 
     def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorithm=None):
         r"""
-        Return an ordering of the vertices of G according the LexM graph traversal.
+        Return an ordering of the vertices according the LexM graph traversal.
+
+        LexM is a lexicographic ordering scheme that is a special type of
+        breadth-first-search. LexM can also produce a triangulation of the
+        given graph. This functionality is implemented in this method. For
+        more details on the algorithms used see sections 4 (``'lex_M_slow'``)
+        and 5.3 (``'lex_M_fast'``) of [RTL76]_.
+
+        .. NOTE::
+
+            This method works only for undirected graphs.
+
+        INPUT:
+
+        - ``triangulation`` boolean (default: `False``); if ``True``, a list of
+          edges that need to be added in order to triangulate the graph is
+          returned
+
+        - ``labels`` -- boolean (default: ``False``); whether to return the
+          labels assigned to each vertex
+
+        - ``initial_vertex`` -- (default: ``None``); the first vertex to
+          consider
+
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
+
+          - ``'lex_M_slow'``: slower implementation of LexM traversal
+
+          - ``'lex_M_fast'``: faster implementation of LexM traversal (works
+            only when ``labels`` is set to ``False``)
+
+          - ``None``: Sage chooses the best algorithm: ``'lex_M_slow'`` if
+            ``labels`` is set to ``True``, ``'lex_M_fast'`` otherwise.
+
+        OUTPUT:
+
+        Depending on the values of the parameters ``triangulation`` and
+        ``labels`` the method will return one or more of the following
+        (in that order):
+
+        - an ordering of vertices of the graph according to LexM ordering scheme
+
+        - the labels assigned to each vertex
+
+        - a list of edges that when added to the graph will triangulate it
 
         """
         if algorithm == None:

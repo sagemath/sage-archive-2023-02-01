@@ -2450,7 +2450,6 @@ def all_paths_iterator_cython(self, starting_vertices=None, ending_vertices=None
                                                            for v in starting_vertices}
 
     cdef priority_queue[pair[int, int]] pq
-    cdef vector[int] vec
     cdef int idx = 0
     cdef list idx_to_path = []
     for vi in vertex_iterators.values():

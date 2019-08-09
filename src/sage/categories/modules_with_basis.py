@@ -1217,9 +1217,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            Ensure that :trac:`28327` is fixed, and that we don't rely
-            unnecessarily on being able to coerce the base ring's zero
-            into the algebra::
+            Ensure that the two issues reported in :trac:`28327` are
+            fixed; that we don't rely unnecessarily on being able to
+            coerce the base ring's zero into the algebra, and that
+            we can find a random element in a trivial module::
 
                 sage: class Foo(CombinatorialFreeModule):
                 ....:     _no_generic_basering_coercion = True
@@ -1231,16 +1232,17 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: from sage.categories.magmatic_algebras \
                 ....:   import MagmaticAlgebras
                 sage: C = MagmaticAlgebras(QQ).WithBasis().Unital()
-                sage: F = Foo(QQ,(1,),category=C)
-                sage: F.random_element() in F
+                sage: F = Foo(QQ, tuple(), category=C)
+                sage: F.random_element() == F.zero()
                 True
 
             """
             indices = self.basis().keys()
             a = self.zero()
-            for i in range(n):
-                a += self.term(indices.random_element(),
-                               self.base_ring().random_element())
+            if not indices.is_empty():
+                for i in range(n):
+                    a += self.term(indices.random_element(),
+                                   self.base_ring().random_element())
             return a
 
     class ElementMethods:

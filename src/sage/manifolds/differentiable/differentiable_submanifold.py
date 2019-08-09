@@ -106,8 +106,8 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
         sage: M = Manifold(3, 'M')
         sage: N = Manifold(2, 'N', ambient=M)
         sage: N
-        2-dimensional differentiable submanifold N embedded in 3-dimensional
-         differentiable manifold M
+        2-dimensional differentiable submanifold N immersed in the
+         3-dimensional differentiable manifold M
         sage: CM.<x,y,z> = M.chart()
         sage: CN.<u,v> = N.chart()
 
@@ -166,8 +166,8 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
             sage: M = Manifold(3, 'M')
             sage: N = Manifold(2, 'N', ambient=M)
             sage: N
-            2-dimensional differentiable submanifold N embedded in 3-dimensional
-             differentiable manifold M
+            2-dimensional differentiable submanifold N immersed in the
+             3-dimensional differentiable manifold M
             sage: S = Manifold(2, 'S', latex_name=r'\Sigma', ambient=M,
             ....:              start_index=1)
             sage: latex(S)
@@ -195,14 +195,20 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
 
             sage: M = Manifold(3, 'M')
             sage: N = Manifold(2, 'N', ambient=M)
-            sage: N._repr_()
-            '2-dimensional differentiable submanifold N embedded in
-             3-dimensional differentiable manifold M'
+            sage: N
+            2-dimensional differentiable submanifold N immersed in the
+             3-dimensional differentiable manifold M
+            sage: phi = N.diff_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional differentiable submanifold N embedded in the
+             3-dimensional differentiable manifold M
 
         """
         if self._ambient is None:
             return super(DifferentiableManifold, self).__repr__()
-        return "{}-dimensional differentiable submanifold {} embedded in {}-" \
-               "dimensional differentiable " \
-               "manifold {}".format(self._dim, self._name, self._ambient._dim,
-                                    self._ambient._name)
+        if self._embedded:
+            return "{}-dimensional {} submanifold {} embedded in the {}".format(
+                self._dim, self._structure.name, self._name, self._ambient)
+        return "{}-dimensional {} submanifold {} immersed in the {}".format(
+                self._dim, self._structure.name, self._name, self._ambient)

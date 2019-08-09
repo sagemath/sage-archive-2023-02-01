@@ -3,9 +3,10 @@ Pseudo-Riemannian submanifolds
 
 An *embedded (resp. immersed) submanifold of a pseudo-Riemannian manifold*
 `(M,g)` is an embedded (resp. immersed) submanifold `N` of `M` as a
-differentiable manifold such that pull back of the metric tensor `g` via the
-embedding (resp. immersion) endows `N` with the structure of a
-pseudo-Riemannian manifold.
+differentiable manifold (see
+:mod:`~sage.manifolds.differentiable.differentiable_submanifold`) such that
+pull back of the metric tensor `g` via the embedding (resp. immersion) endows
+`N` with the structure of a pseudo-Riemannian manifold.
 
 A limitation of the current implementation is that a foliation is required to
 perform nearly all the calculations (except the induced metric). This is because
@@ -24,30 +25,49 @@ Let us first declare the ambient manifold `M` and the submanifold `N`::
     sage: M = Manifold(3, 'M', structure="Lorentzian")
     sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian", start_index=1)
 
-The considered slice being spacelike hypersurfaces, they are Riemannian
+The considered slices being spacelike hypersurfaces, they are Riemannian
 manifolds.
 
-Let us continue with chart declarations and various free variables::
+Let us introduce the Minkowskian coordinates `(w,x,y)` on `M` and the polar
+coordinates `(\rho, \theta)` on the submanifold `N`::
 
     sage: E.<w,x,y> = M.chart()
     sage: C.<rh,th> = N.chart(r'rh:(0,+oo):\rho th:(0,2*pi):\theta')
+
+Let `b` be the hyperbola semi-major axis and `t` the parameter of the
+foliation::
+
     sage: b = var('b', domain='real')
     sage: assume(b>0)
     sage: t = var('t', domain='real')
 
-Here `b` is the hyperbola semi major axis, and `t` is the parameter of the
-foliation.
-
-One must then define the embedding, as well as the inverse embedding and the
-inverse concerning the foliation parameter::
+One can then define the embedding $\phi_t$::
 
     sage: phi = N.diff_map(M, {(C,E): [b*cosh(rh)+t,
     ....:                              b*sinh(rh)*cos(th),
     ....:                              b*sinh(rh)*sin(th)]})
+    sage: phi.display()
+    N --> M
+       (rh, th) |--> (w, x, y) = (b*cosh(rh) + t, b*cos(th)*sinh(rh),
+                                  b*sin(th)*sinh(rh))
+
+as well as its inverse (when considered as a diffeomorphism onto its image)::
+
     sage: phi_inv = M.diff_map(N, {(E,C): [log(sqrt(x^2+y^2+b^2)/b+
     ....:                                  sqrt((x^2+y^2+b^2)/b^2-1)),
     ....:                                  atan2(y,x)]})
+    sage: phi_inv.display()
+    M --> N
+       (w, x, y) |--> (rh, th) = (log(sqrt((b^2 + x^2 + y^2)/b^2 - 1)
+                                  + sqrt(b^2 + x^2 + y^2)/b), arctan2(y, x))
+
+and the partial inverse expressing the foliation parameter $t$ as a scalar
+field on `M`::
+
     sage: phi_inv_t = M.scalar_field({E: w-sqrt(x^2+y^2+b^2)})
+    sage: phi_inv_t.display()
+    M --> R
+    (w, x, y) |--> w - sqrt(b^2 + x^2 + y^2)
 
 One can check that the inverse is correct with::
 
@@ -56,15 +76,12 @@ One can check that the inverse is correct with::
        (w, x, y) |--> ((b^2 + x^2 + y^2 + sqrt(b^2 + x^2 + y^2)*(t + sqrt(x^2 +
      y^2)) + sqrt(x^2 + y^2)*t)/(sqrt(b^2 + x^2 + y^2) + sqrt(x^2 + y^2)), x, y)
 
-The first parameter cannot be evaluated yet, because the inverse for `t` is not
-taken into account. To prove that it is correct, one can temporarily inject it
-in the result::
+The first item of the 3-uple in the right-hand does not appear as `w` because
+`t` has not been replaced by its value provided by ``phi_inv_t``. Once this is
+done, we do get `w`::
 
-    sage: assume(w-t>0)
-    sage: (phi*phi_inv).expr()[0].subs({b^2: (w-t)^2-x^2-y^2})\
-    ....:           .simplify().expand().simplify_full()
+    sage: (phi*phi_inv).expr()[0].subs({t: phi_inv_t.expr()}).simplify_full()
     w
-    sage: forget(w-t>0)
 
 The embedding can then be declared::
 
@@ -74,7 +91,7 @@ The embedding can then be declared::
 This line does not perform any calculation yet. It just check the coherence of
 the arguments, but not the inverse, the user is trusted on this point.
 
-Finally, we initialize the metric `M` to be that of Minkowski space::
+Finally, we initialize the metric of `M` to be that of Minkowski space::
 
     sage: g = M.metric()
     sage: g[0,0], g[1,1], g[2,2] = -1, 1, 1
@@ -107,10 +124,12 @@ some coordinates changes::
 Let us compute the induced metric (or first fundamental form)::
 
     sage: gamma = N.induced_metric()  # long time
-    sage: gamma[:]
+    sage: gamma.display()  # long time
+    gamma = b^2 drh*drh + b^2*sinh(rh)^2 dth*dth
+    sage: gamma[:]  # long time
     [           b^2              0]
     [             0 b^2*sinh(rh)^2]
-    sage: gamma[1,1]
+    sage: gamma[1,1]  # long time
     b^2
 
 the normal vector::
@@ -118,7 +137,8 @@ the normal vector::
     sage: N.normal().display()  # long time
     n = sqrt(b^2 + x^2 + y^2)/b d/dw + x/b d/dx + y/b d/dy
 
-Check that the hypersurface is indeed spacelike::
+Check that the hypersurface is indeed spacelike, i.e. that its normal is
+timelike::
 
     sage: N.ambient_metric()(N.normal(), N.normal()).display()  # long time
     g(n,n): M --> R
@@ -138,16 +158,15 @@ while the shift vector is::
     beta = -(x^2 + y^2)/b^2 d/dw - sqrt(b^2 + x^2 + y^2)*x/b^2 d/dx
      - sqrt(b^2 + x^2 + y^2)*y/b^2 d/dy
 
-The extrinsic curvature (or second fundamental form) as a tensor of the ambient
-manifold::
+The extrinsic curvature (or second fundamental form) as a tensor field on the
+ambient manifold::
 
     sage: N.ambient_extrinsic_curvature()[:] # long time
     [                                 -(x^2 + y^2)/b^3 (b^2*x + x^3 + x*y^2)/(sqrt(b^2 + x^2 + y^2)*b^3) (y^3 + (b^2 + x^2)*y)/(sqrt(b^2 + x^2 + y^2)*b^3)]
     [                      sqrt(b^2 + x^2 + y^2)*x/b^3                                  -(b^2 + x^2)/b^3                                          -x*y/b^3]
     [                      sqrt(b^2 + x^2 + y^2)*y/b^3                                          -x*y/b^3                                  -(b^2 + y^2)/b^3]
 
-The extrinsic curvature (or second fundamental form) as a tensor of the
-submanifold::
+The extrinsic curvature as a tensor field on the submanifold::
 
     sage: N.extrinsic_curvature()[:] # long time
     [           -b             0]
@@ -244,11 +263,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     Let `N` be a 2-dimensional submanifold of a 3-dimensional manifold `M`::
 
-        sage: M = Manifold(3, 'M', structure ="pseudo-Riemannian")
-        sage: N = Manifold(2, 'N', ambient=M, structure="pseudo-Riemannian")
+        sage: M = Manifold(3, 'M', structure ="Riemannian")
+        sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
         sage: N
-        2-dimensional pseudo-Riemannian submanifold N embedded in 3-dimensional
-         differentiable manifold M
+        2-dimensional Riemannian submanifold N immersed in the 3-dimensional
+         Riemannian manifold M
         sage: CM.<x,y,z> = M.chart()
         sage: CN.<u,v> = N.chart()
 
@@ -257,8 +276,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         sage: t = var('t')
         sage: phi = N.diff_map(M, {(CN,CM):[u, v, t+u^2+v^2]}); phi
-        Differentiable map from the 2-dimensional pseudo-Riemannian submanifold
-         N embedded in 3-dimensional differentiable manifold M to the
+        Differentiable map from the 2-dimensional Riemannian submanifold N
+         immersed in the 3-dimensional Riemannian manifold M to the
          3-dimensional Riemannian manifold M
         sage: phi_inv = M.diff_map(N,{(CM, CN): [x,y]})
         sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
@@ -293,20 +312,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         TESTS::
 
-            sage: M = Manifold(3, 'M', structure="pseudo-Riemannian")
-            sage: N = Manifold(2, 'N', ambient=M, structure="pseudo-Riemannian")
+            sage: M = Manifold(3, 'M', structure='Lorentzian')
+            sage: N = Manifold(2, 'N', ambient=M, structure='Riemannian')
             sage: N
-            2-dimensional pseudo-Riemannian submanifold N embedded in
-             3-dimensional differentiable manifold M
+            2-dimensional Riemannian submanifold N immersed in the 3-dimensional Lorentzian manifold M
+            sage: phi = N.diff_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional Riemannian submanifold N embedded in the 3-dimensional Lorentzian manifold M
             sage: S = Manifold(2, 'S', latex_name=r"\Sigma", ambient=M,
-            ....:              structure="pseudo-Riemannian", start_index=1)
+            ....:              structure="Riemannian", start_index=1)
             sage: latex(S)
             \Sigma
             sage: S.start_index()
             1
 
         """
-
         PseudoRiemannianManifold.__init__(self, n, name=name,
                                           metric_name=metric_name,
                                           signature=signature,
@@ -344,19 +365,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         TESTS::
 
-            sage: M = Manifold(3, 'M', structure="pseudo-Riemannian")
-            sage: N = Manifold(2, 'N', ambient=M, structure="pseudo-Riemannian")
-            sage: N._repr_()
-            '2-dimensional pseudo-Riemannian submanifold N embedded in
-             3-dimensional differentiable manifold M'
+            sage: M = Manifold(3, 'M', structure="Lorentzian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
+            sage: N
+            2-dimensional Riemannian submanifold N immersed in the
+             3-dimensional Lorentzian manifold M
+            sage: phi = N.diff_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional Riemannian submanifold N embedded in the
+             3-dimensional Lorentzian manifold M
 
         """
         if self._ambient is None:
             return super(PseudoRiemannianManifold, self).__repr__()
-        return "{}-dimensional pseudo-Riemannian submanifold {} embedded " \
-               "in {}-dimensional differentiable " \
-               "manifold {}".format(self._dim, self._name, self._ambient._dim,
-                                    self._ambient._name)
+        if self._embedded:
+            return "{}-dimensional {} submanifold {} embedded in the {}".format(
+                self._dim, self._structure.name, self._name, self._ambient)
+        return "{}-dimensional {} submanifold {} immersed in the {}".format(
+                self._dim, self._structure.name, self._name, self._ambient)
 
     def ambient_metric(self):
         r"""
@@ -389,6 +416,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: T = N.adapted_chart()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: N.ambient_metric()
+            Riemannian metric g on the 3-dimensional Riemannian manifold M
             sage: N.ambient_metric()[:]
             [1 0 0]
             [0 1 0]
@@ -399,9 +428,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._ambient_metric is None:
             if not self._embedded or not isinstance(self._ambient,
-                                                PseudoRiemannianManifold):
-                raise ValueError("Submanifold must be "
-                                 "embedded in a pseudo-Riemannian manifold")
+                                                    PseudoRiemannianManifold):
+                raise ValueError("Submanifold must be embedded in a "
+                                 "pseudo-Riemannian manifold")
             self._ambient_metric = self._ambient.metric()
         return self._ambient_metric
 
@@ -438,8 +467,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: N.first_fundamental_form()  # long time
-            Riemannian metric gamma on the 2-dimensional pseudo-Riemannian
-             submanifold N embedded in 3-dimensional differentiable manifold M
+            Riemannian metric gamma on the 2-dimensional Riemannian
+             submanifold N embedded in the 3-dimensional Riemannian manifold M
             sage: N.first_fundamental_form()[:]  # long time
             [          r^2             0]
             [            0 r^2*sin(th)^2]
@@ -492,6 +521,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             ....:                 t_inverse={r: phi_inv_r})
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: N.difft()
+            1-form dr on the 3-dimensional Riemannian manifold M
             sage: N.difft().display()
             dr = x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy +
              z/sqrt(x^2 + y^2 + z^2) dz
@@ -537,9 +568,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             ....:                 t_inverse={r: phi_inv_r})
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: N.gradt()
+            Vector field grad_r on the 3-dimensional Riemannian manifold M
             sage: N.gradt().display()
-            grad_r = x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
-             + z/sqrt(x^2 + y^2 + z^2) d/dz
+            grad_r = x/sqrt(x^2 + y^2 + z^2) d/dx
+             + y/sqrt(x^2 + y^2 + z^2) d/dy + z/sqrt(x^2 + y^2 + z^2) d/dz
 
         """
         if self._dim_foliation == 0:
@@ -604,6 +637,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: T = N.adapted_chart()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: N.normal()  # long time
+            Vector field n on the 3-dimensional Riemannian manifold M
             sage: N.normal().display()  # long time
             n = x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
              + z/sqrt(x^2 + y^2 + z^2) d/dz
@@ -662,8 +697,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
             sage: n = N.normal()  # long time
             sage: n  # long time
-            Vector field n along the 2-dimensional pseudo-Riemannian submanifold
-             N embedded in 3-dimensional differentiable manifold M with values
+            Vector field n along the 2-dimensional Riemannian submanifold N
+             embedded in the 3-dimensional Riemannian manifold M with values
              on the 3-dimensional Riemannian manifold M
 
         Let us check that the choice of orientation is coherent on the two top
@@ -676,7 +711,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         if self._dim_foliation != 0:    # case foliation
-            self._normal = self._sgn*self.lapse()*self.gradt()
+            self._normal = self._sgn * self.lapse() * self.gradt()
             self._normal.set_name("n")
             return self._normal
 
@@ -710,7 +745,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n_comp = (n_form.contract(*args) / factorial(
                 self._dim)).contract(
                 self.ambient_metric().inverse().along(self._immersion))
-            if self._ambient._dim - self._dim ==1:
+            if self._ambient._dim - self._dim == 1:
                 n_comp = n_comp / n_comp.norm(
                     self.ambient_metric().along(self._immersion))
 
@@ -791,6 +826,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.set_embedding(phi)
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
+            sage: N.ambient_first_fundamental_form()
+            Tensor field gamma of type (0,2) along the 1-dimensional Riemannian
+             submanifold N embedded in the 2-dimensional Riemannian manifold M
+             with values on the 2-dimensional Riemannian manifold M
             sage: N.ambient_first_fundamental_form()[:]
             [ x^2/(x^2 + 4) -2*x/(x^2 + 4)]
             [-2*x/(x^2 + 4)    4/(x^2 + 4)]
@@ -802,9 +841,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [-2*x/(x^2 + 4)    4/(x^2 + 4)]
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise NotImplementedError("'ambient_first_fundamental_form' is"+
-                                      " implemented only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise NotImplementedError("ambient_first_fundamental_form() is "
+                                      "implemented only for hypersurfaces")
         if self._ambient_first_fundamental_form is None:
             g = self.ambient_metric()
             if self._dim_foliation == 0:  # case no foliation
@@ -848,6 +887,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: T = N.adapted_chart()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: N.lapse()
+            Scalar field N on the 3-dimensional Riemannian manifold M
             sage: N.lapse().display()
             N: M --> R
                (x, y, z) |--> 1
@@ -894,6 +935,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: T = N.adapted_chart()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: N.shift()  # long time
+            Vector field beta on the 3-dimensional Riemannian manifold M
             sage: N.shift().display()  # long time
             beta = 0
 
@@ -924,14 +967,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
+            sage: E = M.cartesian_coordinates()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
@@ -939,13 +982,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
             ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.ambient_second_fundamental_form()  # long time
             Field of symmetric bilinear forms K along the 1-dimensional
-             pseudo-Riemannian submanifold N embedded in 2-dimensional
-             differentiable manifold M with values on the 2-dimensional
-             Riemannian manifold M
+             Riemannian submanifold N embedded in the Euclidean plane E^2 with
+             values on the Euclidean plane E^2
             sage: N.ambient_second_fundamental_form()[:] # long time
             [-x^2/(x^2 + 4)  2*x/(x^2 + 4)]
             [ 2*x/(x^2 + 4)   -4/(x^2 + 4)]
@@ -957,9 +997,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [ 2*x/(x^2 + 4)   -4/(x^2 + 4)]
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise ValueError("ambient_second_fundamental_form is defined"
-                             + " only for hypersurfaces")
+        if self._ambient._dim - self._dim != 1:
+            raise ValueError("ambient_second_fundamental_form is defined only "
+                             "for hypersurfaces")
         if self._ambient_second_fundamental_form is None:
             if self._dim_foliation == 0:
                 self._ambient_second_fundamental_form = self.tensor_field(0, 2,
@@ -971,7 +1011,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                     pf = [self._immersion.restrict(chart.domain()).pushforward(
                         chart.frame()[i]) for i in self.irange()]
                     for i in range(self._dim):
-                        pf[i] = pf[i]/g(pf[i], pf[i])
+                        pf[i] = pf[i] / g(pf[i], pf[i])
                     gam_rst = sum(
                         g.restrict(chart.domain()).contract(pf[i]) *
                         g.restrict(chart.domain()).contract(pf[j]) *
@@ -996,7 +1036,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             self._ambient_second_fundamental_form.set_name("K")
         return self._ambient_second_fundamental_form
 
-    ambient_extrinsic_curvature  = ambient_second_fundamental_form
+    ambient_extrinsic_curvature = ambient_second_fundamental_form
 
     def second_fundamental_form(self):
         r"""
@@ -1031,11 +1071,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.set_embedding(phi)
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
-            sage: N.second_fundamental_form() # long time
-            Field of symmetric bilinear forms K on the 1-dimensional
-             pseudo-Riemannian submanifold N embedded in 2-dimensional
-             differentiable manifold M
-            sage: N.second_fundamental_form().display() # long time
+            sage: N.second_fundamental_form()  # long time
+            Field of symmetric bilinear forms K on the 1-dimensional Riemannian
+             submanifold N embedded in the 2-dimensional Riemannian manifold M
+            sage: N.second_fundamental_form().display()  # long time
             K = -4/(x^4 + 8*x^2 + 16) dx*dx
 
         An alias is ``extrinsic_curvature``::
@@ -1044,7 +1083,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             K = -4/(x^4 + 8*x^2 + 16) dx*dx
 
         """
-        if self._ambient._dim-self._dim != 1:
+        if self._ambient._dim - self._dim != 1:
             raise ValueError("second_fundamental_form is defined only for"
                              + " hypersurfaces")
         if self._second_fundamental_form is None:
@@ -1065,9 +1104,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                 n = self.normal()
 
                 for chart in self.atlas():
-                    gamma_n = matrix(self._dim+1, self._dim+1)
-                    for i in range(self._dim+1):
-                        for j in range(self._dim+1):
+                    gamma_n = matrix(self._dim + 1, self._dim + 1)
+                    for i in range(self._dim + 1):
+                        for j in range(self._dim + 1):
                             gamma_n[i, j] = sum(
                                 nab[self._ambient.frames()[0], :][i][j][k].expr() *
                                 n.restrict(chart.domain()).comp(
@@ -1075,8 +1114,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                 [:][k].expr() for k in
                                 range(self._dim + 1))
                     dXdu = self._immersion.differential_functions(chart)
-                    dNdu = matrix(SR, self._dim+1, self._dim)
-                    for i in range(self._dim+1):
+                    dNdu = matrix(SR, self._dim + 1, self._dim)
+                    for i in range(self._dim + 1):
                         for j in range(self._dim):
                             dNdu[i, j] = n.restrict(chart.domain()).comp(
                                 n.restrict(chart.domain())._fmodule.bases()[0])[:,
@@ -1084,7 +1123,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                     g = self.ambient_metric().along(
                         self._immersion.restrict(chart.domain())).restrict(
                         chart.domain())[:, chart]
-                    K = dXdu.transpose()*g*(dNdu+gamma_n*dXdu)
+                    K = dXdu.transpose() * g * (dNdu + gamma_n * dXdu)
                     resu[chart.frame(), :] = K
 
             self._second_fundamental_form = resu
@@ -1140,9 +1179,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             0
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise NotImplementedError("'projector' is"+
-                                      " implemented only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise NotImplementedError("projector() is implemented only for "                          "hypersurfaces")
         g = self.ambient_metric().inverse()
         if self._dim_foliation == 0:
             g = g.along(self._immersion)
@@ -1198,9 +1236,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         Note that the result of ``project`` is not cached.
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise NotImplementedError("'project' is"+
-                                      " implemented only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise NotImplementedError("project() is implemented only for "                          "hypersurfaces")
         resu = tensor.copy()
         resu.set_name(tensor._name + "_" + self._name,
                       r"{" + tensor._latex_() + r"}_{" + self._latex_() + r"}")
@@ -1283,13 +1320,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             (th_M, ph_M, r_M) |--> 1
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise NotImplementedError("'mixed_projection' is"+
-                                      " implemented only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise NotImplementedError("mixed_projection() is implemented only "                          "for hypersurfaces")
         if isinstance(indices, (Integer, int)):
             indices = list(range(indices))
 
-        if len(indices)>tensor.tensor_rank():
+        if len(indices) > tensor.tensor_rank():
             raise ValueError("Too much contractions")
 
         g = self.ambient_metric()
@@ -1297,8 +1333,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             g = g.along(self._immersion)
 
         multiprojector = 1
-        k = tensor.tensor_rank()    # order of the tensor
-        kp = 2*k-len(indices)       # order of the multiprojector
+        k = tensor.tensor_rank()      # order of the tensor
+        kp = 2 * k - len(indices)       # order of the multiprojector
         for i in range(tensor.tensor_type()[1]):
             if i in indices:
                 multiprojector = multiprojector * self.normal()
@@ -1349,15 +1385,18 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.set_embedding(phi)
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
+            sage: N.gauss_curvature()  # long time
+            Scalar field on the 1-dimensional Riemannian submanifold N
+             embedded in the 2-dimensional Riemannian manifold M
             sage: N.gauss_curvature().display()  # long time
             N --> R
             on U: x |--> -1
             on V: y |--> -1
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise ValueError("'gauss_curvature' is defined"+
-                                      " only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise ValueError("gauss_curvature is defined only for "
+                             "hypersurfaces")
         a = self.shape_operator()
         self._gauss_curvature = self.scalar_field(
             {chart: a[chart.frame(), :, chart].determinant()
@@ -1370,7 +1409,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         Return the principal directions of the submanifold.
 
         The *principal directions* are the eigenvectors of the projection
-        operator. The result is formatted as a list of couples
+        operator. The result is formatted as a list of pairs
         (eigenvector, eigenvalue).
 
         The result is cached, so calling this method multiple times always
@@ -1383,7 +1422,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         OUTPUT:
 
-        - list of couples (vector field, scalar field) representing the
+        - list of pairs (vector field, scalar field) representing the
           principal directions and the associated principal curvatures
 
         EXAMPLES:
@@ -1407,13 +1446,16 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.set_embedding(phi)
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
+            sage: N.principal_directions(stereoN)  # long time
+            [(Vector field e_0 on the 1-dimensional Riemannian submanifold N
+              embedded in the 2-dimensional Riemannian manifold M, -1)]
             sage: N.principal_directions(stereoN)[0][0].display()  # long time
             e_0 = d/dx
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise ValueError("'principal directions' is defined"+
-                                      " only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise ValueError("principal directions is defined only for "
+                             "hypersurfaces")
         a = self.shape_operator()
         pr_d = matrix(
             [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
@@ -1472,14 +1514,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.set_embedding(phi)
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
+            sage: N.principal_curvatures(stereoN)  # long time
+            [Scalar field k_0 on the 1-dimensional Riemannian submanifold N
+             embedded in the 2-dimensional Riemannian manifold M]
             sage: N.principal_curvatures(stereoN)[0].display()  # long time
             k_0: N --> R
             on U: x |--> -1
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise ValueError("'principal_curvatures' is defined"+
-                                      " only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise ValueError("principal_curvatures is defined only for "
+                             "hypersurfaces")
         a = self.shape_operator()
         res = matrix(
             [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
@@ -1527,15 +1572,18 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.set_embedding(phi)
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
+            sage: N.mean_curvature()  # long time
+            Scalar field on the 1-dimensional Riemannian submanifold N
+             embedded in the 2-dimensional Riemannian manifold M
             sage: N.mean_curvature().display()  # long time
             N --> R
             on U: x |--> -1
             on V: y |--> -1
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise ValueError("'mean_curvature' is defined"+
-                                      " only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise ValueError("mean_curvature is defined only for "
+                             "hypersurfaces")
         self._shape_operator = self.scalar_field({chart: self._sgn * sum(
             self.principal_curvatures(chart)).expr(chart) / self._dim
                                                   for chart in
@@ -1580,15 +1628,15 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
             sage: N.shape_operator()  # long time
-            Tensor field of type (1,1) on the 1-dimensional pseudo-Riemannian
-             submanifold N embedded in 2-dimensional differentiable manifold M
-            sage: N.shape_operator()[:]  # long time
-            [-1]
+            Tensor field of type (1,1) on the 1-dimensional Riemannian
+             submanifold N embedded in the 2-dimensional Riemannian manifold M
+            sage: N.shape_operator().display()  # long time
+            -d/dx*dx
 
         """
-        if self._ambient._dim-self._dim != 1:
-            raise ValueError("'shape_operator' is defined"+
-                                      " only for hypersurfaces.")
+        if self._ambient._dim - self._dim != 1:
+            raise ValueError("shape_operator is defined only for "
+                             "hypersurfaces")
         self._shape_operator = self.second_fundamental_form().contract(
                                                self.induced_metric().inverse())
         return self._shape_operator

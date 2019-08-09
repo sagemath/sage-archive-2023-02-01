@@ -121,7 +121,8 @@ class TopologicalSubmanifold(TopologicalManifold):
         sage: M = Manifold(3, 'M', structure="topological")
         sage: N = Manifold(2, 'N', ambient=M, structure="topological")
         sage: N
-        2-dimensional submanifold N embedded in 3-dimensional manifold M
+        2-dimensional topological submanifold N immersed in the 3-dimensional
+         topological manifold M
         sage: CM.<x,y,z> = M.chart()
         sage: CN.<u,v> = N.chart()
 
@@ -180,7 +181,8 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: M = Manifold(3, 'M', structure="topological")
             sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
-            2-dimensional submanifold N embedded in 3-dimensional manifold M
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
 
         """
         TopologicalManifold.__init__(self, n, name, field, structure,
@@ -232,16 +234,23 @@ class TopologicalSubmanifold(TopologicalManifold):
 
             sage: M = Manifold(3, 'M', structure="topological")
             sage: N = Manifold(2, 'N', ambient=M, structure="topological")
-            sage: N._repr_()
-            '2-dimensional submanifold N embedded in 3-dimensional manifold M'
+            sage: N
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
+            sage: phi = N.continuous_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional topological submanifold N embedded in the
+             3-dimensional topological manifold M
 
         """
-        if self._ambient == self:
+        if self._ambient is self:
             return super(TopologicalManifold, self).__repr__()
-        return "{}-dimensional submanifold {} embedded in {}-" \
-               "dimensional manifold {}".format(self._dim, self._name,
-                                                self._ambient._dim,
-                                                self._ambient._name)
+        if self._embedded:
+            return "{}-dimensional {} submanifold {} embedded in the {}".format(
+                self._dim, self._structure.name, self._name, self._ambient)
+        return "{}-dimensional {} submanifold {} immersed in the {}".format(
+                self._dim, self._structure.name, self._name, self._ambient)
 
     def set_immersion(self, phi, inverse=None, var=None,
                       t_inverse=None):
@@ -273,27 +282,32 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: M = Manifold(3, 'M', structure="topological")
             sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
-            2-dimensional submanifold N embedded in 3-dimensional manifold M
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
             sage: CM.<x,y,z> = M.chart()
             sage: CN.<u,v> = N.chart()
             sage: t = var('t')
-            sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]}); phi
-            Continuous map from the 2-dimensional submanifold N embedded in
-             3-dimensional manifold M to the 3-dimensional topological
-             manifold M
+            sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
+            sage: phi.display()
+            N --> M
+               (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
             sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
+            sage: phi_inv.display()
+            M --> N
+                (x, y, z) |--> (u, v) = (x, y)
             sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
+            sage: phi_inv_t.display()
+            M --> R
+            (x, y, z) |--> -x^2 - y^2 + z
             sage: N.set_immersion(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
 
         """
         if not isinstance(phi, ContinuousMap):
-            raise TypeError("phi must be a differentiable (or at least"
-                            " continuous) map")
-        if phi._domain is not self or phi._codomain is not self._ambient:
-            raise ValueError("{} is not a homeomorphism "
-                             "from {} to {}".format(phi._name, self._name,
-                                                    self._ambient.name()))
+            raise TypeError("the argument phi must be a continuous map")
+        if phi.domain() is not self or phi.codomain() is not self._ambient:
+            raise ValueError("{} is not a map from {} to {}".format(phi, self,
+                                                                self._ambient))
         self._immersion = phi
 
         if inverse is not None:
@@ -337,14 +351,12 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: M = Manifold(3, 'M', structure="topological")
             sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
-            2-dimensional submanifold N embedded in 3-dimensional manifold M
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
             sage: CM.<x,y,z> = M.chart()
             sage: CN.<u,v> = N.chart()
             sage: t = var('t')
-            sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]}); phi
-            Continuous map from the 2-dimensional submanifold N embedded in
-             3-dimensional manifold M to the 3-dimensional topological
-             manifold M
+            sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
             sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
             sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
             sage: N.set_immersion(phi, inverse=phi_inv, var=t,
@@ -363,7 +375,6 @@ class TopologicalSubmanifold(TopologicalManifold):
         if not self._immersed:
             raise ValueError("please declare an embedding using set_immersion "
                              "before calling declare_embedding()")
-        self._immersion._is_isomorphism = True
         self._embedded = True
 
     def set_embedding(self, phi, inverse=None, var=None,
@@ -391,23 +402,35 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: M = Manifold(3, 'M', structure="topological")
             sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
-            2-dimensional submanifold N embedded in 3-dimensional manifold M
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
             sage: CM.<x,y,z> = M.chart()
             sage: CN.<u,v> = N.chart()
             sage: t = var('t')
-            sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]}); phi
-            Continuous map from the 2-dimensional submanifold N embedded in
-             3-dimensional manifold M to the 3-dimensional topological
-             manifold M
+            sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
+            sage: phi.display()
+            N --> M
+               (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
             sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
+            sage: phi_inv.display()
+            M --> N
+                (x, y, z) |--> (u, v) = (x, y)
             sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
+            sage: phi_inv_t.display()
+            M --> R
+            (x, y, z) |--> -x^2 - y^2 + z
             sage: N.set_embedding(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
+
+        Now ``N`` appears as an embbeded submanifold::
+
+            sage: N
+            2-dimensional topological submanifold N embedded in the
+             3-dimensional topological manifold M
 
         """
         self.set_immersion(phi, inverse, var, t_inverse)
         self.declare_embedding()
-
 
     def adapted_chart(self, postscript=None, latex_postscript=None):
         r"""
@@ -453,7 +476,8 @@ class TopologicalSubmanifold(TopologicalManifold):
             ....:              latex_name=r"\mathcal{M}")
             sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
-            2-dimensional submanifold N embedded in 3-dimensional manifold M
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
             sage: CM.<x,y,z> = M.chart()
             sage: CN.<u,v> = N.chart()
             sage: t = var('t')
@@ -677,9 +701,10 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: N.set_immersion(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
             sage: N.immersion()
-            Continuous map from the 2-dimensional submanifold N embedded in
-             3-dimensional manifold M to the 3-dimensional topological
-             manifold M
+            Continuous map from the 2-dimensional topological submanifold N
+             immersed in the 3-dimensional topological manifold M to the
+             3-dimensional topological manifold M
+
         """
         if not self._immersed:
             raise ValueError("the submanifold is not immersed")
@@ -702,9 +727,10 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: N.set_embedding(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
             sage: N.embedding()
-            Homeomorphism from the 2-dimensional submanifold N embedded in
-             3-dimensional manifold M to the 3-dimensional topological manifold
-             M
+            Continuous map from the 2-dimensional topological submanifold N
+             embedded in the 3-dimensional topological manifold M to the
+             3-dimensional topological manifold M
+
         """
         if not self._embedded:
             raise ValueError("the submanifold is not embedded")

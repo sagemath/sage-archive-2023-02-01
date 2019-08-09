@@ -1106,7 +1106,6 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             for u, v in G.edge_iterator(labels=False):
                 edge_labels[v, u] = edge_labels[u, v]    
 
-
     # dictionary of parent node in the shortest path tree of the target vertex
     parent = {}
     # assign color to each vertex as green, red or yellow

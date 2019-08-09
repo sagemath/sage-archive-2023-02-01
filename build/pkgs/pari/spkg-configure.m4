@@ -16,7 +16,7 @@ SAGE_SPKG_CONFIGURE([pari], [
         sage_spkg_install_pari=yes
     else
         AC_MSG_CHECKING([is pari_elldata installed? ])
-        gp_ell_check=`echo "r=ellinit(\"11a1\"); r[[11]]" | $GP -qf`
+        gp_ell_check=`echo "r=ellinit(\"11a1\"); r[[11]]" | $GP -qf 2>> config.log`
         if test x$gp_ell_check = x20008; then
             AC_MSG_RESULT([yes])
         else
@@ -26,7 +26,7 @@ SAGE_SPKG_CONFIGURE([pari], [
             sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([is pari_galdata installed? ])
-        gp_gal_check=`echo "polgalois(x^8-2)[[1]]" | $GP -qf`
+        gp_gal_check=`echo "polgalois(x^8-2)[[1]]" | $GP -qf 2>> config.log`
         if test x$gp_gal_check = x16; then
             AC_MSG_RESULT([yes])
         else
@@ -36,7 +36,7 @@ SAGE_SPKG_CONFIGURE([pari], [
             sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([is pari_galpol installed? ])
-        gp_galp_check=`echo "galoisgetname(12,1)" | $GP -qf`
+        gp_galp_check=`echo "galoisgetname(12,1)" | $GP -qf 2>> config.log`
         if test "x$gp_galp_check = xC3\ \:\ C4"; then
             AC_MSG_RESULT([yes])
         else
@@ -46,7 +46,7 @@ SAGE_SPKG_CONFIGURE([pari], [
             sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([is pari_seadata installed? ])
-        gp_seadat_check=`echo "poldegree(ellmodulareqn(211)[[1]])" | $GP -qf`
+        gp_seadat_check=`echo "poldegree(ellmodulareqn(211)[[1]])" | $GP -qf 2>> config.log`
         if test x$gp_seadat_check = x212; then
             AC_MSG_RESULT([yes])
         else
@@ -63,7 +63,7 @@ SAGE_SPKG_CONFIGURE([pari], [
         dnl matpermanent appears in pari 2.11
         AC_SEARCH_LIBS([matpermanent], [pari], [
               AC_MSG_CHECKING([getting GP's version ])
-              gp_version=`echo "v=version(); v[[1]]<<16 + v[[2]]<<8 + v[[3]]" | $GP -qf`
+              gp_version=`echo "v=version(); v[[1]]<<16 + v[[2]]<<8 + v[[3]]" | $GP -qf 2>> config.log`
               AC_MSG_RESULT([$gp_version])
               AC_MSG_CHECKING([comparing GP and libpari versions])
               AC_LANG_PUSH(C)
@@ -81,7 +81,7 @@ SAGE_SPKG_CONFIGURE([pari], [
               AX_COMPARE_VERSION([$gp_version], [ge], [$SAGE_PARI_MINVER], [
                   AC_MSG_RESULT([yes])
                   AC_MSG_CHECKING([getting GP's datadir])
-                  gp_datadir=`echo "default(datadir)" | $GP -qf`
+                  gp_datadir=`echo "default(datadir)" | $GP -qf 2>> config.log`
                   AC_MSG_RESULT([$gp_datadir])
                   AC_MSG_CHECKING([comparing GP's and libpari's datadirs])
                   AC_RUN_IFELSE([AC_LANG_PROGRAM([

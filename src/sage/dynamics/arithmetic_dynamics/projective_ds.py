@@ -3059,6 +3059,64 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             i += 1
         return(pcf)
 
+    def is_dynamical_belyi_map(self):
+        r"""
+        We define a dynamical Belyi map to be a dynamical system f:P^1->P1 where the
+        branch points are contained in {0,1,infinity} and the post critical set is contained
+        in {0,1,infinity}. This checks if a dynamical system is conjugate to a dynamical Belyi map.
+        
+        Input: Dynamical system
+        
+        Output: Return Boolean
+        
+        EXAMPLES::
+        
+        sage: P.<x,y>=ProjectiveSpace(QQ,1)
+        sage: f=DynamicalSystem_projective([-2*x^3+3*x^2*y,y^3])
+        sage: f.is_dynamical_belyi_map()
+        True
+        
+        ::
+        
+        sage: P.<x,y>=ProjectiveSpace(QQ,1)
+        sage: f=DynamicalSystem_projective([5*x^7-7*x^6*y,-7*x*y^6+5*y^7])
+        sage: f.is_dynamical_belyi_map()
+        True
+        
+        ::
+        
+        sage: P.<x,y>=ProjectiveSpace(QQ,1)
+        sage: f=DynamicalSystem_projective([x^2+y^2,y^2])
+        sage: f.is_dynamical_belyi_map()
+        False
+        
+        ::
+        
+        sage: F=QuadraticField(-7)
+        sage: P.<x,y>=ProjectiveSpace(F,1)
+        sage: f=DynamicalSystem_projective([5*x^7-7*x^6*y,-7*x*y^6+5*y^7])
+        sage: f.is_dynamical_belyi_map()
+        True
+        """
+        Crit_List=self.critical_points()
+        Crit_Value=[]
+        for i in Crit_List:
+            Crit_Value.append(self(i))
+        Crit_Value=set(Crit_Value)
+        if len(Crit_Value)>3:
+            return False
+        Crit_Value2=Crit_Value
+        for i in Crit_Value2:
+            Crit_Value.add(self(i))
+        if len(Crit_Value)>3:
+            return False
+        Crit_Value2=Crit_Value
+        for i in Crit_Value2:
+            Crit_Value.add(self(i))
+        if len(Crit_Value)>3:
+            return False
+        return True
+
     def critical_point_portrait(self, check=True, embedding=None):
         r"""
         If this dynamical system  is post-critically finite, return its

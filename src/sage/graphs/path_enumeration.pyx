@@ -36,6 +36,7 @@ from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc_c import prod
 from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
+from sage.rings.integer_ring import ZZ
 
 def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=False):
     """
@@ -1547,11 +1548,10 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
             for u, v in G.edge_iterator(labels=False):
                 edge_labels[v, u] = edge_labels[u, v]
 
- 
     # heap data structure containing the candidate paths
-    cdef priority_queue[pair[int, pair[int, int]]] heap_sorted_paths
+    cdef priority_queue[pair[double, pair[int, int]]] heap_sorted_paths
     cdef int idx = 0
-    cdef list idx_to_path = []
+    cdef dict idx_to_path = {}
     cdef set exclude_vertices
     cdef set exclude_edges
     if not by_weight:
@@ -1563,9 +1563,6 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
             return sum(edge_wt[e] for e in zip(path, path[1:]))
         # shortest path function for weighted graph
         shortest_path_func = G._backend.bidirectional_dijkstra_special
-
-    # a set to check if a path is already present in the heap or not
-    cdef set heap_paths = set()
 
     # list of previous paths already popped from the heap
     cdef list listA = list()
@@ -1589,21 +1586,20 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
     # hashing the path to check the existence of a path in the heap
     cdef tuple hash_path = tuple(path)
     # heap push operation
-    idx_to_path.append(path)
+    idx_to_path[idx] = path
     heap_sorted_paths.push((-length, (idx, 0)))
     idx = idx + 1
-    # adding the path to the heap_paths set
-    heap_paths.add(hash_path)
 
-    while heap_paths:
+    while idx_to_path:
         # extracting the next best path from the heap
         cost, (path_idx, dev_idx) = heap_sorted_paths.top()
         heap_sorted_paths.pop()
         path1 = idx_to_path[path_idx]
-        hash_path = tuple(path1)
-        heap_paths.remove(hash_path)
+        del idx_to_path[path_idx]
         if report_weight:
             cost = -cost
+            if cost in ZZ:
+                cost = int(cost)
             if report_edges and labels:
                 yield (cost, [edge_labels[e] for e in zip(path1[:-1], path1[1:])])
             elif report_edges:
@@ -1654,11 +1650,10 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
                 # push operation
                 hash_path = tuple(path)
                 # if this path is not already present inside the heap
-                if hash_path not in heap_paths:
-                    idx_to_path.append(path)
+                if hash_path not in idx_to_path.values():
+                    idx_to_path[idx] = path
                     heap_sorted_paths.push((-length, (idx, len(root) - 1)))
                     idx = idx + 1
-                    heap_paths.add(hash_path)
             except Exception:
                 pass
             exclude_vertices.add(root[-1])
@@ -1969,9 +1964,9 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
                         reduced_cost[w, target] = 0
                     include_vertices.add(w)
 
-    cdef priority_queue[pair[int, pair[int, int]]] heap_sorted_paths
+    cdef priority_queue[pair[double, pair[int, int]]] heap_sorted_paths
     cdef int idx = 0
-    cdef list idx_to_path = []
+    cdef dict idx_to_path = {}
     from sage.graphs.base.boost_graph import shortest_paths
     import copy
 
@@ -1999,8 +1994,7 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
 
     # shortest path function for weighted/unweighted graph using reduced weights
     shortest_path_func = G._backend.bidirectional_dijkstra_special
-    # a set to check if a path is already present in the heap or not
-    cdef set heap_paths = set()
+
     # heap data structure containing the candidate paths
     prev_path = None
 
@@ -2027,22 +2021,22 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
     hash_path = tuple(path)
     father[hash_path] = None
     # heap push operation
-    idx_to_path.append(path)
+    idx_to_path[idx] = path
     heap_sorted_paths.push((-length, (idx, 0)))
     idx = idx + 1
-    # adding the path to the heap_paths set
-    heap_paths.add(hash_path)
     shortest_path_len = dist[source]
-    while heap_paths:
+    while idx_to_path:
         # extracting the next best path from the heap
         cost, (path_idx, dev_idx) = heap_sorted_paths.top()
         heap_sorted_paths.pop()
         path1 = idx_to_path[path_idx]
-        hash_path = tuple(path1)
-        heap_paths.remove(hash_path)
+        # removing the path from dictionary
+        del idx_to_path[path_idx]
         if len(set(path1)) == len(path1):
             if report_weight:
                 cost = -cost
+                if cost in ZZ:
+                    cost = int(cost)
                 if report_edges and labels:
                     yield (cost + shortest_path_len, [edge_labels[e] for e in zip(path1[:-1], path1[1:])])
                 elif report_edges:
@@ -2152,12 +2146,11 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
                 # push operation
                 hash_path = tuple(path)
                 # if this path is not already present inside the heap
-                if hash_path not in heap_paths:
+                if hash_path not in idx_to_path.values():
                     father[hash_path] = prev_path
-                    idx_to_path.append(path)
+                    idx_to_path[idx] = path
                     heap_sorted_paths.push((-length, (idx, len(root) - 1)))
                     idx = idx + 1
-                    heap_paths.add(hash_path)
             except Exception:
                 pass
             exclude_vertices.add(root[-1])

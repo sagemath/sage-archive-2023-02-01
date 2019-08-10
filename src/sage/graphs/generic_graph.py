@@ -23681,19 +23681,19 @@ class GenericGraph(GenericGraph_pyx):
         LexM produces an ordering of the vertices::
 
             sage: g = graphs.CompleteGraph(6)
-            sage: len(g.lex_M(algorithm="lex_M_fast")) == g.order()
+            sage: len(g.lex_M(algorithm='lex_M_fast')) == g.order()
             True
-            sage: len(g.lex_M(algorithm="lex_M_slow")) == g.order()
+            sage: len(g.lex_M(algorithm='lex_M_slow')) == g.order()
             True
 
         Both algorithms produce a valid LexM ordering::
 
             sage: from sage.graphs.traversals import is_valid_lex_M_order
             sage: G = graphs.PetersenGraph()
-            sage: ord, F = G.lex_M(triangulation=True, algorithm="lex_M_slow")
+            sage: ord, F = G.lex_M(triangulation=True, algorithm='lex_M_slow')
             sage: is_valid_lex_M_order(G, ord, F)
             True
-            sage: ord, F = G.lex_M(triangulation=True, algorithm="lex_M_fast")
+            sage: ord, F = G.lex_M(triangulation=True, algorithm='lex_M_fast')
             sage: is_valid_lex_M_order(G, ord, F)
             True
 
@@ -23711,7 +23711,7 @@ class GenericGraph(GenericGraph_pyx):
         ``'lex_M_fast'`` cannot return labels::
 
             sage: G = graphs.CompleteGraph(6)
-            sage: G.lex_M(labels=True, algorithm="lex_M_fast")
+            sage: G.lex_M(labels=True, algorithm='lex_M_fast')
             Traceback (most recent call last):
             ...
             ValueError: 'lex_M_fast' cannot return labels assigned to vertices
@@ -23729,6 +23729,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph()
             sage: G.lex_M()
             []
+
+        Parameter ``algorithm`` must be either ``'lex_M_slow'``,
+        ``'lex_M_fast'`` or ``None``::
+
+            sage: G = graphs.CompleteGraph(6)
+            sage: G.lex_M(algorithm='Bob')
+            Traceback (most recent call last)
+            ...
+            ValueError: unknown algorithm 'Bob'
 
         """
         if self.is_directed():

@@ -425,6 +425,9 @@ ext_modules = [
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
+    Extension('sage.graphs.path_enumeration',
+              sources = ['sage/graphs/path_enumeration.pyx']),
+
     Extension('sage.graphs.connectivity',
           sources = ['sage/graphs/connectivity.pyx']),
 

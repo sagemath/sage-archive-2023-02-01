@@ -89,6 +89,16 @@ if [ -n "$SAGE_FLINT_PREFIX" ]; then
     # their ./configure scripts. Thus we deal with this just as with GMP above.
     export SAGE_CONFIGURE_FLINT="--with-flint=$SAGE_FLINT_PREFIX"
 fi
+
+# This is usually blank if the system PARI is used, or $SAGE_LOCAL otherwise
+export SAGE_PARI_PREFIX="@SAGE_PARI_PREFIX@"
+if [ -n "$SAGE_PARI_PREFIX" ]; then
+    # Some packages that depend on PARI accept a --with-pari=<prefix> flag to
+    # their ./configure scripts. Thus we deal with this just as with GMP above.
+    export SAGE_CONFIGURE_PARI="--with-pari=$SAGE_PARI_PREFIX"
+fi
+export SAGE_PARI_CFG="@SAGE_PARI_CFG@"
+
 export SAGE_FREETYPE_PREFIX="@SAGE_FREETYPE_PREFIX@"
 export SAGE_ARB_LIBRARY="@SAGE_ARB_LIBRARY@"
 

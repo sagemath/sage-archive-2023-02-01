@@ -11,7 +11,9 @@ Unital algebras
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.magmas import Magmas
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
@@ -133,7 +135,10 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 # unfortunately, certain important rings like QQ
                 # aren't in that category. As a result, we have to use
                 # something weaker.
-                H = Hom(base_ring, self, Magmas().Unital())
+                cat = Magmas().Unital()
+                cat = Category.join([cat, CommutativeAdditiveGroups()])
+                cat = cat.Distributive()
+                H = Hom(base_ring, self, cat)
 
             # We need to register a coercion from the base ring to self.
             #

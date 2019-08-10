@@ -59,7 +59,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, CYGWIN_VERSION
+from sage.env import DOT_SAGE, SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, CYGWIN_VERSION
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -433,7 +433,7 @@ class WebsiteBuilder(DocBuilder):
         reference_dir = os.path.abspath(os.path.join(self._output_dir('html'),
                                                      '..', 'reference'))
         reference_builder = ReferenceBuilder('reference')
-        refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', 'reference')
+        refdir = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
         for document in reference_builder.get_all_documents(refdir):
             #path is the directory above reference dir
             path = os.path.abspath(os.path.join(reference_dir, '..'))
@@ -1159,7 +1159,6 @@ class SingleFileBuilder(DocBuilder):
             if os.path.exists(base_dir):
                 logger.warning('Warning: Directory %s exists. It is safer to build in a new directory.' % base_dir)
         else:
-            DOT_SAGE = os.environ['DOT_SAGE']
             base_dir = os.path.join(DOT_SAGE, 'docbuild', module_name)
             try:
                 shutil.rmtree(base_dir)

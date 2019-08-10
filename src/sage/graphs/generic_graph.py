@@ -23676,7 +23676,64 @@ class GenericGraph(GenericGraph_pyx):
 
         - a list of edges that when added to the graph will triangulate it
 
+        EXAMPLES:
+
+        LexM produces an ordering of the vertices::
+
+            sage: g = graphs.CompleteGraph(6)
+            sage: len(g.lex_M(algorithm="lex_M_fast")) == g.order()
+            True
+            sage: len(g.lex_M(algorithm="lex_M_slow")) == g.order()
+            True
+
+        Both algorithms produce a valid LexM ordering::
+
+            sage: from sage.graphs.traversals import is_valid_lex_M_order
+            sage: G = graphs.PetersenGraph()
+            sage: ord, F = G.lex_M(triangulation=True, algorithm="lex_M_slow")
+            sage: is_valid_lex_M_order(G, ord, F)
+            True
+            sage: ord, F = G.lex_M(triangulation=True, algorithm="lex_M_fast")
+            sage: is_valid_lex_M_order(G, ord, F)
+            True
+
+        LexM produces a triangulation of given graph::
+
+            sage: G = graphs.PetersenGraph()
+            sage: _, F = G.lex_M(triangulation=True)
+            sage: H = G.copy()
+            sage: H.add_edges(F)
+            sage: H.is_chordal()
+            True
+
+        TESTS:
+
+        ``'lex_M_fast'`` cannot return labels::
+
+            sage: G = graphs.CompleteGraph(6)
+            sage: G.lex_M(labels=True, algorithm="lex_M_fast")
+            Traceback (most recent call last):
+            ...
+            ValueError: 'lex_M_fast' cannot return labels assigned to vertices
+
+        The method works only for undirected graphs::
+
+            sage: G = digraphs.Circuit(15)
+            sage: G.lex_M()
+            Traceback (most recent call last):
+            ...
+            ValueError: input graph must be undirected
+
+        LexM ordering of empty graph::
+
+            sage: G = Graph()
+            sage: G.lex_M()
+            []
+
         """
+        if self.is_directed():
+            raise ValueError("input graph must be undirected")
+
         if algorithm == None:
             if labels == True:
                 algorithm = "lex_M_slow"

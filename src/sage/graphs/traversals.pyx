@@ -15,8 +15,8 @@ Graph traversals.
     :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
-    :meth:`~lex_M_slow` | Return an ordering of the vertices of G according the LexM graph traversal. (inefficient)
-    :meth:`~lex_M_fast` | Return an ordering of the vertices of G according the LexM graph traversal. (efficient)
+    :meth:`~lex_M_slow` | Return an ordering of the vertices of G according the LexM graph traversal.
+    :meth:`~lex_M_fast` | Return an ordering of the vertices of G according the LexM graph traversal.
 
 Methods
 -------
@@ -825,7 +825,8 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
 
             if v in reach:
                 label[v].append(i)
-                F.append((u, v))
+                if triangulation:
+                    F.append((u, v))
 
     if triangulation and labels:
         return alpha, label, F
@@ -838,15 +839,16 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
 
 
 def lex_M_fast(G, triangulation=False, initial_vertex=None):
-    """
+    r"""
     Return an ordering of the vertices of G according the LexM graph traversal.
 
     LexM is a lexicographic ordering scheme that is a special type of
     breadth-first-search. This function implements the algorithm described in
     Section 5.3 of [RTL76]_.
 
-    Note that instead of using labels 1, 2, ..., k and adding 1/2, we use labels
-    2, 4, ..., k and add 1, thus avoiding to use floats or rationals.
+    Note that instead of using labels `1, 2, \ldots, k` and adding `1/2`, we
+    use labels `2, 4, \ldots, k` and add `1`, thus avoiding to use floats or
+    rationals.
 
     .. NOTE::
 
@@ -984,7 +986,8 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
             reach[label[w]].add(w)
             reached[w] = True
             label[w] += 1
-            F.append((int_to_v[v], int_to_v[w]))
+            if triangulation:
+                F.append((int_to_v[v], int_to_v[w]))
 
         # Search
         for j in range(2, k + 1, 2):
@@ -1001,7 +1004,8 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
                     if label[z] > j:
                         reach[label[z]].add(z)
                         label[z] += 1
-                        F.append((int_to_v[v], int_to_v[z]))
+                        if triangulation:
+                            F.append((int_to_v[v], int_to_v[z]))
                     else:
                         reach[j].add(z)
 

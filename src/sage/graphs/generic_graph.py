@@ -23681,12 +23681,20 @@ class GenericGraph(GenericGraph_pyx):
         LexM produces an ordering of the vertices::
 
             sage: g = graphs.CompleteGraph(6)
-            sage: len(g.lex_M(algorithm='lex_M_fast')) == g.order()
+            sage: ord = g.lex_M(algorithm='lex_M_fast')
+            sage: len(ord) == g.order()
             True
-            sage: len(g.lex_M(algorithm='lex_M_slow')) == g.order()
+            sage: set(ord) == set(g.vertices())
+            True
+            sage: ord = g.lex_M(algorithm='lex_M_slow')
+            sage: len(ord) == g.order()
+            True
+            sage: set(ord) == set(g.vertices())
             True
 
-        Both algorithms produce a valid LexM ordering::
+        Both algorithms produce a valid LexM ordering \alpha (i.e the
+        neighbors of `\alpha(i) \in G\[\{\alpha(i), ..., \alpha(n)\}\] induce a
+        clique)::
 
             sage: from sage.graphs.traversals import is_valid_lex_M_order
             sage: G = graphs.PetersenGraph()
@@ -23701,10 +23709,15 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: _, F = G.lex_M(triangulation=True)
-            sage: H = G.copy()
-            sage: H.add_edges(F)
+            sage: H = Graph(F, format='list_of_edges')
             sage: H.is_chordal()
             True
+
+        LexM ordering of the 3-sun graph::
+
+            sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+            sage: g.lex_M()
+            [6, 4, 5, 3, 2, 1]
 
         TESTS:
 
@@ -23743,7 +23756,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed():
             raise ValueError("input graph must be undirected")
 
-        if algorithm == None:
+        if not algorithm:
             if labels == True:
                 algorithm = "lex_M_slow"
             else:

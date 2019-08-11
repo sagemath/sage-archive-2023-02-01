@@ -79,6 +79,9 @@ AUTHORS:
 # ****************************************************************************
 
 
+
+from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp import richcmp, richcmp_not_equal, rich_to_bool
 from sage.rings.integer import Integer
 from sage.groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
@@ -86,6 +89,7 @@ from sage.groups.braid import BraidGroup
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.finite_rings.finite_field_constructor import GF
+
 from enum import Enum
 
 
@@ -176,13 +180,71 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
 
     EXAMPLES::
 
-        sage: C4.<c1,c2,c3> = CubicBraidGroup(4); C4
+        sage: C4.<c1, c2, c3> = CubicBraidGroup(4); C4
         Cubic Braid group on 4 strands
         sage: ele1 = c1*c2*c3^-1*c2^-1
         sage: ele2 = C4((1, 2, -3, -2))
         sage: ele1 == ele2
         True
     """
+
+    @cached_method
+    def _richcmp_braid_burau(self, other, op):
+        """
+        helper method to compare self with an other cubic braid using
+        the comparision of the braid preimage and the Burau matrix.
+
+        EXAMPLES::
+
+            sage: C6.<c1, c2, c3, c4, c5> = CubicBraidGroup(6)
+            sage: ele1 = c1*c2*c3^2*c4*c5
+            sage: ele2 = c1*c2*~c3*c4*c5
+            sage: ele1 == ele2           # indirect doctest
+            True
+
+        TESTS::
+
+            sage: S7 = AssionGroupS(7)
+            sage: all(S7(rel).is_one() for rel in S7.relations())
+            True
+        """
+        sbraid = self.braid()
+        obraid = other.braid()
+        if sbraid == obraid:
+            return rich_to_bool(op, 0)
+        smat =  self.burau_matrix()
+        omat =  other.burau_matrix()
+        skeys = smat.dict().keys()
+        okeys = omat.dict().keys()
+        if skeys != okeys:
+            # certainly different: compare braid preimages
+            return richcmp(sbraid, obraid, op)
+        if smat == omat:
+            return rich_to_bool(op, 0)
+        # certainly different: compare braid preimages
+        return richcmp(sbraid, obraid, op)
+
+
+    def _richcmp_(self, other, op):
+        """
+        overwrite comparison since the inherited one from FinitelyPresentedGroupElement
+        does not terminate in the case of more than 5 strands (not only infinite cases).
+        The comparison is done via the Burau representation
+
+        EXAMPLES::
+
+            sage: C6.<c1, c2, c3, c4, c5> = CubicBraidGroup(6)
+            sage: ele1 = c1*c2*c3*c4*c5
+            sage: ele2 = c1*c2*c4*c5
+            sage: ele1 == ele2    # indirect doctest
+            False
+            sage: ele1 < ele2     # indirect doctest
+            True
+        """
+        if self.parent().strands() < 6:
+            return super(CubicBraidElement, self)._richcmp_(other, op)
+        return self._richcmp_braid_burau(other, op)
+
 
     def braid(self):
         r"""
@@ -206,6 +268,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         return braid_group(self)
 
 
+    @cached_method
     def burau_matrix(self, root_bur = None, domain = None, characteristic = None, var='t', reduced=False):
         r"""
         Return the Burau matrix of the cubic braid coset.
@@ -339,7 +402,17 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
 
             if domain is None:
                 if (characteristic is None):
-                    characteristic = 0
+                    # --------------------------------------------------------------------
+                    # setting the default characteristic in order to achieve the according
+                    # representations being well defined
+                    # --------------------------------------------------------------------
+                    cbg_type = self.parent()._cbg_type
+                    if   cbg_type == CubicBraidGroup.type.AssionS:
+                        characteristic = 3 # making Assion type S relations vanish
+                    elif cbg_type == CubicBraidGroup.type.AssionU:
+                        characteristic = 2 # making Assion type U relations vanish
+                    else:
+                        characteristic = 0
                 try:
                     characteristic = Integer(characteristic)
                 except ValueError:
@@ -1218,11 +1291,11 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             [ 1 - t      0      0      1 -1 + t]
             [     1      0      0      0      0]
             sage: u.burau_matrix()
-            [  -zeta3 zeta3 + 1         0         0         0]
-            [  -zeta3         0 zeta3 + 1         0         0]
-            [  -zeta3         0         0         0 zeta3 + 1]
-            [  -zeta3         0         0         1     zeta3]
-            [       1         0         0         0         0]
+            [t + 1     t     0     0     0]
+            [t + 1     0     t     0     0]
+            [t + 1     0     0     0     t]
+            [t + 1     0     0     1 t + 1]
+            [    1     0     0     0     0]
             sage: bU = U5(b)
             sage: uB = B5(u)
             sage: bU == u
@@ -1312,18 +1385,6 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         # -------------------------------------------------------------------------------
         # define matrix group by generators using the Burau representation
         # -------------------------------------------------------------------------------
-
-        # -------------------------------------------------------------------------------
-        # adaption of default options for Assion groups on more then 4 stands
-        # (in order to achieve the maps being well defined)
-        # -------------------------------------------------------------------------------
-        if root_bur is None and domain is None and characteristic is None:
-            if   self._cbg_type == CubicBraidGroup.type.AssionS:
-                characteristic = 3
-            elif self._cbg_type == CubicBraidGroup.type.AssionU:
-                characteristic = 2
-            else:
-                characteristic = 0
 
         unitary = False
         if type(reduced) == str:

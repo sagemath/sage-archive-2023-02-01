@@ -1,16 +1,29 @@
 r"""
 Section Modules
 
+The set of continuous local sections over a topological vector bundle `E \to M`
+on a domain `U \in M` is a module over the algebra `C^0(U)` of continuous scalar
+fields on `U`.
 
+Depending on the domain, there are two classes of section modules:
+
+- :class:`SectionModule` for local sections over a non-trivial part of a
+  topological vector bundle
+- :class:`SectionFreeModule` for local sections over a trivial part of a
+  topological vector bundle
 
 AUTHORS:
 
-- Michael Jung (2019): initial version
+- Eric Gourgoulhon, Michal Bejger (2014-2015): initial version from
+  vectorfield_module.py
+- Michael Jung (2019): Generalization to vector bundles
 
 """
 
 #******************************************************************************
-#       Copyright (C) 2019 Michael Jung <micjung at uni-potsdam.de>
+#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -20,33 +33,46 @@ AUTHORS:
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.misc.cachefunc import cached_method
+from sage.rings.integer import Integer
 from sage.categories.modules import Modules
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.section import Section, TrivialSection
 
 class SectionModule(UniqueRepresentation, Parent):
     r"""
+    Module of continuous local sections over a topological vector bundle
+    `E \to M` on a domain `U \in M`.
+
+    The *section module* `C^0(U;E)` is the set of all local sections of the type
+
+    .. MATH::
+
+        s: U \longrightarrow E
+
+    such that
+
+    .. MATH::
+
+        \forall p \in U,\ s(p) \in E_p,
+
+    where `E_p` is the vector bundle fiber of `E` at the point `p`.
+
+    EXAMPLES:
+
+    TODO
 
     """
     Element = Section
 
-    @staticmethod
-    def __classcall_private__(cls, vbundle, domain=None):
-        """
-        For unique representation: In case domain is ``None``, the base space is
-        assumed.
+    def __init__(self, vbundle, domain):
+        r"""
+        Construct the module of continuous sections over a topological vector
+        bundle.
 
         TESTS::
 
-
-
-        """
-        if domain is None:
-            domain = vbundle.base_space()
-        return super(SectionModule, cls).__classcall__(cls, vbundle, domain)
-
-    def __init__(self, vbundle, domain):
-        r"""
+            TODO
 
         """
         base_space = vbundle.base_space()
@@ -63,16 +89,52 @@ class SectionModule(UniqueRepresentation, Parent):
         self._ring = domain.scalar_field_algebra()
         Parent.__init__(self, base=self._ring,
                         category=Modules(self._ring))
+        # Dictionary of the tensor modules built on self
+        #   (keys = (k,l) --the tensor type)
+        # This dictionary is to be extended on need by the method tensor_module
+        self._tensor_modules = {(1,0): self} # self is considered as the set
+                                             # of tensors of type (1,0)
+        # Dictionaries of exterior powers of self and of its dual
+        #   (keys = p --the power degree)
+        # These dictionaries are to be extended on need by the methods
+        # exterior_power and dual_exterior_power
+        #self._exterior_powers = {1: self} <- coming soon
+        #self._dual_exterior_powers = {} <- coming soon
 
     #### Begin of parent methods
 
     def _element_constructor_(self, comp=[], frame=None, name=None,
                               latex_name=None):
         r"""
+        Construct an element of the module.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M')
+            sage: c_xyz = M.chart()
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U,V)
+            sage: E = M.vector_bundle(2, 'E')
+            sage: C0 = E.section_module()
+            sage: e = E.local_frame('e', domain=U)
+            sage: f = E.local_frame('f', domain=V)
+            sage: s = C0([-x,y], frame=e, name='s'); s
+
+            TODO
 
         """
-        # TODO: Implement
-        pass
+        if isinstance(comp, (int, Integer)) and comp == 0:
+            return self.zero()
+        if isinstance(comp, Section):
+            if self._domain.is_subset(comp._domain):
+                return comp.restrict(self._domain)
+            else:
+                raise ValueError("cannot convert the {} ".format(comp) +
+                                 "to a local section in {}".format(self))
+        resu = self.element_class(self, name=name, latex_name=latex_name)
+        if comp != []:
+            resu.set_comp(frame)[:] = comp
+        return resu
 
     def _an_element_(self):
         r"""
@@ -87,7 +149,7 @@ class SectionModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-
+            TODO
 
         """
         if isinstance(other, (SectionModule, SectionFreeModule)):
@@ -103,19 +165,14 @@ class SectionModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-
+            TODO
 
         """
-        vbundle = self._vbundle
         desc = "Module "
         desc += self._name + " "
-        desc += "of {} sections ".format(self._domain._structure.name)
-        desc += "over the {} ".format(self._domain)
-        desc += "with values on the " + self._domain._structure.name + " "
-        desc += vbundle.base_field_type() + " "
-        desc += "vector bundle "
-        desc += vbundle._name + " -> " + self.base_space()._name + " "
-        desc += "of rank {} ".format(vbundle.rank())
+        desc += "of continuous sections "
+        desc += "on " + self._domain._name + " "
+        desc += "with values in " + self._vbundle._name
         return desc
 
     def _latex_(self):
@@ -123,6 +180,8 @@ class SectionModule(UniqueRepresentation, Parent):
         LaTeX representation of the object.
 
         TESTS::
+
+            TODO
 
         """
         return self._latex_name
@@ -133,10 +192,11 @@ class SectionModule(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        -
+        - TODO
 
         EXAMPLES::
 
+            TODO
 
         """
         return self._base_space
@@ -149,40 +209,42 @@ class SectionModule(UniqueRepresentation, Parent):
 
     def vector_bundle(self):
         r"""
-
+        TODO
         """
         return self._vbundle
+
+    @cached_method
+    def zero(self):
+        """
+        Return the zero of ``self``.
+
+        EXAMPLES::
+
+            TODO
+
+        """
+        elt = self.element_class(self, name='zero', latex_name='0')
+        for frame in self._vbundle._frames:
+            if frame._domain.is_subset(self._domain):
+                elt.add_comp(frame)
+                # (since new components are initialized to zero)
+        return elt
 
 #******************************************************************************
 
 class SectionFreeModule(FiniteRankFreeModule):
     r"""
-
+    TODO
     """
     Element = TrivialSection
 
-    @staticmethod
-    def __classcall_private__(cls, vbundle, domain=None):
-        """
-        For unique representation: In case domain is ``None``, the base space is
-        assumed.
-
-        TESTS::
-
-
-
-        """
-        if domain is None:
-            domain = vbundle.base_space()
-        return super(SectionFreeModule, cls).__classcall__(cls, vbundle, domain)
-
-    def __init__(self, vbundle, domain=None):
+    def __init__(self, vbundle, domain):
         r"""
         Construct the free module of sections over a trivialized vector bundle.
 
         TESTS::
 
-
+            TODO
 
         """
         from .scalarfield import ScalarField
@@ -198,8 +260,51 @@ class SectionFreeModule(FiniteRankFreeModule):
                                vbundle.rank(), name=name,
                                latex_name=latex_name,
                                start_index=base_space._sindex,
-                               output_formatter=None,
+                               output_formatter=ScalarField.coord_function,
                                category=cat)
+
+    #### Parent methods
+
+    def _element_constructor_(self, comp=[], basis=None, name=None,
+                              latex_name=None):
+        r"""
+        Construct an element of ``self``.
+
+        TESTS::
+
+            TODO
+
+        """
+        if isinstance(comp, (int, Integer)) and comp == 0:
+            return self.zero()
+        if isinstance(comp, Section):
+            if self._domain.is_subset(comp._domain):
+                return comp.restrict(self._domain)
+            else:
+                raise ValueError("cannot convert the {}".format(comp) +
+                                 "to a local section in {}".format(self))
+        resu = self.element_class(self, name=name, latex_name=latex_name)
+        if comp != []:
+            resu.set_comp(basis)[:] = comp
+        return resu
+
+    # Rem: _an_element_ is declared in the superclass FiniteRankFreeModule
+
+    def _coerce_map_from_(self, other):
+        r"""
+        Determine whether coercion to ``self`` exists from parent ``other``.
+
+        TESTS::
+
+            TODO
+
+        """
+        if isinstance(other, (SectionModule, SectionFreeModule)):
+            return self._domain.is_subset(other._domain)
+        else:
+            return False
+
+    #### End of parent methods
 
     def _repr_(self):
         r"""
@@ -207,32 +312,33 @@ class SectionFreeModule(FiniteRankFreeModule):
 
         TESTS::
 
-
+            TODO
 
         """
         desc = "Free module "
         desc += self._name + " "
-        desc += "of {} sections ".format(self._domain._structure.name)
-        desc += "over the {} ".format(self._domain)
-        desc += "with values on the {}".format(self._vbundle)
+        desc += "of continuous sections "
+        desc += "on " + self._domain._name + " "
+        desc += "with values in " + self._vbundle._name
         return desc
 
     def domain(self):
         r"""
         Return the domain on which ``self`` is defined.
 
+        TODO
 
         """
         return self._domain
 
     def base_space(self):
         r"""
-
+        TODO
         """
         return self._base_space
 
     def vector_bundle(self):
         r"""
-
+        TODO
         """
         return self._vbundle

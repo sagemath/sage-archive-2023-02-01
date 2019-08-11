@@ -33,26 +33,11 @@ class Trivialization(UniqueRepresentation, SageObject):
 
     EXAMPLES:
 
+    TODO
+
     """
-    @staticmethod
-    def __classcall_private__(cls, vbundle, domain=None, name=None,
-                              latex_name=None):
-        """
-        For unique representation: In case domain is ``None``, the base space is
-        assumed.
 
-        TESTS::
-
-
-
-        """
-        if domain is None:
-            domain = vbundle.base_space()
-        return super(Trivialization, cls).__classcall__(cls, vbundle, domain,
-                                                        name=name,
-                                                        latex_name=latex_name)
-
-    def __init__(self, vector_bundle, domain, name=None, latex_name=None):
+    def __init__(self, vector_bundle, name, domain, latex_name=None):
         r"""
         Construct a local trivialization of the vector bundle ``vector_bundle``.
 
@@ -60,12 +45,10 @@ class Trivialization(UniqueRepresentation, SageObject):
 
             sage: M = Manifold(3, 'M', structure='topological')
             sage: E = M.vector_bundle(2, 'E')
-            sage: triv = E.trivialization(M)
-            sage: TestSuite(triv).run()
+            sage: phi = E.trivialization('phi')
+            sage: TestSuite(phi).run()
 
         """
-        if domain is None:
-            domain = vector_bundle.base_space()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -90,17 +73,14 @@ class Trivialization(UniqueRepresentation, SageObject):
 
             sage: M = Manifold(2, 'M', structure='top')
             sage: E = M.vector_bundle(1, 'E')
-            sage: triv = E.trivialization(M)
-            sage: triv._repr_()
-            'Trivialization (E|_M -> M)'
+            sage: phi = E.trivialization('phi', domain=M)
+            sage: phi._repr_()
+            'Trivialization (phi:E|_M -> M)'
 
         """
         desc = "Trivialization ("
-        if self._name is not None:
-            desc += self._name + ":"
-        desc += "{}|_{} -> {})".format(self._vbundle._name,
-                                               self._base_space._name,
-                                               self._base_space._name)
+        desc += self._name + ","
+        desc += "{}|_{})".format(self._vbundle._name, self._domain._name)
         return desc
 
     def _latex_(self):
@@ -111,14 +91,12 @@ class Trivialization(UniqueRepresentation, SageObject):
 
             sage: M = Manifold(2, 'M', structure='top')
             sage: E = M.vector_bundle(1, 'E')
-            sage: triv = E.trivialization(M)
-            sage: triv._latex_()
-            'E |_{M} \\to M \\times \\Bold{R}^1'
+            sage: phi = E.trivialization('phi', domain=M, latex_name='\varphi')
+            sage: phi._latex_()
+            '\\varphi : E |_{M} \\to M \\times \\Bold{R}^1'
 
         """
-        latex = str()
-        if self._latex_name is not None:
-            latex += self._latex_name + r':'
+        latex = self._latex_name + r':'
         latex += r'{} |_{{{}}} \to {} \times {}^{}'.format(self._vbundle._latex_name,
                             self._domain._latex_(), self._domain._latex_(),
                             self._base_field._latex_(), self._bdl_rank)
@@ -131,8 +109,8 @@ class Trivialization(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U')
             sage: E = M.vector_bundle(2, 'E')
-            sage: phi_U = E.trivialization(U)
-            sage: phi_U.base_space()
+            sage: phi = E.trivialization('phi', domain=U)
+            sage: phi.base_space()
             2-dimensional topological manifold M
 
         """
@@ -147,16 +125,18 @@ class Trivialization(UniqueRepresentation, SageObject):
         - ``other`` -- the trivialization where the transition map from ``self``
           goes to
         - ``transf`` -- transformation of the transition map
+        - ``intersection_name`` -- (default: ``None``) name to be given to the
+          subset `U \cap V` if the latter differs from `U` or `V`
 
             sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U')
             sage: V = M.open_subset('V')
             sage: E = M.vector_bundle(2, 'E')
-            sage: phi_U = E.trivialization(U, name='phi_U')
-            sage: phi_V = E.trivialization(V, name='phi_V')
-            sage: phi_U.transition_map(phi_V, 1)
-            Transition map from Trivialization (phi_U:E|_U -> U) to
-             Trivialization (phi_V:E|_V -> V)
+            sage: phi1 = E.trivialization('phi1', domain=U)
+            sage: phi2 = E.trivialization('phi2', domain=V)
+            sage: phi1.transition_map(phi2, 1)
+            Transition map from Trivialization (phi1:E|_U -> U) to
+             Trivialization (phi2:E|_V -> V)
 
 
         """
@@ -172,8 +152,8 @@ class Trivialization(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U')
             sage: E = M.vector_bundle(2, 'E')
-            sage: phi_U = E.trivialization(U)
-            sage: phi_U.vector_bundle()
+            sage: phi = E.trivialization('phi', domain=U)
+            sage: phi.vector_bundle()
             Topological real vector bundle E -> M of rank 2 over the base space
              2-dimensional topological manifold M
 
@@ -189,8 +169,8 @@ class Trivialization(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U')
             sage: E = M.vector_bundle(2, 'E')
-            sage: phi_U = E.trivialization(U)
-            sage: phi_U.domain()
+            sage: phi = E.trivialization('phi', domain=U)
+            sage: phi.domain()
             Open subset U of the 2-dimensional topological manifold M
 
         """
@@ -252,6 +232,9 @@ class TransitionMap(SageObject):
         self._triv2 = triv2
         self._inverse = None
         self._vbundle._transitions[(triv1, triv2)] = self
+        self._name = triv2._name + "*" + triv1._name + "^(-1)"
+        self._latex_name = triv2._latex_name + r'\circ ' + triv1._latex_name + \
+                           r'^{-1}'
         ###
         # Define the automorphism
         sec_module = self._vbundle.section_module(dom, force_free=True)
@@ -287,9 +270,14 @@ class TransitionMap(SageObject):
 
 
         """
-        from sage.misc.latex import latex
-        return r'(' + latex(self._triv1) + r') \curvearrowright (' + \
-               latex(self._triv2) + r')'
+        vspace_lname = r'\times {}^{}'.format(self._triv1._base_field._latex_(),
+                                              self._bdl_rank)
+        latex = self._latex_name + r':'
+        latex += self._triv1._domain._latex_name
+        latex += vspace_lname + r' \to '
+        latex += self._triv2._domain._latex_name
+        latex += vspace_lname
+        return latex
 
     def automorphism(self):
         r"""
@@ -311,3 +299,19 @@ class TransitionMap(SageObject):
                 self._inverse = type(self)(self._triv2, self._triv1, ~auto)
                 self._inverse._inverse = self
         return self._inverse
+
+    def det(self):
+        r"""
+
+        """
+        det = self._automorphism.det()
+        name = "det({})".format(self._name)
+        latex_name = r'\det({})'.format(self._latex_name)
+        det.set_name(name=name, latex_name=latex_name)
+        return det
+
+    def matrix(self):
+        r"""
+
+        """
+        return self._automorphism.matrix(self._frame1, self._frame2)

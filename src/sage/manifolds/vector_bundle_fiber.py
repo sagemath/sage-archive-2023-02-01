@@ -94,7 +94,7 @@ class VectorBundleFiber(FiniteRankFreeModule):
         # Initialization of the changes of bases from the existing changes of
         # frames around the point:
         for frame_pair, automorph in self._vbundle._frame_changes.items():
-            if point in automorph.domain():
+            if point in automorph._fmodule.domain():
                 frame1, frame2 = frame_pair[0], frame_pair[1]
                 fr1, fr2 = None, None
                 for frame in self._frame_bases:

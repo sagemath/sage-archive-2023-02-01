@@ -137,7 +137,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                     # of trivializations)
         self._frames = []  # list of local frames for self
         self._frame_changes = {}  # dictionary of changes of frames
-        self._def_frame = None  # default frame
+        self._def_frame = None # Default local frame on self
         self._coframes = [] # list of local coframes for self
         self._trivial_parts = set() # subsets of base space on which self is
                     # trivial
@@ -289,7 +289,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._trivial_parts.add(frame.domain())
         self._frames.append(frame)
 
-    def trivialization(self, domain=None, name=None, latex_name=None):
+    def trivialization(self, name, domain=None, latex_name=None):
         r"""
         Return a trivialization of ``self`` over the domain ``domain``.
 
@@ -315,9 +315,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             Trivialization (phi:E|_U -> U)
 
         """
+        if domain is None:
+            domain = self._base_space
         from .trivialization import Trivialization
-        return Trivialization(self, domain=domain, name=name,
-                              latex_name=latex_name)
+        return Trivialization(self, name, domain=domain, latex_name=latex_name)
 
     def transitions(self):
         r"""
@@ -460,6 +461,8 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             TODO
 
         """
+        if domain is None:
+            domain = self._base_space
         from sage.manifolds.section_module import \
                                             SectionModule, SectionFreeModule
         if force_free or domain in self._trivial_parts:
@@ -485,9 +488,9 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         return VectorBundleFiber(self, point)
 
-    def local_frame(self, symbol=None, latex_symbol=None,
-                    from_frame=None, indices=None, latex_indices=None,
-                    symbol_dual=None, latex_symbol_dual=None, domain=None):
+    def local_frame(self, symbol, latex_symbol=None, indices=None,
+                    latex_indices=None, symbol_dual=None,
+                    latex_symbol_dual=None, domain=None):
         r"""
         Define a local frame on ``self``.
 
@@ -551,7 +554,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                           symbol_dual=symbol_dual,
                           latex_symbol_dual=latex_symbol_dual)
 
-    def section(self, name=None, latex_name=None):
+    def section(self, *comp, **kwargs):
         r"""
         Return a continuous section of ``self``.
 
@@ -566,8 +569,15 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
           a continuous section of `M` with values on `E`
 
         """
-        # TODO: Implement
-        pass
+        domain = kwargs.pop('domain', self._base_space)
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        smodule = self.section_module(domain=domain)  # the parent
+        resu = smodule.element_class(smodule, name=name, latex_name=latex_name)
+        if comp:
+            # Some components are to be initialized
+            resu._init_components(*comp, **kwargs)
+        return resu
 
     def whitney_sum(self, vector_bundle):
         r"""
@@ -658,11 +668,16 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         if frame2._fmodule != sec_module:
             raise ValueError("the two frames are not defined on the same " +
                              "section module")
-        sec_module.set_change_of_basis(frame1, frame2, change_of_frame,
+        if isinstance(change_of_frame, FreeModuleAutomorphism):
+            auto = change_of_frame
+        else: # Otherwise try to coerce the input
+            auto_group = sec_module.general_linear_group()
+            auto = auto_group(change_of_frame, basis=frame1)
+        sec_module.set_change_of_basis(frame1, frame2, auto,
                                        compute_inverse=compute_inverse)
-        sec_module._basis_changes[(frame1, frame2)] = change_of_frame
+        self._frame_changes[(frame1, frame2)] = auto
         if compute_inverse:
-            sec_module._basis_changes[(frame2, frame1)] = ~change_of_frame
+            self._frame_changes[(frame2, frame1)] = ~auto
 
     def change_of_frame(self, frame1, frame2):
         r"""

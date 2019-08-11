@@ -1290,14 +1290,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         EXAMPLES::
 
-            sage: k = GF(47)
-            sage: R.<x> = PolynomialRing(k)
-            sage: ZZ(R(45))
-            45
-            sage: ZZ(3*x + 45)
+            sage: K.<x> = Frac(RR['x'])
+            sage: ZZ(2*x/x)              # indirect doctest
+            2
+            sage: ZZ(x)
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial
+
+        .. NOTE::
+
+            The original example has been moved to :meth:`section` of
+            :class:`sage.categories.map.FormalCompositeMap` by :trac:`27081`
+            since coercion doesn't need :meth:`_integer_` for it, any more.
         """
         if self.degree() > 0:
             raise TypeError("cannot coerce nonconstant polynomial")

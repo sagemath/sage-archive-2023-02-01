@@ -6864,14 +6864,27 @@ class FiniteWord_class(Word_class):
             sage: Word('3211').is_square_free()
             False
         """
-        L = self.length()
-        if L < 2:
-            return True
-        for start in range(0, L-1):
-            for end in range(start+2, L+1, 2):
-                if self[start:end].is_square():
-                    return False
-        return True
+        from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+        T = DecoratedSuffixTree(self)
+        return T.square_vocabulary() == [(0, 0)]
+
+    def squares(self):
+        r"""
+        Returns a list of all distinct squares of ``self``.
+
+        EXAMPLES::
+
+            sage: Word('cacao').squares()
+            [word: , word: caca]
+            sage: Word('1111').squares()
+            [word: , word: 1111, word: 11]
+            sage: w = Word('00110011010')
+            sage: w.squares()
+            [word: , word: 01100110, word: 00110011, word: 00, word: 11, word: 1010]
+        """
+        from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+        T = DecoratedSuffixTree(self)
+        return T.square_vocabulary(output='word')
 
     def is_cube(self):
         r"""

@@ -1302,7 +1302,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. NOTE::
 
-            the original example has been moved to :meth:`section` of
+            The original example has been moved to :meth:`section` of
             :class:`sage.categories.map.FormalCompositeMap` by :trac:`27081`
             since coercion doesn't need :meth:`_integer_` for it, any more.
         """

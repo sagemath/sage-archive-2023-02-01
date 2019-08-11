@@ -1988,7 +1988,8 @@ cdef class FormalCompositeMap(Map):
 
     def section(self):
         """
-        Compute a section map from sections of the factors of self if they have been implemented
+        Compute a section map from sections of the factors of
+        ``self`` if they have been implemented.
 
         EXAMPLES::
 
@@ -2033,16 +2034,17 @@ cdef class FormalCompositeMap(Map):
             ...
             TypeError: not a constant polynomial
         """
-        try:
-            sections = [m.section() for m in self]
-        except TypeError:
-            return None
-
-        if None in sections:
-            return None
+        sections = []
+        for m in reversed(list(self)):
+            try:
+                sec = m.section()
+            except TypeError:
+                return None
+            if sec is None:
+                return None
+            sections.append(sec)
 
         from sage.categories.homset import Hom
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         H = Hom(self.codomain(), self.domain(), category=SetsWithPartialMaps())
-        sections.reverse()
         return FormalCompositeMap(H, sections)

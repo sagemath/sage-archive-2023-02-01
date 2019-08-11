@@ -1228,11 +1228,14 @@ cdef class IndexFaceSet(PrimitiveObject):
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            json = ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
+            json = ['{{"vertices":{}, "faces":{}, "faceColors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
 
         if self._extra_kwds.get('threejs_flat_shading', False):
             json[0] = json[0][:-1] + ', "useFlatShading": true}'
+
+        if self._extra_kwds.get('mesh', False):
+            json[0] = json[0][:-1] + ', "showMeshGrid": true}'
 
         return json
 

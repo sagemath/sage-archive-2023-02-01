@@ -30,8 +30,6 @@ from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
 from .linear_code import (AbstractLinearCode,
                           LinearCodeGeneratorMatrixEncoder)
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.integer_ring import ZZ
 
 class GolayCode(AbstractLinearCode):
     r"""

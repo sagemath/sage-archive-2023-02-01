@@ -13,6 +13,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function, division
 from six.moves import range
 import sys
 # import from Sage library
@@ -1534,119 +1535,125 @@ def RandomToleranceGraph(n):
 
 # uniform random triangulation using Schaeffer-Poulalhon algorithm
 
-
-def _auxiliary_random_word(n):
+def _auxiliary_random_forest_word(n, k):
     r"""
     Return a random word used to generate random triangulations.
 
     INPUT:
 
-    n -- an integer
+    - ``n`` -- an integer
+
+    - ``k`` -- an integer
 
     OUTPUT:
 
-    A binary sequence `w` of length `4n-2` with `n-1` ones, such that any proper
-    prefix `u` of `w` satisfies `3|u|_1 - |u|_0 > -2` (where `|u|_1` and `|u|_0`
-    are respectively the number of 1s and 0s in `u`). Those words are the
-    expected input of :func:`_contour_and_graph_from_word`.
+    A binary sequence `w` of length `4n+2k-4` with `n` ones, such that any
+    proper prefix `u` of `w` satisfies `3|u|_1 - |u|_0 \geq -2k+4` (where
+    `|u|_1` and `|u|_0` are respectively the number of 1s and 0s in `u`). Those
+    words are the expected input of :func:`_contour_and_graph_from_words`.
 
     ALGORITHM:
 
-    A random word with these numbers of `0` and `1` is chosen. This
-    word is then rotated in order to give an admissible code for a
-    tree (as explained in Proposition 4.2, [PS2006]_). There are
-    exactly two such rotations, one of which is chosen at random.
+    A random word with these numbers of `0` and `1` plus one additional `0` is
+    chosen. This word is then rotated such the prefix property is fulfilled for
+    each proper prefix and only violated by the final `0` (which is deleted
+    afterwards). There is exactly one such rotation (compare Section 4.3 in
+    [PS2006]_).
 
     Let us consider a word `w` satisfying the expected conditions. By
-    drawing a step (1,3) for each 1 and a step (1,-1) for each 0 in
-    `w`, one gets a path starting at height 0, ending at height -2 and
-    staying above (or on) the horizontal line of height -1 except at the
-    end point. By cutting the word at the first position of height -1,
-    let us write `w=uv`. One can then see that `v` can only touch the line
-    of height -1 at its initial point and just before its end point
-    (these two points may be the same).
+    drawing a step `(1,3)` for each `1` and a step `(1,-1)` for each `0` in
+    `w`, one gets a path starting at height `0`, ending at height `-2k+3`
+    (before removing the final `0`) and staying above (or on) the horizontal
+    line of height `-2k+4` except at the end point.
 
-    Now consider a word `w'` obtained from `w` by any
-    rotation. Because `vu` is another word satisfying the expected
-    conditions, one can assume that `w'` is obtained from `w` by
-    starting at some point in `u`. The algorithm must then recognize
-    the end of `u` and the end of `v` inside `w'`. The end of `v` is
-    the unique point of minimal height `h`. The end of `u` is the first
-    point reaching the height `h+1`.
+    Now consider an arbitrary word `w` with `n` ones and `3n+2k-3` zeros. By
+    cutting the word at the first position of minimum height, let us write
+    `w=uv`. One can then see that the word `vu` touches the line of height
+    `-2k+3` only after the last step. Further one can see that this is the only
+    rotation of the word `w` with this property.
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.random import _auxiliary_random_word
-        sage: _auxiliary_random_word(4)  # random
-        [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+        sage: from sage.graphs.generators.random import _auxiliary_random_forest_word
+        sage: with(seed(94364165)):
+        ....:     _auxiliary_random_forest_word(4, 3)
+        ....:     _auxiliary_random_forest_word(3, 5)
+        [1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+        [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        sage: def check(w):
+    TESTS::
+
+        sage: def partial_sums(w):
         ....:     steps = {1: 3, 0: -1}
-        ....:     return all(sum(steps[u] for u in w[:i]) >= -1 for i in range(len(w)))
+        ....:     curr_sum = 0
+        ....:     for x in w:
+        ....:         curr_sum += steps[x]
+        ....:         yield curr_sum
 
-        sage: for n in range(1, 10):
-        ....:     w = _auxiliary_random_word(n)
-        ....:     assert len(w) == 4 * n - 2
-        ....:     assert w.count(0) == 3 * n - 1
-        ....:     assert check(w)
+        sage: for k in range(3,6):
+        ....:     for n in range(k, 10):
+        ....:         w = _auxiliary_random_forest_word(n, k)
+        ....:         assert len(w) == 4*n + 2*k - 4
+        ....:         assert w.count(1) == n
+        ....:         for partial_sum in partial_sums(w):
+        ....:             assert partial_sum >= -2*k + 4
     """
     from sage.misc.prandom import shuffle
-    w = [0] * (3 * n - 1) + [1] * (n - 1)
+    w = [0] * (3*n + 2*k - 3) + [1] * n
     shuffle(w)
 
-    # Finding the two admissible shifts.
-    # The 'if height' is true at least once.
-    # If it is true just once, then the word is admissible
-    # and cuts = [0, first position of -1] (ok)
-    # Otherwise, cuts will always contain
-    # [first position of hmin, first position of hmin - 1] (ok)
-    cuts = [0, 0]
-    height = 0
-    height_min = 0
-    for i in range(4 * n - 3):
-        if w[i] == 1:
-            height += 3
+    # Finding the admissible shift
+    partial_sum = 0
+    min_value = 0
+    min_pos = 0
+    for i, x in enumerate(w):
+        if x:
+            partial_sum += 3
         else:
-            height -= 1
-            if height < height_min:
-                height_min = height
-                cuts = cuts[1], i + 1
-
-    # random choice of one of the two possible cuts
-    idx = cuts[randint(0, 1)]
-    return w[idx:] + w[:idx]
+            partial_sum -= 1
+        if partial_sum < min_value:
+            min_value = partial_sum
+            min_pos = i
+    return w[min_pos+1:] + w[:min_pos]
 
 
-def _contour_and_graph_from_word(w):
+def _contour_and_graph_from_words(pendant_word, forest_word):
     r"""
-    Return the contour word and the graph of inner vertices of the tree
-    associated with the word `w`.
+    Return the contour word and the graph of inner vertices of the `k`-gonal
+    forest associated with the words ``pendant_word`` and ``forest_word``.
 
     INPUT:
 
-    - `w` -- a word in `0` and `1` as given by :func:`_auxiliary_random_word`
+    - ``pendant_word`` -- a word with `k-1` zeros and `k-3` ones
 
-    This word must satisfy the conditions described in Proposition 4.2 of
-    [PS2006]_ (see :func:`_auxiliary_random_word`).
+    - ``forest_word`` -- a word in `0` and `1` as given by
+      :func:`_auxiliary_random_word` with the parameter ``k`` set to the number
+      of zeros in ``pendant_word`` plus `1`
+
+    ``forest_word`` must satisfy the conditions hinted in Proposition 5.4 of
+    [PS2006]_ (see :func:`_auxiliary_random_forest_word`).
 
     OUTPUT:
 
     a pair ``(seq, G)`` where:
 
     - ``seq`` is a sequence of pairs (label, integer) representing the
-      contour walk along the tree associated with `w`
+      contour walk along the `k`-gonal forest associated with the words
+      ``pendant_word`` and ``forest_word``.
 
-    - ``G`` is the tree obtained by restriction to the set of inner vertices
+    - ``G`` is the `k`-gonal forest associated with the words ``pendant_word``
+      and ``forest_word``.
 
-    The underlying bijection from words to trees is given by lemma 4.1
-    in [PS2006]_. It maps the admissible words to planar trees where
-    every inner vertex has two leaves.
+    The underlying bijection from words to `k`-gonal forests is described in
+    Section 5.1 of [PS2006]_. The ``pendant_word`` corresponds to the factor
+    `\binom{2k-4}{k-3}` in the counting formula of Proposition 5.4 and the
+    ``forest_word`` corresponds to the factor `\frac{2k-3}{3m+2k-3}
+    \binom{4m+2k-4}{m}`.
 
-    In the word `w`, the letter `1` means going away from the root ("up") from
-    an inner vertex to another inner vertex. The letter `0` denotes all other
-    steps of the discovery, i.e. either discovering a leaf vertex or going
-    toward the root ("down"). Thus, the length of `w` is twice the number of
-    edges between inner vertices, plus the number of leaves.
+    In the ``forest_word``, the letter `1` means going away from the root ("up")
+    from an inner vertex to another inner vertex. The letter `0` denotes all
+    other steps of the discovery, i.e. either discovering a leaf vertex or going
+    toward the root ("down").
 
     Inner vertices are tagged with 'in' and leaves are tagged with
     'lf'. Inner vertices are moreover labelled by integers, and leaves
@@ -1654,102 +1661,150 @@ def _contour_and_graph_from_word(w):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.random import _contour_and_graph_from_word
-        sage: seq, G = _contour_and_graph_from_word([1,0,0,0,0,0])
+        sage: from sage.graphs.generators.random import _contour_and_graph_from_words
+        sage: seq, G = _contour_and_graph_from_words([0, 0], [1, 0, 0, 0, 0, 0])
         sage: seq
         [('in', 0),
-         ('in', 1),
-         ('lf', 1),
-         ('in', 1),
-         ('lf', 1),
-         ('in', 1),
+         ('in', 3),
+         ('lf', 3),
+         ('in', 3),
+         ('lf', 3),
+         ('in', 3),
          ('in', 0),
-         ('lf', 0),
-         ('in', 0),
-         ('lf', 0)]
+         ('in', 1),
+         ('in', 2)]
         sage: G
-        Graph on 2 vertices
+        Graph on 4 vertices
 
-        sage: from sage.graphs.generators.random import _auxiliary_random_word
-        sage: seq, G = _contour_and_graph_from_word(_auxiliary_random_word(20))
-        sage: G.is_tree()
-        True
+        sage: from sage.graphs.generators.random import _auxiliary_random_forest_word
+        sage: _, G = _contour_and_graph_from_words([0, 1, 0, 0, 1, 0], _auxiliary_random_forest_word(20, 5)) # random
+        sage: len(G.faces())
+        2
 
         sage: longw = [1,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0]
-        sage: seq, G = _contour_and_graph_from_word(longw)
+        sage: _, G = _contour_and_graph_from_words([0, 0], longw)
         sage: G.get_embedding()
-        {0: [1], 1: [0, 2], 2: [1, 3, 4], 3: [2], 4: [2, 5, 6], 5: [4], 6: [4]}
+        {0: [1, 2, 3],
+         1: [2, 0],
+         2: [0, 1],
+         3: [0, 4],
+         4: [3, 5, 6],
+         5: [4],
+         6: [4, 7, 8],
+         7: [6],
+         8: [6]}
     """
-    index       = 0          # numbering of inner vertices
-    word        = [('in', 0)]  # initial vertex is inner
-    leaf_stack  = [0, 0]     # stack of leaves still to be created
-    inner_stack = [0]        # stack of active inner nodes
-    edges = []
-    embedding = {0: []}  # records the planar embedding of the tree
-    for x in w:
-        if x == 1:  # going up to a new inner vertex
-            index += 1
-            embedding[index] = inner_stack[-1:]
-            embedding[inner_stack[-1]].append(index)
-            leaf_stack.extend([index, index])
-            inner_stack.append(index)
-            edges.append(inner_stack[-2:])
-            word.append(('in', index))
+    k = (len(pendant_word)+4) // 2
+
+    index = 0 # numbering of inner vertices
+    word = [('in',0)] # the word representing the contour walk
+
+    # start with the outer face, a cycle of length k
+    edges = [[i, (i+1) % k] for i in range(k)]
+    embedding = {i: [(i+1) % k, (i-1+k) % k] for i in range(k)}
+
+    # add the pendant edges
+    for x in pendant_word:
+        if x:
+            word.extend([('lf', index), ('in', index)])
         else:
-            if leaf_stack and inner_stack[-1] == leaf_stack[-1]:  # up and down to a new leaf
-                leaf_stack.pop()
-                word.extend([('lf', inner_stack[-1]), ('in', inner_stack[-1])])
-            else:  # going down to a known inner vertex
-                inner_stack.pop()
-                word.append(('in', inner_stack[-1]))
+            index += 1
+            word.append(('in', index))
+
+    # add trees
+    curr_word_pos = 0
+    curr_forest_word_pos = 0
+    while curr_forest_word_pos < len(forest_word):
+        x = forest_word[curr_forest_word_pos]
+        # insert a tree at current position
+        if x:
+            index += 1
+            embedding[index] = [word[curr_word_pos][1]]
+            embedding[word[curr_word_pos][1]].append(index)
+            edges.append([word[curr_word_pos][1], index])
+            # stack of leaves still to be created
+            leaf_stack = [index, index]
+            # stack of active inner nodes
+            inner_stack = [word[curr_word_pos][1], index]
+            word.insert(curr_word_pos+1, ('in', index))
+            curr_word_pos += 1
+            while len(inner_stack) > 1:
+                curr_forest_word_pos += 1
+                x = forest_word[curr_forest_word_pos]
+                if x:
+                    index += 1
+                    embedding[index] = inner_stack[-1:]
+                    embedding[inner_stack[-1]].append(index)
+                    leaf_stack.extend([index, index])
+                    inner_stack.append(index)
+                    edges.append(inner_stack[-2:])
+                    word.insert(curr_word_pos+1, ('in', index))
+                    curr_word_pos += 1
+                else:
+                    # up and down to a new leaf
+                    if leaf_stack and inner_stack[-1] == leaf_stack[-1]:
+                        leaf_stack.pop()
+                        word.insert(curr_word_pos+1, ('lf', inner_stack[-1]))
+                        word.insert(curr_word_pos+2, ('in', inner_stack[-1]))
+                        curr_word_pos += 2
+                    # going down to a known inner vertex
+                    else:
+                        inner_stack.pop()
+                        word.insert(curr_word_pos+1, ('in', inner_stack[-1]))
+                        curr_word_pos += 1
+        # go to next insertion position
+        else:
+            curr_word_pos += 1
+            if word[curr_word_pos][0] == 'lf':
+                curr_word_pos += 1
+        curr_forest_word_pos += 1
+
     G = Graph(edges, format='list_of_edges')
     G.set_embedding(embedding)
-    return word[:-1], G
+    return word, G
 
-
-def RandomTriangulation(n, set_position=False):
+def RandomTriangulation(n, set_position=False, k=3):
     r"""
-    Return a random triangulation on `n` vertices.
+    Return a random inner triangulation of an outer face of degree ``k`` with
+    ``n`` vertices in total.
 
-    A triangulation is a planar graph all of whose faces are
-    triangles (3-cycles).
+    An inner triangulation is a plane graph all of whose faces (except the
+    outer/unbounded face) are triangles (3-cycles).
 
     INPUT:
 
-    - `n` -- an integer
+    - ``n`` -- the number of vertices of the graph
 
-    - ``set_position`` -- boolean (default ``False``) if set to ``True``, this
+    - ``k`` -- the size of the outer face
+
+    - ``set_position`` -- boolean (default ``False``); if set to ``True``, this
       will compute coordinates for a planar drawing of the graph.
 
     OUTPUT:
 
-    A random triangulation chosen uniformly among the *rooted* triangulations on
-    `n` vertices. This is a planar graph and comes with a combinatorial
-    embedding.
+    A random graph chosen uniformly among the inner triangulations of a *rooted*
+    `k`-gon with `n` vertices (including the `k` vertices from the outer face).
+    This is a planar graph and comes with a combinatorial embedding. The
+    vertices of the root edge are labelled ``-1`` and ``-2`` and the outer face
+    is the face returned by :meth:`Graph.faces` in which ``-1`` and ``-2`` are
+    consecutive vertices in this order.
 
     Because some triangulations have nontrivial automorphism
-    groups, this may not be equal to the uniform distribution among unrooted
-    triangulations.
+    groups, this may not be equal to the uniform distribution among inner
+    triangulations of unrooted `k`-gons.
 
     ALGORITHM:
 
-    The algorithm is taken from [PS2006]_, section 2.1.
+    The algorithm is taken from [PS2006]_, Section 5.
 
-    Starting from a planar tree (represented by its contour as a
-    sequence of vertices), one first performs local closures, until no
+    Starting from a planar `k`-gonal forest (represented by its contour as a
+    sequence of vertices), one performs local closures, until no
     one is possible. A local closure amounts to replace in the cyclic
-    contour word a sequence ``in1,in2,in3,lf,in3`` by
-    ``in1,in3``. After all local closures are done, one has reached
-    the partial closure, as in [PS2006]_, figure 5 (a).
-
-    Then one has to perform complete closure by adding two more
-    vertices, in order to reach the situation of [PS2006]_, figure 5
-    (b). For this, it is necessary to find inside the final contour
-    one of the two subsequences ``lf,in,lf``.
+    contour word a sequence ``in1, in2, in3, lf, in3`` by
+    ``in1, in3``.
 
     At every step of the algorithm, newly created edges are recorded
     in a graph, which will be returned at the end.
-
     The combinatorial embedding is also computed and recorded in the
     output graph.
 
@@ -1769,15 +1824,29 @@ def RandomTriangulation(n, set_position=False):
         sage: G.plot(vertex_size=0, vertex_labels=False)
         Graphics object consisting of 13 graphics primitives
 
+        sage: H = graphs.RandomTriangulation(7, k=5)
+        sage: sorted(len(f) for f in H.faces())
+        [3, 3, 3, 3, 3, 3, 3, 5]
+
     TESTS::
 
         sage: G.get_embedding() is not None
         True
+
+        sage: graphs.RandomTriangulation(3, k=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The number 'n' of vertices must be at least the size 'k' of the outer face.
+        sage: graphs.RandomTriangulation(3, k=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The size 'k' of the outer face must be at least 3.
+
         sage: for i in range(10):
-        ....:     g = graphs.RandomTriangulation(30)
+        ....:     g = graphs.RandomTriangulation(30) # random
         ....:     assert g.is_planar()
-        sage: for i in range(10):
-        ....:     g = graphs.RandomTriangulation(10)
+        sage: for k in range(3, 10):
+        ....:     g = graphs.RandomTriangulation(10, k=k) # random
         ....:     assert g.is_planar(on_embedding=g.get_embedding())
 
     REFERENCES:
@@ -1788,16 +1857,21 @@ def RandomTriangulation(n, set_position=False):
        http://www.lix.polytechnique.fr/~poulalho/Articles/PoSc_Algorithmica06.pdf
 
     """
-    if n < 3:
-        raise ValueError('only defined for n >= 3')
-    w = _auxiliary_random_word(n - 2)
-    word, graph = _contour_and_graph_from_word(w)
-    edges = []
+    if k < 3:
+        raise ValueError("The size 'k' of the outer face must be at least 3.")
+    if n < k:
+        raise ValueError("The number 'n' of vertices must be at least the size "
+                         "'k' of the outer face.")
 
+    from sage.misc.prandom import shuffle
+    pendant_word = [0] * (k-1) + [1] * (k-3)
+    shuffle(pendant_word)
+    forest_word = _auxiliary_random_forest_word(n-k, k)
+    word, graph = _contour_and_graph_from_words(pendant_word, forest_word)
+    edges = []
     embedding = graph.get_embedding()
 
-    # 'partial closures' described in 2.1 of [PS2006]_.
-    pattern = ['in', 'in', 'in', 'lf', 'in']
+    pattern = ['in', 'in', 'in', 'lf', 'in'] # 'partial closures'
 
     def rotate_word_to_next_occurrence(word):
         """
@@ -1826,56 +1900,12 @@ def RandomTriangulation(n, set_position=False):
             break
 
     graph.add_edges(edges)
-    # This is the end of partial closure.
-
-    # There remains to add two new vertices a and b.
-    a = -1
-    b = -2
-    graph.add_edge((a, b))
-
-    # Every remaining 'lf' vertex is linked either to a or to b.
-    # Switching a/b happens when one meets the sequence 'lf','in','lf'.
-    a_or_b = a
-    embedding[a] = []
-    embedding[b] = []
-    last_lf_occurrence = -42
-    change = {}
-    for x in word:
-        last_lf_occurrence -= 1
-        if x[0] == 'lf':
-            if last_lf_occurrence == -2:
-                change[a_or_b] = x[1]
-                a_or_b = b if a_or_b == a else a
-            graph.add_edge((a_or_b, x[1]))
-            embedding[a_or_b].insert(0, x[1])
-            last_lf_occurrence = 0
-
-    # conjugates the embeddings of a and b
-    # in a way that helps to complete the embedding
-    for a_or_b in [a, b]:
-        emba = embedding[a_or_b]
-        idx = emba.index(change[a_or_b])
-        embedding[a_or_b] = emba[idx:] + emba[:idx]
-    embedding[a].append(b)
-    embedding[b].append(a)
-
-    # completes the embedding by inserting missing half-edges
-    for a_or_b in [a, b]:
-        emb = embedding[a_or_b]
-        for i, v in enumerate(emb[:-1]):
-            if i == 0:
-                embedding[v].insert(embedding[v].index(emb[1]) + 1, a_or_b)
-            else:
-                embedding[v].insert(embedding[v].index(emb[i - 1]), a_or_b)
-
-    assert graph.num_edges() == 3 * (n - 2)
-    assert graph.num_verts() == n
-
     graph.set_embedding(embedding)
-
+    graph.relabel({0: -2, 1: -1})
+    assert graph.num_edges() == 3*n - 3 - k
+    assert graph.num_verts() == n
     if set_position:
         graph.layout(layout="planar", save_pos=True)
-
     return graph
 
 

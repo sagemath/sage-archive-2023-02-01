@@ -594,26 +594,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[0,0,1],[0,0,-1]])
             sage: CombinatorialPolyhedron(P).dimension()
             3
-
-        TESTS::
-
-            sage: from itertools import combinations
-            sage: N = combinations(range(1200), 1199)
-            sage: C = CombinatorialPolyhedron(N)
-            sage: try:
-            ....:     alarm(0.1)
-            ....:     C.dimension()
-            ....: except:
-            ....:     print("alarm!")
-            ....:
-            alarm!
-            sage: try:
-            ....:     alarm(0.1)
-            ....:     C.f_vector()
-            ....: except:
-            ....:     print("alarm!")
-            ....:
-            alarm!
         """
         if self._dimension == -2:
             # Dimension not computed yet.
@@ -909,21 +889,6 @@ cdef class CombinatorialPolyhedron(SageObject):
              ('b', 'c'),
              ('a', 'c'),
              ('a', 'b'))
-
-        TESTS::
-
-            sage: from itertools import combinations
-            sage: N = combinations(range(200),199)
-            sage: C = CombinatorialPolyhedron(N)
-            sage: try:
-            ....:     alarm(0.1)
-            ....:     C.edges()
-            ....: except:
-            ....:     print("alarm!")
-            ....:
-            alarm!
-            sage: len(C.edges())
-            19900
         """
         cdef size_t len_edge_list = self._length_edges_list
         if self._edges is NULL:
@@ -1061,21 +1026,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: it = C.face_iter(0)
             sage: for face in it: face.Hrepr()
             (An inequality (1, 0) x + 0 >= 0, An equation (0, 1) x + 0 == 0)
-
-        TESTS::
-
-            sage: from itertools import combinations
-            sage: N = combinations(range(200),199)
-            sage: C = CombinatorialPolyhedron(N)
-            sage: try:
-            ....:     alarm(0.1)
-            ....:     C.ridges()
-            ....: except:
-            ....:     print("alarm!")
-            ....:
-            alarm!
-            sage: len(C.ridges())
-            19900
         """
         cdef size_t len_ridge_list = self._length_edges_list
         if self._ridges is NULL:
@@ -1167,46 +1117,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.f_vector()
             (1, 10, 45, 120, 185, 150, 50, 1)
-
-        TESTS::
-
-            sage: from itertools import combinations
-            sage: N = combinations(range(25),24)
-            sage: C = CombinatorialPolyhedron(N)
-            sage: try:
-            ....:     alarm(0.5)
-            ....:     C.f_vector()
-            ....: except:
-            ....:     print("alarm!")
-            ....:
-            alarm!
-            sage: C.f_vector()  # long time
-            (1,
-             25,
-             300,
-             2300,
-             12650,
-             53130,
-             177100,
-             480700,
-             1081575,
-             2042975,
-             3268760,
-             4457400,
-             5200300,
-             5200300,
-             4457400,
-             3268760,
-             2042975,
-             1081575,
-             480700,
-             177100,
-             53130,
-             12650,
-             2300,
-             300,
-             25,
-             1)
         """
         if not self._f_vector:
             self._compute_f_vector()

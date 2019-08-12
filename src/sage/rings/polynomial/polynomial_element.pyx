@@ -123,8 +123,9 @@ from sage.misc.cachefunc import cached_function
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
 
-from sage.misc.superseded import deprecation, deprecated_function_alias
+from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
+
 
 cpdef is_Polynomial(f):
     """
@@ -132,9 +133,7 @@ cpdef is_Polynomial(f):
 
     INPUT:
 
-
-    -  ``f`` - an object
-
+    -  ``f`` -- an object
 
     EXAMPLES::
 
@@ -343,7 +342,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Return a plot of this polynomial.
 
         INPUT:
-
 
         -  ``xmin`` - float
 
@@ -2721,7 +2719,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         IndexError, since in Sage polynomials are immutable.
 
         INPUT:
-
 
         -  ``n`` - an integer
 
@@ -9043,8 +9040,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.base_ring().ideal(self.coefficients())
 
-    content = deprecated_function_alias(16613, content_ideal)
-
     def norm(self, p):
         r"""
         Return the `p`-norm of this polynomial.
@@ -11395,7 +11390,7 @@ cdef class ConstantPolynomialSection(Map):
     """
     This class is used for conversion from a polynomial ring to its base ring.
 
-    Since :trac:`9944`, it calls the constant_coefficient method,
+    Since :trac:`9944`, it calls the ``constant_coefficient`` method,
     which can be optimized for a particular polynomial type.
 
     EXAMPLES::

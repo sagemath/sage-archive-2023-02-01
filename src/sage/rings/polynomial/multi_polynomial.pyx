@@ -2111,7 +2111,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def reduced_form(self, **kwds):
         r"""
-        Returns a reduced form of this polynomial.
+        Return a reduced form of this polynomial.
 
         The algorithm is from Stoll and Cremona's "On the Reduction Theory of
         Binary Forms" [CS2003]_. This takes a two variable homogenous polynomial and
@@ -2123,7 +2123,7 @@ cdef class MPolynomial(CommutativeRingElement):
         This reduction should also minimize the sum of the squares of the coefficients,
         but this is not always the case.  By default the coefficient minimizing
         algorithm in [HS2018]_ is applied. The coefficients can be minimized
-        either with respect to the sum of their squares of the maximum of their
+        either with respect to the sum of their squares or the maximum of their
         global heights.
 
         A portion of the algorithm uses Newton's method to find a solution to
@@ -2131,7 +2131,7 @@ cdef class MPolynomial(CommutativeRingElement):
         in the upper half plane, the function will use the less precise `z_0`
         covariant from the `Q_0` form as defined on page 7 of [CS2003]_.
         Additionally, if this polynomial has
-        a root with multiplicity at lease half the total degree of the polynomial,
+        a root with multiplicity at least half the total degree of the polynomial,
         then we must also use the `z_0` covariant. See [CS2003]_ for details.
 
         Note that, if the covariant is within ``error_limit`` of the boundary

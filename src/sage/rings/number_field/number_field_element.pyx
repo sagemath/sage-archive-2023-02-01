@@ -1815,6 +1815,50 @@ cdef class NumberFieldElement(FieldElement):
         else:
             return R(R.complex_field()(self))
 
+    def _acb_(self, R):
+        r"""
+        Convert this number field element to a complex ball.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: NF.<a> = NumberField(x^7 + 2, embedding=CC(0.99, 0.47))
+            sage: CBF(a)
+            [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
+            sage: NF.<a> = NumberField(x^7 + 2, embedding=QQbar(-2)^(1/7))
+            sage: CBF(a)
+            [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
+            sage: NF.<a> = NumberField(x^7 + 2)
+            sage: CBF(NF(3))
+            3.000000000000000
+            sage: CBF(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce a to a rational
+        """
+        from sage.rings.complex_arb import ComplexBallField
+        if self.parent().coerce_embedding() is None:
+            return R(self.base_ring()(self))
+        coef = self._coefficients()
+        if not coef:
+            return R.zero()
+        cdef int ini_prec = R.precision()
+        cdef int max_prec = ini_prec + max(mpz_sizeinbase(mpq_numref((<Rational> c).value), 2)
+                                           for c in coef)
+        cdef int prec = ini_prec + 2*len(coef)
+        gen = self._parent.gen_embedding()
+        while True:
+            C = ComplexBallField(prec)
+            g = C(gen)
+            val = C(coef[0])
+            p = C.one()
+            for c in coef[1:]:
+                p *= g
+                val += C(c)*p
+            if prec > max_prec or val.accuracy() >= ini_prec - 4:
+                return R(val)
+            prec *= 2
+
     def __float__(self):
         """
         EXAMPLES::
@@ -3030,7 +3074,7 @@ cdef class NumberFieldElement(FieldElement):
             h ^= mpz_pythonhash(z) + (<Py_hash_t> 2701463124188384701) + (h << 16) + (h >> 2)
 
         ZZ_to_mpz(z, &self.__denominator)
-        # magic number below is floor((1+sqrt(5)) * 2^63)
+        # magic number below is floor((1+sqrt(5)) * 2^61)
         h += (mpz_pythonhash(z) - 1) * (<Py_hash_t> 7461864723258187525)
 
         mpz_clear(z)
@@ -3053,14 +3097,20 @@ cdef class NumberFieldElement(FieldElement):
             sage: (b^2 + 1)._coefficients()
             [1, 0, 1]
         """
-        cdef list coeffs = []
-        cdef Integer den = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
-        cdef Integer numCoeff
+        cdef Rational coeff
         cdef int i
-        for i from 0 <= i <= ZZX_deg(self.__numerator):
-            numCoeff = Integer.__new__(Integer)
-            ZZX_getitem_as_mpz(numCoeff.value, &self.__numerator, i)
-            coeffs.append( numCoeff / den )
+        cdef mpz_t den
+        mpz_init(den)
+        ZZ_to_mpz(den, &self.__denominator)
+        cdef int size = ZZX_deg(self.__numerator) + 1
+        cdef list coeffs = [None]*size
+        for i in range(size):
+            coeff = Rational.__new__(Rational)
+            ZZX_getitem_as_mpz(mpq_numref(coeff.value), &self.__numerator, i)
+            mpz_set(mpq_denref(coeff.value), den)
+            mpq_canonicalize(coeff.value)
+            coeffs[i] = coeff
+        mpz_clear(den)
         return coeffs
 
     cdef void _ntl_coeff_as_mpz(self, mpz_t z, long i):

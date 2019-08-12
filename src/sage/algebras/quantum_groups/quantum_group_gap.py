@@ -1663,9 +1663,9 @@ class QuantumGroupModule(Parent, UniqueRepresentation):
             True
         """
         G = self._libgap.CrystalGraph()
-        vertices = [CrystalGraphVertex(self, repr(p)) for p in G[bytes('points')]]
+        vertices = [CrystalGraphVertex(self, repr(p)) for p in G[b'points']]
         edges = [[vertices[e[0][0]-1], vertices[e[0][1]-1], e[1]]
-                 for e in G[bytes('edges')].sage()]
+                 for e in G[b'edges'].sage()]
         G = DiGraph([vertices, edges], format='vertices_and_edges')
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():
@@ -2094,9 +2094,10 @@ class HighestWeightSubmodule(QuantumGroupModule):
         B = self.basis()
         d = {repr(B[k]._libgap): '<{!r}>'.format(self._ambient_basis_map[k])
              for k in self._ambient_basis_map}
-        vertices = [CrystalGraphVertex(self, d[repr(p)[1:-1]]) for p in G[bytes('points')]]
+        vertices = [CrystalGraphVertex(self, d[repr(p)[1:-1]])
+                    for p in G[b'points']]
         edges = [[vertices[e[0][0]-1], vertices[e[0][1]-1], e[1]]
-                 for e in G[bytes('edges')].sage()]
+                 for e in G[b'edges'].sage()]
         G = DiGraph([vertices, edges], format='vertices_and_edges')
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():

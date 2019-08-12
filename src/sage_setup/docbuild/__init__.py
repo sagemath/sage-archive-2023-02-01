@@ -294,7 +294,7 @@ def _build_many(target, args):
             raise
     return ret
 
-if (os.environ['SAGE_PARI_CFG'] !='') and (not (CYGWIN_VERSION and CYGWIN_VERSION[0] < 3)):
+if (os.environ.get('SAGE_PARI_CFG', '') !='') and (not (CYGWIN_VERSION and CYGWIN_VERSION[0] < 3)):
     build_many = _build_many
 else:
     # Cygwin 64-bit < 3.0.0 has a bug with exception handling when exceptions

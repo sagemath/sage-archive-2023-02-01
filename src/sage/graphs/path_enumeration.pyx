@@ -1649,11 +1649,9 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
                     length -= 1
                 # push operation
                 hash_path = tuple(path)
-                # if this path is not already present inside the heap
-                if hash_path not in idx_to_path.values():
-                    idx_to_path[idx] = path
-                    heap_sorted_paths.push((-length, (idx, len(root) - 1)))
-                    idx = idx + 1
+                idx_to_path[idx] = path
+                heap_sorted_paths.push((-length, (idx, len(root) - 1)))
+                idx = idx + 1
             except Exception:
                 pass
             exclude_vertices.add(root[-1])
@@ -2145,12 +2143,10 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
                 length = length_func(path)
                 # push operation
                 hash_path = tuple(path)
-                # if this path is not already present inside the heap
-                if hash_path not in idx_to_path.values():
-                    father[hash_path] = prev_path
-                    idx_to_path[idx] = path
-                    heap_sorted_paths.push((-length, (idx, len(root) - 1)))
-                    idx = idx + 1
+                father[hash_path] = prev_path
+                idx_to_path[idx] = path
+                heap_sorted_paths.push((-length, (idx, len(root) - 1)))
+                idx = idx + 1
             except Exception:
                 pass
             exclude_vertices.add(root[-1])

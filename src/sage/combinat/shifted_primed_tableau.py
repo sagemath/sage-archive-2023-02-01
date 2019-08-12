@@ -5,6 +5,7 @@ Shifted primed tableaux
 AUTHORS:
 
 - Kirill Paramonov (2017-08-18): initial implementation
+- Chaman Agrawal (2019-08-12): add parameter to allow primed diagonal entry
 """
 
 # ****************************************************************************
@@ -56,10 +57,12 @@ class ShiftedPrimedTableau(ClonableArray):
     1. the entries are weakly increasing along rows and columns;
     2. a row cannot have two repeated primed elements, and a column
        cannot have two repeated non-primed elements;
-    3. there are only non-primed elements on the main diagonal.
 
     Skew shape of the shifted primed tableaux is specified either
     with an optional argument ``skew`` or with ``None`` entries.
+
+    Primed entries in the main diagonal can be allowed with the optional
+    boolean parameter ``primedDiagonal``(default: ``False``).
 
     EXAMPLES::
 
@@ -73,6 +76,9 @@ class ShiftedPrimedTableau(ClonableArray):
         [(None, None, 2', 2, 3), (None, 2', 3'), (2,)]
         sage: ShiftedPrimedTableau([[None,None,"2p"],[None,"2p"]])
         [(None, None, 2'), (None, 2')]
+        sage: T = ShiftedPrimedTableaux([4,2], primedDiagonal=True)
+        sage: T([[1,"2'","3'",3],["2'","3'"]])[1] # With primed diagonal entry
+        (2', 3')
 
     TESTS::
 
@@ -80,7 +86,17 @@ class ShiftedPrimedTableau(ClonableArray):
         Traceback (most recent call last):
         ...
         ValueError: [[1, 2, 2.50000000000000, 3], [2, 2.50000000000000]]
-         is not an element of Shifted Primed Tableaux
+        is not an element of Shifted Primed Tableaux
+
+        sage: ShiftedPrimedTableau([[1,1,2.5],[1.5,2.5]])
+        Traceback (most recent call last):
+        ...
+        ValueError: [[1, 1, 2.50000000000000], 
+        [1.50000000000000, 2.50000000000000]] is not an element
+        of Shifted Primed Tableaux
+
+        sage: ShiftedPrimedTableau([[1,1,2.5],[1.5,2.5]], primedDiagonal=True)
+        [(1, 1, 3'), (2', 3')]
     """
     @staticmethod
     def __classcall_private__(cls, T, skew=None, primedDiagonal=False):
@@ -111,6 +127,10 @@ class ShiftedPrimedTableau(ClonableArray):
             []
             sage: ShiftedPrimedTableau([tuple([])])
             []
+            sage: ShiftedPrimedTableau([], primedDiagonal=True)
+            []
+            sage: ShiftedPrimedTableau([tuple([])], primedDiagonal=True)
+            []
         """
         if isinstance(T, ShiftedPrimedTableau) and T._skew == skew and T._primedDiagonal == primedDiagonal:
             return T
@@ -120,7 +140,7 @@ class ShiftedPrimedTableau(ClonableArray):
             if skew and Partition(skew) != skew_:
                 raise ValueError("skew shape does not agree with None entries")
             skew = skew_
-        return ShiftedPrimedTableaux(skew=skew)(T)
+        return ShiftedPrimedTableaux(skew=skew, primedDiagonal=primedDiagonal)(T)
 
     def __init__(self, parent, T, skew=None, check=True, preprocessed=False, primedDiagonal=False):
         r"""
@@ -210,8 +230,9 @@ class ShiftedPrimedTableau(ClonableArray):
             ...
             ValueError: [['1p', '2p', 2, 2], [2, '3p']] is not an element of
             Shifted Primed Tableaux of shape [4, 2]
+
             sage: T = ShiftedPrimedTableaux([4,2], primedDiagonal=True)
-            sage: t = T([['1p','2p',2,2],[2,'3p']]) #primedDiagonal allowed
+            sage: t = T([['1p','2p',2,2],[2,'3p']]) # primedDiagonal allowed
             sage: t.check()
             sage: t = T([['1p','1p',2,2],[2,'3p']])
             Traceback (most recent call last):
@@ -654,7 +675,8 @@ class ShiftedPrimedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1])
+            sage: s.pp()
             .  .  2' 2  3
                .  2'
             sage: s.restriction_outer_shape(2)
@@ -687,7 +709,8 @@ class ShiftedPrimedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1])
+            sage: s.pp()
              .  .  2' 2  3
                 .  2'
 
@@ -708,7 +731,8 @@ class ShiftedPrimedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: s = ShiftedPrimedTableau([(1, 2, 3.5, 5, 6.5), (3, 5.5)]); s.pp()
+            sage: s = ShiftedPrimedTableau([(1, 2, 3.5, 5, 6.5), (3, 5.5)])
+            sage: s.pp()
              1  2  4' 5  7'
                 3  6'
 
@@ -716,7 +740,8 @@ class ShiftedPrimedTableau(ClonableArray):
             [[], 1, [1], 2, [2], 1, [2, 1], 3, [3, 1], 2, [4, 1], 3, [4, 2], 3, [5, 2]]
 
 
-            sage: s = ShiftedPrimedTableau([(1, 3.5), (2.5,), (6,)], skew=[2,1]); s.pp()
+            sage: s = ShiftedPrimedTableau([(1, 3.5), (2.5,), (6,)],
+            ....:                          skew=[2,1]); s.pp()
              .  .  1  4'
                 .  3'
                    6
@@ -733,7 +758,8 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s.to_chain()
             Traceback (most recent call last):
             ...
-            AssertionError: can compute a chain of partitions only for skew shifted tableaux without repeated entries.
+            AssertionError: can compute a chain of partitions only for
+            skew shifted tableaux without repeated entries.
 
         """
         assert all(e in [0, 1] for e in self.weight()), "can compute a chain of partitions only for skew shifted tableaux without repeated entries."
@@ -1601,8 +1627,6 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
     2. a row cannot have two repeated primed entries, and a column
        cannot have two repeated non-primed entries
 
-    3. there are only non-primed entries along the main diagonal
-
     INPUT:
 
     Valid optional keywords:
@@ -1615,12 +1639,15 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
 
     - ``skew`` -- the inner skew shape of tableaux
 
+    - ``primedDiagonal`` -- allow primed entries in main diagonal of tableaux
+
     The weight of a tableau is defined to be the vector with `i`-th
     component equal to the number of entries `i` and `i'` in the tableau.
     The sum of the coordinates in the weight vector must be equal to the
     number of entries in the partition.
 
     The ``shape`` and ``skew`` must be strictly decreasing partitions.
+    The ``primedDiagonal`` is a boolean (default: ``False``).
 
     EXAMPLES::
 
@@ -1631,7 +1658,8 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         [(1, 2', 3'), (2, 3)],
         [(1, 2', 3'), (2, 3')],
         [(1, 2', 2), (3, 3)]]
-        sage: SPT = ShiftedPrimedTableaux(weight=(1,2,2), shape=[3,2], primedDiagonal=True); SPT
+        sage: SPT = ShiftedPrimedTableaux(weight=(1,2,2), shape=[3,2],
+        ....:                             primedDiagonal=True); SPT
         Shifted Primed Tableaux of weight (1, 2, 2) and shape [3, 2]
         sage: SPT.list()
         [[(1, 2, 2), (3, 3)],
@@ -1668,7 +1696,8 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         Shifted Primed Tableaux of shape [3, 2] and maximum entry 2
         sage: list(SPT)
         [[(1, 1, 1), (2, 2)], [(1, 1, 2'), (2, 2)]]
-        sage: SPT = ShiftedPrimedTableaux([3,2], max_entry = 2, primedDiagonal=True)
+        sage: SPT = ShiftedPrimedTableaux([3,2], max_entry = 2,
+        ....:                             primedDiagonal=True)
         sage: list(SPT)
         [[(1, 1, 1), (2, 2)],
         [(1, 1, 1), (2', 2)],
@@ -1688,6 +1717,11 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         sage: [(1,1),(2,2)] in ShiftedPrimedTableaux()
         False
         sage: [] in ShiftedPrimedTableaux()
+        True
+        sage: [('1p','2p',2,2),(2,'3p')] in ShiftedPrimedTableaux(
+        ....:                                      primedDiagonal=True)
+        True
+        sage: [] in ShiftedPrimedTableaux(primedDiagonal=True)
         True
 
     .. SEEALSO::
@@ -1828,11 +1862,13 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
             sage: tab = SPT([[1,1,2],[2,2]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1, 1, 2], [2, 2]] is not an element of Shifted Primed Tableaux
+            ValueError: [[1, 1, 2], [2, 2]] is not an element of
+            Shifted Primed Tableaux
             sage: SPT([[1,"2p","2p"]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1, '2p', '2p']] is not an element of Shifted Primed Tableaux
+            ValueError: [[1, '2p', '2p']] is not an element of
+            Shifted Primed Tableaux
 
             sage: SPT = ShiftedPrimedTableaux(skew=[1])
             sage: SPT([["2p",2]])
@@ -1884,6 +1920,13 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
             [(1, 2', 3', 3')]
             sage: Tabs._contains_tableau(tab)
             False
+            sage: tab = ShiftedPrimedTableau._preprocess(
+            ....: [["1p","2p","3p",3]])
+            sage: Tabs._contains_tableau(tab)
+            False
+            sage: Tabs = ShiftedPrimedTableaux(primedDiagonal=True)
+            sage: Tabs._contains_tableau(tab)
+            True
             sage: Tabs = ShiftedPrimedTableaux(skew=[1])
             sage: tab = ShiftedPrimedTableau._preprocess(
             ....: [["2p","3p",3]], skew=[1])
@@ -1943,6 +1986,15 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
             sage: [[1,1],[2,2]] in SPT
             False
             sage: TestSuite(SPT).run()  # long time
+
+            sage: Primed_SPT = ShiftedPrimedTableaux(primedDiagonal=True)
+            sage: [[0.5,1.5],[2]] in Primed_SPT
+            True
+            sage: [[0.5,1.5],[1.5]] in Primed_SPT
+            True
+            sage: [[0.5,1],[1]] in Primed_SPT
+            False
+            sage: TestSuite(Primed_SPT).run()  # long time
         """
         if skew is None:
             Parent.__init__(self, category=InfiniteEnumeratedSets())
@@ -2008,7 +2060,13 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     The list of module generators consists of all elements of the
     crystal with nonincreasing weight entries.
 
-    The crystal is constructed following operations described in [HPS2017]_ and [AO2018]_.
+    The crystal is constructed following operations described in [HPS2017]_
+    and [AO2018]_.
+
+    The optional ``primedDiagonal`` allows primed entries in the main diagonal
+    of all the Shifted primed tableaux of a fixed shape. If the ``max_entry``
+    is ``None`` then ``max_entry`` is set to the total number of entries in the
+    tableau if ``primedDiagonal`` is ``True``.
 
     EXAMPLES::
 
@@ -2032,25 +2090,30 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         sage: SPTC.cardinality()
         24
 
-    We compare this implementation with the `q(n)`-crystal on (tensor products) of letters::
+    We compare this implementation with the `q(n)`-crystal
+    on (tensor products) of letters::
 
         sage: tableau_crystal = crystals.ShiftedPrimedTableaux([4,1], 3)
         sage: tableau_digraph = tableau_crystal.digraph()
         sage: c = crystals.Letters(['Q', 3])
         sage: tensor_crystal = tensor([c]*5)
         sage: u = tensor_crystal(c(1), c(1), c(1), c(2), c(1))
-        sage: subcrystal = tensor_crystal.subcrystal(generators=[u], index_set=[1,2,-1])
+        sage: subcrystal = tensor_crystal.subcrystal(generators=[u],
+        ....:                                        index_set=[1,2,-1])
         sage: tensor_digraph = subcrystal.digraph()
         sage: tensor_digraph.is_isomorphic(tableau_digraph, edge_labels=True)
         True
 
     If we allow primed entries in the main diagonal::
 
-        sage: ShiftedPrimedTableaux([4,3,1], max_entry=4, primedDiagonal=True)
+        sage: ShiftedPrimedTableaux([4,3,1], max_entry=4,
+        ....:                        primedDiagonal=True)
         Shifted Primed Tableaux of shape [4, 3, 1] and maximum entry 4
-        sage: ShiftedPrimedTableaux([4,3,1], max_entry=4, primedDiagonal=True).cardinality()
+        sage: ShiftedPrimedTableaux([4,3,1], max_entry=4,
+        ....:                       primedDiagonal=True).cardinality()
         3072
-        sage: SPTC = ShiftedPrimedTableaux([3,2], max_entry=3, primedDiagonal=True)
+        sage: SPTC = ShiftedPrimedTableaux([3,2], max_entry=3,
+        ....:                              primedDiagonal=True)
         sage: T = SPTC[-1]
         sage: T
         [(1', 2', 2), (3', 3)]
@@ -2096,7 +2159,8 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             sage: SPT = ShiftedPrimedTableaux([4,2,1])
             sage: SPT.cartan_type()
             ['A', NN]
-            sage: SPT = ShiftedPrimedTableaux([4,2,1], max_entry=4, primedDiagonal=True)
+            sage: SPT = ShiftedPrimedTableaux([4,2,1], max_entry=4,
+            ....:                             primedDiagonal=True)
             sage: TestSuite(SPT).run()  # long time
         """
         if not primedDiagonal:
@@ -2161,8 +2225,10 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
            sage: s = ShiftedPrimedTableau._preprocess([[1,'2p',2],[2,'3p']])
            sage: ShiftedPrimedTableaux([4,2])._contains_tableau(s)
            False
-           sage: t = ShiftedPrimedTableau._preprocess([['1p','2p',2,2],['2p','3p']])
-           sage: ShiftedPrimedTableaux([4,2],max_entry=4, primedDiagonal=True)._contains_tableau(t)
+           sage: t = ShiftedPrimedTableau._preprocess([['1p','2p',2,2],
+           ....:                                       ['2p','3p']])
+           sage: ShiftedPrimedTableaux([4,2],max_entry=4,
+           ....:                      primedDiagonal=True)._contains_tableau(t)
            True
         """
         if not super(ShiftedPrimedTableaux_shape, self)._contains_tableau(T):
@@ -2201,7 +2267,8 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             [(1, 1, 2), (2, 3)]]
             sage: len(list(Tabs))
             376
-            sage: Tabs = ShiftedPrimedTableaux(shape=(3,2), primedDiagonal=True)
+            sage: Tabs = ShiftedPrimedTableaux(shape=(3,2),
+            ....:                              primedDiagonal=True)
             sage: Tabs[:4]
             [[(1, 1, 1), (2, 2)],
             [(1, 1, 1), (2', 2)],
@@ -2277,7 +2344,8 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         Shifted Primed Tableaux of weight (2, 3, 1)
         sage: ShiftedPrimedTableaux(weight=(2,3,1)).cardinality()
         17
-        sage: ShiftedPrimedTableaux(weight=(2,3,1), primedDiagonal=True).cardinality()
+        sage: ShiftedPrimedTableaux(weight=(2,3,1),
+        ....:                           primedDiagonal=True).cardinality()
         64
         sage: T = ShiftedPrimedTableaux(weight=(3,2), primedDiagonal=True)
         sage: T[:5]
@@ -2296,7 +2364,8 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         TESTS::
 
             sage: TestSuite( ShiftedPrimedTableaux(weight=(3,2,1)) ).run()
-            sage: TestSuite( ShiftedPrimedTableaux(weight=(3,2,1), primedDiagonal=True) ).run()
+            sage: TestSuite( ShiftedPrimedTableaux(weight=(3,2,1),
+            ....:                               primedDiagonal=True) ).run()
         """
         ShiftedPrimedTableaux.__init__(self, skew=skew, primedDiagonal=primedDiagonal)
         if skew is None:
@@ -2329,7 +2398,8 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(t)
             True
             sage: t = ShiftedPrimedTableau._preprocess([[0.5,1.5],[2]])
-            sage: ShiftedPrimedTableaux(weight=(1,2), primedDiagonal=True)._contains_tableau(t)
+            sage: ShiftedPrimedTableaux(weight=(1,2),
+            ....:                 primedDiagonal=True)._contains_tableau(t)
             True
             sage: s = ShiftedPrimedTableau._preprocess([[1,1.5],[3]])
             sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(s)
@@ -2365,7 +2435,8 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             [(1, 1, 2', 2), (2,)]]
             sage: len(list(Tabs))
             5
-            sage: Tabs = ShiftedPrimedTableaux(weight=(2,3), primedDiagonal=True)
+            sage: Tabs = ShiftedPrimedTableaux(weight=(2,3),
+            ....:                              primedDiagonal=True)
             sage: Tabs[:4]
             [[(1, 1, 2, 2, 2)],
             [(1, 1, 2', 2, 2)],
@@ -2394,7 +2465,8 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         Shifted Primed Tableaux of weight (2, 3, 2) and shape [4, 2, 1]
         sage: ShiftedPrimedTableaux([4,2,1], weight=(2,3,2)).cardinality()
         4
-        sage: T = ShiftedPrimedTableaux([4,2,1], weight=(2,3,2), primedDiagonal=True)
+        sage: T = ShiftedPrimedTableaux([4,2,1], weight=(2,3,2),
+        ....:                           primedDiagonal=True)
         sage: T[:6]
         [[(1, 1, 2, 2), (2, 3'), (3,)],
         [(1, 1, 2, 2), (2, 3'), (3',)],
@@ -2412,8 +2484,10 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
 
         TESTS::
 
-            sage: TestSuite( ShiftedPrimedTableaux([4,2,1], weight=(3,2,2)) ).run()
-            sage: TestSuite( ShiftedPrimedTableaux([4,2,1], weight=(3,2,2), primedDiagonal=True) ).run()
+            sage: TestSuite( ShiftedPrimedTableaux([4,2,1],
+            ....:                                  weight=(3,2,2)) ).run()
+            sage: TestSuite( ShiftedPrimedTableaux([4,2,1],
+            ....:                 weight=(3,2,2), primedDiagonal=True) ).run()
         """
         ShiftedPrimedTableaux.__init__(self, skew=skew, primedDiagonal=primedDiagonal)
         if skew is None:
@@ -2447,22 +2521,28 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         TESTS::
 
             sage: t = ShiftedPrimedTableau._preprocess([[1,1.5],[2]])
-            sage: ShiftedPrimedTableaux([2,1], weight=(1,2))._contains_tableau(t)
+            sage: ShiftedPrimedTableaux([2,1],
+            ....:                       weight=(1,2))._contains_tableau(t)
             True
             sage: t = ShiftedPrimedTableau._preprocess([[0.5,1.5],[2]])
-            sage: ShiftedPrimedTableaux([2,1], weight=(1,2))._contains_tableau(t)
+            sage: ShiftedPrimedTableaux([2,1],
+            ....:                       weight=(1,2))._contains_tableau(t)
             False
             sage: t = ShiftedPrimedTableau._preprocess([[0.5,1.5],[2]])
-            sage: ShiftedPrimedTableaux([2,1], weight=(1,2), primedDiagonal=True)._contains_tableau(t)
+            sage: ShiftedPrimedTableaux([2,1], weight=(1,2),
+            ....:                     primedDiagonal=True)._contains_tableau(t)
             True
-            sage: ShiftedPrimedTableaux([2,1], weight=(2,1))._contains_tableau(t)
+            sage: ShiftedPrimedTableaux([2,1],
+            ....:                           weight=(2,1))._contains_tableau(t)
             False
             sage: s = ShiftedPrimedTableau._preprocess([[1,1.5,2,3],[3]])
-            sage: ShiftedPrimedTableaux([3,2], weight=(1,2,2))._contains_tableau(s)
+            sage: ShiftedPrimedTableaux([3,2],
+            ....:                         weight=(1,2,2))._contains_tableau(s)
             False
 
             sage: u = ShiftedPrimedTableau._preprocess([])
-            sage: ShiftedPrimedTableaux([3,2], weight=(1,2,2))._contains_tableau(u)
+            sage: ShiftedPrimedTableaux([3,2],
+            ....:                       weight=(1,2,2))._contains_tableau(u)
             False
             sage: ShiftedPrimedTableaux([], weight=())._contains_tableau(u)
             True
@@ -2503,7 +2583,8 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             [(1, 2', 2), (3, 3)]]
             sage: len(list(Tabs))
             4
-            sage: Tabs = ShiftedPrimedTableaux([3,2],weight=(1,2,2), primedDiagonal=True)
+            sage: Tabs = ShiftedPrimedTableaux([3,2],weight=(1,2,2), 
+            ....:                              primedDiagonal=True)
             sage: Tabs[:4]
             [[(1, 2, 2), (3, 3)],
             [(1, 2, 2), (3', 3)],
@@ -2566,9 +2647,11 @@ def _add_strip(sub_tab, full_tab, length):
 
     TESTS::
 
-        sage: list(ShiftedPrimedTableaux([3,1], weight=(2,2)))  # indirect doctest
+        sage: list(ShiftedPrimedTableaux([3,1], 
+        ....:                       weight=(2,2)))  # indirect doctest
         [[(1, 1, 2), (2,)], [(1, 1, 2'), (2,)]]
-        sage: list(ShiftedPrimedTableaux([3,1], weight=(2,2), primedDiagonal=True))  # indirect doctest
+        sage: list(ShiftedPrimedTableaux([3,1], weight=(2,2), 
+        ....:               primedDiagonal=True))  # indirect doctest
         [[(1, 1, 2), (2,)],
         [(1, 1, 2), (2',)],
         [(1, 1, 2'), (2,)],

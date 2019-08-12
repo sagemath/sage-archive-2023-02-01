@@ -8,19 +8,11 @@ differentiable manifold (see
 pull back of the metric tensor `g` via the embedding (resp. immersion) endows
 `N` with the structure of a pseudo-Riemannian manifold.
 
-A limitation of the current implementation is that a foliation is required to
-perform nearly all the calculations (except the induced metric). This is because
-the normal vector is easily computed with a foliation, but otherwise requires
-some operations which are not yet implemented in Sage (contraction over
-different domains).
+The following example shows how to compute the various quantities related
+to the intrinsic and extrinsic geometries of a hyperbolic slicing of the
+3-dimensional Minkowski space.
 
-To correctly compute the normal vector, the submanifold must be declared either
-Riemannian or Lorentzian.
-
-The following example explains how to compute the various quantities associated
-with the hyperbolic slicing of the 3-dimensional Minkowski space.
-
-Let us first declare the ambient manifold `M` and the submanifold `N`::
+We start by declaring the ambient manifold `M` and the submanifold `N`::
 
     sage: M = Manifold(3, 'M', structure="Lorentzian")
     sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian", start_index=1)
@@ -220,48 +212,49 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     INPUT:
 
-    - ``n`` -- positive integer; dimension of the manifold
-    - ``name`` -- string; name (symbol) given to the manifold
-    - ``field`` -- field `K` on which the manifold is
-      defined; allowed values are
-
-        - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
-           a manifold over `\RR`
-        - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
-           for a manifold over `\CC`
-        - an object in the category of topological fields (see
-          :class:`~sage.categories.fields.Fields` and
-          :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-          for other types of manifolds
-
-    - ``structure`` -- manifold structure (see
-      :class:`~sage.manifolds.structure.TopologicalStructure` or
-      :class:`~sage.manifolds.structure.RealTopologicalStructure`)
-    - ``ambient`` -- (default: ``None``) codomain of the immersion; must be a
-      pseudo-Riemannian manifold. If ``None``, it is set to ``self``
+    - ``n`` -- positive integer; dimension of the submanifold
+    - ``name`` -- string; name (symbol) given to the submanifold
+    - ``ambient`` -- (default: ``None``) pseudo-Riemannian manifold `M` in
+      which the submanifold is embedded (or immersed). If ``None``, it is set
+      to ``self``
+    - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to the
+      submanifold's metric
+    - ``signature`` -- (default: ``None``) signature `S` of the metric as a
+      single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the
+      number of positive terms (resp. number of negative terms) in any
+      diagonal writing of the metric components; if ``signature`` is not
+      provided, `S` is set to the submanifold's dimension (Riemannian
+      signature)
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
-      pseudo-Riemannian manifold; the created object is then an open subset of
+      differentiable manifold; the created object is then an open subset of
       ``base_manifold``
+    - ``diff_degree`` -- (default: ``infinity``) degree of differentiability
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-      denote the manifold; if none are provided, it is set to ``name``
+      denote the submanifold; if none is provided, it is set to ``name``
+    - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the metric; if none is provided, it is set to ``metric_name``
     - ``start_index`` -- (default: 0) integer; lower value of the range of
-      indices used for "indexed objects" on the manifold, e.g., coordinates
+      indices used for "indexed objects" on the submanifold, e.g. coordinates
       in a chart
-      - ``category`` -- (default: ``None``) to specify the category; if
-      ``None``, ``Manifolds(field)`` is assumed (see the category
+    - ``category`` -- (default: ``None``) to specify the category; if ``None``,
+      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
+      if ``diff_degree`` = ``infinity``) is assumed (see the category
       :class:`~sage.categories.manifolds.Manifolds`)
     - ``unique_tag`` -- (default: ``None``) tag used to force the construction
       of a new object when all the other arguments have been used previously
       (without ``unique_tag``, the
       :class:`~sage.structure.unique_representation.UniqueRepresentation`
       behavior inherited from
-      :class:`~sage.manifolds.subset.ManifoldSubset`
+      :class:`~sage.manifolds.subset.ManifoldSubset`, via
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+      and :class:`~sage.manifolds.manifold.TopologicalManifold`,
       would return the previously constructed object corresponding to these
-      arguments)
+      arguments).
 
     EXAMPLES:
 
-    Let `N` be a 2-dimensional submanifold of a 3-dimensional manifold `M`::
+    Let `N` be a 2-dimensional submanifold of a 3-dimensional Riemannian
+    manifold `M`::
 
         sage: M = Manifold(3, 'M', structure ="Riemannian")
         sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
@@ -327,6 +320,16 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: S.start_index()
             1
 
+        ::
+
+            sage: M = Manifold(5, 'M', structure='pseudo-Riemannian',
+            ....:              signature=1)
+            sage: N = Manifold(4, 'N', ambient=M,
+            ....:              structure='pseudo-Riemannian', signature=0)
+            sage: N
+            4-dimensional pseudo-Riemannian submanifold N immersed in the
+             5-dimensional pseudo-Riemannian manifold M
+
         """
         PseudoRiemannianManifold.__init__(self, n, name=name,
                                           metric_name=metric_name,
@@ -389,48 +392,23 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         r"""
         Return the metric of the ambient manifold.
 
-        The result is cached, so calling this method multiple times always
-        returns the same result at no additional cost.
-
         OUTPUT:
 
         - the metric of the ambient manifold
 
-        EXAMPLES:
+        EXAMPLES::
 
-        A sphere embedded in Euclidean space::
-
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
-            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
-            sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
-            sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
-            sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
-            sage: N.set_embedding(phi, inverse=phi_inv, var=r,
-            ....:                 t_inverse={r: phi_inv_r})
-            sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: N.ambient_metric()
-            Riemannian metric g on the 3-dimensional Riemannian manifold M
-            sage: N.ambient_metric()[:]
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-            sage: N.ambient_metric() is g
+            Riemannian metric g on the Euclidean space E^3
+            sage: N.ambient_metric().display()
+            g = dx*dx + dy*dy + dz*dz
+            sage: N.ambient_metric() is M.metric()
             True
 
         """
         if self._ambient_metric is None:
-            if not self._embedded or not isinstance(self._ambient,
-                                                    PseudoRiemannianManifold):
-                raise ValueError("Submanifold must be embedded in a "
-                                 "pseudo-Riemannian manifold")
             self._ambient_metric = self._ambient.metric()
         return self._ambient_metric
 
@@ -450,25 +428,19 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in Euclidean space::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real')
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
-            sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
-            sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
-            sage: N.set_embedding(phi, inverse=phi_inv, var=r,
-            ....:                 t_inverse={r: phi_inv_r})
-            sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
+            sage: N.set_embedding(phi)
             sage: N.first_fundamental_form()  # long time
             Riemannian metric gamma on the 2-dimensional Riemannian
-             submanifold N embedded in the 3-dimensional Riemannian manifold M
+             submanifold N embedded in the Euclidean space E^3
             sage: N.first_fundamental_form()[:]  # long time
             [          r^2             0]
             [            0 r^2*sin(th)^2]
@@ -492,37 +464,37 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
     @cached_method
     def difft(self):
         r"""
-        Return the differential of the first scalar field defining the
-        submanifold
+        Return the differential of the scalar field on the ambient manifold
+        representing the first parameter of the foliation associated to
+        ``self``.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
         OUTPUT:
 
-        - 1-form field on the ambient manifold.
+        - 1-form field on the ambient manifold
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real')
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: N.difft()
-            1-form dr on the 3-dimensional Riemannian manifold M
+            1-form dr on the Euclidean space E^3
             sage: N.difft().display()
             dr = x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy +
              z/sqrt(x^2 + y^2 + z^2) dz
@@ -539,49 +511,50 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
     @cached_method
     def gradt(self):
         r"""
-        Return the gradient of the first scalar field defining the
-        submanifold.
+        Return the gradient of the scalar field on the ambient manifold
+        representing the first parameter of the foliation associated to
+        ``self``.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
         OUTPUT:
 
-        - vector field on the ambient manifold.
+        - vector field on the ambient manifold
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real')
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: N.gradt()
-            Vector field grad_r on the 3-dimensional Riemannian manifold M
+            Vector field grad(r) on the Euclidean space E^3
             sage: N.gradt().display()
-            grad_r = x/sqrt(x^2 + y^2 + z^2) d/dx
-             + y/sqrt(x^2 + y^2 + z^2) d/dy + z/sqrt(x^2 + y^2 + z^2) d/dz
+            grad(r) = x/sqrt(x^2 + y^2 + z^2) e_x + y/sqrt(x^2 + y^2 + z^2) e_y
+             + z/sqrt(x^2 + y^2 + z^2) e_z
 
         """
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed to perform "
                              "this calculation")
-        self._gradt = self.ambient_metric().inverse()\
-            .contract(self.difft())
-        self._gradt.set_name("grad_" + self._var[0]._repr_(),
-                             r"\nabla " + self._var[0]._latex_())
+        param = self._var[0]
+        self._gradt = self._t_inverse[param].gradient()
+        self._gradt.set_name("grad({})".format(param),
+                             r"\mathrm{grad}\left(" + param._latex_()
+                             + r"\right)")
         return self._gradt
 
     @cached_method
@@ -595,7 +568,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         .. MATH::
 
-            n = \vec{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...
+            n = \vec{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge\ldots
             \wedge\mathrm{d}x_{n-1})
 
         where the star stands for the Hodge dual operator and the wedge for the
@@ -615,43 +588,44 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         OUTPUT:
 
-        - vector field on the ambient manifold.
+        - vector field on the ambient manifold (case of a foliation) or along
+          the submanifold with values in the ambient manifold (case of a
+          single submanifold)
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space foliated on the radius::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real') # foliation parameter
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
             sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: N.normal()  # long time
-            Vector field n on the 3-dimensional Riemannian manifold M
+            Vector field n on the Euclidean space E^3
             sage: N.normal().display()  # long time
-            n = x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
-             + z/sqrt(x^2 + y^2 + z^2) d/dz
+            n = x/sqrt(x^2 + y^2 + z^2) e_x + y/sqrt(x^2 + y^2 + z^2) e_y
+             + z/sqrt(x^2 + y^2 + z^2) e_z
 
         Or in spherical coordinates::
 
             sage: N.normal().display(T[0].frame(),T[0])  # long time
-            n = d/dr_M
+            n = d/dr_E3
 
-        The same sphere of constant radius, i.e. not assumed to be part
-        of a foliation, in stereographic coordinates::
+        Let us now consider a sphere of constant radius, i.e. not assumed to be
+        part of a foliation, in stereographic coordinates::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian", start_index=1)
+            sage: M.<X,Y,Z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
@@ -668,7 +642,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: stereoN_W = stereoN.restrict(W)
             sage: stereoS_W = stereoS.restrict(W)
             sage: A = W.open_subset('A', coord_def={stereoN_W: (y!=0, x<0),
-            ....:                                  stereoS_W: (yp!=0, xp<0)})
+            ....:                                   stereoS_W: (yp!=0, xp<0)})
             sage: spher.<the,phi> = A.chart(r'the:(0,pi):\theta phi:(0,2*pi):\phi')
             sage: stereoN_A = stereoN_W.restrict(A)
             sage: spher_to_stereoN = spher.transition_map(stereoN_A,
@@ -680,7 +654,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: spher_to_stereoS = stereoN_to_S_A * spher_to_stereoN
             sage: stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)
             sage: stereoS_to_spher = spher_to_stereoN.inverse() * stereoS_to_N_A
-            sage: E.<X,Y,Z> = M.chart()
+            sage: E = M.cartesian_coordinates()
             sage: phi = N.diff_map(M, {(stereoN, E): [2*x/(1+x^2+y^2),
             ....:                                    2*y/(1+x^2+y^2),
             ....:                                    (x^2+y^2-1)/(1+x^2+y^2)],
@@ -689,39 +663,35 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             ....:                                 (1-xp^2-yp^2)/(1+xp^2+yp^2)]},
             ....:                  name='Phi', latex_name=r'\Phi')
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[3,3],g[1,1],g[2,2]=1,1,1
 
-        The normal vector is computed the same way, but now returns a
-        tensor field along ``N``::
+        The method ``normal()`` now returns a tensor field along ``N``::
 
             sage: n = N.normal()  # long time
             sage: n  # long time
             Vector field n along the 2-dimensional Riemannian submanifold N
-             embedded in the 3-dimensional Riemannian manifold M with values
-             on the 3-dimensional Riemannian manifold M
+             embedded in the Euclidean space E^3 with values on the Euclidean
+             space E^3
 
         Let us check that the choice of orientation is coherent on the two top
         frames::
 
             sage: n.restrict(V).display(format_spec=spher)  # long time
-            n = -cos(phi)*sin(the) d/dX - sin(phi)*sin(the) d/dY - cos(the) d/dZ
+            n = -cos(phi)*sin(the) e_X - sin(phi)*sin(the) e_Y - cos(the) e_Z
             sage: n.restrict(U).display(format_spec=spher)  # long time
-            n = -cos(phi)*sin(the) d/dX - sin(phi)*sin(the) d/dY - cos(the) d/dZ
+            n = -cos(phi)*sin(the) e_X - sin(phi)*sin(the) e_Y - cos(the) e_Z
 
         """
-        if self._dim_foliation != 0:    # case foliation
+        if self._dim_foliation != 0:    # case of a foliation
             self._normal = self._sgn * self.lapse() * self.gradt()
             self._normal.set_name("n")
             return self._normal
-
-        # case no foliation:
+        # case of no foliation:
         max_frame = self._ambient.default_frame().along(self._immersion)
         self._normal = self.multivector_field(self._ambient._dim - self._dim,
                                               name="n",
                                               dest_map=self._immersion)
 
-        # an auxiliary functions:
+        # an auxiliary function:
         def calc_normal(chart):
             """
             Calculate the normal vector field according to the formula in the
@@ -742,8 +712,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                         self.ambient_metric().along(
                             self._immersion).restrict(
                             chart.domain())))
-            n_comp = (n_form.contract(*args) / factorial(
-                self._dim)).contract(
+            n_comp = (n_form.contract(*args) / factorial(self._dim)).contract(
                 self.ambient_metric().inverse().along(self._immersion))
             if self._ambient._dim - self._dim == 1:
                 n_comp = n_comp / n_comp.norm(
@@ -809,27 +778,26 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.ambient_first_fundamental_form()
             Tensor field gamma of type (0,2) along the 1-dimensional Riemannian
-             submanifold N embedded in the 2-dimensional Riemannian manifold M
-             with values on the 2-dimensional Riemannian manifold M
+             submanifold N embedded in the Euclidean plane E^2 with values on
+             the Euclidean plane E^2
             sage: N.ambient_first_fundamental_form()[:]
             [ x^2/(x^2 + 4) -2*x/(x^2 + 4)]
             [-2*x/(x^2 + 4)    4/(x^2 + 4)]
@@ -869,30 +837,29 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real') # foliation parameter
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
             sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: N.lapse()
-            Scalar field N on the 3-dimensional Riemannian manifold M
+            Scalar field N on the Euclidean space E^3
             sage: N.lapse().display()
-            N: M --> R
+            N: E^3 --> R
                (x, y, z) |--> 1
-               (th_M, ph_M, r_M) |--> 1
+               (th_E3, ph_E3, r_E3) |--> 1
 
         """
         if self._dim_foliation == 0:
@@ -906,37 +873,37 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
     @cached_method
     def shift(self):
         r"""
-        Return the shift function of the foliation
+        Return the shift vector associated with the first adapted chart of the
+        foliation.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
         OUTPUT:
 
-        - shift vector field on the ambient manifold.
+        - shift vector field on the ambient manifold
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real') # foliation parameter
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
             sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: N.shift()  # long time
-            Vector field beta on the 3-dimensional Riemannian manifold M
+            Vector field beta on the Euclidean space E^3
             sage: N.shift().display()  # long time
             beta = 0
 
@@ -974,13 +941,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E = M.cartesian_coordinates()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
             sage: N.ambient_second_fundamental_form()  # long time
             Field of symmetric bilinear forms K along the 1-dimensional
@@ -1054,26 +1022,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.second_fundamental_form()  # long time
             Field of symmetric bilinear forms K on the 1-dimensional Riemannian
-             submanifold N embedded in the 2-dimensional Riemannian manifold M
+             submanifold N embedded in the Euclidean plane E^2
             sage: N.second_fundamental_form().display()  # long time
             K = -4/(x^4 + 8*x^2 + 16) dx*dx
 
@@ -1146,31 +1113,29 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real') # foliation parameter
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
             sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
 
-        The orthogonal projector onto ``N`` as a type-(1,1) tensor field on
+        The orthogonal projector onto ``N`` is a type-(1,1) tensor field on
         ``M``::
 
             sage: N.projector()  # long time
-            Tensor field gamma of type (1,1) on the 3-dimensional Riemannian
-             manifold M
+            Tensor field gamma of type (1,1) on the Euclidean space E^3
 
         Check that the orthogonal projector applied to the normal vector is
         zero::
@@ -1206,34 +1171,33 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real') # foliation parameter
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
             sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
 
         Let us perform the projection of the ambient metric and check that it
         is equal to the first fundamental form::
 
-            sage: pg = N.project(g); pg  # long time
-            Tensor field of type (0,2) on the 3-dimensional Riemannian manifold M
+            sage: pg = N.project(M.metric()); pg  # long time
+            Tensor field of type (0,2) on the Euclidean space E^3
             sage: pg == N.ambient_first_fundamental_form()  # long time
             True
 
-        Note that the result of ``project`` is not cached.
+        Note that the output of ``project()`` is not cached.
 
         """
         if self._ambient._dim - self._dim != 1:
@@ -1270,54 +1234,53 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         OUTPUT:
 
-        - tensor field of rank `k`-``len(indices)``.
+        - tensor field of rank `k`-``len(indices)``
 
         EXAMPLES:
 
-        A sphere embedded in Euclidean space::
+        Foliation of the Euclidean 3-space by 2-spheres parametrized by their
+        radii::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real') # foliation parameter
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
             sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
 
         If ``indices`` is not specified, the mixed projection of the ambient
         metric coincides with the first fundamental form::
 
+            sage: g = M.metric()
             sage: gpp = N.mixed_projection(g); gpp  # long time
-            Tensor field of type (0,2) on the 3-dimensional Riemannian
-             manifold M
+            Tensor field of type (0,2) on the Euclidean space E^3
             sage: gpp == N.ambient_first_fundamental_form()  # long time
             True
 
-        The other non redundant projections are::
+        The other non-redundant projections are::
 
-            sage: gnp =  N.mixed_projection(g, [0]); gnp  # long time
-            1-form on the 3-dimensional Riemannian manifold M
+            sage: gnp = N.mixed_projection(g, [0]); gnp  # long time
+            1-form on the Euclidean space E^3
 
         and::
 
             sage: gnn = N.mixed_projection(g, [0,1]); gnn
-            Scalar field on the 3-dimensional Riemannian manifold M
+            Scalar field on the Euclidean space E^3
 
         which is constant and equal to 1 (the norm of the unit normal vector)::
 
             sage: gnn.display()
-            M --> R
+            E^3 --> R
             (x, y, z) |--> 1
-            (th_M, ph_M, r_M) |--> 1
+            (th_E3, ph_E3, r_E3) |--> 1
 
         """
         if self._ambient._dim - self._dim != 1:
@@ -1368,26 +1331,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.gauss_curvature()  # long time
-            Scalar field on the 1-dimensional Riemannian submanifold N
-             embedded in the 2-dimensional Riemannian manifold M
+            Scalar field on the 1-dimensional Riemannian submanifold N embedded
+             in the Euclidean plane E^2
             sage: N.gauss_curvature().display()  # long time
             N --> R
             on U: x |--> -1
@@ -1429,26 +1391,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.principal_directions(stereoN)  # long time
             [(Vector field e_0 on the 1-dimensional Riemannian submanifold N
-              embedded in the 2-dimensional Riemannian manifold M, -1)]
+              embedded in the Euclidean plane E^2, -1)]
             sage: N.principal_directions(stereoN)[0][0].display()  # long time
             e_0 = d/dx
 
@@ -1497,26 +1458,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.principal_curvatures(stereoN)  # long time
             [Scalar field k_0 on the 1-dimensional Riemannian submanifold N
-             embedded in the 2-dimensional Riemannian manifold M]
+             embedded in the Euclidean plane E^2]
             sage: N.principal_curvatures(stereoN)[0].display()  # long time
             k_0: N --> R
             on U: x |--> -1
@@ -1555,26 +1515,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
        A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.mean_curvature()  # long time
             Scalar field on the 1-dimensional Riemannian submanifold N
-             embedded in the 2-dimensional Riemannian manifold M
+             embedded in the Euclidean plane E^2
             sage: N.mean_curvature().display()  # long time
             N --> R
             on U: x |--> -1
@@ -1610,26 +1569,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A unit circle embedded in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure="Riemannian")
+            sage: M.<X,Y> = EuclideanSpace()
             sage: N = Manifold(1, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
             sage: N.declare_union(U,V)
             sage: stereoN.<x> = U.chart()
             sage: stereoS.<y> = V.chart()
-            sage: E.<X,Y> = M.chart()
             sage: stereoN_to_S = stereoN.transition_map(stereoS, (4/x),
             ....:                   intersection_name='W',
             ....:                   restrictions1=x!=0, restrictions2=y!=0)
             sage: stereoS_to_N = stereoN_to_S.inverse()
-            sage: phi = N.diff_map(M, {(stereoN, E): [1/sqrt(1+x^2/4),x/2/sqrt(1+x^2/4)],
-            ....:         (stereoS, E): [1/sqrt(1+4/y^2),2/y/sqrt(1+4/y^2)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M,
+            ....:         {(stereoN, E): [1/sqrt(1+x^2/4), x/2/sqrt(1+x^2/4)],
+            ....:          (stereoS, E): [1/sqrt(1+4/y^2), 2/y/sqrt(1+4/y^2)]})
             sage: N.set_embedding(phi)
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
             sage: N.shape_operator()  # long time
             Tensor field of type (1,1) on the 1-dimensional Riemannian
-             submanifold N embedded in the 2-dimensional Riemannian manifold M
+             submanifold N embedded in the Euclidean plane E^2
             sage: N.shape_operator().display()  # long time
             -d/dx*dx
 
@@ -1651,28 +1609,29 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
+            sage: r = var('r', domain='real') # foliation parameter
             sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
-            ....:                             r*sin(th)*sin(ph),
-            ....:                             r*cos(th)]})
+            sage: E = M.cartesian_coordinates()
+            sage: phi = N.diff_map(M, {(C,E): [r*sin(th)*cos(ph),
+            ....:                              r*sin(th)*sin(ph),
+            ....:                              r*cos(th)]})
             sage: phi_inv = M.diff_map(N, {(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E: sqrt(x^2+y^2+z^2)})
             sage: N.set_embedding(phi, inverse=phi_inv, var=r,
             ....:                 t_inverse={r: phi_inv_r})
             sage: T = N.adapted_chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: n = N.normal()
             sage: n is N.normal()
             True
             sage: N.clear_cache()
             sage: n is N.normal()
             False
+            sage: n == N.normal()
+            True
+
         """
         self.difft.clear_cache()
         self.gradt.clear_cache()

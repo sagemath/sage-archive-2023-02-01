@@ -21,7 +21,7 @@ AUTHORS:
 
 REFERENCES:
 
-- [Lee2013]_
+- \J. M. Lee:  *Introduction to Smooth Manifolds* [Lee2013]_
 
 """
 
@@ -60,10 +60,10 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
 
     INPUT:
 
-    - ``n`` -- positive integer; dimension of the manifold
-    - ``name`` -- string; name (symbol) given to the manifold
-    - ``field`` -- field `K` on which the manifold is defined; allowed values
-      are
+    - ``n`` -- positive integer; dimension of the submanifold
+    - ``name`` -- string; name (symbol) given to the submanifold
+    - ``field`` -- field `K` on which the sub manifold is defined; allowed
+      values are
 
         - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
            a manifold over `\RR`
@@ -77,25 +77,28 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
     - ``structure`` -- manifold structure (see
       :class:`~sage.manifolds.structure.TopologicalStructure` or
       :class:`~sage.manifolds.structure.RealTopologicalStructure`)
-    - ``ambient`` -- (default: ``None``) codomain of the immersion `\phi`;
+    - ``ambient`` -- (default: ``None``) codomain `M` of the immersion `\phi`;
       must be a differentiable manifold. If ``None``, it is set to ``self``
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       differentiable manifold; the created object is then an open subset of
       ``base_manifold``
+    - ``diff_degree`` -- (default: ``infinity``) degree of differentiability
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-      denote the manifold; if none are provided, it is set to ``name``
+      denote the submanifold; if none are provided, it is set to ``name``
     - ``start_index`` -- (default: 0) integer; lower value of the range of
-      indices used for "indexed objects" on the manifold, e.g., coordinates
+      indices used for "indexed objects" on the submanifold, e.g., coordinates
       in a chart
-    - ``category`` -- (default: ``None``) to specify the category; if
-      ``None``, ``Manifolds(field)`` is assumed (see the category
+    - ``category`` -- (default: ``None``) to specify the category; if ``None``,
+      ``Manifolds(field).Differentiable()`` (or ``Manifolds(field).Smooth()``
+      if ``diff_degree`` = ``infinity``) is assumed (see the category
       :class:`~sage.categories.manifolds.Manifolds`)
     - ``unique_tag`` -- (default: ``None``) tag used to force the construction
       of a new object when all the other arguments have been used previously
       (without ``unique_tag``, the
       :class:`~sage.structure.unique_representation.UniqueRepresentation`
       behavior inherited from
-      :class:`~sage.manifolds.subset.ManifoldSubset`
+      :class:`~sage.manifolds.subset.ManifoldSubset` via
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
       would return the previously constructed object corresponding to these
       arguments)
 

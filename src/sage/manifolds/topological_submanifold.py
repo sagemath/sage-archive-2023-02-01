@@ -27,7 +27,7 @@ AUTHORS:
 
 REFERENCES:
 
-- [Lee2013]_
+- \J. M. Lee:  *Introduction to Smooth Manifolds* [Lee2013]_
 
 """
 
@@ -75,10 +75,10 @@ class TopologicalSubmanifold(TopologicalManifold):
 
     INPUT:
 
-    - ``n`` -- positive integer; dimension of the manifold
-    - ``name`` -- string; name (symbol) given to the manifold
-    - ``field`` -- field `K` on which the manifold is defined; allowed values
-      are
+    - ``n`` -- positive integer; dimension of the submanifold
+    - ``name`` -- string; name (symbol) given to the submanifold
+    - ``field`` -- field `K` on which the submanifold is defined; allowed
+      values are
 
       - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
         a manifold over `\RR`
@@ -92,15 +92,15 @@ class TopologicalSubmanifold(TopologicalManifold):
     - ``structure`` -- manifold structure (see
       :class:`~sage.manifolds.structure.TopologicalStructure` or
       :class:`~sage.manifolds.structure.RealTopologicalStructure`)
-    - ``ambient`` -- (default: ``None``) codomain of the immersion `\phi`;
+    - ``ambient`` -- (default: ``None``) codomain `M` of the immersion `\phi`;
       must be a topological manifold. If ``None``, it is set to ``self``
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       topological manifold; the created object is then an open subset of
       ``base_manifold``
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-      denote the manifold; if none are provided, it is set to ``name``
+      denote the submanifold; if none are provided, it is set to ``name``
     - ``start_index`` -- (default: 0) integer; lower value of the range of
-      indices used for "indexed objects" on the manifold, e.g., coordinates
+      indices used for "indexed objects" on the submanifold, e.g., coordinates
       in a chart
     - ``category`` -- (default: ``None``) to specify the category; if
       ``None``, ``Manifolds(field)`` is assumed (see the category
@@ -110,7 +110,8 @@ class TopologicalSubmanifold(TopologicalManifold):
       (without ``unique_tag``, the
       :class:`~sage.structure.unique_representation.UniqueRepresentation`
       behavior inherited from
-      :class:`~sage.manifolds.subset.ManifoldSubset`
+      :class:`~sage.manifolds.subset.ManifoldSubset` via
+      :class:`~sage.manifolds.manifold.TopologicalManifold`
       would return the previously constructed object corresponding to these
       arguments)
 
@@ -268,14 +269,19 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         INPUT:
 
-        - ``phi`` -- continuous map `\phi` from self to self._ambient
-        - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,
-          used for computing changes of chart from or to adapted charts. No
-          verification is made
-        - ``var`` -- (default: ``None``) list of parameters appearing in `\phi`
-        - ``t_inverse`` -- (default: ``None``) dictionary of scalar field on
-          self._ambient indexed by elements of ``var`` representing the missing
-          information in ``inverse``
+        - ``phi`` -- continuous map `\phi` from ``self`` to ``self.ambient()``
+        - ``inverse`` -- (default: ``None``) continuous map from
+          ``self.ambient()`` to ``self``, which once restricted to the image
+          of `\phi` is the inverse of `\phi` onto its image if the latter
+          exists (NB: no check of this is performed)
+        - ``var`` -- (default: ``None``) list of parameters involved in the
+          definition of `\phi` (case of foliation); if `\phi` depends on a
+          single parameter ``t``, one can write ``var=t`` as a shortcut for
+          ``var=[t]``
+        - ``t_inverse`` -- (default: ``None``) dictionary of scalar fields on
+          ``self.ambient()`` providing the values of the parameters involved
+          in the definition of `\phi` (case of foliation), the keys being
+          the parameters
 
         EXAMPLES::
 
@@ -388,14 +394,19 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         INPUT:
 
-        - ``phi`` -- continuous map `\phi` from self to self._ambient
-        - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,
-          used for computing changes of chart from or to adapted charts. No
-          verification is made
-        - ``var`` -- (default: ``None``) list of parameters appearing in `\phi`
-        - ``t_inverse`` -- (default: ``None``) dictionary of scalar field on
-          self._ambient indexed by elements of ``var`` representing the missing
-          information in ``inverse``
+        - ``phi`` -- continuous map `\phi` from ``self`` to ``self.ambient()``
+        - ``inverse`` -- (default: ``None``) continuous map from
+          ``self.ambient()`` to ``self``, which once restricted to the image
+          of `\phi` is the inverse of `\phi` onto its image (NB: no check of
+          this is performed)
+        - ``var`` -- (default: ``None``) list of parameters involved in the
+          definition of `\phi` (case of foliation); if `\phi` depends on a
+          single parameter ``t``, one can write ``var=t`` as a shortcut for
+          ``var=[t]``
+        - ``t_inverse`` -- (default: ``None``) dictionary of scalar fields on
+          ``self.ambient()`` providing the values of the parameters involved
+          in the definition of `\phi` (case of foliation), the keys being
+          the parameters
 
         EXAMPLES::
 

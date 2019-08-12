@@ -1648,7 +1648,6 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
                 if not by_weight:
                     length -= 1
                 # push operation
-                hash_path = tuple(path)
                 idx_to_path[idx] = path
                 heap_sorted_paths.push((-length, (idx, len(root) - 1)))
                 idx = idx + 1

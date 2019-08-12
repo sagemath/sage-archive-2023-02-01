@@ -201,7 +201,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from six.moves import range
 from six import iteritems

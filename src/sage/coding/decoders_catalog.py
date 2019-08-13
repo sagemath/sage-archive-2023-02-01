@@ -74,3 +74,4 @@ _lazy_import('sage.coding.punctured_code',             'PuncturedCodeOriginalCod
 _lazy_import('sage.coding.subfield_subcode',           'SubfieldSubcodeOriginalCodeDecoder')
 _lazy_import('sage.coding.information_set_decoder',    'LinearCodeInformationSetDecoder')
 _lazy_import('sage.coding.linear_rank_metric',         'LinearRankMetricCodeNearestNeighborDecoder')
+_lazy_import('sage.coding.gabidulin_code',             'GabidulinGaoDecoder')

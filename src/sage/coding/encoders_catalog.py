@@ -57,3 +57,4 @@ _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeParityCheckEncoder'
 _lazy_import('sage.coding.parity_check_code', ['ParityCheckCodeGeneratorMatrixEncoder','ParityCheckCodeStraightforwardEncoder'])
 _lazy_import('sage.coding.goppa', ['GoppaCodeEncoder'])
 _lazy_import('sage.coding.linear_rank_metric', ['LinearRankMetricCodeGeneratorMatrixEncoder', 'LinearRankMetricCodeSystematicEncoder'])
+_lazy_import('sage.coding.gabidulin_code', ['GabidulinVectorEvaluationEncoder', 'GabidulinPolynomialEvaluationEncoder'])

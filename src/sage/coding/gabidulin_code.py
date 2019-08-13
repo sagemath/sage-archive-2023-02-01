@@ -6,10 +6,27 @@ Gabidulin Codes that are the rank metric equivalent of Reed Solomon codes and ar
 defined as the evaluation codes of degree-restricted skew polynomials.
 
 This module also provides :class:`~sage.coding.gabidulin.GabidulinPolynomialEvaluationEncoder`,
-an encoder with a skew polynomial message space and :class:`~sage.coding.gabidulin.GabidulinGeneratorMatrixEncoder`,
+an encoder with a skew polynomial message space and :class:`~sage.coding.gabidulin.GabidulinVectorEvaluationEncoder`,
 an encoder based on the generator matrix. It also provides a decoder
 :class:`~sage.coding.gabidulin.GabidulinGaoDecoder` which corrects errors using
 the Gao algorithm in the rank metric.
+
+
+TESTS::
+
+This module uses the following experimental feature:
+:class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+This test block is here only to trigger the experimental warning so it does not
+interferes with doctests::
+
+    sage: from sage.coding.relative_finite_field_extension import *
+    sage: Fqm.<aa> = GF(16)
+    sage: Fq.<a> = GF(4)
+    sage: RelativeFiniteFieldExtension(Fqm, Fq)
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/20284 for details.
+    Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+
 
 AUTHOR:
 
@@ -26,9 +43,9 @@ from decoder import Decoder, DecodingError
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import floor
 from sage.coding.relative_finite_field_extension import *
-from sage.coding.rank_metric import *
+from sage.coding.linear_rank_metric import *
 
-class GabidulinCode(AbstractRankMetricCode):
+class GabidulinCode(AbstractLinearRankMetricCode):
     """
     A Gabidulin Code.
 
@@ -49,19 +66,17 @@ class GabidulinCode(AbstractRankMetricCode):
 
     EXAMPLES:
 
-        sage: from sage.coding.gabidulin import *
-        sage: Fqm.<aa> = GF(2^9)
-        sage: Fq.<a> = GF(8)
-        sage: Frob = Fqm.frobenius_endomorphism()
-        sage: S.<x> = Fqm['x', Frob]
-        sage: C = GabidulinCode(Fqm, Fq, 2, 2, Frob); C
-        [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^9
+        sage: from sage.coding.gabidulin_code import *
+        sage: Fqm = GF(2^9)
+        sage: Fq = GF(8)
+        sage: C = GabidulinCode(Fqm, 2, 2, Fq); C
+        [2, 2, 1] Linear Gabidulin Code over Finite Field in z9 of size 2^9
     """
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, base_field, sub_field, length, dimension, \
-            twisting_homomorphism, field_extension=None, evaluation_points=None):
+    def __init__(self, base_field, length, dimension, sub_field=None,
+            twisting_homomorphism=None, evaluation_points=None):
         """
         Representation of a Gabidulin Code.
 
@@ -70,18 +85,15 @@ class GabidulinCode(AbstractRankMetricCode):
         - ``base_field`` -- finite field of order `q^m` where `q` is a prime power
           and `m` is an integer
 
-        - ``sub_field`` -- finite field of order `q` which is a subfield of the
-          ``base_field``
-
         - ``length`` -- length of the resulting code
 
         - ``dimension`` -- dimension of the resulting code
 
-        - ``twisting_homomorphism`` -- homomorphism of the underlying skew polynomial
-          ring, the message space of the resulting code
+        - ``sub_field`` -- finite field of order `q` which is a subfield of the
+          ``base_field`` (default: ``None``)
 
-        - ``field_extension`` -- representation of the elements of the relative
-          extension of `base_field` over `sub_field` (default: ``None``)
+        - ``twisting_homomorphism`` -- homomorphism of the underlying skew polynomial
+          ring, the message space of the resulting code (default: ``None``)
 
         - ``evaluation_points`` -- list of elements `g_0, g_1,...,g_{n-1}` of the
           `base_field` that are linearly independent over the `sub_field` (default:
@@ -91,74 +103,28 @@ class GabidulinCode(AbstractRankMetricCode):
 
         A Gabidulin Code can be constructed in the following way:
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: C
-            [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
+            [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
 
-        If the `base_field` is not a finite field, an error is raised:
+        If ``length`` is bigger than the degree of the extension, an error is
+        raised::
 
-            sage: Fqm.<aa> = RR
-            sage: Fq.<a> = GF(4)
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob); C
+            sage: C = codes.GabidulinCode(GF(64), 4, 3, GF(4))
             Traceback (most recent call last):
             ...
-            ValueError: absolute_field has to be a finite field
-
-        If the `sub_field` is not a finite field, an error is raised:
-
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = RR
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob); C
-            Traceback (most recent call last):
-            ...
-            ValueError: relative_field has to be a finite field
-
-        If the `sub_field` is not a subfield of `base_field`, an error is
-        raised:
-
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(8)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob); C
-            Traceback (most recent call last):
-            ...
-            ValueError: relative_field has to be a subfield of absolute_field
-
-        If the `length` is not at most power of the `base_field`, an error
-        is raised:
-
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 3, 2, Frob); C
-            Traceback (most recent call last):
-            ...
-            ValueError: length of the code must be a positive integer less than or equal to the base_field_power which is 2
-
-        If the `dimension` is not at most `length`, an error is raised:
-
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 3, Frob); C
-            Traceback (most recent call last):
-            ...
-            ValueError: dimension of the code must be a positive integer less than or equal to its length which is 2
+            ValueError: 'length' can be at most the degree of the extension, 3
 
         If the number of evaluation points is not equal to the length
         of the code, an error is raised:
 
-            sage: from sage.coding.relative_finite_field_extension import *
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5)
+            sage: aa = Fqm.gen()
             sage: evals = [ aa^i for i in range(21) ]
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob, FE, evals); C
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq, None, evals); C
             Traceback (most recent call last):
             ...
             ValueError: the number of evaluation points should be equal to the length of the code
@@ -167,37 +133,72 @@ class GabidulinCode(AbstractRankMetricCode):
         an error is raised:
 
             sage: evals = [ aa*i for i in range(2) ]
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob, FE, evals); C
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq, None, evals); C
             Traceback (most recent call last):
             ...
             ValueError: the evaluation points provided are not linearly independent
+
+        Both parameters ``sub_field`` and ``twisting_homomorphism`` are optional.
+        Since they are closely related, here is a list of behaviours which follow
+        each of the combinatorial possibilities:
+
+        - both ``sub_field`` and ``twisting_homomorphism`` given -- in this case
+          we only check that given that ``twisting_homomorphism`` has a fixed
+          field method, it returns ``sub_field``
+
+        - only ``twisting_homomorphism`` given -- we set ``sub_field`` to be the
+          fixed field of the ``twisting_homomorphism``. If such method does not
+          exist, an error is raised.
+
+        - only ``sub_field`` given -- we set ``twisting_homomorphism`` to be the
+          Frobenius of the field extension
+
+        - neither ``sub_field`` or ``twisting_homomorphism`` given -- we take
+          ``sub_field`` to be the prime field of ``base_field`` and the
+          ``twisting_homomorphism`` to be the Frobenius wrt. the prime field
+
+        TODO: add examples for all the above cases
         """
-        super(GabidulinCode, self).__init__(base_field, sub_field, \
-                length, dimension, "PolynomialEvaluation", "Gao", field_extension)
-        if not field_extension:
-            field_extension = self.field_extension()
+        twist_fix_field = None
+        if twisting_homomorphism:
+            try:
+                twist_fix_field = twisting_homomorphism.fixed_field()[0]
+            except AttributeError:
+                pass
+            if sub_field:
+                if twist_fix_field and twist_fix_field != sub_field:
+                    raise ValueError("the fixed field of the twisting homomorphism has to be the relative field of the extension")
+            else:
+                if not twist_fix_field:
+                    raise ValueError("if 'sub_field' is not given, the twisting homomorphism has to have a 'fixed_field' method")
+                else:
+                    sub_field = twist_fix_field
+        elif sub_field:
+            twisting_homomorphism = base_field.frobenius_endomorphism(n=(sub_field.degree()//sub_field.base_ring().degree()))
+        else:
+            sub_field = base_field.base_ring()
+            twisting_homomorphism = base_field.frobenius_endomorphism()
 
-        m = base_field.degree()/sub_field.degree()
-        self._m = m
-        if not length <= m or length not in ZZ or length < 1:
-            raise ValueError("length of the code must be a positive integer less than or equal to the base_field_power which is %d" % m )
-        if not dimension <= length or dimension not in ZZ or dimension < 1:
-            raise ValueError("dimension of the code must be a positive integer less than or equal to its length which is %d" % length )
-        V = VectorSpace(sub_field, m)
-        self._vector_space = V
-        S = base_field['x', twisting_homomorphism]
-        self._message_space = S
+        self._twisting_homomorphism = twisting_homomorphism
 
+        #TODO: this is temporary:
+        self._field_extension, from_V, to_V = base_field.vector_space(sub_field, map=True)
+
+        super(GabidulinCode, self).__init__(base_field, sub_field,
+                length, dimension, "PolynomialEvaluation", "Gao")
+
+        if length > self.extension_degree():
+            raise ValueError("'length' can be at most the degree of the extension, {}".format(self.extension_degree()))
         if evaluation_points is None:
-            evaluation_points = field_extension.absolute_field_basis()[:length]
+            evaluation_points = self.field_extension().absolute_field_basis()[:length]
         else:
             if not len(evaluation_points) == length:
                 raise ValueError("the number of evaluation points should be equal to the length of the code")
             for i in range(length):
                 if not evaluation_points[i] in base_field:
                     raise ValueError("evaluation point does not belong to absolute field")
-            basis = [field_extension.relative_field_representation(evaluation_points[i]) for i in range(length)]
-            if V.linear_dependence(basis):
+            basis = Matrix([to_V(evaluation_points[i]) for i in range(length)])
+            if basis.rank() != length:
                 raise ValueError("the evaluation points provided are not linearly independent")
         self._evaluation_points = evaluation_points
 
@@ -207,11 +208,10 @@ class GabidulinCode(AbstractRankMetricCode):
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob); C
-            [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq); C
+            [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
         """
         return "[%s, %s, %s] Linear Gabidulin Code over %s" \
                 % (self.length(), self.dimension(),
@@ -223,10 +223,9 @@ class GabidulinCode(AbstractRankMetricCode):
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob);
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq);
             sage: latex(C)
             [2, 2, 1] \textnormal{ Linear Gabidulin Code over } \Bold{F}_{2^{4}}
         """
@@ -244,88 +243,71 @@ class GabidulinCode(AbstractRankMetricCode):
 
         OUTPUT:
 
-        Return ``True`` or ``False``.
+        - ``True`` or ``False``
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C1 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
-            sage: C2 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C1 = codes.GabidulinCode(Fqm, 2, 2, Fq)
+            sage: C2 = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: C1.__eq__(C2)
             True
 
-            sage: Fqmm.<aa> = GF(64)
-            sage: Frob = Fqmm.frobenius_endomorphism()
-            sage: C3 = codes.GabidulinCode(Fqmm, Fq, 2, 2, Frob)
+            sage: Fqmm = GF(64)
+            sage: C3 = codes.GabidulinCode(Fqmm, 2, 2, Fq)
             sage: C3.__eq__(C2)
             False
         """
         return isinstance(other, GabidulinCode) \
-                and self.field_extension().absolute_field() == other.field_extension().absolute_field() \
-                and self.field_extension().relative_field() == other.field_extension().relative_field() \
+                and self.base_field() == other.base_field() \
+                and self.sub_field() == other.sub_field() \
                 and self.length() == other.length() \
                 and self.dimension() == other.dimension() \
-                and self.evaluation_points() == other.evaluation_points() \
+                and self.evaluation_points() == other.evaluation_points()
+
+    def twisting_homomorphism(self):
+        r"""
+        """
+        return self._twisting_homomorphism
 
     def minimum_distance(self):
-        """
-        Return the minimum distance of ``self``. Since Gabidulin Codes are
-        Maximum-Distance-Separable (MDS), this returns ``self.length() -
-        self.dimension() + 1``.
+        r"""
+        Return the minimum distance of ``self``.
+
+        Since Gabidulin Codes are Maximum-Distance-Separable (MDS), this returns
+         ``self.length() - self.dimension() + 1``.
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 20, 15, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5)
+            sage: C = codes.GabidulinCode(Fqm, 20, 15, Fq)
             sage: C.minimum_distance()
             6
         """
         return self.length() - self.dimension() + 1
 
-    # parity_evaluation_points needs to be fixed. dual_code and parity_check_matrix depend on this.
     def parity_evaluation_points(self):
         eval_pts = self.evaluation_points()
         n = self.length()
         k = self.dimension()
-        Fqm = self.base_field()
-        q = self.field_extension().relative_field().order()
-        coefficient_matrix = matrix(Fqm, n - 1, n, lambda i,j: pow(eval_pts[j], pow(q, -n + k + 1 + i))) #rewrite using sigma
-        solution_space = coefficient_matrix.right_kernel() #these two lines need to be replaced
-        parity_eval_pts = solution_space.random_element()
-        return parity_eval_pts
+        q = self.sub_field().order()
+        sigma = self.twisting_homomorphism()
+
+        coefficient_matrix = matrix(self.base_field(), n - 1, n,
+                                    lambda i,j: (sigma**(-n + k + 1 + i))(eval_pts[j]))
+        solution_space = coefficient_matrix.right_kernel()
+        return list(solution_space.basis()[0])
 
     def dual_code(self):
-        parity_eval_pts = self.parity_evaluation_points()
-        return GabidulinCode(self.field_extension().absolute_field(),
-                self.field_extension().relative_field(),
-                self.length(), self.length() - self.dimension(), parity_eval_pts)
+        return GabidulinCode(self.base_field(), self.length(),
+                self.length() - self.dimension(), self.sub_field(),
+                self.twisting_homomorphism(),
+                self.parity_evaluation_points())
 
     def parity_check_matrix(self):
-        E = GabidulinGeneratorMatrixEncoder(self.dual_code())
-        return E.generator_matrix()
-
-    def m(self): #rename
-        return self._m
-
-    def vector_space(self):
-        """
-        Return the vector space formed by the ``base_field`` over
-        the ``sub_field`` of ``self``.
-
-        EXAMPLES::
-
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 20, 15, Frob)
-            sage: C.vector_space()
-            Vector space of dimension 20 over Finite Field of size 5
-        """
-        return self._vector_space
+        return self.dual_code().generator_matrix()
 
     def generator_matrix(self):
         """
@@ -333,15 +315,14 @@ class GabidulinCode(AbstractRankMetricCode):
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: C.generator_matrix()
-            [   1   aa]
-            [   1 aa^2]
+            [   1     z4]
+            [   1 z4 + 1]
         """
-        E = GabidulinGeneratorMatrixEncoder(self)
+        E = GabidulinVectorEvaluationEncoder(self)
         return E.generator_matrix()
 
     def evaluation_points(self):
@@ -350,85 +331,183 @@ class GabidulinCode(AbstractRankMetricCode):
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
             sage: C.evaluation_points()
-            [1, aa, aa^2, aa^3]
+            [1, z20, z20^2, z20^3]
         """
         return self._evaluation_points
 
-    def message_space(self):
-        """
-        Return the message space of ``self``.
-
-        EXAMPLES::
-
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
-            sage: C.message_space()
-            Skew Polynomial Ring in x over Finite Field in aa of size 5^20 twisted by aa |--> aa^5
-        """
-        return self._message_space
-
-    def random_element(self):
-        """
-        Return a random element of ``self``.
-
-        EXAMPLES::
-
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
-            sage: C.random_element()
-            (aa^3 + aa^2, aa^3)
-        """
-        E = self.encoder()
-        M = self.message_space()
-        p = M.random_element()
-        while p.degree() >= self.dimension():
-            p = M.random_element()
-        c = E.encode(p)
-        c.set_immutable()
-        return c
-
 ####################### encoders ###############################
 
-
-####################### encoders ###############################
-
-
-class GabidulinPolynomialEvaluationEncoder(Encoder):
+class GabidulinVectorEvaluationEncoder(Encoder):
 
     def __init__(self, code):
         """
-        This method constructs the encoder for Gabidulin Codes which
-        evaluates the skew polynomial at the `n` evaluation points to
-        form a codeword of length `n`.
+        This method constructs the generator matrix encoder for
+        Gabidulin Codes.
 
         INPUT:
 
-        - ``code`` -- The associated code of this encoder.
+        - ``code`` -- the associated code of this encoder.
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
+            sage: E = codes.encoders.GabidulinVectorEvaluationEncoder(C)
+            sage: E
+            Vector evaluation style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
+
+        Alternatively, we can construct the encoder from ``C`` directly::
+
+            sage: E = C.encoder("VectorEvaluation")
+            sage: E
+            Vector evaluation style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
+        """
+        if not isinstance(code, GabidulinCode):
+            raise ValueError("code must be a Gabidulin code")
+        super(GabidulinVectorEvaluationEncoder, self).__init__(code)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES:
+
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
+            sage: E = codes.encoders.GabidulinVectorEvaluationEncoder(C); E
+            Vector evaluation style encoder for [4, 4, 1] Linear Gabidulin Code over Finite Field in z20 of size 5^20
+        """
+        return "Vector evaluation style encoder for %s" % self.code()
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES:
+
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
+            sage: E = codes.encoders.GabidulinVectorEvaluationEncoder(C)
+            sage: latex(E)
+            \textnormal{Vector evaluation style encoder for } [4, 4, 1] \textnormal{ Linear Gabidulin Code over } \Bold{F}_{5^{20}}
+        """
+        return "\\textnormal{Vector evaluation style encoder for } %s" % self.code()._latex_()
+
+    def __eq__(self, other):
+        """
+        Tests equality between Gabidulin Generator Matrix Encoder objects.
+
+        INPUT:
+
+        - ``other`` -- another Gabidulin Generator Matrix Encoder
+
+        OUTPUT:
+
+        - ``True`` or ``False``
+
+        EXAMPLES::
+
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C1 = codes.GabidulinCode(Fqm, 2, 2, Fq)
+            sage: E1 = codes.encoders.GabidulinVectorEvaluationEncoder(C1)
+            sage: C2 = codes.GabidulinCode(Fqm, 2, 2, Fq)
+            sage: E2 = codes.encoders.GabidulinVectorEvaluationEncoder(C2)
+            sage: E1.__eq__(E2)
+            True
+
+            sage: Fqmm = GF(64)
+            sage: C3 = codes.GabidulinCode(Fqmm, 2, 2, Fq)
+            sage: E3 = codes.encoders.GabidulinVectorEvaluationEncoder(C3)
+            sage: E3.__eq__(E2)
+            False
+        """
+        return isinstance(other, GabidulinVectorEvaluationEncoder) \
+                and self.code() == other.code()
+
+    def generator_matrix(self):
+        """
+        Return the generator matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: Fqm = GF(2^9)
+            sage: Fq = GF(2^3)
+            sage: C = codes.GabidulinCode(Fqm, 3, 3, Fq)
+            sage: list(C.generator_matrix().row(1)) == [C.evaluation_points()[i]**(2**3) for i in range(3)]
+            True
+        """
+        C = self.code()
+        eval_pts = C.evaluation_points()
+        k = C.dimension()
+        sigma = C.twisting_homomorphism()
+        create_matrix_elements = lambda A,k,f: reduce(lambda L,x: [x] + \
+                map(lambda l: map(f,l), L), [A]*k, [])
+        return matrix(C.base_field(), C.dimension(), C.length(), \
+                create_matrix_elements(eval_pts, C.dimension(), sigma))
+
+class GabidulinPolynomialEvaluationEncoder(Encoder):
+    """
+
+    TESTS::
+
+    This module uses the following experimental feature:
+    This test block is here only to trigger the experimental warning so it does not
+    interferes with doctests::
+
+        sage: Fqm = GF(2^9)
+        sage: Fq = GF(2^3)
+        sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
+        sage: S.<x> = Fqm['x', C.twisting_homomorphism()]
+        sage: z9 = Fqm.gen()
+        sage: p = (z9^6 + z9^2 + z9 + 1)*x + z9^7 + z9^5 + z9^4 + z9^2
+        sage: vector(p.multi_point_evaluation(C.evaluation_points()))
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/13215 for details.
+        (z9^7 + z9^6 + z9^5 + z9^4 + z9 + 1, z9^6 + z9^5 + z9^3 + z9)
+    """
+
+    def __init__(self, code):
+        """
+        Encoder for Gabidulin codes which uses evaluation of skew polynomials to
+        obtain codewords.
+
+        Let `C` be a Gabidulin code of length `n` and dimension `k` over some
+        finite field `F = GF(q^m)`. We denote by `\alpha_i` its evaluations
+        points, where `1 \leq i \leq n`. Let `p`, a skew polynomial of degree at
+        most `k-1` in `F[x]`, be the message.
+
+        The encoding of `m` will be the following codeword:
+
+        .. MATH::
+
+            (p(\alpha_1), \dots, p(\alpha_n)).
+
+        INPUT:
+
+        - ``code`` -- the associated code of this encoder
+
+        EXAMPLES::
+
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
             sage: E
-            Polynomial evaluation style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
+            Polynomial evaluation style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
 
         Alternatively, we can construct the encoder from ``C`` directly::
 
             sage: E = C.encoder("PolynomialEvaluation")
             sage: E
-            Polynomial evaluation style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
+            Polynomial evaluation style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
         """
         if not isinstance(code, GabidulinCode):
             raise ValueError("code must be a Gabidulin code")
@@ -440,12 +519,11 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C); E
-            Polynomial evaluation style encoder for [4, 4, 1] Linear Gabidulin Code over Finite Field in aa of size 5^20
+            Polynomial evaluation style encoder for [4, 4, 1] Linear Gabidulin Code over Finite Field in z20 of size 5^20
         """
         return "Polynomial evaluation style encoder for %s" % self.code()
 
@@ -455,10 +533,9 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
             sage: latex(E)
             \textnormal{Polynomial evaluation style encoder for } [4, 4, 1] \textnormal{ Linear Gabidulin Code over } \Bold{F}_{5^{20}}
@@ -467,8 +544,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
     def __eq__(self, other):
         """
-        Tests equality between Gabidulin Polynomial Evaluation
-        Encoder objects.
+        Test equality between Gabidulin Polynomial Evaluation Encoder objects.
 
         INPUT:
 
@@ -476,23 +552,21 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         OUTPUT:
 
-        Return ``True`` or ``False``.
+        - ``True`` or ``False``
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C1 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C1 = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: E1 = codes.encoders.GabidulinPolynomialEvaluationEncoder(C1)
-            sage: C2 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: C2 = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: E2 = codes.encoders.GabidulinPolynomialEvaluationEncoder(C2)
             sage: E1.__eq__(E2)
             True
 
-            sage: Fqmm.<aa> = GF(64)
-            sage: Frob = Fqmm.frobenius_endomorphism()
-            sage: C3 = codes.GabidulinCode(Fqmm, Fq, 2, 2, Frob)
+            sage: Fqmm = GF(64)
+            sage: C3 = codes.GabidulinCode(Fqmm, 2, 2, Fq)
             sage: E3 = codes.encoders.GabidulinPolynomialEvaluationEncoder(C3)
             sage: E3.__eq__(E2)
             False
@@ -500,65 +574,82 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         return isinstance(other, GabidulinPolynomialEvaluationEncoder) \
                 and self.code() == other.code()
 
+    def message_space(self):
+        r"""
+        Return the message space of the associated code of ``self``.
+
+        EXAMPLES:
+
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
+            sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
+            sage: E.message_space()
+            Skew Polynomial Ring in x over Finite Field in z20 of size 5^20 twisted by z20 |--> z20^(5^4)
+        """
+        C = self.code()
+        return C.base_field()['x', C.twisting_homomorphism()]
+
     def encode(self, p, form="vector"):
         """
-        Transform the polynomial `p` into a codeword of the associated
-        Gabidulin Code of ``self``.
+        Transform the polynomial ``p`` into a codeword of :meth:`code`.
+
+        The output codeword can be represented as a vector or a matrix,
+        depending on the ``form`` input.
 
         INPUT:
 
-        - ``p`` -- skew polynomial belonging to the message space of
-          the associated code of ``self``
+        - ``p`` -- a skew polynomial from the message space of ``self`` of degree
+          less than ``self.code().dimension()``
 
         - ``form`` -- type parameter taking strings "vector" or "matrix"
-          as values and converts codeword into the respective form
+          as values and converting the output codeword into the respective form
           (default: "vector")
 
         OUTPUT:
 
-        The codeword corresponding to `p` in the vector or matrix form.
+        - a codeword corresponding to `p` in vector or matrix form
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(2^9)
-            sage: Fq.<a> = GF(2^3)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(2^9)
+            sage: Fq = GF(2^3)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
-            sage: S.<x> = Fqm['x', Frob]
-            sage: p = (aa^6 + aa^2 + aa + 1)*x + aa^7 + aa^5 + aa^4 + aa^2
+            sage: S.<x> = Fqm['x', C.twisting_homomorphism()]
+            sage: z9 = Fqm.gen()
+            sage: p = (z9^6 + z9^2 + z9 + 1)*x + z9^7 + z9^5 + z9^4 + z9^2
             sage: codeword_vector = E.encode(p, "vector"); codeword_vector
-            (aa^7 + aa^6 + aa^5 + aa^4 + aa + 1, aa^6 + aa^5 + aa^4 + aa^2)
+            (z9^7 + z9^6 + z9^5 + z9^4 + z9 + 1, z9^6 + z9^5 + z9^3 + z9)
             sage: codeword_matrix = E.encode(p, "matrix"); codeword_matrix
-            [    a^2       0]
-            [    a^2       0]
-            [a^2 + a   a + 1]
+            [     z3^2       z3]
+            [     z3^2        1]
+            [z3^2 + z3   z3 + 1]
 
         TESTS:
 
-        If the skew polynomial to encode has degree greater than or equal
-        to the dimension of the code, an error is raised::
+        If the skew polynomial, `p`, has degree greater than or equal to the
+        dimension of the code, an error is raised::
 
-            sage: t = aa^4*x^2 + aa
+            sage: t = z9^4*x^2 + z9
             sage: codeword_vector = E.encode(t, "vector"); codeword_vector
             Traceback (most recent call last):
             ...
             ValueError: the skew polynomial to encode must have degree at most 1
 
-        The skew polynomial to encode, `p`, must belong to the message
-        space of the code. Otherwise, an error is raised::
+        The skew polynomial, `p`, must belong to the message space of the code.
+        Otherwise, an error is raised::
 
             sage: Fqmm = GF(2^12)
-            sage: frob = Fqmm.frobenius_endomorphism()
-            sage: S.<x> = Fqmm['x', frob]
-            sage: q = S.random_element()
+            sage: S.<x> = Fqmm['x', Fqmm.frobenius_endomorphism(n=3)]
+            sage: q = S.random_element(degree=2)
             sage: codeword_vector = E.encode(q, "vector"); codeword_vector
             Traceback (most recent call last):
             ...
-            ValueError: the message to encode must be in Skew Polynomial Ring in x over Finite Field in aa of size 2^9 twisted by aa |--> aa^2
+            ValueError: the message to encode must be in Skew Polynomial Ring in x over Finite Field in z9 of size 2^9 twisted by z9 |--> z9^(2^3)
         """
         C = self.code()
-        M = C.message_space()
+        M = self.message_space()
         if p not in M:
             raise ValueError("the message to encode must be in %s" % M)
         if p.degree() >= C.dimension():
@@ -568,7 +659,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         if form == "vector":
             return vector(codeword)
         elif form == "matrix":
-            return to_matrix_representation(C, vector(codeword))
+            return C.to_matrix(vector(codeword))
         else:
             return ValueError("the argument 'form' takes only either 'vector' or 'matrix' as valid input")
 
@@ -582,170 +673,31 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         INPUT:
 
-        - ``c`` -- A codeword of :meth:`code`
+        - ``c`` -- a codeword of :meth:`code`
 
         OUTPUT:
 
-        A skew polynomial of degree less than ``self.code().dimension()``.
+        - a skew polynomial of degree less than ``self.code().dimension()``
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(2^9)
-            sage: Fq.<a> = GF(2^3)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(2^9)
+            sage: Fq = GF(2^3)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
-            sage: S.<x> = Fqm['x', Frob]
-            sage: p = (aa^6 + aa^4)*x + aa^2 + aa
+            sage: S.<x> = Fqm['x', C.twisting_homomorphism()]
+            sage: z9 = Fqm.gen()
+            sage: p = (z9^6 + z9^4)*x + z9^2 + z9
             sage: codeword_vector = E.encode(p, "vector")
             sage: E.unencode_nocheck(codeword_vector)
-            (aa^6 + aa^4)*x + aa^2 + aa
+            (z9^6 + z9^4)*x + z9^2 + z9
         """
         C = self.code()
         eval_pts = C.evaluation_points()
         values = [c[i] for i in range(len(c))]
-        p = C.message_space().interpolation_polynomial(eval_pts, values)
+        points = [(eval_pts[i], values[i]) for i in range(len(eval_pts))]
+        p = self.message_space().lagrange_polynomial(points)
         return p
-
-    def message_space(self):
-        """
-        Return the message space of the associated code of ``self``.
-
-        EXAMPLES:
-
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
-            sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
-            sage: E.message_space()
-            Skew Polynomial Ring in x over Finite Field in aa of size 5^20 twisted by aa |--> aa^5
-        """
-        return self.code().message_space()
-
-class GabidulinGeneratorMatrixEncoder(Encoder):
-
-    def __init__(self, code):
-        """
-        This method constructs the generator matrix encoder for
-        Gabidulin Codes.
-
-        INPUT:
-
-        - ``code`` -- The associated code of this encoder.
-
-        EXAMPLES::
-
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
-            sage: E = codes.encoders.GabidulinGeneratorMatrixEncoder(C)
-            sage: E
-            Generator matrix style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
-
-        Alternatively, we can construct the encoder from ``C`` directly::
-
-            sage: E = C.encoder("GeneratorMatrix")
-            sage: E
-            Generator matrix style encoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
-        """
-        if not isinstance(code, GabidulinCode):
-            raise ValueError("code must be a Gabidulin code")
-        super(GabidulinGeneratorMatrixEncoder, self).__init__(code)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES:
-
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
-            sage: E = codes.encoders.GabidulinGeneratorMatrixEncoder(C); E
-            Generator matrix style encoder for [4, 4, 1] Linear Gabidulin Code over Finite Field in aa of size 5^20
-        """
-        return "Generator matrix style encoder for %s" % self.code()
-
-    def _latex_(self):
-        """
-        Return a latex representation of ``self``.
-
-        EXAMPLES:
-
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
-            sage: E = codes.encoders.GabidulinGeneratorMatrixEncoder(C)
-            sage: latex(E)
-            \textnormal{Generator matrix style encoder for } [4, 4, 1] \textnormal{ Linear Gabidulin Code over } \Bold{F}_{5^{20}}
-        """
-        return "\\textnormal{Generator matrix style encoder for } %s" % self.code()._latex_()
-
-    def __eq__(self, other):
-        """
-        Tests equality between Gabidulin Generator Matrix
-        Encoder objects.
-
-        INPUT:
-
-        - ``other`` -- another Gabidulin Generator Matrix Encoder
-
-        OUTPUT:
-
-        Return ``True`` or ``False``.
-
-        EXAMPLES::
-
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C1 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
-            sage: E1 = codes.encoders.GabidulinGeneratorMatrixEncoder(C1)
-            sage: C2 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
-            sage: E2 = codes.encoders.GabidulinGeneratorMatrixEncoder(C2)
-            sage: E1.__eq__(E2)
-            True
-
-            sage: Fqmm.<aa> = GF(64)
-            sage: Frob = Fqmm.frobenius_endomorphism()
-            sage: C3 = codes.GabidulinCode(Fqmm, Fq, 2, 2, Frob)
-            sage: E3 = codes.encoders.GabidulinGeneratorMatrixEncoder(C3)
-            sage: E3.__eq__(E2)
-            False
-        """
-        return isinstance(other, GabidulinGeneratorMatrixEncoder) \
-                and self.code() == other.code()
-
-    def generator_matrix(self):
-        """
-        Return the generator matrix of ``self``.
-
-        EXAMPLES::
-
-            sage: Fqm.<aa> = GF(2^9)
-            sage: Fq.<a> = GF(2^3)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 3, 3, Frob)
-            sage: C.generator_matrix()
-            [   1   aa aa^2]
-            [   1 aa^2 aa^4]
-            [   1 aa^4 aa^8]
-        """
-        C = self.code()
-        eval_pts = C.evaluation_points()
-        k = C.dimension()
-        sigma = C.message_space().twist_map()
-        create_matrix_elements = lambda A,k,f: reduce(lambda L,x: [x] + \
-                map(lambda l: map(f,l), L), [A]*k, [])
-        return matrix(C.base_field(), C.dimension(), C.length(), \
-                create_matrix_elements(eval_pts, C.dimension(), sigma))
-
-
-####################### decoders ###############################
 
 
 ####################### decoders ###############################
@@ -755,32 +707,30 @@ class GabidulinGaoDecoder(Decoder):
 
     def __init__(self, code):
         """
-        This method constructs the Gao style decoder for
-        Gabidulin Codes.
+        Gao style decoder for Gabidulin Codes.
 
         INPUT:
 
-        - ``code`` -- The associated code of this encoder.
+        - ``code`` -- the associated code of this decoder
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C)
             sage: D
-            Gao decoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
+            Gao decoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
 
         Alternatively, we can construct the encoder from ``C`` directly::
 
             sage: D = C.decoder("Gao")
             sage: D
-            Gao decoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in aa of size 2^4
+            Gao decoder for [2, 2, 1] Linear Gabidulin Code over Finite Field in z4 of size 2^4
         """
         if not isinstance(code, GabidulinCode):
             raise ValueError("code has to be a Gabidulin Code")
-        super(GabidulinGaoDecoder, self).__init__(code, code.message_space(), "PolynomialEvaluation")
+        super(GabidulinGaoDecoder, self).__init__(code, code.ambient_space(), "PolynomialEvaluation")
 
     def _repr_(self):
         """
@@ -788,12 +738,11 @@ class GabidulinGaoDecoder(Decoder):
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C); D
-            Gao decoder for [4, 4, 1] Linear Gabidulin Code over Finite Field in aa of size 5^20
+            Gao decoder for [4, 4, 1] Linear Gabidulin Code over Finite Field in z20 of size 5^20
         """
         return "Gao decoder for %s" % self.code()
 
@@ -803,10 +752,9 @@ class GabidulinGaoDecoder(Decoder):
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5^4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 4, 4, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5^4)
+            sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C)
             sage: latex(D)
             \textnormal{Gao decoder for } [4, 4, 1] \textnormal{ Linear Gabidulin Code over } \Bold{F}_{5^{20}}
@@ -823,23 +771,21 @@ class GabidulinGaoDecoder(Decoder):
 
         OUTPUT:
 
-        Return ``True`` or ``False``.
+        - ``True`` or ``False``
 
         EXAMPLES::
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C1 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(16)
+            sage: Fq = GF(4)
+            sage: C1 = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: D1 = codes.decoders.GabidulinGaoDecoder(C1)
-            sage: C2 = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: C2 = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: D2 = codes.decoders.GabidulinGaoDecoder(C2)
             sage: D1.__eq__(D2)
             True
 
-            sage: Fqmm.<aa> = GF(64)
-            sage: Frob = Fqmm.frobenius_endomorphism()
-            sage: C3 = codes.GabidulinCode(Fqmm, Fq, 2, 2, Frob)
+            sage: Fqmm = GF(64)
+            sage: C3 = codes.GabidulinCode(Fqmm, 2, 2, Fq)
             sage: D3 = codes.decoders.GabidulinGaoDecoder(C3)
             sage: D3.__eq__(D2)
             False
@@ -870,21 +816,20 @@ class GabidulinGaoDecoder(Decoder):
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(2^9)
-            sage: Fq.<a> = GF(2^3)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(2^9)
+            sage: Fq = GF(2^3)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
-            sage: S.<x> = Fqm['x', Frob]
-            sage: p = (aa^6 + aa^4)*x + aa^2 + aa
+            sage: S.<x> = Fqm['x', C.twisting_homomorphism()]
+            sage: z9 = Fqm.gen()
+            sage: p = (z9^6 + z9^4)*x + z9^2 + z9
             sage: codeword_vector = E.encode(p, "vector")
             sage: r = D.decode_to_message(codeword_vector) #indirect_doctest
             sage: r
-            (aa^6 + aa^4)*x + aa^2 + aa
+            (z9^6 + z9^4)*x + z9^2 + z9
         """
-        C = self.code()
-        S = C.message_space()
+        S = self.message_space()
         if (a not in S) or (b not in S):
             raise ValueError("both the input polynomials must belong to %s" % S)
         if a.degree() < b.degree():
@@ -914,37 +859,34 @@ class GabidulinGaoDecoder(Decoder):
 
         OUTPUT:
 
-        The decoded codeword and decoded message corresponding to
-        the received codeword `r`.
+        - the decoded codeword and decoded message corresponding to
+          the received codeword `r`
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(2^9)
-            sage: Fq.<a> = GF(2^3)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(2^9)
+            sage: Fq = GF(2^3)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
-            sage: S.<x> = Fqm['x', Frob]
-            sage: p = (aa^6 + aa^4)*x + aa^2 + aa
+            sage: S.<x> = Fqm['x', C.twisting_homomorphism()]
+            sage: z9 = Fqm.gen()
+            sage: p = (z9^6 + z9^4)*x + z9^2 + z9
             sage: codeword_vector = E.encode(p, "vector")
             sage: r = D.decode_to_message(codeword_vector) #indirect doctest
             sage: r
-            (aa^6 + aa^4)*x + aa^2 + aa
+            (z9^6 + z9^4)*x + z9^2 + z9
         """
         C = self.code()
         length = len(r)
-        if not length <= C.m() or length < 1:
-            raise ValueError("length of the received code must be a positive integer \
-                    less than or equal to the base_field_power which is %d" % m )
         eval_pts = C.evaluation_points()
-        S = C.message_space()
+        S = self.message_space()
 
         if length == C.dimension() or r in C:
             return r, self.connected_encoder().unencode_nocheck(r)
 
-        R = S.interpolation_polynomial(eval_pts, list(r))
-        r_out, u_out = self._partial_xgcd(S.minimal_vanishing_polynomial(eval_pts), \
+        R = S.lagrange_polynomial(eval_pts, list(r))
+        r_out, u_out = self._partial_xgcd(S.minimal_vanishing_polynomial(eval_pts),
                 R, floor((C.length() + C.dimension())//2))
         quo, rem = r_out.left_quo_rem(u_out)
         if not rem.is_zero():
@@ -967,22 +909,22 @@ class GabidulinGaoDecoder(Decoder):
 
         OUTPUT:
 
-        The decoded codeword corresponding to the received codeword.
+        - the decoded codeword corresponding to the received codeword
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 6, 4, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5)
+            sage: C = codes.GabidulinCode(Fqm, 6, 4, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
-            sage: S.<x> = Fqm['x', Frob]
-            sage: p = 4*aa^11*x^2 + aa^4*x + 2*aa
+            sage: S.<x> = Fqm['x', C.twisting_homomorphism()]
+            sage: z20 = Fqm.gen()
+            sage: p = 4*z20^11*x^2 + z20^4*x + 2*z20
             sage: codeword_vector = E.encode(p, "vector")
             sage: r = D.decode_to_code(codeword_vector)
             sage: r
-            (aa^6 + aa^4)*x + aa^2 + aa
+            (z20^6 + z20^4)*x + z20^2 + z20
         """
         return self._decode_to_code_and_message(r)[0]
 
@@ -997,22 +939,22 @@ class GabidulinGaoDecoder(Decoder):
 
         OUTPUT:
 
-        The message corresponding to the received codeword.
+        - the message corresponding to the received codeword
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(2^9)
-            sage: Fq.<a> = GF(2^3)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 2, 2, Frob)
+            sage: Fqm = GF(2^9)
+            sage: Fq = GF(2^3)
+            sage: C = codes.GabidulinCode(Fqm, 2, 2, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
-            sage: S.<x> = Fqm['x', Frob]
-            sage: p = (aa^6 + aa^4)*x + aa^2 + aa
+            sage: S.<x> = Fqm['x', C.twisting_homomorphism()]
+            sage: z9 = Fqm.gen()
+            sage: p = (z9^6 + z9^4)*x + z9^2 + z9
             sage: codeword_vector = E.encode(p, "vector")
             sage: r = D.decode_to_message(codeword_vector)
             sage: r
-            (aa^6 + aa^4)*x + aa^2 + aa
+            (z9^6 + z9^4)*x + z9^2 + z9
         """
         return self._decode_to_code_and_message(r)[1]
 
@@ -1022,10 +964,9 @@ class GabidulinGaoDecoder(Decoder):
 
         EXAMPLES:
 
-            sage: Fqm.<aa> = GF(5^20)
-            sage: Fq.<a> = GF(5)
-            sage: Frob = Fqm.frobenius_endomorphism()
-            sage: C = codes.GabidulinCode(Fqm, Fq, 20, 4, Frob)
+            sage: Fqm = GF(5^20)
+            sage: Fq = GF(5)
+            sage: C = codes.GabidulinCode(Fqm, 20, 4, Fq)
             sage: D = codes.decoders.GabidulinGaoDecoder(C)
             sage: D.decoding_radius()
             8
@@ -1035,6 +976,6 @@ class GabidulinGaoDecoder(Decoder):
 ############################## registration ####################################
 
 GabidulinCode._registered_encoders["PolynomialEvaluation"] = GabidulinPolynomialEvaluationEncoder
-GabidulinCode._registered_encoders["GeneratorMatrix"] = GabidulinGeneratorMatrixEncoder
+GabidulinCode._registered_encoders["VectorEvaluation"] = GabidulinVectorEvaluationEncoder
 
 GabidulinCode._registered_decoders["Gao"] = GabidulinGaoDecoder

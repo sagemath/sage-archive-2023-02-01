@@ -353,7 +353,7 @@ class AbstractCode(Parent):
         r"""
         Return an error stating ``ambient_space`` of ``self`` is not implemented.
 
-        This method is required by the :method:`__call__`.
+        This method is required by :meth:`__call__`.
 
         EXAMPLES::
 

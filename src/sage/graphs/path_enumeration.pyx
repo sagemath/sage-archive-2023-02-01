@@ -1505,7 +1505,6 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
     """
     if source not in self:
         raise ValueError("vertex '{}' is not in the graph".format(source))
-
     if target not in self:
         raise ValueError("vertex '{}' is not in the graph".format(target))
 
@@ -1538,10 +1537,32 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
         if not G.is_directed():
             for u, v in G.edge_iterator(labels=False):
                 edge_wt[v, u] = edge_wt[u, v]
-    else:
-        def weight_function(e):
-            return 1
 
+        def length_func(path):
+            return sum(edge_wt[e] for e in zip(path[:-1], path[1:]))
+        # shortest path function for weighted graph
+        shortest_path_func = G._backend.bidirectional_dijkstra_special
+    else:
+        def length_func(path):
+            return len(path) - 1
+        # shortest path function for unweighted graph
+        shortest_path_func = G._backend.shortest_path_special
+
+    # compute the shortest path between the source and the target
+    cdef list path
+    if by_weight:
+        path = shortest_path_func(source, target, weight_function=weight_function)
+    else:
+        path = shortest_path_func(source, target)
+    # corner case
+    if not path:
+        if report_weight:
+            yield (0, [])
+        else:
+            yield []
+        return
+
+    cdef dict edge_labels
     if report_edges and labels:
         edge_labels = {(e[0], e[1]): e for e in G.edge_iterator()}
         if not G.is_directed():
@@ -1551,87 +1572,59 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
     # heap data structure containing the candidate paths
     cdef priority_queue[pair[double, pair[int, int]]] heap_sorted_paths
     cdef int idx = 0
-    cdef dict idx_to_path = {}
+    heap_sorted_paths.push((-length_func(path), (idx, 0)))
+    cdef dict idx_to_path = {idx: path}
+    idx = idx + 1
+    # list of all paths already yielded
+    cdef list listA = list()
+
     cdef set exclude_vertices
     cdef set exclude_edges
-    if not by_weight:
-        length_func = len
-        # shortest path function for unweighted graph
-        shortest_path_func = G._backend.shortest_path_special
-    else:
-        def length_func(path):
-            return sum(edge_wt[e] for e in zip(path, path[1:]))
-        # shortest path function for weighted graph
-        shortest_path_func = G._backend.bidirectional_dijkstra_special
-
-    # list of previous paths already popped from the heap
-    cdef list listA = list()
-    prev_path = None
-
-    # compute the shortest path between the source and the target
-    if by_weight:
-        path = shortest_path_func(source, target, weight_function=weight_function)
-        length = length_func(path)
-    else:
-        path = shortest_path_func(source, target)
-        length = length_func(path) - 1
-    # corner case
-    if not path:
-        if report_weight:
-            yield (0, [])
-        else:
-            yield []
-        return
-
-    # hashing the path to check the existence of a path in the heap
-    cdef tuple hash_path = tuple(path)
-    # heap push operation
-    idx_to_path[idx] = path
-    heap_sorted_paths.push((-length, (idx, 0)))
-    idx = idx + 1
+    cdef list prev_path, new_path, root
+    cdef int path_idx, dev_idx
 
     while idx_to_path:
         # extracting the next best path from the heap
         cost, (path_idx, dev_idx) = heap_sorted_paths.top()
         heap_sorted_paths.pop()
-        path1 = idx_to_path[path_idx]
+        prev_path = idx_to_path[path_idx]
         del idx_to_path[path_idx]
         if report_weight:
             cost = -cost
             if cost in ZZ:
                 cost = int(cost)
             if report_edges and labels:
-                yield (cost, [edge_labels[e] for e in zip(path1[:-1], path1[1:])])
+                yield (cost, [edge_labels[e] for e in zip(prev_path[:-1], prev_path[1:])])
             elif report_edges:
-                yield (cost, list(zip(path1[:-1], path1[1:])))
+                yield (cost, list(zip(prev_path[:-1], prev_path[1:])))
             else:
-                yield (cost, path1)
+                yield (cost, prev_path)
         else:
             if report_edges and labels:
-                yield [edge_labels[e] for e in zip(path1[:-1], path1[1:])]
+                yield [edge_labels[e] for e in zip(prev_path[:-1], prev_path[1:])]
             elif report_edges:
-                yield list(zip(path1[:-1], path1[1:]))
+                yield list(zip(prev_path[:-1], prev_path[1:]))
             else:
-                yield path1
+                yield prev_path
 
-        listA.append(path1)
-        prev_path = path1
+        listA.append(prev_path)
         exclude_vertices = set(prev_path[:dev_idx])
         exclude_edges = set()
+        root = prev_path[:dev_idx]
 
         # deviating from the previous path to find the candidate paths
         for i in range(dev_idx + 1, len(prev_path)):
             # root part of the previous path
-            root = prev_path[:i]
+            root.append(prev_path[i - 1])
             for path in listA:
                 if path[:i] == root:
                     exclude_edges.add((path[i - 1], path[i]))
                     if not G.is_directed():
                         exclude_edges.add((path[i], path[i - 1]))
             try:
+                # finding the spur part of the path after excluding certain
+                # vertices and edges
                 if by_weight:
-                    # finding the spur part of the path after excluding certain
-                    # vertices and edges
                     spur = shortest_path_func(root[-1], target,
                                                 exclude_vertices=exclude_vertices,
                                                 exclude_edges=exclude_edges,
@@ -1643,13 +1636,10 @@ def yen_k_shortest_simple_paths_cython(self, source, target, weight_function=Non
                 if not spur:
                     continue
                 # concatenating the root and the spur paths
-                path = root[:-1] + spur
-                length = length_func(path)
-                if not by_weight:
-                    length -= 1
+                new_path = root[:-1] + spur
                 # push operation
-                idx_to_path[idx] = path
-                heap_sorted_paths.push((-length, (idx, len(root) - 1)))
+                idx_to_path[idx] = new_path
+                heap_sorted_paths.push((-length_func(new_path), (idx, i - 1)))
                 idx = idx + 1
             except Exception:
                 pass

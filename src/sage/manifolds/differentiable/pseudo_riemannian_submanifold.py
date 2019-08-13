@@ -33,7 +33,7 @@ foliation::
     sage: assume(b>0)
     sage: t = var('t', domain='real')
 
-One can then define the embedding $\phi_t$::
+One can then define the embedding `\phi_t`::
 
     sage: phi = N.diff_map(M, {(C,E): [b*cosh(rh)+t,
     ....:                              b*sinh(rh)*cos(th),
@@ -53,7 +53,7 @@ as well as its inverse (when considered as a diffeomorphism onto its image)::
        (w, x, y) |--> (rh, th) = (log(sqrt((b^2 + x^2 + y^2)/b^2 - 1)
                                   + sqrt(b^2 + x^2 + y^2)/b), arctan2(y, x))
 
-and the partial inverse expressing the foliation parameter $t$ as a scalar
+and the partial inverse expressing the foliation parameter `t` as a scalar
 field on `M`::
 
     sage: phi_inv_t = M.scalar_field({E: w-sqrt(x^2+y^2+b^2)})
@@ -308,11 +308,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: M = Manifold(3, 'M', structure='Lorentzian')
             sage: N = Manifold(2, 'N', ambient=M, structure='Riemannian')
             sage: N
-            2-dimensional Riemannian submanifold N immersed in the 3-dimensional Lorentzian manifold M
+            2-dimensional Riemannian submanifold N immersed in the
+             3-dimensional Lorentzian manifold M
             sage: phi = N.diff_map(M)
             sage: N.set_embedding(phi)
             sage: N
-            2-dimensional Riemannian submanifold N embedded in the 3-dimensional Lorentzian manifold M
+            2-dimensional Riemannian submanifold N embedded in the
+             3-dimensional Lorentzian manifold M
             sage: S = Manifold(2, 'S', latex_name=r"\Sigma", ambient=M,
             ....:              structure="Riemannian", start_index=1)
             sage: latex(S)
@@ -568,7 +570,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         .. MATH::
 
-            n = \vec{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge\ldots
+            n = \vec{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge\cdots
             \wedge\mathrm{d}x_{n-1})
 
         where the star stands for the Hodge dual operator and the wedge for the
@@ -1145,7 +1147,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         if self._ambient._dim - self._dim != 1:
-            raise NotImplementedError("projector() is implemented only for "                          "hypersurfaces")
+            raise NotImplementedError("projector() is implemented only for "
+                                      "hypersurfaces")
         g = self.ambient_metric().inverse()
         if self._dim_foliation == 0:
             g = g.along(self._immersion)
@@ -1201,7 +1204,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         if self._ambient._dim - self._dim != 1:
-            raise NotImplementedError("project() is implemented only for "                          "hypersurfaces")
+            raise NotImplementedError("project() is implemented only for "
+                                      "hypersurfaces")
         resu = tensor.copy()
         resu.set_name(tensor._name + "_" + self._name,
                       r"{" + tensor._latex_() + r"}_{" + self._latex_() + r"}")
@@ -1284,7 +1288,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         if self._ambient._dim - self._dim != 1:
-            raise NotImplementedError("mixed_projection() is implemented only "                          "for hypersurfaces")
+            raise NotImplementedError("mixed_projection() is implemented only "
+                                      "for hypersurfaces")
         if isinstance(indices, (Integer, int)):
             indices = list(range(indices))
 

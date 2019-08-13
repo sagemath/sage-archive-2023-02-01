@@ -453,9 +453,9 @@ class TopologicalSubmanifold(TopologicalManifold):
         to describe the whole manifold.
 
         A chart adapted to the foliation is a set of coordinates
-        `(x_1,...,x_n,t_1,...t_{m-n})` on `M` such that `(x_1,...x_n)` are
-        coordinates on `N` and `(t_1,...t_{m-n})` are the `m-n` free parameters
-        of the foliation.
+        `(x_1,\ldots,x_n,t_1,\ldots,t_{m-n})` on `M` such that
+        `(x_1,\ldots,x_n)` are coordinates on `N` and `(t_1,\ldots,t_{m-n})`
+        are the `m-n` free parameters of the foliation.
 
         Provided that an embedding with free variables is already defined, this
         function constructs such charts and coordinates changes whenever
@@ -468,13 +468,13 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         - ``postscript`` -- (default: ``None``) string defining the name of the
           coordinates of the adapated chart. This string will be appended to
-          the names of the coordinates `(x_1,...x_n)` and of the parameters
-          `(t_1,...t_{m-n})`. If ``None``, ``"_" + self.ambient()._name`` is
-          used
+          the names of the coordinates `(x_1,\ldots,x_n)` and of the parameters
+          `(t_1,\ldots,t_{m-n})`. If ``None``, ``"_" + self.ambient()._name``
+          is used
         - ``latex_postscript`` -- (default: ``None``) string defining the LaTeX
           name of the coordinates of the adapated chart. This string will be
-          appended to the LaTeX names of the coordinates `(x_1,...x_n)` and of
-          the parameters `(t_1,...t_{m-n})`, If ``None``,
+          appended to the LaTeX names of the coordinates `(x_1,\ldots,x_n)` and
+          of the parameters `(t_1,\ldots,t_{m-n})`, If ``None``,
           ``"_" + self.ambient()._latex_()`` is used
 
         OUTPUT:

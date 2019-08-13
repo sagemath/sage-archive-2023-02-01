@@ -91,3 +91,10 @@ if [ -n "$SAGE_FLINT_PREFIX" ]; then
 fi
 export SAGE_FREETYPE_PREFIX="@SAGE_FREETYPE_PREFIX@"
 export SAGE_ARB_LIBRARY="@SAGE_ARB_LIBRARY@"
+
+export SAGE_PKG_CONFIG_PATH="@SAGE_PKG_CONFIG_PATH@"
+if [ -n "$SAGE_PKG_CONFIG_PATH" ]; then
+    # set up external pkg-config to look into SAGE_LOCAL/lib/pkgconfig/
+    # (Sage's pkgconf spkg takes care of this, if installed)
+    export PKG_CONFIG_PATH="$SAGE_PKG_CONFIG_PATH${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi

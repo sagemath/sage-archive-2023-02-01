@@ -3219,6 +3219,10 @@ REFERENCES:
 .. [Mil2004] Victor S. Miller, "The Weil pairing, and its
              efficient calculation", J. Cryptol., 17(4):235-261, 2004
 
+.. [Mil2017] Arthur Milchior, *(Quasi-)linear time algorithm to compute
+             LexDFS, LexUP and LexDown orderings*. (2017)
+             :arxiv:`1701.00305`
+
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
 

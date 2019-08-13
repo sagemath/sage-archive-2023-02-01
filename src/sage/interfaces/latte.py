@@ -155,6 +155,8 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
                        cwd=str(SAGE_TMP))
 
     ans, err = latte_proc.communicate(arg)
+    if err:
+        err = bytes_to_str(err)
     ret_code = latte_proc.poll()
     if ret_code:
         if err is None:

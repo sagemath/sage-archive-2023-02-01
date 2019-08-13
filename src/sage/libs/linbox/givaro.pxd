@@ -40,7 +40,7 @@ cdef extern from "givaro/zring.h":
         Element one
         Element mone
 
-cdef extern from "givaro/modular.h":
+cdef extern from "givaro/modular-integral.h":
     cdef cppclass Modular_uint64 "Givaro::Modular<uint64_t>":
         ctypedef uint64_t Element
         Modular_uint64(int modulus)
@@ -58,6 +58,7 @@ cdef extern from "givaro/modular.h":
 
         ostream& write(ostream&)
 
+cdef extern from "givaro/modular-floating.h":
     cdef cppclass Modular_double "Givaro::Modular<double>":
         ctypedef double Element
         Modular_double(int modulus)

@@ -67,6 +67,7 @@ from sage.modules.free_module_element import vector
 
 from sage.plot.colors import Color, float_to_integer
 from sage.plot.plot3d.base import Graphics3dGroup
+from sage.plot.plot3d.texture import Texture
 
 from .transform cimport Transformation
 
@@ -203,6 +204,31 @@ cdef inline format_pmesh_face(face_c face, int has_color):
         return bytes_to_str(b"\n".join(all))
     # PyBytes_FromFormat is almost twice as slow
     return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
+
+
+def midpoint(pointa, pointb, w):
+    """
+    Return the weighted mean of two points in 3-space.
+
+    INPUT:
+
+    - ``pointa``, ``pointb`` -- two points in 3-dimensional space
+
+    - ``w`` -- a real weight between 0 and 1.
+
+    If the weight is zero, the result is ``pointb``. If the weight is
+    one, the result is ``pointa``.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.index_face_set import midpoint
+        sage: midpoint((1,2,3),(4,4,4),0.8)
+        (1.60000000000000, 2.40000000000000, 3.20000000000000)
+    """
+    xa, ya, za = pointa
+    xb, yb, zb = pointb
+    v = 1 - w
+    return ((w * xa + v * xb), (w * ya + v * yb), (w * za + v * zb))
 
 
 cdef class IndexFaceSet(PrimitiveObject):
@@ -888,6 +914,203 @@ cdef class IndexFaceSet(PrimitiveObject):
             all[part] = face_set
         sig_free(partition)
         return all
+
+    def add_condition(self, condition, N=40):
+        """
+        Cut the surface according to the given condition.
+
+        This allows to take the intersection of the surface
+        with a domain in 3-space, in such a way that the result
+        has a smooth boundary.
+
+        INPUT:
+
+        - ``condition`` -- boolean function on ambient space, that
+          defines the domain
+
+        - ``N`` -- number of steps (default: 40) used on the boundary
+          to cut the triangles that are not entirely within the domain
+
+        For higher quality, meaning smoother boundary, use larger ``N``.
+
+        OUTPUT:
+
+        an ``IndexFaceSet``
+
+        This will contain both triangular and quadrilateral faces.
+
+        EXAMPLES::
+
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: P = implicit_plot3d(z-x*y,(-2,2),(-2,2),(-2,2))
+            sage: def condi(x,y,z):
+            ....:     return bool(x*x+y*y+z*z <= Integer(1))
+            sage: R = P.add_condition(condi,8);R
+            Graphics3d Object
+
+        .. PLOT::
+
+            x,y,z = var('x,y,z')
+            P = implicit_plot3d(z-x*y,(-2,2),(-2,2),(-2,2))
+            def condi(x,y,z):
+                return bool(x*x+y*y+z*z <= Integer(1))
+            sphinx_plot(P.add_condition(condi,8))
+
+        An example with colors::
+
+            sage: def condi(x,y,z):
+            ....:     return bool(x*x+y*y <= 1.1)
+            sage: cm = colormaps.hsv
+            sage: cf = lambda x,y,z: float(x+y) % 1
+            sage: P = implicit_plot3d(x**2+y**2+z**2-1-x**2*z+y**2*z,(-2,2),(-2,2),(-2,2),color=(cm,cf))
+            sage: R = P.add_condition(condi,18); R
+            Graphics3d Object
+
+        .. PLOT::
+
+            x,y,z = var('x,y,z')
+            def condi(x,y,z):
+                return bool(x*x+y*y <= 1.1)
+            cm = colormaps.hsv
+            cf = lambda x,y,z: float(x+y) % 1
+            P = implicit_plot3d(x**2+y**2+z**2-1-x**2*z+y**2*z,(-2,2),(-2,2),(-2,2),color=(cm,cf))
+            sphinx_plot(P.add_condition(condi,18))
+
+        An example with transparency::
+
+            sage: P = implicit_plot3d(x**4+y**4+z**2-4,(x,-2,2),(y,-2,2),(z,-2,2),alpha=0.3)
+            sage: def cut(a,b,c):
+            ....:     return a*a+c*c > 2
+            sage: Q = P.add_condition(cut,40); Q
+            Graphics3d Object
+
+        .. PLOT::
+
+            x,y,z = var('x,y,z')
+            P = implicit_plot3d(x**4+y**4+z**2-4,(x,-2,2),(y,-2,2),(z,-2,2),alpha=0.3)
+            def cut(a,b,c):
+                return a*a+c*c > 2
+            sphinx_plot(P.add_condition(cut,40))
+
+        A sombrero with quadrilaterals::
+
+            sage: P = plot3d(-sin(2*x*x+2*y*y)*exp(-x*x-y*y),(x,-2,2),(y,-2,2),
+            ....:     color='gold')
+            sage: def cut(x,y,z):
+            ....:     return x*x+y*y < 1
+            sage: Q = P.add_condition(cut);Q
+            Graphics3d Object
+
+        .. PLOT::
+
+            x,y,z = var('x,y,z')
+            P = plot3d(-sin(2*x*x+2*y*y)*exp(-x*x-y*y),(x,-2,2),(y,-2,2),color='gold')
+            def cut(x,y,z):
+                return x*x+y*y < 1
+            sphinx_plot(P.add_condition(cut))
+
+        .. TODO::
+
+            - Use a dichotomy to search for the place where to cut,
+            - Compute the cut only once for each edge.
+        """
+        index = 0
+        self.triangulate()
+        local_colored = self.has_local_colors()
+        V = self.vertex_list()
+        old_index_to_index = {}
+        point_list = []
+        for old_index, vertex in enumerate(V):
+            if condition(*vertex):
+                old_index_to_index[old_index] = index
+                point_list.append(vertex)
+                index += 1
+
+        face_list = []
+        if local_colored:
+            texture_list = []
+            index_faces = self.index_faces_with_colors()
+        else:
+            texture = self.texture
+            index_faces = self.index_faces()
+
+        if local_colored:
+            def iter_split_faces():
+                for triple in index_faces:
+                    triple, color = triple
+                    if len(triple) == 3:
+                        yield triple, color
+                    else:
+                        v0 = triple[0]
+                        for i in range(1, len(triple) - 1):
+                            yield (v0, triple[i], triple[i + 1]), color
+        else:
+            def iter_split_faces():
+                for triple in index_faces:
+                    if len(triple) == 3:
+                        yield triple
+                    else:
+                        v0 = triple[0]
+                        for i in range(1, len(triple) - 1):
+                            yield (v0, triple[i], triple[i + 1])
+
+        for triple in iter_split_faces():
+            if local_colored:
+                triple, color = triple
+            inside = [x for x in triple if x in old_index_to_index]
+            outside = [x for x in triple if x not in inside]
+            face_degree = len(inside)
+            if face_degree >= 1 and local_colored:
+                texture_list.append(Texture(color=color))
+            if face_degree == 3:
+                face_list.append([old_index_to_index[i] for i in triple])
+            elif face_degree == 2:
+                old_c = outside[0]
+                if old_c == triple[1]:
+                    old_b, old_a = inside
+                else:
+                    old_a, old_b = inside
+                va = V[old_a]
+                vb = V[old_b]
+                vc = V[old_c]
+                for k in range(N + 1):
+                    middle_ac = midpoint(va, vc, k / N)
+                    if condition(*middle_ac):
+                        break
+                for k in range(N + 1):
+                    middle_bc = midpoint(vb, vc, k / N)
+                    if condition(*middle_bc):
+                        break
+                point_list += [middle_ac, middle_bc]
+                face_list.append([index, old_index_to_index[old_a],
+                                  old_index_to_index[old_b], index + 1])
+                index += 2
+            elif face_degree == 1:
+                old_a = inside[0]
+                if old_a == triple[1]:
+                    old_c, old_b = outside
+                else:
+                    old_b, old_c = outside
+                va = V[old_a]
+                vb = V[old_b]
+                vc = V[old_c]
+                for k in range(N + 1):
+                    middle_ab = midpoint(va, vb, k / N)
+                    if condition(*middle_ab):
+                        break
+                for k in range(N + 1):
+                    middle_ac = midpoint(va, vc, k / N)
+                    if condition(*middle_ac):
+                        break
+                point_list += [middle_ac, middle_ab]
+                face_list.append([index, old_index_to_index[old_a], index + 1])
+                index += 2
+
+        if local_colored:
+            return IndexFaceSet(face_list, point_list, texture_list=texture_list)
+        else:
+            return IndexFaceSet(face_list, point_list, texture=texture)
 
     def tachyon_repr(self, render_params):
         """

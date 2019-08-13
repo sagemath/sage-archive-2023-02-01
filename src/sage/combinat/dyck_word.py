@@ -359,8 +359,6 @@ class DyckWord(CombinatorialElement):
         CombinatorialElement.__init__(self, parent, l)
         self._latex_options = dict(latex_options)
 
-    _has_2D_print = False
-
     def set_latex_options(self, D):
         r"""
         Set the latex options for use in the ``_latex_`` function.
@@ -464,24 +462,40 @@ class DyckWord(CombinatorialElement):
 
     def _repr_(self):
         r"""
+        Return a string representation of ``self`` depending on
+        :meth:`DyckWords.options`.
+
         TESTS::
 
             sage: DyckWord([1, 0, 1, 0])
             [1, 0, 1, 0]
             sage: DyckWord([1, 1, 0, 0])
             [1, 1, 0, 0]
-            sage: type(DyckWord([]))._has_2D_print = True
+            sage: DyckWords.options.display="lattice"
+            sage: DyckWords.options.diagram_style="line"
             sage: DyckWord([1, 0, 1, 0])
             /\/\
             sage: DyckWord([1, 1, 0, 0])
              /\
             /  \
-            sage: type(DyckWord([]))._has_2D_print = False
+            sage: DyckWords.options._reset()
         """
-        if self._has_2D_print:
-            return self.to_path_string()
-        else:
-            return super(DyckWord, self)._repr_()
+        return self.parent().options._dispatch(self, '_repr_', 'display')
+
+    def _repr_list(self):
+        r"""
+        Return a string representation of ``self`` as a list.
+
+        TESTS::
+
+            sage: DyckWord([])
+            []
+            sage: DyckWord([1, 0])
+            [1, 0]
+            sage: DyckWord('(())')
+            [1, 1, 0, 0]
+        """
+        return super(DyckWord, self)._repr_()
 
     def _repr_lattice(self, type=None, labelling=None, underpath=True):
         r"""
@@ -595,10 +609,7 @@ class DyckWord(CombinatorialElement):
             sage: print(DyckWord([1, 1, 0, 0]))
             (())
         """
-        if self._has_2D_print:
-            return self.to_path_string()
-        else:
-            return "".join(map(replace_symbols, [x for x in self]))
+        return "".join(map(replace_symbols, [x for x in self]))
 
     def to_path_string(self, unicode=False):
         r"""
@@ -3242,13 +3253,13 @@ class DyckWords(UniqueRepresentation, Parent):
             sage: D
             [1, 1, 0, 1, 0, 0]
             sage: DyckWords.options.display="lattice"
-            sage: D  # known bug (Trac #24324)
+            sage: D
                ___
              _| x
             | x  .
             |  . .
             sage: DyckWords.options(diagram_style="line")
-            sage: D  # known bug (Trac #24324)
+            sage: D
              /\/\
             /    \
             sage: DyckWords.options._reset()

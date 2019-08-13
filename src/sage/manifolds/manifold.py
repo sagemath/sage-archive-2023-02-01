@@ -2445,7 +2445,12 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
       subclasses
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
       or
-      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+      or, if the keyword ``ambient`` is used, one of the subclasses
+      :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+      :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`,
+      or
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`.
 
     EXAMPLES:
 
@@ -2514,12 +2519,29 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M.diff_degree()
         +Infinity
 
-    See the documentation of classes
+    Submanifolds are constructed by means of the keyword ``ambient``::
+
+        sage: N = Manifold(2, 'N', field='complex', ambient=M); N
+        2-dimensional differentiable submanifold N immersed in the
+         3-dimensional complex manifold M
+
+    The immersion `N\to M` has to be specified in a second stage, via the
+    method
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_immersion`
+    or
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_embedding`.
+
+    For more detailed examples, see the documentation of
     :class:`~sage.manifolds.manifold.TopologicalManifold`,
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     and
-    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-    for more detailed examples.
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+    or the documentation of
+    :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+    :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`
+    and
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`
+    for submanifolds.
 
     .. RUBRIC:: Uniqueness of manifold objects
 

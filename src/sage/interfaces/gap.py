@@ -666,7 +666,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             2
             sage: try:
             ....:     alarm(0.5)
-            ....:     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
+            ....:     gap.eval('while(1=1) do i:=1;; od;', wait_for_prompt=True)
             ....: except KeyboardInterrupt:
             ....:     pass
             sage: gap(2)

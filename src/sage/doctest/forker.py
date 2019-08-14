@@ -197,7 +197,7 @@ def init_sage():
     debug.refine_category_hash_check = True
 
     # We import readline before forking, otherwise Pdb doesn't work
-    # os OS X: http://trac.sagemath.org/14289
+    # on OS X: http://trac.sagemath.org/14289
     import readline
 
     try:

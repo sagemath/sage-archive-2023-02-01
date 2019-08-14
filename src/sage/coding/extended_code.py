@@ -21,9 +21,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .linear_code import (AbstractLinearCode,\
-        LinearCodeGeneratorMatrixEncoder,\
-        LinearCodeSyndromeDecoder,\
+from .linear_code import (AbstractLinearCode,
+        LinearCodeSyndromeDecoder,
         LinearCodeNearestNeighborDecoder)
 from .encoder import Encoder
 from .decoder import Decoder

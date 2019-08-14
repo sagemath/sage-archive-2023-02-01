@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Line graphs
 
@@ -142,8 +143,6 @@ Functions
 ---------
 """
 from __future__ import print_function
-from six import iteritems
-
 
 def is_line_graph(g, certificate=False):
     r"""
@@ -356,11 +355,14 @@ def line_graph(self, labels=True):
         sage: C.line_graph().is_isomorphic(g.line_graph())
         True
     """
+    cdef dict conflicts = {}
+    cdef list elist = []
+
     self._scream_if_not_simple()
     if self._directed:
         from sage.graphs.digraph import DiGraph
         G = DiGraph()
-        G.add_vertices(self.edges(labels=labels))
+        G.add_vertices(self.edge_iterator(labels=labels))
         for v in self:
             # Connect appropriate incident edges of the vertex v
             G.add_edges((e, f) for e in self.incoming_edge_iterator(v, labels=labels)
@@ -378,10 +380,8 @@ def line_graph(self, labels=True):
         # sets). If two adjacent vertices have the same hash, then we store the
         # pair in the dictionary of conflicts
 
-        conflicts = {}
-
         # 1) List of vertices in the line graph
-        elist = []
+
         for e in self.edge_iterator(labels=labels):
             if hash(e[0]) < hash(e[1]):
                 elist.append(e)
@@ -523,10 +523,9 @@ def root_graph(g, verbose=False):
 
     # Dictionary of (pairs of) cliques, i.e. the two cliques associated with
     # each vertex.
-    v_cliques = {v: [] for v in G}
-
+    cdef dict v_cliques = {v: [] for v in G}
     # All the even triangles we meet
-    even_triangles = []
+    cdef list even_triangles = []
 
     # We iterate over all maximal cliques of the graph.
 
@@ -595,7 +594,7 @@ def root_graph(g, verbose=False):
 
     # Deal with vertices contained in only one clique. All edges must be defined
     # by TWO endpoints, so we add a fake clique.
-    for x, clique_list in iteritems(v_cliques):
+    for x, clique_list in v_cliques.items():
         if len(clique_list) == 1:
             clique_list.append((x,))
 
@@ -605,12 +604,12 @@ def root_graph(g, verbose=False):
     R = Graph()
 
     # Associates an integer to each clique
-    relabel = {}
+    cdef dict relabel = {}
 
     # Associates to each vertex of G its pair of coordinates in R
-    vertex_to_map = {}
+    cdef dict vertex_to_map = {}
 
-    for v, L in iteritems(v_cliques):
+    for v, L in v_cliques.items():
 
         # Add cliques to relabel dictionary
         for S in L:
@@ -622,7 +621,7 @@ def root_graph(g, verbose=False):
 
     if verbose:
         print("Final associations :")
-        for v, L in iteritems(v_cliques):
+        for v, L in v_cliques.items():
             print(v, L)
 
     # We now build R

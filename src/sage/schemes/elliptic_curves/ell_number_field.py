@@ -3293,7 +3293,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return ZZ.one()
 
         C = self.isogeny_class()
-        i = C.index(self)  # may not be 0 since curces are sorted
+        i = C.index(self)  # may not be 0 since curves are sorted
         try:
             return C.matrix()[i][C.index(other)]
         except ValueError:

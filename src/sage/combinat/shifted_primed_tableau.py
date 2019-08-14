@@ -181,7 +181,7 @@ class ShiftedPrimedTableau(ClonableArray):
         # Preprocessing list t for primes and other symbols
         T = [[PrimedEntry(entry) for entry in row if entry is not None]
              for row in T]
-        while len(T) > 0 and len(T[-1]) == 0:
+        while T and not T[-1]:
             T = T[:-1]
         row_min = min(len(skew), len(T)) if skew else 0
         T_ = [(None,)*skew[i] + tuple(T[i]) for i in range(row_min)]

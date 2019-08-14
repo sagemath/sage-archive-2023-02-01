@@ -13,7 +13,6 @@ cdef class FaceIterator(SageObject):
     cdef size_t *coatom_repr        # a place where coatom-representaion of face will be stored
     cdef int current_dimension      # dimension of current face, dual dimension if ``dual``
     cdef int dimension              # dimension of the polyhedron
-    cdef int n_lines                # ``_n_lines`` of ``CombinatorialPolyhedron``
     cdef int output_dimension       # only faces of this (dual?) dimension are considered
     cdef int lowest_dimension       # don't consider faces below this (dual?) dimension
     cdef size_t _index              # this counts the number of seen faces, useful for hasing the faces

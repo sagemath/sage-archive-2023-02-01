@@ -532,7 +532,7 @@ We recommend the following workflow for maintaining a set of patches.
   
 - Optionally, create an ``spkg-src`` file in the Sage package's
   directory that regenerates the patch directory using the above
-  commmands.
+  commands.
 
 - When a new upstream version becomes available, merge (or import) it
   into ``upstream``, then create a new branch and rebase in on top of

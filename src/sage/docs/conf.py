@@ -218,7 +218,7 @@ html_theme = 'sage'
 html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
+html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes'), os.path.join(SAGE_DOC, 'common', 'themes')]
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.
@@ -594,8 +594,10 @@ def skip_member(app, what, name, obj, skip, options):
 
     objname = getattr(obj, "__name__", None)
     if objname is not None:
-        if objname.find('.') != -1 and objname.split('.')[-1] != name:
-            return True
+        # check if name was inserted to the module by NestedClassMetaclass
+        if name.find('.') != -1 and objname.find('.') != -1:
+            if objname.split('.')[-1] == name.split('.')[-1]:
+                return True
 
     if name.find("userchild_download_worksheets.zip") != -1:
         return True

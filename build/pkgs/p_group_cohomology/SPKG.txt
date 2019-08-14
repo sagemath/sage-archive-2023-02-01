@@ -95,6 +95,11 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/.
 
 == Changelog ==
 
+  * v3.2 (Simon King, July 2019):
+    - Detection of graded non-induced isomorphisms of cohomology rings.
+    - Easier creation of a cohomology ring from a tower of subgroups.
+    - Kernels and preimage representatives of induced maps.
+    - Stop hard-coding the MTXLIB environment variable.
   * 3.1 (Simon King, December 2018):
     - Hilbert series computation by using a new implementation in SageMath.
     - Vastly improved computation of filter degree type (now relying on

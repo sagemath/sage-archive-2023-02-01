@@ -2644,11 +2644,13 @@ class MPolynomialIdeal_singular_repr(
 
         TESTS:
 
-        Check that :trac:`27483` is fixed::
+        Check that :trac:`27483` and :trac:`28110` are fixed::
 
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3, x*y^2, y^4, x^2*y*z, y^3*z, x^2*z^2, x*y*z^2, x*z^3])
             sage: I.hilbert_polynomial(algorithm='singular')
+            3
+            sage: I.hilbert_polynomial()
             3
 
         Check that this method works over QQbar (:trac:`25351`)::
@@ -2671,10 +2673,12 @@ class MPolynomialIdeal_singular_repr(
                 s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
             else:
                 return t.parent().zero()
+            # we assume the denominator of the Hilbert series is of the form (1-t)^s, scale if needed
+            if hilbert_poincare.denominator().leading_coefficient() == 1:
+                second_hilbert = second_hilbert*(-1)**s
             denom = ZZ(s-1).factorial()
             out = sum(c / denom * prod(s - 1 - n - nu + t for nu in range(s-1))
                       for n,c in enumerate(second_hilbert)) + t.parent().zero()
-            assert out.leading_coefficient() >= 0
             return out
         elif algorithm == 'singular':
             import sage.libs.singular.function_factory
@@ -3817,7 +3821,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             The Singular and libSingular versions of the respective
             algorithms are identical, but the former calls an external
-            Singular process while the later calls a C function,
+            Singular process while the latter calls a C function,
             i.e. the calling overhead is smaller. However, the
             libSingular interface does not support pretty printing of
             computation protocols.

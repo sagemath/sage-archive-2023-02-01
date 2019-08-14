@@ -47,26 +47,31 @@ Here is a list of all content related to GRS codes:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import absolute_import
 from six.moves import range
 
-from sage.matrix.constructor import matrix, diagonal_matrix
-from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.categories.cartesian_product import cartesian_product
+
+from sage.matrix.constructor import matrix
+
+from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
-from sage.rings.integer import Integer
+
 from sage.misc.cachefunc import cached_method
+from sage.misc.functional import symbolic_sum
+from sage.misc.misc_c import prod
+
 from copy import copy
+from sage.functions.other import binomial, floor
+from sage.calculus.var import var
+
 from .linear_code import AbstractLinearCode
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
-from sage.misc.misc_c import prod
-from sage.functions.other import binomial, floor, sqrt
-from sage.calculus.var import var
-from sage.misc.functional import symbolic_sum
-from sage.rings.integer_ring import ZZ
 
 class GeneralizedReedSolomonCode(AbstractLinearCode):
     r"""
@@ -256,7 +261,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         return hash((self.base_field(), self.length(), self.dimension(),
                      tuple(self.evaluation_points()),
                      tuple(self.column_multipliers())))
-    
+
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -394,8 +399,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     @cached_method
     def parity_column_multipliers(self):
         r"""
-        Return the list of column multipliers of the parity check matrix of 
-        ``self``. They are also column multipliers of the generator matrix for 
+        Return the list of column multipliers of the parity check matrix of
+        ``self``. They are also column multipliers of the generator matrix for
         the dual GRS code of ``self``.
 
         EXAMPLES::
@@ -496,7 +501,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         TESTS:
 
         Test that this method agrees with the generic algorithm::
-        
+
             sage: F = GF(7)
             sage: C = codes.GeneralizedReedSolomonCode(F.list(), 3)
             sage: C.weight_distribution() == super(codes.GeneralizedReedSolomonCode, C).weight_distribution() # long time
@@ -577,8 +582,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         return vector(self.decoder().decode_to_message(r))
 
 
-
-
 def ReedSolomonCode(base_field, length, dimension, primitive_root=None):
     r"""
     Construct a classical Reed-Solomon code.
@@ -654,8 +657,6 @@ def ReedSolomonCode(base_field, length, dimension, primitive_root=None):
         if primitive_root.multiplicative_order() != length:
             raise ValueError("Supplied primitive_root is not a primitive n'th root of unity")
     return GeneralizedReedSolomonCode([ primitive_root**i for i in range(length) ], dimension)
-
-
 
 ####################### encoders ###############################
 
@@ -799,7 +800,6 @@ class GRSEvaluationVectorEncoder(Encoder):
         g = matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: col_mults[j] * alphas[j]**i)
         g.set_immutable()
         return g
-
 
 
 class GRSEvaluationPolynomialEncoder(Encoder):
@@ -1094,10 +1094,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
     polynomial_ring = message_space
 
 
-
-
-
 ####################### decoders ###############################
+
 
 class GRSBerlekampWelchDecoder(Decoder):
     r"""
@@ -1540,7 +1538,6 @@ class GRSGaoDecoder(Decoder):
             sage: D._polynomial_vanishing_at_alphas(P)
             x^10 + 10*x^9 + x^8 + 10*x^7 + x^6 + 10*x^5 + x^4 + 10*x^3 + x^2 + 10*x
         """
-        alphas = self.code().evaluation_points()
         G = PolRing.one()
         x = PolRing.gen()
         for i in range(0, self.code().length()):
@@ -1790,11 +1787,9 @@ class GRSGaoDecoder(Decoder):
         return (self.code().minimum_distance() - 1) // 2
 
 
-
-
 class GRSErrorErasureDecoder(Decoder):
     r"""
-    Decoder for (Generalized) Reed-Solomon codes which is able to correct both 
+    Decoder for (Generalized) Reed-Solomon codes which is able to correct both
     errors and erasures in codewords.
 
     Let `C` be a GRS code of length `n` and dimension `k`.
@@ -2033,9 +2028,6 @@ class GRSErrorErasureDecoder(Decoder):
             raise ValueError("The number of erasures exceed decoding capability")
         else:
             return diff // 2
-
-
-
 
 
 class GRSKeyEquationSyndromeDecoder(Decoder):
@@ -2317,7 +2309,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         C = self.code()
         if r not in C.ambient_space():
             raise ValueError("The word to decode has to be in the ambient space of the code")
-        F = C.base_field()
         PolRing = C.base_field()['x']
         x = PolRing.gen()
 
@@ -2388,7 +2379,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             14
         """
         return (self.code().minimum_distance()-1) // 2
-
 
 
 ####################### registration ###############################

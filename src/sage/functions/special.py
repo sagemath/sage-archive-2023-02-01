@@ -298,7 +298,7 @@ spherical_harmonic = SphericalHarmonic()
 
 ####### elliptic functions and integrals
 
-def elliptic_j(z):
+def elliptic_j(z, prec = 53):
    r"""
    Returns the elliptic modular `j`-function evaluated at `z`.
 
@@ -335,12 +335,13 @@ def elliptic_j(z):
        sage: tau = (1 + sqrt(-163))/2
        sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
        640320
-
+       sage: (-elliptic_j(tau, 100).real().round())^(1/3)
+       640320
    """
    CC = z.parent()
    from sage.rings.complex_field import is_ComplexField
    if not is_ComplexField(CC):
-      CC = ComplexField()
+      CC = ComplexField(prec)
       try:
          z = CC(z)
       except ValueError:

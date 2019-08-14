@@ -3711,7 +3711,7 @@ REFERENCES:
 .. [RL1971] \J. Rokne, P. Lancaster. Complex interval arithmetic.
             Communications of the ACM 14. 1971.
 
-.. [RM2017] Robert Muth.
+.. [Muth2017] Robert Muth.
             *Super RSK correspondence with symmetry*.
             :arXiv:`1711.00420v1`.
 

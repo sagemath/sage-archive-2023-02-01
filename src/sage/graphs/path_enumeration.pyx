@@ -37,6 +37,7 @@ from sage.misc.misc_c import prod
 from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
+import copy
 
 def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=False):
     """
@@ -1887,12 +1888,14 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
         def reverse_weight_function(e):
             return 1
 
+    cdef dict edge_labels
     if report_edges and labels:
         edge_labels = {(e[0], e[1]): e for e in G.edge_iterator()}
         if not G.is_directed():
             for u, v in G.edge_iterator(labels=False):
                 edge_labels[v, u] = edge_labels[u, v]    
 
+    from sage.graphs.base.boost_graph import shortest_paths
     # dictionary of parent node in the shortest path tree of the target vertex
     cdef dict parent = {}
     # assign color to each vertex as green, red or yellow
@@ -1907,11 +1910,6 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
     cdef dict temp_dict = {}
     # father of the path
     cdef dict father = {}
-
-    cdef set exclude_edges
-    cdef set exclude_vertices
-    cdef set include_vertices
-    cdef list allY
 
     def getUpStreamNodes(v):
         """
@@ -1951,12 +1949,6 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
                         reduced_cost[w, target] = 0
                     include_vertices.add(w)
 
-    cdef priority_queue[pair[double, pair[int, int]]] heap_sorted_paths
-    cdef int idx = 0
-    cdef dict idx_to_path = {}
-    from sage.graphs.base.boost_graph import shortest_paths
-    import copy
-
     reverse_graph = G.reverse()
     cdef dict dist
     cdef dict successor
@@ -1977,19 +1969,15 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
             parent[successor[key]].append(key)
 
     def length_func(path):
-        return sum(reduced_cost[e] for e in zip(path, path[1:]))
+        return sum(reduced_cost[e] for e in zip(path[:-1], path[1:]))
 
     # shortest path function for weighted/unweighted graph using reduced weights
     shortest_path_func = G._backend.bidirectional_dijkstra_special
-
-    # heap data structure containing the candidate paths
-    prev_path = None
 
     try:
         # compute the shortest path between the source and the target
         path = shortest_path_func(source, target, exclude_vertices=exclude_vert_set,
                                     weight_function=weight_function, reduced_weight=reduced_cost)
-        length = length_func(path)
         # corner case
         if not path:
             if report_weight:
@@ -2004,40 +1992,49 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
             yield []
         return
 
-    # hashing the path to check the existence of a path in the heap
     hash_path = tuple(path)
     father[hash_path] = None
-    # heap push operation
-    idx_to_path[idx] = path
-    heap_sorted_paths.push((-length, (idx, 0)))
+
+    # heap data structure containing the candidate paths
+    cdef priority_queue[pair[double, pair[int, int]]] heap_sorted_paths
+    cdef int idx = 0
+    cdef dict idx_to_path = {idx: path}
+    heap_sorted_paths.push((-length_func(path), (idx, 0)))
     idx = idx + 1
     shortest_path_len = dist[source]
+
+    cdef set exclude_edges
+    cdef set exclude_vertices
+    cdef set include_vertices
+    cdef list allY
+    cdef list prev_path, new_path, root
+    cdef int path_idx, dev_idx
+
     while idx_to_path:
         # extracting the next best path from the heap
         cost, (path_idx, dev_idx) = heap_sorted_paths.top()
         heap_sorted_paths.pop()
-        path1 = idx_to_path[path_idx]
+        prev_path = idx_to_path[path_idx]
         # removing the path from dictionary
         del idx_to_path[path_idx]
-        if len(set(path1)) == len(path1):
+        if len(set(prev_path)) == len(prev_path):
             if report_weight:
                 cost = -cost
                 if cost in ZZ:
                     cost = int(cost)
                 if report_edges and labels:
-                    yield (cost + shortest_path_len, [edge_labels[e] for e in zip(path1[:-1], path1[1:])])
+                    yield (cost + shortest_path_len, [edge_labels[e] for e in zip(prev_path[:-1], prev_path[1:])])
                 elif report_edges:
-                    yield (cost + shortest_path_len, list(zip(path1[:-1], path1[1:])))
+                    yield (cost + shortest_path_len, list(zip(prev_path[:-1], prev_path[1:])))
                 else:
-                    yield (cost + shortest_path_len, path1)
+                    yield (cost + shortest_path_len, prev_path)
             else:
                 if report_edges and labels:
-                    yield [edge_labels[e] for e in zip(path1[:-1], path1[1:])]
+                    yield [edge_labels[e] for e in zip(prev_path[:-1], prev_path[1:])]
                 elif report_edges:
-                    yield list(zip(path1[:-1], path1[1:]))
+                    yield list(zip(prev_path[:-1], prev_path[1:]))
                 else:
-                    yield path1
-        prev_path = path1
+                    yield prev_path
 
         # deep copy of the exclude vertices set
         exclude_vertices = copy.deepcopy(exclude_vert_set)
@@ -2046,6 +2043,7 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
         expressEdges = {}
         dic = {}
         temp_dict = {}
+        root = prev_path[:dev_idx]
         # coloring all the nodes as green initially
         color = {v: 0 for v in G}
         # list of yellow nodes
@@ -2069,7 +2067,7 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
         # deviating from the previous path to find the candidate paths
         for i in range(dev_idx + 1, len(prev_path)):
             # root part of the previous path
-            root = prev_path[:i]
+            root.append(prev_path[i - 1])
             # if it is the deviation node
             if i == dev_idx + 1:
                 p = father[tuple(prev_path)]
@@ -2128,13 +2126,12 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
                     exclude_vertices.add(root[-1])
                     continue
                 # concatenating the root and the spur path
-                path = root[:-1] + spur
-                length = length_func(path)
+                new_path = root[:-1] + spur
                 # push operation
-                hash_path = tuple(path)
+                hash_path = tuple(new_path)
                 father[hash_path] = prev_path
-                idx_to_path[idx] = path
-                heap_sorted_paths.push((-length, (idx, len(root) - 1)))
+                idx_to_path[idx] = new_path
+                heap_sorted_paths.push((-length_func(new_path), (idx, i-1)))
                 idx = idx + 1
             except Exception:
                 pass

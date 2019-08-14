@@ -1812,12 +1812,12 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             sage: DecoratedSuffixTree(w).square_vocabulary(output="word")
             [word: , word: 01100110, word: 00110011, word: 00, word: 11, word: 1010]
         """
-        def treat_node(current_node, (i, j)):
+        def treat_node(current_node, i, j):
             if D.has_key(current_node):
                 for child in D[current_node].keys():
                     edge = (current_node, child)
                     edge_label = (D[edge[0]][edge[1]])
-                    treat_node(child, (edge_label[0]-(j-i), edge_label[1]))
+                    treat_node(child, edge_label[0]-(j-i), edge_label[1])
                     if Q.has_key((current_node, child)):
                         for l in Q[(current_node, child)]:
                             square_start = edge_label[0]-(j-i)
@@ -1830,7 +1830,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         D = self.transition_function_dictionary()
         Q = self.labeling
         squares = [(0, 0)]
-        treat_node(0, (0, 0))
+        treat_node(0, 0, 0)
         if output == "pair":
             return squares
         else:

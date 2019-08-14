@@ -12,6 +12,7 @@ from __future__ import print_function, absolute_import
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.rings.all import ZZ
 from sage.sets.family import Family
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
@@ -131,21 +132,19 @@ class SemistandardSuperTableau(Tableau):
         The output is a list of rows as tuples, with entries being
         ``PrimedEntry``s.
 
-        Trailing empty rows are removed.
-
         TESTS::
 
             sage: SemistandardSuperTableau._preprocess([["2'", "3p", 3.5]])
             [[2', 3', 4']]
             sage: SemistandardSuperTableau._preprocess([[None]])
-            []
+            [[None]]
             sage: SemistandardSuperTableau._preprocess([])
             []
         """
         if isinstance(t, SemistandardSuperTableau):
             return t
         # Preprocessing list t for primes and other symbols
-        t = [[PrimedEntry(entry) for entry in row if entry is not None]
+        t = [[PrimedEntry(entry) if entry is not None else entry for entry in row]
              for row in t]
         while t and not t[-1]:
             t = t[:-1]
@@ -267,7 +266,7 @@ class StandardSuperTableau(SemistandardSuperTableau):
         if isinstance(t, StandardSuperTableau):
             return t
 
-        SST = SemistandardSuperTableaux_all()
+        SST = StandardSuperTableaux_all()
         return SST.element_class(SST, t)
 
     def check(self):
@@ -448,12 +447,12 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
     EXAMPLES::
 
         sage: SST = StandardSuperTableaux()
-        sage: SST  # set of all standard super tableaux
+        sage: SST
         Standard super tableaux
         sage: SST([["1'",1,"2'",2,"3'"],[3,"4'"]])
         [[1', 1, 2', 2, 3'], [3, 4']]
         sage: SST = StandardSuperTableaux(3)
-        sage: SST # set of standard super tableaux of size 3
+        sage: SST
         Standard super tableaux of size 3
         sage: SST.first()
         [[1', 1, 2']]
@@ -464,7 +463,7 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
         sage: SST.list()
         [[[1', 1, 2']], [[1', 2'], [1]], [[1', 1], [2']], [[1'], [1], [2']]]
         sage: SST = StandardSuperTableaux([3,2])
-        sage: SST # set of standard super tableaux of shape [3, 2]
+        sage: SST
         Standard super tableaux of shape [3, 2]
 
     TESTS::
@@ -479,6 +478,8 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
         [[1', 1, 2'], [2, 3']]
         sage: SST.cardinality()
         5
+        sage: SST.cardinality() == StandardTableaux([3,2]).cardinality()
+        True
         sage: SST.list()
         [[[1', 2', 3'], [1, 2]],
          [[1', 1, 3'], [2', 2]],
@@ -801,12 +802,6 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
             True
         """
         pi = self.shape
-
         for tableau in StandardTableaux(pi):
-            primedTableau = []
-            for row in tableau:
-                primedTableau.append([])
-                for val in row:
-                    primedTableau[-1].append(PrimedEntry(float(val)/2))
-            yield self.element_class(self, primedTableau)
-        return
+            yield self.element_class(self, [[PrimedEntry(ZZ(val)/2) for val in row]
+                                            for row in tableau])

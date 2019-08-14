@@ -17,7 +17,7 @@ from itertools import chain
 from sage.structure.sage_object import SageObject
 from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
-from sage.combinat.words.words import Words, FiniteWords
+from sage.combinat.words.words import Words
 from sage.combinat.words.word import Word
 from sage.rings.integer import Integer
 
@@ -1609,6 +1609,13 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         self.labeling = self._complete_labeling()
 
     def __repr__(self):
+        """
+            sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+            sage: w = Word('0011001')
+            sage: t = DecoratedSuffixTree(w)
+            sage: t.__repr__()
+            'Decorated suffix tree of : 0011001$'
+        """
         w = self.word()
         if len(w) > 40:
             w = str(w[:40])+'...'
@@ -1753,11 +1760,11 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                 else:
                     walk_chain(parent, child, depth, start+1)
 
-        def treat_node(current_node, (i, j)):
+        def treat_node(current_node, i, j):
             r"""
             Execute a depht-first search on self and start a suffix walk for
             labeled points on each edges of T. The fonction is recursive, call
-            treat_node(0,(0,0)) to initiate the search.
+            treat_node(0,0,0) to initiate the search.
 
             INPUTS:
 
@@ -1770,7 +1777,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                 for child in D[current_node].keys():
                     edge = (current_node, child)
                     edge_label = D[edge[0]][edge[1]]
-                    treat_node(child,(edge_label[0]-(j-i), edge_label[1]))
+                    treat_node(child, edge_label[0]-(j-i), edge_label[1])
                     if prelabeling.has_key((current_node, child)):
                         for l in prelabeling[edge]:
                             square_start = edge_label[0]-(j-i)
@@ -1779,7 +1786,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         prelabeling = self._partial_labeling()
         labeling = dict()
         D = self.transition_function_dictionary()
-        treat_node(0, (0, 0))
+        treat_node(0, 0, 0)
         return labeling
 
     def square_vocabulary(self,output="pair"):

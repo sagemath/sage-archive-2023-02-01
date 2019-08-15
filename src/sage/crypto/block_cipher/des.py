@@ -617,6 +617,19 @@ class DES(SageObject):
         return vector(GF(2), 64, [block[i-1] for i in IP])
 
     def round(self, state, round_key):
+        r"""
+        Apply one round of DES to ``state`` and return the result.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: from sage.crypto.block_cipher.des import convert_to_vector
+            sage: des = DES()
+            sage: k1 = convert_to_vector(0xFFFFFFFFFFFF, 48)
+            sage: state = convert_to_vector(0xFFFFFFFF11111111, 64)
+            sage: ZZ(list(des.round(state, k1))[::-1], 2).hex()
+            '11111111b29684b8'
+        """
         L, R = state[0:32], state[32:64]
         L, R = R, L + self._f(R, round_key)
         state = vector(GF(2), 64, list(L)+list(R))

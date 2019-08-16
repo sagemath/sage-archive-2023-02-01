@@ -5223,7 +5223,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.layout(layout='planar', external_face=(1, 2))
             Traceback (most recent call last):
             ...
-            ValueError: (1, 2) is not an edge of Graph on 4 vertices but has been provided as an edge of the outer face
+            ValueError: (1, 2) is not an edge of Graph on 4 vertices but has been provided as an edge of the external face
 
         Check the dependence of the computed position on the given combinatorial
         embedding (:trac:`28152`)::
@@ -5270,8 +5270,8 @@ class GenericGraph(GenericGraph_pyx):
         if external_face:
             if not self.has_edge(external_face):
                 raise ValueError('{} is not an edge of {} but has been '
-                                 'provided as an edge of the outer face'.format(
-                                 external_face, self))
+                                 'provided as an edge of the external face'
+                                 ''.format(external_face, self))
         
         _triangulate(G, G._embedding)
 

@@ -2131,7 +2131,7 @@ def feng_k_shortest_simple_paths_cython(self, source, target, weight_function=No
                 hash_path = tuple(new_path)
                 father[hash_path] = prev_path
                 idx_to_path[idx] = new_path
-                heap_sorted_paths.push((-length_func(new_path), (idx, i-1)))
+                heap_sorted_paths.push((-length_func(new_path), (idx, i - 1)))
                 idx = idx + 1
             except Exception:
                 pass

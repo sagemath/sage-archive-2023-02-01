@@ -6613,8 +6613,8 @@ cdef class Matrix(Matrix1):
           - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
             partial pivoting (if base ring has absolute value)
 
-          - ``'scaled_partial_pivoting_valuation'``: Gauss elimination, using scaled
-            partial pivoting (if base ring has valuation)
+          - ``'scaled_partial_pivoting_valuation'``: Gauss elimination, using
+            scaled partial pivoting (if base ring has valuation)
 
           - ``'strassen'``: use a Strassen divide and conquer
             algorithm (if available)
@@ -6739,7 +6739,11 @@ cdef class Matrix(Matrix1):
             # but this should be done by introducing a category of general valuation rings and fields,
             # which we don't have at the moment
             elif self.base_ring() in DiscreteValuationFields():
-                algorithm = 'scaled_partial_pivoting_valuation'
+                try:
+                    self.base_ring().one().abs()
+                    algorithm = 'scaled_partial_pivoting'
+                except (AttributeError, TypeError):
+                    algorithm = 'scaled_partial_pivoting_valuation'
             else:
                 algorithm = 'classical'
         try:
@@ -6784,8 +6788,8 @@ cdef class Matrix(Matrix1):
           - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
             partial pivoting (if base ring has absolute value)
 
-          - ``'scaled_partial_pivoting_valuation'``: Gauss elimination, using scaled
-            partial pivoting (if base ring has absolute value)
+          - ``'scaled_partial_pivoting_valuation'``: Gauss elimination, using
+            scaled partial pivoting (if base ring has valuation)
 
           - ``'strassen'``: use a Strassen divide and conquer
             algorithm (if available)
@@ -7065,7 +7069,7 @@ cdef class Matrix(Matrix1):
                     for r in range(start_row, nr):
                         if scale_factors[r] is not None:
                             abs_val = scale_factors[r] - A.get_unsafe(r,c).valuation()
-                            if abs_val > max_abs_val:
+                            if max_abs_val is None or abs_val > max_abs_val:
                                 max_abs_val = abs_val
                                 best_r = r
 

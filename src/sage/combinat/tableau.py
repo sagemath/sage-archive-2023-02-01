@@ -2771,14 +2771,9 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [Hai1992] Mark D. Haiman,
-           *Dual equivalence with applications, including a conjecture of Proctor*,
-           Discrete Mathematics 99 (1992), 79-113,
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+        - [Hai1992]_
 
-        .. [Sg2011] Bruce E. Sagan,
-           *The cyclic sieving phenomenon: a survey*,
-           :arxiv:`1008.0790v3`
+        - [Sag2011]_
 
         EXAMPLES::
 
@@ -3742,9 +3737,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [S14] \B. Salisbury.
-           The flush statistic on semistandard Young tableaux.
-           :arxiv:`1401.1185`
+        - [Sal2014]_
 
         EXAMPLES::
 
@@ -7712,8 +7705,12 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: sts = [StandardTableaux(n) for n in ns]
             sage: all(st.cardinality() == len(st.list()) for st in sts)
             True
-            sage: StandardTableaux(50).cardinality()  # long time
-            27886995605342342839104615869259776
+
+        The cardinality can be computed without constructing all elements in
+        this set, so this computation is fast (see also :trac:`28273`)::
+
+            sage: StandardTableaux(500).cardinality()
+            423107565308608549951551753690...221285999236657443927937253376
 
         TESTS::
 

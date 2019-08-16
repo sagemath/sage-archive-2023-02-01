@@ -1,5 +1,5 @@
 r"""
-Huffman Encoding
+Huffman encoding
 
 This module implements functionalities relating to Huffman encoding and
 decoding.
@@ -7,7 +7,6 @@ decoding.
 AUTHOR:
 
 - Nathann Cohen (2010-05): initial version.
-
 
 Classes and functions
 =====================
@@ -548,7 +547,7 @@ class Huffman(SageObject):
             sage: from sage.coding.source_coding.huffman import Huffman
             sage: H = Huffman("Sage")
             sage: T = H.tree()
-            sage: T.edges(labels=None)
+            sage: T.edges(labels=None)  # indirect doctest
             [('0', 'S: 00'), ('0', 'a: 01'), ('1', 'e: 10'), ('1', 'g: 11'), ('root', '0'), ('root', '1')]
         """
         if parent == "":

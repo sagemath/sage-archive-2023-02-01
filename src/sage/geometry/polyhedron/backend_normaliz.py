@@ -1017,87 +1017,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
                                                                normaliz_cone=cone)
 
-    def ehrhart_series(self, variable='t'):
-        r"""
-        Return the Ehrhart series of a compact rational polyhedron.
-
-        The Ehrhart series is the generating function where the coefficient of
-        `t^k` is number of integer lattice points inside the `k`-th dilation of
-        the polytope.
-
-        INPUT:
-
-        - ``variable`` -- string (default: ``'t'``)
-
-        OUTPUT:
-
-        A rational function.
-
-        EXAMPLES::
-
-            sage: S = Polyhedron(vertices=[[0,1],[1,0]], backend='normaliz')  # optional - pynormaliz
-            sage: ES = S.ehrhart_series()                                     # optional - pynormaliz
-            sage: ES.numerator()                                              # optional - pynormaliz
-            1
-            sage: ES.denominator().factor()                                   # optional - pynormaliz
-            (t - 1)^2
-
-            sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
-            sage: ES = C.ehrhart_series()            # optional - pynormaliz
-            sage: ES.numerator()                     # optional - pynormaliz
-            t^2 + 4*t + 1
-            sage: ES.denominator().factor()          # optional - pynormaliz
-            (t - 1)^4
-
-        The following example is from the Normaliz manual contained in the file
-        ``rational.in``::
-
-            sage: rat_poly = Polyhedron(vertices=[[1/2,1/2],[-1/3,-1/3],[1/4,-1/2]],backend='normaliz') # optional - pynormaliz
-            sage: ES = rat_poly.ehrhart_series()                                       # optional - pynormaliz
-            sage: ES.numerator()                                                       # optional - pynormaliz
-            2*t^6 + 3*t^5 + 4*t^4 + 3*t^3 + t^2 + t + 1
-            sage: ES.denominator().factor()                                            # optional - pynormaliz
-            (-1) * (t + 1)^2 * (t - 1)^3 * (t^2 + 1) * (t^2 + t + 1)
-
-        The polyhedron should be compact::
-
-            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
-            sage: C.ehrhart_series()                                     # optional - pynormaliz
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Ehrhart series can only be computed for compact polyhedron
-
-        .. SEEALSO::
-
-            :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
-        """
-        if self.is_empty():
-            return 0
-
-        if not self.is_compact():
-            raise NotImplementedError("Ehrhart series can only be computed for compact polyhedron")
-
-        cone = self._normaliz_cone
-        e = self._nmz_result(cone, "EhrhartSeries")
-        # The output format of PyNormaliz is a list with 3 things:
-        # 1) the coefficients of the h^*-polynomial
-        # 2) a list of the exponents e such that (1-t^e) appears as a factor in
-        # the denominator
-        # 3) a shifting of the generating function.
-
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.fraction_field import FractionField
-        poly_ring = FractionField(PolynomialRing(ZZ, variable))
-        t = poly_ring.gens()[0]
-        es = sum([e[0][i]*t**i for i in range(len(e[0]))])
-        for expo in range(len(e[1])):
-            es = es / (1 - t**e[1][expo])
-
-        # The shift:
-        es = es * t**e[2]
-
-        return es
-
     def ehrhart_quasipolynomial(self, variable='t'):
         r"""
         Return the Ehrhart quasi-polynomial of a compact rational polyhedron
@@ -1181,6 +1100,221 @@ class Polyhedron_normaliz(Polyhedron_base):
                 polynomials += [es]
 
         return tuple(polynomials)
+
+    def _volume_normaliz(self, measure='euclidean'):
+        r"""
+        Computes the volume of a polytope using normaliz.
+
+        INPUT:
+
+        - ``measure`` -- (default: 'euclidean') the measure to take. 'euclidean'
+          correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
+          correspond to ``Volume`` in normaliz.
+
+        OUTPUT:
+
+        A float value (when ``measure`` is 'euclidean') or a rational number
+        (when ``measure`` is 'induced_lattice').
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e., the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLES:
+
+        For normaliz, the default is the euclidean volume in the ambient
+        space and the result is a float::
+
+            sage: s = polytopes.simplex(3,backend='normaliz')  # optional - pynormaliz
+            sage: s._volume_normaliz()                         # optional - pynormaliz
+            0.3333333333333333
+
+        The other possibility is to compute the scaled volume where a unimodual
+        simplex has volume 1::
+
+            sage: s._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
+            1
+            sage: v = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
+            sage: cube = Polyhedron(vertices=v,backend='normaliz')  # optional - pynormaliz
+            sage: cube._volume_normaliz()  # optional - pynormaliz
+            1.0
+            sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
+            6
+
+        """
+        cone = self._normaliz_cone
+        assert cone
+        if measure == 'euclidean':
+            return self._nmz_result(cone, 'EuclideanVolume')
+        elif measure == 'induced_lattice':
+            return self._nmz_result(cone, 'Volume')
+
+    def _triangulate_normaliz(self):
+        r"""
+        Gives a triangulation of the polyhedron using normaliz
+
+        OUTPUT:
+
+        A tuple of pairs ``(simplex,simplex_volume)`` used in the
+        triangulation.
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  #  optional - pynormaliz
+            sage: P._triangulate_normaliz()  #  optional - pynormaliz
+            [(0, 1, 2), (1, 2, 3)]
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  #  optional - pynormaliz
+            sage: C1._triangulate_normaliz()  #  optional - pynormaliz
+            [(0, 1, 2), (1, 2, 3)]
+            sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  #  optional - pynormaliz
+            sage: C2._triangulate_normaliz()  #  optional - pynormaliz
+            [(0, 1, 2), (1, 2, 3)]
+        """
+        cone = self._normaliz_cone
+        assert cone
+        if self.lines():
+            raise NotImplementedError("triangulation of non-compact not pointed polyhedron is not supported")
+        if len(self.vertices_list()) >= 2 and self.rays_list():  # A mix of polytope and cone
+            raise NotImplementedError("triangulation of non-compact polyhedra that are not cones is not supported")
+
+        data = self._get_nmzcone_data()
+        # Recreates a pointed cone. This is a hack and should be fixed once
+        # Normaliz accepts compact polyhedron
+        # For now, we lose the information about the volume?
+        # if self.is_compact():
+        #     data['cone'] = data['vertices']
+        if not self.is_compact():
+            data.pop('vertices', None)
+        data.pop('inhom_equations', None)
+        data.pop('inhom_inequalities', None)
+        cone = self._make_normaliz_cone(data)
+
+        nmz_triangulation = self._nmz_result(cone, "Triangulation")
+        triang_indices = tuple(vector(ZZ, s[0]) for s in nmz_triangulation)
+
+        # Get the Normaliz ordering of generators
+        if self.is_compact():
+            generators = [list(vector(ZZ, g)[:-1]) for g in self._cone_generators(cone)]
+        else:
+            generators = [list(vector(ZZ, g)) for g in self._cone_generators(cone)]
+
+        # Get the Sage ordering of generators
+        if self.is_compact():
+            poly_gen = self.vertices_list()
+        else:
+            poly_gen = self.rays_list()
+
+        # When triangulating, Normaliz uses the indexing of 'Generators' and
+        # not necessarily the indexing of the V-representation. So we apply the
+        # appropriate relabeling into the V-representation inside sage.
+        triangulation = [tuple(sorted([poly_gen.index(generators[i]) for i in s])) for s in triang_indices]
+
+        return triangulation
+
+#########################################################################
+class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
+    r"""
+    Polyhedra over `\QQ` with normaliz.
+
+    INPUT:
+
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``
+
+    EXAMPLES::
+
+        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
+        ....:                rays=[(1,1)], lines=[],
+        ....:                backend='normaliz', base_ring=QQ)
+        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+    """
+
+    def ehrhart_series(self, variable='t'):
+        r"""
+        Return the Ehrhart series of a compact rational polyhedron.
+
+        The Ehrhart series is the generating function where the coefficient of
+        `t^k` is number of integer lattice points inside the `k`-th dilation of
+        the polytope.
+
+        INPUT:
+
+        - ``variable`` -- string (default: ``'t'``)
+
+        OUTPUT:
+
+        A rational function.
+
+        EXAMPLES::
+
+            sage: S = Polyhedron(vertices=[[0,1],[1,0]], backend='normaliz')  # optional - pynormaliz
+            sage: ES = S.ehrhart_series()                                     # optional - pynormaliz
+            sage: ES.numerator()                                              # optional - pynormaliz
+            1
+            sage: ES.denominator().factor()                                   # optional - pynormaliz
+            (t - 1)^2
+
+            sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: ES = C.ehrhart_series()            # optional - pynormaliz
+            sage: ES.numerator()                     # optional - pynormaliz
+            t^2 + 4*t + 1
+            sage: ES.denominator().factor()          # optional - pynormaliz
+            (t - 1)^4
+
+        The following example is from the Normaliz manual contained in the file
+        ``rational.in``::
+
+            sage: rat_poly = Polyhedron(vertices=[[1/2,1/2],[-1/3,-1/3],[1/4,-1/2]],backend='normaliz') # optional - pynormaliz
+            sage: ES = rat_poly.ehrhart_series()                                       # optional - pynormaliz
+            sage: ES.numerator()                                                       # optional - pynormaliz
+            2*t^6 + 3*t^5 + 4*t^4 + 3*t^3 + t^2 + t + 1
+            sage: ES.denominator().factor()                                            # optional - pynormaliz
+            (-1) * (t + 1)^2 * (t - 1)^3 * (t^2 + 1) * (t^2 + t + 1)
+
+        The polyhedron should be compact::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
+            sage: C.ehrhart_series()                                     # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Ehrhart series can only be computed for compact polyhedron
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+        """
+        if self.is_empty():
+            return 0
+
+        if not self.is_compact():
+            raise NotImplementedError("Ehrhart series can only be computed for compact polyhedron")
+
+        cone = self._normaliz_cone
+        e = self._nmz_result(cone, "EhrhartSeries")
+        # The output format of PyNormaliz is a list with 3 things:
+        # 1) the coefficients of the h^*-polynomial
+        # 2) a list of the exponents e such that (1-t^e) appears as a factor in
+        # the denominator
+        # 3) a shifting of the generating function.
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.fraction_field import FractionField
+        poly_ring = FractionField(PolynomialRing(ZZ, variable))
+        t = poly_ring.gens()[0]
+        es = sum([e[0][i]*t**i for i in range(len(e[0]))])
+        for expo in range(len(e[1])):
+            es = es / (1 - t**e[1][expo])
+
+        # The shift:
+        es = es * t**e[2]
+
+        return es
 
     def hilbert_series(self, grading, variable='t'):
         r"""
@@ -1547,140 +1681,6 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return tuple(compact_part), tuple(recession_cone_part), tuple(lineality_part)
 
-    def _volume_normaliz(self, measure='euclidean'):
-        r"""
-        Computes the volume of a polytope using normaliz.
-
-        INPUT:
-
-        - ``measure`` -- (default: 'euclidean') the measure to take. 'euclidean'
-          correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
-          correspond to ``Volume`` in normaliz.
-
-        OUTPUT:
-
-        A float value (when ``measure`` is 'euclidean') or a rational number
-        (when ``measure`` is 'induced_lattice').
-
-        .. NOTE::
-
-            This function depends on Normaliz (i.e., the ``pynormaliz`` optional
-            package). See the Normaliz documentation for further details.
-
-        EXAMPLES:
-
-        For normaliz, the default is the euclidean volume in the ambient
-        space and the result is a float::
-
-            sage: s = polytopes.simplex(3,backend='normaliz')  # optional - pynormaliz
-            sage: s._volume_normaliz()                         # optional - pynormaliz
-            0.3333333333333333
-
-        The other possibility is to compute the scaled volume where a unimodual
-        simplex has volume 1::
-
-            sage: s._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
-            1
-            sage: v = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
-            sage: cube = Polyhedron(vertices=v,backend='normaliz')  # optional - pynormaliz
-            sage: cube._volume_normaliz()  # optional - pynormaliz
-            1.0
-            sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
-            6
-
-        """
-        cone = self._normaliz_cone
-        assert cone
-        if measure == 'euclidean':
-            return self._nmz_result(cone, 'EuclideanVolume')
-        elif measure == 'induced_lattice':
-            return self._nmz_result(cone, 'Volume')
-
-    def _triangulate_normaliz(self):
-        r"""
-        Gives a triangulation of the polyhedron using normaliz
-
-        OUTPUT:
-
-        A tuple of pairs ``(simplex,simplex_volume)`` used in the
-        triangulation.
-
-        .. NOTE::
-
-            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
-            package). See the Normaliz documentation for further details.
-
-        EXAMPLES::
-
-            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  #  optional - pynormaliz
-            sage: P._triangulate_normaliz()  #  optional - pynormaliz
-            [(0, 1, 2), (1, 2, 3)]
-            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  #  optional - pynormaliz
-            sage: C1._triangulate_normaliz()  #  optional - pynormaliz
-            [(0, 1, 2), (1, 2, 3)]
-            sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  #  optional - pynormaliz
-            sage: C2._triangulate_normaliz()  #  optional - pynormaliz
-            [(0, 1, 2), (1, 2, 3)]
-        """
-        cone = self._normaliz_cone
-        assert cone
-        if self.lines():
-            raise NotImplementedError("triangulation of non-compact not pointed polyhedron is not supported")
-        if len(self.vertices_list()) >= 2 and self.rays_list():  # A mix of polytope and cone
-            raise NotImplementedError("triangulation of non-compact polyhedra that are not cones is not supported")
-
-        data = self._get_nmzcone_data()
-        # Recreates a pointed cone. This is a hack and should be fixed once
-        # Normaliz accepts compact polyhedron
-        # For now, we lose the information about the volume?
-        # if self.is_compact():
-        #     data['cone'] = data['vertices']
-        if not self.is_compact():
-            data.pop('vertices', None)
-        data.pop('inhom_equations', None)
-        data.pop('inhom_inequalities', None)
-        cone = self._make_normaliz_cone(data)
-
-        nmz_triangulation = self._nmz_result(cone, "Triangulation")
-        triang_indices = tuple(vector(ZZ, s[0]) for s in nmz_triangulation)
-
-        # Get the Normaliz ordering of generators
-        if self.is_compact():
-            generators = [list(vector(ZZ, g)[:-1]) for g in self._cone_generators(cone)]
-        else:
-            generators = [list(vector(ZZ, g)) for g in self._cone_generators(cone)]
-
-        # Get the Sage ordering of generators
-        if self.is_compact():
-            poly_gen = self.vertices_list()
-        else:
-            poly_gen = self.rays_list()
-
-        # When triangulating, Normaliz uses the indexing of 'Generators' and
-        # not necessarily the indexing of the V-representation. So we apply the
-        # appropriate relabeling into the V-representation inside sage.
-        triangulation = [tuple(sorted([poly_gen.index(generators[i]) for i in s])) for s in triang_indices]
-
-        return triangulation
-
-#########################################################################
-class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
-    r"""
-    Polyhedra over `\QQ` with normaliz.
-
-    INPUT:
-
-    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``
-    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``
-
-    EXAMPLES::
-
-        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
-        ....:                rays=[(1,1)], lines=[],
-        ....:                backend='normaliz', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
-    """
-    pass
 
 #########################################################################
 class Polyhedron_ZZ_normaliz(Polyhedron_QQ_normaliz, Polyhedron_ZZ):

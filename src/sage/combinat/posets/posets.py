@@ -298,7 +298,6 @@ from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.subset import Subsets
 
 
@@ -655,6 +654,15 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         Traceback (most recent call last):
         ...
         ValueError: The graph is not directed acyclic
+
+    Some more bad input, an element list with duplicates while
+    ``linear_extension=True``::
+
+        sage: Poset(( [1,2,3,3], [[1,2]]), linear_extension=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: the provided list of elements is not a linear extension
+        for the poset as it contains duplicate elements
     """
     # Avoiding some errors from the user when data should be a pair
     if (element_labels is not None and
@@ -747,6 +755,10 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                 elements = D.topological_sort()
             except Exception:
                 raise ValueError("Hasse diagram contains cycles")
+        # Check for duplicate elements
+        elif len(elements) != len(set(elements)):
+            raise ValueError("the provided list of elements is not a linear "
+                "extension for the poset as it contains duplicate elements")
     else:
         elements = None
     return FinitePoset(D, elements=elements, category=category, facade=facade, key=key)
@@ -2074,8 +2086,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return list(self.relations_iterator())
 
-    intervals = deprecated_function_alias(19360, relations)
-
     def intervals_poset(self):
         r"""
         Return the natural partial order on the set of intervals of the poset.
@@ -2188,8 +2198,6 @@ class FinitePoset(UniqueRepresentation, Parent):
                 for j in hd.breadth_first_search(i):
                     yield [elements[i], elements[j]]
 
-    intervals_iterator = deprecated_function_alias(19360, relations_iterator)
-
     def relations_number(self):
         r"""
         Return the number of relations in the poset.
@@ -2218,7 +2226,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().relations_number()
             0
         """
-        return sum(1 for x in self.relations_iterator())
+        return sum(1 for _ in self.relations_iterator())
 
     # Maybe this should also be deprecated.
     intervals_number = relations_number

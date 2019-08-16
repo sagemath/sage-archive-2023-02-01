@@ -207,21 +207,12 @@ cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_
         return 0,[]
 
     cdef ModField *F = new ModField(<long>modulus)
-    cdef EchelonFormDomain *EF = new EchelonFormDomain(F[0])
-    cdef BlasMatrix *A = new BlasMatrix(F[0], <uint64_t>nrows, <uint64_t>ncols)
-    cdef BlasMatrix *E = new BlasMatrix(F[0], <uint64_t>nrows, <uint64_t>ncols)
-
+    cdef DenseMatrix *A = new DenseMatrix(F[0], <ModField.Element*>entries,<Py_ssize_t>nrows, <Py_ssize_t>ncols)
+    cdef Py_ssize_t r = reducedRowEchelonize(A[0])
     cdef Py_ssize_t i,j
-
-    # TODO: can we avoid this copy?
     for i in range(nrows):
         for j in range(ncols):
-            A.setEntry(i, j, <ModField.Element>entries[i*ncols+j])
-
-    cdef int r = EF.rowReducedEchelon(E[0], A[0])
-    for i in range(nrows):
-        for j in range(ncols):
-            entries[i*ncols+j] = <celement>E.getEntry(i,j)
+            entries[i*ncols+j] = <celement>A.getEntry(i,j)
 
     cdef Py_ssize_t ii = 0
     cdef list pivots = []
@@ -232,7 +223,7 @@ cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_
                 ii = j+1
                 break
 
-    del F, A, E, EF
+    del F
     return r, pivots
 
 cdef inline celement *linbox_copy(celement modulus, celement *entries,  Py_ssize_t nrows, Py_ssize_t ncols) except? NULL:
@@ -258,15 +249,16 @@ cdef inline int linbox_rank(celement modulus, celement* entries, Py_ssize_t nrow
     del F
     return r
 
-cdef inline celement linbox_det(celement modulus, celement* entries, Py_ssize_t nrows, Py_ssize_t ncols):
+cdef inline celement linbox_det(celement modulus, celement* entries, Py_ssize_t n):
     """
     Return the determinant of this matrix.
     """
     cdef ModField *F = new ModField(<long>modulus)
-    cdef celement *cpy = linbox_copy(modulus, entries, nrows, ncols)
-    if nrows*ncols > 1000: sig_on()
-    d =  <celement>Det(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
-    if nrows*ncols > 1000: sig_off()
+    cdef celement *cpy = linbox_copy(modulus, entries, n, n)
+    if n*n > 1000: sig_on()
+    cdef celement d
+    Det(F[0], d, n, <ModField.Element*>cpy, n)
+    if n*n > 1000: sig_off()
     sig_free(cpy)
     del F
     return d
@@ -1672,9 +1664,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``algorithm``
 
-          - ``linbox`` - uses the LinBox library (``EchelonFormDomain`` implementation, default)
+          - ``linbox`` - uses the LinBox library (wrapping fflas-ffpack)
 
-          - ``linbox_noefd`` - uses the LinBox library (FFPACK directly, less memory but slower)
+          - ``linbox_noefd`` - uses the FFPACK directly, less memory and faster
 
           - ``gauss`` - uses a custom slower `O(n^3)` Gauss
             elimination implemented in Sage.
@@ -1929,7 +1921,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         else:
             r, pivots = linbox_echelonize(self.p, self._entries, self._nrows, self._ncols)
         verbose('done with echelonize',t)
-
         self.cache('in_echelon_form',True)
         self.cache('rank', r)
         self.cache('pivots', tuple(pivots))
@@ -2468,7 +2459,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             x = self.fetch('det')
             if not x is None:
                 return x
-            d = linbox_det(self.p, self._entries, self._nrows, self._ncols)
+            d = linbox_det(self.p, self._entries, self._nrows)
             d2 = self._coerce_element(d)
             self.cache('det', d2)
             return d2

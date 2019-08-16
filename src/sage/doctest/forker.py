@@ -197,7 +197,7 @@ def init_sage():
     debug.refine_category_hash_check = True
 
     # We import readline before forking, otherwise Pdb doesn't work
-    # os OS X: http://trac.sagemath.org/14289
+    # on OS X: http://trac.sagemath.org/14289
     import readline
 
     try:
@@ -1973,7 +1973,12 @@ class DocTestDispatcher(SageObject):
             # Hack to ensure multiprocessing leaves these processes
             # alone (in particular, it doesn't wait for them when we
             # exit).
-            multiprocessing.current_process()._children = set()
+            if six.PY2:
+                p = multiprocessing.current_process()
+            else:
+                p = multiprocessing.process
+            assert hasattr(p, '_children')
+            p._children = set()
 
     def dispatch(self):
         """

@@ -421,14 +421,13 @@ cdef class FaceIterator(SageObject):
         self.face = NULL
         self.dimension = C.dimension()
         self.current_dimension = self.dimension -1
-        self.n_lines = C._n_lines
         self._mem = MemoryAllocator()
 
         # We will not yield the empty face.
         # If there are `n` lines, than there
         # are no faces below dimension `n`.
         # The dimension of the level-sets in the face lattice jumps from `n` to `-1`.
-        self.lowest_dimension = self.n_lines
+        self.lowest_dimension = 0
 
         if output_dimension is not None:
             if not output_dimension in range(0,self.dimension):
@@ -438,7 +437,7 @@ cdef class FaceIterator(SageObject):
                 self.output_dimension = self.dimension - 1 - output_dimension
             else:
                 self.output_dimension = output_dimension
-            self.lowest_dimension = max(self.n_lines, self.output_dimension)
+            self.lowest_dimension = max(0, self.output_dimension)
         else:
             self.output_dimension = -2
 
@@ -478,6 +477,18 @@ cdef class FaceIterator(SageObject):
         self.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
         self.n_visited_all = <size_t *> self._mem.allocarray(self.dimension, sizeof(size_t))
         self.n_visited_all[self.dimension -1] = 0
+        if C._unbounded:
+            # Treating the far face as if we had visited all its elements.
+            # Hence we will visit all intersections of facets unless contained in the far face.
+
+            # Regarding the length of ``self.visited_all``:
+            # The last facet will not yield any new faces thus the length of ``visited_all``
+            # needs to be at most ``n_facets - 1``.
+            # Hence it is fine to use the first entry already for the far face,
+            # as ``self.visited_all`` holds ``n_facets`` pointers.
+            some_list = C.far_face
+            self.visited_all[0] = some_list.data[0]
+            self.n_visited_all[self.dimension -1] = 1
 
         # Initialize ``newfaces``, which will point to the new faces of codimension 1,
         # which have not been visited yet.

@@ -495,7 +495,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Traceback (most recent call last):
             ...
             TypeError: Error evaluating Macaulay2 code.
-            IN:sage1=ZZ/10;
+            IN:...
             OUT:...error: ZZ/n not implemented yet for composite n
         """
         return "ZZ/{}".format(self.order())

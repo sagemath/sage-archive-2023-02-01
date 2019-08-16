@@ -20,6 +20,7 @@ import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
+from sage.cpython.string import bytes_to_str
 
 from sage.misc.all import cached_method, prod
 from sage.misc.randstate import current_randstate
@@ -489,7 +490,6 @@ class Polyhedron_base(Element):
        """
 
         from sage.categories.all import Rings
-        from sage.rings.all import RDF, RR
 
         if base_ring not in Rings:
             raise ValueError("invalid base ring")
@@ -2753,9 +2753,18 @@ class Polyhedron_base(Element):
         return A_ker.basis_matrix().transpose().rows()
 
     @cached_method
-    def normal_fan(self):
+    def normal_fan(self, direction='inner'):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
+
+        This returns the inner normal fan of ``self``. For the outer normal fan, 
+        use ``direction='outer'``.
+
+        INPUT:
+
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if 
+          set to ``'inner'``, use the inner normal vectors to span the cones of 
+          the fan, if set to ``'outer'``, use the outer normal vectors. 
 
         OUTPUT:
 
@@ -2796,6 +2805,30 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: normal fan handles only polytopes over the rationals
 
+            sage: P = Polyhedron(vertices=[[0,0],[2,0],[0,2],[2,1],[1,2]])
+            sage: P.normal_fan(direction=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: the direction should be 'inner' or 'outer'
+
+            sage: inner_nf = P.normal_fan()
+            sage: inner_nf.rays()
+            N( 1,  0),
+            N( 0, -1),
+            N( 0,  1),
+            N(-1,  0),
+            N(-1, -1)
+            in 2-d lattice N
+
+            sage: outer_nf = P.normal_fan(direction='outer')
+            sage: outer_nf.rays()
+            N( 1,  0),
+            N( 1,  1),
+            N( 0,  1),
+            N(-1,  0),
+            N( 0, -1)
+            in 2-d lattice N
+
         REFERENCES:
 
         For more information, see Chapter 7 of [Zie2007]_.
@@ -2804,8 +2837,12 @@ class Polyhedron_base(Element):
 
         if not QQ.has_coerce_map_from(self.base_ring()):
             raise NotImplementedError('normal fan handles only polytopes over the rationals')
-
-        return NormalFan(self)
+        if direction == 'inner':
+            return NormalFan(self)
+        elif direction == 'outer':
+            return NormalFan(-self)
+        else:
+            raise TypeError("the direction should be 'inner' or 'outer'")
 
     @cached_method
     def face_fan(self):
@@ -4842,6 +4879,41 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(self.center().parent())
         return parent.element_class(parent, None, [[[1] + list(v) for v in verts], []])
 
+    def is_self_dual(self):
+        r"""
+        Return whether the polytope is self-dual.
+
+        A polytope is self-dual if its face lattice is isomorphic to the face
+        lattice of its dual polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.simplex().is_self_dual()
+            True
+            sage: polytopes.twenty_four_cell().is_self_dual()
+            True
+            sage: polytopes.cube().is_self_dual()
+            False
+            sage: polytopes.hypersimplex(5,2).is_self_dual()
+            False
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]]).is_self_dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron has to be compact")
+
+        n = self.n_vertices()
+        m = self.n_facets()
+        if n != m:
+            return False
+
+        G1 = self.vertex_facet_graph()
+        G2 = G1.reverse()
+        return G1.is_isomorphic(G2)
+
     def pyramid(self):
         """
         Returns a polyhedron that is a pyramid over the original.
@@ -5179,6 +5251,7 @@ class Polyhedron_base(Element):
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
+
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()
@@ -5190,6 +5263,8 @@ class Polyhedron_base(Element):
         lrs_procs = Popen(['lrs', in_filename],
                           stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = lrs_procs.communicate()
+        ans = bytes_to_str(ans)
+        err = bytes_to_str(err)
         if verbose:
             print(ans)
         # FIXME: check err

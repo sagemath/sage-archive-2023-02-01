@@ -657,14 +657,23 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P([QQbar(sqrt(3)), QQbar(sqrt(-2)), 1])
             sage: Q.global_height()
             0.549306144334055
+
+        ::
+
+            sage: K = UniversalCyclotomicField()
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: Q = P.point([K(4/3), K.gen(7), K.gen(5)])
+            sage: Q.global_height()
+            1.38629436111989
         """
         K = self.codomain().base_ring()
         if K in _NumberFields or is_NumberFieldOrder(K):
             P = self
-        elif K is QQbar:
-            P = self._number_field_from_algebraics()
         else:
-            raise TypeError("must be over a number field or a number field order or QQbar")
+            try:
+                P = self._number_field_from_algebraics()
+            except TypeError:
+                raise TypeError("must be defined over an algebraic field")
         return(max([P[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
 
     def local_height(self, v, prec=None):

@@ -882,25 +882,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ilist = [-4r,-1r,0r,1r,2r,5r]
             sage: llist = [-12345678901234567890123456788r, 12345678901234567890123456788r, 12345678901234567890123456900r]
             sage: flist = [-21.8r, -1.2r, -.000005r, 0.0r, .999999r, 1000000000000.0r]
-            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a == b) == (RR(a) == RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a == b) == (RR(a) == RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a <= b) == (RR(a) <= RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a <= b) == (RR(a) <= RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a >= b) == (RR(a) >= RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a >= b) == (RR(a) >= RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a != b) == (RR(a) != RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a != b) == (RR(a) != RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, llist)])
+            sage: all((a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, llist))
             True
-            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, llist)])
+            sage: all((a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, llist))
             True
-            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, flist)])
+            sage: all((a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, flist))
             True
-            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist)])
+            sage: all((a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist))
             True
 
         Verify that :trac:`12149` was fixed (and the fix is consistent
@@ -4180,6 +4180,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     # Alias for valuation
     ord = valuation
+
+    def p_primary_part(self, p):
+        """
+        Return the p-primary part of ``self``.
+
+        INPUT:
+
+        - ``p`` -- a prime integer.
+
+        OUTPUT: Largest power of ``p`` dividing ``self``.
+
+        EXAMPLES::
+
+            sage: n = 40
+            sage: n.p_primary_part(2)
+            8
+            sage: n.p_primary_part(5)
+            5
+            sage: n.p_primary_part(7)
+            1
+            sage: n.p_primary_part(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 is not a prime number
+        """
+        p = smallInteger(p)
+        if not p.is_prime():
+            raise ValueError("{} is not a prime number".format(p))
+        return p**self._valuation(p)
 
     def val_unit(self, p):
         r"""

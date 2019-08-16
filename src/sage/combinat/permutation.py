@@ -995,7 +995,7 @@ class Permutation(CombinatorialElement):
 
         #Go through until we've considered every number between
         #1 and len(p)
-        while len(l) > 0:
+        while l:
             #If we are at the end of a cycle
             #then we want to add it to the cycles list
             if toConsider == -1:
@@ -1061,7 +1061,7 @@ class Permutation(CombinatorialElement):
             L = set(range(1,len(p)+1))
 
         #Go through until we've considered every remaining number
-        while len(L) > 0:
+        while L:
             # take the first remaining element
             cycleFirst = L.pop()
             next = p[cycleFirst-1]
@@ -1104,7 +1104,7 @@ class Permutation(CombinatorialElement):
         from bisect import bisect_left
 
         #Go through until we've considered every remaining number
-        while len(L) > 0:
+        while L:
             # take the first remaining element
             cycleFirst = L.pop(0)
             next = p[cycleFirst-1]

@@ -638,7 +638,7 @@ cdef class SageObject:
         """
         Return coercion of self to an object of the interface I.
 
-        The result of coercion is cached, unless self is not a C
+        The result of coercion is cached, unless self is a C
         extension class or ``self._interface_is_cached_()`` returns
         False.
         """

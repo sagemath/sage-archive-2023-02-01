@@ -101,6 +101,7 @@ We create element of a permutation group of large degree::
 
 from __future__ import absolute_import, print_function
 
+import copy
 import random
 
 import sage.groups.old as group
@@ -114,8 +115,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.structure.element import is_Matrix
 from sage.matrix.all     import MatrixSpace
-from sage.interfaces.all import gap
-from sage.interfaces.gap import is_GapElement
+from sage.libs.gap.libgap import libgap
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
@@ -217,6 +217,7 @@ def string_to_tuples(g):
     g = g.replace('\n','').replace(' ', '').replace(')(', '),(').replace(')', ',)')
     g = '[' + g + ']'
     return sage_eval(g, preparse=False)
+
 
 def standardize_generator(g, convert_dict=None):
     """
@@ -512,8 +513,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if not (parent is None or isinstance(parent, PermutationGroup_generic)):
                 raise TypeError('parent must be a permutation group')
             if parent is not None:
-                P = parent._gap_()
-                if not P.parent()(self.__gap) in P:
+                P = parent._libgap_()
+                if not P.parent().eval(self.__gap) in P:
                     raise TypeError('permutation %s not in %s' % (g, parent))
 
         Element.__init__(self, parent)
@@ -598,6 +599,14 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if gap is None:
                 from sage.interfaces.gap import gap
             self._gap_element = gap(self._gap_init_())
+
+        return self._gap_element
+
+    def _libgap_(self):
+        if (self._gap_element is None or
+                self._gap_element._parent is not libgap):
+            self._gap_element = libgap.eval(self._libgap_init_())
+
         return self._gap_element
 
     # for compatibility with sage.groups.libgap_wrapper.ElementLibGAP
@@ -617,7 +626,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: type(p_libgap) == type(p_pexpect)
             False
         """
-        from sage.libs.gap.libgap import libgap
         return libgap(self)
 
     def _gap_init_(self):
@@ -631,7 +639,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g._gap_init_()
             'PermList([2, 3, 1, 5, 4])'
         """
-        return 'PermList(%s)'%self._gap_list()
+        return 'PermList(%s)' % self._gap_list()
 
 
     def _repr_(self):
@@ -1602,13 +1610,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if not self._parent._has_natural_domain():
             raise NotImplementedError
 
-        import copy
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.interfaces.all import gap
 
-        G = gap(words[0].parent())
+        G = libgap(words[0].parent())
         g = words[0].parent()(self)
-        H = gap.Group(words)
+        H = libgap.Group(words)
         ans = G.EpimorphismFromFreeGroup().PreImagesRepresentative(g)
 
         l1 = str(ans)

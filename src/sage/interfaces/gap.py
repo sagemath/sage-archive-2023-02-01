@@ -666,7 +666,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             2
             sage: try:
             ....:     alarm(0.5)
-            ....:     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
+            ....:     gap.eval('while(1=1) do i:=1;; od;', wait_for_prompt=True)
             ....: except KeyboardInterrupt:
             ....:     pass
             sage: gap(2)
@@ -742,7 +742,6 @@ class Gap_generic(ExtraTabCompletion, Expect):
             if self._expect is None:
                 self._start()
             E = self._expect
-            #import pdb; pdb.set_trace()
             if allow_use_file and wait_for_prompt and len(line) > self._eval_using_file_cutoff:
                 return self._eval_line_using_file(line)
 

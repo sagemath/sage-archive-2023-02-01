@@ -2001,8 +2001,6 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
         else:
             Parent.__init__(self, category=Sets().Infinite())
         ShiftedPrimedTableaux.__init__(self, skew=skew, primed_diagonal=primed_diagonal)
-        self._skew = skew
-        self._primed_diagonal = primed_diagonal
 
     def _repr_(self):
         """
@@ -2191,8 +2189,6 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         ShiftedPrimedTableaux.__init__(self, skew=skew, primed_diagonal=primed_diagonal)
         Parent.__init__(self, category=category)
         self._max_entry = max_entry
-        self._skew = skew
-        self._primed_diagonal = primed_diagonal
         if skew is None:
             self._shape = Partition(shape)
         else:
@@ -2374,8 +2370,6 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         else:
             Parent.__init__(self, category=Sets().Finite())
         self._weight = weight
-        self._skew = skew
-        self._primed_diagonal = primed_diagonal
 
     def _repr_(self):
         """
@@ -2496,8 +2490,6 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         else:
             Parent.__init__(self, category=Sets().Finite())
         self._weight = weight
-        self._skew = skew
-        self._primed_diagonal = primed_diagonal
         if skew is None:
             self._shape = _Partitions(shape)
         else:

@@ -1,6 +1,6 @@
 SAGE_SPKG_CONFIGURE([givaro], [
     m4_pushdef([SAGE_GIVARO_MINVER],["40004"])
-    SAGE_SPKG_DEPCHECK([givaro], [gmp mpir], [
+    SAGE_SPKG_DEPCHECK([gmp mpir], [
         AC_PATH_PROG([GIVAROCONFIG], [givaro-config])
         AS_IF([test x$GIVAROCONFIG = x], [
            AC_MSG_NOTICE([givaro-config not found. Installing givaro])

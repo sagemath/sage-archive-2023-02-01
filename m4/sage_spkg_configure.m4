@@ -106,21 +106,22 @@ AC_DEFUN([SAGE_SPKG_CONFIGURE], [
 
 # SYNOPSIS
 #
-#   SAGE_SPKG_DEPCHECK(PACKAGE-NAME,PACKAGE-DEPENDENCY,FURTHER-CHECK)
-#                          $1             $2              $3
+#   SAGE_SPKG_DEPCHECK(PACKAGE-DEPENDENCIES, FURTHER-CHECK)
+#                                 $1              $2
 #
 # DESCRIPTION
-#     check for space-sperated list of package dependencies $2 of package $1,
-#     do $3 if successful
+#     *** to be called from SAGE_SPKG_CONFIGURE* ***
+#     check for space-separated list of package dependencies $1 of package SPKG_NAME
+#     do $2 if successful
 #
 AC_DEFUN([SAGE_SPKG_DEPCHECK], [
-    m4_foreach_w([DEP], $2, [
+    m4_foreach_w([DEP], $1, [
        AC_REQUIRE([SAGE_SPKG_CONFIGURE_]m4_toupper(DEP))])
-    AC_MSG_CHECKING([installing $2? ])
-    AS_IF([test x = y m4_foreach_w([DEP], $2, [ -o [x$sage_spkg_install_]DEP = xyes])], [
-        AC_MSG_RESULT([yes; install $1 as well])
-        [sage_spkg_install_]$1=yes], [
+    AC_MSG_CHECKING([installing any of $1? ])
+    AS_IF([test x = y m4_foreach_w([DEP], $1, [ -o [x$sage_spkg_install_]DEP = xyes])], [
+        AC_MSG_RESULT([yes; install SPKG_NAME as well])
+        [sage_spkg_install_]SPKG_NAME=yes], [
         AC_MSG_RESULT([no])
-        $3
+        $2
         ])
 ])

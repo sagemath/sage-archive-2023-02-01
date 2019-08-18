@@ -1196,7 +1196,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
-            ['{"vertices":[{"x":2,"y":0,"z":0},..., "face_colors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1.0}']
+            ['{"vertices":[{"x":2,"y":0,"z":0},..., "faceColors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1.0}']
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res

@@ -3050,6 +3050,22 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Define an alias for denominator
     denom = denominator
 
+    def as_integer_ratio(self):
+        """
+        Return the pair ``(self.numerator(), self.denominator())``.
+
+        EXAMPLES::
+
+            sage: x = -12/29
+            sage: x.as_integer_ratio()
+            (-12, 29)
+        """
+        n = <Integer>Integer.__new__(Integer)
+        d = <Integer>Integer.__new__(Integer)
+        n.set_from_mpz(mpq_numref(self.value))
+        d.set_from_mpz(mpq_denref(self.value))
+        return (n, d)
+
     def factor(self):
         """
         Return the factorization of this rational number.

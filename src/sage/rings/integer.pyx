@@ -4379,6 +4379,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    def as_integer_ratio(self):
+        """
+        Return the pair ``(self.numerator(), self.denominator())``,
+        which is ``(self, 1)``.
+
+        EXAMPLES::
+
+            sage: x = -12
+            sage: x.as_integer_ratio()
+            (-12, 1)
+        """
+        return (self, one)
+
     def factorial(self):
         r"""
         Return the factorial `n! = 1 \cdot 2 \cdot 3 \cdots n`.

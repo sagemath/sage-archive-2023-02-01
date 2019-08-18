@@ -714,7 +714,7 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
 
         self._generator_matrix = generator
         self._length = generator.ncols()
-        super(LinearRankMetricCode, self).__init__(base_field, sub_field, self._length, "GeneratorMatrix", "NearestNeighbor")
+        super(LinearRankMetricCode, self).__init__(base_field, sub_field, self._length, "GeneratorMatrix", "NearestNeighbor", basis)
 
     def _repr_(self):
         r"""

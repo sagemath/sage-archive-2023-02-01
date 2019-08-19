@@ -132,7 +132,7 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: ShiftedPrimedTableau([tuple([])], primed_diagonal=True)
             []
         """
-        if isinstance(T, ShiftedPrimedTableau) and T._skew == skew and T._primed_diagonal == primed_diagonal:
+        if isinstance(T, ShiftedPrimedTableau) and T._skew == skew and T.parent()._primed_diagonal == primed_diagonal:
             return T
 
         skew_ = Partition([row.count(None) for row in T])
@@ -173,7 +173,6 @@ class ShiftedPrimedTableau(ClonableArray):
         if not preprocessed:
             T = self._preprocess(T, skew=skew)
         self._skew = skew
-        self._primed_diagonal = primed_diagonal
         ClonableArray.__init__(self, parent, T, check=check)
 
     @staticmethod
@@ -266,7 +265,7 @@ class ShiftedPrimedTableau(ClonableArray):
         if isinstance(other, ShiftedPrimedTableau):
             return self._skew == other._skew and list(self) == list(other)
         try:
-            Tab = ShiftedPrimedTableau(other, primed_diagonal=self._primed_diagonal)
+            Tab = ShiftedPrimedTableau(other, primed_diagonal=self.parent()._primed_diagonal)
         except (ValueError, TypeError):
             return False
         return self._skew == Tab._skew and list(self) == list(Tab)

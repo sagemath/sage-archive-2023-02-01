@@ -1073,8 +1073,8 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
           (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`)
-          representing the module `\mathfrak{X}(M,\Phi)` of vector fields on
-          `M` taking values on `\Phi(M)\subset N`
+          representing the `C^k(M)`-module `\mathfrak{X}(M,\Phi)` of vector
+          fields on `M` taking values on `\Phi(M)\subset N`
 
         EXAMPLES:
 
@@ -1137,6 +1137,58 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: XU_R3.rank()
             3
+
+        Without any information on the manifold, the vector field module is
+        not free by default::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: isinstance(XM, FiniteRankFreeModule)
+            False
+
+        In particular, declaring a coordinate chart on ``M`` would yield an
+        error::
+
+            sage: X.<x,y> = M.chart()
+            Traceback (most recent call last):
+            ...
+            ValueError: the Module X(M) of vector fields on the 2-dimensional
+             differentiable manifold M has already been constructed as a
+             non-free module, which implies that the 2-dimensional
+             differentiable manifold M is not parallelizable and hence cannot
+             be the domain of a coordinate chart
+
+        Similarly, one cannot declare a vector frame on `M`::
+
+            sage: e = M.vector_frame('e')
+            Traceback (most recent call last):
+            ...
+            ValueError: the Module X(M) of vector fields on the 2-dimensional
+             differentiable manifold M has already been constructed as a
+             non-free module and therefore cannot have a basis
+
+        One shall use the keyword ``force_free=True`` to construct a free
+        module before declaring the chart::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module(force_free=True)
+            sage: X.<x,y> = M.chart()  # OK
+            sage: e = M.vector_frame('e')  # OK
+
+        If one declares the chart or the vector frame before asking for the
+        vector field module, the latter is initialized as a free module,
+        without the need to specify ``force_free=True``. Indeed, the
+        information that `M` is the domain of a chart or a vector frame implies
+        that `M` is parallelizable and is therefore sufficient to assert that
+        `\mathfrak{X}(M)` is a free module over `C^k(M)`::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: XM = M.vector_field_module()
+            sage: isinstance(XM, FiniteRankFreeModule)
+            True
+            sage: M.is_manifestly_parallelizable()
+            True
 
         """
         from sage.manifolds.differentiable.vectorfield_module import \

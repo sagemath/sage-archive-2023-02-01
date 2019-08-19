@@ -124,6 +124,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
+    :meth:`~GenericGraph.shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices.
 
 **Linear algebra:**
 
@@ -442,8 +443,6 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.matrix.constructor import matrix
 from sage.rings.rational_field import QQ
-from sage.categories.cartesian_product import cartesian_product
-from sage.misc.misc_c import prod
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -15970,248 +15969,6 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return closeness
 
-    ### Paths
-
-    def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels=False):
-        """
-        Return the list of all paths between a pair of vertices.
-
-        If ``start`` is the same vertex as ``end``, then ``[[start]]`` is
-        returned -- a list containing the 1-vertex, 0-edge path "``start``".
-
-        If ``self`` has multiple edges, a path will be returned as many
-        times as the product of the multiplicity of the edges along that path
-        depending on the value of the flag ``use_multiedges``.
-
-        INPUT:
-
-        - ``start`` -- a vertex of a graph, where to start
-
-        - ``end`` -- a vertex of a graph, where to end
-
-        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-          used only if the graph has multiple edges.
-
-          - If ``False``, the graph is considered as simple and an edge label
-            is arbitrarily selected for each edge as in
-            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
-
-          - If ``True``, a path will be reported as many times as the edges
-            multiplicities along that path (when ``report_edges = False`` or
-            ``labels = False``), or with all possible combinations of edge
-            labels (when ``report_edges = True`` and ``labels = True``)
-
-        - ``report_edges`` -- boolean (default: ``False``); whether to report
-          paths as list of vertices (default) or list of edges, if ``False``
-          then ``labels`` parameter is ignored
-
-        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.
-
-        EXAMPLES::
-
-            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-            sage: eg1.all_paths(0,6)
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg2 = graphs.PetersenGraph()
-            sage: sorted(eg2.all_paths(1,4))
-            [[1, 0, 4],
-             [1, 0, 5, 7, 2, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 8, 3, 2, 7, 9, 4],
-             [1, 0, 5, 8, 3, 4],
-             [1, 0, 5, 8, 6, 9, 4],
-             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 2, 3, 4],
-             [1, 2, 3, 8, 5, 0, 4],
-             [1, 2, 3, 8, 5, 7, 9, 4],
-             [1, 2, 3, 8, 6, 9, 4],
-             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 7, 5, 0, 4],
-             [1, 2, 7, 5, 8, 3, 4],
-             [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
-             [1, 6, 8, 3, 4],
-             [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 2, 3, 4],
-             [1, 6, 8, 5, 7, 9, 4],
-             [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
-             [1, 6, 9, 7, 5, 0, 4],
-             [1, 6, 9, 7, 5, 8, 3, 4]]
-            sage: dg = DiGraph({0:[1,3], 1:[3], 2:[0,3]})
-            sage: sorted(dg.all_paths(0,3))
-            [[0, 1, 3], [0, 3]]
-            sage: ug = dg.to_undirected()
-            sage: sorted(ug.all_paths(0,3))
-            [[0, 1, 3], [0, 2, 3], [0, 3]]
-
-            sage: g = Graph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
-            sage: g.all_paths(0, 2, use_multiedges=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-
-            sage: dg = DiGraph({0:[1, 2, 1], 3:[0, 0]}, multiedges=True)
-            sage: dg.all_paths(3, 1, use_multiedges=True)
-            [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
-
-            sage: g = Graph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
-            sage: g.all_paths(0, 2, use_multiedges=False)
-            [[0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True)
-            [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True, labels=True)
-            [((0, 1, 'b'), (1, 2, 'd')),
-             ((0, 1, 'b'), (1, 2, 'c')),
-             ((0, 1, 'a'), (1, 2, 'd')),
-             ((0, 1, 'a'), (1, 2, 'c'))]
-            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=True, labels=True)
-            [((0, 1, 'b'), (1, 2, 'd'))]
-            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=False, labels=True)
-            [[0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-
-        TESTS:
-
-        Starting and ending at the same vertex (see :trac:`13006`)::
-
-            sage: graphs.CompleteGraph(4).all_paths(2, 2)
-            [[2]]
-
-        Non-existing vertex as end vertex (see :trac:`24495`)::
-
-            sage: g = graphs.PathGraph(5)
-            sage: g.all_paths(1, 'junk')
-            Traceback (most recent call last):
-            ...
-            LookupError: end vertex (junk) is not a vertex of the graph
-
-        Distinguishing between multiedged paths (see :trac:`27501`)::
-
-            sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0, 3, 1)
-            sage: g.add_edge(0, 2, 3)
-            sage: g.add_edge(0, 1, 3)
-            sage: g.add_edge(2, 3, 5)
-            sage: g.add_edge(2, 3, 15)
-            sage: g.add_edge(2, 4, 12)
-            sage: g.add_edge(3, 5, 7)
-            sage: g.all_paths(0, 5, use_multiedges=True)
-            [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]
-
-            sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0, 1, 1)
-            sage: g.add_edge(0, 2, 3)
-            sage: g.add_edge(1, 4, 3)
-            sage: g.add_edge(2, 3, 5)
-            sage: g.add_edge(2, 4, 15)
-            sage: g.add_edge(2, 4, 12)
-            sage: g.add_edge(4, 5, 7)
-            sage: g.add_edge(4, 5, 8)
-            sage: g.add_edge(5, 6, 2)
-            sage: g.all_paths(0, 6, use_multiedges=True)
-            [[0, 1, 4, 5, 6],
-             [0, 1, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6]]
-
-        Added reporting of edges (see :trac:`27501`)::
-
-            sage: G = DiGraph(multiedges=True)
-            sage: G.add_edges([(0,2), (0,3), (0,4), (1,2), (1,2), (1,5), (3,5), (3,5)])
-            sage: G.all_paths(0, 5, report_edges=True)
-            [[(0, 3), (3, 5)]]
-            sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
-            [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
-
-        """
-        if start not in self:
-            raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
-        if end not in self:
-            raise LookupError("end vertex ({0}) is not a vertex of the graph".format(end))
-
-        if self.is_directed():
-            iterator = self.neighbor_out_iterator
-        else:
-            iterator = self.neighbor_iterator
-
-        if report_edges and labels:
-            edge_labels = {}
-            if use_multiedges:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) in edge_labels:
-                        edge_labels[(e[0], e[1])].append(e)
-                    else:
-                        edge_labels[(e[0], e[1])] = [e]
-            else:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) not in edge_labels:
-                        edge_labels[(e[0], e[1])] = [e]
-            if not self.is_directed():
-                for u, v in list(edge_labels):
-                    edge_labels[v, u] = edge_labels[u, v]
-        elif use_multiedges and self.has_multiple_edges():
-            from collections import Counter
-            edge_multiplicity = Counter(self.edge_iterator(labels=False))
-
-        if start == end:
-            return [[start]]
-
-        all_paths = []      # list of
-        act_path = []       # the current path
-        act_path_iter = []  # the neighbor/successor-iterators of the current path
-        done = False
-        s = start
-        while not done:
-            if s == end:    # if path completes, add to list
-                all_paths.append(act_path + [s])
-            else:
-                if s not in act_path:   # we want vertices just once in a path
-                    act_path.append(s)  # extend current path
-                    act_path_iter.append(iterator(s))  # save the state of the neighbor/successor-iterator of the current vertex
-            s = None
-            while (s is None) and not done:
-                try:
-                    s = next(act_path_iter[-1])  # try to get the next neighbor/successor, ...
-                except (StopIteration):          # ... if there is none ...
-                    act_path.pop()               # ... go one step back
-                    act_path_iter.pop()
-                if not act_path:                 # there is no other vertex ...
-                    done = True                  # ... so we are done
-
-        if report_edges and labels:
-            path_with_labels = []
-            for p in all_paths:
-                path_with_labels.extend(cartesian_product([edge_labels[e] for e in zip(p[:-1], p[1:])]))
-            return path_with_labels
-        elif use_multiedges and self.has_multiple_edges():
-            multiple_all_paths = []
-            for p in all_paths:
-                m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
-                if report_edges:
-                    ep = list(zip(p[:-1], p[1:]))
-                for _ in range(m):
-                    if report_edges:
-                        multiple_all_paths.append(ep)
-                    else:
-                        multiple_all_paths.append(p)
-            return multiple_all_paths
-        elif report_edges:
-            return [list(zip(p[:-1], p[1:])) for p in all_paths]
-        return all_paths
-
     def triangles_count(self, algorithm=None):
         r"""
         Return the number of triangles in the (di)graph.
@@ -23629,7 +23386,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return self.is_isomorphic(self.complement())
 
-
     # Aliases to functions defined in other modules
     from sage.graphs.distances_all_pairs import distances_distribution
     from sage.graphs.base.boost_graph import dominator_tree
@@ -23648,6 +23404,8 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
+    from sage.graphs.path_enumeration import shortest_simple_paths
+    from sage.graphs.path_enumeration import all_paths
     from sage.graphs.traversals import lex_BFS
     from sage.graphs.traversals import lex_UP
     from sage.graphs.traversals import lex_DFS

@@ -5,6 +5,44 @@ Class supporting methods available for any type of code (linear, non-linear) and
 over any metric (Hamming, rank).
 
 Any class inheriting from AbstractCode can use the encode/decode framework.
+
+The encoder/decoder framework within the coding module offers the creation and
+use of encoders/decoders independently of codes. An encoder encodes a message
+into a codeword. A decoder decodes a word into a codeword or a message,
+possibly with error-correction.
+
+Instead of creating specific encoders/decoders for every code family, some
+encoders/decoders can be used by multiple code families. The encoder/decoder
+framework enables just that. For example,
+:class:`~sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder`
+can be used by any code that has a generator matrix.  Similarly,
+:class:`~sage.coding.linear_code.LinearCodeNearestNeighborDecoder` can be used
+for any linear code with Hamming metric.
+
+When creating a new code family, investigate the encoder/decoder catalogs,
+``codes.encoders`` and ``codes.decoders``, to see if there are suitable
+encoders/decoders for your code family already implemented. If this is the case,
+follow the instructions in :class:`AbstractCode` to set these up.
+
+A new encoder must have the following methods:
+
+- ``encode`` -- method encoding a message into a codeword
+- ``unencode`` -- method decoding a codeword into a message
+- ``message_space`` -- ambient space of messages that can be encoded
+- ``code`` -- code of the encoder
+
+For more information about the Encoder class, see
+:class:`~sage.coding.encoder.Encoder`
+
+A new decoder must have the following methods:
+
+- ``decode_to_code`` or ``decode_to_message`` -- method decoding a word from the
+  input space into either a codeword or a message
+- ``input_space`` -- ambient space of words that can be decoded
+- ``code`` -- code of the decoder
+
+For more information about the Decoder class, see
+:class:`~sage.coding.decoder.Decoder`
 """
 
 from sage.structure.parent import Parent
@@ -26,12 +64,13 @@ def _explain_constructor(cl):
 
     EXAMPLES::
 
-
         sage: from sage.coding.linear_code import LinearCodeSyndromeDecoder
         sage: from sage.coding.abstract_code import _explain_constructor
         sage: cl = LinearCodeSyndromeDecoder
         sage: _explain_constructor(cl)
-        "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+        "The constructor requires no arguments.\nIt takes the optional
+        arguments ['maximum_error_weight'].\nSee the documentation of
+        sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
 
         sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
         sage: cl = LinearCodeInformationSetDecoder
@@ -65,17 +104,22 @@ def _explain_constructor(cl):
 
 
 class AbstractCode(Parent):
-    """
+    r"""
     Abstract class for codes.
 
     This class contains all the methods that can be used on any code
     and on any code family. As opposed to
     :class:`sage.coding.linear_code.AbstractLinearCode`, this class makes no
     assumptions about linearity, metric, finiteness or the number of alphabets.
-    The only assumption we kept is that the code is enumerable.
 
-    Every code-related class should inherit from this abstract
-    class.
+    The abstract notion of "code" that is implicitly used for this class is any
+    enumerable subset of a cartesian product `A_1 \times A_2 \times \ldots
+    \times A_n` for some sets `A_i`. Note that this class makes no attempt to
+    directly represent the code in this fashion, allowing subclasses to make the
+    appropriate choices. The notion of metric is also not mathematically
+    enforced in any way, and is simply stored as a string value.
+
+    Every code-related class should inherit from this abstract class.
 
     To implement a code, you need to:
 
@@ -93,6 +137,9 @@ class AbstractCode(Parent):
       ``Parent.__init__(self, base, facade, category)`` function in the subclass
       constructor. A good example is in
       :class:`sage.coding.linear_code.AbstractLinearCode`.
+
+    - it is also recommended to override the ``ambient_space`` method, which is
+      required by ``__call__``
 
     - to use the encoder/decoder framework, one has to set up the category and
       related functions ``__iter__`` and ``__contains__``. A good example is in
@@ -128,7 +175,7 @@ class AbstractCode(Parent):
 
     def __init__(self, length, default_encoder_name=None,
                  default_decoder_name=None, metric='Hamming'):
-        """
+        r"""
         Initializes mandatory parameters that any code shares.
 
         This method only exists for inheritance purposes as it initializes
@@ -152,45 +199,44 @@ class AbstractCode(Parent):
         EXAMPLES:
 
         The following example demonstrates how to use subclass `AbstractCode`
-        for representing a new family of codes. The example family is non-sensical::
+        for representing a new family of codes::
 
             sage: from sage.coding.abstract_code import AbstractCode
             sage: class MyCodeFamily(AbstractCode):
-            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:   def __init__(self, length):
             ....:       super(MyCodeFamily, self).__init__(length)
-            ....:       cat = Modules(field).FiniteDimensional().WithBasis().Finite()
-            ....:       Parent.__init__(self, base=field, facade=False, category=cat)
-            ....:       self._dimension = dimension
-            ....:       self._generator_matrix = generator_matrix
-            ....:       self._field = field
-            ....:   def field(self):
-            ....:       return self._field
-            ....:   def dimension(self):
-            ....:       return self._dimension
-            ....:   def generator_matrix(self):
-            ....:       return self._generator_matrix
+            ....:   def __iter__(self):
+            ....:       for i in range(self.length() + 1):
+            ....:            yield vector([1 for j in range(i)] + [0 for k in range(i, self.length())])
+            ....:   def __contains__(self, word):
+            ....:       return word in list(self)
             ....:   def _repr_(self):
-            ....:       return "[%d, %d] dummy code over GF(%s)" % (self.length(), self.dimension(), self.field().cardinality())
+            ....:       return "Dummy code of length {}".format(self.length())
 
         We now instantiate a member of our newly made code family::
 
-            sage: generator_matrix = matrix(GF(17), 5, 10,
-            ....:                           {(i,i):1 for i in range(5)})
-            sage: C = MyCodeFamily(GF(17), 10, 5, generator_matrix)
+            sage: C = MyCodeFamily(6)
 
         We can check its existence and parameters::
 
             sage: C
-            [10, 5] dummy code over GF(17)
+            Dummy code of length 6
 
-        We can check that it is truly a part of the framework category::
+        We can list its elements and check if an element is in the code:
+            sage: list(C)
+            [(0, 0, 0, 0, 0, 0),
+            (1, 0, 0, 0, 0, 0),
+            (1, 1, 0, 0, 0, 0),
+            (1, 1, 1, 0, 0, 0),
+            (1, 1, 1, 1, 0, 0),
+            (1, 1, 1, 1, 1, 0),
+            (1, 1, 1, 1, 1, 1)]
+            sage: vector((0, 1, 0, 0, 0, 1)) in C
+            False
+            sage: vector((1, 1, 1, 0, 0, 0)) in C
+            True
 
-            sage: C.parent()
-            <class '__main__.MyCodeFamily_with_category'>
-            sage: C.category()
-            Category of finite dimensional vector spaces with basis over Finite Field of size 17
-
-        And any method that works on linear codes works for our new dummy code::
+        And coming from AbstractCode code::
 
             sage: C.metric()
             'Hamming'
@@ -200,7 +246,7 @@ class AbstractCode(Parent):
         If the length field is neither a Python int nor a Sage Integer, it will
         raise a exception::
 
-            sage: C = MyCodeFamily(GF(17), 10.0, 5, generator_matrix)
+            sage: C = MyCodeFamily(10.0)
             Traceback (most recent call last):
             ...
             ValueError: length must be a Python int or a Sage Integer
@@ -208,8 +254,7 @@ class AbstractCode(Parent):
         If the length of the code is not a non-zero positive integer
         (See :trac:`21326`), it will raise an exception::
 
-            sage: empty_generator_matrix = Matrix(GF(17),0,1)
-            sage: C = MyCodeFamily(GF(17), 0, 1, empty_generator_matrix)
+            sage: C = MyCodeFamily(0)
             Traceback (most recent call last):
             ...
             ValueError: length must be a non-zero positive integer
@@ -290,19 +335,87 @@ class AbstractCode(Parent):
 
             sage: from sage.coding.abstract_code import AbstractCode
             sage: class MyCode(AbstractCode):
-            ....:    def __init__(self):
-            ....:        super(MyCode, self).__init__(10)
+            ....:    def __init__(self, length):
+            ....:        super(MyCode, self).__init__(length)
 
         We check we get a sensible error message while asking if an element is
         in our new class:
 
-            sage: C = MyCode()
+            sage: C = MyCode(3)
             sage: vector((1, 0, 0, 0, 0, 1, 1)) in C
             Traceback (most recent call last):
             ...
             RuntimeError: Please override __contains__ in the implementation of <class '__main__.MyCode'>
         """
         raise RuntimeError("Please override __contains__ in the implementation of {}".format(self.parent()))
+
+    def ambient_space(self):
+        r"""
+        Return an error stating ``ambient_space`` of ``self`` is not implemented.
+
+        This method is required by :meth:`__call__`.
+
+        EXAMPLES::
+
+            sage: from sage.coding.abstract_code import AbstractCode
+            sage: class MyCode(AbstractCode):
+            ....:    def __init__(self, length):
+            ....:        super(MyCode, self).__init__(length)
+            sage: C = MyCode(3)
+            sage: C.ambient_space()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: No ambient space implemented for this code.
+        """
+        raise NotImplementedError("No ambient space implemented for this code.")
+
+    def __call__(self, m):
+        r"""
+        Returns either ``m`` if it is a codeword or ``self.encode(m)``
+        if it is an element of the message space of the encoder used by
+        ``encode``.
+
+        This implementation depends on :meth:`ambient_space`.
+
+        INPUT:
+
+        - ``m`` -- a vector whose length equals to code's length or an element
+          of the message space used by ``encode``
+
+        - ``**kwargs`` -- extra arguments are forwarded to ``encode``
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector((0, 1, 1, 0))
+            sage: C(word)
+            (1, 1, 0, 0, 1, 1, 0)
+
+            sage: c = C.random_element()
+            sage: C(c) == c
+            True
+
+        TESTS:
+
+        If one passes a vector which belongs to the ambient space, it has to be a codeword.
+        Otherwise, an exception is raised::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector((0, 1, 1, 0, 0, 1, 0))
+            sage: C(word)
+            Traceback (most recent call last):
+            ...
+            ValueError: If the input is a vector which belongs to the ambient space, it has to be a codeword
+        """
+        if m in self.ambient_space():
+            if m in self:
+                return m
+            else:
+                raise ValueError("If the input is a vector which belongs to the ambient space, it has to be a codeword")
+        else:
+            return self.encode(m)
 
     def _repr_(self):
         r"""
@@ -314,29 +427,12 @@ class AbstractCode(Parent):
 
         EXAMPLES:
 
-        This was taken from :trac:`20899` (and thus ensures this method fixes
-        what was described in this ticket).
-
-        We create a new code class, its dedicated encoder
-        and set appropriate parameters::
+        We create a new code class::
 
             sage: from sage.coding.abstract_code import AbstractCode
-            sage: from sage.coding.encoder import Encoder
             sage: class MyCode(AbstractCode):
-            ....:    _registered_encoders = {}
-            ....:    _registered_decoders = {}
             ....:    def __init__(self):
-            ....:        super(MyCode, self).__init__(10, "Monkey", "Syndrome")
-            ....:        self._dimension = 2
-
-            sage: class MonkeyEncoder(Encoder):
-            ....:    def __init__(self, C):
-            ....:        super(MonkeyEncoder, self).__init__(C)
-            ....:    @cached_method
-            ....:    def generator_matrix(self):
-            ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
-            sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
-            sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+            ....:        super(MyCode, self).__init__(10)
 
         We check we get a sensible error message while asking for a string
         representation of an instance of our new class:
@@ -359,29 +455,12 @@ class AbstractCode(Parent):
 
         EXAMPLES:
 
-        This was taken from :trac:`20899` (and thus ensures this method fixes
-        what was described in this ticket).
-
-        We create a new code class, its dedicated encoder
-        and set appropriate parameters::
+        We create a new code class::
 
             sage: from sage.coding.abstract_code import AbstractCode
-            sage: from sage.coding.encoder import Encoder
             sage: class MyCode(AbstractCode):
-            ....:    _registered_encoders = {}
-            ....:    _registered_decoders = {}
             ....:    def __init__(self):
-            ....:        super(MyCode, self).__init__(10, "Monkey", "Syndrome")
-            ....:        self._dimension = 2
-
-            sage: class MonkeyEncoder(Encoder):
-            ....:    def __init__(self, C):
-            ....:        super(MonkeyEncoder, self).__init__(C)
-            ....:    @cached_method
-            ....:    def generator_matrix(self):
-            ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
-            sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
-            sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+            ....:        super(MyCode, self).__init__(10)
 
         We check we get a sensible error message while asking for a string
         representation of an instance of our new class:
@@ -564,8 +643,7 @@ class AbstractCode(Parent):
 
         INPUT:
 
-        - ``word`` -- a vector of the same length as ``self`` over
-          the base field of ``self``
+        - ``word`` -- an element in the ambient space as ``self``
 
         - ``decoder_name`` -- (default: ``None``) Name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if
@@ -602,8 +680,7 @@ class AbstractCode(Parent):
 
         INPUT:
 
-        - ``word`` -- a vector of the same length as ``self`` over the
-          base field of ``self``
+        - ``word`` -- an element in the ambient space as ``self``
 
         - ``decoder_name`` -- (default: ``None``) Name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if
@@ -677,7 +754,7 @@ class AbstractCode(Parent):
             sage: D.decoder()
             Traceback (most recent call last):
             ...
-            RuntimeError: Please add a decoder for this code.
+            NotImplementedError: No decoder implemented for this code.
 
         If the name of a decoder which is not known by ``self`` is passed,
         an exception will be raised::
@@ -703,7 +780,7 @@ class AbstractCode(Parent):
 
         """
         if not self._default_decoder_name:
-            raise RuntimeError("Please add a decoder for this code.")
+            raise NotImplementedError("No decoder implemented for this code.")
         if decoder_name is None:
             decoder_name = self._default_decoder_name
         if decoder_name in self._registered_decoders:
@@ -756,19 +833,14 @@ class AbstractCode(Parent):
 
         INPUT:
 
-        - ``word`` -- a vector of a message space of the code.
+        - ``word`` -- an element of a message space of the code
 
         - ``encoder_name`` -- (default: ``None``) Name of the encoder which will be used
           to encode ``word``. The default encoder of ``self`` will be used if
           default value is kept.
 
         - ``args``, ``kwargs`` -- all additional arguments are forwarded to the construction of the
-          encoder that is used.
-
-        .. NOTE::
-
-            The default encoder always has `F^{k}` as message space, with `k` the dimension
-            of ``self`` and `F` the base ring of ``self``.
+          encoder that is used..
 
         One can use the following shortcut to encode a word ::
 
@@ -851,7 +923,7 @@ class AbstractCode(Parent):
             sage: D.encoder()
             Traceback (most recent call last):
             ...
-            RuntimeError: Please add an encoder for this code.
+            NotImplementedError: No encoder implemented for this code.
 
         We check that the returned encoder is cached::
 
@@ -877,10 +949,10 @@ class AbstractCode(Parent):
             ValueError: Constructing the Systematic encoder failed, possibly due to missing or incorrect parameters.
             The constructor requires no arguments.
             It takes the optional arguments ['systematic_positions'].
-            See the documentation of sage.coding.linear_code.LinearCodeSystematicEncoder for more details.
+            See the documentation of sage.coding.linear_code_no_metric.LinearCodeSystematicEncoder for more details.
         """
         if not self._default_encoder_name:
-            raise RuntimeError("Please add an encoder for this code.")
+            raise NotImplementedError("No encoder implemented for this code.")
         if encoder_name is None:
             encoder_name = self._default_encoder_name
         if encoder_name in self._registered_encoders:
@@ -918,7 +990,7 @@ class AbstractCode(Parent):
             sage: dictionary = C.encoders_available(True)
             sage: sorted(dictionary.items())
             [('GeneratorMatrix', <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>),
-             ('Systematic', <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>)]
+             ('Systematic', <class 'sage.coding.linear_code_no_metric.LinearCodeSystematicEncoder'>)]
         """
         if classes:
             return copy(self._registered_encoders)

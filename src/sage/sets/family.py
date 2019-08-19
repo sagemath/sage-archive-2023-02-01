@@ -887,9 +887,7 @@ class LazyFamily(AbstractFamily):
             sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2*i); f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
-            sage: TestSuite(f).run()   # __contains__ is not implemented
-            Failure ...
-            The following tests failed: _test_an_element, _test_enumerated_set_contains, _test_some_elements
+            sage: TestSuite(f).run()
 
         Check for :trac:`5538`::
 
@@ -1060,6 +1058,27 @@ class LazyFamily(AbstractFamily):
         """
         for i in self.set:
             yield self[i]
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: from sage.sets.family import LazyFamily
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: 3 in f, 14 in f
+            (False, True)
+
+        By default this expands the lazy family, which is only done for
+        families known to be finite::
+
+            sage: 5 in LazyFamily(NonNegativeIntegers(), lambda i: 2*i)
+            Traceback (most recent call last):
+            ...
+            ValueError: family must be finite to check containment
+        """
+        if self not in FiniteEnumeratedSets():
+            raise ValueError('family must be finite to check containment')
+        return x in iter(self)
 
     def __getitem__(self, i):
         """

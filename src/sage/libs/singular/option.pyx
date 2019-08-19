@@ -346,7 +346,7 @@ cdef class LibSingularOptions(LibSingularOptions_abstract):
        ``res``, ``slimgb``, ``sres``, ``std``, ``stdfglm``,
        ``stdhilb``, ``syz``.
 
-     - `red_sb`` or ``redSB`` - computes a reduced standard basis in
+     - ``red_sb`` or ``redSB`` - computes a reduced standard basis in
        any standard basis computation.
 
      - ``red_tail`` or ``redTail`` - reduction of the tails of

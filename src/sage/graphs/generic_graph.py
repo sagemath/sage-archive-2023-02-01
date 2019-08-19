@@ -5154,28 +5154,39 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return
 
-    def layout_planar(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False, **options):
+    def layout_planar(self, set_embedding=False, on_embedding=None,
+                      external_face=None, test=False, circular=False,
+                      **options):
         """
         Compute a planar layout of the graph using Schnyder's algorithm.
+
+        If ``set_embedding`` is set, a new combinatorial embedding is computed
+        for the layout. Otherwise: if ``on_embedding`` is provided, then that
+        combinatorial embedding is used for the layout. Otherwise: if a
+        combinatorial embedding is set to the instance field variable of the
+        graph (e.g. using
+        :meth:`~sage/graphs/generic_graph.GenericGraph.set_embedding`), then
+        that one is used, and if no combinatorial embedding is set, then one is
+        computed.
 
         If the graph is not planar, an error is raised.
 
         INPUT:
 
         - ``set_embedding`` -- boolean (default: ``False``); whether to set the
-           combinatorial embedding used (see
-           :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
+          instance field variable that contains a combinatorial embedding to the
+          combinatorial embedding used for the planar layout (see
+          :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
 
         - ``on_embedding`` -- dictionary (default: ``None``); provide a
-           combinatorial embedding
+          combinatorial embedding
 
         -  ``external_face`` -- ignored
 
         - ``test`` -- boolean (default: ``False``); whether to perform sanity
-           tests along the way
+          tests along the way
 
         -  ``circular`` -- ignored
-
 
         EXAMPLES::
 
@@ -5193,6 +5204,21 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: Complete graph is not a planar graph
+
+        TESTS:
+
+        Check the dependence of the computed position on the given combinatorial
+        embedding (:trac:`28152`)::
+
+            sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
+            sage: G.set_embedding({0: [1, 2, 3], 1: [0], 2: [0], 3: [0]})
+            sage: pos1 = G.layout('planar', save_pos=True)
+            sage: G._check_embedding_validity()
+            True
+            sage: G.set_embedding({0: [3, 2, 1], 1: [0], 2: [0], 3: [0]})
+            sage: pos2 = G.layout('planar', save_pos=True)
+            sage: pos1 == pos2
+            False
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
@@ -5206,7 +5232,7 @@ class GenericGraph(GenericGraph_pyx):
         if set_embedding:
             if not G.is_planar(set_embedding=True):
                 raise ValueError('%s is not a planar graph'%self)
-            embedding_copy = G._embedding
+            embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
         else:
             if on_embedding is not None:
                 G._check_embedding_validity(on_embedding,boolean=False)
@@ -5217,7 +5243,7 @@ class GenericGraph(GenericGraph_pyx):
                     if G._check_embedding_validity():
                         if not G.is_planar(on_embedding=G._embedding):
                             raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
-                        embedding_copy = G._embedding
+                        embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
                     else:
                         raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:
@@ -5252,13 +5278,14 @@ class GenericGraph(GenericGraph_pyx):
 
         # Optional error-checking
         if test:
-            G.is_planar(set_embedding=True) # to get new embedding
+            if G._check_embedding_validity():
+                if not G.is_planar(on_embedding=G._embedding):
+                    raise ValueError('%s has nonplanar _embedding attribute. Try putting set_embedding=True' % self)
             test_faces = G.faces(G._embedding)
             for face in test_faces:
                 if len(face) != 3:
                     raise RuntimeError('BUG: Triangulation returned face: %s'%face)
 
-        G.is_planar(set_embedding=True)
         faces = G.faces(G._embedding)
         # Assign a normal label to the graph
         label = _normal_label(G, G._embedding, faces[0])

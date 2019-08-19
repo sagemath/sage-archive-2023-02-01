@@ -5130,8 +5130,7 @@ class GenericGraph(GenericGraph_pyx):
         del graph
         return result
 
-    # TODO: rename into _layout_planar
-    def set_planar_positions(self, test = False, **layout_options):
+    def set_planar_positions(self, test=False, **layout_options):
         """
         Compute a planar layout for self using Schnyder's algorithm,
         and save it as default layout.
@@ -5140,6 +5139,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CycleGraph(7)
             sage: g.set_planar_positions(test=True)
+            doctest:...: DeprecationWarning: This method is replaced by the method layout. Please use layout(layout="planar", save_pos=True) instead.
+            See http://trac.sagemath.org/24494 for details.
             True
 
         This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
@@ -5147,9 +5148,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.layout(layout = "planar", save_pos = True)
             {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
         """
-        self.layout(layout = "planar", save_pos = True, test = test, **layout_options)
-        if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
-            return self.is_drawn_free_of_edge_crossings() # returns true if tests pass
+        deprecation(24494, 'This method is replaced by the method layout. '
+                           'Please use layout(layout="planar", save_pos=True) '
+                           'instead.')
+        self.layout(layout="planar", save_pos=True, test=test, **layout_options)
+        if test: # Optional error-checking (looking for edge-crossings O(n^2))
+            # returns true if tests pass
+            return self.is_drawn_free_of_edge_crossings()
         else:
             return
 
@@ -5194,16 +5199,28 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.PathGraph(10)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: g.layout(layout='planar', save_pos=True, test=True)
+            {0: [3, 2],
+             1: [4, 3],
+             2: [3, 4],
+             3: [4, 4],
+             4: [2, 6],
+             5: [8, 1],
+             6: [1, 7],
+             7: [0, 8],
+             8: [1, 1],
+             9: [1, 0]}
             sage: g = graphs.BalancedTree(3, 4)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: pos = g.layout(layout='planar', save_pos=True, test=True)
+            sage: pos[0]
+            [2, 116]
+            sage: pos[120]
+            [3, 64]
             sage: g = graphs.CycleGraph(7)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: g.layout(layout='planar', save_pos=True, test=True)
+            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
             sage: g = graphs.CompleteGraph(5)
-            sage: g.set_planar_positions(test=True, set_embedding=True)
+            sage: g.layout(layout='planar', save_pos=True, test=True, set_embedding=True)
             Traceback (most recent call last):
             ...
             ValueError: Complete graph is not a planar graph
@@ -5324,7 +5341,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: D = graphs.DodecahedralGraph()
-            sage: D.set_planar_positions()
+            sage: pos = D.layout(layout='planar', save_pos=True)
             sage: D.is_drawn_free_of_edge_crossings()
             True
         """

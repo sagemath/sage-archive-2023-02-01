@@ -3614,15 +3614,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f._derivative(x)
             35*x^4 + 2*x - 2
 
-        In the following example, it doesn't recognise 2\*x as the
-        generator, so it tries to differentiate each of the coefficients
-        with respect to 2\*x, which doesn't work because the integer
-        coefficients don't have a _derivative() method::
+        It is not possible to differentiate with respect to 2\*x for instance::
 
             sage: f._derivative(2*x)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.integer.Integer' object has no attribute '_derivative'
+            ValueError: cannot differentiate with respect to 2*x
 
         Examples illustrating recursive behaviour::
 
@@ -3654,9 +3651,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.derivative()
             4*x^3 + 6*x^2 + 4*x + 18
             sage: R.<x> = GF(2)[]
-            sage: p = x^4 + x^2 + x 
+            sage: p = x^4 + x^2 + x
             sage: p.derivative()
             1
+
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^4 - x - 1
+            sage: f._derivative()
+            4*x^3 + 76
+            sage: f._derivative(None)
+            4*x^3 + 76
+
+            sage: f._derivative(2*x)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to 2*x
+
+            sage: y = var("y")
+            sage: f._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
+
 
         Check that :trac:`26844` is fixed by :trac:`28147`::
 
@@ -3667,8 +3683,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
         """
         if var is not None and var != self._parent.gen():
-            # call _derivative() recursively on coefficients
-            return self._parent([coeff._derivative(var) for coeff in self.list(copy=False)])
+            try:
+                # call _derivative() recursively on coefficients
+                return self._parent([coeff._derivative(var) for coeff in self.list(copy=False)])
+            except AttributeError:
+                raise ValueError(f'cannot differentiate with respect to {var}')
 
         # compute formal derivative with respect to generator
         if self.is_zero():

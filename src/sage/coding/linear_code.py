@@ -2016,23 +2016,6 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             x, = R.gens()
             return sum(spec[i]*x**i for i in range(n+1))
 
-    @cached_method
-    def zero(self):
-        r"""
-        Returns the zero vector of ``self``.
-
-        EXAMPLES::
-
-            sage: C = codes.HammingCode(GF(2), 3)
-            sage: C.zero()
-            (0, 0, 0, 0, 0, 0, 0)
-            sage: C.sum(()) # indirect doctest
-            (0, 0, 0, 0, 0, 0, 0)
-            sage: C.sum((C.gens())) # indirect doctest
-            (1, 1, 1, 1, 1, 1, 1)
-        """
-        return self.ambient_space().zero()
-
     def zeta_polynomial(self, name="T"):
         r"""
         Returns the Duursma zeta polynomial of this code.

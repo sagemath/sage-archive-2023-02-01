@@ -703,12 +703,11 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
     INPUT:
 
-    - ``triangulation`` boolean (default: `False``); if ``True``, a list of
-      edges that need to be added in order to triangulate the graph is
-      returned
+    - ``triangulation`` -- boolean (default: ``False``); whether to return a
+      list of edges that need to be added in order to triangulate the graph
 
-    - ``labels`` -- boolean (default: ``False``); whether to return the
-      labels assigned to each vertexx
+    - ``labels`` -- boolean (default: ``False``); whether to return the labels
+      assigned to each vertex
 
     - ``initial_vertex`` -- (default: ``None``); the first vertex to
       consider
@@ -718,17 +717,16 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
       - ``'lex_M_slow'``: slower implementation of LexM traversal
 
-      - ``'lex_M_fast'``: faster implementation of LexM traversal (works
-        only when ``labels`` is set to ``False``)
+      - ``'lex_M_fast'``: faster implementation of LexM traversal (works only
+        when ``labels`` is set to ``False``)
 
       - ``None``: Sage chooses the best algorithm: ``'lex_M_slow'`` if
         ``labels`` is set to ``True``, ``'lex_M_fast'`` otherwise.
 
     OUTPUT:
 
-    Depending on the values of the parameters ``triangulation`` and
-    ``labels`` the method will return one or more of the following
-    (in that order):
+    Depending on the values of the parameters ``triangulation`` and ``labels``
+    the method will return one or more of the following (in that order):
 
     - an ordering of vertices of the graph according to LexM ordering scheme
 
@@ -752,9 +750,8 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
         sage: set(ord) == set(g.vertices())
         True
 
-    Both algorithms produce a valid LexM ordering \alpha (i.e the
-    neighbors of `\alpha(i) \in G\[\{\alpha(i), ..., \alpha(n)\}\] induce a
-    clique)::
+    Both algorithms produce a valid LexM ordering `\alpha` (i.e the neighbors of
+    `\alpha(i) \in G[\{\alpha(i), ..., \alpha(n)\}] induce a clique)::
 
         sage: from sage.graphs.traversals import is_valid_lex_M_order
         sage: G = graphs.PetersenGraph()
@@ -822,7 +819,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
         else:
             algorithm = "lex_M_fast"
 
-    if algorithm not in ["lex_M_slow", "lex_M_fast"]:
+    elif algorithm not in ["lex_M_slow", "lex_M_fast"]:
         raise ValueError("unknown algorithm '{}'".format(algorithm))
 
     if algorithm == "lex_M_slow":
@@ -834,7 +831,8 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
 def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
     r"""
-    Return an ordering of the vertices of G according the LexM graph traversal.
+    Return an ordering of the vertices of `G` according the LexM graph
+    traversal.
 
     LexM is a lexicographic ordering scheme that is a special type of
     breadth-first-search. This function implements the algorithm described in
@@ -858,26 +856,25 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
 
     - ``G`` -- a sage graph
 
-    - ``triangulation`` -- boolean (default: ``False``); whether to return
-      the triangulation of given graph produced by the method.
+    - ``triangulation`` -- boolean (default: ``False``); whether to return the
+      triangulation of the graph produced by the method
 
-    - ``labels`` -- boolean (default: ``False``); whether to return the
-      labels assigned to each vertex
+    - ``labels`` -- boolean (default: ``False``); whether to return the labels
+      assigned to each vertex
 
     - ``initial_vertex`` -- (default: ``None``); the first vertex to
-      consider
+      consider. If not specified, an arbitrary vertex is chosen.
 
     OUTPUT:
 
     Depending on the values of the parameters ``triangulation`` and ``labels``
     the method will return one or more of the following (in that order):
 
-    - the ordering of vertices of ``G``
+    - the ordering of vertices of `G`
 
     - the labels assigned to each vertex
 
-    - a list of edges that when added to ``G`` will produce a triangulation
-      of ``G``
+    - a list of edges that when added to `G` will produce a triangulation of `G`
 
     EXAMPLES:
 
@@ -987,7 +984,8 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
 
 def lex_M_fast(G, triangulation=False, initial_vertex=None):
     r"""
-    Return an ordering of the vertices of G according the LexM graph traversal.
+    Return an ordering of the vertices of `G` according the LexM graph
+    traversal.
 
     LexM is a lexicographic ordering scheme that is a special type of
     breadth-first-search. This function implements the algorithm described in
@@ -1005,11 +1003,10 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
 
     - ``G`` -- a sage graph
 
-    - ``triangulation`` -- boolean (default: ``False``); whether to return
-      the triangulation of given graph produced by the method.
+    - ``triangulation`` -- boolean (default: ``False``); whether to return the
+      triangulation of given graph produced by the method
 
-    - ``initial_vertex`` -- (default: ``None``); the first vertex to
-      consider
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to consider
 
     OUTPUT:
 
@@ -1181,12 +1178,22 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
 
 def is_valid_lex_M_order(G, alpha, F):
     """
-    Check if the ordering alpha and the triangulation are valid for G.
+    Check whether the ordering alpha and the triangulation are valid for G.
 
     By induction one can see that for every `i \in \{1, ..., n − 1\}` the
-    neighbors of `\alpha(i) \in H\[\{\alpha(i), ..., \alpha(n)\}\] induce a
+    neighbors of `\alpha(i) \in H[\{\alpha(i), ..., \alpha(n)\}] induce a
     clique. The ordering `\alpha` is a perfect elimination ordering of `H`, so
     `H` is chordal.
+
+    INPUTS:
+
+    - ``G`` -- a Graph
+
+    - ``alpha`` -- list; an ordering of the vertices of `G`
+
+    - ``F`` -- an iterable of edges given either as ``(u, v)`` or ``(u, v,
+      label)``, the edges of the triangulation of `G`
+
 
     TESTS::
 

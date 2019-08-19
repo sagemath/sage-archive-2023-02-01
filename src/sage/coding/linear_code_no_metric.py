@@ -129,10 +129,10 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     A ring instead of a field::
 
-        sage: codes.LinearCode(IntegerModRing(4),matrix.ones(4))
+        sage: MyCodeFamily2(IntegerModRing(4), 4, 4, matrix.ones(4))
         Traceback (most recent call last):
         ...
-        ValueError: 'generator' must be defined on a field (not a ring)
+        ValueError: 'base_field' must be a field (and Ring of integers modulo 4 is not one)
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -162,7 +162,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
         self._registered_encoders['Systematic'] = LinearCodeSystematicEncoder
 
         if not base_field.is_field():
-            raise ValueError("'generator' must be defined on a field (not a ring)")
+            raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
         if not default_encoder_name in self._registered_encoders:
             raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
@@ -930,6 +930,23 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
             True
         """
         return self.is_subcode(self.dual_code())
+
+    @cached_method
+    def zero(self):
+        r"""
+        Returns the zero vector of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: C.zero()
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: C.sum(()) # indirect doctest
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: C.sum((C.gens())) # indirect doctest
+            (1, 1, 1, 1, 1, 1, 1)
+        """
+        return self.ambient_space().zero()
 
 
 ####################### encoders ###############################

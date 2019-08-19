@@ -91,8 +91,12 @@ build-from-latest:
     expire_in: 1 month
   script:
     - apk --update add coreutils
-    # The output of the build can get larger than gitlab.com's limit; only print the first 3MB (and the last 80 lines.)
-    - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
+    # The output of the build can get larger than gitlab.com's limit; only
+    # print the first 1MB (and the last 80 lines.) GitLab's limit is 4MB,
+    # however, the list of all branches and tags that shows up in the initial
+    # checkout takes already 1.5 MB:
+    # https://gitlab.com/gitlab-org/gitlab-runner/issues/4142
+    - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 1048576
     - .ci/push-gitlab.sh sagemath-dev
     - .ci/push-gitlab.sh sagemath
   except:
@@ -122,6 +126,8 @@ build-from-clean:
   tags:
     # 60 GB of HDD are available
     - big
+    # TODO: Remove this line
+    - standard-64
   # This build takes several CPU hours. It is very unlikely that there are any
   # actual build errors for a tagged release but the (discounted) cloud
   # machines this is running on might be preempted during the long build time.

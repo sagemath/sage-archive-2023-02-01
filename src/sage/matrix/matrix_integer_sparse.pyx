@@ -28,6 +28,7 @@ TESTS::
 from __future__ import absolute_import
 
 from cysignals.memory cimport check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from collections import Iterator, Sequence
 
@@ -641,7 +642,6 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: MatrixSpace(ZZ, 1, 1, sparse=True)()._rank_linbox()
             0
         """
-        # TODO: bug in LinBox (SIGSEGV)
         if self._nrows == 0 or self._ncols == 0:
             return 0
 
@@ -649,7 +649,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.SparseMatrix_integer * M = new_linbox_matrix_integer_sparse(givZZ, self)
         cdef size_t r = 0
 
+        sig_on()
         linbox.rank(r, M[0])
+        sig_off()
 
         del M
 
@@ -659,12 +661,11 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         r"""
         Return the determinant computed with LinBox.
 
+        .. NOTE::
 
-        .. WARNING::
-
-            On some examples, linbox computation does not terminate! Use
-            this method with a lot of care. See
-            https://github.com/linbox-team/linbox/issues/118
+            This method is much slower than converting to a dense matrix and
+            computing the determinant there. There is not much point in making
+            it available. See :trac:`28318`.
 
         EXAMPLES::
 
@@ -680,17 +681,16 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             0
 
             sage: m = diagonal_matrix(ZZ, [2] * 46)
-            sage: m._det_linbox() == 2**46           # not tested (LinBox bug)
+            sage: m._det_linbox() == 2**46
             True
 
             sage: m = diagonal_matrix(ZZ, [3] * 100)
-            sage: m._det_linbox() == 3**100          # not tested (LinBox bug)
+            sage: m._det_linbox() == 3**100
             True
         """
         if self._nrows != self._ncols:
             raise ValueError("non square matrix")
 
-        # TODO: bug in LinBox (got SIGSEGV)
         if self._nrows == 0:
             return Integer(1)
 
@@ -698,7 +698,10 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.SparseMatrix_integer * M = new_linbox_matrix_integer_sparse(givZZ, self)
         cdef givaro.Integer D
 
+        sig_on()
         linbox.det(D, M[0])
+        sig_off()
+
         cdef Integer d = PY_NEW(Integer)
         mpz_set(d.value, D.get_mpz_const())
 
@@ -793,7 +796,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.DensePolynomial_integer * p = new linbox.DensePolynomial_integer(givZZ, <size_t> self._nrows)
         cdef Polynomial_integer_dense_flint g = (<Polynomial_integer_dense_flint> R.gen())._new()
 
+        sig_on()
         linbox.charpoly(p[0], M[0])
+        sig_off()
 
         cdef size_t i
         fmpz_poly_fit_length(g.__poly, p.size())
@@ -890,7 +895,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.DensePolynomial_integer * p = new linbox.DensePolynomial_integer(givZZ, <size_t> self._nrows)
         cdef Polynomial_integer_dense_flint g = (<Polynomial_integer_dense_flint> R.gen())._new()
 
+        sig_on()
         linbox.minpoly(p[0], M[0])
+        sig_off()
 
         cdef size_t i
         fmpz_poly_fit_length(g.__poly, p.size())
@@ -1076,6 +1083,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         method = get_method(algorithm)
 
+        sig_on()
         if method == METHOD_DEFAULT:
             linbox.solve(res[0], D, A[0], b[0])
         elif method == METHOD_WIEDEMANN:
@@ -1086,6 +1094,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
         elif method == METHOD_BLACKBOX:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.Blackbox())
+        sig_off()
 
         Vout = self._row_ambient_module().dense_module()
         res_sage = new_sage_vector_integer_dense(Vout, res[0])
@@ -1182,6 +1191,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef Matrix_integer_dense X = matrix(ZZ, A.coldim(), B.ncols(), sparse=False)  # solution
         cdef Vector_integer_dense d = vector(ZZ, X.ncols(), sparse=False)  # multipliers
 
+
+        sig_on()
         cdef size_t i, j
         for i in range(X.ncols()):
             # set b to the i-th column of B
@@ -1206,6 +1217,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
             # compute common gcd
             mpz_set(d._entries[i], D.get_mpz_const())
+        sig_off()
 
         del A
         del b

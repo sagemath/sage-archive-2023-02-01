@@ -7,6 +7,9 @@ AUTHORS:
 
 - Sebastien Besnier (2014-05-5): :class:`FormalCompositeMap` contains
   a list of Map instead of only two Map. See :trac:`16291`.
+
+- Sebastian Oehms   (2019-01-19): :meth:`section` added to :class:`FormalCompositeMap`.
+  See :trac:`27081`.
 """
 
 #*****************************************************************************
@@ -1982,3 +1985,66 @@ cdef class FormalCompositeMap(Map):
         """
         for f in self.__list:
             yield f.domain()
+
+    def section(self):
+        """
+        Compute a section map from sections of the factors of
+        ``self`` if they have been implemented.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: incl = P.coerce_map_from(ZZ)
+            sage: sect = incl.section(); sect
+            Composite map:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Integer Ring
+              Defn:   Generic map:
+                      From: Univariate Polynomial Ring in x over Rational Field
+                      To:   Rational Field
+                    then
+                      Generic map:
+                      From: Rational Field
+                      To:   Integer Ring
+            sage: p = x + 5; q = x + 2
+            sage: sect(p-q)
+            3
+
+        the following example has been attached to :meth:`_integer_`
+        of :class:`sage.rings.polynomial.polynomial_element.Polynomial`
+        before (see comment there)::
+
+            sage: k = GF(47)
+            sage: R.<x> = PolynomialRing(k)
+            sage: R.coerce_map_from(ZZ).section()
+            Composite map:
+              From: Univariate Polynomial Ring in x over Finite Field of size 47
+              To:   Integer Ring
+              Defn:   Generic map:
+                      From: Univariate Polynomial Ring in x over Finite Field of size 47
+                      To:   Finite Field of size 47
+                    then
+                      Lifting map:
+                      From: Finite Field of size 47
+                      To:   Integer Ring
+            sage: ZZ(R(45))                 # indirect doctest
+            45
+            sage: ZZ(3*x + 45)              # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: not a constant polynomial
+        """
+        sections = []
+        for m in reversed(list(self)):
+            try:
+                sec = m.section()
+            except TypeError:
+                return None
+            if sec is None:
+                return None
+            sections.append(sec)
+
+        from sage.categories.homset import Hom
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        H = Hom(self.codomain(), self.domain(), category=SetsWithPartialMaps())
+        return FormalCompositeMap(H, sections)

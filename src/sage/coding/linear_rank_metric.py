@@ -472,7 +472,7 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
         if not sub_field.is_field():
             raise ValueError("'sub_field' must be a field (and {} is not one)".format(sub_field))
-        if not sub_field.order().divides(base_field.order()):
+        if not (sub_field.degree().divides(base_field.degree()) and (sub_field.prime_subfield() == base_field.prime_subfield())):
             raise ValueError("'sub_field' has to be a subfield of 'base_field'")
         m = base_field.degree() // sub_field.degree()
         self._extension_degree = m
@@ -510,6 +510,22 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         """
 
         return self._extension_degree
+
+    def field_extension(self):
+        """
+        Returns the field extension of ``self``.
+
+        Let ``base_field`` be some field `F_{q^m}` and ``sub_field`` `F_{q}`.
+        This function returns the vector space of dimension `m` over `F_{q}`.
+
+        EXAMPLES:
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(G, GF(4))
+            sage: C.field_extension()
+            Vector space of dimension 3 over Finite Field in z2 of size 2^2
+        """
+        return self.base_field().vector_space(self.sub_field())
 
     def rank_distance_between_vectors(self, left, right):
         """
@@ -612,20 +628,6 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
             (z6 + 1, z6 + 1, 1)
         """
         return from_matrix_representation(word, self.base_field())
-
-    @cached_method
-    def zero(self):
-        r"""
-        Returns the zero vector of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C = codes.LinearRankMetricCode(G, GF(4))
-            sage: C.zero()
-            (0, 0, 0)
-        """
-        return self.ambient_space().zero()
 
 
 class LinearRankMetricCode(AbstractLinearRankMetricCode):

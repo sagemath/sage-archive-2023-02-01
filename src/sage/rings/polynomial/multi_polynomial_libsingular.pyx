@@ -1144,17 +1144,21 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
-            sage: macaulay2(R)        # optional - macaulay2
-            ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            sage: macaulay2(R).describe()  # optional - macaulay2
+            ZZ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
+                                                                     {GRevLex => {2:1}  }
+                                                                     {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
 
             sage: R.<x,y> = QQ[]
-            sage: macaulay2(R)        # optional - macaulay2, indirect doctest
-            QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            sage: macaulay2(R)  # optional - macaulay2
+            QQ[x, y]
 
             sage: R.<x,y> = GF(17)[]
-            sage: print(macaulay2(R))        # optional - macaulay2
+            sage: macaulay2(R)  # optional - macaulay2
             ZZ
-            -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            --[x, y]
             17
         """
         try:

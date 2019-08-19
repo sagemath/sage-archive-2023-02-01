@@ -20,6 +20,7 @@ import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
+from sage.cpython.string import bytes_to_str
 
 from sage.misc.all import cached_method, prod
 from sage.misc.randstate import current_randstate
@@ -395,9 +396,9 @@ class Polyhedron_base(Element):
 
         - ``backend`` -- the new backend, see
           :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
-          If ``None`` (the default), use the same defaulting behavior
-          as described there; it is not attempted to keep the same
-          backend.
+          If ``None`` (the default), attempt to keep the same backend.
+          Otherwise, use the same defaulting behavior
+          as described there.
 
         OUTPUT:
 
@@ -436,10 +437,10 @@ class Polyhedron_base(Element):
         - ``base_ring`` -- the new base ring
 
         - ``backend`` -- the new backend or ``None`` (default), see
-            :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
-            If ``None`` (the default), use the same defaulting behavior
-            as described there; it is not attempted to keep the same
-            backend.
+          :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+          If ``None`` (the default), attempt to keep the same backend.
+          Otherwise, use the same defaulting behavior
+          as described there.
 
         EXAMPLES::
 
@@ -489,18 +490,10 @@ class Polyhedron_base(Element):
        """
 
         from sage.categories.all import Rings
-        from sage.rings.all import RDF, RR
 
         if base_ring not in Rings:
             raise ValueError("invalid base ring")
 
-        if not base_ring.is_exact():
-            if base_ring is RR:
-                base_ring = RDF
-            elif base_ring is not RDF:
-                raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
-
-        x = None
         try:
             vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
@@ -2760,9 +2753,18 @@ class Polyhedron_base(Element):
         return A_ker.basis_matrix().transpose().rows()
 
     @cached_method
-    def normal_fan(self):
+    def normal_fan(self, direction='inner'):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
+
+        This returns the inner normal fan of ``self``. For the outer normal fan, 
+        use ``direction='outer'``.
+
+        INPUT:
+
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if 
+          set to ``'inner'``, use the inner normal vectors to span the cones of 
+          the fan, if set to ``'outer'``, use the outer normal vectors. 
 
         OUTPUT:
 
@@ -2803,6 +2805,30 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: normal fan handles only polytopes over the rationals
 
+            sage: P = Polyhedron(vertices=[[0,0],[2,0],[0,2],[2,1],[1,2]])
+            sage: P.normal_fan(direction=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: the direction should be 'inner' or 'outer'
+
+            sage: inner_nf = P.normal_fan()
+            sage: inner_nf.rays()
+            N( 1,  0),
+            N( 0, -1),
+            N( 0,  1),
+            N(-1,  0),
+            N(-1, -1)
+            in 2-d lattice N
+
+            sage: outer_nf = P.normal_fan(direction='outer')
+            sage: outer_nf.rays()
+            N( 1,  0),
+            N( 1,  1),
+            N( 0,  1),
+            N(-1,  0),
+            N( 0, -1)
+            in 2-d lattice N
+
         REFERENCES:
 
         For more information, see Chapter 7 of [Zie2007]_.
@@ -2811,8 +2837,12 @@ class Polyhedron_base(Element):
 
         if not QQ.has_coerce_map_from(self.base_ring()):
             raise NotImplementedError('normal fan handles only polytopes over the rationals')
-
-        return NormalFan(self)
+        if direction == 'inner':
+            return NormalFan(self)
+        elif direction == 'outer':
+            return NormalFan(-self)
+        else:
+            raise TypeError("the direction should be 'inner' or 'outer'")
 
     @cached_method
     def face_fan(self):
@@ -3270,13 +3300,20 @@ class Polyhedron_base(Element):
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
             sage: P.translation( vector(QQ,[2,1]) )
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
+
+        TESTS::
+
+            sage: P = Polyhedron([[0,0],[1,0],[0,1]], base_ring=ZZ, backend='field')
+            sage: P.translation([2,1]).backend()
+            'field'
         """
         displacement = vector(displacement)
         new_vertices = [x.vector()+displacement for x in self.vertex_generator()]
         new_rays = self.rays()
         new_lines = self.lines()
-        new_ring = self.parent()._coerce_base_ring(displacement)
-        return Polyhedron(vertices=new_vertices, rays=new_rays, lines=new_lines, base_ring=new_ring)
+
+        parent = self.parent().base_extend(displacement)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def product(self, other):
         """
@@ -3317,6 +3354,17 @@ class Polyhedron_base(Element):
 
             sage: polytopes.hypercube(1) * polytopes.hypercube(2)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+
+        Check that the product preserves the backend, where possible::
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: (P*Q).backend()
+            'cdd'
+            sage: (Q*P).backend()
+            'ppl'
+            sage: (P * polytopes.dodecahedron(backend='field')).backend()
+            'field'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3336,9 +3384,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*self.ambient_dim()+l
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     _mul_ = product
 
@@ -3379,6 +3427,13 @@ class Polyhedron_base(Element):
             sage: S = Polyhedron([[1]])
             sage: C.join(S).is_combinatorially_isomorphic(C.pyramid())
             True
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: P.join(Q).backend()
+            'cdd'
+            sage: Q.join(P).backend()
+            'ppl'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3401,9 +3456,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*dim_self+l+[1]
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def subdirect_sum(self, other):
         """
@@ -3434,6 +3489,15 @@ class Polyhedron_base(Element):
 
             :meth:`join`
             :meth:`direct_sum`
+
+        TESTS::
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: P.subdirect_sum(Q).backend()
+            'cdd'
+            sage: Q.subdirect_sum(P).backend()
+            'ppl'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3456,9 +3520,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*dim_self+l
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def direct_sum(self, other):
         """
@@ -3489,6 +3553,15 @@ class Polyhedron_base(Element):
 
             :meth:`join`
             :meth:`subdirect_sum`
+
+        TESTS::
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: P.direct_sum(Q).backend()
+            'cdd'
+            sage: Q.direct_sum(P).backend()
+            'ppl'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3511,9 +3584,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*dim_self + l
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def dilation(self, scalar):
         """
@@ -3558,6 +3631,12 @@ class Polyhedron_base(Element):
             ()
             sage: (0*p).lines()
             ()
+
+        Dilation respects backend::
+
+            sage: P = polytopes.simplex(backend='field')
+            sage: P.dilation(3).backend()
+            'field'
         """
         if scalar > 0:
             new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
@@ -3571,10 +3650,9 @@ class Polyhedron_base(Element):
             new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
             new_rays = []
             new_lines = []
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(scalar),
-                          ambient_dim=self.ambient_dim())
+
+        parent = self.parent().base_extend(scalar)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def _acted_upon_(self, actor, self_on_left):
         """
@@ -3768,6 +3846,11 @@ class Polyhedron_base(Element):
             24
             sage: trunc_cube.n_inequalities()
             14
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='field').truncation().backend()
+            'field'
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
@@ -3781,9 +3864,8 @@ class Polyhedron_base(Element):
         new_rays = self.rays()
         new_lines = self.lines()
 
-        return Polyhedron(vertices=new_vertices, rays=new_rays,
-                          lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(cut_frac))
+        parent = self.parent().base_extend(cut_frac)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def face_truncation(self, face, linear_coefficients=None, cut_frac=None):
         r"""
@@ -3903,6 +3985,13 @@ class Polyhedron_base(Element):
               A vertex at (-1/3, -1, -1))
              sage: face_trunc.face_lattice().is_isomorphic(Cube.face_lattice())
              True
+
+        TESTS::
+
+            sage: Cube = polytopes.cube(backend='field')
+            sage: face_trunc = Cube.face_truncation(Cube.faces(2)[0])
+            sage: face_trunc.backend()
+            'field'
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
@@ -3939,8 +4028,8 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        return Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
-                          base_ring=self.parent()._coerce_base_ring(cut_frac))
+        parent = self.parent().base_extend(cut_frac)
+        return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     def stack(self, face, position=None):
         r"""
@@ -4015,6 +4104,13 @@ class Polyhedron_base(Element):
              A vertex at (1, 0),
              A ray in the direction (1, 1),
              A vertex at (2, 0))
+
+        TESTS::
+
+            sage: Cube = polytopes.cube(backend='field')
+            sage: stack = Cube.stack(Cube.faces(2)[0])
+            sage: stack.backend()
+            'field'
         """
         from sage.geometry.polyhedron.face import PolyhedronFace
         if not isinstance(face, PolyhedronFace):
@@ -4056,9 +4152,8 @@ class Polyhedron_base(Element):
         if not locus_polyhedron.contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
-        return Polyhedron(vertices=self.vertices() + (new_vertex,),
-                          rays=self.rays(),
-                          lines=self.lines())
+        parent = self.parent().base_extend(new_vertex)
+        return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
     def lawrence_extension(self, v):
         """
@@ -4083,6 +4178,16 @@ class Polyhedron_base(Element):
         REFERENCES:
 
             For more information, see Section 6.6 of [Zie2007]_.
+
+        TESTS::
+
+            sage: P = polytopes.simplex(2, backend='cdd')
+            sage: P.lawrence_extension(P.vertices()[0]).backend()
+            'cdd'
+
+            sage: P = polytopes.simplex(2, backend='ppl')
+            sage: P.lawrence_extension(P.vertices()[0]).backend()
+            'ppl'
         """
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
@@ -4094,7 +4199,8 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        return Polyhedron(lambda_V)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
+        return parent.element_class(parent, [lambda_V, None, None], None)
 
     def lawrence_polytope(self):
         r"""
@@ -4130,6 +4236,16 @@ class Polyhedron_base(Element):
         REFERENCES:
 
             For more information, see Section 6.6 of [Zie2007]_.
+
+        TESTS::
+
+            sage: P = polytopes.simplex(2, backend='cdd')
+            sage: P.lawrence_polytope().backend()
+            'cdd'
+
+            sage: P = polytopes.simplex(2, backend='ppl')
+            sage: P.lawrence_polytope().backend()
+            'ppl'
         """
         from sage.matrix.constructor import block_matrix
 
@@ -4140,7 +4256,8 @@ class Polyhedron_base(Element):
         n = self.n_vertices()
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
-        return Polyhedron(lambda_V)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
+        return parent.element_class(parent, [lambda_V, None, None], None)
 
     def is_lawrence_polytope(self):
         """
@@ -4759,8 +4876,43 @@ class Polyhedron_base(Element):
         assert self.is_compact(), "Not a polytope."
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
-        base_ring = self.parent()._coerce_base_ring(self.center().parent())
-        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring, backend=self.backend())
+        parent = self.parent().base_extend(self.center().parent())
+        return parent.element_class(parent, None, [[[1] + list(v) for v in verts], []])
+
+    def is_self_dual(self):
+        r"""
+        Return whether the polytope is self-dual.
+
+        A polytope is self-dual if its face lattice is isomorphic to the face
+        lattice of its dual polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.simplex().is_self_dual()
+            True
+            sage: polytopes.twenty_four_cell().is_self_dual()
+            True
+            sage: polytopes.cube().is_self_dual()
+            False
+            sage: polytopes.hypersimplex(5,2).is_self_dual()
+            False
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]]).is_self_dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron has to be compact")
+
+        n = self.n_vertices()
+        m = self.n_facets()
+        if n != m:
+            return False
+
+        G1 = self.vertex_facet_graph()
+        G2 = G1.reverse()
+        return G1.is_isomorphic(G2)
 
     def pyramid(self):
         """
@@ -4780,11 +4932,20 @@ class Polyhedron_base(Element):
             A vertex at (0, 1, -1)
             A vertex at (0, 1, 1)
             A vertex at (1, 0, 0)
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='cdd').pyramid().backend()
+            'cdd'
         """
+        assert self.is_compact(), "Not a polytope."
+
         new_verts = \
             [[0] + x for x in self.Vrep_generator()] + \
             [[1] + list(self.center())]
-        return Polyhedron(vertices=new_verts)
+
+        parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, [], []], None)
 
     def bipyramid(self):
         """
@@ -4812,6 +4973,11 @@ class Polyhedron_base(Element):
             sage: q2 = [list(v) for v in polytopes.cross_polytope(4).vertex_generator()]
             sage: [v in q2 for v in q]
             [True, True, True, True, True, True, True, True]
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='cdd').bipyramid().backend()
+            'cdd'
         """
         new_verts = \
             [[ 0] + list(x) for x in self.vertex_generator()] + \
@@ -4819,7 +4985,9 @@ class Polyhedron_base(Element):
             [[-1] + list(self.center())]
         new_rays = [[0] + r for r in self.rays()]
         new_lines = [[0] + list(l) for l in self.lines()]
-        return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines)
+
+        parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
 
     def prism(self):
         """
@@ -4834,14 +5002,20 @@ class Polyhedron_base(Element):
             sage: hypercube = cube.prism()
             sage: hypercube.n_vertices()
             16
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='cdd').prism().backend()
+            'cdd'
         """
         new_verts = []
         new_verts.extend( [ [0] + v for v in self.vertices()] )
         new_verts.extend( [ [1] + v for v in self.vertices()] )
         new_rays =        [ [0] + r for r in self.rays()]
         new_lines =       [ [0] + l for l in self.lines()]
-        return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
-                          base_ring=self.base_ring())
+
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
 
     def one_point_suspension(self, vertex):
         """
@@ -4940,8 +5114,8 @@ class Polyhedron_base(Element):
         new_lines = []
         new_lines.extend( [ l + [0] for l in self.line_generator() ] )
 
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def projection(self):
         """
@@ -5077,6 +5251,7 @@ class Polyhedron_base(Element):
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
+
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()
@@ -5088,6 +5263,8 @@ class Polyhedron_base(Element):
         lrs_procs = Popen(['lrs', in_filename],
                           stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = lrs_procs.communicate()
+        ans = bytes_to_str(ans)
+        err = bytes_to_str(err)
         if verbose:
             print(ans)
         # FIXME: check err
@@ -7248,6 +7425,11 @@ class Polyhedron_base(Element):
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+
+            Check that backend is preserved::
+
+            sage: polytopes.simplex(backend='field').affine_hull().backend()
+            'field'
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
@@ -7302,7 +7484,7 @@ class Polyhedron_base(Element):
         lines = [pivot(_) for _ in self.lines()]
         if as_affine_map:
             raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
-        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
+        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring(), backend=self.backend())
 
     def _polymake_init_(self):
         """

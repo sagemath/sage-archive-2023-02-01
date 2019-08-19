@@ -1357,7 +1357,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3, (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + (4*a^2 + a + 3)*5^3, (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + (3*a^3 + 2*a^2 + a + 1)*5^2 + (a^3 + a^2 + 2)*5^3, (a^3 + a^2 + a + 4) + (3*a^3 + 1)*5 + (3*a^3 + a + 2)*5^2 + (3*a^3 + 3*a^2 + 3*a + 1)*5^3]
             sage: sum([c * 5^i for i, c in enumerate(E)])
             a
-            sage: all([c^625 == c for c in E])
+            sage: all(c^625 == c for c in E)
             True
 
             sage: S.<x> = ZZ[]
@@ -1375,7 +1375,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
              6 + w^3 + 5*w^7]
             sage: sum([w^i*L[i] for i in range(len(L))]) == b
             True
-            sage: all([L[i]^(7^3) == L[i] for i in range(9)])
+            sage: all(L[i]^(7^3) == L[i] for i in range(9))
             True
 
             sage: L = W(3).teichmuller_expansion(); L

@@ -494,6 +494,8 @@ information. You can use the existing functions of Sage as templates.
     followed by a string of hyphens, equal signs, or other
     characters which are valid markers for reST
     headers: ``- = ` : ' " ~ _ ^ * + # < >``.
+    However, lines only containing double colons `::` do not
+    end "TESTS" blocks.
 
 Note about Sphinx directives vs. other blocks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

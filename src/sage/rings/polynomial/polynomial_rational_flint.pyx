@@ -681,7 +681,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Comparisons                                                             #
     ###########################################################################
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         """
         Returns whether or not self is the zero polynomial.
 
@@ -696,7 +696,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return fmpq_poly_is_zero(self.__poly)
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         r"""
         Returns whether or not this polynomial is one.
 

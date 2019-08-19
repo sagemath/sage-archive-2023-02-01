@@ -766,7 +766,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
                 # (this may make the order smaller at q != p)
                 # Also saturate the basis (divide out p as far as possible)
                 V = self.base_ring()**4
-                A = matrix(self.base_ring(), 4, 4, [ list(g) for g in e ]);
+                A = matrix(self.base_ring(), 4, 4, [list(g) for g in e])
 
                 e_n = []
                 x_rows = A.solve_left(matrix([ V(vec.coefficient_tuple()) for (vec,val) in f ]), check=False).rows()

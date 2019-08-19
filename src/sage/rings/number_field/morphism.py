@@ -679,12 +679,14 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
         """
         D = self.domain()
         ig = self.im_gens()
-        return '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
-                       i in range(D.ngens())])
+        return '\n'.join('%s |--> %s' % (D.gen(i), ig[i])
+                         for i in range(D.ngens()))
 
     def _call_(self, x):
         r"""
-        Evaluate this map at the element ``x``. This is done by first
+        Evaluate this map at the element ``x``.
+
+        This is done by first
         converting ``x`` to an element of the absolute field and then
         evaluating ``self.abs_hom()`` on it.
 

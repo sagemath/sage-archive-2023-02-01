@@ -41,6 +41,30 @@ REFERENCES:
    Space of Diagonal Harmonics:
    With an Appendix on the Combinatorics of Macdonald Polynomials*.
    University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
+
+.. [BK2001] \J. Bandlow, K. Killpatrick -- *An area-to_inv bijection
+   between Dyck paths and 312-avoiding permutations*, Electronic
+   Journal of Combinatorics, Volume 8, Issue 1 (2001).
+
+.. [EP2004] \S. Elizalde, I. Pak. *Bijections for refined restricted
+   permutations**. JCTA 105(2) 2004.
+
+.. [CK2008] \A. Claesson, S. Kitaev. *Classification of bijections
+   between `321`- and `132`- avoiding permutations*. Séminaire
+   Lotharingien de Combinatoire **60** 2008. :arxiv:`0805.1325`.
+
+.. [Knu1973] \D. Knuth. *The Art of Computer Programming, Vol. III*.
+   Addison-Wesley. Reading, MA. 1973.
+
+.. [Kra2001] \C. Krattenthaler -- *Permutations with restricted
+   patterns and Dyck paths*, Adv. Appl. Math. 27 (2001), 510--530.
+
+.. [Cha2005] \F. Chapoton, *Une Base Symétrique de l'algèbre des
+   Coinvariants Quasi-Symétriques*, Electronic Journal of
+   Combinatorics Vol 12(1) (2005) N16.
+
+.. [DS1992] \A. Denise, R. Simion, *Two combinatorial statistics on
+   Dyck paths*, Discrete Math 137 (1992), 155--176.
 """
 
 # ****************************************************************************
@@ -335,8 +359,6 @@ class DyckWord(CombinatorialElement):
         CombinatorialElement.__init__(self, parent, l)
         self._latex_options = dict(latex_options)
 
-    _has_2D_print = False
-
     def set_latex_options(self, D):
         r"""
         Set the latex options for use in the ``_latex_`` function.
@@ -440,24 +462,40 @@ class DyckWord(CombinatorialElement):
 
     def _repr_(self):
         r"""
+        Return a string representation of ``self`` depending on
+        :meth:`DyckWords.options`.
+
         TESTS::
 
             sage: DyckWord([1, 0, 1, 0])
             [1, 0, 1, 0]
             sage: DyckWord([1, 1, 0, 0])
             [1, 1, 0, 0]
-            sage: type(DyckWord([]))._has_2D_print = True
+            sage: DyckWords.options.display="lattice"
+            sage: DyckWords.options.diagram_style="line"
             sage: DyckWord([1, 0, 1, 0])
             /\/\
             sage: DyckWord([1, 1, 0, 0])
              /\
             /  \
-            sage: type(DyckWord([]))._has_2D_print = False
+            sage: DyckWords.options._reset()
         """
-        if self._has_2D_print:
-            return self.to_path_string()
-        else:
-            return super(DyckWord, self)._repr_()
+        return self.parent().options._dispatch(self, '_repr_', 'display')
+
+    def _repr_list(self):
+        r"""
+        Return a string representation of ``self`` as a list.
+
+        TESTS::
+
+            sage: DyckWord([])
+            []
+            sage: DyckWord([1, 0])
+            [1, 0]
+            sage: DyckWord('(())')
+            [1, 1, 0, 0]
+        """
+        return super(DyckWord, self)._repr_()
 
     def _repr_lattice(self, type=None, labelling=None, underpath=True):
         r"""
@@ -571,10 +609,7 @@ class DyckWord(CombinatorialElement):
             sage: print(DyckWord([1, 1, 0, 0]))
             (())
         """
-        if self._has_2D_print:
-            return self.to_path_string()
-        else:
-            return "".join(map(replace_symbols, [x for x in self]))
+        return "".join(map(replace_symbols, [x for x in self]))
 
     def to_path_string(self, unicode=False):
         r"""
@@ -1548,6 +1583,43 @@ class DyckWord(CombinatorialElement):
         from sage.combinat.tableau import StandardTableau
         return StandardTableau([x for x in [open_positions, close_positions] if x != []])
 
+    def to_tamari_sorting_tuple(self):
+        """
+        Convert a Dyck word to a Tamari sorting tuple.
+
+        The result is a list of integers, one for every up-step from
+        left to right. To each up-step is associated
+        the distance to the corresponding down step in the Dyck word.
+
+        This is useful for a faster conversion to binary trees.
+
+        EXAMPLES::
+
+            sage: DyckWord([]).to_tamari_sorting_tuple()
+            []
+            sage: DyckWord([1, 0]).to_tamari_sorting_tuple()
+            [0]
+            sage: DyckWord([1, 1, 0, 0]).to_tamari_sorting_tuple()
+            [1, 0]
+            sage: DyckWord([1, 0, 1, 0]).to_tamari_sorting_tuple()
+            [0, 0]
+            sage: DyckWord([1, 1, 0, 1, 0, 0]).to_tamari_sorting_tuple()
+            [2, 0, 0]
+
+        .. SEEALSO:: :meth:`to_Catalan_code`
+        """
+        position = 0
+        resu = [-i - 1 for i in range(len(self) // 2)]
+        indices_of_active_ups = []
+        for letter in self:
+            if letter == open_symbol:
+                indices_of_active_ups.append(position)
+                position += 1
+            else:
+                previous = indices_of_active_ups.pop()
+                resu[previous] += position
+        return resu
+
     @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
     def to_binary_tree(self, usemap="1L0R"):
         r"""
@@ -1639,7 +1711,10 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([1,0,1,0,1,0]).to_binary_tree_tamari()
             [[[., .], .], .]
         """
-        return self.to_binary_tree("L1R0")
+        # return self.to_binary_tree("L1R0")  # slower and recursive
+        from sage.combinat.binary_tree import from_tamari_sorting_tuple
+        tup = self.to_tamari_sorting_tuple()
+        return from_tamari_sorting_tuple(tup)
 
     def tamari_interval(self, other):
         r"""
@@ -1982,12 +2057,6 @@ class DyckWord_complete(DyckWord):
         Bandlow and Killpatrick in [BK2001]_.  Sends the area to the
         inversion number.
 
-        REFERENCES:
-
-        .. [BK2001] \J. Bandlow, K. Killpatrick -- *An area-to_inv bijection
-           between Dyck paths and 312-avoiding permutations*, Electronic
-           Journal of Combinatorics, Volume 8, Issue 1 (2001).
-
         EXAMPLES::
 
             sage: DyckWord([1,1,0,0]).to_312_avoiding_permutation()
@@ -2074,16 +2143,6 @@ class DyckWord_complete(DyckWord):
         number of excedences, and the semilength plus the height of the middle
         point to 2 times the length of the longest increasing subsequence.
 
-        REFERENCES:
-
-        .. [EP2004] \S. Elizalde, I. Pak. *Bijections for refined restricted
-           permutations**. JCTA 105(2) 2004.
-        .. [CK2008] \A. Claesson, S. Kitaev. *Classification of bijections
-           between `321`- and `132`- avoiding permutations*. Séminaire
-           Lotharingien de Combinatoire **60** 2008. :arxiv:`0805.1325`.
-        .. [Knu1973] \D. Knuth. *The Art of Computer Programming, Vol. III*.
-           Addison-Wesley. Reading, MA. 1973.
-
         EXAMPLES::
 
             sage: DyckWord([1,0,1,0]).to_321_avoiding_permutation()
@@ -2133,11 +2192,6 @@ class DyckWord_complete(DyckWord):
         r"""
         Use the bijection by C. Krattenthaler in [Kra2001]_ to send ``self``
         to a `132`-avoiding permutation.
-
-        REFERENCES:
-
-        .. [Kra2001] \C. Krattenthaler -- *Permutations with restricted
-           patterns and Dyck paths*, Adv. Appl. Math. 27 (2001), 510--530.
 
         EXAMPLES::
 
@@ -2327,6 +2381,8 @@ class DyckWord_complete(DyckWord):
             ....:     DyckWords().from_Catalan_code(dw.to_Catalan_code())
             ....:     for i in range(6) for dw in DyckWords(i))
             True
+
+        .. SEEALSO:: :meth:`to_tamari_sorting_tuple`
         """
         if not self:
             return []
@@ -2421,9 +2477,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Cha2005] \F. Chapoton, *Une Base Symétrique de l'algèbre des
-           Coinvariants Quasi-Symétriques*, Electronic Journal of
-           Combinatorics Vol 12(1) (2005) N16.
+        - [Cha2005]_
         """
         n = self.number_of_open_symbols()
         l = list(range(n + 2))  # from 0 to n + 1
@@ -2549,11 +2603,6 @@ class DyckWord_complete(DyckWord):
             3
             sage: DyckWord([1,1,0,1,0,0]).pyramid_weight()
             2
-
-        REFERENCES:
-
-        .. [DS1992] \A. Denise, R. Simion, *Two combinatorial statistics on
-           Dyck paths*, Discrete Math 137 (1992), 155--176.
         """
         aseq = self.to_area_sequence() + [0]
         bseq = self.reverse().to_area_sequence() + [0]
@@ -3204,13 +3253,13 @@ class DyckWords(UniqueRepresentation, Parent):
             sage: D
             [1, 1, 0, 1, 0, 0]
             sage: DyckWords.options.display="lattice"
-            sage: D  # known bug (Trac #24324)
+            sage: D
                ___
              _| x
             | x  .
             |  . .
             sage: DyckWords.options(diagram_style="line")
-            sage: D  # known bug (Trac #24324)
+            sage: D
              /\/\
             /    \
             sage: DyckWords.options._reset()

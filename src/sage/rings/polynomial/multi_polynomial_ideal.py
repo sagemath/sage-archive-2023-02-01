@@ -2644,11 +2644,13 @@ class MPolynomialIdeal_singular_repr(
 
         TESTS:
 
-        Check that :trac:`27483` is fixed::
+        Check that :trac:`27483` and :trac:`28110` are fixed::
 
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3, x*y^2, y^4, x^2*y*z, y^3*z, x^2*z^2, x*y*z^2, x*z^3])
             sage: I.hilbert_polynomial(algorithm='singular')
+            3
+            sage: I.hilbert_polynomial()
             3
 
         Check that this method works over QQbar (:trac:`25351`)::
@@ -2671,10 +2673,12 @@ class MPolynomialIdeal_singular_repr(
                 s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
             else:
                 return t.parent().zero()
+            # we assume the denominator of the Hilbert series is of the form (1-t)^s, scale if needed
+            if hilbert_poincare.denominator().leading_coefficient() == 1:
+                second_hilbert = second_hilbert*(-1)**s
             denom = ZZ(s-1).factorial()
             out = sum(c / denom * prod(s - 1 - n - nu + t for nu in range(s-1))
                       for n,c in enumerate(second_hilbert)) + t.parent().zero()
-            assert out.leading_coefficient() >= 0
             return out
         elif algorithm == 'singular':
             import sage.libs.singular.function_factory
@@ -3817,7 +3821,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             The Singular and libSingular versions of the respective
             algorithms are identical, but the former calls an external
-            Singular process while the later calls a C function,
+            Singular process while the latter calls a C function,
             i.e. the calling overhead is smaller. However, the
             libSingular interface does not support pretty printing of
             computation protocols.
@@ -3894,20 +3898,19 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         basis, ::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
-            sage: I.groebner_basis('toy:buchberger')
-            [a^2 - a + 2*b^2 + 2*c^2,
-             a*b + b*c - 1/2*b, a + 2*b + 2*c - 1,
-             b^2 + 3*b*c - 1/2*b + 3*c^2 - c,
-             b*c - 1/10*b + 6/5*c^2 - 2/5*c,
-             b + 30*c^3 - 79/7*c^2 + 3/7*c,
-             c^6 - 79/210*c^5 - 229/2100*c^4 + 121/2520*c^3 + 1/3150*c^2 - 11/12600*c,
-             c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            sage: gb = I.groebner_basis('toy:buchberger')
+            sage: gb.is_groebner()
+            True
+            sage: gb == gb.reduced()
+            False
 
         but that ``toy:buchberger2`` does.::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
-            sage: I.groebner_basis('toy:buchberger2')
+            sage: gb = I.groebner_basis('toy:buchberger2'); gb
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            sage: gb == gb.reduced()
+            True
 
         ::
 
@@ -4766,8 +4769,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: P = PolynomialRing(GF(127), 10, 'x')
             sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.random_element(degree=3)
+            sage: f = I.random_element(degree=3)
+            sage: f  # random
             -25*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 + ... + 19*x7*x9 + 40*x8*x9 + 49*x1
+            sage: f.degree()
+            3
 
         We show that the default method does not sample uniformly at random from the ideal::
 
@@ -4782,8 +4788,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: P.<x,y> = QQ[]
             sage: I = P.ideal([x^2,y^2])
+            sage: set_random_seed(5)
             sage: I.random_element(degree=2)
-            -x^2
+            -2*x^2 + 2*y^2
 
         """
         if compute_gb:
@@ -4793,7 +4800,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         R = self.ring()
 
-        r = R(0)
+        r = R.zero()
 
         for f in gens:
             d = degree - f.degree()

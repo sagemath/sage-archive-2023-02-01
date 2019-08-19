@@ -161,7 +161,7 @@ var('SAGE_LIB',            os.path.dirname(os.path.dirname(sage.__file__)))
 
 var('SAGE_ROOT')           # no fallback for SAGE_ROOT
 var('SAGE_SRC',            join(SAGE_ROOT, 'src'), SAGE_LIB)
-var('SAGE_DOC_SRC',        join(SAGE_SRC, 'doc'))
+var('SAGE_DOC_SRC',        join(SAGE_ROOT, 'src', 'doc'), SAGE_DOC)
 var('SAGE_PKGS',           join(SAGE_ROOT, 'build', 'pkgs'))
 var('SAGE_ROOT_GIT',       join(SAGE_ROOT, '.git'))
 
@@ -182,7 +182,9 @@ var('CREMONA_LARGE_DATA_DIR',        join(SAGE_SHARE, 'cremona'))
 var('JMOL_DIR',                      join(SAGE_SHARE, 'jmol'))
 var('JSMOL_DIR',                     join(SAGE_SHARE, 'jsmol'))
 var('MATHJAX_DIR',                   join(SAGE_SHARE, 'mathjax'))
+var('MTXLIB',                        join(SAGE_SHARE, 'meataxe'))
 var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
+var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA_FAS')
 
@@ -361,7 +363,8 @@ def cython_aliases():
         sage: cython_aliases()
         {...}
         sage: sorted(cython_aliases().keys())
-        ['FFLASFFPACK_CFLAGS',
+        ['ARB_LIBRARY',
+         'FFLASFFPACK_CFLAGS',
          'FFLASFFPACK_INCDIR',
          'FFLASFFPACK_LIBDIR',
          'FFLASFFPACK_LIBRARIES',
@@ -405,5 +408,5 @@ def cython_aliases():
     # This is not a problem in practice since LinBox depends on
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
     aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
-
+    aliases["ARB_LIBRARY"] = os.environ.get('SAGE_ARB_LIBRARY', 'arb')
     return aliases

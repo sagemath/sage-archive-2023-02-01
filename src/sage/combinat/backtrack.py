@@ -214,7 +214,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     # Little trick: the same implementation handles both depth and
     # breadth first search. Setting position to -1 makes a depth search
     # (you ask the children for the last node you met). Setting
-    # position on 0 makes a breadth search (enumarate all the
+    # position on 0 makes a breadth search (enumerate all the
     # descendants of a node before going on to the next father)
     if algorithm == 'depth':
         position = -1
@@ -228,7 +228,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     #    of the node at depth ``i-1`` in the current branch (assuming a virtual
     #    father of all roots at depth ``-1``)
     stack = [iter(roots)]
-    while len(stack) > 0:
+    while stack:
         try:
             node = next(stack[position])
         except StopIteration:
@@ -696,7 +696,7 @@ class SearchForest(Parent):
             True
         """
         stack = [iter(self.roots())]
-        while len(stack) > 0:
+        while stack:
             position = randint(0,len(stack)-1)
             try:
                 node = next(stack[position])

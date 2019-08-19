@@ -725,10 +725,10 @@ class Permutation(CombinatorialElement):
             '(1,2)(3)'
         """
         cycles = self.to_cycles(singletons=singletons)
-        if cycles == []:
+        if not cycles:
             return "()"
         else:
-            return "".join(["("+",".join([str(l) for l in x])+")" for x in cycles])
+            return "".join("("+",".join(str(l) for l in x)+")" for x in cycles)
 
     def __next__(self):
         r"""
@@ -995,7 +995,7 @@ class Permutation(CombinatorialElement):
 
         #Go through until we've considered every number between
         #1 and len(p)
-        while len(l) > 0:
+        while l:
             #If we are at the end of a cycle
             #then we want to add it to the cycles list
             if toConsider == -1:
@@ -1061,7 +1061,7 @@ class Permutation(CombinatorialElement):
             L = set(range(1,len(p)+1))
 
         #Go through until we've considered every remaining number
-        while len(L) > 0:
+        while L:
             # take the first remaining element
             cycleFirst = L.pop()
             next = p[cycleFirst-1]
@@ -1104,7 +1104,7 @@ class Permutation(CombinatorialElement):
         from bisect import bisect_left
 
         #Go through until we've considered every remaining number
-        while len(L) > 0:
+        while L:
             # take the first remaining element
             cycleFirst = L.pop(0)
             next = p[cycleFirst-1]
@@ -1134,7 +1134,7 @@ class Permutation(CombinatorialElement):
         """
         cycles = self.to_cycles(singletons=False)
         grp = SymmetricGroup(len(self))
-        if cycles == []:
+        if not cycles:
             return PermutationGroupElement( '()', parent=grp )
         else:
             return PermutationGroupElement( cycles , parent=grp)
@@ -2237,7 +2237,7 @@ class Permutation(CombinatorialElement):
             sage: sum(q^B.rank_function()(x) for x in B)
             q^5 + 2*q^4 + 3*q^3 + 3*q^2 + 2*q + 1
 
-        We check the statement in [CC13]_ that the posets
+        We check the statement in [CC2013]_ that the posets
         `C_{[1,3,1,1]}` and `C_{[1,3,2]}` are isomorphic::
 
             sage: l2 = [p for p in P if [len(t) for t in p.to_cycles()] == [1,3,1,1]]
@@ -2245,12 +2245,6 @@ class Permutation(CombinatorialElement):
             sage: B2 = Poset([l2, lambda x,y: x.bruhat_lequal(y)])
             sage: B.is_isomorphic(B2)
             True
-
-        REFERENCES:
-
-        .. [CC13] Mahir Bilen Can and Yonah Cherniavsky.
-           *Omitting parentheses from the cyclic notation*. (2013).
-           :arxiv:`1308.0936v2`.
 
         .. SEEALSO::
 
@@ -3172,10 +3166,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [GarStan1984] \A. M. Garsia, Dennis Stanton.
-           *Group actions on Stanley-Reisner rings and invariants of
-           permutation groups*. Adv. in Math. **51** (1984), 107-201.
-           http://www.sciencedirect.com/science/article/pii/0001870884900057
+        - [GS1984]_
 
         EXAMPLES::
 
@@ -3188,7 +3179,7 @@ class Permutation(CombinatorialElement):
 
             This docstring needs to be fixed. First, the definition
             does not match the implementation (or the examples).
-            Second, this doesn't seem to be defined in [GarStan1984]_
+            Second, this doesn't seem to be defined in [GS1984]_
             (the descent monomial in their (7.23) is different).
         """
         p = self
@@ -4011,13 +4002,7 @@ class Permutation(CombinatorialElement):
         After all numbers are inserted, we are left with a list
         which is precisely the join of `\pi` and `\psi` (in
         one-line notation). This algorithm is due to Markowsky,
-        [Mark94]_ (Theorem 1 (a)).
-
-        REFERENCES:
-
-        .. [Mark94] George Markowsky.
-           *Permutation lattices revisited*.
-           Mathematical Social Sciences, 27 (1994), 59--72.
+        [Mar1994]_ (Theorem 1 (a)).
 
         AUTHORS:
 
@@ -4864,24 +4849,12 @@ class Permutation(CombinatorialElement):
 
         When `m = n-1`, the Okounkov-Vershik retract (as a map
         `S_n \to S_{n-1}`) is the map `\widetilde{p}_n` introduced in
-        Section 7 of [OkounkovVershik2]_, and appears as (3.20) in
-        [CST10]_. In the general case, the Okounkov-Vershik retract
+        Section 7 of [VO2005]_, and appears as (3.20) in
+        [CST2010]_. In the general case, the Okounkov-Vershik retract
         of a permutation in `S_n` to `S_m` can be obtained by first
         taking its Okounkov-Vershik retract to `S_{n-1}`, then that
         of the resulting permutation to `S_{n-2}`, etc. until arriving
         in `S_m`.
-
-        REFERENCES:
-
-        .. [OkounkovVershik2] \A. M. Vershik, A. Yu. Okounkov.
-           *A New Approach to the Representation Theory of the Symmetric
-           Groups. 2*. :arxiv:`math/0503040v3`.
-
-        .. [CST10] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
-           Filippo Tolli.
-           *Representation Theory of the Symmetric Groups: The
-           Okounkov-Vershik Approach, Character Formulas, and Partition
-           Algebras*. CUP 2010.
 
         EXAMPLES::
 
@@ -4945,7 +4918,7 @@ class Permutation(CombinatorialElement):
         `\{\{1,2\},\{3,4\},\dots,\{2n-1,2n\}\}` and its image by ``self``, and
         draw them simultaneously as edges of a graph whose vertices are labeled
         by `1,2,\dots,2n`. The coset-type is the ordered sequence of the
-        semi-lengths of the cycles of this graph (see Chapter VII of [Mcd]_ for
+        semi-lengths of the cycles of this graph (see Chapter VII of [Mac1995]_ for
         more details, particularly Section VII.2).
 
         EXAMPLES::
@@ -4962,11 +4935,6 @@ class Permutation(CombinatorialElement):
             Traceback (most recent call last):
             ...
             ValueError: [3, 1, 2] is a permutation of odd size and has no coset-type
-
-        REFERENCES:
-
-        .. [Mcd] \I. G. Macdonald. Symmetric functions and Hall
-           polynomials. Oxford University Press, second edition, 1995.
         """
         from sage.combinat.perfect_matching import PerfectMatchings
         n = len(self)

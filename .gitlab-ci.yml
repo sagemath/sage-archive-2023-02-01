@@ -115,6 +115,8 @@ build-from-clean: &build_from_clean
     - master
     - develop
     - tags
+    # TODO: Remove this line
+    - u/saraedum/mrs/22/docker-python3
   except: []
   tags:
     # 60 GB of HDD are available

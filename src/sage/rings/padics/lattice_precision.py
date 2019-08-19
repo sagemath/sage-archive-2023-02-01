@@ -1443,7 +1443,7 @@ class DifferentialPrecisionGeneric(SageObject):
             for (event, index, tme) in self._history:
                 if event == 'partial reduce' or event == 'full reduce':
                     if separate_reduce:
-                        if total_time > 0:
+                        if status:
                             hist.append(self._format_history(total_time, status, timings))
                         if event == 'partial reduce': code = 'r'
                         else: code = 'R'
@@ -1455,7 +1455,7 @@ class DifferentialPrecisionGeneric(SageObject):
                         total_time += tme
                     continue
                 if not compact or event != oldevent:
-                    if total_time > 0:
+                    if status:
                         hist.append(self._format_history(total_time, status, timings))
                     total_time = 0
                     oldevent = event
@@ -1469,7 +1469,7 @@ class DifferentialPrecisionGeneric(SageObject):
                     status[index] = '~'
                 elif event == 'del':
                     del status[index]
-            if total_time > 0 or oldevent == '':
+            if status or oldevent == '':
                 hist.append(self._format_history(total_time, status, timings))
             return '\n'.join(hist)
         else:

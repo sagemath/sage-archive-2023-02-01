@@ -67,7 +67,7 @@ SAGE_SCRIPTS
     var box = new THREE.Geometry();
     box.vertices.push( new THREE.Vector3( a[0]*b[0].x, a[1]*b[0].y, a[2]*b[0].z ) );
     box.vertices.push( new THREE.Vector3( a[0]*b[1].x, a[1]*b[1].y, a[2]*b[1].z ) );
-    var boxMesh = new THREE.LineSegments( box );
+    var boxMesh = new THREE.Line( box );
     if ( options.frame ) scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
     if ( options.axes_labels ) {
@@ -262,8 +262,6 @@ SAGE_SCRIPTS
         for ( var i=0 ; i < json.points.length - 1 ; i++ ) {
             var v = json.points[i];
             geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
-            var v = json.points[i+1];
-            geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
         }
 
         var transparent = json.opacity < 1 ? true : false;
@@ -275,7 +273,7 @@ SAGE_SCRIPTS
         geometry.boundingBox.getCenter( c );
         geometry.translate( -c.x, -c.y, -c.z );
 
-        var mesh = new THREE.LineSegments( geometry, material );
+        var mesh = new THREE.Line( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         scene.add( mesh );
 
@@ -286,7 +284,7 @@ SAGE_SCRIPTS
 
     function addSurface( json ) {
 
-        var useFaceColors = json.hasOwnProperty( 'face_colors' ) ? true : false;
+        var useFaceColors = 'faceColors' in json ? true : false;
 
         var geometry = new THREE.Geometry();
         for ( var i=0 ; i < json.vertices.length ; i++ ) {
@@ -297,14 +295,14 @@ SAGE_SCRIPTS
             var f = json.faces[i];
             for ( var j=0 ; j < f.length - 2 ; j++ ) {
                 var face = new THREE.Face3( f[0], f[j+1], f[j+2] );
-                if ( useFaceColors ) face.color.set( json.face_colors[i] );
+                if ( useFaceColors ) face.color.set( json.faceColors[i] );
                 geometry.faces.push( face );
             }
         }
         geometry.computeVertexNormals();
 
         var transparent = json.opacity < 1 ? true : false;
-        var flatShading = json.hasOwnProperty( 'useFlatShading' ) ? true : false;
+        var flatShading = 'useFlatShading' in json ? true : false;
 
         var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide,
                                      color: useFaceColors ? 'white' : json.color,
@@ -320,6 +318,36 @@ SAGE_SCRIPTS
         var mesh = new THREE.Mesh( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         scene.add( mesh );
+
+        if ( 'showMeshGrid' in json ) {
+
+            var geometry = new THREE.Geometry();
+
+            for ( var i=0 ; i < json.faces.length ; i++ ) {
+                var f = json.faces[i];
+                for ( var j=0 ; j < f.length ; j++ ) {
+                    var k = j === f.length-1 ? 0 : j+1;
+                    var v1 = json.vertices[f[j]];
+                    var v2 = json.vertices[f[k]];
+                    // vertices in opposite directions on neighboring faces
+                    var nudge = f[j] < f[k] ? .0005*zRange : -.0005*zRange;
+                    geometry.vertices.push( new THREE.Vector3( a[0]*v1.x, a[1]*v1.y, a[2]*(v1.z+nudge) ) );
+                    geometry.vertices.push( new THREE.Vector3( a[0]*v2.x, a[1]*v2.y, a[2]*(v2.z+nudge) ) );
+                }
+            }
+
+            var material = new THREE.LineBasicMaterial( { color: 'black', linewidth: 1 } );
+
+            var c = new THREE.Vector3();
+            geometry.computeBoundingBox();
+            geometry.boundingBox.getCenter( c );
+            geometry.translate( -c.x, -c.y, -c.z );
+
+            var mesh = new THREE.LineSegments( geometry, material );
+            mesh.position.set( c.x, c.y, c.z );
+            scene.add( mesh );
+
+        }
 
     }
 

@@ -8652,6 +8652,8 @@ class Graph(GenericGraph):
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
     from sage.graphs.connectivity import is_triconnected
+    from sage.graphs.comparability import is_comparability
+    from sage.graphs.comparability import is_permutation
 
 
 _additional_categories = {
@@ -8671,6 +8673,8 @@ _additional_categories = {
     "is_strongly_regular"       : "Graph properties",
     "is_line_graph"             : "Graph properties",
     "is_partial_cube"           : "Graph properties",
+    "is_comparability"          : "Graph properties",
+    "is_permutation"            : "Graph properties",
     "tutte_polynomial"          : "Algorithmically hard stuff",
     "lovasz_theta"              : "Leftovers",
     "strong_orientations_iterator" : "Connectivity, orientations, trees",

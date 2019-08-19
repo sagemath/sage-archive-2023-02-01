@@ -161,7 +161,7 @@ var('SAGE_LIB',            os.path.dirname(os.path.dirname(sage.__file__)))
 
 var('SAGE_ROOT')           # no fallback for SAGE_ROOT
 var('SAGE_SRC',            join(SAGE_ROOT, 'src'), SAGE_LIB)
-var('SAGE_DOC_SRC',        join(SAGE_SRC, 'doc'))
+var('SAGE_DOC_SRC',        join(SAGE_ROOT, 'src', 'doc'), SAGE_DOC)
 var('SAGE_PKGS',           join(SAGE_ROOT, 'build', 'pkgs'))
 var('SAGE_ROOT_GIT',       join(SAGE_ROOT, '.git'))
 

@@ -310,7 +310,7 @@ def is_package_installed(package, exclude_pip=True):
 
     EXAMPLES::
 
-        sage: is_package_installed('pari')  # optional - build
+        sage: is_package_installed('gap')  # optional - build
         True
 
     Giving just the beginning of the package name is not good enough::

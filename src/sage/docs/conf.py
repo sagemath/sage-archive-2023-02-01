@@ -218,7 +218,7 @@ html_theme = 'sage'
 html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes'), os.path.join(SAGE_DOC, 'common', 'themes')]
+html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.

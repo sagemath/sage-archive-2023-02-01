@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # cython: binding=True
+# distutils: language = c++
 r"""
 Graph traversals.
 
@@ -14,6 +15,9 @@ Graph traversals.
     :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
+    :meth:`~lex_M` | Return an ordering of the vertices of the graph according the LexM graph traversal.
+    :meth:`~lex_M_slow` | Return an ordering of the vertices of G according the LexM graph traversal.
+    :meth:`~lex_M_fast` | Return an ordering of the vertices of G according the LexM graph traversal.
 
 Methods
 -------
@@ -37,6 +41,7 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
+from libc.stdint cimport uint32_t
 
 def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     r"""
@@ -680,3 +685,536 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
 
     else:
         return value
+
+def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorithm=None):
+    r"""
+    Return an ordering of the vertices of the graph according the LexM
+    graph traversal.
+
+    LexM is a lexicographic ordering scheme that is a special type of
+    breadth-first-search. LexM can also produce a triangulation of the
+    given graph. This functionality is implemented in this method. For
+    more details on the algorithms used see sections 4 (``'lex_M_slow'``)
+    and 5.3 (``'lex_M_fast'``) of [RTL76]_.
+
+    .. NOTE::
+
+        This method works only for undirected graphs.
+
+    INPUT:
+
+    - ``triangulation`` boolean (default: `False``); if ``True``, a list of
+      edges that need to be added in order to triangulate the graph is
+      returned
+
+    - ``labels`` -- boolean (default: ``False``); whether to return the
+      labels assigned to each vertexx
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to
+      consider
+
+    - ``algorithm`` -- string (default: ``None``); one of the following
+      algorithms:
+
+      - ``'lex_M_slow'``: slower implementation of LexM traversal
+
+      - ``'lex_M_fast'``: faster implementation of LexM traversal (works
+        only when ``labels`` is set to ``False``)
+
+      - ``None``: Sage chooses the best algorithm: ``'lex_M_slow'`` if
+        ``labels`` is set to ``True``, ``'lex_M_fast'`` otherwise.
+
+    OUTPUT:
+
+    Depending on the values of the parameters ``triangulation`` and
+    ``labels`` the method will return one or more of the following
+    (in that order):
+
+    - an ordering of vertices of the graph according to LexM ordering scheme
+
+    - the labels assigned to each vertex
+
+    - a list of edges that when added to the graph will triangulate it
+
+    EXAMPLES:
+
+    LexM produces an ordering of the vertices::
+
+        sage: g = graphs.CompleteGraph(6)
+        sage: ord = g.lex_M(algorithm='lex_M_fast')
+        sage: len(ord) == g.order()
+        True
+        sage: set(ord) == set(g.vertices())
+        True
+        sage: ord = g.lex_M(algorithm='lex_M_slow')
+        sage: len(ord) == g.order()
+        True
+        sage: set(ord) == set(g.vertices())
+        True
+
+    Both algorithms produce a valid LexM ordering \alpha (i.e the
+    neighbors of `\alpha(i) \in G\[\{\alpha(i), ..., \alpha(n)\}\] induce a
+    clique)::
+
+        sage: from sage.graphs.traversals import is_valid_lex_M_order
+        sage: G = graphs.PetersenGraph()
+        sage: ord, F = G.lex_M(triangulation=True, algorithm='lex_M_slow')
+        sage: is_valid_lex_M_order(G, ord, F)
+        True
+        sage: ord, F = G.lex_M(triangulation=True, algorithm='lex_M_fast')
+        sage: is_valid_lex_M_order(G, ord, F)
+        True
+
+    LexM produces a triangulation of given graph::
+
+        sage: G = graphs.PetersenGraph()
+        sage: _, F = G.lex_M(triangulation=True)
+        sage: H = Graph(F, format='list_of_edges')
+        sage: H.is_chordal()
+        True
+
+    LexM ordering of the 3-sun graph::
+
+        sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: g.lex_M()
+        [6, 4, 5, 3, 2, 1]
+
+    TESTS:
+
+    ``'lex_M_fast'`` cannot return labels::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: G.lex_M(labels=True, algorithm='lex_M_fast')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'lex_M_fast' cannot return labels assigned to vertices
+
+    The method works only for undirected graphs::
+
+        sage: G = digraphs.Circuit(15)
+        sage: G.lex_M()
+        Traceback (most recent call last):
+        ...
+        ValueError: input graph must be undirected
+
+    LexM ordering of empty graph::
+
+        sage: G = Graph()
+        sage: G.lex_M()
+        []
+
+    Parameter ``algorithm`` must be either ``'lex_M_slow'``,
+    ``'lex_M_fast'`` or ``None``::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: G.lex_M(algorithm='Bob')
+        Traceback (most recent call last)
+        ...
+        ValueError: unknown algorithm 'Bob'
+
+    """
+    if self.is_directed():
+        raise ValueError("input graph must be undirected")
+
+    if not algorithm:
+        if labels == True:
+            algorithm = "lex_M_slow"
+        else:
+            algorithm = "lex_M_fast"
+
+    if algorithm not in ["lex_M_slow", "lex_M_fast"]:
+        raise ValueError("unknown algorithm '{}'".format(algorithm))
+
+    if algorithm == "lex_M_slow":
+        return lex_M_slow(self, triangulation=triangulation, labels=labels, initial_vertex=initial_vertex)
+    else:
+        if labels:
+            raise ValueError("'{}' cannot return labels assigned to vertices".format(algorithm))
+        return lex_M_fast(self, triangulation=triangulation, initial_vertex=initial_vertex)
+
+def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
+    r"""
+    Return an ordering of the vertices of G according the LexM graph traversal.
+
+    LexM is a lexicographic ordering scheme that is a special type of
+    breadth-first-search. This function implements the algorithm described in
+    Section 4 of [RTL76]_.
+
+    During the search, the vertices are numbered from `n` to `1`. Let
+    `\alpha(i)` denote the vertex numbered `i` and let `\alpha^{-1}(u)` denote
+    the number assigned to `u`. Each vertex `u` has also a label, denoted by
+    `label(u)`, consisting of a list of numbers selected from `[1,n]` and
+    ordered in decreasing order. Given two labels `L_1=[p_1, p_2,\ldots, p_k]`
+    and `L_1=[q_1, q_2,\ldots, q_l]`, we define `L_1<L_2` if, for some `j`,
+    `p_i==q_i` for `i=1,\ldots,j-1` and `p_j<q_j`, or if `p_i==q_i` for
+    `i=1,\ldots,k` and `k<l`. Observe that this is exactly how Python compares
+    two lists.
+
+    .. NOTE::
+
+        This method works only for undirected graphs.
+
+    INPUT:
+
+    - ``G`` -- a sage graph
+
+    - ``triangulation`` -- boolean (default: ``False``); whether to return
+      the triangulation of given graph produced by the method.
+
+    - ``labels`` -- boolean (default: ``False``); whether to return the
+      labels assigned to each vertex
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to
+      consider
+
+    OUTPUT:
+
+    Depending on the values of the parameters ``triangulation`` and ``labels``
+    the method will return one or more of the following (in that order):
+
+    - the ordering of vertices of ``G``
+
+    - the labels assigned to each vertex
+
+    - a list of edges that when added to ``G`` will produce a triangulation
+      of ``G``
+
+    EXAMPLES:
+
+    A LexM ordering is obviously an ordering of the vertices::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: g = graphs.CompleteGraph(6)
+        sage: len(lex_M_slow(g)) == g.order()
+        True
+
+    LexM ordering and label assignments on the vertices of the 3-sun graph::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: lex_M_slow(g, labels=True)
+        ([6, 4, 5, 3, 2, 1],
+         {1: [], 2: [5], 3: [5, 4], 4: [4, 2], 5: [4, 3], 6: [3, 2]})
+
+    LexM produces a triangulation of given graph::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: G = graphs.PetersenGraph()
+        sage: _, F = lex_M_slow(G, triangulation=True)
+        sage: H = G.copy()
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+
+    TESTS:
+
+    LexM ordering of empty graph::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: G = Graph()
+        sage: lex_M_slow(G)
+        []
+
+    The method works only for undirected graphs::
+
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: G = digraphs.Circuit(15)
+        sage: lex_M_slow(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: input graph must be undirected
+
+    """
+    if G.is_directed():
+        raise ValueError("input graph must be undirected")
+
+    # ==>Initialization
+    # Assign empty label to all vertices of G and empty list to F
+    cdef list unnumbered_vertices = list(G)
+    cdef int n = G.order()
+    cdef list alpha = [0] * n
+    cdef dict label = {v: [] for v in unnumbered_vertices}
+    cdef list F = []
+    cdef int i
+    cdef set active, reach
+
+    if initial_vertex is not None:
+        i = unnumbered_vertices.index(initial_vertex)
+        unnumbered_vertices[0], unnumbered_vertices[i] = unnumbered_vertices[i], unnumbered_vertices[0]
+
+    for i in range(n-1, -1, -1):
+        # Select: pick an unnumbered vertex u with largest label
+        u = unnumbered_vertices[0]
+        for v in unnumbered_vertices[1:]:
+            if label[u] < label[v]:
+                u = v
+
+        unnumbered_vertices.remove(u)
+        alpha[i] = u
+
+        # Update: for each vertex v in unnumbered_vertices such that there is a
+        # chain u = w_1, w_2, ..., w_{p+1} = v with w_j unnumbered and
+        # label(w_j) < label(v) for all j in {2,...,p}. If so, we add i to the
+        # label of v and add edge {u,v} to F.
+        for v in unnumbered_vertices:
+
+            # We check if there is a chain u = w_1, w_2, ..., w_{p+1} = v with
+            # w_j unnumbered and label(w_j) < label(v) for all j in {2, ..., p}
+            active = set([w for w in unnumbered_vertices if label[w] < label[v]])
+            active.add(v)
+            reach = set([u])
+            while active and reach and v not in reach:
+                w = reach.pop()
+                for x in G.neighbor_iterator(w):
+                    if x in active:
+                        reach.add(x)
+                        active.discard(x)
+
+            if v in reach:
+                label[v].append(i)
+                if triangulation:
+                    F.append((u, v))
+
+    if triangulation and labels:
+        return alpha, label, F
+    elif triangulation:
+        return alpha, F
+    elif labels:
+        return alpha, label
+    else:
+        return alpha
+
+
+def lex_M_fast(G, triangulation=False, initial_vertex=None):
+    r"""
+    Return an ordering of the vertices of G according the LexM graph traversal.
+
+    LexM is a lexicographic ordering scheme that is a special type of
+    breadth-first-search. This function implements the algorithm described in
+    Section 5.3 of [RTL76]_.
+
+    Note that instead of using labels `1, 2, \ldots, k` and adding `1/2`, we
+    use labels `2, 4, \ldots, k` and add `1`, thus avoiding to use floats or
+    rationals.
+
+    .. NOTE::
+
+        This method works only for undirected graphs.
+
+    INPUT:
+
+    - ``G`` -- a sage graph
+
+    - ``triangulation`` -- boolean (default: ``False``); whether to return
+      the triangulation of given graph produced by the method.
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to
+      consider
+
+    OUTPUT:
+
+    This method will return an ordering of the vertices of ``G`` according to
+    the LexM ordering scheme. Furthermore, if ``triangulation`` is set to
+    ``True`` the method also returns a list of edges ``F`` such that when added
+    to ``G`` the resulting graph is a triangulation of ``G``.
+
+    EXAMPLES:
+
+    A LexM ordering is obviously an ordering of the vertices::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: g = graphs.CompleteGraph(6)
+        sage: len(lex_M_fast(g)) == g.order()
+        True
+
+    LexM ordering of the 3-sun graph::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: lex_M_fast(g)
+        [6, 4, 5, 3, 2, 1]
+
+    LexM produces a triangulation of given graph::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: G = graphs.PetersenGraph()
+        sage: _, F = lex_M_fast(G, triangulation=True)
+        sage: H = G.copy()
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+
+    TESTS:
+
+    LexM ordering of empty graph::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: G = Graph()
+        sage: lex_M_fast(G)
+        []
+
+    The method works only for undirected graphs::
+
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: G = digraphs.Circuit(15)
+        sage: lex_M_fast(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: input graph must be undirected
+
+    """
+    if G.is_directed():
+        raise ValueError("input graph must be undirected")
+
+    # ==> Initialization
+
+    cdef list int_to_v = list(G)
+    cdef int i, j, k, v, w, z
+
+    if initial_vertex is not None:
+        # We put the initial vertex at first place in the ordering
+        i = int_to_v.index(initial_vertex)
+        int_to_v[0], int_to_v[i] = int_to_v[i], int_to_v[0]
+
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
+    cdef uint32_t* p_tmp
+    cdef uint32_t* p_end
+
+    cdef int n = G.order()
+
+    cdef list unnumbered_vertices = list(range(n))
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int* label = <int*>mem.allocarray(n, sizeof(int))
+    cdef int* alpha = <int*>mem.allocarray(n, sizeof(int))
+    cdef int* alphainv = <int*>mem.allocarray(n, sizeof(int))
+    cdef bint* reached = <bint*>mem.allocarray(n, sizeof(bint))
+
+    for i in range(n):
+        label[i] = 2
+        alpha[i] = 0
+        alphainv[i] = 0
+        reached[i] = False
+
+    cdef list F = list()
+    cdef dict reach
+
+    k = 2
+    for i in range(n-1, -1, -1):
+
+        # Select: pick an unnumbered vertex v with label(v)==k and assign it
+        # number i
+        for v in unnumbered_vertices:
+            if label[v] == k:
+                alpha[i] = v
+                alphainv[v] = i
+                reached[v] = True
+                unnumbered_vertices.remove(v)
+                break
+        else:
+            raise ValueError('unable to find an unnumbered vertex v with label[v] == k')
+
+        # Mark all unnumbered vertices unreached
+        for w in unnumbered_vertices:
+            reached[w] = False
+
+        reach = dict()
+        for j in range(2, k + 1, 2):
+            reach[j] = set()
+
+        p_tmp = sd.neighbors[v]
+        p_end = sd.neighbors[v + 1]
+        while p_tmp < p_end:
+            w = p_tmp[0]
+            p_tmp += 1
+            if alphainv[w]:
+                continue
+            reach[label[w]].add(w)
+            reached[w] = True
+            label[w] += 1
+            if triangulation:
+                F.append((int_to_v[v], int_to_v[w]))
+
+        # Search
+        for j in range(2, k + 1, 2):
+            while reach[j]:
+                w = reach[j].pop()
+                p_tmp = sd.neighbors[w]
+                p_end = sd.neighbors[w + 1]
+                while p_tmp < p_end:
+                    z = p_tmp[0]
+                    p_tmp += 1
+                    if reached[z]:
+                        continue
+                    reached[z] = True
+                    if label[z] > j:
+                        reach[label[z]].add(z)
+                        label[z] += 1
+                        if triangulation:
+                            F.append((int_to_v[v], int_to_v[z]))
+                    else:
+                        reach[j].add(z)
+
+        if unnumbered_vertices:
+            # Sort: sort unnumbered vertices by label(w) value
+            order = sorted( (label[w], w) for w in unnumbered_vertices )
+
+            # Reassign labels as integers from 2 to k, redefining k appropriately
+            k = 2
+            l,_ = order[0]
+            for ll,w in order:
+                if l != ll:
+                    l = ll
+                    k += 2
+                label[w] = k
+
+    free_short_digraph(sd)
+
+    cdef list ordering = [int_to_v[alpha[i]] for i in range(n)]
+
+    if triangulation:
+        return ordering, F
+    else:
+        return ordering
+
+
+def is_valid_lex_M_order(G, alpha, F):
+    """
+    Check if the ordering alpha and the triangulation are valid for G.
+
+    By induction one can see that for every `i \in \{1, ..., n − 1\}` the
+    neighbors of `\alpha(i) \in H\[\{\alpha(i), ..., \alpha(n)\}\] induce a
+    clique. The ordering `\alpha` is a perfect elimination ordering of `H`, so
+    `H` is chordal.
+
+    TESTS::
+
+        sage: from sage.graphs.traversals import lex_M_slow, is_valid_lex_M_order
+        sage: G = graphs.PetersenGraph()
+        sage: alpha, F = lex_M_slow(G, triangulation=True)
+        sage: is_valid_lex_M_order(G, alpha, F)
+        True
+        sage: H = Graph(G.edges(sort=False))
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: alpha, F = lex_M_fast(G, triangulation=True)
+        sage: is_valid_lex_M_order(G, alpha, F)
+        True
+        sage: H = Graph(G.edges(sort=False))
+        sage: H.add_edges(F)
+        sage: H.is_chordal()
+        True
+    """
+    H = G.copy()
+    H.add_edges(F)
+    s_alpha = set(alpha)
+    for u in alpha:
+        K = H.subgraph(H.neighbors(u))
+        s_alpha.discard(u)
+        K.delete_vertices([v for v in K if v not in s_alpha])
+        if not K.is_clique():
+            return False
+    return True

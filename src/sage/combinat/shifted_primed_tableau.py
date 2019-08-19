@@ -314,7 +314,7 @@ class ShiftedPrimedTableau(ClonableArray):
             [(1, 2', 2, 2), (2, 3')]
             sage: ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
             [(None, None, 2', 2, 3), (None, 2')]
-            """
+        """
         return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_list(self):
@@ -410,7 +410,6 @@ class ShiftedPrimedTableau(ClonableArray):
             +---+
             | . |
             +---+
-
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._ascii_art_table(unicode=False).splitlines())
@@ -619,7 +618,7 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
             sage: s.shape()
             [5, 2] / [2, 1]
-            """
+        """
         if self._skew is None:
             return Partition([len(row) for row in self])
         return SkewPartition(([len(row) for row in self], self._skew))
@@ -682,7 +681,6 @@ class ShiftedPrimedTableau(ClonableArray):
             [4, 2]
             sage: s.restriction_outer_shape("2p")
             [3, 2]
-
         """
         n = PrimedEntry(n)
         if self._skew is None:
@@ -748,7 +746,6 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s.to_chain()
             [[2, 1], 2, [3, 1], 0, [3, 1], 3, [3, 2], 3, [4, 2], 0, [4, 2], 1, [4, 2, 1]]
 
-
         TESTS::
 
             sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
@@ -759,7 +756,6 @@ class ShiftedPrimedTableau(ClonableArray):
             ...
             AssertionError: can compute a chain of partitions only for
             skew shifted tableaux without repeated entries.
-
         """
         assert all(e in [0, 1] for e in self.weight()), "can compute a chain of partitions only for skew shifted tableaux without repeated entries."
         entries = sorted(e for row in self for e in row if e is not None)
@@ -1004,7 +1000,6 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             2  2  2  2
             sage: t.f(1).f(1).f(1).f(1).f(-1) is None
             True
-
         """
         T = self._to_matrix()
 

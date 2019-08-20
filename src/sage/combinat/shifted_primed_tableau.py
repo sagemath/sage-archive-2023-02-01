@@ -243,6 +243,36 @@ class ShiftedPrimedTableau(ClonableArray):
         if not self.parent()._contains_tableau(self):
             raise ValueError("{} is not an element of Shifted Primed Tableaux".format(self))
 
+    def is_standard(self):
+        """
+        Return ``True`` if the entries of ``self`` are in bijection with
+        positive primed integers `1', 1, 2' \ldots n`.
+
+        EXAMPLES::
+
+            sage: ShiftedPrimedTableau([["1'", 1, "2'"], [2, "3'"]],
+            ....:                      primed_diagonal=True).is_standard()
+            True
+            sage: ShiftedPrimedTableau([["1'", 1, 2], ["2'", "3'"]],
+            ....:                      primed_diagonal=True).is_standard()
+            True
+            sage: ShiftedPrimedTableau([["1'", 1, 1], ["2'", 2]],
+            ....:                      primed_diagonal=True).is_standard()
+            False
+            sage: ShiftedPrimedTableau([[1, "2'"], [2]]).is_standard()
+            False
+        """
+        flattened_list = [i for row in self for i in row]
+        a = PrimedEntry('1p')
+        primed_list = []
+        for i in range(len(flattened_list)):
+            primed_list.append(a)
+            a = a.increase_half()
+
+        if sorted(flattened_list) != primed_list:
+            return False
+        return True
+
     def __eq__(self, other):
         """
         Check whether ``self`` is equal to ``other``.

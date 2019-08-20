@@ -201,16 +201,16 @@ class Node:
 
         EXAMPLES::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import Node, NodeType, NodeSplit
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
-        sage: node.has_left_split()
-        True
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
-        sage: node.has_left_split()
-        True
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                      import Node, NodeType, NodeSplit
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
+            sage: node.has_left_split()
+            True
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
+            sage: node.has_left_split()
+            True
         """
         return self.node_split == NodeSplit.LEFT_SPLIT or \
                self.node_split == NodeSplit.BOTH_SPLIT
@@ -892,15 +892,21 @@ def check_prime(graph, root, left, right,
 
     INPUT:
 
-    - ``root`` - forest which needs to be assembled
-    - ``left`` - The leftmost fragment of the last module
-    - ``right`` - The rightmost fragment of the last module
-    - ``source_index`` - index of the tree containing the source vertex
-    - ``mu`` - dictionary which maps the (co)components with their mu values.
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various
-                                   vertices in a (co)component
+    - ``root`` -- forest which needs to be assembled
+
+    - ``left`` -- the leftmost fragment of the last module
+
+    - ``right`` -- the rightmost fragment of the last module
+
+    - ``source_index`` -- index of the tree containing the source vertex
+
+    - ``mu`` -- dictionary which maps the (co)components with their mu values
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -1076,14 +1082,20 @@ def check_parallel(graph, root, left, right,
     INPUT:
 
     - ``root`` -- forest which needs to be assembled
-    - ``left`` -- The leftmost fragment of the last module
-    - ``right`` -- The rightmost fragment of the last module
+
+    - ``left`` -- the leftmost fragment of the last module
+
+    - ``right`` -- the rightmost fragment of the last module
+
     - ``source_index`` -- index of the tree containing the source vertex
-    - ``mu`` -- dictionary which maps the (co)components with their mu values.
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various
-                                   vertices in a (co)component
+
+    - ``mu`` -- dictionary which maps the (co)components with their mu values
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -1210,15 +1222,23 @@ def check_series(root, left, right, source_index, mu):
     """
     Assemble the forest to create a series module.
 
+    INPUT:
+
     - ``root`` -- forest which needs to be assembled
+
     - ``left`` -- The leftmost fragment of the last module
+
     - ``right`` -- The rightmost fragment of the last module
+
     - ``source_index`` -- index of the tree containing the source vertex
-    - ``mu`` -- dictionary which maps the (co)components with their mu values.
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various
-                                   vertices in a (co)component
+
+    - ``mu`` -- dictionary which maps the (co)components with their mu values
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -1345,8 +1365,9 @@ def has_left_cocomponent_fragment(root, cocomp_index):
 
     INPUT:
 
-    - ``root`` -- The forest to which cocomponent belongs
-    - ``cocomp_index`` -- Index at which cocomponent is present in root
+    - ``root`` -- the forest to which cocomponent belongs
+
+    - ``cocomp_index`` -- index at which cocomponent is present in root
 
     OUTPUT:
 
@@ -1392,8 +1413,9 @@ def has_right_component_fragment(root, comp_index):
 
     INPUT:
 
-    - ``root`` -- The forest to which component belongs
-    - ``comp_index`` -- Index at which component is present in root
+    - ``root`` -- the forest to which component belongs
+
+    - ``comp_index`` -- index at which component is present in root
 
     OUTPUT:
 
@@ -1438,12 +1460,15 @@ def has_right_layer_neighbor(graph, root, comp_index,
 
     INPUT:
 
-    - ``root`` -- The forest to which component belongs
-    - ``comp_index`` -- Index at which component is present in root
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various
-                                   vertices in a (co)component
+    - ``root`` -- the forest to which component belongs
+
+    - ``comp_index`` -- index at which component is present in root
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -1540,11 +1565,15 @@ def compute_mu_for_co_component(graph, component_index, source_index,
     INPUT:
 
     - ``graph`` -- Graph whose MD tree needs to be computed
+
     - ``component_index`` -- index of the co-component
+
     - ``source_index`` -- index of the source in the forest
+
     - ``root`` -- the forest which needs to be assembled into a MD tree
-    - ``vertices_in_component`` -- Dictionary which maps index i to list of
-                                  vertices in the tree at index i in the forest
+
+    - ``vertices_in_component`` -- dictionary which maps index i to list of
+      vertices in the tree at index i in the forest
 
     OUTPUT:
 
@@ -1603,12 +1632,15 @@ def compute_mu_for_component(graph, component_index, source_index,
     INPUT:
 
     - ``graph`` -- Graph whose MD tree needs to be computed
+
     - ``component_index`` -- index of the component
+
     - ``source_index`` -- index of the source in the forest
+
     - ``root`` -- the forest which needs to be assembled into a MD tree
-    - ``vertices_in_component`` -- Dictionary which maps index i to list of
-                                   vertices in the tree at the index i in the
-                                   forest
+
+    - ``vertices_in_component`` -- dictionary which maps index i to list of
+      vertices in the tree at the index i in the forest
 
     OUTPUT:
 
@@ -1669,11 +1701,13 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
     INPUT:
 
     - ``graph`` -- Graph whose MD tree needs to be computed
+
     - ``index1`` -- index of the first (co)component
+
     - ``index2`` -- index of the second (co)component
-    - ``vertices_in_component`` -- Dictionary which maps index i to list of
-                                   vertices in the tree at the index i in the
-                                   forest
+
+    - ``vertices_in_component`` -- dictionary which maps index i to list of
+      vertices in the tree at the index i in the forest
 
     OUTPUT:
 
@@ -1727,8 +1761,8 @@ def get_vertices(component_root):
 
     INPUT:
 
-    - ``component_root`` -- root of the (co)component whose vertices need to
-                            be returned as a list
+    - ``component_root`` -- root of the (co)component whose vertices need to be
+      returned as a list
 
     OUTPUT:
 
@@ -1866,7 +1900,7 @@ def promote_right(root):
 
     INPUT:
 
-    - ``root`` -- The forest which needs to be promoted
+    - ``root`` -- the forest which needs to be promoted
 
     EXAMPLES::
 
@@ -1951,7 +1985,7 @@ def promote_child(root):
 
     INPUT:
 
-    - ``root`` -- The forest which needs to be promoted
+    - ``root`` -- the forest which needs to be promoted
 
     EXAMPLES::
 
@@ -2034,7 +2068,7 @@ def clear_node_split_info(root):
 
     INPUT:
 
-    - ``root`` -- The forest which needs to be cleared of split information
+    - ``root`` -- the forest which needs to be cleared of split information
 
     EXAMPLES::
 
@@ -2071,11 +2105,14 @@ def refine(graph, root, vertex_dist, vertex_status):
     INPUT:
 
     - ``graph`` -- graph whose MD tree needs to be computed
+
     - ``root`` -- the forest which needs to be assembled into a MD tree
+
     - ``vertex_dist`` -- dictionary mapping the vertex with distance from the
-                         source
+      source
+
     - ``vertex_status`` -- dictionary mapping the vertex to the position w.r.t.
-                           source
+      source
 
     EXAMPLES::
 
@@ -2178,12 +2215,17 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
     INPUT:
 
     - ``root`` -- the forest which needs to be assembled into a MD tree
+
     - ``v`` -- the vertex used to refine
+
     - ``x`` -- set of vertices connected to v and at different distance
-               from source compared to v
+      from source compared to v
+
     - ``vertex_status`` -- dictionary mapping the vertex to the position
-                           w.r.t source
+      w.r.t source
+
     - ``tree_left_of_source`` -- flag indicating whether tree is
+
     - ``level`` -- indicates the recursion level, 0 for root
 
     OUTPUT:
@@ -2486,7 +2528,7 @@ def print_md_tree(root):
         - ``root`` -- root of the modular decomposition tree
 
         - ``level`` -- indicates the depth of root in the original modular
-                       decomposition tree
+          decomposition tree
         """
         if root.node_type != NodeType.NORMAL:
             print("{}{}".format(level, str(root.node_type)))
@@ -2533,7 +2575,7 @@ def gamma_classes(graph):
 
     TESTS:
 
-    Ensure that the returned vertex sets from some random graphs are modules.
+    Ensure that the returned vertex sets from some random graphs are modules::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
                    import test_gamma_modules
@@ -2898,9 +2940,12 @@ def form_module(index, other_index, tree_root, graph):
     INPUT:
 
     - ``index`` -- first module in the module pair
+
     - ``other_index`` -- second module in the module pair
+
     - ``tree_root`` -- modular decomposition tree which contains the modules
-                       in the module pair
+      in the module pair
+
     - ``graph`` -- graph whose modular decomposition tree is created
 
     OUTPUT:
@@ -2966,6 +3011,7 @@ def test_module(module, graph):
     INPUT:
 
     - ``module`` -- module which needs to be tested
+
     - ``graph`` -- input sage graph which contains the module
 
     OUTPUT:
@@ -3024,6 +3070,7 @@ def children_node_type(module, node_type):
     INPUT:
 
     - ``module`` -- module which is tested
+
     - ``node_type`` -- input node_type
 
     OUTPUT:
@@ -3068,7 +3115,9 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
     INPUT:
 
     - ``v`` -- vertex tested
+
     - ``vertices_in_module`` -- list containing vertices in the module
+
     - ``graph`` -- graph to which the vertices belong
 
     OUTPUT:
@@ -3142,7 +3191,8 @@ def nested_tuple_to_tree(nest):
 
     INPUT:
 
-    - ``nest`` -- a nested tuple of the form returned by ``tree_to_nested_tuple``
+    - ``nest`` -- a nested tuple of the form returned by
+      :meth:`tree_to_nested_tuple`
 
     OUTPUT:
 
@@ -3180,6 +3230,7 @@ def equivalent_trees(root1, root2):
     children is a pair of equivalent subtrees.
 
     EXAMPLES::
+
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
         ....:         import equivalent_trees, NodeType, nested_tuple_to_tree
         sage: t1 = nested_tuple_to_tree((NodeType.SERIES, 1, 2, \
@@ -3327,10 +3378,11 @@ def test_gamma_modules(trials, vertices, prob, verbose=False):
 @random_testing
 def permute_decomposition(trials, algorithm, vertices, prob, verbose=False):
     r"""
-    Check that a graph and its permuted relabeling have the same modular decomposition.
+    Check that a graph and its permuted relabeling have the same modular
+    decomposition.
 
-    We generate a ``trials`` random graphs and then generate an isomorphic
-    graph by relabeling the original graph. We then verify
+    We generate a ``trials`` random graphs and then generate an isomorphic graph
+    by relabeling the original graph. We then verify
 
     EXAMPLES::
 

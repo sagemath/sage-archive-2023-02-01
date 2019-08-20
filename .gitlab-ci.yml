@@ -120,14 +120,10 @@ build-from-clean:
     - master
     - develop
     - tags
-    # TODO: Remove this line
-    - u/saraedum/mrs/22/docker-python3
   except: []
   tags:
     # 60 GB of HDD are available
     - big
-    # TODO: Remove this line
-    - standard-64
   # This build takes several CPU hours. It is very unlikely that there are any
   # actual build errors for a tagged release but the (discounted) cloud
   # machines this is running on might be preempted during the long build time.

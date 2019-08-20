@@ -18,7 +18,6 @@ set -ex
 # We speed up the build process by copying built artifacts from ARTIFACT_BASE
 # during docker build. See /docker/Dockerfile for more details.
 ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
-WITH_PYTHON=${WITH_PYTHON:-2}
 
 # Seed our cache with $ARTIFACT_BASE if it exists.
 docker pull "$ARTIFACT_BASE" > /dev/null || true

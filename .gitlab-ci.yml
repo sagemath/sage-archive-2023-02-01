@@ -184,7 +184,7 @@ push-dockerhub-dev:
 .py3:
   variables:
     WITH_PYTHON: 3
-    DOCKER_TAG_SUFFIX: "-py3"
+    DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop-py3
 
 build-from-latest-py3:
   extends:

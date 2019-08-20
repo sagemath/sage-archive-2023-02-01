@@ -372,7 +372,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         Error, Variable: 'precision' must have a value
 
-    Test that on a subsequent attemt we get the same message (no garbage was
+    Test that on a subsequent attempt we get the same message (no garbage was
     left in the error stream)::
 
         sage: libgap.eval('Complex Field with 53 bits of precision;')

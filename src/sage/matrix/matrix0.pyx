@@ -5566,7 +5566,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # of a scalar matrix equals the hash of the scalar if the sum of
         # all row multipliers is 1. We choose the constants (see
         # get_hash_constants()) such that this in indeed the case.
-        # Actually, this is not the complete story: we additionallly
+        # Actually, this is not the complete story: we additionally
         # multiply all row constants with some random value C[2] and
         # then at the end we multiply with C[2]^-1 = C[4].
         # This gives better mixing.

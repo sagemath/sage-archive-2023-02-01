@@ -5342,7 +5342,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Given two nonconstant rational functions of equal degree
         determine to see if there is a rational element of PGL that
         conjugates one rational function to another.
-        The option argument `R` specifies the field of definiton
+
+        The option argument `R` specifies the field of definition
         of the PGL elements. The set is determined by
         by taking the fixed points of one map and mapping
         them to all unique permutations of the fixed points of

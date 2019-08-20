@@ -132,7 +132,7 @@ cdef class CoinBackend(GenericBackend):
             1.0
         """
 
-        # for some reason, Cython is not accepting the line below, which appeare
+        # for some reason, Cython is not accepting the line below, which appear
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
         if  vtype == 0:

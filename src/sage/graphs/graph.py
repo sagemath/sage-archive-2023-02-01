@@ -7038,18 +7038,48 @@ class Graph(GenericGraph):
             return list(six.itervalues(core))
 
     @doc_index("Leftovers")
-    def modular_decomposition(self):
+    def modular_decomposition(self, algorithm='habib'):
         r"""
         Return the modular decomposition of the current graph.
 
+        A module of an undirected graph is a subset of vertices such that every
+        vertex outside the module is either connected to all members of the
+        module or to none of them. Every graph that has a nontrivial module can
+        be partitioned into modules, and the increasingly fine partitions into
+        modules form a tree. The ``modular_decomposition`` function returns
+        that tree.
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``'habib'``); specifies the
+          algorithm to use among:
+
+          - ``'tedder'`` -- linear time algorithm of [TCHP2008]_
+
+          - ``'habib'`` -- `O(n^3)` algorithm of [HM1979]_. This algorithm is
+            much simpler and so possibly less prone to errors.
+
+        OUTPUT:
+
+        A pair of two values (recursively encoding the decomposition) :
+
+        * The type of the current module :
+
+          * ``"PARALLEL"``
+          * ``"PRIME"``
+          * ``"SERIES"``
+
+        * The list of submodules (as list of pairs ``(type, list)``,
+          recursively...) or the vertex's name if the module is a singleton.
+
         Crash course on modular decomposition:
 
-        A module `M` of a graph `G` is a proper subset of its vertices such that
-        for all `u \in V(G)-M, v,w\in M` the relation `u \sim v \Leftrightarrow
-        u \sim w` holds, where `\sim` denotes the adjacency relation in
-        `G`. Equivalently, `M \subset V(G)` is a module if all its vertices have
-        the same adjacency relations with each vertex outside of the module
-        (vertex by vertex).
+        A module `M` of a graph `G` is a proper subset of its vertices such
+        that for all `u \in V(G)-M, v,w\in M` the relation `u \sim v
+        \Leftrightarrow u \sim w` holds, where `\sim` denotes the adjacency
+        relation in `G`. Equivalently, `M \subset V(G)` is a module if all its
+        vertices have the same adjacency relations with each vertex outside of
+        the module (vertex by vertex).
 
         Hence, for a set like a module, it is very easy to encode the
         information of the adjacencies between the vertices inside and outside
@@ -7081,32 +7111,23 @@ class Graph(GenericGraph):
 
         You may also be interested in the survey from Michel Habib and
         Christophe Paul entitled "A survey on Algorithmic aspects of modular
-        decomposition" [HabPau10]_.
-
-        OUTPUT:
-
-        A pair of two values (recursively encoding the decomposition) :
-
-        * The type of the current module :
-
-          * ``"PARALLEL"``
-          * ``"PRIME"``
-          * ``"SERIES"``
-
-        * The list of submodules (as list of pairs ``(type, list)``,
-          recursively...) or the vertex's name if the module is a singleton.
+        decomposition" [HP2010]_.
 
         EXAMPLES:
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()
+            sage: graphs.BullGraph().modular_decomposition()  # py2
+            (PRIME, [0, 3, 4, 2, 1])
+            sage: graphs.BullGraph().modular_decomposition()  # py3
             (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()
-            (PRIME, [1, 4, 5, 0, 3, 7, 2, 8, 9, 6])
+            sage: graphs.PetersenGraph().modular_decomposition()  # py2
+            (PRIME, [6, 2, 5, 1, 9, 3, 0, 7, 8, 4])
+            sage: graphs.PetersenGraph().modular_decomposition()  # py3
+            (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
         interesting decomposition ::
@@ -7115,29 +7136,23 @@ class Graph(GenericGraph):
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
             sage: g.modular_decomposition()
+            (SERIES, [(PARALLEL, [(SERIES, [1, 2, 3, 4]), 5, 6]), 0])
+
+        We get an equivalent tree when we use the algorithm of [TCHP2008]_::
+
+            sage: g.modular_decomposition(algorithm='tedder')
             (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
 
         ALGORITHM:
 
-        This function uses python implementation of algorithm published by Marc
-        Tedder, Derek Corneil, Michel Habib and Christophe Paul
-        [TedCorHabPaul08]_.
+        When ``algorithm='tedder'`` this function uses python implementation of
+        algorithm published by Marc Tedder, Derek Corneil, Michel Habib and
+        Christophe Paul [TCHP2008]_. When ``algorithm='habib'`` this function
+        uses the algorithm of M. Habib and M. Maurer [HM1979]_.
 
         .. SEEALSO::
 
             - :meth:`is_prime` -- Tests whether a graph is prime.
-
-        REFERENCE:
-
-        .. [HabPau10] Michel Habib and Christophe Paul
-          A survey of the algorithmic aspects of modular decomposition
-          Computer Science Review
-          vol 4, number 1, pages 41--59, 2010
-          http://www.lirmm.fr/~paul/md-survey.pdf
-
-        .. [TedCorHabPaul08] Marc Tedder, Derek Corneil, Michel Habib and
-          Christophe Paul
-          :arxiv:`0710.3901`
 
         TESTS:
 
@@ -7149,21 +7164,37 @@ class Graph(GenericGraph):
         Vertices may be arbitrary --- check that :trac:`24898` is fixed::
 
             sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
-            (SERIES, [(2, 3), (1, 2)])
+            (SERIES, [(1, 2), (2, 3)])
+
+        Unknown algorithm::
+
+            sage: graphs.PathGraph(2).modular_decomposition(algorithm='abc')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'habib' or 'tedder'
         """
+        from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, NodeType, habib_maurer_algorithm
+
         self._scream_if_not_simple()
 
         if not self.order():
             return tuple()
 
-        from sage.graphs.modular_decomposition import modular_decomposition, NodeType
-
         if self.order() == 1:
-            return (NodeType.PRIME, self.vertices())
+            return (NodeType.PRIME, list(self))
 
-        D = modular_decomposition(self)
+        if algorithm == 'habib':
+            D = habib_maurer_algorithm(self)
+        elif algorithm == 'tedder':
+            D = modular_decomposition(self)
+        else:
+            raise ValueError("algorithm must be 'habib' or 'tedder'")
 
-        relabel = lambda x: (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else x.children[0]
+        def relabel(x):
+            if x.node_type == NodeType.NORMAL:
+                return x.children[0]
+            else:
+                return x.node_type, [relabel(y) for y in x.children]
 
         return relabel(D)
 
@@ -7404,9 +7435,20 @@ class Graph(GenericGraph):
         return self.planar_dual().is_circumscribable(solver=solver, verbose=verbose)
 
     @doc_index("Graph properties")
-    def is_prime(self):
+    def is_prime(self, algorithm='habib'):
         r"""
         Test whether the current graph is prime.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'tedder'``) specifies the algorithm to
+          use among:
+
+          - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
+
+          - ``'habib'`` -- Use the $O(n^3)$ algorithm of [HM1979]_. This is
+            probably slower, but is much simpler and so possibly less error
+            prone.
 
         A graph is prime if all its modules are trivial (i.e. empty, all of the
         graph or singletons) -- see :meth:`modular_decomposition`.
@@ -7430,12 +7472,12 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
-        from sage.graphs.modular_decomposition import NodeType
+        from sage.graphs.graph_decompositions.modular_decomposition import NodeType
 
         if self.order() <= 1:
             return True
 
-        D = self.modular_decomposition()
+        D = self.modular_decomposition(algorithm=algorithm)
 
         return D[0] == NodeType.PRIME and len(D[1]) == self.order()
 

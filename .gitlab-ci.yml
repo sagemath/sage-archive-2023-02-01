@@ -58,7 +58,7 @@ before_script:
   - .ci/describe-system.sh
   # Set DOCKER_TAG according to the current branch/tag
   - . .ci/update-env.sh
-  # Set MAKEOPTS and SAGE_NUM_THREADS according to the machine we are running on
+  # Set MAKEFLAGS and SAGE_NUM_THREADS according to the machine we are running on
   - . .ci/setup-make-parallelity.sh
 
 # We use docker-in-docker to build our docker images, i.e., we run a

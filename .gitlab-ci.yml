@@ -91,7 +91,7 @@ build-from-latest:
     - html
     expire_in: 1 month
   script:
-    - apk --update add coreutils
+    - apk --update add coreutils rsync
     # The output of the build can get larger than gitlab.com's limit; only
     # print the first 1MB (and the last 80 lines.) GitLab's limit is 4MB,
     # however, the list of all branches and tags that shows up in the initial

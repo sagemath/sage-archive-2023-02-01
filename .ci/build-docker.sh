@@ -41,7 +41,9 @@ docker_build --target make-all --tag make-all:$DOCKER_TAG .
 
 # Copy docs out of the docker image to save them into browseable GitLab artifacts
 container=$(docker create make-all:$DOCKER_TAG)
-docker cp $container:/home/sage/sage/local/share/doc/sage/html html
+docker cp $container:/home/sage/sage/local/share/doc/sage/html html_
+# GitLab's browser does not like symlinks, so we flatten them
+rsync html_/ html/ -a --copy-links
 
 # Build the release image without build artifacts.
 docker_build --target sagemath --tag "$DOCKER_IMAGE_CLI" .

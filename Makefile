@@ -133,7 +133,7 @@ micro_release: misc-clean sagelib-clean
 
 # Leaves everything that is needed to make the next "make" fast but removes
 # all the cheap build artifacts that can be quickly regenerated.
-fast-rebuild-clean: misc-clean bdist-clean
+fast-rebuild-clean: misc-clean
 	rm -rf upstream/
 	rm -rf src/build/temp.*
 	# Without site-packages/sage sage does not start but copying/compiling

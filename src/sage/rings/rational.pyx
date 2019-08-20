@@ -469,10 +469,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     Check that :trac:`28321` is fixed::
 
-        sage: QQ((2r**100r, 3r**100r)) == 2**100 / 3**100
-        True
-        sage: QQ((-2r**100r, -3r**100r)) == 2**100 / 3**100
-        True
+        sage: QQ((2r^100r, 3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
+        sage: QQ((-2r^100r, -3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
     """
     def __cinit__(self):
         r"""
@@ -622,15 +622,19 @@ cdef class Rational(sage.structure.element.FieldElement):
             num = x[0]
             denom = x[1]
 
-            if isinstance(num, int):
+            if isinstance(num, long):
                 mpz_set_pylong(mpq_numref(self.value), num)
+            elif isinstance(num, int):  # Python 2 only
+                mpz_set_si(mpq_numref(self.value), num)
             else:
                 if not isinstance(num, integer.Integer):
                     num = integer.Integer(num, base)
                 mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
 
-            if isinstance(denom, int):
+            if isinstance(denom, long):
                 mpz_set_pylong(mpq_denref(self.value), denom)
+            elif isinstance(denom, int):  # Python 2 only
+                mpz_set_si(mpq_denref(self.value), denom)
             else:
                 if not isinstance(denom, integer.Integer):
                     denom = integer.Integer(denom, base)

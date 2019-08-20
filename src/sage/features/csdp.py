@@ -6,6 +6,7 @@ Testing for CSDP at runtime
 import os
 import re
 import subprocess
+from sage.cpython.string import bytes_to_str
 
 from . import Executable, FeatureTestResult
 
@@ -55,7 +56,7 @@ class CSDP(Executable):
                     reason="Call to `{command}` failed with exit code {e.returncode}."
                                              .format(command=" ".join(command), e=e))
 
-        result = lines.decode().strip().split('\n')[-1]
+        result = bytes_to_str(lines).strip().split('\n')[-1]
         match = re.match("^The Lovasz Theta Number is (.*)$", result)
         if match is None:
             return FeatureTestResult(self, False,

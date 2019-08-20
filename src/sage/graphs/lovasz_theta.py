@@ -72,7 +72,7 @@ def lovasz_theta(graph):
     g = graph.relabel(inplace=False, perm=range(1, n + 1)).networkx_graph()
     tf_name = tmp_filename()
     with open(tf_name, 'wb') as tf:
-        tf.write(f"{n}\n{g.number_of_edges()}\n".encode())
+        tf.write("{}\n{}\n".format(n, g.number_of_edges()).encode())
         write_edgelist(g, tf, data=False)
     lines = subprocess.check_output(['theta', tf_name])
     return float(lines.split()[-1])

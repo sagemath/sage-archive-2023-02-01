@@ -71,7 +71,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.delete_multiedge` | Delete all edges from ``u`` to ``v``.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
     :meth:`~GenericGraph.has_edge` | Check whether ``(u, v)`` is an edge of the (di)graph.
-    :meth:`~GenericGraph.edges` | Return a list of edges.
+    :meth:`~GenericGraph.edges` | Return a :class:`~EdgesView` of edges.
     :meth:`~GenericGraph.edge_boundary` | Return a list of edges ``(u,v,l)`` with ``u`` in ``vertices1``
     :meth:`~GenericGraph.edge_iterator` | Return an iterator over edges.
     :meth:`~GenericGraph.edges_incident` | Return incident edges to some vertices.
@@ -429,6 +429,7 @@ from six import itervalues, iteritems, integer_types
 
 from copy import copy
 
+from sage.graphs.views import EdgesView
 from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from .dot2tex_utils import assert_have_dot2tex
 
@@ -4358,7 +4359,7 @@ class GenericGraph(GenericGraph_pyx):
                 v = next(self.vertex_iterator())
             else:
                 v = starting_vertex
-            sorted_edges = self.edges(key=wfunction_float)
+            sorted_edges = sorted(self.edges(sort=False), key=wfunction_float)
             tree = set([v])
             edges = []
             for _ in range(self.order() - 1):
@@ -11512,7 +11513,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def edges(self, labels=True, sort=True, key=None):
         r"""
-        Return a list of edges.
+        Return a :class:`~EdgesView` of edges.
 
         Each edge is a triple ``(u, v, l)`` where ``u`` and ``v`` are vertices
         and ``l`` is a label. If the parameter ``labels`` is ``False`` then a
@@ -11532,7 +11533,7 @@ class GenericGraph(GenericGraph_pyx):
           one argument and returns a value that can be used for comparisons in
           the sorting algorithm
 
-        OUTPUT: A list of tuples. It is safe to change the returned list.
+        OUTPUT: A :class:`~EdgesView`.
 
         .. WARNING::
 
@@ -11591,7 +11592,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.edges(sort=False, key=lambda x: x)
             Traceback (most recent call last):
             ...
-            ValueError: sort keyword is False, yet a key function is given
+            ValueError: sort keyword is not True, yet a key function is given
 
             sage: G = Graph()
             sage: G.add_edge(0, 1, [7])
@@ -11599,13 +11600,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edge_label(0, 1)[0] += 1
             sage: G.edges()
             [(0, 1, [8]), (0, 2, [7])]
+
+        Deprecation warning for ``sort=None`` (:trac:`27408`)::
+
+            sage: G = graphs.HouseGraph()
+            sage: G.edges(sort=None)
+            doctest:...: DeprecationWarning: parameter 'sort' will be set to False by default in the future
+            See https://trac.sagemath.org/27408 for details.
+            [(0, 1, None), (0, 2, None), (1, 3, None), (2, 3, None), (2, 4, None), (3, 4, None)]
         """
-        if (not sort) and key:
-            raise ValueError('sort keyword is False, yet a key function is given')
-        L = list(self.edge_iterator(labels=labels))
-        if sort:
-            L.sort(key=key)
-        return L
+        if sort is None:
+            deprecation(27408, "parameter 'sort' will be set to False by default in the future")
+            sort = True
+        return EdgesView(self, labels=labels, sort=sort, key=key)
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
         r"""
@@ -16704,9 +16711,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 # Needed to remove labels.
                 if self.is_directed():
-                    G = networkx.DiGraph(self.edges(labels=False, sort=False))
+                    G = networkx.DiGraph(list(self.edges(labels=False, sort=False)))
                 else:
-                    G = networkx.Graph(self.edges(labels=False, sort=False))
+                    G = networkx.Graph(list(self.edges(labels=False, sort=False)))
             G.add_nodes_from(self)
             return networkx.single_source_dijkstra_path(G, u)
 
@@ -16927,9 +16934,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 # Needed to remove labels.
                 if self.is_directed():
-                    G = networkx.DiGraph(self.edges(labels=False, sort=False))
+                    G = networkx.DiGraph(list(self.edges(labels=False, sort=False)))
                 else:
-                    G = networkx.Graph(self.edges(labels=False, sort=False))
+                    G = networkx.Graph(list(self.edges(labels=False, sort=False)))
             G.add_nodes_from(self)
             return networkx.single_source_dijkstra_path_length(G, u)
 
@@ -17830,7 +17837,6 @@ class GenericGraph(GenericGraph_pyx):
             [0, 2, 1]
 
         """
-        from sage.misc.superseded import deprecation
         if distance is not None:
             deprecation(19227, "Parameter 'distance' is broken. Do not use.")
 

@@ -391,11 +391,22 @@ cdef GapElement make_GapElement(parent, Obj obj):
         sage: libgap(None)
         Traceback (most recent call last):
         ...
-        AttributeError: 'NoneType' object has no attribute '_gap_init_'
+        AttributeError: 'NoneType' object has no attribute '_libgap_init_'
     """
     cdef GapElement r = GapElement.__new__(GapElement)
     r._initialize(parent, obj)
     return r
+
+
+cpdef _from_sage(elem):
+    """
+    Currently just used for unpickling; eqivalent to calling ``libgap(elem)``
+    to convert a Sage object to a `GapElement` where possible.
+    """
+    if isinstance(elem, str):
+        return libgap.eval(elem)
+
+    return libgap(elem)
 
 
 cdef class GapElement(RingElement):
@@ -589,6 +600,41 @@ cdef class GapElement(RingElement):
             [ [ 0, 1 ], [ 2 ] ]
         """
         return self.deepcopy(0)
+
+    def __reduce__(self):
+        """
+        Attempt to pickle GAP elements from libgap.
+
+        This is inspired in part by
+        ``sage.interfaces.interface.Interface._reduce``, though for a fallback
+        we use ``str(self)`` instead of ``repr(self)``, since the former is
+        equivalent in the libgap interace to the latter in the pexpect
+        interface.
+
+        TESTS:
+
+        This workaround was motivated in particular by this example from the
+        permutation groups implementation::
+
+            sage: CC = libgap.eval('ConjugacyClass(SymmetricGroup([ 1 .. 5 ]), (1,2)(3,4))')
+            sage: CC.sage()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot construct equivalent Sage object
+            sage: libgap.eval(str(CC))
+            (1,2)(3,4)^G
+            sage: loads(dumps(CC))
+            (1,2)(3,4)^G
+        """
+
+        if self.is_string():
+            elem = repr(self.sage())
+        try:
+            elem = self.sage()
+        except NotImplementedError:
+            elem = str(self)
+
+        return (_from_sage, (elem,))
 
     def __contains__(self, other):
         r"""
@@ -1309,7 +1355,6 @@ cdef class GapElement(RingElement):
         """
         if self.value is NULL:
             return None
-        libgap = self.parent()
 
         if self.IsInfinity():
             from sage.rings.infinity import Infinity
@@ -1344,6 +1389,11 @@ cdef class GapElement(RingElement):
                 R = PolynomialRing(base_ring, var)
                 x = R.gen()
                 return x**val * R(num) / R(den)
+
+        elif self.IsList():
+            # May be a list-like collection of some other type of GapElements
+            # that we can convert
+            return [item.sage() for item in self.AsList()]
 
         raise NotImplementedError('cannot construct equivalent Sage object')
 

@@ -238,7 +238,6 @@ def UCF_sqrt_int(N, UCF):
         if p == 2:
             res *= (UCF.zeta(8) + UCF.zeta(8,7))**e
         else:
-            z = UCF.zeta(p)
             res *= UCF.sum(UCF.zeta(p, n**2) for n in range(p))**e
         if p % 4 == 3:
             res *= (UCF.zeta(4))**e

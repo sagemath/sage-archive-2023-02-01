@@ -242,7 +242,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     def _nmz_result(self, normaliz_cone, property):
         """
-        Call PyNormaliz's NmzResult function.
+        Call PyNormaliz's NmzResult function with appropriate conversion between number format.
 
         TESTS::
 
@@ -252,32 +252,32 @@ class Polyhedron_normaliz(Polyhedron_base):
             Traceback (most recent call last):
             ...
             NormalizError: Some error in the normaliz input data detected: Unknown ConeProperty...
-        """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
 
+            sage: x = polygen(QQ, 'x')
+            sage: K.<a> = NumberField(x^3 - 3, embedding=AA(3)**(1/3))
+            sage: p = Polyhedron(vertices=[(0,0),(1,1),(a,3),(-1,a**2)], rays=[(-1,-a)], backend='normaliz') # optional - pynormaliz
+            sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz
+            [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
+            sage: sorted(p._nmz_result(p._normaliz_cone, 'Generators')) # optional - pynormaliz
+            [[-1, a^2, 1], [-1/3*a^2, -1, 0], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
+            sage: p._nmz_result(p._normaliz_cone, 'AffineDim') # optional - pynormaliz
+            2
+            sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') # optional - pynormaliz
+            3
+            sage: p._nmz_result(p._normaliz_cone, 'ExtremeRays') # optional - pynormaliz
+            [[-1/3*a^2, -1, 0]]
+            sage: p._nmz_result(p._normaliz_cone, 'MaximalSubspace') # optional - pynormaliz
+            []
+        """
         def rational_handler(list):
-            try:
-                return QQ(tuple(list))
-            except Exception as e:
-                print("Error in rational_handler: {}".format(e))
-                return None
+            return QQ(tuple(list))
 
         def nfelem_handler(coords):
-            # PyQNormaliz 1.1 does not always give us the full-length list of coordinates...
-            try:
-                v = [0] * self._normaliz_field.degree()
-                for i, x in enumerate(coords):
-                    if i < len(v): # PyNormaliz 2.0 sometimes gives us too long vectors
-                        if type(x) is list:
-                            v[i] = QQ(tuple(x))
-                        else: # assume it's already rational per rational_handler...
-                            v[i] = x
-                return self._normaliz_field(v)
-            except Exception as e:
-                print("Error in nfelem_handler: {}".format(e))
-                return None
+            # coords might be too short which is not accepted by Sage number field
+            v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
+            return self._normaliz_field(v)
 
+        import PyNormaliz
         return PyNormaliz.NmzResult(normaliz_cone, property,
                                     RationalHandler=rational_handler,
                                     NumberfieldElementHandler=nfelem_handler)

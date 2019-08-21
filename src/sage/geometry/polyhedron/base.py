@@ -7187,7 +7187,7 @@ class Polyhedron_base(Element):
 
         - ``extend`` (boolean, default = False) -- if ``True``,
           allow base ring to be extended if necessary. This becomes
-          relevant when requiering an orthonormal transformation.
+          relevant when requiring an orthonormal transformation.
 
         OUTPUT:
 

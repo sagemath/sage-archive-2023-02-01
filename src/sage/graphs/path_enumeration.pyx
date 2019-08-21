@@ -909,7 +909,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     other `k`-shortest paths. This algorithm finds the deviations of previous
     shortest paths to determine the next shortest paths. This algorithm finds
     the candidate paths more efficiently using a node classification
-    technique. At first the candidate path is separated by its devitation node
+    technique. At first the candidate path is separated by its deviation node
     as prefix and suffix. Then the algorithm classify the nodes as red, yellow
     and green. A node on the prefix is assigned a red color, a node that can
     reach t (the destination node) through a shortest path without visiting a

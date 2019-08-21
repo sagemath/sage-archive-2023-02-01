@@ -3223,7 +3223,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     Ask for the expression of the loxodrome in terms of the Mercator
     chart in order to add it to its dictionary of expressions.
     It is a particularly long expression, and there is no particular
-    need to diplay it, which is why it may simply be affected to an
+    need to display it, which is why it may simply be affected to an
     arbitrary variable ``expr_mercator``, which will never be used
     again.
     But adding the expression to the dictionary is required to plot the

@@ -336,7 +336,7 @@ cdef class FaceIterator(SageObject):
             # Visit all faces of a polyhedron `P`, except those contained in
             # any of the visited all.
 
-            # Assumes ``faces`` to be excactly those facets of `P`
+            # Assumes ``faces`` to be exactly those facets of `P`
             # that are not contained in any of the ``visited_all``.
 
             # Assumes ``visited_all`` to be some list of faces of
@@ -689,7 +689,7 @@ cdef class FaceIterator(SageObject):
             and :meth`FaceIterator.ignore_supfaces`.
 
             Those methods add the current face to ``visited_all`` before
-            visiting sub-/supfaces instead of after. One cannot arbitralily
+            visiting sub-/supfaces instead of after. One cannot arbitrarily
             add faces to ``visited_all``, as visited_all has a maximal length.
         """
         cdef int dim = self.dimension

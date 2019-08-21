@@ -69,6 +69,7 @@ def is_Graphics(x):
     """
     return isinstance(x, Graphics)
 
+
 def _parse_figsize(figsize):
     r"""
     Helper function to get a figure size in matplotlib format.
@@ -80,7 +81,7 @@ def _parse_figsize(figsize):
 
     OUPUT:
 
-    - a pair of ``float``'s represening ``(width, height)``
+    - a pair of ``float``'s representing ``(width, height)``
 
     EXAMPLES::
 

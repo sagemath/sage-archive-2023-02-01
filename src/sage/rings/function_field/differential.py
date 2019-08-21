@@ -548,10 +548,10 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
 
     The space of differentials is a one-dimensional module over the function
     field. So a base differential is chosen to represent differentials.
-    Usually the generator of the base rational function field is a seprating
+    Usually the generator of the base rational function field is a separating
     element and used to generate the base differential. Otherwise a separating
     element is automatically found and used to generate the base differential
-    relative which other differentials are denoted::
+    relative to which other differentials are denoted::
 
         sage: K.<x> = FunctionField(GF(5))
         sage: R.<y> = K[]

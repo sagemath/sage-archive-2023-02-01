@@ -5339,11 +5339,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Return the set of elements in PGL over the base ring
         that conjugates one dynamical system to the other.
 
-        Given two nonconstant rational functions of equal degree
-        determine to see if there is a rational element of PGL that
+        Given two nonconstant rational functions of equal degree,
+        determine if there is a rational element of PGL that
         conjugates one rational function to another.
-        The option argument `R` specifies the field of definiton
-        of the PGL elements. The set is determined by
+
+        The optional argument `R` specifies the field of definition
+        of the PGL elements. The set is determined
         by taking the fixed points of one map and mapping
         them to all unique permutations of the fixed points of
         the other map. If there are not enough fixed points the

@@ -158,9 +158,9 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
         sage: G = graphs.CompleteGraph(6)
         sage: G.lex_BFS(initial_vertex='foo')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
-        ValueError: 'foo' is not a graph vertex dad
+        ValueError: 'foo' is not a graph vertex
 
     """
     if initial_vertex is not None and initial_vertex not in G:
@@ -331,7 +331,7 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
 
         sage: G = graphs.CompleteGraph(6)
         sage: G.lex_UP(initial_vertex='foo')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: 'foo' is not a graph vertex
 
@@ -503,7 +503,7 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
 
         sage: G = graphs.CompleteGraph(6)
         sage: G.lex_DFS(initial_vertex='foo')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: 'foo' is not a graph vertex
 
@@ -677,7 +677,7 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
 
         sage: G = graphs.CompleteGraph(6)
         sage: G.lex_DOWN(initial_vertex='foo')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: 'foo' is not a graph vertex
 
@@ -871,7 +871,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
         sage: G = graphs.CompleteGraph(6)
         sage: G.lex_M(algorithm='Bob')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: unknown algorithm 'Bob'
 
@@ -879,7 +879,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
         sage: G = graphs.CompleteGraph(6)
         sage: G.lex_M(initial_vertex='foo')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: 'foo' is not a graph vertex
 
@@ -1002,7 +1002,7 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
         sage: G = graphs.CompleteGraph(6)
         sage: from sage.graphs.traversals import lex_M_slow
         sage: lex_M_slow(G, initial_vertex='foo')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: 'foo' is not a graph vertex
 
@@ -1151,7 +1151,7 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
         sage: G = graphs.CompleteGraph(6)
         sage: from sage.graphs.traversals import lex_M_fast
         sage: lex_M_fast(G, initial_vertex='foo')
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: 'foo' is not a graph vertex
 

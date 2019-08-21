@@ -12,8 +12,8 @@ Graph traversals.
     :delim: |
 
     :meth:`~lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
-    :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
+    :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
     :meth:`~lex_M` |     Return an ordering of the vertices according the LexM graph traversal.
     :meth:`~lex_M_slow` | Return an ordering of the vertices according the LexM graph traversal.
@@ -78,6 +78,10 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
         * :wikipedia:`Lexicographic_breadth-first_search`
         * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DFS` -- perform a
           lexicographic depth first search (LexDFS) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_UP` -- perform a
+          lexicographic UP search (LexUP) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DOWN` -- perform a
+          lexicographic DOWN search (LexDOWN) on the graph
 
     EXAMPLES:
 
@@ -256,6 +260,8 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
           lexicographic breadth first search (LexBFS) on the graph
         * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DFS` -- perform a
           lexicographic depth first search (LexDFS) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DOWN` -- perform a
+          lexicographic DOWN search (LexDOWN) on the graph
 
     EXAMPLES:
 
@@ -413,6 +419,10 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
 
         * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_BFS` -- perform a
           lexicographic breadth first search (LexBFS) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_UP` -- perform a
+          lexicographic UP search (LexUP) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DOWN` -- perform a
+          lexicographic DOWN search (LexDOWN) on the graph
 
     EXAMPLES:
 
@@ -573,6 +583,8 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
           lexicographic breadth first search (LexBFS) on the graph
         * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DFS` -- perform a
           lexicographic depth first search (LexDFS) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_UP` -- perform a
+          lexicographic UP search (LexUP) on the graph
 
     EXAMPLES:
 

@@ -203,7 +203,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~GenericGraph.lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
-    :meth:`~GenericGraph.lex_M` | Return an ordering of the vertices of G according the LexM graph traversal.
+    :meth:`~GenericGraph.lex_M` | Return an ordering of the vertices according the LexM graph traversal.
 
 **Distances:**
 

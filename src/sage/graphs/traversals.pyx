@@ -15,9 +15,9 @@ Graph traversals.
     :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
-    :meth:`~lex_M` | Return an ordering of the vertices of the graph according the LexM graph traversal.
-    :meth:`~lex_M_slow` | Return an ordering of the vertices of G according the LexM graph traversal.
-    :meth:`~lex_M_fast` | Return an ordering of the vertices of G according the LexM graph traversal.
+    :meth:`~lex_M` |     Return an ordering of the vertices according the LexM graph traversal.
+    :meth:`~lex_M_slow` | Return an ordering of the vertices according the LexM graph traversal.
+    :meth:`~lex_M_fast` | Return an ordering of the vertices according the LexM graph traversal.
 
 Methods
 -------
@@ -688,13 +688,12 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
 
 def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorithm=None):
     r"""
-    Return an ordering of the vertices of the graph according the LexM
-    graph traversal.
+    Return an ordering of the vertices according the LexM graph traversal.
 
     LexM is a lexicographic ordering scheme that is a special type of
     breadth-first-search. LexM can also produce a triangulation of the
     given graph. This functionality is implemented in this method. For
-    more details on the algorithms used see sections 4 (``'lex_M_slow'``)
+    more details on the algorithms used see Sections 4 (``'lex_M_slow'``)
     and 5.3 (``'lex_M_fast'``) of [RTL76]_.
 
     .. NOTE::
@@ -751,7 +750,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
         True
 
     Both algorithms produce a valid LexM ordering `\alpha` (i.e the neighbors of
-    `\alpha(i) \in G[\{\alpha(i), ..., \alpha(n)\}] induce a clique)::
+    `\alpha(i)` in `G[\{\alpha(i), ..., \alpha(n)\}]` induce a clique)::
 
         sage: from sage.graphs.traversals import is_valid_lex_M_order
         sage: G = graphs.PetersenGraph()
@@ -814,7 +813,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
         raise ValueError("input graph must be undirected")
 
     if not algorithm:
-        if labels == True:
+        if labels:
             algorithm = "lex_M_slow"
         else:
             algorithm = "lex_M_fast"
@@ -831,8 +830,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
 def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
     r"""
-    Return an ordering of the vertices of `G` according the LexM graph
-    traversal.
+    Return an ordering of the vertices according the LexM graph traversal.
 
     LexM is a lexicographic ordering scheme that is a special type of
     breadth-first-search. This function implements the algorithm described in
@@ -984,8 +982,7 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
 
 def lex_M_fast(G, triangulation=False, initial_vertex=None):
     r"""
-    Return an ordering of the vertices of `G` according the LexM graph
-    traversal.
+    Return an ordering of the vertices according the LexM graph traversal.
 
     LexM is a lexicographic ordering scheme that is a special type of
     breadth-first-search. This function implements the algorithm described in
@@ -1178,12 +1175,14 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
 
 def is_valid_lex_M_order(G, alpha, F):
     """
-    Check whether the ordering alpha and the triangulation are valid for G.
+    Check whether the ordering alpha and the triangulation F are valid for G.
 
+    Given the graph `G = (V, E)` with vertex set `V` and edge set `E`, and the
+    set `F` of edges of a triangulation of `G`, let `H = (V, E\cup F)`.
     By induction one can see that for every `i \in \{1, ..., n − 1\}` the
-    neighbors of `\alpha(i) \in H[\{\alpha(i), ..., \alpha(n)\}] induce a
+    neighbors of `\alpha(i)` in` H[\{\alpha(i), ..., \alpha(n)\}]` induce a
     clique. The ordering `\alpha` is a perfect elimination ordering of `H`, so
-    `H` is chordal.
+    `H` is chordal. See [RTL76]_ for more details.
 
     INPUTS:
 

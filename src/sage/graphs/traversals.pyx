@@ -164,7 +164,7 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     """
     if initial_vertex is not None and initial_vertex not in G:
-        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+        raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
 
     # Loops and multiple edges are not needed in Lex BFS
     if G.allows_loops() or G.allows_multiple_edges():
@@ -337,7 +337,7 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
 
     """
     if initial_vertex is not None and initial_vertex not in G:
-        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+        raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
 
     # Loops and multiple edges are not needed in Lex UP
     if G.allows_loops() or G.allows_multiple_edges():
@@ -509,7 +509,7 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
 
     """
     if initial_vertex is not None and initial_vertex not in G:
-        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+        raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
 
     # Loops and multiple edges are not needed in Lex DFS
     if G.allows_loops() or G.allows_multiple_edges():
@@ -683,7 +683,7 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
 
     """
     if initial_vertex is not None and initial_vertex not in G:
-        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+        raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
 
     # Loops and multiple edges are not needed in Lex DOWN
     if G.allows_loops() or G.allows_multiple_edges():
@@ -885,7 +885,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
     """
     if initial_vertex is not None and initial_vertex not in self:
-        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+        raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
 
     if self.is_directed():
         raise ValueError("input graph must be undirected")
@@ -1008,7 +1008,7 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
 
     """
     if initial_vertex is not None and initial_vertex not in G:
-        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+        raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
 
     if G.is_directed():
         raise ValueError("input graph must be undirected")
@@ -1157,7 +1157,7 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
 
     """
     if initial_vertex is not None and initial_vertex not in G:
-        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+        raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
 
     if G.is_directed():
         raise ValueError("input graph must be undirected")

@@ -2615,12 +2615,24 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             [x + 1]
             sage: p.roots(multiplicities=False, algorithm="Roth-Ruckenstein")
             [x^2 + 11*x + 1, x + 1]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: pol = GF(3)['x']['y'].one()
+            sage: pol.roots(multiplicities=False)
+            []
         """
         if multiplicities:
             raise NotImplementedError("Use multiplicities=False")
 
         if degree_bound is None:
             l = p.degree()
+            if l < 0:
+                raise ArithmeticError("roots of 0 are not defined")
+            if l == 0:
+                return []
             dl = p[l].degree()
             degree_bound = max((p[i].degree() - dl)//(l - i) for i in range(l) if p[i])
 

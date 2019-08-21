@@ -2358,6 +2358,8 @@ class TopologicalManifold(ManifoldSubset):
 ##############################################################################
 ## Constructor function
 
+_manifold_id = Integer(0)
+
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
              start_index=0, **extra_kwds):
     r"""
@@ -2610,18 +2612,23 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: isinstance(M, sage.misc.fast_methods.WithEqualityById)
         True
     """
-    from time import time
     from sage.rings.infinity import infinity
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
     from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
     from sage.manifolds.topological_submanifold import TopologicalSubmanifold
     from sage.manifolds.differentiable.differentiable_submanifold import DifferentiableSubmanifold
     from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
+
+    global _manifold_id
+
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")
     if dim < 1:
         raise ValueError("the manifold dimension must be strictly positive")
+
+    _manifold_id += 1
+    unique_tag = lambda: getrandbits(128)*_manifold_id
 
     if structure in ['topological', 'top']:
         if field == 'real' or isinstance(field, RealField_class):
@@ -2639,11 +2646,11 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                           ambient=ambient,
                                           latex_name=latex_name,
                                           start_index=start_index,
-                                          unique_tag=getrandbits(128)*time())
+                                          unique_tag=unique_tag())
         return TopologicalManifold(dim, name, field, structure,
                                    latex_name=latex_name,
                                    start_index=start_index,
-                                   unique_tag=getrandbits(128)*time())
+                                   unique_tag=unique_tag())
     elif structure in ['differentiable', 'diff', 'smooth']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
@@ -2668,12 +2675,12 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                              diff_degree=diff_degree,
                                              latex_name=latex_name,
                                              start_index=start_index,
-                                             unique_tag=getrandbits(128)*time())
+                                             unique_tag=unique_tag())
         return DifferentiableManifold(dim, name, field, structure,
                                       diff_degree=diff_degree,
                                       latex_name=latex_name,
                                       start_index=start_index,
-                                      unique_tag=getrandbits(128)*time())
+                                      unique_tag=unique_tag())
     elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
@@ -2721,7 +2728,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                                latex_name=latex_name,
                                                metric_latex_name=metric_latex_name,
                                                start_index=start_index,
-                                               unique_tag=getrandbits(128)*time())
+                                               unique_tag=unique_tag())
 
         return PseudoRiemannianManifold(dim, name, metric_name=metric_name,
                                         signature=signature,
@@ -2729,7 +2736,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                         latex_name=latex_name,
                                         metric_latex_name=metric_latex_name,
                                         start_index=start_index,
-                                        unique_tag=getrandbits(128)*time())
+                                        unique_tag=unique_tag())
     raise NotImplementedError("manifolds of type {} are ".format(structure) +
                               "not implemented")
 

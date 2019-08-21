@@ -76,6 +76,8 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     .. SEEALSO::
 
         * :wikipedia:`Lexicographic_breadth-first_search`
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DFS` -- perform a
+          lexicographic depth first search (LexDFS) on the graph
 
     EXAMPLES:
 
@@ -250,8 +252,10 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
 
     .. SEEALSO::
 
-        * :meth:`~sage.graphs.generic_graph.GenericGraph.Lex_BFS` -- perform a
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_BFS` -- perform a
           lexicographic breadth first search (LexBFS) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DFS` -- perform a
+          lexicographic depth first search (LexDFS) on the graph
 
     EXAMPLES:
 
@@ -405,6 +409,11 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
 
     See [CK2008]_ for more details on the algorithm.
 
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_BFS` -- perform a
+          lexicographic breadth first search (LexBFS) on the graph
+
     EXAMPLES:
 
     A Lex DFS is obviously an ordering of the vertices::
@@ -457,7 +466,6 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
         sage: H = DiGraph(G)
         sage: G.lex_DFS() == H.lex_DFS()
         True
-
     """
     # Loops and multiple edges are not needed in Lex DFS
     if G.allows_loops() or G.allows_multiple_edges():
@@ -561,8 +569,10 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
 
     .. SEEALSO::
 
-        * :meth:`~sage.graphs.generic_graph.GenericGraph.Lex_DFS` -- perform a
-          lexicographic breadth depth first search (LexDFS) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_BFS` -- perform a
+          lexicographic breadth first search (LexBFS) on the graph
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.lex_DFS` -- perform a
+          lexicographic depth first search (LexDFS) on the graph
 
     EXAMPLES:
 
@@ -1174,13 +1184,13 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
 
 
 def is_valid_lex_M_order(G, alpha, F):
-    """
+    r"""
     Check whether the ordering alpha and the triangulation F are valid for G.
 
     Given the graph `G = (V, E)` with vertex set `V` and edge set `E`, and the
     set `F` of edges of a triangulation of `G`, let `H = (V, E\cup F)`.
     By induction one can see that for every `i \in \{1, ..., n − 1\}` the
-    neighbors of `\alpha(i)` in` H[\{\alpha(i), ..., \alpha(n)\}]` induce a
+    neighbors of `\alpha(i)` in `H[\{\alpha(i), ..., \alpha(n)\}]` induce a
     clique. The ordering `\alpha` is a perfect elimination ordering of `H`, so
     `H` is chordal. See [RTL76]_ for more details.
 

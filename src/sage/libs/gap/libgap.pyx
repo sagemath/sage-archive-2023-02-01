@@ -213,19 +213,16 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
-from pprint import pprint
-
 from .gap_includes cimport *
 from .util cimport *
 from .element cimport *
 
-from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport ModuleElement, RingElement, Vector
+from sage.structure.element cimport Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.randstate cimport current_randstate
-from sage.misc.superseded import deprecated_function_alias, deprecation
+from sage.misc.superseded import deprecation
 
 
 ############################################################################
@@ -320,7 +317,7 @@ class Gap(Parent):
                 return x._libgap_()
             except AttributeError:
                 pass
-            x = str(x._gap_init_())
+            x = str(x._libgap_init_())
             return make_any_gap_element(self, gap_eval(x))
 
     def _construct_matrix(self, M):
@@ -400,7 +397,7 @@ class Gap(Parent):
         cdef GapElement elem
 
         if not isinstance(gap_command, basestring):
-            gap_command = str(gap_command._gap_init_())
+            gap_command = str(gap_command._libgap_init_())
 
         initialize()
         elem = make_any_gap_element(self, gap_eval(gap_command))
@@ -410,6 +407,30 @@ class Gap(Parent):
             return None
 
         return elem
+
+    def load_package(self, pkg):
+        """
+        If loading fails, raise a RuntimeError exception.
+
+        TESTS::
+
+            sage: libgap.load_package("chevie")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Error loading GAP package chevie. You may want to
+            install gap_packages SPKG.
+        """
+        load_package = self.function_factory('LoadPackage')
+        # Note: For some reason the default package loading error messages are
+        # controlled with InfoWarning and not InfoPackageLoading
+        prev_infolevel = libgap.InfoLevel(libgap.InfoWarning)
+        libgap.SetInfoLevel(libgap.InfoWarning, 0)
+        ret = load_package(pkg)
+        libgap.SetInfoLevel(libgap.InfoWarning, prev_infolevel)
+        if str(ret) == 'fail':
+            raise RuntimeError(f"Error loading GAP package {pkg}.  "
+                               f"You may want to install gap_packages SPKG.")
+        return ret
 
     @cached_method
     def function_factory(self, function_name):

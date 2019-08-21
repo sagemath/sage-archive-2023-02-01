@@ -246,6 +246,21 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         [0 0 0], [0 0 0], [0 0 0], [0 1 0], [ 0  0  0], [ 0  0 -1]
         )
 
+    There is also the compact real form of matrix Lie algebras
+    implemented (the base ring must currently be a field)::
+
+        sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation="compact real")
+        sage: list(L.basis())
+        [
+        [ 0  1  0]  [ 0  0  1]  [ 0  0  0]  [ i  0  0]  [0 i 0]  [0 0 i]
+        [-1  0  0]  [ 0  0  0]  [ 0  0  1]  [ 0  0  0]  [i 0 0]  [0 0 0]
+        [ 0  0  0], [-1  0  0], [ 0 -1  0], [ 0  0 -i], [0 0 0], [i 0 0],
+        <BLANKLINE>
+        [ 0  0  0]  [0 0 0]
+        [ 0  i  0]  [0 0 i]
+        [ 0  0 -i], [0 i 0]
+        ]
+
     **5.** We construct a free Lie algebra in a few different ways. There are
     two primary representations, as brackets and as polynomials::
 
@@ -381,6 +396,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             if rep == 'matrix':
                 from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra
                 return ClassicalMatrixLieAlgebra(R, ct)
+            if rep == 'compact real':
+                from sage.algebras.lie_algebras.classical_lie_algebra import MatrixCompactRealForm
+                return MatrixCompactRealForm(R, ct)
             raise ValueError("invalid representation")
 
         # Parse the remaining arguments

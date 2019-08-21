@@ -1115,7 +1115,7 @@ class FullyPackedLoop(Element):
             ....:     PerfectMatching(rotated_ncp)
             True
 
-            sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0], [0,1,0,0,-1,1], [1,0,-1,1,0,0], 
+            sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0], [0,1,0,0,-1,1], [1,0,-1,1,0,0],
             ....:     [0,0,1,0,0,0], [0,0,0,0,1,0]])
             sage: fpl = FullyPackedLoop(mat)
             sage: ncp = fpl.link_pattern()

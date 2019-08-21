@@ -2848,15 +2848,15 @@ class TensorField(ModuleElement):
         Check 1: components with respect to the manifold's default
         frame (``eU``)::
 
-            sage: all([bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
-            ....:      for j in M.irange()] for i in M.irange())
+            sage: all(bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
+            ....:     for i in M.irange() for j in M.irange())
             True
 
         Check 2: components with respect to the frame ``eV``::
 
-            sage: all([bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
-            ....:                            for k in M.irange()))
-            ....:      for j in M.irange()] for i in M.irange())
+            sage: all(bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
+            ....:                           for k in M.irange()))
+            ....:      for i in M.irange() for j in M.irange())
             True
 
         Instead of the explicit call to the method :meth:`contract`, one

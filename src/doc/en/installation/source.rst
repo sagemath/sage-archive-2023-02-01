@@ -156,7 +156,8 @@ In any case, you always need at least a C/C++ compiler to build the GCC
 package and its prerequisites before the compilers it provides can be used.
 
 Note that you can always override this behavior through the configure
-options `--without-system-gcc` and `--with-system-gcc`, see :ref:`section_compilers`.
+options ``--without-system-gcc`` and ``--with-system-gcc``, see
+:ref:`section_compilers`.
 
 Other notes
 ^^^^^^^^^^^
@@ -225,25 +226,28 @@ you would use
      # debian (Stretch or newer) / ubuntu
      $ sudo apt-get install binutils pixz gcc g++ gfortran make m4 perl tar \
        git patch openssl libssl-dev libz-dev bc libbz2-dev liblzma-dev libgmp-dev \
-       libffi-dev libgf2x-dev libcurl4-openssl-dev curl yasm
+       libffi-dev libgf2x-dev libcurl4-openssl-dev libzmq3-dev curl yasm \
+       pkg-config libntl-dev libmpfr-dev libmpc-dev libflint-dev \
+       libpcre3-dev libgd-dev libflint-dev libflint-arb-dev \
+       libsymmetrica2-dev gmp-ecm libecm-dev
 
      # redhat / fedora / centos
      $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
        tar git patch perl-ExtUtils-MakeMaker openssl openssl-devel zlib-devel \
-       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm
+       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm \
+       pkg-config ntl-devel mpfr-devel libmpc-devel libsymmetrica-devel \
+       gmp-ecm-devel
 
 (These examples suppose that you choose to use a systemwide OpenSSL library.)
 In addition, if you don't want Sage to build other packages that might be available from
 your OS, cf. the growing list of such packages on :trac:`27330`, install::
 
-     # debian / ubuntu
-     $ sudo apt-get install libntl-dev libmpfr-dev libmpc-dev libflint-dev \
-       libpcre3-dev libgd-dev \
-       cmake libterm-readline-gnu-perl ninja-build librw-dev # not for standard Sage spkgs
+     # debian / ubuntu --  not for standard Sage spkgs
+     $ sudo apt-get install cmake libterm-readline-gnu-perl ninja-build \
+     librw-dev
 
-     # redhat / fedora / centos
-     $ sudo yum install ntl-devel mpfr-devel libmpc-devel \
-       cmake perl-Term-ReadLine-Gnu ninja-build rw-devel # not for standard Sage spkgs
+     # redhat / fedora / centos -- not for standard Sage spkgs
+     $ sudo yum install cmake perl-Term-ReadLine-Gnu ninja-build rw-devel
 
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,

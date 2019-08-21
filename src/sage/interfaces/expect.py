@@ -531,6 +531,39 @@ If this all works, you can then make calls like:
                 for X in self.__init_code:
                     self._send(X)
 
+    def _isalive(self):
+        """
+        Wrapper for pexpect's ``spawn.isalive()``.
+
+        Handles an issue where if the underlying process disappear (died / was
+        killed and wait()-ed by another process) before pexpect itself could
+        wait() on it, then pexpect (really ptyprocess) raises an exception but
+        does *not* mark the process as terminated.  The same exception results,
+        then, from any attempt to close the pexpect process.
+
+        See https://trac.sagemath.org/ticket/28354
+        """
+        try:
+            return self._expect is not None and self._expect.isalive()
+        except ExceptionPexpect:
+            self._expect.ptyproc.terminated = True
+            return False
+
+    def _close(self, force=True):
+        """
+        Wrapper for pexpect's ``spawn.close()``.
+
+        Since the underlying method calls ``isalive()`` it is affected by the
+        same issue described in ``_isalive()`` above.
+        """
+        try:
+            if self._expect is not None:
+                self._expect.close(force=force)
+        except ExceptionPexpect:
+            self._expect.ptyproc.fd = -1
+            self._expect.ptyproc.closed = True
+            self._expect.child_fd = -1
+            self._expect.closed = True
 
     def clear_prompts(self):
         while True:
@@ -593,7 +626,7 @@ If this all works, you can then make calls like:
                     print("Exiting %r (running on %s)" % (self._expect, self._server))
                 else:
                     print("Exiting %r" % (self._expect,))
-            self._expect.close()
+            self._close()
         self._reset_expect()
 
     def detach(self):
@@ -804,10 +837,10 @@ If this all works, you can then make calls like:
             raise RuntimeError('%s terminated unexpectedly while reading in a large line' % self)
         except RuntimeError as msg:
             if self._quit_string() in line:
-                if self._expect is None or not self._expect.isalive():
+                if not self._isalive():
                     return ''
                 raise
-            if restart_if_needed and (self._expect is None or not self._expect.isalive()):
+            if restart_if_needed and not self._isalive():
                 try:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
@@ -933,11 +966,11 @@ If this all works, you can then make calls like:
                         # while because the process might not die
                         # immediately. See Trac #14371.
                         for t in [0.5, 1.0, 2.0]:
-                            if E.isalive():
+                            if self._isalive():
                                 time.sleep(t)
                             else:
                                 break
-                    if not E.isalive():
+                    if not self._isalive():
                         try:
                             self._synchronize()
                         except (TypeError, RuntimeError):
@@ -994,7 +1027,7 @@ If this all works, you can then make calls like:
         print("Interrupting %s..." % self)
         if self._restart_on_ctrlc:
             try:
-                self._expect.close(force=1)
+                self._close()
             except pexpect.ExceptionPexpect as msg:
                 raise pexpect.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             self._start()

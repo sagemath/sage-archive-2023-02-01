@@ -5332,11 +5332,11 @@ class FiniteWord_class(Word_class):
                 return self._to_partition_content().charge()
         res = 0
         w = self.to_integer_list()
-        while len(w) != 0:
-            i =len(w) - 1
+        while w:
+            i = len(w) - 1
             l = min(w)
             index = 0
-            while len(w) != 0 and l <= max(w):
+            while w and l <= max(w):
                 while w[i] != l:
                     i -= 1
                     if i < 0:

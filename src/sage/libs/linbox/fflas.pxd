@@ -63,8 +63,7 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     Modular_double.Element* Invert (Modular_double F, size_t order,
                                     Modular_double.Element* A, size_t A_stride, int nullity)
 
-    Modular_double.Element Det (Modular_double F,
-                                size_t nrows, size_t ncols,
+    Modular_double.Element Det (Modular_double F, Modular_double.Element& d, size_t n,
                                 Modular_double.Element* A, size_t A_stride)
 
     int Rank (Modular_double,
@@ -97,8 +96,7 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     Modular_float.Element* Invert (Modular_float F, size_t order,
                                    Modular_float.Element* A, size_t A_stride, int nullity)
 
-    Modular_float.Element Det (Modular_float F,
-                               size_t nrows, size_t ncols,
+    Modular_float.Element Det (Modular_float F, Modular_float.Element& d, size_t n,
                                Modular_float.Element* A, size_t A_stride)
 
     int Rank (Modular_float,

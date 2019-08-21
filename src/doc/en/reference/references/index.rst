@@ -589,6 +589,10 @@ REFERENCES:
              related to the Connectivity Set of Coxeter Groups*.
              :arxiv:`math/0509271v3`
 
+.. [Big1993] Norman Linstead Biggs. *Algebraic Graph Theory*, 2nd ed.
+             Cambridge University Press, 1993.
+             :doi:`10.1017/CBO9780511608704`
+
 .. [Big1999] Stephen J. Bigelow. The Burau representation is not
              faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
 
@@ -1661,6 +1665,10 @@ REFERENCES:
           2000, Volume 17, Issue 2, pp 167-177,
           http://link.springer.com/article/10.1023%2FA%3A1006429830221
 
+.. [Feng2014] Gang Feng, *Finding k shortest simple paths in directed
+            graphs: A node classification algorithm*. Networks, 64(1),
+            6–17, 2014. :doi:`10.1002/net.21552`
+
 .. [Fe2012] Hans L. Fetter, "A Polyhedron Full of Surprises",
             Mathematics Magazine 85 (2012), no. 5, 334-342.
 
@@ -2084,6 +2092,10 @@ REFERENCES:
              Canadian Journal of Mathematics,
              1960
              http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
+
+.. [Har1962] Frank Harary. *The determinant of the adjacency matrix of a graph*.
+             SIAM Review 4 (1962), pp. 202-210.
+             :doi:`10.1137/1004057`
 
 .. [Har1977] \R. Hartshorne. Algebraic Geometry. Springer-Verlag, New York, 1977.
 
@@ -3210,6 +3222,10 @@ REFERENCES:
 
 .. [Mil2004] Victor S. Miller, "The Weil pairing, and its
              efficient calculation", J. Cryptol., 17(4):235-261, 2004
+
+.. [Mil2017] Arthur Milchior, *(Quasi-)linear time algorithm to compute
+             LexDFS, LexUP and LexDown orderings*. (2017)
+             :arxiv:`1701.00305`
 
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
@@ -4523,6 +4539,11 @@ REFERENCES:
 .. [Yamada2007] Daisuke Yamada. *Scattering rule in soliton cellular automaton
                 associated with crystal base of* `U_q(D_4^{(3)})`.
                 \J. Math. Phys., **48** (4):043509, 28, (2007).
+
+.. [Yen1970] Yen, Jin Y. (1970). *An algorithm for finding shortest routes from
+             all source nodes to a given destination in general networks*.
+             Quarterly of Applied Mathematics. 27 (4): 526–530.
+             :doi:`10.1090/qam/253822`
 
 .. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              collège de France

@@ -33,6 +33,10 @@ REFERENCES:
 
 **A**
 
+.. [AAGMRZ2019] \M. Aagaard, R. AlTawy, G. Gong, K. Mandal, R. Rohit, N. Zidaric
+                "WAGE: An Authenticated CipherSubmission to the NIST LWC Competition"
+                https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/wage-spec.pdf
+
 .. [Ab1995] Julian R. Abel,
             On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
             PhD Thesis,
@@ -47,12 +51,21 @@ REFERENCES:
             *An Algorithm for Finding Symmetric Groebner Bases in Infinite
             Dimensional Rings*. :arxiv:`0801.4439`.
 
+.. [ABBDHR2019] \R. Avanzi, S. Banik, A. Bogdanvo, O. Dunkelman, S. Huang, F. Regazzoni
+                "Qameleonv. 1.0"
+                https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/qameleon-spec.pdf
+
 .. [ABBR2011] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
               "TIDES tutorial: Integrating ODEs by using the Taylor Series Method."
               http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm
 
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
               *ACM Transactions on Mathematical Software*, **39** no. 1 (2012), 1-28.
+
+.. [ABCFHLLMRT2019] \A. Abdomnicai, T. P. Berger, C. Clavier, J. Francq, P. Huynh, V. Lallemand, K. Le
+                    Gouguec, M. Minier, L. Reynaud, G. Thomas.
+                    "Lilliput-AE: a New Lightweight Tweakable BlockCipher for Authenticated Encryption with AssociatedData"
+                    https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/LILLIPUT-AE-spec.pdf
 
 .. [AC1994] \R.J.R. Abel and Y.W. Cheng,
             Some new MOLS of order 2np for p a prime power,
@@ -158,6 +171,10 @@ REFERENCES:
 .. [AL2015] \M. Aguiar and A. Lauve, *The characteristic polynomial of
             the Adams operators on graded connected Hopf
             algebras*. Algebra Number Theory, v.9, 2015, n.3, 2015.
+
+.. [ALPRRV2019] \E. Andreeva, V. Lallemand, A. Purnal, R. Reyhanitabar, A. Roy, D. Vizar
+                "ForkAE v.1"
+                https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/forkae-spec.pdf
 
 .. [AM1969] \M. F. Atiyah and I. G. Macdonald, "Introduction to commutative
             algebra", Addison-Wesley, 1969.
@@ -336,6 +353,15 @@ REFERENCES:
             *Maps of toric varieties in Cox coordinates*,
             :arxiv:`1004.4924`
 
+.. [BBBCDGLLLMPPSW2019] \D. Bellizia, F. Berti, O. Bronchain, G. Cassiers,
+                        S. Duval, C. Guo, G. Leander, G. Leurent, I. Levi,
+                        C. Momin, O. Pereira, T. Peters, F. Standeart, F. Wiemer.
+                        "Spook:  Sponge-Based Leakage-Resilient AuthenticatedEncryption with a Masked Tweakable Block Cipher"
+                        https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/Spook-spec.pdf
+
+.. [BCDM2019] \T. Beyne, Y. L. Chen, C. Dobraunig, B. Mennink. *Elephant v1* (2019)
+              https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/elephant-spec.pdf
+
 .. [BeBo2009] Olivier Bernardi and Nicolas Bonichon, *Intervals in Catalan
               lattices and realizers of triangulations*, JCTA 116 (2009)
 
@@ -359,6 +385,10 @@ REFERENCES:
 .. [BBMF2008] \N. Bonichon, M. Bousquet-Mélou, E. Fusy.
               *Baxter permutations and plane bipolar orientations*.
               Séminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
+
+.. [BCDGNPY2019] \Z. Bao, A. Chakraborti, N. Datta, J. Guo, M. Nandi, T. Peyrin, K. Yasuda.
+                 "PHOTON-BeetleAuthenticated Encryption and Hash Family"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/PHOTON-Beetle-spec.pdf
 
 .. [BPPSST2017] Banik, Pandey, Peyrin, Sasaki, Sim, and Todo,
                 GIFT : A Small Present Towards Reaching the Limit of Lightweight
@@ -988,11 +1018,19 @@ REFERENCES:
             Michigan Math. J. 55 (2007), no. 2, 355-393.
             :arxiv:`math/0602146v1` [math.AG]
 
+.. [CDJN2019] \A. Chakraborti, N. Datta, A. Jha, M. Nandi
+              "HyENA"
+              https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/hyena-spec.pdf
+
 .. [CDL2015] \A. Canteaut, Sebastien Duval, Gaetan Leurent
              *Construction of Lightweight S-Boxes using Feistel and
              MISTY Structures*; in Proceedings of SAC 2015; LNCS 9566;
              pp. 373-393; Springer-Verlag 2015; available at
              http://eprint.iacr.org/2015/711.pdf
+
+.. [CDLNPPS2019] \A. Canteaut, S. Duval, G. Leurent, M. Naya-Plasencia, L. Perrin, T. Pornin, A. Schrottenloher.
+                 "Saturnin: a suite of lightweight symmetricalgorithms for post-quantum security"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/SATURNIN-spec.pdf
 
 .. [CE2001] Raul Cordovil and Gwihen Etienne. *A note on the
             Orlik-Solomon algebra*. Europ. J. Combinatorics. **22**
@@ -1154,6 +1192,10 @@ REFERENCES:
              *Computing in groups of Lie type*.
              Mathematics of Computation. **73** (2003), no 247. pp. 1477--1498.
              https://www.win.tue.nl/~amc/pub/papers/cmt.pdf
+
+.. [CN2019] \B. Chakraborty, M. Nandi
+            "Orange"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/orange-spec.pdf
 
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,
@@ -1346,6 +1388,10 @@ REFERENCES:
 .. [DEMS2016] \C. Dobraunig, M. Eichlseder, F. Mendel, and M. Schläffer,
               *Ascon v1.2*; in CAESAR Competition, (2016).
 
+.. [DEMMMPU2019] \C. Dobraunig, M. Eichseder, S. Mangard, F. Mendel, B. Mennink, R. Primas, T. Unterluggauer
+                 "ISAP v2.0"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/ISAP-spec.pdf
+
 .. [De1973] \P. Delsarte, An algebraic approach to the association
             schemes of coding theory, Philips Res. Rep., Suppl.,
             vol. 10, 1973.
@@ -1405,6 +1451,10 @@ REFERENCES:
 .. [DG1994] \S. Dulucq and O. Guibert. Mots de piles, tableaux
             standards et permutations de Baxter, proceedings of
             Formal Power Series and Algebraic Combinatorics, 1994.
+
+.. [DGMPPS2019] \N. Datta, A. Ghoshal, D. Mukhopadhyay, S. Patranabis,
+                S. Picek, R. Sashukhan. "TRIFLE"
+                https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/trifle-spec.pdf
 
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
               von Stengel. *Enumeration of Nash equilibria for
@@ -1887,6 +1937,10 @@ REFERENCES:
 .. [GJ2007] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
             2007, :arxiv:`0801.1655`.
 
+.. [GJKPRSS2019] \D. Goudarzi, J. Jean, S. Koelbl, T. Peyrin, M. Rivain, Y. Sasaki, S. M. Sim.
+                 "Pyjamask"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/Pyjamask-spec.pdf
+
 .. [GJK+2014] Dimitar Grantcharov, Ji Hye Jung, Seok-Jin Kang, Masaki Kashiwara,
               Myungho Kim. *Crystal bases for the quantum queer superalgebra and
               semistandard decomposition tableaux.*; Trans. Amer. Math. Soc.,
@@ -2303,6 +2357,18 @@ REFERENCES:
             *New families of strongly regular graphs*.
             Journal of Combinatorial Designs, 11(3):208--217, 2003.
             :doi:`10.1002/jcd.10038`
+
+.. [IKMP2019A] \T. Iwata, M. Khairallah, K. Minematsu, T. Peyrin
+               "Remus v1.0"
+               https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/Remus-spec.pdf
+
+.. [IKMP2019B] \T. Iwata, M. Khairallah, K. Minematsu, T. Peyrin
+               "Romulus v1.0"
+               https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/Romulus-spec.pdf
+
+.. [IKMPSSS2019] \T. Iwata, M. Khairallah, K. Minematsu, T. Peyrin, Y. Sasaki, S. M. Sim, L. Sun
+                 "Thank Goodness It’s Friday(TGIF)"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/TGIF-spec.pdf
 
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
              Santaroni. *Finding strong bridges and strong
@@ -3274,6 +3340,10 @@ REFERENCES:
 .. [MoPa1994] \P. Morton and P. Patel. The Galois theory of periodic points
               of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
 
+.. [MP2019] \M. Montes, D. Penazzi
+            "Yarara and Coral v1"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/yarara_and_coral-spec.pdf
+
 .. [MPP2008] Conrado Martinez, Alois Panholzer and Helmut Prodinger,
              *Generating random derangements*
              :doi:`10.1137/1.9781611972986.7`
@@ -3422,6 +3492,10 @@ REFERENCES:
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
 
+.. [NX2019] \E. M. d. Nascimento, J. A. M. Xexeo
+            "Name of Submission:FlexAEAD -A Lightweight Cipher withIntegrated Authentication"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/FlexAEAD-spec.pdf
+
 .. [NZ1997] \T. Nakashima and A. Zelevinsky.
             Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.
             Adv. Math. **131**, pp. 253--278, 1997.
@@ -3551,6 +3625,9 @@ REFERENCES:
               *Algèbres de Hopf de tableaux*,
               Ann. Sci. Math. Québec, 19 (1): 79--90.
               http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Alg%C3%A8bres%20de%20Hopf%20de%20tableaux.pdf
+
+.. [PM2019] \D. Penazzi, M. Montes. "Shamash (and Shamashash)"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/ShamashAndShamashash-spec.pdf
 
 .. [Pol2003] Robert Pollack, *On the `p`-adic `L`-function of a modular form
             at a supersingular prime*, Duke Math. J. 118 (2003), no. 3, 523-558.
@@ -3715,6 +3792,10 @@ REFERENCES:
 
 .. [Rio1958] \J. Riordan, "An Introduction to Combinatorial Analysis",
              Dover Publ. (1958)
+
+.. [Rio2019] \S. Riou, "DryGASCON: Lightweight Cryptography Standardization
+             Process round 1 submission"
+             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/drygascon-spec.pdf
 
 .. [Ris2016] Roswitha Rissner, "Null ideals of matrices over residue
              class rings of principal ideal domains". Linear Algebra
@@ -3973,6 +4054,10 @@ REFERENCES:
 .. [SMMK2013] \T. Suzaki, K. Minematsu, S. Morioka, and E. Kobayashi,
               *TWINE: A lightweight block cipher for multiple platforms*; in
               SAC, (2012), pp. 338-354.
+
+.. [SMS2019] \S. Sarkar, K. Mandal, D. Saha
+             "Sycon v1.0 Submission to LightweightCryptographic Standards"
+             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/sycon-spec.pdf
 
 .. [Sor1984] \A. Sorkin, *LUCIFER: a cryptographic algorithm*;
              in Cryptologia, 8(1), pp. 22–35, 1984.
@@ -4590,8 +4675,15 @@ REFERENCES:
              constrained optimization. ACM Transactions on
              Mathematical Software, Vol 23, Num. 4, pp.550--560, 1997.
 
+.. [ZDYBXJZ2019] \W. Zhang, T. Ding, B. Yang, Z. Bao, Z. Xiang, F. Ji, X. Zhao.
+                 "KNOT: Algorithm Speci cationsand Supporting Document"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/KNOT-spec.pdf
+
 .. [Zei2011] Doron Zeilberger. "The C-finite ansatz." The Ramanujan Journal
              (2011): 1-10.
+
+.. [Zha2019] Bin Zhang. "Fountain: A Lightweight Authenticated Cipher(v1)"
+             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/fountain-spec.pdf
 
 .. [Zhedanov1991] \A.S. Zhedanov.
                   *"Hidden symmetry" of the Askey–Wilson polynomials*,
@@ -4602,6 +4694,10 @@ REFERENCES:
 
 .. [Zie2007] \G. M. Ziegler. *Lectures on polytopes*, Volume
              152 of Graduate Texts in Mathematics, 7th printing of 1st edition, Springer, 2007.
+
+.. [ZJRRS2019] \M. R. Z'aba, N. Jamil, M. S. Rohmad, H. A. Rani, S. Shamsuddin
+           "TheCiliPadiFamily of LightweightAuthenticated Encryption"
+           https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/cilipadi-spec.pdf
 
 .. [Zor2008] \A. Zorich "Explicit Jenkins-Strebel representatives of
              all strata of Abelian and quadratic differentials",

@@ -154,7 +154,18 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
         sage: G.lex_BFS() == H.lex_BFS()
         True
 
+    ``initial_vertex`` should be a valid graph vertex::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: G.lex_BFS(initial_vertex='foo')
+        Traceback (most recent call last)
+        ...
+        ValueError: 'foo' is not a graph vertex dad
+
     """
+    if initial_vertex is not None and initial_vertex not in G:
+        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+
     # Loops and multiple edges are not needed in Lex BFS
     if G.allows_loops() or G.allows_multiple_edges():
         G = G.to_simple(immutable=False)
@@ -316,7 +327,18 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
         sage: G.lex_UP() == H.lex_UP()
         True
 
+    ``initial_vertex`` should be a valid graph vertex::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: G.lex_UP(initial_vertex='foo')
+        Traceback (most recent call last)
+        ...
+        ValueError: 'foo' is not a graph vertex
+
     """
+    if initial_vertex is not None and initial_vertex not in G:
+        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+
     # Loops and multiple edges are not needed in Lex UP
     if G.allows_loops() or G.allows_multiple_edges():
         G = G.to_simple(immutable=False)
@@ -476,7 +498,19 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
         sage: H = DiGraph(G)
         sage: G.lex_DFS() == H.lex_DFS()
         True
+
+    ``initial_vertex`` should be a valid graph vertex::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: G.lex_DFS(initial_vertex='foo')
+        Traceback (most recent call last)
+        ...
+        ValueError: 'foo' is not a graph vertex
+
     """
+    if initial_vertex is not None and initial_vertex not in G:
+        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+
     # Loops and multiple edges are not needed in Lex DFS
     if G.allows_loops() or G.allows_multiple_edges():
         G = G.to_simple(immutable=False)
@@ -639,7 +673,18 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
         sage: G.lex_DOWN() == H.lex_DOWN()
         True
 
+    ``initial_vertex`` should be a valid graph vertex::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: G.lex_DOWN(initial_vertex='foo')
+        Traceback (most recent call last)
+        ...
+        ValueError: 'foo' is not a graph vertex
+
     """
+    if initial_vertex is not None and initial_vertex not in G:
+        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+
     # Loops and multiple edges are not needed in Lex DOWN
     if G.allows_loops() or G.allows_multiple_edges():
         G = G.to_simple(immutable=False)
@@ -830,7 +875,18 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
         ...
         ValueError: unknown algorithm 'Bob'
 
+    ``initial_vertex`` should be a valid graph vertex::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: G.lex_M(initial_vertex='foo')
+        Traceback (most recent call last)
+        ...
+        ValueError: 'foo' is not a graph vertex
+
     """
+    if initial_vertex is not None and initial_vertex not in self:
+        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+
     if self.is_directed():
         raise ValueError("input graph must be undirected")
 
@@ -941,7 +997,19 @@ def lex_M_slow(G, triangulation=False, labels=False, initial_vertex=None):
         ...
         ValueError: input graph must be undirected
 
+    ``initial_vertex`` should be a valid graph vertex::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: from sage.graphs.traversals import lex_M_slow
+        sage: lex_M_slow(G, initial_vertex='foo')
+        Traceback (most recent call last)
+        ...
+        ValueError: 'foo' is not a graph vertex
+
     """
+    if initial_vertex is not None and initial_vertex not in G:
+        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+
     if G.is_directed():
         raise ValueError("input graph must be undirected")
 
@@ -1078,7 +1146,19 @@ def lex_M_fast(G, triangulation=False, initial_vertex=None):
         ...
         ValueError: input graph must be undirected
 
+    ``initial_vertex`` should be a valid graph vertex::
+
+        sage: G = graphs.CompleteGraph(6)
+        sage: from sage.graphs.traversals import lex_M_fast
+        sage: lex_M_fast(G, initial_vertex='foo')
+        Traceback (most recent call last)
+        ...
+        ValueError: 'foo' is not a graph vertex
+
     """
+    if initial_vertex is not None and initial_vertex not in G:
+        raise ValueError("'{}' is not a graph vertex".format(str(initial_vertex)))
+
     if G.is_directed():
         raise ValueError("input graph must be undirected")
 

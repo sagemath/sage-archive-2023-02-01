@@ -2350,6 +2350,8 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZ_c gcd
         cdef ZZ_c t1
         cdef ZZX_c t2
+        if ZZ_IsOne(self.__denominator):
+            return
         ZZX_content(t1, self.__numerator)
         ZZ_GCD(gcd, t1, self.__denominator)
         if ZZ_sign(gcd) != ZZ_sign(self.__denominator):
@@ -2372,11 +2374,16 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
+        cdef ZZ_c g, q1, q2
         x = self._new()
-        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_GCD(g, self.__denominator, _right.__denominator)
+        ZZ_div(q1, self.__denominator, g)
+        ZZ_div(q2, _right.__denominator, g)
+        ZZ_mul(x.__denominator, q1, q2)
+        ZZ_mul(x.__denominator, x.__denominator, g)
         cdef ZZX_c t1, t2
-        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
-        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_mul_ZZ(t1, self.__numerator, q2)
+        ZZX_mul_ZZ(t2, _right.__numerator, q1)
         ZZX_add(x.__numerator, t1, t2)
         x._reduce_c_()
         return x
@@ -2391,11 +2398,16 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
+        cdef ZZ_c g, q1, q2
         x = self._new()
-        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_GCD(g, self.__denominator, _right.__denominator)
+        ZZ_div(q1, self.__denominator, g)
+        ZZ_div(q2, _right.__denominator, g)
+        ZZ_mul(x.__denominator, q1, q2)
+        ZZ_mul(x.__denominator, x.__denominator, g)
         cdef ZZX_c t1, t2
-        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
-        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_mul_ZZ(t1, self.__numerator, q2)
+        ZZX_mul_ZZ(t2, _right.__numerator, q1)
         ZZX_sub(x.__numerator, t1, t2)
         x._reduce_c_()
         return x

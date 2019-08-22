@@ -6935,7 +6935,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))
             if len(v) < degree+1:
                 v.reverse()
-                v = [0]*(degree+1-len(v)) + v
+                v = [self.base_ring().zero()]*(degree+1-len(v)) + v
             elif len(v) > degree+1:
                 v = v[:degree+1]
                 v.reverse()

@@ -1040,11 +1040,17 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         zz_pX_diff(r.x, self.x)
         return r
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
-        Reverses the coefficients of self. The reverse of `f(x)` is `x^n f(1/x)`.
+        Return the reverse of the input polynomial thought as a polynomial of
+        degree ``degree``.
 
-        The degree will go down if the constant term is zero.
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
+
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
@@ -1052,12 +1058,28 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f = x^4 - x - 1
             sage: f.reverse()
             76*x^4 + 76*x^3 + 1
-            sage: f = x^3 - x
-            sage: f.reverse()
+            sage: f.reverse(2)
+            76*x^2 + 76*x
+            sage: f.reverse(5)
+            76*x^5 + 76*x^4 + x
+            sage: g = x^3 - x
+            sage: g.reverse()
             76*x^2 + 1
+
+        TESTS:
+
+        We check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        zz_pX_reverse(r.x, self.x)
+
+        if degree is None:
+            zz_pX_reverse(r.x, self.x)
+        else:
+            zz_pX_reverse_hi(r.x, self.x, degree)
         return r
 
     def is_gen(self):
@@ -1575,12 +1597,17 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         return r
 
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
-        Reverses the coefficients of self. The reverse of `f(x)` is `x^n
-        f(1/x)`.
+        Return the reverse of the input polynomial thought as a polynomial of
+        degree ``degree``.
 
-        The degree will go down if the constant term is zero.
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
+
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
@@ -1591,9 +1618,25 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f = x^3 + x
             sage: f.reverse()
             x^2 + 1
+            sage: f.reverse(1)
+            1
+            sage: f.reverse(5)
+            x^4 + x^2
+
+        TESTS:
+
+        We check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        ZZ_pX_reverse(r.x, self.x)
+
+        if degree is None:
+            ZZ_pX_reverse(r.x, self.x)
+        else:
+            ZZ_pX_reverse_hi(r.x, self.x, degree)
         return r
 
     def is_gen(self):

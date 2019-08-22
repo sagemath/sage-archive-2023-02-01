@@ -199,7 +199,7 @@ cdef extern from "cplex.h":
      int CPXgetstrparam(c_cpxenv * env, int paramid, char * strv)
 
      # Returns the value of a string prameter
-     int CPXgetlongparam(c_cpxenv * env, int paramid, long * longv)
+     int CPXgetlongparam(c_cpxenv * env, int paramid, long long * longv)
 
      # Sets the value of an integer parameter
      int CPXsetintparam(c_cpxenv * env, int paramid, int value)

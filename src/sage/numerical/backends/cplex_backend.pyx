@@ -1601,7 +1601,7 @@ cdef class CPLEXBackend(GenericBackend):
         cdef int intv
         cdef double doublev
         cdef char * strv
-        cdef long longv
+        cdef long long longv
 
         # Specific action for log file
         cdef FILE *ff

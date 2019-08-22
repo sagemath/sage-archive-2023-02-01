@@ -260,10 +260,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
             sage: sorted(p._nmz_result(p._normaliz_cone, 'Generators')) # optional - pynormaliz
             [[-1, a^2, 1], [-1/3*a^2, -1, 0], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
-            sage: p._nmz_result(p._normaliz_cone, 'AffineDim') # optional - pynormaliz
-            2
-            sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') # optional - pynormaliz
-            3
+            sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz
+            True
+            sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') == 3 # optional - pynormaliz
+            True
             sage: p._nmz_result(p._normaliz_cone, 'ExtremeRays') # optional - pynormaliz
             [[-1/3*a^2, -1, 0]]
             sage: p._nmz_result(p._normaliz_cone, 'MaximalSubspace') # optional - pynormaliz

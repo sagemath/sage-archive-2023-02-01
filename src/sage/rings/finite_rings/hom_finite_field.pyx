@@ -376,8 +376,8 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         """
         Return the unique ``a`` such that ``self(a) = b`` if one such exists.
 
-        This methid is simply a shorthand for calling the map returned by
-        `self.section()` on `b`.
+        This method is simply a shorthand for calling the map returned by
+        ``self.section()`` on ``b``.
 
         EXAMPLES::
 

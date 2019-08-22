@@ -2620,9 +2620,13 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         Check that :trac:`23639` is fixed::
 
-            sage: pol = GF(3)['x']['y'].one()
-            sage: pol.roots(multiplicities=False)
+            sage: R = GF(3)['x']['y']
+            sage: R.one().roots(multiplicities=False)
             []
+            sage: R.zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: roots of 0 are not defined
         """
         if multiplicities:
             raise NotImplementedError("Use multiplicities=False")

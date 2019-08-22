@@ -755,7 +755,25 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                                     break
 
                 if not quiet:
-                    got += doctest._exception_traceback(exception)
+                    exc_tb = doctest._exception_traceback(exception)
+                    if not isinstance(exc_tb, six.text_type):
+                        # On Python 2, if the traceback contains non-ASCII
+                        # text we can get a UnicodeDecodeError here if we
+                        # don't explicitly decode it first; first try utf-8
+                        # and then fall back on latin-1.
+                        try:
+                            exc_tb = exc_tb.decode('utf-8')
+                        except UnicodeDecodeError:
+                            exc_tb = exc_tb.decode('latin-1')
+
+                    got += exc_tb
+
+                if not isinstance(exc_msg, six.text_type):
+                    # Same here as above
+                    try:
+                        exc_msg = exc_msg.decode('utf-8')
+                    except UnicodeDecodeError:
+                        exc_msg = exc_msg.decode('latin-1')
 
                 # If `example.exc_msg` is None, then we weren't expecting
                 # an exception.

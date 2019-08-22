@@ -88,12 +88,6 @@ cdef extern from "cplex.h":
      # Sets a col's name
      int CPXchgcolname(c_cpxenv * env, c_cpxlp * lp, int cnt, int * indices, char ** newname)
 
-     # Set a "double" parameter
-     int CPXsetdblparam(c_cpxenv * env, int, double)
-
-     # Set an integer parameter
-     int CPXsetintparam(c_cpxenv * env, int whichparam, int newvalue)
-
      # Number of solutions in the pool
      int CPXgetsolnpoolnumsolns(c_cpxenv * env, c_cpxlp * lp)
 
@@ -195,23 +189,29 @@ cdef extern from "cplex.h":
      # Gets the type of a CPLEX parameter
      int CPXgetparamtype(c_cpxenv * env, int paramid, int * paramtype)
 
-     # returns the value of an integer prameter
+     # Returns the value of an integer prameter
      int CPXgetintparam(c_cpxenv * env, int paramid, int * intv)
 
-     # returns the value of a double prameter
+     # Returns the value of a double prameter
      int CPXgetdblparam(c_cpxenv * env, int paramid, double * doublev)
 
-     # returns the value of a string prameter
+     # Returns the value of a string prameter
      int CPXgetstrparam(c_cpxenv * env, int paramid, char * strv)
 
-     # sets the value of an integer parameter
+     # Returns the value of a string prameter
+     int CPXgetlongparam(c_cpxenv * env, int paramid, long * longv)
+
+     # Sets the value of an integer parameter
      int CPXsetintparam(c_cpxenv * env, int paramid, int value)
 
-     # sets the value of a double parameter
+     # Sets the value of a double parameter
      int CPXsetdblparam(c_cpxenv * env, int paramid, double value)
 
-     # sets the value of a string parameter
+     # Sets the value of a string parameter
      int CPXsetstrparam(c_cpxenv * env, int paramid, char * value)
+
+     # Sets the value of a long parameter
+     int CPXsetlongparam(c_cpxenv * env, int paramid, long value)
 
      # sets the log stream file
      int CPXsetlogfile(c_cpxenv * env, FILE * f)

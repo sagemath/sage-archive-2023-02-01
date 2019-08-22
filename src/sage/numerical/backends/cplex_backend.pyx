@@ -1591,10 +1591,17 @@ cdef class CPLEXBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             ValueError: This parameter is not available.
+
+        Ticket :trac:`27089` is fixed::
+
+            sage: p.solver_parameter("CPX_PARAM_ITLIM", 10000)  # optional - CPLEX
+            sage: p.solver_parameter("CPX_PARAM_ITLIM")         # optional - CPLEX
+            10000
         """
         cdef int intv
         cdef double doublev
         cdef char * strv
+        cdef long longv
 
         # Specific action for log file
         cdef FILE *ff
@@ -1612,7 +1619,6 @@ cdef class CPLEXBackend(GenericBackend):
                 self._logfilename = value
             return
 
-
         # If the name has to be translated to a CPLEX parameter ID
         if name == "timelimit":
             name = "CPX_PARAM_TILIM"
@@ -1622,7 +1628,8 @@ cdef class CPLEXBackend(GenericBackend):
         if paramid == -1:
             raise ValueError("This parameter is not available.")
 
-        # Type of the parameter. Can be INT (1), Double(2) or String(3)
+        # Type of the parameter.
+        # Can be None (0), INT (1), Double (2), String (3) or Long (4)
         cdef int paramtype
         check(CPXgetparamtype(self.env, paramid, &paramtype))
 
@@ -1633,20 +1640,26 @@ cdef class CPLEXBackend(GenericBackend):
             elif paramtype == 2:
                 check(CPXgetdblparam(self.env, paramid, &doublev))
                 return doublev
-            else:
+            elif paramtype == 3:
                 strv = <char *>sig_malloc(500*sizeof(char))
                 status = CPXgetstrparam(self.env, paramid, strv)
                 s = str(strv)
                 sig_free(strv)
                 check(status)
                 return s
+            elif paramtype == 4:
+                check(CPXgetlongparam(self.env, paramid, &longv))
+                return longv
+
         else:
             if paramtype == 1:
                 check(CPXsetintparam(self.env, paramid, value))
             elif paramtype == 2:
                 check(CPXsetdblparam(self.env, paramid, value))
-            else:
+            elif paramtype == 3:
                 check(CPXsetstrparam(self.env, paramid, value))
+            elif paramtype == 4:
+                check(CPXsetlongparam(self.env, paramid, value))
 
     def __dealloc__(self):
         r"""

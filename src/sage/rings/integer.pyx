@@ -1607,6 +1607,111 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # all we need to do is return
         return l
 
+    def balanced_digits(self, base, positive_shift=True):
+        r'''
+
+        Returns a list of balanced digits (centered at 0) for ``self`` in 
+        the given base. For example, the balanced ternary representation
+        of ``8`` is ``[-1, 0, 1]``. For an even base ``b``, ``positive_shift``
+        determines whether the digits range from ``-b/2 + 1`` to ``b/2``
+        or from ``-b/2`` to ``b/2 - 1``.
+
+        INPUT:
+
+        - ``base`` -- integer
+        - ``positive_shift`` -- boolean (default: True)
+
+        EXAMPLES::
+
+            sage: 8.balanced_digits(3)
+            [-1, 0, 1]
+            sage: (-15).balanced_digits(5)
+            [0, 2, -1]
+            sage: 17.balanced_digits(6)
+            [-1, 3]
+            sage: 17.balanced_digits(6, positive_shift=False)
+            [-1, -3, 1]
+            sage: (-23).balanced_digits(12)
+            [1, -2]
+            sage: (-23).balanced_digits(12, positive_shift=False)
+            [1, -2]
+            sage: 0.balanced_digits(2)
+            []
+            sage: 14.balanced_digits(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be >= 2
+
+        ::
+
+            sage: base = 5; n = 39
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 12; n = -52
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 8; n = 37
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 8; n = 37
+            sage: l = n.balanced_digits(base, positive_shift=False)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+
+        .. SEEALSO::
+
+            :func:`digits <digits>`
+        '''
+        if isinstance(base, Integer):
+            _base = base
+        else:
+            _base = Integer(base)
+        if _base < 2:
+            raise ValueError("base must be >= 2")
+
+        digits = []
+        if self == 0:
+            return digits
+
+        self_abs = self
+        neg = False
+        if self_abs < 0:
+            neg = True
+            self_abs = -self_abs
+
+        from sage.functions.other import floor
+        if positive_shift or _base%2 == 1 or _base == 2:
+            m = floor(_base/2) + 1
+        else:
+            m = floor(_base/2)
+
+        q = 0
+        r = self_abs
+        while r >= m:
+            q += 1
+            r -= _base
+        if neg:
+            digits.append(-r)
+        else:
+            digits.append(r)
+        while True:
+            temp_q = 0
+            temp_r = q
+            while temp_r >= m:
+                temp_q += 1
+                temp_r -= _base
+            if q == temp_q:
+                break
+            q,r = temp_q,temp_r
+            if neg:
+                digits.append(-r)
+            else:
+                digits.append(r)
+        return digits
+
     def ndigits(self, base=10):
         """
         Return the number of digits of self expressed in the given base.

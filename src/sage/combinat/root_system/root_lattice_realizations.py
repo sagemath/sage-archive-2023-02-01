@@ -774,13 +774,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: Q = RootSystem(['A',4,2]).root_lattice()
                 sage: PR = Q.positive_roots()
-                sage: [PR.unrank(i) for i in range(5)]  # py2
-                [alpha[1],
-                 alpha[2],
-                 alpha[1] + alpha[2],
-                 2*alpha[1] + alpha[2],
-                 alpha[0] + alpha[1] + alpha[2]]
-                sage: [PR.unrank(i) for i in range(5)]  # py3
+                sage: [PR.unrank(i) for i in range(5)]
                 [alpha[1],
                  alpha[2],
                  alpha[1] + alpha[2],

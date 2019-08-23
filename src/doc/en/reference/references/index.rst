@@ -3719,6 +3719,10 @@ REFERENCES:
 .. [RL1971] \J. Rokne, P. Lancaster. Complex interval arithmetic.
             Communications of the ACM 14. 1971.
 
+.. [RM2017] Robert Muth.
+            *Super RSK correspondence with symmetry*.
+            :arXiv:`1711.00420v1`.
+
 .. [RMA2009] \P. Réal and H. Molina-Abril, *Cell AT-models for digital
              volumes* in Torsello, Escolano, Brun (eds.), Graph-Based
              Representations in Pattern Recognition, Lecture Notes in

@@ -346,9 +346,11 @@ Comprehensive Module list
     sage/combinat/subsets_pairwise
     sage/combinat/subword
     sage/combinat/subword_complex
+    sage/combinat/super_tableau
     sage/combinat/superpartition
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
+    sage/combinat/super_tableau
     sage/combinat/tableau
     sage/combinat/tableau_residues
     sage/combinat/tableau_tuple

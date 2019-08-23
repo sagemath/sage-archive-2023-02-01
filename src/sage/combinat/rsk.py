@@ -2370,7 +2370,7 @@ class RuleSuperRSK(RuleRSK):
     def backward_rule(self, p, q, output='array'):
         r"""
         Return the restricted super biword obtained by applying reverse
-        coRSK insertion to a pair of tableaux ``(p, q)``.
+        superRSK insertion to a pair of tableaux ``(p, q)``.
 
         INPUT:
 
@@ -2397,6 +2397,7 @@ class RuleSuperRSK(RuleRSK):
             sage: RuleSuperRSK().backward_rule(t1, t2, 'array')
             [[1, 2, 3], [1, 3, 3']]
         """
+        from copy import copy
         p_copy = [list(row) for row in p]
         upper_row = []
         lower_row = []
@@ -2405,37 +2406,47 @@ class RuleSuperRSK(RuleRSK):
         d = {}
         for row, Li in enumerate(q):
             for col, val in enumerate(Li):
-                if val in d:
-                    d[val][col] = row
+                if val in d and col in d[val]:
+                    d[val][col].append(row)
+                elif val not in d:
+                    d[val] = {col: [row]}
                 else:
-                    d[val] = {col: row}
+                    d[val][col] = [row]
         # d is now a double family such that for every integers k and j,
-        # the value d[k][j] is the row i such that the (i, j)-th cell of
-        # q is filled with k.
+        # the value d[k][j] is the list of rows i such that the (i, j)-th
+        # cell of q is filled with k.
         for value, iter_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
             epsilon = 1 if value.is_primed() else 0
             if epsilon == 1:
-                iter_dict = {v: k for k, v in iter_dict.items()}
+                iter_copy = copy(iter_dict)
+                iter_dict = {}
+                for k, v in iter_copy.items():
+                    for vi in v:
+                        if vi in iter_dict:
+                            iter_dict[vi].append(k)
+                        else:
+                            iter_dict[vi]=[k]
             for key in sorted(iter_dict, reverse=True):
-                row_index, col_index = (iter_dict[key], key) if epsilon == 0 else (key, iter_dict[key])
-                x = p_copy[row_index].pop()  # Always the right-most entry
-                while True:
-                    if value.is_primed() == x.is_primed():
-                        # row bumping
-                        row_index -= 1
-                        if row_index < 0:
-                            break
-                        x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
-                    else:
-                        # column bumping
-                        col_index -= 1
-                        if col_index < 0:
-                            break
-                        c = self._get_col(p_copy, col_index)
-                        x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
-                        self._set_col(p_copy, col_index, c)
-                upper_row.append(value)
-                lower_row.append(x)
+                for rows in iter_dict[key]:
+                    row_index, col_index = (rows, key) if epsilon == 0 else (key, rows)
+                    x = p_copy[row_index].pop()  # Always the right-most entry
+                    while True:
+                        if value.is_primed() == x.is_primed():
+                            # row bumping
+                            row_index -= 1
+                            if row_index < 0:
+                                break
+                            x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
+                        else:
+                            # column bumping
+                            col_index -= 1
+                            if col_index < 0:
+                                break
+                            c = self._get_col(p_copy, col_index)
+                            x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
+                            self._set_col(p_copy, col_index, c)
+                    upper_row.append(value)
+                    lower_row.append(x)
         return self._backward_format_output(lower_row, upper_row, output, q.is_standard())
 
     def reverse_insertion(self, x, row, epsilon=0):

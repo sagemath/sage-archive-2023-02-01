@@ -285,22 +285,22 @@ class Rule(UniqueRepresentation):
 
           - two lists ``obj1`` and ``obj2`` of equal length,
             to be interpreted as the top row and the bottom row of
-            the biword;
+            the biword
 
           - a matrix ``obj1`` of nonnegative integers, to be
             interpreted as the generalized permutation in matrix
-            form (in this case, ``obj2`` is ``None``);
+            form (in this case, ``obj2`` is ``None``)
 
           - a word ``obj1`` in an ordered alphabet, to be
             interpreted as the bottom row of the biword (in this
             case, ``obj2`` is ``None``; the top row of the biword
-            is understood to be `(1, 2, \ldots, n)` by default);
+            is understood to be `(1, 2, \ldots, n)` by default)
 
           - any object ``obj1`` which has a method ``_rsk_iter()``,
             as long as this method returns an iterator yielding
             pairs of numbers, which then are interperted as top
             entries and bottom entries in the biword (in this case,
-            ``obj2`` is ``None``).
+            ``obj2`` is ``None``)
 
         - ``check_standard`` -- (default: ``False``) check if either of the
           resulting tableaux is a standard tableau, and if so, typecast it
@@ -308,7 +308,7 @@ class Rule(UniqueRepresentation):
 
         - ``check`` -- (default: ``True``) whether to check
           that ``obj1`` and ``obj2`` actually define a valid
-          biword.
+          biword
 
         EXAMPLES::
 
@@ -434,14 +434,14 @@ class Rule(UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
-            sage: isinstance(RuleRSK()._forward_format_output([[1, 2, 3, 4, 5]]
-            ....:            , [[1, 2, 3, 4, 5]], True)[0], StandardTableau)
+            sage: isinstance(RuleRSK()._forward_format_output([[1, 2, 3, 4, 5]],
+            ....:            [[1, 2, 3, 4, 5]], True)[0], StandardTableau)
             True
-            sage: isinstance(RuleRSK()._forward_format_output([[1, 2, 3, 4, 5]]
-            ....:          , [[1, 2, 3, 4, 5]], False)[0], SemistandardTableau)
+            sage: isinstance(RuleRSK()._forward_format_output([[1, 2, 3, 4, 5]],
+            ....:            [[1, 2, 3, 4, 5]], False)[0], SemistandardTableau)
             True
-            sage: isinstance(RuleRSK()._forward_format_output([[1, 1, 1, 3, 7]]
-            ....:          , [[1, 2, 3, 4, 5]], True)[0], SemistandardTableau)
+            sage: isinstance(RuleRSK()._forward_format_output([[1, 1, 1, 3, 7]],
+            ....:            [[1, 2, 3, 4, 5]], True)[0], SemistandardTableau)
             True
         """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
@@ -476,8 +476,7 @@ class Rule(UniqueRepresentation):
             sage: from sage.combinat.rsk import RuleRSK
             sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'array', False, True)
             [[1, 2, 3, 4], [4, 3, 2, 1]]
-            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None,
-            ....:                                   'matrix', False, True)
+            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'matrix', False, True)
             [0 0 0 1]
             [0 0 1 0]
             [0 1 0 0]
@@ -486,16 +485,14 @@ class Rule(UniqueRepresentation):
             word: 4321
             sage: RuleRSK()._backward_format_output([3, 2, 1, 1], [2, 1, 1, 1], 'array', False, False)
             [[1, 1, 1, 2], [1, 1, 2, 3]]
-            sage: RuleRSK()._backward_format_output([3, 2, 1, 1], [2, 1, 1, 1],
-            ....:                                   'matrix', False, False)
+            sage: RuleRSK()._backward_format_output([3, 2, 1, 1], [2, 1, 1, 1], 'matrix', False, False)
             [2 1 0]
             [0 0 1]
             sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'word', False, False)
             Traceback (most recent call last):
             ...
             TypeError: q must be standard to have a word as valid output
-            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None,
-            ....:                                     'random_type', False, False)
+            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'random_type', False, False)
             Traceback (most recent call last):
             ...
             ValueError: invalid output option
@@ -533,10 +530,6 @@ class RuleRSK(Rule):
         sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
         sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
         [[1, 2, 3, 3], [2, 1, 2, 2]]
-
-    It is worth noting that in case of ``RSK_inverse`` with
-    ``output = 'permutation'`` ``RuleRSK`` returns an object of class
-    :class:`~sage.combinat.permutation.Permutation`.
     """
     def insertion(self, j, r):
         r"""
@@ -888,12 +881,12 @@ class RuleHecke(Rule):
 
           - two lists ``obj1`` and ``obj2`` of equal length,
             to be interpreted as the top row and the bottom row of
-            the biword;
+            the biword
 
           - a word ``obj1`` in an ordered alphabet, to be
             interpreted as the bottom row of the biword (in this
             case, ``obj2`` is ``None``; the top row of the biword
-            is understood to be `(1, 2, \ldots, n)` by default);
+            is understood to be `(1, 2, \ldots, n)` by default)
 
         - ``check_standard`` -- (default: ``False``) check if either of the
           resulting tableaux is a standard tableau, and if so, typecast it
@@ -954,7 +947,7 @@ class RuleHecke(Rule):
 
         INPUT:
 
-        - ``p``, ``q`` -- two tableaux of the same shape.
+        - ``p``, ``q`` -- two tableaux of the same shape
 
         -  ``output`` -- (default: ``'array'``) if ``q`` is semi-standard:
 
@@ -1159,7 +1152,7 @@ class RuleDualRSK(Rule):
       but rather a strict biword (i.e., a pair of two lists
       `[a_1, a_2, \ldots, a_n]` and `[b_1, b_2, \ldots, b_n]` that
       satisfy the strict inequalities
-      `(a_1, b_1) < (a_2, b_2) < \cdots < (a_n, b_n)` in the
+      `(a_1, b_1) < (a_2, b_2) < \cdots < (a_n, b_n)` in
       lexicographic order).
       In terms of matrices, this means that the input is not an
       arbitrary matrix with nonnegative integer entries, but rather
@@ -1320,22 +1313,20 @@ class RuleDualRSK(Rule):
         Given a valid input for the dual RSK algorithm, such as
         two `n`-tuples ``obj1`` `= [a_1, a_2, \ldots, a_n]`
         and ``obj2`` `= [b_1, b_2, \ldots, b_n]` forming a strict
-        biword (i.e., satisfying
-        `a_1 \leq a_2 \leq \cdots \leq a_n`, and if
-        `a_i = a_{i+1}`, then `b_i < b_{i+1}`)
-        or a `\{0, 1\}`-matrix ("rook placement"), or a
-        single word, return the array
-        `[(a_1, b_1), (a_2, b_2), \ldots, (a_n, b_n)]`.
+        biword (i.e., satisfying `a_1 \leq a_2 \leq \cdots \leq a_n`,
+        and if `a_i = a_{i+1}`, then `b_i < b_{i+1}`) or a
+        `\{0, 1\}`-matrix ("rook placement"), or a single word, return
+        the array `[(a_1, b_1), (a_2, b_2), \ldots, (a_n, b_n)]`.
 
         INPUT:
 
         - ``obj1, obj2`` -- anything representing a strict biword
           (see the doc of :meth:`forward_rule` for the
-          encodings accepted).
+          encodings accepted)
 
         - ``check`` -- (default: ``True``) whether to check
           that ``obj1`` and ``obj2`` actually define a valid
-          strict biword.
+          strict biword
 
         EXAMPLES::
 
@@ -1713,11 +1704,11 @@ class RuleCoRSK(RuleRSK):
 
         - ``obj1, obj2`` -- anything representing a strict
           cobiword (see the doc of :meth:`forward_rule` for
-          the encodings accepted).
+          the encodings accepted)
 
         - ``check`` -- (default: ``True``) whether to check
           that ``obj1`` and ``obj2`` actually define a valid
-          strict cobiword.
+          strict cobiword
 
         EXAMPLES::
 
@@ -1821,7 +1812,7 @@ class RuleCoRSK(RuleRSK):
 
         INPUT:
 
-        - ``p``, ``q`` -- two tableaux of the same shape.
+        - ``p``, ``q`` -- two tableaux of the same shape
 
         - ``output`` -- (default: ``'array'``) if ``q`` is row-strict:
 

@@ -1,12 +1,14 @@
 r"""
 Local Frames
 
-The class :class:`LocalFrame` implements local frames on topological vector
-bundles (see :class:`sage.manifolds.vector_bundle.TopologicalVectorBundle`).
+The class :class:`LocalFrame` implements local frames on vector bundles
+(see :class:`sage.manifolds.vector_bundle.TopologicalVectorBundle` or
+:class:`sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`).
 
-A *local frame* on a topological vector bundle `E \to M` is a continuous local
-section `(e_1,\dots,e_n):U \to E defined on some subset `U` of the base space
-`M`, such that `e(p)` is a basis of the fiber `E_p` for any `p \in U`.
+For `k=0,1,\dots`, a *local frame* on a vector bundle `E \to M` of class `C^k`
+and rank `n` is a local section `(e_1,\dots,e_n):U \to E^n` of class `C^k`
+defined on some subset `U` of the base space `M`, such that `e(p)` is a basis of
+the fiber `E_p` for any `p \in U`.
 
 AUTHORS:
 
@@ -14,11 +16,153 @@ AUTHORS:
 - Travis Scrimshaw (2016): review tweaks
 - Eric Gourgoulhon (2018): some refactoring and more functionalities in the
   choice of symbols for vector frame elements (:trac:`24792`)
-- Michael Jung (2019): Generalization to vector bundles
+- Michael Jung (2019): Generalization to vector bundles and file renamed
 
 EXAMPLES:
 
-    TODO
+Defining a global frame on a topological vector bundle of rank 3::
+
+    sage: M = Manifold(3, 'M', structure='top')
+    sage: E = M.vector_bundle(3, 'E')
+    sage: e = E.local_frame('e'); e
+    Local frame (E|_M, (e_0,e_1,e_2))
+
+This frame is now the default frame of the corresponding section module and
+saved in the vector bundle::
+
+    sage: e in E.frames()
+    True
+    sage: sec_module = E.section_module(); sec_module
+    Free module C^0(M;E) of sections on the 3-dimensional topological manifold M
+     with values in the real vector bundle E of rank 3
+    sage: sec_module.default_basis()
+    Local frame (E|_M, (e_0,e_1,e_2))
+
+However, the default frame can be changed::
+
+    sage: sec_module.set_default_basis(e)
+    sage: sec_module.default_basis()
+    Local frame (E|_M, (e_0,e_1,e_2))
+
+The elements of a local frame are local sections in the vector bundle::
+
+    sage: for vec in e:
+    ....:     print(vec)
+    Section e_0 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3
+     Section e_1 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3
+     Section e_2 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3
+
+Each element of a vector frame can be accessed by its index::
+
+    sage: e[0]
+    Section e_0 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3
+
+The slice operator ``:`` can be used to access to more than one element::
+
+    sage: e[0:2]
+    (Section e_0 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3,
+     Section e_1 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3)
+    sage: e[:]
+    (Section e_0 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3,
+     Section e_1 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3,
+     Section e_2 on the 3-dimensional topological manifold M with values in the
+     real vector bundle E of rank 3)
+
+The index range depends on the starting index defined on the manifold::
+
+    sage: M = Manifold(3, 'M', structure='top', start_index=1)
+    sage: c_xyz.<x,y,z> = M.chart()
+    sage: U = M.open_subset('U')
+    sage: c_xyz_U = c_xyz.restrict(U)
+    sage: E = M.vector_bundle(3, 'E')
+    sage: e = E.local_frame('e', domain=U); e
+    Local frame (E|_U, (e_1,e_2,e_3))
+    sage: [e[i] for i in M.irange()]
+    [Section e_1 on the Open subset U of the 3-dimensional topological manifold
+     M with values in the real vector bundle E of rank 3,
+     Section e_2 on the Open subset U of the 3-dimensional topological manifold
+     M with values in the real vector bundle E of rank 3,
+     Section e_3 on the Open subset U of the 3-dimensional topological manifold
+     M with values in the real vector bundle E of rank 3]
+    sage: e[1], e[2], e[3]
+    (Section e_1 on the Open subset U of the 3-dimensional topological manifold
+     M with values in the real vector bundle E of rank 3,
+     Section e_2 on the Open subset U of the 3-dimensional topological manifold
+     M with values in the real vector bundle E of rank 3,
+     Section e_3 on the Open subset U of the 3-dimensional topological manifold
+     M with values in the real vector bundle E of rank 3)
+
+Let us check that the local sections ``e[i]`` are indeed the frame vectors
+from their components with respect to the frame `e`::
+
+    sage: e[1].comp(e)[:]
+    [1, 0, 0]
+    sage: e[2].comp(e)[:]
+    [0, 1, 0]
+    sage: e[3].comp(e)[:]
+    [0, 0, 1]
+
+Defining a local frame on a vector bundle, the dual coframe is automatically
+created, which, by default, bares the same name (here `e`)::
+
+    sage: E.coframes()
+    [Local coframe (E|_U, (e^1,e^2,e^3))]
+    sage: e_dual = E.coframes()[0] ; e_dual
+    Local coframe (E|_U, (e^1,e^2,e^3))
+    sage: e_dual is e.coframe()
+    True
+
+Let us check that the coframe `(e^i)` is indeed the dual of the vector
+frame `(e_i)`::
+
+    sage: e_dual[1](e[1]) # the linear form e^1 applied to the local section e_1
+    Scalar field e^1(e_1) on the Open subset U of the 3-dimensional topological
+     manifold M
+    sage: e_dual[1](e[1]).expr() # the explicit expression of e^1(e_1)
+    1
+    sage: e_dual[1](e[1]).expr(), e_dual[1](e[2]).expr(), e_dual[1](e[3]).expr()
+    (1, 0, 0)
+    sage: e_dual[2](e[1]).expr(), e_dual[2](e[2]).expr(), e_dual[2](e[3]).expr()
+    (0, 1, 0)
+    sage: e_dual[3](e[1]).expr(), e_dual[3](e[2]).expr(), e_dual[3](e[3]).expr()
+    (0, 0, 1)
+
+Via bundle automorphisms, a new frame can be created from an existing one::
+
+    sage: sec_module_U = E.section_module(domain=U)
+    sage: change_frame = sec_module_U.automorphism()
+    sage: change_frame[:] = [[0,1,0],[0,0,1],[1,0,0]]
+    sage: f = e.new_frame(change_frame, 'f'); f
+    Local frame (E|_U, (f_1,f_2,f_3))
+
+A copy of this automorphism and its inverse is now part of the vector bundle's
+frame changes::
+
+    sage: E.change_of_frame(e, f)
+    Automorphism of the Free module C^0(U;E) of sections on the Open subset U of
+     the 3-dimensional topological manifold M with values in the real vector
+     bundle E of rank 3
+    sage: E.change_of_frame(e, f) == change_frame
+    True
+    sage: E.change_of_frame(f, e) == change_frame.inverse()
+    True
+
+Let us check the components of `f` with respect to the frame `e`::
+
+    sage: f[1].comp(e)[:]
+    [0, 0, 1]
+    sage: f[2].comp(e)[:]
+    [1, 0, 0]
+    sage: f[3].comp(e)[:]
+    [0, 1, 0]
 
 """
 
@@ -42,33 +186,78 @@ class LocalCoFrame(FreeModuleCoBasis):
     r"""
     Local coframe on a vector bundle.
 
-    A *local coframe* on a topological vector bundle `E \to M` is a continuous
-    local section `e^*: U \to E` on some subset `U` of the base space `M`, such
-    that `e^*(p)` is a basis of the fiber `E^*_p` of the dual bundle for any
-    `p \in U`.
+    A *local coframe* on a vector bundle `E \to M` of class `C^k` is a
+    local section `e^*: U \to E^n` of class `C^k` on some subset `U` of the base
+    space `M`, such that `e^*(p)` is a basis of the fiber `E^*_p` of the dual
+    bundle for any `p \in U`.
 
     INPUT:
 
     - ``frame`` -- the local frame dual to the coframe
     - ``symbol`` -- either a string, to be used as a common base for the
-      symbols of the 1-forms constituting the coframe, or a tuple of strings,
-      representing the individual symbols of the 1-forms
+      symbols of the linear forms constituting the coframe, or a tuple of
+      strings, representing the individual symbols of the linear forms
     - ``latex_symbol`` -- (default: ``None``) either a string, to be used
-      as a common base for the LaTeX symbols of the 1-forms constituting the
-      coframe, or a tuple of strings, representing the individual LaTeX symbols
-      of the 1-forms; if ``None``, ``symbol`` is used in place of
+      as a common base for the LaTeX symbols of the linear forms constituting
+      the coframe, or a tuple of strings, representing the individual LaTeX
+      symbols of the linear forms; if ``None``, ``symbol`` is used in place of
       ``latex_symbol``
     - ``indices`` -- (default: ``None``; used only if ``symbol`` is a single
-      string) tuple of strings representing the indices labelling the 1-forms
-      of the coframe; if ``None``, the indices will be generated as integers
-      within the range declared on the coframe's domain
+      string) tuple of strings representing the indices labelling the linear
+      forms  of the coframe; if ``None``, the indices will be generated as
+      integers within the range declared on the coframe's domain
     - ``latex_indices`` -- (default: ``None``) tuple of strings representing
-      the indices for the LaTeX symbols of the 1-forms of the coframe; if
+      the indices for the LaTeX symbols of the linear forms of the coframe; if
       ``None``, ``indices`` is used instead
 
     EXAMPLES:
 
-        TODO
+    Local coframe on a topological vector bundle of rank 3::
+
+        sage: M = Manifold(3, 'M', structure='top', start_index=1)
+        sage: X.<x,y,z> = M.chart()
+        sage: E = M.vector_bundle(3, 'E')
+        sage: e = E.local_frame('e')
+        sage: from sage.manifolds.local_frame import LocalCoFrame
+        sage: f = LocalCoFrame(e, 'f'); f
+        Local coframe (E|_M, (f^1,f^2,f^3))
+
+    The local coframe can also be obtained by using the method
+    :meth:`~sage.tensor.modules.free_module_basis.FreeModuleBasis.dual_basis` or
+    :meth:`~sage.manifolds.local_frame.LocalFrame.coframe`::
+
+        sage: e_dual = e.dual_basis(); e_dual
+        Local coframe (E|_M, (e^1,e^2,e^3))
+        sage: e_dual is e.coframe()
+        True
+        sage: e_dual is f
+        False
+        sage: e_dual[:] == f[:]
+        True
+        sage: f[1].display(e)
+        f^1 = e^1
+
+    The consisted linear forms can be obtained via the operator ``[]``::
+
+        sage: f[1], f[2], f[3]
+        (Linear form f^1 on the Free module C^0(M;E) of sections on the
+         3-dimensional topological manifold M with values in the real vector
+         bundle E of rank 3,
+         Linear form f^2 on the Free module C^0(M;E) of sections on the
+         3-dimensional topological manifold M with values in the real vector
+         bundle E of rank 3,
+         Linear form f^3 on the Free module C^0(M;E) of sections on the
+         3-dimensional topological manifold M with values in the real vector
+         bundle E of rank 3)
+
+    Checking that `f` is the dual of `e`::
+
+        sage: f[1](e[1]).expr(), f[1](e[2]).expr(), f[1](e[3]).expr()
+        (1, 0, 0)
+        sage: f[2](e[1]).expr(), f[2](e[2]).expr(), f[2](e[3]).expr()
+        (0, 1, 0)
+        sage: f[3](e[1]).expr(), f[3](e[2]).expr(), f[3](e[3]).expr()
+        (0, 0, 1)
 
     """
     def __init__(self, frame, symbol, latex_symbol=None, indices=None,
@@ -120,7 +309,7 @@ class LocalCoFrame(FreeModuleCoBasis):
     def at(self, point):
         r"""
         Return the value of ``self`` at a given point on the base space, this
-        value being a basis of the dual of the vector bundle at the point.
+        value being a basis of the dual vector bundle at this point.
 
         INPUT:
 
@@ -135,7 +324,28 @@ class LocalCoFrame(FreeModuleCoBasis):
 
         EXAMPLES:
 
-            TODO
+        Cobasis of a vector bundle fiber::
+
+            sage: M = Manifold(2, 'M', structure='top', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: e_dual = e.coframe(); e_dual
+            Local coframe (E|_M, (e^1,e^2))
+            sage: p = M.point((-1,2), name='p')
+            sage: e_dual_p = e_dual.at(p) ; e_dual_p
+            Dual basis (e^1,e^2) on the Fiber of E at Point p on the
+            2-dimensional topological manifold M
+            sage: type(e_dual_p)
+            <class 'sage.tensor.modules.free_module_basis.FreeModuleCoBasis'>
+            sage: e_dual_p[1]
+            Linear form e^1 on the Fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: e_dual_p[2]
+            Linear form e^2 on the Fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: e_dual_p is e.at(p).dual_basis()
+            True
 
         """
         return self._basis.at(point).dual_basis()
@@ -149,22 +359,22 @@ class LocalCoFrame(FreeModuleCoBasis):
         INPUT:
 
         - ``symbol`` -- either a string, to be used as a common base for the
-          symbols of the 1-forms constituting the coframe, or a list/tuple of
-          strings, representing the individual symbols of the 1-forms
+          symbols of the linear forms constituting the coframe, or a list/tuple
+          of strings, representing the individual symbols of the linear forms
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
-          as a common base for the LaTeX symbols of the 1-forms constituting
-          the coframe, or a list/tuple of strings, representing the individual
-          LaTeX symbols of the 1-forms; if ``None``, ``symbol`` is used in
-          place of ``latex_symbol``
+          as a common base for the LaTeX symbols of the linear forms
+          constituting the coframe, or a list/tuple of strings, representing the
+          individual LaTeX symbols of the linear forms; if ``None``, ``symbol``
+          is used in place of ``latex_symbol``
         - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
           single string) tuple of strings representing the indices labelling
-          the 1-forms of the coframe; if ``None``, the indices will be
+          the linear forms of the coframe; if ``None``, the indices will be
           generated as integers within the range declared on ``self``
         - ``latex_indices`` -- (default: ``None``) tuple of strings
-          representing the indices for the LaTeX symbols of the 1-forms;
+          representing the indices for the LaTeX symbols of the linear forms;
           if ``None``, ``indices`` is used instead
         - ``index_position`` -- (default: ``'up'``) determines the position
-          of the indices labelling the 1-forms of the coframe; can be
+          of the indices labelling the linear forms of the coframe; can be
           either ``'down'`` or ``'up'``
         - ``include_domain`` -- (default: ``True``) boolean determining whether
           the name of the domain is included in the beginning of the coframe
@@ -213,10 +423,10 @@ class LocalFrame(FreeModuleBasis):
     r"""
     Local frame on a vector bundle.
 
-    A *local frame* on a topological vector bundle `E \to M` is a continuous
-    local section `(e_1,\dots,e_n):U \to E defined on some subset `U` of the
-    base space `M`, such that `e(p)` is a basis of the fiber `E_p` for any
-    `p \in U`.
+    A *local frame* on a vector bundle `E \to M` of class `C^k` is a local
+    section `(e_1,\dots,e_n):U \to E^n` of class `C^k` defined on some subset `U`
+    of the base space `M`, such that `e(p)` is a basis of the fiber `E_p` for
+    any `p \in U`.
 
     For each instanciation of a local frame, a local coframe is automatically
     created, as an instance of the class :class:`LocalCoFrame`. It is returned
@@ -254,12 +464,104 @@ class LocalFrame(FreeModuleBasis):
 
         sage: M = Manifold(3, 'M', start_index=1, structure='top')
         sage: E = M.vector_bundle(3, 'E')
-        sage: e = E.local_frame('e') ; e
+        sage: e = E.local_frame('e'); e
         Local frame (E|_M, (e_1,e_2,e_3))
         sage: latex(e)
         \left(E|_{M}, \left(e_{1},e_{2},e_{3}\right)\right)
 
-    TODO
+    The individual elements of the vector frame are accessed via square
+    brackets, with the possibility to invoke the slice operator '``:``' to
+    get more than a single element::
+
+        sage: e[2]
+        Section e_2 on the 3-dimensional topological manifold M with values in
+         the real vector bundle E of rank 3
+        sage: e[1:3]
+        (Section e_1 on the 3-dimensional topological manifold M with values in
+         the real vector bundle E of rank 3,
+         Section e_2 on the 3-dimensional topological manifold M with values in
+         the real vector bundle E of rank 3)
+        sage: e[:]
+        (Section e_1 on the 3-dimensional topological manifold M with values in
+         the real vector bundle E of rank 3,
+         Section e_2 on the 3-dimensional topological manifold M with values in
+         the real vector bundle E of rank 3,
+         Section e_3 on the 3-dimensional topological manifold M with values in
+         the real vector bundle E of rank 3)
+
+    The LaTeX symbol can be specified::
+
+        sage: eps = E.local_frame('eps', latex_symbol=r'\epsilon')
+        sage: latex(eps)
+        \left(E|_{M}, \left(\epsilon_{1},\epsilon_{2},\epsilon_{3}\right)\right)
+
+    By default, the elements of the local frame are labelled by integers
+    within the range specified at the manifold declaration. It is however
+    possible to fully customize the labels, via the argument ``indices``::
+
+        sage: u = E.local_frame('u', indices=('x', 'y', 'z')) ; u
+        Local frame (E|_M, (u_x,u_y,u_z))
+        sage: u[1]
+        Section u_x on the 3-dimensional topological manifold M with values in
+         the real vector bundle E of rank 3
+        sage: u.coframe()
+        Local coframe (E|_M, (u^x,u^y,u^z))
+
+    The LaTeX format of the indices can be adjusted::
+
+        sage: v = E.local_frame('v', indices=('a', 'b', 'c'),
+        ....:                    latex_indices=(r'\alpha', r'\beta', r'\gamma'))
+        sage: v
+        Local frame (E|_M, (v_a,v_b,v_c))
+        sage: latex(v)
+        \left(E|_{M}, \left(v_{\alpha},v_{\beta},v_{\gamma}\right)\right)
+        sage: latex(v.coframe())
+        \left(E|_{M}, \left(v^{\alpha},v^{\beta},v^{\gamma}\right)\right)
+
+    The symbol of each element of the local frame can also be freely chosen,
+    by providing a tuple of symbols as the first argument of ``local_frame``;
+    it is then mandatory to specify as well some symbols for the dual coframe::
+
+        sage: h = E.local_frame(('a', 'b', 'c'), symbol_dual=('A', 'B', 'C')); h
+        Local frame (E|_M, (a,b,c))
+        sage: h[1]
+        Section a on the 3-dimensional topological manifold M with values in the
+         real vector bundle E of rank 3
+        sage: h.coframe()
+        Local coframe (E|_M, (A,B,C))
+        sage: h.coframe()[1]
+        Linear form A on the Free module C^0(M;E) of sections on the
+         3-dimensional topological manifold M with values in the real vector
+         bundle E of rank 3
+
+    Local frames are bases of free modules formed by local sections::
+
+        sage: N = Manifold(2, 'N', structure='top', start_index=1)
+        sage: X.<x,y> = N.chart()
+        sage: U = N.open_subset('U')
+        sage: F = N.vector_bundle(2, 'F')
+        sage: f = F.local_frame('f', domain=U)
+        sage: f.module()
+        Free module C^0(U;F) of sections on the Open subset U of the
+         2-dimensional topological manifold N with values in the real vector
+         bundle F of rank 2
+        sage: f.module().base_ring()
+        Algebra of scalar fields on the Open subset U of the 2-dimensional
+         topological manifold N
+        sage: f.module() is F.section_module(domain=f.domain())
+        True
+        sage: f in F.section_module(domain=U).bases()
+        True
+
+    The value of the local frame at a given point is a basis of the
+    corresponding fiber::
+
+        sage: X_U = X.restrict(U) # We need coordinates on the subset
+        sage: p = N((0,1), name='p') ; p
+        Point p on the 2-dimensional topological manifold N
+        sage: f.at(p)
+        Basis (f_1,f_2) on the Fiber of F at Point p on the 2-dimensional
+         topological manifold N
 
     """
 
@@ -360,12 +662,12 @@ class LocalFrame(FreeModuleBasis):
 
             sage: M = Manifold(2, 'M', structure='top')
             sage: E = M.vector_bundle(2, 'E')
-            sage: E.local_frame('e')
-            'Local frame (E|_M, (e_0,e_1))'
+            sage: e = E.local_frame('e'); e
+            Local frame (E|_M, (e_0,e_1))
             sage: repr(e)  # indirect doctest
-            'Local frame (E|_M, , (e_0,e_1))'
+            'Local frame (E|_M, (e_0,e_1))'
             sage: e  # indirect doctest
-            Local frame (E|_M, , (e_0,e_1))
+            Local frame (E|_M, (e_0,e_1))
 
         """
         desc = "Local frame " + self._name
@@ -536,7 +838,49 @@ class LocalFrame(FreeModuleBasis):
 
         EXAMPLES:
 
-            TODO
+        Orthogonal transformation of a frame on the 2-dimensional trivial vector
+        bundle over the Euclidean plane::
+
+            sage: M = Manifold(2, 'R^2', structure='top', start_index=1)
+            sage: c_cart.<x,y> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e'); e
+            Local frame (E|_R^2, (e_1,e_2))
+            sage: orth = E.section_module().automorphism()
+            sage: orth[:] = [[sqrt(3)/2, -1/2], [1/2, sqrt(3)/2]]
+            sage: f = e.new_frame(orth, 'f')
+            sage: f[1][:]
+            [1/2*sqrt(3), 1/2]
+            sage: f[2][:]
+            [-1/2, 1/2*sqrt(3)]
+            sage: a =  E.change_of_frame(e,f)
+            sage: a[:]
+            [1/2*sqrt(3)        -1/2]
+            [        1/2 1/2*sqrt(3)]
+            sage: a == orth
+            True
+            sage: a is orth
+            False
+            sage: a._components # random (dictionary output)
+            {Local frame (E|_D_0, (e_1,e_2)): 2-indices components w.r.t.
+             Local frame (E|_D_0, (e_1,e_2)),
+             Local frame (E|_D_0, (f_1,f_2)): 2-indices components w.r.t.
+             Local frame (E|_D_0, (f_1,f_2))}
+            sage: a.comp(f)[:]
+            [1/2*sqrt(3)        -1/2]
+             [        1/2 1/2*sqrt(3)]
+            sage: a1 = E.change_of_frame(f,e)
+            sage: a1[:]
+            [1/2*sqrt(3)         1/2]
+            [       -1/2 1/2*sqrt(3)]
+            sage: a1 == orth.inverse()
+            True
+            sage: a1 is orth.inverse()
+            False
+            sage: e[1].comp(f)[:]
+            [1/2*sqrt(3), -1/2]
+            sage: e[2].comp(f)[:]
+            [1/2, 1/2*sqrt(3)]
 
         """
         the_new_frame = self.new_basis(change_of_frame, symbol,
@@ -567,7 +911,38 @@ class LocalFrame(FreeModuleBasis):
 
         EXAMPLES:
 
-            TODO
+        Restriction of a frame defined on `\RR^2` to the unit disk::
+
+            sage: M = Manifold(2, 'R^2', structure='top', start_index=1)
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e'); e
+            Local frame (E|_R^2, (e_1,e_2))
+            sage: a = E.section_module().automorphism()
+            sage: a[:] = [[1-y^2,0], [1+x^2, 2]]
+            sage: f = e.new_frame(a, 'f'); f
+            Local frame (E|_R^2, (f_1,f_2))
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1})
+            sage: e_U = e.restrict(U); e_U
+            Local frame (E|_U, (e_1,e_2))
+            sage: f_U = f.restrict(U) ; f_U
+            Local frame (E|_U, (f_1,f_2))
+
+        The vectors of the restriction have the same symbols as those of the
+        original frame::
+
+            sage: f_U[1].display()
+            f_1 = (-y^2 + 1) e_1 + (x^2 + 1) e_2
+            sage: f_U[2].display()
+            f_2 = 2 e_2
+
+        Actually, the components are the restrictions of the original frame
+        vectors::
+
+            sage: f_U[1] is f[1].restrict(U)
+            True
+            sage: f_U[2] is f[2].restrict(U)
+            True
 
         """
         if subdomain == self._domain:
@@ -608,14 +983,14 @@ class LocalFrame(FreeModuleBasis):
                              latex_indices=self._latex_indices,
                              symbol_dual=self._symbol_dual,
                              latex_symbol_dual=self._latex_symbol_dual)
-            #new_vectors = list()
-            #for i in self._fmodule.irange():
-            #    vrest = self[i].restrict(subdomain)
-            #    for j in self._fmodule.irange():
-            #        vrest.add_comp(res)[j] = 0
-            #    vrest.add_comp(res)[i] = 1
-            #    new_vectors.append(vrest)
-            #res._vec = tuple(new_vectors)
+            new_vectors = list()
+            for i in self._fmodule.irange():
+                vrest = self[i].restrict(subdomain)
+                for j in self._fmodule.irange():
+                    vrest.add_comp(res)[j] = 0
+                vrest.add_comp(res)[i] = 1
+                new_vectors.append(vrest)
+            res._vec = tuple(new_vectors)
             # Update of superframes and subframes:
             res._superframes.update(self._superframes)
             for sframe in self._superframes:
@@ -646,7 +1021,84 @@ class LocalFrame(FreeModuleBasis):
 
         EXAMPLES:
 
-            TODO
+        Basis of a fiber of a trivial vector bundle::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: X.<x,y> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e'); e
+            Local frame (E|_M, (e_0,e_1))
+            sage: p = M.point((-1,2), name='p')
+            sage: ep = e.at(p) ; ep
+            Basis (e_0,e_1) on the Fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: type(ep)
+            <class 'sage.tensor.modules.free_module_basis.FreeModuleBasis'>
+            sage: ep[0]
+            Vector e_0 in the fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: ep[1]
+            Vector e_1 in the fiber of E at Point p on the 2-dimensional
+             topological manifold M
+
+        Note that the symbols used to denote the vectors are same as those
+        for the vector fields of the frame. At this stage, ``ep`` is the unique
+        basis on fiber at ``p``::
+
+            sage: Ep = E.fiber(p)
+            sage: Ep.bases()
+            [Basis (e_0,e_1) on the Fiber of E at Point p on the 2-dimensional
+             topological manifold M]
+
+        Let us consider another local frame::
+
+            sage: aut = E.section_module().automorphism()
+            sage: aut[:] = [[1+y^2, 0], [0, 2]]
+            sage: f = e.new_frame(aut, 'f') ; f
+            Local frame (E|_M, (f_0,f_1))
+            sage: fp = f.at(p) ; fp
+            Basis (f_0,f_1) on the Fiber of E at Point p on the 2-dimensional
+             topological manifold M
+
+        There are now two bases on the fiber::
+
+            sage: Ep.bases()
+            [Basis (e_0,e_1) on the Fiber of E at Point p on the 2-dimensional
+             topological manifold M,
+             Basis (f_0,f_1) on the Fiber of E at Point p on the 2-dimensional
+             topological manifold M]
+
+        Moreover, the changes of bases in the tangent space have been
+        computed from the known relation between the frames ``e`` and
+        ``f`` (via the automorphism ``aut`` defined above)::
+
+            sage: Ep.change_of_basis(ep, fp)
+            Automorphism of the Fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: Ep.change_of_basis(ep, fp).display()
+            5 e_0*e^0 + 2 e_1*e^1
+            sage: Ep.change_of_basis(fp, ep)
+            Automorphism of the Fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: Ep.change_of_basis(fp, ep).display()
+            1/5 e_0*e^0 + 1/2 e_1*e^1
+
+        The dual bases::
+
+            sage: e.coframe()
+            Local coframe (E|_M, (e^0,e^1))
+            sage: ep.dual_basis()
+            Dual basis (e^0,e^1) on the Fiber of E at Point p on the
+             2-dimensional topological manifold M
+            sage: ep.dual_basis() is e.coframe().at(p)
+            True
+            sage: f.coframe()
+            Local coframe (E|_M, (f^0,f^1))
+            sage: fp.dual_basis()
+            Dual basis (f^0,f^1) on the Fiber of E at Point p on the
+             2-dimensional topological manifold M
+            sage: fp.dual_basis() is f.coframe().at(p)
+            True
 
         """
         # Determination of the vector bundle fiber:
@@ -663,8 +1115,7 @@ class LocalFrame(FreeModuleBasis):
                 return vbf_frame_bases[frame]
         # If this point is reached, the basis has to be constructed from
         # scratch.
-        # The names of the basis vectors set to those of the frame vector
-        # fields:
+        # The names of the basis vectors set to those of the frame sections:
         basis = vbf.basis(self._symbol, latex_symbol=self._latex_symbol,
                          indices=self._indices,
                          latex_indices=self._latex_indices,
@@ -792,16 +1243,16 @@ class LocalFrame(FreeModuleBasis):
 
 class TrivializationCoFrame(LocalCoFrame):
     r"""
-    Trivialization coframe on a topological vector bundle.
+    Trivialization coframe on a vector bundle.
 
     A *trivialization coframe* is the coframe of the trivialization frame
     induced by a trivialization (see: :class:`~sage.manifolds.local_frame.TrivializationFrame`).
 
-    More precisely, a *trivialization frame* on a topological vector bundle
-    `E \to M` of rank `n` over the topological field `K` and over a topological
-    manifold `M` is a local coframe induced by a local trivialization
-    `\varphi:E|_U \to U \times K^n` of the domain `U \in M`. Namely, the local
-    dual sections
+    More precisely, a *trivialization frame* on a vector bundle `E \to M` of
+    class `C^k` and rank `n` over the topological field `K` and over a
+    topological manifold `M` is a local coframe induced by a local
+    trivialization `\varphi:E|_U \to U \times K^n` of the domain `U \in M`.
+    Namely, the local dual sections
 
     .. MATH::
 
@@ -831,7 +1282,52 @@ class TrivializationCoFrame(LocalCoFrame):
 
     EXAMPLES:
 
-    TODO
+    Trivialization coframe on a trivial vector bundle of rank 3::
+
+        sage: M = Manifold(3, 'M', start_index=1, structure='top')
+        sage: X.<x,y,z> = M.chart()
+        sage: E = M.vector_bundle(3, 'E')
+        sage: phi = E.trivialization('phi'); phi
+        Trivialization (phi, E|_M)
+        sage: E.frames()
+        [Trivialization frame (E|_M, (phi^*e_1,phi^*e_2,phi^*e_3))]
+        sage: E.coframes()
+        [Trivialization coframe (E|_M, (phi^*e^1,phi^*e^2,phi^*e^3))]
+        sage: f = E.coframes()[0] ; f
+        Trivialization coframe (E|_M, (phi^*e^1,phi^*e^2,phi^*e^3))
+
+    The linear forms composing the coframe are obtained via the operator
+    ``[]``::
+
+        sage: f[1]
+        Linear form phi^*e^1 on the Free module C^0(M;E) of sections on the
+         3-dimensional topological manifold M with values in the real vector
+         bundle E of rank 3
+        sage: f[2]
+        Linear form phi^*e^2 on the Free module C^0(M;E) of sections on the
+         3-dimensional topological manifold M with values in the real vector
+         bundle E of rank 3
+        sage: f[3]
+        Linear form phi^*e^3 on the Free module C^0(M;E) of sections on the
+         3-dimensional topological manifold M with values in the real vector
+         bundle E of rank 3
+        sage: f[1][:]
+        [1, 0, 0]
+        sage: f[2][:]
+        [0, 1, 0]
+        sage: f[3][:]
+        [0, 0, 1]
+
+    The coframe is the dual of the trivialization frame::
+
+        sage: e = phi.frame() ; e
+        Trivialization frame (E|_M, (phi^*e_1,phi^*e_2,phi^*e_3))
+        sage: f[1](e[1]).expr(), f[1](e[2]).expr(), f[1](e[3]).expr()
+        (1, 0, 0)
+        sage: f[2](e[1]).expr(), f[2](e[2]).expr(), f[2](e[3]).expr()
+        (0, 1, 0)
+        sage: f[3](e[1]).expr(), f[3](e[2]).expr(), f[3](e[3]).expr()
+        (0, 0, 1)
 
     """
     def __init__(self, triv_frame, symbol, latex_symbol=None,
@@ -841,7 +1337,13 @@ class TrivializationCoFrame(LocalCoFrame):
 
         TESTS::
 
-            TODO
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: phi = E.trivialization('phi')
+            sage: from sage.manifolds.local_frame import TrivializationCoFrame
+            sage: f = TrivializationCoFrame(phi.frame(), 'omega'); f
+            Trivialization coframe (E|_M, (omega^0,omega^1))
+            sage: TestSuite(f).run()
 
         """
         if not isinstance(triv_frame, TrivializationFrame):
@@ -903,8 +1405,7 @@ class TrivializationFrame(LocalFrame):
         sage: phi_U.frame()
         Trivialization frame (E|_U, (phi_U^*e_1,phi_U^*e_2))
         sage: latex(phi_U.frame())
-        \left(E|_{U}, \left(\left(phi_U^* e_{ 1 }\right),\left(phi_U^* e_{ 2 }
-         \right)\right)\right)
+        \left(E|_{U}, \left(\left(phi_U^* e_{ 1 }\right),\left(phi_U^* e_{ 2 }\right)\right)\right)
 
     """
 
@@ -935,34 +1436,16 @@ class TrivializationFrame(LocalFrame):
         # Define trivialization names
         vbundle = triv.vector_bundle()
         rank = vbundle.rank()
-        if triv._name is None:
-            symbol = tuple("e_" + str(i) +
-                "({},{})".format(triv.domain()._name, vbundle._name)
-                for i in range(1, rank + 1))
-            symbol_dual = tuple("e^" + str(i) +
-                "({},{})".format(triv.domain()._name, vbundle._name)
-                for i in range(1, rank + 1))
-        else:
-            symbol = tuple(triv._name + "^*" + "e_" + str(i)
-                for i in range(1, rank + 1))
-            symbol_dual = tuple(triv._name + "^*" + "e^" + str(i)
-                for i in range(1, rank + 1))
-        if triv._latex_name is None:
-            latex_symbol = tuple(r'e_{' + latex(i) + r'}(' +
-                                 triv.domain()._latex_name + r',' +
-                                 vbundle._latex_name + r')'
-                                 for i in range(1, rank + 1))
-            latex_symbol_dual = tuple(r'e^{' + latex(i) + r'}(' +
-                                 triv.domain()._latex_name + r',' +
-                                 vbundle._latex_name + r')'
-                                 for i in range(1, rank + 1))
-        else:
-            latex_symbol = tuple(r'\left(' + triv._latex_name + r'^* e_{' +
-                                 latex(i) + r'}\right)'
-                                 for i in range(1, rank + 1))
-            latex_symbol_dual = tuple(r'\left(' + triv._latex_name + r'^* e^{' +
-                                 latex(i) + r'}\right)'
-                                 for i in range(1, rank + 1))
+        symbol = tuple("(" + triv._name + "^*" + "e_" + str(i) + ")"
+            for i in range(1, rank + 1))
+        symbol_dual = tuple("(" + triv._name + "^*" + "e^" + str(i) + ")"
+            for i in range(1, rank + 1))
+        latex_symbol = tuple(r'\left(' + triv._latex_name + r'^* e_{' +
+                             latex(i) + r'}\right)'
+                             for i in range(1, rank + 1))
+        latex_symbol_dual = tuple(r'\left(' + triv._latex_name + r'^* e^{' +
+                             latex(i) + r'}\right)'
+                             for i in range(1, rank + 1))
         LocalFrame.__init__(self,
                         vbundle.section_module(domain=domain, force_free=True),
                         symbol=symbol, latex_symbol=latex_symbol,
@@ -1001,7 +1484,7 @@ class TrivializationFrame(LocalFrame):
             sage: phi_U = E.trivialization('phi_U', domain=U)
             sage: e = phi_U.frame()
             sage: e.trivialization()
-            Trivialization (phi_U:E|_M -> M)
+            Trivialization (phi_U, E|_U)
             sage: e.trivialization() is phi_U
             True
 

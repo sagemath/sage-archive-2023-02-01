@@ -23,6 +23,40 @@ from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
 
 class VectorBundleFiberElement(FiniteRankFreeModuleElement):
     r"""
+    Vector in a fiber of a vector bundle at the given point.
+
+    INPUT:
+
+    - parent -- :class:`~sage.manifolds.vector_bundle_fiber.VectorBundleFiber`;
+      the fiber to which the vector belongs
+    - ``name`` -- (default: ``None``) string; symbol given to the vector
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+      the vector; if ``None``, ``name`` will be used
+
+    EXAMPLES:
+
+    A vector `v` in a fiber of a rank 2 vector bundle::
+
+        sage: M = Manifold(2, 'M', structure='top')
+        sage: X.<x,y> = M.chart()
+        sage: p = M((1,-1), name='p')
+        sage: E = M.vector_bundle(2, 'E')
+        sage: e = E.local_frame('e')
+        sage: Ep = E.fiber(p)
+        sage: v = Ep((-2,1), name='v'); v
+        Vector v in the fiber of E at Point p on the 2-dimensional topological
+         manifold M
+        sage: v.display()
+        v = -2 e_0 + e_1
+        sage: v.parent()
+        Fiber of E at Point p on the 2-dimensional topological manifold M
+        sage: v in Ep
+        True
+
+    .. SEEALSO::
+
+        :class:`~sage.tensor.modules.free_module_element.FiniteRankFreeModuleElement`
+        for more documentation.
 
     """
     def __init__(self, parent, name=None, latex_name=None):
@@ -31,7 +65,17 @@ class VectorBundleFiberElement(FiniteRankFreeModuleElement):
 
         TESTS::
 
-
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((1,-1), name='p')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: Ep = E.fiber(p)
+            sage: v = Ep.element_class(Ep, name='v') ; v
+            Vector v in the fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: v[:] = 5, -3/2
+            sage: TestSuite(v).run()
 
         """
         FiniteRankFreeModuleElement.__init__(self, parent, name=name,
@@ -46,10 +90,24 @@ class VectorBundleFiberElement(FiniteRankFreeModuleElement):
 
         TESTS::
 
-
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((1,-1), name='p')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: Ep = E.fiber(p)
+            sage: v = Ep([-3,2], name='v')
+            sage: v._repr_()
+            'Vector v in the fiber of E at Point p on the 2-dimensional
+             topological manifold M'
+            sage: repr(v)  # indirect doctest
+            'Vector v in the fiber of E at Point p on the 2-dimensional
+             topological manifold M'
 
         """
-        desc = "Vector {} in the fiber of {} at {}".format(self._name,
-                                                     self._vbundle._name,
-                                                     self._point)
+        desc = "Vector "
+        if self._name:
+            desc += str(self._name) + " "
+        desc += "in the fiber of {} at {}".format(self._vbundle._name,
+                                                  self._point)
         return desc

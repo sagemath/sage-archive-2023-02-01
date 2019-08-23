@@ -1045,6 +1045,38 @@ class DifferentiableManifold(TopologicalManifold):
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
 
+    def vector_bundle(self, rank, name, field='real', latex_name=None):
+        r"""
+        Return a differentiable vector bundle over the given field with given
+        rank over this differentiable manifold of the same differentiability
+        class as the manifold.
+
+        INPUT:
+
+        - ``rank`` -- rank of the vector bundle
+        - ``name`` -- name given to the total space
+        - ``field`` -- (default: ``'real'``) topological field giving the
+          vector space structure to the fibers
+        - ``latex_name`` -- optional latex name for the total space
+
+        OUTPUT:
+
+        - a differentiable vector bundle as an instance of
+          :class:`~sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: M.vector_bundle(2, 'E')
+            Differentiable real vector bundle E -> M of rank 2 over the base
+             space 2-dimensional topological manifold M
+
+        """
+        from sage.manifolds.differentiable.vector_bundle \
+                                               import DifferentiableVectorBundle
+        return DifferentiableVectorBundle(rank, name, self, field=field,
+                                          latex_name=latex_name)
+
     def vector_field_module(self, dest_map=None, force_free=False):
         r"""
         Return the set of vector fields defined on ``self``, possibly

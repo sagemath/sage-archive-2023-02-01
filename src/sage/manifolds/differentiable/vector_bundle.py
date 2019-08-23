@@ -1,5 +1,5 @@
 r"""
-Differentiable Vector Bundle
+Differentiable Vector Bundles
 
 Let `K` be a topological field. A `C^k`-differentiable *vector bundle* of rank
 `n` over the field `K` and over a `C^k`-differentiable manifold `B` (base space)
@@ -29,17 +29,54 @@ AUTHORS:
 from sage.categories.vector_bundles import VectorBundles
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
+from sage.rings.infinity import infinity, minus_infinity
 from sage.manifolds.vector_bundle import TopologicalVectorBundle
 
 class DifferentiableVectorBundle(TopologicalVectorBundle):
     r"""
+    An instance of this class represents a differentiable vector bundle
+    `E \to M`
+
+    INPUT:
+
+    - ``rank`` -- positive integer; rank of the vector bundle
+    - ``name```-- string representation given to the total space
+    - ``base_space`` -- the base space (differentiable manifold) over which the
+      vector bundle is defined
+    - ``field`` -- field `K` which gives the fibers the structure of a
+     vector space over `K`; allowed values are
+
+      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+        a vector bundle over `\RR`
+      - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
+        for a vector bundle over `\CC`
+      - an object in the category of topological fields (see
+        :class:`~sage.categories.fields.Fields` and
+        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+        for other types of topological fields
+
+    - ``latex_name`` -- (default: ``None``) latex representation given to the
+      total space
+    - ``category`` -- (default: ``None``) to specify the category; if
+      ``None``, ``VectorBundles(base_space, c_field).Differentiable()`` (or
+      ``Manifolds(field).Smooth()`` if ``diff_degree`` = ``infinity``)`` is
+      assumed (see the category
+      :class:`~sage.categories.vector_bundles.VectorBundles`)
+
+    EXAMPLES:
 
     """
     def __init__(self, rank, name, base_space, field='real', latex_name=None,
                  category=None, unique_tag=None):
         r"""
+        Construct a differentiable vector bundle over some base space.
+
+        TESTS::
+
+
 
         """
+        diff_degree = base_space._diff_degree
         if category is None:
             if field == 'real':
                 field_c = RR
@@ -48,13 +85,21 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             else:
                 field_c = field
             if diff_degree == infinity:
-                category = VectorBundles(field_c).Smooth()
+                category = VectorBundles(base_space, field_c).Smooth()
             else:
-                category = VectorBundles(field_c).Differentiable()
-        TopologicalVectorBundle.__init__(rank, name, base_space, field=field,
+                category = VectorBundles(base_space, field_c).Differentiable()
+        TopologicalVectorBundle.__init__(self, rank, name, base_space,
+                                         field=field,
                                          latex_name=latex_name,
                                          category=category)
-        self._diff_degree = base_space._diff_degree
+        self._diff_degree = diff_degree # Override diff degree
+
+    def _repr_(self):
+        r"""
+
+        """
+        desc = "Differentiable "
+        return desc + TopologicalVectorBundle._repr_object_name(self)
 
 # *****************************************************************************
 
@@ -74,10 +119,9 @@ class TensorBundle(DifferentiableVectorBundle):
             name = "T^({}{}){}".format(k, l, manifold._name)
             latex_name = r'T^{{{({}{})}}}{}'.format(k, l, manifold._latex_name)
         DifferentiableVectorBundle.__init__(self, rank, name, manifold,
-                                            diff_degree=manifold._diff_degree,
                                             latex_name=latex_name)
         self._tensor_type = (k, l)
-        # if manifold._atlas not empty, introduce trivializations
+        # TODO: if manifold._atlas not empty, introduce trivializations
 
     def _repr_(self):
         r"""

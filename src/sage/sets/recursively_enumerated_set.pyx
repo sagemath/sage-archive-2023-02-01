@@ -108,9 +108,9 @@ Breadth first search iterator::
     sage: it_breadth = R.breadth_first_search_iterator()
     sage: [next(it_breadth) for _ in range(5)]
     [[1, 2, 3, 4, 5],
+     [2, 1, 3, 4, 5],
      [1, 3, 2, 4, 5],
      [1, 2, 4, 3, 5],
-     [2, 1, 3, 4, 5],
      [1, 2, 3, 5, 4]]
 
 Elements of given depth iterator::
@@ -268,7 +268,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
         A recursively enumerated set with a graded structure (breadth first search)
         sage: it = iter(C)
         sage: [next(it) for _ in range(7)]
-        [0, 1, I, I + 1, 2, 2*I, I + 2]
+        [0, 1, I, 2, I + 1, 2*I, 3]
 
     .. WARNING::
 
@@ -279,7 +279,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
             sage: C = RecursivelyEnumeratedSet([0], f, structure='graded')
             sage: it = iter(C)
             sage: [next(it) for _ in range(7)]
-            [0, 1, -1, 0, 2, -2, 1]
+            [0, -1, 1, -2, 0, 2, -3]
 
     TESTS:
 

@@ -1833,11 +1833,11 @@ def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
 
     cdef priority_queue[pair[int, int]] pq
     cdef int idx = 0
-    cdef list idx_to_path = []
+    cdef dict idx_to_path = {}
     for vi in vertex_iterators.values():
         try:
             path = next(vi)
-            idx_to_path.append(path)
+            idx_to_path[idx] = path
             pq.push((-len(path), idx))
             idx = idx + 1
         except(StopIteration):
@@ -1848,14 +1848,16 @@ def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
         # We choose the shortest available path
         _, shortest_path_idx = pq.top()
         pq.pop()
-        yield idx_to_path[shortest_path_idx]
+        prev_path = idx_to_path[shortest_path_idx]
+        yield prev_path
+        del idx_to_path[shortest_path_idx]
         # We update the path iterator to its next available path if it exists
         try:
             if report_edges:
-                path = next(vertex_iterators[idx_to_path[shortest_path_idx][0][0]])
+                path = next(vertex_iterators[prev_path[0][0]])
             else:
-                path = next(vertex_iterators[idx_to_path[shortest_path_idx][0]])
-            idx_to_path.append(path)
+                path = next(vertex_iterators[prev_path[0]])
+            idx_to_path[idx] = path
             pq.push((-len(path), idx))
             idx = idx + 1
         except(StopIteration):

@@ -15,7 +15,7 @@ export qe=$(pwd -P)
 #   https://trac.sagemath.org/ticket/10224
 # * Add rpath to compiler flags, see
 #   https://trac.sagemath.org/ticket/22653
-# * User ARFLAGS that also work on macOS, avoiding the U option, see
+# * Use ARFLAGS that also work on macOS, avoiding the U option, see
 #   https://trac.sagemath.org/ticket/28388
 $MAKE -j1 opt SHELL=/bin/sh FLAGSo="-O3 -g -Wl,-rpath,$SAGE_LOCAL/lib" ARFLAGS="crv"
 if [ $? -ne 0 ]; then

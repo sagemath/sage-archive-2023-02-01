@@ -3345,6 +3345,10 @@ REFERENCES:
 .. [Mur1983] \G. E. Murphy. *The idempotents of the symmetric group
              and Nakayama's conjecture*. J. Algebra **81** (1983). 258-265.
 
+.. [Muth2017] Robert Muth.
+              *Super RSK correspondence with symmetry*.
+              :arXiv:`1711.00420`.
+
 .. [MV2010] \D. Micciancio, P. Voulgaris. *A Deterministic Single
             Exponential Time Algorithm for Most Lattice Problems based
             on Voronoi Cell Computations*. Proceedings of the 42nd ACM
@@ -3718,10 +3722,6 @@ REFERENCES:
 
 .. [RL1971] \J. Rokne, P. Lancaster. Complex interval arithmetic.
             Communications of the ACM 14. 1971.
-
-.. [RM2017] Robert Muth.
-            *Super RSK correspondence with symmetry*.
-            :arXiv:`1711.00420v1`.
 
 .. [RMA2009] \P. Réal and H. Molina-Abril, *Cell AT-models for digital
              volumes* in Torsello, Escolano, Brun (eds.), Graph-Based

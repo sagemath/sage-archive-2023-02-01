@@ -54,9 +54,10 @@ available:
   using the Hecke insertion studied in [BKSTY06]_ (but using rows instead
   of columns).
 - Dual RSK insertion (:class:`~sage.combinat.rsk.RuleDualRSK`).
-- CoRSK insertion (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018v5sol]_.
-- Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a combiantion of row
-  and column insertions defined in [RM2017]_.
+- CoRSK insertion (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in
+  [GR2018v5sol]_.
+- Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a
+  combiantion of row and column insertions defined in [Muth2017]_.
 
 Implementing your own insertion rule
 ------------------------------------
@@ -146,13 +147,14 @@ REFERENCES:
    :arXiv:`1409.8356v5`, available with solutions at
    https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf
 
-.. [RM2017] Robert Muth.
-   *Super RSK correspondence with symmetry*.
-   :arXiv:`1711.00420v1`.
+- [Muth2017]_ Robert Muth.
+  *Super RSK correspondence with symmetry*.
+  :arXiv:`1711.00420`.
 """
 
 # *****************************************************************************
-#       Copyright (C) 2012,2019 Travis Scrimshaw <tcscrims gmail.com>
+#       Copyright (C) 2012,2019 Travis Scrimshaw <tcscrims at gmail.com>
+#                          2019 Chaman Agrawal <chaman.ag at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -171,11 +173,12 @@ from sage.structure.unique_representation import UniqueRepresentation
 from bisect import bisect_left, bisect_right
 from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
+from sage.rings.integer_ring import ZZ
 
 
 class Rule(UniqueRepresentation):
     r"""
-    Generic base class for an insertion rule for RSK correspondence.
+    Generic base class for an insertion rule for an RSK-type correspondence.
 
     An instance of this class should implement a method
     :meth:`insertion` (which can be applied to a letter ``j``
@@ -519,7 +522,7 @@ class Rule(UniqueRepresentation):
 
 class RuleRSK(Rule):
     r"""
-    A rule modeling the classical Robinson-Schensted-Knuth insertion.
+    Rule for the classical Robinson-Schensted-Knuth insertion.
 
     See :func:`RSK` for the definition of this operation.
 
@@ -541,14 +544,8 @@ class RuleRSK(Rule):
         into the row `r` using classical Schensted insertion,
         if there is bumping to be done.
 
-        The row `r` is modified in place. The bumped-out entry,
-        if it exists, is returned.
-
-        .. WARNING::
-
-            This method only changes `r` if bumping occurs.
-            Appending `j` to the end of the row should be done
-            by the caller.
+        The row `r` is modified in place if bumping occurs. The bumped-out
+        entry, if it exists, is returned.
 
         EXAMPLES::
 
@@ -631,7 +628,7 @@ class RuleRSK(Rule):
 
 class RuleEG(Rule):
     r"""
-    A rule modeling Edelman-Greene insertion.
+    Rule for Edelman-Greene insertion.
 
     For a reduced word of a permutation (i.e., an element of a type `A`
     Coxeter group), one can use Edelman-Greene insertion, an algorithm
@@ -718,14 +715,8 @@ class RuleEG(Rule):
         into the row `r` using Edelman-Greene insertion,
         if there is bumping to be done.
 
-        The row `r` is modified in place. The bumped-out entry,
-        if it exists, is returned.
-
-        .. WARNING::
-
-            This method only changes `r` if bumping occurs.
-            Appending `j` to the end of the row should be done
-            by the caller.
+        The row `r` is modified in place if bumping occurs. The bumped-out
+        entry, if it exists, is returned.
 
         EXAMPLES::
 
@@ -821,7 +812,7 @@ class RuleEG(Rule):
 
 class RuleHecke(Rule):
     r"""
-    A rule modeling the Hecke insertion algorithm.
+    Rule for Hecke insertion.
 
     The Hecke RSK algorithm is similar to the classical RSK algorithm,
     but is defined using the Hecke insertion introduced in in
@@ -1044,14 +1035,8 @@ class RuleHecke(Rule):
         Hecke insertion, provided that `r` is the `ir`-th row
         of `p`, and provided that there is bumping to be done.
 
-        The row `r` is modified in place. The bumped-out entry,
-        if it exists, is returned.
-
-        .. WARNING::
-
-            This method only changes `r` if bumping occurs.
-            Appending `j` to the end of the row should be done
-            by the caller.
+        The row `r` is modified in place if bumping occurs. The bumped-out
+        entry, if it exists, is returned.
 
         EXAMPLES::
 
@@ -1165,7 +1150,7 @@ class RuleHecke(Rule):
 
 class RuleDualRSK(Rule):
     r"""
-    A rule modeling the Dual RSK insertion.
+    Rule for dual RSK insertion.
 
     Dual RSK insertion differs from classical RSK insertion in the
     following ways:
@@ -1418,14 +1403,8 @@ class RuleDualRSK(Rule):
         into the row `r` using dual RSK insertion, if there is
         bumping to be done.
 
-        The row `r` is modified in place. The bumped-out entry,
-        if it exists, is returned.
-
-        .. WARNING::
-
-            This method only changes `r` if bumping occurs.
-            Appending `j` to the end of the row should be done
-            by the caller.
+        The row `r` is modified in place if bumping occurs. The bumped-out
+        entry, if it exists, is returned.
 
         EXAMPLES::
 
@@ -1556,7 +1535,7 @@ class RuleDualRSK(Rule):
 
 class RuleCoRSK(RuleRSK):
     r"""
-    A rule modeling the CoRSK insertion.
+    Rule for coRSK insertion.
 
     CoRSK insertion differs from classical RSK insertion in the
     following ways:
@@ -1583,7 +1562,7 @@ class RuleCoRSK(RuleRSK):
 
     Bumping proceeds in the same way as for RSK insertion.
 
-    The RSK and CoRSK algorithms agree for permutation matrices.
+    The RSK and coRSK algorithms agree for permutation matrices.
 
     For more information, see Section A.4 in [Ful1997]_ (specifically,
     construction (1d)) or the second solution to Exercise 2.7.12(a) in
@@ -1908,10 +1887,10 @@ class RuleCoRSK(RuleRSK):
 
 class RuleSuperRSK(RuleRSK):
     r"""
-    A rule modeling the SuperRSK insertion.
+    Rule for super RSK insertion.
 
-    SuperRSK is based on :math:`\epsilon`-insertion, a combination of row
-    and column classical RSK insertion.
+    Super RSK is based on `\epsilon`-insertion, a combination of
+    row and column classical RSK insertion.
 
     Super RSK insertion differs from the classical RSK insertion in the
     following ways:
@@ -1927,8 +1906,8 @@ class RuleSuperRSK(RuleRSK):
       they are semistandard super tableax.
 
     * The main difference is in the way bumping works. Instead of having 
-      only row bumping SuperRSK uses :math:`\epsilon`-insertion, a combination
-      of classical RSK bumping along the rows and a Dual RSK like bumping
+      only row bumping super RSK uses `\epsilon`-insertion, a combination
+      of classical RSK bumping along the rows and a dual RSK like bumping
       (i.e. when a number `k_i` is inserted into the `i`-th row of `P`, it
       bumps out the first integer greater **or equal to** `k_i` in the column)
       along the column.
@@ -1964,7 +1943,7 @@ class RuleSuperRSK(RuleRSK):
         sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
         [[1', 2', 2, 2, 3', 3', 3, 3], [3', 1, 2, 3, 3', 3', 2', 1']]
 
-    Example 6.1 in [RM2017]_::
+    Example 6.1 in [Muth2017]_::
 
         sage: P,Q = RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
         ....:           ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
@@ -2057,11 +2036,11 @@ class RuleSuperRSK(RuleRSK):
 
         - ``obj1, obj2`` -- anything representing a restricted super biword
           (see the doc of :meth:`forward_rule` for the
-          encodings accepted).
+          encodings accepted)
 
         - ``check`` -- (default: ``True``) whether to check
           that ``obj1`` and ``obj2`` actually define a valid
-          restricted super biword.
+          restricted super biword
 
         EXAMPLES::
 
@@ -2082,15 +2061,12 @@ class RuleSuperRSK(RuleRSK):
             try:
                 itr = obj1._rsk_iter()
             except AttributeError:
-                # If this is (something which looks like) a matrix
-                if obj1 and hasattr(obj1[0], '__getitem__'):
-                    raise NotImplementedError("forward rule for matrices is not yet implemented")
                 # set recording list (obj1) to default value [1', 1, 2', 2, ...]
                 obj2, obj1 = obj1, []
-                a = 0.5
+                a = ZZ.one() / ZZ(2)
                 for i in range(len(obj2)):
                     obj1.append(a)
-                    a = a + 0.5
+                    a = a + ZZ.one() / ZZ(2)
         else:
             if check:
                 if len(obj1) != len(obj2):
@@ -2121,8 +2097,8 @@ class RuleSuperRSK(RuleRSK):
 
     def _get_col(self, t, col_index):
         r"""
-        Return the column as a list of a given tableau ``t`` (list of lists) 
-        at index ``col_index`` (Indexing  starting from zero).
+        Return the column as a list of a given tableau ``t`` (list of lists)
+        at index ``col_index`` (indexing  starting from zero).
 
         EXAMPLES::
 
@@ -2147,24 +2123,23 @@ class RuleSuperRSK(RuleRSK):
 
     def _set_col(self, t, col_index, col):
         r"""
-        Set the column of a given tableau ``t`` (list of lists) 
-        at index ``col_index`` (Indexing  starting from zero) as 
-        ``col``.
+        Set the column of a given tableau ``t`` (list of lists) at
+        index ``col_index`` (indexing  starting from zero) as  ``col``.
 
         .. NOTE::
 
-            If ``length(col)`` is greater than the corresponding column in 
-            tableau ``t`` then only those rows of ``t`` will be set which 
-            have ``length(row) <= col_index``. Similarly if ``length(col)`` 
-            is less than the corresponding column in tableau ``t`` then only 
-            those entries of the corresponding column in ``t`` which have row 
-            index less than ``length(col)`` will be set, rest will remain 
-            unchanged. 
+            If ``length(col)`` is greater than the corresponding column in
+            tableau ``t`` then only those rows of ``t`` will be set which
+            have ``length(row) <= col_index``. Similarly if ``length(col)``
+            is less than the corresponding column in tableau ``t`` then only
+            those entries of the corresponding column in ``t`` which have row
+            index less than ``length(col)`` will be set, rest will remain
+            unchanged.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleSuperRSK
-            sage: t = [[1,2,3,4], [5,6,7,8], [9,10]];
+            sage: t = [[1,2,3,4], [5,6,7,8], [9,10]]
             sage: col = [1, 2, 3, 4]
             sage: RuleSuperRSK()._set_col(t, 0, col); t
             [[1, 2, 3, 4], [2, 6, 7, 8], [3, 10], [4]]
@@ -2195,30 +2170,26 @@ class RuleSuperRSK(RuleRSK):
 
           - two lists ``obj1`` and ``obj2`` of equal length,
             to be interpreted as the top row and the bottom row of
-            the biword;
-
-          - a matrix ``obj1`` of nonnegative integers, to be
-            interpreted as the generalized permutation in matrix
-            form (in this case, ``obj2`` is ``None``);
+            the biword
 
           - a word ``obj1`` in an ordered alphabet, to be
             interpreted as the bottom row of the biword (in this
             case, ``obj2`` is ``None``; the top row of the biword
-            is understood to be `(1, 2, \ldots, n)` by default);
+            is understood to be `(1, 2, \ldots, n)` by default)
 
           - any object ``obj1`` which has a method ``_rsk_iter()``,
             as long as this method returns an iterator yielding
             pairs of numbers, which then are interperted as top
             entries and bottom entries in the biword (in this case,
-            ``obj2`` is ``None``).
+            ``obj2`` is ``None``)
 
-        - ``check_standard`` -- (default: ``False``) check if either of the
-          resulting tableaux is a standard super tableau, and if so, typecast it
-          as such
+        - ``check_standard`` -- (default: ``False``) check if either of
+          the resulting tableaux is a standard super tableau, and if so,
+          typecast it as such
 
         - ``check`` -- (default: ``True``) whether to check
           that ``obj1`` and ``obj2`` actually define a valid
-          restricted super biword.
+          restricted super biword
 
         EXAMPLES::
 
@@ -2286,14 +2257,8 @@ class RuleSuperRSK(RuleRSK):
         Schensted insertion depending on the value of ``epsilon``, 
         if there is bumping to be done.
 
-        The row ``r`` is modified in place. The bumped-out entry,
-        if it exists, is returned along with the bumped position.
-
-        .. WARNING::
-
-            This method only changes ``r`` if bumping occurs.
-            Appending ``j`` to the end of the row should be done
-            by the caller.
+        The row `r` is modified in place if bumping occurs. The bumped-out
+        entry, if it exists, is returned.
 
         EXAMPLES::
 
@@ -2370,16 +2335,15 @@ class RuleSuperRSK(RuleRSK):
     def backward_rule(self, p, q, output='array'):
         r"""
         Return the restricted super biword obtained by applying reverse
-        superRSK insertion to a pair of tableaux ``(p, q)``.
+        super RSK insertion to a pair of tableaux ``(p, q)``.
 
         INPUT:
 
-        - ``p``, ``q`` -- two tableaux of the same shape.
+        - ``p``, ``q`` -- two tableaux of the same shape
 
         - ``output`` -- (default: ``'array'``) if ``q`` is row-strict:
 
           - ``'array'`` -- as a two-line array (i.e. restricted super biword)
-          - ``'matrix'`` -- as a matrix
 
           and if ``q`` is standard, we can have the output:
 
@@ -2397,12 +2361,11 @@ class RuleSuperRSK(RuleRSK):
             sage: RuleSuperRSK().backward_rule(t1, t2, 'array')
             [[1, 2, 3], [1, 3, 3']]
         """
-        from copy import copy
         p_copy = [list(row) for row in p]
         upper_row = []
         lower_row = []
         # upper_row and lower_row will be the upper and lower rows of the
-        # generalized permutation we get as a result, but both reversed.
+        # generalized permutation we get as a result, but both reversed
         d = {}
         for row, Li in enumerate(q):
             for col, val in enumerate(Li):
@@ -2418,7 +2381,7 @@ class RuleSuperRSK(RuleRSK):
         for value, iter_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
             epsilon = 1 if value.is_primed() else 0
             if epsilon == 1:
-                iter_copy = copy(iter_dict)
+                iter_copy = dict(iter_dict)
                 iter_dict = {}
                 for k, v in iter_copy.items():
                     for vi in v:
@@ -2525,17 +2488,7 @@ class RuleSuperRSK(RuleRSK):
             ....:       [PrimedEntry('1p'), PrimedEntry(1), PrimedEntry('2p'), 
             ....:       PrimedEntry(2)], 'word', True)
             word: 4321
-            sage: RuleSuperRSK()._backward_format_output([PrimedEntry('1p'),
-            ....:       PrimedEntry(1), PrimedEntry('3p'), PrimedEntry(9)],
-            ....:       [PrimedEntry(1), PrimedEntry('2p'), PrimedEntry('3p'),
-            ....:       PrimedEntry(4)], 'matrix', True)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: backward rule for matrices is not yet implemented
         """
-        if output == 'matrix':
-            raise NotImplementedError("backward rule for matrices is not "
-                                      "yet implemented")
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
         if output == 'word':
@@ -2992,3 +2945,4 @@ def to_matrix(t, b):
         else:
             entries[pos] = 1
     return matrix(entries, sparse=True)
+

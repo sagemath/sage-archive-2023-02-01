@@ -1929,7 +1929,7 @@ class RuleSuperRSK(RuleRSK):
     * The main difference is in the way bumping works. Instead of having 
       only row bumping SuperRSK uses :math:`\epsilon`-insertion, a combination
       of classical RSK bumping along the rows and a Dual RSK like bumping
-      (i.e. when a number `k_i` is inserted into the `i`-th row of `P`,it
+      (i.e. when a number `k_i` is inserted into the `i`-th row of `P`, it
       bumps out the first integer greater **or equal to** `k_i` in the column)
       along the column.
 
@@ -1944,38 +1944,50 @@ class RuleSuperRSK(RuleRSK):
         sage: RSK([1, 3, "3p", "2p"], insertion='superRSK')
         [[[1, 3', 3], [2']], [[1', 1, 2'], [2]]]
         sage: RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
-        ....:    ["1p", 1, "2p", 2, "3p", "3p", "3p", 3], insertion='superRSK')
+        ....:     ["1p", 1, "2p", 2, "3p", "3p", "3p", 3], insertion='superRSK')
         [[[1', 2, 3', 3], [1, 3'], [2'], [3']], [[1', 2, 3', 3], [2', 3'], [2], [3]]]
         sage: P = SemistandardSuperTableau([[1, '3p', 3], ['2p']])
         sage: Q = SemistandardSuperTableau([['1p', 1, '2p'], [2]])
         sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
         [[1', 1, 2', 2], [1, 3, 3', 2']]
 
-    TESTS:
+    We apply super RSK on Example 5.1 in [RM2017]_::
 
-    Let us try Super RSK on Example 5.1 in [RM2017]_::
+        sage: P,Q = RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
+        ....:           ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
+        sage: (P, Q)
+        ([[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']])
+        sage: ascii_art((P, Q))
+        (  1' 2' 3'  3   1'  2  2 3' )
+        (   1  2 3'      2'  3  3    )
+        (  3'         ,  3'          )
+        sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
+        [[1', 2', 2, 2, 3', 3', 3, 3], [3', 1, 2, 3, 3', 3', 2', 1']]
 
-        sage: RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
-        ....:   ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
-        [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
+    Example 6.1 in [RM2017]_::
 
-    Similarly, Super RSK on Example 6.1 in [RM2017]_::
+        sage: P,Q = RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
+        ....:           ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
+        sage: ascii_art((P, Q))
+        (  1' 2' 3'  3   1'  2  2 3' )
+        (   1  2 3'      2'  3  3    )
+        (  3'         ,  3'          )
+        sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
+        [[1', 2', 2, 2, 3', 3', 3, 3], [3', 1, 2, 3, 3', 3', 2', 1']]
 
-        sage: RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
-        ....:   ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
-        [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
-
-        sage: RSK(["1p", 1, "2p", 2, "3p", "3p", "3p", 3], 
-        ....:   [3, "2p", 3, 2, "3p", "3p", "1p", 2], insertion='superRSK')
-        [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
+        sage: P,Q = RSK(["1p", 1, "2p", 2, "3p", "3p", "3p", 3], 
+        ....:           [3, "2p", 3, 2, "3p", "3p", "1p", 2], insertion='superRSK')
+        sage: ascii_art((P, Q))
+        (  1'  2  2 3'   1' 2' 3'  3 )
+        (  2'  3  3       1  2 3'    )
+        (  3'         ,  3'          )
+        sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
+        [[1', 1, 2', 2, 3', 3', 3', 3], [3, 2', 3, 2, 3', 3', 1', 2]]
 
     Let us now call the inverse correspondence::
 
-        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 2, 3], 
-        ....:   insertion=RSK.rules.superRSK) ,insertion=RSK.rules.superRSK)
-        [[1, 2, 2, 2], [2, 1, 2, 3]]
-        sage: P, Q = RSK([1, 2, 2, 2], [2, 1, 2, 3], 
-        ....:               insertion=RSK.rules.superRSK)
+        sage: P, Q = RSK([1, 2, 2, 2], [2, 1, 2, 3],
+        ....:            insertion=RSK.rules.superRSK)
         sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
         [[1, 2, 2, 2], [2, 1, 2, 3]]
 
@@ -1990,6 +2002,8 @@ class RuleSuperRSK(RuleRSK):
         sage: t2 = SemistandardSuperTableau([[1, 2, 3], [4], [5]])
         sage: RSK_inverse(t1, t2, insertion=RSK.rules.superRSK)
         [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
+
+    TESTS:
 
     Empty objects::
 
@@ -2007,19 +2021,25 @@ class RuleSuperRSK(RuleRSK):
 
         sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
         sage: RSK_inverse(SemistandardSuperTableau([]), 
-        ....:       SemistandardSuperTableau([]), insertion=RSK.rules.superRSK)
+        ....:             SemistandardSuperTableau([]), insertion=RSK.rules.superRSK)
         [[], []]
         sage: f = lambda p: RSK_inverse(*RSK(p, insertion=RSK.rules.superRSK),
-        ....:                insertion=RSK.rules.superRSK)
-        sage: all(p == f(p)[1] for n in range(5) 
-        ....:                             for p in Permutations(n))
+        ....:                           insertion=RSK.rules.superRSK)
+        sage: all(p == f(p)[1] for n in range(5) for p in Permutations(n))
+        True
+
+        sage: SST = StandardSuperTableaux([3,2,1])
+        sage: f = lambda P, Q: RSK(*RSK_inverse(P, Q, insertion=RSK.rules.superRSK),
+        ....:                      insertion=RSK.rules.superRSK)
+        sage: all([P, Q] == f(P, Q) for n in range(7) for la in Partitions(n)
+        ....:     for P in StandardSuperTableaux(la) for Q in StandardSuperTableaux(la))
         True
 
     Checking that tableaux should be of same shape::
 
         sage: RSK_inverse(SemistandardSuperTableau([[1, 2, 3]]), 
-        ....:               SemistandardSuperTableau([[1, 2]]), 
-        ....:               insertion=RSK.rules.superRSK)
+        ....:             SemistandardSuperTableau([[1, 2]]), 
+        ....:             insertion=RSK.rules.superRSK)
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
@@ -2131,7 +2151,7 @@ class RuleSuperRSK(RuleRSK):
         at index ``col_index`` (Indexing  starting from zero) as 
         ``col``.
 
-        ..NOTE::
+        .. NOTE::
 
             If ``length(col)`` is greater than the corresponding column in 
             tableau ``t`` then only those rows of ``t`` will be set which 

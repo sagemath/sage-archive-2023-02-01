@@ -884,6 +884,17 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: integrate(abs(x^2 - 1), x, -2, 2)
         4
+
+    Check that :trac:`25823` is fixed::
+
+        sage: f = log(sin(x))*sin(x)^2
+        sage: g = integrate(f, x) ; g
+        1/4*I*x^2 - 1/2*I*x*arctan2(sin(x), cos(x) + 1) + 1/2*I*x*arctan2(sin(x), -cos(x) + 1) - 1/4*x*log(cos(x)^2 + sin(x)^2 + 2*cos(x) + 1) - 1/4*x*log(cos(x)^2 + sin(x)^2 - 2*cos(x) + 1) + 1/4*(2*x - sin(2*x))*log(sin(x)) + 1/4*x + 1/2*I*dilog(-e^(I*x)) + 1/2*I*dilog(e^(I*x)) + 1/8*sin(2*x)
+
+    Indeed::
+
+        sage: (g.derivative() - f).full_simplify().full_simplify()
+        0
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

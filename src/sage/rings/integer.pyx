@@ -1607,18 +1607,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # all we need to do is return
         return l
 
-    def balanced_digits(self, base, positive_shift=True):
+    def balanced_digits(self, base=10, positive_shift=True):
         r'''
+        Return the list of balanced digits for ``self`` in the given base.
 
-        Returns a list of balanced digits (centered at 0) for ``self`` in 
-        the given base. For example, the balanced ternary representation
-        of ``8`` is ``[-1, 0, 1]``. For an even base ``b``, ``positive_shift``
-        determines whether the digits range from ``-b/2 + 1`` to ``b/2``
-        or from ``-b/2`` to ``b/2 - 1``.
+        The balanced base ``b`` uses ``b`` digits centered around zero. Thus
+        if ``b`` is odd, there is only one possibility, namely digits
+        between ``-b//2`` and ``b//2`` (both included). For instance in base 9,
+        one uses digits from -4 to 4. If ``b`` is even, one has to choose
+        between digits from ``-b//2`` to ``b//2 - 1`` or ``-b//2 + 1`` to ``b//2``
+        (base 10 for instance: either -5 to 4 or -4 to 5), and this is
+        defined by the value of ``positive_shift``.
 
         INPUT:
 
-        - ``base`` -- integer
+        - ``base`` -- integer (default: 10)
         - ``positive_shift`` -- boolean (default: True)
 
         EXAMPLES::
@@ -1631,18 +1634,26 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             [-1, 3]
             sage: 17.balanced_digits(6, positive_shift=False)
             [-1, -3, 1]
+            sage: (-46).balanced_digits()
+            [4, 5, -1]
+            sage: (-46).balanced_digits(positive_shift=False)
+            [4, -5]
             sage: (-23).balanced_digits(12)
             [1, -2]
             sage: (-23).balanced_digits(12, positive_shift=False)
             [1, -2]
             sage: 0.balanced_digits(2)
             []
+            sage: 14.balanced_digits(5.8)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be an integer
             sage: 14.balanced_digits(1)
             Traceback (most recent call last):
             ...
             ValueError: base must be >= 2
 
-        ::
+        TESTS::
 
             sage: base = 5; n = 39
             sage: l = n.balanced_digits(base)
@@ -1665,51 +1676,39 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             :func:`digits <digits>`
         '''
-        if isinstance(base, Integer):
-            _base = base
-        else:
-            _base = Integer(base)
-        if _base < 2:
-            raise ValueError("base must be >= 2")
+        if not isinstance(base, Integer):
+            try:
+                base = Integer(base)
+            except TypeError:
+                raise ValueError('base must be an integer')
+        if base < 2:
+            raise ValueError('base must be >= 2')
+        if base == 2:
+            return self.digits(base)
 
-        digits = []
-        if self == 0:
-            return digits
-
-        self_abs = self
         neg = False
-        if self_abs < 0:
+        if self < 0:
             neg = True
-            self_abs = -self_abs
+            positive_shift = not positive_shift
 
-        from sage.functions.other import floor
-        if positive_shift or _base%2 == 1 or _base == 2:
-            m = floor(_base/2) + 1
+        if positive_shift or base % 2 == 1:
+            m = base//2
         else:
-            m = floor(_base/2)
+            m = base//2 - 1
+        digits = abs(self).digits(base)
 
-        q = 0
-        r = self_abs
-        while r >= m:
-            q += 1
-            r -= _base
-        if neg:
-            digits.append(-r)
-        else:
-            digits.append(r)
-        while True:
-            temp_q = 0
-            temp_r = q
-            while temp_r >= m:
-                temp_q += 1
-                temp_r -= _base
-            if q == temp_q:
-                break
-            q,r = temp_q,temp_r
+        for i in range(len(digits)):
+            if digits[i] > m:
+                digits[i] = digits[i] - base
+                try:
+                    digits[i+1] += 1
+                except IndexError:
+                    if neg:
+                        digits.append(-1)
+                    else:
+                        digits.append(1)
             if neg:
-                digits.append(-r)
-            else:
-                digits.append(r)
+                digits[i] = -digits[i]
         return digits
 
     def ndigits(self, base=10):

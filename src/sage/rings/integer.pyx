@@ -2095,11 +2095,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in t over Rational Field to Rational Field
-            sage: 'sage' ^ 3
-            doctest:...:
-            DeprecationWarning: raising a string to an integer power is deprecated
-            See http://trac.sagemath.org/24260 for details.
-            'sagesagesage'
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
@@ -2109,10 +2104,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>left)._pow_(right)
         elif isinstance(left, Element):
             return coercion_model.bin_op(left, right, operator.pow)
-        elif isinstance(left, str):
-            from sage.misc.superseded import deprecation
-            deprecation(24260, "raising a string to an integer power is deprecated")
-            return left * int(right)
         # left is a non-Element: do the powering with a Python int
         return left ** int(right)
 

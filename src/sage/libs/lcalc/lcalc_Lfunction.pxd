@@ -1,3 +1,4 @@
+# distutils: extra_compile_args = LCALC_INCDIR_NOLIBPREFIX
 cdef extern from "lcalc_sage.h":
     ctypedef struct doublevec "std::vector<double>":
         int (*size)()

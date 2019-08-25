@@ -1467,7 +1467,8 @@ class Graph(GenericGraph):
              Graph on 6 vertices,
              Graph on 6 vertices]
 
-        Edges of the spanning trees can be labeled or unlabeled (:trac:27557)::
+        Edges of the spanning trees can be labeled
+        or unlabeled (:trac:`27557`)::
 
             sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
             sage: l = g.spanning_trees(labels=True)

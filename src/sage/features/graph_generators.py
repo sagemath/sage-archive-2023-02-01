@@ -11,7 +11,7 @@ from . import Executable, FeatureTestResult
 
 class Plantri(Executable):
     r"""
-    A class:`sage.features.graph_generators.Feature` which checks for
+    A :class:`sage.features.graph_generators.Feature` which checks for
     the ``plantri`` binary.
 
     EXAMPLES::
@@ -59,7 +59,7 @@ class Plantri(Executable):
 
 class Buckygen(Executable):
     r"""
-    A class:`sage.features.graph_generators.Feature` which checks for the ``buckygen``
+    A :class:`sage.features.graph_generators.Feature` which checks for the ``buckygen``
     binary.
 
     EXAMPLES::
@@ -107,7 +107,7 @@ class Buckygen(Executable):
 
 class Benzene(Executable):
     r"""
-    A class:`sage.features.graph_generators.Feature` which checks for the ``benzene``
+    A :class:`sage.features.graph_generators.Feature` which checks for the ``benzene``
     binary.
 
     EXAMPLES::

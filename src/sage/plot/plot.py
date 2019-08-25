@@ -3603,7 +3603,7 @@ def multi_graphics(graphics_list):
 
       - a pair ``(graphics, position)``, where ``graphics`` is a
         :class:`~sage.plot.graphics.Graphics` object and ``position`` is
-        the 4-tupe ``(left, bottom, width, height)`` specifying the location
+        the 4-tuple ``(left, bottom, width, height)`` specifying the location
         and size of the graphics on the canvas, all quantities being in
         fractions of the canvas width and height
 

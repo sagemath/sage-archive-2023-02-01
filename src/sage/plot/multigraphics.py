@@ -105,7 +105,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         G.append(g3, pos=(0.63, 0.12, 0.3, 0.3))
         sphinx_plot(G)
 
-    We can access to the individual elements composing ``G`` with the
+    We can access the individual elements composing ``G`` with the
     square-bracket operator::
 
         sage: print(G[0])
@@ -653,7 +653,7 @@ class MultiGraphics(WithEqualityById, SageObject):
           ``(left, bottom, width, height)`` specifying the location and
           relative size of the inset on the canvas, all quantities being
           expressed in fractions of the canvas width and height; if ``None``,
-          the value ``(0.70, 068, 0.2, 0.2)`` is used
+          the value ``(0.70, 0.68, 0.2, 0.2)`` is used
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
@@ -1028,7 +1028,7 @@ class GraphicsArray(MultiGraphics):
         G = graphics_array([g1, g2, g3, g4])
         sphinx_plot(G, figsize=[8, 3])
 
-    We can access to individual elements of the graphics array with the
+    We can access individual elements of the graphics array with the
     square-bracket operator::
 
         sage: G = graphics_array([[g1, g2], [g3, g4]])  # back to the 2x2 array

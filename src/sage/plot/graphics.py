@@ -3326,10 +3326,11 @@ class Graphics(WithEqualityById, SageObject):
         - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
           to be added as an inset to the current graphics
 
-        - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
+        - ``pos`` -- (default: ``None``) 4-tuple
+          ``(left, bottom, width, height)``
           specifying the location and size of the inset on the figure, all
           quantities being in fractions of the figure width and height; if
-          ``None``, the value ``(0.70, 068, 0.2, 0.2)`` is used
+          ``None``, the value ``(0.70, 0.68, 0.2, 0.2)`` is used
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless

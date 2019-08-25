@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear codes
+Generic structures for linear codes over the Hamming metric
 
 Linear Codes
 ============

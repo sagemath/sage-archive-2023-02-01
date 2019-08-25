@@ -1,8 +1,40 @@
 r"""
-Base class for Codes
+Codes
 
 Class supporting methods available for any type of code (linear, non-linear) and
 over any metric (Hamming, rank).
+
+There are further abstract classes representing certain types of codes. For
+linear codes,
+:class:`~sage.coding.linear_code_no_metric.AbstractLinearCodeNoMetric` contains
+all the methods that any linear code can use regardless of its metric.
+Inheriting from this class are base classes for linear codes over specific
+metrics. For example, :class:`~sage.coding.linear_code.AbstractLinearCode` is a
+base class for all linear codes over the Hamming metric.
+
+Take the class :class:`~sage.coding.hamming_code.HammingCode`. This
+class inherits from :class:`~sage.coding.linear_code.AbstractLinearCode`, since
+it is a linear code over the Hamming metric.
+:class:`~sage.coding.linear_code.AbstractLinearCode` then inherits from
+:class:`~sage.coding.linear_code_no_metric.AbstractLinearCodeNoMetric`, since it
+is a linear code. Finally, this class inherits from
+:class:`~sage.coding.abstract_code.AbstractCode`, since it is a code.
+
+
+The following diagram shows the inheritance relationship in the coding module::
+
+    AbstractCode
+    + AbstractLinearCodeNoMetric
+    | + AbstractLinearCode
+    | | + ParityCheckCode
+    | | + HammingCode
+    | | + CyclicCode
+    | | + BCHCode
+    | | + GolayCode
+    | | + ReedMullerCode
+    | | + GeneralizedReedSolomonCode
+    | | + GoppaCode
+    | + AbstractLinearRankMetricCode
 
 Any class inheriting from AbstractCode can use the encode/decode framework.
 

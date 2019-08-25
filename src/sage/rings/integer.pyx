@@ -160,7 +160,6 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.misc.superseded import deprecated_function_alias
 from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.arith.long cimport (pyobject_to_long, integer_check_long,
                               integer_check_long_py)
@@ -3478,8 +3477,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             a = self % m
             raise ArithmeticError("rational reconstruction of %s (mod %s) does not exist" % (a, m))
         return x
-
-    powermodm_ui = deprecated_function_alias(17852, powermod)
 
     def __int__(self):
         """

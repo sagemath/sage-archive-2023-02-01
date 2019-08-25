@@ -953,14 +953,20 @@ class HasseDiagram(DiGraph):
                     self._moebius_function_values[(i, j)] = -sum(self.moebius_function(i, k) for k in ci[:-1])
         return self._moebius_function_values[(i, j)]
 
-    def moebius_function_matrix(self):
+    def moebius_function_matrix(self, algorithm='recursive'):
         r"""
-        Return the matrix of the Möbius function of this poset
+        Return the matrix of the Möbius function of this poset.
 
         This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
         is the value of the Möbius function of ``self`` evaluated on
         ``x`` and ``y``, and redefines :meth:`moebius_function` to use
         it.
+
+        INPUT:
+
+        - ``algorithm`` -- optional, ``'recursive'`` (default) or ``'matrix'``
+
+        This uses either the recursive formula or one matrix inversion.
 
         .. NOTE::
 
@@ -993,9 +999,32 @@ class HasseDiagram(DiGraph):
 
             sage: H.moebius_function == H._moebius_function_from_matrix
             True
+
+            sage: H = posets.TamariLattice(3)._hasse_diagram
+            sage: H.moebius_function_matrix('matrix')
+            [ 1 -1 -1  0  1]
+            [ 0  1  0  0 -1]
+            [ 0  0  1 -1  0]
+            [ 0  0  0  1 -1]
+            [ 0  0  0  0  1]
         """
         if not hasattr(self, '_moebius_function_matrix'):
-            self._moebius_function_matrix = self.lequal_matrix().inverse_of_unit()
+            if algorithm == 'recursive':
+                n = self.cardinality()
+                L = self.lequal_matrix()
+                m = L.dict(copy=True)
+                greater_than = [sorted(L[i].dict()) for i in range(n)]
+                for i in range(n - 1, -1, -1):
+                    for k in greater_than[i]:
+                        if k != i:
+                            m[(i, k)] = -ZZ.sum(m[(j, k)]
+                                                for j in greater_than[i]
+                                                if i != j and
+                                                k in greater_than[j])
+                M = matrix(ZZ, n, n, m, sparse=True)
+            else:
+                M = self.lequal_matrix().inverse_of_unit()
+            self._moebius_function_matrix = M
             self._moebius_function_matrix.set_immutable()
             self.moebius_function = self._moebius_function_from_matrix
         return self._moebius_function_matrix

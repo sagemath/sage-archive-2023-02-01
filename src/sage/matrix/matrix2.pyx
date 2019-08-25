@@ -2427,6 +2427,12 @@ cdef class Matrix(Matrix1):
             sage: A._charpoly_df()
             x - 23
 
+        Test that :trac:`27937` is fixed::
+
+            sage: R = FreeAbelianMonoid('u,v').algebra(QQ)
+            sage: matrix(4, 4, lambda i, j: R.an_element())._charpoly_df()
+            B[1]*x^4 - 4*B[u]*x^3
+
         .. NOTE::
 
             The key feature of this implementation is that it is division-free.
@@ -2458,7 +2464,7 @@ cdef class Matrix(Matrix1):
         # test for 0 x n or m x 0 matrices.
         #
         if n == 0:
-            return S(1)
+            return S.one()
 
         # In the notation of Algorithm 3.1,
         #
@@ -2475,9 +2481,9 @@ cdef class Matrix(Matrix1):
         #
         from sage.matrix.constructor import matrix
 
-        F = [R(0) for i in xrange(n)]
+        F = [R.zero()] * n
         cdef Matrix a = <Matrix> matrix(R, n-1, n)
-        A = [R(0) for i in xrange(n)]
+        A = [R.zero()] * n
 
         F[0] = - M.get_unsafe(0, 0)
         for t in xrange(1,n):
@@ -2496,7 +2502,7 @@ cdef class Matrix(Matrix1):
                 # Set a(p, t) to the product of M[<=t, <=t] * a(p-1, t)
                 #
                 for i in xrange(t+1):
-                    s = R(0)
+                    s = R.zero()
                     for j in xrange(t+1):
                         s = s + M.get_unsafe(i, j) * a.get_unsafe(p-1, j)
                     a.set_unsafe(p, i, s)
@@ -2507,7 +2513,7 @@ cdef class Matrix(Matrix1):
 
             # Set A[t, t] to be M[t, <=t] * a(p-1, t)
             #
-            s = R(0)
+            s = R.zero()
             for j in xrange(t+1):
                 s = s + M.get_unsafe(t, j) * a.get_unsafe(t-1, j)
             A[t] = s
@@ -2519,9 +2525,7 @@ cdef class Matrix(Matrix1):
                 F[p] = s - A[p]
 
         X = S.gen(0)
-        f = X ** n
-        for p in xrange(n):
-            f = f + F[p] * X ** (n-1-p)
+        f = X ** n + S(list(reversed(F)))
 
         return f
 

@@ -988,7 +988,7 @@ class HypergeometricData(object):
         beta = self._beta
         t = QQ(t)
         if 0 in alpha:
-            return self._swap.padic_H_value(p, f, 1/t, prec)
+            return self._swap.padic_H_value(p, f, ~t, prec)
         gamma = self.gamma_array()
         q = p ** f
 
@@ -1091,7 +1091,7 @@ class HypergeometricData(object):
         beta = self._beta
         t = QQ(t)
         if 0 in alpha:
-            return self._swap.H_value(p, f, 1/t, ring)
+            return self._swap.H_value(p, f, ~t, ring)
         if ring is None:
             ring = UniversalCyclotomicField()
         gamma = self.gamma_array()
@@ -1156,14 +1156,14 @@ class HypergeometricData(object):
         """
         t = QQ(t)
         if 0 in self._alpha:
-            return self._swap.sign(1/t, p)
+            return self._swap.sign(~t, p)
         d = self.degree()
         w = self.weight()
 
         if w % 2:  # sign is always +1 for odd weight
             sign = 1
         elif d % 2:
-           sign = -kronecker_symbol((1 - t) * self._sign_param, p)
+            sign = -kronecker_symbol((1 - t) * self._sign_param, p)
         else:
             sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
         return sign

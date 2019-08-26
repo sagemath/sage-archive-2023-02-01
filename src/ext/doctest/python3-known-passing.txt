@@ -18,6 +18,7 @@ src/sage/combinat/sf/
 src/sage/combinat/species/
 src/sage/combinat/words/
 src/sage/cpython/
+src/sage/crypto/
 src/sage/data_structures/
 src/sage/databases/
 src/sage/docs/

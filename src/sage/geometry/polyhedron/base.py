@@ -4155,6 +4155,131 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(new_vertex)
         return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
+    def wedge(self, face, width=1):
+        r"""
+        Return the wedge over a ``face`` of the polytope ``self``.
+
+        The wedge over a face `F` of a polytope `P` with width `w \not= 0`
+        is defined as:
+
+        .. MATH::
+
+            (P \times \mathbb{R}) \cap \{a^\top x + |w x_{d+1}| \leq b\}
+
+        where `\{x | a^\top x = b\}` is a supporting hyperplane defining `F`.
+
+        INPUT:
+
+        - ``face`` -- a PolyhedronFace of ``self``, the face which we take
+          the wedge over
+        - ``width`` -- a nonzero number (default: ``1``), indicates how wide
+          the resulted wedge should be
+
+        OUTPUT:
+
+        A (bounded) Polyhedron object
+
+        EXAMPLES::
+
+            sage: P_4 = polytopes.regular_polygon(4)
+            sage: W1 = P_4.wedge(P_4.faces(1)[0]); W1
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 6 vertices
+            sage: triangular_prism = polytopes.regular_polygon(3).prism()
+            sage: W1.is_combinatorially_isomorphic(triangular_prism)
+            True
+
+            sage: Q = polytopes.hypersimplex(4,2)
+            sage: W2 = Q.wedge(Q.faces(2)[0]); W2
+            A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 9 vertices
+            sage: W2.vertices()
+            (A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 1, 0, 1),
+             A vertex at (1, 1, 0, 0, -1),
+             A vertex at (0, 1, 1, 0, 0),
+             A vertex at (1, 0, 1, 0, -1),
+             A vertex at (1, 1, 0, 0, 1))
+
+            sage: W3 = Q.wedge(Q.faces(1)[0]); W3
+            A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
+            sage: W3.vertices()
+            (A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 1, 0, 2),
+             A vertex at (0, 1, 1, 0, 1),
+             A vertex at (1, 0, 1, 0, -2),
+             A vertex at (1, 1, 0, 0, 2),
+             A vertex at (0, 1, 1, 0, -1),
+             A vertex at (1, 1, 0, 0, -2))
+
+            sage: C_3_7 = polytopes.cyclic_polytope(3,7)
+            sage: P_6 = polytopes.regular_polygon(6)
+            sage: W4 = P_6.wedge(P_6.faces(1)[0])
+            sage: W4.is_combinatorially_isomorphic(C_3_7.polar())
+            True
+
+        REFERENCES:
+
+        For more information, see Chapter 15 of [HoDaCG17]_.
+
+        TESTS::
+
+        The backend should be preserved as long as this is possible. The
+        base_ring will change to the field of fractions of the current
+        base_ring, if width takes the default value 1.
+
+            sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='field')
+            sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()
+            Rational Field
+            'field'
+            sage: W2 = P.wedge(P.faces(2)[0], width=5/2); W2.base_ring(); W2.backend()
+            Rational Field
+            'field'
+            sage: W2 = P.wedge(P.faces(2)[0], width=4/2); W2.base_ring(); W2.backend()
+            Rational Field
+            'field'
+            sage: W2.vertices()
+            (A vertex at (3, 9, 27, -1/2),
+             A vertex at (4, 16, 64, -2),
+             A vertex at (6, 36, 216, -10),
+             A vertex at (5, 25, 125, -5),
+             A vertex at (2, 4, 8, 0),
+             A vertex at (1, 1, 1, 0),
+             A vertex at (0, 0, 0, 0),
+             A vertex at (3, 9, 27, 1/2),
+             A vertex at (4, 16, 64, 2),
+             A vertex at (6, 36, 216, 10),
+             A vertex at (5, 25, 125, 5))
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron 'self' must be a polytope")
+
+        if width == 0:
+            raise ValueError("the width should be nonzero")
+
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if not isinstance(face, PolyhedronFace):
+            raise TypeError("{} should be a PolyhedronFace of {}".format(face, self))
+
+        F_Hrep = vector([0]*(self.ambient_dim()+1))
+        for facet in face.ambient_Hrepresentation():
+            if facet.is_inequality():
+                F_Hrep = F_Hrep + facet.vector()
+        F_Hrep = list(F_Hrep)
+
+        L = Polyhedron(lines=[[1]])
+        Q = self.product(L)
+
+        parent = self.parent().base_extend(ZZ.one()/width,\
+                                           ambient_dim=self.ambient_dim()+1)
+        ieqs = [F_Hrep + [width], F_Hrep + [-width]]
+        H = parent(None, [ieqs, []], convert=True)
+        return Q.intersection(H)
+
     def lawrence_extension(self, v):
         """
         Return the Lawrence extension of ``self`` on the point ``v``.

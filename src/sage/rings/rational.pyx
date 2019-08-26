@@ -50,8 +50,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
-
 cimport cython
 from cpython cimport *
 from cpython.object cimport Py_EQ, Py_NE

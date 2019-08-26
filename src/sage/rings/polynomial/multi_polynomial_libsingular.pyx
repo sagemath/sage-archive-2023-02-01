@@ -160,8 +160,6 @@ Check if :trac:`6160` is fixed::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 # The Singular API is as follows:
 #
 #   pXXX does assume the currRing to be set

@@ -167,8 +167,6 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from libc.stdint cimport uint8_t
 from libc.string cimport memset
 from cysignals.memory cimport check_allocarray, sig_free

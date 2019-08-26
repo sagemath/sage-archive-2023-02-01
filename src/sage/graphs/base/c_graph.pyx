@@ -42,8 +42,6 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import, division
-
 include "sage/data_structures/bitset.pxi"
 
 from sage.rings.integer cimport Integer

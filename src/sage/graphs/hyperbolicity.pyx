@@ -168,7 +168,6 @@ Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from libc.string cimport memset
 from cysignals.memory cimport check_allocarray, sig_free

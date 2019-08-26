@@ -59,7 +59,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division, print_function
 from .conversions \
         import facets_tuple_to_bit_repr_of_facets, \
                facets_tuple_to_bit_repr_of_Vrepr

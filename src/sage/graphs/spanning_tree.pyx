@@ -60,7 +60,6 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 cimport cython
 from sage.ext.memory_allocator cimport MemoryAllocator

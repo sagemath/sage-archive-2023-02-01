@@ -26,7 +26,6 @@ save member functions and commands.
 
 -  Objects are zlib compressed for space efficiency.
 """
-from __future__ import absolute_import
 
 import io
 import os

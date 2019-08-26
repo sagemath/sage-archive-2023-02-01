@@ -78,8 +78,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from collections import Iterator, Sequence
 
 from libc.stdint cimport uint64_t

@@ -512,7 +512,7 @@ class PRESENT(SageObject):
         return out
 
     def sbox_layer(self, state, inverse=False):
-        """
+        r"""
         Apply the sBoxLayer of PRESENT to the bit vector ``state`` and return
         the result.
 

@@ -1621,8 +1621,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-        - ``base`` -- integer (default: 10)
-        - ``positive_shift`` -- boolean (default: True)
+        - ``base`` -- integer (default: 10); when ``base`` is 2, only the
+          nonnegative or the nonpositive integers can be represented by
+          ``balanced_digits``. Thus we say base must be greater than 2.
+
+        - ``positive_shift`` -- boolean (default: True); for even bases, the
+          representation uses digits from ``-b//2 + 1`` to ``b//2`` if set to
+          True, and from ``-b//2`` to ``b//2 - 1`` otherwise. This has no
+          effect for odd bases.
 
         EXAMPLES::
 
@@ -1642,16 +1648,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             [1, -2]
             sage: (-23).balanced_digits(12, positive_shift=False)
             [1, -2]
-            sage: 0.balanced_digits(2)
+            sage: 0.balanced_digits(7)
             []
             sage: 14.balanced_digits(5.8)
             Traceback (most recent call last):
             ...
             ValueError: base must be an integer
-            sage: 14.balanced_digits(1)
+            sage: 14.balanced_digits(2)
             Traceback (most recent call last):
             ...
-            ValueError: base must be >= 2
+            ValueError: base must be > 2
 
         TESTS::
 
@@ -1681,10 +1687,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 base = Integer(base)
             except TypeError:
                 raise ValueError('base must be an integer')
-        if base < 2:
-            raise ValueError('base must be >= 2')
-        if base == 2:
-            return self.digits(base)
+        if base <= 2:
+            raise ValueError('base must be > 2')
 
         neg = False
         if self < 0:

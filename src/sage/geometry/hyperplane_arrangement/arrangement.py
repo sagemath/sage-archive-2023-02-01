@@ -1113,8 +1113,8 @@ class HyperplaneArrangementElement(Element):
         INPUT:
 
         - ``certificate`` -- boolean (default: ``False``); specifies whether
-        to return the center as a polyhedron (possibly empty) as part of the 
-        output.
+          to return the center as a polyhedron (possibly empty) as part
+          of the output
 
         OUTPUT:
 

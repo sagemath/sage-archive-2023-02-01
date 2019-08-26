@@ -486,16 +486,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         - ``function`` -- string (default: "sincsquared_fast") - the function
           `f(x)` as described above. Currently implemented options for `f` are
 
-          - ``sincquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
+          - ``sincsquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
 
           - ``gaussian``   -- `f(x) = e^{-x^2}`
 
-          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
+          - ``sincsquared_fast`` -- Same as "sincsquared", but implementation
             optimized for elliptic curve `L`-functions, and tau must be 0. self
             must be attached to an elliptic curve over `\QQ` given by its global
             minimal model, otherwise the returned result will be incorrect.
 
-          - ``sincquared_parallel`` -- Same as "sincsquared_fast", but optimized
+          - ``sincsquared_parallel`` -- Same as "sincsquared_fast", but optimized
             for parallel computation with large (>2.0) `\Delta` values. self must
             be attached to an elliptic curve over `\QQ` given by its global minimal
             model, otherwise the returned result will be incorrect.

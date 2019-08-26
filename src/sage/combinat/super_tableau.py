@@ -3,16 +3,7 @@ Super Tableaux
 
 AUTHORS:
 
-- Mike Hansen (2007): initial version
-
-- Jason Bandlow (2011): updated to use Parent/Element model, and many
-  minor fixes
-
-- Andrew Mathas (2012-13): completed the transition to the parent/element model
-  begun by Jason Bandlow
-
-- Travis Scrimshaw (11-22-2012): Added tuple options, changed ``*katabolism*``
-  to ``*catabolism*``. Cleaned up documentation.
+- Matthew Lancellotti (2007): initial version
 
 - Chaman Agrawal (2019-07-23): Modify Standard and Semistandard tableaux for
   super tableaux.
@@ -21,27 +12,27 @@ from __future__ import print_function, absolute_import
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.rings.all import ZZ
 from sage.sets.family import Family
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.shifted_primed_tableau import PrimedEntry
-from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux, \
-                                    StandardTableaux
+from sage.combinat.tableau import (Tableau, Tableaux, SemistandardTableaux,
+                                    StandardTableaux)
 
 
 class SemistandardSuperTableau(Tableau):
     """
-    A class to model a semistandard super tableau defined in [RM2017].
+    A semistandard super tableau.
 
-    A semistandard super tableau is a tableau whose entries are primed positive
-    integers, which are weakly increasing in rows and down columns. Also, the
-    letters of even parity(unprimed) strictly increase down the columns, and
-    letters of oddd parity(primed) strictly increase along the rows. Note
-    that Sage uses the English convention for partitions and tableaux; the
-    longer rows are displayed on top.
-
+    A semistandard super tableau is a tableau with primed positive integer entries.
+    As defined in [Muth2017]_, a semistandard super tableau weakly increases along
+    the rows and down the columns. Also, the letters of even parity (unprimed)
+    strictly increases down the columns, and letters of oddd parity (primed)
+    strictly increases along the rows. Note that Sage uses the English convention
+    for partitions and tableaux; the longer rows are displayed on top.
 
     INPUT:
 
@@ -65,7 +56,6 @@ class SemistandardSuperTableau(Tableau):
     TESTS::
 
         sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-        sage: from sage.combinat.tableau import Tableaux
         sage: t = Tableaux()([[1,1],[2]])
         sage: s = SemistandardSuperTableaux()([[PrimedEntry(1),PrimedEntry(1)],
         ....:                                   [PrimedEntry(2)]])
@@ -110,8 +100,8 @@ class SemistandardSuperTableau(Tableau):
             t = [tuple(_) for _ in t]
         except TypeError:
             raise ValueError("a tableau must be a list of iterables")
-        return SemistandardSuperTableaux_all().element_class(
-                                    SemistandardSuperTableaux_all(), t)
+        SST = SemistandardSuperTableaux_all()
+        return SST.element_class(SST, t)
 
     def __init__(self, parent, t, check=True, preprocessed=False):
         r"""
@@ -142,23 +132,21 @@ class SemistandardSuperTableau(Tableau):
         The output is a list of rows as tuples, with entries being
         ``PrimedEntry``s.
 
-        Trailing empty rows are removed.
-
         TESTS::
 
             sage: SemistandardSuperTableau._preprocess([["2'", "3p", 3.5]])
             [[2', 3', 4']]
             sage: SemistandardSuperTableau._preprocess([[None]])
-            []
+            [[None]]
             sage: SemistandardSuperTableau._preprocess([])
             []
         """
         if isinstance(t, SemistandardSuperTableau):
             return t
         # Preprocessing list t for primes and other symbols
-        t = [[PrimedEntry(entry) for entry in row if entry is not None]
+        t = [[PrimedEntry(entry) if entry is not None else entry for entry in row]
              for row in t]
-        while len(t) > 0 and len(t[-1]) == 0:
+        while t and not t[-1]:
             t = t[:-1]
         return t
 
@@ -220,10 +208,12 @@ class SemistandardSuperTableau(Tableau):
 
 class StandardSuperTableau(SemistandardSuperTableau):
     r"""
-    A class to model a standard super tableau defined in [RM2017].
+    A standard super tableau.
 
     A standard super tableau is a semistandard super tableau whose entries
     are in bijection with positive primed integers `1', 1, 2' \ldots n`.
+
+    For more information refer [Muth2017]_.
 
     INPUT:
 
@@ -276,8 +266,8 @@ class StandardSuperTableau(SemistandardSuperTableau):
         if isinstance(t, StandardSuperTableau):
             return t
 
-        return StandardSuperTableaux_all().element_class(
-                                            StandardSuperTableaux_all(), t)
+        SST = StandardSuperTableaux_all()
+        return SST.element_class(SST, t)
 
     def check(self):
         r"""
@@ -330,12 +320,12 @@ class SemistandardSuperTableaux(SemistandardTableaux):
     r"""
     The set of semistandard super tableaux.
 
-    A semistandard super tableau is a tableau whose entries are primed positive
-    integers, which are weakly increasing in rows and down columns. Also, the
-    letters of even parity(unprimed) strictly increase down the columns, and
-    letters of oddd parity(primed) strictly increase along the rows. Note
-    that Sage uses the English convention for partitions and tableaux; the
-    longer rows are displayed on top.
+    A semistandard super tableau is a tableau with primed positive integer entries.
+    As defined in [Muth2017]_, a semistandard super tableau weakly increases along
+    the rows and down the columns. Also, the letters of even parity (unprimed)
+    strictly increases down the columns, and letters of oddd parity (primed)
+    strictly increases along the rows. Note that Sage uses the English convention
+    for partitions and tableaux; the longer rows are displayed on top.
 
     EXAMPLES::
 
@@ -448,6 +438,8 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
     integers, which are strictly increasing in rows and down columns and
     contains each letters from 1',1,2'...n exactly once.
 
+    For more information refer [Muth2017]_.
+
     INPUT:
 
     - ``n`` -- a non-negative integer or a partition.
@@ -455,12 +447,12 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
     EXAMPLES::
 
         sage: SST = StandardSuperTableaux()
-        sage: SST  # set of all standard super tableaux
+        sage: SST
         Standard super tableaux
         sage: SST([["1'",1,"2'",2,"3'"],[3,"4'"]])
         [[1', 1, 2', 2, 3'], [3, 4']]
         sage: SST = StandardSuperTableaux(3)
-        sage: SST # set of standard super tableaux of size 3
+        sage: SST
         Standard super tableaux of size 3
         sage: SST.first()
         [[1', 1, 2']]
@@ -471,7 +463,7 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
         sage: SST.list()
         [[[1', 1, 2']], [[1', 2'], [1]], [[1', 1], [2']], [[1'], [1], [2']]]
         sage: SST = StandardSuperTableaux([3,2])
-        sage: SST # set of standard super tableaux of shape [3, 2]
+        sage: SST
         Standard super tableaux of shape [3, 2]
 
     TESTS::
@@ -486,6 +478,8 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
         [[1', 1, 2'], [2, 3']]
         sage: SST.cardinality()
         5
+        sage: SST.cardinality() == StandardTableaux([3,2]).cardinality()
+        True
         sage: SST.list()
         [[[1', 2', 3'], [1, 2]],
          [[1', 1, 3'], [2', 2]],
@@ -578,7 +572,7 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
                 primed_list.append(a)
                 a = a.increase_half()
             # return True
-            return sorted(flattened_list) == primed_list and (len(x) == 0 or
+            return sorted(flattened_list) == primed_list and (x or
                     (all(row[i]<row[i+1] for row in x for i in range(len(row)-1)) and
                         all(x[r][c]<x[r+1][c] for r in range(len(x)-1)
                                               for c in range(len(x[r+1])))
@@ -808,12 +802,6 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
             True
         """
         pi = self.shape
-
         for tableau in StandardTableaux(pi):
-            primedTableau = []
-            for row in tableau:
-                primedTableau.append([])
-                for val in row:
-                    primedTableau[-1].append(PrimedEntry(float(val)/2))
-            yield self.element_class(self, primedTableau)
-        return
+            yield self.element_class(self, [[PrimedEntry(ZZ(val)/2) for val in row]
+                                            for row in tableau])

@@ -606,7 +606,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 self._dimension = self.bitrep_facets.compute_dimension()
             else:
                 # If the polyhedron has many facets,
-                # calculating the dimenion of the dual will be faster.
+                # calculating the dimension of the dual will be faster.
                 # The dual exists, if the polyhedron is bounded.
                 self._dimension = self.bitrep_facets.compute_dimension()
         return smallInteger(self._dimension)
@@ -1729,7 +1729,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if self._n_facets > 1 and dim > 0:
             # If not, there won't even be any ridges
-            # as intersection of two distince facets.
+            # as intersection of two distinct facets.
             # Prevent error message.
 
             while (face_iter.next_dimension() == dim - 2):

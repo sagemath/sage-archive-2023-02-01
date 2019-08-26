@@ -3618,15 +3618,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f._derivative(x)
             35*x^4 + 2*x - 2
 
-        In the following example, it doesn't recognise 2\*x as the
-        generator, so it tries to differentiate each of the coefficients
-        with respect to 2\*x, which doesn't work because the integer
-        coefficients don't have a _derivative() method::
+        It is not possible to differentiate with respect to 2\*x for instance::
 
             sage: f._derivative(2*x)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.integer.Integer' object has no attribute '_derivative'
+            ValueError: cannot differentiate with respect to 2*x
 
         Examples illustrating recursive behaviour::
 
@@ -3646,10 +3643,55 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: S = R.fraction_field(); x = S.gen()
             sage: R(1).derivative(R(x))
             0
+
+        Check that :trac:`28147` is fixed::
+
+            sage: R.<x> = GF(65537)[]
+            sage: p = x^4 - 17*x^3 + 2*x^2 - x + 7
+            sage: p.derivative()
+            4*x^3 + 65486*x^2 + 4*x + 65536
+            sage: R.<x> = GF(19^2)[]
+            sage: p = x^4 - 17*x^3 + 2*x^2 - x + 7
+            sage: p.derivative()
+            4*x^3 + 6*x^2 + 4*x + 18
+            sage: R.<x> = GF(2)[]
+            sage: p = x^4 + x^2 + x
+            sage: p.derivative()
+            1
+
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^4 - x - 1
+            sage: f._derivative()
+            4*x^3 + 76
+            sage: f._derivative(None)
+            4*x^3 + 76
+
+            sage: f._derivative(2*x)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to 2*x
+
+            sage: y = var("y")
+            sage: f._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
+
+
+        Check that :trac:`26844` is fixed by :trac:`28147`::
+
+            sage: A = PolynomialRing(GF(3), name='t')
+            sage: K = A.fraction_field()
+            sage: t = K.gen()
+            sage: t.derivative(t)
+            1
         """
         if var is not None and var != self._parent.gen():
-            # call _derivative() recursively on coefficients
-            return self._parent([coeff._derivative(var) for coeff in self.list(copy=False)])
+            try:
+                # call _derivative() recursively on coefficients
+                return self._parent([coeff._derivative(var) for coeff in self.list(copy=False)])
+            except AttributeError:
+                raise ValueError(f'cannot differentiate with respect to {var}')
 
         # compute formal derivative with respect to generator
         if self.is_zero():
@@ -7194,16 +7236,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: i = CDF.0
             sage: f = x^3 + 2*i; f
             x^3 + 2.0*I
-            sage: f.roots()  # abs tol 1e-14
-            [(-1.0911236359717227 - 0.6299605249474374*I, 1), (3.885780586188048e-16 + 1.2599210498948734*I, 1), (1.0911236359717211 - 0.6299605249474363*I, 1)]
-            sage: f.roots(multiplicities=False)  # abs tol 1e-14
-            [-1.0911236359717227 - 0.6299605249474374*I, 3.885780586188048e-16 + 1.2599210498948734*I, 1.0911236359717211 - 0.6299605249474363*I]
+            sage: f.roots()
+            [(-1.09112363597172... - 0.62996052494743...*I, 1), (...1.25992104989487...*I, 1), (1.09112363597172... - 0.62996052494743...*I, 1)]
+            sage: f.roots(multiplicities=False)
+            [-1.09112363597172... - 0.62996052494743...*I, ...1.25992104989487...*I, 1.09112363597172... - 0.62996052494743...*I]
             sage: [abs(f(z)) for z in f.roots(multiplicities=False)]  # abs tol 1e-14
             [8.95090418262362e-16, 8.728374398092689e-16, 1.0235750533041806e-15]
             sage: f = i*x^3 + 2; f
             I*x^3 + 2.0
-            sage: f.roots()  # abs tol 1e-14
-            [(-1.0911236359717227 + 0.6299605249474374*I, 1), (3.885780586188048e-16 - 1.2599210498948734*I, 1), (1.0911236359717211 + 0.6299605249474363*I, 1)]
+            sage: f.roots()
+            [(-1.09112363597172... + 0.62996052494743...*I, 1), (...1.25992104989487...*I, 1), (1.09112363597172... + 0.62996052494743...*I, 1)]
             sage: abs(f(f.roots()[0][0]))  # abs tol 1e-13
             1.1102230246251565e-16
 

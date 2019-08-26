@@ -104,8 +104,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         sage: S.<th, ph> = manifolds.Sphere()
         sage: S
-        2-dimensional pseudo-Riemannian submanifold S embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold S embedded in the Euclidean
+         space E^3
         sage: S.atlas()
         [Chart (S, (th, ph))]
         sage: S.metric().display()
@@ -113,8 +113,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         sage: S = manifolds.Sphere(2, stereo2d=True)  # long time
         sage: S  # long time
-        2-dimensional pseudo-Riemannian submanifold S embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold S embedded in the Euclidean
+         space E^3
         sage: S.metric().display()  # long time
         gamma = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
          + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
@@ -350,12 +350,12 @@ def Torus(R=2, r=1, names=None):
 
         sage: T.<theta, phi> = manifolds.Torus(3, 1)
         sage: T
-        2-dimensional pseudo-Riemannian submanifold M embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold T embedded in the Euclidean
+         space E^3
         sage: T.atlas()
-        [Chart (M, (theta, phi))]
+        [Chart (T, (theta, phi))]
         sage: T.embedding().display()
-        M --> E^3
+        T --> E^3
            (theta, phi) |--> (X, Y, Z) = ((cos(theta) + 3)*cos(phi),
                                           (cos(theta) + 3)*sin(phi),
                                           sin(theta))
@@ -366,7 +366,7 @@ def Torus(R=2, r=1, names=None):
     from sage.manifolds.manifold import Manifold
     from sage.manifolds.differentiable.euclidean import EuclideanSpace
     E = EuclideanSpace(3, symbols='X Y Z')
-    M = Manifold(2, 'M', ambient=E, structure="Riemannian")
+    M = Manifold(2, 'T', ambient=E, structure="Riemannian")
     if names is None:
         names = ("th", "ph")
     names = tuple([names[i] + ":(-pi,pi):periodic" for i in range(2)])

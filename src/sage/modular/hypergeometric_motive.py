@@ -1129,11 +1129,12 @@ class HypergeometricData(object):
             sage: [H.sign(1/t,p) for p in [11,13,17,19,23,29]]
             [-1, -1, -1, 1, 1, 1]
 
-        The following example confirms that :trac:`28404` is fixed::
+        We check that :trac:`28404` is fixed::
 
             sage: H = Hyp(cyclotomic=([1,1,1],[6,2]))
             sage: [H.sign(4,p) for p in [5,7,11,13,17,19]]
             [1, 1, -1, -1, 1, 1]
+
         """
         d = self.degree()
         w = self.weight()

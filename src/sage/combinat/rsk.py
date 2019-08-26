@@ -1981,10 +1981,6 @@ class RuleSuperRSK(RuleRSK):
         [[], []]
         sage: RSK([], [], insertion=RSK.rules.superRSK)
         [[], []]
-        sage: RSK([[]], insertion=RSK.rules.superRSK)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: forward rule for matrices is not yet implemented
 
     Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
     different types of inputs/outputs::

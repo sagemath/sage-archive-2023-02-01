@@ -468,7 +468,7 @@ class HypergeometricData(object):
         if self.weight() % 2:
             self._sign_param = 1
         else:
-            if deg % 2:
+            if (deg % 2) != (0 in alpha):
                 self._sign_param = prod(cyclotomic_polynomial(v).disc()
                                         for v in cyclo_down)
             else:
@@ -1128,16 +1128,26 @@ class HypergeometricData(object):
             sage: t = -5
             sage: [H.sign(1/t,p) for p in [11,13,17,19,23,29]]
             [-1, -1, -1, 1, 1, 1]
+
+        The following example confirms that :trac:`28404` is fixed::
+
+            sage: H = Hyp(cyclotomic=([1,1,1],[6,2]))
+            sage: [H.sign(4,p) for p in [5,7,11,13,17,19]]
+            [1, 1, -1, -1, 1, 1]
         """
         d = self.degree()
         w = self.weight()
 
         if w % 2:  # sign is always +1 for odd weight
             sign = 1
-        elif d % 2:
-            sign = -kronecker_symbol((1 - t) * self._sign_param, p)
         else:
-            sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
+            if (d%2) != (0 in self._alpha):
+                u = 1 - t
+            else:
+                u = t * (t-1)
+            sign = kronecker_symbol(u * self._sign_param, p)
+            if d%2:
+                sign *= -1
         return sign
 
     @cached_method

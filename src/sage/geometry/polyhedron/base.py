@@ -2757,14 +2757,14 @@ class Polyhedron_base(Element):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
 
-        This returns the inner normal fan of ``self``. For the outer normal fan, 
+        This returns the inner normal fan of ``self``. For the outer normal fan,
         use ``direction='outer'``.
 
         INPUT:
 
-        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if 
-          set to ``'inner'``, use the inner normal vectors to span the cones of 
-          the fan, if set to ``'outer'``, use the outer normal vectors. 
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if
+          set to ``'inner'``, use the inner normal vectors to span the cones of
+          the fan, if set to ``'outer'``, use the outer normal vectors.
 
         OUTPUT:
 
@@ -4172,12 +4172,12 @@ class Polyhedron_base(Element):
 
         - ``face`` -- a PolyhedronFace of ``self``, the face which we take
           the wedge over
-        - ``width`` -- a nonzero number (default: ``1``), indicates how wide
-          the resulted wedge should be
+        - ``width`` -- a nonzero number (default: ``1``);
+          specifies how wide the wedge will be
 
         OUTPUT:
 
-        A (bounded) Polyhedron object
+        A (bounded) polyhedron
 
         EXAMPLES::
 
@@ -4228,9 +4228,9 @@ class Polyhedron_base(Element):
 
         TESTS::
 
-        The backend should be preserved as long as this is possible. The
-        base_ring will change to the field of fractions of the current
-        base_ring, if width takes the default value 1.
+        The backend should be preserved as long as the value of width permits.
+        The base_ring will change to the field of fractions of the current
+        base_ring, unless width forces a different ring.
 
             sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='field')
             sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()
@@ -4254,7 +4254,12 @@ class Polyhedron_base(Element):
              A vertex at (4, 16, 64, 2),
              A vertex at (6, 36, 216, 10),
              A vertex at (5, 25, 125, 5))
+            sage: W2 = P.wedge(P.faces(2)[0], width=1.0); W2.base_ring(); W2.backend()
+            Real Double Field
+            'cdd'
         """
+        width = width*ZZ.one()
+
         if not self.is_compact():
             raise ValueError("polyhedron 'self' must be a polytope")
 
@@ -4271,13 +4276,16 @@ class Polyhedron_base(Element):
                 F_Hrep = F_Hrep + facet.vector()
         F_Hrep = list(F_Hrep)
 
+        # Preserve the backend, if value of ``width`` permits.
+        backend = None
+        from .parent import does_backend_handle_base_ring
+        if does_backend_handle_base_ring(width.base_ring().fraction_field(), self.backend()):
+            backend = self.backend()
+
         L = Polyhedron(lines=[[1]])
         Q = self.product(L)
-
-        parent = self.parent().base_extend(ZZ.one()/width,\
-                                           ambient_dim=self.ambient_dim()+1)
         ieqs = [F_Hrep + [width], F_Hrep + [-width]]
-        H = parent(None, [ieqs, []], convert=True)
+        H = Polyhedron(ieqs=ieqs, backend=backend)
         return Q.intersection(H)
 
     def lawrence_extension(self, v):

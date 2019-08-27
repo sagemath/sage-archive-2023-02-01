@@ -28,7 +28,7 @@ At the end of either method, copy `SAGE_DATA/cremona/cremona.db` to the src dire
 
 === Method 1 ===
 
-Download a new copy of tha tarball ecdata-<data>.tgz
+Download a new copy of the tarball ecdata-<data>.tgz
 (e.g. ecdata-2019-08-20.tgz).
 
 If the cremona database has already been installed, remove

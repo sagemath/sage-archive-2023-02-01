@@ -59,4 +59,6 @@ if [ -d include ]; then
     export CPATH="$(pwd)/include:$CPATH"
 fi
 
+. ./set-library-path
+
 ./build-gcc --enable-languages=c,c++,fortran

@@ -41,7 +41,7 @@ class BinaryDihedralGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gap
 
     where `\zeta_k = e^{2\pi i / k}` is the primitive `k`-th root of unity.
     Furthermore, `BD_n` admits the following presentation (note that there
-    is a typo in [Sun]_):
+    is a typo in [Sun2010]_):
 
     .. MATH::
 
@@ -53,11 +53,9 @@ class BinaryDihedralGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gap
 
     REFERENCES:
 
-    .. [Dolgachev09] Igor Dolgachev. *McKay Correspondence*. (2009).
-       http://www.math.lsa.umich.edu/~idolga/McKaybook.pdf
+    - [Dol2009]_
 
-    .. [Sun] Yi Sun. *The McKay correspondence*.
-       http://www.math.miami.edu/~armstrong/686sp13/McKay_Yi_Sun.pdf
+    - [Sun2010]_
 
     - :wikipedia:`Dicyclic_group#Binary_dihedral_group`
     """

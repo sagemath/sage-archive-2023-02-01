@@ -670,7 +670,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: PR = L.positive_roots(); PR
                 Disjoint union of Family (Positive real roots of type ['A', 3, 1],
                     Positive imaginary roots of type ['A', 3, 1])
-                sage: [PR.unrank(i) for i in range(10)]
+                sage: [PR.unrank(i) for i in range(10)]  # py2
                 [alpha[1],
                  alpha[2],
                  alpha[3],
@@ -681,6 +681,17 @@ class RootLatticeRealizations(Category_over_base_ring):
                  alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
                  alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
                  alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
+                sage: [PR.unrank(i) for i in range(10)]  # py3
+                [alpha[1],
+                 alpha[2],
+                 alpha[3],
+                 alpha[2] + alpha[3],
+                 alpha[1] + alpha[2],
+                 alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + 2*alpha[3]]
             """
             if self.cartan_type().is_affine():
                 from sage.sets.disjoint_union_enumerated_sets \
@@ -760,7 +771,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(['A',3,1]).root_lattice()
                 sage: PRR = L.positive_real_roots(); PRR
                 Positive real roots of type ['A', 3, 1]
-                sage: [PRR.unrank(i) for i in range(10)]
+                sage: [PRR.unrank(i) for i in range(10)]  # py2
                 [alpha[1],
                  alpha[2],
                  alpha[3],
@@ -771,14 +782,31 @@ class RootLatticeRealizations(Category_over_base_ring):
                  alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
                  alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
                  alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
+                sage: [PRR.unrank(i) for i in range(10)]  # py3
+                [alpha[1],
+                 alpha[2],
+                 alpha[3],
+                 alpha[2] + alpha[3],
+                 alpha[1] + alpha[2],
+                 alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + 2*alpha[3]]
 
                 sage: Q = RootSystem(['A',4,2]).root_lattice()
                 sage: PR = Q.positive_roots()
-                sage: [PR.unrank(i) for i in range(5)]
+                sage: [PR.unrank(i) for i in range(5)]  # py2
                 [alpha[1],
                  alpha[2],
                  2*alpha[1] + alpha[2],
                  alpha[1] + alpha[2],
+                 alpha[0] + alpha[1] + alpha[2]]
+                sage: [PR.unrank(i) for i in range(5)]  # py3
+                [alpha[1],
+                 alpha[2],
+                 alpha[1] + alpha[2],
+                 2*alpha[1] + alpha[2],
                  alpha[0] + alpha[1] + alpha[2]]
 
                 sage: Q = RootSystem(['D',3,2]).root_lattice()

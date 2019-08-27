@@ -25,14 +25,14 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function, absolute_import, division
 
 from cpython cimport *
@@ -66,6 +66,7 @@ from sage.matrix.matrix_misc import permanental_minor_polynomial
 
 # used to deprecate only adjoint method
 from sage.misc.superseded import deprecated_function_alias
+
 
 cdef class Matrix(Matrix1):
     """
@@ -3069,7 +3070,7 @@ cdef class Matrix(Matrix1):
             [0 1]
             sage: A = matrix(Q, 2, 0)
             sage: A._right_kernel_matrix_over_number_field()[1].parent()
-            Full MatrixSpace of 0 by 0 dense matrices over Number Field in a with defining polynomial x^2 + 7
+            Full MatrixSpace of 0 by 0 dense matrices over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
             sage: A = zero_matrix(Q, 4, 3)
             sage: A._right_kernel_matrix_over_number_field()[1]
             [1 0 0]
@@ -3137,23 +3138,37 @@ cdef class Matrix(Matrix1):
         E = self.echelon_form(*args, **kwds)
         pivots = E.pivots()
         pivots_set = set(pivots)
-        R = self.base_ring()
-        zero = R(0)
-        one = R(1)
-        basis = []
-        for i in xrange(self._ncols):
-            if not (i in pivots_set):
-                v = [zero]*self._ncols
-                v[i] = one
-                for r in range(len(pivots)):
-                    v[pivots[r]] = -E[r,i]
-                basis.append(v)
-        tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
-        return 'pivot-generic', MatrixSpace(R, len(basis), self._ncols)(basis)
+        zero = self._base_ring.zero()
+        one = self._base_ring.one()
+        MS = self.matrix_space(self._ncols-len(pivots), self._ncols)
+        cdef Py_ssize_t i, r, cur_row
+        if self.is_sparse():
+            entries = {}
+            cur_row = 0
+            for i in range(self._ncols):
+                if i not in pivots_set:
+                    entries[cur_row, i] = one
+                    for r, p in enumerate(pivots):
+                        entries[cur_row, p] = -E[r, i]
+                    cur_row += 1
+            M = MS(entries, copy=False, coerce=False)
+        else:
+            basis = []
+            for i in range(self._ncols):
+                if i not in pivots_set:
+                    v = [zero] * self._ncols
+                    v[i] = one
+                    for r, p in enumerate(pivots):
+                        v[p] = -E[r, i]
+                    basis.append(v)
+            M = MS(basis, coerce=False)
+        tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix"
+                     % (self.nrows(), self.ncols()),level=1,t=tm)
+        return 'pivot-generic', M
 
     def _right_kernel_matrix_over_domain(self):
         r"""
-        Returns a pair that includes a matrix of basis vectors
+        Return a pair that includes a matrix of basis vectors
         for the right kernel of ``self``.
 
         OUTPUT:
@@ -3164,7 +3179,7 @@ cdef class Matrix(Matrix1):
         Second item is a matrix whose rows are a basis for the right kernel,
         over the field, as computed by general Python code.
 
-        .. warning::
+        .. WARNING::
 
             This routine uses Smith normal form, which can fail
             if the domain is not a principal ideal domain.  Since we do
@@ -3174,7 +3189,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        Univariate polynomials over a field form a PID.  ::
+        Univariate polynomials over a field form a PID::
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, [[  1,   y, 1+y^2],
@@ -3189,7 +3204,7 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        We test some trivial cases. ::
+        We test some trivial cases::
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, 0, 2)
@@ -3205,13 +3220,16 @@ cdef class Matrix(Matrix1):
             [0 1 0]
             [0 0 1]
         """
-        tm = verbose("computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+        tm = verbose("computing right kernel matrix over a domain for %sx%s matrix"
+                     % (self.nrows(), self.ncols()), level=1)
         d, u, v = self.smith_form()
         basis = []
-        for i in xrange(self.ncols()):
-            if (i >= self.nrows()) or d[i][i] == 0:
-                basis.append( v.column(i).list() )
-        verbose("done computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
+        cdef Py_ssize_t i, nrows = self._nrows
+        for i in range(self._ncols):
+            if i >= nrows or d[i, i] == 0:
+                basis.append( v.column(i) )
+        verbose("done computing right kernel matrix over a domain for %sx%s matrix"
+                % (self.nrows(), self.ncols()), level=1, t=tm)
         return 'computed-smith-form', self.new_matrix(nrows=len(basis), ncols=self._ncols, entries=basis)
 
     def right_kernel_matrix(self, *args, **kwds):
@@ -3401,7 +3419,7 @@ cdef class Matrix(Matrix1):
             verbose 1 (<module>) computing right kernel matrix over a number field for 2x4 matrix
             verbose 1 (<module>) done computing right kernel matrix over a number field for 2x4 matrix
             ...
-            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
+            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
             Basis matrix:
             [                1                 0     7/88*a + 3/88 -3/176*a - 39/176]
             [                0                 1   -1/88*a - 13/88  13/176*a - 7/176]
@@ -4003,7 +4021,7 @@ cdef class Matrix(Matrix1):
             sage: A = matrix(Q, [[  2, 5-a,     15-a, 16+4*a],
             ....:                [2+a,   a, -7 + 5*a, -3+3*a]])
             sage: K = A.right_kernel(algorithm='default'); K
-            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
+            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
             Basis matrix:
             [                1                 0     7/88*a + 3/88 -3/176*a - 39/176]
             [                0                 1   -1/88*a - 13/88  13/176*a - 7/176]
@@ -4011,7 +4029,7 @@ cdef class Matrix(Matrix1):
             True
             sage: B = copy(A)
             sage: G = A.right_kernel(algorithm='generic'); G
-            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
+            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
             Basis matrix:
             [                1                 0     7/88*a + 3/88 -3/176*a - 39/176]
             [                0                 1   -1/88*a - 13/88  13/176*a - 7/176]
@@ -8522,7 +8540,7 @@ cdef class Matrix(Matrix1):
                 row_sums == col_sums and\
                 row_sums == len(row_sums) * [col_sums[0]] and\
                 ((not normalized) or col_sums[0] == self.base_ring()(1)) and\
-                all(entry>=0 for row in self for entry in row)
+                all(entry >= 0 for row in self for entry in row)
 
     def is_normal(self):
         r"""
@@ -10313,7 +10331,7 @@ cdef class Matrix(Matrix1):
             for eval,size in blocks:
                 # Find a block with the right size
                 for index,chain in enumerate(jordan_chains[eval]):
-                    if len(chain)==size:
+                    if len(chain) == size:
                         jordan_basis += jordan_chains[eval].pop(index)
                         break
 
@@ -11975,13 +11993,13 @@ cdef class Matrix(Matrix1):
             sage: M.is_immutable()
             True
             sage: P, L, U = A.LU(format='plu')
-            sage: all([A.is_mutable() for A in [P, L, U]])
+            sage: all(A.is_mutable() for A in [P, L, U])
             True
 
         Partial pivoting is based on the absolute values of entries
         of a column. :trac:`12208` shows that the return value of the
         absolute value must be handled carefully.  This tests that
-        situation in the case of cylotomic fields.  ::
+        situation in the case of cyclotomic fields.  ::
 
             sage: C = SymmetricGroup(5).character_table()
             sage: C.base_ring()
@@ -12734,7 +12752,7 @@ cdef class Matrix(Matrix1):
 
     def principal_square_root(self, check_positivity=True):
         r"""
-        Return the principal square root of a positive definte matrix.
+        Return the principal square root of a positive definite matrix.
 
         A positive definite matrix `A` has a unique positive definite
         matrix `M` such that `M^2 = A`.
@@ -14966,8 +14984,8 @@ cdef class Matrix(Matrix1):
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=5)
             sage: K2 = random_cone(max_ambient_dim=5)
-            sage: all([ L.change_ring(SR).is_positive_operator_on(K1,K2)
-            ....:       for L in K1.positive_operators_gens(K2) ]) # long time
+            sage: all(L.change_ring(SR).is_positive_operator_on(K1, K2)
+            ....:     for L in K1.positive_operators_gens(K2))  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15008,14 +15026,14 @@ cdef class Matrix(Matrix1):
             # ``self*x`` is symbolic, polynomial, or otherwise
             # contains something unexpected. For example, ``e in
             # Cone([(1,)])`` is true, but returns ``False``.
-            return all([ self*x in K2 for x in K1 ])
+            return all(self * x in K2 for x in K1)
         else:
             # Fall back to inequality-checking when the entries of
             # this matrix might be symbolic, polynomial, or something
             # else weird.
-            return all([ s*(self*x) >= 0 for x in K1 for s in K2.dual() ])
+            return all(s * (self * x) >= 0 for x in K1 for s in K2.dual())
 
-    def is_cross_positive_on(self,K):
+    def is_cross_positive_on(self, K):
         r"""
         Determine if this matrix is cross-positive on a cone.
 
@@ -15109,8 +15127,8 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: all([L.change_ring(SR).is_cross_positive_on(K)
-            ....:      for L in K.cross_positive_operators_gens()]) # long time
+            sage: all(L.change_ring(SR).is_cross_positive_on(K)
+            ....:     for L in K.cross_positive_operators_gens())  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15143,10 +15161,10 @@ cdef class Matrix(Matrix1):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 
-        return all([ s*(self*x) >= 0
-                     for (x,s) in K.discrete_complementarity_set() ])
+        return all(s * (self * x) >= 0
+                   for (x, s) in K.discrete_complementarity_set())
 
-    def is_Z_operator_on(self,K):
+    def is_Z_operator_on(self, K):
         r"""
         Determine if this matrix is a Z-operator on a cone.
 
@@ -15241,8 +15259,8 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: all([ L.change_ring(SR).is_Z_operator_on(K)
-            ....:       for L in K.Z_operators_gens() ]) # long time
+            sage: all(L.change_ring(SR).is_Z_operator_on(K)
+            ....:     for L in K.Z_operators_gens())  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15363,8 +15381,8 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: all([ L.change_ring(SR).is_lyapunov_like_on(K)
-            ....:       for L in K.lyapunov_like_basis() ]) # long time
+            sage: all(L.change_ring(SR).is_lyapunov_like_on(K)
+            ....:     for L in K.lyapunov_like_basis())  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15415,8 +15433,8 @@ cdef class Matrix(Matrix1):
         # :meth:`is_cross_positive_on` twice: doing so checks twice as
         # many inequalities as the number of equalities that we're
         # about to check.
-        return all([ s*(self*x) == 0
-                     for (x,s) in K.discrete_complementarity_set() ])
+        return all(s * (self * x) == 0
+                   for (x, s) in K.discrete_complementarity_set())
 
     # A limited number of access-only properties are provided for matrices
     @property
@@ -15521,7 +15539,8 @@ def _smith_diag(d, transformation=True):
         for j in xrange(i+1,n):
             if dp[j,j] not in I:
                 t = R.ideal([dp[i,i], dp[j,j]]).gens_reduced()
-                if len(t) > 1: raise ArithmeticError
+                if len(t) > 1:
+                    raise ArithmeticError
                 t = t[0]
                 # find lambda, mu such that lambda*d[i,i] + mu*d[j,j] = t
                 lamb = R(dp[i,i]/t).inverse_mod( R.ideal(dp[j,j]/t))
@@ -15659,6 +15678,7 @@ def _generic_clear_column(m):
 
     return left_mat, a
 
+
 def _smith_onestep(m):
     r"""
     Carry out one step of Smith normal form for matrix m. Returns three matrices a,b,c over
@@ -15715,6 +15735,7 @@ def _smith_onestep(m):
 
     return left_mat, a, right_mat
 
+
 def decomp_seq(v):
     """
     This function is used internally be the decomposition matrix
@@ -15733,6 +15754,7 @@ def decomp_seq(v):
     """
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
+
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
@@ -15797,6 +15819,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
 
     return x
 
+
 def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     Fast and unchecked implementation of binomial(n,k) This is only for
@@ -15829,6 +15852,7 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         i, n, k = i + 1, n - 1, k - 1
     return result
 
+
 def _jordan_form_vector_in_difference(V, W):
     r"""
     Given two lists of vectors ``V`` and ``W`` over the same base field,
@@ -15848,15 +15872,16 @@ def _jordan_form_vector_in_difference(V, W):
         sage: sage.matrix.matrix2._jordan_form_vector_in_difference([v,w], [u])
         (1, 0, 0, 0)
     """
-    if len(V) == 0:
+    if not V:
         return None
-    if len(W) == 0:
+    if not W:
         return V[0]
     W_space = sage.all.span(W)
     for v in V:
         if v not in W_space:
             return v
     return None
+
 
 def _matrix_power_symbolic(A, n):
     r"""

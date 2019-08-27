@@ -53,6 +53,8 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simple` |  checks whether the degree of all vertices is equal to the dimension of the polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplex` | test whether a polytope is a simplex
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplicial` |  checks whether all faces of the polyhedron are simplices
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_lawrence_polytope` |  tests whether self is a Lawrence polytope
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_self_dual` |  tests whether the polytope is self-dual
 
 **Enumerative properties**
 
@@ -107,6 +109,8 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bipyramid` | bipyramid over a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.translation` | translates by a given vector
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.truncation` | truncates all vertices simultaneously
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lawrence_extension` | returns the Lawrence extension of self on a given point
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lawrence_polytope` | returns the Lawrence polytope of self
 
 **Combinatorics**
 

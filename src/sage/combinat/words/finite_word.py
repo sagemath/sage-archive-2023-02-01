@@ -220,7 +220,6 @@ from builtins import zip
 
 from six import iteritems
 from six.moves import range
-from six import iteritems
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
@@ -229,7 +228,6 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ, QQ
 from sage.sets.set import Set
-from sage.misc.superseded import deprecated_function_alias
 
 
 class FiniteWord_class(Word_class):
@@ -274,7 +272,7 @@ class FiniteWord_class(Word_class):
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
             letters = [str(_) for _ in self]
-            if all(len(a)==1 for a in letters):
+            if all(len(a) == 1 for a in letters):
                 return ''.join(letters)
             else:
                 return ls.join(letters)
@@ -2224,14 +2222,15 @@ class FiniteWord_class(Word_class):
             sage: Word('121132123').is_cadence([])
             True
         """
-        if len(seq) == 0:
+        if not seq:
             return True
         try:
             it = iter(self)
             s = next(islice(it, int(seq[0]), None))
             for i in range(1, len(seq)):
-                steps = seq[i] - seq[i-1]
-                for n in range(steps-1): next(it)
+                steps = seq[i] - seq[i - 1]
+                for n in range(steps - 1):
+                    next(it)
                 if next(it) != s:
                     return False
         except StopIteration:
@@ -2712,6 +2711,10 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: Word().lengths_lps()
+            doctest:warning
+            ...
+            DeprecationWarning: This method is deprecated. Use lps_lengths
+            See http://trac.sagemath.org/19154 for details.
             []
             sage: Word('a').lengths_lps()
             [1]
@@ -2732,7 +2735,9 @@ class FiniteWord_class(Word_class):
             sage: Word([5,8,5,5,8,8,5,5,8,8,5,8,5]).lengths_lps(f)
             [0, 2, 2, 0, 2, 4, 6, 4, 6, 8, 10, 12, 4]
         """
-        return self.palindromic_lacunas_study(f=f)[0]
+        from sage.misc.superseded import deprecation
+        deprecation(19154, 'This method is deprecated. Use lps_lengths')
+        return self.lps_lengths(f)[1:]
 
     def lacunas(self, f=None):
         r"""
@@ -2792,7 +2797,7 @@ class FiniteWord_class(Word_class):
             sage: w.lengths_unioccurrent_lps()
             [1, 1, 2, 1, 1, 1, 1, None, 1, None]
             sage: f = words.FibonacciWord()[:20]
-            sage: f.lengths_unioccurrent_lps() == f.lengths_lps()
+            sage: f.lengths_unioccurrent_lps() == f.lps_lengths()[1:]
             True
             sage: t = words.ThueMorseWord()
             sage: t[:20].lengths_unioccurrent_lps()
@@ -2801,7 +2806,7 @@ class FiniteWord_class(Word_class):
             sage: t[:15].lengths_unioccurrent_lps(f)
             [None, 2, None, 2, None, 4, 6, 8, 4, 6, 4, 6, None, 4, 6]
         """
-        l = self.lengths_lps(f=f)
+        l = self.lps_lengths(f=f)[1:]
         for i in self.lacunas(f=f):
             l[i] = None
         return l
@@ -2889,7 +2894,7 @@ class FiniteWord_class(Word_class):
 
         # Initialize length of the known palindrome
         if m is None:
-            m = 0 if jj % 2 == 1 else -1
+            m = 0 if jj % 2 else -1
 
         # Initialize the next (left) position to check
         i = (jj - m - 1) / 2
@@ -3071,7 +3076,7 @@ class FiniteWord_class(Word_class):
             sage: [w.palindromic_complexity(i) for i in range(20)]
             [1, 2, 2, 2, 2, 0, 4, 0, 4, 0, 4, 0, 4, 0, 2, 0, 2, 0, 4, 0]
         """
-        return len([x for x in self.palindromes() if len(x)==n])    
+        return len([x for x in self.palindromes() if len(x)==n])
 
     def palindrome_prefixes(self):
         r"""
@@ -3845,6 +3850,82 @@ class FiniteWord_class(Word_class):
         except StopIteration:
             return True
 
+    def subword_complementaries(self, other):
+        """
+        Returns the possible complementaries ``other`` minus ``self`` if
+        ``self`` is a subword of ``other`` (empty list otherwise).
+        The complementary is made of all the letters that are in ``other`` once
+        we removed the letters of ``self``.
+        There can be more than one.
+
+        To check wether ``self`` is a subword of ``other` (without knowing its
+        complementaries), use ``self.is_subword_of(other)``, and to count the
+        number of occurrences of ``self`` in ``other``, use
+        ``self.nb_subword_occurrences_in(other)``.
+
+        INPUT:
+
+        - ``other`` -- finite word
+
+        OUTPUT:
+
+        - list of all the complementary subwords of ``self`` in ``other``.
+
+        EXAMPLES::
+
+            sage: Word('tamtam').subword_complementaries(Word('ta'))
+            []
+
+            sage: Word('mta').subword_complementaries(Word('tamtam'))
+            [word: tam]
+
+            sage: Word('ta').subword_complementaries(Word('tamtam'))
+            [word: mtam, word: amtm, word: tamm]
+
+            sage: Word('a').subword_complementaries(Word('a'))
+            [word: ]
+
+        """
+
+        ls = self.length()
+        lo = other.length()
+
+        # Create a matrix to declare when letters in ``self`` and ``other`` are
+        # equal or not
+        Eq = [[self[i] == other[j] for j in range(lo)] for i in range(ls)]
+
+        # Create a matrix that tells the positions of subwords of the suffixes
+        Mpos = [[[] for j in range(lo)] for i in range(ls)]
+        for j in range(lo):
+            if Eq[ls-1][j]:
+                Mpos[ls-1][j] = [[j]]
+        for i in range(ls-2, -1, -1):
+            for j in range(lo):
+                if Eq[i][j]:
+                    temp = []
+                    for k in range(j+1, lo):
+                        if Eq[i+1][k]:
+                            m = Mpos[i+1][k]
+                            if len(m) == 1:
+                                temp.append([j]+m[0])
+                            if len(m) > 1:
+                                for sw in m:
+                                    temp.append([j]+sw)
+                    Mpos[i][j] = temp
+
+        # Create the list of positions for occurrences of `self` as a subword
+        selfpos = []
+        for j in range(lo):
+            selfpos.extend(Mpos[0][j])
+
+        # Create the list of the complementaries of `self`
+        from sage.combinat.words.word import Word
+        comp_words = []
+        for sp in selfpos:  # list with positions of one occurrence of `self`
+            comp_pos = [i for i in range(lo) if not i in set(sp)]
+            comp_words.append(Word([other[i] for i in comp_pos]))
+        return comp_words
+
     def is_lyndon(self):
         r"""
         Return ``True`` if ``self`` is a Lyndon word, and ``False``
@@ -4395,7 +4476,7 @@ class FiniteWord_class(Word_class):
         if not isinstance(sub, FiniteWord_class):
             try:
                 sub = self.parent()(sub)
-            except (ValueError,TypeError):
+            except (ValueError, TypeError):
                 return -1
         L = len(sub)
         start = max(0, int(start))
@@ -4404,7 +4485,8 @@ class FiniteWord_class(Word_class):
         else:
             i = min(end, len(self)) - L
         while i >= start:
-            if self[i:i+L] == sub: return i
+            if self[i:i + L] == sub:
+                return i
             i -= 1
         return -1
 
@@ -5250,11 +5332,11 @@ class FiniteWord_class(Word_class):
                 return self._to_partition_content().charge()
         res = 0
         w = self.to_integer_list()
-        while len(w) != 0:
-            i =len(w) - 1
+        while w:
+            i = len(w) - 1
             l = min(w)
             index = 0
-            while len(w) != 0 and l <= max(w):
+            while w and l <= max(w):
                 while w[i] != l:
                     i -= 1
                     if i < 0:
@@ -6681,11 +6763,11 @@ class FiniteWord_class(Word_class):
             key_error = True
 
         if key_error or not isinstance(mpl_cmap, C):
-            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
-                                       isinstance(cm.__dict__[x], C)])
+            possibilities = ', '.join(str(x) for x, val in cm.__dict__.items()
+                                      if isinstance(val, C))
             import sage.misc.misc
-            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
-            raise RuntimeError("Color map %s not known"%cmap)
+            sage.misc.misc.verbose("The possible color maps include: %s" % possibilities, level=0)
+            raise RuntimeError("Color map %s not known" % cmap)
 
         #Drawing the colored vector...
         from sage.plot.line import line
@@ -6702,8 +6784,8 @@ class FiniteWord_class(Word_class):
         rep = line(L, rgbcolor=(0,0,0), thickness=thickness)
 
         #The label
-        if not label is None:
-            hl = height/2.0 # height of the label rectangle
+        if label is not None:
+            hl = height/2.0  # height of the label rectangle
             ymax2 = ymax + hl
             rep += text(str(label), (x+width/2.0, ymax + hl/2.0), rgbcolor=(1,0,0))
             L = [(x,ymax), (x+width,ymax), (x+width,ymax2), (x,ymax2), (x,ymax)]
@@ -6751,7 +6833,7 @@ class FiniteWord_class(Word_class):
             sage: Word().is_square()
             True
         """
-        if self.length() % 2 != 0:
+        if self.length() % 2:
             return False
         else:
             l = self.length() // 2

@@ -12,15 +12,15 @@ AUTHORS:
 - Aaron Lauve, Mike Zabrocki (2018): Implementation of orbit basis for Partition algebra.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                2012 Stephen Doty <doty@math.luc.edu>,
 #                     Aaron Lauve <lauve@math.luc.edu>,
 #                     George H. Seelinger <ghseeli@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 # python3
 from __future__ import division
 from six.moves import range
@@ -33,7 +33,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
 from sage.structure.global_options import GlobalOptions
-from sage.combinat.combinat_cython import set_partition_iterator, perfect_matchings_iterator
+from sage.combinat.combinat_cython import (set_partition_iterator, perfect_matchings_iterator,
+                                           set_partition_composition)
 from sage.combinat.set_partition import SetPartitions, AbstractSetPartition
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
@@ -92,13 +93,14 @@ def partition_diagrams(k):
         S = set_partition_iterator(list(range(1, k+1)) + list(range(-k,0)))
         for p in S:
             yield p
-    elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
+    elif k + ZZ(1)/ZZ(2) in ZZ:  # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
         S = set_partition_iterator(list(range(1, k+1)) + list(range(-k+1,0)))
         for p in S:
             yield [b + [-k] if k in b else b for b in p]
     else:
-        raise ValueError("argument %s must be a half-integer"%k)
+        raise ValueError("argument %s must be a half-integer" % k)
+
 
 def brauer_diagrams(k):
     r"""
@@ -575,7 +577,8 @@ class IdealDiagram(AbstractPartitionDiagram):
         """
         super(IdealDiagram, self).check()
         if self.propagating_number() >= self.order():
-            raise ValueError("the diagram %s must have a propagating number smaller than the order"%(self))
+            raise ValueError("the diagram %s must have a propagating number smaller than the order" % self)
+
 
 class PlanarDiagram(AbstractPartitionDiagram):
     r"""
@@ -645,7 +648,8 @@ class PlanarDiagram(AbstractPartitionDiagram):
         """
         super(PlanarDiagram, self).check()
         if not self.is_planar():
-            raise ValueError("the diagram %s must be planar"%(self))
+            raise ValueError("the diagram %s must be planar" % self)
+
 
 class TemperleyLiebDiagram(AbstractPartitionDiagram):
     r"""
@@ -706,9 +710,10 @@ class TemperleyLiebDiagram(AbstractPartitionDiagram):
         """
         super(TemperleyLiebDiagram, self).check()
         if any(len(block) != 2 for block in self):
-            raise ValueError("all blocks of %s must be of size 2"%(self))
+            raise ValueError("all blocks of %s must be of size 2" % self )
         if not self.is_planar():
-            raise ValueError("the diagram %s must be planar"%(self))
+            raise ValueError("the diagram %s must be planar" % self)
+
 
 class PartitionDiagram(AbstractPartitionDiagram):
     r"""
@@ -808,7 +813,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
         """
         super(BrauerDiagram, self).check()
         if any(len(i) != 2 for i in self):
-            raise ValueError("all blocks of %s must be of size 2"%(self))
+            raise ValueError("all blocks of %s must be of size 2" % self)
 
     def _repr_(self):
         r"""
@@ -867,12 +872,12 @@ class BrauerDiagram(AbstractPartitionDiagram):
         """
         NAME = 'Brauer diagram'
         module = 'sage.combinat.diagram_algebras'
-        option_class='BrauerDiagram'
+        option_class = 'BrauerDiagram'
         display = dict(default="normal",
                        description='Specifies how the Brauer diagrams should be printed',
                        values=dict(normal="Using the normal representation",
                                    compact="Using the compact representation"),
-                                   case_sensitive=False)
+                       case_sensitive=False)
 
     def _repr_normal(self):
         """
@@ -906,10 +911,10 @@ class BrauerDiagram(AbstractPartitionDiagram):
         (top, bot, thru) = self.involution_permutation_triple()
         bot.reverse()
         s1 = ".".join("".join(str(b) for b in block) for block in top)
-        s2 = ".".join("".join(str(abs(k)) for k in sorted(block,reverse=True))
-                              for block in bot)
+        s2 = ".".join("".join(str(abs(k)) for k in sorted(block, reverse=True))
+                      for block in bot)
         s3 = "".join(str(x) for x in thru)
-        return "[{}/{};{}]".format(s1,s2,s3)
+        return "[{}/{};{}]".format(s1, s2, s3)
 
     def involution_permutation_triple(self, curt=True):
         r"""
@@ -939,19 +944,18 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: elm.involution_permutation_triple(curt=False)
             ([(1, 2)], [(-3, -2)], [[3, -1]])
         """
-        diagram = self.diagram()
         top = []
         bottom = []
-        for v in diagram:
-            if min(v)>0:
-                top+=[v]
-            if max(v)<0:
-                bottom+=[v]
+        for v in self.diagram():
+            if min(v) > 0:
+                top += [v]
+            if max(v) < 0:
+                bottom += [v]
         if curt:
             perm = self.perm()
         else:
             perm = self.bijection_on_free_nodes()
-        return (top,bottom,perm)
+        return (top, bottom, perm)
 
     def bijection_on_free_nodes(self, two_line=False):
         r"""
@@ -1428,9 +1432,9 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             15
         """
         if self.order in ZZ:
-            return (2 * ZZ(self.order) -1 ).multifactorial(2)
+            return (2 * ZZ(self.order) - 1).multifactorial(2)
         else:
-            return (2 * ZZ(self.order - 1/2) - 1).multifactorial(2)
+            return (2 * ZZ(self.order - 1 / 2) - 1).multifactorial(2)
 
     def symmetric_diagrams(self, l=None, perm=None):
         r"""
@@ -1802,7 +1806,8 @@ class DiagramAlgebra(CombinatorialFreeModule):
             cat = cat.Unital()
         category = cat.or_subcategory(category)
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
-                    category=category, prefix=prefix, bracket=False)
+                                         category=category, prefix=prefix,
+                                         bracket=False)
 
     def _element_constructor_(self, set_partition):
         r"""
@@ -1894,12 +1899,12 @@ class DiagramAlgebra(CombinatorialFreeModule):
             ...
             ValueError: the diagram {{-2, 1}, {-1, 2}} must be planar
         """
-        ## 'perm' is a permutation in one-line notation
-        ## turns w into an expression suitable for the element constructor.
+        # 'perm' is a permutation in one-line notation
+        # turns w into an expression suitable for the element constructor.
         u = sorted(w)
-        p = [[u[i],-x] for i,x in enumerate(w)]
+        p = [[u[i], -x] for i, x in enumerate(w)]
         if len(u) < self.order():
-            p1 = [[j,-j] for j in range(len(u)+1,self.order()+1)]
+            p1 = [[j, -j] for j in range(len(u) + 1, self.order() + 1)]
             p.extend(p1)
         return self[p]
 
@@ -2009,7 +2014,8 @@ class DiagramAlgebra(CombinatorialFreeModule):
             \end{tikzpicture}
 
         """
-        # these allow the view command to work (maybe move them somewhere more appropriate?)
+        # these allow the view command to work (maybe move them
+        # somewhere more appropriate?)
         from sage.misc.latex import latex
         latex.add_to_mathjax_avoid_list('tikzpicture')
         latex.add_package_to_preamble_if_available('tikz')
@@ -2017,15 +2023,16 @@ class DiagramAlgebra(CombinatorialFreeModule):
             filled_str = ", fill"
         else:
             filled_str = ""
-        # Define the sign function
+
         def sgn(x):
+            # Define the sign function
             if x > 0:
                 return 1
             if x < 0:
                 return -1
             return 0
-        l1 = [] #list of blocks
-        l2 = [] #lsit of nodes
+        l1 = []  # list of blocks
+        l2 = []  # list of nodes
         for i in list(diagram):
             l1.append(list(i))
             for j in list(i):
@@ -2038,11 +2045,11 @@ class DiagramAlgebra(CombinatorialFreeModule):
                 l4 = list(i)
                 posList = []
                 negList = []
-                for i in l4: #sort list so rows are grouped together
-                    if i > 0:
-                        posList.append(i)
-                    elif i < 0:
-                        negList.append(i)
+                for j in l4:  # sort list so rows are grouped together
+                    if j > 0:
+                        posList.append(j)
+                    elif j < 0:
+                        negList.append(j)
                 posList.sort()
                 negList.sort()
                 l4 = posList + negList
@@ -2811,9 +2818,9 @@ class OrbitBasis(DiagramAlgebra):
                 raise ValueError("{} is not a partition algebra".format(PA))
             alg = PA
         elif len(args) != 3:
-            raise ValueError("expected 1 or 3 arguments, received %s: %s"%(len(args), args))
+            raise ValueError("expected 1 or 3 arguments, received %s: %s" % (len(args), args))
         else:
-            (k,q,R) = args
+            k, q, R = args
             q = R(q)
             alg = PartitionAlgebra(k, q, R)
         return super(OrbitBasis, cls).__classcall__(cls, alg)
@@ -3061,8 +3068,8 @@ class OrbitBasis(DiagramAlgebra):
 
         - [BH2017]_
         """
-        ## According to Corollary 4.12 in [BH2017]_, product is zero unless the
-        ## stacked diagrams "exactly match" in the middle.
+        # According to Corollary 4.12 in [BH2017]_, product is zero unless the
+        # stacked diagrams "exactly match" in the middle.
         pi_1 = [frozenset([-i for i in part if i < 0]) for part in d1]
         pi_2 = [frozenset([i for i in part if i > 0]) for part in d2]
         if set([part for part in pi_1 if part]) != set([part for part in pi_2 if part]):
@@ -3071,23 +3078,26 @@ class OrbitBasis(DiagramAlgebra):
         q = self._q
         R = q.parent()
         PDs = self._base_diagrams
+
         def matchings(A, B):
-            for i in range(min(len(A), len(B))+1):
+            for i in range(min(len(A), len(B)) + 1):
                 for X in itertools.combinations(A, i):
                     restA = list(A.difference(X))
                     for Y in itertools.combinations(B, i):
                         restB = list(B.difference(Y))
                         for sigma in Permutations(Y):
-                            yield [x.union(y) for x,y in zip(X, sigma)] + restA + restB
+                            yield [x.union(y) for x, y in zip(X, sigma)] + restA + restB
 
         D, removed = d1.compose(d2)
-        only_top = set([frozenset(part) for part in d1 if all(i > 0 for i in part)])
-        only_bottom = set([frozenset(part) for part in d2 if all(i < 0 for i in part)])
+        only_top = set([frozenset(part) for part in d1
+                        if all(i > 0 for i in part)])
+        only_bottom = set([frozenset(part) for part in d2
+                           if all(i < 0 for i in part)])
         only_both = only_top.union(only_bottom)
         restD = [P for P in D if frozenset(P) not in only_both]
         term_dict = {PDs(restD + X):
-                      R.prod(q - t for t in range(len(X)+len(restD),
-                                                  len(X)+len(restD)+removed))
+                     R.prod(q - t for t in range(len(X) + len(restD),
+                                                 len(X) + len(restD) + removed))
                      for X in matchings(only_top, only_bottom)}
         return self._from_dict(term_dict)
 
@@ -3206,6 +3216,7 @@ class SubPartitionAlgebra(DiagramBasis):
             P = self.parent().lift.codomain()
             OP = P.orbit_basis()
             return OP(P(self))
+
 
 class BrauerAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
     r"""
@@ -3396,14 +3407,17 @@ class BrauerAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
         k = self.order()
         if j > k:
             raise ValueError("Jucys-Murphy index cannot be greater than the order of the algebra")
-        I = lambda x: self._indices(to_Brauer_partition(x, k=k))
+
+        def convertI(x):
+            return self._indices(to_Brauer_partition(x, k=k))
         R = self.base_ring()
         one = R.one()
-        d = {self.one_basis(): R( (self._q-1) / 2 )}
-        for i in range(1,j):
-            d[I([[i,-j],[j,-i]])] = one
-            d[I([[i,j],[-i,-j]])] = -one
+        d = {self.one_basis(): R((self._q - 1)/2)}
+        for i in range(1, j):
+            d[convertI([[i, -j], [j, -i]])] = one
+            d[convertI([[i, j], [-i, -j]])] = -one
         return self._from_dict(d, remove_zeros=True)
+
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
     r"""
@@ -3629,8 +3643,9 @@ class PlanarAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
             Planar Algebra of rank 2 with parameter x
              over Univariate Polynomial Ring in x over Integer Ring
         """
-        return "Planar Algebra of rank {} with parameter {} over {}".format(self._k,
-                self._q, self.base_ring())
+        txt = "Planar Algebra of rank {} with parameter {} over {}"
+        return txt.format(self._k, self._q, self.base_ring())
+
 
 class PropagatingIdeal(SubPartitionAlgebra):
     r"""
@@ -3933,6 +3948,7 @@ def pair_to_graph(sp1, sp2):
 
     return g
 
+
 def propagating_number(sp):
     r"""
     Return the propagating number of the set partition ``sp``.
@@ -3950,11 +3966,8 @@ def propagating_number(sp):
         sage: da.propagating_number(sp2)
         0
     """
-    pn = 0
-    for part in sp:
-        if min(part) < 0  and max(part) > 0:
-            pn += 1
-    return pn
+    return sum(1 for part in sp if min(part) < 0 < max(part))
+
 
 def to_set_partition(l, k=None):
     r"""
@@ -4066,38 +4079,6 @@ def identity_set_partition(k):
         return [[i,-i] for i in range(1, k + 1)]
     # Else k in 1/2 ZZ
     return [[i, -i] for i in range(1, k + ZZ(3)/ZZ(2))]
-
-def set_partition_composition(sp1, sp2):
-    r"""
-    Return a tuple consisting of the composition of the set partitions
-    ``sp1`` and ``sp2`` and the number of components removed from the middle
-    rows of the graph.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.diagram_algebras as da
-        sage: sp1 = da.to_set_partition([[1,-2],[2,-1]])
-        sage: sp2 = da.to_set_partition([[1,-2],[2,-1]])
-        sage: p, c = da.set_partition_composition(sp1, sp2)
-        sage: (SetPartition(p), c) == (SetPartition(da.identity_set_partition(2)), 0)
-        True
-    """
-    g = pair_to_graph(sp1, sp2)
-    connected_components = g.connected_components()
-
-    res = []
-    total_removed = 0
-    for cc in connected_components:
-        #Remove the vertices that live in the middle two rows
-        new_cc = [x for x in cc if not ( (x[0]<0 and x[1] == 1) or (x[0]>0 and x[1]==2))]
-
-        if new_cc == []:
-            if len(cc) > 1:
-                total_removed += 1
-        else:
-            res.append( set((x[0] for x in new_cc)) )
-
-    return (res, total_removed)
 
 ##########################################################################
 # END BORROWED CODE

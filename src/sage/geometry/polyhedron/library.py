@@ -51,8 +51,6 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
 """
-from __future__ import absolute_import
-
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #                     2011 Volker Braun <vbraun.name@gmail.com>
@@ -60,15 +58,15 @@ from __future__ import absolute_import
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import, division
 
 import itertools
 
 from sage.rings.all import ZZ, QQ, RDF, RR, AA, QQbar
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
-from sage.misc.decorators import rename_keyword
 from .constructor import Polyhedron
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
@@ -108,6 +106,7 @@ def zero_sum_projection(d, base_ring=RDF):
     from sage.modules.free_module_element import vector
     basis = [vector(base_ring,[1]*i + [-i] + [0]*(d-i-1)) for i in range(1,d)]
     return matrix(base_ring, [v / v.norm() for v in basis])
+
 
 def project_points(*points, **kwds):
     """
@@ -170,9 +169,10 @@ def project_points(*points, **kwds):
     if base_ring is None:
         base_ring = RDF
     from sage.modules.free_module_element import vector
-    vecs = [vector(base_ring,p) for p in points]
+    vecs = [vector(base_ring, p) for p in points]
     m = zero_sum_projection(len(vecs[0]), base_ring=base_ring)
-    return [m*v for v in vecs]
+    return [m * v for v in vecs]
+
 
 class Polytopes():
     """
@@ -219,6 +219,16 @@ class Polytopes():
              A vertex at (-0.8660254038, -0.5))
             sage: polytopes.regular_polygon(25, exact=False).n_vertices()
             25
+
+        TESTS::
+
+            sage: octagon = polytopes.regular_polygon(8, backend='normaliz')  # optional - pynormaliz
+            sage: octagon                                                     # optional - pynormaliz
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 8 vertices
+            sage: octagon.n_vertices()                                        # optional - pynormaliz
+            8
+            sage: octagon.volume()                                            # optional - pynormaliz
+            2.828427124746190?
         """
         n = ZZ(n)
         if n <= 2:
@@ -287,7 +297,8 @@ class Polytopes():
         from itertools import permutations
         verts = []
         for p in permutations(range(n)):
-            verts.append( [ZZ.one() if p[i]==j else ZZ.zero() for j in range(n) for i in range(n) ] )
+            verts.append([ZZ.one() if p[i] == j else ZZ.zero()
+                          for j in range(n) for i in range(n)])
         return Polyhedron(vertices=verts, base_ring=ZZ, backend=backend)
 
     def simplex(self, dim=3, project=False, base_ring=None, backend=None):
@@ -356,7 +367,7 @@ class Polytopes():
             sage: s6norm = polytopes.simplex(6,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(s6norm).run(skip='_test_pickling')      # optional - pynormaliz
         """
-        verts = list((ZZ ** (dim+1)).basis())
+        verts = list((ZZ**(dim + 1)).basis())
         if project:
             # Handling of default in base_ring is delegated to project_points
             verts = project_points(*verts, base_ring=base_ring)
@@ -413,6 +424,15 @@ class Polytopes():
             Traceback (most recent call last):
             ...
             TypeError: unable to convert 1/4*sqrt(5) + 1/4 to a rational
+
+        TESTS::
+
+            sage: ico = polytopes.icosahedron(backend='normaliz')  # optional - pynormaliz
+            sage: ico.f_vector()                                   # optional - pynormaliz
+            (1, 12, 30, 20, 1)
+            sage: ico.volume()                                     # optional - pynormaliz
+            5/12*sqrt5 + 5/4
+
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -471,6 +491,13 @@ class Polytopes():
             Traceback (most recent call last):
             ...
             TypeError: unable to convert 1/4*sqrt(5) + 1/4 to a rational
+
+        TESTS::
+
+            sage: d12 = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: d12.f_vector()                                    # optional - pynormaliz
+            (1, 20, 30, 12, 1)
+
         """
         return self.icosahedron(exact=exact, base_ring=base_ring, backend=backend).polar()
 
@@ -516,6 +543,14 @@ class Polytopes():
             vertices
             sage: sr.f_vector()
             (1, 24, 48, 26, 1)
+
+        TESTS::
+
+            sage: sr = polytopes.small_rhombicuboctahedron(backend='normaliz')  # optional - pynormaliz
+            sage: sr.f_vector()                                                 # optional - pynormaliz
+            (1, 24, 48, 26, 1)
+            sage: sr.volume()                                                   # optional - pynormaliz
+            80/3*sqrt2 + 32
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -578,9 +613,8 @@ class Polytopes():
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
-            K = QuadraticField(2, 'sqrt2')
-            sqrt2 = K.gen()
-            base_ring = K
+            base_ring = QuadraticField(2, 'sqrt2')
+            sqrt2 = base_ring.gen()
         else:
             if base_ring is None:
                 base_ring = RDF
@@ -588,10 +622,10 @@ class Polytopes():
 
         one = base_ring.one()
         v1 = sqrt2 + 1
-        v2 = 2*sqrt2 + 1
-        verts = [ [s1*z1, s2*z2, s3*z3]
-                       for z1,z2,z3 in itertools.permutations([one,v1,v2])
-                       for s1,s2,s3 in itertools.product([1,-1], repeat=3)]
+        v2 = 2 * sqrt2 + 1
+        verts = [[s1 * z1, s2 * z2, s3 * z3]
+                 for z1, z2, z3 in itertools.permutations([one, v1, v2])
+                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def rhombic_dodecahedron(self, backend=None):
@@ -683,10 +717,9 @@ class Polytopes():
             sage: co_norm = polytopes.cuboctahedron(backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(co_norm).run(skip='_test_pickling')          # optional - pynormaliz
         """
-        v = [ [ 0, -1, -1], [ 0, 1,-1], [ 1,-1, 0],
-              [ 1,  1,  0], [ 1, 0, 1], [ 1, 0,-1],
-              [ 0,  1,  1], [ 0,-1, 1], [-1, 0, 1],
-              [-1,  1,  0], [-1, 0,-1], [-1,-1, 0] ]
+        v = [[0, -1, -1], [0, 1, -1], [0, -1, 1], [0, 1, 1],
+             [-1, -1, 0], [1, -1, 0], [-1, 1, 0], [1, 1, 0],
+             [-1, 0, -1], [1, 0, -1], [-1, 0, 1], [1, 0, 1]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def truncated_cube(self, exact=True, base_ring=None, backend=None):
@@ -728,6 +761,13 @@ class Polytopes():
 
             sage: co.volume()
             56/3*sqrt2 - 56/3
+
+        TESTS::
+
+            sage: co = polytopes.truncated_cube(backend='normaliz')  # optional - pynormaliz
+            sage: co.f_vector()                                      # optional - pynormaliz
+            (1, 24, 36, 14, 1)
+
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -917,31 +957,96 @@ class Polytopes():
             sage: TestSuite(o_norm).run(skip='_test_pickling')       # optional - pynormaliz
         """
         v = [[0, 0, -1], [0, 0, 1], [1, 0, 0],
-             [-1, 0,  0], [0, 1, 0], [0, -1, 0]]
+             [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
-    def snub_cube(self, backend=None):
+    def snub_cube(self, exact=False, base_ring=None, backend=None, verbose=False):
         """
         Return a snub cube.
 
         The snub cube is an Archimedean solid. It has 24 vertices and 38 faces.
         For more information see the :wikipedia:`Snub_cube`.
 
-        It uses the real double field for the coordinates.
+        The constant `z` used in constructing this polytope is the reciprocal
+        of the tribonacci constant, that is, the solution of the equation
+        `x^3 + x^2 + x - 1 = 0`.
+        See :wikipedia:`Generalizations_of_Fibonacci_numbers#Tribonacci_numbers`.
 
         INPUT:
 
-        - ``backend`` -- the backend to use to create the polytope.
+        - ``exact`` -- (boolean, default ``False``) if ``True`` use exact
+          coordinates instead of floating point approximations
+
+        - ``base_ring`` -- the field to use. If ``None`` (the default), construct
+          the exact number field needed (if ``exact`` is ``True``) or default
+          to ``RDF`` (if ``exact`` is ``True``).
+
+        - ``backend`` -- the backend to use to create the polytope.  If ``None``
+          (the default), the backend will be selected automatically.
 
         EXAMPLES::
 
-            sage: sc = polytopes.snub_cube()
-            sage: sc.f_vector()
+            sage: sc_inexact = polytopes.snub_cube(exact=False)
+            sage: sc_inexact
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
+            sage: sc_inexact.f_vector()
             (1, 24, 60, 38, 1)
+            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
+            sage: sc_exact.f_vector()               # long time
+            (1, 24, 60, 38, 1)
+            sage: sc_exact.vertices()               # long time
+            (A vertex at (-1, -z, -z^2),
+             A vertex at (-z^2, -1, -z),
+             A vertex at (-z, -z^2, -1),
+             A vertex at (-1, z^2, -z),
+             A vertex at (-z, -1, z^2),
+             A vertex at (z^2, -z, -1),
+             A vertex at (z, -1, -z^2),
+             A vertex at (-z^2, z, -1),
+             A vertex at (-1, -z^2, z),
+             A vertex at (z, z^2, -1),
+             A vertex at (-1, z, z^2),
+             A vertex at (z^2, -1, z),
+             A vertex at (-z, 1, -z^2),
+             A vertex at (z^2, 1, -z),
+             A vertex at (-z^2, -z, 1),
+             A vertex at (-z, z^2, 1),
+             A vertex at (-z^2, 1, z),
+             A vertex at (1, -z^2, -z),
+             A vertex at (1, -z, z^2),
+             A vertex at (1, z, -z^2),
+             A vertex at (z, -z^2, 1),
+             A vertex at (z, 1, z^2),
+             A vertex at (z^2, z, 1),
+             A vertex at (1, z^2, z))
+            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
+            True
+
+        TESTS::
+
+            sage: sc = polytopes.snub_cube(exact=True, backend='normaliz')  # optional - pynormaliz
+            sage: sc.f_vector()                                             # optional - pynormaliz
+            (1, 24, 60, 38, 1)
+
         """
-        base_ring = RDF
-        tsqr33 = 3 * base_ring(33).sqrt()
-        z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1) / 3
+        def construct_z(field):
+            # z here is the reciprocal of the tribonacci constant, that is, the
+            # solution of the equation x^3 + x^2 + x - 1 = 0.
+            tsqr33 = 3 * field(33).sqrt()
+            return ((17 + tsqr33)**QQ((1, 3)) - (-17 + tsqr33)**QQ((1, 3)) - 1) / 3
+
+        if exact and base_ring is None:
+            # construct the exact number field
+            from sage.rings.number_field.number_field import NumberField
+            R = QQ['x']
+            f = R([-1,1,1,1])
+            embedding = construct_z(AA)
+            base_ring = NumberField(f, name='z', embedding=embedding)
+            z = base_ring.gen()
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            z = construct_z(base_ring)
 
         verts = []
         z2 = z ** 2
@@ -957,7 +1062,7 @@ class Polytopes():
                         v = [f * z, e, g * z2]
                         for p in A3:
                             verts += [p(v)]
-        return Polyhedron(vertices=verts, base_ring=base_ring)
+        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def buckyball(self, exact=True, base_ring=None, backend=None):
         r"""
@@ -988,7 +1093,7 @@ class Polytopes():
             sage: bb.f_vector()                # long time
             (1, 60, 90, 32, 1)
             sage: bb.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1004,6 +1109,15 @@ class Polytopes():
             12
             sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 6)
             20
+
+        TESTS::
+
+            sage: bb = polytopes.buckyball(backend='normaliz')  # optional - pynormaliz
+            sage: bb.f_vector()                                 # optional - pynormaliz
+            (1, 60, 90, 32, 1)
+            sage: bb.base_ring()                                # optional - pynormaliz
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
+
         """
         return self.icosahedron(exact=exact, base_ring=base_ring, backend=backend).truncation()
 
@@ -1032,6 +1146,12 @@ class Polytopes():
 
             sage: polytopes.icosidodecahedron(exact=False)
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
+
+            sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: id.f_vector()                                         # optional - pynormaliz
+            (1, 30, 60, 32, 1)
+            sage: id.base_ring()                                        # optional - pynormaliz
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         """
         from sage.rings.number_field.number_field import QuadraticField
         from itertools import product
@@ -1049,7 +1169,7 @@ class Polytopes():
             verts.extend(p(x) for x in gens)
 
         if exact:
-            return Polyhedron(vertices=verts,base_ring=K)
+            return Polyhedron(vertices=verts,base_ring=K,backend=backend)
         else:
             verts = [(RR(x), RR(y), RR(z)) for x, y, z in verts]
             return Polyhedron(vertices=verts, backend=backend)
@@ -1076,15 +1196,15 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: id = polytopes.icosidodecahedron()   # long time - 6secs
+            sage: id = polytopes.icosidodecahedron_V2()   # long time - 6secs
             sage: id.f_vector()                # long time
             (1, 30, 60, 32, 1)
             sage: id.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
-            sage: id = polytopes.icosidodecahedron(exact=False)
+            sage: id = polytopes.icosidodecahedron_V2(exact=False)
             sage: id.f_vector()
             (1, 30, 60, 32, 1)
             sage: id.base_ring()
@@ -1096,6 +1216,15 @@ class Polytopes():
             20
             sage: sum(1 for f in id.faces(2) if len(f.vertices()) == 5)
             12
+
+        TESTS::
+
+            sage: id = polytopes.icosidodecahedron_V2(backend='normaliz')  # optional - pynormaliz
+            sage: id.f_vector()                                            # optional - pynormaliz
+            (1, 30, 60, 32, 1)
+            sage: id.base_ring()                                           # optional - pynormaliz
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
+
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1142,7 +1271,7 @@ class Polytopes():
             sage: td.f_vector()
             (1, 60, 90, 32, 1)
             sage: td.base_ring()
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         Its faces are 20 triangles and 12 regular decagons::
 
@@ -1165,6 +1294,15 @@ class Polytopes():
             KeyError: ...
             sage: td.base_ring()
             Real Double Field
+
+        TESTS::
+
+            sage: td = polytopes.truncated_dodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: td.f_vector()                                              # optional - pynormaliz
+            (1, 60, 90, 32, 1)
+            sage: td.base_ring()                                             # optional - pynormaliz
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
+
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1298,7 +1436,7 @@ class Polytopes():
             sage: rid.f_vector()                # long time
             (1, 60, 120, 62, 1)
             sage: rid.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1316,6 +1454,15 @@ class Polytopes():
             30
             sage: sum(1 for f in rid.faces(2) if len(f.vertices()) == 5)
             12
+
+        TESTS::
+
+            sage: rid = polytopes.rhombicosidodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: rid.f_vector()                                              # optional - pynormaliz
+            (1, 60, 120, 62, 1)
+            sage: rid.base_ring()                                             # optional - pynormaliz
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
+
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1334,7 +1481,7 @@ class Polytopes():
                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
         pts += [[s1 * (2 + g), 0, s2 * (g**2)]
                 for s1, s2 in itertools.product([1, -1], repeat=2)]
-        #the vertices are all even permutations of the lists in pts
+        # the vertices are all even permutations of the lists in pts
         verts = pts
         verts += [[v[1], v[2], v[0]] for v in pts]
         verts += [[v[2], v[0], v[1]] for v in pts]
@@ -1366,7 +1513,7 @@ class Polytopes():
             sage: ti.f_vector()                # long time
             (1, 120, 180, 62, 1)
             sage: ti.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         The implementation using floating point approximations is much faster::
 
@@ -1384,6 +1531,15 @@ class Polytopes():
             20
             sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 10)
             12
+
+        TESTS::
+
+            sage: ti = polytopes.truncated_icosidodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: ti.f_vector()                                                   # optional - pynormaliz
+            (1, 120, 180, 62, 1)
+            sage: ti.base_ring()                                                  # optional - pynormaliz
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
+
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1406,13 +1562,13 @@ class Polytopes():
                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
         pts += [[s1 * g, s2 * 3 * base_ring.one(), s3 * 2 * g]
                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
-        #the vertices are all ever permutations of the lists in pts
+        # the vertices are all ever permutations of the lists in pts
         verts = pts
         verts += [[v[1], v[2], v[0]] for v in pts]
         verts += [[v[2], v[0], v[1]] for v in pts]
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
-    def snub_dodecahedron(self, base_ring=None, backend=None):
+    def snub_dodecahedron(self, base_ring=None, backend=None, verbose=False):
         """
         Return the snub dodecahedron.
 
@@ -1429,30 +1585,38 @@ class Polytopes():
 
         EXAMPLES:
 
-        Unfortunately, no polyhedra backend supports the construction of the
-        snub dodecahedron at the moment::
+        Only the backend using the optional normaliz package can construct
+        the snub dodecahedron in reasonable time::
 
-            sage: sd = polytopes.snub_dodecahedron()
-            Traceback (most recent call last):
-            ...
-            ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
-            sage: sd.f_vector() # not tested
+            sage: sd = polytopes.snub_dodecahedron(base_ring=AA, backend='normaliz') # optional - pynormaliz, long time
+            sage: sd.f_vector()                                                      # optional - pynormaliz, long time
             (1, 60, 150, 92, 1)
-            sage: sd.base_ring() # not tested
-            Real Double Field
+            sage: sd.base_ring()                                                     # optional - pynormaliz, long time
+            Algebraic Real Field
 
         Its faces are 80 triangles and 12 pentagons::
 
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3) # not tested
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3)              # optional - pynormaliz, long time
             80
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5) # not tested
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5)              # optional - pynormaliz, long time
             12
+
+        TESTS:
+
+        The cdd backend with floating point arithmetic fails for this polytope::
+
+            sage: sd = polytopes.snub_dodecahedron()        # not tested
+            sage: sd.f_vector()                             # not tested
+            (1, 60, 150, 92, 1)
+            sage: sd.base_ring()                            # not tested
+            Real Double Field
+
         """
         if base_ring is None:
             base_ring = RDF
         phi = (1 + base_ring(5).sqrt()) / 2
-        xi = ((phi/2 + (phi - 5/27).sqrt()/2)**(~ZZ(3)) +
-              (phi/2 - (phi - 5/27).sqrt()/2)**(~ZZ(3)))
+        xi = ((phi/2 + (phi - ZZ(5)/27).sqrt()/2)**(~ZZ(3)) +
+              (phi/2 - (phi - ZZ(5)/27).sqrt()/2)**(~ZZ(3)))
 
         alpha = xi - 1 / xi
         beta = xi * phi + phi**2 + phi / xi
@@ -1469,11 +1633,11 @@ class Polytopes():
         pts += [[s1 * (-alpha/phi + beta * phi - 1), s2 * (alpha - beta/phi - phi), s3 * (alpha * phi + beta + 1/phi)]
                 for s1, s2, s3 in signs]
 
-        # the vertices are all ever permutations of the lists in pts
+        # the vertices are all even permutations of the lists in pts
         verts = pts
         verts += [[v[1], v[2], v[0]] for v in pts]
         verts += [[v[2], v[0], v[1]] for v in pts]
-        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
+        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend, verbose=verbose)
 
     def twenty_four_cell(self, backend=None):
         """
@@ -1511,8 +1675,8 @@ class Polytopes():
             sage: tfcell = polytopes.twenty_four_cell(backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(tfcell).run(skip='_test_pickling')             # optional - pynormaliz
         """
-        q12 = QQ((1,2))
-        verts = list(itertools.product([q12,-q12], repeat=4))
+        q12 = QQ((1, 2))
+        verts = list(itertools.product([q12, -q12], repeat=4))
         B4 = (ZZ**4).basis()
         verts.extend(v for v in B4)
         verts.extend(-v for v in B4)
@@ -1549,7 +1713,14 @@ class Polytopes():
 
             sage: p600 = polytopes.six_hundred_cell(exact=True) # not tested - very long time
             sage: len(list(p600.bounded_edges()))               # not tested - very long time
-            120
+            720
+
+        TESTS::
+
+            sage: p600 = polytopes.six_hundred_cell(exact=True, backend='normaliz') # optional - pynormaliz
+            sage: len(list(p600.bounded_edges()))                                   # optional - pynormaliz
+            720
+
         """
         if exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1562,7 +1733,7 @@ class Polytopes():
             base_ring = RDF
 
         q12 = base_ring(1) / base_ring(2)
-        z   = base_ring.zero()
+        z = base_ring.zero()
         verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in itertools.product([1,-1], repeat=4)]
         V = (base_ring)**4
         verts.extend(V.basis())
@@ -1572,7 +1743,7 @@ class Polytopes():
             verts.extend(p(x) for x in pts)
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
-    def grand_antiprism(self, exact=True, backend=None):
+    def grand_antiprism(self, exact=True, backend=None, verbose=False):
         """
         Return the grand antiprism.
 
@@ -1609,6 +1780,12 @@ class Polytopes():
             (1, 100, 500, 720, 320, 1)
             sage: len(list(gap.bounded_edges()))
             500
+
+        TESTS::
+
+            sage: gap = polytopes.grand_antiprism(exact=True, backend='normaliz')  # optional - pynormaliz
+            sage: gap                                                              # optional - pynormaliz
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 100 vertices
         """
         from itertools import product
 
@@ -1623,7 +1800,7 @@ class Polytopes():
             base_ring = RDF
 
         q12 = base_ring(1) / base_ring(2)
-        z   = base_ring.zero()
+        z = base_ring.zero()
         verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in product([1,-1], repeat=4)]
         V = (base_ring)**4
         verts.extend(V.basis()[2:])
@@ -1653,7 +1830,7 @@ class Polytopes():
         verts.extend([s1/(2*g), z, g/2, -q12] for s1 in [1,-1])
         verts.extend([s1/(2*g), z, -g/2, q12] for s1 in [1,-1])
 
-        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
+        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend, verbose=verbose)
 
     def Gosset_3_21(self, backend=None):
         r"""
@@ -1764,8 +1941,9 @@ class Polytopes():
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
         """
-        verts = Permutations([0]*(dim-k) + [1]*k).list()
-        if project: verts = project_points(*verts)
+        verts = Permutations([0] * (dim - k) + [1] * k).list()
+        if project:
+            verts = project_points(*verts)
         return Polyhedron(vertices=verts, backend=backend)
 
     def permutahedron(self, n, project=False, backend=None):
@@ -1821,8 +1999,9 @@ class Polytopes():
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(p4).run(skip='_test_pickling')             # optional - pynormaliz
         """
-        verts = list(itertools.permutations(range(1,n+1)))
-        if project: verts = project_points(*verts)
+        verts = list(itertools.permutations(range(1, n + 1)))
+        if project:
+            verts = project_points(*verts)
         return Polyhedron(vertices=verts, backend=backend)
 
     def hypercube(self, dim, backend=None):
@@ -1943,8 +2122,8 @@ class Polytopes():
             sage: K = QuadraticField(2, 'sqrt2')
             sage: sqrt2 = K.gen()
             sage: polytopes.parallelotope([ (1,sqrt2), (1,-1) ])
-            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining
-            polynomial x^2 - 2)^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining 
+            polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as the convex hull of 4 vertices
         """
         from sage.modules.free_module_element import vector
         from sage.structure.sequence import Sequence
@@ -1966,5 +2145,6 @@ class Polytopes():
     associahedron = staticmethod(Associahedron)
 
     flow_polytope = staticmethod(DiGraph.flow_polytope)
+
 
 polytopes = Polytopes()

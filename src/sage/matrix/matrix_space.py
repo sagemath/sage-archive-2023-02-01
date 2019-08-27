@@ -921,8 +921,10 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: V.get_action(ZZ, operator.mul, self_on_left=False)
             Left scalar multiplication by Integer Ring on Full MatrixSpace of 2 by 3 dense matrices over Rational Field
         """
-        if op is operator.mul:
-            try:
+        try:
+            from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
+            from sage.schemes.generic.homset import SchemeHomset_generic
+            if op is operator.mul:
                 from . import action as matrix_action
                 if self_on_left:
                     if is_MatrixSpace(S):
@@ -930,6 +932,8 @@ class MatrixSpace(UniqueRepresentation, Parent):
                         return matrix_action.MatrixMatrixAction(self, S)
                     elif sage.modules.free_module.is_FreeModule(S):
                         return matrix_action.MatrixVectorAction(self, S)
+                    elif isinstance(S, SchemeHomset_generic):
+                        return matrix_action.MatrixPolymapAction(self, S)
                     else:
                         # action of base ring
                         return sage.structure.coerce.RightModuleAction(S, self)
@@ -939,11 +943,13 @@ class MatrixSpace(UniqueRepresentation, Parent):
                         return matrix_action.MatrixMatrixAction(S, self)
                     elif sage.modules.free_module.is_FreeModule(S):
                         return matrix_action.VectorMatrixAction(self, S)
+                    elif isinstance(S, SchemeHomset_generic):
+                        return matrix_action.PolymapMatrixAction(self, S)
                     else:
                         # action of base ring
                         return sage.structure.coerce.LeftModuleAction(S, self)
-            except TypeError:
-                return None
+        except TypeError:
+            return None
 
     def _coerce_map_from_(self, S):
         """
@@ -1489,7 +1495,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
                 v[r,c].set_immutable()
         from sage.sets.family import Family
         def old_index(i):
-            from sage.misc.superseded import deprecation
             deprecation(22955, "integer indices are deprecated. Use B[r,c] instead of B[i].")
             return v[keys[i]]
         return Family(keys, v.__getitem__,
@@ -2093,9 +2098,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``*args``, ``**kwds`` - Parameters that can be forwarded to the 
+        - ``*args``, ``**kwds`` - Parameters that can be forwarded to the
           ``random_element`` method
-        
+
         OUTPUT:
 
         - Random non-zero matrix

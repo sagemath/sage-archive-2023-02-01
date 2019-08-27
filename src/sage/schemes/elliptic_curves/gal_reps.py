@@ -90,19 +90,9 @@ Galois representation mod p is surjective onto `GL_2(\GF{p})`::
 
 REFERENCES:
 
-.. [Se1] Jean-Pierre Serre,
-    Propriétés galoisiennes des points d'ordre fini
-    des courbes elliptiques.
-    Invent. Math.  15  (1972), no. 4, 259--331.
-.. [Se2] Jean-Pierre Serre,
-    Sur les représentations modulaires de degré
-    2 de `\text{Gal}(\bar\QQ/\QQ)`.
-    Duke Math. J. 54 (1987), no. 1, 179--230.
-.. [Co] Alina Carmen Cojocaru,
-    On the surjectivity of the Galois representations
-    associated to non-CM elliptic curves.
-    With an appendix by Ernst Kani.
-    Canad. Math. Bull. 48 (2005), no. 1, 16--31.
+- [Ser1972]_
+- [Ser1987]_
+- [Coj2005]_
 
 AUTHORS:
 

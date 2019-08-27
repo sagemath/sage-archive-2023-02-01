@@ -116,10 +116,21 @@ class ParentLibGAP(SageObject):
 
             sage: G = FreeGroup(3)
             sage: TestSuite(G).run()
+
+        We check that :trac:`19270` is fixed::
+
+            sage: G = GL(2,5)
+            sage: g = G( matrix([[1,0],[0,4]]))
+            sage: H = G.subgroup([g])
+            sage: g in H
+            True
         """
         assert isinstance(libgap_parent, GapElement)
         self._libgap = libgap_parent
         self._ambient = ambient
+        if ambient is not None:
+            phi = self.hom(lambda x: ambient(x.gap()), codomain=ambient) # the .gap() avoids an infinite recusion
+            ambient.register_coercion(phi)
 
     def ambient(self):
         """
@@ -225,6 +236,11 @@ class ParentLibGAP(SageObject):
             Group([ a^2*b ])
             sage: G.gens()
             (a^2*b,)
+
+        We check that coercions between the subgroup and its ambient group work::
+
+            sage: F.0 * G.0
+            a^3*b
 
         Checking that :trac:`19270` is fixed::
 
@@ -432,6 +448,7 @@ class ParentLibGAP(SageObject):
             return prod(gens)
         else:
             return self.one()
+
 
 cdef class ElementLibGAP(MultiplicativeGroupElement):
     """

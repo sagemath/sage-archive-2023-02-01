@@ -191,7 +191,7 @@ class FunctionFieldExtensionFactory(UniqueFactory):
             k = base_field.constant_field()
             if k.is_finite(): # then we are in positive characteristic
                 # irreducible and separable
-                if f.is_irreducible() and not all([e % k.characteristic() == 0 for e in f.exponents()]):
+                if f.is_irreducible() and not all(e % k.characteristic() == 0 for e in f.exponents()):
                     # monic and integral
                     if f.is_monic() and all(e in base_field.maximal_order() for e in f.coefficients()):
                         return function_field.FunctionField_global_integral(f, names)

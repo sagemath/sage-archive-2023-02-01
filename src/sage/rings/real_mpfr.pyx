@@ -3379,24 +3379,52 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR('nan').exact_rational()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert NaN or infinity to rational number
+            ValueError: unable to convert NaN to a rational number
             sage: RR('-infinity').exact_rational()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert NaN or infinity to rational number
+            ValueError: unable to convert -infinity to a rational number
         """
         if not mpfr_number_p(self.value):
-            raise ValueError('Cannot convert NaN or infinity to rational number')
-
-        cdef Integer mantissa = Integer()
-        cdef mp_exp_t exponent
+            raise ValueError(f"unable to convert {self} to a rational number")
 
         if mpfr_sgn(self.value) == 0:
             return Rational(0)
 
+        mantissa = <Integer>Integer.__new__(Integer)
         exponent = mpfr_get_z_exp(mantissa.value, self.value)
 
-        return Rational(mantissa) * Integer(2) ** exponent
+        return Rational(mantissa) << exponent
+
+    def as_integer_ratio(self):
+        """
+        Return a coprime pair of integers ``(a, b)`` such that ``self``
+        equals ``a / b`` exactly.
+
+        EXAMPLES::
+
+            sage: RR(0).as_integer_ratio()
+            (0, 1)
+            sage: RR(1/3).as_integer_ratio()
+            (6004799503160661, 18014398509481984)
+            sage: RR(37/16).as_integer_ratio()
+            (37, 16)
+            sage: RR(3^60).as_integer_ratio()
+            (42391158275216203520420085760, 1)
+            sage: RR('nan').as_integer_ratio()
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert NaN to a rational number
+
+        This coincides with Python floats::
+
+            sage: pi = RR.pi()
+            sage: pi.as_integer_ratio()
+            (884279719003555, 281474976710656)
+            sage: float(pi).as_integer_ratio() == pi.as_integer_ratio()
+            True
+        """
+        return self.exact_rational().as_integer_ratio()
 
     def simplest_rational(self):
         """

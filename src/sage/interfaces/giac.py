@@ -245,7 +245,7 @@ class Giac(Expect):
     Type ``giac.[tab]?`` for Giac's help about a given function.
     Type ``giac(...)`` to create a new Giac object.
 
-    Full html documentation for giac is avaible from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
+    Full html documentation for giac is available from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 
     EXAMPLES:
 
@@ -426,7 +426,7 @@ or a spkg ( for the spkg follow the sources link) from the homepage:
 Homepage http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
 
 
-Full html documentation for giac is avaible from your giac installation at:
+Full html documentation for giac is available from your giac installation at:
 
     ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 
@@ -1037,7 +1037,7 @@ class GiacElement(ExpectElement):
             - numbers, i.e. integers, floats, complex numbers;
             - functions and named constants also present in Sage, where:
                 - Sage knows how to translate the function or constant's name
-                from Giac's naming scheme through the symbols_table, or
+                from Giac's naming scheme through the ``symbol_table``, or
                 - you provide a translation dictionary ``locals``.
 
         New conversions can be added using Pynac's ``register_symbol``.
@@ -1063,7 +1063,7 @@ class GiacElement(ExpectElement):
             sage: ex._sage_({'myFun': sin})
             sin(x)
 
-        Same but by adding a new entry to the ``symbols_table``::
+        Same but by adding a new entry to the ``symbol_table``::
 
             sage: ex = giac('myFun(x)')
             sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})

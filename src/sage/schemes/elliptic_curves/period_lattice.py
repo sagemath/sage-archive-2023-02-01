@@ -71,18 +71,15 @@ We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
     sage: K.<a> = QuadraticField(-7)
     sage: EK = E.change_ring(K)
     sage: EK.period_lattice(K.complex_embeddings()[0])
-    Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + 7 with respect to the embedding Ring morphism:
-      From: Number Field in a with defining polynomial x^2 + 7
+    Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I with respect to the embedding Ring morphism:
+      From: Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
       To:   Algebraic Field
       Defn: a |--> -2.645751311064591?*I
 
 
 REFERENCES:
 
-.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
-   elliptic curves over $\CC$ and complex elliptic logarithms.
-   Journal of Number Theory Volume 133, Issue 8, August 2013, pages
-   2813-2841.
+- [CT2013]_
 
 
 AUTHORS:
@@ -450,6 +447,49 @@ class PeriodLattice_ell(PeriodLattice):
             return self._compute_periods_complex(prec=prec)
 
     @cached_method
+    def gens(self, prec=None, algorithm='sage'):
+        r"""
+        Return a basis for this period lattice as a 2-tuple.
+
+        This is an alias for
+        :meth:`~sage.schemes.elliptic_curves.period_lattice.PeriodLattice_ell.basis`.
+        See the docstring there for a more in-depth explanation and further
+        examples.
+
+        INPUT:
+
+        - ``prec`` (default: ``None``) -- precision in bits (default
+          precision if ``None``).
+
+        - ``algorithm`` (string, default 'sage') -- choice of
+          implementation (for real embeddings only) between 'sage'
+          (native Sage implementation) or 'pari' (use the PARI
+          library: only available for real embeddings).
+
+        OUTPUT:
+
+        (tuple of Complex) `(\omega_1,\omega_2)` where the lattice is
+        `\ZZ\omega_1 + \ZZ\omega_2`.  If the lattice is real then
+        `\omega_1` is real and positive, `\Im(\omega_2)>0` and
+        `\Re(\omega_1/\omega_2)` is either `0` (for rectangular
+        lattices) or `\frac{1}{2}` (for non-rectangular lattices).
+        Otherwise, `\omega_1/\omega_2` is in the fundamental region of
+        the upper half-plane.  If the latter normalisation is required
+        for real lattices, use the function ``normalised_basis()``
+        instead.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.period_lattice().gens()
+            (2.99345864623196, 2.45138938198679*I)
+
+            sage: E.period_lattice().gens(prec = 100)
+            (2.9934586462319596298320099794, 2.4513893819867900608542248319*I)
+        """
+        return tuple(self.basis(prec=prec, algorithm=algorithm))
+
+    @cached_method
     def normalised_basis(self, prec=None, algorithm='sage'):
         r"""
         Return a normalised basis for this period lattice as a 2-tuple.
@@ -497,8 +537,8 @@ class PeriodLattice_ell(PeriodLattice):
             sage: tau = w1/w2; tau
             0.387694505032876 + 1.30821088214407*I
         """
-        w1, w2 = periods = self.basis(prec=prec, algorithm=algorithm)
-        periods, mat = normalise_periods(w1,w2)
+        w1, w2 = self.basis(prec=prec, algorithm=algorithm)
+        periods, _ = normalise_periods(w1, w2)
         return periods
 
     @cached_method
@@ -1245,7 +1285,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 
@@ -1438,7 +1478,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 

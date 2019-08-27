@@ -23,27 +23,16 @@ power series in `T`, each with coefficients in `\ZZ_p`.
 If `E` is supersingular, the series will have coefficients in a quadratic
 extension of `\QQ_p`, and the coefficients will be unbounded. In this case we
 have only implemented the series for `\eta = 0`. We have also implemented the
-`p`-adic L-series as formulated by Perrin-Riou [BP]_, which has coefficients in
+`p`-adic L-series as formulated by Perrin-Riou [BP1993]_, which has coefficients in
 the Dieudonné module `D_pE = H^1_{dR}(E/\QQ_p)` of `E`. There is a different
-description by Pollack [Po]_ which is not available here.
+description by Pollack [Pol2003]_ which is not available here.
 
 According to the `p`-adic version of the Birch and Swinnerton-Dyer conjecture
-[MTT]_, the order of vanishing of the `L`-function at the trivial character
+[MTT1986]_, the order of vanishing of the `L`-function at the trivial character
 (i.e. of the series for `\eta = 0` at `T = 0`) is just the rank of `E(\QQ)`, or
 this rank plus one if the reduction at `p` is split multiplicative.
 
-See [SW]_ for more details.
-
-REFERENCES:
-
-- [MTT]_
-
-- [BP]_
-
-.. [Po] Robert Pollack, *On the `p`-adic `L`-function of a modular form
-   at a supersingular prime*, Duke Math. J. 118 (2003), no. 3, 523-558.
-
-- [SW]_
+See [SW2013]_ for more details.
 
 AUTHORS:
 
@@ -526,15 +515,15 @@ class pAdicLseries(SageObject):
         Return the order of vanishing of this `p`-adic L-series.
 
         The output of this function is provably correct, due to a
-        theorem of Kato [Ka]_.
+        theorem of Kato [Kat2004]_.
 
         .. NOTE:: currently `p` must be a prime of good ordinary reduction.
 
         REFERENCES:
 
-        - [MTT]_
+        - [MTT1986]_
 
-        - [Ka]_
+        - [Kat2004]_
 
         EXAMPLES::
 
@@ -690,7 +679,7 @@ class pAdicLseries(SageObject):
         For a fundamental discriminant `D` of a quadratic number field this
         computes the constant `\eta` such that
         `\sqrt{\vert D\vert }\cdot\Omega_{E_D}^{+} =\eta\cdot \Omega_E^{sign(D)}`.
-        As in [MTT]_ page 40. This is either 1 or 2 unless the condition
+        As in [MTT1986]_ page 40. This is either 1 or 2 unless the condition
         on the twist is not satisfied, e.g. if we are 'twisting back' to a
         semi-stable curve.
 
@@ -1330,7 +1319,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         `\omega` is the invariant differential and `\varphi` is the Frobenius on `D_p(E)`.
 
         According to the `p`-adic Birch and Swinnerton-Dyer
-        conjecture [BP]_ this function has a zero of order
+        conjecture [BP1993]_ this function has a zero of order
         rank of `E(\QQ)` and it's leading term is contains the order of
         the Tate-Shafarevich group, the Tamagawa numbers, the order of the
         torsion subgroup and the `D_p`-valued `p`-adic regulator.
@@ -1627,13 +1616,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         .. NOTE::
 
             The definition here is corrected with respect to
-            Perrin-Riou's article [PR]_. See [SW]_.
-
-        REFERENCES:
-
-        .. [PR] Perrin-Riou, *Arithmétique des courbes elliptiques à
-                réduction supersingulière en `p`*,
-                Experiment. Math. 12 (2003), no. 2, 155-186.
+            Perrin-Riou's article [PR2003]_. See [SW2013]_.
 
         EXAMPLES::
 

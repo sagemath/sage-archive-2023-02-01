@@ -1134,7 +1134,7 @@ class TopologicalManifold(ManifoldSubset):
         while ind != ind_end:
             yield tuple(ind)
             ret = 1
-            for pos in range(nb_indices-1,-1,-1):
+            for pos in range(nb_indices-1, -1, -1):
                 if ind[pos] != imax:
                     ind[pos] += ret
                     ret = 0
@@ -2181,50 +2181,184 @@ class TopologicalManifold(ManifoldSubset):
           - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
           - ``'sympy'``: SymPy
 
-        The default calculus method relies on Sage's Symbolic Ring::
+        EXAMPLES:
 
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: X.<x,y,z> = M.chart()
-            sage: f = M.scalar_field(sin(x)*cos(y) + z^2, name='F')
+        Let us consider a scalar field ``f`` on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field(x^2 + cos(y)*sin(x), name='F')
+
+        By default, the coordinate expression of ``f`` returned by
+        :meth:`~sage.manifolds.scalarfield.ScalarField.expr` is a Sage's
+        symbolic expression::
+
             sage: f.expr()
-            z^2 + cos(y)*sin(x)
+            x^2 + cos(y)*sin(x)
             sage: type(f.expr())
             <type 'sage.symbolic.expression.Expression'>
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
             F: M --> R
-               (x, y, z) |--> z^2 + cos(y)*sin(x)
+               (x, y) |--> x^2 + cos(y)*sin(x)
 
-        Changing to SymPy::
+        If we change the calculus method to SymPy, it becomes a SymPy object
+        instead::
 
             sage: M.set_calculus_method('sympy')
             sage: f.expr()
-            z**2 + sin(x)*cos(y)
+            x**2 + sin(x)*cos(y)
             sage: type(f.expr())
             <class 'sympy.core.add.Add'>
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
             F: M --> R
-               (x, y, z) |--> z**2 + sin(x)*cos(y)
+               (x, y) |--> x**2 + sin(x)*cos(y)
 
-        Changing back to the Symbolic Ring::
+        Back to the Symbolic Ring::
 
             sage: M.set_calculus_method('SR')
             sage: f.display()
             F: M --> R
-               (x, y, z) |--> z^2 + cos(y)*sin(x)
+               (x, y) |--> x^2 + cos(y)*sin(x)
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.chart.Chart.calculus_method` for a
+            control of the calculus method chart by chart
 
         """
-        self._calculus_method = method
-        for chart in self._atlas :
-            chart.set_calculus_method(method)
+        for chart in self._atlas:
+            chart.calculus_method().set(method)
 
+    def set_simplify_function(self, simplifying_func, method=None):
+        r"""
+        Set the simplifying function associated to a given coordinate
+        calculus method in all the charts defined on ``self``.
 
+        INPUT:
+
+        - ``simplifying_func`` -- either the string ``'default'`` for restoring
+          the default simplifying function or a function ``f`` of a single
+          argument ``expr`` such that ``f(expr)`` returns an object of the same
+          type as ``expr`` (hopefully the simplified version of ``expr``), this
+          type being
+
+          - :class:`~sage.symbolic.expression.Expression` if ``method`` = ``'SR'``
+          - a SymPy type if ``method`` = ``'sympy'``
+
+        - ``method`` -- (default: ``None``) string defining the calculus method
+          for which ``simplifying_func`` is provided; must be one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+          - ``None``: the currently active calculus method on each chart is
+            assumed
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.chart.Chart.calculus_method`
+            and :meth:`sage.manifolds.calculus_method.CalculusMethod.simplify`
+            for a control of the calculus method chart by chart
+
+        EXAMPLES:
+
+        Les us add two scalar fields on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field((x+y)^2 + cos(x)^2)
+            sage: g = M.scalar_field(-x^2-2*x*y-y^2 + sin(x)^2)
+            sage: f.expr()
+            (x + y)^2 + cos(x)^2
+            sage: g.expr()
+            -x^2 - 2*x*y - y^2 + sin(x)^2
+            sage: s = f + g
+
+        The outcome is automatically simplified::
+
+            sage: s.expr()
+            1
+
+        The simplification is performed thanks to the default simplifying
+        function on chart ``X``, which is
+        :func:`~sage.manifolds.utilities.simplify_chain_real` in the present
+        case (real manifold and ``SR`` calculus)::
+
+            sage: X.calculus_method().simplify_function() is \
+            ....: sage.manifolds.utilities.simplify_chain_real
+            True
+
+        Let us change it to the generic Sage function
+        :func:`~sage.calculus.functional.simplify`::
+
+            sage: M.set_simplify_function(simplify)
+            sage: X.calculus_method().simplify_function() is simplify
+            True
+
+        :func:`~sage.calculus.functional.simplify` is faster, but it does not
+        do much::
+
+            sage: s = f + g
+            sage: s.expr()
+            (x + y)^2 - x^2 - 2*x*y - y^2 + cos(x)^2 + sin(x)^2
+
+        We can replaced it by any user defined function, for instance::
+
+            sage: def simpl_trig(a):
+            ....:     return a.simplify_trig()
+            ....:
+            sage: M.set_simplify_function(simpl_trig)
+            sage: s = f + g
+            sage: s.expr()
+            1
+
+        The default simplifying function is restored via::
+
+            sage: M.set_simplify_function('default')
+
+        Then we are back to::
+
+            sage: X.calculus_method().simplify_function() is \
+            ....: sage.manifolds.utilities.simplify_chain_real
+            True
+
+        Thanks to the argument ``method``, one can specify a simplifying
+        function for a calculus method distinct from the current one. For
+        instance, let us define a simplifying function for SymPy (note that
+        ``trigsimp()`` is a SymPy method only)::
+
+            sage: def simpl_trig_sympy(a):
+            ....:     return a.trigsimp()
+            ....:
+            sage: M.set_simplify_function(simpl_trig_sympy, method='sympy')
+
+        Then, it becomes active as soon as we change the calculus engine to
+        SymPy::
+
+            sage: M.set_calculus_method('sympy')
+            sage: X.calculus_method().simplify_function() is simpl_trig_sympy
+            True
+
+        We have then::
+
+            sage: s = f + g
+            sage: s.expr()
+            1
+            sage: type(s.expr())
+            <class 'sympy.core.numbers.One'>
+
+        """
+        for chart in self._atlas:
+            chart.calculus_method().set_simplify_function(simplifying_func,
+                                                          method=method)
 
 ##############################################################################
 ## Constructor function
+
+_manifold_id = Integer(0)
 
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
              start_index=0, **extra_kwds):
@@ -2313,7 +2447,12 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
       subclasses
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
       or
-      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+      or, if the keyword ``ambient`` is used, one of the subclasses
+      :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+      :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`,
+      or
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`.
 
     EXAMPLES:
 
@@ -2382,12 +2521,29 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M.diff_degree()
         +Infinity
 
-    See the documentation of classes
+    Submanifolds are constructed by means of the keyword ``ambient``::
+
+        sage: N = Manifold(2, 'N', field='complex', ambient=M); N
+        2-dimensional differentiable submanifold N immersed in the
+         3-dimensional complex manifold M
+
+    The immersion `N\to M` has to be specified in a second stage, via the
+    method
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_immersion`
+    or
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_embedding`.
+
+    For more detailed examples, see the documentation of
     :class:`~sage.manifolds.manifold.TopologicalManifold`,
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     and
-    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-    for more detailed examples.
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+    or the documentation of
+    :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+    :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`
+    and
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`
+    for submanifolds.
 
     .. RUBRIC:: Uniqueness of manifold objects
 
@@ -2456,18 +2612,23 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: isinstance(M, sage.misc.fast_methods.WithEqualityById)
         True
     """
-    from time import time
     from sage.rings.infinity import infinity
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
     from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
     from sage.manifolds.topological_submanifold import TopologicalSubmanifold
     from sage.manifolds.differentiable.differentiable_submanifold import DifferentiableSubmanifold
     from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
+
+    global _manifold_id
+
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")
     if dim < 1:
         raise ValueError("the manifold dimension must be strictly positive")
+
+    _manifold_id += 1
+    unique_tag = lambda: getrandbits(128)*_manifold_id
 
     if structure in ['topological', 'top']:
         if field == 'real' or isinstance(field, RealField_class):
@@ -2485,11 +2646,11 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                           ambient=ambient,
                                           latex_name=latex_name,
                                           start_index=start_index,
-                                          unique_tag=getrandbits(128)*time())
+                                          unique_tag=unique_tag())
         return TopologicalManifold(dim, name, field, structure,
                                    latex_name=latex_name,
                                    start_index=start_index,
-                                   unique_tag=getrandbits(128)*time())
+                                   unique_tag=unique_tag())
     elif structure in ['differentiable', 'diff', 'smooth']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
@@ -2514,12 +2675,12 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                              diff_degree=diff_degree,
                                              latex_name=latex_name,
                                              start_index=start_index,
-                                             unique_tag=getrandbits(128)*time())
+                                             unique_tag=unique_tag())
         return DifferentiableManifold(dim, name, field, structure,
                                       diff_degree=diff_degree,
                                       latex_name=latex_name,
                                       start_index=start_index,
-                                      unique_tag=getrandbits(128)*time())
+                                      unique_tag=unique_tag())
     elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
@@ -2560,14 +2721,14 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             if dim>ambient._dim:
                 raise ValueError("the submanifold must be of smaller "
                                  + "dimension than its ambient manifold")
-            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+            return PseudoRiemannianSubmanifold(dim, name, ambient=ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,
                                                latex_name=latex_name,
                                                metric_latex_name=metric_latex_name,
                                                start_index=start_index,
-                                               unique_tag=getrandbits(128)*time())
+                                               unique_tag=unique_tag())
 
         return PseudoRiemannianManifold(dim, name, metric_name=metric_name,
                                         signature=signature,
@@ -2575,14 +2736,9 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                         latex_name=latex_name,
                                         metric_latex_name=metric_latex_name,
                                         start_index=start_index,
-                                        unique_tag=getrandbits(128)*time())
+                                        unique_tag=unique_tag())
     raise NotImplementedError("manifolds of type {} are ".format(structure) +
                               "not implemented")
 
-Manifold.options = TopologicalManifold.options
 
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Manifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)
-ManifoldOptions = deprecated_function_alias(18555, TopologicalManifold.options)
-TopologicalManifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)
+Manifold.options = TopologicalManifold.options

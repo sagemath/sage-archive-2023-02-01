@@ -993,25 +993,6 @@ cdef class PolyDict:
         else:
             return None
 
-cdef class ETupleIter:
-    cdef int _i
-    cdef int _length
-    cdef object _data
-
-    def __init__(self, data, length):
-        self._data = data
-        self._length = length
-        self._i = -1
-
-    def __next__(self):
-        self._i = self._i + 1
-
-        if self._i == self._length:
-            self._i = -1
-            raise StopIteration
-
-        return self._data.get(self._i, 0)
-
 cdef inline bint dual_etuple_iter(ETuple self, ETuple other, size_t *ind1, size_t *ind2, size_t *index, int *exp1, int *exp2):
     """
     This function is a crucial helper function for a number of methods of
@@ -1391,22 +1372,54 @@ cdef class ETuple:
     def __iter__(ETuple self):
         """
         x.__iter__() <==> iter(x)
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: e = ETuple((4,0,0,2,0))
+            sage: list(e)
+            [4, 0, 0, 2, 0]
+
+        Check that :trac:`28178` is fixed::
+
+            sage: it = iter(e)
+            sage: iter(it) is it
+            True
         """
-        cdef size_t ind
-        # this is not particularly fast, but I doubt many people care
-        # if you do, feel free to tweak!
-        d = dict([(self._data[2*ind], self._data[2*ind+1]) for ind from 0<=ind<self._nonzero])
-        return ETupleIter(d, self._length)
+        cdef size_t i
+        cdef size_t ind = 0
+
+        for i in range(self._length):
+            if ind >= self._nonzero:
+                yield 0
+            elif self._data[2*ind] == i:
+                yield self._data[2*ind + 1]
+                ind += 1
+            else:
+                yield 0
 
     def __str__(ETuple self):
         return repr(self)
 
     def __repr__(ETuple self):
-        res = [0,]*self._length
-        cdef size_t ind = 0
-        for ind from 0 <= ind < self._nonzero:
-            res[self._data[2*ind]] = self._data[2*ind+1]
-        return str(tuple(res))
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: ETuple((0,))
+            (0,)
+            sage: ETuple((1,))
+            (1,)
+            sage: ETuple((0,1,2))
+            (0, 1, 2)
+        """
+        if self._length == 1:
+            if self._nonzero:
+                return '(%d,)' % self._data[1]
+            else:
+                return '(0,)'
+        else:
+            return '(' + ', '.join(map(str, self)) + ')'
 
     def __reduce__(ETuple self):
         """

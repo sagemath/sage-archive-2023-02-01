@@ -61,12 +61,12 @@ cdef class NumberField(Field):
             sage: cm.explain(K,L,operator.add)
             Coercion on left operand via
                 Generic morphism:
-                  From: Number Field in a with defining polynomial x^2 - 3
+                  From: Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
                   To:   Algebraic Real Field
                   Defn: a -> 1.732050807568878?
             Coercion on right operand via
                 Generic morphism:
-                  From: Number Field in b with defining polynomial x^2 - 2
+                  From: Number Field in b with defining polynomial x^2 - 2 with b = 1.414213562373095?
                   To:   Algebraic Real Field
                   Defn: b -> 1.414213562373095?
             Arithmetic performed after coercions.

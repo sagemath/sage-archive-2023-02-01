@@ -56,7 +56,7 @@ from sage.sets.family import Family
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.richcmp import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
+from sage.structure.richcmp import richcmp, op_NE, op_EQ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 
@@ -976,6 +976,46 @@ class TamariIntervalPoset(Element):
         """
         return self._size
 
+    @cached_method
+    def cubical_coordinates(self):
+        """
+        Return the cubical coordinates of ``self``.
+
+        This provides a fast and natural way to order
+        the set of interval-posets of a given size.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(1,2),(2,3)])
+            sage: ip.cubical_coordinates()
+            (-1, -2, 0)
+
+        TESTS::
+
+            sage: ip = TamariIntervalPoset(1,[])
+            sage: ip.cubical_coordinates()
+            ()
+            sage: ip = TamariIntervalPoset(3,[])
+            sage: ip.cubical_coordinates()
+            (0, 0)
+            sage: ip = TamariIntervalPosets(10).random_element()
+            sage: len(ip.cubical_coordinates())
+            9
+            sage: sorted(ip.cubical_coordinates() for ip in TamariIntervalPosets(2))
+            [(-1,), (0,), (1,)]
+
+        REFERENCES:
+
+        - [Com2019]_
+        """
+        tup = [0] * (self.size() - 1)
+        for i, j in self._poset.relations_iterator(strict=True):
+            if i < j:
+                tup[j - 2] -= 1
+            else:
+                tup[j - 1] += 1
+        return tuple(tup)
+
     def complement(self):
         r"""
         Return the complement of the interval-poset ``self``.
@@ -1372,6 +1412,13 @@ class TamariIntervalPoset(Element):
 
     def _richcmp_(self, other, op):
         r"""
+        Comparison.
+
+        The comparison is first by size, then
+        using cubical coordinates.
+
+        .. SEEALSO:: :meth:`cubical_coordinates`
+
         TESTS::
 
             sage: TamariIntervalPoset(0,[]) == TamariIntervalPoset(0,[])
@@ -1388,31 +1435,25 @@ class TamariIntervalPoset(Element):
             sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
             sage: ip1 <= ip2
-            True
+            False
             sage: ip1 <= ip1
             True
             sage: ip2 <= ip1
-            False
+            True
 
             sage: ip1 != 33
             True
         """
         if not isinstance(other, TamariIntervalPoset):
-            return op == op_NE
+            return NotImplemented
         if op == op_EQ:
             return (self.size() == other.size() and
                     self._cover_relations == other._cover_relations)
         if op == op_NE:
             return not(self.size() == other.size() and
                        self._cover_relations == other._cover_relations)
-        if op == op_LT:
-            return self.parent().lt(self, other)
-        if op == op_LE:
-            return self.parent().le(self, other)
-        if op == op_GT:
-            return self.parent().gt(self, other)
-        if op == op_GE:
-            return self.parent().ge(self, other)
+        return richcmp((self.size(), self.cubical_coordinates()),
+                       (other.size(), other.cubical_coordinates()), op)
 
     def __iter__(self):
         r"""
@@ -3465,11 +3506,12 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
     def le(self, el1, el2):
         r"""
-        Poset stucture on the set of interval-posets through interval
-        containment.
+        Poset structure on the set of interval-posets.
 
-        Return whether the interval represented by ``el1`` is contained in
-        the interval represented by ``el2``.
+        The comparison is first by size, then using the
+        cubical coordinates.
+
+        .. SEEALSO:: :meth:`cubical_coordinates`
 
         INPUT:
 
@@ -3481,12 +3523,13 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
             sage: TamariIntervalPosets().le(ip1,ip2)
-            True
-            sage: TamariIntervalPosets().le(ip2,ip1)
             False
+            sage: TamariIntervalPosets().le(ip2,ip1)
+            True
         """
-        # not a total order : this should be replaced by something better
-        return el2.contains_interval(el1)
+        cc1 = el1.cubical_coordinates()
+        cc2 = el2.cubical_coordinates()
+        return all(x1 <= x2 for x1, x2 in zip(cc1, cc2))
 
 #################################################################
 # Enumerated set of all Tamari Interval-posets

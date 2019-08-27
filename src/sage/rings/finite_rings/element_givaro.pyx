@@ -1056,15 +1056,15 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         TESTS::
 
             sage: K = GF(49, 'a')
-            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            sage: all(a.sqrt()*a.sqrt() == a for a in K if a.is_square())
             True
             sage: K = GF(27, 'a')
-            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            sage: all(a.sqrt()*a.sqrt() == a for a in K if a.is_square())
             True
             sage: K = GF(8, 'a')
-            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            sage: all(a.sqrt()*a.sqrt() == a for a in K if a.is_square())
             True
-            sage: K.<a>=FiniteField(9)
+            sage: K.<a> = FiniteField(9)
             sage: a.sqrt(extend = False, all = True)
             []
 

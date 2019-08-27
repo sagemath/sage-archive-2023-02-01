@@ -424,6 +424,24 @@ class SQLQuery(SageObject):
             --------------------
             0
             1
+
+        Test that :trac:`27562` is fixed::
+
+            sage: D = SQLDatabase()
+            sage: r = SQLQuery(D, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 3]})
+            Traceback (most recent call last):
+            ...
+            ValueError: Database has no table simon
+            sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
+            sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
+            Traceback (most recent call last):
+            ...
+            ValueError: Database already has a table named simon
+            sage: SQLQuery(D, {'table_name':'simon', 'display_cols':['a1'], 'expression':['c1','>',2]})
+            Traceback (most recent call last):
+                ...
+            ValueError: Table has no column c1
+
         """
         if not isinstance(database, SQLDatabase):
             raise TypeError('%s is not a valid SQLDatabase'%database)
@@ -459,20 +477,19 @@ class SQLQuery(SageObject):
               else:
                   self.__param_tuple__ = tuple()
               return
-
         if query_dict:
             skel = database.__skeleton__
             if query_dict['table_name'] not in skel:
-                raise ValueError("Database has no table" \
-                    + str(query_dict['table_name']) + ".")
+                raise ValueError("Database has no table %s"
+                    % query_dict['table_name'])
             table_name = query_dict['table_name']
             if query_dict['display_cols'] is not None:
                 for column in query_dict['display_cols']:
                     if column not in skel[table_name]:
-                        raise ValueError("Table has no column %s."%column)
+                        raise ValueError("Table has no column %s"%column)
             if query_dict['expression'][0] not in skel[table_name]:
-                raise ValueError("Table has no column " \
-                    + str(query_dict['expression'][0]) + ".")
+                raise ValueError("Table has no column %s"
+                    % query_dict['expression'][0])
 
             self.__query_dict__ = query_dict
             self.__param_tuple__ = (str(query_dict['expression'][2]),)
@@ -1397,8 +1414,8 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot add table to a read only database.')
         if table_name in self.__skeleton__:
-            raise ValueError('Database already has a table named' \
-                + '%s.'%table_name)
+            raise ValueError('Database already has a table named %s'
+                % table_name)
         if table_name.find(' ') != -1:
             raise ValueError('Table names cannot contain spaces.')
         if table_name.upper() in sqlite_keywords:

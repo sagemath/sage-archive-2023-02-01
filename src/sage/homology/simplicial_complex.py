@@ -181,7 +181,6 @@ from sage.graphs.graph import Graph
 from functools import reduce, total_ordering
 from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
-from sage.misc.cachefunc import cached_method
 
 
 def lattice_paths(t1, t2, length=None):
@@ -1486,7 +1485,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S3.g_vector()
             [1, 25, 40]
         """
-        from sage.functions.other import floor
         d = self.dimension()
         h = self.h_vector()
         g = [1]
@@ -2641,7 +2639,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         getindex = self._translation_to_numeric().__getitem__
         simplex = Simplex(sorted(face, key=getindex))
         facets = self.facets()
-        if all([not simplex.is_face(F) for F in facets]):
+        if all(not simplex.is_face(F) for F in facets):
             # face is not in self
             if check:
                 raise ValueError('trying to remove a face which is not in the simplicial complex')
@@ -2797,9 +2795,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # first find a top-dimensional simplex to remove from each surface
         keep_left = self._facets[0]
         keep_right = other._facets[0]
-        # construct the set of vertices:
-        left = set(self.vertices()).difference(set(keep_left))
-        right = set(other.vertices()).difference(set(keep_right))
         # construct the set of facets:
         left = set(self._facets).difference(set([keep_left]))
         right = set(other._facets).difference(set([keep_right]))
@@ -3107,7 +3102,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 return False
 
         facets = set(self.facets())
-        nfacets = len(facets)
         cur_order = []
         # For consistency when using different Python versions, for example, sort 'faces'.
         it = [iter(sorted(facets, key=str))]
@@ -4632,7 +4626,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             False
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
-        Facets = self.facets()
         RFPairs = [(Simplex(r), f, f.dimension() - len(r) + 1)
                    for f in self.facets() for r in Set(f).subsets()]
         n = len(RFPairs)
@@ -4653,7 +4646,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             x = IP.get_values(y)
             return [RFPairs[i] for i in range(n) if x[i] == 1]
 
-    def intersection(self,other):
+    def intersection(self, other):
         r"""
         Calculate the intersection of two simplicial complexes.
 

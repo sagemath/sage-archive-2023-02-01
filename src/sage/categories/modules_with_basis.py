@@ -818,7 +818,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                                       unitriangular=unitriangular,
                                       category=category)
 
-        def tensor(*parents):
+        def tensor(*parents, **kwargs):
             """
             Return the tensor product of the parents.
 
@@ -830,7 +830,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 A # A # A
                 sage: A.rename(None)
             """
-            return parents[0].__class__.Tensor(parents, category = tensor.category_from_parents(parents))
+            constructor = kwargs.pop('constructor', tensor)
+            cat = constructor.category_from_parents(parents)
+            return parents[0].__class__.Tensor(parents, category=cat)
 
         def cardinality(self):
             """
@@ -1212,12 +1214,35 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [2*a + 12        2]
                 sage: CombinatorialFreeModule(ZZ, Partitions(4)).random_element() # random
                 2*B[[2, 1, 1]] + B[[2, 2]]
+
+            TESTS:
+
+            Ensure that the two issues reported in :trac:`28327` are
+            fixed; that we don't rely unnecessarily on being able to
+            coerce the base ring's zero into the algebra, and that
+            we can find a random element in a trivial module::
+
+                sage: class Foo(CombinatorialFreeModule):
+                ....:     _no_generic_basering_coercion = True
+                ....:     def _element_constructor_(self,x):
+                ....:         if x in self:
+                ....:             return x
+                ....:         else:
+                ....:             raise ValueError
+                sage: from sage.categories.magmatic_algebras \
+                ....:   import MagmaticAlgebras
+                sage: C = MagmaticAlgebras(QQ).WithBasis().Unital()
+                sage: F = Foo(QQ, tuple(), category=C)
+                sage: F.random_element() == F.zero()
+                True
+
             """
             indices = self.basis().keys()
-            a = self(0)
-            for i in range(n):
-                a += self.term(indices.random_element(),
-                               self.base_ring().random_element())
+            a = self.zero()
+            if not indices.is_empty():
+                for i in range(n):
+                    a += self.term(indices.random_element(),
+                                   self.base_ring().random_element())
             return a
 
     class ElementMethods:

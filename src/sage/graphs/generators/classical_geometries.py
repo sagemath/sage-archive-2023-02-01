@@ -13,7 +13,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #           Copyright (C) 2015 Sagemath project
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+#                         https://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import absolute_import, division
 from six.moves import range
@@ -173,13 +173,13 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
         sage: g.is_vertex_transitive()
         True
     """
-    if sign in ["+","-"]:
+    if sign in ["+", "-"]:
         s = 1 if sign == "+" else -1
-        if d%2 == 1:
-            raise ValueError("d must be even when sign!=None")
+        if d % 2:
+            raise ValueError("d must be even when sign is not None")
     else:
-        if d%2 == 0:
-            raise ValueError("d must be odd when sign==None")
+        if d % 2 == 0:
+            raise ValueError("d must be odd when sign is None")
         s = 0
 
     from sage.modules.free_module import VectorSpace
@@ -1228,7 +1228,7 @@ def CossidentePenttilaGraph(q):
     Cossidente-Penttila `((q^3+1)(q+1)/2,(q^2+1)(q-1)/2,(q-3)/2,(q-1)^2/2)`-strongly regular graph
 
     For each odd prime power `q`, one can partition the points of the `O_6^-(q)`-generalized
-    quadrange `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
+    quadrangle `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
     the point graph of the GQ has parameters as above [CP05]_.
 
     Directly following the construction in [CP05]_ is not efficient,

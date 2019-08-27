@@ -794,19 +794,23 @@ class Category(UniqueRepresentation, SageObject):
     ##########################################################################
 
     def category_graph(self):
-         r"""
-         Returns the graph of all super categories of this category
+        r"""
+        Returns the graph of all super categories of this category
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: C = Algebras(QQ)
-             sage: G = C.category_graph()
-             sage: G.is_directed_acyclic()
-             True
-             sage: G.girth()
-             4
-         """
-         return category_graph([self])
+            sage: C = Algebras(QQ)
+            sage: G = C.category_graph()
+            sage: G.is_directed_acyclic()
+            True
+
+        The girth of a directed acyclic graph is infinite, however,
+        the girth of the underlying undirected graph is 4 in this case::
+
+            sage: Graph(G).girth()
+            4
+        """
+        return category_graph([self])
 
     @abstract_method
     def super_categories(self):

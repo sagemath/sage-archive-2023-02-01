@@ -29,15 +29,15 @@ AUTHORS:
   pexpect 4.0.1 + patches, see :trac:`10295`.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six import string_types
 from six import reraise as raise_
@@ -138,7 +138,7 @@ class Expect(Interface):
         Interface.__init__(self, name)
 
         # Read environment variables
-        env_name = 'SAGE_%s_{}'%self.name().upper()
+        env_name = 'SAGE_%s_{}' % self.name().upper()
         if server is None:
             server = os.getenv(env_name.format('SERVER'))
         if server_tmpdir is None:
@@ -471,7 +471,7 @@ If this all works, you can then make calls like:
             print("Starting %s" % cmd.split()[0])
 
         if self.__remote_cleaner and self._server:
-            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
+            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &' % self._server
             os.system(c)
 
         # Unset some environment variables for the children to
@@ -531,6 +531,39 @@ If this all works, you can then make calls like:
                 for X in self.__init_code:
                     self._send(X)
 
+    def _isalive(self):
+        """
+        Wrapper for pexpect's ``spawn.isalive()``.
+
+        Handles an issue where if the underlying process disappear (died / was
+        killed and wait()-ed by another process) before pexpect itself could
+        wait() on it, then pexpect (really ptyprocess) raises an exception but
+        does *not* mark the process as terminated.  The same exception results,
+        then, from any attempt to close the pexpect process.
+
+        See https://trac.sagemath.org/ticket/28354
+        """
+        try:
+            return self._expect is not None and self._expect.isalive()
+        except ExceptionPexpect:
+            self._expect.ptyproc.terminated = True
+            return False
+
+    def _close(self, force=True):
+        """
+        Wrapper for pexpect's ``spawn.close()``.
+
+        Since the underlying method calls ``isalive()`` it is affected by the
+        same issue described in ``_isalive()`` above.
+        """
+        try:
+            if self._expect is not None:
+                self._expect.close(force=force)
+        except ExceptionPexpect:
+            self._expect.ptyproc.fd = -1
+            self._expect.ptyproc.closed = True
+            self._expect.child_fd = -1
+            self._expect.closed = True
 
     def clear_prompts(self):
         while True:
@@ -593,7 +626,7 @@ If this all works, you can then make calls like:
                     print("Exiting %r (running on %s)" % (self._expect, self._server))
                 else:
                     print("Exiting %r" % (self._expect,))
-            self._expect.close()
+            self._close()
         self._reset_expect()
 
     def detach(self):
@@ -798,26 +831,27 @@ If this all works, you can then make calls like:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
                 except RuntimeError as msg:
-                    raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0]))
+                    raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s' % (self, msg.args[0]))
                 except TypeError:
                     pass
-            raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
+            raise RuntimeError('%s terminated unexpectedly while reading in a large line' % self)
         except RuntimeError as msg:
             if self._quit_string() in line:
-                if self._expect is None or not self._expect.isalive():
+                if not self._isalive():
                     return ''
                 raise
-            if restart_if_needed and (self._expect is None or not self._expect.isalive()):
+            if restart_if_needed and not self._isalive():
                 try:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
                 except TypeError:
                     pass
                 except RuntimeError:
-                    raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
-            if "Input/output error" in msg[0]:  # This occurs on non-linux machines
-                raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
-            raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0]))
+                    raise RuntimeError('%s terminated unexpectedly while reading in a large line' % self)
+            if "Input/output error" in msg.args[0]:
+                # This occurs on non-linux machines
+                raise RuntimeError('%s terminated unexpectedly while reading in a large line' % self)
+            raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s' % (self, msg.args[0]))
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):
@@ -932,11 +966,11 @@ If this all works, you can then make calls like:
                         # while because the process might not die
                         # immediately. See Trac #14371.
                         for t in [0.5, 1.0, 2.0]:
-                            if E.isalive():
+                            if self._isalive():
                                 time.sleep(t)
                             else:
                                 break
-                    if not E.isalive():
+                    if not self._isalive():
                         try:
                             self._synchronize()
                         except (TypeError, RuntimeError):
@@ -981,7 +1015,7 @@ If this all works, you can then make calls like:
                     out = ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s" % self)
         if self._terminal_echo:
             i = out.find("\n")
             j = out.rfind("\r")
@@ -993,16 +1027,16 @@ If this all works, you can then make calls like:
         print("Interrupting %s..." % self)
         if self._restart_on_ctrlc:
             try:
-                self._expect.close(force=1)
+                self._close()
             except pexpect.ExceptionPexpect as msg:
                 raise pexpect.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             self._start()
-            raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
+            raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
         else:
             self._expect.sendline(chr(3))  # send ctrl-c
             self._expect.expect(self._prompt)
             self._expect.expect(self._prompt)
-            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s" % self)
 
     def interrupt(self, tries=5, timeout=2.0, quit_on_fail=True):
         E = self._expect
@@ -1139,14 +1173,14 @@ If this all works, you can then make calls like:
 
             sage: t = walltime()
             sage: try:
-            ....:    singular._expect_expr('25', timeout=0.5)
+            ....:    singular._expect_expr('25', timeout=float(0.4))
             ....: except Exception:
             ....:    print('Did not get expression')
             Did not get expression
 
         A quick consistency check on the time that the above took::
 
-            sage: w = walltime(t); w > 0.4 and w < 10
+            sage: w = walltime(t); 0.3 < w < 2
             True
 
         We tell Singular to print abc, which equals 25.
@@ -1192,9 +1226,9 @@ If this all works, you can then make calls like:
             if i > 0:
                 v = self._before()
                 self.quit()
-                raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self))
+                raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart." % (v, self))
         except KeyboardInterrupt:
-            print("Control-C pressed. Interrupting %s. Please wait a few seconds..."%self)
+            print("Control-C pressed. Interrupting %s. Please wait a few seconds..." % self)
             self.interrupt()
             raise
 

@@ -295,7 +295,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
             - ``n`` -- a nonnegative integer
 
             - ``using_polya`` (optional) -- a boolean: if ``True`` (default), the computation
-              uses Pólyà enumeration (and all values of the profile are cached, so this
+              uses Pólya enumeration (and all values of the profile are cached, so this
               should be the method used in case several of them are needed);
               if ``False``, uses the GAP interface to compute the orbit.
 

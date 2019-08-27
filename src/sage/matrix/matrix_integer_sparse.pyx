@@ -822,7 +822,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``algorithm`` -- (optional, default ``None``) one of ``None``,
           ``'linbox'``, or an algorithm accepted by
-          meth:`sage.matrix.matrix_sparse.Matrix_sparse.minpoly`
+          :meth:`sage.matrix.matrix_sparse.Matrix_sparse.minpoly`
 
         EXAMPLES::
 

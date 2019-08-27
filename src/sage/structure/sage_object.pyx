@@ -638,7 +638,7 @@ cdef class SageObject:
         """
         Return coercion of self to an object of the interface I.
 
-        The result of coercion is cached, unless self is not a C
+        The result of coercion is cached, unless self is a C
         extension class or ``self._interface_is_cached_()`` returns
         False.
         """
@@ -696,6 +696,17 @@ cdef class SageObject:
         import sage.interfaces.gap
         I = sage.interfaces.gap.gap
         return self._interface_init_(I)
+
+    def _libgap_(self):
+        from sage.libs.gap.libgap import libgap
+        return libgap.eval(self._libgap_init_())
+
+    def _libgap_init_(self):
+        """
+        For consistency's sake we provide a ``_libgap_init_`` but in most cases
+        we can use the same as ``_gap_init_`` here.
+        """
+        return self._gap_init_()
 
     def _gp_(self, G=None):
         if G is None:

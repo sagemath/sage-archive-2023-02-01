@@ -96,6 +96,7 @@ Libraries of algorithms
    sage/graphs/hyperbolicity
    sage/graphs/tutte_polynomial
    sage/graphs/partial_cube
+   sage/graphs/path_enumeration
    sage/graphs/generic_graph_pyx
    sage/graphs/orientations
    sage/graphs/connectivity

@@ -940,7 +940,7 @@ class OperationTable(SageObject):
             d| d e a b c
             e| e a b c d
 
-        The table should adjust its column width to accomodate the width of the
+        The table should adjust its column width to accommodate the width of the
         strings used to represent elements.  ::
 
             sage: from sage.matrix.operation_table import OperationTable

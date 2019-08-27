@@ -337,6 +337,7 @@ from sage.structure.element import RingElement
 
 import sage.rings.integer
 
+from sage.env import SINGULARPATH
 from sage.misc.misc import get_verbose
 from sage.docs.instancedoc import instancedoc
 
@@ -2261,7 +2262,7 @@ def generate_docstring_dictionary():
     nodes.clear()
     node_names.clear()
 
-    singular_docdir = os.environ['SINGULARPATH']+"/../info/"
+    singular_docdir = SINGULARPATH + "/../info/"
 
     new_node = re.compile(r"File: singular\.hlp,  Node: ([^,]*),.*")
     new_lookup = re.compile(r"\* ([^:]*):*([^.]*)\..*")

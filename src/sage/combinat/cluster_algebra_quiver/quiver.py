@@ -186,12 +186,12 @@ class ClusterQuiver(SageObject):
         sage: Q = ClusterQuiver(DiGraph([[1,1]]))
         Traceback (most recent call last):
         ...
-        ValueError: the input DiGraph contains a loop
+        ValueError: cannot add edge from 1 to 1 in graph without loops
 
         sage: Q = ClusterQuiver([[1,1]])
         Traceback (most recent call last):
         ...
-        ValueError: the input DiGraph contains a loop
+        ValueError: cannot add edge from 1 to 1 in graph without loops
 
         sage: Q = ClusterQuiver(DiGraph([[1, 0],[0,1]]))
         Traceback (most recent call last):

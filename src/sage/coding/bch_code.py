@@ -1,16 +1,16 @@
 r"""
-BCH Code
+BCH code
 
-Let `F = GF(q)` and `\Phi` be the splitting field of `x^{n} - 1` over `F`,
-with `n` a positive integer. Let also `\alpha` be an element of multiplicative
-order `n` in `\Phi`. Finally, let `b, \delta, \ell` be integers such that
-`0 \le b \le n`, `1 \le \delta \le n` and `\alpha^\ell` generates the
-multiplicative group `\Phi^{\times}`.
+Let `F = GF(q)` and `\Phi` be the splitting field of `x^{n} - 1` over `F`, with
+`n` a positive integer. Let also `\alpha` be an element of multiplicative order
+`n` in `\Phi`. Finally, let `b, \delta, \ell` be integers such that `0 \le b
+\le n`, `1 \le \delta \le n` and `\alpha^\ell` generates the multiplicative
+group `\Phi^{\times}`.
 
 A BCH code over `F` with designed distance `\delta` is a cyclic code whose
 codewords `c(x) \in F[x]` satisfy `c(\alpha^{a}) = 0`, for all integers `a` in
-the arithmetic sequence
-`b, b + \ell, b + 2 \times \ell, \dots, b + (\delta - 2) \times \ell`.
+the arithmetic sequence `b, b + \ell, b + 2 \times \ell, \dots, b + (\delta -
+2) \times \ell`.
 
 TESTS:
 
@@ -23,11 +23,13 @@ interferes with doctests::
     sage: Fqm.<aa> = GF(16)
     sage: Fq.<a> = GF(4)
     sage: RelativeFiniteFieldExtension(Fqm, Fq)
-    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    doctest:...: FutureWarning: This class/method/function is marked as
+    experimental. It, its functionality or its interface might change without a
+    formal deprecation.
     See http://trac.sagemath.org/20284 for details.
-    Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+    Relative field extension between Finite Field in aa of size 2^4 and Finite
+    Field in a of size 2^2
 """
-
 # *****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
 #                     2017 Julien Lavauzelle <julien.lavauzelle@inria.fr>
@@ -38,17 +40,17 @@ interferes with doctests::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+from copy import copy
 
-from .cyclic_code import CyclicCode
-from .grs import GeneralizedReedSolomonCode
-from .decoder import Decoder
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
 from sage.categories.fields import Fields
 from sage.arith.all import gcd
 from sage.rings.all import Zmod
-from copy import copy
 
+from .cyclic_code import CyclicCode
+from .grs_code import GeneralizedReedSolomonCode
+from .decoder import Decoder
 
 class BCHCode(CyclicCode):
     r"""
@@ -272,7 +274,7 @@ class BCHCode(CyclicCode):
 class BCHUnderlyingGRSDecoder(Decoder):
     r"""
     A decoder which decodes through the underlying
-    :class:`sage.coding.grs.GeneralizedReedSolomonCode` code of the provided
+    :class:`sage.coding.grs_code.GeneralizedReedSolomonCode` code of the provided
     BCH code.
 
     INPUT:
@@ -448,7 +450,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             (a, a + 1, 1, a + 1, 1, a, a + 1, a + 1, 0, 1, a + 1, 1, 1, 1, a)
             sage: D.decode_to_code(y) in C
             True
-        
+
         We check that it still works when, while list-decoding, the GRS decoder
         output some words which do not lie in the BCH code::
 

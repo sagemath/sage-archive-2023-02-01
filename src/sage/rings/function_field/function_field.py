@@ -1326,7 +1326,7 @@ class FunctionField_polymod(FunctionField):
             to_ret = self.hom( [L_to_ret(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())] )
             return ret, from_ret, to_ret
         else:
-            if self.polynomial().is_monic() and all([c.denominator().is_one() for c in self.polynomial()]):
+            if self.polynomial().is_monic() and all(c.denominator().is_one() for c in self.polynomial()):
                 # self is already monic and integral
                 if names is None or names == ():
                     names = (self.variable_name(),)

@@ -29,8 +29,8 @@ cd src/
 
 
 sdh_configure $SAGE_CONFIGURE_NTL \
-              --with-pari="$SAGE_LOCAL" \
-              $SAGE_CONFIGURE_FLINT \
+              $SAGE_CONFIGURE_PARI \
+              --with-flint=$SAGE_FLINT_PREFIX \
               --with-boost="no" \
               --disable-allprogs
 sdh_make

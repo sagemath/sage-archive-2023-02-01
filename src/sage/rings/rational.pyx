@@ -464,6 +464,15 @@ cdef class Rational(sage.structure.element.FieldElement):
         2/3
         sage: Rational(mpz(5))
         5
+
+    TESTS:
+
+    Check that :trac:`28321` is fixed::
+
+        sage: QQ((2r^100r, 3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
+        sage: QQ((-2r^100r, -3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
     """
     def __cinit__(self):
         r"""
@@ -612,20 +621,28 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif isinstance(x, tuple) and len(x) == 2:
             num = x[0]
             denom = x[1]
-            if isinstance(num, int) and isinstance(denom, int):
-                if denom >= 0:
-                    mpq_set_si(self.value, num, denom)
-                else:
-                    mpq_set_si(self.value, -num, -denom)
+
+            if isinstance(num, long):
+                mpz_set_pylong(mpq_numref(self.value), num)
+            elif isinstance(num, int):  # Python 2 only
+                mpz_set_si(mpq_numref(self.value), num)
             else:
                 if not isinstance(num, integer.Integer):
                     num = integer.Integer(num, base)
+                mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
+
+            if isinstance(denom, long):
+                mpz_set_pylong(mpq_denref(self.value), denom)
+            elif isinstance(denom, int):  # Python 2 only
+                mpz_set_si(mpq_denref(self.value), denom)
+            else:
                 if not isinstance(denom, integer.Integer):
                     denom = integer.Integer(denom, base)
-                mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
                 mpz_set(mpq_denref(self.value), (<integer.Integer>denom).value)
+
             if mpz_sgn(mpq_denref(self.value)) == 0:
                 raise ValueError("denominator must not be 0")
+
             mpq_canonicalize(self.value)
 
         elif isinstance(x, pari_gen):
@@ -3049,6 +3066,22 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     #Define an alias for denominator
     denom = denominator
+
+    def as_integer_ratio(self):
+        """
+        Return the pair ``(self.numerator(), self.denominator())``.
+
+        EXAMPLES::
+
+            sage: x = -12/29
+            sage: x.as_integer_ratio()
+            (-12, 29)
+        """
+        n = <Integer>Integer.__new__(Integer)
+        d = <Integer>Integer.__new__(Integer)
+        n.set_from_mpz(mpq_numref(self.value))
+        d.set_from_mpz(mpq_denref(self.value))
+        return (n, d)
 
     def factor(self):
         """

@@ -1212,7 +1212,7 @@ class GraphicMatroid(Matroid):
         """
         Return a dictionary mapping the input vertices to the current vertices.
 
-        The graph for the matroid is alway connected. If the constructor is
+        The graph for the matroid is always connected. If the constructor is
         given a graph with multiple components, it will connect them. The
         Python dictionary given by this method has the vertices from the
         input graph as keys, and the corresponding vertex label after any

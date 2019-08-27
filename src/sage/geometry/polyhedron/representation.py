@@ -219,14 +219,14 @@ class PolyhedronRepresentation(SageObject):
 
     def index(self):
         """
-        Returns an arbitrary but fixed number according to the internal
+        Return an arbitrary but fixed number according to the internal
         storage order.
 
         NOTES:
 
         H-representation and V-representation objects are enumerated
         independently. That is, amongst all vertices/rays/lines there
-        will be one with ``index()==0``, and amongs all
+        will be one with ``index()==0``, and amongst all
         inequalities/equations there will be one with ``index()==0``,
         unless the polyhedron is empty or spans the whole space.
 
@@ -771,6 +771,23 @@ class Inequality(Hrepresentation):
             return self.polyhedron()._is_positive( self.eval(Vobj) )
         else: # Vobj.is_ray()
             return self.polyhedron()._is_nonneg( self.eval(Vobj) )
+
+    def outer_normal(self):
+        r"""
+        Return the outer normal vector of ``self``.
+
+        OUTPUT:
+        
+        The normal vector directed away from the interior of the polyhedron.
+        
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
+            sage: a = next(p.inequality_generator())
+            sage: a.outer_normal()
+            (1, -1, 0)
+        """
+        return -self.A()
 
 
 class Equation(Hrepresentation):

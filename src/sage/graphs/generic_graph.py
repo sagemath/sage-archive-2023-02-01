@@ -124,6 +124,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
+    :meth:`~GenericGraph.shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices.
 
 **Linear algebra:**
 
@@ -199,7 +200,9 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.breadth_first_search` | Return an iterator over the vertices in a breadth-first ordering.
     :meth:`~GenericGraph.depth_first_search` | Return an iterator over the vertices in a depth-first ordering.
     :meth:`~GenericGraph.lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
+    :meth:`~GenericGraph.lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
+    :meth:`~GenericGraph.lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
 
 **Distances:**
 
@@ -440,8 +443,6 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.matrix.constructor import matrix
 from sage.rings.rational_field import QQ
-from sage.categories.cartesian_product import cartesian_product
-from sage.misc.misc_c import prod
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -5129,8 +5130,7 @@ class GenericGraph(GenericGraph_pyx):
         del graph
         return result
 
-    # TODO: rename into _layout_planar
-    def set_planar_positions(self, test = False, **layout_options):
+    def set_planar_positions(self, test=False, **layout_options):
         """
         Compute a planar layout for self using Schnyder's algorithm,
         and save it as default layout.
@@ -5139,6 +5139,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CycleGraph(7)
             sage: g.set_planar_positions(test=True)
+            doctest:...: DeprecationWarning: This method is replaced by the method layout. Please use layout(layout="planar", save_pos=True) instead.
+            See http://trac.sagemath.org/24494 for details.
             True
 
         This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
@@ -5146,51 +5148,111 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.layout(layout = "planar", save_pos = True)
             {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
         """
-        self.layout(layout = "planar", save_pos = True, test = test, **layout_options)
-        if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
-            return self.is_drawn_free_of_edge_crossings() # returns true if tests pass
+        deprecation(24494, 'This method is replaced by the method layout. '
+                           'Please use layout(layout="planar", save_pos=True) '
+                           'instead.')
+        self.layout(layout="planar", save_pos=True, test=test, **layout_options)
+        if test: # Optional error-checking (looking for edge-crossings O(n^2))
+            # returns true if tests pass
+            return self.is_drawn_free_of_edge_crossings()
         else:
             return
 
-    def layout_planar(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False, **options):
+    def layout_planar(self, set_embedding=False, on_embedding=None,
+                      external_face=None, test=False, circular=False,
+                      **options):
         """
         Compute a planar layout of the graph using Schnyder's algorithm.
+
+        If ``set_embedding`` is set, a new combinatorial embedding is computed
+        for the layout. Otherwise: if ``on_embedding`` is provided, then that
+        combinatorial embedding is used for the layout. Otherwise: if a
+        combinatorial embedding is set to the instance field variable of the
+        graph (e.g. using
+        :meth:`~sage/graphs/generic_graph.GenericGraph.set_embedding`), then
+        that one is used, and if no combinatorial embedding is set, then one is
+        computed.
 
         If the graph is not planar, an error is raised.
 
         INPUT:
 
         - ``set_embedding`` -- boolean (default: ``False``); whether to set the
-           combinatorial embedding used (see
-           :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
+          instance field variable that contains a combinatorial embedding to the
+          combinatorial embedding used for the planar layout (see
+          :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
 
         - ``on_embedding`` -- dictionary (default: ``None``); provide a
-           combinatorial embedding
+          combinatorial embedding
 
-        -  ``external_face`` -- ignored
+        - ``external_face`` -- a pair `(u,v)` of vertices (default: ``None``);
+          the external face of the drawing is chosen in such a way that `u` and
+          `v` are consecutive vertices in the clockwise traversal of the
+          external face, in particular `uv` has to be an edge of the graph. If
+          ``external_face == None``, an arbitrary external face is chosen.
 
         - ``test`` -- boolean (default: ``False``); whether to perform sanity
-           tests along the way
+          tests along the way
 
-        -  ``circular`` -- ignored
-
+        - ``circular`` -- ignored
 
         EXAMPLES::
 
             sage: g = graphs.PathGraph(10)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: g.layout(layout='planar', save_pos=True, test=True)
+            {0: [3, 2],
+             1: [4, 3],
+             2: [3, 4],
+             3: [4, 4],
+             4: [2, 6],
+             5: [8, 1],
+             6: [1, 7],
+             7: [0, 8],
+             8: [1, 1],
+             9: [1, 0]}
             sage: g = graphs.BalancedTree(3, 4)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: pos = g.layout(layout='planar', save_pos=True, test=True)
+            sage: pos[0]
+            [2, 116]
+            sage: pos[120]
+            [3, 64]
             sage: g = graphs.CycleGraph(7)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: g.layout(layout='planar', save_pos=True, test=True)
+            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
             sage: g = graphs.CompleteGraph(5)
-            sage: g.set_planar_positions(test=True, set_embedding=True)
+            sage: g.layout(layout='planar', save_pos=True, test=True, set_embedding=True)
             Traceback (most recent call last):
             ...
             ValueError: Complete graph is not a planar graph
+
+        Choose the external face of the drawing::
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.layout(layout='planar', external_face=(0,1))
+            {0: [0, 2], 1: [2, 1], 2: [1, 0], 3: [1, 1]}
+            sage: g.layout(layout='planar', external_face=(3,1))
+            {0: [2, 1], 1: [0, 2], 2: [1, 1], 3: [1, 0]}
+
+        TESTS::
+
+            sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
+            sage: G.layout(layout='planar', external_face=(1, 2))
+            Traceback (most recent call last):
+            ...
+            ValueError: (1, 2) is not an edge of Graph on 4 vertices but has been provided as an edge of the external face
+
+        Check the dependence of the computed position on the given combinatorial
+        embedding (:trac:`28152`)::
+
+            sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
+            sage: G.set_embedding({0: [1, 2, 3], 1: [0], 2: [0], 3: [0]})
+            sage: pos1 = G.layout('planar', save_pos=True)
+            sage: G._check_embedding_validity()
+            True
+            sage: G.set_embedding({0: [3, 2, 1], 1: [0], 2: [0], 3: [0]})
+            sage: pos2 = G.layout('planar', save_pos=True)
+            sage: pos1 == pos2
+            False
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
@@ -5204,7 +5266,7 @@ class GenericGraph(GenericGraph_pyx):
         if set_embedding:
             if not G.is_planar(set_embedding=True):
                 raise ValueError('%s is not a planar graph'%self)
-            embedding_copy = G._embedding
+            embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
         else:
             if on_embedding is not None:
                 G._check_embedding_validity(on_embedding,boolean=False)
@@ -5215,51 +5277,38 @@ class GenericGraph(GenericGraph_pyx):
                     if G._check_embedding_validity():
                         if not G.is_planar(on_embedding=G._embedding):
                             raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
-                        embedding_copy = G._embedding
+                        embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
                     else:
                         raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:
                     G.is_planar(set_embedding=True)
-        # The following is what was breaking the code.  It is where we were specifying the external
-        #       face ahead of time.  This is definitely a TODO:
-        #
-        # Running is_planar(set_embedding=True) has set attribute self._embedding
-        #if external_face is None:
-        #    faces = faces( self, self._embedding )
-        #    faces.sort(key=len)
-        #    external_face = faces[-1]
 
-        #n = len(external_face)
-        #other_added_edges = []
-        #if n > 3:
-        #    v1, v2, v3 = external_face[0][0], external_face[int(n/3)][0], external_face[int(2*n/3)][0]
-        #    if not self.has_edge( (v1,v2) ):
-        #        self.add_edge( (v1, v2) )
-        #        other_added_edges.append( (v1, v2) )
-        #    if not self.has_edge( (v2,v3) ):
-        #        self.add_edge( (v2, v3) )
-        #        other_added_edges.append( (v2, v3) )
-        #    if not self.has_edge( (v3,v1) ):
-        #        self.add_edge( (v3, v1) )
-        #        other_added_edges.append( (v3, v1) )
-        #    if not self.is_planar(set_embedding=True): # get new combinatorial embedding (with added edges)
-        #        raise ValueError('modified graph %s is not planar.  Try specifying an external face'%self)
-
-        # Triangulate the graph
+        if external_face:
+            if not self.has_edge(external_face):
+                raise ValueError('{} is not an edge of {} but has been '
+                                 'provided as an edge of the external face'
+                                 ''.format(external_face, self))
+        
         _triangulate(G, G._embedding)
 
         # Optional error-checking
         if test:
-            G.is_planar(set_embedding=True) # to get new embedding
+            if G._check_embedding_validity():
+                if not G.is_planar(on_embedding=G._embedding):
+                    raise ValueError('%s has nonplanar _embedding attribute. Try putting set_embedding=True' % self)
             test_faces = G.faces(G._embedding)
             for face in test_faces:
                 if len(face) != 3:
                     raise RuntimeError('BUG: Triangulation returned face: %s'%face)
 
-        G.is_planar(set_embedding=True)
         faces = G.faces(G._embedding)
-        # Assign a normal label to the graph
-        label = _normal_label(G, G._embedding, faces[0])
+        outer_face = faces[0]
+        if external_face:
+            for face in faces:
+                if external_face in face:
+                    outer_face = face
+                    break
+        label = _normal_label(G, G._embedding, outer_face)
 
         # Get dictionary of tree nodes from the realizer
         tree_nodes = _realizer(G, label)
@@ -5292,7 +5341,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: D = graphs.DodecahedralGraph()
-            sage: D.set_planar_positions()
+            sage: pos = D.layout(layout='planar', save_pos=True)
             sage: D.is_drawn_free_of_edge_crossings()
             True
         """
@@ -15941,248 +15990,6 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return closeness
 
-    ### Paths
-
-    def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels=False):
-        """
-        Return the list of all paths between a pair of vertices.
-
-        If ``start`` is the same vertex as ``end``, then ``[[start]]`` is
-        returned -- a list containing the 1-vertex, 0-edge path "``start``".
-
-        If ``self`` has multiple edges, a path will be returned as many
-        times as the product of the multiplicity of the edges along that path
-        depending on the value of the flag ``use_multiedges``.
-
-        INPUT:
-
-        - ``start`` -- a vertex of a graph, where to start
-
-        - ``end`` -- a vertex of a graph, where to end
-
-        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-          used only if the graph has multiple edges.
-
-          - If ``False``, the graph is considered as simple and an edge label
-            is arbitrarily selected for each edge as in
-            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
-
-          - If ``True``, a path will be reported as many times as the edges
-            multiplicities along that path (when ``report_edges = False`` or
-            ``labels = False``), or with all possible combinations of edge
-            labels (when ``report_edges = True`` and ``labels = True``)
-
-        - ``report_edges`` -- boolean (default: ``False``); whether to report
-          paths as list of vertices (default) or list of edges, if ``False``
-          then ``labels`` parameter is ignored
-
-        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.
-
-        EXAMPLES::
-
-            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-            sage: eg1.all_paths(0,6)
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg2 = graphs.PetersenGraph()
-            sage: sorted(eg2.all_paths(1,4))
-            [[1, 0, 4],
-             [1, 0, 5, 7, 2, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 8, 3, 2, 7, 9, 4],
-             [1, 0, 5, 8, 3, 4],
-             [1, 0, 5, 8, 6, 9, 4],
-             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 2, 3, 4],
-             [1, 2, 3, 8, 5, 0, 4],
-             [1, 2, 3, 8, 5, 7, 9, 4],
-             [1, 2, 3, 8, 6, 9, 4],
-             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 7, 5, 0, 4],
-             [1, 2, 7, 5, 8, 3, 4],
-             [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
-             [1, 6, 8, 3, 4],
-             [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 2, 3, 4],
-             [1, 6, 8, 5, 7, 9, 4],
-             [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
-             [1, 6, 9, 7, 5, 0, 4],
-             [1, 6, 9, 7, 5, 8, 3, 4]]
-            sage: dg = DiGraph({0:[1,3], 1:[3], 2:[0,3]})
-            sage: sorted(dg.all_paths(0,3))
-            [[0, 1, 3], [0, 3]]
-            sage: ug = dg.to_undirected()
-            sage: sorted(ug.all_paths(0,3))
-            [[0, 1, 3], [0, 2, 3], [0, 3]]
-
-            sage: g = Graph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
-            sage: g.all_paths(0, 2, use_multiedges=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-
-            sage: dg = DiGraph({0:[1, 2, 1], 3:[0, 0]}, multiedges=True)
-            sage: dg.all_paths(3, 1, use_multiedges=True)
-            [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
-
-            sage: g = Graph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
-            sage: g.all_paths(0, 2, use_multiedges=False)
-            [[0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True)
-            [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True, labels=True)
-            [((0, 1, 'b'), (1, 2, 'd')),
-             ((0, 1, 'b'), (1, 2, 'c')),
-             ((0, 1, 'a'), (1, 2, 'd')),
-             ((0, 1, 'a'), (1, 2, 'c'))]
-            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=True, labels=True)
-            [((0, 1, 'b'), (1, 2, 'd'))]
-            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=False, labels=True)
-            [[0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-
-        TESTS:
-
-        Starting and ending at the same vertex (see :trac:`13006`)::
-
-            sage: graphs.CompleteGraph(4).all_paths(2, 2)
-            [[2]]
-
-        Non-existing vertex as end vertex (see :trac:`24495`)::
-
-            sage: g = graphs.PathGraph(5)
-            sage: g.all_paths(1, 'junk')
-            Traceback (most recent call last):
-            ...
-            LookupError: end vertex (junk) is not a vertex of the graph
-
-        Distinguishing between multiedged paths (see :trac:`27501`)::
-
-            sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0, 3, 1)
-            sage: g.add_edge(0, 2, 3)
-            sage: g.add_edge(0, 1, 3)
-            sage: g.add_edge(2, 3, 5)
-            sage: g.add_edge(2, 3, 15)
-            sage: g.add_edge(2, 4, 12)
-            sage: g.add_edge(3, 5, 7)
-            sage: g.all_paths(0, 5, use_multiedges=True)
-            [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]
-
-            sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0, 1, 1)
-            sage: g.add_edge(0, 2, 3)
-            sage: g.add_edge(1, 4, 3)
-            sage: g.add_edge(2, 3, 5)
-            sage: g.add_edge(2, 4, 15)
-            sage: g.add_edge(2, 4, 12)
-            sage: g.add_edge(4, 5, 7)
-            sage: g.add_edge(4, 5, 8)
-            sage: g.add_edge(5, 6, 2)
-            sage: g.all_paths(0, 6, use_multiedges=True)
-            [[0, 1, 4, 5, 6],
-             [0, 1, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6]]
-
-        Added reporting of edges (see :trac:`27501`)::
-
-            sage: G = DiGraph(multiedges=True)
-            sage: G.add_edges([(0,2), (0,3), (0,4), (1,2), (1,2), (1,5), (3,5), (3,5)])
-            sage: G.all_paths(0, 5, report_edges=True)
-            [[(0, 3), (3, 5)]]
-            sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
-            [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
-
-        """
-        if start not in self:
-            raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
-        if end not in self:
-            raise LookupError("end vertex ({0}) is not a vertex of the graph".format(end))
-
-        if self.is_directed():
-            iterator = self.neighbor_out_iterator
-        else:
-            iterator = self.neighbor_iterator
-
-        if report_edges and labels:
-            edge_labels = {}
-            if use_multiedges:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) in edge_labels:
-                        edge_labels[(e[0], e[1])].append(e)
-                    else:
-                        edge_labels[(e[0], e[1])] = [e]
-            else:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) not in edge_labels:
-                        edge_labels[(e[0], e[1])] = [e]
-            if not self.is_directed():
-                for u, v in list(edge_labels):
-                    edge_labels[v, u] = edge_labels[u, v]
-        elif use_multiedges and self.has_multiple_edges():
-            from collections import Counter
-            edge_multiplicity = Counter(self.edge_iterator(labels=False))
-
-        if start == end:
-            return [[start]]
-
-        all_paths = []      # list of
-        act_path = []       # the current path
-        act_path_iter = []  # the neighbor/successor-iterators of the current path
-        done = False
-        s = start
-        while not done:
-            if s == end:    # if path completes, add to list
-                all_paths.append(act_path + [s])
-            else:
-                if s not in act_path:   # we want vertices just once in a path
-                    act_path.append(s)  # extend current path
-                    act_path_iter.append(iterator(s))  # save the state of the neighbor/successor-iterator of the current vertex
-            s = None
-            while (s is None) and not done:
-                try:
-                    s = next(act_path_iter[-1])  # try to get the next neighbor/successor, ...
-                except (StopIteration):          # ... if there is none ...
-                    act_path.pop()               # ... go one step back
-                    act_path_iter.pop()
-                if not act_path:                 # there is no other vertex ...
-                    done = True                  # ... so we are done
-
-        if report_edges and labels:
-            path_with_labels = []
-            for p in all_paths:
-                path_with_labels.extend(cartesian_product([edge_labels[e] for e in zip(p[:-1], p[1:])]))
-            return path_with_labels
-        elif use_multiedges and self.has_multiple_edges():
-            multiple_all_paths = []
-            for p in all_paths:
-                m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
-                if report_edges:
-                    ep = list(zip(p[:-1], p[1:]))
-                for _ in range(m):
-                    if report_edges:
-                        multiple_all_paths.append(ep)
-                    else:
-                        multiple_all_paths.append(p)
-            return multiple_all_paths
-        elif report_edges:
-            return [list(zip(p[:-1], p[1:])) for p in all_paths]
-        return all_paths
-
     def triangles_count(self, algorithm=None):
         r"""
         Return the number of triangles in the (di)graph.
@@ -23600,7 +23407,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return self.is_isomorphic(self.complement())
 
-
     # Aliases to functions defined in other modules
     from sage.graphs.distances_all_pairs import distances_distribution
     from sage.graphs.base.boost_graph import dominator_tree
@@ -23619,8 +23425,12 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
+    from sage.graphs.path_enumeration import shortest_simple_paths
+    from sage.graphs.path_enumeration import all_paths
     from sage.graphs.traversals import lex_BFS
+    from sage.graphs.traversals import lex_UP
     from sage.graphs.traversals import lex_DFS
+    from sage.graphs.traversals import lex_DOWN
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""

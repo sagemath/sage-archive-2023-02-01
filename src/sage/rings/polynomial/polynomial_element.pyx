@@ -8167,7 +8167,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (x^2 + a*x - 5, x - 2, 4)
             sage: (u*(x+2)).trace_polynomial()
             (x^2 + a*x - 5, x + 2, 4)
-         """
+
+        TESTS:
+
+        Check that :trac:`28395` is fixed::
+
+            sage: P.<t> = QQ[]
+            sage: u = t^4 + 3*t^2 + 1
+            sage: u.trace_polynomial()
+            (t^2 + 1, 1, 1)
+        """
         S = self.parent()
         A = S.base_ring()
         x = S.gen()
@@ -8197,7 +8206,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = []
         m = Q.degree() // 2
         for i in reversed(range(m + 1)):
-            coeffs.insert(0, Q.leading_coefficient())
+            coeffs.insert(0, Q[2*i]) # Note: degree of Q may be less than 2*i
             Q = (Q % (x**2 + q)**i) // x
         return S(coeffs), cofactor, q
 
@@ -8232,6 +8241,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P2.is_weil_polynomial()
             False
 
+        TESTS:
+
+        Check that :trac:`28395` is fixed::
+
+            sage: P.<t> = QQ[]
+            sage: u = t^10 + 4*t^9 + 8*t^8 + 18*t^7 + 81*t^6 + 272*t^5 + 567*t^4 + 882*t^3 + 2744*t^2 + 9604*t + 16807
+            sage: u.is_weil_polynomial()
+            True
+
         AUTHORS:
 
         David Zureick-Brown (2017-10-01)
@@ -8251,7 +8269,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             b = Q.all_roots_in_interval(-2*q.sqrt(), 2*q.sqrt())
         if return_q:
-            return (b, ZZ(q.sqrt())) if b else (b, 0)
+            return (b, self.base_ring()(q.sqrt())) if b else (b, 0)
         else:
             return b
 

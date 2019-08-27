@@ -508,7 +508,7 @@ cdef class Matrix(Matrix1):
             True
         """
         D = self.augment(B)
-        D.echelonize(algorithm='linbox_noefd')
+        D.echelonize()
         return D.matrix_from_columns(range(self.ncols(),D.ncols()))
 
     def pivot_rows(self):

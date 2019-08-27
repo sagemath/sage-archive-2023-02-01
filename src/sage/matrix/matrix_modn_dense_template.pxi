@@ -291,7 +291,7 @@ cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* a
     C = A*B
     """
     cdef ModField *F = new ModField(<long>modulus)
-    cdef ModField.Element one, mone, zero
+    cdef ModField.Element one, zero
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
 
@@ -317,7 +317,7 @@ cdef inline int linbox_matrix_vector_multiply(celement modulus, celement* C, cel
     C = A*v
     """
     cdef ModField *F = new ModField(<long>modulus)
-    cdef ModField.Element one, mone, zero
+    cdef ModField.Element one, zero
     F.init(one, <int>1)
     F.init(zero, <int>0)
 
@@ -1691,7 +1691,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         r = R(v)
         return r
 
-    def echelonize(self, algorithm="linbox", **kwds):
+    def echelonize(self, algorithm="linbox_noefd", **kwds):
         """
         Put ``self`` in reduced row echelon form.
 

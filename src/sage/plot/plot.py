@@ -282,7 +282,7 @@ We can add a graphics object to another one as an inset::
     sage: g1 = plot(x^2*sin(1/x), (x, -2, 2), axes_labels=['$x$', '$y$'])
     sage: g2 = plot(x^2*sin(1/x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'],
     ....:           frame=True)
-    sage: g1.inset(g2, pos=(0.18, 0.68, 0.25, 0.25))
+    sage: g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25))
     Multigraphics with 2 elements
 
 .. PLOT::
@@ -290,7 +290,7 @@ We can add a graphics object to another one as an inset::
     g1 = plot(x**2*sin(1/x), (x, -2, 2), axes_labels=['$x$', '$y$'])
     g2 = plot(x**2*sin(1/x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
               frame=True)
-    sphinx_plot(g1.inset(g2, pos=(0.18, 0.68, 0.25, 0.25)))
+    sphinx_plot(g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25)))
 
 We can add a title to a graph::
 

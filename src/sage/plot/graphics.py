@@ -3329,9 +3329,9 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``pos`` -- (default: ``None``) 4-tuple
           ``(left, bottom, width, height)``
-          specifying the location and size of the inset on the figure, all
-          quantities being in fractions of the figure width and height; if
-          ``None``, the value ``(0.70, 0.68, 0.2, 0.2)`` is used
+          specifying the location and size of the inset on the final figure,
+          all quantities being in fractions of the figure width and height; if
+          ``None``, the value ``(0.7, 0.7, 0.2, 0.2)`` is used
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
@@ -3361,7 +3361,7 @@ class Graphics(WithEqualityById, SageObject):
 
         Using non-default values for the position/size and the font size::
 
-            sage: g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8)
+            sage: g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25), fontsize=8)
             Multigraphics with 2 elements
 
         .. PLOT::
@@ -3370,14 +3370,14 @@ class Graphics(WithEqualityById, SageObject):
             g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
             g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
                       frame=True)
-            sphinx_plot(g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8))
+            sphinx_plot(g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25), fontsize=8))
 
         We can add another inset by invoking ``inset`` on the last output::
 
             sage: g1g2 = _
             sage: g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'],
             ....:           frame=True)
-            sage: g1g2.inset(g3, pos=(0.68, 0.15, 0.25, 0.25))
+            sage: g1g2.inset(g3, pos=(0.65, 0.12, 0.25, 0.25))
             Multigraphics with 3 elements
 
         .. PLOT::
@@ -3386,22 +3386,18 @@ class Graphics(WithEqualityById, SageObject):
             g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
             g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
                       frame=True)
-            g1g2 = g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8)
+            g1g2 = g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25), fontsize=8)
             g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'], \
                       frame=True)
-            sphinx_plot(g1g2.inset(g3, pos=(0.68, 0.15, 0.25, 0.25)))
+            sphinx_plot(g1g2.inset(g3, pos=(0.65, 0.12, 0.25, 0.25)))
 
         """
-        from matplotlib import rcParams
         from .multigraphics import MultiGraphics
         if pos is None:
-            width = 0.2
-            height = 0.2
-            left = rcParams['figure.subplot.right'] - width
-            bottom = rcParams['figure.subplot.top'] - height
-            pos = (left, bottom, width, height)
+            pos = (0.7, 0.7, 0.2, 0.2)
+        pos0 = (0.05, 0.05, 0.9, 0.9)
         if fontsize is not None:
             graphics._extra_kwds['fontsize'] = fontsize
         elif 'fontsize' not in graphics._extra_kwds:
             graphics._extra_kwds['fontsize'] = 6
-        return MultiGraphics([self, (graphics, pos)])
+        return MultiGraphics([(self, pos0), (graphics, pos)])

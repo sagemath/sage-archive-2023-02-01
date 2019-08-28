@@ -653,7 +653,7 @@ class MultiGraphics(WithEqualityById, SageObject):
           ``(left, bottom, width, height)`` specifying the location and
           relative size of the inset on the canvas, all quantities being
           expressed in fractions of the canvas width and height; if ``None``,
-          the value ``(0.70, 0.68, 0.2, 0.2)`` is used
+          the value ``(0.7, 0.7, 0.2, 0.2)`` is used
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
@@ -702,13 +702,8 @@ class MultiGraphics(WithEqualityById, SageObject):
             sphinx_plot(G.inset(c, pos=(0.3, 0.7, 0.2, 0.2), fontsize=8))
 
         """
-        from matplotlib import rcParams
         if pos is None:
-            width = 0.2
-            height = 0.2
-            left = rcParams['figure.subplot.right'] - width
-            bottom = rcParams['figure.subplot.top'] - height
-            pos = (left, bottom, width, height)
+            pos = (0.7, 0.7, 0.2, 0.2)
         if fontsize is not None:
             graphics._extra_kwds['fontsize'] = fontsize
         elif 'fontsize' not in graphics._extra_kwds:
@@ -761,7 +756,7 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         - ``figure`` -- a Matplotlib ``Figure`` object
         - ``index`` -- integer specifiying the element of ``self``
-        - ``options`` -- extra options to be passed to ``Figure.add_subplot``
+        - ``options`` -- extra options to be passed to ``Figure.add_axes``
 
         OUTPUT:
 

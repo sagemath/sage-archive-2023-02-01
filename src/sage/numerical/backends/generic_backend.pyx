@@ -1729,7 +1729,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         sage: p = get_solver(base_ring=d.base_ring()); p
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
-        Number Field in sqrt5 with defining polynomial x^2 - 5
+        Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         sage: p = get_solver(solver='InteractiveLP', base_ring=QQ); p
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()

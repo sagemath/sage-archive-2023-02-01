@@ -2103,8 +2103,8 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             [[[1]], [[2]], [[1]]] |--> [[1, 1], [2]]
             [[[3]], [[2]], [[1]]] |--> None
         """
-        return '\n'.join(['{} |--> {}'.format(mg, im)
-                          for mg, im in zip(self._gens, self.im_gens())])
+        return '\n'.join('{} |--> {}'.format(mg, im)
+                         for mg, im in zip(self._gens, self.im_gens()))
 
     def _check(self):
         """
@@ -2239,7 +2239,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         ef = [[]]
         indices = [[]]
 
-        while len(todo) > 0:
+        while todo:
             cur = todo.pop(0)
             cur_ef = ef.pop(0)
             cur_indices = indices.pop(0)

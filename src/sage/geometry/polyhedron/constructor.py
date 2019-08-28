@@ -114,7 +114,7 @@ EXAMPLES::
 
     sage: trunc_quadr = Polyhedron(vertices=[[1,0],[0,1]], rays=[[1,0],[0,1]])
     sage: trunc_quadr
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays
     sage: v = next(trunc_quadr.vertex_generator())  # the first vertex in the internal enumeration
     sage: v
     A vertex at (0, 1)
@@ -131,9 +131,9 @@ EXAMPLES::
     sage: type(v)
     <class 'sage.geometry.polyhedron.representation.Vertex'>
     sage: type( v() )
-    <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+    <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
     sage: v.polyhedron()
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays
     sage: r = next(trunc_quadr.ray_generator())
     sage: r
     A ray in the direction (0, 1)
@@ -190,7 +190,7 @@ symbolic ring. This is currently not supported as SR is not exact::
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])
     Traceback (most recent call last):
     ...
-    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+    ValueError: no default backend for computations with Symbolic Ring
 
     sage: SR.is_exact()
     False
@@ -201,18 +201,17 @@ triangle, that would be::
 
     sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3)**(1/2))
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
-    A 2-dimensional polyhedron in (Number Field in sqrt3 with defining
-    polynomial x^2 - 3)^2 defined as the convex hull of 3 vertices
+    A 2-dimensional polyhedron in (Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^2 defined as the convex hull of 3 vertices
 
 .. WARNING::
 
     Be careful when you construct polyhedra with floating point numbers. The only
-    available backend for such computation is `cdd` which uses machine floating
+    available backend for such computation is ``cdd`` which uses machine floating
     point numbers which have have limited precision. If the input consists of
-    floating point numbers and the `base_ring` is not specified, the base ring is
-    set to be the `RealField` with the precision given by the minimal bit precision
+    floating point numbers and the ``base_ring`` is not specified, the base ring is
+    set to be the ``RealField`` with the precision given by the minimal bit precision
     of the input. Then, if the obtained minimum is 53 bits of precision, the
-    constructor converts automatically the base ring to `RDF`. Otherwise,
+    constructor converts automatically the base ring to ``RDF``. Otherwise,
     it returns an error::
 
         sage: Polyhedron(vertices = [[1.12345678901234, 2.12345678901234]])
@@ -225,7 +224,7 @@ triangle, that would be::
         ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
     The strongly suggested method to input floating point numbers is to specify the
-    `base_ring` to be `RDF`::
+    ``base_ring`` to be ``RDF``::
 
         sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]], base_ring=RDF)
         A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
@@ -492,6 +491,25 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(vertices=[[f]])
         A 0-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex
 
+    Check that non-compact polyhedra given by V-representation have base ring ``QQ``,
+    not ``ZZ`` (see :trac:`27840`)::
+
+        sage: Q = Polyhedron(vertices=[(1, 2, 3), (1, 3, 2), (2, 1, 3),
+        ....:                          (2, 3, 1), (3, 1, 2), (3, 2, 1)],
+        ....:                rays=[[1, 1, 1]], lines=[[1, 2, 3]], backend='ppl')
+        sage: Q.base_ring()
+        Rational Field
+
+    Check that enforcing base ring `ZZ` for this example gives an error::
+
+        sage: Q = Polyhedron(vertices=[(1, 2, 3), (1, 3, 2), (2, 1, 3),
+        ....:                          (2, 3, 1), (3, 1, 2), (3, 2, 1)],
+        ....:                rays=[[1, 1, 1]], lines=[[1, 2, 3]], backend='ppl',
+        ....:                base_ring=ZZ)
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+
     Check that input with too many bits of precision returns an error (see
     :trac:`22552`)::
 
@@ -505,11 +523,11 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
+        ValueError: no default backend for computations with Real Field with 40 bits of precision
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(53))
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        ValueError: no default backend for computations with Real Field with 53 bits of precision
 
     .. SEEALSO::
 
@@ -571,14 +589,18 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         else:
             base_ring = P
 
-        if not got_Vrep and base_ring not in Fields():
-            base_ring = base_ring.fraction_field()
-            convert = True
+        if base_ring not in Fields():
+            got_compact_Vrep = got_Vrep and not rays and not lines
+            got_cone_Vrep = got_Vrep and all(all(x == 0 for x in v) for v in vertices)
+            if not got_compact_Vrep and not got_cone_Vrep:
+                base_ring = base_ring.fraction_field()
+                convert = True
 
         if base_ring not in Rings():
             raise ValueError('invalid base ring')
 
-        if not base_ring.is_exact():
+        from sage.symbolic.ring import SR
+        if base_ring is not SR and not base_ring.is_exact():
             # TODO: remove this hack?
             if base_ring is RR:
                 base_ring = RDF

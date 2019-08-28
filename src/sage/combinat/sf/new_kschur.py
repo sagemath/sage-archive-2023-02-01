@@ -306,8 +306,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
             sage: KBB.super_categories()
             [Category of realizations of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field,
-             Join of Category of graded modules with basis over Univariate Polynomial Ring in t over Rational Field
-                 and Category of coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
+             Join of Category of graded coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
                  and Category of subobjects of sets]
         """
         R = self.base().base_ring()

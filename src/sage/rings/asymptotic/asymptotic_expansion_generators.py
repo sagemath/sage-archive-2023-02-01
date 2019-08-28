@@ -287,7 +287,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision is None:
             precision = series_precision()
 
-        from sage.functions.log import log
+        log = A.locals()['log']
         result = A.zero()
         if precision >= 1:
             result += n * log(n)
@@ -442,7 +442,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision is None:
             precision = series_precision()
 
-        from sage.functions.log import log
+        log = A.locals()['log']
         result = A.zero()
         if precision >= 1:
             result += log(n)
@@ -618,7 +618,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``zeta`` -- (default: `1`) the location of the singularity.
 
-        - ``alpha`` -- (default: `0`) the pole order of the singularty.
+        - ``alpha`` -- (default: `0`) the pole order of the singularity.
 
         - ``beta`` -- (default: `0`) the order of the logarithmic singularity.
 
@@ -759,14 +759,14 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=0)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large n.
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large n.
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=-1)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large n.
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large n.
 
         ::
 
@@ -798,8 +798,8 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=-1, zeta=2, precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large n.
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large n.
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=1/2, zeta=2, precision=3)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
@@ -880,14 +880,14 @@ class AsymptoticExpansionGenerators(SageObject):
         ::
 
             sage: from sage.groups.misc_gps.argument_groups import SignGroup
-            sage: S = SignGroup()
+            sage: Signs = SignGroup()
             sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'n', S(-1), alpha=2, beta=1, precision=5,
+            ....:     'n', Signs(-1), alpha=2, beta=1, precision=5,
             ....:     normalized=False)
             n*log(n)*(-1)^n + (euler_gamma - 1)*n*(-1)^n + log(n)*(-1)^n
             + (euler_gamma + 1/2)*(-1)^n + O(n^(-1)*(-1)^n)
             sage: _.parent()
-            Asymptotic Ring <n^ZZ * log(n)^ZZ * S^n> over Symbolic Constants Subring
+            Asymptotic Ring <n^ZZ * log(n)^ZZ * Signs^n> over Symbolic Constants Subring
         """
         from itertools import islice, count
         from .asymptotic_ring import AsymptoticRing
@@ -1007,7 +1007,7 @@ class AsymptoticExpansionGenerators(SageObject):
                 result = A(0)
             elif alpha <= 0 and precision > 0:
                 from .misc import NotImplementedOZero
-                raise NotImplementedOZero(A)
+                raise NotImplementedOZero(A, exact_part=A.zero())
 
         for (k, r) in it:
             result += binomial(beta, r) * \
@@ -1185,7 +1185,7 @@ class AsymptoticExpansionGenerators(SageObject):
         for k in srange(2, precision-1):
             coef = z_expansion.monomial_coefficient((1/Z)**((k+1) * one_half))
             current_var = SR('d{k}'.format(k=k))
-            solution_dict[current_var] = coef.subs(solution_dict).solve(current_var)[0].rhs()
+            solution_dict[current_var] = coef.subs(solution_dict).simplify_rational().solve(current_var)[0].rhs()
 
         return A(tau) + ansatz(prec=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
 

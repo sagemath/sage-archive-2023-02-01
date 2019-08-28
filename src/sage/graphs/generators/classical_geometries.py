@@ -1228,7 +1228,7 @@ def CossidentePenttilaGraph(q):
     Cossidente-Penttila `((q^3+1)(q+1)/2,(q^2+1)(q-1)/2,(q-3)/2,(q-1)^2/2)`-strongly regular graph
 
     For each odd prime power `q`, one can partition the points of the `O_6^-(q)`-generalized
-    quadrange `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
+    quadrangle `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
     the point graph of the GQ has parameters as above [CP05]_.
 
     Directly following the construction in [CP05]_ is not efficient,

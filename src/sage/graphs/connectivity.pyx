@@ -50,6 +50,7 @@ Here is what the module can do:
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
     :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
+    :meth:`is_triconnected` | Check whether the graph is triconnected.
     :meth:`spqr_tree` | Return a SPQR-tree representing the triconnected components of the graph.
     :meth:`spqr_tree_to_graph` | Return the graph represented by the SPQR-tree `T`.
 
@@ -1404,6 +1405,11 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
 
             if G.blocks_and_cut_vertices()[1]:
                 return 1 if k is None else (k == 1)
+
+            if not G.is_triconnected():
+                return 2 if k is None else (k == 2)
+            elif k == 3:
+                return True
 
         if k == 1:
             # We know that the (di)graph is (strongly) connected
@@ -4167,3 +4173,73 @@ cdef class TriconnectivitySPQR:
         """
         return self.spqr_tree
 
+
+def is_triconnected(G):
+    r"""
+    Check whether the graph is triconnected.
+
+    A triconnected graph is a connected graph on 3 or more vertices that is not
+    broken into disconnected pieces by deleting any pair of vertices.
+
+    EXAMPLES:
+
+    The Petersen graph is triconnected::
+
+        sage: G = graphs.PetersenGraph()
+        sage: G.is_triconnected()
+        True
+
+    But a 2D grid is not::
+
+        sage: G = graphs.Grid2dGraph(3, 3)
+        sage: G.is_triconnected()
+        False
+
+    By convention, a cycle of order 3 is triconnected::
+
+        sage: G = graphs.CycleGraph(3)
+        sage: G.is_triconnected()
+        True
+
+    But cycles of order 4 and more are not::
+
+        sage: [graphs.CycleGraph(i).is_triconnected() for i in range(4, 8)]
+        [False, False, False, False]
+
+    Comparing different methods on random graphs that are not always
+    triconnected::
+
+        sage: G = graphs.RandomBarabasiAlbert(50, 3)
+        sage: G.is_triconnected() == G.vertex_connectivity(k=3)
+        True
+
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.is_connected`
+        - :meth:`~Graph.is_biconnected`
+        - :meth:`~sage.graphs.connectivity.spqr_tree`
+        - :wikipedia:`SPQR_tree`
+
+    TESTS::
+
+        sage: [Graph(i).is_triconnected() for i in range(4)]
+        [False, False, False, False]
+        sage: [graphs.CompleteGraph(i).is_triconnected() for i in range(3, 6)]
+        [True, True, True]
+    """
+    if G.order() < 3:
+        return False
+
+    try:
+        T = G.spqr_tree()
+    except ValueError:
+        # The graph is not biconnected
+        return False
+
+    from collections import Counter
+    C = Counter(v[0] for v in T)
+    if 'S' in C:
+        return G.order() == 3
+    # Since the graph has order >= 3, is biconnected and has no 'S' block, it
+    # has at least one 'R' block. A triconnected graph has only one such block.
+    return C['R'] == 1

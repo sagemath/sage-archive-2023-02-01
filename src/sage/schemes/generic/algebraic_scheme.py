@@ -1339,19 +1339,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         * the defining polynomials of the algebraic scheme. Note that
           some authors do not include these in the definition of the
           Jacobian ideal. An example of a reference that does include
-          the defining equations is [LazarsfeldJacobian]_.
+          the defining equations is [Laz2004]_, p. 181.
 
         OUTPUT:
 
         An ideal in the coordinate ring of the ambient space.
-
-        REFERENCES:
-
-        ..  [LazarsfeldJacobian]
-            Robert Lazarsfeld:
-            Positivity in algebraic geometry II;
-            Positivity for Vector Bundles, and Multiplier Ideals,
-            page 181.
 
         EXAMPLES::
 
@@ -1722,7 +1714,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         field and the base ring as the field of definition. If the base ring
         is a number field, the embedding into ``F`` must be known.
 
-        In the case of numerically aproximated points, the points are returned over as
+        In the case of numerically approximated points, the points are returned over as
         points of the ambient space.
 
         INPUT:

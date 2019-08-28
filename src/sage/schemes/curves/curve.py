@@ -444,8 +444,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
             sage: C = Curve([x^2 - y^2, z*y - 4/5*w^2], P)
             sage: C.change_ring(QuadraticField(-1))
-            Projective Curve over Number Field in a with defining polynomial x^2 + 1
-            defined by x^2 - y^2, y*z - 4/5*w^2
+            Projective Curve over Number Field in a with defining polynomial x^2 + 1 with a = 1*I defined by x^2 - y^2, y*z - 4/5*w^2
 
         ::
 

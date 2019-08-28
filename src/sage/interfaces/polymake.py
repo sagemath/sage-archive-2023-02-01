@@ -34,7 +34,8 @@ import re
 import sys
 import time
 
-from .expect import Expect, ExpectElement, FunctionElement
+from .expect import Expect
+from .interface import (Interface, InterfaceElement, InterfaceFunctionElement)
 
 from sage.misc.misc import get_verbose
 from sage.misc.cachefunc import cached_method
@@ -45,7 +46,6 @@ from random import randrange
 
 from time import sleep
 import warnings
-from warnings import warn
 
 _name_pattern = re.compile('SAGE[0-9]+')
 
@@ -107,24 +107,28 @@ def polymake_console(command=''):
     os.system(command or os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
 
 
-class Polymake(ExtraTabCompletion, Expect):
+class PolymakeAbstract(ExtraTabCompletion, Interface):
     r"""
-    Interface to the polymake interpreter.
+    Abstract interface to the polymake interpreter.
 
-    In order to use this interface, you need to either install the
-    optional polymake package for Sage, or install polymake system-wide
-    on your computer; it is available from https://polymake.org.
+    This class should not be instantiated directly,
+    but through its subclasses Polymake (Pexpect interface)
+    or PolymakeJuPyMake (JuPyMake interface).
 
-    Type ``polymake.[tab]`` for a list of most functions
-    available from your polymake install. Type
-    ``polymake.Function?`` for polymake's help about a given ``Function``.
-    Type ``polymake(...)`` to create a new polymake
-    object, and ``polymake.eval(...)`` to run a string using
-    polymake and get the result back as a string.
+    EXAMPLES:
 
-    EXAMPLES::
+        sage: from sage.interfaces.polymake import PolymakeAbstract, polymake_expect, polymake_jupymake
 
-        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
+    We test the verbosity management with very early doctests
+    because messages will not be repeated.
+
+    Testing the Pexpect interface::
+
+        sage: type(polymake_expect)
+        <...sage.interfaces.polymake.PolymakeExpect...
+        sage: isinstance(polymake_expect, PolymakeAbstract)
+        True
+        sage: p = polymake_expect.rand_sphere(4, 20, seed=5)       # optional - polymake
         sage: p                                             # optional - polymake
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
@@ -135,45 +139,33 @@ class Polymake(ExtraTabCompletion, Expect):
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - polymake
         20 94 148 74
-        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
-        property_types/Algebraic Types/Vector:
-         A type for vectors with entries of type Element.
 
-         You can perform algebraic operations such as addition or scalar multiplication.
+    Testing the JuPyMake interface::
 
-         You can create a new Vector by entering its elements, e.g.:
-            $v = new Vector<Int>(1,2,3);
-         or
-            $v = new Vector<Int>([1,2,3]);
-
-    .. automethod:: _eval_line
+        sage: isinstance(polymake_jupymake, PolymakeAbstract)
+        True
+        sage: p = polymake_jupymake.rand_sphere(4, 20, seed=5)       # optional - jupymake
+        sage: p                                             # optional - jupymake
+        Random spherical polytope of dimension 4; seed=5...
+        sage: set_verbose(3)
+        sage: p.H_VECTOR                                    # optional - jupymake
+        polymake: used package ppl
+          The Parma Polyhedra Library ...
+        1 16 40 16 1
+        sage: set_verbose(0)
+        sage: p.F_VECTOR                                    # optional - jupymake
+        20 94 148 74
     """
-    def __init__(self, script_subdirectory=None,
-                 logfile=None, server=None, server_tmpdir=None,
-                 seed=None, command=None):
+    def __init__(self, seed=None):
         """
         TESTS::
 
-            sage: from sage.interfaces.polymake import Polymake
-            sage: Polymake()
+            sage: from sage.interfaces.polymake import PolymakeAbstract
+            sage: PolymakeAbstract()
             Polymake
-            sage: Polymake().is_running()
-            False
 
         """
-        if command is None:
-            command = "env TERM=dumb {}".format(os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
-        Expect.__init__(self,
-                        name="polymake",
-                        command=command,
-                        prompt="polytope > ",
-                        server=server,
-                        server_tmpdir=server_tmpdir,
-                        script_subdirectory=script_subdirectory,
-                        restart_on_ctrlc=False,
-                        logfile=logfile,
-                        eval_using_file_cutoff=1024)   # > 1024 causes hangs
-
+        Interface.__init__(self, "polymake")
         self._seed = seed
         self.__tab_completion = {}
 
@@ -306,6 +298,42 @@ class Polymake(ExtraTabCompletion, Expect):
             return "{}({});".format(function, ",".join(list(kwds)))
         return "{}({});".format(function, ",".join(list(args)))
 
+    def _coerce_impl(self, x, use_special=True):
+        """
+        Implementation of coercion.
+
+        TESTS:
+
+        Test that dictionaries are converted to hashes::
+
+            sage: h = polymake({'"a"': 1, '"b"': 2})                   # optional - polymake
+            sage: h                                                    # optional - polymake
+            HASH(0x...)
+            sage: h['"a"']                                             # optional - polymake
+            1
+        """
+        if isinstance(x, dict):
+            # Convert dictionaries to hashes.
+            # This is an adaptation of the list/tuple code from Interface._coerce_impl
+            A = []
+            z = dict()
+            cls = self._object_class()
+            def convert(y):
+                if isinstance(y, cls):
+                    return y
+                else:
+                    return self(y)
+            for k, v in x.items():
+                k = convert(k)
+                v = convert(v)
+                z[k] = v
+                A.append("{}=>{}".format(k.name(), v.name()))
+            r = self.new("{" + ",".join(A) + "}")
+            r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
+            return r
+        else:
+            return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
+
     def console(self):
         """
         Raise an error, pointing to :meth:`~sage.interfaces.interface.Interface.interact` and :func:`polymake_console`.
@@ -333,7 +361,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         return "Please install the optional polymake package for sage  (but read its SPKG.txt first!)"+os.linesep+"or install polymake system-wide"
 
-    def _start(self, alt_message=None):
+    def _start(self):
         """
         Start the polymake interface in the application "polytope".
 
@@ -343,10 +371,6 @@ class Polymake(ExtraTabCompletion, Expect):
 
         TESTS::
 
-            sage: polymake.application('fan')               # optional - polymake
-            sage: 'normal_fan' in dir(polymake)             # optional - polymake
-            True
-            sage: polymake.quit()                           # optional - polymake
             sage: polymake._start()                         # optional - polymake
 
         Since 'normal_fan' is not defined in the polymake application 'polytope',
@@ -357,22 +381,9 @@ class Polymake(ExtraTabCompletion, Expect):
             False
 
         """
-        if not self.is_running():
-            self._change_prompt("polytope > ")
-            Expect._start(self, alt_message=None)
         self.application("polytope")
         self.eval('use Scalar::Util qw(reftype);')
         self.eval('use Scalar::Util qw(blessed);')
-        self.eval('use File::Slurp;')
-
-    def _quit_string(self):
-        """
-        TESTS::
-
-            sage: polymake._quit_string()
-            'exit;'
-        """
-        return "exit;"
 
     def _assign_symbol(self):
         """
@@ -413,137 +424,6 @@ class Polymake(ExtraTabCompletion, Expect):
 
         """
         return 'eval read_file "{}";\n'.format(filename)
-
-    def _keyboard_interrupt(self):
-        """
-        Interrupt a computation with <Ctrl-c>
-
-        TESTS:
-
-        For reasons that are not clear to the author, the following test
-        is very flaky. Therefore, this test is marked as "not tested".
-
-            sage: c = polymake.cube(15)                         # optional - polymake
-            sage: alarm(1)                                      # not tested
-            sage: try:                                          # not tested # indirect doctest
-            ....:     c.F_VECTOR
-            ....: except KeyboardInterrupt:
-            ....:     pass
-            Interrupting Polymake...
-            doctest:warning
-            ...
-            RuntimeWarning: We ignore that Polymake issues warning during keyboard interrupt
-            doctest:warning
-            ...
-            RuntimeWarning: We ignore that Polymake raises error during keyboard interrupt
-
-        Afterwards, the interface should still be running.  ::
-
-            sage: c.N_FACETS                                    # optional - polymake
-            30
-
-        """
-        if not self.is_running():
-            raise KeyboardInterrupt
-        print("Interrupting %s..." % self)
-        while True:
-            try:
-                self._expect.send(chr(3))
-            except pexpect.ExceptionPexpect as msg:
-                raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
-            sleep(0.1)
-            i = self._expect.expect_list(self._prompt, timeout=1)
-            if i == 0:
-                break
-            elif i == 7:  # EOF
-                warnings.warn("Polymake {} during keyboard interrupt".format(_available_polymake_answers[i]), RuntimeWarning)
-                self._crash_msg()
-                self.quit()
-            elif i == 8:  # Timeout
-                self.quit()
-                raise RuntimeError("{} interface is not responding. We closed it".format(self))
-            elif i != 3:  # Anything but a "computation killed"
-                warnings.warn("We ignore that {} {} during keyboard interrupt".format(self, _available_polymake_answers[i]), RuntimeWarning)
-        raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
-
-    def _synchronize(self):
-        """
-        TESTS::
-
-            sage: Q = polymake.cube(4)                          # optional - polymake
-            sage: polymake('"ok"')                              # optional - polymake
-            ok
-            sage: polymake._expect.sendline()                   # optional - polymake
-            1
-
-        Now the interface is badly out of sync::
-
-            sage: polymake('"foobar"')                          # optional - polymake
-            <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
-            PolymakeError: Can't locate object method "description" via package "1"
-            (perhaps you forgot to load "1"?)...>
-            sage: Q.typeof()                                    # optional - polymake # random
-            ('foobar...', 'Polymake::polytope::Polytope__Rational')
-            sage: Q.typeof.clear_cache()                        # optional - polymake
-
-        After synchronisation, things work again as expected::
-
-            sage: polymake._synchronize()                       # optional - polymake
-            doctest:warning
-            ...
-            UserWarning: Polymake seems out of sync:
-            The expected output did not appear before reaching the next prompt.
-            sage: polymake('"back to normal"')                  # optional - polymake
-            back to normal
-            sage: Q.typeof()                                    # optional - polymake
-            ('Polymake::polytope::Polytope__Rational', 'ARRAY')
-
-        """
-        if not self.is_running():
-            return
-        rnd = randrange(2147483647)
-        res = str(rnd+1)
-        cmd = 'print 1+{};' + self._expect.linesep
-        self._sendstr(cmd.format(rnd))
-        pat = self._expect.expect(self._prompt, timeout=0.5)
-        # 0: normal prompt
-        # 1: continuation prompt
-        # 2: user input expected when requestion "help"
-        # 3: what we are looking for when interrupting a computation
-        # 4: error
-        # 5: warning
-        # 6: anything but an error or warning, thus, an information
-        # 7: unexpected end of the stream
-        # 8: (expected) timeout
-        if pat == 8:  # timeout
-            warnings.warn("{} unexpectedly {} during synchronisation.".format(self, _available_polymake_answers[pat]), RuntimeWarning)
-            self.interrupt()
-            # ... but we continue, as that probably means we currently are at the end of the buffer
-        elif pat == 7:  # EOF
-            self._crash_msg()
-            self.quit()
-        elif pat == 0:
-            # We got the right prompt, but perhaps in a wrong position in the stream
-            # The result of the addition should appear *before* our prompt
-            if res not in self._expect.before:
-                try:
-                    warnings.warn("{} seems out of sync: The expected output did not appear before reaching the next prompt.".format(self))
-                    while True:
-                        i = self._expect.expect_list(self._prompt, timeout=0.1)
-                        if i == 8:  # This time, we do expect a timeout
-                            return
-                        elif i > 0:
-                            raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[i]))
-                except pexpect.TIMEOUT:
-                    warnings.warn("A timeout has occured when synchronising {}.".format(self), RuntimeWarning)
-                    self._interrupt()
-                except pexpect.EOF:
-                    self._crash_msg()
-                    self.quit()
-            else:
-                return
-        else:
-            raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
 
     def _next_var_name(self):
         r"""
@@ -779,292 +659,13 @@ class Polymake(ExtraTabCompletion, Expect):
             PolymakeError: unknown help topic 'Triangulation'
         """
         H = self.eval('help("{}");\n'.format(topic))
+        if not H:
+            raise PolymakeError("unknown help topic '{}'".format(topic))
         if pager:
             from IPython.core.page import page
             page(H, start=0)
         else:
             return H
-
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True, **kwds):
-        r"""
-        Evaluate a command.
-
-        INPUT:
-
-        - ``line``, a command (string) to be evaluated
-        - ``allow_use_file`` (optional bool, default ``True``), whether or not
-          to use a file if the line is very long.
-        - ``wait_for_prompt`` (optional, default ``True``), whether or not
-          to wait before polymake returns a prompt. If it is a string, it is considered
-          as alternative prompt to be waited for.
-        - ``restart_if_needed`` (optional bool, default ``True``), whether or
-          not to restart polymake in case something goes wrong
-        - further optional arguments (e.g., timeout) that will be passed to
-          :meth:`pexpect.pty_spawn.spawn.expect`. Note that they are ignored
-          if the line is too long and thus is evaluated via a file. So,
-          if a timeout is defined, it should be accompanied by ``allow_use_file=False``.
-
-        Different reaction types of polymake, including warnings, comments,
-        errors, request for user interaction, and yielding a continuation prompt,
-        are taken into account.
-
-        Usually, this method is indirectly called via :meth:`~sage.interfaces.expect.Expect.eval`.
-
-        EXAMPLES::
-
-            sage: p = polymake.cube(3)              # optional - polymake  # indirect doctest
-
-        Here we see that remarks printed by polymake are displayed if
-        the verbosity is positive::
-
-            sage: set_verbose(1)
-            sage: p.N_LATTICE_POINTS                # optional - polymake # random
-            used package latte
-              LattE (Lattice point Enumeration) is a computer software dedicated to the
-              problems of counting lattice points and integration inside convex polytopes.
-              Copyright by Matthias Koeppe, Jesus A. De Loera and others.
-              http://www.math.ucdavis.edu/~latte/
-            27
-            sage: set_verbose(0)
-
-        If polymake raises an error, the polymake *interface* raises
-        a :class:`PolymakeError`::
-
-            sage: polymake.eval('FOOBAR(3);')       # optional - polymake
-            Traceback (most recent call last):
-            ...
-            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
-
-        If a command is incomplete, then polymake returns a continuation
-        prompt. In that case, we raise an error::
-
-            sage: polymake.eval('print 3')          # optional - polymake
-            Traceback (most recent call last):
-            ...
-            SyntaxError: Incomplete polymake command 'print 3'
-            sage: polymake.eval('print 3;')         # optional - polymake
-            '3'
-
-        However, if the command contains line breaks but eventually is complete,
-        no error is raised::
-
-            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - polymake
-            abc
-
-        When requesting help, polymake sometimes expect the user to choose
-        from a list. In that situation, we abort with a warning, and show
-        the list from which the user can choose; we could demonstrate this using
-        the :meth:`help` method, but here we use an explicit code evaluation::
-
-            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random
-            doctest:warning
-            ...
-            UserWarning: Polymake expects user interaction. We abort and return
-            the options that Polymake provides.
-            There are 5 help topics matching 'TRIANGULATION':
-            1: objects/Cone/properties/Triangulation and volume/TRIANGULATION
-            2: objects/Polytope/properties/Triangulation and volume/TRIANGULATION
-            3: objects/Visualization/Visual::PointConfiguration/methods/TRIANGULATION
-            4: objects/Visualization/Visual::Polytope/methods/TRIANGULATION
-            5: objects/PointConfiguration/properties/Triangulation and volume/TRIANGULATION
-
-        By default, we just wait until polymake returns a result. However,
-        it is possible to explicitly set a timeout. The following usually does
-        work in an interactive session and often in doc tests, too. However,
-        sometimes it hangs, and therefore we remove it from the tests, for now::
-
-            sage: c = polymake.cube(15)             # optional - polymake
-            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # not tested # optional - polymake
-            Traceback (most recent call last):
-            ...
-            RuntimeError: Polymake fails to respond timely
-
-        We verify that after the timeout, polymake is still able to give answers::
-
-            sage: c                                 # optional - polymake
-            cube of dimension 15
-            sage: c.N_VERTICES                      # optional - polymake
-            32768
-
-        Note, however, that the recovery after a timeout is not perfect.
-        It may happen that in some situation the interface collapses and
-        thus polymake would automatically be restarted, thereby losing all
-        data that have been computed before.
-
-        """
-        line = line.strip()
-        if allow_use_file and wait_for_prompt and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
-            return self._eval_line_using_file(line)
-        try:
-            if not self.is_running():
-                self._start()
-            E = self._expect
-            try:
-                if len(line) >= 4096:
-                    raise RuntimeError("Sending more than 4096 characters with {} on a line may cause a hang and you're sending {} characters".format(self, len(line)))
-                E.sendline(line)
-                if not wait_for_prompt:
-                    return ''
-
-            except OSError as msg:
-                if restart_if_needed:
-                    # The subprocess most likely crashed.
-                    # If it's really still alive, we fall through
-                    # and raise RuntimeError.
-                    if sys.platform.startswith('sunos'):
-                        # On (Open)Solaris, we might need to wait a
-                        # while because the process might not die
-                        # immediately. See Trac #14371.
-                        for t in [0.5, 1.0, 2.0]:
-                            if E.isalive():
-                                time.sleep(t)
-                            else:
-                                break
-                    if not E.isalive():
-                        try:
-                            self._synchronize()
-                        except (TypeError, RuntimeError):
-                            pass
-                        return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
-                raise_(RuntimeError, "{}\nError evaluating {} in {}".format(msg, line, self), sys.exc_info()[2])
-
-            p_warnings = []
-            p_errors = []
-            have_warning = False
-            have_error = False
-            have_log = False
-            if len(line) > 0:
-                first = True
-                while True:
-                    try:
-                        if isinstance(wait_for_prompt, six.string_types):
-                            pat = E.expect(wait_for_prompt, **kwds)
-                        else:
-                            pat = E.expect_list(self._prompt, **kwds)
-                    except pexpect.EOF as msg:
-                        try:
-                            if self.is_local():
-                                tmp_to_use = self._local_tmpfile()
-                            else:
-                                tmp_to_use = self._remote_tmpfile()
-                            if self._read_in_file_command(tmp_to_use) in line:
-                                raise pexpect.EOF(msg)
-                        except NotImplementedError:
-                            pass
-                        if self._quit_string() in line:
-                            # we expect to get an EOF if we're quitting.
-                            return ''
-                        elif restart_if_needed:  # the subprocess might have crashed
-                            try:
-                                self._synchronize()
-                                return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
-                            except (TypeError, RuntimeError):
-                                pass
-                        raise RuntimeError("{}\n{} crashed executing {}".format(msg, self, line))
-                    if self._terminal_echo:
-                        out = E.before
-                    else:
-                        out = E.before.rstrip('\n\r')
-                    if self._terminal_echo and first:
-                        i = out.find("\n")
-                        j = out.rfind("\r")
-                        out = out[i+1:j].replace('\r\n', '\n')
-                    else:
-                        out = out.strip().replace('\r\n', '\n')
-                    first = False
-                    if have_error:
-                        p_errors.append(out)
-                        have_error = False
-                        out = ""
-                    elif have_warning:
-                        p_warnings.append(out)
-                        have_warning = False
-                        out = ""
-                    elif have_log:
-                        if get_verbose() > 0:
-                            print(out)
-                        have_log = False
-                        out = ""
-                    # 0: normal prompt
-                    # 1: continuation prompt
-                    # 2: user input expected when requestion "help"
-                    # 3: what we are looking for when interrupting a computation
-                    # 4: error
-                    # 5: warning
-                    # 6: anything but an error or warning, thus, an information
-                    # 7: unexpected end of the stream
-                    # 8: (expected) timeout
-                    if pat == 0:
-                        have_log = False
-                        have_error = False
-                        have_warning = False
-                        if E.buffer:
-                            if not E.buffer.strip():
-                                E.send(chr(3))
-                                sleep(0.1)
-                                pat = E.expect_list(self._prompt)
-                                if E.buffer or pat:
-                                    raise RuntimeError("Couldn't return to prompt after command '{}'".format(line))
-                        break
-                    elif pat == 1:  # unexpected continuation prompt
-                        # Return to normal prompt
-                        i = pat
-                        E.send(chr(3))
-                        sleep(0.1)
-                        i = E.expect_list(self._prompt)
-                        assert i == 0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line, _available_polymake_answers[pat], _available_polymake_answers[i])
-                        raise SyntaxError("Incomplete polymake command '{}'".format(line))
-                    elif pat == 2:  # request for user interaction
-                        # Return to normal prompt
-                        warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self, self))
-                        i = pat
-                        while i:
-                            self._expect.send(chr(3))
-                            sleep(0.1)
-                            i = self._expect.expect(self._prompt, timeout=0.1)
-                        # User interaction is expected to happen when requesting help
-                        if line.startswith('help'):
-                            out = os.linesep.join(out.split(os.linesep)[:-1])
-                            break
-                        else:
-                            RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
-                    elif pat == 3:  # killed by signal
-                        i = pat
-                        while pat != 0:
-                            E.send(chr(3))
-                            sleep(0.1)
-                            i = E.expect_list(self._prompt)
-                        RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
-                    elif pat == 4:  # polymake error
-                        have_error = True
-                    elif pat == 5:  # polymake warning
-                        have_warning = True
-                    elif pat == 6:  # apparently polymake prints a comment
-                        have_log = True
-                    elif pat == 7:  # we have reached the end of the buffer
-                        warnings.warn("Polymake unexpectedly {}".format(_available_polymake_answers[pat]), RuntimeWarning)
-                        E.buffer = E.before + E.after + E.buffer
-                        break
-                    else:  # timeout or some other problem
-                        # Polymake would still continue with the computation. Thus, we send an interrupt
-                        E.send(chr(3))
-                        sleep(0.1)
-                        while E.expect_list(self._prompt, timeout=0.1):
-                            # ... and since a single Ctrl-c just interrupts *one* of polymake's
-                            # rule chains, we repeat until polymake is running out of rules.
-                            E.send(chr(3))
-                            sleep(0.1)
-                        raise RuntimeError("Polymake {}".format(_available_polymake_answers[pat]))
-            else:
-                out = ''
-        except KeyboardInterrupt:
-            self._keyboard_interrupt()
-            raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
-        for w in p_warnings:
-            warnings.warn(w, RuntimeWarning)
-        for e in p_errors:
-            raise PolymakeError(e)
-        return out
 
     def _tab_completion(self):
         """
@@ -1082,8 +683,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.application('fan')                   # optional - polymake
             sage: 'normal_fan' in dir(polymake)                 # optional - polymake  # indirect doctest
             True
-            sage: polymake.quit()                               # optional - polymake
-            sage: polymake._start()                             # optional - polymake
+            sage: polymake.application('polytope')              # optional - polymake
 
         Since 'normal_fan' is not defined in the polymake application 'polytope',
         we now get
@@ -1108,7 +708,7 @@ class Polymake(ExtraTabCompletion, Expect):
             return self.__tab_completion[self._application]
         except KeyError:
             pass
-        s = self.eval("apropos '';").split(self._expect.linesep)
+        s = self.eval("apropos '';").split('\n')
         out = []
         for name in s:
             if name.startswith("/common/functions/") or name.startswith("/core/functions") or name.startswith("/" + self._application + "/functions/"):
@@ -1202,25 +802,10 @@ class Polymake(ExtraTabCompletion, Expect):
             PolymakeError: Unknown application killerapp
 
         """
-        if not self.is_running():
-            self._start()
         if app not in ["common", "fulton", "group", "matroid", "topaz", "fan", "graph", "ideal", "polytope", "tropical"]:
             raise ValueError("Unknown polymake application '{}'".format(app))
         self._application = app
-        patterns = ["{} > ".format(app),            # 0: normal prompt
-                    r"{} \([0-9]+\)> ".format(app),  # 1: continuation prompt
-                    "Please choose ".format(app),   # 2: user input expected when requesting "help"
-                    "killed by signal",             # 3: what we are looking for when interrupting a computation
-                    "polymake: +ERROR: +",          # 4: error
-                    "polymake: +WARNING: +",        # 5: warning
-                    "polymake: +",                  # 6: anything but an error or warning, thus, an information
-                    pexpect.EOF,                    # 7: unexpected end of the stream
-                    pexpect.TIMEOUT]                # 8: timeout
-        self._change_prompt(self._expect.compile_pattern_list(patterns))
-        self._sendstr('application "{}";{}'.format(app, self._expect.linesep))
-        pat = self._expect.expect_list(self._prompt)
-        if pat:
-            raise RuntimeError("When changing the application, polymake unexpectedly {}".format(_available_polymake_answers[pat]))
+        self.eval('application "{}";'.format(app))
 
     def new_object(self, name, *args, **kwds):
         """
@@ -1257,25 +842,10 @@ class Polymake(ExtraTabCompletion, Expect):
         return f(*args, **kwds)
 
 
-polymake = Polymake()
-
-
-def reduce_load_Polymake():
-    """
-    Returns the polymake interface object defined in :mod:`sage.interfaces.polymake`.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.polymake import reduce_load_Polymake
-        sage: reduce_load_Polymake()
-        Polymake
-    """
-    return polymake
-
 ########################################
 ## Elements
 
-class PolymakeElement(ExtraTabCompletion, ExpectElement):
+class PolymakeElement(ExtraTabCompletion, InterfaceElement):
     """
     Elements in the polymake interface.
 
@@ -1840,9 +1410,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         T1, T2 = self.typeof()
         name = self._name
         if T2 == 'ARRAY':
-            return int(P.eval('print scalar @{+%s};'%name))
+            return int(P.eval('print scalar @{+%s};' % name))
         if T2 == 'HASH':
-            return int(P.eval('print scalar keys %{+%s};'%name))
+            return int(P.eval('print scalar keys %' + ('{+%s};' % name)))
         if T1:
             raise TypeError("Don't know how to compute the length of {} object".format(T1))
         return int(P.eval('print scalar {};'.format(name)))
@@ -2047,7 +1617,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         return "Undocumented polymake type '{}'".format(self.full_typename())
 
 
-class PolymakeFunctionElement(FunctionElement):
+class PolymakeFunctionElement(InterfaceFunctionElement):
     """
     A callable (function or member function) bound to a polymake element.
 
@@ -2175,3 +1745,902 @@ class PolymakeFunctionElement(FunctionElement):
         """
         P = self._obj._check_valid()
         return P.help(self._name.split("->")[-1], pager=False)
+
+
+class PolymakeExpect(PolymakeAbstract, Expect):
+    r"""
+    Interface to the polymake interpreter using pexpect.
+
+    In order to use this interface, you need to either install the
+    optional polymake package for Sage, or install polymake system-wide
+    on your computer; it is available from https://polymake.org.
+
+    Type ``polymake.[tab]`` for a list of most functions
+    available from your polymake install. Type
+    ``polymake.Function?`` for polymake's help about a given ``Function``.
+    Type ``polymake(...)`` to create a new polymake
+    object, and ``polymake.eval(...)`` to run a string using
+    polymake and get the result back as a string.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.polymake import polymake_expect as polymake
+        sage: type(polymake)
+        <...sage.interfaces.polymake.PolymakeExpect...
+        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
+        sage: p                                             # optional - polymake
+        Random spherical polytope of dimension 4; seed=5...
+        sage: set_verbose(3)
+        sage: p.H_VECTOR;                                   # optional - polymake # random
+        used package ppl
+          The Parma Polyhedra Library ...
+        sage: p.H_VECTOR                                    # optional - polymake
+        1 16 40 16 1
+        sage: set_verbose(0)
+        sage: p.F_VECTOR                                    # optional - polymake
+        20 94 148 74
+        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
+        property_types/Algebraic Types/Vector:
+         A type for vectors with entries of type Element.
+
+         You can perform algebraic operations such as addition or scalar multiplication.
+
+         You can create a new Vector by entering its elements, e.g.:
+            $v = new Vector<Int>(1,2,3);
+         or
+            $v = new Vector<Int>([1,2,3]);
+
+    .. automethod:: _eval_line
+    """
+
+    def __init__(self, script_subdirectory=None,
+                 logfile=None, server=None, server_tmpdir=None,
+                 seed=None, command=None):
+        """
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeExpect
+            sage: PolymakeExpect()
+            Polymake
+            sage: PolymakeExpect().is_running()
+            False
+
+        """
+        if command is None:
+            command = "env TERM=dumb {}".format(os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
+        PolymakeAbstract.__init__(self, seed=seed)
+        Expect.__init__(self,
+                        name="polymake",
+                        command=command,
+                        prompt="polytope > ",
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        restart_on_ctrlc=False,
+                        logfile=logfile,
+                        eval_using_file_cutoff=1024)   # > 1024 causes hangs
+
+    def _start(self, alt_message=None):
+        """
+        Start the polymake interface in the application "polytope".
+
+        NOTE:
+
+        There should be no need to call this explicitly.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: polymake.application('fan')               # optional - polymake
+            sage: 'normal_fan' in dir(polymake)             # optional - polymake
+            True
+            sage: polymake.quit()                           # optional - polymake
+            sage: polymake._start()                         # optional - polymake
+
+        Since 'normal_fan' is not defined in the polymake application 'polytope',
+        we now get
+        ::
+
+            sage: 'normal_fan' in dir(polymake)             # optional - polymake
+            False
+
+        """
+        if not self.is_running():
+            self._change_prompt("polytope > ")
+            Expect._start(self, alt_message=None)
+        PolymakeAbstract._start(self)
+        self.eval('use File::Slurp;')
+
+    def _quit_string(self):
+        """
+        TESTS::
+
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: polymake._quit_string()
+            'exit;'
+        """
+        return "exit;"
+
+    def _keyboard_interrupt(self):
+        """
+        Interrupt a computation with <Ctrl-c>
+
+        TESTS:
+
+        For reasons that are not clear to the author, the following test
+        is very flaky. Therefore, this test is marked as "not tested".
+
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: c = polymake.cube(15)                         # optional - polymake
+            sage: alarm(1)                                      # not tested
+            sage: try:                                          # not tested # indirect doctest
+            ....:     c.F_VECTOR
+            ....: except KeyboardInterrupt:
+            ....:     pass
+            Interrupting Polymake...
+            doctest:warning
+            ...
+            RuntimeWarning: We ignore that Polymake issues warning during keyboard interrupt
+            doctest:warning
+            ...
+            RuntimeWarning: We ignore that Polymake raises error during keyboard interrupt
+
+        Afterwards, the interface should still be running.  ::
+
+            sage: c.N_FACETS                                    # optional - polymake
+            30
+
+        """
+        if not self.is_running():
+            raise KeyboardInterrupt
+        print("Interrupting %s..." % self)
+        while True:
+            try:
+                self._expect.send(chr(3))
+            except pexpect.ExceptionPexpect as msg:
+                raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+            sleep(0.1)
+            i = self._expect.expect_list(self._prompt, timeout=1)
+            if i == 0:
+                break
+            elif i == 7:  # EOF
+                warnings.warn("Polymake {} during keyboard interrupt".format(_available_polymake_answers[i]), RuntimeWarning)
+                self._crash_msg()
+                self.quit()
+            elif i == 8:  # Timeout
+                self.quit()
+                raise RuntimeError("{} interface is not responding. We closed it".format(self))
+            elif i != 3:  # Anything but a "computation killed"
+                warnings.warn("We ignore that {} {} during keyboard interrupt".format(self, _available_polymake_answers[i]), RuntimeWarning)
+        raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
+
+    def _synchronize(self):
+        """
+        TESTS::
+
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: Q = polymake.cube(4)                          # optional - polymake
+            sage: polymake('"ok"')                              # optional - polymake
+            ok
+            sage: polymake._expect.sendline()                   # optional - polymake
+            1
+
+        Now the interface is badly out of sync::
+
+            sage: polymake('"foobar"')                          # optional - polymake
+            <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
+            PolymakeError: Can't locate object method "description" via package "1"
+            (perhaps you forgot to load "1"?)...>
+            sage: Q.typeof()                                    # optional - polymake # random
+            ('foobar...', 'Polymake::polytope::Polytope__Rational')
+            sage: Q.typeof.clear_cache()                        # optional - polymake
+
+        After synchronisation, things work again as expected::
+
+            sage: polymake._synchronize()                       # optional - polymake
+            doctest:warning
+            ...
+            UserWarning: Polymake seems out of sync:
+            The expected output did not appear before reaching the next prompt.
+            sage: polymake('"back to normal"')                  # optional - polymake
+            back to normal
+            sage: Q.typeof()                                    # optional - polymake
+            ('Polymake::polytope::Polytope__Rational', 'ARRAY')
+
+        """
+        if not self.is_running():
+            return
+        rnd = randrange(2147483647)
+        res = str(rnd+1)
+        cmd = 'print 1+{};' + self._expect.linesep
+        self._sendstr(cmd.format(rnd))
+        pat = self._expect.expect(self._prompt, timeout=0.5)
+        # 0: normal prompt
+        # 1: continuation prompt
+        # 2: user input expected when requestion "help"
+        # 3: what we are looking for when interrupting a computation
+        # 4: error
+        # 5: warning
+        # 6: anything but an error or warning, thus, an information
+        # 7: unexpected end of the stream
+        # 8: (expected) timeout
+        if pat == 8:  # timeout
+            warnings.warn("{} unexpectedly {} during synchronisation.".format(self, _available_polymake_answers[pat]), RuntimeWarning)
+            self.interrupt()
+            # ... but we continue, as that probably means we currently are at the end of the buffer
+        elif pat == 7:  # EOF
+            self._crash_msg()
+            self.quit()
+        elif pat == 0:
+            # We got the right prompt, but perhaps in a wrong position in the stream
+            # The result of the addition should appear *before* our prompt
+            if res not in self._expect.before:
+                try:
+                    warnings.warn("{} seems out of sync: The expected output did not appear before reaching the next prompt.".format(self))
+                    while True:
+                        i = self._expect.expect_list(self._prompt, timeout=0.1)
+                        if i == 8:  # This time, we do expect a timeout
+                            return
+                        elif i > 0:
+                            raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[i]))
+                except pexpect.TIMEOUT:
+                    warnings.warn("A timeout has occured when synchronising {}.".format(self), RuntimeWarning)
+                    self._interrupt()
+                except pexpect.EOF:
+                    self._crash_msg()
+                    self.quit()
+            else:
+                return
+        else:
+            raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
+
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True, **kwds):
+        r"""
+        Evaluate a command.
+
+        INPUT:
+
+        - ``line``, a command (string) to be evaluated
+        - ``allow_use_file`` (optional bool, default ``True``), whether or not
+          to use a file if the line is very long.
+        - ``wait_for_prompt`` (optional, default ``True``), whether or not
+          to wait before polymake returns a prompt. If it is a string, it is considered
+          as alternative prompt to be waited for.
+        - ``restart_if_needed`` (optional bool, default ``True``), whether or
+          not to restart polymake in case something goes wrong
+        - further optional arguments (e.g., timeout) that will be passed to
+          :meth:`pexpect.pty_spawn.spawn.expect`. Note that they are ignored
+          if the line is too long and thus is evaluated via a file. So,
+          if a timeout is defined, it should be accompanied by ``allow_use_file=False``.
+
+        Different reaction types of polymake, including warnings, comments,
+        errors, request for user interaction, and yielding a continuation prompt,
+        are taken into account.
+
+        Usually, this method is indirectly called via :meth:`~sage.interfaces.expect.Expect.eval`.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: p = polymake.cube(3)              # optional - polymake  # indirect doctest
+
+        Here we see that remarks printed by polymake are displayed if
+        the verbosity is positive::
+
+            sage: set_verbose(1)
+            sage: p.N_LATTICE_POINTS                # optional - polymake # random
+            used package latte
+              LattE (Lattice point Enumeration) is a computer software dedicated to the
+              problems of counting lattice points and integration inside convex polytopes.
+              Copyright by Matthias Koeppe, Jesus A. De Loera and others.
+              http://www.math.ucdavis.edu/~latte/
+            27
+            sage: set_verbose(0)
+
+        If polymake raises an error, the polymake *interface* raises
+        a :class:`PolymakeError`::
+
+            sage: polymake.eval('FOOBAR(3);')       # optional - polymake
+            Traceback (most recent call last):
+            ...
+            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
+
+        If a command is incomplete, then polymake returns a continuation
+        prompt. In that case, we raise an error::
+
+            sage: polymake.eval('print 3')          # optional - polymake
+            Traceback (most recent call last):
+            ...
+            SyntaxError: Incomplete polymake command 'print 3'
+            sage: polymake.eval('print 3;')         # optional - polymake
+            '3'
+
+        However, if the command contains line breaks but eventually is complete,
+        no error is raised::
+
+            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - polymake
+            abc
+
+        When requesting help, polymake sometimes expect the user to choose
+        from a list. In that situation, we abort with a warning, and show
+        the list from which the user can choose; we could demonstrate this using
+        the :meth:`help` method, but here we use an explicit code evaluation::
+
+            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random
+            doctest:warning
+            ...
+            UserWarning: Polymake expects user interaction. We abort and return
+            the options that Polymake provides.
+            There are 5 help topics matching 'TRIANGULATION':
+            1: objects/Cone/properties/Triangulation and volume/TRIANGULATION
+            2: objects/Polytope/properties/Triangulation and volume/TRIANGULATION
+            3: objects/Visualization/Visual::PointConfiguration/methods/TRIANGULATION
+            4: objects/Visualization/Visual::Polytope/methods/TRIANGULATION
+            5: objects/PointConfiguration/properties/Triangulation and volume/TRIANGULATION
+
+        By default, we just wait until polymake returns a result. However,
+        it is possible to explicitly set a timeout. The following usually does
+        work in an interactive session and often in doc tests, too. However,
+        sometimes it hangs, and therefore we remove it from the tests, for now::
+
+            sage: c = polymake.cube(15)             # optional - polymake
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # not tested # optional - polymake
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Polymake fails to respond timely
+
+        We verify that after the timeout, polymake is still able to give answers::
+
+            sage: c                                 # optional - polymake
+            cube of dimension 15
+            sage: c.N_VERTICES                      # optional - polymake
+            32768
+
+        Note, however, that the recovery after a timeout is not perfect.
+        It may happen that in some situation the interface collapses and
+        thus polymake would automatically be restarted, thereby losing all
+        data that have been computed before.
+
+        """
+        line = line.strip()
+        if allow_use_file and wait_for_prompt and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
+            return self._eval_line_using_file(line)
+        try:
+            if not self.is_running():
+                self._start()
+            E = self._expect
+            try:
+                if len(line) >= 4096:
+                    raise RuntimeError("Sending more than 4096 characters with {} on a line may cause a hang and you're sending {} characters".format(self, len(line)))
+                E.sendline(line)
+                if not wait_for_prompt:
+                    return ''
+
+            except OSError as msg:
+                if restart_if_needed:
+                    # The subprocess most likely crashed.
+                    # If it's really still alive, we fall through
+                    # and raise RuntimeError.
+                    if sys.platform.startswith('sunos'):
+                        # On (Open)Solaris, we might need to wait a
+                        # while because the process might not die
+                        # immediately. See Trac #14371.
+                        for t in [0.5, 1.0, 2.0]:
+                            if E.isalive():
+                                time.sleep(t)
+                            else:
+                                break
+                    if not E.isalive():
+                        try:
+                            self._synchronize()
+                        except (TypeError, RuntimeError):
+                            pass
+                        return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
+                raise_(RuntimeError, "{}\nError evaluating {} in {}".format(msg, line, self), sys.exc_info()[2])
+
+            p_warnings = []
+            p_errors = []
+            have_warning = False
+            have_error = False
+            have_log = False
+            if len(line) > 0:
+                first = True
+                while True:
+                    try:
+                        if isinstance(wait_for_prompt, six.string_types):
+                            pat = E.expect(wait_for_prompt, **kwds)
+                        else:
+                            pat = E.expect_list(self._prompt, **kwds)
+                    except pexpect.EOF as msg:
+                        try:
+                            if self.is_local():
+                                tmp_to_use = self._local_tmpfile()
+                            else:
+                                tmp_to_use = self._remote_tmpfile()
+                            if self._read_in_file_command(tmp_to_use) in line:
+                                raise pexpect.EOF(msg)
+                        except NotImplementedError:
+                            pass
+                        if self._quit_string() in line:
+                            # we expect to get an EOF if we're quitting.
+                            return ''
+                        elif restart_if_needed:  # the subprocess might have crashed
+                            try:
+                                self._synchronize()
+                                return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
+                            except (TypeError, RuntimeError):
+                                pass
+                        raise RuntimeError("{}\n{} crashed executing {}".format(msg, self, line))
+                    if self._terminal_echo:
+                        out = E.before
+                    else:
+                        out = E.before.rstrip('\n\r')
+                    if self._terminal_echo and first:
+                        i = out.find("\n")
+                        j = out.rfind("\r")
+                        out = out[i+1:j].replace('\r\n', '\n')
+                    else:
+                        out = out.strip().replace('\r\n', '\n')
+                    first = False
+                    if have_error:
+                        p_errors.append(out)
+                        have_error = False
+                        out = ""
+                    elif have_warning:
+                        p_warnings.append(out)
+                        have_warning = False
+                        out = ""
+                    elif have_log:
+                        if get_verbose() > 0:
+                            print(out)
+                        have_log = False
+                        out = ""
+                    # 0: normal prompt
+                    # 1: continuation prompt
+                    # 2: user input expected when requestion "help"
+                    # 3: what we are looking for when interrupting a computation
+                    # 4: error
+                    # 5: warning
+                    # 6: anything but an error or warning, thus, an information
+                    # 7: unexpected end of the stream
+                    # 8: (expected) timeout
+                    if pat == 0:
+                        have_log = False
+                        have_error = False
+                        have_warning = False
+                        if E.buffer:
+                            if not E.buffer.strip():
+                                E.send(chr(3))
+                                sleep(0.1)
+                                pat = E.expect_list(self._prompt)
+                                if E.buffer or pat:
+                                    raise RuntimeError("Couldn't return to prompt after command '{}'".format(line))
+                        break
+                    elif pat == 1:  # unexpected continuation prompt
+                        # Return to normal prompt
+                        i = pat
+                        E.send(chr(3))
+                        sleep(0.1)
+                        i = E.expect_list(self._prompt)
+                        assert i == 0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line, _available_polymake_answers[pat], _available_polymake_answers[i])
+                        raise SyntaxError("Incomplete polymake command '{}'".format(line))
+                    elif pat == 2:  # request for user interaction
+                        # Return to normal prompt
+                        warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self, self))
+                        i = pat
+                        while i:
+                            self._expect.send(chr(3))
+                            sleep(0.1)
+                            i = self._expect.expect(self._prompt, timeout=0.1)
+                        # User interaction is expected to happen when requesting help
+                        if line.startswith('help'):
+                            out = os.linesep.join(out.split(os.linesep)[:-1])
+                            break
+                        else:
+                            RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
+                    elif pat == 3:  # killed by signal
+                        i = pat
+                        while pat != 0:
+                            E.send(chr(3))
+                            sleep(0.1)
+                            i = E.expect_list(self._prompt)
+                        RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
+                    elif pat == 4:  # polymake error
+                        have_error = True
+                    elif pat == 5:  # polymake warning
+                        have_warning = True
+                    elif pat == 6:  # apparently polymake prints a comment
+                        have_log = True
+                    elif pat == 7:  # we have reached the end of the buffer
+                        warnings.warn("Polymake unexpectedly {}".format(_available_polymake_answers[pat]), RuntimeWarning)
+                        E.buffer = E.before + E.after + E.buffer
+                        break
+                    else:  # timeout or some other problem
+                        # Polymake would still continue with the computation. Thus, we send an interrupt
+                        E.send(chr(3))
+                        sleep(0.1)
+                        while E.expect_list(self._prompt, timeout=0.1):
+                            # ... and since a single Ctrl-c just interrupts *one* of polymake's
+                            # rule chains, we repeat until polymake is running out of rules.
+                            E.send(chr(3))
+                            sleep(0.1)
+                        raise RuntimeError("Polymake {}".format(_available_polymake_answers[pat]))
+            else:
+                out = ''
+        except KeyboardInterrupt:
+            self._keyboard_interrupt()
+            raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
+        for w in p_warnings:
+            warnings.warn(w, RuntimeWarning)
+        for e in p_errors:
+            raise PolymakeError(e)
+        return out
+
+    def application(self, app):
+        """
+        Change to a given polymake application.
+
+        INPUT:
+
+        - ``app``, a string, one of "common", "fulton", "group", "matroid", "topaz",
+          "fan", "graph", "ideal", "polytope", "tropical"
+
+        EXAMPLES:
+
+        We expose a computation that uses both the 'polytope' and the 'fan'
+        application of polymake. Let us start by defining a polytope `q` in
+        terms of inequalities. Polymake knows to compute the f- and h-vector
+        and finds that the polytope is very ample::
+
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: q = polymake.new_object("Polytope", INEQUALITIES=[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]) # optional - polymake
+            sage: q.H_VECTOR                    # optional - polymake
+            1 5 5 1
+            sage: q.F_VECTOR                    # optional - polymake
+            8 14 8
+            sage: q.VERY_AMPLE                  # optional - polymake
+            true
+
+        In the application 'fan', polymake can now compute the normal fan
+        of `q` and its (primitive) rays::
+
+            sage: polymake.application('fan')   # optional - polymake
+            sage: g = q.normal_fan()            # optional - polymake
+            sage: g.RAYS                        # optional - polymake
+            -1 0 1/4
+            0 -1 1/4
+            1 0 0
+            1 1 -1/4
+            0 1 0
+            0 0 -1
+            0 -1 0
+            -1 0 0
+            sage: g.RAYS.primitive()            # optional - polymake
+            -4 0 1
+            0 -4 1
+            1 0 0
+            4 4 -1
+            0 1 0
+            0 0 -1
+            0 -1 0
+            -1 0 0
+
+        Note that the list of functions available by tab completion depends
+        on the application.
+
+        TESTS:
+
+        Since 'trop_witness' is not defined in the polymake application 'polytope'
+        but only in 'tropical', the following shows the effect of changing
+        the application. ::
+
+            sage: polymake.application('polytope')                   # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            False
+            sage: polymake.application('tropical')                   # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            True
+            sage: polymake.application('polytope')                   # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            False
+
+        For completeness, we show what happens when asking for an application
+        that doesn't exist::
+
+            sage: polymake.application('killerapp')                  # optional - polymake
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown polymake application 'killerapp'
+
+        Of course, a different error results when we send an explicit
+        command in polymake to change to an unknown application::
+
+            sage: polymake.eval('application "killerapp";')         # optional - polymake
+            Traceback (most recent call last):
+            ...
+            PolymakeError: Unknown application killerapp
+
+        """
+        if not self.is_running():
+            self._start()
+        if app not in ["common", "fulton", "group", "matroid", "topaz", "fan", "graph", "ideal", "polytope", "tropical"]:
+            raise ValueError("Unknown polymake application '{}'".format(app))
+        self._application = app
+        patterns = ["{} > ".format(app),            # 0: normal prompt
+                    r"{} \([0-9]+\)> ".format(app),  # 1: continuation prompt
+                    "Please choose ".format(app),   # 2: user input expected when requesting "help"
+                    "killed by signal",             # 3: what we are looking for when interrupting a computation
+                    "polymake: +ERROR: +",          # 4: error
+                    "polymake: +WARNING: +",        # 5: warning
+                    "polymake: +",                  # 6: anything but an error or warning, thus, an information
+                    pexpect.EOF,                    # 7: unexpected end of the stream
+                    pexpect.TIMEOUT]                # 8: timeout
+        self._change_prompt(self._expect.compile_pattern_list(patterns))
+        self._sendstr('application "{}";{}'.format(app, self._expect.linesep))
+        pat = self._expect.expect_list(self._prompt)
+        if pat:
+            raise RuntimeError("When changing the application, polymake unexpectedly {}".format(_available_polymake_answers[pat]))
+
+Polymake = PolymakeExpect
+
+class PolymakeJuPyMake(PolymakeAbstract):
+
+    r"""
+    Interface to the polymake interpreter using JuPyMake.
+
+    In order to use this interface, you need to either install the
+    optional polymake package for Sage, or install polymake system-wide
+    on your computer; it is available from https://polymake.org.
+    Also install the jupymake Python package.
+
+    Type ``polymake.[tab]`` for a list of most functions
+    available from your polymake install. Type
+    ``polymake.Function?`` for polymake's help about a given ``Function``.
+    Type ``polymake(...)`` to create a new polymake
+    object, and ``polymake.eval(...)`` to run a string using
+    polymake and get the result back as a string.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.polymake import polymake_jupymake as polymake
+        sage: type(polymake)
+        <...sage.interfaces.polymake.PolymakeJuPyMake...
+        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - jupymake
+        sage: p                                             # optional - jupymake
+        Random spherical polytope of dimension 4; seed=5...
+        sage: set_verbose(3)
+        sage: p.H_VECTOR;                                   # optional - jupymake # random
+        used package ppl
+          The Parma Polyhedra Library ...
+        sage: p.H_VECTOR                                    # optional - jupymake
+        1 16 40 16 1
+        sage: set_verbose(0)
+        sage: p.F_VECTOR                                    # optional - jupymake
+        20 94 148 74
+        sage: print(p.F_VECTOR._sage_doc_())                # optional - jupymake # random
+        property_types/Algebraic Types/Vector:
+         A type for vectors with entries of type Element.
+
+         You can perform algebraic operations such as addition or scalar multiplication.
+
+         You can create a new Vector by entering its elements, e.g.:
+            $v = new Vector<Int>(1,2,3);
+         or
+            $v = new Vector<Int>([1,2,3]);
+
+    Python strings are translated to polymake (Perl) identifiers.
+    To obtain Perl strings, use strings containing double-quote characters.
+    Python dicts are translated to Perl hashes.
+
+         sage: L = polymake.db_query({'"_id"': '"F.4D.0047"'},    # long time, optional - jupymake internet perl_mongodb
+         ....:                       db='"LatticePolytopes"',
+         ....:                       collection='"SmoothReflexive"'); L
+         BigObjectArray
+         sage: len(L)                                             # long time, optional - jupymake internet perl_mongodb
+         1
+         sage: P = L[0]                                           # long time, optional - jupymake internet perl_mongodb
+         sage: sorted(P.list_properties(), key=str)               # long time, optional - jupymake internet perl_mongodb
+         [..., LATTICE_POINTS_GENERATORS, ..., POINTED, ...]
+         sage: P.F_VECTOR                                         # long time, optional - jupymake internet perl_mongodb
+         20 40 29 9
+    """
+
+    def __init__(self, seed=None, verbose=False):
+        """
+        Initialize ``self``.
+
+        INPUT:
+
+        - ``verbose`` -- boolean (default: ``False``); whether to print the
+        commands passed to polymake.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: PolymakeJuPyMake()
+            Polymake
+        """
+        self._verbose = verbose
+        PolymakeAbstract.__init__(self, seed=seed)
+
+    _is_running = False    # class variable
+
+    def is_running(self):
+        """
+        Return True if self is currently running.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: pm = PolymakeJuPyMake()
+            sage: pm(1)                         # optional - jupymake
+            1
+            sage: pm.is_running()               # optional - jupymake
+            True
+
+        Several PolymakeJuPyMake interfaces can be created, but they all
+        talk to the same polymake interpreter::
+
+            sage: pm2 = PolymakeJuPyMake()
+            sage: pm2.is_running()              # optional - jupymake
+            True
+        """
+        return self._is_running
+
+    def _start(self):
+        """
+        Initialize the interpreter.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: pm = PolymakeJuPyMake()
+            sage: pm._start()                   # optional - jupymake
+            sage: pm.is_running()               # optional - jupymake
+            True
+        """
+        from JuPyMake import InitializePolymake
+        if not self.is_running():
+            InitializePolymake()          # Can only be called once
+            PolymakeJuPyMake._is_running = True
+        PolymakeAbstract._start(self)
+        self.eval("sub Polymake::Core::Shell::Mock::fill_history {}")
+        self._tab_completion()   # Run it here already because it causes a segfault when invoked in actual tab completion situation?!
+
+    def eval(self, code, **kwds):
+        r"""
+        Evaluate a command.
+
+        INPUT:
+
+        - ``code``, a command (string) to be evaluated
+
+        Different reaction types of polymake, including warnings, comments,
+        errors, request for user interaction, and yielding a continuation prompt,
+        are taken into account.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.polymake import polymake_jupymake as polymake
+            sage: p = polymake.cube(3)              # optional - jupymake  # indirect doctest
+
+        Here we see that remarks printed by polymake are displayed if
+        the verbosity is positive::
+
+            sage: set_verbose(1)
+            sage: p.N_LATTICE_POINTS                # optional - jupymake # random
+            used package latte
+              LattE (Lattice point Enumeration) is a computer software dedicated to the
+              problems of counting lattice points and integration inside convex polytopes.
+              Copyright by Matthias Koeppe, Jesus A. De Loera and others.
+              http://www.math.ucdavis.edu/~latte/
+            27
+            sage: set_verbose(0)
+
+        If polymake raises an error, the polymake *interface* raises
+        a :class:`PolymakeError`::
+
+            sage: polymake.eval('FOOBAR(3);')       # optional - jupymake
+            Traceback (most recent call last):
+            ...
+            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
+
+        If a command is incomplete, then polymake returns a continuation
+        prompt. In that case, we raise an error::
+
+            sage: polymake.eval('print 3')          # optional - jupymake
+            Traceback (most recent call last):
+            ...
+            SyntaxError: Incomplete polymake command 'print 3'
+            sage: polymake.eval('print 3;')         # optional - jupymake
+            '3'
+
+        However, if the command contains line breaks but eventually is complete,
+        no error is raised::
+
+            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - jupymake
+            abc
+
+        When requesting help, polymake sometimes expect the user to choose
+        from a list. In that situation, we abort with a warning, and show
+        the list from which the user can choose; we could demonstrate this using
+        the :meth:`help` method, but here we use an explicit code evaluation::
+
+            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - jupymake # random
+            doctest:warning
+            ...
+            UserWarning: Polymake expects user interaction. We abort and return
+            the options that Polymake provides.
+            There are 5 help topics matching 'TRIANGULATION':
+            1: objects/Cone/properties/Triangulation and volume/TRIANGULATION
+            2: objects/Polytope/properties/Triangulation and volume/TRIANGULATION
+            3: objects/Visualization/Visual::PointConfiguration/methods/TRIANGULATION
+            4: objects/Visualization/Visual::Polytope/methods/TRIANGULATION
+            5: objects/PointConfiguration/properties/Triangulation and volume/TRIANGULATION
+
+        By default, we just wait until polymake returns a result. However,
+        it is possible to explicitly set a timeout. The following usually does
+        work in an interactive session and often in doc tests, too. However,
+        sometimes it hangs, and therefore we remove it from the tests, for now::
+
+            sage: c = polymake.cube(15)             # optional - jupymake
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # not tested # optional - jupymake
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Polymake fails to respond timely
+
+        We verify that after the timeout, polymake is still able to give answers::
+
+            sage: c                                 # optional - jupymake
+            cube of dimension 15
+            sage: c.N_VERTICES                      # optional - jupymake
+            32768
+
+        Note, however, that the recovery after a timeout is not perfect.
+        It may happen that in some situation the interface collapses and
+        thus polymake would automatically be restarted, thereby losing all
+        data that have been computed before.
+
+        """
+        if not self.is_running():
+            self._start()
+        from JuPyMake import ExecuteCommand
+        if self._verbose:
+            print("## eval: {}".format(code))
+        parsed, stdout, stderr, error = ExecuteCommand(code)
+        if get_verbose() > 0 or self._verbose:
+            stderr = stderr.rstrip('\n\r')
+            if stderr:
+                print(stderr)
+        if error:
+            # "Error evaluating {} in {}: {}".format(code, self, error)
+            raise PolymakeError(error)
+        if not parsed:
+            raise SyntaxError("Incomplete polymake command '{}'".format(code))
+        return stdout
+
+    _eval_line = eval
+
+
+def reduce_load_Polymake():
+    """
+    Returns the polymake interface object defined in :mod:`sage.interfaces.polymake`.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.polymake import reduce_load_Polymake
+        sage: reduce_load_Polymake()
+        Polymake
+    """
+    return polymake
+
+
+polymake_expect = PolymakeExpect()
+
+polymake_jupymake = PolymakeJuPyMake()
+
+from sage.features import PythonModule
+if PythonModule("JuPyMake").is_present():
+    polymake = polymake_jupymake
+else:
+    polymake = polymake_expect

@@ -58,7 +58,7 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
 
     .. [ChariKleber2000] Vyjayanthi Chari and Michael Kleber.
        *Symmetric functions and representations of quantum affine algebras*.
-       :arXiv:`math/0011161v1`
+       :arxiv:`math/0011161v1`
 
     .. [KoikeTerada1987] \K. Koike, I. Terada, *Young-diagrammatic methods for
        the representation theory of the classical groups of type Bn, Cn, Dn*.

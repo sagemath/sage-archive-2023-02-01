@@ -16,8 +16,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.coerce cimport coercion_model
 from sage.misc.derivative import multi_derivative
-from sage.rings.infinity import infinity
-from sage.structure.element cimport Element
 
 from sage.misc.all import prod
 
@@ -26,10 +24,8 @@ def is_MPolynomial(x):
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.map cimport Map
-from sage.categories.morphism cimport Morphism
 from sage.modules.free_module_element import vector
 from sage.rings.rational_field import QQ
-from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
 
@@ -297,8 +293,10 @@ cdef class MPolynomial(CommutativeRingElement):
         monomial at a time, with no sharing of repeated computations and
         with useless additions of 0 and multiplications by 1::
 
-            sage: list(ff) # random
-            ['push 0.0', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 42.0', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add']
+            sage: g = (x*y**2*z)._fast_float_()
+            sage: list(g)
+            ['push 0.0', 'push 1.0', 'load 0', 'load 1', 'dup', 'mul',
+             'mul', 'load 2', 'mul', 'mul', 'add']
 
         TESTS::
 
@@ -1946,7 +1944,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: x.gcd(x)
             Traceback (most recent call last):
             ...
-            NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
         TESTS::
 
@@ -2113,7 +2111,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def reduced_form(self, **kwds):
         r"""
-        Returns a reduced form of this polynomial.
+        Return a reduced form of this polynomial.
 
         The algorithm is from Stoll and Cremona's "On the Reduction Theory of
         Binary Forms" [CS2003]_. This takes a two variable homogenous polynomial and
@@ -2125,7 +2123,7 @@ cdef class MPolynomial(CommutativeRingElement):
         This reduction should also minimize the sum of the squares of the coefficients,
         but this is not always the case.  By default the coefficient minimizing
         algorithm in [HS2018]_ is applied. The coefficients can be minimized
-        either with respect to the sum of their squares of the maximum of their
+        either with respect to the sum of their squares or the maximum of their
         global heights.
 
         A portion of the algorithm uses Newton's method to find a solution to
@@ -2133,7 +2131,7 @@ cdef class MPolynomial(CommutativeRingElement):
         in the upper half plane, the function will use the less precise `z_0`
         covariant from the `Q_0` form as defined on page 7 of [CS2003]_.
         Additionally, if this polynomial has
-        a root with multiplicity at lease half the total degree of the polynomial,
+        a root with multiplicity at least half the total degree of the polynomial,
         then we must also use the `z_0` covariant. See [CS2003]_ for details.
 
         Note that, if the covariant is within ``error_limit`` of the boundary
@@ -2196,7 +2194,7 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             ValueError: cannot have a root with multiplicity >= 12/2
 
-        An example where Newton's Method doesnt find the right root::
+        An example where Newton's Method does not find the right root::
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: F = x^6 + 3*x^5*y - 8*x^4*y^2 - 2*x^3*y^3 - 44*x^2*y^4 - 8*x*y^5

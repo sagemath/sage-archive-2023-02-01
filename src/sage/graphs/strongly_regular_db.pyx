@@ -1733,11 +1733,12 @@ cdef eigenvalues(int v,int k,int l,int mu):
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
 
-def eigenmatrix(int v,int k,int l,int mu):
-    r"""
-    Return the 1st eigenmatrix of a `(v,k,l,mu)`-strongly regular graph.
 
-    The adjacency matrix `A` of an s.r.g. commutes with the adacency matrix
+def eigenmatrix(int v, int k, int l, int mu):
+    r"""
+    Return the first eigenmatrix of a `(v,k,l,mu)`-strongly regular graph.
+
+    The adjacency matrix `A` of an s.r.g. commutes with the adjacency matrix
     `A'=J-A-I` of its complement (here `J` is all-1 matrix, and `I` the identity
     matrix).  Thus, they can be simultaneously diagonalized and so `A` and `A'`
     share eigenspaces.

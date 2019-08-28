@@ -354,7 +354,7 @@ class CalculusMethod(SageObject):
         r"""
         Return the active calculus method as a string.
 
-        OUPUT:
+        OUTPUT:
 
         - string defining the calculus method, one of
 

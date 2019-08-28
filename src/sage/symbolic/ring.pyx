@@ -830,20 +830,39 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: cannot specify n for multiple symbol names
+
+        Check that :trac:`28353` is fixed: Constructions that suggest multiple
+        variables but actually only give one variable name return a 1-tuple::
+
+            sage: SR.var(['x'])
+            (x,)
+            sage: SR.var('x,')
+            (x,)
+            sage: SR.var(['x'], n=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot specify n for multiple symbol names
         """
         if is_Expression(name):
             return name
         if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)
 
+        is_multiple = False
+
         if isinstance(name, (list, tuple)):
             names_list = [s.strip() for s in name]
-        elif ',' in name:
-            names_list = [s.strip() for s in name.split(',' )]
-        elif ' ' in name:
-            names_list = [s.strip() for s in name.split()]
+            is_multiple = True
         else:
-            names_list = [name]
+            name = name.strip()
+            if ',' in name:
+                names_list = [s.strip() for s in name.split(',') if s.strip()]
+                is_multiple = True
+            elif ' ' in name:
+                names_list = [s.strip() for s in name.split()]
+                is_multiple = True
+            else:
+                names_list = [name] if name else []
 
         for s in names_list:
             if not isidentifier(s):
@@ -859,7 +878,14 @@ cdef class SymbolicRing(CommutativeRing):
 
         if not names_list:
             raise ValueError('You need to specify the name of the new variable.')
-        if len(names_list) == 1:
+
+        if is_multiple:
+            if latex_name is not None:
+                raise ValueError("cannot specify latex_name for multiple symbol names")
+            if n is not None:
+                raise ValueError("cannot specify n for multiple symbol names")
+            return tuple([self.symbol(s, domain=domain) for s in names_list])
+        else:
             if n is not None:
                 if n > 0:
                     name = [name + str(i) for i in range(n)]
@@ -872,12 +898,6 @@ cdef class SymbolicRing(CommutativeRing):
                     raise ValueError("the number of variables should be a positive integer")
             else:
                 return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
-        if len(names_list) > 1:
-            if latex_name is not None:
-                raise ValueError("cannot specify latex_name for multiple symbol names")
-            if n is not None:
-                raise ValueError("cannot specify n for multiple symbol names")
-            return tuple([self.symbol(s, domain=domain) for s in names_list])
 
     def _repr_element_(self, Expression x):
         """

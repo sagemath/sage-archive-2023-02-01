@@ -95,7 +95,7 @@ ideals of those maximal orders::
     sage: O.basis()
     (1, y, 1/x*y^2 + 1/x*y, 1/x^3*y^3 + 2/x^3*y^2 + 1/x^3*y)
     sage: I = O.ideal(x,y); I
-    Ideal (x, y + x) of Maximal order of Function field in y defined by y^4 + y + 2*x^5
+    Ideal (x, y) of Maximal order of Function field in y defined by y^4 + y + 2*x^5
     sage: J = I^-1
     sage: J.basis_matrix()
     [  1   0   0   0]
@@ -183,6 +183,8 @@ from sage.modules.free_module_element import vector
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
 
+from .differential import DifferentialsSpace, DifferentialsSpace_global
+
 from .element import (
     FunctionFieldElement,
     FunctionFieldElement_rational,
@@ -234,6 +236,8 @@ class FunctionField(Field):
         sage: K
         Rational function field in x over Rational Field
     """
+    _differentials_space = DifferentialsSpace
+
     def __init__(self, base_field, names, category=FunctionFields()):
         """
         Initialize.
@@ -730,7 +734,7 @@ class FunctionField(Field):
 
         OUTPUT:
 
-        - a list of fields; the first entry is ``base``, the last entry is this field.
+        - a list of fields; the first entry is this field, the last entry is ``base``
 
         EXAMPLES::
 
@@ -926,8 +930,7 @@ class FunctionField(Field):
             sage: L.space_of_differentials()
             Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
         """
-        from .differential import DifferentialsSpace
-        return DifferentialsSpace(self)
+        return self._differentials_space(self)
 
     def divisor_group(self):
         """
@@ -1323,7 +1326,7 @@ class FunctionField_polymod(FunctionField):
             to_ret = self.hom( [L_to_ret(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())] )
             return ret, from_ret, to_ret
         else:
-            if self.polynomial().is_monic() and all([c.denominator().is_one() for c in self.polynomial()]):
+            if self.polynomial().is_monic() and all(c.denominator().is_one() for c in self.polynomial()):
                 # self is already monic and integral
                 if names is None or names == ():
                     names = (self.variable_name(),)
@@ -2598,6 +2601,7 @@ class FunctionField_global(FunctionField_polymod):
         0
     """
     Element = FunctionFieldElement_global
+    _differentials_space = DifferentialsSpace_global
 
     def __init__(self, polynomial, names):
         """
@@ -3439,7 +3443,7 @@ class RationalFunctionField(FunctionField):
             sage: TestSuite(K).run()
 
             sage: FunctionField(QQ[I], 'alpha')
-            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1
+            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
         Must be over a field::
 
@@ -4173,6 +4177,8 @@ class RationalFunctionField_global(RationalFunctionField):
     """
     Rational function field over finite fields.
     """
+    _differentials_space = DifferentialsSpace_global
+
     def places(self, degree=1):
         """
         Return all places of the degree.

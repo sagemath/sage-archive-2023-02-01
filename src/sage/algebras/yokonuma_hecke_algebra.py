@@ -414,10 +414,8 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
              - (q^-1-q)*t1^2*t2^3*t3^2*g[1] - (q^-1-q)*t1^3*t2^2*t3^2*g[1]
         """
         t, w = m
-        # We have to flip the side due to Sage's multiplication
-        #   convention for permutations
-        wi = w.apply_simple_reflection(i, side="left")
-        if not w.has_descent(i, side="left"):
+        wi = w.apply_simple_reflection(i, side="right")
+        if not w.has_descent(i, side="right"):
             return self.monomial((t, wi))
 
         R = self.base_ring()

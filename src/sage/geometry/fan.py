@@ -694,6 +694,9 @@ def NormalFan(polytope, lattice=None):
     r"""
     Construct the normal fan of the given rational ``polytope``.
 
+    This returns the inner normal fan. For the outer normal fan, use
+    ``NormalFan(-P)``.
+
     INPUT:
 
     - ``polytope`` -- a full-dimensional :func:`polytope
@@ -3348,7 +3351,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             0
 
         where the leftmost non-zero entry is in degree `0` and the
-        rightmost entry in degree `d`. See [Klyachko]_, eq. (3.2). This
+        rightmost entry in degree `d`. See [Kly1990]_, eq. (3.2). This
         complex computes the homology of `|\Sigma|\subset N_\RR` with
         arbitrary support,
 

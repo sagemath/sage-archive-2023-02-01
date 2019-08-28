@@ -64,8 +64,7 @@ class Polyhedron_field(Polyhedron_base):
         sage: P1 = Polyhedron([[0,1],[1,1],[1,-phi+1]])
         sage: P2 = Polyhedron(ieqs=[[-1,-phi,0]])
         sage: P1.intersection(P2)
-        The empty polyhedron in (Number Field in phi with defining polynomial
-        x^2 - x - 1)^2
+        The empty polyhedron in (Number Field in phi with defining polynomial x^2 - x - 1 with phi = 1.618033988749895?)^2
     """
     def _is_zero(self, x):
         """

@@ -367,6 +367,11 @@ cdef class Graphics3d(SageObject):
         options.setdefault('axes_labels', ['x','y','z'])
         options.setdefault('decimals', 2)
         options.setdefault('online', False)
+        options.setdefault('projection', 'perspective')
+        if options['projection'] not in ['perspective', 'orthographic']:
+            import warnings
+            warnings.warn('projection={} is not supported; using perspective'.format(options['projection']))
+            options['projection'] = 'perspective'
         # Normalization of options values for proper JSONing
         options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
         options['decimals'] = int(options['decimals'])
@@ -387,7 +392,9 @@ cdef class Graphics3d(SageObject):
         ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
         import json
+        from sage.plot.plot3d.shapes import arrow3d
         points, lines, texts = [], [], []
+
         if not hasattr(self, 'all'):
             self += Graphics3d()
         for p in self.flatten().all:
@@ -403,10 +410,17 @@ cdef class Graphics3d(SageObject):
                 lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
             if hasattr(p, '_trans'):
+                m = p.get_transformation().get_matrix()
+                t = (m[0,3], m[1,3], m[2,3])
+                if hasattr(p.all[0], 'points'):
+                    translated = [[sum(x) for x in zip(t,u)] for u in p.all[0].points]
+                    width = .5 * p.all[0].thickness
+                    color = p.all[0].texture.color
+                    opacity = p.all[0].texture.opacity
+                    self += arrow3d(translated[0], translated[1], width=width, color=color, opacity=opacity)
                 if hasattr(p.all[0], 'string'):
-                    m = p.get_transformation().get_matrix()
                     texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                                 p.all[0].string, t[0], t[1], t[2]))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -423,7 +437,7 @@ cdef class Graphics3d(SageObject):
 
         html = html.replace('SAGE_SCRIPTS', scripts)
         js_options = dict((key, options[key]) for key in
-            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame'])
+            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame', 'projection'])
         html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)

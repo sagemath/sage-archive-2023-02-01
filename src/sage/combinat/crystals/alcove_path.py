@@ -383,7 +383,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
         One can compute all vertices of the crystal by finding all the
         admissible subsets of the `\lambda`-chain  (see method
-        is_admissible, for definition).  We use the breath first
+        is_admissible, for definition).  We use the breadth first
         search algorithm.
 
         .. WARNING::

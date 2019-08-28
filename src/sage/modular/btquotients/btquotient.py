@@ -3301,7 +3301,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         matrix) and a boolean saying whether the quaternion is in the
         subgroup of `M_2(\Qp)` determined by the Dirichlet
         character. Note that if `N^+` is trivial then this function
-        aways outputs true.
+        always outputs true.
 
         EXAMPLES::
 

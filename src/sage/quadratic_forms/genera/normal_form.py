@@ -932,7 +932,7 @@ def _normalize_2x2(G):
         # Find a point of norm 2
         # solve: 2 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
         pol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0]-2) // 2
-        # somehow else pari can get a hickup see `trac`:#24065
+        # somehow else pari can get a hickup see trac #24065
         pol = pol // pol.leading_coefficient()
         sol = pol.roots()[0][0]
         B[0, 1] = sol
@@ -945,7 +945,7 @@ def _normalize_2x2(G):
         if D[1, 1] != 2:
             v = vector([x, -2*x + 1])
             pol = (v*D*v - 2) // 2
-            # somehow else pari can get a hickup `trac`:#24065
+            # somehow else pari can get a hickup see trac #24065
             pol = pol // pol.leading_coefficient()
             sol = pol.roots()[0][0]
             B[1, :] = sol * B[0,:] + (-2*sol + 1)*B[1, :]
@@ -959,7 +959,7 @@ def _normalize_2x2(G):
         # Find a point representing 0
         # solve: 0 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
         pol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0])//2
-        # somehow else pari can get a hickup, see  `trac`:#24065
+        # somehow else pari can get a hickup, see trac #24065
         pol = pol // pol.leading_coefficient()
         sol = pol.roots()[0][0]
         B[0,:] += sol*B[1, :]
@@ -973,6 +973,7 @@ def _normalize_2x2(G):
         # check the result
         assert D == Matrix(G.parent(), 2, 2, [0, 1, 1, 0]), "D2 \n %r" %D
     return B
+
 
 def _normalize_odd_2x2(G):
     r"""

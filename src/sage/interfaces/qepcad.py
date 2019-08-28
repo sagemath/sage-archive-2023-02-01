@@ -1686,7 +1686,7 @@ def qepcad_console(memcells=None):
     """
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
-        raise RuntimeError('Can use the console only in the terminal. Try %%qepcat magics instead.')
+        raise RuntimeError('Can use the console only in the terminal. Try %%qepcad magics instead.')
     # This will only spawn local processes
     os.system(_qepcad_cmd(memcells))
 

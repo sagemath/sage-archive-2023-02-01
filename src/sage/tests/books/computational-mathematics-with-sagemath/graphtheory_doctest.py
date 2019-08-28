@@ -329,9 +329,9 @@ Sage example in ./graphtheory.tex, line 1989::
   ....:  while H_remain:
   ....:      v = H_remain.pop(0) # look for the next vertex of H
   ....:      # and its potential images in G
-  ....:      candidates = [u for u in G_remain if
-  ....:             all([H.has_edge(h,v) == G.has_edge(f_h,u)
-  ....:                     for h, f_h in f.items()])]
+  ....:      candidates = [u for u in G_remain
+  ....:                    if all(H.has_edge(h,v) == G.has_edge(f_h,u)
+  ....:                           for h, f_h in f.items())]
   ....:      # if no candidate is found, we abort immediately
   ....:      if not candidates:
   ....:          raise ValueError("No copy of H has been found in G")
@@ -380,8 +380,9 @@ Sage example in ./graphtheory.tex, line 2139::
 Sage example in ./graphtheory.tex, line 2182::
 
   sage: M = Graph(G.matching())
-  sage: for i in tasks:
-  ....:   print("t{} assigned to {}".format(i,M.neighbors('t'+str(i))[0]))
+  sage: txt = "t{} assigned to {}"
+  sage: for i in tasks:                                        # random
+  ....:     print(txt.format(i, M.neighbors('t' + str(i))[0])) # random
   t0 assigned to w2
   t1 assigned to w3
   t2 assigned to w5

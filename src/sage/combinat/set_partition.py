@@ -723,9 +723,9 @@ class SetPartition(AbstractSetPartition):
             \node[label=-54:c] (2) at (-54:1cm) {};
             \node[label=-126:d] (3) at (-126:1cm) {};
             \node[label=-198:e] (4) at (-198:1cm) {};
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (0.center) -- (2.center) -- cycle;
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (1.center) -- (3.center) -- cycle;
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (4.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] ...
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] ...
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] ...
             \fill[color=black] (0) circle (1.5pt);
             \fill[color=black] (1) circle (1.5pt);
             \fill[color=black] (2) circle (1.5pt);
@@ -2734,7 +2734,7 @@ class SetPartitions_set(SetPartitions):
             {{1, 4, 9}, {2, 5, 7}, {3}, {6}, {8, 10}}
 
             sage: S = SetPartitions(["a", "b", "c"])
-            sage: S.random_element()
+            sage: S.random_element() # random
             {{'a'}, {'b', 'c'}}
         """
         base_set = list(self.base_set())
@@ -2799,8 +2799,8 @@ class SetPartitions_set(SetPartitions):
             sage: SetPartitions(3).base_set()
             {1, 2, 3}
 
-            sage: SetPartitions(["a", "b", "c"]).base_set()
-            {'a', 'c', 'b'}
+            sage: sorted(SetPartitions(["a", "b", "c"]).base_set())
+            ['a', 'b', 'c']
         """
         return Set(self._set)
 
@@ -2986,7 +2986,7 @@ class SetPartitions_setparts(SetPartitions_set):
             [{{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}]
 
             sage: SetPartitions(["a", "b", "c"], [2,1]).list()
-            [{{'a'}, {'b', 'c'}}, {{'a', 'c'}, {'b'}}, {{'a', 'b'}, {'c'}}]
+            [{{'a'}, {'b', 'c'}}, {{'a', 'b'}, {'c'}}, {{'a', 'c'}, {'b'}}]
 
         TESTS::
 
@@ -2998,8 +2998,11 @@ class SetPartitions_setparts(SetPartitions_set):
         # Ruskey, Combinatorial Generation, sec. 5.10.1 and Knuth TAOCP 4A 7.2.1.5, Exercise 6
         k = len(self._parts)
         n = len(self._set)
-        s = list(self._set)
         P = self._set_partition_poset()
+        try:
+            s = sorted(self._set)
+        except TypeError:
+            s = sorted(self._set, key=str)
 
         sums = [0]
         for b in sorted(self._parts):
@@ -3161,7 +3164,7 @@ class SetPartitions_setn(SetPartitions_set):
             sage: S.random_element()
             {{1, 2, 4, 6, 9, 10}, {3}, {5, 7}, {8}}
 
-            sage: SetPartitions(["a", "b", "c"], 2).random_element()
+            sage: SetPartitions(["a", "b", "c"], 2).random_element() # random
             {{'a'}, {'b', 'c'}}
 
         """

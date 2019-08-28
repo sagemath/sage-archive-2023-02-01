@@ -190,14 +190,15 @@ def is_strongly_regular(g, parameters=False):
 
     If the input graph has loops or multiedges an exception is raised::
 
-        sage: Graph([(1,1),(2,2)]).is_strongly_regular()
+        sage: Graph([(1,1),(2,2)],loops=True).is_strongly_regular()
         Traceback (most recent call last):
         ...
         ValueError: This method is not known to work on graphs with
         loops. Perhaps this method can be updated to handle them, but in the
         meantime if you want to use it please disallow loops using
         allow_loops().
-        sage: Graph([(1,2),(1,2)]).is_strongly_regular()
+
+        sage: Graph([(1,2),(1,2)],multiedges=True).is_strongly_regular()
         Traceback (most recent call last):
         ...
         ValueError: This method is not known to work on graphs with

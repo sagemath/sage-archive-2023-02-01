@@ -695,12 +695,11 @@ def K33dual():
 
         sage: M = matroids.named_matroids.K33dual(); M
         M*(K3, 3): Regular matroid of rank 4 on 9 elements with 81 bases
-        sage: any([N.is_3connected()
-        ....:                      for N in M.linear_extensions(simple=True)])
+        sage: any(N.is_3connected()
+        ....:     for N in M.linear_extensions(simple=True))
         False
         sage: M.is_valid() # long time
         True
-
     """
     E = 'abcdefghi'
     G = graphs.CompleteBipartiteGraph(3, 3)

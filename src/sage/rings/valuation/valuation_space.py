@@ -734,7 +734,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if other.parent() is not self.parent():
                     raise ValueError("all valuations must be valuations on %r but %r is a valuation on %r"%(self.domain(), other, other.domain()))
                 if not other.is_discrete_valuation():
-                    raise ValueError("all valuationss must be discrete valuations but %r is not"%(other,))
+                    raise ValueError("all valuations must be discrete valuations but %r is not" % (other,))
                 if other.is_trivial():
                     raise ValueError("all valuations must be non-trivial but %r is not"%(other,))
 
@@ -769,7 +769,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         # terminate in reasonable time.
                         factor = (ret**r)/(1+ret**r)
                         ret = factor * delta
-                        if all([other(ret) < 0 for other in others[:i+1]]):
+                        if all(other(ret) < 0 for other in others[:i+1]):
                             break
             return ret
 

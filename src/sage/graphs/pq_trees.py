@@ -870,7 +870,7 @@ class Q(PQ):
         # From now on, there are at most two pq-trees which are partially filled
         # If there is one which is not aligned to the right, all the others are empty
 
-        # First trivial case, no checking neded
+        # First trivial case, no checking needed
         elif n_FULL == self.number_of_children():
             return FULL, True
 

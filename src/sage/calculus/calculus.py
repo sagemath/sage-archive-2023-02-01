@@ -1006,7 +1006,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: eqn =  x^3 + sqrt(2)*x + 5 == 0
         sage: a = solve(eqn, x)[0].rhs()
         sage: QQ[a]
-        Number Field in a with defining polynomial x^6 + 10*x^3 - 2*x^2 + 25
+        Number Field in a with defining polynomial x^6 + 10*x^3 - 2*x^2 + 25 with a = 0.7185272465828846? - 1.721353471724806?*I
 
     Here we solve a cubic and then recover it from its complicated
     radical expansion.

@@ -1820,7 +1820,6 @@ class PrecisionLattice(UniqueRepresentation, DifferentialPrecisionGeneric):
             sage: prec.precision_lattice()
             []
         """
-        p = self._p
         n = len(self._elements)
 
         # We mark new collected elements for deletion
@@ -2417,8 +2416,6 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
             sage: prec.precision_lattice()
             []
         """
-        p = self._p
-
         # We mark new collected elements for deletion
         # The list self._collected_references can be updated while
         # the loop runs.
@@ -2442,7 +2439,8 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
                 # if the column is not a pivot, we erase it without delay
                 # (btw, is it a good idea?)
                 del self._elements[index]
-                self._marked_for_deletion = [ i if i < index else i-1 for i in self._marked_for_deletion ]
+                self._marked_for_deletion = [i if i < index else i - 1
+                                             for i in self._marked_for_deletion]
                 if self._history is not None:
                     self._history.append(('del', index, walltime(tme)))
         del self._collected_references[:count]

@@ -2960,8 +2960,8 @@ class DiGraph(GenericGraph):
         - ``ends`` -- (optional, default: ``(self.sources(), self.sinks())``) a
           pair `(S, T)` of an iterable `S` and an iterable `T`.
 
-        - ``backend`` -- string or ``None`` (default). The backend to use.
-          See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`.
+        - ``backend`` -- string or ``None`` (default); the backend to use;
+          see :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
 
         .. NOTE::
 

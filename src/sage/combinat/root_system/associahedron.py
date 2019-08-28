@@ -30,7 +30,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import QQ
 
 
-def Associahedron(cartan_type, backend=None):
+def Associahedron(cartan_type, backend='ppl'):
     r"""
     Construct an associahedron.
 
@@ -51,9 +51,8 @@ def Associahedron(cartan_type, backend=None):
     - ``cartan_type`` -- a cartan type according to
       :class:`sage.combinat.root_system.cartan_type.CartanTypeFactory`
 
-    - ``backend`` -- string or ``None`` (default). The backend to use.
-      See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`.
-      If ``None``, then ``backend='ppl'`` is used.
+    - ``backend`` -- string (``'ppl'``); the backend to use;
+      see :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
 
     EXAMPLES::
 
@@ -121,8 +120,6 @@ def Associahedron(cartan_type, backend=None):
         sage: p3 = polytopes.associahedron(['A',4], backend='field')
         sage: TestSuite(p3).run()
     """
-    if backend is None:
-        backend = 'ppl'
     cartan_type = CartanType(cartan_type)
     parent = Associahedra(QQ, cartan_type.rank(), backend)
     return parent(cartan_type)
@@ -201,7 +198,7 @@ class Associahedron_class_field(Associahedron_class_base, Polyhedron_field):
     pass
 
 
-def Associahedra(base_ring, ambient_dim, backend=None):
+def Associahedra(base_ring, ambient_dim, backend='ppl'):
     r"""
     Construct a parent class of Associahedra according to ``backend``.
 
@@ -236,7 +233,7 @@ def Associahedra(base_ring, ambient_dim, backend=None):
     elif backend == 'field':
         return Associahedra_field(base_ring, ambient_dim, backend)
     else:
-        raise ValueError("Unknown backend")
+        raise ValueError("unknown backend")
 
 class Associahedra_base(object):
     """

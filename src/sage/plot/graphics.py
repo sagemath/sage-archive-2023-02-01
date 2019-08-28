@@ -17,9 +17,10 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
-- Eric Gourgoulhon (2019-05-18): :class:`~sage.plot.multigraphics.GraphicsArray`
+- Eric Gourgoulhon (2019-05-24): :class:`~sage.plot.multigraphics.GraphicsArray`
   moved to new module :mod:`~sage.plot.multigraphics`; various improvements and
-  fixes in :meth:`Graphics.matplotlib` and ``Graphics._set_scale``.
+  fixes in :meth:`Graphics.matplotlib` and ``Graphics._set_scale``; new method
+  :meth:`Graphics.inset`
 
 """
 
@@ -3316,3 +3317,91 @@ class Graphics(WithEqualityById, SageObject):
             data.append([g_zorder, g_str, g])
         data.sort()
         return '\n'.join(g[1] for g in data)
+
+    def inset(self, graphics, pos=None, fontsize=None):
+        r"""
+        Add a graphics object as an inset.
+
+        INPUT:
+
+        - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
+          to be added as an inset to the current graphics
+
+        - ``pos`` -- (default: ``None``) 4-tuple
+          ``(left, bottom, width, height)``
+          specifying the location and size of the inset on the figure, all
+          quantities being in fractions of the figure width and height; if
+          ``None``, the value ``(0.70, 0.68, 0.2, 0.2)`` is used
+
+        - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
+          for the inset; if ``None``, the value of 6 points is used, unless
+          ``fontsize`` has been explicitely set in the construction of
+          ``graphics`` (in this case, it is not overwritten here)
+
+        OUTPUT:
+
+        - instance of :class:`~sage.plot.multigraphics.MultiGraphics`
+
+        EXAMPLES::
+
+            sage: f(x) = x^2*sin(1/x)
+            sage: g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            sage: g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'],
+            ....:           frame=True)
+            sage: g1.inset(g2)
+            Multigraphics with 2 elements
+
+        .. PLOT::
+
+            f = (x**2*sin(1/x)).function(x)
+            g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            sphinx_plot(g1.inset(g2))
+
+        Using non-default values for the position/size and the font size::
+
+            sage: g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8)
+            Multigraphics with 2 elements
+
+        .. PLOT::
+
+            f = (x**2*sin(1/x)).function(x)
+            g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            sphinx_plot(g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8))
+
+        We can add another inset by invoking ``inset`` on the last output::
+
+            sage: g1g2 = _
+            sage: g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'],
+            ....:           frame=True)
+            sage: g1g2.inset(g3, pos=(0.68, 0.15, 0.25, 0.25))
+            Multigraphics with 3 elements
+
+        .. PLOT::
+
+            f = (x**2*sin(1/x)).function(x)
+            g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            g1g2 = g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8)
+            g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            sphinx_plot(g1g2.inset(g3, pos=(0.68, 0.15, 0.25, 0.25)))
+
+        """
+        from matplotlib import rcParams
+        from .multigraphics import MultiGraphics
+        if pos is None:
+            width = 0.2
+            height = 0.2
+            left = rcParams['figure.subplot.right'] - width
+            bottom = rcParams['figure.subplot.top'] - height
+            pos = (left, bottom, width, height)
+        if fontsize is not None:
+            graphics._extra_kwds['fontsize'] = fontsize
+        elif 'fontsize' not in graphics._extra_kwds:
+            graphics._extra_kwds['fontsize'] = 6
+        return MultiGraphics([self, (graphics, pos)])

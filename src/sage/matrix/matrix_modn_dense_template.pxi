@@ -1703,7 +1703,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
           - ``linbox`` - uses the LinBox library (wrapping fflas-ffpack)
 
-          - ``linbox_noefd`` - uses the FFPACK directly, less memory and faster
+          - ``linbox_noefd`` - uses the FFPACK directly, less memory and faster (default)
 
           - ``gauss`` - uses a custom slower `O(n^3)` Gauss
             elimination implemented in Sage.
@@ -1793,6 +1793,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 10'.
 
         ::
+
             sage: A = random_matrix(GF(16007), 10, 20); A
             [15455  1177 10072  4693  3887  4102 10746 15265  6684 14559  4535 13921  9757  9525  9301  8566  2460  9609  3887  6205]
             [ 8602 10035  1242  9776   162  7893 12619  6660 13250  1988 14263 11377  2216  1247  7261  8446 15081 14412  7371  7948]
@@ -1823,6 +1824,16 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             Traceback (most recent call last):
             ...
             NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 10000'.
+
+        Parallel computation::
+
+            sage: A = random_matrix(GF(65521),100,200)
+            sage: Parallelism().set('linbox', nproc=2)
+            sage: E = A.echelon_form()
+            sage: Parallelism().set('linbox', nproc=1) # switch off parallelization
+            sage: F = A.echelon_form()
+            sage: E==F
+            True
 
         TESTS::
 
@@ -2403,7 +2414,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: A.determinant()
             6
 
-       ::
+        ::
 
             sage: A = random_matrix(GF(7), 100, 100)
             sage: A.determinant()
@@ -2451,6 +2462,17 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             4075
 
             sage: (A*B).determinant() == A.determinant() * B.determinant()
+            True
+
+        Parallel computation::
+
+            sage: A = random_matrix(GF(65521),200)
+            sage: B = copy(A)
+            sage: Parallelism().set('linbox', nproc=2)
+            sage: d = A.determinant()
+            sage: Parallelism().set('linbox', nproc=1) # switch off parallelization
+            sage: e = B.determinant()
+            sage: d==e
             True
 
         TESTS::

@@ -37,7 +37,7 @@ class Parallelism(Singleton, SageObject):
     EXAMPLES:
 
     The number of processes is initialized to 1 (no parallelization) for
-    each field (only tensor computations are implemented at the moment)::
+    each field::
 
         sage: Parallelism()
         Number of processes for parallelization:

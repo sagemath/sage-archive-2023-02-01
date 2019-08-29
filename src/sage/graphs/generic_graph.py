@@ -17333,7 +17333,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The Wiener index of a graph `G` is `W(G) = \frac{1}{2} \sum_{u,v\in G}
         d(u,v)` where `d(u,v)` denotes the distance between vertices `u` and `v`
-        (see [KRG96b]_).
+        (see [KRG1996]_).
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths` and

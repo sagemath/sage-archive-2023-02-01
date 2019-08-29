@@ -1130,6 +1130,18 @@ REFERENCES:
 .. [CFZ2002] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
              generalized associahedra, :arxiv:`math/0202004`.
 
+.. [CGHLM2013] \P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino.
+               *On computing the diameter of real-world undirected graphs*.
+               Theor. Comput. Sci. 514: 84-95 (2013).
+               :doi:`10.1016/j.tcs.2012.09.018`.
+
+.. [CGILM2010] \P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and A. Marino.
+               *Finding the Diameter in Real-World Graphs: Experimentally
+               Turning a Lower Bound into an Upper Bound*. Proceedings of 18th
+               Annual European Symposium on Algorithms. Lecture Notes in
+               Computer Science, vol. 6346, 302-313. Springer (2010).
+               :doi:`10.1007/978-3-642-15775-2_26`.
+
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
@@ -2185,6 +2197,10 @@ REFERENCES:
             Lattice Theory: Special Topics and Applications Vol. 1,
             Springer, 2014.
 
+.. [GYLL1993] \I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. *Some recent
+              results in the theory of the Wiener number*. Indian Journal of
+              Chemistry, 32A:651--661, 1993.
+
 .. [GZ1983] Greene; Zaslavsky, "On the Interpretation of Whitney
             Numbers Through Arrangements of Hyperplanes, Zonotopes,
             Non-Radon Partitions, and Orientations of
@@ -2865,6 +2881,10 @@ REFERENCES:
 .. [Kre2002] \V. Kreps. *Social Network Analysis* (2002).
              [Online] Available: http://www.orgnet.com/sna.html
 
+.. [KRG1996] \S. Klavzar, A. Rajapakse, and I. Gutman. *The Szeged and the
+             Wiener index of graphs*. Applied Mathematics Letters, 9(5):45--49,
+             1996. :doi:`10.1016/0893-9659(96)00071-7`.
+
 .. [KS] Sheldon Katz and Stein Arild Stromme, "Schubert",
         A Maple package for intersection theory and enumerative geometry.
 
@@ -3416,6 +3436,11 @@ REFERENCES:
              *Computations in a free Lie algebra*. (1998).
              `Downloadable from Munthe-Kaas's website
              <http://hans.munthe-kaas.no/work/Blog/Entries/1999/1/1_Article__Computations_in_a_Free_Lie-algebra.html>`_
+
+.. [MLH2008] \C. Magnien, M. Latapy, and M. Habib. *Fast computation of
+             empirically tight bounds for the diameter of massive graphs*.
+             ACM Journal of Experimental Algorithms 13 (2008).
+             :doi:`10.1145/1412228.1455266`.
 
 .. [MMIB2012] \Y. Matsumoto, S. Moriyama, H. Imai, D. Bremner:
               Matroid Enumeration for Incidence Geometry,
@@ -4558,6 +4583,10 @@ REFERENCES:
                  to cylindric plane partitions*.
                  International Mathematics Research Notices. (2007).
                  :arxiv:`0702062v3`.
+
+.. [TK2013] \F. W. Takes and W. A. Kosters. *Computing the eccentricity
+            distribution of large graphs*. Algorithms 6:100-118 (2013).
+            :doi:`10.3390/a6010100`.
 
 .. [TOPCOM] \J. Rambau, TOPCOM
             <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.

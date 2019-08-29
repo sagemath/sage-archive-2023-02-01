@@ -3269,6 +3269,10 @@ REFERENCES:
 .. [McK1998] Brendan D. McKay, "Isomorph-Free Exhaustive generation".
              Journal of Algorithms, 26(2): 306-324, February 1998.
 
+.. [McK2015] McKay, Brendan. *Description of graph6 and sparse6 encodings.*,
+             updated Jun 2015.
+             http://cs.anu.edu.au/~bdm/data/formats.txt (2019-08-25)
+
 .. [McM1992] John McMillan. *Games, strategies, and managers*. Oxford
              University Press.
 

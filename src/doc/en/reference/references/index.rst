@@ -2699,6 +2699,10 @@ REFERENCES:
              1998), Advanced Studies in Pure Mathematics, 30,
              177-196, 2000.
 
+.. [Koh2004] \E. Kohler. *Recognizing graphs without asteroidal triples*.
+             Journal of Discrete Algorithms 2(4):439-452, Dec. 2004,
+             :doi:`10.1016/j.jda.2004.04.005`.
+
 .. [KohECHIDNA] Kohel, David.  ECHIDNA: Databases for Elliptic Curves and Higher
                 Dimensional Analogues.  Available at
                 http://echidna.maths.usyd.edu.au/~kohel/dbs/
@@ -2875,6 +2879,10 @@ REFERENCES:
              Positivity in algebraic geometry II;
              Positivity for Vector Bundles, and Multiplier Ideals,
              Modern Surveys in Mathematics volume 49 (2004).
+
+.. [LB1962] \C. G. Lekkerkerker, \J. Ch. Boland. *Representation of a finite
+            graph by a set of intervals on the real line*. Fundamenta
+            Mathematicae, 51:45-64, 1962; :doi:`10.4064/fm-51-1-45-64`.
 
 .. [LB1988] Lee, P.J., Brickell, E.F. An observation on the security of
             McEliece's public-key cryptosystem. EuroCrypt 1988. LNCS, vol. 330, pp.

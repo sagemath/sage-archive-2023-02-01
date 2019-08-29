@@ -439,6 +439,11 @@ REFERENCES:
                  203–218. Springer, 2010. pre-print available at
                  http://eprint.iacr.org/2010/313.pdf
 
+.. [BCCM2015] \M. Borassi, D. Coudert, P. Crescenzi, and A. Marino.
+              On Computing the Hyperbolicity of Real-World Graphs. Proceedings
+              of the 23rd European Symposium on Algorithms (ESA 2015),
+              :doi:`10.1007/978-3-662-48350-3_19`.
+
 .. [BCdlOG2000] Volker Braun, Philip Candelas, Xendia de la Ossa,
                 Antonella Grassi, *Toric Calabi-Yau Fourfolds, Duality
                 Between N=1 Theories and Divisors that Contribute to the
@@ -1010,6 +1015,11 @@ REFERENCES:
 .. [CC2013] Mahir Bilen Can and Yonah Cherniavsky.
             *Omitting parentheses from the cyclic notation*. (2013).
             :arxiv:`1308.0936v2`.
+
+.. [CCL2015] \N. Cohen, D. Coudert, and A. Lancin. *On computing the Gromov
+             hyperbolicity*. ACM Journal of Experimental Algorithmics,
+             20(1.6):1-18, 2015. :doi:`10.1145/2780652` or
+             [`<https://hal.inria.fr/hal-01182890>`_].
 
 .. [CD1996] Charles Colbourn and Jeffrey Dinitz,
             Making the MOLS table,
@@ -1748,6 +1758,10 @@ REFERENCES:
             Wehler K3 Surfaces over finite fields. New Zealand Journal
             of Mathematics 45 (2015), 19–31.
 
+.. [FIV2012] \H. Fournier, A. Ismail, and A. Vigneron. *Computing the Gromov
+             hyperbolicity of a discrete metric space*. 2012.
+             :arxiv:`1210.3323`.
+
 .. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
             automorphic forms, and the canonical embedding of Shimura
@@ -2069,6 +2083,9 @@ REFERENCES:
 .. [Grinb2016a] Darij Grinberg,
                 *Double posets and the antipode of QSym*,
                 :arxiv:`1509.08355v3`.
+
+.. [Gro1987] \M. Gromov. *Hyperbolic groups*. Essays in Group Theory, 8:75--263,
+             1987. :doi:`10.1007/978-1-4613-9586-7_3`.
 
 .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
              4-polytopes with 8 vertices", J. Comb. Th. 2,
@@ -4088,6 +4105,11 @@ REFERENCES:
 
 .. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diophantine equations*,
              Number 41 in Student Texts. London Mathematical Society, 1998.
+
+.. [Sot2011] \M. A. Soto Gomez. 2011. *Quelques proprietes topologiques des
+             graphes et applications a internet et aux reseaux*.
+             Ph.D. Dissertation. Univ. Paris Diderot (Paris 7).
+             https://tel.archives-ouvertes.fr/tel-01259904/document
 
 .. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
              Springer-Verlag New York, 1966.

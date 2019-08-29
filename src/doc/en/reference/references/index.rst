@@ -103,6 +103,11 @@ REFERENCES:
               *Combinatorics of non-ambiguous trees*,
               :arxiv:`1305.3716`
 
+.. [AD2010] Arett, Danielle and Doree, Suzanne,
+            *Coloring and counting on the Hanoi graphs*.
+            Mathematics Magazine, Volume 83, Number 3, June 2010, pages 200-9.
+            :doi:`10.4169/002557010X494841`.
+
 .. [AE1993] \A. Apostolico, A. Ehrenfeucht, Efficient detection of
             quasiperiodicities in strings,
             Theoret. Comput. Sci. 119 (1993) 247--265.
@@ -1115,6 +1120,11 @@ REFERENCES:
              Wooldridge. *Computational Aspects of Cooperative Game
              Theory*. Morgan & Claypool Publishers, (2011). ISBN
              9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
+
+.. [CFHM2013] Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney,
+              *On the Hyperbolicity of Small-World and Treelike Random Graphs*,
+              Internet Mathematics 9:4 (2013), 434-491.
+              :doi:`10.1080/15427951.2013.828336`, :arxiv:`1201.1717`.
 
 .. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
              :doi:`10.1007/BF01305232`
@@ -3115,6 +3125,10 @@ REFERENCES:
          Survey article available at
          [http://www-igm.univ-mlv.fr/~jyt/ARTICLES/plactic.ps]
 
+.. [LLWC2011] Chien-Hung Lin, Jia-Jie Liu, Yue-Li Wang, William Chung-Kung Yen,
+              *The Hub Number of Sierpinski-Like Graphs*, Theory Comput Syst
+              (2011), vol 49, :doi:`10.1007/s00224-010-9286-3`
+
 .. [LLYCL2005] \H. J. Lee, S. J. Lee, J. H. Yoon, D. H. Cheon, and J. I. Lee,
                *The SEED Encryption Algorithm*; in
                RFC 4269, (2005).
@@ -3381,6 +3395,9 @@ REFERENCES:
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
              pp. 122-127, Jan 1969.
 
+.. [Mat1978] \R. A. Mathon, *Symmetric conference matrices of order `pq^2 + 1`*,
+             Canad. J. Math. 30 (1978) 321-331, :doi:`10.4153/CJM-1978-029-1`.
+
 .. [Mat2015]  \A. Mathas. *Cyclotomic quiver Hecke algebras of type A*,
               in "Modular representation theory of finite and p-adic groups",
               165–266, Lect. Notes Ser. Inst. Math. Sci. Natl. Univ. Singap.,
@@ -3580,6 +3597,12 @@ REFERENCES:
 
 .. [Mur1983] \G. E. Murphy. *The idempotents of the symmetric group
              and Nakayama's conjecture*. J. Algebra **81** (1983). 258-265.
+
+.. [Muz2007] \M. Muzychuk.
+             *A generalization of Wallis-Fon-Der-Flaass construction of strongly
+             regular graphs*.
+             J. Algebraic Combin., 25(2):169–187, 2007.
+             :doi:`10.1007/s10801-006-0030-7`.
 
 .. [Muth2017] Robert Muth.
               *Super RSK correspondence with symmetry*.
@@ -4377,6 +4400,12 @@ REFERENCES:
 .. [Sei2002] \T. R. Seifullin, *Computation of determinants, adjoint
              matrices, and characteristic polynomials without division*
              :doi:`10.1023/A:1021878507303`
+
+.. [ST1981] \J. J. Seidel and D. E. Taylor,
+            *Two-graphs, a second survey*.
+            Algebraic methods in graph theory, Vol. I, II (Szeged, 1978),
+            pp. 689--711, Colloq. Math. Soc. János Bolyai, 25,
+            North-Holland, Amsterdam-New York, 1981.
 
 .. [Stan2009] Richard Stanley,
               *Promotion and evacuation*,

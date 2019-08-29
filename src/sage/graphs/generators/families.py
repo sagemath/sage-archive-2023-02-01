@@ -2290,7 +2290,7 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     So the solution to a 3-disk puzzle (with at least
     two pegs) can be expressed by the shortest path between
     ``(0,0,0)`` and ``(1,1,1)``.  For more on this representation
-    of the graph, or its properties, see [ARETT-DOREE]_.
+    of the graph, or its properties, see [AD2010]_.
 
     For greatest speed we create graphs with integer vertices,
     where we encode the tuples as integers with a base equal
@@ -2373,13 +2373,6 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
         Traceback (most recent call last):
         ...
         ValueError: Disks for Tower of Hanoi graph should be one or greater (not 0)
-
-    .. rubric:: Citations
-
-    .. [ARETT-DOREE] Arett, Danielle and Doree, Suzanne
-       "Coloring and counting on the Hanoi graphs"
-       Mathematics Magazine, Volume 83, Number 3, June 2010, pages 200-9
-
 
     AUTHOR:
 
@@ -2734,9 +2727,7 @@ def SierpinskiGasketGraph(n):
 
     REFERENCES:
 
-    .. [LLWC] Chien-Hung Lin, Jia-Jie Liu, Yue-Li Wang, William Chung-Kung Yen,
-       *The Hub Number of Sierpinski-Like Graphs*, Theory Comput Syst (2011),
-       vol 49, :doi:`10.1007/s00224-010-9286-3`
+    [LLWC2011]_
     """
     from sage.modules.free_module_element import vector
     from sage.rings.rational_field import QQ
@@ -2994,7 +2985,7 @@ def RingedTree(k, vertex_labels = True):
     vertices `[2^i...2^{i+1}-1]`) two vertices `u,v` are adjacent if `u=v+1` or
     if `u=2^i` and `v=`2^{i+1}-1`.
 
-    Ringed trees are defined in [CFHM12]_.
+    Ringed trees are defined in [CFHM2013]_.
 
     INPUT:
 
@@ -3024,13 +3015,6 @@ def RingedTree(k, vertex_labels = True):
         sage: G.vertices()
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
         18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
-
-    REFERENCES:
-
-    .. [CFHM12] *On the Hyperbolicity of Small-World and
-       Tree-Like Random Graphs*
-       Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney
-       :arxiv:`1201.1717`
     """
     if k<1:
         raise ValueError('The number of levels must be >= 1.')
@@ -3123,18 +3107,19 @@ def MathonPseudocyclicMergingGraph(M, t):
 
 def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     r"""
-    Return a strongly regular graph on `(4t+1)(4t-1)^2` vertices from [Mat78]_
+    Return a strongly regular graph on `(4t+1)(4t-1)^2` vertices from
+    [Mat1978]_.
 
     Let `4t-1` be a prime power, and `4t+1` be such that there exists
     a strongly regular graph `G` with parameters `(4t+1,2t,t-1,t)`. In
-    particular, `4t+1` must be a sum of two squares [Mat78]_. With
-    this input, Mathon [Mat78]_ gives a construction of a strongly regular
+    particular, `4t+1` must be a sum of two squares [Mat1978]_. With
+    this input, Mathon [Mat1978]_ gives a construction of a strongly regular
     graph with parameters `(4 \mu + 1, 2 \mu, \mu-1, \mu)`, where
     `\mu =  t(4t(4t-1)-1)`. The construction is optionally parametrised by an
     a skew-symmetric Latin square of order `4t+1`, with entries in
     `-2t,...,-1,0,1,...,2t`.
 
-    Our implementation follows a description given in [ST78]_.
+    Our implementation follows a description given in [ST1981]_.
 
     INPUT:
 
@@ -3202,18 +3187,6 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         Traceback (most recent call last):
         ...
         ValueError: 21  must be a sum of two squares!...
-
-    REFERENCES:
-
-    .. [Mat78] \R. A. Mathon,
-       Symmetric conference matrices of order `pq^2 + 1`,
-       Canad. J. Math. 30 (1978) 321-331
-
-    .. [ST78] \J. J. Seidel and D. E. Taylor,
-       Two-graphs, a second survey.
-       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689--711,
-       Colloq. Math. Soc. János Bolyai, 25,
-       North-Holland, Amsterdam-New York, 1981.
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     from sage.rings.integer_ring import ZZ
@@ -3338,11 +3311,12 @@ def TuranGraph(n,r):
 
 def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     r"""
-    Return a strongly regular graph of S6 type from [Mu07]_ on `n^d((n^d-1)/(n-1)+1)` vertices
+    Return a strongly regular graph of S6 type from [Muz2007]_ on
+    `n^d((n^d-1)/(n-1)+1)` vertices.
 
     The construction depends upon a number of parameters, two of them, `n` and
-    `d`, mandatory, and `\Phi` and `\Sigma` mappings defined in [Mu07]_. These
-    graphs have parameters `(mn^d, n^{d-1}(m-1) - 1,\mu - 2,\mu)`, where
+    `d`, mandatory, and `\Phi` and `\Sigma` mappings defined in [Muz2007]_.
+    These graphs have parameters `(mn^d, n^{d-1}(m-1) - 1,\mu - 2,\mu)`, where
     `\mu=\frac{n^{d-1}-1}{n-1}n^{d-1}` and `m:=\frac{n^d-1}{n-1}+1`.
 
     Some details on `\Phi` and `\Sigma` are as follows.  Let `L` be the
@@ -3354,7 +3328,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     in `d`-dimensional affine geometries over `GF(n)`. Finally, for each edge
     `ij` of `L` one arbitrarily chooses bijections `\Sigma_{ij}` between
     `\Phi_i` and `\Phi_j`. More details, in particular how these choices lead
-    to non-isomorphic graphs, are in [Mu07]_.
+    to non-isomorphic graphs, are in [Muz2007]_.
 
     INPUT:
 
@@ -3424,12 +3398,6 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
         Traceback (most recent call last):
         ...
         ValueError: Sigma must be 'random' or 'fixed'
-
-    REFERENCE:
-
-    .. [Mu07] \M. Muzychuk.
-       A generalization of Wallis-Fon-Der-Flaass construction of strongly regular graphs.
-       J. Algebraic Combin., 25(2):169–187, 2007.
     """
     ### TO DO: optimise
     ###        add option to return phi, sigma? generate phi, sigma from seed? (int say?)

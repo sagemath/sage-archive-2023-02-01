@@ -1739,6 +1739,10 @@ REFERENCES:
              birational toggling*. Extended abstract for
              FPSAC 2014. http://faculty.uml.edu/jpropp/fpsac14.pdf
 
+.. [Epp2008] David Eppstein, *Recognizing partial cubes in quadratic time*,
+             J. Graph Algorithms and Applications 15 (2): 269-293, 2011.
+             :doi:`10.7155/jgaa.00226`, :arxiv:`0705.1025`.
+
 .. [Eri1995] \H. Erikson.  Computational and Combinatorial Aspects
              of Coxeter Groups.  Thesis, 1995.
 

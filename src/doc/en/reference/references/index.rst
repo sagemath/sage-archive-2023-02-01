@@ -366,6 +366,10 @@ REFERENCES:
 .. [BB2005] \A. Björner, F. Brenti. *Combinatorics of Coxeter
             groups*. New York: Springer, 2005.
 
+.. [BB2005a] \V. Batagelj and U. Brandes. *Efficient generation of
+             large random networks*. Phys. Rev. E, 71, 036113, 2005.
+             :doi:`10.1103/PhysRevE.71.036113`.
+
 .. [BB2009] Tomas J. Boothby and Robert W. Bradshaw. *Bitslicing and
             the Method of Four Russians Over Larger Finite
             Fields*. :arxiv:`0901.1413`, 2009.
@@ -595,6 +599,13 @@ REFERENCES:
             *Finite posets and Ferrers shapes*,
             Advances in Mathematics 158, pp. 86-127 (2001),
             :arxiv:`math/9912126` (the arXiv version has fewer errors).
+
+.. [BF2001] Boucheron, S. and Fernandez de la Vega, W.,
+            *On the Independence Number of Random Interval Graphs*,
+            Combinatorics, Probability and Computing v10, issue 05,
+            Pages 385--396,
+            Cambridge Univ Press, 2001.
+            :doi:`10.1017/S0963548301004813`.
 
 .. [BF2005] \R.L. Burden and J.D. Faires. *Numerical Analysis*.
             8th edition, Thomson Brooks/Cole, 2005.
@@ -2306,6 +2317,10 @@ REFERENCES:
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
 
+.. [HK2002] Holme, P. and Kim, B.J. *Growing scale-free networks
+            with tunable clustering*, Phys. Rev. E (2002). vol 65, no 2, 026107.
+            :doi:`10.1103/PhysRevE.65.026107`.
+
 .. [HKOTY1999] \G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada,
                *Remarks on fermionic formula*. Contemp. Math., **248** (1999).
 
@@ -2970,6 +2985,11 @@ REFERENCES:
 
 .. [Kur2008] Chris Kurth, "K Farey package for Sage",
              http://wayback.archive-it.org/855/20100510123900/http://www.public.iastate.edu/~kurthc/research/index.html
+
+.. [KV2003] Kim, Jeong Han and Vu, Van H. *Generating random regular
+            graphs*. Proc. 35th ACM Symp. on Thy. of Comp. 2003, pp
+            213-222. ACM Press, San Diego, CA, USA.
+            :doi:`10.1145/780542.780576`.
 
 .. [Kwon2012] Jae-Hoon Kwon. *Crystal bases of* `q`-*deformed Kac Modules
               over the Quantum Superalgebra* `U_q(\mathfrak{gl}(m|n))`.
@@ -3690,6 +3710,10 @@ REFERENCES:
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
 
+.. [NWS2002] Newman, M.E.J., Watts, D.J. and Strogatz, S.H.  *Random
+             graph models of social networks*. Proc. Nat. Acad. Sci. USA
+             99:1 (2002), 2566-2572. :doi:`10.1073/pnas.012582999`
+
 .. [NX2019] \E. M. d. Nascimento, J. A. M. Xexeo
             "Name of Submission:FlexAEAD -A Lightweight Cipher withIntegrated Authentication"
             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/FlexAEAD-spec.pdf
@@ -3879,6 +3903,12 @@ REFERENCES:
               A. Leporati (Eds.), Developments in Language Theory,
               volume 6795 of Lecture Notes in Computer Science,
               Springer-Verlag, Berlin, Heidelberg, 2011, pp. 406--416
+
+.. [PS2006] Dominique Poulalhon and Gilles Schaeffer,
+            *Optimal coding and sampling of triangulations*,
+            Algorithmica 46 (2006), no. 3-4, 505-527,
+            :doi:`10.1007/s00453-006-0114-8`,
+            http://www.lix.polytechnique.fr/~poulalho/Articles/PoSc_Algorithmica06.pdf
 
 .. [PS2011] \R. Pollack, and G. Stevens.  *Overconvergent modular
             symbols and p-adic L-functions.* Annales scientifiques de
@@ -4147,6 +4177,10 @@ REFERENCES:
 
 .. [Sch1996] \E. Schaefer. A simplified data encryption
              algorithm. Cryptologia, 20(1):77--84, 1996.
+
+.. [Sch1999] Gilles Schaeffer, *Random Sampling of Large Planar Maps and Convex
+             Polyhedra*, Annual ACM Symposium on Theory of Computing
+             (Atlanta, GA, 1999). :doi:`10.1145/301250.301448`.
 
 .. [Sch2004] Manfred Schocker, *The descent algebra of the
              symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145-161.
@@ -4526,6 +4560,10 @@ REFERENCES:
 .. [SV2013] Silliman and Vogt. "Powers in Lucas Sequences via Galois
             Representations." Proceedings of the American Mathematical
             Society, 2013. :arxiv:`1307.5078v2`
+
+.. [SW1999] Steger, A. and Wormald, N. *Generating random
+            regular graphs quickly*. Prob. and Comp. 8 (1999), pp 377-396.
+            :doi:`10.1017/S0963548399003867`.
 
 .. [SW2002] William Stein and Mark Watkins, *A database of elliptic
             curves---first report*. In *Algorithmic number theory

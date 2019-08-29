@@ -5800,7 +5800,7 @@ class Graph(GenericGraph):
         - ``algorithm`` -- the algorithm to be used :
 
           - If ``algorithm = "Cliquer"`` (default), wraps the C program
-            Cliquer [NisOst2003]_.
+            Cliquer [NO2003]_.
 
           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
             Integer Linear Program.
@@ -5832,7 +5832,7 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-        This function is based on Cliquer [NisOst2003]_.
+        This function is based on Cliquer [NO2003]_.
 
         EXAMPLES:
 
@@ -5893,7 +5893,7 @@ class Graph(GenericGraph):
         - ``algorithm`` -- the algorithm to be used :
 
           - If ``algorithm = "Cliquer"``, wraps the C program Cliquer
-            [NisOst2003]_.
+            [NO2003]_.
 
           - If ``algorithm = "networkx"``, uses the NetworkX's implementation of
             the Bron and Kerbosch Algorithm [BK1973]_.
@@ -5923,7 +5923,7 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-        This function is based on Cliquer [NisOst2003]_ and [BK1973]_.
+        This function is based on Cliquer [NO2003]_ and [BK1973]_.
 
         EXAMPLES::
 
@@ -6101,7 +6101,7 @@ class Graph(GenericGraph):
         - ``algorithm`` -- the algorithm to be used
 
           * If ``algorithm = "Cliquer"`` (default), the problem is solved
-            using Cliquer [NisOst2003]_.
+            using Cliquer [NO2003]_.
 
             (see the :mod:`Cliquer modules <sage.graphs.cliquer>`)
 
@@ -6649,7 +6649,7 @@ class Graph(GenericGraph):
 
          - ``algorithm`` -- either ``cliquer`` or ``networkx``
 
-           - ``cliquer`` -- This wraps the C program Cliquer [NisOst2003]_.
+           - ``cliquer`` -- This wraps the C program Cliquer [NO2003]_.
 
            - ``networkx`` -- This function is based on NetworkX's implementation
              of the Bron and Kerbosch Algorithm [BK1973]_.

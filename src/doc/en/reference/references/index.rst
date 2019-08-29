@@ -2362,6 +2362,11 @@ REFERENCES:
             Arrangements". Transactions of the American Mathematical
             Society 368 (2016), 709-725. :arxiv:`1212.4398`
 
+.. [HPR2010] Gary Haggard, David J. Pearce and Gordon Royle.
+             *Computing Tutte Polynomials*. In ACM Transactions on Mathematical
+             Software, Volume 37(3), article 24, 2010. Preprint:
+             http://homepages.ecs.vuw.ac.nz/~djp/files/TOMS10.pdf
+
 .. [HPS2008] \J. Hoffstein, J. Pipher, and J.H. Silverman. *An
              Introduction to Mathematical
              Cryptography*. Springer, 2008.

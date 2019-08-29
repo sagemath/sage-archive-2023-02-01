@@ -160,7 +160,6 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.misc.superseded import deprecated_function_alias
 from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.arith.long cimport (pyobject_to_long, integer_check_long,
                               integer_check_long_py)
@@ -2095,11 +2094,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in t over Rational Field to Rational Field
-            sage: 'sage' ^ 3
-            doctest:...:
-            DeprecationWarning: raising a string to an integer power is deprecated
-            See http://trac.sagemath.org/24260 for details.
-            'sagesagesage'
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
@@ -2109,10 +2103,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>left)._pow_(right)
         elif isinstance(left, Element):
             return coercion_model.bin_op(left, right, operator.pow)
-        elif isinstance(left, str):
-            from sage.misc.superseded import deprecation
-            deprecation(24260, "raising a string to an integer power is deprecated")
-            return left * int(right)
         # left is a non-Element: do the powering with a Python int
         return left ** int(right)
 
@@ -3487,8 +3477,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             a = self % m
             raise ArithmeticError("rational reconstruction of %s (mod %s) does not exist" % (a, m))
         return x
-
-    powermodm_ui = deprecated_function_alias(17852, powermod)
 
     def __int__(self):
         """

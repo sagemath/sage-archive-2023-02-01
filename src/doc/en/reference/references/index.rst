@@ -2279,6 +2279,12 @@ REFERENCES:
              matroid representations", Discrete Applied Mathematics
              154 (2006), pp. 1210-1222.
 
+.. [HLT1993] \F. Harary, E. Loukakis, C. Tsouros,
+             *The geodetic number of a graph*.
+             Mathematical and computer modelling,
+             vol. 17 n11 pp.89--95, 1993.
+             :doi:`10.1016/0895-7177(93)90259-2`.
+
 .. [HLY2002] Yi Hu, Chien-Hao Liu, and Shing-Tung Yau. Toric morphisms
              and fibrations of toric Calabi-Yau
              hypersurfaces. *Adv. Theor. Math. Phys.*,

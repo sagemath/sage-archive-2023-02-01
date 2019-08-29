@@ -2232,6 +2232,9 @@ REFERENCES:
              Discrete Mathematics 99 (1992), 79-113,
              http://www.sciencedirect.com/science/article/pii/0012365X9290368P
 
+.. [Haj2000] \M. Hajiaghayi, *Consecutive Ones Property*, 2000.
+             http://www-math.mit.edu/~hajiagha/pp11.ps
+
 .. [Han1960] Haim Hanani,
              On quadruple systems,
              pages 145--157, vol. 12,

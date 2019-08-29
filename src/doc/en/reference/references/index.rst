@@ -67,6 +67,11 @@ REFERENCES:
                     "Lilliput-AE: a New Lightweight Tweakable BlockCipher for Authenticated Encryption with AssociatedData"
                     https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/LILLIPUT-AE-spec.pdf
 
+.. [ABZ2007] \R. Aharoni and E. Berger and R. Ziv.
+             *Independent systems of representatives in weighted graphs*.
+             Combinatorica vol 27, num 3, p253--267, 2007.
+             :doi:`10.1007/s00493-007-2086-y`.
+
 .. [AC1994] \R.J.R. Abel and Y.W. Cheng,
             Some new MOLS of order 2np for p a prime power,
             The Australasian Journal of Combinatorics, vol 10 (1994)
@@ -78,6 +83,11 @@ REFERENCES:
 
 .. [Ack2016] Lennart Ackermans, Oplosbaarheid van Kegelsneden.
              http://www.math.leidenuniv.nl/nl/theses/Bachelor/.
+
+.. [ACHRS2008] \L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour,
+               *Bisimplicial vertices in even-hole-free graphs*.
+               Journal of Combinatorial Theory, Series B, vol 98, n.6,
+               pp 1119-1164, 2008. :doi:`10.1016/j.jctb.2007.12.006`.
 
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
@@ -187,6 +197,12 @@ REFERENCES:
             *The number of simple modules of the Hecke algebras of type G(r,1,n)*.
             Math. Z. 233 (2000), no. 3, 601–623.
             :mathscinet:`MR1750939`
+
+.. [AMOZ2006] Asahiro, Y. and Miyano, E. and Ono, H. and Zenmyo, K.,
+              *Graph orientation algorithms to minimize the maximum outdegree*.
+              Proceedings of the 12th Computing: The Australasian Theory
+              Symposium, Volume 51, page 20.
+              Australian Computer Society, Inc. 2006.
 
 .. [Ap1997] \T. Apostol, Modular functions and Dirichlet series in
             number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
@@ -430,6 +446,12 @@ REFERENCES:
             (2012). pp. 691-709. :doi:`10.1016/j.aim.2011.09.011`,
             :arxiv:`1011.4228`.
 
+.. [BC2018] Patrick Brosnan and Timothy Y. Chow.
+            *Unit interval orders and the dot action on the cohomology
+            of regular semisimple Hessenberg varieties*. Advances in
+            Mathematics 329 (2018): 955-1001. :doi:`10.1016/j.aim.2018.02.020`,
+            :arxiv:`1511.00773v1`.
+
 .. [BCCCNSY2010] Charles Bouillaguet, Hsieh-Chung Chen, Chen-Mou
                  Cheng, Tung Chou, Ruben Niederhagen, Adi Shamir, and
                  Bo-Yin Yang.    *Fast exhaustive search for
@@ -659,6 +681,11 @@ REFERENCES:
                    *The SKINNY family of block ciphers and its low-latency
                    variant MANTIS*; in CRYPTO, (2016), pp. 123-153.
 
+.. [BK1973] Coen Bron and Joep Kerbosch. *Algorithm 457:
+            Finding All Cliques of an Undirected Graph*. Commun. ACM. v
+            16. n 9. 1973,  pages 575-577. ACM Press. [Online] Available:
+            http://www.ram.org/computing/rambin/rambin.html
+
 .. [BK1992] \U. Brehm and W. Kuhnel, *15-vertex triangulations of an
             8-manifold*, Math. Annalen 294 (1992), no. 1, 167-193.
 
@@ -731,6 +758,10 @@ REFERENCES:
               repetitions in words, CRM Monograph Series, 27. American
               Mathematical Society, Providence, RI, 2009.  xii+147
               pp. ISBN: 978-0-8218-4480-9
+
+.. [BLS1999] \A. Brandstadt, VB Le and JP Spinrad.
+             *Graph classes: a survey*.
+             SIAM Monographs on Discrete Mathematics and Applications, 1999.
 
 .. [BLV1999] Bernhard Beckermann, George Labahn, and Gilles Villard. "Shifted
              normal forms of polynomial matrices". In ISSAC'99, pages 189-196.
@@ -867,6 +898,10 @@ REFERENCES:
              Journal on Discrete Mathematics, 22 (4): 1277–1296,
              :doi:`10.1137/060664690`.
 
+.. [Bro2011] Francis Brown, *Multiple zeta values and periods: From
+             moduli spaces to Feynman integrals*, in Contemporary Mathematics
+             vol 539, pages 27-52, 2011.
+
 .. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen Polytope und
             die nach Isomorphismus verschiedenen Typen der allgemeinen
             Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
@@ -987,6 +1022,10 @@ REFERENCES:
           and totally positive varieties*
           Invent. Math. **143** No. 1. (2002), 77-128.
 
+.. [BZ2003] Vladimir Batagelj and Matjaz Zaversnik. *An `O(m)`
+            Algorithm for Cores Decomposition of
+            Networks*. 2003. :arxiv:`cs/0310049v1`.
+
 .. _ref-C:
 
 **C**
@@ -1020,6 +1059,11 @@ REFERENCES:
              hyperbolicity*. ACM Journal of Experimental Algorithmics,
              20(1.6):1-18, 2015. :doi:`10.1145/2780652` or
              [`<https://hal.inria.fr/hal-01182890>`_].
+
+.. [CCLSV2005] \M. Chudnovsky, G. Cornuejols, X. Liu, P. Seymour, K. Vuskovic.
+               *Recognizing berge graphs*.
+               Combinatorica vol 25 (2005), n 2, pages 143--186.
+               :doi:`10.1007/s00493-005-0012-8`.
 
 .. [CD1996] Charles Colbourn and Jeffrey Dinitz,
             Making the MOLS table,
@@ -1310,6 +1354,10 @@ REFERENCES:
 .. [CRS2016] Dean Crnković, Sanja Rukavina, and Andrea Švob. *Strongly regular
              graphs from orthogonal groups* `O^+(6,2)` *and* `O^-(6,2)`.
              :arxiv:`1609.07133`
+
+.. [CRST2006] \M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
+              *The strong perfect graph theorem*.
+              Annals of Mathematics, vol 164, number 1, pages 51--230, 2006.
 
 .. [CRV2018] Xavier Caruso, David Roe and Tristan Vaccon.
             *ZpL: a p-adic precision package*, (2018) :arxiv:`1802.08532`.
@@ -2271,6 +2319,13 @@ REFERENCES:
 .. [HP2003] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
             Codes, Cambridge Univ. Press, 2003.
 
+.. [HP2010] Michel Habib and Christophe Paul,
+            *A survey of the algorithmic aspects of modular decomposition*.
+            Computer Science Review
+            vol 4, number 1, pages 41--59, 2010,
+            http://www.lirmm.fr/~paul/md-survey.pdf,
+            :doi:`10.1016/j.cosrev.2010.01.001`.
+
 .. [HP2016] \S. Hopkins, D. Perkinson. "Bigraphical
             Arrangements". Transactions of the American Mathematical
             Society 368 (2016), 709-725. :arxiv:`1212.4398`
@@ -2330,6 +2385,11 @@ REFERENCES:
              (ed.), Geometric Galois Actions II: Dessins d'Enfants,
              Mapping Class Groups and Moduli, volume 243 of LMS
              Lect. Notes, 67-77, Cambridge Univ. Press (1997)
+
+.. [HST2001] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
+             *What are zeta functions of graphs and what are they good for?*,
+             in Quantum graphs and their applications, 173-189,
+             Contemp. Math., Vol. 415.
 
 .. [HSV2006] Hess, Smart, Vercauteren, "The Eta Pairing Revisited",
              IEEE Trans. Information Theory, 52(10): 4595-4602, 2006.
@@ -2927,6 +2987,9 @@ REFERENCES:
 .. [Lee2013] \J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed.,
              Springer (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
 
+.. [Lei2013] Tom Leinster, *The magnitude of metric spaces*.
+             Doc. Math. 18 (2013), 857-905.
+
 .. [Lev2014] Lionel Levine. *Threshold state and a conjecture of
              Poghosyan, Poghosyan, Priezzhev and Ruelle*,
              Communications in Mathematical Physics.
@@ -3248,6 +3311,10 @@ REFERENCES:
 .. [Mar1994] George Markowsky.
              *Permutation lattices revisited*.
              Mathematical Social Sciences, 27 (1994), 59--72.
+
+.. [Mar2009] Matilde Marcolli, Feynman Motives, Chapter 3,
+             Feynman integrals and algebraic varieties,
+             http://www.its.caltech.edu/~matilde/LectureN3.pdf
 
 .. [Mas1969] James L. Massey, "Shift-Register Synthesis and BCH
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
@@ -3720,6 +3787,12 @@ REFERENCES:
             l'École normale supérieure.
             Vol. 44. No. 1. Elsevier, 2011.
 
+.. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. *Sudden
+             Emergence of a Giant k-Core in a Random
+             Graph*. (1996). J. Combinatorial Theory. Ser B 67. pages
+             111-151. :doi:`10.1006/jctb.1996.0036`. [Online] Available:
+             http://cs.nyu.edu/cs/faculty/spencer/papers/k-core.pdf
+
 .. [PUNTOS] Jesus A. De Loera
             http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
 
@@ -3901,6 +3974,11 @@ REFERENCES:
 .. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.
              *Spectra of Symmetrized Shuffling Operators*.
              :arxiv:`1102.2460v2`.
+
+.. [RT1975] Read, R. C. and Tarjan, R. E. *Bounds on Backtrack Algorithms for
+            Listing Cycles, Paths, and Spanning Trees*.
+            Networks, Volume 5 (1975), numer 3, pages 237-252.
+            :doi:`10.1002/net.1975.5.3.237`.
 
 .. [Rub1991] \K. Rubin. The "main conjectures" of Iwasawa theory for
              imaginary quadratic fields. Invent. Math. 103 (1991),
@@ -4143,6 +4221,11 @@ REFERENCES:
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
+.. [SS2008] Geoffrey Scott and Christopher Storm, *The coefficients
+            of the Ihara zeta function*, Involve, Vol. 1 (2008), No. 2, 217-233,
+            :doi:`10.2140/involve.2008.1.217`
+            (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
+
 .. [SS2015] Anne Schilling and Travis Scrimshaw.
             *Crystal structure on rigged configurations and the filling map*.
             Electron. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
@@ -4185,6 +4268,10 @@ REFERENCES:
              Fields. In: Kuijk W. (eds) Modular Functions of One
              Variable I. Lecture Notes in Mathematics,
              vol 320. (1973), Springer, Berlin, Heidelberg
+
+.. [Sta1995] \R. P. Stanley, *A symmetric function generalization
+             of the chromatic polynomial of a graph*, Adv. Math., ***111***
+             no.1 (1995), 166-194. :doi:`10.1006/aima.1995.1020`.
 
 .. [Sta2002] Richard P. Stanley,
              *The rank and minimal border strip decompositions of a
@@ -4342,6 +4429,12 @@ REFERENCES:
             2369, Springer, 2002,
             p267--275. http://modular.math.washington.edu/papers/stein-watkins/
 
+.. [SW2012] John Shareshian and Michelle Wachs.
+            *Chromatic quasisymmetric functions and Hessenberg varieties*.
+            Configuration Spaces. CRM Series. Scuola Normale Superiore.
+            (2012) pp. 433-460. :doi:`10.1007/978-88-7642-431-1_20`.
+            http://www.math.miami.edu/~wachs/papers/chrom.pdf
+
 .. [SW2013] \W. Stein and C. Wuthrich, Algorithms
             for the Arithmetic of Elliptic Curves using Iwasawa Theory
             Mathematics of Computation 82 (2013), 1757-1792.
@@ -4411,9 +4504,17 @@ REFERENCES:
 .. [TB1997] Lloyd N. Trefethen and David Bau III, *Numerical Linear
             Algebra*, SIAM, Philadelphia, 1997.
 
+.. [TCHP2008] Marc Tedder, Derek Corneil, Michel Habib and
+              Christophe Paul, *Simple, linear-time modular decomposition*,
+              2008, :arxiv:`0710.3901v2`.
+
 .. [Tee1997] Tee, Garry J. "Continuous branches of inverses of the 12
              Jacobi elliptic functions for real
              argument". 1997. https://researchspace.auckland.ac.nz/bitstream/handle/2292/5042/390.pdf.
+
+.. [Ter2011] Audrey Terras, *Zeta functions of graphs: a stroll through
+             the garden*, Cambridge Studies in Advanced Mathematics, Vol. 128,
+             2011.
 
 .. [Terwilliger2011] Paul Terwilliger. *The universal Askey-Wilson algebra*.
                      SIGMA **7** (2011), 069, 24 pages. :arxiv:`1104.2813`.

@@ -3157,6 +3157,11 @@ REFERENCES:
 .. [Lot2005] \M. Lothaire, *Applied combinatorics on
              words*. Cambridge University Press (2005).
 
+.. [Lov1979] László Lovász,
+             *On the Shannon capacity of a graph*,
+             IEEE Trans. Inf. Th. 25(1979), 1-7.
+             :doi:`10.1109/TIT.1979.1055985`.
+
 .. [LP2007] \G. Leander and A. Poschmann,
             *On the Classification of 4 Bit S-boxes*; in WAIFI, (2007), pp. 159-176.
 

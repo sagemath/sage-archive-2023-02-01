@@ -1218,6 +1218,14 @@ REFERENCES:
             bi-matrix
             games*. http://vknight.org/unpeudemath/code/2015/06/25/on_testing_degeneracy_of_games/ (2015)
 
+.. [CL1996] Chartrand, G. and Lesniak, L.: *Graphs and Digraphs*.
+            Chapman and Hall/CRC, 1996.
+
+.. [CL2002] Chung, Fan and Lu, L. *Connected components in random
+            graphs with given expected degree sequences*.
+            Ann. Combinatorics (6), 2002 pp. 125-145.
+            :doi:`10.1007/PL00012580`.
+
 .. [CL2013] Maria Chlouveraki and Sofia Lambropoulou. *The
             Yokonuma-Hecke algebras and the HOMFLYPT
             polynomial*. (2015) :arxiv:`1204.1871v4`.
@@ -3605,6 +3613,10 @@ REFERENCES:
 .. [Nas1950] John Nash. *Equilibrium points in n-person games.*
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
+
+.. [New2003] Newman, M.E.J. *The Structure and function of complex
+             networks*, SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
+             :doi:`10.1137/S003614450342480`.
 
 .. [Nie2013] Johan S. R. Nielsen, List Decoding of Algebraic Codes,
              Ph.D. Thesis, Technical University of Denmark, 2013

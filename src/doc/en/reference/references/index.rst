@@ -543,6 +543,11 @@ REFERENCES:
 .. [Bee] Robert A. Beezer, *A First Course in Linear Algebra*,
          http://linear.ups.edu/. Accessed 15 July 2010.
 
+.. [Bei1970] Lowell Beineke, *Characterizations of derived graphs*,
+             Journal of Combinatorial Theory,
+             Vol. 9(2), pages 129-135, 1970.
+             :doi:`10.1016/S0021-9800(70)80019-9`.
+
 .. [Bel2011] Belarusian State University,
              *Information technologies. Data protection. Cryptograpic algorithms for
              encryption and integrity control*; in STB 34.101.31-2011, (2011).
@@ -2221,6 +2226,9 @@ REFERENCES:
 .. [Har1962] Frank Harary. *The determinant of the adjacency matrix of a graph*.
              SIAM Review 4 (1962), pp. 202-210.
              :doi:`10.1137/1004057`
+
+.. [Har1969] Frank Harary, *Graph Theory*,
+             Addison-Wesley, 1969.
 
 .. [Har1977] \R. Hartshorne. Algebraic Geometry. Springer-Verlag, New York, 1977.
 
@@ -4715,6 +4723,11 @@ REFERENCES:
 .. [WFYTP2008] \D. Watanable, S. Furuya, H. Yoshida, K. Takaragi, and B. Preneel,
                *A new keystream generator MUGI*; in
                FSE, (2002), pp. 179-194.
+
+.. [Whi1932] \H. Whitney, *Congruent graphs and the connectivity of graphs*,
+             American Journal of Mathematics,
+             pages 150--168, 1932,
+             `available on JSTOR <http://www.jstor.org/stable/2371086>`_
 
 .. [Wie2000] \B. Wieland. *A large dihedral symmetry of the set of
              alternating sign matrices*. Electron. J. Combin. 7 (2000).

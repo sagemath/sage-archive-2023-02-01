@@ -1819,8 +1819,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                     else:
                         new_c.append(L(str(w.lc()*v).replace(R.variable_names()[1], L.variable_name())))
                 # reconstruct as a poly in the new domain
-                new_f.append(sum([new_c[i]*prod([new_R.gen(j)**mon_deg[i][j] \
-                                for j in range(new_R.ngens())]) for i in range(len(mon))]))
+                new_f.append(sum(new_c[i]*prod(new_R.gen(j)**mon_deg[i][j]
+                                               for j in range(new_R.ngens()))
+                                 for i in range(len(mon))))
             # return the correct type of map
             if self.is_endomorphism():
                 H = Hom(new_domain, new_domain)
@@ -1829,7 +1830,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 H = Hom(new_domain, new_codomain)
             return H(new_f)
         elif isinstance(K, AlgebraicClosureFiniteField_generic):
-            CR = self.domain().coordinate_ring()
+            self.domain().coordinate_ring()
             #find the degree of the extension containing the coefficients
             c = [v for g in self for v in g.coefficients()]
             d = lcm([a.minpoly().degree() for a in c])

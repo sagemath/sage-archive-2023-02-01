@@ -1260,6 +1260,9 @@ class GraphGenerators():
                               stderr=subprocess.PIPE, close_fds=True,
                               **enc_kwargs)
 
+        if not PY2:
+            sp.stdout.reconfigure(newline='')
+
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
@@ -1354,6 +1357,9 @@ class GraphGenerators():
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
                               **enc_kwargs)
+
+        if not PY2:
+            sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1555,6 +1561,9 @@ class GraphGenerators():
                               stderr=subprocess.PIPE, close_fds=True,
                               **enc_kwargs)
 
+        if not PY2:
+            sp.stdout.reconfigure(newline='')
+
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
@@ -1743,6 +1752,9 @@ class GraphGenerators():
                               stderr=subprocess.PIPE, close_fds=True,
                               **enc_kwargs)
 
+        if not PY2:
+            sp.stdout.reconfigure(newline='')
+
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
@@ -1889,6 +1901,9 @@ class GraphGenerators():
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
                               **enc_kwargs)
+
+        if not PY2:
+            sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)

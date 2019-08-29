@@ -1036,7 +1036,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         ((-q^2*t^4+q^2*t^3-q*t^3+2*q*t^2-q*t+t-1)/(-q^3*t^4+q^2*t^3+q*t-1))*B[(0, 0)] + B[(-1, -1)] + ((-t+1)/(-q*t+1))*B[(-1, 1)] + ((t-1)/(q*t-1))*B[(1, -1)] + ((-q*t^4+q*t^3+t-1)/(-q^3*t^4+q^2*t^3+q*t-1))*B[(1, 1)]
         sage: E.eigenvalues(_)  # not checked                       # long time (1s)
         [1/(q^3*t^3), t, q*t]
-        sage: E[-omega[2]].map_coefficients(lambda c: c.subs(t=0))     # checking againsts crystals
+        sage: E[-omega[2]].map_coefficients(lambda c: c.subs(t=0))     # checking against crystals
         B[(0, 0)] + B[(-1, -1)] + B[(-1, 1)] + B[(1, -1)] + B[(1, 1)]
 
         sage: E[2*omega[2]]

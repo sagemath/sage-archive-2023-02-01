@@ -1196,7 +1196,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
-            ['{"vertices":[{"x":2,"y":0,"z":0},..., "face_colors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1.0}']
+            ['{"vertices":[{"x":2,"y":0,"z":0},..., "faceColors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1.0}']
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -1228,11 +1228,14 @@ cdef class IndexFaceSet(PrimitiveObject):
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            json = ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
+            json = ['{{"vertices":{}, "faces":{}, "faceColors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
 
         if self._extra_kwds.get('threejs_flat_shading', False):
             json[0] = json[0][:-1] + ', "useFlatShading": true}'
+
+        if self._extra_kwds.get('mesh', False):
+            json[0] = json[0][:-1] + ', "showMeshGrid": true}'
 
         return json
 

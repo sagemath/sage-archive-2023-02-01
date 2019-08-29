@@ -853,6 +853,10 @@ REFERENCES:
 .. [Bre1997] \T. Breuer "Integral bases for subfields of cyclotomic
              fields" AAECC 8, 279--289 (1997).
 
+.. [Bre2000] Enno Brehm, *3-Orientations and Schnyder 3-Tree-Decompositions*,
+             2000.
+             https://page.math.tu-berlin.de/~felsner/Diplomarbeiten/brehm.ps.gz
+
 .. [Bre2008] \A. Bretscher and D. G. Corneil and M. Habib and C. Paul (2008), "A
              simple Linear Time LexBFS Cograph Recognition Algorithm", SIAM
              Journal on Discrete Mathematics, 22 (4): 1277–1296,
@@ -3939,6 +3943,10 @@ REFERENCES:
 .. [Sal2014] \B. Salisbury.
              The flush statistic on semistandard Young tableaux.
              :arXiv:`1401.1185`
+
+.. [Sch1990] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
+             Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
+             San Francisco (1994), pp. 138-147.
 
 .. [Sch1996] \E. Schaefer. A simplified data encryption
              algorithm. Cryptologia, 20(1):77--84, 1996.

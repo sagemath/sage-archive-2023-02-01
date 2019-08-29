@@ -66,7 +66,7 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, division, absolute_import
 
@@ -107,7 +107,6 @@ from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
 from sage.misc.persist import register_unpickle_override
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent
 
@@ -940,8 +939,6 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             return x
         else:
             return x - n
-
-    centerlift = deprecated_function_alias(15804,lift_centered)
 
     cpdef bint is_one(self):
         raise NotImplementedError

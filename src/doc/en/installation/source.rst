@@ -471,7 +471,7 @@ or similar commands.
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    $ sage -f python2  # rebuild Python
+    $ sage -f python2  # rebuild Python2
     $ make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
@@ -626,11 +626,10 @@ Running Sage from a directory with spaces in its name will also fail.
    You should see the Sage prompt, which will look something like this::
 
        $ sage
-       ----------------------------------------------------------------------
-       | Sage Version 5.8, Release Date: 2013-03-15                         |
-       | Type "notebook()" for the browser-based notebook interface.        |
-       | Type "help()" for help.                                            |
-       ----------------------------------------------------------------------
+       ┌────────────────────────────────────────────────────────────────────┐
+       │ SageMath version 8.8, Release Date: 2019-06-26                     │
+       │ Using Python 2.7.15. Type "help()" for help.                       │
+       └────────────────────────────────────────────────────────────────────┘
        sage:
 
    Note that Sage should take well under a minute when it starts for the first
@@ -1432,4 +1431,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in September 2017 (Sage 8.1).**
+**This page was last updated in August 2019 (Sage 8.8).**

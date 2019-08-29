@@ -2077,6 +2077,8 @@ REFERENCES:
 .. [God1968] \R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
              (Boston) (1968)
 
+.. [God1993] Chris Godsil (1993): *Algebraic Combinatorics*.
+
 .. [Gol1968] \R. Gold: *Maximal recursive sequences with 3-valued recursive
              crosscorrelation functions*. IEEE Transactions on Information
              Theory, 14, pp. 154-156, 1968.

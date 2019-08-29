@@ -3578,6 +3578,11 @@ REFERENCES:
 .. [NN2007] Nisan, Noam, et al., eds. *Algorithmic game theory.*
             Cambridge University Press, 2007.
 
+.. [NO2003] Sampo Niskanen and Patric R. J. Ostergard,
+            *Cliquer User's  Guide, Version 1.0*,
+            Communications Laboratory, Helsinki University of Technology,
+            Espoo, Finland, Tech. Rep. T48, 2003.
+
 .. [Nog1985] Arnaldo Nogueira, "Almost all Interval Exchange
              Transformations with Flips are Nonergodic" (Ergod. Th. &
              Dyn. Systems, Vol 5., (1985), 257-271

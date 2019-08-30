@@ -3737,6 +3737,13 @@ REFERENCES:
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
 
+.. [NP2007] Nikolopoulos, S.D. and Palios, L.,
+            *Detecting holes and antiholes in graphs*,
+            Algorithmica, 2007,
+            Vol. 47, number 2, pages 119--138,
+            :doi:`10.1007/s00453-006-1225-y`,
+            http://www.cs.uoi.gr/~stavros/C-Papers/C-2004-SODA.pdf
+
 .. [NWS2002] Newman, M.E.J., Watts, D.J. and Strogatz, S.H.  *Random
              graph models of social networks*. Proc. Nat. Acad. Sci. USA
              99:1 (2002), 2566-2572. :doi:`10.1073/pnas.012582999`

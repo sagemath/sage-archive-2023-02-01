@@ -2627,7 +2627,7 @@ class Polytopes():
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 0, 1, 0], exact=exact, backend=backend, regular=True)
 
-    def one_hundred_twenty_cell(self, exact=True, backend=None):
+    def one_hundred_twenty_cell(self, exact=True, backend=None, construction='coxeter'):
         """
         Return the 120-cell.
 
@@ -2643,17 +2643,76 @@ class Polytopes():
 
         INPUT:
 
-        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+        - ``exact`` -- (boolean, default ``True``) if ``True`` use exact
           coordinates instead of floating point approximations.
 
         - ``backend`` -- the backend to use to create the polytope.
 
-        EXAMPLES::
+        - ``construction`` -- the construction to use (string, default 'coxeter');
+          the other possibility is 'as_permutahedron'.
 
-            sage: polytopes.one_hundred_twenty_cell(backend='normaliz') # not tested - long time
+`       EXAMPLES:
+
+        The classical construction given by Coxeter in [Cox1969]_ is given by::
+
+            sage: polytopes.one_hundred_twenty_cell(backend='normaliz')  # optional - pynormaliz
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining 
+            polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 600 vertices
+
+        It is also possible to realize it using the generalized permutahedron
+        of type H4::
+
+            sage: polytopes.one_hundred_twenty_cell(backend='normaliz',construction='as_permutahedron') # not tested - long time
             A 4-dimensional polyhedron in AA^4 defined as the convex hull of 600 vertices
         """
-        return self.generalized_permutahedron(['H', 4], point=[0, 0, 0, 1], exact=exact, backend=backend, regular=True)
+        if construction == 'coxeter':
+            if exact:
+                from sage.rings.number_field.number_field import QuadraticField
+                K = QuadraticField(5, 'sqrt5')
+                sqrt5 = K.gen()
+                phi = (1 + sqrt5) / 2
+                base_ring = K
+            else:
+                if base_ring is None:
+                    base_ring = RDF
+                phi = (1 + base_ring(5).sqrt()) / 2
+            phi_inv = base_ring.one() / phi
+
+            # The 64 permutations of [±2,±2,0,0] (the ± are independant)
+            verts = Permutations([0,0,2,2]).list() + Permutations([0,0,-2,-2]).list() + Permutations([0,0,2,-2]).list()
+
+            # The 64 permutations of the following vectors:
+            # [±1,±1,±1,±sqrt(5)]
+            # [±1/phi^2,±phi,±phi,±phi]
+            # [±1/phi,±1/phi,±1/phi,±phi^2]
+            from sage.categories.cartesian_product import cartesian_product
+            from sage.misc.flatten import flatten
+            full_perm_vectors = [[[1,-1],[1,-1],[1,-1],[-sqrt5,sqrt5]],
+                                 [[phi_inv**2,-phi_inv**2],[phi,-phi],[phi,-phi],[-phi,phi]],
+                                 [[phi_inv,-phi_inv],[phi_inv,-phi_inv],[phi_inv,-phi_inv],[-(phi**2),phi**2]]]
+            for vect in full_perm_vectors:
+                cp = cartesian_product(vect)
+                # The cartesian product creates duplicates, so we reduce it:
+                verts += list(set([tuple(p) for p in flatten([Permutations(list(c)).list() for c in cp])]))
+
+            # The 96 even permutations of [0,±1/phi^2,±1,±phi^2]
+            # The 96 even permutations of [0,±1/phi,±phi,±sqrt(5)]
+            # The 192 even permutations of [±1/phi,±1,±phi,±2]
+            import itertools
+            even_perm_vectors = [[[0],[phi_inv**2,-phi_inv**2],[1,-1],[-(phi**2),phi**2]],
+                                 [[0],[phi_inv,-phi_inv],[phi,-phi],[-sqrt5,sqrt5]],
+                                 [[phi_inv,-phi_inv],[1,-1],[phi,-phi],[-2,2]]]
+            even_perm = AlternatingGroup(4)
+            for vect in even_perm_vectors:
+                cp = cartesian_product(vect)
+                # The cartesian product creates duplicates, so we reduce it:
+                verts += list(itertools.chain.from_iterable([[p(tuple(c)) for p in even_perm] for c in cp]))
+            return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
+
+        elif construction == 'as_permutahedron':
+            return self.generalized_permutahedron(['H', 4], point=[0, 0, 0, 1], exact=exact, backend=backend, regular=True)
+        else:
+            raise ValueError("construction (={}) must be either 'coxeter' or 'as_permutahedron' ".format(construction))
 
     def hypercube(self, dim, backend=None):
         r"""

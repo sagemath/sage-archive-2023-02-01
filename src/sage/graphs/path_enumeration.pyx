@@ -1923,18 +1923,18 @@ def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
 
     EXAMPLES::
 
-        sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
+        sage: g = DiGraph({0: [0, 1], 1: [2], 2: [3], 3: [2]}, loops=True)
         sage: g.all_simple_paths()
-        [['d', 'c'],
-         ['b', 'c'],
-         ['c', 'd'],
-         ['a', 'a'],
-         ['a', 'b'],
-         ['a', 'b', 'c'],
-         ['c', 'd', 'c'],
-         ['b', 'c', 'd'],
-         ['d', 'c', 'd'],
-         ['a', 'b', 'c', 'd']]
+        [[3, 2],
+         [2, 3],
+         [1, 2],
+         [0, 0],
+         [0, 1],
+         [0, 1, 2],
+         [1, 2, 3],
+         [2, 3, 2],
+         [3, 2, 3],
+         [0, 1, 2, 3]]
 
         sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
         sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=False)
@@ -1970,20 +1970,22 @@ def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
 
     It is also possible to bound the length of the paths::
 
+        sage: g = DiGraph({0: [0, 1], 1: [2], 2: [3], 3: [2]}, loops=True)
         sage: g.all_simple_paths(max_length=2)
-        [['d', 'c'],
-         ['b', 'c'],
-         ['c', 'd'],
-         ['a', 'a'],
-         ['a', 'b'],
-         ['a', 'b', 'c'],
-         ['c', 'd', 'c'],
-         ['b', 'c', 'd'],
-         ['d', 'c', 'd']]
+        [[3, 2],
+         [2, 3],
+         [1, 2],
+         [0, 0],
+         [0, 1],
+         [0, 1, 2],
+         [1, 2, 3],
+         [2, 3, 2],
+         [3, 2, 3]]
 
     By default, empty paths are not enumerated, but this can be
     parametrized::
 
+        sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
         sage: g.all_simple_paths(starting_vertices=['a'], trivial=True)
         [['a'], ['a', 'a'], ['a', 'b'], ['a', 'b', 'c'],
          ['a', 'b', 'c', 'd']]

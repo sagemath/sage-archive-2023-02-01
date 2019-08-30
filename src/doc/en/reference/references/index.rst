@@ -1482,6 +1482,10 @@ REFERENCES:
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
 
+.. [DB1996] K. Duggal, A. Bejancu,
+             *Lightlike Submanifolds of Semi-Riemannian Manifolds and Applications*,
+             Mathematics and Its Applications, 1996.
+
 .. [DCSW2008] \C. De Canniere, H. Sato, D. Watanabe,
               *Hash Function Luffa: Specification*; submitted to
               NIST SHA-3 Competition, 2008. Available at
@@ -1684,6 +1688,10 @@ REFERENCES:
 
 .. [DS1994] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
             chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
+
+.. [DS2010] K. Duggal, B. Sahin,
+             *Differential Geometry of Lightlike Submanifolds*,
+             Frontiers in Mathematics, 2010.
 
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,
@@ -1890,6 +1898,10 @@ REFERENCES:
 .. [FMV2014] Xander Faber, Michelle Manes, and Bianca Viray. Computing
              Conjugating Sets and Automorphism Groups of Rational Functions.
              Journal of Algebra, 423 (2014), 1161-1190.
+
+.. [FNO2019] Hans Fotsing Tetsing, Ferdinand Ngakeu and Benjamin Olea,
+             *Rigging technique for 1-lightlike submanifolds and preferred
+              rigged connections*, Mediterranean Journal of Mathematics, (2019).
 
 .. [Fog2002] \N. Pytheas Fogg, *Substitutions in Dynamics, Arithmetics,
              and Combinatorics*, Lecture Notes in Mathematics 1794,

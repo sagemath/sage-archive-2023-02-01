@@ -146,10 +146,6 @@ REFERENCES:
    *Hopf Algebras In Combinatorics*,
    :arXiv:`1409.8356v5`, available with solutions at
    https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf
-
-- [Muth2017]_ Robert Muth.
-  *Super RSK correspondence with symmetry*.
-  :arXiv:`1711.00420`.
 """
 
 # *****************************************************************************

@@ -1220,6 +1220,9 @@ REFERENCES:
              IACR Transactions on Symmetric Cryptology. Vol 2017, Issue 4.
              pre-print available at https://eprint.iacr.org/2018/161.pdf
 
+.. [CIA] CIA Factbook 09
+         https://www.cia.gov/library/publications/the-world-factbook/
+
 .. [CK1999] David A. Cox and Sheldon Katz. *Mirror symmetry and
             algebraic geometry*, volume 68 of *Mathematical Surveys
             and Monographs*. American Mathematical Society,

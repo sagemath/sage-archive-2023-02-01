@@ -281,10 +281,6 @@ def WorldMap():
 
         sage: 'Iceland' in graphs.WorldMap()  # Trac 24488
         True
-
-    REFERENCE:
-
-    .. [CIA] CIA Factbook 09 https://www.cia.gov/library/publications/the-world-factbook/
     """
     edges = [
         ('Afghanistan', 'China', None), ('Afghanistan', 'Iran', None),

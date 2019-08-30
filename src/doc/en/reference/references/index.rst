@@ -3931,6 +3931,11 @@ REFERENCES:
               volume 6795 of Lecture Notes in Computer Science,
               Springer-Verlag, Berlin, Heidelberg, 2011, pp. 406--416
 
+.. [PS2002] Jim Pitman, Richard Stanley, *A polytope related to
+            empirical distributions, plane trees, parking functions, and
+            the associahedron*, J. Discrete Comput. Geom. (2002), 27:4, 603-634,
+            :doi:`10.1007/s00454-002-2776-6`, :arxiv:`math/9908029`.
+
 .. [PS2006] Dominique Poulalhon and Gilles Schaeffer,
             *Optimal coding and sampling of triangulations*,
             Algorithmica 46 (2006), no. 3-4, 505-527,

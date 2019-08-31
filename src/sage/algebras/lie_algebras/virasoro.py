@@ -27,6 +27,7 @@ from sage.structure.indexed_generators import IndexedGenerators
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
                                                     FinitelyGeneratedLieAlgebra)
+from sage.algebras.lie_algebras.poincare_birkhoff_witt import PoincareBirkhoffWittBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 
 
@@ -510,7 +511,7 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     def degree_on_basis(self, i):
         r"""
         Return the degree of the basis element indexed by ``i``,
-        which is ``i``.
+        which is ``i`` and `0` for ``'c'``.
 
         EXAMPLES::
 
@@ -729,7 +730,8 @@ class ChargelessRepresentation(CombinatorialFreeModule):
 
     def degree_on_basis(self, i):
         r"""
-        Return the degree of the basis element indexed by ``i``.
+        Return the degree of the basis element indexed by ``i``,
+        which is `i`.
 
         EXAMPLES::
 
@@ -1067,16 +1069,17 @@ class VermaModule(CombinatorialFreeModule):
 
     def degree_on_basis(self, d):
         r"""
-        Return the degree of the basis element indexed by ``d``.
+        Return the degree of the basis element indexed by ``d``, which
+        is the sum of the entries of ``d``.
 
         EXAMPLES::
 
             sage: L = lie_algebras.VirasoroAlgebra(QQ)
             sage: M = L.verma_module(-2/7, 3)
             sage: M.degree_on_basis((-3,-3,-1))
-            7
+            -7
         """
-        return -sum(d)
+        return sum(d)
 
     class Element(CombinatorialFreeModule.Element):
         def _acted_upon_(self, scalar, self_on_left=False):
@@ -1105,11 +1108,17 @@ class VermaModule(CombinatorialFreeModule):
             """
             P = self.parent()
             # We implement only a left action
-            if not self_on_left and scalar in P._V:
-                scalar = P._V(scalar)
-                return P.linear_combination((P._d_action_on_basis(n, k), cv * cm)
-                                            for n,cv in scalar.monomial_coefficients(copy=False).items()
-                                            for k,cm in self.monomial_coefficients(copy=False).items())
+            if not self_on_left:
+                S = scalar.parent()
+                R = P.base_ring()
+                if S is R or scalar in R:
+                    scalar = R(scalar)
+                    return P._from_dict({k: scalar*c for k,c in self._monomial_coefficients.items()})
+                elif S is P._V or scalar in P._V:
+                    scalar = P._V(scalar)
+                    return P.linear_combination((P._d_action_on_basis(n, k), cv * cm)
+                                                for n,cv in scalar.monomial_coefficients(copy=False).items()
+                                                for k,cm in self._monomial_coefficients.items())
             return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_

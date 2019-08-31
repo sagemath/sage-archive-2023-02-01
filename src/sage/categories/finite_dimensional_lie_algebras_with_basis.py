@@ -88,7 +88,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: sorted(UEA.relations().items(), key=str)
                 [(y*x, x*y - z), (z*x, x*z + y), (z*y, y*z - x)]
 
-            Singular's ``nc_algebra`` needs the base ring to be a field,
+            Singular's ``nc_algebra`` does not work over `\ZZ/6\ZZ`,
             so we fallback to the PBW basis in this case::
 
                 sage: L = lie_algebras.pwitt(Zmod(6), 6)

@@ -497,21 +497,26 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
                 sage: L = lie_algebras.VirasoroAlgebra(QQ)
                 sage: d = L.basis()
-                sage: x = d[-1]*d[-2]*d[-1]
+                sage: x = d[-1]*d[-2]*d[-1] + 3*d[-3]
                 sage: x
-                PBW[-2]*PBW[-1]^2 + PBW[-3]*PBW[-1]
+                PBW[-2]*PBW[-1]^2 + PBW[-3]*PBW[-1] + 3*PBW[-3]
                 sage: M = L.verma_module(1/2,3/4)
                 sage: v = M.highest_weight_vector()
                 sage: x * v
-                d[-3]*d[-1]*v + d[-2]*d[-1]*d[-1]*v
+                3*d[-3]*v + d[-3]*d[-1]*v + d[-2]*d[-1]*d[-1]*v
             """
+            # Try the _acted_upon_ first as it might have a direct PBW action
+            #   implemented that is faster
+            ret = x._acted_upon_(self, not self_on_left)
+            if ret is not None:
+                return ret
             cm = get_coercion_model()
             L = self.parent()._g
             if self_on_left:
                 if cm.discover_action(L, x.parent(), mul):
                     ret = x.parent().zero()
                     for mon, coeff in self._monomial_coefficients.items():
-                        term = x
+                        term = coeff * x
                         for k, exp in reversed(mon._sorted_items()):
                             for _ in range(exp):
                                 term = L.monomial(k) * term
@@ -521,7 +526,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
                 if cm.discover_action(x.parent(), L, mul):
                     ret = x.parent().zero()
                     for mon, coeff in self._monomial_coefficients.items():
-                        term = x
+                        term = coeff * x
                         for k, exp in reversed(mon._sorted_items()):
                             for _ in range(exp):
                                 term = term * L.monomial(k)

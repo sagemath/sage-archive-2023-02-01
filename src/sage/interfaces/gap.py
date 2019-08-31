@@ -561,6 +561,14 @@ class Gap_generic(ExtraTabCompletion, Expect):
             'Hi how are you?'
             sage: gap.eval('fi')
             ''
+
+        TESTS:
+
+        Whitespace is not stripped from the front of the result
+        (:trac:`28439`)::
+
+            sage: gap.eval(r'Print("  -\n\\\\-  ")')
+            '  -\n\\\\-'
         """
         # '"
         #We remove all of the comments:  On each line, we try
@@ -583,7 +591,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         result = Expect.eval(self, input_line, **kwds)
         if not newlines:
             result = result.replace("\\\n","")
-        return result.strip()
+        return result.rstrip()
 
 
     def _execute_line(self, line, wait_for_prompt=True, expect_eof=False):

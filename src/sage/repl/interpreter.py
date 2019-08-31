@@ -545,16 +545,31 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: shell = interface_shell_embed(maxima)
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
             sage: ift.transform('2+2', False)   # note: output contains triple quotation marks
-            'sage.misc.all.logstr("""4""")'
+            'sage.misc.all.logstr(r"""4""")'
             sage: ift.shell.ex('a = 4')
             sage: ift.transform(r'sage(a)+4', False)
-            'sage.misc.all.logstr("""8""")'
+            'sage.misc.all.logstr(r"""8""")'
             sage: ift.temporary_objects
             set()
             sage: shell = interface_shell_embed(gap)
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
             sage: ift.transform('2+2', False)
-            'sage.misc.all.logstr("""4""")'
+            'sage.misc.all.logstr(r"""4""")'
+
+        TESTS:
+
+        Check that whitespace is not stripped and that special characters are
+        escaped (:trac:`28439`)::
+
+            sage: shell = interface_shell_embed(gap)
+            sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
+            sage: ift.transform(r'Print("  -\n\\\\-  ");', False)
+            'sage.misc.all.logstr(r"""  -\n\\\\-""")'
+
+            sage: shell = interface_shell_embed(macaulay2)  # optional - macaulay2
+            sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager) # optional - macaulay2
+            sage: ift.transform('net(ZZ^2)', False)  # optional - macaulay2
+            'sage.misc.all.logstr(r"""  2\nZZ""")'
         '''
         line = self.preparse_imports_from_sage(line)
 
@@ -564,7 +579,9 @@ class InterfaceShellTransformer(PrefilterTransformer):
             # Once we've evaluated the lines, we can clear the
             # temporary objects
             self.temporary_objects = set()
-        return 'sage.misc.all.logstr("""%s""")'%t.strip()
+        # We do not strip whitespace from t here as the individual interface is
+        # responsible for that
+        return 'sage.misc.all.logstr(r"""%s""")' % t
 
 def interface_shell_embed(interface):
     """

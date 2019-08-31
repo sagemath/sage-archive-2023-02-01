@@ -27,7 +27,6 @@ from sage.structure.indexed_generators import IndexedGenerators
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
                                                     FinitelyGeneratedLieAlgebra)
-from sage.algebras.lie_algebras.poincare_birkhoff_witt import PoincareBirkhoffWittBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 
 

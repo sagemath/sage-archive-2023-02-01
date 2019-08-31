@@ -67,7 +67,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ParentMethods:
         @cached_method
         def _construct_UEA(self):
-            """
+            r"""
             Construct the universal enveloping algebra of ``self``.
 
             EXAMPLES::

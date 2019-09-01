@@ -3260,10 +3260,14 @@ class CoordChange(SageObject):
         - ``transformations`` -- the inverse transformations expressed as a
           list of the expressions of the "old" coordinates in terms of the
           "new" ones
-        - ``kwds`` -- keyword arguments: only ``check=True`` (default) or
-          ``check=False`` are meaningful; this determines whether the provided
-          transformations are checked to be indeed the inverse coordinate
-          transformations
+        - ``kwds`` -- optional arguments; valid keywords are
+
+          - ``check`` (default: ``True``) -- boolean determining whether the
+            provided transformations are checked to be indeed the inverse
+            coordinate transformations
+          - ``verbose`` (default: ``False``) -- boolean determining whether
+            some details of the check are printed out; if ``False``, no
+            output is printed if the check is passed (see example below)
 
         EXAMPLES:
 
@@ -3321,39 +3325,40 @@ class CoordChange(SageObject):
               y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)  **failed**
             NB: a failed report can reflect a mere lack of simplification.
 
-        TESTS:
+        If the check is passed, no output is printed out::
 
-        Deprecation of keyword argument 'verbose'::
+            sage: M = Manifold(2, 'M')
+            sage: X1.<x,y> = M.chart()
+            sage: X2.<u,v> = M.chart()
+            sage: X1_to_X2 = X1.transition_map(X2, [x+y, x-y])
+            sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2)
 
-            sage: spher_to_cart.set_inverse(sqrt(x^2+y^2), atan2(y,x),
-            ....:                           verbose=True)
-            doctest:...: DeprecationWarning: the keyword 'verbose' is
-             deprecated; use 'check' instead
-            See https://trac.sagemath.org/28422 for details.
+        unless the option ``verbose`` is set to ``True``::
+
+            sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2, verbose=True)
             Check of the inverse coordinate transformation:
-              r == r  *passed*
-              ph == arctan2(r*sin(ph), r*cos(ph))  **failed**
               x == x  *passed*
               y == y  *passed*
-            NB: a failed report can reflect a mere lack of simplification.
+              u == u  *passed*
+              v == v  *passed*
+
+        TESTS::
+
+            sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2, bla=3)
+            Traceback (most recent call last):
+            ...
+            TypeError: bla is not a valid keyword argument
 
         """
         check = kwds.pop('check', True)
-        # Deprecation of keyword argument "verbose"
-        from sage.misc.superseded import deprecation
-        verbose = kwds.pop('verbose', None)
-        if verbose is not None:
-            deprecation(28422, "the keyword 'verbose' is deprecated; use "
-                        "'check' instead")
-            check = verbose
-        # End of deprecation
+        verbose = kwds.pop('verbose', False)
         for unknown_key in kwds:
-            raise ValueError("{} is not a valid keyword "
-                             "argument".format(unknown_key))
+            raise TypeError("{} is not a valid keyword "
+                            "argument".format(unknown_key))
         self._inverse = type(self)(self._chart2, self._chart1,
                                    *transformations)
         if check:
-            print("Check of the inverse coordinate transformation:")
+            infos = ["Check of the inverse coordinate transformation:"]
             x1 = self._chart1._xx
             x2 = self._chart2._xx
             x1_to_x1 = self._inverse(*(self(*x1)))
@@ -3366,7 +3371,7 @@ class CoordChange(SageObject):
                 else:
                     resu = '**failed**'
                     any_failure = True
-                print("  {}  {}".format(eq, resu))
+                infos.append("  {}  {}".format(eq, resu))
             for x, xc in zip(x2, x2_to_x2):
                 eq = x == self._chart2.simplify(xc)
                 if bool(eq):
@@ -3374,10 +3379,13 @@ class CoordChange(SageObject):
                 else:
                     resu = '**failed**'
                     any_failure = True
-                print("  {}  {}".format(eq, resu))
+                infos.append("  {}  {}".format(eq, resu))
             if any_failure:
-                print("NB: a failed report can reflect a mere lack of "
-                      "simplification.")
+                infos.append("NB: a failed report can reflect a mere lack of "
+                             "simplification.")
+            if verbose or any_failure:
+                for li in infos:
+                    print(li)
 
     def __mul__(self, other):
         r"""

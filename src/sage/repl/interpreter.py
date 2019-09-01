@@ -102,7 +102,7 @@ Check that Cython source code appears in tracebacks::
 
 
 import re
-from sage.repl.preparse import preparse
+from sage.repl.preparse import preparse, containing_block
 from sage.repl.prompts import InterfacePrompts
 
 from traitlets import Bool, Type
@@ -472,7 +472,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
         .. SEEALSO:: :func:`interface_shell_embed`
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.repl.interpreter import interface_shell_embed
             sage: shell = interface_shell_embed(maxima)
@@ -480,11 +480,12 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: ift.temporary_objects
             set()
             sage: ift._sage_import_re.findall('sage(a) + maxima(b)')
-            ['a', 'b']
+            ['sage(', 'maxima(']
         """
         super(InterfaceShellTransformer, self).__init__(*args, **kwds)
         self.temporary_objects = set()
-        self._sage_import_re = re.compile(r'(?:sage|%s)\((.*?)\)'%self.shell.interface.name())
+        self._sage_import_re = re.compile(r'(?:sage|%s)\('
+                                          % self.shell.interface.name())
 
     def preparse_imports_from_sage(self, line):
         """
@@ -497,12 +498,6 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
         :param line: the line to transform
         :type line: string
-
-        .. warning::
-
-            This does not parse nested parentheses correctly.  Thus,
-            lines like ``sage(a.foo())`` will not work correctly.
-            This can't be done in generality with regular expressions.
 
         EXAMPLES::
 
@@ -518,13 +513,33 @@ class InterfaceShellTransformer(PrefilterTransformer):
             '2 +  sage4 '
             sage: ift.preparse_imports_from_sage('2 + gap(a)')
             '2 + gap(a)'
+
+        Since :trac:`28439`, this also works with more complicated expressions
+        containing nested parentheses::
+
+            sage: shell = interface_shell_embed(gap)
+            sage: shell.user_ns = locals()
+            sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
+            sage: line = '2 + sage((1+2)*gap(-(5-3)^2).sage()) - gap(1+(2-1))'
+            sage: line = ift.preparse_imports_from_sage(line)
+            sage: gap.eval(line)
+            '-12'
         """
-        for sage_code in self._sage_import_re.findall(line):
-            expr = preparse(sage_code)
+        new_line = []
+        pos = 0
+        while True:
+            m = self._sage_import_re.search(line, pos)
+            if not m:
+                new_line.append(line[pos:])
+                break
+            expr_start, expr_end = containing_block(line, m.end() - 1,
+                                                    delimiters=['()'])
+            expr = preparse(line[expr_start+1:expr_end-1])
             result = self.shell.interface(eval(expr, self.shell.user_ns))
             self.temporary_objects.add(result)
-            line = self._sage_import_re.sub(' ' + result.name() + ' ', line, 1)
-        return line
+            new_line += [line[pos:m.start()], result.name()]
+            pos = expr_end
+        return ' '.join(new_line)
 
     def transform(self, line, continue_prompt):
         r'''

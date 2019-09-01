@@ -101,14 +101,12 @@ Check that Cython source code appears in tracebacks::
 #*****************************************************************************
 
 
-import os
 import re
 from sage.repl.preparse import preparse
-from sage.repl.prompts import SagePrompts, InterfacePrompts
+from sage.repl.prompts import InterfacePrompts
 
 from traitlets import Bool, Type
 
-from sage.env import SAGE_LOCAL
 from sage.repl.configuration import sage_ipython_config, SAGE_EXTENSION
 
 def embedded():
@@ -360,10 +358,9 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
             True
             sage: shell.quit()
         """
-        rc = super(SageTestShell, self).run_cell(*args, **kwds)
+        super(SageTestShell, self).run_cell(*args, **kwds)
 
 
-    
 ###################################################################
 # Transformers used in the SageInputSplitter
 ###################################################################

@@ -182,7 +182,7 @@ from six import string_types
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
 from sage.cpython.string import bytes_to_str
-from sage.env import SAGE_LOCAL, SAGE_EXTCODE
+from sage.env import SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
@@ -743,13 +743,11 @@ class Gap_generic(ExtraTabCompletion, Expect):
             sage: a
             3
         """
-        E = None
         expect_eof = self._quit_string() in line
 
         try:
             if self._expect is None:
                 self._start()
-            E = self._expect
             if allow_use_file and wait_for_prompt and len(line) > self._eval_using_file_cutoff:
                 return self._eval_line_using_file(line)
 

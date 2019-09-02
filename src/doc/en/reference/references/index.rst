@@ -209,6 +209,12 @@ REFERENCES:
               Symposium, Volume 51, page 20.
               Australian Computer Society, Inc. 2006.
 
+.. [AP1986] \S. Arnborg, A. Proskurowski,
+            *Characterization and Recognition of Partial 3-Trees*,
+            SIAM Journal of Alg. and Discrete Methods,
+            Vol. 7, pp. 305-314, 1986.
+            :doi:`10.1137/0607033`.
+
 .. [Ap1997] \T. Apostol, Modular functions and Dirichlet series in
             number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
 
@@ -844,6 +850,9 @@ REFERENCES:
 .. [Bob2013] \J.W. Bober. Conditionally bounding analytic ranks of
              elliptic curves. ANTS
              10, 2013. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
+
+.. [Bod1993] \H. L. Bodlaender,
+             *A Tourist Guide through Treewidth*, Acta Cybern. 1993.
 
 .. [Bod1998] Hans L. Bodlaender, *A partial k-arboretum of graphs with bounded
              treewidth*, Theoretical Computer Science 209(1-2):1-45, 1998.
@@ -4450,6 +4459,11 @@ REFERENCES:
 .. [SSAMI2007] \T. Shirai, K. Shibutani, T. Akishita, S. Moriai, and T. Iwata,
                *The 128-bit blockcipher CLEFIA (extended abstract)*; in
                FSE, (2007), pp. 181-195.
+
+.. [ST1993] \P. D. Seymour and Robin Thomas,
+            *Graph searching and a min-max theorem for tree-width*,
+            J. Comb. Theory Ser. B 58, 1 (May 1993), 22-33.
+            :doi:`10.1006/jctb.1993.1027`.
 
 .. [ST2010] Einar Steingrimmsson and Bridget Tenner.
             *The Moebius Function of the Permutation Pattern Poset*,

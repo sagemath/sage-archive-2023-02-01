@@ -187,6 +187,10 @@ REFERENCES:
             the Adams operators on graded connected Hopf
             algebras*. Algebra Number Theory, v.9, 2015, n.3, 2015.
 
+.. [Ald1990] \D. Aldous, *The random walk construction of
+             uniform spanning trees*, SIAM J Discrete Math 3 (1990),
+             450-465. :doi:`10.1137/0403039`.
+
 .. [ALPRRV2019] \E. Andreeva, V. Lallemand, A. Purnal, R. Reyhanitabar, A. Roy, D. Vizar
                 "ForkAE v.1"
                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/forkae-spec.pdf
@@ -974,6 +978,12 @@ REFERENCES:
 
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
+
+.. [Bro1989] \A. Broder, *Generating random spanning trees*,
+             Proceedings of the 30th IEEE Symposium on Foundations of
+             Computer Science, 1989, pp. 442-447.
+             :doi:`10.1109/SFCS.1989.63516`,
+             <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
 
 .. [BRS2015] \A. Boussicault, S. Rinaldi et S. Socci.
              *The number of directed k-convex polyominoes*
@@ -2258,6 +2268,10 @@ REFERENCES:
             positive characteristic". Applicable Algebra in Engineering,
             Communication and Computing, 7(1), 1-14 (1996)
 
+.. [GT2001] Michael T. Goodrich and Roberto Tamassia.
+            *Data Structures and Algorithms in Java*.
+            2nd edition, John Wiley & Sons, 2001.
+
 .. [GT2014] \M.S. Gowda and J. Tao. On the bilinearity rank of a
             proper cone and Lyapunov-like
             transformations. Mathematical Programming, 147 (2014)
@@ -2663,6 +2677,10 @@ REFERENCES:
              Power Series and Algebraic Combinatorics (FPSAC 2009), Discrete
              Math. Theor. Comput. Sci. Proc., AK, Assoc. Discrete
              Math. Theor. Comput. Sci., Nancy, 2009, pp. 491–502
+
+.. [JNC2010] David Joyner, Minh Van Nguyen, and Nathann Cohen.
+             *Algorithmic Graph Theory*. 2010,
+             http://code.google.com/p/graph-theory-algorithms-book/
 
 .. [JNSV2016] Claude-Pierre Jeannerod, Vincent Neiger, Eric Schost, and Gilles
              Villard. Fast Computation of Minimal Interpolation Bases in Popov
@@ -4254,6 +4272,9 @@ REFERENCES:
 .. [Sag2011] Bruce E. Sagan,
              *The cyclic sieving phenomenon: a survey*,
              :arXiv:`1008.0790v3`
+
+.. [Sah2000] Sartaj Sahni. *Data Structures, Algorithms, and Applications
+             in Java*. McGraw-Hill, 2000.
 
 .. [Sal1954] \G. Salmon: "A Treatise on Conic Sections",
              Chelsea Publishing Co., New York, 1954.

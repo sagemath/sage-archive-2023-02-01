@@ -558,6 +558,12 @@ REFERENCES:
               *The partition algebra and the Kronecker coefficients*.
               :arxiv:`1210.5579v6`.
 
+.. [BE1992] \A. Brouwer and C. Van Eijl,
+            *On the p-Rank of the Adjacency Matrices of Strongly Regular
+            Graphs*,
+            Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
+            :doi:`10.1023/A%3A1022438616684`.
+
 .. [Bec1992] Bernhard Beckermann. "A reliable method for computing M-Padé
              approximants on arbitrary staircases". J. Comput. Appl. Math.,
              40(1):19-42, 1992. https://doi.org/10.1016/0377-0427(92)90039-Z.
@@ -656,6 +662,10 @@ REFERENCES:
 .. [BG1988] \M. Berger & B. Gostiaux : *Differential Geometry:
             Manifolds, Curves and Surfaces*, Springer (New York)
             (1988); :doi:`10.1007/978-1-4612-1033-7`
+
+.. [BI1984] Eiichi Bannai, Tatsuro Ito,
+            *Algebraic Combinatorics I: Association Schemes*,
+            Benjamin/Cummings, 1984
 
 .. [Bil2011] \N. Billerey. *Critères d'irréductibilité pour les
              représentations des courbes elliptiques*. Int. J. Number
@@ -778,6 +788,12 @@ REFERENCES:
             vector from the lexicographical index*,
             ACM Transactions on Mathematical Software (TOMS), 1977
             vol. 3, n. 2, pages 180--182.
+
+.. [BL1984] \A. Brouwer, J. van Lint,
+            *Strongly regular graphs and partial geometries*,
+            Enumeration and design,
+            (Waterloo, Ont., 1982) (1984): 85-122.
+            http://oai.cwi.nl/oai/asset/1817/1817A.pdf
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
@@ -979,6 +995,12 @@ REFERENCES:
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
+.. [Bro1982] \A. Brouwer,
+             *Polarities of G. Higman's symmetric design and a strongly regular
+             graph on 176 vertices*,
+             Aequationes mathematicae 25, no. 1 (1982): 77-82.
+             :doi:`10.1007/BF02189599`.
+
 .. [Bro1989] \A. Broder, *Generating random spanning trees*,
              Proceedings of the 30th IEEE Symposium on Foundations of
              Computer Science, 1989, pp. 442-447.
@@ -1135,6 +1157,11 @@ REFERENCES:
             Michigan Math. J. 55 (2007), no. 2, 355-393.
             :arxiv:`math/0602146v1` [math.AG]
 
+.. [CD2013] \I. Cardinali and B. De Bruyn,
+            *Spin-embeddings, two-intersection sets and two-weight codes*,
+            Ars Comb. 109 (2013): 309-319.
+            https://biblio.ugent.be/publication/4241842/file/4241845.pdf
+
 .. [CDJN2019] \A. Chakraborti, N. Datta, A. Jha, M. Nandi
               "HyENA"
               https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/hyena-spec.pdf
@@ -1257,6 +1284,11 @@ REFERENCES:
 
 .. [CIA] CIA Factbook 09
          https://www.cia.gov/library/publications/the-world-factbook/
+
+.. [CK1986] \R. Calderbank, W.M. Kantor,
+            *The geometry of two-weight codes*,
+            Bull. London Math. Soc. 18(1986) 97-122.
+            :doi:`10.1112/blms/18.2.97`.
 
 .. [CK1999] David A. Cox and Sheldon Katz. *Mirror symmetry and
             algebraic geometry*, volume 68 of *Mathematical Surveys
@@ -1409,6 +1441,11 @@ REFERENCES:
 .. [Con2018] Anthony Conway, *Notes On The Levine-Tristram
              Signature Function*, July 2018
              http://www.unige.ch/math/folks/conway/Notes/LevineTristramSurvey.pdf
+
+.. [Coo2006] \K. Coolsaet,
+             *The uniqueness of the strongly regular graph srg(105,32,4,12)*,
+             Bull. Belg. Math. Soc. 12(2006), 707-718.
+             http://projecteuclid.org/euclid.bbms/1136902608
 
 .. [Cox] David Cox, "What is a Toric Variety",
          https://dacox.people.amherst.edu/lectures/tutorial.ps
@@ -1583,6 +1620,11 @@ REFERENCES:
 
 .. [Dej1972] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
              Ser. A 13:90--99, 1972.
+
+.. [Del1972] Ph. Delsarte,
+             *Weights of linear codes and strongly regular normed spaces*,
+             Discrete Mathematics (1972), Volume 3, Issue 1, Pages 47-64,
+             :doi:`10.1016/0012-365X(72)90024-6`
 
 .. [Den2012] Tom Denton. Canonical Decompositions of Affine Permutations,
              Affine Codes, and Split `k`-Schur Functions.  Electronic Journal of
@@ -1917,6 +1959,12 @@ REFERENCES:
 .. [FIV2012] \H. Fournier, A. Ismail, and A. Vigneron. *Computing the Gromov
              hyperbolicity of a discrete metric space*. 2012.
              :arxiv:`1210.3323`.
+
+.. [FK1991] \I. A. Faradjev and M. H. Klin,
+            *Computer package for computations with coherent configurations*,
+            Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
+            code, by I.A.Faradjev (with contributions by A.E.Brouwer,
+            D.V.Pasechnik). https://github.com/dimpase/coco
 
 .. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
@@ -2261,6 +2309,16 @@ REFERENCES:
             *Group characters, symmetric functions, and the Hecke algebras*.
             AMS 1993.
 
+.. [GS1970] \J.-M. Goethals and J. J. Seidel,
+            *Strongly regular graphs derived from combinatorial designs*,
+            Can. J. Math. 22 (1970) 597-614.
+            :doi:`10.4153/CJM-1970-067-9`
+
+.. [GS1975] \J.M. Goethals, and J. J. Seidel,
+            *The regular two-graph on 276 vertices*,
+            Discrete Mathematics 12, no. 2 (1975): 143-158.
+            :doi:`10.1016/0012-365X(75)90029-1`
+
 .. [GSL] GNU Scientific Library.
          https://www.gnu.org/software/gsl/doc/html/
 
@@ -2558,6 +2616,11 @@ REFERENCES:
              Disc. Math. 13(1975), pp 357--381.
              :doi:`10.1016/0012-365X(75)90057-6`.
 
+.. [HT1996] \W. H. Haemers and V. D. Tonchev,
+            *Spreads in strongly regular graphs*,
+            Designs, Codes and Cryptography 8 (1996) 145-157.
+            :doi:`10.1023/A:1018037025910`.
+
 .. [Hutz2007] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
               than one. PhD Thesis, Brown University 2007
 
@@ -2659,6 +2722,11 @@ REFERENCES:
             J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
             :doi:`10.1006/jcta.2001.3231`
 
+.. [JK2003] \L. K. Jørgensen, M. Klin, M.,
+            *Switching of edges in strongly regular graphs.
+            I. A family of partial difference sets on 100 vertices*,
+            Electronic Journal of Combinatorics 10(1), 2003.
+
 .. [JKT2001] Zvonimir Janko, Hadi Kharaghani, and Vladimir D. Tonchev.
              *The existence of a Bush-type Hadamard matrix of order 324
              and two new infinite classes of symmetric designs*.
@@ -2718,6 +2786,10 @@ REFERENCES:
 .. [JPdA15] \N. Jacon and L. Poulain d'Andecy. *An isomorphism theorem
             for Yokonuma-Hecke algebras and applications to link
             invariants*. (2015) :arxiv:`1501.06389v3`.
+
+.. [IS2006] \Y.J. Ionin, S. Shrikhande,
+            *Combinatorics of symmetric designs*.
+            Cambridge University Press, 2006.
 
 .. [JS2010] \B. Jones, A. Schilling.
             "Affine structures and a tableau model for `E_6` crystals",
@@ -2980,6 +3052,12 @@ REFERENCES:
 .. [KP2002b] James Kuzmanovich; Andrey Pavlichenkov, *Finite
              Groups of Matrices Whose Entries Are Integers*, The American
              Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
+
+.. [KPRWZ2010] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
+               *Examples of computer experimentation in algebraic
+               combinatorics*, ARS MATHEMATICA CONTEMPORANEA 3 (2010) 237–258.
+               :doi:`10.26493/1855-3974.119.60b`.
+               http://amc-journal.eu/index.php/amc/article/viewFile/119/118
 
 .. [Kra1999] \C. Krattenthaler,
            *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
@@ -3338,6 +3416,12 @@ REFERENCES:
         Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
         Multiplication (unpublished)
 
+.. [LS1981] \J. H. van Lint, and A. Schrijver,
+            *Construction of strongly regular graphs, two-weight codes and
+            partial geometries by finite fields*,
+            Combinatorica, 1(1), 1981, 63-73.
+            :doi:`10.1007/BF02579178`.
+
 .. [LS1990] \A. Lascoux, M.-P. Schutzenberger.
             Keys and standard bases, invariant theory and tableaux.
             IMA Volumes in Math and its Applications (D. Stanton, ED.).
@@ -3641,6 +3725,11 @@ REFERENCES:
              :doi:`10.1137/1.9781611972986.7`
              http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf
 
+.. [MR1985] \R. Mathon and A. Rosa,
+            *A new strongly regular graph*,
+            Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.
+            :doi:`10.1016/0097-3165(85)90025-1`
+
 .. [MR1989] \G. Melançon and C. Reutenauer.
             *Lyndon words, free algebras and shuffles*,
             Can. J. Math., Vol. XLI, No. 4, 1989, pp. 577-591.
@@ -3912,6 +4001,12 @@ REFERENCES:
               Lett. Math. Phys. 51 (2000), no. 3, pages 211-219.
               Preprint: :arxiv:`math/0003074v1`
 
+.. [Pas1992] \D. V. Pasechnik,
+             *Skew-symmetric association schemes with two classes and strongly
+             regular graphs of type `L_{2n-1}(4n- 1)`*,
+             Acta Applicandaie Math. 29(1992), 129-138.
+             :doi:`10.1007/BF00053382`.
+
 .. [Pau2006] Sebastian Pauli, "Constructing Class Fields over Local
              Fields", Journal de Théorie des Nombres de Bordeaux,
              Vol. 18, No. 3 (2006), pp. 627-652.
@@ -3956,6 +4051,13 @@ REFERENCES:
 
 .. [Pol2003] Robert Pollack, *On the `p`-adic `L`-function of a modular form
             at a supersingular prime*, Duke Math. J. 118 (2003), no. 3, 523-558.
+
+.. [Pol2009] \J. Polhill,
+             *Negative Latin square type partial difference sets and
+             amorphic association schemes with Galois rings*,
+             Journal of Combinatorial Designs 17, no. 3 (2009): 266-282.
+             :doi:`10.1002/jcd.20206`.
+             http://onlinelibrary.wiley.com/doi/10.1002/jcd.20206/abstract
 
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.

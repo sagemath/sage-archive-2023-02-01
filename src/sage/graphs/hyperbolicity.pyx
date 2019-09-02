@@ -1076,7 +1076,7 @@ def hyperbolicity(G,
           - ``'basic'`` is an exhaustive algorithm considering all possible
             4-tuples and so have time complexity in `O(n^4)`.
 
-          - ``'CCL'`` is an exact algorithm proposed in [CCL2015_]. It considers
+          - ``'CCL'`` is an exact algorithm proposed in [CCL2015]_. It considers
             the 4-tuples in an ordering allowing to cut the search space as soon
             as a new lower bound is found (see the module's documentation). This
             algorithm can be turned into a approximation algorithm.
@@ -1085,7 +1085,7 @@ def hyperbolicity(G,
             proposed in [Sot2011]_ to significantly reduce the overall
             computation time of the ``'CCL'`` algorithm.
 
-          - ``'BCCM'`` is an exact algorithm proposed in [BCCM2015_]. It
+          - ``'BCCM'`` is an exact algorithm proposed in [BCCM2015]_. It
             improves ``'CCL+FA'`` by cutting several 4-tuples (for more
             information, see the module's documentation).
 

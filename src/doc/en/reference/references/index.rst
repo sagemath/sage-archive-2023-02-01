@@ -845,6 +845,10 @@ REFERENCES:
              elliptic curves. ANTS
              10, 2013. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
+.. [Bod1998] Hans L. Bodlaender, *A partial k-arboretum of graphs with bounded
+             treewidth*, Theoretical Computer Science 209(1-2):1-45, 1998.
+             :doi:`10.1016/S0304-3975(97)00228-4`.
+
 .. [Bo2009] Bosch, S., Algebra, Springer 2009
 
 .. [Bor1993] Lev A. Borisov,
@@ -1280,6 +1284,13 @@ REFERENCES:
              cluster complexes, and generalized multi-associahedra*,
              \J. Algebr. Comb. **39** (2014) pp. 17-51.
              :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.
+
+.. [CMN2014] David Coudert, Dorian Mazauric, and Nicolas Nisse, *Experimental
+             Evaluation of a Branch and Bound Algorithm for computing
+             Pathwidth*. In Symposium on Experimental Algorithms (SEA), volume
+             8504 of LNCS, Copenhagen, Denmark, pages 46-58, June 2014,
+             :doi:`10.1007/978-3-319-07959-2_5`,
+             https://hal.inria.fr/hal-00943549/document
 
 .. [CMO2011] \C. Chun, D. Mayhew, J. Oxley, A chain theorem for
              internally 4-connected binary matroids. J. Combin. Theory
@@ -2761,6 +2772,10 @@ REFERENCES:
 .. [KG2016] \P. Karpmann and Benjamin Gregoire, *The LITTLUN S-box and the FLY
             block cipher*, Lightweight Cryptography Workshop, 2016.
             https://www.nist.gov/sites/default/files/documents/2016/10/18/karpman-paper-lwc2016.pdf
+
+.. [Kin1992] Nancy G. Kinnersley, *The vertex separation number of a graph
+             equals its path-width*, Information Processing Letters
+             42(6):345-350, 1992. :doi:`10.1016/0020-0190(92)90234-M`.
 
 .. [KK1995] Victor Klee and Peter Kleinschmidt,
             *Convex polytopes and related complexes.*, in \R. L. Graham,
@@ -4367,6 +4382,10 @@ REFERENCES:
 
 .. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diophantine equations*,
              Number 41 in Student Texts. London Mathematical Society, 1998.
+
+.. [SP2010] Fernando Solano and Michal Pioro, *Lightpath Reconfiguration in WDM
+            networks*, IEEE/OSA Journal of Optical Communication and Networking
+            2(12):1010-1021, 2010. :doi:`10.1364/JOCN.2.001010`.
 
 .. [Sot2011] \M. A. Soto Gomez. 2011. *Quelques propriétés topologiques des
              graphes et applications à internet et aux réseaux*.

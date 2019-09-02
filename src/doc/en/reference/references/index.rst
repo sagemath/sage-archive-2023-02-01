@@ -2339,9 +2339,9 @@ REFERENCES:
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
 
-.. [HK2002] Holme, P. and Kim, B.J. *Growing scale-free networks
-            with tunable clustering*, Phys. Rev. E (2002). vol 65, no 2, 026107.
-            :doi:`10.1103/PhysRevE.65.026107`.
+.. [HK2002a] Holme, P. and Kim, B.J. *Growing scale-free networks
+             with tunable clustering*, Phys. Rev. E (2002). vol 65, no 2, 026107.
+             :doi:`10.1103/PhysRevE.65.026107`.
 
 .. [HKOTY1999] \G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada,
                *Remarks on fermionic formula*. Contemp. Math., **248** (1999).
@@ -3434,9 +3434,9 @@ REFERENCES:
              *Permutation lattices revisited*.
              Mathematical Social Sciences, 27 (1994), 59--72.
 
-.. [Mar2009] Matilde Marcolli, Feynman Motives, Chapter 3,
-             Feynman integrals and algebraic varieties,
-             http://www.its.caltech.edu/~matilde/LectureN3.pdf
+.. [Mar2009a] Matilde Marcolli, Feynman Motives, Chapter 3,
+              Feynman integrals and algebraic varieties,
+              http://www.its.caltech.edu/~matilde/LectureN3.pdf
 
 .. [Mas1969] James L. Massey, "Shift-Register Synthesis and BCH
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),

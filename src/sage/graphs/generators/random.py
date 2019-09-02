@@ -782,7 +782,7 @@ def RandomHolmeKim(n, m, p, seed=None):
 
     REFERENCE:
 
-    [HK2002]_
+    [HK2002a]_
     """
     if seed is None:
         seed = int(current_randstate().long_seed() % sys.maxsize)

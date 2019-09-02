@@ -7627,7 +7627,7 @@ class Graph(GenericGraph):
         ALGORITHM:
 
             This is computed here using a determinant, as explained in Section
-            3.1 of [Mar2009]_.
+            3.1 of [Mar2009a]_.
 
             As an intermediate step, one computes a cycle basis `\mathcal C` of
             `G` and a rectangular `|\mathcal C| \times |E(G)|` matrix with

@@ -2356,6 +2356,10 @@ REFERENCES:
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
              Society for Industrial and Applied Mathematics (2008).
 
+.. [HIK2011] R. Hammack, W. Imrich, S. Klavzar,
+             *Handbook of Product Graphs*,
+             CRC press, 2011
+
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
 

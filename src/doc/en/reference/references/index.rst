@@ -4989,6 +4989,12 @@ REFERENCES:
 
 .. [WP-Struve] :wikipedia:`Struve_function`
 
+.. [WROM1986] Wright, Robert Alan; Richmond, Bruce; Odlyzko, Andrew;
+              McKay, Brendan D.
+              *Constant time generation of free trees*.
+              SIAM J. Comput. 15 (1986), no. 2, 540--548.
+              :doi:`10.1137/0215039`.
+
 .. [WSK1997] \D. Wagner, B. Schneier, and J. Kelsey,
              *Cryptoanalysis of the cellular encryption algorithm*; in
              CRYPTO, (1997), pp. 526-537.

@@ -313,6 +313,13 @@ REFERENCES:
 .. [Ava2017] \R. Avanzi,
              *The QARMA block cipher family*; in ToSC, (2017.1), pp. 4-44.
 
+.. [AW2006] Adams, M.D. and Wise, D.S.,
+            *Fast additions on masked integers*,
+            ACM SIGPLAN Notices, 2006,
+            vol. 41, n.5, pages 39--45.
+            :doi:`10.1145/1149982.1149987`.
+            http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.86.1801&rep=rep1&type=pdf
+
 .. [AY1983] \I. A. Aizenberg and A. P. Yuzhakov.  *Integral
             representations and residues in multidimensional complex
             analysis*.  Translations of Mathematical Monographs,
@@ -762,6 +769,11 @@ REFERENCES:
 .. [BMPS2018] Jonah Blasiak, Jennifer Morse, Anna Pun, and Daniel Summers.
               *Catalan functions and k-schur positivity*
               :arxiv:`1804.03701`
+
+.. [BL1977] Buckles, B.P. and Lybanon, M., *Algorithm 515: generation of a
+            vector from the lexicographical index*,
+            ACM Transactions on Mathematical Software (TOMS), 1977
+            vol. 3, n. 2, pages 180--182.
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
@@ -3848,6 +3860,13 @@ REFERENCES:
              *The Filter-Kruskal Minimum Spanning Tree Algorithm*.
              SIAM ALENEX, 2009: 52-61
              :doi:`10.1137/1.9781611972894.5`
+
+.. [Oum2009] Sang-il Oum,
+             *Computing rank-width exactly*,
+             Information Processing Letters, 2009,
+             vol. 109, n. 13, p. 745--748, Elsevier.
+             :doi:`10.1016/j.ipl.2009.03.018`.
+             http://mathsci.kaist.ac.kr/~sangil/pdf/2008exp.pdf
 
 .. [Oxl1992] James Oxley, *Matroid theory*, Oxford University
              Press, 1992.

@@ -4535,6 +4535,10 @@ REFERENCES:
              Proceedings of the IV. IPCO Conference (Copenhagen, May 1995),
              Springer Lecture Notes in Computer Science 920 (1995) 267-276.
 
+.. [Sha1997] Ron Shamir, *Advanced Topics in Graph Algorithms*,
+             Course material, 1997,
+             `<http://www.cs.tau.ac.il/~rshamir/atga/atga.html>`_
+
 .. [SHET2018] \O. Seker, P. Heggernes, T. Ekim, and Z. Caner Taskin.
               *Generation of random chordal graphs using subtrees of a tree*,
               :arxiv:`1810.13326v1`.
@@ -4678,6 +4682,11 @@ REFERENCES:
             *Graph searching and a min-max theorem for tree-width*,
             J. Comb. Theory Ser. B 58, 1 (May 1993), 22-33.
             :doi:`10.1006/jctb.1993.1027`.
+
+.. [ST1994] Simon, K. and Trunz, P., *A cleanup on transitive orientation*,
+            Orders, Algorithms, and Applications, 1994,
+            :doi:`10.1007/BFb0019427`,
+            `<ftp://ftp.inf.ethz.ch/doc/papers/ti/ga/ST94.ps.gz>`_
 
 .. [ST2010] Einar Steingrimmsson and Bridget Tenner.
             *The Moebius Function of the Permutation Pattern Poset*,

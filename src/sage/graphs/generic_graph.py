@@ -3953,9 +3953,20 @@ class GenericGraph(GenericGraph_pyx):
             [('D', 'L'), ('L', 'H'), ('H', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'D')]
             sage: Graph({0: [0, 1, 1, 1, 1]}).eulerian_circuit(labels=False)
             [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
+
+        Check graphs without edges (:trac:`28451`)::
+
+            sage: G = Graph()
+            sage: G.add_vertex(0)
+            sage: G.eulerian_circuit()
+            []
+            sage: G = Graph()
+            sage: G.add_vertices(range(10))
+            sage: G.eulerian_circuit(return_vertices=True)
+            ([], [])
         """
         # trivial case
-        if not self.order():
+        if not self.size():
             return ([], []) if return_vertices else []
 
         # check if the graph has proper properties to be Eulerian

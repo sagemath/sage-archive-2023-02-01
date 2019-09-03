@@ -4364,8 +4364,8 @@ REFERENCES:
 .. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diophantine equations*,
              Number 41 in Student Texts. London Mathematical Society, 1998.
 
-.. [Sot2011] \M. A. Soto Gomez. 2011. *Quelques proprietes topologiques des
-             graphes et applications a internet et aux reseaux*.
+.. [Sot2011] \M. A. Soto Gomez. 2011. *Quelques propriétés topologiques des
+             graphes et applications à internet et aux réseaux*.
              Ph.D. Dissertation. Univ. Paris Diderot (Paris 7).
              https://tel.archives-ouvertes.fr/tel-01259904/document
 

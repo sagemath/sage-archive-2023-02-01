@@ -281,6 +281,10 @@ def WorldMap():
 
         sage: 'Iceland' in graphs.WorldMap()  # Trac 24488
         True
+
+    REFERENCE:
+
+    [CIA]_
     """
     edges = [
         ('Afghanistan', 'China', None), ('Afghanistan', 'Iran', None),

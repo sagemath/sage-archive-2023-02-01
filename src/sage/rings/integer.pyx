@@ -160,7 +160,6 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.misc.superseded import deprecated_function_alias
 from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.arith.long cimport (pyobject_to_long, integer_check_long,
                               integer_check_long_py)
@@ -1607,6 +1606,114 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # all we need to do is return
         return l
 
+    def balanced_digits(self, base=10, positive_shift=True):
+        r'''
+        Return the list of balanced digits for ``self`` in the given base.
+
+        The balanced base ``b`` uses ``b`` digits centered around zero. Thus
+        if ``b`` is odd, there is only one possibility, namely digits
+        between ``-b//2`` and ``b//2`` (both included). For instance in base 9,
+        one uses digits from -4 to 4. If ``b`` is even, one has to choose
+        between digits from ``-b//2`` to ``b//2 - 1`` or ``-b//2 + 1`` to ``b//2``
+        (base 10 for instance: either -5 to 4 or -4 to 5), and this is
+        defined by the value of ``positive_shift``.
+
+        INPUT:
+
+        - ``base`` -- integer (default: 10); when ``base`` is 2, only the
+          nonnegative or the nonpositive integers can be represented by
+          ``balanced_digits``. Thus we say base must be greater than 2.
+
+        - ``positive_shift`` -- boolean (default: True); for even bases, the
+          representation uses digits from ``-b//2 + 1`` to ``b//2`` if set to
+          True, and from ``-b//2`` to ``b//2 - 1`` otherwise. This has no
+          effect for odd bases.
+
+        EXAMPLES::
+
+            sage: 8.balanced_digits(3)
+            [-1, 0, 1]
+            sage: (-15).balanced_digits(5)
+            [0, 2, -1]
+            sage: 17.balanced_digits(6)
+            [-1, 3]
+            sage: 17.balanced_digits(6, positive_shift=False)
+            [-1, -3, 1]
+            sage: (-46).balanced_digits()
+            [4, 5, -1]
+            sage: (-46).balanced_digits(positive_shift=False)
+            [4, -5]
+            sage: (-23).balanced_digits(12)
+            [1, -2]
+            sage: (-23).balanced_digits(12, positive_shift=False)
+            [1, -2]
+            sage: 0.balanced_digits(7)
+            []
+            sage: 14.balanced_digits(5.8)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be an integer
+            sage: 14.balanced_digits(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be > 2
+
+        TESTS::
+
+            sage: base = 5; n = 39
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 12; n = -52
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 8; n = 37
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 8; n = 37
+            sage: l = n.balanced_digits(base, positive_shift=False)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+
+        .. SEEALSO::
+
+            :func:`digits <digits>`
+        '''
+        if not isinstance(base, Integer):
+            try:
+                base = Integer(base)
+            except TypeError:
+                raise ValueError('base must be an integer')
+        if base <= 2:
+            raise ValueError('base must be > 2')
+
+        neg = False
+        if self < 0:
+            neg = True
+            positive_shift = not positive_shift
+
+        if positive_shift or base % 2 == 1:
+            m = base//2
+        else:
+            m = base//2 - 1
+        digits = abs(self).digits(base)
+
+        for i in range(len(digits)):
+            if digits[i] > m:
+                digits[i] = digits[i] - base
+                try:
+                    digits[i+1] += 1
+                except IndexError:
+                    if neg:
+                        digits.append(-1)
+                    else:
+                        digits.append(1)
+            if neg:
+                digits[i] = -digits[i]
+        return digits
+
     def ndigits(self, base=10):
         """
         Return the number of digits of self expressed in the given base.
@@ -2095,11 +2202,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in t over Rational Field to Rational Field
-            sage: 'sage' ^ 3
-            doctest:...:
-            DeprecationWarning: raising a string to an integer power is deprecated
-            See http://trac.sagemath.org/24260 for details.
-            'sagesagesage'
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
@@ -2109,10 +2211,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>left)._pow_(right)
         elif isinstance(left, Element):
             return coercion_model.bin_op(left, right, operator.pow)
-        elif isinstance(left, str):
-            from sage.misc.superseded import deprecation
-            deprecation(24260, "raising a string to an integer power is deprecated")
-            return left * int(right)
         # left is a non-Element: do the powering with a Python int
         return left ** int(right)
 
@@ -3487,8 +3585,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             a = self % m
             raise ArithmeticError("rational reconstruction of %s (mod %s) does not exist" % (a, m))
         return x
-
-    powermodm_ui = deprecated_function_alias(17852, powermod)
 
     def __int__(self):
         """

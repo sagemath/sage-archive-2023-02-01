@@ -1072,7 +1072,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         OUTPUT: a dynamical system on this projective space.
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: E = EllipticCurve(QQ,[-1, 0])

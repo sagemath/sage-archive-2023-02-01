@@ -1,5 +1,5 @@
 SAGE_SPKG_CONFIGURE([givaro], [
-    m4_pushdef([SAGE_GIVARO_MINVER],["40004"])
+    m4_pushdef([SAGE_GIVARO_MINVER],["40101"])
     SAGE_SPKG_DEPCHECK([gmp mpir], [
         AC_PATH_PROG([GIVAROCONFIG], [givaro-config])
         AS_IF([test x$GIVAROCONFIG = x], [

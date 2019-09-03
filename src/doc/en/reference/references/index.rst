@@ -4152,6 +4152,10 @@ REFERENCES:
             Networks, Volume 5 (1975), numer 3, pages 237-252.
             :doi:`10.1002/net.1975.5.3.237`.
 
+.. [RTL76] Donald J. Rose, Robert Endre Tarjan and George S. Lueker.
+           *Algorithmic aspects of vertex elimination on graphs*.
+           SIAM J. Comput., 5(2), 266–283 (1976).
+
 .. [Rub1991] \K. Rubin. The "main conjectures" of Iwasawa theory for
              imaginary quadratic fields. Invent. Math. 103 (1991),
              no. 1, 25--68.

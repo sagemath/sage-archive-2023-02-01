@@ -61,7 +61,6 @@ from . import matrix_mpolynomial_dense
 from sage.misc.superseded import deprecation
 import sage.structure.coerce
 from sage.structure.parent import Parent
-from sage.structure.element import is_Matrix
 from sage.structure.unique_representation import UniqueRepresentation
 import sage.rings.integer as integer
 import sage.rings.number_field.all

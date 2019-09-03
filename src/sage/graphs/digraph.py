@@ -2912,7 +2912,7 @@ class DiGraph(GenericGraph):
 
         return g
 
-    def flow_polytope(self, edges=None, ends=None):
+    def flow_polytope(self, edges=None, ends=None, backend=None):
         r"""
         Return the flow polytope of a digraph.
 
@@ -2959,6 +2959,9 @@ class DiGraph(GenericGraph):
 
         - ``ends`` -- (optional, default: ``(self.sources(), self.sinks())``) a
           pair `(S, T)` of an iterable `S` and an iterable `T`.
+
+        - ``backend`` -- string or ``None`` (default); the backend to use;
+          see :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
 
         .. NOTE::
 
@@ -3080,7 +3083,7 @@ class DiGraph(GenericGraph):
             eq = [const] + eq
             eqs.append(eq)
 
-        return Polyhedron(ieqs=ineqs, eqns=eqs)
+        return Polyhedron(ieqs=ineqs, eqns=eqs, backend=backend)
 
     def is_tournament(self):
         r"""

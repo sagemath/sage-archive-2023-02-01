@@ -465,6 +465,8 @@ class HypergeometricData(object):
         self._alpha = alpha
         self._beta = beta
         self._deg = deg
+        if 0 in alpha:
+            self._swap = HypergeometricData(alpha_beta=(beta, alpha))
         if self.weight() % 2:
             self._sign_param = 1
         else:
@@ -969,16 +971,24 @@ class HypergeometricData(object):
             sage: H.padic_H_value(13,1,1/t)
             0
 
+        Check issue from :trac:`28404`::
+
+            sage: H1 = Hyp(cyclotomic=([1,1,1],[6,2]))
+            sage: H2 = Hyp(cyclotomic=([6,2],[1,1,1]))
+            sage: [H1.padic_H_value(5,1,i) for i in range(2,5)]
+            [1, -4, -4]
+            sage: [H2.padic_H_value(5,1,i) for i in range(2,5)]
+            [-4, 1, -4]
+
         REFERENCES:
 
         - [MagmaHGM]_
         """
         alpha = self._alpha
         beta = self._beta
-        if 0 in alpha:
-            H = self.swap_alpha_beta()
-            return H.padic_H_value(p, f, ~t, prec)
         t = QQ(t)
+        if 0 in alpha:
+            return self._swap.padic_H_value(p, f, ~t, prec)
         gamma = self.gamma_array()
         q = p ** f
 
@@ -1063,6 +1073,15 @@ class HypergeometricData(object):
             sage: [H.H_value(5,i,-1, ComplexField(60)) for i in range(1,3)]
             [-4, 276]
 
+        Check issue from :trac:`28404`::
+
+            sage: H1 = Hyp(cyclotomic=([1,1,1],[6,2]))
+            sage: H2 = Hyp(cyclotomic=([6,2],[1,1,1]))
+            sage: [H1.H_value(5,1,i) for i in range(2,5)]
+            [1, -4, -4]
+            sage: [H2.H_value(5,1,QQ(i)) for i in range(2,5)]
+            [-4, 1, -4]
+
         REFERENCES:
 
         - [BeCoMe]_ (Theorem 1.3)
@@ -1070,12 +1089,11 @@ class HypergeometricData(object):
         """
         alpha = self._alpha
         beta = self._beta
+        t = QQ(t)
         if 0 in alpha:
-            H = self.swap_alpha_beta()
-            return H.H_value(p, f, ~t, ring)
+            return self._swap.H_value(p, f, ~t, ring)
         if ring is None:
             ring = UniversalCyclotomicField()
-        t = QQ(t)
         gamma = self.gamma_array()
         q = p ** f
 
@@ -1128,7 +1146,17 @@ class HypergeometricData(object):
             sage: t = -5
             sage: [H.sign(1/t,p) for p in [11,13,17,19,23,29]]
             [-1, -1, -1, 1, 1, 1]
+
+        We check that :trac:`28404` is fixed::
+
+            sage: H = Hyp(cyclotomic=([1,1,1],[6,2]))
+            sage: [H.sign(4,p) for p in [5,7,11,13,17,19]]
+            [1, 1, -1, -1, 1, 1]
+
         """
+        t = QQ(t)
+        if 0 in self._alpha:
+            return self._swap.sign(~t, p)
         d = self.degree()
         w = self.weight()
 
@@ -1221,8 +1249,7 @@ class HypergeometricData(object):
         """
         alpha = self._alpha
         if 0 in alpha:
-            H = self.swap_alpha_beta()
-            return H.euler_factor(~t, p)
+            return self._swap.euler_factor(~t, p)
 
         if t not in QQ or t in [0, 1]:
             raise ValueError('wrong t')

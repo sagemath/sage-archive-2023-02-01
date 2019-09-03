@@ -1041,7 +1041,7 @@ class GraphGenerators():
     def _read_planar_code(self, code_input):
         r"""
         Returns a generator for the plane graphs in planar code format in
-        the file code_input (see [plantri-guide]_).
+        the file code_input (see [BM2016]_).
 
         A file with planar code starts with a header ``>>planar_code<<``.
         After the header each graph is stored in the following way :
@@ -1092,10 +1092,6 @@ class GraphGenerators():
              2: [1, 4, 3],
              3: [1, 2, 4],
              4: [1, 3, 2]}
-
-        REFERENCE:
-
-        .. [plantri-guide] http://cs.anu.edu.au/~bdm/plantri/plantri-guide.txt
         """
         #start of code to read planar code
 
@@ -1153,7 +1149,7 @@ class GraphGenerators():
     def fullerenes(self, order, ipr=False):
         r"""
         Returns a generator which creates fullerene graphs using
-        the buckygen generator (see [buckygen]_).
+        the buckygen generator (see [BGM2012]_).
 
         INPUT:
 
@@ -1226,11 +1222,6 @@ class GraphGenerators():
              20: [17, 19, 18]}
             sage: g.plot3d(layout='spring')  # optional buckygen
             Graphics3d Object
-
-        REFERENCE:
-
-        .. [buckygen] \G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
-          Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
         # number of vertices should be positive
         if order < 0:
@@ -1269,7 +1260,7 @@ class GraphGenerators():
     def fusenes(self, hexagon_count, benzenoids=False):
         r"""
         Returns a generator which creates fusenes and benzenoids using
-        the benzene generator (see [benzene]_). Fusenes are planar
+        the benzene generator (see [BCH2002]_). Fusenes are planar
         polycyclic hydrocarbons with all bounded faces hexagons. Benzenoids
         are fusenes that are subgraphs of the hexagonal lattice.
 
@@ -1318,11 +1309,6 @@ class GraphGenerators():
             sage: gen = graphs.fusenes(9, benzenoids=True)  # optional benzene
             sage: len(list(gen))  # optional benzene
             6505
-
-        REFERENCE:
-
-        .. [benzene] \G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
-          Journal of Algorithms, 45:155-166, 2002.
         """
         if hexagon_count < 0:
             raise ValueError("number of hexagons should be non-negative")
@@ -1371,7 +1357,7 @@ class GraphGenerators():
         r"""
         An iterator over connected planar graphs using the plantri generator.
 
-        This uses the plantri generator (see [plantri]_) which is available
+        This uses the plantri generator (see [BM2007]_) which is available
         through the optional package plantri.
 
         .. NOTE::
@@ -1477,11 +1463,6 @@ class GraphGenerators():
             sage: dual_planar_sizes = [g.size() for g in dual_planar]    # optional -- plantri
             sage: planar_sizes == dual_planar_sizes                      # optional -- plantri
             True
-
-        REFERENCE:
-
-        .. [plantri] \G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
-           MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
         if order < 0:
             raise ValueError("number of vertices should be non-negative")
@@ -1572,7 +1553,7 @@ class GraphGenerators():
         r"""
         An iterator over connected planar triangulations using the plantri generator.
 
-        This uses the plantri generator (see [plantri]_) which is available
+        This uses the plantri generator (see [BM2007]_) which is available
         through the optional package plantri.
 
         INPUT:
@@ -1763,7 +1744,7 @@ class GraphGenerators():
         r"""
         An iterator over planar quadrangulations using the plantri generator.
 
-        This uses the plantri generator (see [plantri]_) which is available
+        This uses the plantri generator (see [BM2007]_) which is available
         through the optional package plantri.
 
         INPUT:

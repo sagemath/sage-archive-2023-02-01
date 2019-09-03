@@ -503,6 +503,11 @@ REFERENCES:
                        *PRINCE - A low-latency block cipher for pervasive computing
                        applications*; in ASIACRYPT, (2012), pp. 208-225.
 
+.. [BCH2002] \G. Brinkmann, G. Caporossi and P. Hansen,
+             *A Constructive Enumeration of Fusenes and Benzenoids*,
+             Journal of Algorithms, 45:155-166, 2002.
+             :doi:`10.1016/S0196-6774(02)00215-8`.
+
 .. [BCHOPSY2017] \G. Benkart, L. Colmenarejo, P. E. Harris, R. Orellana, G. Panova,
                  A. Schilling, M. Yip. *A minimaj-preserving crystal on ordered
                  multiset partitions*.
@@ -662,6 +667,10 @@ REFERENCES:
 .. [BG1988] \M. Berger & B. Gostiaux : *Differential Geometry:
             Manifolds, Curves and Surfaces*, Springer (New York)
             (1988); :doi:`10.1007/978-1-4612-1033-7`
+
+.. [BGM2012] \G. Brinkmann, J. Goedgebeur and B.D. McKay,
+             *Generation of Fullerenes*, Journal of Chemical Information and
+             Modeling, 52(11):2910-2918, 2012. :doi:`10.1021/ci3003107`.
 
 .. [BI1984] Eiichi Bannai, Tatsuro Ito,
             *Algebraic Combinatorics I: Association Schemes*,
@@ -844,10 +853,18 @@ REFERENCES:
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
 
+.. [BM2007] \G. Brinkmann and B.D. McKay, *Fast generation of planar graphs*,
+            MATCH-Communications in Mathematical and in Computer Chemistry,
+            58(2):323-357, 2007.
+
 .. [BM2012] \N. Bruin and A. Molnar, *Minimal models for rational
             functions in a dynamical setting*,
             LMS Journal of Computation and Mathematics, Volume 15
             (2012), pp 400-417.
+
+.. [BM2016] Gunnar Brinkmann, Brendan McKay,
+            *Guide to using plantri*, version 5.0, 2016.
+            http://cs.anu.edu.au/~bdm/plantri/plantri-guide.txt
 
 .. [BMBFLR2008] A. Blondin-Massé, S. Brlek, A. Frosini, S. Labbé,
                 S. Rinaldi, *Reconstructing words from a fixed

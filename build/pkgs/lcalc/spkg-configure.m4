@@ -9,22 +9,12 @@ SAGE_SPKG_CONFIGURE([lcalc], [
            lcalc_ver=`$LCALC --version 2>>/dev/null | $SED -e 's/lcalc\ //' | $SED -e 's/\ .*//g'`
            AX_COMPARE_VERSION([$lcalc_ver], [ge], [$SAGE_LCALC_MINVER], [
                AC_MSG_RESULT([yes.])
-               AC_CHECK_HEADERS([Lfunction/L.h libLfunction/L.h],
-                  [AS_IF([test x$ac_cv_header_libLfunction_L_h = x],
-                         [SAGE_LCALC_INCDIR_NOLIBPREFIX='yes'],
-                         [SAGE_LCALC_INCDIR_NOLIBPREFIX=''])
-                   sage_spkg_install_lcalc=no
-                   break;],
-                  [sage_spkg_install_lcalc=yes])
+               AC_CHECK_HEADER([Lfunction/L.h], [], [sage_spkg_install_lcalc=yes])
           AC_MSG_CHECKING([whether we can link and run a program using libLfunction])
           LCALC_SAVED_LIBS=$LIBS
           LIBS="$LIBS -lLfunction"
           AC_RUN_IFELSE([
-            AC_LANG_PROGRAM([[#ifdef HAVE_LFUNCTION_L_H
-                                 #include <Lfunction/L.h>
-                              #else
-                                 #include <libLfunction/L.h>
-                              #endif]],
+            AC_LANG_PROGRAM([[#include <Lfunction/L.h>]],
                       [[initialize_globals();
                         Complex x;
                         x = Pi*I;
@@ -41,8 +31,4 @@ SAGE_SPKG_CONFIGURE([lcalc], [
         ])
     ])
     m4_popdef([SAGE_LCALC_MINVER])
-], [], [], [
-    AS_IF([test x$sage_spkg_install_lcalc = xyes],
-          [AC_SUBST(SAGE_LCALC_INCDIR_NOLIBPREFIX,[''])],
-          [AC_SUBST(SAGE_LCALC_INCDIR_NOLIBPREFIX,[$SAGE_LCALC_INCDIR_NOLIBPREFIX])])
 ])

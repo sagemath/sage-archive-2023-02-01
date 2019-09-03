@@ -376,7 +376,6 @@ def cython_aliases():
          'GSL_INCDIR',
          'GSL_LIBDIR',
          'GSL_LIBRARIES',
-         'LCALC_INCDIR_NOLIBPREFIX',
          'LINBOX_CFLAGS',
          'LINBOX_INCDIR',
          'LINBOX_LIBDIR',
@@ -410,8 +409,4 @@ def cython_aliases():
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
     aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
     aliases["ARB_LIBRARY"] = os.environ.get('SAGE_ARB_LIBRARY', 'arb')
-    if os.environ.get('SAGE_LCALC_INCDIR_NOLIBPREFIX', '') != '':
-       aliases["LCALC_INCDIR_NOLIBPREFIX"] = '-DLCALC_INCDIR_NOLIBPREFIX'
-    else:
-       aliases["LCALC_INCDIR_NOLIBPREFIX"] = '-DLCALC_INCDIR_YESLIBPREFIX'
     return aliases

@@ -1,8 +1,4 @@
-#ifdef LCALC_INCDIR_NOLIBPREFIX
-   #include "Lfunction/L.h"
-#else
-   #include "libLfunction/L.h"
-#endif
+#include "Lfunction/L.h"
 int *new_ints(int l)
 {
     return new int[l];

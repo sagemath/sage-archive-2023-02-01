@@ -1281,7 +1281,7 @@ def is_valid_lex_M_order(G, alpha, F):
 
     Given the graph `G = (V, E)` with vertex set `V` and edge set `E`, and the
     set `F` of edges of a triangulation of `G`, let `H = (V, E\cup F)`.
-    By induction one can see that for every `i \in \{1, ..., n − 1\}` the
+    By induction one can see that for every `i \in \{1, ..., n - 1\}` the
     neighbors of `\alpha(i)` in `H[\{\alpha(i), ..., \alpha(n)\}]` induce a
     clique. The ordering `\alpha` is a perfect elimination ordering of `H`, so
     `H` is chordal. See [RTL76]_ for more details.

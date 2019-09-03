@@ -36,7 +36,6 @@ from docutils.statemachine import ViewList
 
 import sphinx
 from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
-from sphinx.ext.autodoc.inspector import format_annotation
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.errors import PycodeError

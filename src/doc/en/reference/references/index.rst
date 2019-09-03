@@ -853,6 +853,11 @@ REFERENCES:
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
 
+.. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
+            *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
+            Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
+            2004. :doi:`10.7155/jgaa.00091`.
+
 .. [BM2007] \G. Brinkmann and B.D. McKay, *Fast generation of planar graphs*,
             MATCH-Communications in Mathematical and in Computer Chemistry,
             58(2):323-357, 2007.
@@ -913,6 +918,11 @@ REFERENCES:
              "Towards the mirror symmetry for Calabi-Yau complete
              intersections in Gorenstein Fano toric varieties", 1993.
              :arxiv:`alg-geom/9310001v1`
+
+.. [Bor1995] Stephen P. Borgatti. *Centrality and AIDS*. (1995).
+             Connections 18(1):112-115.
+             [Online] Available:
+             http://www.analytictech.com/networks/centaids.htm
 
 .. [BOR2009] Emmanuel Briand, Rosa Orellana, Mercedes Rosas.
              *The stability of the Kronecker products of Schur
@@ -1429,6 +1439,10 @@ REFERENCES:
 .. [Coh2007] Henri Cohen, Number Theory,
              Volume II.  Graduate Texts in Mathematics 240. Springer, 2007.
 
+.. [Coh2019] Nathann Cohen,
+             *Several Graph problems and their Linear Program formulations*,
+             2019. https://hal.archives-ouvertes.fr/inria-00504914/en
+
 .. [Coj2005] Alina Carmen Cojocaru,
              On the surjectivity of the Galois representations
              associated to non-CM elliptic curves.
@@ -1761,6 +1775,8 @@ REFERENCES:
 .. [Dol2009] Igor Dolgachev. *McKay Correspondence*. (2009).
              http://www.math.lsa.umich.edu/~idolga/McKaybook.pdf
 
+.. [dotspec] http://www.graphviz.org/doc/info/lang.html
+
 .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker,
              *Resonance in orbits of plane partitions and increasing
              tableaux*, JCTA 148 (2017), 244-274,
@@ -1899,6 +1915,12 @@ REFERENCES:
              for the Yokonuma-Hecke algebra and the algebra of braids
              and ties*. (2015) :arxiv:`1506.00715`.
 
+.. [ERT1979] Erdos, P. and Rubin, A.L. and Taylor, H.
+             *Choosability in graphs*.
+             Proc. West Coast Conf. on Combinatorics,
+             Graph Theory and Computing, Congressus Numerantium,
+             vol 26, pages 125--157, 1979.
+
 .. [ESSS2011] \D. Engels, M.-J. O. Saarinen, P. Schweitzer, and E. M. Smith,
               *The Hummingbird-2 lightweight authenticated encryption algorithm*; in
               RFIDSec, (2011), pp. 19-31.
@@ -1968,6 +1990,12 @@ REFERENCES:
              ihre Anwendung in der Codierungstheorie, Kryptographie
              und Geometrie", Dissertation, University of
              Bayreuth, 2013.
+
+.. [FG1965] Fulkerson, D.R. and Gross, OA,
+            *Incidence matrices and interval graphs*.
+            Pacific J. Math 1965,
+            Vol. 15, number 3, pages 835--855.
+            :doi:`10.2140/pjm.1965.15.835`.
 
 .. [FH2015] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
             Wehler K3 Surfaces over finite fields. New Zealand Journal
@@ -2605,6 +2633,10 @@ REFERENCES:
             `SL(2,\ZZ)`-orbits of binary forms and endomorphisms of P1",
             :arxiv:`1805.08579`, 2018.
 
+.. [HSS] Aric Hagberg, Dan Schult and Pieter Swart. *NetworkX
+         documentation*. [Online] Available:
+         http://networkx.github.io/documentation/latest/reference/index.html
+
 .. [Hsu1996] Tim Hsu, "Identifying congruence subgroups of the modular
              group", Proc. AMS 124, no. 5, 1351-1359 (1996)
 
@@ -2838,6 +2870,11 @@ REFERENCES:
             Contemp. Math. **325**, Amer. Math. Soc., pp. 133--139, 2003.
 
 .. [Kai1980] Thomas Kailath. "Linear Systems", Prentice-Hall, 1980.
+
+.. [Kai2012] Thomas Kaiser,
+             *A short proof of the tree-packing theorem*,
+             J. Discrete Math. 312(10): 1689-1691, 2012.
+             :doi:`10.1016/j.disc.2012.01.020`, :arxiv:`0911.2809`.
 
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
@@ -3946,6 +3983,11 @@ REFERENCES:
 .. [Oha2011] \R.A. Ohana. On Prime Counting in Abelian Number
              Fields. http://wstein.org/home/ohanar/papers/abelian_prime_counting/main.pdf.
 
+.. [OLJ2014] Paul W. Olsen, Alan G. Labouseur, Jeong-Hyon Hwang.
+             *Efficient Top-k Closeness Centrality Search*,
+             Proceedings of the IEEE 30th International Conference on Data
+             Engineering (ICDE), 2014. :doi:`10.1109/ICDE.2014.6816651`.
+
 .. [ONe1983] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
              (San Diego) (1983)
 
@@ -4340,6 +4382,11 @@ REFERENCES:
             Networks, Volume 5 (1975), numer 3, pages 237-252.
             :doi:`10.1002/net.1975.5.3.237`.
 
+.. [RT1975] Rose, D.J. and Tarjan, R.E.,
+            *Algorithmic aspects of vertex elimination*,
+            Proceedings of seventh annual ACM symposium on Theory of computing,
+            Pages 245-254, ACM 1975. :doi:`10.1145/800116.803775`.
+
 .. [RTL76] Donald J. Rose, Robert Endre Tarjan and George S. Lueker.
            *Algorithmic aspects of vertex elimination on graphs*.
            SIAM J. Comput., 5(2), 266–283 (1976).
@@ -4420,6 +4467,10 @@ REFERENCES:
 .. [Sch1999] Gilles Schaeffer, *Random Sampling of Large Planar Maps and Convex
              Polyhedra*, Annual ACM Symposium on Theory of Computing
              (Atlanta, GA, 1999). :doi:`10.1145/301250.301448`.
+
+.. [Sch2003] Alexander Schrijver,
+             *Combinatorial optimization: polyhedra and efficiency*,
+             2003.
 
 .. [Sch2004] Manfred Schocker, *The descent algebra of the
              symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145-161.

@@ -7441,7 +7441,7 @@ class Graph(GenericGraph):
         is the same in `G` as in `T`. See the :wikipedia:`Gomory–Hu_tree`. Note
         that, in general, a graph admits more than one Gomory-Hu tree.
 
-        See also 15.4 (Gomory-Hu trees) from [SchrijverCombOpt]_.
+        See also 15.4 (Gomory-Hu trees) from [Sch2003]_.
 
         INPUT:
 

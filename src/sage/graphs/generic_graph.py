@@ -4788,10 +4788,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        .. [1] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
-          Simplified `O(n)` Planarity by Edge Addition. Journal of Graph
-          Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
-          2004.
+        [BM2004]_
 
         .. SEEALSO::
 
@@ -5029,10 +5026,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        .. [BM04] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
-          Simplified O(n) Planarity by Edge Addition. Journal of Graph
-          Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
-          2004.
+        [BM2004]_
 
         EXAMPLES::
 
@@ -6138,17 +6132,18 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        Mixed Integer Linear Program. The formulation can be found in [LPForm]_.
+        Mixed Integer Linear Program. The formulation can be found in
+        [Coh2019]_.
 
         There are at least two possible rewritings of this method which do not
         use Linear Programming:
 
             * The algorithm presented in the paper entitled "A short proof of
-              the tree-packing theorem", by Thomas Kaiser [KaisPacking]_.
+              the tree-packing theorem", by Thomas Kaiser [Kai2012]_.
 
             * The implementation of a Matroid class and of the Matroid Union
-              Theorem (see section 42.3 of [SchrijverCombOpt]_), applied to the
-              cycle Matroid (see chapter 51 of [SchrijverCombOpt]_).
+              Theorem (see section 42.3 of [Sch2003]_), applied to the
+              cycle Matroid (see chapter 51 of [Sch2003]_).
 
         EXAMPLES:
 
@@ -6185,20 +6180,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: trees = g.edge_disjoint_spanning_trees(k)
             sage: all(t.is_tree() for t in trees)
             True
-
-        REFERENCES:
-
-        .. [LPForm] Nathann Cohen,
-          Several Graph problems and their Linear Program formulations,
-          https://hal.archives-ouvertes.fr/inria-00504914/en
-
-        .. [KaisPacking] Thomas Kaiser
-          A short proof of the tree-packing theorem
-          :arxiv:`0911.2809`
-
-        .. [SchrijverCombOpt] Alexander Schrijver
-          Combinatorial optimization: polyhedra and efficiency
-          2003
         """
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
@@ -13200,7 +13181,7 @@ class GenericGraph(GenericGraph_pyx):
         index is greater that `i` induce a complete subgraph in `G`. Hence, the
         graph `G` can be totally erased by successively removing vertices whose
         neighborhood is a clique (also called *simplicial* vertices)
-        [Fulkerson65]_.
+        [FG1965]_.
 
         (It can be seen that if `G` contains an induced hole, then it can not
         have a perfect elimination order. Indeed, if we write `h_1,...,h_k` the
@@ -13239,7 +13220,7 @@ class GenericGraph(GenericGraph_pyx):
         for each vertex `v` the subgraph induces by its non-deleted neighbors,
         then testing whether this graph is complete.
 
-        This problem can be solved in `O(m)` [Rose75]_ ( where `m` is the number
+        This problem can be solved in `O(m)` [RT1975]_ ( where `m` is the number
         of edges in the graph ) but this implementation is not linear because of
         the complexity of Lex BFS.
 
@@ -13305,18 +13286,6 @@ class GenericGraph(GenericGraph_pyx):
            False
            sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
            True
-
-        REFERENCES:
-
-        .. [Rose75] Rose, D.J. and Tarjan, R.E.,
-          Algorithmic aspects of vertex elimination,
-          Proceedings of seventh annual ACM symposium on Theory of computing
-          Page 254, ACM 1975
-
-        .. [Fulkerson65] Fulkerson, D.R. and Gross, OA
-          Incidence matrices and interval graphs
-          Pacific J. Math 1965
-          Vol. 15, number 3, pages 835--855
         """
         if algorithm not in ['A', 'B']:
             raise ValueError('unknown algorithm "{}"'.format(algorithm))
@@ -13748,14 +13717,7 @@ class GenericGraph(GenericGraph_pyx):
         cycles.
 
         A connected graph is not degree-choosable if and only if it is a Gallai
-        tree [erdos1978choos]_.
-
-        REFERENCES:
-
-        .. [erdos1978choos] Erdos, P. and Rubin, A.L. and Taylor, H.
-          Proc. West Coast Conf. on Combinatorics
-          Graph Theory and Computing, Congressus Numerantium
-          vol 26, pages 125--157, 1979
+        tree [ERT1979]_.
 
         EXAMPLES:
 
@@ -14163,7 +14125,7 @@ class GenericGraph(GenericGraph_pyx):
         Return the number of triangles for the set `nbunch` of vertices as a
         dictionary keyed by vertex.
 
-        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
+        See also section "Clustering" in chapter "Algorithms" of [HSS]_.
 
         INPUT:
 
@@ -14175,12 +14137,6 @@ class GenericGraph(GenericGraph_pyx):
           ``'sparse_copy'``, ``'dense_copy'``, ``'networkx'`` or ``None``
           (default). In the latter case, the best algorithm available is
           used. Note that ``'networkx'`` does not support directed graphs.
-
-        REFERENCE:
-
-        .. [HSSNX] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
-          documentation. [Online] Available:
-          http://networkx.github.io/documentation/latest/reference/index.html
 
         EXAMPLES::
 
@@ -14250,7 +14206,7 @@ class GenericGraph(GenericGraph_pyx):
 
         A coefficient for the whole graph is the average of the `c_i`.
 
-        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
+        See also section "Clustering" in chapter "Algorithms" of [HSS]_.
 
         INPUT:
 
@@ -14330,7 +14286,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The value of `c_i` is assigned `0` if `k_i < 2`.
 
-        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
+        See also section "Clustering" in chapter "Algorithms" of [HSS]_.
 
         INPUT:
 
@@ -14460,7 +14416,7 @@ class GenericGraph(GenericGraph_pyx):
         connected triples (triads),
         `T = 3\times\frac{\text{triangles}}{\text{triads}}`.
 
-        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
+        See also section "Clustering" in chapter "Algorithms" of [HSS]_.
 
         EXAMPLES::
 
@@ -15722,7 +15678,7 @@ class GenericGraph(GenericGraph_pyx):
         other vertices.  If the graph is disconnected, the closeness centrality
         of `v` is multiplied by the fraction of reachable vertices in the graph:
         this way, central vertices should also reach several other vertices in
-        the graph [OLJ14]_. In formulas,
+        the graph [OLJ2014]_. In formulas,
 
         .. MATH::
 
@@ -15735,7 +15691,7 @@ class GenericGraph(GenericGraph_pyx):
         distance of a given vertex from all other vertices... Closeness is an
         inverse measure of centrality in that a larger value indicates a less
         central actor while a smaller value indicates a more central actor,'
-        [Borgatti95]_.
+        [Bor1995]_.
 
         For more information, see the :wikipedia:`Centrality`.
 
@@ -15796,17 +15752,6 @@ class GenericGraph(GenericGraph_pyx):
             - :func:`~sage.graphs.centrality.centrality_closeness_top_k`
             - :meth:`~sage.graphs.graph.Graph.centrality_degree`
             - :meth:`~centrality_betweenness`
-
-        REFERENCES:
-
-        .. [Borgatti95] Stephen P. Borgatti. (1995). Centrality and AIDS.
-          [Online] Available:
-          http://www.analytictech.com/networks/centaids.htm
-
-        .. [OLJ14] Paul W. Olsen, Alan G. Labouseur, Jeong-Hyon Hwang.
-          Efficient Top-k Closeness Centrality Search
-          Proceedings of the IEEE 30th International Conference on Data
-          Engineering (ICDE), 2014
 
         EXAMPLES:
 
@@ -17492,18 +17437,12 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        From [GYLL93]_::
+        From [GYLL1993]_::
 
             sage: g=graphs.PathGraph(10)
             sage: w=lambda x: (x*(x*x -1)/6)/(x*(x-1)/2)
             sage: g.average_distance()==w(10)
             True
-
-        REFERENCE:
-
-        .. [GYLL93] \I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
-           results in the theory of the Wiener number. *Indian Journal of
-           Chemistry*, 32A:651--661, 1993.
 
         TESTS:
 
@@ -21129,11 +21068,6 @@ class GenericGraph(GenericGraph_pyx):
               \draw [strokecolor,] (node_0) ... (node_1);
             ...
             \end{tikzpicture}
-
-        REFERENCES:
-
-        .. [dotspec] http://www.graphviz.org/doc/info/lang.html
-
         """
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
 

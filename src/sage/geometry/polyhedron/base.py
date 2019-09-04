@@ -4796,6 +4796,11 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]], backend='field')
             sage: P.barycentric_subdivision()
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+
+            sage: polytopes.simplex(backend='field').barycentric_subdivision().backend()
+            'field'
+            sage: polytopes.cube(backend='cdd').barycentric_subdivision().backend()
+            'cdd'
         """
         if subdivision_frac is None:
             subdivision_frac = ZZ.one() / 3
@@ -4806,15 +4811,17 @@ class Polyhedron_base(Element):
             raise ValueError("the subdivision fraction should be "
                              "between 0 and 1/2")
 
-        b_ring = self.parent()._coerce_base_ring(subdivision_frac)
         barycenter = self.center()
+        parent = self.parent().base_extend(subdivision_frac)
 
         ambient_dim = self.ambient_dim()
         polytope_dim = self.dimension()
 
         if ambient_dim != polytope_dim:
-            start_polar = Polyhedron((self - barycenter).polar().vertices())
-            polar = Polyhedron((self - barycenter).polar().vertices())
+            start_polar = parent.element_class(
+                    parent, [((self - barycenter).polar().vertices()), [], []], None)
+            polar = parent.element_class(
+                    parent, [((self - barycenter).polar().vertices()), [], []], None)
         else:
             start_polar = (self - barycenter).polar()
             polar = (self - barycenter).polar()
@@ -4852,11 +4859,10 @@ class Polyhedron_base(Element):
             new_ieqs = polar.inequalities_list() + new_ineq
             new_eqns = polar.equations_list()
 
-            polar = Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
-                               base_ring=b_ring)
+            polar = parent.element_class(parent, None, [new_ieqs, new_eqns])
 
         if ambient_dim != polytope_dim:
-            return (Polyhedron(polar.polar().vertices())) + barycenter
+            return (parent.element_class(parent, [polar.polar().vertices(), [], []], None)) + barycenter
         else:
             return (polar.polar()) + barycenter
 

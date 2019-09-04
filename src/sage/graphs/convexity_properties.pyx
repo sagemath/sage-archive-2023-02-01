@@ -353,7 +353,7 @@ cdef class ConvexityProperties:
 
         **COMPLEXITY:**
 
-        This problem is NP-Hard [CHZ02]_, but seems to be of the "nice" kind.
+        This problem is NP-Hard [HLT1993]_, but seems to be of the "nice" kind.
         Update this comment if you fall on hard instances `:-)`
 
         **ALGORITHM:**
@@ -404,13 +404,6 @@ cdef class ConvexityProperties:
             sage: generating_set = CP.hull_number(value_only=False)
             sage: CP.hull(generating_set)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-        REFERENCE:
-
-        .. [CHZ02] \F. Harary, E. Loukakis, C. Tsouros
-          The geodetic number of a graph
-          Mathematical and computer modelling
-          vol. 17 n11 pp.89--95, 1993
         """
         cdef int i
         cdef list constraint # temporary variable to add constraints to the LP

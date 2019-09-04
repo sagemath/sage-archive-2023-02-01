@@ -59,7 +59,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import DOT_SAGE, SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, CYGWIN_VERSION
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -270,44 +270,17 @@ class DocBuilder(object):
     inventory = builder_helper('inventory')
 
 
-def _build_many(target, args):
-    # Pool() uses an actual fork() to run each new instance. This is
-    # important for performance reasons, i.e., don't use a forkserver when
-    # it becomes available with Python 3: Here, sage is already initialized
-    # which is quite costly, with a forkserver we would have to
-    # reinitialize it for every document we build. At the same time, don't
-    # serialize this by taking the pool (and thus the call to fork()) out
-    # completely: The call to Sphinx leaks memory, so we need to build each
-    # document in its own process to control the RAM usage.
-    from multiprocessing import Pool
-    pool = Pool(NUM_THREADS, maxtasksperchild=1)
-    # map_async handles KeyboardInterrupt correctly. Plain map and
-    # apply_async does not, so don't use it.
-    x = pool.map_async(target, args, 1)
+from .utils import build_many as _build_many
+def build_many(target, args):
+    """
+    Thin wrapper around `sage_setup.docbuild.utils.build_many` which uses the
+    docbuild settings ``NUM_THREADS`` and ``ABORT_ON_ERROR``.
+    """
     try:
-        ret = x.get(99999)
-        pool.close()
-        pool.join()
-    except Exception:
-        pool.terminate()
+        _build_many(target, args, processes=NUM_THREADS)
+    except BaseException as exc:
         if ABORT_ON_ERROR:
             raise
-    return ret
-
-if (os.environ.get('SAGE_PARI_CFG', '') !='') and (not (CYGWIN_VERSION and CYGWIN_VERSION[0] < 3)):
-    build_many = _build_many
-else:
-    # Cygwin 64-bit < 3.0.0 has a bug with exception handling when exceptions
-    # occur in pthreads, so it's dangerous to use multiprocessing.Pool, as
-    # signals can't be properly handled in worker processes, and they can crash
-    # causing the docbuild to hang.  But where are these pthreads, you ask?
-    # Well, multiprocessing.Pool runs a thread from which it starts new worker
-    # processes when old workers complete/die, so the worker processes behave
-    # as though they were started from a pthread, even after fork(), and are
-    # actually succeptible to this bug.  As a workaround, here's a naïve but
-    # good-enough "pool" replacement that does not use threads
-    # https://trac.sagemath.org/ticket/27214#comment:25 for further discussion.
-    from .utils import _build_many as build_many
 
 
 ##########################################

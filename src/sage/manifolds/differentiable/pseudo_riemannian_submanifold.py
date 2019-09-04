@@ -651,7 +651,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             ....:                              (sin(the)*cos(phi)/(1-cos(the)),
             ....:                               sin(the)*sin(phi)/(1-cos(the))))
             sage: spher_to_stereoN.set_inverse(2*atan(1/sqrt(x^2+y^2)),
-            ....:                                    atan2(-y,-x)+pi)
+            ....:                              atan2(-y,-x)+pi)
+            Check of the inverse coordinate transformation:
+              the == 2*arctan(sqrt(-cos(the) + 1)/sqrt(cos(the) + 1))  **failed**
+              phi == pi + arctan2(sin(phi)*sin(the)/(cos(the) - 1),
+                                  cos(phi)*sin(the)/(cos(the) - 1))  **failed**
+              x == x  *passed*
+              y == y  *passed*
+            NB: a failed report can reflect a mere lack of simplification.
             sage: stereoN_to_S_A = stereoN_to_S.restrict(A)
             sage: spher_to_stereoS = stereoN_to_S_A * spher_to_stereoN
             sage: stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)

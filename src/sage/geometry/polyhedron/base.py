@@ -2,7 +2,7 @@ r"""
 Base class for polyhedra
 """
 
-# ****************************************************************************
+#****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
@@ -12,7 +12,7 @@ Base class for polyhedra
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-# *****************************************************************************
+#*****************************************************************************
 
 from __future__ import division, print_function, absolute_import
 

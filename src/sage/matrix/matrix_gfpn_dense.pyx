@@ -30,6 +30,7 @@ from __future__ import print_function, absolute_import, division
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
+from sage.cpython.string cimport str_to_bytes
 from cysignals.signals cimport sig_on, sig_off, sig_check
 cimport cython
 
@@ -1905,11 +1906,7 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
         sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
     """
-    cdef bytes Data
-    if isinstance(data, bytes):
-        Data = data
-    else:
-        Data = data.encode('latin1')
+    cdef bytes Data = str_to_bytes(data, encoding='latin1')
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
         MS = MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense)

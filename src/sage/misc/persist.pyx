@@ -55,7 +55,7 @@ cdef _normalize_filename(s):
     return s
 
 
-def load(*filename, compress=True, verbose=True):
+def load(*filename, compress=True, verbose=True, **kwargs):
     r"""
     Load Sage object from the file with name filename, which will have
     an ``.sobj`` extension added if it doesn't have one.  Or, if the input
@@ -70,9 +70,17 @@ def load(*filename, compress=True, verbose=True):
     specifying the full URL.  (Setting ``verbose = False`` suppresses
     the loading progress indicator.)
 
+    When a pickle created with Python 2 is unpickled in Python 3, Sage
+    uses the default encoding ``latin1`` to unpickle data of type :class:`str`.
+
     Finally, if you give multiple positional input arguments, then all
     of those files are loaded, or all of the objects are loaded and a
     list of the corresponding loaded objects is returned.
+
+    If ``compress`` is true (the default), then the data stored in the file
+    are supposed to be compressed. If ``verbose`` is true (the default), then
+    some logging is printed when accessing remote files. Futher keyword arguments
+    are passed to :func:`pickle.load`.
 
     EXAMPLES::
 
@@ -123,7 +131,7 @@ def load(*filename, compress=True, verbose=True):
     """
     import sage.repl.load
     if len(filename) != 1:
-        v = [load(file, compress=compress, verbose=verbose) for file in filename]
+        v = [load(file, compress=compress, verbose=verbose, **kwargs) for file in filename]
         # Return v if one of the filenames refers to an object and not
         # a loadable filename.
         for file in filename:
@@ -149,7 +157,7 @@ def load(*filename, compress=True, verbose=True):
 
     ## Load file by absolute filename
     with open(filename, 'rb') as fobj:
-        X = loads(fobj.read(), compress=compress)
+        X = loads(fobj.read(), compress=compress, **kwargs)
     try:
         X._default_filename = os.path.abspath(filename)
     except AttributeError:
@@ -704,6 +712,7 @@ ELSE:
         """
 
         def __init__(self, file_obj, persistent_load=None, *, **kwargs):
+            kwargs.setdefault('encoding', 'latin1')
             super(_BaseUnpickler, self).__init__(file_obj, **kwargs)
             self._persistent_load = persistent_load
 
@@ -920,7 +929,7 @@ class SageUnpickler(_BaseUnpickler):
         return cls(io.BytesIO(data), **kwargs).load()
 
 
-def loads(s, compress=True):
+def loads(s, compress=True, **kwargs):
     """
     Recover an object x that has been dumped to a string s
     using ``s = dumps(x)``.
@@ -939,6 +948,7 @@ def loads(s, compress=True):
     the data with zlib and with bz2 (in turn); if neither succeeds,
     it will assume the data is actually uncompressed.  If compress=False
     is explicitly specified, then no decompression is attempted.
+    Further arguments are passed to python's :func:`pickle.load`.
 
     ::
 
@@ -965,7 +975,7 @@ def loads(s, compress=True):
                 # Maybe data is uncompressed?
                 pass
 
-    unpickler = SageUnpickler(io.BytesIO(s))
+    unpickler = SageUnpickler(io.BytesIO(s), **kwargs)
     return unpickler.load()
 
 

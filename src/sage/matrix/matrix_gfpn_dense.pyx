@@ -1791,7 +1791,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 from sage.misc.superseded import deprecation
 
-def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
+def mtx_unpickle(f, int nr, int nc, data, bint m):
     r"""
     Helper function for unpickling.
 
@@ -1905,6 +1905,11 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
     """
+    cdef bytes Data
+    if isinstance(data, bytes):
+        Data = data
+    else:
+        Data = data.encode('latin1')
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
         MS = MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense)

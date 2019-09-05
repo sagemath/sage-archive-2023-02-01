@@ -288,14 +288,39 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K.<sqrt5> = QuadraticField(5)
             sage: polymake(3+2*sqrt5)                 # optional - polymake
             3+2r5
+            sage: polymake(2**100/7 - 2*sqrt5/3**50)  # optional - polymake
+            1267650600228229401496703205376/7-2/717897987691852588770249r5
             sage: K.<i> = QuadraticField(-1)
             sage: polymake(i)                         # optional - polymake
             Traceback (most recent call last):
             ...
             TypeError: Negative values for the root of the extension ... Bad Thing...
+
+        TESTS:
+
+        Test that :trac:`28377` is fixed::
+
+            sage: x = polygen(QQ, 'x')
+            sage: K = NumberField(x^2 - x -1, 'a', embedding=(1-AA(5).sqrt())/2)
+            sage: L = NumberField(x^2 - x -1, 'a', embedding=(1+AA(5).sqrt())/2)
+            sage: polymake(K.gen())  # optional - polymake
+            1/2-1/2r5
+            sage: polymake(L.gen())  # optional - polymake
+            1/2+1/2r5
         """
-        x0, x1 = self
-        return "new QuadraticExtension({}, {}, {})".format(x0, x1, self.D)
+        cdef Integer a = Integer.__new__(Integer)
+        cdef Integer b = Integer.__new__(Integer)
+        cdef Integer denom
+        mpz_set(a.value, self.a)
+        mpz_set(b.value, self.b)
+        if not self.standard_embedding:
+            mpz_neg(b.value, b.value)
+        if mpz_cmp_ui(self.denom, 1) == 0:
+            return "new QuadraticExtension({}, {}, {})".format(a, b, self.D)
+        else:
+            denom = Integer.__new__(Integer)
+            mpz_set(denom.value, self.denom)
+            return "new QuadraticExtension({}, {}, {})".format(a/denom, b/denom, self.D)
 
     def __copy__(self):
         r"""

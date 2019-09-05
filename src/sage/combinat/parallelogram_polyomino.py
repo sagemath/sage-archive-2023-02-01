@@ -1715,7 +1715,7 @@ class ParallelogramPolyomino(ClonableList):
 
         1) convert each 1-``up`` letter of the word by the number of ``up``
            located on the left in the word;
-        2) remove all the ``up`` letters and retrun the resulting list of
+        2) remove all the ``up`` letters and return the resulting list of
            integers.
 
         INPUT:

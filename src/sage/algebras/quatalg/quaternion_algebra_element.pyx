@@ -27,6 +27,7 @@ Check that :trac:`20829` is fixed::
 # ****************************************************************************
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
+from sage.structure.richcmp cimport rich_to_bool, richcmp_item
 from sage.algebras.quatalg.quaternion_algebra_element cimport QuaternionAlgebraElement_abstract
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
@@ -403,7 +404,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self._do_print(self[0], self[1], self[2], self[3])
 
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         Comparing elements.
 
@@ -426,11 +427,10 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         cdef int i
         for i in range(4):
-            if self[i] < right[i]:
-                return -1
-            elif self[i] > right[i]:
-                return 1
-        return 0
+            res = richcmp_item(self[i], right[i], op)
+            if res is not NotImplemented:
+                return res
+        return rich_to_bool(op, 0)
 
     cpdef conjugate(self):
         """

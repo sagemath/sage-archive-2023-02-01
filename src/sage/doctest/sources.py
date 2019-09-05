@@ -771,10 +771,8 @@ class FileDocTestSource(DocTestSource):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
-            There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
-            There are 3 tests in sage/rings/invariants/invariant_theory.py that are not being run
             sage: os.chdir(cwd)
         """
         expected = []

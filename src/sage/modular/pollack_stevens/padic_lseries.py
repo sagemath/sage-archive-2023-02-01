@@ -411,7 +411,7 @@ def log_gamma_binomial(p, gamma, n, M, old=None):
     if old is not None:
         deprecation(26096, 'the parameter z is ignored and deprecated')
         # old deprecated order for the parameters
-        z, n, M = n, M, old
+        _, n, M = n, M, old
 
     S = PowerSeriesRing(QQ, 'z')
     L = S([0] + [ZZ(-1) ** j / j for j in range(1, M)])  # log_p(1+z)

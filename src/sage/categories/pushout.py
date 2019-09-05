@@ -1859,7 +1859,7 @@ class VectorFunctor(ConstructionFunctor):
 
         """
 #        Functor.__init__(self, Rings(), FreeModules()) # FreeModules() takes a base ring
-#        Functor.__init__(self, Objects(), Objects())   # Object() makes no sence, since FreeModule raises an error, e.g., on Set(['a',1]).
+#        Functor.__init__(self, Objects(), Objects())   # Object() makes no sense, since FreeModule raises an error, e.g., on Set(['a',1]).
         ## FreeModule requires a commutative ring. Thus, we have
         Functor.__init__(self, CommutativeRings(), CommutativeAdditiveGroups())
         self.n = n

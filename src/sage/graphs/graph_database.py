@@ -278,6 +278,8 @@ class GenericGraphQuery(SQLQuery):
            advanced users. It allows you to execute any query, and so may be
            considered unsafe.
 
+        EXAMPLES:
+
         See :class:`~GraphDatabase` class docstrings or enter::
 
             sage: G = GraphDatabase()
@@ -311,6 +313,7 @@ class GenericGraphQuery(SQLQuery):
         if not isinstance(database, GraphDatabase):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         SQLQuery.__init__(self, database, query_string, param_tuple)
+
 
 class GraphQuery(GenericGraphQuery):
 

@@ -2440,11 +2440,12 @@ def repr_lincomb(symbols, coeffs):
 
 def pretty_print_default(enable=True):
     r"""
-    Enable or disable default pretty printing. Pretty printing means
-    rendering things so that MathJax or some other latex-aware front end
-    can render real math.
+    Enable or disable default pretty printing.
 
-    This function is pretty useless without the notebook, it shoudn't
+    Pretty printing means rendering things so that MathJax or some
+    other latex-aware front end can render real math.
+
+    This function is pretty useless without the notebook, it should not
     be in the global namespace.
 
     INPUT:

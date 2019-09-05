@@ -1741,10 +1741,21 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             [x^2 - 2*x + 1, x + 1]
             sage: p.roots(degree_bound=1)
             [(x + 1, 2)]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: foo = QQ['x']['y'].one()
+            sage: foo.roots(QQ)
+            []
         """
         if ring is not None and ring is not self:
             p = p.change_ring(ring)
-            return p.roots(multiplicities, algorithm, degree_bound)
+            if degree_bound is None:
+                return p.roots(multiplicities = multiplicities, algorithm = algorithm)
+            return p.roots(multiplicities = multiplicities, algorithm = algorithm, degree_bound = degree_bound)
+
         roots = p._roots_from_factorization(p.factor(), multiplicities)
         if degree_bound is not None:
             if multiplicities:
@@ -2604,12 +2615,28 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             [x + 1]
             sage: p.roots(multiplicities=False, algorithm="Roth-Ruckenstein")
             [x^2 + 11*x + 1, x + 1]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: R = GF(3)['x']['y']
+            sage: R.one().roots(multiplicities=False)
+            []
+            sage: R.zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: roots of 0 are not defined
         """
         if multiplicities:
             raise NotImplementedError("Use multiplicities=False")
 
         if degree_bound is None:
             l = p.degree()
+            if l < 0:
+                raise ArithmeticError("roots of 0 are not defined")
+            if l == 0:
+                return []
             dl = p[l].degree()
             degree_bound = max((p[i].degree() - dl)//(l - i) for i in range(l) if p[i])
 

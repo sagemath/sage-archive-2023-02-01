@@ -800,9 +800,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         OUTPUT:
 
-        - a subscheme in the domain of ``f``.
+        a subscheme in the domain of ``f``
 
-        Examples::
+        EXAMPLES::
 
             sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
             sage: H = End(PS)
@@ -894,7 +894,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 raise TypeError("subscheme must be in ambient space of codomain")
             k = ZZ(k)
             if k <= 0:
-                raise ValueError("k (=%s) must be a positive integer"%(k))
+                raise ValueError("k (=%s) must be a positive integer" % (k))
             if k > 1 and not f.is_endomorphism():
                 raise TypeError("map must be an endomorphism")
         R = codom.coordinate_ring()

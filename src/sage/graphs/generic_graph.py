@@ -15939,12 +15939,12 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             if by_weight:
                 if self.is_directed():
-                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()]).reverse()
+                    G = networkx.DiGraph([(e[1], e[0], {'weight': weight_function(e)}) for e in self.edge_iterator()])
                 else:
                     G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             else:
                 if self.is_directed():
-                    G = self.networkx_graph().reverse()
+                    G = self.reverse().networkx_graph()
                 else:
                     G = self.networkx_graph()
             G.add_nodes_from(self)

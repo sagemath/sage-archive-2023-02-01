@@ -186,7 +186,7 @@ def gap_root():
     # the appropriate GAP_ROOT is to set the GAP_ROOT_DIR variable
     SAGE_LOCAL = sage.env.SAGE_LOCAL
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
-    gapdir = list(filter(lambda dir:dir.strip().startswith('GAP_ROOT'), gap_sh))[0]
+    gapdir = next(x for x in gap_sh if x.strip().startswith('GAP_ROOT'))
     gapdir = gapdir.split('"')[1]
     gapdir = gapdir.replace('$SAGE_LOCAL', SAGE_LOCAL)
     return gapdir

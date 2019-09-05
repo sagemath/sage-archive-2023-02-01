@@ -2,7 +2,7 @@ r"""
 Base class for polyhedra
 """
 
-#****************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>

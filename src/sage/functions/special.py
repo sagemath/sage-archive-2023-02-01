@@ -337,6 +337,15 @@ def elliptic_j(z, prec=53):
         sage: tau = (1 + sqrt(-163))/2
         sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
         640320
+
+    This shows the need of higher precision than the default one:
+
+        sage: -elliptic_j(tau)
+        2.62537412640767e17 - 732.558854258998*I
+        sage: -elliptic_j(tau,75)
+        2.625374126407680000000e17 - 0.0001309913593909879441262*I
+        sage: -elliptic_j(tau,100)
+        2.6253741264076799999999999999e17 - 1.3012822400356887122945119790e-12*I
         sage: (-elliptic_j(tau, 100).real().round())^(1/3)
         640320
     """

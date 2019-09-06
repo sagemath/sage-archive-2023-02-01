@@ -106,7 +106,7 @@ maintainer-clean: distclean bootstrap-clean
 
 # Remove everything that is not necessary to run Sage and pass all its
 # doctests.
-micro_release: misc-clean sagelib-clean
+micro_release: sagelib-clean misc-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 	@echo "Removing sphinx artifacts..."

@@ -1424,16 +1424,16 @@ class ImplicitSuffixTree(SageObject):
         ``self.word()[i:i+l]``.
 
         A  leftmost covering set is a set such that the leftmost occurrence
-        ``(j,l)`` of a square in ``self.word()`` is covered by a pair
-        ``(i,l)`` in the set for all types of squares. We say that ``(j,l)`` is
-        covered by ``(i,l)`` if ``(i,l)``, ``(i+1,l)``, ..., ``(j,l)`` are all
+        `(j,l)` of a square in ``self.word()`` is covered by a pair
+        `(i,l)` in the set for all types of squares. We say that `(j,l)` is
+        covered by `(i,l)` if `(i,l)` (i+1,l), \ldots, (j,l)` are all
         squares.
 
-        The  set is returned in the form of a list ``P`` such that ``P[i]``
-        contains all the lengths of squares starting at ``i`` in the set. The
-        lists ``P[i]`` are sorted in decreasing order.
+        The set is returned in the form of a list ``P`` such that ``P[i]``
+        contains all the lengths of squares starting at ``i`` in the set.
+        The lists ``P[i]`` are sorted in decreasing order.
 
-        The algorithm used is described in [DS2004]_
+        The algorithm used is described in [DS2004]_.
 
         EXAMPLES::
 
@@ -1453,9 +1453,9 @@ class ImplicitSuffixTree(SageObject):
         def condition1_square_pairs(i):
             r"""
             Computes the squares that have their center (the last letter of the
-            first  occurrence of ``w`` in ``ww``) in the i-th block of the
-            LZ-decomposition and that start in the i-th block and end in the
-            (i+1)-st.
+            first  occurrence of ``w`` in ``ww``) in the `i`-th block of the
+            LZ-decomposition and that start in the `i`-th block and end in the
+            `(i+1)`-th.
             """
             for k in range(1, B[i+1]-B[i]+1):
                 q = B[i+1]-k
@@ -1468,16 +1468,16 @@ class ImplicitSuffixTree(SageObject):
         def condition2_square_pairs(i):
             r"""
             Compute the squares that have their center (the last letter of the
-            first  occurrence of ``w``  in ``ww``)  in the  i-th  block of  the
-            LZ-decomposition and  that starts in  the (i-1)-st block or before.
-            Their end is either in the i-th or the (i+1)-st block.
+            first  occurrence of ``w``  in ``ww``)  in the `i`-th  block of the
+            LZ-decomposition and that starts in the `(i-1)`-th block or before.
+            Their end is either in the `i`-th or the `(i+1)`-th block.
             """
             if i+2 < len(B):
-                end = B[i+2]-B[i]+1
+                end = B[i+2] - B[i] + 1
             else:
-                end = B[i+1]-B[i]+1
+                end = B[i+1] - B[i] + 1
             for k in range(2, end):
-                q = B[i]+k
+                q = B[i] + k
                 k1 = w.longest_forward_extension(B[i], q) if q < len(w) else 0
                 k2 = w.longest_backward_extension(B[i]-1, q-1) if B[i] > 0 else 0
                 start = max(B[i]-k2, B[i]-k+1)
@@ -1488,9 +1488,7 @@ class ImplicitSuffixTree(SageObject):
         B = self.LZ_decomposition()
         P = [[] for _ in w]
         for i in range(len(B)-1):
-            squares = list(chain(condition2_square_pairs(i),
-                                 condition1_square_pairs(i)))
-            for (i,l) in squares:
+            for (i,l) in chain(condition2_square_pairs(i), condition1_square_pairs(i)):
                 P[i].append(l)
         for l in P:
             l.reverse()
@@ -1569,40 +1567,60 @@ class ImplicitSuffixTree(SageObject):
 
 
 class DecoratedSuffixTree(ImplicitSuffixTree):
+    r"""
+    The decorated suffix tree of a word.
 
+    A *decorated suffix tree* of a word `w` is the suffix tree of `w`
+    marked with the end point of all squares in the `w`.
+
+    The symbol ``"$"`` is appended to ``w`` to ensure that each final
+    state is a leaf of the suffix tree.
+
+    INPUT:
+
+    - ``w`` -- a finite word
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+        sage: w = Word('0011001')
+        sage: DecoratedSuffixTree(w)
+        Decorated suffix tree of : 0011001$
+        sage: w = Word('0011001', '01')
+        sage: DecoratedSuffixTree(w)
+        Decorated suffix tree of : 0011001$
+
+    ALGORITHM:
+
+    When using ``'pair'`` as output, the squares are retrieved in linear
+    time. The algorithm is an implementation of the one proposed in
+    [DS2004]_.
+    """
     def __init__(self, w):
-        r"""
-        Constructs the decorated suffix tree of a word.
-
-        A decorated suffix tree of ``w`` is the suffix tree of ``w`` marked with
-        the end point of all squares in the w.
-
-        The symbol ``"$"`` is appended to ``w`` to ensure that each final
-        state is a leaf of the suffix tree.
-
-
-        INPUT:
-
-        - ``w`` -- A finite word
+        """
+        Initialize ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
             sage: w = Word('0011001')
-            sage: DecoratedSuffixTree(w)
-            Decorated suffix tree of : 0011001$
-            sage: w = Word('0011001', '01')
-            sage: DecoratedSuffixTree(w)
-            Decorated suffix tree of : 0011001$
+            sage: DST = DecoratedSuffixTree(w)
 
-        ALGORITHM:
+        We skip the ``_test_and_split`` test because it is not a test meant
+        for the ``TestSuite``::
 
-        When using ``'pair'`` as output, the squares are retrieved in linear
-        time. The algorithm is an implementation of the one proposed in
-        [DS2004]_.
+            sage: TestSuite(DST).run(skip="_test_and_split")
+
+        Test that we do not allow ``'$'`` to appear in the word::
+
+            sage: w = Word('0011001$')
+            sage: DecoratedSuffixTree(w)
+            Traceback (most recent call last):
+            ...
+            ValueError: the symbol '$' is reserved for this class
         """
         if "$" in w:
-            raise ValueError("The symbol '$' is reserved for this class.")
+            raise ValueError("the symbol '$' is reserved for this class")
         end_symbol = '$'
         w = Word(str(w) + end_symbol)
         ImplicitSuffixTree.__init__(self, w)
@@ -1610,6 +1628,9 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
     def __repr__(self):
         """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
             sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
             sage: w = Word('0011001')
             sage: t = DecoratedSuffixTree(w)
@@ -1634,7 +1655,6 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             sage: T._partial_labeling()
             {(3, 4): [1], (5, 1): [3], (5, 6): [1], (11, 17): [1], (13, 8): [1], (15, 10): [2]}
         """
-
         def node_processing(node, parent, head):
             r"""
             Marks points along the edge ``(parent, node)`` if the string depth
@@ -1643,12 +1663,12 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             Make it for all such square pairs and remove them from ``P(node)``.
 
             INPUT:
+
             - ``node`` -- a node of ``self``
             - ``parent`` -- the parent of a node in ``self``
-            - ``head`` -- a tuple indicating the head of the list
-               P(node)
+            - ``head`` -- a tuple indicating the head of the list ``P(node)``
 
-            OUTPUT: ``(i, pos)``, the new head of P(node)
+            OUTPUT: ``(i, pos)``, the new head of ``P(node)``
             """
             i, pos = head
             while pos < len(P[i]) and P[i][pos] > string_depth[parent]:
@@ -1669,22 +1689,22 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
             INPUT:
 
-            - ``current_node`` -- A node
-            - ``parent`` -- Parent of ``current_node`` in self.
+            - ``current_node`` -- a node
+            - ``parent`` -- parent of ``current_node`` in ``self``
 
             OUTPUT:
 
-                The resulting list P(current_node) with current_node have been
-                processed by ``node_processing``. The ouput is a pair ``(i,
-                pos)`` such that ``P[i][pos:]`` is the list of current_node.
+            The resulting list P(current_node) with current_node have been
+            processed by ``node_processing``. The ouput is a pair ``(i,
+            pos)`` such that ``P[i][pos:]`` is the list of current_node.
             """
 
             # Call recursively on children of current_node
-            if D.has_key(current_node):
+            if current_node in D:
                 node_list = (n, 0)
-                for child in D[current_node].keys():
+                for child in D[current_node]:
                     (i, j) = D[current_node][child]
-                    if j == None:
+                    if j is None:
                         j = n
                     string_depth[child] = string_depth[current_node]+j-i
                     child_list = treat_node(child,current_node)
@@ -1697,7 +1717,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
         P = self.leftmost_covering_set()
         D = self.transition_function_dictionary()
-        string_depth = dict([(0, 0)])
+        string_depth = {0: 0}
         n = len(self.word())
         labeling = dict()
         treat_node(0, None)
@@ -1773,14 +1793,14 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             ``current_node`` reads ``self.word()[i:j]``
             """
 
-            if D.has_key(current_node):
-                for child in D[current_node].keys():
+            if current_node in D:
+                for child in D[current_node]:
                     edge = (current_node, child)
                     edge_label = D[edge[0]][edge[1]]
                     treat_node(child, edge_label[0]-(j-i), edge_label[1])
-                    if prelabeling.has_key((current_node, child)):
+                    if (current_node, child) in prelabeling:
                         for l in prelabeling[edge]:
-                            square_start = edge_label[0]-(j-i)
+                            square_start = edge_label[0] - (j - i)
                             walk_chain(current_node, child, l, square_start)
 
         prelabeling = self._partial_labeling()
@@ -1789,18 +1809,18 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         treat_node(0, 0, 0)
         return labeling
 
-    def square_vocabulary(self,output="pair"):
+    def square_vocabulary(self, output="pair"):
         r"""
-        Returns the list of distinct squares of ``self.word``.
+        Return the list of distinct squares of ``self.word``.
 
-        Two types of outputs are available `pair` and `word`. The algorithm is
-        only truly linear if `output` is set to `pair`. A pair is a tuple
-        `(i, l)` that indicates the factor `self.word()[i:i+l]`.
-        The option `word` return word objects.
+        Two types of outputs are available `pair` and `word`. The algorithm
+        is only truly linear if `output` is set to `pair`. A pair is a tuple
+        `(i, l)` that indicates the factor ``self.word()[i:i+l]``.
+        The option ``'word'`` return word objects.
 
         INPUT:
 
-        - ``output`` -- "pair" or "word"
+        - ``output`` -- (default: ``"pair"``) either ``"pair"`` or ``"word"``
 
         EXAMPLES::
 
@@ -1809,24 +1829,24 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             sage: DecoratedSuffixTree(w).square_vocabulary()
             [(0, 0), (0, 2), (2, 2)]
             sage: w = Word('00110011010')
-            sage: DecoratedSuffixTree(w).square_vocabulary(output="word")
-            [word: , word: 01100110, word: 00110011, word: 00, word: 11, word: 1010]
+            sage: sorted(DecoratedSuffixTree(w).square_vocabulary(output="word"))
+            [word: , word: 00, word: 00110011, word: 01100110, word: 1010, word: 11]
         """
         def treat_node(current_node, i, j):
-            if D.has_key(current_node):
-                for child in D[current_node].keys():
+            if current_node in D:
+                for child in D[current_node]:
                     edge = (current_node, child)
                     edge_label = (D[edge[0]][edge[1]])
                     treat_node(child, edge_label[0]-(j-i), edge_label[1])
-                    if Q.has_key((current_node, child)):
+                    if (current_node, child) in Q:
                         for l in Q[(current_node, child)]:
                             square_start = edge_label[0]-(j-i)
                             pair = (square_start, edge_label[0]+l-square_start)
                             squares.append(pair)
 
-        if not(output == "pair" or output == "word"):
+        if output != "pair" and output != "word":
             raise ValueError("``output`` should be 'pair' or 'word'; got {}".format(
-                output))
+                            output))
         D = self.transition_function_dictionary()
         Q = self.labeling
         squares = [(0, 0)]
@@ -1835,3 +1855,4 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             return squares
         else:
             return [self.word()[i:i+l] for (i, l) in squares]
+

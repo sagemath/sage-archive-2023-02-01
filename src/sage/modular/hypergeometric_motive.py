@@ -745,7 +745,7 @@ class HypergeometricData(object):
 
         .. SEEALSO::
 
-            :meth:`degree`, :meth:`hodge_polynomial`
+            :meth:`degree`, :meth:`hodge_polynomial`, :meth:`hodge_polygon`
 
         EXAMPLES::
 
@@ -796,7 +796,7 @@ class HypergeometricData(object):
 
         .. SEEALSO::
 
-            :meth:`hodge_numbers`
+            :meth:`hodge_numbers`, :meth:`hodge_polygon_vertices`, :meth:`hodge_function`
 
         EXAMPLES::
 
@@ -951,7 +951,7 @@ class HypergeometricData(object):
 
         - [Roberts2017]_
         """
-        _, beta_twist = self.twist().alpha_beta()
+        beta_twist = self.twist()._beta
         return self.degree() % 2 == 0 and self._alpha == beta_twist
 
     def canonical_scheme(self, t=None):
@@ -1020,6 +1020,8 @@ class HypergeometricData(object):
             sage: H = Hyp(alpha_beta=([1/2],[0]))
             sage: H.twist()
             Hypergeometric data for [0] and [1/2]
+            sage: H.twist().twist() == H
+            True
 
             sage: Hyp(cyclotomic=([6],[1,2])).twist().cyclotomic_data()
             ([3], [1, 2])
@@ -1069,6 +1071,9 @@ class HypergeometricData(object):
         Return the `p`-adic trace of Frobenius, computed using the
         Gross-Koblitz formula.
 
+        If left unspecified, `prec` is set to the minimum `p`-adic precision
+        needed to recover the Euler factor.
+
         INPUT:
 
         - `p` -- a prime number
@@ -1077,7 +1082,7 @@ class HypergeometricData(object):
 
         - `t` -- a rational parameter
 
-        - ``prec`` -- precision (optional, default 20)
+        - ``prec`` -- precision (optional)
 
         OUTPUT:
 
@@ -1142,7 +1147,7 @@ class HypergeometricData(object):
         p_ring = Qp(p, prec=prec)
         teich = p_ring.teichmuller(M / t)
 
-        gauss_table = [None for _ in range(q-1)]
+        gauss_table = [None] *(q-1)
         for r in range(q-1):
             if gauss_table[r] is None:
                 gauss_table[r] = padic_gauss_sum(r, p, f, prec, factored=True,
@@ -1152,11 +1157,17 @@ class HypergeometricData(object):
                     gauss_table[r1] = gauss_table[r]
                     r1 = (r1*p)%(q-1)
 
-        sigma = sum(((-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
-                                for v, gv in gamma.items()) // (p - 1)) *
-                    prod(gauss_table[(v * r) % (q - 1)][1] ** gv
-                         for v, gv in gamma.items()) * teich ** r)
-                    << (f * (D + m[0] - m[r])) for r in range(q - 1))
+        sigma = p_ring.zero()
+        u1 = p_ring.one()
+        for r in range(q-1):
+            i = int(0)
+            u = u1
+            u1 *= teich
+            for v, gv in gamma.items():
+                r1 = (v*r) % (q-1)
+                i += gauss_table[r1][0] * gv
+                u *= gauss_table[r1][1] ** gv
+            sigma += (-p)**(i//(p-1)) * u << (f*(D+m[0]-m[r]))
         resu = ZZ(-1) ** m[0] / (1 - q) * sigma
         return IntegerModRing(p**prec)(resu).lift_centered()
 
@@ -1268,7 +1279,8 @@ class HypergeometricData(object):
         Return the sign of the functional equation for the Euler factor of the motive `H_t` at the prime `p`.
 
         For odd weight, the sign of the functional equation is +1. For even
-        weight, the sign is computed by a recipe found in 11.1 of [Watkins]_.
+        weight, the sign is computed by a recipe found in 11.1 of [Watkins]_
+        (when 0 is not in alpha).
 
         EXAMPLES::
 
@@ -1302,9 +1314,9 @@ class HypergeometricData(object):
         if w % 2:  # sign is always +1 for odd weight
             sign = 1
         elif d % 2:
-            sign = -kronecker_symbol((1 - t) * self._sign_param, p)
+            sign = -kronecker_symbol((1-t) * self._sign_param, p)
         else:
-            sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
+            sign = kronecker_symbol(t * (t-1) * self._sign_param, p)
         return sign
 
     @cached_method
@@ -1386,12 +1398,12 @@ class HypergeometricData(object):
         - [Roberts2015]_
         - [Watkins]_
         """
+        if t not in QQ or t in [0, 1]:
+            raise ValueError('wrong t')
         alpha = self._alpha
         if 0 in alpha:
             return self._swap.euler_factor(~t, p)
 
-        if t not in QQ or t in [0, 1]:
-            raise ValueError('wrong t')
         if not is_prime(p):
             raise ValueError('p not prime')
         if not all(x.denominator() % p for x in self._alpha + self._beta):

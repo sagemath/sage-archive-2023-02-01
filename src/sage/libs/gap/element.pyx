@@ -400,7 +400,7 @@ cdef GapElement make_GapElement(parent, Obj obj):
 
 cpdef _from_sage(elem):
     """
-    Currently just used for unpickling; eqivalent to calling ``libgap(elem)``
+    Currently just used for unpickling; equivalent to calling ``libgap(elem)``
     to convert a Sage object to a `GapElement` where possible.
     """
     if isinstance(elem, str):

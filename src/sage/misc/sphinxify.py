@@ -11,7 +11,7 @@ AUTHORS:
 - Tim Joseph Dumol (2009-09-29): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
 import os
@@ -141,7 +141,7 @@ smart_quotes = no""")
                         'src="/doc/static/reference/media/\\2"',
                         output)
         # Remove spurious \(, \), \[, \].
-        output = output.replace('\\(', '').replace('\\)', '').replace('\\[', '').replace('\\]', '')
+        output = output.replace(r'\(', '').replace(r'\)', '').replace(r'\[', '').replace(r'\]', '')
     else:
         from warnings import warn
         warn("Sphinx did not produce any output", Warning)

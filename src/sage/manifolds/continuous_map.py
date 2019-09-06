@@ -904,7 +904,7 @@ class ContinuousMap(Morphism):
         # including self, with pairs of domain codomain as keys.
         # Its elements can be seen as incoming edges on a graph.
         self._extensions_graph = {(self._domain, self._codomain): self}
-        # dict. of known restrictions of self on samller domains,
+        # dict. of known restrictions of self on smaller domains,
         # including self, with pairs of domain codomain as keys.
         # Its elements can be seen as outgoing edges on a graph.
 

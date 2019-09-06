@@ -1192,7 +1192,7 @@ class DiffMap(ContinuousMap):
             raise NotImplementedError("the case of a non-parallelizable " +
                                       "domain is not implemented yet")
         # A pair of charts (chart1, chart2) where the computation
-        # is feasable is searched, privileging the default chart of the
+        # is feasible is searched, privileging the default chart of the
         # map's domain for chart1
         chart1 = None; chart2 = None
         def_chart1 = dom1.default_chart()

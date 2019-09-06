@@ -1725,7 +1725,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
 
         With a coefficient matrix over ``RDF``, a vector of constants
-        over ``CDF`` can be accomodated by converting the base ring
+        over ``CDF`` can be accommodated by converting the base ring
         of the coefficient matrix.  ::
 
             sage: A = matrix(RDF, 2, range(4))
@@ -1865,7 +1865,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
 
         With a coefficient matrix over ``RDF``, a vector of constants
-        over ``CDF`` can be accomodated by converting the base ring
+        over ``CDF`` can be accommodated by converting the base ring
         of the coefficient matrix.  ::
 
             sage: A = matrix(RDF, 2, range(4))
@@ -2383,6 +2383,14 @@ cdef class Matrix_double_dense(Matrix_dense):
             False
             sage: m.is_symmetric(tol=0.11)
             True
+
+        TESTS:
+
+        Complex entries are supported (:trac:`27831`).  ::
+
+            sage: a = matrix(CDF, [(21, 0.6 + 18.5*i), (0.6 - 18.5*i, 21)])
+            sage: a.is_symmetric()
+            False
         """
         cdef Py_ssize_t i, j
         tol = float(tol)
@@ -2396,7 +2404,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         b = True
         for i from 0 < i < self._nrows:
             for j from 0 <= j < i:
-                if math.fabs(self.get_unsafe(i,j) - self.get_unsafe(j,i)) > tol:
+                if abs(self.get_unsafe(i,j) - self.get_unsafe(j,i)) > tol:
                     b = False
                     break
         self.cache(key, b)

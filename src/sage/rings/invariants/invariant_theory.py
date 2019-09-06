@@ -3858,11 +3858,17 @@ class InvariantTheoryFactory(object):
     """
     Factory object for invariants of multilinear forms.
 
+    Use the invariant_theory object to construct algebraic forms. These
+    can then be queried for invariant and covariants.
+
     EXAMPLES::
 
         sage: R.<x,y,z> = QQ[]
         sage: invariant_theory.ternary_cubic(x^3+y^3+z^3)
         Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+
+        sage: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
+        x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
     """
 
     def __repr__(self):
@@ -3876,27 +3882,9 @@ class InvariantTheoryFactory(object):
         EXAMPLES::
 
             sage: invariant_theory
-            <BLANKLINE>
-            Use the invariant_theory object to construct algebraic forms. These
-            can then be queried for invariant and covariants. For example,
-            <BLANKLINE>
-                s...: R.<x,y,z> = QQ[]
-                s...: invariant_theory.ternary_cubic(x^3+y^3+z^3)
-                Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
-                s...: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
-                x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
+            InvariantTheoryFactory
         """
-        return """
-Use the invariant_theory object to construct algebraic forms. These
-can then be queried for invariant and covariants. For example,
-
-    sage: R.<x,y,z> = QQ[]
-    sage: invariant_theory.ternary_cubic(x^3+y^3+z^3)
-    Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
-    sage: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
-    x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
-"""
-
+        return "InvariantTheoryFactory"
 
     def quadratic_form(self, polynomial, *args):
         """

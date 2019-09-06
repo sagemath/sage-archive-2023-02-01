@@ -193,17 +193,17 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def _richcmp_(self, right, op):
         """
-        Tests the projective equality of two points.
+        Test the projective equality of two points.
 
         INPUT:
 
-        - ``right`` -- a point on projective space.
+        - ``right`` -- a point on projective space
 
         OUTPUT:
 
-        - Boolean
+        Boolean
 
-        Examples::
+        EXAMPLES::
 
             sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])

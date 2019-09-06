@@ -60,13 +60,14 @@ cdef extern from "bliss/graph.hh" namespace "bliss":
                     const unsigned int*), void*)
         unsigned int get_hash()
 
+
 cdef void add_gen(void *user_param, unsigned int n, const unsigned int *aut):
     r"""
     Function called each time a new generator of the automorphism group is
     found.
 
     This function is used to append the new generators to a Python list. Its
-    main job is to translate a permutation into dijoint cycles.
+    main job is to translate a permutation into disjoint cycles.
 
     INPUT:
 

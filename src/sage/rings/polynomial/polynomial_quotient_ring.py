@@ -298,7 +298,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     TESTS:
 
-    By trac ticket :trac:`11900`, polynomial quotient rings use Sage's
+    By :trac:`11900`, polynomial quotient rings use Sage's
     category framework. They do so in an unusual way: During their
     initialisation, they are declared to be objects in the category of
     quotients of commutative algebras over a base ring. However, if it

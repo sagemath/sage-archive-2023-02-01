@@ -1561,6 +1561,14 @@ REFERENCES:
 .. [DS1994] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
             chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
 
+.. [DS2004] Dan Gusfield, Jens Stoye,
+            Linear time algorithms for finding and representing all the tandem repeats in a string,
+            Journal of Computer and System Sciences,
+            Volume 69, Issue 4,
+            2004,
+            Pages 525-546,
+            https://doi.org/10.1016/j.jcss.2004.03.004.
+
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,
             pp. 55-73, 2001.
@@ -2633,7 +2641,7 @@ REFERENCES:
              Compositio Mathematica, **149** (2013), no. 10.
              :arxiv:`1111.3660`.
 
-.. [Kly1990] Klyachko, Aleksandr Anatolevich. 
+.. [Kly1990] Klyachko, Aleksandr Anatolevich.
              Equivariant Bundles on Toral Varieties,
              Math USSR Izv. 35 (1990), 337-375.
              http://iopscience.iop.org/0025-5726/35/2/A04/pdf/0025-5726_35_2_A04.pdf

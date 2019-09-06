@@ -338,7 +338,8 @@ def elliptic_j(z, prec=53):
         sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
         640320
 
-    This shows the need of higher precision than the default one:
+    This example shows the need for higher precision than the default one of
+    the `complex field`, see :trac:`28355`::
 
         sage: -elliptic_j(tau)
         2.62537412640767e17 - 732.558854258998*I

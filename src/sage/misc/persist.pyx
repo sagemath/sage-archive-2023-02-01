@@ -755,7 +755,7 @@ ELSE:
 
 
 class SagePickler(_BasePickler):
-    """
+    r"""
     Subclass `pickle.Pickler` with Sage-specific default options, and
     built-in support for external object persistence.
 
@@ -775,6 +775,11 @@ class SagePickler(_BasePickler):
       (instead of 4) and fixing up imports of standard library modules and
       types whose names changed between Python 2 and 3.  This is enabled by
       default for the best chances of cross-Python compatibility.
+
+    - Further arguments are passed to :func:`pickle.load`, where in Python-3
+      Sage sets the default ``encoding='latin1'`. This is essential to make
+      pickles readable in Python-3 that were created in Python-2. See
+      :trac:`28444` for details.
 
     .. _pickling and unpickling external objects: https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-external-objects
 
@@ -802,6 +807,36 @@ class SagePickler(_BasePickler):
         sage: def load_object_from_table(obj_id):
         ....:     tag, obj_id
         ....:     return table[obj_id]
+
+    TESTS:
+
+    The following is an indirect doctest.
+    ::
+
+        sage: class Foo(object):
+        ....:     def __init__(self, s):
+        ....:         self.bar = s
+        ....:     def __reduce__(self):
+        ....:         return Foo, (self.bar,)
+        ....:
+        sage: import __main__
+        sage: __main__.Foo = Foo
+
+    The data that is passed to ``loads`` in the following line was created
+    by ``dumps(Foo('\x80\x07')`` in Python-2. We demonstrate that it can
+    be correctly unpickled in Python-3::
+
+        sage: g = loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{')
+        sage: type(g), g.bar
+        (<class '__main__.Foo'>, '\x80\x07')
+
+    The following line demonstrates what would happen without :trac:`28444`::
+
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') # optional: python3
+        Traceback (most recent call last):
+        ...
+        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+
     """
 
     def __init__(self, file_obj, persistent_id=None, py2compat=True):
@@ -961,6 +996,37 @@ def loads(s, compress=True, **kwargs):
         Traceback (most recent call last):
         ...
         UnpicklingError: invalid load key, 'x'.
+
+    In the next example demonstrates that Sage strives to avoid data loss
+    in the transition from Python-2 to Python-3. The problem is that Python-3
+    by default would not be able to unpickle a non-ASCII Python-2 string appearing
+    in a pickle. See :trac:`28444` for details.
+    ::
+
+        sage: class Foo(object):
+        ....:     def __init__(self, s):
+        ....:         self.bar = s
+        ....:     def __reduce__(self):
+        ....:         return Foo, (self.bar,)
+        ....:
+        sage: import __main__
+        sage: __main__.Foo = Foo
+
+    The data that is passed to ``loads`` in the following line was created
+    by ``dumps(Foo('\x80\x07')`` in Python-2.
+    ::
+
+        sage: g = loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{')
+        sage: type(g), g.bar
+        (<class '__main__.Foo'>, '\x80\x07')
+
+    The following line demonstrates what would happen without :trac:`28444`::
+
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') # optional: python3
+        Traceback (most recent call last):
+        ...
+        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+
     """
     if not isinstance(s, bytes):
         raise TypeError("s must be bytes")

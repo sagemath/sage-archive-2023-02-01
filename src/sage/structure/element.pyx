@@ -4283,3 +4283,249 @@ def coerce_binop(method):
             else:
                 return getattr(a, method.__name__)(b, *args, **kwargs)
     return new_method
+
+
+###############################################################################
+
+def generic_power(a, n, one=None):
+    """
+    Computes `a^n`, where `n` is an integer, and `a` is an object which
+    supports multiplication.  Optionally an additional argument,
+    which is used in the case that ``n == 0``:
+
+    - ``one`` - the "unit" element, returned directly (can be anything)
+
+    If this is not supplied, ``int(1)`` is returned.
+
+    EXAMPLES::
+
+        sage: from sage.structure.element import generic_power
+        sage: generic_power(int(12),int(0))
+        doctest:...: DeprecationWarning: import 'generic_power' from sage.arith.power instead
+        See http://trac.sagemath.org/24256 for details.
+        1
+        sage: generic_power(int(0),int(100))
+        0
+        sage: generic_power(Integer(10),Integer(0))
+        1
+        sage: generic_power(Integer(0),Integer(23))
+        0
+        sage: sum([generic_power(2,i) for i in range(17)]) #test all 4-bit combinations
+        131071
+        sage: F = Zmod(5)
+        sage: a = generic_power(F(2), 5); a
+        2
+        sage: a.parent() is F
+        True
+        sage: a = generic_power(F(1), 2)
+        sage: a.parent() is F
+        True
+
+        sage: generic_power(int(5), 0)
+        1
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(24256, "import 'generic_power' from sage.arith.power instead")
+    if one is not None:
+        # Special cases not handled by sage.arith.power
+        if not n:
+            return one
+        if n < 0:
+            return ~arith_generic_power(a, -n)
+    return arith_generic_power(a, n)
+
+
+# Algebra from morphism
+#######################
+
+cdef class AlgebraFMElement(CommutativeAlgebraElement):
+    r"""
+    Generic class for elements lying in ring extensions
+
+    AUTHOR:
+
+    - Xavier Caruso (2016)
+    """
+    def __init__(self, parent, element):
+        from sage.rings.algebra_from_morphism import AlgebraFromMorphism
+        if not isinstance(parent, AlgebraFromMorphism):
+            raise TypeError("%s is not an instance of AlgebraFromMorphism" % parent)
+        Element.__init__(self, parent)
+        ring = parent.ring()
+        self._element = ring(element)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of this element
+
+        By default, it is the same as the strict representation
+        of this element viewed as an element of the underlying
+        ring.
+
+        TESTS::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K
+
+            sage: x = L.gen()
+            sage: E(x)._repr_()
+            'z4'
+            sage: x._repr_()
+            'z4'
+        """
+        return str(self._element)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of this element
+
+        By default, it is the same as the latex representation
+        of this element viewed as an element of the underlying
+        ring.
+
+        TESTS::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K
+
+            sage: x = L.gen()
+            sage: E(x)._latex_()
+            'z_{4}'
+            sage: x._latex_()
+            'z_{4}'
+        """
+        from sage.misc.latex import latex
+        return str(latex(self._element))
+
+    def element_in_ring(self):
+        return self._element
+
+    cpdef _add_(self,other):
+        r"""
+        TESTS::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K
+
+            sage: x = E.random_element()
+            sage: y = E.random_element()
+            sage: (x+y).parent() is E
+            True
+        """
+        return self.__class__(self._parent, self._element + other.element_in_ring())
+
+    cpdef _sub_(self,other):
+        r"""
+        TESTS::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K
+
+            sage: x = E.random_element()
+            sage: y = E.random_element()
+            sage: (x-y).parent() is E
+            True
+        """
+        return self.__class__(self._parent, self._element - other.element_in_ring())
+
+    cpdef _mul_(self,other):
+        r"""
+        TESTS::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K
+
+            sage: x = E.random_element()
+            sage: y = E.random_element()
+            sage: (x*y).parent() is E
+            True
+        """
+        return self.__class__(self._parent, self._element * other.element_in_ring())
+
+    #cpdef _div_(self,other)
+    #cpdef _floordiv_(self,other)
+
+    def additive_order(self):
+        r"""
+        Return the additive order of this element
+
+        EXAMPLES::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K
+
+            sage: x = E.gen()
+            sage: x.additive_order()
+            5
+        """
+        return self._element.additive_order()
+
+    def multiplicative_order(self):
+        r"""
+        Return the multiplicite order of this element
+
+        EXAMPLES::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K
+
+            sage: x = E.gen()
+            sage: x.multiplicative_order()
+            624
+        """
+        return self._element.multiplicative_order()
+
+    def is_unit(self):
+        r"""
+        Return ``True`` if this element is a unit in the ring
+        of the parent extension, ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: A.<x> = PolynomialRing(QQ)
+            sage: E = A/QQ
+            sage: E(4).is_unit()
+            True
+            sage: E(x).is_unit()
+            False
+        """
+        return self._element.is_unit()
+
+    def is_nilpotent(self):
+        r"""
+        Return ``True`` if this element is nilpotent in the ring
+        of the parent extension, ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: A.<x> = PolynomialRing(QQ)
+            sage: E = A/QQ
+            sage: E(0).is_nilpotent()
+            True
+            sage: E(x).is_nilpotent()
+            False
+        """
+        return self._element.is_nilpotent()
+
+    def is_prime(self):
+        r"""
+        Return ``True`` if this element is a prime element 
+        in the ring of the parent extension, ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: A.<x> = PolynomialRing(QQ)
+            sage: E = A/QQ
+            sage: E(x^2+1).is_prime()
+            True
+            sage: E(x^2-1).is_prime()
+            False
+        """
+        return self._element.is_prime()

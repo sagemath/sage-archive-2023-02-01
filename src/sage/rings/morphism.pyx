@@ -899,7 +899,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
     r"""
     A ring homomorphism that is a coercion.
 
-    .. WARNING:;
+    .. WARNING::
 
         This class is obsolete. Set the category of your morphism to a
         subcategory of ``Rings`` instead.
@@ -2089,3 +2089,54 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         domain = self.domain()
         codomain = self.codomain()
         return hash((domain, codomain, ('Frob', self._power)))
+
+
+# Algebra from morphism
+#######################
+
+cdef class AlgebraToRing_coercion(RingHomomorphism_coercion):
+    r"""
+    Coercion map between an extension and its ring
+
+    It acts as the identity, only modifies the parent
+
+    EXAMPLES::
+
+        sage: K = GF(5^2)
+        sage: L = GF(5^4)
+        sage: E = L/K
+
+        sage: coerce_map = L.coerce_map_from(E)
+        sage: coerce_map
+        Ring Coercion morphism:
+          From: Finite Field in z4 of size 5^4 viewed as an algebra over Finite Field in z2 of size 5^2
+          To:   Finite Field in z4 of size 5^4
+        sage: type(coerce_map)
+        <type 'sage.rings.morphism.AlgebraToRing_coercion'>
+
+        sage: x = E.random_element()
+        sage: x == coerce_map(x)
+        True
+    """
+    cpdef Element _call_(self, x):
+        r"""
+        TESTS::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+
+            sage: E = L/K
+            sage: coerce_map = L.coerce_map_from(E)
+            sage: x = coerce_map(E.gen()); x
+            z4
+            sage: x.parent() is L
+            True
+
+            sage: E = RingExtension(L, K, K.frobenius_endomorphism())
+            sage: coerce_map = L.coerce_map_from(E)
+            sage: x = coerce_map(E.gen()); x
+            z4
+            sage: x.parent() is L
+            True
+        """
+        return x.element_in_ring()

@@ -26,3 +26,8 @@ cdef class PrecomposedAction(Action):
 cdef class ActionEndomorphism(Morphism):
     cdef Action _action
     cdef Element _g
+
+cdef class BaseActionOnRing(Action):
+    cdef _base
+    cdef _algebra
+    cdef _defining_morphism

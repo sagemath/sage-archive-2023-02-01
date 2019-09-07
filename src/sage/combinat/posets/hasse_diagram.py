@@ -1017,9 +1017,9 @@ class HasseDiagram(DiGraph):
         if not hasattr(self, '_moebius_function_matrix'):
             if algorithm == 'recursive':
                 n = self.cardinality()
-                L = self._leq_matrix_boolean
+                gt = self._leq_storage
+                greater_than = [sorted(gt[i]) for i in range(n)]
                 m = {}
-                greater_than = [sorted(L[i].dict()) for i in range(n)]
                 for i in range(n - 1, -1, -1):
                     m[(i, i)] = ZZ.one()
                     for k in greater_than[i]:

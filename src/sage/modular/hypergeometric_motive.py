@@ -469,7 +469,7 @@ class HypergeometricData(object):
         self._gamma_array = cyclotomic_to_gamma(cyclo_up, cyclo_down)
         up = QQ.prod(capital_M(d) for d in cyclo_up)
         down = QQ.prod(capital_M(d) for d in cyclo_down)
-        self._M_value = up/down
+        self._M_value = up / down
         if 0 in alpha:
             self._swap = HypergeometricData(alpha_beta=(beta, alpha))
         if self.weight() % 2:
@@ -482,7 +482,7 @@ class HypergeometricData(object):
                 self._sign_param = prod(cyclotomic_polynomial(v).disc()
                                         for v in cyclo_up)
 
-### Internals
+    # --- Internals ---
     def __repr__(self):
         """
         Return the string representation.
@@ -531,7 +531,7 @@ class HypergeometricData(object):
         """
         return not (self == other)
 
-### Parameters and invariants
+    # --- Parameters and invariants ---
     def cyclotomic_data(self):
         """
         Return the pair of tuples of indices of cyclotomic polynomials.
@@ -835,18 +835,19 @@ class HypergeometricData(object):
         """
         d = self.degree()
         hn = self.hodge_numbers()
-        if x<0:
+        if x < 0:
             return 0
         i = 0
         j = 0
         k = 0
         while (i < d and i < x):
             i += hn[k]
-            j += k*hn[k]
+            j += k * hn[k]
             k += 1
-        if i < x: return j
-        return j - (i-x)*(k-1)
-        
+        if i < x:
+            return j
+        return j - (i - x) * (k - 1)
+
     def hodge_polygon_vertices(self):
         """
         Return the vertices of the Hodge polygon.
@@ -865,11 +866,11 @@ class HypergeometricData(object):
             sage: H.hodge_polygon_vertices()
             [(0, 0), (1, 0), (4, 3), (7, 9), (10, 18), (13, 30), (14, 35)]
         """
-        l = [(0,0)]
+        lst = [(0, 0)]
         hn = self.hodge_numbers()
         for i in range(len(hn)):
-            l.append((l[-1][0] + hn[i], l[-1][1] + i*hn[i]))
-        return l        
+            lst.append((lst[-1][0] + hn[i], lst[-1][1] + i * hn[i]))
+        return lst
 
     def M_value(self):
         """
@@ -1004,7 +1005,7 @@ class HypergeometricData(object):
         ideal = ring.ideal([eq0, eq1, self.M_value() * eq2_neg - t * eq2_pos])
         return Spec(ring.quotient(ideal))
 
-### Operations on data
+    # --- Operations on data ---
     def twist(self):
         r"""
         Return the twist of this data.
@@ -1064,7 +1065,7 @@ class HypergeometricData(object):
         d = gcd(g)
         return HypergeometricData(gamma_list=[x / d for x in g])
 
-### L-functions
+    # --- L-functions ---
     @cached_method
     def padic_H_value(self, p, f, t, prec=None):
         """
@@ -1129,13 +1130,14 @@ class HypergeometricData(object):
         if 0 in alpha:
             return self._swap.padic_H_value(p, f, ~t, prec)
         gamma = self.gamma_array()
-        q = p ** f
+        q = p**f
 
-#        m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
-        m = array.array('i', [0]*(q-1))
+        # m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
+        m = array.array('i', [0] * (q - 1))
         for b in beta:
-            u = b*(q-1)
-            if u.is_integer(): m[u] += 1
+            u = b * (q - 1)
+            if u.is_integer():
+                m[u] += 1
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
         # also: D = (self.weight() + 1 - m[0]) // 2
@@ -1147,27 +1149,27 @@ class HypergeometricData(object):
         p_ring = Qp(p, prec=prec)
         teich = p_ring.teichmuller(M / t)
 
-        gauss_table = [None] *(q-1)
-        for r in range(q-1):
+        gauss_table = [None] * (q - 1)
+        for r in range(q - 1):
             if gauss_table[r] is None:
                 gauss_table[r] = padic_gauss_sum(r, p, f, prec, factored=True,
                                                  algorithm='sage', parent=p_ring)
-                r1 = (r*p)%(q-1)
+                r1 = (r * p) % (q - 1)
                 while r1 != r:
                     gauss_table[r1] = gauss_table[r]
-                    r1 = (r1*p)%(q-1)
+                    r1 = (r1 * p) % (q - 1)
 
         sigma = p_ring.zero()
         u1 = p_ring.one()
-        for r in range(q-1):
+        for r in range(q - 1):
             i = int(0)
             u = u1
             u1 *= teich
             for v, gv in gamma.items():
-                r1 = (v*r) % (q-1)
+                r1 = (v * r) % (q - 1)
                 i += gauss_table[r1][0] * gv
                 u *= gauss_table[r1][1] ** gv
-            sigma += (-p)**(i//(p-1)) * u << (f*(D+m[0]-m[r]))
+            sigma += (-p)**(i // (p - 1)) * u << (f * (D + m[0] - m[r]))
         resu = ZZ(-1) ** m[0] / (1 - q) * sigma
         return IntegerModRing(p**prec)(resu).lift_centered()
 
@@ -1265,7 +1267,7 @@ class HypergeometricData(object):
         gauss_table = [gauss_sum(zeta_q ** r, Fq) for r in range(q - 1)]
 
         sigma = sum(q**(D + m[0] - m[r]) *
-                    prod(gauss_table[(-v * r) % (q - 1)] ** gv
+                    prod(gauss_table[(-v * r) % (q - 1)]**gv
                          for v, gv in gamma.items()) *
                     teich ** r
                     for r in range(q - 1))
@@ -1314,9 +1316,9 @@ class HypergeometricData(object):
         if w % 2:  # sign is always +1 for odd weight
             sign = 1
         elif d % 2:
-            sign = -kronecker_symbol((1-t) * self._sign_param, p)
+            sign = -kronecker_symbol((1 - t) * self._sign_param, p)
         else:
-            sign = kronecker_symbol(t * (t-1) * self._sign_param, p)
+            sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
         return sign
 
     @cached_method

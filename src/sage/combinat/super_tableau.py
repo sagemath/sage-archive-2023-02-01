@@ -28,7 +28,7 @@ class SemistandardSuperTableau(Tableau):
     A semistandard super tableau.
 
     A semistandard super tableau is a tableau with primed positive integer entries.
-    As defined in [Muth2017]_, a semistandard super tableau weakly increases along
+    As defined in [Muth2019]_, a semistandard super tableau weakly increases along
     the rows and down the columns. Also, the letters of even parity (unprimed)
     strictly increases down the columns, and letters of oddd parity (primed)
     strictly increases along the rows. Note that Sage uses the English convention
@@ -213,7 +213,7 @@ class StandardSuperTableau(SemistandardSuperTableau):
     A standard super tableau is a semistandard super tableau whose entries
     are in bijection with positive primed integers `1', 1, 2' \ldots n`.
 
-    For more information refer [Muth2017]_.
+    For more information refer [Muth2019]_.
 
     INPUT:
 
@@ -321,7 +321,7 @@ class SemistandardSuperTableaux(SemistandardTableaux):
     The set of semistandard super tableaux.
 
     A semistandard super tableau is a tableau with primed positive integer entries.
-    As defined in [Muth2017]_, a semistandard super tableau weakly increases along
+    As defined in [Muth2019]_, a semistandard super tableau weakly increases along
     the rows and down the columns. Also, the letters of even parity (unprimed)
     strictly increases down the columns, and letters of oddd parity (primed)
     strictly increases along the rows. Note that Sage uses the English convention
@@ -438,7 +438,7 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
     integers, which are strictly increasing in rows and down columns and
     contains each letters from 1',1,2'...n exactly once.
 
-    For more information refer [Muth2017]_.
+    For more information refer [Muth2019]_.
 
     INPUT:
 

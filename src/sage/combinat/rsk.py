@@ -57,7 +57,7 @@ available:
 - CoRSK insertion (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in
   [GR2018v5sol]_.
 - Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a
-  combiantion of row and column insertions defined in [Muth2017]_.
+  combiantion of row and column insertions defined in [Muth2019]_.
 
 Implementing your own insertion rule
 ------------------------------------
@@ -1917,7 +1917,7 @@ class RuleSuperRSK(RuleRSK):
         sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
         [[1', 1, 2', 2], [1, 3, 3', 2']]
 
-    We apply super RSK on Example 5.1 in [RM2017]_::
+    We apply super RSK on Example 5.1 in [Muth2019]_::
 
         sage: P,Q = RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
         ....:           ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
@@ -1930,7 +1930,7 @@ class RuleSuperRSK(RuleRSK):
         sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
         [[1', 2', 2, 2, 3', 3', 3, 3], [3', 1, 2, 3, 3', 3', 2', 1']]
 
-    Example 6.1 in [Muth2017]_::
+    Example 6.1 in [Muth2019]_::
 
         sage: P,Q = RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
         ....:           ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')

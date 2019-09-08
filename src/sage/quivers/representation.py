@@ -1012,9 +1012,10 @@ class QuiverRepElement(ModuleElement):
         # coefficients of the monomials in it
         parent = self.parent()
         mons = parent._actor(other).monomial_coefficients()
-        result = parent()
+
         # this must not be the cached parent.zero(),
         # since otherwise it gets changed in place!!
+        result = parent()
 
         for path in mons:
             # Multiply by the scalar
@@ -1888,7 +1889,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             Element of quiver representation
         """
         # Here we just use the an_element function from each space.
-        elements = dict((v, self._spaces[v].an_element()) for v in self._quiver)
+        elements = {v: self._spaces[v].an_element() for v in self._quiver}
         return self(elements)
 
     def support(self):
@@ -2914,8 +2915,8 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
                 return self.left_edge_action(edge[:-1], self.left_edge_action(edge[-1], element))
 
         # Now we are just acting by a single edge
-        elems = dict((v, self._left_action_mats[edge][v]*element._elems[v])
-                     for v in self._quiver)
+        elems = {v: self._left_action_mats[edge][v] * element._elems[v]
+                 for v in self._quiver}
         return self(elems)
 
     def is_left_module(self):
@@ -3032,5 +3033,5 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
                     maps[e][i, j] = k.one()
 
         # Create the spaces and then the representation
-        spaces = dict((v, len(self._bases[v])) for v in Q)
+        spaces = {v: len(self._bases[v]) for v in Q}
         super(QuiverRep_with_dual_path_basis, self).__init__(k, P, spaces, maps)

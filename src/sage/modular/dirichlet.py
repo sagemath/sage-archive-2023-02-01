@@ -722,6 +722,50 @@ class DirichletCharacter(MultiplicativeGroupElement):
             self.__bernoulli[k] = ber
         return ber
 
+    def lfunction(self, prec=53, algorithm='pari'):
+        """
+        Return the L-function of ``self``.
+
+        The result is a wrapper around a PARI L-function or around
+        the ``lcalc`` program.
+
+        INPUT:
+
+        - ``prec`` -- precision (default 53)
+
+        - ``algorithm`` -- 'pari' (default) or 'lcalc'
+
+        EXAMPLES::
+
+            sage: G.<a,b> = DirichletGroup(20)
+            sage: L = a.lfunction(); L
+            PARI L-function associated to Dirichlet character modulo 20
+            of conductor 4 mapping 11 |--> -1, 17 |--> 1
+            sage: L(4)
+            0.988944551741105
+
+        With the algorithm "lcalc"::
+
+            sage: a = a.primitive_character()
+            sage: L = a.lfunction(algorithm='lcalc'); L
+            L-function with complex Dirichlet coefficients
+            sage: L.value(4)  # abs tol 1e-14
+            0.988944551741105 - 5.16608739123418e-18*I
+        """
+        if algorithm is None:
+            algorithm = 'pari'
+
+        if algorithm == 'pari':
+            from sage.lfunctions.pari import lfun_character, LFunction
+            Z = LFunction(lfun_character(self), prec=prec)
+            Z.rename('PARI L-function associated to %s' % self)
+            return Z
+        elif algorithm == 'lcalc':
+            from sage.libs.lcalc.lcalc_Lfunction import Lfunction_from_character
+            return Lfunction_from_character(self)
+
+        raise ValueError('algorithm must be "pari" or "lcalc"')
+
     @cached_method
     def conductor(self):
         """

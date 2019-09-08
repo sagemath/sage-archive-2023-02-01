@@ -156,7 +156,8 @@ In any case, you always need at least a C/C++ compiler to build the GCC
 package and its prerequisites before the compilers it provides can be used.
 
 Note that you can always override this behavior through the configure
-options `--without-system-gcc` and `--with-system-gcc`, see :ref:`section_compilers`.
+options ``--without-system-gcc`` and ``--with-system-gcc``, see
+:ref:`section_compilers`.
 
 Other notes
 ^^^^^^^^^^^
@@ -222,28 +223,35 @@ distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 you would use
 `apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
-     # debian (Stretch or newer) / ubuntu
+     # debian (Buster or newer) / ubuntu
      $ sudo apt-get install binutils pixz gcc g++ gfortran make m4 perl tar \
        git patch openssl libssl-dev libz-dev bc libbz2-dev liblzma-dev libgmp-dev \
-       libffi-dev libgf2x-dev libcurl4-openssl-dev curl yasm
+       libffi-dev libgf2x-dev libcurl4-openssl-dev libzmq3-dev curl yasm \
+       pkg-config libntl-dev libmpfr-dev libmpc-dev libflint-dev \
+       libpcre3-dev libgd-dev libflint-dev libflint-arb-dev \
+       libsymmetrica2-dev gmp-ecm libecm-dev libisl-dev libgivaro-dev \
+       libpari-dev pari-gp2c libec-dev liblrcalc-dev \
+       libm4ri-dev libm4rie-dev liblfunction-dev lcalc
 
      # redhat / fedora / centos
      $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
        tar git patch perl-ExtUtils-MakeMaker openssl openssl-devel zlib-devel \
-       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm
+       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm \
+       pkg-config ntl-devel mpfr-devel libmpc-devel libsymmetrica-devel \
+       eclib-devel gmp-ecm-devel lrcalc-devel isl-devel givaro-devel \
+       pari-devel pari-elldata pari-seadata pari-galdata pari-galpol \
+       m4ri-devel m4rie-devel L-function-devel
 
 (These examples suppose that you choose to use a systemwide OpenSSL library.)
 In addition, if you don't want Sage to build other packages that might be available from
 your OS, cf. the growing list of such packages on :trac:`27330`, install::
 
-     # debian / ubuntu
-     $ sudo apt-get install libntl-dev libmpfr-dev libmpc-dev libflint-dev \
-       libpcre3-dev libgd-dev \
-       cmake libterm-readline-gnu-perl ninja-build librw-dev # not for standard Sage spkgs
+     # debian / ubuntu --  not for standard Sage spkgs
+     $ sudo apt-get install cmake libterm-readline-gnu-perl ninja-build \
+     librw-dev
 
-     # redhat / fedora / centos
-     $ sudo yum install ntl-devel mpfr-devel libmpc-devel \
-       cmake perl-Term-ReadLine-Gnu ninja-build rw-devel # not for standard Sage spkgs
+     # redhat / fedora / centos -- not for standard Sage spkgs
+     $ sudo yum install cmake perl-Term-ReadLine-Gnu ninja-build rw-devel
 
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
@@ -463,7 +471,7 @@ or similar commands.
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    $ sage -f python2  # rebuild Python
+    $ sage -f python2  # rebuild Python2
     $ make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
@@ -618,11 +626,10 @@ Running Sage from a directory with spaces in its name will also fail.
    You should see the Sage prompt, which will look something like this::
 
        $ sage
-       ----------------------------------------------------------------------
-       | Sage Version 5.8, Release Date: 2013-03-15                         |
-       | Type "notebook()" for the browser-based notebook interface.        |
-       | Type "help()" for help.                                            |
-       ----------------------------------------------------------------------
+       ┌────────────────────────────────────────────────────────────────────┐
+       │ SageMath version 8.8, Release Date: 2019-06-26                     │
+       │ Using Python 2.7.15. Type "help()" for help.                       │
+       └────────────────────────────────────────────────────────────────────┘
        sage:
 
    Note that Sage should take well under a minute when it starts for the first
@@ -1424,4 +1431,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in September 2017 (Sage 8.1).**
+**This page was last updated in August 2019 (Sage 8.8).**

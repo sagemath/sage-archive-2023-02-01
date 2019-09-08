@@ -29,6 +29,8 @@ from sage.interfaces.gap import gap
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
 from sage.libs.gap.element import GapElement
+from sage.libs.gap.libgap import libgap
+from sage.libs.gap.element import GapElement as LibGapElement
 
 # TODO:
 #
@@ -65,6 +67,10 @@ def ClassFunction(group, values):
         return group.class_function(values)
     except AttributeError:
         pass
+
+    if isinstance(values, LibGapElement):
+        return ClassFunction_libgap(group, values)
+
     return ClassFunction_gap(group, values)
 
 
@@ -116,6 +122,7 @@ class ClassFunction_gap(SageObject):
             self._gap_classfunction = values
         else:
             self._gap_classfunction = gap.ClassFunction(G, list(values))
+
         e = self._gap_classfunction.Conductor()
         self._base_ring = CyclotomicField(e)
 
@@ -223,7 +230,7 @@ class ClassFunction_gap(SageObject):
         EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
-            sage: chi = G.character([1, 1, 1, 1, 1, 1, 1])
+            sage: chi = ClassFunction(G, [1, 1, 1, 1, 1, 1, 1])
             sage: type(chi)
             <class 'sage.groups.class_function.ClassFunction_gap'>
             sage: loads(dumps(chi)) == chi
@@ -840,11 +847,11 @@ class ClassFunction_libgap(SageObject):
             Character of Cyclic group of order 4 as a permutation group
         """
         self._group = G
-        if isinstance(values, GapElement) and values.IsClassFunction():
+        if isinstance(values, LibGapElement) and values.IsClassFunction():
             self._gap_classfunction = values
         else:
-            from sage.libs.gap.libgap import libgap
-            self._gap_classfunction = libgap.ClassFunction(G.gap(), list(values))
+            self._gap_classfunction = libgap.ClassFunction(G._libgap_(),
+                                                           list(values))
         e = self._gap_classfunction.Conductor().sage()
         self._base_ring = CyclotomicField(e)
 
@@ -1425,9 +1432,8 @@ class ClassFunction_libgap(SageObject):
             sage: chi1.tensor_product(chi3).values()
             [1, -1, 1]
         """
-        from sage.libs.gap.libgap import libgap
         product = libgap.Tensored([self], [other])
-        return ClassFunction(self._group, product[1])
+        return ClassFunction(self._group, product[0])
 
 
     def restrict(self, H):

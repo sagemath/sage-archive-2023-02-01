@@ -1714,7 +1714,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         field and the base ring as the field of definition. If the base ring
         is a number field, the embedding into ``F`` must be known.
 
-        In the case of numerically aproximated points, the points are returned over as
+        In the case of numerically approximated points, the points are returned over as
         points of the ambient space.
 
         INPUT:

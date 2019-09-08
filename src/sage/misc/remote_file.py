@@ -3,7 +3,6 @@
 from __future__ import absolute_import
 
 import os
-import sys
 
 
 def get_remote_file(filename, verbose=True):

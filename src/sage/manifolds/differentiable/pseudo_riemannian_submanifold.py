@@ -1073,7 +1073,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                 n = self.normal()
 
                 for chart in self.atlas():
-                    gamma_n = matrix(self._dim + 1, self._dim + 1)
+                    gamma_n = matrix(SR, self._dim + 1, self._dim + 1)
                     for i in range(self._dim + 1):
                         for j in range(self._dim + 1):
                             gamma_n[i, j] = sum(

@@ -35,7 +35,8 @@ class Trivialization(UniqueRepresentation, SageObject):
     :class:~sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`).
     A *local trivialization* over an open subset `U \subset M` is a
     `C^k`-diffeomorphism `\varphi: \pi^{-1}(U) \to U \times K^n` such that
-    `(p, v) \mapsto \pi^{-1}(p)` is a linear isomorphism.
+    `\pi \circ \varphi^{-1}=\mathrm{pr}_1` and `v \mapsto \varphi^{-1}(q,v)`
+    is a linear isomorphism for any `q \in U`.
 
     .. NOTE::
 

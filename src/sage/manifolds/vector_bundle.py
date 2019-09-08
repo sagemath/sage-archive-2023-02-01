@@ -3,12 +3,14 @@ Topological Vector Bundle
 
 Let `K` be a topological field. A *vector bundle* of rank `n` over the field
 `K` and over a topological manifold `B` (base space) is a topological manifold
-`E` (total space) together with a continuous and surjective projection
-`\pi: E \to B` such that for every point `p \in B`
-- the set `E_x=\pi^{-1}(x)` has the vector space structure of `K^n`,
+`E` (total space) together with a continuous and surjective map `\pi: E \to B`
+such that for every point `p \in B`
+- the set `E_p=\pi^{-1}(p)` has the vector space structure of `K^n`,
 - there is a neighborhood `U \subset B` of `p` and a homeomorphism
-  `\varphi: \pi^{-1}(p) \to U \times K^n` such that
-  `v \mapsto \varphi^{-1}(q,v)` is a linear isomorphism for any `q \in U`.
+  `\varphi: \pi^{-1}(p) \to U \times K^n` such that `\varphi` is compatible
+  with the fibers, namely `\pi \circ \varphi^{-1} = \mathrm{pr}_1`, and
+  `v \mapsto \varphi^{-1}(q,v)` is a linear isomorphism between `K^n` and `E_q`
+  for any `q \in U`.
 
 AUTHORS:
 
@@ -130,6 +132,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._rank = rank
         self._diff_degree = 0
         self._base_space = base_space
+        self._total_space = None
         # Set names:
         self._name = name
         if latex_name is None:
@@ -690,7 +693,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     #     # TODO: Implement
     #     pass
 
-    def total_space(self):
+    def total_space(self, update_atlas=True):
         r"""
         Return the total space of ``self``.
 
@@ -707,15 +710,20 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             6-dimensional topological manifold E
 
         """
-        from sage.manifolds.manifold import Manifold
-        base_space = self._base_space
-        dim = base_space._dim * self._rank
-        sindex = base_space.start_index()
-        total_space = Manifold(dim, self._name, latex_name=self._latex_name,
-                               field=self._field, structure='topological',
-                               start_index=sindex)
-        # TODO: if self._atlas not empty, introduce charts
-        return total_space
+        if self._total_space is None:
+            from sage.manifolds.manifold import Manifold
+            base_space = self._base_space
+            dim = base_space._dim * self._rank
+            sindex = base_space.start_index()
+            self._total_space = Manifold(dim, self._name,
+                                   latex_name=self._latex_name,
+                                   field=self._field, structure='topological',
+                                   start_index=sindex)
+        if update_atlas:
+            # TODO: if self._atlas not empty, introduce charts
+            pass
+
+        return self._total_space
 
     def set_change_of_frame(self, frame1, frame2, change_of_frame,
                             compute_inverse=True):

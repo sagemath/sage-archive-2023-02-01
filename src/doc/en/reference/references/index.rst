@@ -3870,6 +3870,10 @@ REFERENCES:
              *Spectra of Symmetrized Shuffling Operators*.
              :arxiv:`1102.2460v2`.
 
+.. [RTL76] Donald J. Rose, Robert Endre Tarjan and George S. Lueker.
+           *Algorithmic aspects of vertex elimination on graphs*.
+           SIAM J. Comput., 5(2), 266–283 (1976).
+
 .. [Rub1991] \K. Rubin. The "main conjectures" of Iwasawa theory for
              imaginary quadratic fields. Invent. Math. 103 (1991),
              no. 1, 25--68.

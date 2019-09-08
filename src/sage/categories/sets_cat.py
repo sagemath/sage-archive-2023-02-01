@@ -2470,11 +2470,29 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: A = GroupAlgebra(KleinFourGroup(), QQ)
-                    sage: A.construction()
+                    sage: F, arg = A.construction(); F, arg
                     (GroupAlgebraFunctor, Rational Field)
+                    sage: F(arg) is A
+                    True
+
+                This also works for structures such as monoid algebras (see
+                :trac:`27937`)::
+
+                    sage: A = FreeAbelianMonoid('x,y').algebra(QQ)
+                    sage: F, arg = A.construction(); F, arg
+                    (The algebra functorial construction,
+                     Free abelian monoid on 2 generators (x, y))
+                    sage: F(arg) is A
+                    True
                 """
-                from sage.categories.algebra_functor import GroupAlgebraFunctor
-                return GroupAlgebraFunctor(self.group()), self.base_ring()
+                from sage.categories.algebra_functor import (
+                        GroupAlgebraFunctor, AlgebraFunctor)
+                try:
+                    group = self.group()
+                except AttributeError:
+                    return (AlgebraFunctor(self.base_ring()),
+                            self.basis().keys())
+                return GroupAlgebraFunctor(group), self.base_ring()
 
             def _repr_(self):
                 r"""

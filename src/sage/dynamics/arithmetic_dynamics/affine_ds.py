@@ -818,7 +818,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         An affine dynamical system
 
-        Examples::
+        EXAMPLES::
 
             sage: A.<t> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem_affine([t^2+1])

@@ -5,9 +5,21 @@ AUTHORS:
 
 - Matthew Lancellotti (2007): initial version
 
-- Chaman Agrawal (2019-07-23): Modify Standard and Semistandard tableaux for
+- Chaman Agrawal (2019-07-23): Modify standard and semistandard tableaux for
   super tableaux.
 """
+
+# ****************************************************************************
+#       Copyright (C) 2019 Matthew Lancellotti <mareoraft at gmail.com>
+#                     2019 Chaman Agrawal <chaman.ag at gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from __future__ import print_function, absolute_import
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets

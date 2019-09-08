@@ -5,6 +5,7 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-12-07): Initial version
 - Chaman Agrawal (2019-06-24): Refactoring on the Rule class
+- Matthew Lancellotti (2018): initial version of super RSK
 
 Introduction
 ============
@@ -151,18 +152,14 @@ REFERENCES:
 # *****************************************************************************
 #       Copyright (C) 2012,2019 Travis Scrimshaw <tcscrims at gmail.com>
 #                          2019 Chaman Agrawal <chaman.ag at gmail.com>
+#                          2019 Matthew Lancellotti <mareoraft at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-# *****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
 

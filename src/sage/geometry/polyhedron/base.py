@@ -3060,14 +3060,14 @@ class Polyhedron_base(Element):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
 
-        This returns the inner normal fan of ``self``. For the outer normal fan, 
+        This returns the inner normal fan of ``self``. For the outer normal fan,
         use ``direction='outer'``.
 
         INPUT:
 
-        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if 
-          set to ``'inner'``, use the inner normal vectors to span the cones of 
-          the fan, if set to ``'outer'``, use the outer normal vectors. 
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if
+          set to ``'inner'``, use the inner normal vectors to span the cones of
+          the fan, if set to ``'outer'``, use the outer normal vectors.
 
         OUTPUT:
 
@@ -4388,6 +4388,21 @@ class Polyhedron_base(Element):
             ...
             ValueError: the chosen position is too large
 
+            sage: s = polytopes.simplex(7)
+            sage: f = s.faces(3)[0]
+            sage: sf = s.stack(f); sf
+            A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 9 vertices
+            sage: sf.vertices()
+            (A vertex at (-4, -4, -4, -4, 17/4, 17/4, 17/4, 17/4),
+             A vertex at (0, 0, 0, 0, 0, 0, 0, 1),
+             A vertex at (0, 0, 0, 0, 0, 0, 1, 0),
+             A vertex at (0, 0, 0, 0, 0, 1, 0, 0),
+             A vertex at (0, 0, 0, 0, 1, 0, 0, 0),
+             A vertex at (0, 0, 0, 1, 0, 0, 0, 0),
+             A vertex at (0, 0, 1, 0, 0, 0, 0, 0),
+             A vertex at (0, 1, 0, 0, 0, 0, 0, 0),
+             A vertex at (1, 0, 0, 0, 0, 0, 0, 0))
+
         It is possible to stack on unbounded faces::
 
             sage: Q = Polyhedron(vertices=[[0,1],[1,0]],rays=[[1,1]])
@@ -4430,9 +4445,9 @@ class Polyhedron_base(Element):
 
         # Taking all facets that contain the face
         if face.dim() == self.dim() - 1:
-            face_star = set([face.ambient_Hrepresentation()[0]])
+            face_star = set([face.ambient_Hrepresentation()[-1]])
         else:
-            face_star = set(facet for facet in self.Hrepresentation()
+            face_star = set(facet for facet in self.Hrepresentation() if facet.is_inequality()
                             if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices))
 
         neighboring_facets = set()

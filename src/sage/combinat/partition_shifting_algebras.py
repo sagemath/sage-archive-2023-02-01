@@ -120,37 +120,49 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
     r"""
     An algebra of shifting operators.
 
-    Let `R` be a commutative ring. The algebra of shifting operators is the
-    algebra over `R` on which shifting operators formally act as multiplication
-    by elements in the ring `R[x_1^\pm, x_2^\pm, x_3^\pm, \ldots]`, where the
-    partition `\lambda = (\lambda_1, \lambda_2, \ldots, \lambda_{\ell})`
-    corresponds to the monomial
-    `x_1^{\lambda_1} x_2^{\lambda_2} \cdots x_{\ell}^{\lambda_{\ell}}`.
-    Then, for example, Young's raising operator `R_{ij}` is simply the
-    ratio `\frac{x_i}{x_j}`.
+    Let `R` be a commutative ring. The algebra of shifting operators
+    is isomorphic as an `R`-algebra to the Laurent polynomial ring
+    `R[x_1^\pm, x_2^\pm, x_3^\pm, \ldots]`. Moreover, the monomials of
+    the shifting operator algebra act on any integer sequence `\lambda
+    = (\lambda_1, \lambda_2, \ldots, \lambda_{\ell})` as follows. Let
+    `S` be our algebra of shifting operators. Then, for any monomial
+    `s = x_1^{a_1}x_2^{a_2} \cdots x_r^{a_r} \in S` where `a_i \in
+    \mathbb{Z}` and `r \geq \ell`, we get that `s.\lambda = (\lambda_1
+    + a_1, \lambda_2 + a_2,\ldots,\lambda_r+a_r)` where we pad
+    `\lambda` with `r-\ell` zeros. In particular, we can recover
+    Young's raising operator, `R_{ij}`, for `i < j`, acting on
+    partitions by having `\frac{x_i}{x_j}` act on a partition
+    `\lambda`.
 
-    To extend the action of the raising operators on a symmetric function
-    basis `B = \{b_{\lambda}\}_{\lambda}`, we define an `R`-module homomorphism
+    One can extend the action of these shifting operators to a basis
+    of symmetric functions, but at the expense of no longer actually
+    having a well-defined operator. Formally, to extend the action of
+    the shifting operators on a symmetric function basis `B =
+    \{b_{\lambda}\}_{\lambda}`, we define an `R`-module homomorphism
     `\phi : R[x_1^\pm, x_2^\pm, \ldots] \to B`. Then we compute
-    `R_{ij} b_\lambda` by first computing
-    `\frac{x_i}{x_j} x_1^{\lambda_1} \cdots x_\ell^{\lambda_\ell}` and then
-    applying `\phi` to the result.
+    `x_1^{a_1} \cdots x_r^{a_r}.b_\lambda` by first computing
+    `(x_1^{a_1} \cdots x_r^{a_r})x_1^{\lambda_1} \cdots
+    x_\ell^{\lambda_\ell}` and then applying `\phi` to the result. For
+    examples of what this looks like with specific bases, see the
+    examples below.
 
-    This is consistent with how many references work formally with raising
-    operators. For instance, see exposition surrounding [BMPS2018]_
-    Equation (4.1).
+    This implementation is consistent with how many references work
+    formally with raising operators. For instance, see exposition
+    surrounding [BMPS2018]_ Equation (4.1).
 
-    We follow the following convention:
-    ``S(1, 0, -1, 2)`` is the shifting operator that raises the first part
-    by `1`, lowers the third part by `1`, and raises the fourth part by `2`.
+    We follow the following convention for creating elements: ``S(1,
+    0, -1, 2)`` is the shifting operator that raises the first part by
+    `1`, lowers the third part by `1`, and raises the fourth part by
+    `2`.
 
     In addition to acting on partitions (or any integer sequence), the
-    shifting operators can also act on symmetric functions in a basis `B`
-    when a conversion to `B` has been registered, preferably using
+    shifting operators can also act on symmetric functions in a basis
+    `B` when a conversion to `B` has been registered, preferably using
     :meth:`build_and_register_conversion`.
 
-    For a definition of raising operators, see [BMPS2018]_ Definition 2.1. See
-    :meth:`ij` to create operators using the notation in [BMPS2018]_.
+    For a definition of raising operators, see [BMPS2018]_ Definition
+    2.1. See :meth:`ij` to create operators using the notation in
+    [BMPS2018]_.
 
     INPUT:
 
@@ -161,13 +173,18 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
     EXAMPLES::
 
         sage: S = ShiftingOperatorAlgebra()
-        sage: s = SymmetricFunctions(QQ['t']).s()
-        sage: h = SymmetricFunctions(QQ['t']).h()
 
         sage: elm = S[1, -1, 2]; elm
         S(1, -1, 2)
         sage: elm([5, 4])
         [([6, 3, 2], 1)]
+
+    The shifting operator monomials can act on a complete homogeneous symmetric 
+    function or a Schur function::
+
+        sage: s = SymmetricFunctions(QQ['t']).s()
+        sage: h = SymmetricFunctions(QQ['t']).h()
+
         sage: elm(s[5, 4])
         s[6, 3, 2]
         sage: elm(h[5, 4])
@@ -177,6 +194,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         s[6, 3]
         sage: S[1, -1](h[5, 4])
         h[6, 3]
+
+    In fact, we can extend this action by linearity::
 
         sage: elm = (1 - S[1,-1]) * (1 - S[4])
         sage: elm == S([]) - S([1, -1]) - S([4]) + S([5, -1])
@@ -191,7 +210,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         s[2, 2, 1] - s[3, 1, 1] + s[3, 2]
 
     The algebra also comes equipped with homomorphisms to various
-    symmetric function bases::
+    symmetric function bases; these homomorphisms are how the action of
+    ``S`` on the specific symmetric function bases is implemented::
 
         sage: elm = S([3,1,2]); elm
         S(3, 1, 2)
@@ -200,7 +220,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         sage: s(elm)
         0
 
-    However, not all homomorphisms are equivalent::
+    However, not all homomorphisms are equivalent, so the action is basis 
+    dependent::
 
         sage: elm = S([3,2,1]); elm
         S(3, 2, 1)
@@ -358,7 +379,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
 
         Given the support of an element
         `x_1^{\gamma_1} x_2^{\gamma_2} \cdots x_\ell^{\gamma_\ell}` in the
-        ``ShiftingOperatorActionAlgebra`` and a
+        ``ShiftingOperatorAlgebra`` and a
         symmetric function algebra basis `b` generated by
         `\{b_1, b_2, b_3,\ldots\}`, return the element
         `b_{\gamma_1} b_{\gamma_2} \cdots b_{\gamma_\ell}` where `b_0 = 1` and
@@ -389,7 +410,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         This is a helper function that is not meant to be called directly.
 
         Given the support of an element `x_1^{\gamma_1} x_2^{\gamma_2} \cdots
-        x_\ell^{\gamma_\ell}` in the ``ShiftingOperatorActionAlgebra``, return
+        x_\ell^{\gamma_\ell}` in the ``ShiftingOperatorAlgebra``, return
         the appropriate `s_\gamma` in the Schur basis using
         "Schur function straightening" in [BMPS2018]_ Proposition 4.1.
 

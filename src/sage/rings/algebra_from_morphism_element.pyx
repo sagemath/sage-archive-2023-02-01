@@ -30,7 +30,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
             sage: x = L.gen()
             sage: E(x)._repr_()
@@ -52,7 +52,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
             sage: x = L.gen()
             sage: E(x)._latex_()
@@ -72,7 +72,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
             sage: x = E.random_element()
             sage: y = E.random_element()
@@ -90,7 +90,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
             sage: x = E.random_element()
             sage: y = E.random_element()
@@ -105,7 +105,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
             sage: x = E.random_element()
             sage: y = E.random_element()
@@ -125,7 +125,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
             sage: x = E.gen()
             sage: x.additive_order()
@@ -141,7 +141,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
             sage: x = E.gen()
             sage: x.multiplicative_order()
@@ -157,7 +157,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: A.<x> = PolynomialRing(QQ)
-            sage: E = A/QQ
+            sage: E = RingExtension(A,QQ)
             sage: E(4).is_unit()
             True
             sage: E(x).is_unit()
@@ -173,7 +173,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: A.<x> = PolynomialRing(QQ)
-            sage: E = A/QQ
+            sage: E = RingExtension(A,QQ)
             sage: E(0).is_nilpotent()
             True
             sage: E(x).is_nilpotent()
@@ -189,7 +189,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: A.<x> = PolynomialRing(QQ)
-            sage: E = A/QQ
+            sage: E = RingExtension(A,QQ)
             sage: E(x^2+1).is_prime()
             True
             sage: E(x^2-1).is_prime()

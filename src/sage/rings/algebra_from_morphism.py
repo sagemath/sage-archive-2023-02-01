@@ -50,7 +50,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
         sage: K = GF(5^2)
         sage: L = GF(5^4)
-        sage: E = L/K; E
+        sage: E = RingExtension(L,K); E
         Finite Field in z4 of size 5^4 viewed as an algebra over its base
 
         sage: from sage.rings.algebra_from_morphism import AlgebraFromMorphism
@@ -76,7 +76,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             False
 
             sage: L = GF(5^4)
-            sage: E1 = L/K
+            sage: E1 = RingExtension(L,K)
             sage: E1._coerce
             True
 
@@ -116,7 +116,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^4)
             sage: L = GF(5^8)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
 
         Conversion of an element of the ring::
 
@@ -135,7 +135,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         Conversion from another extension::
 
             sage: k = GF(5^2)
-            sage: F = K/k
+            sage: F = RingExtension(K,k)
             sage: b = K.gen(); b
             z4
             sage: bF = F(b); bF
@@ -174,7 +174,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             sage: k = GF(5)
             sage: K = GF(5^2); z2 = K.gen()
             sage: L = GF(5^4); z4 = L.gen()
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
 
             sage: E.base()
@@ -214,14 +214,14 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         If ``other`` is not an extension, we return the pushout of
         ``self._backend()`` and ``other``
 
-        Otherwise, if the defining morphism of ``self`` or ``other`` 
-        is not a coercion map, we return the pushout of ``self._backend()`` 
+        Otherwise, if the defining morphism of ``self`` or ``other``
+        is not a coercion map, we return the pushout of ``self._backend()``
         and ``other._backend()``
 
-        Otherwise, we compute the pushout of ``self._backend()`` and 
+        Otherwise, we compute the pushout of ``self._backend()`` and
         ``other._backend()`` and call it ``ring``. We then check whether
-        there exists a coercion map between ``self.base()`` and 
-        ``other.base()``. If no coercion map is found, we return 
+        there exists a coercion map between ``self.base()`` and
+        ``other.base()``. If no coercion map is found, we return
         ``ring``
 
         Otherwise, we call ``base`` the domain of the coercion
@@ -232,15 +232,15 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             Handle the case where defining morphisms are not
             coercion maps
 
-            If no coercion map is discovered between ``self.base()`` 
-            and ``other.base()``, compute the pullover ``base`` of 
-            these two rings (i.e. the greatest ring coercing to both) 
+            If no coercion map is discovered between ``self.base()``
+            and ``other.base()``, compute the pullover ``base`` of
+            these two rings (i.e. the greatest ring coercing to both)
             and return the extension ``ring/base``
 
         TESTS::
 
-            sage: K1 = GF(3^4); L1 = GF(3^8);  E1 = L1/K1
-            sage: K2 = GF(3^2); L2 = GF(3^16); E2 = L2/K2
+            sage: K1 = GF(3^4); L1 = GF(3^8);  E1 = RingExtension(L1,K1)
+            sage: K2 = GF(3^2); L2 = GF(3^16); E2 = RingExtension(L2,K2)
             sage: E2.has_coerce_map_from(E1)
             True
             sage: E2._pushout_(E1) is E2
@@ -294,7 +294,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
             sage: E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
 
@@ -311,7 +311,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
             sage: latex(E)
             \Bold{F}_{5^{4}}/\Bold{F}_{5^{2}}
         """
@@ -320,8 +320,8 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
     def _coerce_map_from_(self, other):
         r"""
-        An extension L1/K1 coerces to another extension L2/K2 when L1 coerces 
-        to L2 and K2 coerces to K1 (be careful at the direction) and the 
+        An extension L1/K1 coerces to another extension L2/K2 when L1 coerces
+        to L2 and K2 coerces to K1 (be careful at the direction) and the
         defining morphisms are coercion maps.
 
         .. TODO::
@@ -331,8 +331,8 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
         TESTS::
 
-            sage: K1 = GF(3^4); L1 = GF(3^8);  E1 = L1/K1
-            sage: K2 = GF(3^2); L2 = GF(3^16); E2 = L2/K2
+            sage: K1 = GF(3^4); L1 = GF(3^8);  E1 = RingExtension(L1,K1)
+            sage: K2 = GF(3^2); L2 = GF(3^16); E2 = RingExtension(L2,K2)
             sage: E2.has_coerce_map_from(E1)  # indirect doctest
             True
 
@@ -357,7 +357,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2); z2 = K.gen()
             sage: L = GF(5^4); z4 = L.gen()
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
             sage: E.defining_morphism()
             Ring morphism:
@@ -388,7 +388,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2); z2 = K.gen()
             sage: L = GF(5^4); z4 = L.gen()
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
             sage: E.base()
             Finite Field in z2 of size 5^2
@@ -411,7 +411,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2); z2 = K.gen()
             sage: L = GF(5^4); z4 = L.gen()
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
             sage: E._backend()
             Finite Field in z4 of size 5^4
@@ -431,7 +431,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
 
             sage: x = E.an_element()  # indirect doctest
@@ -458,7 +458,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
 
             sage: x = E.gen()
@@ -485,7 +485,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
             sage: K = GF(5^2)
             sage: L = GF(5^4)
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z4 of size 5^4 viewed as an algebra over its base
 
             sage: x = E.random_element(); x  # random
@@ -524,7 +524,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             sage: k = GF(5^2)
             sage: K = GF(5^4)
             sage: L = GF(5^8)
-            sage: E = L/K; E
+            sage: E = RingExtension(L,K); E
             Finite Field in z8 of size 5^8 viewed as an algebra over its base
 
             sage: E1 = E.scalar_restriction(k); E1

@@ -2107,7 +2107,7 @@ cdef class AlgebraToRing(RingHomomorphism):
 
         sage: K = GF(5^2)
         sage: L = GF(5^4)
-        sage: E = L/K
+        sage: E = RingExtension(L,K)
 
         sage: coerce_map = L.coerce_map_from(E)
         sage: coerce_map
@@ -2128,7 +2128,7 @@ cdef class AlgebraToRing(RingHomomorphism):
             sage: K = GF(5^2)
             sage: L = GF(5^4)
 
-            sage: E = L/K
+            sage: E = RingExtension(L,K)
             sage: coerce_map = L.coerce_map_from(E)
             sage: x = coerce_map(E.gen()); x
             z4

@@ -2111,8 +2111,8 @@ cdef class AlgebraToRing(RingHomomorphism):
 
         sage: coerce_map = L.coerce_map_from(E)
         sage: coerce_map
-        Ring Coercion morphism:
-          From: Finite Field in z4 of size 5^4 viewed as an algebra over Finite Field in z2 of size 5^2
+        Ring morphism:
+          From: Finite Field in z4 of size 5^4 viewed as an algebra over its base
           To:   Finite Field in z4 of size 5^4
         sage: type(coerce_map)
         <type 'sage.rings.morphism.AlgebraToRing'>
@@ -2135,12 +2135,6 @@ cdef class AlgebraToRing(RingHomomorphism):
             sage: x.parent() is L
             True
 
-            sage: E = RingExtension(L, K, K.frobenius_endomorphism())
-            sage: coerce_map = L.coerce_map_from(E)
-            sage: x = coerce_map(E.gen()); x
-            z4
-            sage: x.parent() is L
-            True
         """
         return x._backend()
 

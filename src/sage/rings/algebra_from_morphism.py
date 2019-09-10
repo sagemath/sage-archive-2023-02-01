@@ -151,9 +151,13 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         from sage.rings.algebra_from_morphism_element import AlgebraFMElement
         if isinstance(x, AlgebraFMElement):
             x = x._backend()
-        if self._base.has_coerce_map_from(x.parent()):
-            x = self._base.coerce_map_from(x.parent())(x)
-            x = self._defining_morphism(x)
+        try:
+            parent = x.parent()
+            if self._base.has_coerce_map_from(parent):
+                x = self._base.coerce_map_from(parent)(x)
+                x = self._defining_morphism(x)
+        except AttributeError:
+            pass
         elt = self._ring(x, *args, **kwargs)
         return self.element_class(self, elt)
 

@@ -1708,7 +1708,7 @@ cdef class CommutativeRing(Ring):
             sage: K = GF(5^2)
             sage: L = GF(5^4)
             sage: L/K
-            Finite Field in z4 of size 5^4 viewed as an algebra over Finite Field in z2 of size 5^2
+            Finite Field in z4 of size 5^4 viewed as an algebra over its field
         """
         if isinstance(base,CommutativeRing):
             from sage.rings.algebra_from_morphism_constructor import RingExtension

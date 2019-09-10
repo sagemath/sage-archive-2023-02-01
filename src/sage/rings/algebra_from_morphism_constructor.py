@@ -237,7 +237,7 @@ def RingExtension(ring, base=None, defining_morphism=None):
         sage: aE = ExtFrob(a)
         sage: aE + c
         4*z4^3 + 4*z4^2 + 2
-        sage: a^5 + c
+        sage: a + c^5
         4*z4^3 + 4*z4^2 + 2
 
 

@@ -4423,18 +4423,30 @@ class Polyhedron_base(Element):
              A ray in the direction (1, 1),
              A vertex at (2, 0))
 
-        TESTS::
+        TESTS:
+
+        Checking that the backend is preserved::
 
             sage: Cube = polytopes.cube(backend='field')
             sage: stack = Cube.stack(Cube.faces(2)[0])
             sage: stack.backend()
             'field'
+
+        Checking that stacked point needs to be in the interior of
+        ``locus_polyhedron``::
+            sage: P = polytopes.octahedron()
+            sage: P.stack(P.faces(2)[0],4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the chosen position is too large
         """
         from sage.geometry.polyhedron.face import PolyhedronFace
         if not isinstance(face, PolyhedronFace):
             raise TypeError("{} should be a PolyhedronFace of {}".format(face, self))
         elif face.dim() == 0:
             raise ValueError("can not stack onto a vertex")
+        elif face.dim() == -1 or face.dim() == self.dim():
+            raise ValueError("can only stack on proper face")
 
         if position is None:
             position = 1
@@ -4448,7 +4460,7 @@ class Polyhedron_base(Element):
             face_star = set([face.ambient_Hrepresentation()[-1]])
         else:
             face_star = set(facet for facet in self.Hrepresentation() if facet.is_inequality()
-                            if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices))
+                            if all(not facet.interior_contains(x) for x in face_vertices))
 
         neighboring_facets = set()
         for facet in face_star:
@@ -4467,7 +4479,7 @@ class Polyhedron_base(Element):
         repr_point = locus_polyhedron.representative_point()
         new_vertex = (1-position)*barycenter + position*repr_point
 
-        if not locus_polyhedron.contains(new_vertex):
+        if not locus_polyhedron.relative_interior_contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
         parent = self.parent().base_extend(new_vertex)

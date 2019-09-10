@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 r"""
 Partition Shifting Algebras
@@ -127,7 +128,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
     = (\lambda_1, \lambda_2, \ldots, \lambda_{\ell})` as follows. Let
     `S` be our algebra of shifting operators. Then, for any monomial
     `s = x_1^{a_1}x_2^{a_2} \cdots x_r^{a_r} \in S` where `a_i \in
-    \mathbb{Z}` and `r \geq \ell`, we get that `s.\lambda = (\lambda_1
+    \ZZ` and `r \geq \ell`, we get that `s.\lambda = (\lambda_1
     + a_1, \lambda_2 + a_2,\ldots,\lambda_r+a_r)` where we pad
     `\lambda` with `r-\ell` zeros. In particular, we can recover
     Young's raising operator, `R_{ij}`, for `i < j`, acting on
@@ -143,8 +144,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
     `x_1^{a_1} \cdots x_r^{a_r}.b_\lambda` by first computing
     `(x_1^{a_1} \cdots x_r^{a_r})x_1^{\lambda_1} \cdots
     x_\ell^{\lambda_\ell}` and then applying `\phi` to the result. For
-    examples of what this looks like with specific bases, see the
-    examples below.
+    examples of what this looks like with specific bases, see below.
 
     This implementation is consistent with how many references work
     formally with raising operators. For instance, see exposition

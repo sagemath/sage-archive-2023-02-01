@@ -2145,31 +2145,46 @@ cdef class AlgebraToRing(RingHomomorphism):
         return x._backend()
 
 
-cdef class AlgebraFromMorphismMorphism(RingHomomorphism):
-    def __init__(self, parent, *args, **kwargs):
+cdef class AlgebraFromMorphismHomomorphism(RingHomomorphism):
+    def __init__(self, parent, backend_morphism):
         RingHomomorphism.__init__(self, parent)
-        if isinstance(self._domain, AlgebraFromMorphism):
-            backend_domain = self._domain._backend()
-        else:
-            backend_domain = self._domain
-        if isinstance(self._codomain, AlgebraFromMorphism):
-            backend_codomain = self._codomain._backend()
-        else:
-            backend_codomain = self._codomain
-        self._backend_morphism = backend_domain.Hom(backend_codomain)(*args, **kwargs)
+        backend_domain = self.domain()
+        if isinstance(backend_domain, AlgebraFromMorphism):
+            backend_domain = backend_domain._backend()
+        backend_codomain = self.codomain()
+        if isinstance(backend_codomain, AlgebraFromMorphism):
+            backend_codomain = backend_codomain._backend()
+        if backend_morphism.domain() is not backend_domain:
+            raise TypeError("the domain of the backend morphism is not correct")
+        if backend_morphism.codomain() is not backend_codomain:
+            raise TypeError("the codomain of the backend morphism is not correct")
+        self._backend_morphism = backend_morphism
+        # We should probably allow for more general constructions but
+        #   self._backend_morphism = backend_domain.Hom(backend_codomain)(*args, **kwargs)
+        # does not work currently
 
     cpdef Element _call_(self, x):
-        if isinstance(self._domain, AlgebraFromMorphism):
+        if isinstance(self.domain(), AlgebraFromMorphism):
             x = x._backend()
         y = self._backend_morphism(x)
-        if isinstance(self._codomain, AlgebraFromMorphism):
+        if isinstance(self.codomain(), AlgebraFromMorphism):
             y = self._codomain(y)
         return y
 
     def _backend(self, forget=None):
         backend = self._backend_morphism
-        if forget == "domain" and not isinstance(self._domain, AlgebraFromMorphism):
+        if forget == "domain" and not isinstance(self.domain(), AlgebraFromMorphism):
             return self.__class__(backend.domain().Hom(self._codomain), backend)
-        if forget == "codomain" and not isinstance(self._codomain, AlgebraFromMorphism):
+        if forget == "codomain" and not isinstance(self.codomain(), AlgebraFromMorphism):
             return self.__class__(self._domain.Hom(backend.codomain()), backend)
         return backend
+
+    cdef _update_slots(self, dict _slots):
+        self._backend_morphism = _slots['_backend_morphism']
+        RingHomomorphism._update_slots(self, _slots)
+
+    cdef dict _extra_slots(self):
+        slots = RingHomomorphism._extra_slots(self)
+        slots['_backend_morphism'] = self._backend_morphism
+        return slots
+

@@ -38,5 +38,6 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
 cdef class AlgebraToRing(RingHomomorphism):
     cpdef Element _call_(self, x)
 
-cdef class AlgebraToMorphismMorphism(RingHomomorphism):
+cdef class AlgebraFromMorphismHomomorphism(RingHomomorphism):
+    cdef _backend_morphism
     cpdef Element _call_(self, x)

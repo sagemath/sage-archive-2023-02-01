@@ -22,9 +22,10 @@ AUTHOR:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.pushout import pushout
 from sage.categories.algebras import Algebras
-from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import CommutativeRing, CommutativeAlgebra
 from sage.rings.morphism import RingHomomorphism
+from sage.rings.morphism import AlgebraFromMorphismHomomorphism
 
 
 class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
@@ -91,15 +92,17 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             coerce &= ring._coerce
             ring = ring._backend()
 
+        CommutativeAlgebra.__init__(self, ZZ, category=Algebras(base))
         self._base = base
         self._ring = ring
         self._coerce = coerce
         self._defining_morphism = defining_morphism
-        CommutativeAlgebra.__init__(self, base, category=Algebras(base))
 
+        self._unset_coercions_used()
+        f = AlgebraFromMorphismHomomorphism(self._base.Hom(self), defining_morphism)
+        self.register_coercion(f)
         if coerce:
             from sage.rings.morphism import AlgebraToRing
-            self._unset_coercions_used()
             self._populate_coercion_lists_(embedding = AlgebraToRing(self.Hom(ring)))
 
         from sage.rings.algebra_from_morphism_element import AlgebraFMElement
@@ -148,6 +151,9 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         from sage.rings.algebra_from_morphism_element import AlgebraFMElement
         if isinstance(x, AlgebraFMElement):
             x = x._backend()
+        if self._base.has_coerce_map_from(x.parent()):
+            x = self._base.coerce_map_from(x.parent())(x)
+            x = self._defining_morphism(x)
         elt = self._ring(x, *args, **kwargs)
         return self.element_class(self, elt)
 
@@ -591,5 +597,5 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
     def intermediate_rings(self):
         L = [ self ]
         while isinstance(L[-1], AlgebraFromMorphism):
-            L.append(L[-1].base_ring())
+            L.append(L[-1].base())
         return L

@@ -20,12 +20,13 @@ AUTHOR:
 
 
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.pushout import pushout
-from sage.categories.algebras import Algebras
+from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import CommutativeRing, CommutativeAlgebra
-from sage.rings.morphism import RingHomomorphism
 from sage.rings.morphism import AlgebraFromMorphismHomomorphism
+from sage.rings.algebra_from_morphism_element import AlgebraFMElement
 
 
 class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
@@ -63,6 +64,8 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
     - Xavier Caruso (2016)
     """
+    Element = AlgebraFMElement
+
     def __init__(self, defining_morphism, coerce):
         r"""
         TESTS::
@@ -85,14 +88,12 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         ring = defining_morphism.codomain()
 
         if isinstance(ring, AlgebraFromMorphism):
-            try:
-                defining_morphism = defining_morphism._backend(forget="codomain")
-            except AttributeError:
-                defining_morphism = defining_morphism.post_compose(AlgebraToRing(self.Hom(ring)))
+            from sage.rings.morphism import backend_morphism
+            defining_morphism = backend_morphism(defining_morphism, forget="codomain")
             coerce &= ring._coerce
             ring = ring._backend()
 
-        CommutativeAlgebra.__init__(self, ZZ, category=Algebras(base))
+        CommutativeAlgebra.__init__(self, ZZ, category=CommutativeAlgebras(base))
         self._base = base
         self._ring = ring
         self._coerce = coerce
@@ -102,64 +103,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         f = AlgebraFromMorphismHomomorphism(self._base.Hom(self), defining_morphism)
         self.register_coercion(f)
         if coerce:
-            from sage.rings.morphism import AlgebraToRing
-            self._populate_coercion_lists_(embedding = AlgebraToRing(self.Hom(ring)))
-
-        from sage.rings.algebra_from_morphism_element import AlgebraFMElement
-        self.element_class = AlgebraFMElement
-
-    def _element_constructor_(self, x, *args, **kwargs):
-        r"""
-        Convert ``x`` into an element of this parent
-
-        EXAMPLES::
-
-            sage: K = GF(5^4)
-            sage: L = GF(5^8)
-            sage: E = RingExtension(L,K)
-
-        Conversion of an element of the ring::
-
-            sage: a = L.random_element()
-            sage: a.parent()
-            Finite Field in z8 of size 5^8
-            sage: a.parent() is L
-            True
-
-            sage: aE = E(a)
-            sage: aE.parent()
-            Finite Field in z8 of size 5^8 viewed as an algebra over its base
-            sage: aE.parent() is E
-            True
-
-        Conversion from another extension::
-
-            sage: k = GF(5^2)
-            sage: F = RingExtension(K,k)
-            sage: b = K.gen(); b
-            z4
-            sage: bF = F(b); bF
-            z4
-
-            sage: bE = E(bF); bE
-            4*z8^7 + z8^6 + 3*z8^4 + z8^3 + z8^2 + 4
-            sage: bE.parent()
-            Finite Field in z8 of size 5^8 viewed as an algebra over its base
-            sage: bE.parent() is E
-            True
-        """
-        from sage.rings.algebra_from_morphism_element import AlgebraFMElement
-        if isinstance(x, AlgebraFMElement):
-            x = x._backend()
-        try:
-            parent = x.parent()
-            if self._base.has_coerce_map_from(parent):
-                x = self._base.coerce_map_from(parent)(x)
-                x = self._defining_morphism(x)
-        except AttributeError:
-            pass
-        elt = self._ring(x, *args, **kwargs)
-        return self.element_class(self, elt)
+            self._populate_coercion_lists_(embedding = AlgebraFromMorphismHomomorphism(self.Hom(ring), ring.Hom(ring).identity()))
 
     def from_base_ring(self, r):
         r"""
@@ -201,8 +145,12 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         """
         if r not in self._base:
             raise TypeError("%s is not an element of the base of %s (= %s)" % (r, self._ring, self._base))
-        elt = self._defining_morphism(r)
-        return self.element_class(self, elt)
+        return self.element_class(self, r)
+
+    def _Hom_(self, other, category):
+        if isinstance(self, AlgebraFromMorphism) or isinstance(other, AlgebraFromMorphism):
+            from sage.rings.homset import AlgebraFromMorphismHomset
+            return AlgebraFromMorphismHomset(self, other, category)
 
     def _pushout_(self, other):
         r"""
@@ -446,6 +394,9 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         """
         elt = self._ring.an_element()
         return self.element_class(self, elt)
+
+    def ngens(self):
+        return self._ring.ngens()
 
     def gen(self):
         r"""

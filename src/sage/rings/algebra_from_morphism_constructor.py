@@ -277,3 +277,10 @@ def RingExtension(ring, base=None, defining_morphism=None):
         else:
             raise ValueError("No coercion map from %s to %s" % (codomain,ring))
     return AlgebraFromMorphism(defining_morphism, coerce)
+
+
+def TowerExtensions(*rings):
+    tower = rings[-1]
+    for i in range(len(rings)-2, -1, -1):
+        tower = RingExtension(rings[i], tower)
+    return tower

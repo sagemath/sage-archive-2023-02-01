@@ -10,13 +10,22 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
     - Xavier Caruso (2016)
     """
-    def __init__(self, parent, element, *args, **kwds):
+    def __init__(self, parent, x, *args, **kwds):
         from sage.rings.algebra_from_morphism import AlgebraFromMorphism
         if not isinstance(parent, AlgebraFromMorphism):
             raise TypeError("%s is not an instance of AlgebraFromMorphism" % parent)
+        if isinstance(x, AlgebraFMElement):
+            x = x._backend()
+        try:
+            parentx = x.parent()
+            if parent.base().has_coerce_map_from(parentx):
+                x = parent.base().coerce_map_from(parentx)(x)
+                x = parent.defining_morphism()(x)
+        except AttributeError:
+            pass
         Element.__init__(self, parent)
         ring = parent._backend()
-        self._element = ring(element, *args, **kwds)
+        self._element = ring(x, *args, **kwds)
 
     def _repr_(self):
         r"""

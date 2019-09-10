@@ -306,7 +306,7 @@ def elliptic_j(z, prec=53):
 
     - ``z`` (complex) -- a complex number with positive imaginary part.
 
-     - ``prec`` (default: 53) -- precision in bits for the complex field.
+    - ``prec`` (default: 53) -- precision in bits for the complex field.
 
     OUTPUT:
 

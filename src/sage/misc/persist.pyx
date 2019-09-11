@@ -777,7 +777,7 @@ class SagePickler(_BasePickler):
       default for the best chances of cross-Python compatibility.
 
     - Further arguments are passed to :func:`pickle.load`, where in Python-3
-      Sage sets the default ``encoding='latin1'`. This is essential to make
+      Sage sets the default ``encoding='latin1'``. This is essential to make
       pickles readable in Python-3 that were created in Python-2. See
       :trac:`28444` for details.
 
@@ -965,7 +965,7 @@ class SageUnpickler(_BaseUnpickler):
 
 
 def loads(s, compress=True, **kwargs):
-    """
+    r"""
     Recover an object x that has been dumped to a string s
     using ``s = dumps(x)``.
 

@@ -1370,7 +1370,6 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: g.diff()
                 Piecewise((-1/x**2, (x > -100) & (x < -2)), (-sin(x), x > 1))
             """
-            from sage.symbolic.ring import SR
             from sympy import Piecewise as pw
             args = [(func._sympy_(),
                      domain._sympy_condition_(variable))

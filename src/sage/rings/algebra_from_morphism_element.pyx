@@ -205,3 +205,43 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
             False
         """
         return self._element.is_prime()
+
+
+cdef class RingExtensionWithBasisElement(AlgebraFMElement):
+    def _repr_(self):
+        parent = self._parent
+        basis = parent.basis()
+        _, _, j = parent.vector_space()
+        coeffs = j(self)
+        s = ""
+        for i in range(len(basis)):
+            if coeffs[i].is_zero(): continue
+            c = coeffs[i]
+            sign = 1
+            if (-c)._is_atomic():
+                c = -c
+                sign = -sign
+            b = basis[i]
+            sign = 1
+            if (-b)._is_atomic():
+                b = -b
+                sign = -sign
+            if sign == 1:
+                s += " + "
+            else:
+                s += " - "
+            if c != 1:
+                if c._is_atomic():
+                    s += "%s" % c
+                else:
+                    s += "(%s)" % c
+                if b != 1: s += "*"
+            if b != 1:
+                if b._is_atomic():
+                    s += "%s" % b
+                else:
+                    s += "(%s)" % b
+            if b == 1 and c == 1:
+                s += "1"
+        if s == "": return "0"
+        return s[3:]

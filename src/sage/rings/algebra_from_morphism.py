@@ -19,14 +19,20 @@ AUTHOR:
 #****************************************************************************
 
 
+from sage.misc.cachefunc import cached_method
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.pushout import pushout
 from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.map import Map
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import CommutativeRing, CommutativeAlgebra
 from sage.rings.morphism import AlgebraFromMorphismHomomorphism
+from sage.rings.infinity import Infinity
+
 from sage.rings.algebra_from_morphism_element import AlgebraFMElement
+from sage.rings.algebra_from_morphism_element import RingExtensionWithBasisElement
 
 
 class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
@@ -159,21 +165,18 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 
         ALGORITHM:
 
-        If ``other`` is not an extension, we return the pushout of
-        ``self._backend()`` and ``other``
+        If ``other`` coerces to the base of ``self``, we return ``self``
+        Similarly, if ``self`` coerces to the base of ``other``, we return
+        ``other``
 
-        Otherwise, if the defining morphism of ``self`` or ``other``
-        is not a coercion map, we return the pushout of ``self._backend()``
-        and ``other._backend()``
+        Otherwise, if ``self`` or ``other`` are extensions defined by
+        coercion morphisms, we compute the pushout of ``self._backend()``
+        and ``other._backend()`` and call it ``ring``. We then check
+        whether there exists a coercion map between ``self.base()`` and
+        ``other.base()`` and, if so, we return the extension ``ring/base``
+        where ``base`` the domain of the coercion map.
 
-        Otherwise, we compute the pushout of ``self._backend()`` and
-        ``other._backend()`` and call it ``ring``. We then check whether
-        there exists a coercion map between ``self.base()`` and
-        ``other.base()``. If no coercion map is found, we return
-        ``ring``
-
-        Otherwise, we call ``base`` the domain of the coercion
-        map and return the extension ``ring/base``
+        In all other cases, return None
 
         .. TODO::
 
@@ -181,8 +184,8 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             coercion maps
 
             If no coercion map is discovered between ``self.base()``
-            and ``other.base()``, compute the pullover ``base`` of
-            these two rings (i.e. the greatest ring coercing to both)
+            and ``other.base()``, compute the greatest base ``base``
+            on which ``self.base()`` and ``other.base()`` are defined
             and return the extension ``ring/base``
 
         TESTS::
@@ -196,43 +199,26 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             sage: E1._pushout_(E2) is E2
             True
 
-            sage: E1._pushout_(L2) is L2
-            True
+            sage: E1._pushout_(L2)
 
-        When the defining morphism is not a coercion map, the pushout
-        is never an extension, always a ring::
-
-            sage: E1p = RingExtension(L1, K1, K1.frobenius_endomorphism())
-            sage: E1p._pushout_(E2) is L2
-            True
-
-            sage: E2p = RingExtension(L2, K2, K2.frobenius_endomorphism())
-            sage: E1p._pushout_(E2p) is L2
-            True
         """
-        base = None
+        if self._base.has_coerce_map_from(other):
+            return self
         if isinstance(other,AlgebraFromMorphism):
-            # TODO: implement pushout when:
-            # - defining_morphism are not coercion maps
-            #   (this implies to check the equality of two morphisms)
-            # - there is no direct coercion map between the bases
-            #   but there exists a third ring which coerces to eash base
-            #   Question: how can one find the greatest such third ring?
+            if other._backend().has_coerce_map_from(self):
+                return other
             if self._coerce and other._coerce:
+                ring = pushout(self._ring, other._backend())
                 sbase = self._base
                 obase = other._base
+                base = None
                 if sbase.has_coerce_map_from(obase):
                     base = obase
                 elif obase.has_coerce_map_from(sbase):
                     base = sbase
-            ring = pushout(self._ring, other._backend())
-        else:
-            ring = pushout(self._ring, other)
-        if base is None:
-            return ring
-        else:
-            from sage.rings.algebra_from_morphism_constructor import RingExtension
-            return RingExtension(ring,base)
+                if base is not None:
+                    from sage.rings.algebra_from_morphism_constructor import RingExtension
+                    return RingExtension(ring, base)
 
     def _repr_(self):
         r"""
@@ -554,3 +540,143 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         while isinstance(L[-1], AlgebraFromMorphism):
             L.append(L[-1].base())
         return L
+
+
+# Finite free extensions (with a given basis)
+#############################################
+
+
+class RingExtensionWithBasis(AlgebraFromMorphism):
+    Element = RingExtensionWithBasisElement
+
+    def __init__(self, defining_morphism, coerce, basis):
+        AlgebraFromMorphism.__init__(self, defining_morphism, coerce)
+        self._basis = [ self(b)._backend() for b in basis ]
+
+    def relative_degree(self):
+        return len(self._basis)
+
+    def absolute_degree(self):
+        return self.relative_degree() * self._base.absolute_degree()
+
+    def basis(self):
+        return self._basis
+
+    def is_finite(self):
+        return True
+
+    def dimension(self):
+        return len(self._basis)
+
+    @cached_method
+    def vector_space(self, K=None, with_maps=True):
+        if K is None:
+            K = self._base
+        if K is not self._base:
+            raise NotImplemetedError
+        d = self.relative_degree()
+        if with_maps:
+            return K**d, MapVectorSpaceToRelativeField(self), MapRelativeFieldToVectorSpace(self)
+        else:
+            return K**d
+
+
+
+class MapVectorSpaceToRelativeField(Map):
+    def __init__(self, E):
+        if not isinstance(E, RingExtensionWithBasis):
+            raise TypeError("you must pass in a RingExtensionWithBasis")
+        self._degree = E.relative_degree()
+        self._basis = E.basis()
+        self._f = E.defining_morphism()
+        domain = E.base_ring() ** self._degree
+        parent = domain.Hom(E)
+        Map.__init__(self, parent)
+
+    def is_injective(self):
+        return True
+
+    def is_surjective(self):
+        return True
+
+    def _call_(self, v):
+        return sum(self._f(v[i]) * self._basis[i] for i in range(self._degree))
+
+
+class MapRelativeFieldToVectorSpace(Map):
+    def __init__(self, E):
+        if not isinstance(E, RingExtensionWithBasis):
+            raise TypeError("you must pass in a RingExtensionWithBasis")
+        self._degree = E.relative_degree()
+        self._basis = E.basis()
+        K = E.base_ring()
+        codomain = K ** self._degree
+        parent = E.Hom(codomain)
+        Map.__init__(self, parent)
+
+        # We now perform some precomputations
+        if isinstance(K, AlgebraFromMorphism):
+            K = K._backend()
+        L = E._backend()
+
+        # We compute a common base for K and L
+        def tower_finite_bases(ring):
+            bases = [ ]
+            base = ring
+            while True:
+                bases.append(base)
+                try:
+                    deg = base.relative_degree()
+                except AttributeError:
+                    try:
+                        deg = base.degree()
+                    except AttributeError:
+                        break
+                if deg is Infinity: break
+                newbase = base.base_ring()
+                if newbase is base: break
+                base = newbase
+            return bases
+        bases_K = tower_finite_bases(K)
+        bases_L = tower_finite_bases(L)
+        base = None
+        for b in bases_L:
+            if b in bases_K:
+                base = b
+                break
+        if base is None:
+            raise NotImplementedError("unable to find a common base")
+
+        # We compute the matrix of our isomorphism (over base)
+        # EK, iK, jK = K.vector_space(base, with_maps=True)
+        # EL, iL, jL = L.vector_space(base, with_maps=True)
+        EK, iK, jK = K.absolute_vector_space()
+        EL, iL, jL = L.absolute_vector_space()
+
+        self._dimK = EK.dimension()
+        self._iK = iK
+        self._jL = jL
+
+        M = [ ]
+        f = E.defining_morphism()
+        for x in self._basis:
+            for v in EK.basis():
+                y = x * f(iK(v))
+                M.append(jL(y))
+        from sage.matrix.matrix_space import MatrixSpace
+        self._matrix = MatrixSpace(base,len(M))(M).inverse()
+
+    def is_injective(self):
+        return True
+
+    def is_surjective(self):
+        return True
+
+    def _call_(self, x):
+        dK = self._dimK
+        w = (self._jL(x._backend()) * self._matrix).list()
+        coeffs = [ ]
+        for i in range(self._degree):
+            coeff = self._iK(w[i*dK:(i+1)*dK])
+            coeffs.append(coeff)
+        return self.codomain()(coeffs)

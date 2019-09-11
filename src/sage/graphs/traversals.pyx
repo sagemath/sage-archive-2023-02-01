@@ -43,9 +43,11 @@ from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
 from libc.stdint cimport uint32_t
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
+from libcpp.vector cimport vector
 
 def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     r"""
@@ -1497,3 +1499,331 @@ def maximum_cardinality_search(G, reverse=False, tree=False, initial_vertex=None
         return alpha, D
 
     return alpha
+
+
+cdef inline int swap(int* alpha, int* alpha_inv, int u, int new_pos_u):
+    """
+    Swap positions of u and v in alpha, where v is be the vertex occupying cell
+    new_pos_u in alpha.
+    """
+    cdef int v = alpha[new_pos_u]
+    alpha[new_pos_u], alpha[alpha_inv[u]] = u, v
+    alpha_inv[u], alpha_inv[v] = alpha_inv[v], alpha_inv[u]
+    return v
+
+cdef maximum_cardinality_search_M_short_digraph(short_digraph sd, int initial_vertex,
+                                                int* alpha, int* alpha_inv, list F, bint* X):
+    r"""
+    Compute the ordering and the edges of the triangulation produced by MCS-M.
+
+    Maximum cardinality search M (MCS-M) is an extension of MCS
+    (:meth:`~sage.graphs.traversals.maximum_cardinality_search`) in the same way
+    that Lex-M (:meth:`~sage.graphs.traversals.lex_M`) is an extension of
+    Lex-BFS (:meth:`~sage.graphs.traversalslex_BFS`). That is, in MCS-M when `u`
+    receives number `i` at step `n - i + 1`, it increments the weight of all
+    unnumbered vertices `v` for which there exists a path between `u` and `v`
+    consisting only of unnumbered vertices with weight strictly less than
+    `w^-(u)` and `w^-(v)`, where `w^-` is the number of times a vertex has been
+    reached during previous iterations. See [BBHP2004]_ for the details of this
+    `O(nm)` time algorithm.
+
+    If `G` is not connected, the orderings of each of its connected components
+    are added consecutively.
+
+    This method is the core of
+    :meth:`~sage.graphs.traversals.maximum_cardinality_search_M`.
+
+    INPUT:
+
+    - ``sd`` -- a ``short_digraph`` as documented in
+      :mod:`~sage.graphs.base.static_sparse_graph`
+
+    - ``initial_vertex`` -- int; initial vertex for the search
+
+    - ``alpha`` -- int array of size `N`; the computed ordering of MCS-M
+
+    - ``alpha_inv`` -- int array of size `N`; the position of vertex ``u`` in
+      ``alpha``, that is the inverse function of alpha. So we have
+      ``alpha[alpha_inv[u]] == u`` for all `0 \leq u < N - 1`.
+
+    - ``F`` -- list; to be filled with the edges of the triangulation
+
+    - ``X`` -- boolean array of size `N`; ``X[u]`` is set to ``True`` if the
+      neighborhood of `u` is a separator of the graph
+
+    TESTS::
+
+        sage: Graph().maximum_cardinality_search_M()
+        ([], [], [])
+        sage: Graph(1).maximum_cardinality_search_M()
+        ([0], [], [])
+        sage: graphs.PathGraph(2).maximum_cardinality_search_M(initial_vertex=17)
+        Traceback (most recent call last):
+        ...
+        ValueError: vertex (17) is not a vertex of the graph
+
+    .. TODO::
+
+        Use a fast heap data structure with decrease-key operation.
+    """
+    # Initialization of data structures
+    cdef int N = sd.n
+    cdef MemoryAllocator mem = MemoryAllocator()
+    # number of times a vertex is reached, initially 0
+    cdef int* weight = <int*>mem.calloc(N, sizeof(int))
+    # has a vertex been reached, initally False
+    cdef bint* reached = <bint*>mem.calloc(N, sizeof(bint))
+
+    cdef int i, u, v, xi
+    for i in range(N):
+        weight[i] = 0
+        alpha[i] = i
+        alpha_inv[i] = i
+        X[i] = False
+
+    # If an initial vertex is specified, we put it at position 0 in alpha.
+    # This way, it will be the first vertex to be considered.
+    if initial_vertex:
+        swap(alpha, alpha_inv, initial_vertex, 0)
+
+    # variables for the manipulation of the short digraph
+    cdef uint32_t** p_vertices = sd.neighbors
+    cdef uint32_t* p_tmp
+    cdef uint32_t* p_end
+
+    cdef vector[vector[int]] reach
+    cdef int s = -1
+    cdef int current_pos = N
+
+    while current_pos:
+
+        # Choose an unnumbered vertex of maximum weight.
+        # This could be done faster if we had a heap data structure with
+        # decrease key operation.
+        u = alpha[0]
+        for i in range(current_pos):
+            v = alpha[i]
+            if weight[u] < weight[v]:
+                u = v
+
+        # Swap u and the vertex v occupying position current_pos in alpha
+        current_pos -= 1
+        v = swap(alpha, alpha_inv, u, current_pos)
+        reached[u] = True
+
+        # If the weight decreases, the neighborhood of u is a separator
+        if weight[u] <= s:
+            X[u] = True
+        s = weight[u]
+
+        # Search for new edges of the triangulation.
+        # We add an edge to the triangulation between u and any unnumbered
+        # vertex v such that there is a path (v, x1, x2,... , xk, u) through
+        # unnumbered vertices such that count-[xi] < count-[v], 1 <= i <= k. If
+        # such an edge is found, we increase the count of v for next round.
+
+        # Mark all unnumbered vertices unreached. These vertices occupy
+        # positions 0,..,current_pos-1 in alpha
+        reach.clear()
+        reach.resize(N)
+        for i in range(current_pos):
+            v = alpha[i]
+            reached[v] = False
+
+        # Initialize reach with unnumbered neighbors of u
+        p_tmp = p_vertices[u]
+        p_end = p_vertices[u + 1]
+        while p_tmp < p_end:
+            v = p_tmp[0]
+            p_tmp += 1
+            if not reached[v]:
+                reach[weight[v]].push_back(v)
+                reached[v] = True
+                weight[v] += 1
+
+        # Search
+        for i in range(N):
+            while not reach[i].empty():
+                xi = reach[i].back()
+                reach[i].pop_back()
+                p_tmp = p_vertices[xi]
+                p_end = p_vertices[xi + 1]
+                while p_tmp < p_end:
+                    v = p_tmp[0]
+                    p_tmp += 1
+                    if reached[v]:
+                        continue
+                    reached[v] = True
+                    if i < weight[v]:
+                        reach[weight[v]].push_back(v)
+                        weight[v] += 1
+                        F.append((u, v))
+                    else:
+                        reach[i].push_back(v)
+
+    reach.clear()
+
+def maximum_cardinality_search_M(G, initial_vertex=None):
+    r"""
+    Return the ordering and the edges of the triangulation produced by MCS-M.
+
+    Maximum cardinality search M (MCS-M) is an extension of MCS
+    (:meth:`~sage.graphs.traversals.maximum_cardinality_search`) in the same way
+    that Lex-M (:meth:`~sage.graphs.traversals.lex_M`) is an extension of
+    Lex-BFS (:meth:`~sage.graphs.traversals.lex_BFS`). That is, in MCS-M when
+    `u` receives number `i` at step `n - i + 1`, it increments the weight of all
+    unnumbered vertices `v` for which there exists a path between `u` and `v`
+    consisting only of unnumbered vertices with weight strictly less than
+    `w^-(u)` and `w^-(v)`, where `w^-` is the number of times a vertex has been
+    reached during previous iterations. See [BBHP2004]_ for the details of this
+    `O(nm)` time algorithm.
+
+    If `G` is not connected, the orderings of each of its connected components
+    are added consecutively. Furthermore, if `G` has `k` connected components
+    `C_i` for `0 \leq i < k`, `X` contains at least one vertex of `C_i` for each
+    `i \geq 1`. Hence, `|X| \geq k - 1`. In particular, some isolated vertices
+    (i.e., of degree 0) can appear in `X` as for such a vertex `x`, we have that
+    `G \setminus N(x) = G` is not connected.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to consider
+
+    OUTPUT: a tuple `(\alpha, F, X)`, where
+
+    - `\alpha` is the resulting ordering of the vertices. If an initial vertex
+      is specified, it gets the last position in the ordering `\alpha`.
+
+    - `F` is the list of edges of a minimal triangulation of `G` according
+      `\alpha`
+
+    - `X` is is a list of vertices such that for each `x \in X`, the
+      neighborhood of `x` in `G` is a separator (i.e., `G \setminus N(x)` is not
+      connected). Note that we may have `N(x) = \emptyset` if `G` is not
+      connected and `x` has degree 0.
+
+    EXAMPLES:
+
+    Chordal graphs have a perfect elimination ordering, and so the set `F` of
+    edges of the triangulation is empty::
+
+        sage: G = graphs.RandomChordalGraph(20)
+        sage: alpha, F, X = G.maximum_cardinality_search_M(); F
+        []
+
+    The cycle of order 4 is not chordal and so the triangulation has one edge::
+
+        sage: G = graphs.CycleGraph(4)
+        sage: alpha, F, X = G.maximum_cardinality_search_M(); len(F)
+        1
+
+    The number of edges needed to triangulate of a cycle graph or order `n` is
+    `n - 3`, independently of the initial vertex::
+
+        sage: n = randint(3, 20)
+        sage: C = graphs.CycleGraph(n)
+        sage: _, F, X = C.maximum_cardinality_search_M()
+        sage: len(F) == n - 3
+        True
+        sage: _, F, X = C.maximum_cardinality_search_M(initial_vertex=C.random_vertex())
+        sage: len(F) == n - 3
+        True
+
+    When an initial vertex is specified, it gets the last position in the
+    ordering::
+
+        sage: G = graphs.PathGraph(4)
+        sage: G.maximum_cardinality_search_M(initial_vertex=0)
+        ([3, 2, 1, 0], [], [2, 3])
+        sage: G.maximum_cardinality_search_M(initial_vertex=1)
+        ([3, 2, 0, 1], [], [2, 3])
+        sage: G.maximum_cardinality_search_M(initial_vertex=2)
+        ([0, 1, 3, 2], [], [0, 1])
+        sage: G.maximum_cardinality_search_M(initial_vertex=3)
+        ([0, 1, 2, 3], [], [0, 1])
+
+
+    When `G` is not connected, the orderings of each of its connected components
+    are added consecutively, the vertices of the component containing the
+    initial vertex occupying the last positions::
+
+        sage: G = graphs.CycleGraph(4) * 2
+        sage: G.maximum_cardinality_search_M()[0]
+        [5, 4, 6, 7, 2, 3, 1, 0]
+        sage: G.maximum_cardinality_search_M(initial_vertex=7)[0]
+        [2, 1, 3, 0, 5, 6, 4, 7]
+
+    Furthermore, if `G` has `k` connected components, `X` contains at least one
+    vertex per connected component, except for the first one, and so at least `k
+    - 1` vertices::
+
+        sage: for k in range(1, 5):
+        ....:     _, _, X = Graph(k).maximum_cardinality_search_M()
+        ....:     if len(X) < k - 1:
+        ....:         raise ValueError("something goes wrong")
+        sage: G = graphs.RandomGNP(10, .2)
+        sage: cc = G.connected_components()
+        sage: _, _, X = G.maximum_cardinality_search_M()
+        sage: len(X) >= len(cc) - 1
+        True
+
+    In the example of [BPS2010]_, the triangulation has 3 edges::
+
+        sage: G = Graph({'a': ['b', 'k'], 'b': ['c'], 'c': ['d', 'j', 'k'],
+        ....:            'd': ['e', 'f', 'j', 'k'], 'e': ['g'],
+        ....:            'f': ['g', 'j', 'k'], 'g': ['j', 'k'], 'h': ['i', 'j'],
+        ....:            'i': ['k'], 'j': ['k']})
+        sage: _, F, _ = G.maximum_cardinality_search_M(initial_vertex='a')
+        sage: len(F)
+        3
+
+    TESTS::
+
+        sage: Graph().maximum_cardinality_search_M()
+        ([], [], [])
+        sage: Graph(1).maximum_cardinality_search_M()
+        ([0], [], [])
+        sage: graphs.PathGraph(2).maximum_cardinality_search_M(initial_vertex=17)
+        Traceback (most recent call last):
+        ...
+        ValueError: vertex (17) is not a vertex of the graph
+    """
+    cdef list int_to_vertex = list(G)
+
+    if initial_vertex is None:
+        initial_vertex = 0
+    elif initial_vertex in G:
+        initial_vertex = int_to_vertex.index(initial_vertex)
+    else:
+        raise ValueError("vertex ({0}) is not a vertex of the graph".format(initial_vertex))
+
+    cdef int N = G.order()
+    if not N:
+        return ([], [], [])
+    if N == 1:
+        return (list(G), [], [])
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors. This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int* alpha = <int*>mem.calloc(N, sizeof(int))
+    cdef int* alpha_inv = <int*>mem.calloc(N, sizeof(int))
+    cdef bint* X = <bint*>mem.calloc(N, sizeof(bint))
+    cdef list F = []
+
+    sig_on()
+    maximum_cardinality_search_M_short_digraph(sd, initial_vertex, alpha, alpha_inv, F, X)
+    sig_off()
+
+    free_short_digraph(sd)
+
+    cdef int u, v
+    return ([int_to_vertex[alpha[u]] for u in range(N)],
+            [(int_to_vertex[u], int_to_vertex[v]) for u, v in F],
+            [int_to_vertex[u] for u in range(N) if X[u]])

@@ -72,7 +72,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
     """
     Element = AlgebraFMElement
 
-    def __init__(self, defining_morphism, coerce):
+    def __init__(self, defining_morphism, coerce=False):
         r"""
         TESTS::
 
@@ -381,8 +381,11 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         elt = self._ring.an_element()
         return self.element_class(self, elt)
 
+    def gens(self):
+        return tuple([ self(x) for x in self._ring.gens() ])
+
     def ngens(self):
-        return self._ring.ngens()
+        return len(self.gens())
 
     def gen(self):
         r"""
@@ -408,8 +411,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             sage: a == x
             True
         """
-        elt = self._ring.gen()
-        return self.element_class(self, elt)
+        return self.gens()[0]
 
     def random_element(self):
         r"""
@@ -549,9 +551,22 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
 class RingExtensionWithBasis(AlgebraFromMorphism):
     Element = RingExtensionWithBasisElement
 
-    def __init__(self, defining_morphism, coerce, basis):
+    def __init__(self, defining_morphism, basis, names=None, coerce=False):
         AlgebraFromMorphism.__init__(self, defining_morphism, coerce)
         self._basis = [ self(b)._backend() for b in basis ]
+        if names is None:
+            names = [ ]
+            for b in self._basis:
+                if b == 1:
+                    names.append("")
+                if b._is_atomic():
+                    names.append(str(b))
+                else:
+                    names.append("(%s)" % b)
+        else:
+            if len(names) != len(self._basis):
+                raise ValueError("the number of names does not match the cardinality of the basis")
+        self._names = names
 
     def relative_degree(self):
         return len(self._basis)
@@ -560,26 +575,54 @@ class RingExtensionWithBasis(AlgebraFromMorphism):
         return self.relative_degree() * self._base.absolute_degree()
 
     def basis(self):
-        return self._basis
+        return [ self(x) for x in self._basis ]
 
     def is_finite(self):
+        return True
+
+    def is_free(self):
         return True
 
     def dimension(self):
         return len(self._basis)
 
     @cached_method
-    def vector_space(self, K=None, with_maps=True):
+    def vector_space(self, K=None, map=True):
         if K is None:
             K = self._base
         if K is not self._base:
             raise NotImplemetedError
         d = self.relative_degree()
-        if with_maps:
+        if map:
             return K**d, MapVectorSpaceToRelativeField(self), MapRelativeFieldToVectorSpace(self)
         else:
             return K**d
 
+
+class RingExtensionWithGen(RingExtensionWithBasis):
+    def __init__(self, defining_morphism, gen, name, degree, coerce=False):
+        self._name = str(name)
+        names = [ "", self._name ] + [ "%s^%s" % (self._name, i) for i in range(2,degree) ]
+        basis = [ gen ** i for i in range(degree) ]
+        RingExtensionWithBasis.__init__(self, defining_morphism, basis, names, coerce)
+        self._gen = self(gen)._backend()
+        self._type = "Ring"
+        # if self._ring in Fields():
+        #     self._type = "Field"
+
+    def modulus(self, var='x'):
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        _, _, j = self.vector_space()
+        d = self.relative_degree()
+        coeffs = [ -c for c in j(self._gen**d) ] + [ 1 ]
+        S = PolynomialRing(self._base, name=var)
+        return S(coeffs)
+
+    def gens(self):
+        return (self(self._gen),)
+
+    def _repr_(self):
+        return "%s in %s with defining polynomial %s over its base" % (self._type, self._name, self.modulus())
 
 
 class MapVectorSpaceToRelativeField(Map):
@@ -587,7 +630,7 @@ class MapVectorSpaceToRelativeField(Map):
         if not isinstance(E, RingExtensionWithBasis):
             raise TypeError("you must pass in a RingExtensionWithBasis")
         self._degree = E.relative_degree()
-        self._basis = E.basis()
+        self._basis = E._basis
         self._f = E.defining_morphism()
         domain = E.base_ring() ** self._degree
         parent = domain.Hom(E)
@@ -608,7 +651,7 @@ class MapRelativeFieldToVectorSpace(Map):
         if not isinstance(E, RingExtensionWithBasis):
             raise TypeError("you must pass in a RingExtensionWithBasis")
         self._degree = E.relative_degree()
-        self._basis = E.basis()
+        self._basis = E._basis
         K = E.base_ring()
         codomain = K ** self._degree
         parent = E.Hom(codomain)

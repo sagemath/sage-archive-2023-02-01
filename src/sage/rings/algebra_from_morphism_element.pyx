@@ -210,38 +210,47 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 cdef class RingExtensionWithBasisElement(AlgebraFMElement):
     def _repr_(self):
         parent = self._parent
-        basis = parent.basis()
+        names = parent._names
         _, _, j = parent.vector_space()
         coeffs = j(self)
         s = ""
-        for i in range(len(basis)):
+        for i in range(len(names)):
             if coeffs[i].is_zero(): continue
             c = coeffs[i]
             sign = 1
             if (-c)._is_atomic():
                 c = -c
                 sign = -sign
-            b = basis[i]
-            sign = 1
-            if (-b)._is_atomic():
-                b = -b
-                sign = -sign
-            if sign == 1:
-                s += " + "
+            if s == "":
+                if sign == -1: s = "-"
             else:
-                s += " - "
+                s += " + " if sign == 1 else " - "
+            ss = ""
             if c != 1:
                 if c._is_atomic():
-                    s += "%s" % c
+                    ss += "%s" % c
                 else:
-                    s += "(%s)" % c
-                if b != 1: s += "*"
-            if b != 1:
-                if b._is_atomic():
-                    s += "%s" % b
-                else:
-                    s += "(%s)" % b
-            if b == 1 and c == 1:
-                s += "1"
+                    ss += "(%s)" % c
+                if names[i] != "": ss += "*"
+            ss += names[i]
+            if ss == "": ss += "1"
+            s += ss
         if s == "": return "0"
-        return s[3:]
+        return s
+
+    def matrix(self):
+        from sage.matrix.matrix_space import MatrixSpace
+        parent = self._parent
+        _, _, j = parent.vector_space()
+        x = self._backend()
+        M = [ j(x*b) for b in parent._basis ]
+        return MatrixSpace(parent._base, len(parent._basis))(M)
+
+    def trace(self):
+        return self.matrix().trace()
+
+    def norm(self):
+        return self.matrix().determinant()
+
+    def charpoly(self, var='x'):
+        return self.matrix().charpoly(var)

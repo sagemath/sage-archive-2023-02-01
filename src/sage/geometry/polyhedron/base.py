@@ -4343,7 +4343,7 @@ class Polyhedron_base(Element):
 
         - ``face`` -- a PolyhedronFace
 
-        - ``position`` -- a positive integer. Determines a relative distance
+        - ``position`` -- a positive number. Determines a relative distance
           from the barycenter of ``face``. A value close to 0 will place the
           new vertex close to the face and a large value further away. Default
           is `1`. If the given value is too large, an error is returned.

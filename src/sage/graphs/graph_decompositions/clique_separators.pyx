@@ -5,7 +5,8 @@ r"""
 Decomposition by clique minimal separators
 
 This module implements methods related to the decomposition of a graph by clique
-minimal separators. See [TY1984]_ and [BPS2010]_ for more details.
+minimal separators. See [TY1984]_ and [BPS2010]_ for more details on the
+algorithms.
 
 Methods
 -------
@@ -109,11 +110,11 @@ def make_labelled_rooted_tree(atoms, cliques):
         sage: G = graphs.PathGraph(5)
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           _____{3}_____
-         /            /               
+         /            /
         {3, 4}   ____{2}____
-                /          /         
+                /          /
                {2, 3}   __{1}__
-                       /      /     
+                       /      /
                       {0, 1} {1, 2}
 
     TESTS::
@@ -154,8 +155,8 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
     This method implements the algorithm proposed in [BPS2010]_, that improves
     upon the algorithm proposed in [TY1984]_, for computing the atoms and the
     clique minimal separators of a graph. This algorithm is based on the
-    :meth:`maximum_cardinality_search_M` graph traversal and has time complexity
-    in `O(|V|\cdot|E|)`.
+    :meth:`~sage.graphs.traversals.maximum_cardinality_search_M` graph traversal
+    and has time complexity in `O(|V|\cdot|E|)`.
 
     If the graph is not connected, we insert empty separators between the lists
     of separators of each connected components. See the examples below for more
@@ -203,32 +204,22 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         ....:            'd': ['e', 'f', 'j', 'k'], 'e': ['g'],
         ....:            'f': ['g', 'j', 'k'], 'g': ['j', 'k'], 'h': ['i', 'j'],
         ....:            'i': ['k'], 'j': ['k']})
-        sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))  # py2
-          ____________________{'k', 'j'}_____________
-         /                                          /                                                   
-        {'i', 'h', 'k', 'j'}   ____________________{'k', 'j', 'd'}_______
-                              /                                         /                              
-                             {'e', 'd', 'g', 'f', 'k', 'j'}   _________{'c', 'k'}__
-                                                             /                    /                   
-                                                            {'a', 'c', 'b', 'k'} {'c', 'j', 'k', 'd'}
-        sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))  # py2
-         ____________________{'k', 'j'}_____________
-        /                                          /                                                   
-        {'k', 'i', 'j', 'h'}   ____________________{'k', 'j', 'd'}_______
-                              /                                         /                              
-                             {'k', 'g', 'j', 'f', 'd', 'e'}   _________{'k', 'c'}__
-                                                             /                    /                   
-                                                            {'k', 'a', 'b', 'c'} {'k', 'j', 'c', 'd'}
-
-        sage: A, Sc = G.atoms_and_clique_separators()
+        sage: atoms, cliques = G.atoms_and_clique_separators()
+        sage: sorted(sorted(a) for a in atoms)
+        [['a', 'b', 'c', 'k'],
+         ['c', 'd', 'j', 'k'],
+         ['d', 'e', 'f', 'g', 'j', 'k'],
+         ['h', 'i', 'j', 'k']]
+        sage: sorted(sorted(c) for c in cliques)
+        [['c', 'k'], ['d', 'j', 'k'], ['j', 'k']]
         sage: T = G.atoms_and_clique_separators(tree=True)
         sage: T.is_tree()
         True
-        sage: T.diameter() == len(A)
+        sage: T.diameter() == len(atoms)
         True
-        sage: all(u[1] in A for u in T if T.degree(u) == 1)
+        sage: all(u[1] in atoms for u in T if T.degree(u) == 1)
         True
-        sage: all(u[1] in Sc for u in T if T.degree(u) != 1)
+        sage: all(u[1] in cliques for u in T if T.degree(u) != 1)
         True
 
     A graph without clique separator::
@@ -244,9 +235,9 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         sage: G = graphs.PathGraph(4)
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           ____{2}____
-         /          /         
+         /          /
         {2, 3}   __{1}__
-                /      /     
+                /      /
                {1, 2} {0, 1}
 
         sage: G = graphs.WindmillGraph(3, 4)
@@ -254,11 +245,11 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         ([{0, 1, 2}, {0, 3, 4}, {0, 5, 6}, {0, 8, 7}], [{0}, {0}, {0}])
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           ________{0}________
-         /                  /                     
+         /                  /
         {0, 1, 2}   _______{0}______
-                   /               /             
+                   /               /
                   {0, 3, 4}   ____{0}___
-                             /         /        
+                             /         /
                             {0, 8, 7} {0, 5, 6}
 
     When the removal of a clique separator results in `k > 2` connected
@@ -270,34 +261,34 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         ....:     G.add_cycle([0, 1, G.add_vertex()])
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           _________{0, 1}_____
-         /                   /                               
+         /                   /
         {0, 1, 4}   ________{0, 1}_____
-                   /                  /                     
+                   /                  /
                   {0, 1, 2}   _______{0, 1}___
-                             /               /             
+                             /               /
                             {0, 1, 3}   ____{0, 1}
-                                       /         /        
+                                       /         /
                                       {0, 1, 5} {0, 1, 6}
 
         sage: G = graphs.StarGraph(3)
         sage: G.subdivide_edges(G.edges(), 2)
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           ______{5}______
-         /              /                                                     
+         /              /
         {1, 5}   ______{7}______
-                /              /                                             
+                /              /
                {2, 7}   ______{9}______
-                       /              /                                     
+                       /              /
                       {9, 3}   ______{6}______
-                              /              /                             
+                              /              /
                              {6, 7}   ______{4}_____
-                                     /             /                      
+                                     /             /
                                     {4, 5}   _____{0}_____
-                                            /            /               
+                                            /            /
                                            {0, 6}   ____{8}____
-                                                   /          /         
+                                                   /          /
                                                   {8, 9}   __{0}__
-                                                          /      /     
+                                                          /      /
                                                          {0, 8} {0, 4}
 
     If the graph is not connected, we insert empty separators between the lists
@@ -336,15 +327,15 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         [{8, 7}, {6, 7}] [{7}]
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           ______{1}______
-         /              /                             
+         /              /
         {1, 2}   ______{}______
-                /             /                      
+                /             /
                {0, 1}   _____{4}_____
-                       /            /               
+                       /            /
                       {4, 5}   ____{}_____
-                              /          /         
+                              /          /
                              {3, 4}   __{7}__
-                                     /      /     
+                                     /      /
                                     {6, 7} {8, 7}
 
     Loops and multiple edges are ignored::
@@ -355,15 +346,15 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         sage: G.add_edges(G.edges())
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           ______{1}______
-         /              /                             
+         /              /
         {1, 2}   ______{}______
-                /             /                      
+                /             /
                {0, 1}   _____{4}_____
-                       /            /               
+                       /            /
                       {4, 5}   ____{}_____
-                              /          /         
+                              /          /
                              {3, 4}   __{7}__
-                                     /      /     
+                                     /      /
                                     {6, 7} {8, 7}
 
     We can check that the returned list of separators is valid::
@@ -402,11 +393,11 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         {}[{0}[], {}[{1}[], {}[{3}[], {2}[]]]]
         sage: ascii_art(I4.atoms_and_clique_separators(rooted_tree=True))
           ___{}___
-         /       /        
+         /       /
         {0}   __{}___
-             /      /    
+             /      /
             {1}   _{}_
-                 /   /  
+                 /   /
                 {3} {2}
     """
     cdef list A = []   # atoms

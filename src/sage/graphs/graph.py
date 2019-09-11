@@ -8656,6 +8656,7 @@ class Graph(GenericGraph):
     from sage.graphs.connectivity import is_triconnected
     from sage.graphs.comparability import is_comparability
     from sage.graphs.comparability import is_permutation
+    from sage.graphs.traversals import lex_M
     from sage.graphs.traversals import maximum_cardinality_search
     from sage.graphs.traversals import maximum_cardinality_search_M
 
@@ -8687,6 +8688,7 @@ _additional_categories = {
     "cleave"                    : "Connectivity, orientations, trees",
     "spqr_tree"                 : "Connectivity, orientations, trees",
     "is_triconnected"           : "Connectivity, orientations, trees",
+    "lex_M"                     : "Traversals",
     "maximum_cardinality_search" : "Traversals",
     "maximum_cardinality_search_M" : "Traversals"
     }

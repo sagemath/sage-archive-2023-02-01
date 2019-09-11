@@ -1347,7 +1347,7 @@ def maximum_cardinality_search(G, reverse=False, tree=False, initial_vertex=None
     ordering can be computed in time `O(n + m)`.
 
     When the graph is chordal, the ordering returned by MCS is a *perfect
-    elimination ordering*, like :meth:`~sage.graphs.graph.Graph.lex_BFS`. So
+    elimination ordering*, like :meth:`~sage.graphs.traversals.lex_BFS`. So
     this ordering can be used to recognize chordal graphs. See [He2006]_ for
     more details.
 

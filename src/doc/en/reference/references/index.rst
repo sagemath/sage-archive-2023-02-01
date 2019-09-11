@@ -2164,6 +2164,10 @@ REFERENCES:
 .. [HC2006] Mark van Hoeij and John Cremona, Solving Conics over
             function fields. J. Théor. Nombres Bordeaux, 2006.
 
+.. [He2006] Pinar Heggernes. *Minimal triangulations of graphs: A survey*.
+            Discrete Mathematics, 306(3):297-317, 2006.
+            :doi:`10.1016/j.disc.2005.12.003`
+
 .. [He2002] \H. Heys *A Tutorial on Linear and Differential
             Cryptanalysis* ; 2002' available at
             http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
@@ -4404,6 +4408,12 @@ REFERENCES:
 
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
             Publishing, 1980)
+
+.. [TY1984] Robert Endre Tarjan, Mihalis Yannakakis. *Simple linear-time
+            algorithms to test chordality of graphs, test acyclicity of
+            hypergraphs, and selectively reduce acyclic hypergraphs*.
+            SIAM Journal on Computing, 13:566-579, 1984.
+            :doi:`10.1137/0213035`
 
 .. [TY2009] Hugh Thomas and Alexander Yong, *A jeu de taquin theory for
             increasing tableaux, with applications to K-theoretic Schubert

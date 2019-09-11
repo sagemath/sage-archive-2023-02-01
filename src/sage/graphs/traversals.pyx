@@ -18,6 +18,7 @@ Graph traversals.
     :meth:`~lex_M` |     Return an ordering of the vertices according the LexM graph traversal.
     :meth:`~lex_M_slow` | Return an ordering of the vertices according the LexM graph traversal.
     :meth:`~lex_M_fast` | Return an ordering of the vertices according the LexM graph traversal.
+    :meth:`~maximum_cardinality_search`| Return an ordering of the vertices according a maximum cardinality search.
 
 Methods
 -------
@@ -42,6 +43,9 @@ from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
 from libc.stdint cimport uint32_t
+
+from libcpp.queue cimport priority_queue
+from libcpp.pair cimport pair
 
 def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     r"""
@@ -1326,3 +1330,170 @@ def is_valid_lex_M_order(G, alpha, F):
         if not K.is_clique():
             return False
     return True
+
+
+def maximum_cardinality_search(G, reverse=False, tree=False, initial_vertex=None):
+    r"""
+    Return an ordering of the vertices according a maximum cardinality search.
+
+    Maximum cardinality search (MCS) is a graph traversal introduced in
+    [TY1984]_. It starts by assigning an arbitrary vertex (or the specified
+    ``initial_vertex``) of `G` the last position in the ordering `\alpha`. Every
+    vertex keeps a weight equal to the number of its already processed neighbors
+    (i.e., already added to `\alpha`), and a vertex of largest such number is
+    chosen at each step `i` to be placed in position `n - i` in `\alpha`. This
+    ordering can be computed in time `O(n + m)`.
+
+    When the graph is chordal, the ordering returned by MCS is a *perfect
+    elimination ordering*, like :meth:`~sage.graphs.graph.Graph.lex_BFS`. So
+    this ordering can be used to recognize chordal graphs. See [He2006]_ for
+    more details.
+
+    .. NOTE::
+
+        The current implementation is for connected graphs only.
+
+    INPUT:
+
+    - ``G`` -- a Sage Graph
+
+    - ``reverse`` -- boolean (default: ``False``); whether to return the
+      vertices in discovery order, or the reverse
+
+    - ``tree`` -- boolean (default: ``False``); whether to also return the
+      discovery directed tree (each vertex being linked to the one that saw
+      it for the first time)
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to consider
+
+    OUPUT: by default, return the ordering `\alpha` as a list. When ``tree`` is
+    ``True``, the method returns a tuple `(\alpha, T)`, where `T` is a directed
+    tree with the same set of vertices as `G`and a directed edge from `u` to `v`
+    if `u` was the first vertex to saw `v`.
+
+    EXAMPLES:
+
+    When specified, the ``initial_vertex`` is placed at the end of the ordering,
+    unless parameter ``reverse`` is ``True``, in which case it is placed at the
+    beginning::
+
+        sage: G = graphs.PathGraph(4)
+        sage: G.maximum_cardinality_search(initial_vertex=0)
+        [3, 2, 1, 0]
+        sage: G.maximum_cardinality_search(initial_vertex=1)
+        [0, 3, 2, 1]
+        sage: G.maximum_cardinality_search(initial_vertex=2)
+        [0, 1, 3, 2]
+        sage: G.maximum_cardinality_search(initial_vertex=3)
+        [0, 1, 2, 3]
+        sage: G.maximum_cardinality_search(initial_vertex=3, reverse=True)
+        [3, 2, 1, 0]
+
+    Returning the discovery tree::
+
+        sage: G = graphs.PathGraph(4)
+        sage: _, T = G.maximum_cardinality_search(tree=True, initial_vertex=0)
+        sage: T.order(), T.size()
+        (4, 3)
+        sage: T.edges(labels=False, sort=True)
+        [(1, 0), (2, 1), (3, 2)]
+        sage: _, T = G.maximum_cardinality_search(tree=True, initial_vertex=3)
+        sage: T.edges(labels=False, sort=True)
+        [(0, 1), (1, 2), (2, 3)]
+
+    TESTS:
+
+        sage: Graph().maximum_cardinality_search()
+        []
+        sage: Graph(1).maximum_cardinality_search()
+        [0]
+        sage: Graph(2).maximum_cardinality_search()
+        Traceback (most recent call last):
+        ...
+        ValueError: the input graph is not connected
+        sage: graphs.PathGraph(2).maximum_cardinality_search(initial_vertex=17)
+        Traceback (most recent call last):
+        ...
+        ValueError: vertex (17) is not a vertex of the graph
+    """
+    if tree:
+        from sage.graphs.digraph import DiGraph
+
+    cdef int N = G.order()
+    if not N:
+        return ([], DiGraph()) if tree else []
+    if N == 1:
+        return (list(G), DiGraph(G)) if tree else list(G)
+
+    cdef list int_to_vertex = list(G)
+
+    if initial_vertex is None:
+        initial_vertex = 0
+    elif initial_vertex in G:
+        initial_vertex = int_to_vertex.index(initial_vertex)
+    else:
+        raise ValueError("vertex ({0}) is not a vertex of the graph".format(initial_vertex))
+
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+    cdef uint32_t** p_vertices = sd.neighbors
+    cdef uint32_t* p_tmp
+    cdef uint32_t* p_end
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int* weight = <int*>mem.calloc(N, sizeof(int))
+    cdef bint* seen = <bint*>mem.calloc(N, sizeof(bint))
+    cdef int* pred = <int *>mem.allocarray(N, sizeof(int))
+
+    cdef int i, u, v
+    for i in range(G.order()):
+        weight[i] = 0
+        seen[i] = False
+        pred[i] = i
+
+    # We emulate a heap with decrease key operation using a priority queue.
+    # A vertex can be inserted multiple times (up to its degree), but only the
+    # first extraction (with maximum weight) matters. The size of the queue will
+    # never exceed O(m).
+    cdef priority_queue[pair[int, int]] pq
+    pq.push((0, initial_vertex))
+
+    # The ordering alpha is feed in reversed order and revert afterword
+    cdef list alpha = []
+
+    while not pq.empty():
+        _, u = pq.top()
+        pq.pop()
+        if seen[u]:
+            # We use a lazy decrease key mode, so u can be several times in pq
+            continue
+
+        alpha.append(int_to_vertex[u])
+        seen[u] = True
+
+        p_tmp = p_vertices[u]
+        p_end = p_vertices[u + 1]
+        while p_tmp < p_end:
+            v = p_tmp[0]
+            if not seen[v]:
+                weight[v] += 1
+                pq.push((weight[v], v))
+                if pred[v] == v:
+                    pred[v] = u
+            p_tmp += 1
+
+    free_short_digraph(sd)
+
+    if len(alpha) < N:
+        raise ValueError("the input graph is not connected")
+
+    if not reverse:
+        alpha.reverse()
+
+    if tree:
+        D = DiGraph([int_to_vertex, [(int_to_vertex[i], int_to_vertex[pred[i]])
+                                         for i in range(N) if pred[i] != i]],
+                    format="vertices_and_edges")
+        return alpha, D
+
+    return alpha

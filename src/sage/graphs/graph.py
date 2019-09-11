@@ -8640,6 +8640,7 @@ class Graph(GenericGraph):
     from sage.graphs.chrompoly import chromatic_polynomial
     from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
     from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+    from sage.graphs.graph_decompositions.clique_separators import atoms_and_clique_separators
     from sage.graphs.matchpoly import matching_polynomial
     from sage.graphs.cliquer import all_max_clique as cliques_maximum
     from sage.graphs.spanning_tree import random_spanning_tree
@@ -8669,6 +8670,7 @@ _additional_categories = {
     "matching_polynomial"       : "Algorithmically hard stuff",
     "all_max_clique"            : "Clique-related methods",
     "cliques_maximum"           : "Clique-related methods",
+    "atoms_and_clique_separators" : "Clique-related methods",
     "random_spanning_tree"      : "Connectivity, orientations, trees",
     "is_cartesian_product"      : "Graph properties",
     "is_distance_regular"       : "Graph properties",

@@ -18,7 +18,8 @@ Graph traversals.
     :meth:`~lex_M` |     Return an ordering of the vertices according the LexM graph traversal.
     :meth:`~lex_M_slow` | Return an ordering of the vertices according the LexM graph traversal.
     :meth:`~lex_M_fast` | Return an ordering of the vertices according the LexM graph traversal.
-    :meth:`~maximum_cardinality_search`| Return an ordering of the vertices according a maximum cardinality search.
+    :meth:`~maximum_cardinality_search` | Return an ordering of the vertices according a maximum cardinality search.
+    :meth:`~maximum_cardinality_search_M` | Return the ordering and the edges of the triangulation produced by MCS-M.
 
 Methods
 -------
@@ -38,7 +39,6 @@ import collections
 
 from libc.string cimport memset
 from sage.ext.memory_allocator cimport MemoryAllocator
-from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge

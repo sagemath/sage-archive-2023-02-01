@@ -294,7 +294,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: z._im_gens_(R, [t^2], base_map=cc)
             Traceback (most recent call last):
             ...
-            NotImplementedError:
+            NotImplementedError
         """
         x = im_gens[0]
         return codomain(self.__u._im_gens_(codomain, im_gens, base_map=base_map) * x**self.__n)

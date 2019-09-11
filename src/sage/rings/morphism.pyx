@@ -1121,6 +1121,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: phi(i*y)
             -i*y^2
             sage: phi.base_map()
+            Ring endomorphism of Number Field in i with defining polynomial x^2 + 1
+              Defn: i |--> -i
         """
         return self._base_map
 

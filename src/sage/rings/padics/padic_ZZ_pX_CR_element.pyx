@@ -2507,6 +2507,42 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         ans.c = ctx
         return ans, ans_k
 
+    def _polynomial_list(self, pad=False):
+        """
+        Returns the coefficient list for a polynomial over the base ring
+        yielding this element.
+
+        INPUT:
+
+        - ``pad`` -- whether to pad the result with zeros of the appropriate precision
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: W.<w> = Qp(5).extension(x^3-5)
+            sage: (1 + w + O(w^11))._polynomial_list()
+            [1 + O(5^4), 1 + O(5^4)]
+            sage: (1 + w + O(w^11))._polynomial_list(pad=True)
+            [1 + O(5^4), 1 + O(5^4), O(5^3)]
+        """
+        R = self.base_ring()
+        if self.is_zero():
+            L = []
+        else:
+            f, k = self._ntl_rep_abs()
+            L = [Integer(c) for c in f.list()]
+        if pad:
+            n = self.parent().degree()
+            L.extend([R.zero()] * (n - len(L)))
+        if self._is_exact_zero():
+            return L
+        prec = self.relprec + self.ordp
+        e = self.parent().e()
+        if e == 1:
+            return [R(c, prec) >> k for c in L]
+        else:
+            return [R(c, (prec - i - 1) // e + 1) >> k for i, c in enumerate(L)]
+
     def polynomial(self, var='x'):
         """
         Returns a polynomial over the base ring that yields this element
@@ -2525,17 +2561,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         """
         R = self.base_ring()
         S = R[var]
-        if self.is_zero():
-            return S([])
-        prec = self.relprec + self.ordp
-        e = self.parent().e()
-        f, k = self._ntl_rep_abs()
-        L = [Integer(c) for c in f.list()]
-        if e == 1:
-            L = [R(c, prec) >> k for c in L]
-        else:
-            L = [R(c, (prec - i - 1) // e + 1) >> k for i, c in enumerate(L)]
-        return S(L)
+        return S(self._polynomial_list())
 
     cdef ZZ_p_c _const_term(self):
         """

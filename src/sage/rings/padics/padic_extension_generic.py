@@ -39,7 +39,7 @@ from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.misc.flatten import flatten
 from sage.misc.cachefunc import cached_method
-from sage.misc.richcmp import richcmp
+from sage.structure.richcmp import rich_to_bool
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -564,7 +564,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
                            range(self.modulus().degree())],
                       0)
 
-    @cached_method(key=lambda (self, base, map): (base or self.base_ring(), map))
+    @cached_method(key=(lambda self, base, map: (base or self.base_ring(), map)))
     def free_module(self, base=None, map=True):
         """
         Returns a free module V over a specified base ring together with maps to and from V.
@@ -589,6 +589,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
             
         """
         B = self.base_ring()
+        if base is None:
+            base = B
         A = B.base_ring()
         d = self.relative_degree()
         if base is B:
@@ -686,7 +688,7 @@ class pAdicModuleIsomorphism(Map):
             True
         """
         # Equality depends only on the parent
-        return richcmp(op, 0)
+        return rich_to_bool(op, 0)
 
 class MapFreeModuleToOneStep(pAdicModuleIsomorphism):
     """
@@ -695,27 +697,18 @@ class MapFreeModuleToOneStep(pAdicModuleIsomorphism):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToOneStep
-        sage: L.<a> = Qq(125)
-        sage: Q5 = L.base_ring()
-        sage: V = Q5^3
-        sage: phi = MapFreeModuleToOneStep(V, L)
-        sage: TestSuite(phi).run()
+        sage: K.<a> = Qq(125)
+        sage: V, fr, to = K.free_module()
+        sage: TestSuite(fr).run(skip=['_test_nonzero_equal']) # skipped since Qq(125) doesn't have dimension()
     """
-    def __init__(self, V, L):
-        pAdicModuleIsomorphism.__init__(self, Hom(V, L))
-
     def _call_(self, x):
         """
         EXAMPLES::
 
-            sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToOneStep
-            sage: L.<a> = Qq(125)
-            sage: Q5 = L.base_ring()
-            sage: V = Q5^3
-            sage: phi = MapFreeModuleToOneStep(V, L)
+            sage: K.<a> = Qq(125)
+            sage: V, fr, to = K.free_module()
             sage: v = V([1,2,3])
-            sage: phi(v)
+            sage: fr(v)
             (3*a^2 + 2*a + 1) + O(5^20)
         """
         return self.codomain()(list(x))
@@ -724,13 +717,10 @@ class MapFreeModuleToOneStep(pAdicModuleIsomorphism):
         """
         EXAMPLES::
 
-            sage: from sage.rings.padics.padic_extension_generic import MapOneStepToFreeModule
-            sage: L.<a> = Qq(125)
-            sage: Q5 = L.base_ring()
-            sage: V = Q5^3
-            sage: phi = MapFreeModuleToOneStep(V, L)
+            sage: K.<a> = Qq(125)
+            sage: V, fr, to = K.free_module()
             sage: v = V([1,2,3])
-            sage: phi(v, 7)
+            sage: fr(v, 7)
             (3*a^2 + 2*a + 1) + O(5^7)
         """
         return self.codomain()(list(x), *args, **kwds)
@@ -741,32 +731,24 @@ class MapOneStepToFreeModule(pAdicModuleIsomorphism):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.padic_extension_generic import MapOneStepToFreeModule
-        sage: L.<a> = Qq(125)
-        sage: Q5 = L.base_ring()
-        sage: V = Q5^3
-        sage: phi = MapOneStepToFreeModule(L, V)
-        sage: TestSuite(phi).run()
+        sage: K.<a> = Qq(125)
+        sage: V, fr, to = K.free_module()
+        sage: TestSuite(to).run()
     """
-    def __init__(self, L, V):
-        pAdicModuleIsomorphism.__init__(self, Hom(L, V))
-
     def _call_(self, x):
         """
         EXAMPLES::
 
-            sage: from sage.rings.padics.padic_extension_generic import MapOneStepToFreeModule
-            sage: Q5 = Qp(5)
             sage: R.<x> = ZZ[]
-            sage: L.<pi> = Q5.extension(x^3 - 5)
-            sage: V = Q5^3
-            sage: phi = MapOneStepToFreeModule(L, V)
-            sage: a = 1 + pi^2 + O(pi^11)
-            sage: phi(a)
+            sage: K.<pi> = Qp(5).extension(x^3 - 5)
+            sage: V, fr, to = K.free_module()
+            sage: to(1 + pi^2 + O(pi^11))
             (1 + O(5^4), O(5^4), 1 + O(5^3))
+            sage: to(1 + pi + O(pi^11))
+            (1 + O(5^4), 1 + O(5^4), O(5^3))
         """
         V = self.codomain()
-        return self.codomain()(x.polynomial().padded_list(V.rank()))
+        return self.codomain()(x._polynomial_list(pad=True))
 
 class MapFreeModuleToTwoStep(pAdicModuleIsomorphism):
     """
@@ -775,34 +757,29 @@ class MapFreeModuleToTwoStep(pAdicModuleIsomorphism):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToTwoStep
-        sage: L.<a> = Qq(125)
-        sage: Q5 = L.base_ring()
-        sage: V = Q5^3
-        sage: phi = MapFreeModuleToTwoStep(V, L)
-        sage: TestSuite(phi).run()
+        sage: K.<a> = Qq(125)
+        sage: R.<x> = ZZ[]
+        sage: L.<b> = K.extension(x^2 - 5*x + 5)
+        sage: V, fr, to = L.free_module(base=Qp(5))
+        sage: TestSuite(fr).run(skip=['_test_nonzero_equal']) # skipped since L doesn't have dimension()
     """
-    def __init__(self, V, L):
-        pAdicModuleIsomorphism.__init__(self, Hom(V, L))
-
     def _call_(self, x):
         """
         EXAMPLES::
 
-            sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToTwoStep
-            sage: L.<a> = Qq(125)
-            sage: Q5 = L.base_ring()
-            sage: V = Q5^3
-            sage: phi = MapFreeModuleToTwoStep(V, L)
-            sage: v = V([1,2,3])
-            sage: phi(v)
-            (3*a^2 + 2*a + 1) + O(5^20)
+            sage: K.<a> = Qq(125)
+            sage: R.<x> = ZZ[]
+            sage: L.<pi> = K.extension(x^2 - 5)
+            sage: V, fr, to = L.free_module(base=Qp(5))
+            sage: v = V([1,2,3,4,5,6])
+            sage: fr(v)
+            (3*a^2 + 2*a + 1) + (a^2 + 4)*pi + (a^2 + a)*pi^3 + O(pi^40)
         """
         L = self.codomain()
-        d = L.relative_degree()
         U = L.base_ring()
         x = list(x)
         n = len(x)
+        d = n // L.relative_degree()
         v = [U(x[i:i+d]) for i in range(0,n,d)]
         return L(v)
 
@@ -810,14 +787,13 @@ class MapFreeModuleToTwoStep(pAdicModuleIsomorphism):
         """
         EXAMPLES::
 
-            sage: from sage.rings.padics.padic_extension_generic import MapTwoStepToFreeModule
-            sage: L.<a> = Qq(125)
-            sage: Q5 = L.base_ring()
-            sage: V = Q5^3
-            sage: phi = MapFreeModuleToTwoStep(V, L)
-            sage: v = V([1,2,3])
-            sage: phi(v, 7)
-            (3*a^2 + 2*a + 1) + O(5^7)
+            sage: K.<a> = Qq(125)
+            sage: R.<x> = ZZ[]
+            sage: L.<pi> = K.extension(x^2 - 5)
+            sage: V, fr, to = L.free_module(base=Qp(5))
+            sage: v = V([1,2,3,4,5,6])
+            sage: fr(v, 7)
+            (3*a^2 + 2*a + 1) + (a^2 + 4)*pi + (a^2 + a)*pi^3 + O(pi^7)
         """
         return self.codomain()(self._call_(x), *args, **kwds)
 
@@ -827,33 +803,25 @@ class MapTwoStepToFreeModule(pAdicModuleIsomorphism):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.padic_extension_generic import MapTwoStepToFreeModule
-        sage: L.<a> = Qq(125)
-        sage: Q5 = L.base_ring()
-        sage: V = Q5^3
-        sage: phi = MapTwoStepToFreeModule(L, V)
-        sage: TestSuite(phi).run()
+        sage: K.<a> = Qq(125)
+        sage: R.<x> = ZZ[]
+        sage: L.<b> = K.extension(x^2 - 5*x + 5)
+        sage: V, fr, to = L.free_module(base=Qp(5))
+        sage: TestSuite(to).run()
     """
-    def __init__(self, L, V):
-        pAdicModuleIsomorphism.__init__(self, Hom(L, V))
-
     def _call_(self, x):
         """
         EXAMPLES::
 
-            sage: from sage.rings.padics.padic_extension_generic import MapTwoStepToFreeModule
-            sage: Q5 = Qp(5)
+            sage: K.<a> = Qq(25)
             sage: R.<x> = ZZ[]
-            sage: L.<pi> = Q5.extension(x^3 - 5)
-            sage: V = Q5^3
-            sage: phi = MapTwoStepToFreeModule(L, V)
-            sage: a = 1 + pi^2 + O(pi^11)
-            sage: phi(a)
-            (1 + O(5^4), O(5^4), 1 + O(5^3))
+            sage: L.<pi> = K.extension(x^3 - 5)
+            sage: V, fr, to = L.free_module(base=Qp(5))
+            sage: a = 1 + a*pi + O(pi^7)
+            sage: to(a)
+            (1 + O(5^3), O(5^3), O(5^2), 1 + O(5^2), O(5^2), O(5^2))
         """
-        e = self.domain().relative_degree()
-        f = self.domain().base_ring().relative_degree()
-        v = flatten([c.polynomial().padded_list(f) for c in x.polynomial().padded_list(e)])
+        v = flatten([c._polynomial_list(pad=True) for c in x._polynomial_list(pad=True)])
         return self.codomain()(v)
 
 class DefPolyConversion(Morphism):

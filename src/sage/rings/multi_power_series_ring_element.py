@@ -552,10 +552,10 @@ class MPowerSeries(PowerSeries):
 
         y = 0
         base_map = kwds.get('base_map')
+        if base_map is None:
+            base_map = lambda t: t
         for m, c in iteritems(self.dict()):
-            if base_map is not None:
-                c = base_map(c)
-            y += c*prod([x[i]**m[i] for i in range(n) if m[i] != 0])
+            y += base_map(c)*prod([x[i]**m[i] for i in range(n) if m[i] != 0])
         if self.prec() == infinity:
             return y
         else:

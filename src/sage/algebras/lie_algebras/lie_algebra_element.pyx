@@ -120,11 +120,9 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             return s
         names = self.parent().variable_names()
         if base_map is None:
-            return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
-                                for t, c in self._monomial_coefficients.iteritems())
-        else:
-            return codomain.sum(base_map(c) * t._im_gens_(codomain, im_gens, names)
-                                for t, c in self._monomial_coefficients.iteritems())
+            base_map = lambda x: x
+        return codomain.sum(base_map(c) * t._im_gens_(codomain, im_gens, names)
+                            for t, c in self._monomial_coefficients.iteritems())
 
     cpdef lift(self):
         """

@@ -23,6 +23,7 @@ from sage.structure.element import get_coercion_model
 from sage.structure.richcmp import richcmp
 from sage.matrix.constructor import matrix
 from itertools import combinations
+from six import iteritems
 
 # TODO: Refactor out common functionality with RingHomomorphism_im_gens
 class LieAlgebraHomomorphism_im_gens(Morphism):
@@ -607,8 +608,7 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             1/3*A - 1/3*B + 2/3*C
         """
         C = self.codomain()
-        if self._base_map is None:
-            return C.sum(c * self._im_gens[i] for i, c in x.to_vector().iteritems())
-        else:
-            bh = self._base_map
-            return C.sum(bh(c) * self._im_gens[i] for i, c in x.to_vector().iteritems())
+        bh = self._base_map
+        if bh is None:
+            bh = lambda t: t
+        return C.sum(bh(c) * self._im_gens[i] for i, c in iteritems(x.to_vector()))

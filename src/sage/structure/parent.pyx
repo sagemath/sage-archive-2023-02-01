@@ -1346,6 +1346,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             codomain = im_gens.universe()
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
+        # Not all homsets accept catgory/check/base_map as arguments
         kwds = {}
         if check is not None:
             kwds['check'] = check
@@ -1358,7 +1359,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 # so we conservatively choose just SetsWithPartialMaps
                 category = SetsWithPartialMaps()
             kwds['base_map'] = base_map
-        return self.Hom(codomain, category=category)(im_gens, **kwds)
+        Hom_kwds = {} if category is None else {'category': category}
+        return self.Hom(codomain, **Hom_kwds)(im_gens, **kwds)
 
     #################################################################################
     # New Coercion support functionality

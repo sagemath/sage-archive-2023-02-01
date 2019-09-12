@@ -25,7 +25,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.pushout import pushout
 from sage.categories.commutative_algebras import CommutativeAlgebras
-from sage.categories.map import Map
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.infinity import Infinity
 from sage.rings.ring import CommutativeRing, CommutativeAlgebra
@@ -33,6 +32,52 @@ from sage.rings.ring import CommutativeRing, CommutativeAlgebra
 from sage.rings.ring_extension_element import RingExtensionElement
 from sage.rings.ring_extension_element import RingExtensionWithBasisElement
 
+
+# Helper functions
+
+def _common_base(K, L, degree=False):
+    def tower_bases(ring):
+        bases = [ ]
+        base = ring
+        deg = 1
+        degrees = [ ]
+        while True:
+            bases.append(base)
+            if degree:
+                degrees.append(deg)
+                try:
+                    d = base.relative_degree()
+                except AttributeError:
+                    try:
+                        d = base.degree()
+                    except AttributeError:
+                        break
+                if d is Infinity: break
+                deg *= d
+            newbase = base.base_ring()
+            if newbase is base: break
+            base = newbase
+        return bases, degrees
+    bases_K, degrees_K = tower_bases(K)
+    bases_L, degrees_L = tower_bases(L)
+    base = None
+    for iL in range(len(bases_L)):
+        try:
+            iK = bases_K.index(bases_L[iL])
+            base = bases_L[iL]
+            break
+        except ValueError:
+            pass
+    if base is None:
+        raise NotImplementedError("unable to find a common base")
+    if degree:
+        return base, degrees_K[iK], degrees_L[iL]
+    else:
+        return base
+
+
+# General extensions
+####################
 
 class RingExtension_class(CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -562,14 +607,13 @@ class RingExtension_class(CommutativeAlgebra, UniqueRepresentation):
         return L
 
 
-# Finite free extensions (with a given basis)
-#############################################
-
+# Finite free extensions
+########################
 
 class RingExtensionWithBasis(RingExtension_class):
     Element = RingExtensionWithBasisElement
 
-    def __init__(self, defining_morphism, basis, names=None, coerce=False):
+    def __init__(self, defining_morphism, basis, names=None, coerce=False, check=True):
         RingExtension_class.__init__(self, defining_morphism, coerce)
         self._basis = [ self(b) for b in basis ]
         if names is None:
@@ -586,6 +630,11 @@ class RingExtensionWithBasis(RingExtension_class):
             if len(names) != len(self._basis):
                 raise ValueError("the number of names does not match the cardinality of the basis")
         self._names = names
+        if check:
+            try:
+                _ = self.vector_space()
+            except ZeroDivisionError:
+                raise ValueError("the given family is not a basis")
 
     def degree(self, base):
         if base is self:
@@ -631,18 +680,23 @@ class RingExtensionWithBasis(RingExtension_class):
             base = self._base
         d = self.degree(base)
         if map:
+            from sage.rings.ring_extension_morphism import MapVectorSpaceToRelativeField, MapRelativeFieldToVectorSpace
             return base**d, MapVectorSpaceToRelativeField(self, base), MapRelativeFieldToVectorSpace(self, base)
         else:
             return base**d
 
 
-
 class RingExtensionWithGen(RingExtensionWithBasis):
-    def __init__(self, defining_morphism, gen, name, degree, coerce=False):
+    def __init__(self, defining_morphism, gen, name, coerce=False, check=True):
         self._name = str(name)
+        _, deg_domain, deg_codomain = _common_base(defining_morphism.domain(), defining_morphism.codomain(), degree=True)
+        degree = ZZ(deg_codomain / deg_domain)
         names = [ "", self._name ] + [ "%s^%s" % (self._name, i) for i in range(2,degree) ]
         basis = [ gen ** i for i in range(degree) ]
-        RingExtensionWithBasis.__init__(self, defining_morphism, basis, names, coerce)
+        try:
+            RingExtensionWithBasis.__init__(self, defining_morphism, basis, names, coerce, check)
+        except ValueError:
+            raise ValueError("the given element is not a generator")
         self._gen = self(gen)._backend()
         self._type = "Ring"
         # if self._ring in Fields():
@@ -661,117 +715,3 @@ class RingExtensionWithGen(RingExtensionWithBasis):
 
     def _repr_(self):
         return "%s in %s with defining polynomial %s over its base" % (self._type, self._name, self.modulus())
-
-
-class MapVectorSpaceToRelativeField(Map):
-    def __init__(self, E, K):
-        if not isinstance(E, RingExtensionWithBasis):
-            raise TypeError("you must pass in a RingExtensionWithBasis")
-        self._degree = E.degree(K)
-        self._basis = [ x._backend() for x in E.basis(K) ]
-        self._f = E.defining_morphism(K)
-        domain = K ** self._degree
-        parent = domain.Hom(E)
-        Map.__init__(self, parent)
-
-    def is_injective(self):
-        return True
-
-    def is_surjective(self):
-        return True
-
-    def _call_(self, v):
-        return sum(self._f(v[i]) * self._basis[i] for i in range(self._degree))
-
-
-class MapRelativeFieldToVectorSpace(Map):
-    def __init__(self, E, K):
-        if not isinstance(E, RingExtensionWithBasis):
-            raise TypeError("you must pass in a RingExtensionWithBasis")
-        self._degree = E.degree(K)
-        self._basis = [ x._backend() for x in E.basis(K) ]
-        f = E.defining_morphism(K)
-        codomain = K ** self._degree
-        parent = E.Hom(codomain)
-        Map.__init__(self, parent)
-
-        if isinstance(K, RingExtension_class):
-            K = K._backend()
-        L = E._backend()
-
-        # We compute the matrix of our isomorphism (over base)
-        # EK, iK, jK = K.vector_space(base, map=True)
-        # EL, iL, jL = L.vector_space(base, map=True)
-        base = _common_base(K,L)
-        EK, iK, jK = K.absolute_vector_space()
-        EL, iL, jL = L.absolute_vector_space()
-
-        self._dimK = EK.dimension()
-        self._iK = iK
-        self._jL = jL
-
-        M = [ ]
-        for x in self._basis:
-            for v in EK.basis():
-                y = x * f(iK(v))
-                M.append(jL(y))
-        from sage.matrix.matrix_space import MatrixSpace
-        self._matrix = MatrixSpace(base,len(M))(M).inverse()
-
-    def is_injective(self):
-        return True
-
-    def is_surjective(self):
-        return True
-
-    def _call_(self, x):
-        dK = self._dimK
-        w = (self._jL(x._backend()) * self._matrix).list()
-        coeffs = [ ]
-        for i in range(self._degree):
-            coeff = self._iK(w[i*dK:(i+1)*dK])
-            coeffs.append(coeff)
-        return self.codomain()(coeffs)
-
-
-# Helper functions
-
-def _common_base(K, L, degree=False):
-    def tower_bases(ring):
-        bases = [ ]
-        base = ring
-        deg = 1
-        degrees = [ ]
-        while True:
-            bases.append(base)
-            if degree:
-                degrees.append(deg)
-                try:
-                    d = base.relative_degree()
-                except AttributeError:
-                    try:
-                        d = base.degree()
-                    except AttributeError:
-                        break
-                if d is Infinity: break
-                deg *= d
-            newbase = base.base_ring()
-            if newbase is base: break
-            base = newbase
-        return bases, degrees
-    bases_K, degrees_K = tower_bases(K)
-    bases_L, degrees_L = tower_bases(L)
-    base = None
-    for iL in range(len(bases_L)):
-        try:
-            iK = bases_K.index(bases_L[iL])
-            base = bases_L[iL]
-            break
-        except ValueError:
-            pass
-    if base is None:
-        raise NotImplementedError("unable to find a common base")
-    if degree:
-        return base, [degrees_K[iK], degrees_L[iL]]
-    else:
-        return base

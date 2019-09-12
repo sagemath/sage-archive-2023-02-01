@@ -852,16 +852,15 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
     ``'lex_M_fast'`` cannot return labels::
 
-        sage: G = graphs.CompleteGraph(6)
-        sage: G.lex_M(labels=True, algorithm='lex_M_fast')
+        sage: Graph().lex_M(labels=True, algorithm='lex_M_fast')
         Traceback (most recent call last):
         ...
         ValueError: 'lex_M_fast' cannot return labels assigned to vertices
 
     The method works only for undirected graphs::
 
-        sage: G = digraphs.Circuit(15)
-        sage: G.lex_M()
+        sage: from sage.graphs.traversals import lex_M
+        sage: lex_M(DiGraph())
         Traceback (most recent call last):
         ...
         ValueError: input graph must be undirected
@@ -883,8 +882,7 @@ def lex_M(self, triangulation=False, labels=False, initial_vertex=None, algorith
 
     ``initial_vertex`` should be a valid graph vertex::
 
-        sage: G = graphs.CompleteGraph(6)
-        sage: G.lex_M(initial_vertex='foo')
+        sage: Graph().lex_M(initial_vertex='foo')
         Traceback (most recent call last):
         ...
         ValueError: 'foo' is not a graph vertex

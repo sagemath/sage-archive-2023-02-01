@@ -1,9 +1,19 @@
+#############################################################################
+#    Copyright (C) 2019 Xavier Caruso <xavier.caruso@normalesup.org>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#****************************************************************************
+
 
 from sage.structure.element cimport CommutativeAlgebraElement
 from sage.structure.element cimport Element
 
 
-cdef class AlgebraFMElement(CommutativeAlgebraElement):
+cdef class RingExtensionElement(CommutativeAlgebraElement):
     r"""
     Generic class for elements lying in ring extensions
 
@@ -12,10 +22,10 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
     - Xavier Caruso (2016)
     """
     def __init__(self, parent, x, *args, **kwds):
-        from sage.rings.algebra_from_morphism import AlgebraFromMorphism
-        if not isinstance(parent, AlgebraFromMorphism):
-            raise TypeError("%s is not an instance of AlgebraFromMorphism" % parent)
-        if isinstance(x, AlgebraFMElement):
+        from sage.rings.ring_extension import RingExtension_class
+        if not isinstance(parent, RingExtension_class):
+            raise TypeError("%s is not a ring extension" % parent)
+        if isinstance(x, RingExtensionElement):
             x = x._backend()
         try:
             parentx = x.parent()
@@ -77,7 +87,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
         return self._element
 
     cpdef _richcmp_(left, right, int op):
-        if isinstance(right, AlgebraFMElement):
+        if isinstance(right, RingExtensionElement):
             right = right._backend()
         return left._element._richcmp_(right, op)
 
@@ -213,7 +223,7 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
         return self._element.is_prime()
 
 
-cdef class RingExtensionWithBasisElement(AlgebraFMElement):
+cdef class RingExtensionWithBasisElement(RingExtensionElement):
     def _repr_(self):
         parent = self._parent
         names = parent._names

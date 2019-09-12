@@ -512,14 +512,20 @@ class Fields(CategoryWithAxiom):
             from sage.modules.all import FreeModule
             return FreeModule(self, n)
 
-        def vector_space(self, base=None, maps=True):
+        def vector_space(self, *args, **kwds):
             r"""
-            Gives an isomorphism of this field with a vector space over a subfield
+            Gives an isomorphism of this field with a vector space over a subfield.
+
+            This method is an alias for ``free_module``, which may have more documentation.
 
             INPUT:
 
-            - ``base`` -- a subfield (defaults to the base field)
-            - ``maps`` -- whether to return maps from and to the vector space.
+            - ``base`` -- a subfield or morphism into this field (defaults to the base field)
+
+            - ``basis`` -- a basis of the field as a vector space
+              over the subfield.  If not given, one is chosen automatically.
+
+            - ``map`` -- whether to return maps from and to the vector space.
 
             OUTPUT:
 
@@ -527,7 +533,7 @@ class Fields(CategoryWithAxiom):
             - ``from_V`` -- an isomorphism from ``V`` to this field
             - ``to_V`` -- the inverse isomorphism from this field to ``V``
             """
-            return self.free_module(base=base, maps=maps)
+            return self.free_module(*args, **kwds)
 
     class ElementMethods:
         def euclidean_degree(self):

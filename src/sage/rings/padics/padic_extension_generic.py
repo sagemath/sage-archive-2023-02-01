@@ -564,8 +564,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
                            range(self.modulus().degree())],
                       0)
 
-    @cached_method(key=(lambda self, base, map: (base or self.base_ring(), map)))
-    def free_module(self, base=None, map=True):
+    @cached_method(key=(lambda self, base, basis, map: (base or self.base_ring(), map)))
+    def free_module(self, base=None, basis=None, map=True):
         """
         Returns a free module V over a specified base ring together with maps to and from V.
 
@@ -573,6 +573,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
         - ``base`` -- a subring `R` so that this ring/field is isomorphic
           to a finite-rank free `R`-module `V`.
+        - ``basis`` -- a basis for this ring/field over the base.
         - ``maps`` -- boolean (default ``True``), whether to return
           `R`-linear maps to and from `V`.
 
@@ -588,6 +589,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             
         """
+        if basis is not None:
+            raise NotImplementedError
         B = self.base_ring()
         if base is None:
             base = B

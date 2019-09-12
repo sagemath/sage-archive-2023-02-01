@@ -203,7 +203,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~GenericGraph.lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
-    :meth:`~GenericGraph.lex_M` | Return an ordering of the vertices according the LexM graph traversal.
 
 **Distances:**
 
@@ -23446,7 +23445,6 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.traversals import lex_UP
     from sage.graphs.traversals import lex_DFS
     from sage.graphs.traversals import lex_DOWN
-    from sage.graphs.traversals import lex_M
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""

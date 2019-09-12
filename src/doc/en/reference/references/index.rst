@@ -395,6 +395,11 @@ REFERENCES:
               Thue-Morse sequence. Pure Math. Appl.,
               19(2-3):39--52, 2008.
 
+.. [BBHP2004] Anne Berry, Jean R. S. Blair, Pinar Heggernes,
+              Barry W. Peyton. *Maximum Cardinality Search for Computing Minimal
+              Triangulations of Graphs*. Algorithmica 39(4):287-298, 2004.
+              :doi:`10.1007/s00453-004-1084-3`
+
 .. [BBISHAR2015] \S. Banik, A. Bogdanov, T. Isobe, K. Shibutani, H. Hiwatari,
                  \T. Akishita, and F. Regazzoni,
                  *Midori: A block cipher for low energy*; in ASIACRYPT, (2015), pp. 411-436.
@@ -888,6 +893,11 @@ REFERENCES:
 .. [BPS2008] Lubomira Balkova, Edita Pelantova, and Wolfgang Steiner.
              *Sequences with constant number of return
              words*. Monatsh. Math, 155 (2008) 251-263.
+
+.. [BPS2010] Anne Berry, Romain Pogorelcnik and Genevieve Simonet.
+             *An Introduction to Clique Minimal Separator Decomposition*.
+             Algorithms 3(2):197-215, 2010.
+             :doi:`10.3390/a3020197`
 
 .. [BPU2016] Alex Biryukov, Léo Perrin, Aleksei Udovenko,
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
@@ -2310,6 +2320,10 @@ REFERENCES:
 
 .. [HC2006] Mark van Hoeij and John Cremona, Solving Conics over
             function fields. J. Théor. Nombres Bordeaux, 2006.
+
+.. [He2006] Pinar Heggernes. *Minimal triangulations of graphs: A survey*.
+            Discrete Mathematics, 306(3):297-317, 2006.
+            :doi:`10.1016/j.disc.2005.12.003`
 
 .. [He2002] \H. Heys *A Tutorial on Linear and Differential
             Cryptanalysis* ; 2002' available at
@@ -4741,6 +4755,12 @@ REFERENCES:
 
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
             Publishing, 1980)
+
+.. [TY1984] Robert Endre Tarjan, Mihalis Yannakakis. *Simple linear-time
+            algorithms to test chordality of graphs, test acyclicity of
+            hypergraphs, and selectively reduce acyclic hypergraphs*.
+            SIAM Journal on Computing, 13:566-579, 1984.
+            :doi:`10.1137/0213035`
 
 .. [TY2009] Hugh Thomas and Alexander Yong, *A jeu de taquin theory for
             increasing tableaux, with applications to K-theoretic Schubert

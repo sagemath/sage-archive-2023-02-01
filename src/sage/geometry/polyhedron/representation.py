@@ -447,7 +447,7 @@ class Hrepresentation(PolyhedronRepresentation):
 
     def neighbors(self):
         """
-        Iterate over the adjacent facets (i.e. inequalities/equations)
+        Iterate over the adjacent facets (i.e. inequalities).
 
         Only defined for inequalities.
 
@@ -464,7 +464,7 @@ class Hrepresentation(PolyhedronRepresentation):
 
         TESTS:
 
-        Checking that it works for polyhedra with equations::
+        Checking that :trac:`28463` is fixed::
 
         sage: P = polytopes.simplex()
         sage: F1 = P.Hrepresentation()[1]
@@ -473,17 +473,18 @@ class Hrepresentation(PolyhedronRepresentation):
          An inequality (0, 0, 1, 0) x + 0 >= 0,
          An inequality (0, 0, 0, 1) x + 0 >= 0]
 
-        Does not work for inequalities::
+        Does not work for equalities::
 
         sage: F0 = P.Hrepresentation()[0]
         sage: list(F0.neighbors())
         Traceback (most recent call last):
         ...
-        AssertionError: must be inequality
+        TypeError: must be inequality
         """
         # The adjacency matrix does not include equations.
         n_eqs = self.polyhedron().n_equations()
-        assert self.is_inequality(), "must be inequality"
+        if not self.is_inequality():
+            raise TypeError("must be inequality")
 
         adjacency_matrix = self.polyhedron().facet_adjacency_matrix()
         for x in self.polyhedron().Hrep_generator():

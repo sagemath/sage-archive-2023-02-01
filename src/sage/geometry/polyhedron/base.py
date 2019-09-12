@@ -4423,6 +4423,13 @@ class Polyhedron_base(Element):
              A ray in the direction (1, 1),
              A vertex at (2, 0))
 
+        Stacking requires a proper face::
+
+            sage: Q.stack(Q.faces(2)[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: can only stack on proper face
+
         TESTS:
 
         Checking that the backend is preserved::
@@ -4432,8 +4439,9 @@ class Polyhedron_base(Element):
             sage: stack.backend()
             'field'
 
-        Checking that stacked point needs to be in the interior of
-        ``locus_polyhedron``::
+        The stacked vertex may not satisfy any inequality
+        defining the original polyhedron::
+
             sage: P = polytopes.octahedron()
             sage: P.stack(P.faces(2)[0],4)
             Traceback (most recent call last):

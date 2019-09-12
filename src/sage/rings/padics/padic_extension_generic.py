@@ -29,13 +29,17 @@ from sage.rings.infinity import Infinity
 from sage.structure.richcmp import op_EQ
 from functools import reduce
 from sage.categories.morphism import Morphism
+from sage.categories.map import Map
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.metric_spaces import MetricSpaces
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
-
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.misc.flatten import flatten
+from sage.misc.cachefunc import cached_method
+from sage.misc.richcmp import richcmp
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -560,6 +564,51 @@ class pAdicExtensionGeneric(pAdicGeneric):
                            range(self.modulus().degree())],
                       0)
 
+    @cached_method(key=lambda (self, base, map): (base or self.base_ring(), map))
+    def free_module(self, base=None, map=True):
+        """
+        Returns a free module V over a specified base ring together with maps to and from V.
+
+        INPUT:
+
+        - ``base`` -- a subring `R` so that this ring/field is isomorphic
+          to a finite-rank free `R`-module `V`.
+        - ``maps`` -- boolean (default ``True``), whether to return
+          `R`-linear maps to and from `V`.
+
+        OUTPUT:
+
+        - A finite-rank free `R`-module `V`
+        - An `R`-module isomorphism ``from_V`` from `V` to this ring/field
+          (only included if ``maps`` is ``True``)
+        - An `R`-module isomorphism ``to_V`` from this ring/field to `V`
+          (only included if ``maps`` is ``True``)
+
+        EXAMPLES::
+
+            
+        """
+        B = self.base_ring()
+        A = B.base_ring()
+        d = self.relative_degree()
+        if base is B:
+            # May eventually want to take advantage of the fact that precision is flat
+            V = B**d
+            from_V = MapFreeModuleToOneStep
+            to_V = MapOneStepToFreeModule
+        elif base is A:
+            d *= B.relative_degree()
+            V = A**d
+            from_V = MapFreeModuleToTwoStep
+            to_V = MapTwoStepToFreeModule
+        else:
+            raise NotImplementedError
+        FromV = Hom(V, self)
+        ToV = Hom(self, V)
+        from_V = FromV.__make_element_class__(from_V)(FromV)
+        to_V = ToV.__make_element_class__(to_V)(ToV)
+        return V, from_V, to_V
+
     #def unit_group(self):
     #    raise NotImplementedError
 
@@ -574,6 +623,238 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     #def zeta_order(self):
     #    raise NotImplementedError
+
+# We could have used morphisms in the category
+# FiniteDimensionalModulesWithBasis over Qp(p)
+# But this would require making p-adic fields
+# part of this category which has a lot of side
+# effects (adding methods which will show up
+# in tab completion for example).  For now we
+# just stick with Map.
+class pAdicModuleIsomorphism(Map):
+    r"""
+    A base class for various isomorphisms between p-adic rings/fields and free modules
+
+    EXAMPLES::
+
+        sage: K.<a> = Qq(125)
+        sage: V, fr, to = K.free_module()
+        sage: from sage.rings.padics.padic_extension_generic import pAdicModuleIsomorphism
+        sage: isinstance(fr, pAdicModuleIsomorphism)
+        True
+    """
+    def _repr_type(self):
+        r"""
+        EXAMPLES::
+
+            sage: K.<a> = Qq(125)
+            sage: V, fr, to = K.free_module()
+            sage: fr._repr_type()
+            'Isomorphism'
+        """
+        return "Isomorphism"
+
+    def is_injective(self):
+        r"""
+        EXAMPLES::
+
+            sage: K.<a> = Qq(125)
+            sage: V, fr, to = K.free_module()
+            sage: fr.is_injective()
+            True
+        """
+        return True
+
+    def is_surjective(self):
+        r"""
+        EXAMPLES::
+
+            sage: K.<a> = Qq(125)
+            sage: V, fr, to = K.free_module()
+            sage: fr.is_surjective()
+            True
+        """
+        return True
+
+    def _richcmp_(self, other, op):
+        r"""
+        EXAMPLES::
+
+            sage: K.<a> = Qq(125)
+            sage: V, fr, to = K.free_module()
+            sage: fr == fr
+            True
+        """
+        # Equality depends only on the parent
+        return richcmp(op, 0)
+
+class MapFreeModuleToOneStep(pAdicModuleIsomorphism):
+    """
+    The isomorphism from the underlying module of a one-step p-adic extension
+    to the extension.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToOneStep
+        sage: L.<a> = Qq(125)
+        sage: Q5 = L.base_ring()
+        sage: V = Q5^3
+        sage: phi = MapFreeModuleToOneStep(V, L)
+        sage: TestSuite(phi).run()
+    """
+    def __init__(self, V, L):
+        pAdicModuleIsomorphism.__init__(self, Hom(V, L))
+
+    def _call_(self, x):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToOneStep
+            sage: L.<a> = Qq(125)
+            sage: Q5 = L.base_ring()
+            sage: V = Q5^3
+            sage: phi = MapFreeModuleToOneStep(V, L)
+            sage: v = V([1,2,3])
+            sage: phi(v)
+            (3*a^2 + 2*a + 1) + O(5^20)
+        """
+        return self.codomain()(list(x))
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_extension_generic import MapOneStepToFreeModule
+            sage: L.<a> = Qq(125)
+            sage: Q5 = L.base_ring()
+            sage: V = Q5^3
+            sage: phi = MapFreeModuleToOneStep(V, L)
+            sage: v = V([1,2,3])
+            sage: phi(v, 7)
+            (3*a^2 + 2*a + 1) + O(5^7)
+        """
+        return self.codomain()(list(x), *args, **kwds)
+
+class MapOneStepToFreeModule(pAdicModuleIsomorphism):
+    """
+    The isomorphism from a one-step p-adic extension to its underlying free module
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_extension_generic import MapOneStepToFreeModule
+        sage: L.<a> = Qq(125)
+        sage: Q5 = L.base_ring()
+        sage: V = Q5^3
+        sage: phi = MapOneStepToFreeModule(L, V)
+        sage: TestSuite(phi).run()
+    """
+    def __init__(self, L, V):
+        pAdicModuleIsomorphism.__init__(self, Hom(L, V))
+
+    def _call_(self, x):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_extension_generic import MapOneStepToFreeModule
+            sage: Q5 = Qp(5)
+            sage: R.<x> = ZZ[]
+            sage: L.<pi> = Q5.extension(x^3 - 5)
+            sage: V = Q5^3
+            sage: phi = MapOneStepToFreeModule(L, V)
+            sage: a = 1 + pi^2 + O(pi^11)
+            sage: phi(a)
+            (1 + O(5^4), O(5^4), 1 + O(5^3))
+        """
+        V = self.codomain()
+        return self.codomain()(x.polynomial().padded_list(V.rank()))
+
+class MapFreeModuleToTwoStep(pAdicModuleIsomorphism):
+    """
+    The isomorphism from the underlying module of a two-step p-adic extension
+    to the extension.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToTwoStep
+        sage: L.<a> = Qq(125)
+        sage: Q5 = L.base_ring()
+        sage: V = Q5^3
+        sage: phi = MapFreeModuleToTwoStep(V, L)
+        sage: TestSuite(phi).run()
+    """
+    def __init__(self, V, L):
+        pAdicModuleIsomorphism.__init__(self, Hom(V, L))
+
+    def _call_(self, x):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_extension_generic import MapFreeModuleToTwoStep
+            sage: L.<a> = Qq(125)
+            sage: Q5 = L.base_ring()
+            sage: V = Q5^3
+            sage: phi = MapFreeModuleToTwoStep(V, L)
+            sage: v = V([1,2,3])
+            sage: phi(v)
+            (3*a^2 + 2*a + 1) + O(5^20)
+        """
+        L = self.codomain()
+        d = L.relative_degree()
+        U = L.base_ring()
+        x = list(x)
+        n = len(x)
+        v = [U(x[i:i+d]) for i in range(0,n,d)]
+        return L(v)
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_extension_generic import MapTwoStepToFreeModule
+            sage: L.<a> = Qq(125)
+            sage: Q5 = L.base_ring()
+            sage: V = Q5^3
+            sage: phi = MapFreeModuleToTwoStep(V, L)
+            sage: v = V([1,2,3])
+            sage: phi(v, 7)
+            (3*a^2 + 2*a + 1) + O(5^7)
+        """
+        return self.codomain()(self._call_(x), *args, **kwds)
+
+class MapTwoStepToFreeModule(pAdicModuleIsomorphism):
+    """
+    The isomorphism from a two-step p-adic extension to its underlying free module
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_extension_generic import MapTwoStepToFreeModule
+        sage: L.<a> = Qq(125)
+        sage: Q5 = L.base_ring()
+        sage: V = Q5^3
+        sage: phi = MapTwoStepToFreeModule(L, V)
+        sage: TestSuite(phi).run()
+    """
+    def __init__(self, L, V):
+        pAdicModuleIsomorphism.__init__(self, Hom(L, V))
+
+    def _call_(self, x):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_extension_generic import MapTwoStepToFreeModule
+            sage: Q5 = Qp(5)
+            sage: R.<x> = ZZ[]
+            sage: L.<pi> = Q5.extension(x^3 - 5)
+            sage: V = Q5^3
+            sage: phi = MapTwoStepToFreeModule(L, V)
+            sage: a = 1 + pi^2 + O(pi^11)
+            sage: phi(a)
+            (1 + O(5^4), O(5^4), 1 + O(5^3))
+        """
+        e = self.domain().relative_degree()
+        f = self.domain().base_ring().relative_degree()
+        v = flatten([c.polynomial().padded_list(f) for c in x.polynomial().padded_list(e)])
+        return self.codomain()(v)
 
 class DefPolyConversion(Morphism):
     """

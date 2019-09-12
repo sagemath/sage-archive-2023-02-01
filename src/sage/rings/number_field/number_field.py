@@ -8124,6 +8124,7 @@ class NumberField_absolute(NumberField_generic):
         self._order.set_cache(ret, gens)
         return ret
 
+    @cached_method
     def vector_space(self):
         """
         Return a vector space V and isomorphisms self --> V and V --> self.
@@ -8157,14 +8158,10 @@ class NumberField_absolute(NumberField_generic):
             sage: to_V(from_V(V([0,-1/7,0])))
             (0, -1/7, 0)
         """
-        try:
-            return self.__vector_space
-        except AttributeError:
-            V = QQ**self.degree()
-            from_V = maps.MapVectorSpaceToNumberField(V, self)
-            to_V   = maps.MapNumberFieldToVectorSpace(self, V)
-            self.__vector_space = (V, from_V, to_V)
-            return self.__vector_space
+        V = QQ**self.degree()
+        from_V = maps.MapVectorSpaceToNumberField(V, self)
+        to_V   = maps.MapNumberFieldToVectorSpace(self, V)
+        return (V, from_V, to_V)
 
     def absolute_vector_space(self):
         r"""

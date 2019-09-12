@@ -503,7 +503,7 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
     cdef frozenset Sint
     cdef vector[int] Sint_min
     cdef vector[int] Cint
-    cdef int ui, vi
+    cdef size_t ui, vi
     cdef bint stop
 
     for i in range(N):

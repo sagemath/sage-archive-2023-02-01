@@ -311,7 +311,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         OUTPUT:
 
-        the matrix ``self`` \* ``right``
+        the matrix ``self * right``
 
         EXAMPLES::
 
@@ -827,7 +827,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         Return the density of the matrix.
 
         By density we understand the ratio of the number of nonzero
-        positions and the number self.nrows() \* self.ncols(),
+        positions and the number ``self.nrows() * self.ncols()``,
         i.e. the number of possible nonzero positions.
 
         EXAMPLES::
@@ -1108,13 +1108,13 @@ cdef class Matrix_sparse(matrix.Matrix):
 
     cdef _vector_times_matrix_(self, Vector v):
         """
-        Returns the vector times matrix product.
+        Return the vector times matrix product.
 
         INPUT:
 
         -  ``v`` -- a free module element
 
-        OUTPUT: The vector times matrix product v*A.
+        OUTPUT: the vector times matrix product ``v*A``
 
         EXAMPLES::
 
@@ -1141,13 +1141,13 @@ cdef class Matrix_sparse(matrix.Matrix):
 
     cdef _matrix_times_vector_(self, Vector v):
         """
-        Returns the matrix times vector product.
+        Return the matrix times vector product.
 
         INPUT:
 
         - ``v`` -- a free module element
 
-        OUTPUT: The matrix times vector product A*v
+        OUTPUT: the matrix times vector product ``A*v``
 
         EXAMPLES::
 

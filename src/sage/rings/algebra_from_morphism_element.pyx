@@ -1,3 +1,4 @@
+
 from sage.structure.element cimport CommutativeAlgebraElement
 from sage.structure.element cimport Element
 
@@ -74,6 +75,11 @@ cdef class AlgebraFMElement(CommutativeAlgebraElement):
 
     def _backend(self):
         return self._element
+
+    cpdef _richcmp_(left, right, int op):
+        if isinstance(right, AlgebraFMElement):
+            right = right._backend()
+        return left._element._richcmp_(right, op)
 
     cpdef _add_(self,other):
         r"""
@@ -238,19 +244,39 @@ cdef class RingExtensionWithBasisElement(AlgebraFMElement):
         if s == "": return "0"
         return s
 
-    def matrix(self):
+    def matrix(self, base=None):
         from sage.matrix.matrix_space import MatrixSpace
         parent = self._parent
-        _, _, j = parent.vector_space()
+        if base is None:
+            base = parent._base
+        _, _, j = parent.vector_space(base)
         x = self._backend()
-        M = [ j(x*b) for b in parent._basis ]
-        return MatrixSpace(parent._base, len(parent._basis))(M)
+        M = [ j(x * b._backend()) for b in parent.basis(base) ]
+        return MatrixSpace(base, len(M))(M)
 
-    def trace(self):
-        return self.matrix().trace()
+    def trace(self, base=None):
+        if base is None or base is self._parent._base:
+            return self.matrix().trace()
+        t = self
+        b = self._parent
+        while b is not base:
+            t = t.trace()
+            if b is b.base_ring():
+                raise ValueError("(%s) is not defined over (%s)" % (self, base))
+            b = b.base_ring()
+        return t
 
-    def norm(self):
-        return self.matrix().determinant()
+    def norm(self, base=None):
+        if base is None or base is self._parent._base:
+            return self.matrix().determinant()
+        n = self
+        b = self._parent
+        while b is not base:
+            n = n.norm()
+            if b is b.base_ring():
+                raise ValueError("(%s) is not defined over (%s)" % (self, base))
+            b = b.base_ring()
+        return n
 
-    def charpoly(self, var='x'):
-        return self.matrix().charpoly(var)
+    def charpoly(self, base=None, var='x'):
+        return self.matrix(base).charpoly(var)

@@ -10683,7 +10683,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         n = self._n()
         z = CC.zeta(n)
         X = [m for m in range(n) if arith.gcd(m,n) == 1]
-        v = [self.hom([z**n], check=False) for n in X]
+        v = [self.hom([z**i], check=False) for i in X]
         self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
                                          check=False, universe=self.Hom(CC))
         return self.__embeddings[CC]

@@ -104,7 +104,7 @@ cdef class qAdicCappedRelativeElement(CRElement):
             sage: R(0)._flint_rep_abs()
             Traceback (most recent call last):
             ...
-            ValueError: Zero does not have a flint rep
+            ValueError: zero does not have a flint rep
         """
         if self.ordp < 0:
             return self._flint_rep(var), Integer(self.ordp)

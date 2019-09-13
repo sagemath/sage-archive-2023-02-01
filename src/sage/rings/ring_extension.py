@@ -464,6 +464,7 @@ class RingExtension_class(CommutativeAlgebra):
         self._unset_coercions_used()
         f = RingExtensionHomomorphism(self._base.Hom(self), defining_morphism)
         self.register_coercion(f)
+        self.register_conversion(ring)
         if coerce:
             self._populate_coercion_lists_(embedding = RingExtensionHomomorphism(self.Hom(ring), ring.Hom(ring).identity()))
 
@@ -1013,13 +1014,7 @@ class RingExtensionWithGen(RingExtensionWithBasis):
         degree = ZZ(deg_codomain / deg_domain)
         names = [ "", self._name ] + [ "%s^%s" % (self._name, i) for i in range(2,degree) ]
         basis = [ gen ** i for i in range(degree) ]
-        try:
-            RingExtensionWithBasis.__init__(self, defining_morphism, basis, names, coerce, check)
-        except ValueError(e):
-            if e == "the given family is not a basis":
-                raise ValueError("the given element is not a generator")
-            else:
-                raise ValueError(e)
+        RingExtensionWithBasis.__init__(self, defining_morphism, basis, names, coerce, check)
         self._gen = self(gen)._backend()
         self._type = "Ring"
         self._names = (self._name,)

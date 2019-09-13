@@ -235,11 +235,9 @@ class MapRelativeFieldToVectorSpace(Map):
         L = E._backend()
 
         # We compute the matrix of our isomorphism (over base)
-        # EK, iK, jK = K.vector_space(base, map=True)
-        # EL, iL, jL = L.vector_space(base, map=True)
         base = _common_base(K,L)
-        EK, iK, jK = K.absolute_vector_space()
-        EL, iL, jL = L.absolute_vector_space()
+        EK, iK, jK = K.free_module(base, map=True)
+        EL, iL, jL = L.free_module(base, map=True)
 
         self._dimK = EK.dimension()
         self._iK = iK

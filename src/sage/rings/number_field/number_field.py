@@ -8170,7 +8170,7 @@ class NumberField_absolute(NumberField_generic):
             sage: to_V(from_V(V([0,-1/7,0])))
             (0, -1/7, 0)
         """
-        if basis is not None or base is not None:
+        if basis is not None or (base is not None and base is not QQ):
             raise NotImplementedError
         V = QQ**self.degree()
         if not map:

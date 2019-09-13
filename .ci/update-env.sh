@@ -39,7 +39,7 @@ export DOCKER_TAG=`echo $DOCKER_TAG | tr -d '[:space:]' | tr -c '[:alnum:]_.-' '
 [[ "$DOCKER_TAG" = "master" ]] && export DOCKER_TAG=latest
 
 if [ $WITH_PYTHON = 3 ]; then
-    export DOCKER_TAG=$DOCKER_TAG-py3
+    export DOCKER_TAG=${DOCKER_TAG}-py3
 fi
 
 export DOCKER_IMAGE_CLI=${DOCKER_NAMESPACE:-sagemath}/sagemath:$DOCKER_TAG

@@ -1606,6 +1606,11 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: hash(unsigned_infinity) == hash(SR(unsigned_infinity))
             True
+
+        Check a corner case for rational numbers (:trac:`28219`)::
+
+            sage: hash(-1/3) == hash(SR(-1/3))
+            True
         """
         sig_on()
         try:

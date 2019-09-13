@@ -3,17 +3,11 @@ Schnyder's Algorithm for straight-line planar embeddings
 
 A module for computing the (x,y) coordinates for a straight-line planar
 embedding of any connected planar graph with at least three vertices.  Uses
-Walter Schnyder's Algorithm.
+Walter Schnyder's Algorithm from [Sch1990]_.
 
 AUTHORS:
 
 - Jonathan Bober, Emily Kirkman (2008-02-09) --  initial version
-
-REFERENCE:
-
-.. [1] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
-       Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
-       San Francisco (1994), pp. 138-147.
 """
 # ****************************************************************************
 #      Copyright (C) 2008 Jonathan Bober and Emily Kirkman
@@ -721,7 +715,7 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
     of the incident edges between the two incident (and removed) outer edges,
     and not a cyclic shift of it.
 
-    The algorithm is taken from [Brehm2000]_ (section 4.2).
+    The algorithm is taken from [Bre2000]_ (section 4.2).
 
     EXAMPLES::
 
@@ -782,11 +776,6 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
         Traceback (most recent call last):
         ...
         ValueError: not a valid root edge
-
-    REFERENCES:
-
-    .. [Brehm2000] Enno Brehm, *3-Orientations and Schnyder
-       3-Tree-Decompositions*, 2000
     """
     if root_edge is None:
         a = -1

@@ -606,7 +606,7 @@ def SuzukiGraph():
     Return the Suzuki Graph.
 
     The Suzuki graph has 1782 vertices, and is strongly regular with parameters
-    `(1782,416,100,96)`. Known as S.15 in [Hu75]_.
+    `(1782,416,100,96)`. Known as S.15 in [Hub1975]_.
 
     .. NOTE::
 

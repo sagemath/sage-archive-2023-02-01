@@ -103,6 +103,7 @@ build-from-latest:
     - master
     - develop
     - tags
+    - web
 
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes several hours. You probably want to run this on your own

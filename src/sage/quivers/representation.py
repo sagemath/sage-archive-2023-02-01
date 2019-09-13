@@ -2425,7 +2425,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         from sage.quivers.homspace import QuiverHomSpace
         return QuiverHomSpace(self, self._semigroup.free_module(self.base_ring())).left_module(basis)
 
-    def Hom(self, codomain, category=None):
+    def Hom(self, codomain):
         """
         Return the hom space from ``self`` to ``codomain``.
 
@@ -2438,7 +2438,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             Dimension 2 QuiverHomSpace
         """
         from sage.quivers.homspace import QuiverHomSpace
-        return QuiverHomSpace(self, codomain, category=category)
+        return QuiverHomSpace(self, codomain)
 
     def direct_sum(self, modules, return_maps=False):
         """

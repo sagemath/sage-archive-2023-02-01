@@ -298,13 +298,18 @@ cdef class ParentWithGens(ParentWithBase):
             sage: m.<b> = l.extension(b^2 + b + a)
             sage: n.<z> = GF(2^6)
             sage: m.hom([z^4 + z^3 + 1], base_map=l.hom([z^5 + z^4 + z^2]))
+            Ring morphism:
+              From: Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^3 with modulus b^2 + b + a
+              To:   Finite Field in z of size 2^6
+              Defn: b |--> z^4 + z^3 + 1
+                    with map of base ring
 
         Note that the presence of a base map is ignored when determining the category of the
         resulting morphism.  If you pass in a bad base morphism you can get nonsensical results::
 
             sage: R.<x> = GF(3)[]
             sage: f = R.hom([x+1], base_map=lambda t: t+1); f
-            sage: Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 3
+            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 3
               Defn: x |--> x + 1
                     with map of base ring
             sage: f.category_for()

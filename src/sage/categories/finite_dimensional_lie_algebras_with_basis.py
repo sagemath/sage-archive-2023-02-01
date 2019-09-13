@@ -1408,11 +1408,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 A
                 sage: phi(i*X)
                 -i*A
-
-            Note that ``phi`` is not a morphism of Lie algebras over `K`::
-
-                sage: phi.category_for()
-                Category of sets with partial maps
             """
             from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
             return LieAlgebraMorphism_from_generators(on_generators, domain=self,

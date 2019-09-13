@@ -908,10 +908,10 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
            series that doesn't converge. Note that 0 is not a *ring*
            homomorphism.
         """
-        if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
-            return False
         if im_gens[0] == 0:
             return True   # this is allowed.
+        if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
+            return False
         from .laurent_series_ring import is_LaurentSeriesRing
         v = im_gens[0]
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):

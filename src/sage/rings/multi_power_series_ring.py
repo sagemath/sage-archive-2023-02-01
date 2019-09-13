@@ -694,7 +694,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         if all(v == 0 for v in im_gens):
             return True
         from .laurent_series_ring import is_LaurentSeriesRing
-        if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
+        if is_MPowerSeriesRing(codomain) or is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             try:
                 B = all(v.valuation() > 0 or v.is_nilpotent() for v in im_gens)
             except NotImplementedError:

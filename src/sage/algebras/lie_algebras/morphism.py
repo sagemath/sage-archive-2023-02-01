@@ -531,12 +531,10 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             if codomain not in LieAlgebras:
                 raise TypeError("codomain %s is not a Lie algebra" % codomain)
 
-        if base_map is not None and category is None:
-            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-            # We can't make any guarantee about the category of this morphism
-            # (in particular, it won't usually be linear over the base)
-            # so we default to a very lax category
-            category = SetsWithPartialMaps()
+        # If the base map is nontrivial, ideally we would have machinery
+        # here to determine how the base map affects the category of the
+        # resulting morphism.  But for now it's not clear how to do this,
+        # so we leave the category as the default for now.
         parent = Hom(domain, codomain, category=category)
         m = domain.module()
         cm = codomain.module()

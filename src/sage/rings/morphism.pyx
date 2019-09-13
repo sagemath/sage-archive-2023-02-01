@@ -1112,7 +1112,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: K.<i> = NumberField(x^2 + 1)
             sage: cc = K.hom([-i])
             sage: S.<y> = K[]
-            sage: phi = S.hom([y^2], base_map=cc, category=S.category())
+            sage: phi = S.hom([y^2], base_map=cc)
             sage: phi
             Ring endomorphism of Univariate Polynomial Ring in y over Number Field in i with defining polynomial x^2 + 1
               Defn: y |--> y^2

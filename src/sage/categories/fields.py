@@ -523,9 +523,9 @@ class Fields(CategoryWithAxiom):
             - ``base`` -- a subfield or morphism into this field (defaults to the base field)
 
             - ``basis`` -- a basis of the field as a vector space
-              over the subfield.  If not given, one is chosen automatically.
+              over the subfield; if not given, one is chosen automatically
 
-            - ``map`` -- whether to return maps from and to the vector space.
+            - ``map`` -- whether to return maps from and to the vector space
 
             OUTPUT:
 

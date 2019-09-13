@@ -572,22 +572,41 @@ class pAdicExtensionGeneric(pAdicGeneric):
         INPUT:
 
         - ``base`` -- a subring `R` so that this ring/field is isomorphic
-          to a finite-rank free `R`-module `V`.
-        - ``basis`` -- a basis for this ring/field over the base.
+          to a finite-rank free `R`-module `V`
+
+        - ``basis`` -- a basis for this ring/field over the base
+
         - ``maps`` -- boolean (default ``True``), whether to return
-          `R`-linear maps to and from `V`.
+          `R`-linear maps to and from `V`
 
         OUTPUT:
 
         - A finite-rank free `R`-module `V`
+
         - An `R`-module isomorphism ``from_V`` from `V` to this ring/field
           (only included if ``maps`` is ``True``)
+
         - An `R`-module isomorphism ``to_V`` from this ring/field to `V`
           (only included if ``maps`` is ``True``)
 
         EXAMPLES::
 
-            
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = Qq(125)
+            sage: L.<pi> = K.extension(x^2-5)
+            sage: V, from_V, to_V = K.free_module()
+            sage: W, from_W, to_W = L.free_module()
+            sage: W0, from_W0, to_W0 = L.free_module(base=Qp(5))
+            sage: to_V(a + O(5^7))
+            (O(5^7), 1 + O(5^7), O(5^7))
+            sage: to_W(a)
+            (a + O(5^20), O(5^20))
+            sage: to_W0(a + O(5^7))
+            (O(5^7), 1 + O(5^7), O(5^7), O(5^7), O(5^7), O(5^7))
+            sage: to_W(pi)
+            (O(5^21), 1 + O(5^20))
+            sage: to_W0(pi + O(pi^11))
+            (O(5^6), O(5^6), O(5^6), 1 + O(5^5), O(5^5), O(5^5))
         """
         if basis is not None:
             raise NotImplementedError

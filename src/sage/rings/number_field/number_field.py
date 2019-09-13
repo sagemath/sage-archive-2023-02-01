@@ -8131,14 +8131,14 @@ class NumberField_absolute(NumberField_generic):
 
         INPUT:
 
-        - ``base`` -- a subfield (default: ``None``), the returned vector
+        - ``base`` -- a subfield (default: ``None``); the returned vector
           space is over this subfield `R`, which defaults to the base field of this
-          function field.
+          function field
 
-        - ``basis`` -- a basis for this field over the base.
+        - ``basis`` -- a basis for this field over the base
 
         - ``maps`` -- boolean (default ``True``), whether to return
-          `R`-linear maps to and from `V`.
+          `R`-linear maps to and from `V`
 
 
         OUTPUT:

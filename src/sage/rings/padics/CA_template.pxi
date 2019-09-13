@@ -890,7 +890,7 @@ cdef class CAElement(pAdicTemplateElement):
 
     def _polynomial_list(self, pad=False):
         """
-        Returns the coefficient list for a polynomial over the base ring
+        Return the coefficient list for a polynomial over the base ring
         yielding this element.
 
         INPUT:
@@ -921,7 +921,7 @@ cdef class CAElement(pAdicTemplateElement):
 
     def polynomial(self, var='x'):
         """
-        Returns a polynomial over the base ring that yields this element
+        Return a polynomial over the base ring that yields this element
         when evaluated at the generator of the parent.
 
         INPUT:

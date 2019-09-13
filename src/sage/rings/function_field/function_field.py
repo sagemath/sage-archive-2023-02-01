@@ -3814,9 +3814,9 @@ class RationalFunctionField(FunctionField):
         - ``base`` -- the base field of the vector space; must be the function
           field itself (the default)
 
-        - ``basis`` -- a basis for the vector space (ignored)
+        - ``basis`` -- (ignored) a basis for the vector space
 
-        - ``map`` -- whether to return maps to and from the vector space (default True)
+        - ``map`` -- (default ``True``), whether to return maps to and from the vector space
 
         OUTPUT:
 

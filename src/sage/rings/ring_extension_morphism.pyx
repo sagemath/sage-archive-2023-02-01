@@ -63,23 +63,50 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
         sage: E2 = RingExtension(L,K)
 
     """
-    def __init__(self, parent, backend):
+    def __init__(self, parent, defn, base_map=None, check=False):
         RingHomomorphism.__init__(self, parent)
-        backend_domain = self.domain()
+        backend_domain = domain = self.domain()
         if isinstance(backend_domain, RingExtension_class):
             backend_domain = backend_domain._backend()
-        backend_codomain = self.codomain()
+        backend_codomain = codomain = self.codomain()
         if isinstance(backend_codomain, RingExtension_class):
             backend_codomain = backend_codomain._backend()
-        backend = backend_morphism(backend)
-        if backend.domain() is not backend_domain:
-            raise TypeError("the domain of the backend morphism is not correct")
-        if backend.codomain() is not backend_codomain:
-            raise TypeError("the codomain of the backend morphism is not correct")
-        self._backend_morphism = backend
-        # We should probably allow for more general constructions but
-        #   self._backend_morphism = backend_domain.Hom(backend_codomain)(*args, **kwargs)
-        # does not work currently
+        # We construct the backend morphism
+        if isinstance(defn, Map):
+            if base_map is not None:
+                raise ValueError("base_map must not be set when providing the backend morphism")
+            backend = backend_morphism(defn)
+            if backend.domain() is not backend_domain:
+                raise TypeError("the domain of the backend morphism is not correct")
+            if backend.codomain() is not backend_codomain:
+                raise TypeError("the codomain of the backend morphism is not correct")
+            self._backend_morphism = backend
+        elif isinstance(defn, (list, tuple)):
+            if domain.ngens() != len(defn):
+                raise ValueError("the number of images does not match the number of generators")
+            im_gens = [ codomain(x) for x in defn ]
+            backend_bases = [ backend_domain ]
+            b = backend_domain.base_ring()
+            while b is not b.base_ring():
+                backend_bases.append(b)
+                b = b.base_ring()
+            backend_bases.reverse()
+            current_morphism = None
+            for current_domain in backend_bases:
+                current_im_gens = [ ]
+                for x in current_domain.gens():
+                    pol = codomain(backend_codomain(x)).polynomial()
+                    if base_map is not None:
+                        pol = pol.map_coefficients(base_map)
+                    y = pol(im_gens)
+                    if isinstance(codomain, RingExtension_class):
+                        y = y._backend()
+                    current_im_gens.append(y)
+                current_morphism = current_domain.Hom(backend_codomain)(current_im_gens, base_map=current_morphism, check=check)
+            self._backend_morphism = current_morphism
+        else:
+            raise TypeError
+        self._base_map = base_map
 
     cpdef Element _call_(self, x):
         if isinstance(self.domain(), RingExtension_class):
@@ -91,6 +118,9 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
 
     def _backend(self):
         return self._backend_morphism
+
+    def base_map(self):
+        return self._base_map
 
     cdef _update_slots(self, dict _slots):
         self._backend_morphism = _slots['_backend_morphism']

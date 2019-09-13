@@ -650,10 +650,14 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
 # We could have used morphisms in the category
 # FiniteDimensionalModulesWithBasis over Qp(p)
-# But this would require making p-adic fields
-# part of this category which has a lot of side
-# effects (adding methods which will show up
-# in tab completion for example).  For now we
+# But currently if you try to add this category
+# to p-adic extensions you get errors on
+# object creation.  Moreover, some of the methods
+# obtained from the category (such as dimension)
+# don't take base ring into account, making it
+# awkward to treat the same field as simultaneously
+# an object in two free module categories with
+# different base rings. So for now we
 # just stick with Map.
 class pAdicModuleIsomorphism(Map):
     r"""

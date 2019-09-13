@@ -1359,9 +1359,9 @@ class NumberField_relative(NumberField_generic):
 
         - ``base`` -- a subfield
 
-        - ``basis`` -- a list of elements giving a basis over the subfield (optional)
+        - ``basis`` -- (optional) a list of elements giving a basis over the subfield
 
-        - ``map`` -- whether to return isomorphisms to and from the vector space (default ``True``)
+        - ``map`` -- (default ``True``) whether to return isomorphisms to and from the vector space
 
         EXAMPLES::
 

@@ -885,7 +885,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
 
 
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         r"""
         This gets called implicitly when one constructs a ring homomorphism
         from a power series ring.
@@ -908,11 +908,21 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
            series that doesn't converge. Note that 0 is not a *ring*
            homomorphism.
         """
+        if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
+            return False
         if im_gens[0] == 0:
             return True   # this is allowed.
         from .laurent_series_ring import is_LaurentSeriesRing
+        v = im_gens[0]
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
-            return im_gens[0].valuation() > 0
+            try:
+                return v.valuation() > 0 or v.is_nilpotent()
+            except NotImplementedError:
+                return v.valuation() > 0
+        try:
+            return v.is_nilpotent()
+        except NotImplementedError:
+            pass
         return False
 
     def _poly_ring(self):

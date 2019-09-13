@@ -63,6 +63,33 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
           Defn: x |--> x
                 y |--> y
                 z |--> z
+
+    You can provide a base map, creating a semilinear map that (sometimes)
+    preserves the Lie bracket::
+
+        sage: R.<x> = ZZ[]
+        sage: K.<i> = NumberField(x^2 + 1)
+        sage: cc = K.hom([-i])
+        sage: L.<X,Y,Z,W> = LieAlgebra(K, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+        sage: M.<A,B,C,D> = LieAlgebra(K, {('A','B'): {'C':1}, ('A','C'): {'D':1}})
+        sage: phi = L.morphism({X:A, Y:B, Z:C, W:D}, base_map=cc)
+        sage: phi(X)
+        A
+        sage: phi(i*X)
+        -i*A
+        sage: all(phi(x.bracket(y)) == phi(x).bracket(phi(y)) for x,y in cartesian_product_iterator([[X,Y,Z,W],[X,Y,Z,W]]))
+        True
+
+    However, if the structure constants are not fixed by the base map,
+    the Lie bracket may not be preserved::
+
+        sage: L.<X,Y,Z,W> = LieAlgebra(K, {('X','Y'): {'Z':i}, ('X','Z'): {'W':1}})
+        sage: M.<A,B,C,D> = LieAlgebra(K, {('A','B'): {'C':i}, ('A','C'): {'D':1}})
+        sage: phi = L.morphism({X:A, Y:B, Z:C, W:D}, base_map=cc)
+        sage: phi(X.bracket(Y))
+        -i*C
+        sage: phi(X).bracket(phi(Y))
+        i*C
     """
     def __init__(self, parent, im_gens, base_map=None, check=True):
         """
@@ -89,7 +116,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             if base_map is not None and not (base_map.domain() is parent.domain().base_ring() and parent.codomain().base_ring().has_coerce_map_from(base_map.codomain())):
                 raise ValueError("Invalid base homomorphism")
             # TODO: Implement a (meaningful) _is_valid_homomorphism_()
-            #if not parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens):
+            #if not parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens, base_map=base_map):
             #    raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators.")
         if not im_gens.is_immutable():
             import copy

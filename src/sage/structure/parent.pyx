@@ -1209,7 +1209,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     # Generators and Homomorphisms
     #################################################################################
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
        r"""
        Return True if ``im_gens`` defines a valid homomorphism
        from self to codomain; otherwise return False.

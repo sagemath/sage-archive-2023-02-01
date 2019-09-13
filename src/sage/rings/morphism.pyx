@@ -1066,7 +1066,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         if check:
             if len(im_gens) != parent.domain().ngens():
                 raise ValueError("number of images must equal number of generators")
-            t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens)
+            tkwds = {} if base_map is None else {'base_map': base_map}
+            t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens, **tkwds)
             if not t:
                 raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators")
         if not im_gens.is_immutable():

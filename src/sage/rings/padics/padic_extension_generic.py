@@ -713,8 +713,11 @@ class pAdicModuleIsomorphism(Map):
             sage: fr == fr
             True
         """
-        # Equality depends only on the parent
-        return rich_to_bool(op, 0)
+        # For maps of this type, equality depends only on the parent
+        if isinstance(other, pAdicModuleIsomorphism):
+            return rich_to_bool(op, 0)
+        else:
+            return rich_to_bool(op, 1)
 
 class MapFreeModuleToOneStep(pAdicModuleIsomorphism):
     """
@@ -843,8 +846,8 @@ class MapTwoStepToFreeModule(pAdicModuleIsomorphism):
             sage: R.<x> = ZZ[]
             sage: L.<pi> = K.extension(x^3 - 5)
             sage: V, fr, to = L.free_module(base=Qp(5))
-            sage: a = 1 + a*pi + O(pi^7)
-            sage: to(a)
+            sage: b = 1 + a*pi + O(pi^7)
+            sage: to(b)
             (1 + O(5^3), O(5^3), O(5^2), 1 + O(5^2), O(5^2), O(5^2))
         """
         v = flatten([c._polynomial_list(pad=True) for c in x._polynomial_list(pad=True)])

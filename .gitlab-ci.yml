@@ -120,6 +120,9 @@ build-from-clean:
     - master
     - develop
     - tags
+    # Run build-from-clean for a pipeline that has been explicitly created
+    # through GitLab's web interface.
+    - web
   except: []
   tags:
     # 60 GB of HDD are available

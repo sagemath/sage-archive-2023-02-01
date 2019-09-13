@@ -2026,9 +2026,9 @@ def spherical_bessel_f(F, n, z):
         sage: spherical_bessel_f('hankel1', 3, 4)
         mpc(real='0.22924385795503024', imag='-0.21864196590306359')
 
-    TESTS::
+    TESTS:
 
-    Check that :trac:`28474` is fixed:
+    Check that :trac:`28474` is fixed::
 
         sage: from sage.functions.bessel import spherical_bessel_f
         sage: spherical_bessel_f('besselj', 3, -4)

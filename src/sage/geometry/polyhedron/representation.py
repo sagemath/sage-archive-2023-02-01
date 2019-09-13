@@ -466,20 +466,20 @@ class Hrepresentation(PolyhedronRepresentation):
 
         Checking that :trac:`28463` is fixed::
 
-        sage: P = polytopes.simplex()
-        sage: F1 = P.Hrepresentation()[1]
-        sage: list(F1.neighbors())
-        [An inequality (0, 1, 0, 0) x + 0 >= 0,
-         An inequality (0, 0, 1, 0) x + 0 >= 0,
-         An inequality (0, 0, 0, 1) x + 0 >= 0]
+            sage: P = polytopes.simplex()
+            sage: F1 = P.Hrepresentation()[1]
+            sage: list(F1.neighbors())
+            [An inequality (0, 1, 0, 0) x + 0 >= 0,
+             An inequality (0, 0, 1, 0) x + 0 >= 0,
+             An inequality (0, 0, 0, 1) x + 0 >= 0]
 
         Does not work for equalities::
 
-        sage: F0 = P.Hrepresentation()[0]
-        sage: list(F0.neighbors())
-        Traceback (most recent call last):
-        ...
-        TypeError: must be inequality
+            sage: F0 = P.Hrepresentation()[0]
+            sage: list(F0.neighbors())
+            Traceback (most recent call last):
+            ...
+            TypeError: must be inequality
         """
         # The adjacency matrix does not include equations.
         n_eqs = self.polyhedron().n_equations()

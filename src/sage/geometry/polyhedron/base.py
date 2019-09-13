@@ -4439,11 +4439,14 @@ class Polyhedron_base(Element):
             sage: stack.backend()
             'field'
 
-        The stacked vertex may not satisfy any inequality
-        defining the original polyhedron::
+        Taking the stacking vertex too far with the parameter `position`
+        may result in a failure to produce the desired
+        (combinatorial type of) polytope.
+        The interval of permittable values is always open.
+        This is the smallest non-permittable value::
 
             sage: P = polytopes.octahedron()
-            sage: P.stack(P.faces(2)[0],4)
+            sage: P.stack(P.faces(2)[0], position=4)
             Traceback (most recent call last):
             ...
             ValueError: the chosen position is too large

@@ -567,7 +567,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
     @cached_method(key=(lambda self, base, basis, map: (base or self.base_ring(), map)))
     def free_module(self, base=None, basis=None, map=True):
         """
-        Returns a free module V over a specified base ring together with maps to and from V.
+        Return a free module V over a specified base ring together with maps to and from V.
 
         INPUT:
 

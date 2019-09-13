@@ -934,9 +934,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R._is_valid_homomorphism_(GF(7), [5])
+            False
+            sage: R._is_valid_homomorphism_(Qp(7), [5])
+            True
+        """
         # Since poly rings are free, any image of the gen
         # determines a homomorphism
-        if base_map is not None:
+        if base_map is None:
             # If no base map is given, the only requirement is that the
             # base ring coerces into the codomain
             return codomain.has_coerce_map_from(self.base_ring())

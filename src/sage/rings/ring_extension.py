@@ -948,7 +948,8 @@ class RingExtensionWithBasis(RingExtension_class):
         else:
             if len(names) != len(self._basis):
                 raise ValueError("the number of names does not match the cardinality of the basis")
-        self._names = names
+        self._basis_names = names
+        self._names = tuple(names)
         if check:
             try:
                 _ = self.vector_space()
@@ -1014,10 +1015,14 @@ class RingExtensionWithGen(RingExtensionWithBasis):
         basis = [ gen ** i for i in range(degree) ]
         try:
             RingExtensionWithBasis.__init__(self, defining_morphism, basis, names, coerce, check)
-        except ValueError:
-            raise ValueError("the given element is not a generator")
+        except ValueError(e):
+            if e == "the given family is not a basis":
+                raise ValueError("the given element is not a generator")
+            else:
+                raise ValueError(e)
         self._gen = self(gen)._backend()
         self._type = "Ring"
+        self._names = (self._name,)
         # if self._ring in Fields():
         #     self._type = "Field"
 

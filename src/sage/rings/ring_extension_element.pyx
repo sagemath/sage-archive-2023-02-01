@@ -227,14 +227,14 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
 cdef class RingExtensionWithBasisElement(RingExtensionElement):
     def _repr_(self):
-        names = self._parent._names
+        names = self._parent._basis_names
         coeffs = self.vector()
         s = ""
         for i in range(len(names)):
             if coeffs[i].is_zero(): continue
             c = coeffs[i]
             sign = 1
-            if (-c)._is_atomic():
+            if not c._is_atomic() and (-c)._is_atomic():
                 c = -c
                 sign = -sign
             if s == "":

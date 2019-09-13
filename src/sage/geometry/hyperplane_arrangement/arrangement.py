@@ -2616,6 +2616,32 @@ class HyperplaneArrangementElement(Element):
             base_ring = self.base_ring()
         return self.matroid().orlik_solomon_algebra(base_ring, ordering)
 
+    def orlik_terao_algebra(self, base_ring=None, ordering=None):
+        """
+        Return the Orlik-Terao algebra of ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- (default: the base field of ``self``) the ring
+          over which the Orlik-Terao algebra will be defined
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z)
+            sage: A.orlik_terao_algebra()
+            Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
+             represented over the Rational Field
+            sage: A.orlik_terao_algebra(base_ring=QQ['t'])
+            Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
+             represented over the Rational Field
+             over Univariate Polynomial Ring in t over Rational Field
+        """
+        if base_ring is None:
+            base_ring = self.base_ring()
+        return self.matroid().orlik_terao_algebra(base_ring, ordering)
+
     @cached_method
     def minimal_generated_number(self):
         r"""

@@ -1053,6 +1053,10 @@ REFERENCES:
              Theory*. Morgan & Claypool Publishers, (2011). ISBN
              9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
 
+.. [CF2005] Raul Cordovil and David Forge.
+            *Gröbner and diagonal bases in Orlik-Solomon type algebras*
+            Cubo **7** (2), (2005). pp. 1-20.
+
 .. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
              :doi:`10.1007/BF01305232`
 
@@ -1743,6 +1747,10 @@ REFERENCES:
 .. [FH2015] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
             Wehler K3 Surfaces over finite fields. New Zealand Journal
             of Mathematics 45 (2015), 19–31.
+
+.. [FL2001] David Forge and Michel Las Vergnas.
+            *Orlik-Solomon type algebras*. European J. Combin.
+            **22** (5), (2001). pp. 699-704.
 
 .. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
@@ -3551,6 +3559,10 @@ REFERENCES:
          :arxiv:`math/0110077v1`.
          Possibly newer version at
          http://www.wisdom.weizmann.ac.il/~regev/papers/FrobeniusSchurFunctions.ps
+
+.. [OT1994] Peter Orlik and Hiroaki Terao.
+            *Commutative algebras for arrangements*. Nagoya Math. J. **134**
+            (1994), 65-73.
 
 .. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
             Langlands dual quantum affine algebras: Exceptional cases*.

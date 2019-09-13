@@ -1461,6 +1461,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             ValueError: cannot differentiate with respect to 2*x
 
         Check that :trac:`28187` is fixed::
+
             sage: x = var("x")
             sage: f._derivative(x)
             4*x^3 - 1

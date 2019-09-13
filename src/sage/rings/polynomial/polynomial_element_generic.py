@@ -250,7 +250,7 @@ class Polynomial_generic_sparse(Polynomial):
         if var is not None and var != P.gen():
             try:
                 # call _derivative() recursively on coefficients
-                return P({n:self.__coeffs[n]._derivative(var) \
+                return P({n:self.__coeffs[n]._derivative(var)
                             for n in self.__coeffs})
             except AttributeError:
                 raise ValueError('cannot differentiate with respect to {}'.format(var))

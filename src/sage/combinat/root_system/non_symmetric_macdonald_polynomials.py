@@ -697,17 +697,17 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: omega = E.keys().fundamental_weights()
         sage: La = R.weight_space().basis()
         sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
-        sage: E[-2*omega[1]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (149s)
+        sage: E[-2*omega[1]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # not tested, long time (20s)
         True
         sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[2])
-        sage: E[-omega[1]-omega[2]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (23s)
+        sage: E[-omega[1]-omega[2]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # not tested, long time (23s)
         True
 
     The next test breaks if the energy is not scaled by the
     translation factor for dual type `G_2^{(1)}`::
 
         sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1]+La[2])
-        sage: E[-2*omega[1]-omega[2]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time
+        sage: E[-2*omega[1]-omega[2]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # not tested, very long time (100s)
         True
 
         sage: R = RootSystem(['D',4,1])

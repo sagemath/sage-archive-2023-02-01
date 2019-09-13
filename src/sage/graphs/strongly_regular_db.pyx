@@ -779,7 +779,7 @@ def is_NU(int v,int k,int l,int mu):
 
     Note that n>2; for n=2 there is no s.r.g. For more information, see
     :func:`sage.graphs.graph_generators.GraphGenerators.NonisotropicUnitaryPolarGraph`
-    and series C14 in [Hu75]_.
+    and series C14 in [Hub1975]_.
 
     INPUT:
 
@@ -2081,7 +2081,7 @@ def SRG_176_105_68_54():
     To build this graph, we first build a `2-(22,7,16)` design, by removing one
     point from the :func:`~sage.combinat.designs.block_design.WittDesign` on 23
     points. We then build the intersection graph of blocks with intersection
-    size 3. Known as S.7 in [Hu75]_.
+    size 3. Known as S.7 in [Hub1975]_.
 
     EXAMPLES::
 
@@ -2195,7 +2195,7 @@ def SRG_253_140_87_65():
     To build this graph, we first build the
     :func:`~sage.combinat.designs.block_design.WittDesign` on 23 points which is
     a `2-(23,7,21)` design. We then build the intersection graph of blocks with
-    intersection size 3. Known as S.6 in [Hu75]_.
+    intersection size 3. Known as S.6 in [Hub1975]_.
 
     EXAMPLES::
 
@@ -2443,7 +2443,7 @@ def SRG_416_100_36_20():
     (among 2 that exists) of the group `G_2(4)`.
     This graph is isomorphic to the subgraph of the from :meth:`Suzuki Graph
     <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
-    the neighbors of a vertex. Known as S.14 in [Hu75]_.
+    the neighbors of a vertex. Known as S.14 in [Hub1975]_.
 
     EXAMPLES::
 

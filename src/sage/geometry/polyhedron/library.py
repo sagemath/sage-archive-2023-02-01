@@ -550,9 +550,9 @@ class Polytopes():
 
         The faces are `8` equilateral triangles and `18` squares::
 
-            sage: sum(1 for f in sr.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in sr.facets() if len(f.vertices()) == 3)
             8
-            sage: sum(1 for f in sr.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in sr.facets() if len(f.vertices()) == 4)
             18
 
         Its non exact version::
@@ -622,13 +622,13 @@ class Polytopes():
             sage: gr.f_vector()
             (1, 48, 72, 26, 1)
 
-        Its faces are 4 squares, 8 regular hexagons and 6 regular octagons::
+        Its facets are 4 squares, 8 regular hexagons and 6 regular octagons::
 
-            sage: sum(1 for f in gr.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in gr.facets() if len(f.vertices()) == 4)
             12
-            sage: sum(1 for f in gr.faces(2) if len(f.vertices()) == 6)
+            sage: sum(1 for f in gr.facets() if len(f.vertices()) == 6)
             8
-            sage: sum(1 for f in gr.faces(2) if len(f.vertices()) == 8)
+            sage: sum(1 for f in gr.facets() if len(f.vertices()) == 8)
             6
         """
         if base_ring is None and exact:
@@ -670,9 +670,9 @@ class Polytopes():
             sage: rd.f_vector()
             (1, 14, 24, 12, 1)
 
-        Its faces are 12 quadrilaterals (not all identical)::
+        Its facets are 12 quadrilaterals (not all identical)::
 
-            sage: sum(1 for f in rd.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in rd.facets() if len(f.vertices()) == 4)
             12
 
         Some more computations::
@@ -718,11 +718,11 @@ class Polytopes():
             sage: co.f_vector()
             (1, 12, 24, 14, 1)
 
-        Its faces are 8 triangles and 6 squares::
+        Its facets are 8 triangles and 6 squares::
 
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 3)
             8
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 4)
             6
 
         Some more computation::
@@ -770,11 +770,11 @@ class Polytopes():
             sage: co.f_vector()
             (1, 24, 36, 14, 1)
 
-        Its faces are 8 triangles and 6 octogons::
+        Its facets are 8 triangles and 6 octogons::
 
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 3)
             8
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 8)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 8)
             6
 
         Some more computation::
@@ -829,9 +829,9 @@ class Polytopes():
             sage: co.f_vector()
             (1, 4, 6, 4, 1)
 
-        Its faces are 4 triangles::
+        Its facets are 4 triangles::
 
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 3)
             4
 
         Some more computation::
@@ -869,11 +869,11 @@ class Polytopes():
             sage: co.f_vector()
             (1, 12, 18, 8, 1)
 
-        Its faces are 4 triangles and 4 hexagons::
+        Its facets are 4 triangles and 4 hexagons::
 
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 3)
             4
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 6)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 6)
             4
 
         Some more computation::
@@ -915,11 +915,11 @@ class Polytopes():
             sage: co.f_vector()
             (1, 24, 36, 14, 1)
 
-        Its faces are 6 squares and 8 hexagons::
+        Its facets are 6 squares and 8 hexagons::
 
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 4)
             6
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 6)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 6)
             8
 
         Some more computation::
@@ -959,9 +959,9 @@ class Polytopes():
             sage: co.f_vector()
             (1, 6, 12, 8, 1)
 
-        Its faces are 8 triangles::
+        Its facets are 8 triangles::
 
-            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in co.facets() if len(f.vertices()) == 3)
             8
 
         Some more computation::
@@ -1123,11 +1123,11 @@ class Polytopes():
             sage: bb.base_ring()
             Real Double Field
 
-        Its faces are 5 regular pentagons and 6 regular hexagons::
+        Its facets are 5 regular pentagons and 6 regular hexagons::
 
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 5)
+            sage: sum(1 for f in bb.facets() if len(f.vertices()) == 5)
             12
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 6)
+            sage: sum(1 for f in bb.facets() if len(f.vertices()) == 6)
             20
 
         TESTS::
@@ -1230,11 +1230,11 @@ class Polytopes():
             sage: id.base_ring()
             Real Double Field
 
-        Its faces are 20 triangles and 12 regular pentagons::
+        Its facets are 20 triangles and 12 regular pentagons::
 
-            sage: sum(1 for f in id.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in id.facets() if len(f.vertices()) == 3)
             20
-            sage: sum(1 for f in id.faces(2) if len(f.vertices()) == 5)
+            sage: sum(1 for f in id.facets() if len(f.vertices()) == 5)
             12
 
         TESTS::
@@ -1293,11 +1293,11 @@ class Polytopes():
             sage: td.base_ring()
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
-        Its faces are 20 triangles and 12 regular decagons::
+        Its facets are 20 triangles and 12 regular decagons::
 
-            sage: sum(1 for f in td.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in td.facets() if len(f.vertices()) == 3)
             20
-            sage: sum(1 for f in td.faces(2) if len(f.vertices()) == 10)
+            sage: sum(1 for f in td.facets() if len(f.vertices()) == 10)
             12
 
         The faster implementation using floating point approximations does not
@@ -1356,8 +1356,8 @@ class Polytopes():
 
         The pentakis dodecahedron (orkisdodecahedron) is a face-regular,
         vertex-uniform polytope dual to the truncated icosahedron.  It has 60
-        faces and 32 vertices. See the :wikipedia:`Pentakis_dodecahedron` for
-        more information.
+        facets and 32 vertices. See the :wikipedia:`Pentakis_dodecahedron` for more
+        information.
 
         INPUT:
 
@@ -1389,7 +1389,7 @@ class Polytopes():
 
         The 60 are triangles::
 
-            sage: all(len(f.vertices()) == 3 for f in pd.faces(2))
+            sage: all(len(f.vertices()) == 3 for f in pd.facets())
             True
         """
         return self.buckyball(exact=exact, base_ring=base_ring, backend=backend).polar()
@@ -1469,13 +1469,13 @@ class Polytopes():
             sage: rid.base_ring()
             Real Double Field
 
-        Its faces are 20 triangles, 30 squares and 12 pentagons::
+        Its facets are 20 triangles, 30 squares and 12 pentagons::
 
-            sage: sum(1 for f in rid.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in rid.facets() if len(f.vertices()) == 3)
             20
-            sage: sum(1 for f in rid.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in rid.facets() if len(f.vertices()) == 4)
             30
-            sage: sum(1 for f in rid.faces(2) if len(f.vertices()) == 5)
+            sage: sum(1 for f in rid.facets() if len(f.vertices()) == 5)
             12
 
         TESTS::
@@ -1546,13 +1546,13 @@ class Polytopes():
             sage: ti.base_ring()
             Real Double Field
 
-        Its faces are 30 squares, 20 hexagons and 12 decagons::
+        Its facets are 30 squares, 20 hexagons and 12 decagons::
 
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in ti.facets() if len(f.vertices()) == 4)
             30
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 6)
+            sage: sum(1 for f in ti.facets() if len(f.vertices()) == 6)
             20
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 10)
+            sage: sum(1 for f in ti.facets() if len(f.vertices()) == 10)
             12
 
         TESTS::
@@ -1617,11 +1617,11 @@ class Polytopes():
             sage: sd.base_ring()                                                     # optional - pynormaliz, long time
             Algebraic Real Field
 
-        Its faces are 80 triangles and 12 pentagons::
+        Its facets are 80 triangles and 12 pentagons::
 
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3)              # optional - pynormaliz, long time
+            sage: sum(1 for f in sd.facets() if len(f.vertices()) == 3)              # optional - pynormaliz, long time
             80
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5)              # optional - pynormaliz, long time
+            sage: sum(1 for f in sd.facets() if len(f.vertices()) == 5)              # optional - pynormaliz, long time
             12
 
         TESTS:

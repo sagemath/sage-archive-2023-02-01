@@ -5356,6 +5356,33 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: N = ~M
             sage: (N*M).norm()
             0.9999999999999999
+
+        Check that :trac:`28402` is fixed::
+
+            sage: B = matrix(RR, [[1/6, -1/24, -1/30, 1/120,1/12, 0, 0, 0, 0],
+            ....:                 [-1/24,1/60,1/60, 1/420, -1/24, 0, 0, 0, 0],
+            ....:                 [-1/30,1/60, 2/105, 1/140, -1/20, 0, 0, 0, 0],
+            ....:                 [1/120, 1/420, 1/140, 13/1260, -1/40, 0, 0, 0, 0],
+            ....:                 [1/12, -1/24, -1/20, -1/40, 1/3, -1/24, -1/30, 1/120,1/12],
+            ....:                 [0, 0, 0, 0, -1/24,1/60,1/60, 1/420, -1/24],
+            ....:                 [0, 0, 0, 0, -1/30,1/60, 2/105, 1/140, -1/20],
+            ....:                 [0, 0, 0, 0, 1/120, 1/420, 1/140, 13/1260, -1/40],
+            ....:                 [0, 0, 0, 0,1/12, -1/24, -1/20, -1/40, 1/6]],
+            ....:           sparse=True)
+            sage: (B.inverse()*B).norm(1)  # rel tol 2e-12
+            1.0
+            sage: B = matrix(QQ, [[1/6, -1/24, -1/30, 1/120,1/12, 0, 0, 0, 0],
+            ....:                 [-1/24,1/60,1/60, 1/420, -1/24, 0, 0, 0, 0],
+            ....:                 [-1/30,1/60, 2/105, 1/140, -1/20, 0, 0, 0, 0],
+            ....:                 [1/120, 1/420, 1/140, 13/1260, -1/40, 0, 0, 0, 0],
+            ....:                 [1/12, -1/24, -1/20, -1/40, 1/3, -1/24, -1/30, 1/120,1/12],
+            ....:                 [0, 0, 0, 0, -1/24,1/60,1/60, 1/420, -1/24],
+            ....:                 [0, 0, 0, 0, -1/30,1/60, 2/105, 1/140, -1/20],
+            ....:                 [0, 0, 0, 0, 1/120, 1/420, 1/140, 13/1260, -1/40],
+            ....:                 [0, 0, 0, 0,1/12, -1/24, -1/20, -1/40, 1/6]],
+            ....:           sparse=True)
+            sage: (B.inverse()*B).norm(1)
+            1.0
         """
         if not self.base_ring().is_field():
             try:
@@ -5403,12 +5430,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         if self.base_ring().is_exact():
             if A[self._nrows-1, self._ncols-1] != 1:
                 raise ZeroDivisionError("input matrix must be nonsingular")
+            if self.is_sparse():
+                return self.build_inverse_from_augmented_sparse(A)
         else:
             if not A[self._nrows-1, self._ncols-1]:
                 raise ZeroDivisionError("input matrix must be nonsingular")
-
-        if self.is_sparse():
-            return self.build_inverse_from_augmented_sparse(A)
 
         return A.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
 

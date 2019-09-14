@@ -531,7 +531,7 @@ class Fields(CategoryWithAxiom):
 
             - ``V`` -- a vector space over ``base``
             - ``from_V`` -- an isomorphism from ``V`` to this field
-            - ``to_V`` -- the inverse isomorphism from this field to ``V`
+            - ``to_V`` -- the inverse isomorphism from this field to ``V``
 
             EXAMPLES::
 

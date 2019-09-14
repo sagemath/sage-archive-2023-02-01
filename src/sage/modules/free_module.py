@@ -4879,7 +4879,7 @@ class FreeModule_ambient(FreeModule_generic):
         ::
 
             sage: A = GF(5)^20
-            sage: latex(A) # indiret doctest
+            sage: latex(A)  # indirect doctest
             \Bold{F}_{5}^{20}
 
         ::
@@ -4888,10 +4888,10 @@ class FreeModule_ambient(FreeModule_generic):
             sage: latex(A) #indirect doctest
             (\Bold{Q}[x_{0}, x_{1}, x_{2}])^{20}
         """
-        t = "%s"%latex.latex(self.base_ring())
+        t = "%s" % latex.latex(self.base_ring())
         if t.find(" ") != -1:
-            t = "(%s)"%t
-        return "%s^{%s}"%(t, self.rank())
+            t = "(%s)" % t
+        return "%s^{%s}" % (t, self.rank())
 
     def is_ambient(self):
         """

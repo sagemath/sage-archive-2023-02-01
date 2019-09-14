@@ -987,7 +987,7 @@ def vertex_separation_exp(G, verbose=False):
     return k, [g.int_to_vertices[i] for i in order]
 
 ##############################################################################
-# Actual algorithm, breadh-first search and updates of the costs of the sets #
+# Actual algorithm, breadth-first search and updates of the costs of the sets #
 ##############################################################################
 
 cdef inline int exists(FastDigraph g, uint8_t* neighborhoods, int current, int cost):

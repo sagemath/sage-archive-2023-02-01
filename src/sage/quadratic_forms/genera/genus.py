@@ -130,7 +130,7 @@ def _local_genera(p, rank, det_val, max_scale, even):
 
     - ``max_scale`` -- an integer the maximal scale of a jordan block
 
-    - ``even`` -- ``bool``; is igored if `p` is not `2`
+    - ``even`` -- ``bool``; is ignored if `p` is not `2`
 
     EXAMPLES::
 

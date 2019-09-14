@@ -1786,9 +1786,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 return self.change_ring(GF(K.characteristic()))
             if d == K.degree():
                 return self
-            # otherwise we are not in the prime subfield so coercsion to it doesn't work
+            # otherwise we are not in the prime subfield so coercion
+            # to it does not work
             for L,phi in K.subfields():
-                #find the right subfield and it's embedding
+                # find the right subfield and its embedding
                 if L.degree() == d:
                     break
             # we need to rewrite each of the coefficients in terms of the generator

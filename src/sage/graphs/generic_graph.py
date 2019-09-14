@@ -10844,7 +10844,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``edges`` -- an iterable of edges, given either as ``(u, v)``
           or ``(u, v, label)``.
 
-        - ``loops`` -- boolen (default: ``True``); if ``False``, remove all
+        - ``loops`` -- boolean (default: ``True``); if ``False``, remove all
           loops ``(v, v)`` from the input iterator. If ``None``, remove loops
           unless the graph allows loops.
 

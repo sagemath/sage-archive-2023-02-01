@@ -1302,8 +1302,8 @@ class Partition(CombinatorialElement):
             sage: Partition([1]).boundary()
             [(1, 0), (1, 1), (0, 1)]
 
-        The partition (3, 1) can be visualized as three squares on a cartisian
-        plane.  The coordinates of the appropriate vertices form the boundary::
+        The partition (3, 1) can be visualized as three squares on a cartesian
+        plane. The coordinates of the appropriate vertices form the boundary::
 
             sage: Partition([3, 1]).boundary()
             [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]

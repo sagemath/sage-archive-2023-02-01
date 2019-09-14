@@ -351,7 +351,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             test = [1] * len(facets)  # 0 if that facet is an equality
             for i in range(len(facets)):
                 if hasattr(facets[i], "is_inequality"):
-                    # We remove equalites.
+                    # We remove equalities.
                     # At the moment only equalities with this attribute ``True``
                     # will be detected.
                     if not facets[i].is_inequality():

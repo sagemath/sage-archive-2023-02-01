@@ -381,7 +381,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
         # We add elements one by one in 'current_set'.
         #
-        # When adding a point g to 'current_set', we add to 'gens_remaning' all
+        # When adding a point g to 'current_set', we add to 'gens_remaining' all
         # meet obtained from g and another point of 'current_set'.
         while gens_remaining:
             g = gens_remaining.pop()
@@ -423,7 +423,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
         # We add elements one by one in 'current_set'.
         #
-        # When adding a point g to 'current_set', we add to 'gens_remaning' all
+        # When adding a point g to 'current_set', we add to 'gens_remaining' all
         # join obtained from g and another point of 'current_set'.
         while gens_remaining:
             g = gens_remaining.pop()
@@ -3198,7 +3198,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         # We add elements one by one in 'current_set'.
         #
-        # When adding a point g to 'current_set', we add to 'gens_remaning' all
+        # When adding a point g to 'current_set', we add to 'gens_remaining' all
         # meet/join obtained from g and another point of 'current_set'
         while gens_remaining:
             g = gens_remaining.pop()

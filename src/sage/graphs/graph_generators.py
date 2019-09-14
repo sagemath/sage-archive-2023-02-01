@@ -1301,7 +1301,7 @@ class GraphGenerators():
             sage: len(list(gen))  # optional benzene
             1
 
-        This fusene is naphtalene (`\textrm{C}_{10}\textrm{H}_{8}`).
+        This fusene is naphthalene (`\textrm{C}_{10}\textrm{H}_{8}`).
         In the fusene graph the H-atoms are not stored, so this is
         a graph on just 10 vertices::
 

@@ -556,7 +556,7 @@ def cremona_to_lmfdb(cremona_label, CDB=None):
 
 def lmfdb_to_cremona(lmfdb_label, CDB=None):
     """
-    Convert an LMFDB labe into a Cremona label.
+    Convert an LMFDB label into a Cremona label.
 
     See :func:`parse_lmfdb_label` for an explanation of LMFDB labels.
 

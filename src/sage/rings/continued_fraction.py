@@ -2488,7 +2488,7 @@ def continued_fraction(x, value=None):
     if x.parent().is_exact():
         return ContinuedFraction_real(x)
 
-    # we treat separatly the symbolic ring that holds all constants and
+    # we treat separately the symbolic ring that holds all constants and
     # which is not exact
     from sage.symbolic.ring import SR
     if x.parent() == SR:

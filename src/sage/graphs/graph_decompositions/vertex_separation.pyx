@@ -1593,7 +1593,7 @@ def vertex_separation_BAB(G,
 
     # ==> Allocate and initialize some data structures
 
-    # We use a binary matrix to store the (di)graph. This way the neighborhoud
+    # We use a binary matrix to store the (di)graph. This way the neighborhood
     # of a vertex is stored in one bitset.
     cdef binary_matrix_t H
     cdef int i

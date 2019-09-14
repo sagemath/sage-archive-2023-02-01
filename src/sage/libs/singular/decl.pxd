@@ -987,7 +987,7 @@ cdef extern from "singular/coeffs/rmodulo2m.h":
 
 cdef extern from "singular/kernel/maps/fast_maps.h":
 
-    # mappinf from ideal i1 in r1 by i2 to r2
+    # mapping from ideal i1 in r1 by i2 to r2
 
     ideal *fast_map_common_subexp(ideal *i1, ring *r1, ideal *i2, ring *r2)
 

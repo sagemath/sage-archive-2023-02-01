@@ -22,6 +22,9 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
 cdef class RingHomomorphism_from_base(RingHomomorphism):
     cdef _underlying
 
+cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
+    cdef _morphism
+
 cdef class RingHomomorphism_cover(RingHomomorphism):
     pass
 

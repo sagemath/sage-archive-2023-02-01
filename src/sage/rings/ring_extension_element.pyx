@@ -106,10 +106,10 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x+y).parent() is E
             True
         """
-        return self.__class__(self._parent, self._element + other._backend())
+        return self._parent(self._element + other._backend())
 
     cpdef _neg_(self):
-        return self.__class__(self._parent, -self._element)
+        return self._parent(-self._element)
 
     cpdef _sub_(self,other):
         r"""
@@ -124,7 +124,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x-y).parent() is E
             True
         """
-        return self.__class__(self._parent, self._element - other._backend())
+        return self._parent(self._element - other._backend())
 
     cpdef _mul_(self,other):
         r"""
@@ -139,10 +139,13 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x*y).parent() is E
             True
         """
-        return self.__class__(self._parent, self._element * other._backend())
+        return self._parent(self._element * other._backend())
 
-    #cpdef _div_(self,other)
-    #cpdef _floordiv_(self,other)
+    cpdef _div_(self,other):
+        return self._parent.fraction_field()(self._element / other._backend())
+
+    cpdef _floordiv_(self, other):
+        return self._parent(self._element // other._backend())
 
     def additive_order(self):
         r"""

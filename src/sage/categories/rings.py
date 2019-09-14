@@ -195,6 +195,18 @@ class Rings(CategoryWithAxiom):
             """
             return bool(self.codomain().one())
 
+        def extend_to_fraction_field(self):
+            from sage.rings.morphism import RingHomomorphism_from_fraction_field
+            if self.domain().is_field() and self.codomain().is_field():
+                return self
+            if not self.is_injective():
+                raise ValueError("the morphism is not injective")
+            domain = self.domain().fraction_field()
+            codomain = self.codomain().fraction_field()
+            parent = domain.Hom(codomain)  # category = ...
+            return RingHomomorphism_from_fraction_field(parent, self)
+
+
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):

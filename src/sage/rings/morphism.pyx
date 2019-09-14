@@ -1588,6 +1588,25 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             raise TypeError("invalid argument %s" % repr(x))
 
 
+cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
+    def __init__(self, parent, morphism):
+        RingHomomorphism.__init__(self, parent)
+        self._morphism = morphism
+
+    cpdef Element _call_(self, x):
+        return self._morphism(x.numerator()) / self._morphism(x.denominator())
+
+    cdef _update_slots(self, dict _slots):
+        self._morphism = _slots['__morphism']
+        RingHomomorphism._update_slots(self, _slots)
+
+    cdef dict _extra_slots(self):
+        slots = RingHomomorphism._extra_slots(self)
+        slots['__morphism'] = self._morphism
+        return slots
+    
+
+
 cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""
     A homomorphism induced by quotienting a ring out by an ideal.

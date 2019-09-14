@@ -4,9 +4,8 @@ Modular Decomposition
 
 This module implements the function for computing the modular decomposition
 of undirected graphs.
-
-
-#*****************************************************************************
+"""
+# ****************************************************************************
 #       Copyright (C) 2017 Lokesh Jain <lokeshj1703@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,16 +13,16 @@ of undirected graphs.
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-"""
+# ****************************************************************************
+
 from collections import deque
 from enum import Enum
 
 
 class NodeType(Enum):
     """
-    NodeType is an enumeration class used to define the various types of 
-    nodes in modular decomposition tree.
+    NodeType is an enumeration class used to define the various types of nodes
+    in modular decomposition tree.
 
     The various node types defined are
 
@@ -36,7 +35,6 @@ class NodeType(Enum):
     - ``FOREST`` -- indicates a forest containing trees
 
     - ``NORMAL`` -- indicates the node is normal containing a vertex
-
     """
     PRIME = 0
     SERIES = 1
@@ -44,21 +42,41 @@ class NodeType(Enum):
     NORMAL = 3
     FOREST = -1
 
-    def __str__(self):
+    def __repr__(self):
+        r"""
+        String representation of this node type.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                      import NodeType
+            sage: repr(NodeType.PARALLEL)
+            'PARALLEL'
+        """
         return self.name
 
-    def __repr__(self):
-        return self.name
+    def __str__(self):
+        """
+        String representation of this node type.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                      import NodeType
+            sage: str(NodeType.PARALLEL)
+            'PARALLEL'
+        """
+        return repr(self)
 
 
 class NodeSplit(Enum):
     """
-    NodeSplit is an enumeration class which is used to specify the split that 
+    NodeSplit is an enumeration class which is used to specify the split that
     has occurred at the node or at any of its descendants.
 
-    NodeSplit is defined for every node in modular decomposition tree and is 
-    required during the refinement and promotion phase of modular 
-    decomposition tree computation. Various node splits defined are
+    NodeSplit is defined for every node in modular decomposition tree and is
+    required during the refinement and promotion phase of modular decomposition
+    tree computation. Various node splits defined are
 
     - ``LEFT_SPLIT`` -- indicates a left split has occurred
 
@@ -67,7 +85,6 @@ class NodeSplit(Enum):
     - ``BOTH_SPLIT`` -- indicates both left and right split have occurred
 
     - ``NO_SPLIT`` -- indicates no split has occurred
-
     """
     LEFT_SPLIT = 1
     RIGHT_SPLIT = 2
@@ -77,21 +94,20 @@ class NodeSplit(Enum):
 
 class VertexPosition(Enum):
     """
-    VertexPosition is an enumeration class used to define position of a vertex 
+    VertexPosition is an enumeration class used to define position of a vertex
     w.r.t source in modular decomposition.
 
-    For computing modular decomposition of connected graphs a source vertex is 
-    chosen. The position of vertex is w.r.t this source vertex. The various 
+    For computing modular decomposition of connected graphs a source vertex is
+    chosen. The position of vertex is w.r.t this source vertex. The various
     positions defined are
 
-    - ``LEFT_OF_SOURCE`` -- indicates vertex is to left of source and is a 
+    - ``LEFT_OF_SOURCE`` -- indicates vertex is to left of source and is a
                             neighbour of source vertex
 
-    - ``RIGHT_OF_SOURCE`` -- indicates vertex is to right of source and is 
+    - ``RIGHT_OF_SOURCE`` -- indicates vertex is to right of source and is
                              connected to but not a neighbour of source vertex
 
     - ``SOURCE`` -- indicates vertex is source vertex
-
     """
     LEFT_OF_SOURCE = -1
     RIGHT_OF_SOURCE = 1
@@ -100,30 +116,40 @@ class VertexPosition(Enum):
 
 class Node:
     """
-    Node class stores information about the node type, node split and index 
-    of the node in the parent tree. 
+    Node class stores information about the node type, node split and index of
+    the node in the parent tree.
 
-    Node type can be PRIME, SERIES, PARALLEL, NORMAL or FOREST. Node split can 
-    be NO_SPLIT, LEFT_SPLIT, RIGHT_SPLIT or BOTH_SPLIT. A node is split in the 
+    Node type can be PRIME, SERIES, PARALLEL, NORMAL or FOREST. Node split can
+    be NO_SPLIT, LEFT_SPLIT, RIGHT_SPLIT or BOTH_SPLIT. A node is split in the
     refinement phase and the split used is propagated to the ancestors.
 
     - ``node_type`` -- is of type NodeType and specifies the type of node
 
-    - ``node_split`` -- is of type NodeSplit and specifies the type of splits 
+    - ``node_split`` -- is of type NodeSplit and specifies the type of splits
                         which have occurred in the node and its descendants
 
-    - ``index_in_root`` -- specifies the index of the node in the forest 
+    - ``index_in_root`` -- specifies the index of the node in the forest
                            obtained after promotion phase
 
-    - ``comp_num`` -- specifies the number given to nodes in a (co)component 
+    - ``comp_num`` -- specifies the number given to nodes in a (co)component
                       before refinement
 
-    - ``is_separated`` -- specifies whether a split has occurred with the node 
+    - ``is_separated`` -- specifies whether a split has occurred with the node
                           as the root
-
     """
-
     def __init__(self, node_type):
+        r"""
+        Create a node with the given node type.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                       import Node, NodeType
+            sage: n = Node(NodeType.SERIES); n.node_type
+            SERIES
+            sage: n.children
+            []
+        """
         self.node_type = node_type
         self.node_split = NodeSplit.NO_SPLIT
         self.index_in_root = -1
@@ -133,7 +159,7 @@ class Node:
 
     def set_node_split(self, node_split):
         """
-        Add node_split to the node split of self. 
+        Add node_split to the node split of self.
 
         LEFT_SPLIT and RIGHT_SPLIT can exist together in self as BOTH_SPLIT.
 
@@ -143,20 +169,19 @@ class Node:
 
         EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-              NodeSplit
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
-        sage: node.node_split == NodeSplit.LEFT_SPLIT
-        True
-        sage: node.set_node_split(NodeSplit.RIGHT_SPLIT)
-        sage: node.node_split == NodeSplit.BOTH_SPLIT
-        True
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
-        sage: node.node_split == NodeSplit.BOTH_SPLIT
-        True
-        
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                      import Node, NodeType, NodeSplit
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
+            sage: node.node_split == NodeSplit.LEFT_SPLIT
+            True
+            sage: node.set_node_split(NodeSplit.RIGHT_SPLIT)
+            sage: node.node_split == NodeSplit.BOTH_SPLIT
+            True
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
+            sage: node.node_split == NodeSplit.BOTH_SPLIT
+            True
         """
         if self.node_split == NodeSplit.NO_SPLIT:
             self.node_split = node_split
@@ -176,17 +201,16 @@ class Node:
 
         EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-              NodeSplit
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
-        sage: node.has_left_split()
-        True
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
-        sage: node.has_left_split()
-        True
-        
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                      import Node, NodeType, NodeSplit
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
+            sage: node.has_left_split()
+            True
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
+            sage: node.has_left_split()
+            True
         """
         return self.node_split == NodeSplit.LEFT_SPLIT or \
                self.node_split == NodeSplit.BOTH_SPLIT
@@ -201,22 +225,34 @@ class Node:
 
         EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-              NodeSplit
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.RIGHT_SPLIT)
-        sage: node.has_right_split()
-        True
-        sage: node = Node(NodeType.PRIME)
-        sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
-        sage: node.has_right_split()
-        True
-
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                       import Node, NodeType, NodeSplit
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.RIGHT_SPLIT)
+            sage: node.has_right_split()
+            True
+            sage: node = Node(NodeType.PRIME)
+            sage: node.set_node_split(NodeSplit.BOTH_SPLIT)
+            sage: node.has_right_split()
+            True
         """
         return self.node_split == NodeSplit.RIGHT_SPLIT or \
                self.node_split == NodeSplit.BOTH_SPLIT
 
-    def __str__(self):
+    def __repr__(self):
+        r"""
+        Return a string representation of the node.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                       import Node, NodeType, create_normal_node
+            sage: n = Node(NodeType.PRIME)
+            sage: n.children.append(create_normal_node(1))
+            sage: n.children.append(create_normal_node(2))
+            sage: str(n)
+            'PRIME [NORMAL [1], NORMAL [2]]'
+        """
         if self.node_type == NodeType.SERIES:
             s = "SERIES "
         elif self.node_type == NodeType.PARALLEL:
@@ -231,10 +267,22 @@ class Node:
         s += str(self.children)
         return s
 
-    def __repr__(self):
-        return self.__str__()
-
     def __eq__(self, other):
+        r"""
+        Compare two nodes for equality.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                       import Node, NodeType
+            sage: n1 = Node(NodeType.PRIME)
+            sage: n2 = Node(NodeType.PRIME)
+            sage: n3 = Node(NodeType.SERIES)
+            sage: n1 == n2
+            True
+            sage: n1 == n3
+            False
+        """
         return self.node_type == other.node_type and \
                self.node_split == other.node_split and \
                self.index_in_root == other.index_in_root and \
@@ -247,26 +295,27 @@ def modular_decomposition(graph):
     """
     Compute the modular decomposition tree for the input graph.
 
-    The tree structure is represented in form of nested lists. A tree node is 
-    an object of type Node. The Node object further contains a list of its 
+    The tree structure is represented in form of nested lists. A tree node is
+    an object of type Node. The Node object further contains a list of its
     children
 
     INPUT:
 
-    - ``graph`` -- The graph for which modular decomposition
-      tree needs to be computed
+    - ``graph`` -- the graph for which modular decomposition tree needs to be
+                   computed
 
     OUTPUT:
 
-    A nested list representing the modular decomposition tree computed
-    for the graph
+    A nested list representing the modular decomposition tree computed for the
+    graph
 
     EXAMPLES:
 
     The Icosahedral graph is Prime::
 
-        sage: from sage.graphs.modular_decomposition import \
-              modular_decomposition, test_modular_decomposition, print_md_tree
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                    import modular_decomposition, test_modular_decomposition, \
+                           print_md_tree
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
               8
@@ -355,30 +404,6 @@ def modular_decomposition(graph):
         sage: g = Graph(d2)
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
-
-    Tetrahedral Graph is Series::
-
-        sage: print_md_tree(modular_decomposition(graphs.TetrahedralGraph()))
-        SERIES
-              3
-              2
-              1
-              0
-
-    Modular Decomposition tree containing both parallel and series modules::
-
-        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
-        sage: g = Graph(d)
-        sage: print_md_tree(modular_decomposition(g))
-        SERIES
-              5
-              PARALLEL
-                3
-                4
-              PARALLEL
-                1
-                2
-
     """
     if graph.is_directed():
         raise ValueError("Graph must be undirected")
@@ -446,8 +471,8 @@ def modular_decomposition(graph):
         modular_decomposition(graph.subgraph(prev_level_list)))
 
     # The MD tree for the neighbours of source marked as LEFT_OF_SOURCE
-    # are placed left of Source in the forest. root.children[1] is required to 
-    # be source and root.children[0] is required to be the MD tree for the 
+    # are placed left of Source in the forest. root.children[1] is required to
+    # be source and root.children[0] is required to be the MD tree for the
     # neighbours therefore, the first two elements in the list are replaced
     root.children[0], root.children[1] = root.children[1], root.children[0]
 
@@ -480,8 +505,9 @@ def number_components(root, vertex_status):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-                   VertexPosition, create_normal_node, number_components
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                    import Node, NodeType, VertexPosition, create_normal_node, \
+                           number_components
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
                                  create_normal_node(3), create_normal_node(1)]
@@ -549,8 +575,9 @@ def number_cocomponents(root, vertex_status):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-                   VertexPosition, create_normal_node, number_cocomponents
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                   import Node, NodeType, VertexPosition, create_normal_node, \
+                          number_cocomponents
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
                                  create_normal_node(3), create_normal_node(1)]
@@ -597,10 +624,10 @@ def number_cocomponents(root, vertex_status):
 
 def recursively_number_parts(part_root, part_num, by_type):
     """
-    Recursively number the nodes in the (co)components(parts). 
+    Recursively number the nodes in the (co)components(parts).
 
-    If the node_type of part_root is same as by_type then part_num is 
-    incremented for subtree at each child of part_root else part is numbered 
+    If the node_type of part_root is same as by_type then part_num is
+    incremented for subtree at each child of part_root else part is numbered
     by part_num
 
     INPUT:
@@ -616,14 +643,15 @@ def recursively_number_parts(part_root, part_num, by_type):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, recursively_number_parts
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                   import Node, NodeType, VertexPosition, create_normal_node, \
+                          recursively_number_parts
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
                                       create_normal_node(5)]
         sage: recursively_number_parts(series_node, 1, NodeType.SERIES)
         2
-        sage: series_node.comp_num 
+        sage: series_node.comp_num
         1
         sage: series_node.children[0].comp_num
         1
@@ -638,7 +666,7 @@ def recursively_number_parts(part_root, part_num, by_type):
         True
 
     """
-    
+
     # inner function
     def number_subtree(subtree_root, number):
         """
@@ -673,23 +701,23 @@ def recursively_number_parts(part_root, part_num, by_type):
 
 def assembly(graph, root, vertex_status, vertex_dist):
     """
-    Assemble the forest obtained after the promotion phase into a modular 
+    Assemble the forest obtained after the promotion phase into a modular
     decomposition tree.
 
     INPUT:
 
     - ``graph`` -- graph whose MD tree is to be computed
     - ``root`` -- Forest which would be assembled into a MD tree
-    - ``vertex_status`` -- Dictionary which stores the position of vertex with 
+    - ``vertex_status`` -- Dictionary which stores the position of vertex with
                            respect to the source
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from 
+    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from
                          source vertex
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, number_cocomponents, \
-              number_components, assembly
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                   import Node, NodeType, VertexPosition, create_normal_node, \
+                          number_cocomponents, number_components, assembly
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -748,10 +776,10 @@ def assembly(graph, root, vertex_status, vertex_dist):
     # Maps index to the mu computed for the (co)component at the index
     mu = {}
 
-    # Stores index in the forest containing the source vertex 
+    # Stores index in the forest containing the source vertex
     source_index = -1
 
-    # Maps index to list of vertices in the (co)component at the index 
+    # Maps index to list of vertices in the (co)component at the index
     vertices_in_component = {}
 
     # comp_num of parent should be equal to comp_num of its first child
@@ -828,8 +856,8 @@ def update_comp_num(node):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-              create_normal_node, update_comp_num
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                     import Node, NodeType, create_normal_node, update_comp_num
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
                                  create_normal_node(3), create_normal_node(1)]
@@ -864,15 +892,21 @@ def check_prime(graph, root, left, right,
 
     INPUT:
 
-    - ``root`` - forest which needs to be assembled
-    - ``left`` - The leftmost fragment of the last module
-    - ``right`` - The rightmost fragment of the last module
-    - ``source_index`` - index of the tree containing the source vertex
-    - ``mu`` - dictionary which maps the (co)components with their mu values.
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from 
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various 
-                                   vertices in a (co)component
+    - ``root`` -- forest which needs to be assembled
+
+    - ``left`` -- the leftmost fragment of the last module
+
+    - ``right`` -- the rightmost fragment of the last module
+
+    - ``source_index`` -- index of the tree containing the source vertex
+
+    - ``mu`` -- dictionary which maps the (co)components with their mu values
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -882,7 +916,7 @@ def check_prime(graph, root, left, right,
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, number_cocomponents, \
               number_components, check_prime, get_vertices, \
               compute_mu_for_co_component, compute_mu_for_component
@@ -952,12 +986,12 @@ def check_prime(graph, root, left, right,
                                       else source_index
 
     # stores the indices of the cocomponents included in the prime module
-    # the cocomponents are extracted one by one from left_queue for adding 
+    # the cocomponents are extracted one by one from left_queue for adding
     # more components
     left_queue = deque()
 
     # stores the indices of the components included in the prime module
-    # the components are extracted one by one from right_queue for adding 
+    # the components are extracted one by one from right_queue for adding
     # more cocomponents
     right_queue = deque()
 
@@ -1048,14 +1082,20 @@ def check_parallel(graph, root, left, right,
     INPUT:
 
     - ``root`` -- forest which needs to be assembled
-    - ``left`` -- The leftmost fragment of the last module
-    - ``right`` -- The rightmost fragment of the last module
+
+    - ``left`` -- the leftmost fragment of the last module
+
+    - ``right`` -- the rightmost fragment of the last module
+
     - ``source_index`` -- index of the tree containing the source vertex
-    - ``mu`` -- dictionary which maps the (co)components with their mu values.
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from 
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various 
-                                   vertices in a (co)component
+
+    - ``mu`` -- dictionary which maps the (co)components with their mu values
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -1065,10 +1105,7 @@ def check_parallel(graph, root, left, right,
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, number_cocomponents, \
-              number_components, check_parallel, get_vertices, \
-              compute_mu_for_co_component, compute_mu_for_component
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1185,15 +1222,23 @@ def check_series(root, left, right, source_index, mu):
     """
     Assemble the forest to create a series module.
 
+    INPUT:
+
     - ``root`` -- forest which needs to be assembled
+
     - ``left`` -- The leftmost fragment of the last module
+
     - ``right`` -- The rightmost fragment of the last module
+
     - ``source_index`` -- index of the tree containing the source vertex
-    - ``mu`` -- dictionary which maps the (co)components with their mu values.
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from 
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various 
-                                   vertices in a (co)component
+
+    - ``mu`` -- dictionary which maps the (co)components with their mu values
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -1203,7 +1248,7 @@ def check_series(root, left, right, source_index, mu):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, number_cocomponents, \
               number_components, check_series, get_vertices, \
               compute_mu_for_co_component, compute_mu_for_component
@@ -1315,13 +1360,14 @@ def check_series(root, left, right, source_index, mu):
 
 def has_left_cocomponent_fragment(root, cocomp_index):
     """
-    Return True if cocomponent at cocomp_index has a cocomponent to its left 
+    Return True if cocomponent at cocomp_index has a cocomponent to its left
     with same comp_num
 
     INPUT:
 
-    - ``root`` -- The forest to which cocomponent belongs
-    - ``cocomp_index`` -- Index at which cocomponent is present in root
+    - ``root`` -- the forest to which cocomponent belongs
+
+    - ``cocomp_index`` -- index at which cocomponent is present in root
 
     OUTPUT:
 
@@ -1330,7 +1376,7 @@ def has_left_cocomponent_fragment(root, cocomp_index):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, has_left_cocomponent_fragment
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
@@ -1362,13 +1408,14 @@ def has_left_cocomponent_fragment(root, cocomp_index):
 
 def has_right_component_fragment(root, comp_index):
     """
-    Return True if component at comp_index has a component to its right with 
+    Return True if component at comp_index has a component to its right with
     same comp_num
 
     INPUT:
 
-    - ``root`` -- The forest to which component belongs
-    - ``comp_index`` -- Index at which component is present in root
+    - ``root`` -- the forest to which component belongs
+
+    - ``comp_index`` -- index at which component is present in root
 
     OUTPUT:
 
@@ -1377,7 +1424,7 @@ def has_right_component_fragment(root, comp_index):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, has_right_component_fragment
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
@@ -1408,17 +1455,20 @@ def has_right_component_fragment(root, comp_index):
 def has_right_layer_neighbor(graph, root, comp_index,
                              vertex_dist, vertices_in_component):
     """
-    Return True if component at comp_index has a connected component to its 
+    Return True if component at comp_index has a connected component to its
     right with vertices at different level from the source vertex
 
     INPUT:
 
-    - ``root`` -- The forest to which component belongs
-    - ``comp_index`` -- Index at which component is present in root
-    - ``vertex_dist`` -- Dictionary which stores the distance of vertex from 
-                         source vertex
-    - ``vertices_in_component`` -- Dictionary which stores a list of various 
-                                   vertices in a (co)component
+    - ``root`` -- the forest to which component belongs
+
+    - ``comp_index`` -- index at which component is present in root
+
+    - ``vertex_dist`` -- dictionary which stores the distance of vertex from
+      source vertex
+
+    - ``vertices_in_component`` -- dictionary which stores a list of various
+      vertices in a (co)component
 
     OUTPUT:
 
@@ -1427,7 +1477,7 @@ def has_right_layer_neighbor(graph, root, comp_index,
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, has_right_layer_neighbor
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
@@ -1454,7 +1504,7 @@ def has_right_layer_neighbor(graph, root, comp_index,
         sage: for index, component in enumerate(forest.children):
         ....:     vertices_in_component[index] = get_vertices(component)
         ....:     component.index_in_root = index
-        sage: has_right_layer_neighbor(g, forest, 3, vertex_dist, 
+        sage: has_right_layer_neighbor(g, forest, 3, vertex_dist,
         ....:                          vertices_in_component)
         True
 
@@ -1477,7 +1527,7 @@ def has_right_layer_neighbor(graph, root, comp_index,
 
 def get_vertex_in(node):
     """
-    Return the first vertex encountered in the depth-first traversal of the 
+    Return the first vertex encountered in the depth-first traversal of the
     tree rooted at node
 
     INPUT:
@@ -1490,7 +1540,7 @@ def get_vertex_in(node):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertex_in
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
@@ -1515,11 +1565,15 @@ def compute_mu_for_co_component(graph, component_index, source_index,
     INPUT:
 
     - ``graph`` -- Graph whose MD tree needs to be computed
+
     - ``component_index`` -- index of the co-component
+
     - ``source_index`` -- index of the source in the forest
+
     - ``root`` -- the forest which needs to be assembled into a MD tree
-    - ``vertices_in_component`` -- Dictionary which maps index i to list of
-                                  vertices in the tree at index i in the forest
+
+    - ``vertices_in_component`` -- dictionary which maps index i to list of
+      vertices in the tree at index i in the forest
 
     OUTPUT:
 
@@ -1527,7 +1581,7 @@ def compute_mu_for_co_component(graph, component_index, source_index,
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, compute_mu_for_co_component
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
@@ -1552,13 +1606,13 @@ def compute_mu_for_co_component(graph, component_index, source_index,
         sage: vertices_in_component = {}
         sage: for index, component in enumerate(forest.children):
         ....:     vertices_in_component[index] = get_vertices(component)
-        sage: compute_mu_for_co_component(g, 0, 2, forest, 
+        sage: compute_mu_for_co_component(g, 0, 2, forest,
         ....:                             vertices_in_component)
         NORMAL [1]
-        sage: compute_mu_for_co_component(g, 1, 2, forest, 
+        sage: compute_mu_for_co_component(g, 1, 2, forest,
         ....:                             vertices_in_component)
         NORMAL [3]
-        
+
     """
 
     for index in range(len(root.children) - 1, source_index, -1):
@@ -1578,12 +1632,15 @@ def compute_mu_for_component(graph, component_index, source_index,
     INPUT:
 
     - ``graph`` -- Graph whose MD tree needs to be computed
+
     - ``component_index`` -- index of the component
+
     - ``source_index`` -- index of the source in the forest
+
     - ``root`` -- the forest which needs to be assembled into a MD tree
-    - ``vertices_in_component`` -- Dictionary which maps index i to list of
-                                   vertices in the tree at the index i in the
-                                   forest
+
+    - ``vertices_in_component`` -- dictionary which maps index i to list of
+      vertices in the tree at the index i in the forest
 
     OUTPUT:
 
@@ -1591,7 +1648,7 @@ def compute_mu_for_component(graph, component_index, source_index,
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, compute_mu_for_component
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
@@ -1615,10 +1672,10 @@ def compute_mu_for_component(graph, component_index, source_index,
         sage: vertices_in_component = {}
         sage: for index, component in enumerate(forest.children):
         ....:     vertices_in_component[index] = get_vertices(component)
-        sage: compute_mu_for_component(g, 3, 2, forest, 
+        sage: compute_mu_for_component(g, 3, 2, forest,
         ....:                          vertices_in_component)
         SERIES [NORMAL [4], NORMAL [5]]
-        sage: compute_mu_for_component(g, 4, 2, forest, 
+        sage: compute_mu_for_component(g, 4, 2, forest,
         ....:                          vertices_in_component)
         NORMAL [2]
 
@@ -1644,11 +1701,13 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
     INPUT:
 
     - ``graph`` -- Graph whose MD tree needs to be computed
+
     - ``index1`` -- index of the first (co)component
+
     - ``index2`` -- index of the second (co)component
-    - ``vertices_in_component`` -- Dictionary which maps index i to list of
-                                   vertices in the tree at the index i in the
-                                   forest
+
+    - ``vertices_in_component`` -- dictionary which maps index i to list of
+      vertices in the tree at the index i in the forest
 
     OUTPUT:
 
@@ -1656,7 +1715,7 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, is_component_connected
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
@@ -1702,8 +1761,8 @@ def get_vertices(component_root):
 
     INPUT:
 
-    - ``component_root`` -- root of the (co)component whose vertices need to 
-                            be returned as a list
+    - ``component_root`` -- root of the (co)component whose vertices need to be
+      returned as a list
 
     OUTPUT:
 
@@ -1711,7 +1770,7 @@ def get_vertices(component_root):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
@@ -1730,7 +1789,7 @@ def get_vertices(component_root):
     """
     vertices = []
 
-    # inner recursive function to recurse over the elements in the 
+    # inner recursive function to recurse over the elements in the
     # ``component``
     def recurse_component(node, vertices):
         if node.node_type == NodeType.NORMAL:
@@ -1744,9 +1803,9 @@ def get_vertices(component_root):
 
 def promote_left(root):
     """
-    Perform the promotion phase on the forest root. 
+    Perform the promotion phase on the forest root.
 
-    If child and parent both are marked by LEFT_SPLIT then child is removed 
+    If child and parent both are marked by LEFT_SPLIT then child is removed
     and placed just before the parent
 
     INPUT:
@@ -1755,7 +1814,7 @@ def promote_left(root):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, \
               maximal_subtrees_with_leaves_in_x, promote_left
         sage: g = Graph()
@@ -1788,9 +1847,9 @@ def promote_left(root):
                                6: VertexPosition.RIGHT_OF_SOURCE, \
                                7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
-        sage: x = {u for u in g.neighbor_iterator(2) 
+        sage: x = {u for u in g.neighbor_iterator(2)
         ....:            if vertex_dist[u] != vertex_dist[2]}
-        sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status, 
+        sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status,
         ....:                                   False, 0)
         sage: promote_left(forest)
         sage: forest
@@ -1834,18 +1893,18 @@ def promote_left(root):
 
 def promote_right(root):
     """
-    Perform the promotion phase on the forest root. 
+    Perform the promotion phase on the forest root.
 
-    If child and parent both are marked by RIGHT_SPLIT then child is removed 
+    If child and parent both are marked by RIGHT_SPLIT then child is removed
     and placed just after the parent
 
     INPUT:
 
-    - ``root`` -- The forest which needs to be promoted
+    - ``root`` -- the forest which needs to be promoted
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, refine, promote_right
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
@@ -1919,18 +1978,18 @@ def promote_right(root):
 
 def promote_child(root):
     """
-    Perform the promotion phase on the forest `root`. 
+    Perform the promotion phase on the forest `root`.
 
-    If marked parent has no children it is removed, if it has one child then 
+    If marked parent has no children it is removed, if it has one child then
     it is replaced by its child
 
     INPUT:
 
-    - ``root`` -- The forest which needs to be promoted
+    - ``root`` -- the forest which needs to be promoted
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, refine, promote_right, \
               promote_child
         sage: g = Graph()
@@ -2009,11 +2068,11 @@ def clear_node_split_info(root):
 
     INPUT:
 
-    - ``root`` -- The forest which needs to be cleared of split information
+    - ``root`` -- the forest which needs to be cleared of split information
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               NodeSplit, create_normal_node, clear_node_split_info
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
@@ -2046,15 +2105,18 @@ def refine(graph, root, vertex_dist, vertex_status):
     INPUT:
 
     - ``graph`` -- graph whose MD tree needs to be computed
+
     - ``root`` -- the forest which needs to be assembled into a MD tree
+
     - ``vertex_dist`` -- dictionary mapping the vertex with distance from the
-                         source
-    - ``vertex_status`` -- dictionary mapping the vertex to the position
-                           w.r.t source
+      source
+
+    - ``vertex_status`` -- dictionary mapping the vertex to the position w.r.t.
+      source
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, refine
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
@@ -2099,7 +2161,7 @@ def refine(graph, root, vertex_dist, vertex_status):
             continue
 
         # set of vertices connected through active edges to v
-        x = {u for u in graph.neighbor_iterator(v) 
+        x = {u for u in graph.neighbor_iterator(v)
                         if vertex_dist[u] != vertex_dist[v]}
 
         if x not in x_used:
@@ -2120,7 +2182,7 @@ def get_child_splits(root):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               NodeSplit, create_normal_node, get_child_splits
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
@@ -2153,23 +2215,28 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
     INPUT:
 
     - ``root`` -- the forest which needs to be assembled into a MD tree
+
     - ``v`` -- the vertex used to refine
+
     - ``x`` -- set of vertices connected to v and at different distance
-               from source compared to v
+      from source compared to v
+
     - ``vertex_status`` -- dictionary mapping the vertex to the position
-                           w.r.t source
+      w.r.t source
+
     - ``tree_left_of_source`` -- flag indicating whether tree is
+
     - ``level`` -- indicates the recursion level, 0 for root
 
     OUTPUT:
 
-    ``[contained_in_x, split]`` where ``contained_in_x`` is ``True`` if all 
-    vertices in root are subset of x else ``False`` and ``split`` is the 
+    ``[contained_in_x, split]`` where ``contained_in_x`` is ``True`` if all
+    vertices in root are subset of x else ``False`` and ``split`` is the
     split which occurred at any node in root
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, \
               maximal_subtrees_with_leaves_in_x
         sage: g = Graph()
@@ -2202,15 +2269,15 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
                                6: VertexPosition.RIGHT_OF_SOURCE, \
                                7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
-        sage: x = {u for u in g.neighbor_iterator(2) 
+        sage: x = {u for u in g.neighbor_iterator(2)
         ....:            if vertex_dist[u] != vertex_dist[2]}
-        sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status, 
+        sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status,
         ....:                                   False, 0)
         sage: forest
         FOREST [NORMAL [2], SERIES [NORMAL [4], NORMAL [5]], NORMAL [3], PARALLEL [NORMAL [6], NORMAL [7]], NORMAL [1]]
-        sage: x = {u for u in g.neighbor_iterator(1) 
+        sage: x = {u for u in g.neighbor_iterator(1)
         ....:            if vertex_dist[u] != vertex_dist[1]}
-        sage: maximal_subtrees_with_leaves_in_x(forest, 1, x, vertex_status, 
+        sage: maximal_subtrees_with_leaves_in_x(forest, 1, x, vertex_status,
         ....:                                   False, 0)
         sage: forest
         FOREST [NORMAL [2], SERIES [NORMAL [4], NORMAL [5]], NORMAL [3], PARALLEL [PARALLEL [NORMAL [6]], PARALLEL [NORMAL [7]]], NORMAL [1]]
@@ -2221,7 +2288,7 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
     def update_node_info(node, node_type, node_split, comp_num, subtree_list):
         """
         Set the various fields for a tree node and update its subtrees
-        
+
         - ``node`` -- node whose fields need to be updated
         - ``node_type`` -- node_type to be set
         - ``node_split`` -- node_split to be set
@@ -2323,10 +2390,10 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
 
             # add two nodes for Ta and Tb
             a = create_parallel_node()
-            update_node_info(a, node_type, root.node_split, 
+            update_node_info(a, node_type, root.node_split,
                              Ta[0].comp_num, Ta)
             b = create_parallel_node()
-            update_node_info(b, node_type, root.node_split, 
+            update_node_info(b, node_type, root.node_split,
                              Tb[0].comp_num, Tb)
             root.children.append(a)
             root.children.append(b)
@@ -2351,7 +2418,7 @@ def create_prime_node():
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import create_prime_node
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import create_prime_node
         sage: node = create_prime_node()
         sage: node
         PRIME []
@@ -2371,11 +2438,11 @@ def create_parallel_node():
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import create_parallel_node
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import create_parallel_node
         sage: node = create_parallel_node()
         sage: node
         PARALLEL []
-    
+
     """
     return Node(NodeType.PARALLEL)
 
@@ -2390,7 +2457,7 @@ def create_series_node():
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import create_series_node
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import create_series_node
         sage: node = create_series_node()
         sage: node
         SERIES []
@@ -2413,7 +2480,7 @@ def create_normal_node(vertex):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import create_normal_node
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import create_normal_node
         sage: node = create_normal_node(2)
         sage: node
         NORMAL [2]
@@ -2426,14 +2493,14 @@ def create_normal_node(vertex):
 def print_md_tree(root):
     """
     Print the modular decomposition tree
-    
+
     INPUT:
 
     - ``root`` -- root of the modular decomposition tree
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
               modular_decomposition, test_modular_decomposition, print_md_tree
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
@@ -2448,29 +2515,284 @@ def print_md_tree(root):
               2
               4
               10
-              3    
+              3
 
     """
 
     def recursive_print_md_tree(root, level):
         """
         Print the modular decomposition tree at root
-        
+
         INPUT:
 
-        - ``root`` -- root of the modular decomposition tree 
-        - ``level`` -- indicates the depth of root in the original modular 
-                       decomposition tree
+        - ``root`` -- root of the modular decomposition tree
 
+        - ``level`` -- indicates the depth of root in the original modular
+          decomposition tree
         """
         if root.node_type != NodeType.NORMAL:
-            print("{}{}".format(level,str(root.node_type)))
+            print("{}{}".format(level, str(root.node_type)))
             for tree in root.children:
                 recursive_print_md_tree(tree, level + " ")
         else:
             print("{}{}".format(level,str(root.children[0])))
 
     recursive_print_md_tree(root, "")
+
+
+
+#==============================================================================
+#  Habib Maurer algorithm
+#==============================================================================
+
+def gamma_classes(graph):
+    """
+    Partition the edges of the graph into Gamma classes.
+
+    Two distinct edges are Gamma related if they share a vertex but are not
+    part of a triangle.  A Gamma class of edges is a collection of edges such
+    that any edge in the class can be reached from any other by a chain of
+    Gamma related edges (that are also in the class).
+
+    The two important properties of the Gamma class
+
+    * The vertex set corresponding to a Gamma class is a module
+    * If the graph is not fragile (neither it or its complement is
+      disconnected) then there is exactly one class that visits all the
+      vertices of the graph, and this class consists of just the edges that
+      connect the maximal strong modules of that graph.
+
+    EXAMPLES:
+
+    The gamma_classes of the octahedral graph are the three 4-cycles
+    corresponding to the slices through the center of the octahedron::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                   import gamma_classes
+        sage: g = graphs.OctahedralGraph()
+        sage: sorted(gamma_classes(g), key=str)
+        [frozenset({0, 1, 4, 5}), frozenset({0, 2, 3, 5}), frozenset({1, 2, 3, 4})]
+
+    TESTS:
+
+    Ensure that the returned vertex sets from some random graphs are modules::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                   import test_gamma_modules
+        sage: test_gamma_modules(2, 10, 0.5)
+    """
+
+    from itertools import chain
+    from sage.sets.disjoint_set import DisjointSet
+
+    pieces = DisjointSet(frozenset(e) for e in graph.edge_iterator(labels=False))
+    for v in graph:
+        neighborhood = graph.subgraph(vertices=graph.neighbors(v))
+        for component in neighborhood.complement().connected_components():
+            v1 = component[0]
+            e = frozenset([v1, v])
+            for vi in component[1:]:
+                ei = frozenset([vi, v])
+                pieces.union(e, ei)
+    return {frozenset(chain.from_iterable(loe)): loe for loe in pieces}
+
+
+def habib_maurer_algorithm(graph, g_classes=None):
+    """
+    Compute the modular decomposition by the algorithm of Habib and Maurer
+
+    Compute the modular decomposition of the given graph by the algorithm of
+    Habib and Maurer [HM1979]_ . If the graph is disconnected or its complement
+    is disconnected return a tree with a PARALLEL or SERIES node at the root
+    and children being the modular decomposition of the subgraphs induced by
+    the components. Otherwise, the root is PRIME and the modules are identified
+    by having identical neighborhoods in the gamma class that spans the
+    vertices of the subgraph (exactly one is guaranteed to exist). The gamma
+    classes only need to be computed once, as the algorithm computes the the
+    classes for the current root and each of the submodules. See also [BM1983]_
+    for an equivalent algorithm described in greater detail.
+
+    INPUT:
+
+    - ``graph`` -- the graph for which modular decomposition tree needs to be
+      computed
+
+    - ``g_classes`` -- dictionary (default: ``None``); a dictionary whose values
+      are the gamma classes of the graph, and whose keys are a frozenset of the
+      vertices corresponding to the class. Used internally.
+
+    OUTPUT:
+
+    The modular decomposition tree of the graph.
+
+    EXAMPLES:
+
+    The Icosahedral graph is Prime::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+              import habib_maurer_algorithm, test_modular_decomposition, \
+                    print_md_tree
+        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))  # py2
+        PRIME
+         8
+         0
+         1
+         3
+         7
+         4
+         5
+         2
+         10
+         11
+         9
+         6
+
+    The Octahedral graph is not Prime::
+
+        sage: print_md_tree(habib_maurer_algorithm(graphs.OctahedralGraph()))
+        SERIES
+         PARALLEL
+          0
+          5
+         PARALLEL
+          1
+          4
+         PARALLEL
+          2
+          3
+
+    Tetrahedral Graph is Series::
+
+        sage: print_md_tree(habib_maurer_algorithm(graphs.TetrahedralGraph()))
+        SERIES
+         0
+         1
+         2
+         3
+
+    Modular Decomposition tree containing both parallel and series modules::
+
+        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
+        sage: g = Graph(d)
+        sage: print_md_tree(habib_maurer_algorithm(g))
+        SERIES
+         PARALLEL
+          1
+          2
+         PARALLEL
+          3
+          4
+         5
+
+    Graph from Marc Tedder implementation of modular decomposition::
+
+        sage: d = {1:[5,4,3,24,6,7,8,9,2,10,11,12,13,14,16,17], 2:[1], \
+                    3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
+                    7:[6,8,9,1], 8:[6,7,9,1], 9:[6,7,8,5,4,3,1], 10:[1], \
+                    11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1], \
+                    16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
+        sage: g = Graph(d)
+        sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
+        True
+
+    Graph from the :wikipedia:`Modular_decomposition`::
+
+        sage: d2 = {1:[2,3,4], 2:[1,4,5,6,7], 3:[1,4,5,6,7], 4:[1,2,3,5,6,7], \
+                    5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
+                    7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
+                    10:[6,7,8,9], 11:[6,7,8,9]}
+        sage: g = Graph(d2)
+        sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
+        True
+
+    Tetrahedral Graph is Series::
+
+        sage: print_md_tree(habib_maurer_algorithm(graphs.TetrahedralGraph()))
+        SERIES
+         0
+         1
+         2
+         3
+
+    Modular Decomposition tree containing both parallel and series modules::
+
+        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
+        sage: g = Graph(d)
+        sage: print_md_tree(habib_maurer_algorithm(g))
+        SERIES
+         PARALLEL
+          1
+          2
+         PARALLEL
+          3
+          4
+         5
+
+    TESTS:
+
+    Bad Input::
+
+        sage: g = DiGraph()
+        sage: habib_maurer_algorithm(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph must be undirected
+
+    Empty Graph is Prime::
+
+        sage: g = Graph()
+        sage: habib_maurer_algorithm(g)
+        PRIME []
+
+
+    Ensure that a random graph and an isomorphic graph have identical modular
+    decompositions. ::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                    import permute_decomposition
+        sage: permute_decomposition(2, habib_maurer_algorithm, 20, 0.5)
+    """
+    if graph.is_directed():
+        raise ValueError("Graph must be undirected")
+
+    if not graph.order():
+        return create_prime_node()
+
+    if graph.order() == 1:
+        root = create_normal_node(next(graph.vertex_iterator()))
+        return root
+
+    elif not graph.is_connected():
+        root = create_parallel_node()
+        root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
+                             for sg in graph.connected_components()]
+        return root
+
+    g_comp = graph.complement()
+    if g_comp.is_connected():
+        from collections import defaultdict
+        root = create_prime_node()
+        if g_classes is None:
+            g_classes = gamma_classes(graph)
+        vertex_set = frozenset(graph)
+        edges = [tuple(e) for e in g_classes[vertex_set] ]
+        sub = graph.subgraph(edges=edges)
+        d = defaultdict(list)
+        for v in sub:
+            for v1 in sub.neighbor_iterator(v):
+                d[v1].append(v)
+        d1 = defaultdict(list)
+        for k, v in d.items():
+            d1[frozenset(v)].append(k)
+        root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
+                             for sg in d1.values()]
+        return root
+
+    root = create_series_node()
+    root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
+                     for sg in g_comp.connected_components()]
+    return root
+
 
 #=============================================================================
 
@@ -2486,7 +2808,7 @@ def test_modular_decomposition(tree_root, graph):
     INPUT:
 
     - ``tree_root`` -- root of the modular decomposition tree to be tested
-    - ``graph`` -- Graph whose modular decomposition tree needs to be tested
+    - ``graph`` -- graph whose modular decomposition tree needs to be tested
 
     OUTPUT:
 
@@ -2494,12 +2816,11 @@ def test_modular_decomposition(tree_root, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
               modular_decomposition, test_modular_decomposition
         sage: g = graphs.HexahedralGraph()
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
-
     """
     if tree_root.node_type != NodeType.NORMAL:
         for module in tree_root.children:
@@ -2523,7 +2844,7 @@ def test_modular_decomposition(tree_root, graph):
 def test_maximal_modules(tree_root, graph):
     """
     This function tests maximal nature of modules in a modular decomposition
-    tree. 
+    tree.
 
     Suppose the module M = [M1, M2, ..., Mn] is the input modular
     decomposition tree. Algorithm forms pairs like (M1, M2), (M1, M3),
@@ -2535,9 +2856,9 @@ def test_maximal_modules(tree_root, graph):
 
     INPUT:
 
-    - ``tree_root`` -- Modular decomposition tree whose modules are tested for
+    - ``tree_root`` -- modular decomposition tree whose modules are tested for
       maximal nature
-    - ``graph`` -- Graph whose modular decomposition tree is tested
+    - ``graph`` -- graph whose modular decomposition tree is tested
 
     OUTPUT:
 
@@ -2546,7 +2867,7 @@ def test_maximal_modules(tree_root, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
               modular_decomposition, test_maximal_modules
         sage: g = graphs.HexahedralGraph()
         sage: test_maximal_modules(modular_decomposition(g), g)
@@ -2558,7 +2879,7 @@ def test_maximal_modules(tree_root, graph):
 
                 # compute the module formed using modules at index and
                 # other_index
-                module_formed = form_module(index, other_index, 
+                module_formed = form_module(index, other_index,
                                             tree_root, graph)
 
                 if module_formed[0]:
@@ -2583,7 +2904,7 @@ def get_module_type(graph):
 
     INPUT:
 
-    - ``graph`` -- Input sage graph
+    - ``graph`` -- input sage graph
 
     OUTPUT:
 
@@ -2592,11 +2913,11 @@ def get_module_type(graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import get_module_type
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                   import get_module_type
         sage: g = graphs.HexahedralGraph()
         sage: get_module_type(g)
         PRIME
-
     """
     if not graph.is_connected():
         return NodeType.PARALLEL
@@ -2608,7 +2929,7 @@ def get_module_type(graph):
 #Function implemented for testing
 def form_module(index, other_index, tree_root, graph):
     """
-    This function forms a module out of the modules in the module pair. 
+    This function forms a module out of the modules in the module pair.
 
     Let modules input be M1 and M2. Let V be the set of vertices in these
     modules. Suppose x is a neighbor of subset of the vertices in V but not
@@ -2618,11 +2939,14 @@ def form_module(index, other_index, tree_root, graph):
 
     INPUT:
 
-    - ``index`` -- First module in the module pair
-    - ``other_index`` -- Second module in the module pair
-    - ``tree_root`` -- Modular decomposition tree which contains the modules 
-                       in the module pair
-    - ``graph`` -- Graph whose modular decomposition tree is created
+    - ``index`` -- first module in the module pair
+
+    - ``other_index`` -- second module in the module pair
+
+    - ``tree_root`` -- modular decomposition tree which contains the modules
+      in the module pair
+
+    - ``graph`` -- graph whose modular decomposition tree is created
 
     OUTPUT:
 
@@ -2632,13 +2956,12 @@ def form_module(index, other_index, tree_root, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
               modular_decomposition, form_module
         sage: g = graphs.HexahedralGraph()
         sage: tree_root = modular_decomposition(g)
         sage: form_module(0, 2, tree_root, g)
         [False, {0, 1, 2, 3, 4, 5, 6, 7}]
-
     """
     vertices = set(get_vertices(tree_root.children[index]) +
                    get_vertices(tree_root.children[other_index]))
@@ -2687,8 +3010,9 @@ def test_module(module, graph):
 
     INPUT:
 
-    - ``module`` -- Module which needs to be tested
-    - ``graph`` -- Input sage graph which contains the module
+    - ``module`` -- module which needs to be tested
+
+    - ``graph`` -- input sage graph which contains the module
 
     OUTPUT:
 
@@ -2696,7 +3020,7 @@ def test_module(module, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
               modular_decomposition, test_module
         sage: g = graphs.HexahedralGraph()
         sage: tree_root = modular_decomposition(g)
@@ -2704,9 +3028,7 @@ def test_module(module, graph):
         True
         sage: test_module(tree_root.children[0], g)
         True
-
     """
-
     # A single vertex is a module
     if module.node_type == NodeType.NORMAL:
         return True
@@ -2748,6 +3070,7 @@ def children_node_type(module, node_type):
     INPUT:
 
     - ``module`` -- module which is tested
+
     - ``node_type`` -- input node_type
 
     OUTPUT:
@@ -2757,7 +3080,7 @@ def children_node_type(module, node_type):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
               modular_decomposition, print_md_tree, children_node_type, \
               NodeType
         sage: g = graphs.OctahedralGraph()
@@ -2777,7 +3100,6 @@ def children_node_type(module, node_type):
         False
         sage: children_node_type(tree_root, NodeType.PARALLEL)
         True
-
     """
     for node in module.children:
         if node.node_type != node_type:
@@ -2793,7 +3115,9 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
     INPUT:
 
     - ``v`` -- vertex tested
+
     - ``vertices_in_module`` -- list containing vertices in the module
+
     - ``graph`` -- graph to which the vertices belong
 
     OUTPUT:
@@ -2804,7 +3128,7 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import \
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
               print_md_tree, modular_decomposition, \
               either_connected_or_not_connected
         sage: g = graphs.OctahedralGraph()
@@ -2815,7 +3139,7 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
                 3
               PARALLEL
                 1
-                4
+                 4
               PARALLEL
                 0
                 5
@@ -2823,9 +3147,7 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
         True
         sage: either_connected_or_not_connected(2, [3, 4], g)
         False
-
     """
-
     # marks whether vertex v is connected to first vertex in the module
     connected = graph.has_edge(vertices_in_module[0], v)
 
@@ -2835,3 +3157,392 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
         if (graph.has_edge(u,v) != connected):
             return False
     return True
+
+def tree_to_nested_tuple(root):
+    r"""
+    Convert a modular decomposition tree to a nested tuple.
+
+    INPUT:
+
+    - ``root`` -- the root of the modular decomposition tree
+
+    OUTPUT:
+
+    A tuple whose first element is the type of the root of the tree and whose
+    subsequent nodes are either vertex labels in the case of leaves or tuples
+    representing the child subtrees.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+              import tree_to_nested_tuple, modular_decomposition
+        sage: g = graphs.OctahedralGraph()
+        sage: tree_to_nested_tuple(modular_decomposition(g))
+        (SERIES, [(PARALLEL, [2, 3]), (PARALLEL, [1, 4]), (PARALLEL, [0, 5])])
+    """
+    if root.node_type == NodeType.NORMAL:
+        return root.children[0]
+    else:
+        return (root.node_type, [tree_to_nested_tuple(x) for x in root.children])
+
+def nested_tuple_to_tree(nest):
+    r"""
+    Turn a tuple representing the modular decomposition into a tree.
+
+    INPUT:
+
+    - ``nest`` -- a nested tuple of the form returned by
+      :meth:`tree_to_nested_tuple`
+
+    OUTPUT:
+
+    The root node of a modular decomposition tree.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                 import NodeType, print_md_tree, nested_tuple_to_tree
+        sage: tree = (NodeType.SERIES, 1, 2, (NodeType.PARALLEL, 3, 4))
+        sage: print_md_tree(nested_tuple_to_tree(tree))
+        SERIES
+         1
+         2
+         PARALLEL
+          3
+          4
+    """
+    if not isinstance(nest, tuple):
+        return create_normal_node(nest)
+
+
+    root = Node(nest[0])
+    root.children = [nested_tuple_to_tree(n) for n in nest[1:]]
+    return root
+
+def equivalent_trees(root1, root2):
+    r"""
+    Check that two modular decomposition trees are the same.
+
+    Verify that the structure of the trees is the same. Two leaves are
+    equivalent if they represent the same vertex, two internal nodes are
+    equivalent if they have the same nodes type and the same number of children
+    and there is a matching between the children such that each pair of
+    children is a pair of equivalent subtrees.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+        ....:         import equivalent_trees, NodeType, nested_tuple_to_tree
+        sage: t1 = nested_tuple_to_tree((NodeType.SERIES, 1, 2, \
+        ....:             (NodeType.PARALLEL, 3, 4)))
+        sage: t2 = nested_tuple_to_tree((NodeType.SERIES, \
+        ....:             (NodeType.PARALLEL, 4, 3), 2, 1))
+        sage: equivalent_trees(t1, t2)
+        True
+    """
+    #internal definition
+    def node_id(root):
+        return (root.node_type, frozenset(get_vertices(root)))
+
+    if root1.node_type != root2.node_type:
+        return False
+
+    if len(root1.children) != len(root2.children):
+        return False
+
+    if root1.node_type == NodeType.NORMAL:
+        return root1.children[0] == root2.children[0]
+
+    child_map = {}
+    for node in root2.children:
+        child_map[node_id(node)] = node
+
+    for node in root1.children:
+        id = node_id(node)
+        if id not in child_map:
+            return False
+        if not equivalent_trees(node, child_map[id]):
+            return False
+
+    return True
+
+
+def relabel_tree(root, perm):
+    r"""
+    Relabel the leaves of a tree according to a dictionary
+
+    INPUT:
+
+    - ``root`` -- the root of the tree
+
+    - ``perm`` -- a function, dictionary, list, permutation, or ``None``
+      representing the relabeling. See ``Graph.relabel()`` for description of
+      the permutation input.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                 import NodeType, print_md_tree, nested_tuple_to_tree, \
+                 relabel_tree
+        sage: tuple_tree = (NodeType.SERIES, 1, 2, (NodeType.PARALLEL, 3, 4))
+        sage: tree = nested_tuple_to_tree(tuple_tree)
+        sage: print_md_tree(relabel_tree(tree, (4,3,2,1)))
+        SERIES
+         4
+         3
+         PARALLEL
+          2
+          1
+    """
+    from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+    # If perm is not a dictionary, we build one !
+    if perm is None:
+
+        # vertices() returns a sorted list:
+        # this guarantees consistent relabeling
+        perm = {v: i for i, v in enumerate(get_vertices(root))}
+
+    elif isinstance(perm, dict):
+        from copy import copy
+        # If all vertices do not have a new label, the code will touch the
+        # dictionary. Let us keep the one we received from the user clean !
+        perm = copy(perm)
+
+    elif isinstance(perm, (list, tuple)):
+        perm = dict(zip(sorted(get_vertices(root)), perm))
+
+    elif isinstance(perm, PermutationGroupElement):
+        n = len(get_vertices(root))
+        ddict = {}
+        for i in range(1,n):
+            ddict[i] = perm(i)%n
+        if n > 0:
+            ddict[0] = perm(n)%n
+        perm = ddict
+
+    elif callable(perm):
+        perm = {i:perm(i) for i in get_vertices(root) }
+
+    else:
+        raise TypeError("type of perm is not supported for relabeling")
+
+    if root.node_type == NodeType.NORMAL:
+        return create_normal_node(perm[root.children[0]])
+    else:
+        new_root = Node(root.node_type)
+        new_root.children = [relabel_tree(child, perm) for child in root.children]
+        return new_root
+
+
+#==============================================================================
+#   Random tests
+#==============================================================================
+
+from sage.misc.random_testing import random_testing
+@random_testing
+def test_gamma_modules(trials, vertices, prob, verbose=False):
+    r"""
+    Verify that the vertices of each gamma class of a random graph are modules
+    of that graph.
+
+    INPUT:
+
+    - ``trials`` -- the number of trials to run
+
+    - ``vertices`` -- the size of the graph to use
+
+    - ``prob`` -- the probability that any given edge is in the graph.
+      See ``RandomGNP``
+
+    - ``verbose`` -- print information on each trial.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import test_gamma_modules, gamma_classes, either_connected_or_not_connected
+        sage: test_gamma_modules(3, 7, 0.5)
+    """
+    from sage.graphs.all import graphs
+    for _ in range(trials):
+        g = graphs.RandomGNP(vertices, prob)
+        if verbose:
+            print(g.graph6_string())
+        g_classes = gamma_classes(g)
+        for module in g_classes.keys():
+            m_list = list(module)
+            for v in g:
+                if v not in module:
+                    assert(either_connected_or_not_connected(v, m_list, g))
+        if verbose:
+            print("Passes!")
+
+@random_testing
+def permute_decomposition(trials, algorithm, vertices, prob, verbose=False):
+    r"""
+    Check that a graph and its permuted relabeling have the same modular
+    decomposition.
+
+    We generate a ``trials`` random graphs and then generate an isomorphic graph
+    by relabeling the original graph. We then verify
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
+                 permute_decomposition, habib_maurer_algorithm
+        sage: permute_decomposition(30, habib_maurer_algorithm, 10, 0.5)
+    """
+    from sage.graphs.all import graphs
+    from sage.combinat.permutation import Permutations
+    for _ in range(trials):
+        g1 = graphs.RandomGNP(vertices, prob)
+        random_perm = Permutations(list(g1)).random_element()
+        g2 = g1.relabel(perm = random_perm, inplace = False)
+        if verbose:
+            print(g1.graph6_string())
+            print(random_perm)
+        t1 = algorithm(g1)
+        t2 = algorithm(g2)
+        assert(test_modular_decomposition(t1, g1))
+        assert(test_modular_decomposition(t2, g2))
+        t1p = relabel_tree(t1, random_perm)
+        assert(equivalent_trees(t1p, t2))
+        if verbose:
+            print("Passses!")
+
+def random_md_tree(max_depth, max_fan_out, leaf_probability):
+    r"""
+    Create a random MD tree.
+
+    INPUT:
+
+    - ``max_depth`` -- the maximum depth of the tree.
+
+    - ``max_fan_out`` -- the maximum number of children a node can have
+      (must be >=4 as a prime node must have at least 4 vertices).
+
+    - ``leaf_probability`` -- the probability that a subtree is a leaf
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: tree_to_nested_tuple(random_md_tree(2, 5, 0.5))
+        (PRIME, [0, 1, (PRIME, [2, 3, 4, 5, 6]), 7, (PARALLEL, [8, 9, 10])])
+    """
+
+    from sage.misc.prandom import choice, randint, random
+
+    if max_fan_out < 4:
+        raise ValueError("max_fan_out must be at least 4")
+
+    #internal function
+    def rand_md_tree(max_depth, parent_type):
+        r"""
+        Create the subtrees of a node.
+
+        A child of a node cannot have the same node type as its parent if its
+        parent's node type is either PARALLEL or SERIES.  Also its ``max_depth``
+        is one less than its parent's.
+        """
+        if random() < leaf_probability or max_depth == 1:
+            root = create_normal_node(current_leaf[0])
+            current_leaf[0] += 1
+            return root
+        if parent_type == NodeType.PRIME:
+            node_type = choice([NodeType.PRIME, NodeType.SERIES, NodeType.PARALLEL])
+        elif parent_type == NodeType.SERIES:
+            node_type = choice([NodeType.PRIME, NodeType.PARALLEL])
+        else:
+            node_type = choice([NodeType.PRIME, NodeType.SERIES])
+        if node_type == NodeType.PRIME:
+            num_children = randint(4, max_fan_out)
+        else:
+            num_children = randint(2, max_fan_out)
+        root = Node(node_type)
+        root.children = [rand_md_tree(max_depth - 1, node_type)
+                         for _ in range(num_children)]
+        return root
+    # a hack around python2's lack of 'nonlocal'
+    current_leaf = [0]
+    node_type = choice([NodeType.PRIME, NodeType.SERIES, NodeType.PARALLEL])
+    num_children = randint(4, max_fan_out)
+    root = Node(node_type)
+    root.children = [rand_md_tree(max_depth, node_type)
+                     for _ in range(num_children)]
+    return root
+
+def md_tree_to_graph(root):
+    r"""
+    Create a graph having the given MD tree.
+
+    For the prime nodes we use that every path of length 4 or more is prime.
+
+    TODO: accept a function that generates prime graphs as a parameter and
+    use that in the prime nodes.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: tup1 = (NodeType.PRIME, 1, (NodeType.SERIES, 2, 3), \
+                     (NodeType.PARALLEL, 4, 5), 6)
+        sage: tree1 = nested_tuple_to_tree(tup1)
+        sage: g1 = md_tree_to_graph(tree1)
+        sage: g2 = Graph({1: [2, 3], 2: [1, 3, 4, 5], 3: [1, 2, 4, 5],\
+                          4: [2, 3, 6], 5: [2, 3, 6], 6: [4, 5]})
+        sage: g1.is_isomorphic(g2)
+        True
+    """
+    from itertools import product, combinations
+    from sage.graphs.graph import Graph
+    def tree_to_vertices_and_edges(root):
+        r"""
+        Give the list of vertices and edges of the graph having the given md tree.
+        """
+
+        if root.node_type == NodeType.NORMAL:
+            return (root.children, [])
+        children_ve = [tree_to_vertices_and_edges(child) for child in root.children]
+        vertices = [v for vs, es in children_ve for v in vs]
+        edges = [e for vs, es in children_ve for e in es]
+        vertex_lists = [vs for vs, es in children_ve]
+        if root.node_type == NodeType.PRIME:
+            for vs1, vs2 in zip(vertex_lists, vertex_lists[1:]):
+                for v1, v2 in product(vs1, vs2):
+                    edges.append((v1, v2))
+        elif root.node_type == NodeType.SERIES:
+            for vs1, vs2 in combinations(vertex_lists, 2):
+                for v1, v2 in product(vs1, vs2):
+                    edges.append((v1, v2))
+        return (vertices, edges)
+
+    vs, es = tree_to_vertices_and_edges(root)
+    return Graph([vs, es], format='vertices_and_edges')
+
+@random_testing
+def recreate_decomposition(trials, algorithm, max_depth, max_fan_out,
+                           leaf_probability, verbose=False):
+    r"""
+    Verify that we can recreate a random MD tree.
+
+    We create a random MD tree, then create a graph having that decomposition,
+    then find a modular decomposition for that graph, and verify that the two
+    modular decomposition trees are equivalent.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: recreate_decomposition(3, habib_maurer_algorithm, 4, 6, 0.5,\
+                                      verbose=False)
+    """
+    for _ in range(trials):
+        rand_tree = random_md_tree(max_depth, max_fan_out, leaf_probability)
+        if verbose:
+            print_md_tree(rand_tree)
+        graph = md_tree_to_graph(rand_tree)
+        if verbose:
+            print(graph.graph6_string())
+            print(graph.to_dictionary())
+        reconstruction = algorithm(graph)
+        if verbose:
+            print_md_tree(reconstruction)
+        assert(equivalent_trees(rand_tree, reconstruction))
+        if verbose:
+            print("Passes!")

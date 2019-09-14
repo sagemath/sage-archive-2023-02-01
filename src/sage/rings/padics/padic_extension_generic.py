@@ -566,7 +566,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
     @cached_method(key=(lambda self, base, basis, map: (base or self.base_ring(), map)))
     def free_module(self, base=None, basis=None, map=True):
         """
-        Return a free module V over a specified base ring together with maps to and from V.
+        Return a free module `V` over a specified base ring together with maps to and from `V`.
 
         INPUT:
 
@@ -575,18 +575,18 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
         - ``basis`` -- a basis for this ring/field over the base
 
-        - ``maps`` -- boolean (default ``True``), whether to return
+        - ``map`` -- boolean (default ``True``), whether to return
           `R`-linear maps to and from `V`
 
         OUTPUT:
 
         - A finite-rank free `R`-module `V`
 
-        - An `R`-module isomorphism ``from_V`` from `V` to this ring/field
-          (only included if ``maps`` is ``True``)
+        - An `R`-module isomorphism from `V` to this ring/field
+          (only included if ``map`` is ``True``)
 
-        - An `R`-module isomorphism ``to_V`` from this ring/field to `V`
-          (only included if ``maps`` is ``True``)
+        - An `R`-module isomorphism from this ring/field to `V`
+          (only included if ``map`` is ``True``)
 
         EXAMPLES::
 
@@ -606,6 +606,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
             (O(5^21), 1 + O(5^20))
             sage: to_W0(pi + O(pi^11))
             (O(5^6), O(5^6), O(5^6), 1 + O(5^5), O(5^5), O(5^5))
+
+            sage: X, from_X, to_X = K.free_module(K)
+            sage: to_X(a)
+            (a + O(5^20))
         """
         if basis is not None:
             raise NotImplementedError
@@ -624,6 +628,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
             V = A**d
             from_V = MapFreeModuleToTwoStep
             to_V = MapTwoStepToFreeModule
+        elif base is self:
+            return super(pAdicExtensionGeneric, self).free_module(base=base, basis=basis, map=map)
         else:
             raise NotImplementedError
         FromV = Hom(V, self)

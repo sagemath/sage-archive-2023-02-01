@@ -36,7 +36,6 @@ from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.metric_spaces import MetricSpaces
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
-from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.misc.flatten import flatten
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import rich_to_bool
@@ -776,7 +775,6 @@ class MapOneStepToFreeModule(pAdicModuleIsomorphism):
             sage: to(1 + pi + O(pi^11))
             (1 + O(5^4), 1 + O(5^4), O(5^3))
         """
-        V = self.codomain()
         return self.codomain()(x._polynomial_list(pad=True))
 
 class MapFreeModuleToTwoStep(pAdicModuleIsomorphism):

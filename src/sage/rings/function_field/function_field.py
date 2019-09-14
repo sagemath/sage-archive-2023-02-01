@@ -2945,7 +2945,7 @@ class FunctionField_global(FunctionField_polymod):
         else:
             dec = self.maximal_order().decomposition(p.prime_ideal())
 
-        return tuple([p.place() for p, deg, exp in dec])
+        return tuple([q.place() for q, deg, exp in dec])
 
     def different(self):
         """
@@ -3317,12 +3317,12 @@ class FunctionField_global_integral(FunctionField_global):
         # y-degrees. The trick is to use the reversed Hermite normal form.
         # Note that it is important that the overall denominator l lies in k[x].
         V, fr_V, to_V = self.free_module()
-        basis_V = [to_V(b) for b in _basis]
-        l = lcm([v.denominator() for v in basis_V])
+        basis_V = [to_V(bvec) for bvec in _basis]
+        l = lcm([vvec.denominator() for vvec in basis_V])
 
         # Why do we have 'reversed' here? I don't know. But without it, the
         # time to get hermite_form_reversed dramatically increases.
-        _mat = matrix([[c.numerator() for c in l*v] for v in reversed(basis_V)])
+        _mat = matrix([[coeff.numerator() for coeff in l*v] for v in reversed(basis_V)])
 
         # compute the reversed hermite form
         _mat.reverse_rows_and_columns()

@@ -193,10 +193,6 @@ class Node:
         """
         Check whether ``self`` has ``LEFT_SPLIT``.
 
-        OUTPUT:
-
-        ``True`` if node has a left split else ``False``
-
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition import *
@@ -215,10 +211,6 @@ class Node:
     def has_right_split(self):
         """
         Check whether ``self`` has ``RIGHT_SPLIT``.
-
-        OUTPUT:
-
-        ``True`` if node has a right split else ``False``
 
         EXAMPLES::
 
@@ -482,8 +474,8 @@ def modular_decomposition(graph):
 
 def number_components(root, vertex_status):
     """
-    Function to number the components to the right of SOURCE vertex in the
-    forest input to the assembly phase
+    Number the components to the right of SOURCE vertex in the forest input to
+    the assembly phase
 
     INPUT:
 
@@ -550,8 +542,8 @@ def number_components(root, vertex_status):
 
 def number_cocomponents(root, vertex_status):
     """
-    Function to number the cocomponents to the left of SOURCE vertex in the
-    forest input to the assembly phase
+    Number the cocomponents to the left of SOURCE vertex in the forest input to
+    the assembly phase
 
     INPUT:
 
@@ -609,9 +601,9 @@ def recursively_number_parts(part_root, part_num, by_type):
     """
     Recursively number the nodes in the (co)components(parts).
 
-    If the node_type of part_root is same as by_type then part_num is
-    incremented for subtree at each child of part_root else part is numbered
-    by part_num
+    If the ``node_type`` of ``part_root`` is same as ``by_type`` then
+    ``part_num`` is incremented for subtree at each child of ``part_root`` else
+    part is numbered by ``part_num``.
 
     INPUT:
 
@@ -624,7 +616,7 @@ def recursively_number_parts(part_root, part_num, by_type):
 
     OUTPUT:
 
-    The value incremented to part_num
+    The value incremented to ``part_num``.
 
     EXAMPLES::
 
@@ -961,7 +953,7 @@ def check_prime(graph, root, left, right,
 
     # stores the index of leftmost component included in the prime module
     new_left_index = source_index
-    if source_index >= - 1:
+    if source_index >= 1:
         new_left_index -= 1
 
     # stores the indices of the cocomponents included in the prime module
@@ -1644,7 +1636,7 @@ def compute_mu_for_component(graph, component_index, source_index,
 
 def is_component_connected(graph, index1, index2, vertices_in_component):
     """
-    Return True if two (co)components are connected else False
+    Check whether the two specified (co)components are connected.
 
     INPUT:
 
@@ -1691,15 +1683,10 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
         sage: is_component_connected(g, 0, 3, vertices_in_component)
         True
     """
-    vertices = vertices_in_component[index1]
-    index2_vertices_set = set(vertices_in_component[index2])
+    V1 = vertices_in_component[index1]
+    V2 = frozenset(vertices_in_component[index2])
 
-    for vertex in vertices:
-        neighbors = graph.neighbors(vertex)
-        if not index2_vertices_set.isdisjoint(neighbors):
-            return True
-    return False
-
+    return any(u in V2 for v in V1 for u in graph.neighbor_iterator(v))
 
 def get_vertices(component_root):
     """
@@ -2812,7 +2799,7 @@ def test_maximal_modules(tree_root, graph):
     return True
 
 
-#Function implemented for testing
+# Function implemented for testing
 def get_module_type(graph):
     """
     Return the module type of the root of the modular decomposition tree of
@@ -2877,8 +2864,8 @@ def form_module(index, other_index, tree_root, graph):
         sage: form_module(0, 2, tree_root, g)
         [False, {0, 1, 2, 3, 4, 5, 6, 7}]
     """
-    vertices = set(get_vertices(tree_root.children[index]) +
-                   get_vertices(tree_root.children[other_index]))
+    vertices = set(get_vertices(tree_root.children[index]))
+    vertices.update(get_vertices(tree_root.children[other_index]))
 
     # stores all neighbors which are common for all vertices in V
     common_neighbors = set()
@@ -2945,10 +2932,10 @@ def test_module(module, graph):
     if module.node_type == NodeType.NORMAL:
         return True
 
-    #vertices contained in module
+    # vertices contained in module
     vertices_in_module = get_vertices(module)
 
-    #vertices outside module
+    # vertices outside module
     vertices_outside = list(set(graph.vertices(sort=False)) - set(vertices_in_module))
 
     # Nested module with only one child

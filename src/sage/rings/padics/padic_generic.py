@@ -62,8 +62,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R = Zp(17) #indirect doctest
         """
         if category is None:
-            from sage.categories.modules_with_basis import ModulesWithBasis
-            all_base = base.ground_ring_of_tower()
             if self.is_field():
                 category = Fields()
             else:

@@ -346,7 +346,7 @@ class RingExtensionFactory(UniqueFactory):
                 defining_morphism = defining_morphism.extend_domain(base)
             if defining_morphism.codomain() is not ring:
                 defining_morphism = defining_morphism.extend_codomain(ring)
-        gen = names = None
+        gen = basis = names = None
         if 'names' in kwargs:
             names = kwargs['names']
         elif 'name' in kwargs:
@@ -364,7 +364,6 @@ class RingExtensionFactory(UniqueFactory):
             names = normalize_names(1, names)
             if names is None:
                 raise TypeError("you must specify the name of the generator")
-            key = (defining_morphism, coerce, gen, None, names)
         elif 'basis' in kwargs:
             basis = kwargs['basis']
             if not isinstance(basis, (list, tuple)):
@@ -372,10 +371,19 @@ class RingExtensionFactory(UniqueFactory):
             if names is not None and len(basis) != len(names):
                 raise ValueError("the number of names does not match the length of the basis")
             basis = [ ring(x) for x in kwargs['basis'] ]
-            key = (defining_morphism, coerce, None, basis, tuple(names))
-        else:
-            key = (defining_morphism, coerce, None, None, None)
-        return key
+            names = tuple(names)
+        if gen is None and basis is None:
+            if ring.ngens() == 1:
+                gen = ring.gen()
+                if names is None:
+                    names = ring.variable_names()
+                elif isinstance(names, (list, tuple)):
+                    if len(names) != 1:
+                        raise ValueError("the number of names does not match the number of generators")
+                    names = tuple(names)
+                else:
+                    names = (names,)
+        return (defining_morphism, coerce, gen, basis, names)
 
     def create_object(self, version, key):
         (defining_morphism, coerce, gen, basis, names) = key
@@ -1057,10 +1065,10 @@ class RingExtensionWithGen(RingExtensionWithBasis):
         basis = [ gen ** i for i in range(degree) ]
         RingExtensionWithBasis.__init__(self, defining_morphism, basis, names, coerce, check)
         self._gen = self(gen)._backend()
-        self._type = "Ring"
         self._names = (self._name,)
-        # if self._ring in Fields():
-        #     self._type = "Field"
+        self._type = "Ring"
+        if self._ring in Fields():
+            self._type = "Field"
 
     def modulus(self, var='x'):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

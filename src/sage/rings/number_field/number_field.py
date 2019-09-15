@@ -8170,7 +8170,11 @@ class NumberField_absolute(NumberField_generic):
             sage: to_V(from_V(V([0,-1/7,0])))
             (0, -1/7, 0)
         """
-        if basis is not None or (base is not None and base is not QQ):
+        if base is None:
+            base = QQ
+        elif base is self:
+            return super(NumberField_absolute, self).free_module(base=base, basis=basis, map=map)
+        if basis is not None or base is not QQ:
             raise NotImplementedError
         V = QQ**self.degree()
         if not map:
@@ -10691,7 +10695,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         n = self._n()
         z = CC.zeta(n)
         X = [m for m in range(n) if arith.gcd(m,n) == 1]
-        v = [self.hom([z**n], check=False) for n in X]
+        v = [self.hom([z**i], check=False) for i in X]
         self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
                                          check=False, universe=self.Hom(CC))
         return self.__embeddings[CC]

@@ -216,7 +216,8 @@ class MapVectorSpaceToRelativeField(Map):
         return True
 
     def _call_(self, v):
-        return sum(self._f(v[i]) * self._basis[i] for i in range(self._degree))
+        elt = sum(self._f(v[i]) * self._basis[i] for i in range(self._degree))
+        return self.codomain()(elt)
 
 
 class MapRelativeFieldToVectorSpace(Map):

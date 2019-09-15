@@ -532,6 +532,14 @@ class Fields(CategoryWithAxiom):
             - ``V`` -- a vector space over ``base``
             - ``from_V`` -- an isomorphism from ``V`` to this field
             - ``to_V`` -- the inverse isomorphism from this field to ``V``
+
+            EXAMPLES::
+
+                sage: K.<a> = Qq(125)
+                sage: V, fr, to = K.vector_space()
+                sage: v = V([1,2,3])
+                sage: fr(v, 7)
+                (3*a^2 + 2*a + 1) + O(5^7)
             """
             return self.free_module(*args, **kwds)
 

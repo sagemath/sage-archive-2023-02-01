@@ -1747,7 +1747,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
                 m =[]
                 for i in range(n):
                     m.append(sum(qgenb[j] * mtable[i][j] for j in range(n)))
-                beta  = [fr(c) for c in matrix(m).left_kernel().basis()[0]]
+                beta  = [fr(coeff) for coeff in matrix(m).left_kernel().basis()[0]]
 
                 prime.is_prime.set_cache(True)
                 prime._prime_below = ideal

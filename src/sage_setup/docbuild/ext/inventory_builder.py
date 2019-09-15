@@ -29,7 +29,7 @@ class InventoryBuilder(StandaloneHTMLBuilder):
                        for (name, desc) in iteritems(self.config.values)
                        if desc[1] == 'html')
         self.config_hash = get_stable_hash(cfgdict)
-        self.tags_hash = get_stable_hash(sorted(self.tags))
+        self.tags_hash = get_stable_hash(self.tags)
         old_config_hash = old_tags_hash = ''
         try:
             fp = open(path.join(self.outdir, '.buildinfo'))

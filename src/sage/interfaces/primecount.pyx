@@ -38,11 +38,17 @@ cpdef int64_t prime_pi(int64_t n, method=None) except -1:
 
         sage: prime_pi(1000) == 168                     # optional - primecount
         True
+        sage: prime_pi(1000, method='deleglise_rivat') == 168 # optional - primecount
+        doctest:warning
+        ...
+        DeprecationWarning: primecount 5 no longer supports the 'method' parameter
+        See https://trac.sagemath.org/28493 for details.
+        True
     """
     cdef int64_t ans
     if method is not None:
         from sage.misc.superseded import deprecation
-        deprecation(28493,"primecount 5.x no longer supports the 'method' parameter")
+        deprecation(28493, "primecount 5 no longer supports the 'method' parameter")
     if _do_sig(n): sig_on()
     ans = primecount.pi(n)
     if _do_sig(n): sig_off()

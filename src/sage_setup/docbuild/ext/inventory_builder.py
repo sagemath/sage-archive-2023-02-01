@@ -24,35 +24,17 @@ class InventoryBuilder(StandaloneHTMLBuilder):
     epilog = "The inventory files are in %(outdir)s."
 
     def get_outdated_docs(self):
-        from sphinx.builders.html import get_stable_hash
-        cfgdict = dict((name, self.config[name])
-                       for (name, desc) in iteritems(self.config.values)
-                       if desc[1] == 'html')
-        self.config_hash = get_stable_hash(cfgdict)
-        self.tags_hash = get_stable_hash(self.tags)
-        old_config_hash = old_tags_hash = ''
+        from sphinx.builders.html import BuildInfo
+        old = BuildInfo()
         try:
-            fp = open(path.join(self.outdir, '.buildinfo'))
-            try:
-                version = fp.readline()
-                if version.rstrip() != '# Sphinx build info version 1':
-                    raise ValueError
-                fp.readline()  # skip commentary
-                cfg, old_config_hash = fp.readline().strip().split(': ')
-                if cfg != 'config':
-                    raise ValueError
-                tag, old_tags_hash = fp.readline().strip().split(': ')
-                if tag != 'tags':
-                    raise ValueError
-            finally:
-                fp.close()
+            with open(path.join(self.outdir, '.buildinfo')) as fp:
+                old = BuildInfo.load(fp)
         except ValueError:
             self.warn('unsupported build info format in %r, building all' %
                       path.join(self.outdir, '.buildinfo'))
         except Exception:
-            pass
-        if old_config_hash != self.config_hash or \
-               old_tags_hash != self.tags_hash:
+            self.warn('failed to read buildinfo')
+        if self.build_info != old:
             for docname in self.env.found_docs:
                 yield docname
             return

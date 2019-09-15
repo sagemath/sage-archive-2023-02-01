@@ -258,7 +258,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         return s
 
     def vector(self, base=None):
-        _, _, j = self._parent.vector_space(base)
+        _, _, j = self._parent.free_module(base)
         return j(self)
 
     def polynomial(self, base=None, var='x'):
@@ -294,7 +294,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         parent = self._parent
         if base is None:
             base = parent._base
-        _, _, j = parent.vector_space(base)
+        _, _, j = parent.free_module(base)
         x = self._backend()
         M = [ j(x * b._backend()) for b in parent.basis(base) ]
         return MatrixSpace(base, len(M))(M)

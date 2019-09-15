@@ -982,7 +982,7 @@ class RingExtensionWithBasis(RingExtension_class):
         self._names = tuple(names)
         if check:
             try:
-                _ = self.vector_space()
+                _ = self.free_module()
             except ZeroDivisionError:
                 raise ValueError("the given family is not a basis")
 
@@ -1045,7 +1045,7 @@ class RingExtensionWithBasis(RingExtension_class):
         return frac
 
     @cached_method
-    def vector_space(self, base=None, map=True):
+    def free_module(self, base=None, map=True):
         if base is None:
             base = self._base
         d = self.degree(base)
@@ -1072,7 +1072,7 @@ class RingExtensionWithGen(RingExtensionWithBasis):
 
     def modulus(self, var='x'):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        _, _, j = self.vector_space()
+        _, _, j = self.free_module()
         d = self.relative_degree()
         coeffs = [ -c for c in j(self._gen**d) ] + [ 1 ]
         S = PolynomialRing(self._base, name=var)

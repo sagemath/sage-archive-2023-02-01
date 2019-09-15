@@ -1096,6 +1096,7 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_free(active_rows)
         for i in xrange(self.full_rank()):
             bitset_free(comp[i])
+        sig_free(comp)
         return res
 
     cpdef _link(self, S, T):

@@ -178,9 +178,9 @@ FROM make-build as make-all
 # overcommit limit of the system (no RAM is actually used, but this limit is
 # very low because there is not even swap on most CI systems.)
 ARG MAKEOPTS_DOCBUILD=$MAKEOPTS
-ENV MAKEOPTS_DOCBUILD $MAKEOPTS_DOCBUILD
+ENV MAKEOPTS $MAKEOPTS_DOCBUILD
 ARG SAGE_NUM_THREADS_DOCBUILD=$SAGE_NUM_THREADS
-ENV SAGE_NUM_THREADS_DOCBUILD $SAGE_NUM_THREADS_DOCBUILD
+ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS_DOCBUILD
 RUN make
 
 ################################################################################

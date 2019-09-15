@@ -346,6 +346,11 @@ class RingExtensionFactory(UniqueFactory):
                 defining_morphism = defining_morphism.extend_domain(base)
             if defining_morphism.codomain() is not ring:
                 defining_morphism = defining_morphism.extend_codomain(ring)
+        if isinstance(ring, RingExtension_class):
+            from sage.rings.ring_extension_morphism import backend_morphism
+            defining_morphism = backend_morphism(defining_morphism, forget="codomain")
+            coerce &= ring._coerce
+            ring = ring._backend()
         gen = basis = names = None
         if 'names' in kwargs:
             names = kwargs['names']
@@ -461,21 +466,15 @@ class RingExtension_class(CommutativeAlgebra):
         base = defining_morphism.domain()
         ring = defining_morphism.codomain()
 
-        if isinstance(ring, RingExtension_class):
-            from sage.rings.ring_extension_morphism import backend_morphism
-            defining_morphism = backend_morphism(defining_morphism, forget="codomain")
-            coerce &= ring._coerce
-            ring = ring._backend()
-
         CommutativeAlgebra.__init__(self, ZZ, category=CommutativeAlgebras(base))
         self._base = base
         self._ring = ring
         self._coerce = coerce
-        self._defining_morphism = defining_morphism
+        self._backend_defining_morphism = defining_morphism
+        self._defining_morphism = RingExtensionHomomorphism(self._base.Hom(self), defining_morphism)
 
         self._unset_coercions_used()
-        f = RingExtensionHomomorphism(self._base.Hom(self), defining_morphism)
-        self.register_coercion(f)
+        self.register_coercion(self._defining_morphism)
         self.register_conversion(ring)
         if coerce:
             self._populate_coercion_lists_(embedding = RingExtensionHomomorphism(self.Hom(ring), ring.Hom(ring).identity()))
@@ -694,16 +693,13 @@ class RingExtension_class(CommutativeAlgebra):
 
         if base is None or base is self._base:
             return self._defining_morphism
-        ring = self._ring
-        f = ring.Hom(ring).identity()
+        f = self.Hom(self).identity()
         b = self
         while b is not base:
-            f = f * backend_morphism(b.defining_morphism())
+            f = f * b.defining_morphism()
             if b is b.base_ring():
                 raise ValueError("(%s) is not defined over (%s)" % (self, base))
             b = b.base_ring()
-        if isinstance(base, RingExtension_class):
-            f = RingExtensionHomomorphism(base.Hom(ring), f)
         return f
 
     def base(self):
@@ -834,14 +830,14 @@ class RingExtension_class(CommutativeAlgebra):
     def fraction_field(self, extend_base=True):
         if extend_base:
             try:
-                defining_morphism = self._defining_morphism.extend_to_fraction_field()
+                defining_morphism = self._backend_defining_morphism.extend_to_fraction_field()
             except (NotImplementedError, ValueError):
                 extend_base = False
         if not extend_base:
             if self._ring in Fields():
-                defining_morphism = self._defining_morphism
+                defining_morphism = self._backend_defining_morphism
             else:
-                defining_morphism = self._defining_morphism.extend_codomain(self._ring.fraction_field())
+                defining_morphism = self._backend_defining_morphism.extend_codomain(self._ring.fraction_field())
         frac = RingExtension(defining_morphism)
         frac._unset_coercions_used()
         frac.register_coercion(self)
@@ -946,7 +942,7 @@ class RingExtension_class(CommutativeAlgebra):
                 newbase = newbase.post_compose(self._base.coerce_map_from(codomain))
             else:
                 raise TypeError("No coercion map from %s to %s" % (codomain, self._base))
-        defining_morphism = self._defining_morphism.pre_compose(newbase)
+        defining_morphism = self._backend_defining_morphism.pre_compose(newbase)
         return RingExtension_class(defining_morphism, coerce)
 
     def intermediate_rings(self):
@@ -1029,14 +1025,14 @@ class RingExtensionWithBasis(RingExtension_class):
     def fraction_field(self, extend_base=True):
         if extend_base:
             try:
-                defining_morphism = self._defining_morphism.extend_to_fraction_field()
+                defining_morphism = self._backend_defining_morphism.extend_to_fraction_field()
             except (NotImplementedError, ValueError):
                 extend_base = False
         if not extend_base:
             if self._ring in Fields():
-                defining_morphism = self._defining_morphism
+                defining_morphism = self._backend_defining_morphism
             else:
-                defining_morphism = self._defining_morphism.extend_codomain(self._ring.fraction_field())
+                defining_morphism = self._backend_defining_morphism.extend_codomain(self._ring.fraction_field())
         if extend_base or self._base in Fields():
             frac = RingExtension(defining_morphism, basis=self._basis, names=self._basis_names)
         else:
@@ -1098,14 +1094,14 @@ class RingExtensionWithGen(RingExtensionWithBasis):
     def fraction_field(self, extend_base=True):
         if extend_base:
             try:
-                defining_morphism = self._defining_morphism.extend_to_fraction_field()
+                defining_morphism = self._backend_defining_morphism.extend_to_fraction_field()
             except (NotImplementedError, ValueError):
                 extend_base = False
         if not extend_base:
             if self._ring in Fields():
-                defining_morphism = self._defining_morphism
+                defining_morphism = self._backend_defining_morphism
             else:
-                defining_morphism = self._defining_morphism.extend_codomain(self._ring.fraction_field())
+                defining_morphism = self._backend_defining_morphism.extend_codomain(self._ring.fraction_field())
         if extend_base or self._base in Fields():
             frac = RingExtension(defining_morphism, gen=self._gen, name=self._name)
         else:

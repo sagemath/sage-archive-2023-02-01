@@ -184,7 +184,7 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
                 ss = self.base_map()._repr_defn()
                 ss = re.sub('\nwith base map:?$', '', ss, 0, re.MULTILINE)
                 if ss != "": s += ":\n" + ss
-        if s[-1] == "\n":
+        if s != "" and s[-1] == "\n":
             s = s[:-1]
         return s
 
@@ -204,7 +204,7 @@ class MapVectorSpaceToRelativeField(Map):
             raise TypeError("you must pass in a RingExtensionWithBasis")
         self._degree = E.degree(K)
         self._basis = [ x._backend() for x in E.basis(K) ]
-        self._f = E.defining_morphism(K)
+        self._f = backend_morphism(E.defining_morphism(K), forget="codomain")
         domain = K ** self._degree
         parent = domain.Hom(E)
         Map.__init__(self, parent)
@@ -226,7 +226,7 @@ class MapRelativeFieldToVectorSpace(Map):
             raise TypeError("you must pass in a RingExtensionWithBasis")
         self._degree = E.degree(K)
         self._basis = [ x._backend() for x in E.basis(K) ]
-        f = E.defining_morphism(K)
+        f = backend_morphism(E.defining_morphism(K), forget="codomain")
         codomain = K ** self._degree
         parent = E.Hom(codomain)
         Map.__init__(self, parent)

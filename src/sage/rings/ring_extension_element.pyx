@@ -35,7 +35,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             parentx = x.parent()
             if parent.base().has_coerce_map_from(parentx):
                 x = parent.base().coerce_map_from(parentx)(x)
-                x = parent.defining_morphism()(x)
+                x = parent._backend_defining_morphism(x)
         except AttributeError:
             pass
         Element.__init__(self, parent)

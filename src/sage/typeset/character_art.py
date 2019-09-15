@@ -406,30 +406,8 @@ class CharacterArt(SageObject):
              |
              |
              |
-            sage: l5._baseline = None
-            sage: AsciiArt._compute_new_baseline(l3, l5)
-            2
-            sage: l3._baseline = 2
-            sage: AsciiArt._compute_new_baseline(l3, l5)
-            4
-            sage: l3 + l5
-            ||
-            ||
-            ||
-             |
-             |
-
         """
-        if obj1.get_baseline() is None:
-            if obj2.get_baseline() is None:
-                return None
-            return obj2.get_baseline() + max(obj1._h - obj2._h, 0)
-        if obj2.get_baseline() is None:
-            return obj1.get_baseline() + max(obj2._h - obj1._h, 0)
-        return max(
-            obj1.get_baseline(),
-            obj2.get_baseline()
-        )
+        return max(obj1.get_baseline(), obj2.get_baseline())
 
     @staticmethod
     def _compute_new_h(obj1, obj2):
@@ -487,8 +465,6 @@ class CharacterArt(SageObject):
              |
              |
         """
-        if obj1.get_baseline() is None or obj2.get_baseline() is None:
-            return max(obj1._h, obj2._h)
         return max(
             obj1.get_baseline(),
             obj2.get_baseline()
@@ -573,14 +549,7 @@ class CharacterArt(SageObject):
              / \ [7 8 9]
             o   o
 
-        If one of the objects has not baseline, the concatenation is realized
-        from the top::
-
-            o    [1 2 3]
-             \   [4 5 6]
-              o  [7 8 9]
-             / \
-            o   o
+        Since :trac:`28527`, the baseline must always be a number.
 
         TESTS::
 

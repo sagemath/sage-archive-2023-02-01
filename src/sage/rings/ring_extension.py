@@ -474,7 +474,7 @@ class RingExtension_class(CommutativeAlgebra):
         self._defining_morphism = RingExtensionHomomorphism(self._base.Hom(self), defining_morphism)
 
         self._unset_coercions_used()
-        self.register_coercion(self._defining_morphism)
+        self.register_coercion(self._defining_morphism.__copy__())
         self.register_conversion(ring)
         if coerce:
             self._populate_coercion_lists_(embedding = RingExtensionHomomorphism(self.Hom(ring), ring.Hom(ring).identity()))
@@ -531,7 +531,7 @@ class RingExtension_class(CommutativeAlgebra):
         if codomain is None:
             from sage.structure.sequence import Sequence
             codomain = Sequence(im_gens).universe()
-        parent = RingExtensionHomset(self, codomain, category)
+        parent = self.Hom(codomain, category=category)
         return RingExtensionHomomorphism(parent, im_gens, base_map, check)
 
     def _pushout_(self, other):

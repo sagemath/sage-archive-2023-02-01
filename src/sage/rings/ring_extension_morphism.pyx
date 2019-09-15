@@ -8,6 +8,8 @@
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.misc.cachefunc import cached_method
+
 from sage.structure.element cimport Element
 from sage.categories.map import Map
 from sage.rings.morphism cimport RingHomomorphism
@@ -19,12 +21,16 @@ from sage.rings.ring_extension import _common_base
 
 def _backend_morphism(f):
     from sage.categories.map import FormalCompositeMap
+    from sage.categories.morphism import IdentityMorphism
     if not isinstance(f.domain(), RingExtension_class) and not isinstance(f.codomain(), RingExtension_class):
         return f
     elif isinstance(f, RingExtensionHomomorphism):
         return f._backend()
     elif isinstance(f, FormalCompositeMap):
         return _backend_morphism(f.then()) * _backend_morphism(f.first())
+    elif isinstance(f, IdentityMorphism):
+        ring = f.domain()._backend()
+        return ring.Hom(ring).identity()
     else:
         raise NotImplementedError
 
@@ -82,7 +88,7 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
                 raise TypeError("the codomain of the backend morphism is not correct")
             self._backend_morphism = backend
             self._im_gens = None
-            self._base_map = False
+            self._base_map_construction = False
         elif isinstance(defn, (list, tuple)):
             # We figure out what is the base
             if base_map is not None:
@@ -144,9 +150,9 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
             self._backend_morphism = current_morphism
             self._im_gens = im_gens[:domain.ngens()]
             if base is domain.base_ring():
-                self._base_map = base_map
+                self._base_map_construction = base_map
             else:
-                self._base_map = { 
+                self._base_map_construction = { 
                     'im_gens': defn[domain.ngens():], 
                     'base_map': base_map, 
                     'check': False
@@ -165,28 +171,63 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
     def _backend(self):
         return self._backend_morphism
 
+    @cached_method
     def base_map(self):
-        if self._base_map is False:
-            raise NotImplementedError
-        if isinstance(self._base_map, dict):
-            self._base_map = self.domain().base_ring().hom(**self._base_map)
-        return self._base_map
+        domain = self.domain()
+        base = domain.base_ring()
+        base_map = self._base_map_construction
+        if base_map is False:
+            if base is domain:
+                base_map = None
+            else:
+                base_map = self * domain.coerce_map_from(base)
+        elif isinstance(base_map, dict):
+            base_map = base.hom(**self._base_map_construction)
+        if base_map is not None and base_map != base_map.codomain().coerce_map_from(base):
+            if base_map.codomain() is not self.codomain():
+                base_map = base_map.extend_codomain(self.codomain())
+            return base_map
+
+    cpdef _richcmp_(self, other, int op):
+        return self._backend()._richcmp_(backend_morphism(other), op)
+
+    def is_identity(self):
+        if self.domain() is not self.codomain():
+            return False
+        return self._backend_morphism.is_identity()
+
+    def is_injective(self):
+        return self._backend_morphism.is_injective()
+
+    def is_surjective(self):
+        return self._backend_morphism.is_surjective()
 
     def _repr_defn(self):
         import re
         s = ""
-        if self._im_gens is not None:
-            gens = self.domain().gens()
-            for i in range(len(gens)):
-                s += "%s |--> %s\n" % (gens[i], self._im_gens[i])
-            if self._base_map is not None:
-                s += "with base map"
-                ss = self.base_map()._repr_defn()
-                ss = re.sub('\nwith base map:?$', '', ss, 0, re.MULTILINE)
-                if ss != "": s += ":\n" + ss
+        gens = self.domain().gens()
+        if self._im_gens is None:
+            self._im_gens = [ self(x) for x in gens ]
+        for i in range(len(gens)):
+            s += "%s |--> %s\n" % (gens[i], self._im_gens[i])
+        if self.base_map() is not None:
+            s += "with map on base ring"
+            ss = self.base_map()._repr_defn()
+            ss = re.sub('\nwith map on base ring:?$', '', ss, 0, re.MULTILINE)
+            if ss != "": s += ":\n" + ss
         if s != "" and s[-1] == "\n":
             s = s[:-1]
         return s
+
+    def _composition(self, right):
+        domain = right.domain()
+        codomain = self.codomain()
+        backend_right = backend_morphism(right)
+        backend = self._backend_morphism * backend_right
+        if isinstance(domain, RingExtension_class) or isinstance(codomain, RingExtension_class):
+            return RingExtensionHomomorphism(domain.Hom(codomain), backend)
+        else:
+            return backend
 
     cdef _update_slots(self, dict _slots):
         self._backend_morphism = _slots['_backend_morphism']

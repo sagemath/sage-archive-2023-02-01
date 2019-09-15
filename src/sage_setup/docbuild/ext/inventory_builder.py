@@ -14,12 +14,6 @@ from six import iteritems, text_type
 
 import shutil
 
-try:
-    from hashlib import md5
-except ImportError:
-    # 2.4 compatibility
-    from md5 import md5
-
 class InventoryBuilder(StandaloneHTMLBuilder):
     """
     A customized HTML builder which only generates intersphinx "object.inv"
@@ -30,14 +24,12 @@ class InventoryBuilder(StandaloneHTMLBuilder):
     epilog = "The inventory files are in %(outdir)s."
 
     def get_outdated_docs(self):
-        def md5hash_obj(obj):
-            return md5(text_type(obj).encode('utf-8')).hexdigest()
-
+        from sphinx.builders.html import get_stable_hash
         cfgdict = dict((name, self.config[name])
                        for (name, desc) in iteritems(self.config.values)
                        if desc[1] == 'html')
-        self.config_hash = md5hash_obj(cfgdict)
-        self.tags_hash = md5hash_obj(sorted(self.tags))
+        self.config_hash = get_stable_hash(cfgdict)
+        self.tags_hash = get_stable_hash(sorted(self.tags))
         old_config_hash = old_tags_hash = ''
         try:
             fp = open(path.join(self.outdir, '.buildinfo'))

@@ -971,10 +971,11 @@ class RingExtensionWithBasis(RingExtension_class):
                 b = b._backend()
                 if b == 1:
                     names.append("")
-                if b._is_atomic():
-                    names.append(str(b))
+                sb = str(b)
+                if b._is_atomic() or (sb[0] == "(" and sb[-1] == ")"):
+                    names.append(sb)
                 else:
-                    names.append("(%s)" % b)
+                    names.append("(" + sb + ")")
         else:
             if len(names) != len(self._basis):
                 raise ValueError("the number of names does not match the cardinality of the basis")
@@ -982,8 +983,8 @@ class RingExtensionWithBasis(RingExtension_class):
         self._names = tuple(names)
         if check:
             try:
-                _ = self.free_module()
-            except ZeroDivisionError:
+                _ = self.free_module(map=True)
+            except (ZeroDivisionError, ArithmeticError):
                 raise ValueError("the given family is not a basis")
 
     def degree(self, base):
@@ -1072,7 +1073,7 @@ class RingExtensionWithGen(RingExtensionWithBasis):
 
     def modulus(self, var='x'):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        _, _, j = self.free_module()
+        _, _, j = self.free_module(map=True)
         d = self.relative_degree()
         coeffs = [ -c for c in j(self._gen**d) ] + [ 1 ]
         S = PolynomialRing(self._base, name=var)

@@ -9,6 +9,8 @@
 #****************************************************************************
 
 
+from sage.misc.cachefunc import cached_method
+
 from sage.structure.element cimport CommutativeAlgebraElement
 from sage.structure.element cimport Element
 from sage.rings.integer_ring import ZZ
@@ -229,6 +231,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
 
 cdef class RingExtensionWithBasisElement(RingExtensionElement):
+    @cached_method
     def _repr_(self):
         names = self._parent._basis_names
         coeffs = self.vector()
@@ -237,28 +240,40 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             if coeffs[i].is_zero(): continue
             c = coeffs[i]
             sign = 1
-            if not c._is_atomic() and (-c)._is_atomic():
-                c = -c
-                sign = -sign
+            ss = ""
+            if c == 1:
+                pass
+            elif c == -1:
+                sign = -1
+            else:
+                atomic = c._is_atomic()
+                if not atomic and (-c)._is_atomic():
+                    c = -c
+                    sign = -sign
+                    atomic = True
+                sc = str(c)
+                if atomic:
+                    ss += sc
+                else:
+                    ss += "(" + sc + ")"
+                if names[i] != "": ss += "*"
+            if ss != "" and ss[0] == "-":
+                ss = ss[1:]
+                sign *= -1
             if s == "":
                 if sign == -1: s = "-"
             else:
                 s += " + " if sign == 1 else " - "
-            ss = ""
-            if c != 1:
-                if c._is_atomic():
-                    ss += "%s" % c
-                else:
-                    ss += "(%s)" % c
-                if names[i] != "": ss += "*"
             ss += names[i]
             if ss == "": ss += "1"
             s += ss
         if s == "": return "0"
+        if s[0] == "(" and s[-1] == ")":
+            s = s[1:-1]
         return s
 
     def vector(self, base=None):
-        _, _, j = self._parent.free_module(base)
+        _, _, j = self._parent.free_module(base, map=True)
         return j(self)
 
     def polynomial(self, base=None, var='x'):
@@ -294,7 +309,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         parent = self._parent
         if base is None:
             base = parent._base
-        _, _, j = parent.free_module(base)
+        _, _, j = parent.free_module(base, map=True)
         x = self._backend()
         M = [ j(x * b._backend()) for b in parent.basis(base) ]
         return MatrixSpace(base, len(M))(M)

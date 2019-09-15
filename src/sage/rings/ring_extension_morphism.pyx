@@ -250,7 +250,7 @@ class MapRelativeFieldToVectorSpace(Map):
                 y = x * f(iK(v))
                 M.append(jL(y))
         from sage.matrix.matrix_space import MatrixSpace
-        self._matrix = MatrixSpace(base,len(M))(M).inverse()
+        self._matrix = MatrixSpace(base,len(M))(M).inverse_of_unit()
 
     def is_injective(self):
         return True

@@ -79,8 +79,8 @@ def load(*filename, compress=True, verbose=True, **kwargs):
 
     If ``compress`` is true (the default), then the data stored in the file
     are supposed to be compressed. If ``verbose`` is true (the default), then
-    some logging is printed when accessing remote files. Futher keyword arguments
-    are passed to :func:`pickle.load`.
+    some logging is printed when accessing remote files. Further keyword
+    arguments are passed to :func:`pickle.load`.
 
     EXAMPLES::
 
@@ -997,7 +997,7 @@ def loads(s, compress=True, **kwargs):
         ...
         UnpicklingError: invalid load key, 'x'.
 
-    In the next example demonstrates that Sage strives to avoid data loss
+    The next example demonstrates that Sage strives to avoid data loss
     in the transition from Python-2 to Python-3. The problem is that Python-3
     by default would not be able to unpickle a non-ASCII Python-2 string appearing
     in a pickle. See :trac:`28444` for details.

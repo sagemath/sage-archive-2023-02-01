@@ -6703,13 +6703,20 @@ class Polyhedron_base(Element):
             ((1, 1), (1, 1))
             sage: polytopes.buckyball(exact=False).bounding_box()
             ((-0.8090169944, -0.8090169944, -0.8090169944), (0.8090169944, 0.8090169944, 0.8090169944))
+
+        TESTS::
+
+            sage: Polyhedron().bounding_box()
+            Traceback (most recent call last):
+            ...
+            ValueError: empty polytope is not allowed
         """
         box_min = []
         box_max = []
-        if self.n_vertices == 0:
-            raise ValueError('empty polytope is not allowed')
+        if self.n_vertices() == 0:
+            raise ValueError("empty polytope is not allowed")
         if not self.is_compact():
-            raise ValueError('only polytopes (compact polyhedra) are allowed')
+            raise ValueError("only polytopes (compact polyhedra) are allowed")
         for i in range(self.ambient_dim()):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)

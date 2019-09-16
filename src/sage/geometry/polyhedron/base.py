@@ -6713,10 +6713,10 @@ class Polyhedron_base(Element):
         """
         box_min = []
         box_max = []
-        if self.n_vertices() == 0:
-            raise ValueError("empty polytope is not allowed")
         if not self.is_compact():
             raise ValueError("only polytopes (compact polyhedra) are allowed")
+        if self.n_vertices() == 0:
+            raise ValueError("empty polytope is not allowed")
         for i in range(self.ambient_dim()):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)

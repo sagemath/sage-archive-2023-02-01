@@ -365,6 +365,50 @@ cpdef bint parent_is_integers(P) except -1:
         from sage.rings.integer_ring import ZZ
         return P is ZZ
 
+def parent_is_numerical(P):
+    r"""
+    Return True when this parent or type can be canonically considered a
+    subring of the complex numbers.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import parent_is_numerical
+        sage: [parent_is_numerical(R) for R in RR, CC, QQ, QuadraticField(-1), int, complex]
+        [True, True, True, True, True, True]
+        sage: [parent_is_numerical(R) for R in SR, QQ['x'], QQ[['x']], str]
+        [False, False, False, False]
+        sage: [parent_is_numerical(R) for R in RIF, RBF, CIF, CBF]
+        [False, False, False, False]
+    """
+    if not isinstance(P, Parent):
+        P = py_scalar_parent(P)
+        if P is None:
+            return False
+    return P._is_numerical()
+
+def parent_is_real_numerical(P):
+    r"""
+    Return True when this parent or type can be canonically considered a
+    subring of the complex numbers.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import parent_is_real_numerical
+        sage: [parent_is_real_numerical(R) for R in RR, QQ, ZZ, RLF, QuadraticField(2), int, float]
+        [True, True, True, True, True, True, True]
+        sage: [parent_is_real_numerical(R) for R in CC, QuadraticField(-1), complex]
+        [False, False, False]
+        sage: [parent_is_real_numerical(R) for R in SR, QQ['x'], QQ[['x']], str]
+        [False, False, False, False]
+        sage: [parent_is_real_numerical(R) for R in RIF, RBF, CIF, CBF]
+        [False, False, False, False]
+    """
+    if not isinstance(P, Parent):
+        P = py_scalar_parent(P)
+        if P is None:
+            return False
+    return P._is_real_numerical()
+
 
 cpdef bint is_numpy_type(t):
     """

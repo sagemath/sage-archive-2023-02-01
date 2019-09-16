@@ -716,11 +716,8 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: parent._coerce_map_from_(int)
             True
         """
-        if R in [int, float, long, complex]:
-            return True
-        from sage.rings.real_mpfr import mpfr_prec_min
-        from sage.rings.all import RealField
-        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+        from sage.structure.coerce import parent_is_real_numerical
+        if parent_is_real_numerical(R) or R is complex:
             return True
         return False
 

@@ -782,6 +782,7 @@ class Documenter(object):
             name = self.module.__name__ if hasattr(self.module, '__name__') else None
             fname = self.module.__file__ if hasattr(self.module, '__file__') else None
             if name != self.real_modname:
+                # !!! SageMath Specific for make fast-rebuild-clean !!!
                 # try not to record a dependency to a .pyc file but to the corresponding .py files instead.
                 try:
                     fname = ModuleAnalyzer.for_module(name).srcname

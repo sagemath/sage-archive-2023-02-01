@@ -1906,9 +1906,9 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
         sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
     """
-    # The expeced input type is bytes. However, Python-2 legacy pickles do
+    # The expected input type is bytes. However, Python-2 legacy pickles do
     # not distinguish between str and bytes. If such pickle is unpickled
-    # in Python-3, Sage will receive a str in in `latin1` encoding. Therefore,
+    # in Python-3, Sage will receive a str in `latin1` encoding. Therefore,
     # in the following line, we use a helper function that would return bytes,
     # regardless whether the input is bytes or str.
     cdef bytes Data = str_to_bytes(data, encoding='latin1')

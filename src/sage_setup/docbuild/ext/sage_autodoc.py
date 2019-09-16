@@ -778,9 +778,17 @@ class Documenter(object):
             logger.debug('[autodoc] module analyzer failed: %s', err)
             # no source file -- e.g. for builtin and C modules
             self.analyzer = None
-            # at least add the module.__file__ as a dependency
-            if hasattr(self.module, '__file__') and self.module.__file__:
-                self.directive.filename_set.add(self.module.__file__)
+            # at least add the module as a dependency
+            name = self.module.__name__ if hasattr(self.module, '__name__') else None
+            fname = self.module.__file__ if hasattr(self.module, '__file__') else None
+            if name != self.real_modname:
+                # try not to record a dependency to a .pyc file but to the corresponding .py files instead.
+                try:
+                    fname = ModuleAnalyzer.for_module(name).srcname
+                except PycodeError:
+                    pass
+            if fname is not None:
+                self.directive.filename_set.add(fname)
         else:
             self.directive.filename_set.add(self.analyzer.srcname)
 

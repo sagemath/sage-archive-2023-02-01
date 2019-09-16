@@ -3614,6 +3614,30 @@ cdef class ComplexBall(RingElement):
         ser = Pol([self, 1])._zeta_series(k + 1)
         return ser[k]
 
+    def lambert_w(self, branch=0):
+        r"""
+        Return the image of this ball by the specified branch of the Lambert W
+        function.
+
+        EXAMPLES::
+
+            sage: CBF(1 + I).lambert_w()
+            [0.6569660692304...] + [0.3254503394134...]*I
+            sage: CBF(1 + I).lambert_w(2)
+            [-2.1208839379437...] + [11.600137110774...]*I
+            sage: CBF(1 + I).lambert_w(2^100)
+            [-70.806021532123...] + [7.9648836259913...]*I
+        """
+        cdef fmpz_t _branch
+        fmpz_init(_branch)
+        fmpz_set_mpz(_branch, (<Integer> Integer(branch)).value)
+        cdef ComplexBall res = self._new()
+        sig_on()
+        acb_lambertw(res.value, self.value, _branch, 0, prec(self))
+        sig_off()
+        fmpz_clear(_branch)
+        return res
+
     def polylog(self, s):
         """
         Return the polylogarithm `\operatorname{Li}_s(\mathrm{self})`.

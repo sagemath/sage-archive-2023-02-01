@@ -216,6 +216,8 @@ cdef extern from "arb_wrap.h":
     void arb_const_glaisher(arb_t z, long prec)
     void arb_const_apery(arb_t z, long prec)
 
+    void arb_lambertw(arb_t res, const arb_t x, int flags, long prec)
+
     void arb_rising_ui_bs(arb_t z, const arb_t x, unsigned long n, long prec)
     void arb_rising_ui_rs(arb_t z, const arb_t x, unsigned long n, unsigned long step, long prec)
     void arb_rising_ui_rec(arb_t z, const arb_t x, unsigned long n, long prec)

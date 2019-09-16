@@ -3555,6 +3555,21 @@ cdef class RealBall(RingElement):
         ser = Pol([self, 1])._zeta_series(k + 1)
         return ser[k].real()
 
+    def lambert_w(self):
+        r"""
+        Return the image of this ball by the Lambert W function.
+
+        EXAMPLES::
+
+            sage: RBF(1).lambert_w()
+            [0.5671432904097...]
+        """
+        cdef RealBall res = self._new()
+        sig_on()
+        arb_lambertw(res.value, self.value, 0, prec(self))
+        sig_off()
+        return res
+
     def polylog(self, s):
         """
         Return the polylogarithm `\operatorname{Li}_s(\mathrm{self})`.

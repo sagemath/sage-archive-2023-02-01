@@ -344,7 +344,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             sage: phi_U = E.trivialization('phi_U', domain=U)
             sage: phi_V = E.trivialization('phi_U', domain=V)
             sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, 1)
-            sage: E.transitions()
+            sage: E.transitions() # random
             {(Trivialization (phi_U, E|_U),
              Trivialization (phi_U, E|_V)): Transition map from Trivialization
              (phi_U, E|_U) to Trivialization (phi_U, E|_V),
@@ -353,7 +353,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
              (phi_U, E|_V) to Trivialization (phi_U, E|_U)}
 
         """
-        return self._transitions
+        return self._transitions.copy()
 
     def transition(self, triv1, triv2):
         r"""
@@ -849,7 +849,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             sage: f_in_e = auto_group([[0,1],[1,0]])
             sage: f = e.new_frame(f_in_e, 'f'); f
             Local frame (E|_M, (f_0,f_1))
-            sage: E.changes_of_frame()
+            sage: E.changes_of_frame() # random
             {(Local frame (E|_M, (f_0,f_1)),
              Local frame (E|_M, (e_0,e_1))): Automorphism of the Free module
              C^0(M;E) of sections on the 3-dimensional topological manifold M
@@ -860,7 +860,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
              with values in the real vector bundle E of rank 2}
 
         """
-        return self._frame_changes
+        return self._frame_changes.copy()
 
     def frames(self):
         r"""
@@ -882,7 +882,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
              Local frame (E|_V, (e_0,e_1))]
 
         """
-        return self._frames
+        return list(self._frames)
 
     def coframes(self):
         r"""
@@ -904,4 +904,4 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
              Local coframe (E|_V, (e^0,e^1))]
 
         """
-        return self._coframes
+        return list(self._coframes)

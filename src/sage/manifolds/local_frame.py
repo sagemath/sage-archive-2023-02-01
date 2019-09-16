@@ -960,10 +960,6 @@ class LocalFrame(FreeModuleBasis):
                     for sframe2 in self._superframes:
                         sframe2._subframes.add(res)
                     return self._restrictions[subdomain]
-            for dom, rst in self._restrictions.items():
-                if subdomain.is_subset(dom):
-                    self._restrictions[subdomain] = rst.restrict(subdomain)
-                    return self._restrictions[subdomain]
             # Secondly one tries to get the restriction from one previously
             # defined on a larger domain:
             for sframe in self._superframes:
@@ -975,14 +971,16 @@ class LocalFrame(FreeModuleBasis):
                         sframe2._subframes.add(res)
                     return self._restrictions[subdomain]
             # If this point is reached, the restriction has to be created
-            # from scratch:
-            resmodule = self._vbundle.section_module(subdomain, force_free=True)
+            # from scratch
+            resmodule = self._vbundle.section_module(domain=subdomain,
+                                                      force_free=True)
             res = LocalFrame(resmodule,
-                             self._symbol, latex_symbol=self._latex_symbol,
-                             indices=self._indices,
-                             latex_indices=self._latex_indices,
-                             symbol_dual=self._symbol_dual,
-                             latex_symbol_dual=self._latex_symbol_dual)
+                              self._symbol, latex_symbol=self._latex_symbol,
+                              indices=self._indices,
+                              latex_indices=self._latex_indices,
+                              symbol_dual=self._symbol_dual,
+                              latex_symbol_dual=self._latex_symbol_dual)
+
             new_vectors = list()
             for i in self._fmodule.irange():
                 vrest = self[i].restrict(subdomain)
@@ -992,8 +990,10 @@ class LocalFrame(FreeModuleBasis):
                 new_vectors.append(vrest)
             res._vec = tuple(new_vectors)
             # Update of superframes and subframes:
-            res._superframes.update(self._superframes)
-            for sframe in self._superframes:
+            for sframe in self._subframes:
+                if subdomain.is_subset(sframe.domain()):
+                    res._superframes.update(sframe._superframes)
+            for sframe in res._superframes:
                 sframe._subframes.add(res)
                 sframe._restrictions[subdomain] = res # includes sframe = self
             for dom, rst in self._restrictions.items():
@@ -1001,6 +1001,7 @@ class LocalFrame(FreeModuleBasis):
                     res._restrictions.update(rst._restrictions)
                     res._subframes.update(rst._subframes)
                     rst._superframes.update(res._superframes)
+
         return self._restrictions[subdomain]
 
     def at(self, point):
@@ -1290,25 +1291,25 @@ class TrivializationCoFrame(LocalCoFrame):
         sage: phi = E.trivialization('phi'); phi
         Trivialization (phi, E|_M)
         sage: E.frames()
-        [Trivialization frame (E|_M, (phi^*e_1,phi^*e_2,phi^*e_3))]
+        [Trivialization frame (E|_M, ((phi^*e_1),(phi^*e_2),(phi^*e_3)))]
         sage: E.coframes()
-        [Trivialization coframe (E|_M, (phi^*e^1,phi^*e^2,phi^*e^3))]
+        [Trivialization coframe (E|_M, ((phi^*e^1),(phi^*e^2),(phi^*e^3)))]
         sage: f = E.coframes()[0] ; f
-        Trivialization coframe (E|_M, (phi^*e^1,phi^*e^2,phi^*e^3))
+        Trivialization coframe (E|_M, ((phi^*e^1),(phi^*e^2),(phi^*e^3)))
 
     The linear forms composing the coframe are obtained via the operator
     ``[]``::
 
         sage: f[1]
-        Linear form phi^*e^1 on the Free module C^0(M;E) of sections on the
+        Linear form (phi^*e^1) on the Free module C^0(M;E) of sections on the
          3-dimensional topological manifold M with values in the real vector
          bundle E of rank 3
         sage: f[2]
-        Linear form phi^*e^2 on the Free module C^0(M;E) of sections on the
+        Linear form (phi^*e^2) on the Free module C^0(M;E) of sections on the
          3-dimensional topological manifold M with values in the real vector
          bundle E of rank 3
         sage: f[3]
-        Linear form phi^*e^3 on the Free module C^0(M;E) of sections on the
+        Linear form (phi^*e^3) on the Free module C^0(M;E) of sections on the
          3-dimensional topological manifold M with values in the real vector
          bundle E of rank 3
         sage: f[1][:]
@@ -1321,7 +1322,7 @@ class TrivializationCoFrame(LocalCoFrame):
     The coframe is the dual of the trivialization frame::
 
         sage: e = phi.frame() ; e
-        Trivialization frame (E|_M, (phi^*e_1,phi^*e_2,phi^*e_3))
+        Trivialization frame (E|_M, ((phi^*e_1),(phi^*e_2),(phi^*e_3)))
         sage: f[1](e[1]).expr(), f[1](e[2]).expr(), f[1](e[3]).expr()
         (1, 0, 0)
         sage: f[2](e[1]).expr(), f[2](e[2]).expr(), f[2](e[3]).expr()
@@ -1365,11 +1366,11 @@ class TrivializationCoFrame(LocalCoFrame):
             sage: phi = E.trivialization('phi')
             sage: e = phi.frame().coframe()
             sage: e._repr_()
-            'Trivialization coframe (E|_M, (phi^*e^1,phi^*e^2))'
+            'Trivialization coframe (E|_M, ((phi^*e^1),(phi^*e^2)))'
             sage: repr(e)  # indirect doctest
-            'Trivialization coframe (E|_M, (phi^*e^1,phi^*e^2))'
+            'Trivialization coframe (E|_M, ((phi^*e^1),(phi^*e^2)))'
             sage: e  # indirect doctest
-            Trivialization coframe (E|_M, (phi^*e^1,phi^*e^2))
+            Trivialization coframe (E|_M, ((phi^*e^1),(phi^*e^2)))
 
         """
         return "Trivialization coframe " + self._name
@@ -1403,7 +1404,7 @@ class TrivializationFrame(LocalFrame):
         sage: E = M.vector_bundle(2, 'E')
         sage: phi_U = E.trivialization('phi_U', domain=U)
         sage: phi_U.frame()
-        Trivialization frame (E|_U, (phi_U^*e_1,phi_U^*e_2))
+        Trivialization frame (E|_U, ((phi_U^*e_1),(phi_U^*e_2)))
         sage: latex(phi_U.frame())
         \left(E|_{U}, \left(\left(phi_U^* e_{ 1 }\right),\left(phi_U^* e_{ 2 }\right)\right)\right)
 
@@ -1463,11 +1464,11 @@ class TrivializationFrame(LocalFrame):
             sage: phi = E.trivialization('phi')
             sage: e = phi.frame()
             sage: e._repr_()
-            'Trivialization frame (E|_M, (phi^*e_1,phi^*e_2))'
+            'Trivialization frame (E|_M, ((phi^*e_1),(phi^*e_2)))'
             sage: repr(e)  # indirect doctest
-            'Trivialization frame (E|_M, (phi^*e_1,phi^*e_2))'
+            'Trivialization frame (E|_M, ((phi^*e_1),(phi^*e_2)))'
             sage: e  # indirect doctest
-            Trivialization frame (E|_M, (phi^*e_1,phi^*e_2))
+            Trivialization frame (E|_M, ((phi^*e_1),(phi^*e_2)))
 
         """
         return "Trivialization frame " + self._name

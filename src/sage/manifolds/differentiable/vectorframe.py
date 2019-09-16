@@ -1106,10 +1106,6 @@ class VectorFrame(FreeModuleBasis):
                     for sframe2 in self._superframes:
                         sframe2._subframes.add(res)
                     return self._restrictions[subdomain]
-            for dom, rst in self._restrictions.items():
-                if subdomain.is_subset(dom):
-                    self._restrictions[subdomain] = rst.restrict(subdomain)
-                    return self._restrictions[subdomain]
             # Secondly one tries to get the restriction from one previously
             # defined on a larger domain:
             for sframe in self._superframes:
@@ -1151,8 +1147,10 @@ class VectorFrame(FreeModuleBasis):
                 new_vectors.append(vrest)
             res._vec = tuple(new_vectors)
             # Update of superframes and subframes:
-            res._superframes.update(self._superframes)
-            for sframe in self._superframes:
+            for sframe in self._subframes:
+                if subdomain.is_subset(sframe.domain()):
+                    res._superframes.update(sframe._superframes)
+            for sframe in res._superframes:
                 sframe._subframes.add(res)
                 sframe._restrictions[subdomain] = res # includes sframe = self
             for dom, rst in self._restrictions.items():

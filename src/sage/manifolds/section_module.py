@@ -832,3 +832,9 @@ class SectionFreeModule(FiniteRankFreeModule):
                           latex_indices=latex_indices,
                           symbol_dual=symbol_dual,
                           latex_symbol_dual=latex_symbol_dual)
+
+    def default_frame(self):
+        r"""
+
+        """
+        return self._def_basis

@@ -198,9 +198,10 @@ class Section(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
-            sage: t = M.tensor_field(1, 3, name='t')
-            sage: t._init_derived()
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: s = E.section(name='s')
+            sage: s._init_derived()
 
         """
         self._restrictions = {} # dict. of restrictions of self on subdomains
@@ -409,11 +410,13 @@ class Section(ModuleElement):
             sage: S2 = Manifold(2, 'S^2', structure='top')
             sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
             sage: S2.declare_union(U,V)
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                 restrictions2= u^2+v^2!=0)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS,
+            ....:                                   (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                   intersection_name='W',
+            ....:                                   restrictions1= x^2+y^2!=0,
+            ....:                                   restrictions2= u^2+v^2!=0)
             sage: W = U.intersection(V)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: E = S2.vector_bundle(2, 'E')
@@ -451,61 +454,67 @@ class Section(ModuleElement):
 
         EXAMPLES:
 
-        Restrictions of a vector field on the 2-sphere::
+        Restrictions of a section on a 2-rank vector bundle over the 2-sphere::
 
-            sage: M = Manifold(2, 'S^2', start_index=1)
-            sage: U = M.open_subset('U') # the complement of the North pole
-            sage: stereoN.<x,y> = U.chart()  # stereographic coordinates from the North pole
-            sage: eN = stereoN.frame() # the associated vector frame
-            sage: V =  M.open_subset('V') # the complement of the South pole
-            sage: stereoS.<u,v> = V.chart()  # stereographic coordinates from the South pole
-            sage: eS = stereoS.frame() # the associated vector frame
-            sage: transf = stereoN.transition_map(stereoS, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:               intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:               restrictions2= u^2+v^2!=0)
-            sage: inv = transf.inverse() # transformation from stereoS to stereoN
-            sage: W = U.intersection(V) # the complement of the North and South poles
-            sage: stereoN_W = W.atlas()[0]  # restriction of stereographic coord. from North pole to W
-            sage: stereoS_W = W.atlas()[1]  # restriction of stereographic coord. from South pole to W
-            sage: eN_W = stereoN_W.frame() ; eS_W = stereoS_W.frame()
-            sage: v = M.vector_field({eN: [1, 0]}, name='v')
-            sage: v.display()
-            v = d/dx
-            sage: vU = v.restrict(U) ; vU
-            Vector field v on the Open subset U of the 2-dimensional
-             differentiable manifold S^2
-            sage: vU.display()
-            v = d/dx
-            sage: vU == eN[1]
+            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
+            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
+            sage: S2.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS,
+            ....:                                   (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                   intersection_name='W',
+            ....:                                   restrictions1= x^2+y^2!=0,
+            ....:                                   restrictions2= u^2+v^2!=0)
+            sage: W = U.intersection(V)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[y,0]])
+            sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
+            sage: fN_W = fN.restrict(W); fS_W = fS.restrict(W) # restrict them
+            sage: stereoN_W = stereoN.restrict(W) # restrict charts, too
+            sage: stereoS_W = stereoS.restrict(W)
+            sage: s = E.section({fN: [1, 0]}, name='s')
+            sage: s.display(fN)
+            s = (phi_U^*e_1)
+            sage: sU = s.restrict(U) ; sU
+            Section s on the Open subset U of the 2-dimensional topological
+             manifold S^2 with values in the real vector bundle E of rank 2
+            sage: sU.display() # fN is the default frame on U
+            s = (phi_U^*e_1)
+            sage: sU == fN[1]
             True
-            sage: vW = v.restrict(W) ; vW
-            Vector field v on the Open subset W of the 2-dimensional
-             differentiable manifold S^2
-            sage: vW.display()
-            v = d/dx
-            sage: vW.display(eS_W, stereoS_W)
-            v = (-u^2 + v^2) d/du - 2*u*v d/dv
-            sage: vW == eN_W[1]
+            sage: sW = s.restrict(W) ; sW
+            Section s on the Open subset W of the 2-dimensional topological
+             manifold S^2 with values in the real vector bundle E of rank 2
+            sage: sW.display(fN_W)
+            s = (phi_U^*e_1)
+            sage: sW.display(fS_W, stereoN_W)
+            s = y (phi_V^*e_2)
+            sage: sW.display(fS_W, stereoS_W)
+            s = v/(u^2 + v^2) (phi_V^*e_2)
+            sage: sW == fN_W[1]
             True
 
-        At this stage, defining the restriction of ``v`` to the open
-        subset ``V`` fully specifies ``v``::
+        At this stage, defining the restriction of ``s`` to the open
+        subset ``V`` fully specifies ``s``::
 
-            sage: v.restrict(V)[1] = vW[eS_W, 1, stereoS_W].expr()  # note that eS is the default frame on V
-            sage: v.restrict(V)[2] = vW[eS_W, 2, stereoS_W].expr()
-            sage: v.display(eS, stereoS)
-            v = (-u^2 + v^2) d/du - 2*u*v d/dv
-            sage: v.restrict(U).display()
-            v = d/dx
-            sage: v.restrict(V).display()
-            v = (-u^2 + v^2) d/du - 2*u*v d/dv
+            sage: s.restrict(V)[1] = sW[fS_W, 1, stereoS_W].expr()  # note that fS is the default frame on V
+            sage: s.restrict(V)[2] = sW[fS_W, 2, stereoS_W].expr()
+            sage: s.display(fS, stereoS)
+            s = v/(u^2 + v^2) (phi_V^*e_2)
+            sage: s.restrict(U).display()
+            s = (phi_U^*e_1)
+            sage: s.restrict(V).display()
+            s = v/(u^2 + v^2) (phi_V^*e_2)
 
-        The restriction of the vector field to its own domain is of course
-        itself::
+        The restriction of the section to its own domain is of course itself::
 
-            sage: v.restrict(M) is v
+            sage: s.restrict(S2) is s
             True
-            sage: vU.restrict(U) is vU
+            sage: sU.restrict(U) is sU
             True
 
         """
@@ -570,18 +579,17 @@ class Section(ModuleElement):
 
     def set_comp(self, basis=None):
         r"""
-        Return the components of ``self`` in a given vector frame
-        for assignment.
+        Return the components of ``self`` in a given local frame for assignment.
 
         The components with respect to other frames having the same domain
-        as the provided vector frame are deleted, in order to avoid any
+        as the provided local frame are deleted, in order to avoid any
         inconsistency. To keep them, use the method :meth:`add_comp` instead.
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the
+        - ``basis`` -- (default: ``None``) local frame in which the
           components are defined; if none is provided, the components are
-          assumed to refer to the tensor field domain's default frame
+          assumed to refer to the section domain's default frame
 
         OUTPUT:
 
@@ -591,41 +599,52 @@ class Section(ModuleElement):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1, 2, name='t')
-            sage: t.set_comp(e_uv)
-            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
-            sage: t.set_comp(e_uv)[1,0,1] = u+v
-            sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
+            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
+            sage: S2.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS,
+            ....:                                   (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                   intersection_name='W',
+            ....:                                   restrictions1= x^2+y^2!=0,
+            ....:                                   restrictions2= u^2+v^2!=0)
+            sage: W = U.intersection(V)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[y,0]])
+            sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
+            sage: s = E.section(name='s')
+            sage: s.set_comp(fS)
+            1-index components w.r.t. Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2)))
+            sage: s.set_comp(fS)[1] = u+v
+            sage: s.display(fS)
+            s = (u + v) (phi_V^*e_1)
 
         Setting the components in a new frame (``e``)::
 
-            sage: e = V.vector_frame('e')
-            sage: t.set_comp(e)
-            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
-            sage: t.set_comp(e)[0,1,1] = u*v
-            sage: t.display(e)
-            t = u*v e_0*e^1*e^1
+            sage: e = E.local_frame('e', domain=V)
+            sage: s.set_comp(e)
+            1-index components w.r.t. Local frame (E|_V, (e_1,e_2))
+            sage: s.set_comp(e)[1] = u*v
+            sage: s.display(e)
+            s = u*v e_1
 
-        Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
-        components w.r.t. ``e_uv`` have been erased::
+        Since the frames ``e`` and ``fS`` are defined on the same domain, the
+        components w.r.t. ``fS`` have been erased::
 
-            sage: t.display(c_uv.frame())
+            sage: s.display(phi_V.frame())
             Traceback (most recent call last):
             ...
-            ValueError: no basis could be found for computing the components
-             in the Coordinate frame (V, (d/du,d/dv))
+            ValueError: no basis could be found for computing the components in
+             the Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2)))
+
 
         """
         if basis is None:
-            basis = self._smodule._def_frame
+            basis = self._smodule.default_frame()
             if basis is None: # should be "is still None" ;-)
                 raise ValueError("a frame must be provided for the display")
         rst = self.restrict(basis._domain)
@@ -633,18 +652,17 @@ class Section(ModuleElement):
 
     def add_comp(self, basis=None):
         r"""
-        Return the components of ``self`` in a given vector frame
-        for assignment.
+        Return the components of ``self`` in a given local frame for assignment.
 
         The components with respect to other frames having the same domain
-        as the provided vector frame are kept. To delete them, use the
+        as the provided local frame are kept. To delete them, use the
         method :meth:`set_comp` instead.
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the
+        - ``basis`` -- (default: ``None``) local frame in which the
           components are defined; if ``None``, the components are assumed
-          to refer to the tensor field domain's default frame
+          to refer to the section domain's default frame
 
         OUTPUT:
 
@@ -654,37 +672,45 @@ class Section(ModuleElement):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1, 2, name='t')
-            sage: t.add_comp(e_uv)
-            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
-            sage: t.add_comp(e_uv)[1,0,1] = u+v
-            sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
+            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
+            sage: S2.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:               intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:               restrictions2= u^2+v^2!=0)
+            sage: W = U.intersection(V)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[y,0]])
+            sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
+            sage: s = E.section(name='s')
+            sage: s.add_comp(fS)
+            1-index components w.r.t. Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2)))
+            sage: s.add_comp(fS)[1] = u+v
+            sage: s.display(fS)
+            s = (u + v) (phi_V^*e_1)
 
         Setting the components in a new frame::
 
-            sage: e = V.vector_frame('e')
-            sage: t.add_comp(e)
-            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
-            sage: t.add_comp(e)[0,1,1] = u*v
-            sage: t.display(e)
-            t = u*v e_0*e^1*e^1
+            sage: e = E.local_frame('e', domain=V)
+            sage: s.add_comp(e)
+            1-index components w.r.t. Local frame (E|_V, (e_1,e_2))
+            sage: s.add_comp(e)[1] = u*v
+            sage: s.display(e)
+            s = u*v e_1
 
-        The components with respect to ``e_uv`` are kept::
+        The components with respect to ``fS`` are kept::
 
-            sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            sage: s.display(fS)
+            s = (u + v) (phi_V^*e_1)
 
         """
         if basis is None:
-            basis = self._smodule._def_frame
+            basis = self._smodule.default_frame()
             if basis is None: # should be "is still None" ;-)
                 raise ValueError("a frame must be provided for the display")
         rst = self.restrict(basis._domain)
@@ -692,7 +718,7 @@ class Section(ModuleElement):
 
     def add_comp_by_continuation(self, frame, subdomain, chart=None):
         r"""
-        Set components with respect to a vector frame by continuation of the
+        Set components with respect to a local frame by continuation of the
         coordinate expression of the components in a subframe.
 
         The continuation is performed by demanding that the components have
@@ -701,7 +727,7 @@ class Section(ModuleElement):
 
         INPUT:
 
-        - ``frame`` -- vector frame `e` in which the components are to be set
+        - ``frame`` -- local frame `e` in which the components are to be set
         - ``subdomain`` -- open subset of `e`'s domain in which the
           components are known or can be evaluated from other components
         - ``chart`` -- (default: ``None``) coordinate chart on `e`'s domain in
@@ -713,50 +739,58 @@ class Section(ModuleElement):
 
         Components of a vector field on the sphere `S^2`::
 
-            sage: M = Manifold(2, 'S^2', start_index=1)
-            sage: # The two open subsets covered by stereographic coordinates (North and South):
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coordinates
-            sage: transf = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:             intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:             restrictions2= u^2+v^2!=0)
-            sage: inv = transf.inverse()
-            sage: W = U.intersection(V) # The complement of the two poles
-            sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.vector_field({eU: [x, 2+y]}, name='a')
+            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
+            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
+            sage: S2.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS,
+            ....:                                   (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                   intersection_name='W',
+            ....:                                   restrictions1= x^2+y^2!=0,
+            ....:                                   restrictions2= u^2+v^2!=0)
+            sage: W = U.intersection(V)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[y,0]])
+            sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
+            sage: a = E.section({fN: [x, 2+y]}, name='a')
 
-        At this stage, the vector field has been defined only on the open
-        subset ``U`` (through its components in the frame ``eU``)::
+        At this stage, the section has been defined only on the open subset
+        ``U`` (through its components in the frame ``fN``)::
 
-            sage: a.display(eU)
-            a = x d/dx + (y + 2) d/dy
+            sage: a.display(fN)
+            a = x (phi_U^*e_1) + (y + 2) (phi_U^*e_2)
 
-        The components with respect to the restriction of ``eV`` to the common
+        The components with respect to the restriction of ``fS`` to the common
         subdomain ``W``, in terms of the ``(u,v)`` coordinates, are obtained
         by a change-of-frame formula on ``W``::
 
-            sage: a.display(eV.restrict(W), c_uv.restrict(W))
-            a = (-4*u*v - u) d/du + (2*u^2 - 2*v^2 - v) d/dv
+            sage: a.display(fS.restrict(W), stereoS.restrict(W))
+            a = (2*u^3 + 2*u*v^2 + u*v)/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_1) +
+             u*v/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_2)
 
         The continuation consists in extending the definition of the vector
         field to the whole open subset ``V`` by demanding that the components
         in the frame eV have the same coordinate expression as the above one::
 
-            sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: a.add_comp_by_continuation(fS, W, chart=stereoS)
 
         We have then::
 
-            sage: a.display(eV)
-            a = (-4*u*v - u) d/du + (2*u^2 - 2*v^2 - v) d/dv
+            sage: a.display(fS)
+            a = (2*u^3 + 2*u*v^2 + u*v)/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_1) +
+             u*v/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_2)
 
         and `a` is defined on the entire manifold `S^2`.
 
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):
-            raise ValueError("the vector frame is not defined on a subset " +
-                             "of the tensor field domain")
+            raise ValueError("the local frame is not defined on a subset " +
+                             "of the section's domain")
         if chart is None:
             chart = dom._def_chart
         sframe = frame.restrict(subdomain)
@@ -772,117 +806,103 @@ class Section(ModuleElement):
 
         INPUT:
 
-        - ``frame`` -- vector frame `e` in which the components are to be set
+        - ``frame`` -- local frame `e` in which the components are to be set
         - ``subdomain`` -- open subset of `e`'s domain in which the
           components have additional expressions.
 
         EXAMPLES:
 
-        We are going to consider a vector field in `\RR^3` along the 2-sphere::
+        We are going to consider a section on the trivial rank 2 vector bundle
+        over the 2-sphere::
 
-            sage: M = Manifold(3, 'M', structure="Riemannian")
-            sage: S = Manifold(2, 'S', structure="Riemannian")
-            sage: E.<X,Y,Z> = M.chart()
-
-        Let us define ``S`` in terms of stereographic charts::
-
-            sage: U = S.open_subset('U')
-            sage: V = S.open_subset('V')
-            sage: S.declare_union(U,V)
-            sage: stereoN.<x,y> = U.chart()
-            sage: stereoS.<xp,yp> = V.chart("xp:x' yp:y'")
-            sage: stereoN_to_S = stereoN.transition_map(stereoS,
-            ....:                                 (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                 intersection_name='W',
-            ....:                                 restrictions1= x^2+y^2!=0,
-            ....:                                 restrictions2= xp^2+yp^2!=0)
-            sage: stereoS_to_N = stereoN_to_S.inverse()
+            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
+            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
+            sage: S2.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS,
+            ....:              (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:              intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:              restrictions2= u^2+v^2!=0)
             sage: W = U.intersection(V)
-            sage: stereoN_W = stereoN.restrict(W)
-            sage: stereoS_W = stereoS.restrict(W)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: e = E.local_frame('e') # frame to trivialize E
+            sage: eU = e.restrict(U); eV = e.restrict(V); eW = e.restrict(W) # this step is essential since U, V and W must be trivial
 
-        The embedding of `S^2` in `\RR^3`::
+        To define a section ``s`` on `S^2`, we first set the components on
+        ``U``::
 
-            sage: phi = S.diff_map(M, {(stereoN, E): [2*x/(1+x^2+y^2),
-            ....:                                     2*y/(1+x^2+y^2),
-            ....:                                     (x^2+y^2-1)/(1+x^2+y^2)],
-            ....:                        (stereoS, E): [2*xp/(1+xp^2+yp^2),
-            ....:                                       2*yp/(1+xp^2+yp^2),
-            ....:                               (1-xp^2-yp^2)/(1+xp^2+yp^2)]},
-            ....:                   name='Phi', latex_name=r'\Phi')
+            sage: s = E.section(name='s')
+            sage: sU = s.restrict(U)
+            sage: sU[:] = [x, y]
 
-        To define a vector field ``v`` along ``S`` taking its values in ``M``,
-        we first set the components on ``U``::
+        But because ``E`` is trivial, these components can be extended with
+        respect to the global frame ``e`` onto `S^2`::
 
-            sage: v = M.vector_field(name='v').along(phi)
-            sage: vU = v.restrict(U)
-            sage: vU[:] = [x,y,x**2+y**2]
+            sage: s.add_comp_by_continuation(e, U)
 
-        But because ``M`` is parallelizable, these components can be extended
-        to ``S`` itself::
-
-            sage: v.add_comp_by_continuation(E.frame().along(phi), U)
-
-        One can see that ``v`` is not yet fully defined: the components
+        One can see that ``s`` is not yet fully defined: the components
         (scalar fields) do not have values on the whole manifold::
 
-            sage: sorted(v._components.values())[0]._comp[(0,)].display()
-            S --> R
+            sage: sorted(s._components.values())[0]._comp[(1,)].display()
+            S^2 --> R
             on U: (x, y) |--> x
 
-        To fix that, we first extend the components from ``W`` to ``V`` using
+        To fix that, we extend the components from ``W`` to ``V`` first, using
         :meth:`add_comp_by_continuation`::
 
-            sage: v.add_comp_by_continuation(E.frame().along(phi).restrict(V),
-            ....:                            W, stereoS)
+            sage: s.add_comp_by_continuation(eV, W, stereoS)
 
         Then, the expression on the subdomain ``V`` is added to the
-        already known components on ``S`` by::
+        components on `S^2` already known by::
 
-            sage: v.add_expr_from_subdomain(E.frame().along(phi), V)
+            sage: s.add_expr_from_subdomain(e, V)
 
-        The definition of ``v`` is now complete::
+        The definition of ``s`` is now complete::
 
-            sage: sorted(v._components.values())[0]._comp[(2,)].display()
-            S --> R
-            on U: (x, y) |--> x^2 + y^2
-            on V: (xp, yp) |--> 1/(xp^2 + yp^2)
+            sage: sorted(s._components.values())[0]._comp[(2,)].display()
+            S^2 --> R
+            on U: (x, y) |--> y
+            on V: (u, v) |--> v/(u^2 + v^2)
 
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):
-            raise ValueError("the vector frame is not defined on a subset " +
-                             "of the tensor field domain")
+            raise ValueError("the local frame is not defined on a subset " +
+                             "of the section's domain")
         if frame not in self.restrict(frame.domain())._components:
-            raise ValueError("the tensor doesn't have an expression in "
-                             "the frame"+frame._repr_())
+            raise ValueError("the section doesn't have an expression in "
+                             "the frame " + frame._repr_())
         comp = self.comp(frame)
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
 
         rst = self._restrictions.copy()
+        self._del_derived()  # delete restrictions
         self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):
         r"""
-        Return the components in a given vector frame.
+        Return the components in a given local frame.
 
         If the components are not known already, they are computed by the
-        tensor change-of-basis formula from components in another vector frame.
+        change-of-basis formula from components in another local frame.
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the components
+        - ``basis`` -- (default: ``None``) local frame in which the components
           are required; if none is provided, the components are assumed to
-          refer to the tensor field domain's default frame
-        - ``from_basis`` -- (default: ``None``) vector frame from which the
-          required components are computed, via the tensor change-of-basis
+          refer to the section module's default frame on the corresponding
+          domain
+        - ``from_basis`` -- (default: ``None``) local frame from which the
+          required components are computed, via the change-of-basis
           formula, if they are not known already in the basis ``basis``
 
         OUTPUT:
 
-        - components in the vector frame ``basis``, as a
+        - components in the local frame ``basis``, as a
           :class:`~sage.tensor.modules.comp.Components`
 
         EXAMPLES:
@@ -890,58 +910,49 @@ class Section(ModuleElement):
         Components of a type-`(1,1)` tensor field defined on two
         open subsets::
 
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U')
-            sage: c_xy.<x, y> = U.chart()
-            sage: e = U.default_frame() ; e
-            Coordinate frame (U, (d/dx,d/dy))
-            sage: V = M.open_subset('V')
-            sage: c_uv.<u, v> = V.chart()
-            sage: f = V.default_frame() ; f
-            Coordinate frame (V, (d/du,d/dv))
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t[e,0,0] = - x + y^3
-            sage: t[e,0,1] = 2+x
-            sage: t[f,1,1] = - u*v
-            sage: t.comp(e)
-            2-indices components w.r.t. Coordinate frame (U, (d/dx,d/dy))
-            sage: t.comp(e)[:]
-            [y^3 - x   x + 2]
-            [      0       0]
-            sage: t.comp(f)
-            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
-            sage: t.comp(f)[:]
-            [   0    0]
-            [   0 -u*v]
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: c_xy.<x, y> = M.chart()
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: XU = X.restrict(U); XV = X.restrict(V)
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e' domain=U) ; e
+            Local frame (E|_U, (e_0,e_1))
+            sage: f = E.local_frame('f', domain=V); f
+            Local frame (E|_V, (f_0,f_1))
+            sage: s = E.section(name='s')
+            sage: s[e,:] = - x + y^3, 2+x
+            sage: s[f,0] = x^2
+            sage: s[f,1] = x+y
+            sage: s.comp(e)
+            1-index components w.r.t. Local frame (E|_U, (e_0,e_1))
+            sage: s.comp(e)[:]
+            [y^3 - x, x + 2]
+            sage: s.comp(f)
+            1-index components w.r.t. Local frame (E|_V, (f_0,f_1))
+            sage: s.comp(f)[:]
+            [x^2, x + y]
 
-        Since ``e`` is ``M``'s default frame, the argument ``e`` can
-        be omitted::
+        Since ``e`` is the default frame of ``E|_U``, the argument ``e`` can
+        be omitted after restricting::
 
-            sage: e is M.default_frame()
+            sage: e is E.section_module(domain=U).default_frame()
             True
-            sage: t.comp() is t.comp(e)
+            sage: s.restrict(U).comp() is s.comp(e)
             True
-
-        Example of computation of the components via a change of frame::
-
-            sage: a = V.automorphism_field()
-            sage: a[:] = [[1+v, -u^2], [0, 1-u]]
-            sage: h = f.new_frame(a, 'h')
-            sage: t.comp(h)
-            2-indices components w.r.t. Vector frame (V, (h_0,h_1))
-            sage: t.comp(h)[:]
-            [             0 -u^3*v/(v + 1)]
-            [             0           -u*v]
 
         """
         if basis is None:
-            basis = self._smodule._def_frame
+            basis = self._smodule.default_frame()
             if basis is None: # should be "is still None" ;-)
                 raise ValueError("a frame must be provided for the display")
 
         rst = self.restrict(basis._domain)
         return rst.comp(basis=basis, from_basis=from_basis)
+
+    #
+    # Till here, doctest finished!
+    #
 
     def display(self, frame=None, chart=None):
         r"""
@@ -1060,20 +1071,9 @@ class Section(ModuleElement):
 
         """
         if frame is None:
-            frame = self._smodule._def_frame
+            frame = self._smodule.default_frame()
             if frame is None:  # should be "is still None" ;-)
                 raise ValueError("a frame must be provided for the display")
-        else:
-            try:
-                frame0 = frame.frame()
-                # if this succeeds, frame is actually not a local frame, but
-                # a trivialization
-                if chart is None:
-                    chart = frame._domain._def_chart
-                frame = frame0
-            except AttributeError:
-                # case of a genuine local frame
-                pass
         rst = self.restrict(frame._domain)
         return rst.display(frame, chart)
 
@@ -1145,7 +1145,7 @@ class Section(ModuleElement):
 
         """
         if frame is None:
-            frame = self._smodule._def_frame
+            frame = self._smodule.default_frame()
             if frame is None:  # should be "is still None" ;-)
                 raise ValueError("a frame must be provided for the display")
         rst = self.restrict(frame.domain())
@@ -1278,15 +1278,15 @@ class Section(ModuleElement):
                 frame = args[0]
                 args = args[1:]
             else:
-                frame = self._smodule._def_frame
+                frame = self._smodule.default_frame()
         else:
             if isinstance(args, (int, Integer, slice)):
-                frame = self._smodule._def_frame
+                frame = self._smodule.default_frame()
             elif not isinstance(args[0], (int, Integer, slice)):
                 frame = args[0]
                 args = args[1:]
             else:
-                frame = self._smodule._def_frame
+                frame = self._smodule.default_frame()
         return self.comp(frame)[args]
 
     def __setitem__(self, args, value):
@@ -1328,15 +1328,15 @@ class Section(ModuleElement):
                 frame = args[0]
                 args = args[1:]
             else:
-                frame = self._smodule._def_frame
+                frame = self._smodule.default_frame()
         else:
             if isinstance(args, (int, Integer, slice)):
-                frame = self._smodule._def_frame
+                frame = self._smodule.default_frame()
             elif not isinstance(args[0], (int, Integer, slice)):
                 frame = args[0]
                 args = args[1:]
             else:
-                frame = self._smodule._def_frame
+                frame = self._smodule.default_frame()
         self.set_comp(frame)[args] = value
 
     def copy(self):
@@ -1453,7 +1453,7 @@ class Section(ModuleElement):
             return False
         elif not isinstance(other, Section):
             return False
-        else: # other is another tensor field
+        else: # other is another section
             if other._smodule != self._smodule:
                 return False
             # Non-trivial open covers of the domain:
@@ -1724,6 +1724,7 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
         self._domain = section_module.domain()
         self._vbundle = section_module.vector_bundle()
         self._base_space = section_module.base_space()
+        self._smodule = section_module
         # Initialization of derived quantities:
         self._init_derived()
 
@@ -1790,7 +1791,7 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
             True
 
         """
-        return type(self)(self._fmodule)
+        return type(self)(self._smodule)
 
     def set_comp(self, basis=None):
         r"""
@@ -1860,7 +1861,7 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         """
         if basis is None:
-            basis = self._fmodule._def_basis
+            basis = self._smodule.default_frame()
 
         if basis._domain == self._domain:
             # Setting components on the section domain:
@@ -1944,7 +1945,7 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         """
         if basis is None:
-            basis = self._fmodule._def_basis
+            basis = self._smodule.default_frame()
 
         if basis._domain == self._domain:
             # Adding components on the tensor field domain:
@@ -2005,7 +2006,7 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         """
         if basis is None:
-            basis = self._fmodule._def_basis
+            basis = self._smodule.default_frame()
 
         if basis._domain == self._domain:
             # components on the local section domain:
@@ -2273,7 +2274,7 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
         from sage.misc.latex import latex
         from sage.manifolds.differentiable.vectorframe import CoordFrame
         if frame is None:
-                frame = self._fmodule.default_basis()
+                frame = self._smodule.default_basis()
         if chart is None:
             chart = self._domain.default_chart()
         return FiniteRankFreeModuleElement.display_comp(self, basis=frame,

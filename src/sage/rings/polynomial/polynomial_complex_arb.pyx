@@ -728,6 +728,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_on()
         acb_poly_lambertw_series(res.__poly, self.__poly, _branch, 0, n, prec(self))
         sig_off()
+        fmpz_clear(_branch)
         return res
 
     def _zeta_series(self, long n, a=1, deflate=False):

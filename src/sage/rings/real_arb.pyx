@@ -3537,6 +3537,24 @@ cdef class RealBall(RingElement):
             if _do_sig(prec(self)): sig_off()
         return res
 
+    def zetaderiv(self, k):
+        r"""
+        Return the image of this ball by the k-th derivative of the Riemann
+        zeta function.
+
+        For a more flexible interface, see the low-level method
+        ``_zeta_series`` of polynomials with complex ball coefficients.
+
+        EXAMPLES::
+
+            sage: RBF(1/2).zetaderiv(1)
+            [-3.92264613920915...]
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        Pol = PolynomialRing(self._parent.complex_field(), 'x')
+        ser = Pol([self, 1])._zeta_series(k + 1)
+        return ser[k].real()
+
     def polylog(self, s):
         """
         Return the polylogarithm `\operatorname{Li}_s(\mathrm{self})`.

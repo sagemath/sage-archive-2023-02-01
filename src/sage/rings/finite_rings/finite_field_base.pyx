@@ -1429,6 +1429,52 @@ cdef class FiniteField(Field):
         else:
             return E
 
+    def subfield(self, degree, name=None):
+        """
+        Return the subfield of the field of ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- integer; degree of the subfield
+
+        - ``name`` -- string; name of the generator of the subfield
+
+        EXAMPLES::
+
+            sage: k = GF(2^21)
+            sage: k.subfield(3)
+            Finite Field in z3 of size 2^3
+            sage: k.subfield(7, 'a')
+            Finite Field in a of size 2^7
+            sage: k.coerce_map_from(_)
+            Ring morphism:
+              From: Finite Field in a of size 2^7
+              To:   Finite Field in z21 of size 2^21
+              Defn: a |--> z21^20 + z21^19 + z21^17 + z21^15 + z21^14 + z21^6 + z21^4 + z21^3 + z21
+            sage: k.subfield(8)
+            Traceback (most recent call last):
+            ...
+            ValueError: no subfield of order 2^8
+        """
+        from .finite_field_constructor import GF
+        p = self.characteristic()
+        n = self.degree()
+        if not n % degree == 0:
+            raise ValueError("no subfield of order {}^{}".format(p, degree))
+
+        if hasattr(self, '_prefix'):
+            K = GF(p**degree, name=name, prefix=self._prefix)
+        elif degree == 1:
+            K = GF(p)
+        else:
+            gen = self.gen()**((self.order() - 1)//(p**degree - 1))
+            K = GF(p**degree, modulus=gen.minimal_polynomial(), name=name)
+            try: # to register a coercion map, embedding of K to self
+                self.register_coercion(K.hom([gen], codomain=self, check=False))
+            except AssertionError: # coercion already exists
+                pass
+        return K
+
     def subfields(self, degree=0, name=None):
         """
         Return all subfields of ``self`` of the given ``degree``,
@@ -1483,36 +1529,26 @@ cdef class FiniteField(Field):
                   To:   Finite Field in z21 of size 2^21
                   Defn: z21 |--> z21)]
         """
-        from sage.rings.integer import Integer
-        from .finite_field_constructor import GF
-        p = self.characteristic()
         n = self.degree()
+
         if degree != 0:
-            degree = Integer(degree)
-            if not degree.divides(n):
+            if not n % degree == 0:
                 return []
-            elif hasattr(self, '_prefix'):
-                K = GF(p**degree, name=name, prefix=self._prefix)
-                return [(K, self.coerce_map_from(K))]
-            elif degree == 1:
-                K = GF(p)
-                return [(K, self.coerce_map_from(K))]
             else:
-                gen = self.gen()**((self.order() - 1)//(p**degree - 1))
-                K = GF(p**degree, modulus=gen.minimal_polynomial(), name=name)
-                return [(K, K.hom((gen,)))]
-        else:
-            divisors = n.divisors()
-            if name is None:
-                if hasattr(self, '_prefix'):
-                    name = self._prefix
-                else:
-                    name = self.variable_name()
-            if isinstance(name, str):
-                name = {m: name + str(m) for m in divisors}
-            elif not isinstance(name, dict):
-                raise ValueError("name must be None, a string or a dictionary indexed by divisors of the degree")
-            return [self.subfields(m, name=name[m])[0] for m in divisors]
+                K = self.subfield(degree, name=name)
+                return [(K, self.coerce_map_from(K))]
+
+        divisors = n.divisors()
+        if name is None:
+            if hasattr(self, '_prefix'):
+                name = self._prefix
+            else:
+                name = self.variable_name()
+        if isinstance(name, str):
+            name = {m: name + str(m) for m in divisors}
+        elif not isinstance(name, dict):
+            raise ValueError("name must be None, a string or a dictionary indexed by divisors of the degree")
+        return [self.subfields(m, name=name[m])[0] for m in divisors]
 
     @cached_method
     def algebraic_closure(self, name='z', **kwds):

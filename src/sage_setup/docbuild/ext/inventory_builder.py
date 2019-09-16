@@ -33,7 +33,7 @@ class InventoryBuilder(StandaloneHTMLBuilder):
             self.warn('unsupported build info format in %r, building all' %
                       path.join(self.outdir, '.buildinfo'))
         except Exception:
-            self.warn('failed to read buildinfo')
+            pass
         if self.build_info != old:
             for docname in self.env.found_docs:
                 yield docname

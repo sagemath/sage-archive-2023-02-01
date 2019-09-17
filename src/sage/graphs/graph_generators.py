@@ -805,22 +805,22 @@ class GraphGenerators():
 
     def nauty_geng(self, options="", debug=False):
         r"""
-        Returns a generator which creates graphs from nauty's geng program.
+        Return a generator which creates graphs from nauty's geng program.
 
         INPUT:
 
-        - ``options`` - a string passed to  geng  as if it was run at
-          a system command line. At a minimum, you *must* pass the
-          number of vertices you desire.  Sage expects the graphs to be
-          in nauty's "graph6" format, do not set an option to change
-          this default or results will be unpredictable.
+        - ``options`` -- string (default: ``""``); a string passed to ``geng``
+          as if it was run at a system command line. At a minimum, you *must*
+          pass the number of vertices you desire.  Sage expects the graphs to be
+          in nauty's "graph6" format, do not set an option to change this
+          default or results will be unpredictable.
 
-        - ``debug`` - default: ``False`` - if ``True`` the first line of
-          geng's output to standard error is captured and the first call
-          to the generator's ``next()`` function will return this line
-          as a string.  A line leading with ">A" indicates a successful
-          initiation of the program with some information on the arguments,
-          while a line beginning with ">E" indicates an error with the input.
+        - ``debug`` -- boolean (default: ``False``); if ``True`` the first line
+          of ``geng``'s output to standard error is captured and the first call
+          to the generator's ``next()`` function will return this line as a
+          string.  A line leading with ">A" indicates a successful initiation of
+          the program with some information on the arguments, while a line
+          beginning with ">E" indicates an error with the input.
 
         The possible options, obtained as output of ``geng --help``::
 
@@ -844,11 +844,10 @@ class GraphGenerators():
 
                 -q    : suppress auxiliary output (except from -v)
 
-        Options which cause geng to use an output format different
-        than the graph6 format are not listed above (-u, -g, -s, -y, -h)
-        as they will confuse the creation of a Sage graph.  The res/mod
-        option can be useful when using the output in a routine run
-        several times in parallel.
+        Options which cause ``geng`` to use an output format different than the
+        graph6 format are not listed above (-u, -g, -s, -y, -h) as they will
+        confuse the creation of a Sage graph.  The res/mod option can be useful
+        when using the output in a routine run several times in parallel.
 
         OUTPUT:
 
@@ -892,15 +891,32 @@ class GraphGenerators():
             sage: len(list(gen))
             853
 
-        The ``debug`` switch can be used to examine geng's reaction
-        to the input in the ``options`` string.  We illustrate success.
-        (A failure will be a string beginning with ">E".)  Passing the
-        "-q" switch to geng will supress the indicator of a
-        successful initiation.  ::
+        The ``debug`` switch can be used to examine ``geng``'s reaction to the
+        input in the ``options`` string.  We illustrate success.  (A failure
+        will be a string beginning with ">E".)  Passing the "-q" switch to
+        ``geng`` will supress the indicator of a successful initiation, and so
+        the first returned value might be an empty string if ``debug`` is
+        ``True``::
 
             sage: gen = graphs.nauty_geng("4", debug=True)
             sage: print(next(gen))
             >A geng -d0D3 n=4 e=0-6
+            sage: gen = graphs.nauty_geng("4 -q", debug=True)
+            sage: next(gen)
+            ''
+
+        TESTS:
+
+        Wrong input, ``"-c3"`` instead of ``"-c 3"`` (:trac:`14068`)::
+
+            sage: list(graphs.nauty_geng("-c3", debug=False))
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong format of parameter option
+            sage: list(graphs.nauty_geng("-c3", debug=True))
+            ['>E Usage: geng [-cCmtfbd#D#] [-uygsnh] [-lvq] \n']
+            sage: list(graphs.nauty_geng("-c 3", debug=True))
+            ['>A geng -cd1D2 n=3 e=2-3\n', Graph on 3 vertices, Graph on 3 vertices]
         """
         if PY2:
             enc_kwargs = {}
@@ -911,8 +927,11 @@ class GraphGenerators():
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
                               **enc_kwargs)
+        msg = sp.stderr.readline()
         if debug:
-            yield sp.stderr.readline()
+            yield msg
+        elif msg.startswith('>E'):
+            raise ValueError('wrong format of parameter option')
         gen = sp.stdout
         while True:
             try:

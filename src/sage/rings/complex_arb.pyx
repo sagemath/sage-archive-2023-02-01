@@ -3479,6 +3479,8 @@ cdef class ComplexBall(RingElement):
             if _do_sig(prec(self)): sig_off()
         return res
 
+    gamma_inc = gamma
+
     def log_gamma(self, analytic=False):
         r"""
         Return the image of this ball by the logarithmic Gamma function.

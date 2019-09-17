@@ -1366,6 +1366,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: l2 = [F(a/(p-1)).gamma(algorithm='sage') for a in range(p-1)]
             sage: all(l1[i] == l2[i] for i in range(p-1))
             True
+
+        The `p`-adic Gamma function has anomalous behavior for the prime 2::
+
+            sage: F = Qp(2)
+            sage: x = F(-1) + O(2^2)
+            sage: x.gamma(algorithm='pari')
+            1 + O(2)
+            sage: x.gamma(algorithm='sage')
+            1 + O(2)
+            sage: x = F(-1) + O(2^3)
+            sage: x.gamma(algorithm='pari')
+            1 + O(2^3)
+            sage: x.gamma(algorithm='sage')
+            1 + O(2^3)
         """
         if self.parent().absolute_degree() > 1 or self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
@@ -1379,10 +1393,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             p = parent.prime()
-            bd = n + 2*n // p
-            k = Integer(-self.residue(field=False)) # avoid GF(p) for efficiency
+            bd = -((-n*p)//(p-1))
+            k = (-self) % p
             x = (self+k) >> 1
-            return -x.dwork_expansion(bd, a=k)
+            if p==2 and n>=3:
+                x = x.lift_to_precision(n)
+            return -x.dwork_expansion(bd, k.lift())
 
     @coerce_binop
     def gcd(self, other):

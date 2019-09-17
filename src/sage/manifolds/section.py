@@ -685,7 +685,7 @@ class Section(ModuleElement):
             sage: E = S2.vector_bundle(2, 'E') # define vector bundle
             sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
             sage: phi_V = E.trivialization('phi_V', domain=V)
-            sage: transf = phi_U.transition_map(phi_V, [[0,x],[y,0]])
+            sage: transf = phi_U.transition_map(phi_V, [[0,1],[1,0]])
             sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
             sage: s = E.section(name='s')
             sage: s.add_comp(fS)
@@ -754,7 +754,7 @@ class Section(ModuleElement):
             sage: E = S2.vector_bundle(2, 'E') # define vector bundle
             sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
             sage: phi_V = E.trivialization('phi_V', domain=V)
-            sage: transf = phi_U.transition_map(phi_V, [[0,x],[y,0]])
+            sage: transf = phi_U.transition_map(phi_V, [[0,1],[1,0]])
             sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
             sage: a = E.section({fN: [x, 2+y]}, name='a')
 
@@ -769,8 +769,8 @@ class Section(ModuleElement):
         by a change-of-frame formula on ``W``::
 
             sage: a.display(fS.restrict(W), stereoS.restrict(W))
-            a = (2*u^3 + 2*u*v^2 + u*v)/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_1) +
-             u*v/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_2)
+            a = (2*u^2 + 2*v^2 + v)/(u^2 + v^2) (phi_V^*e_1) + u/(u^2 + v^2)
+             (phi_V^*e_2)
 
         The continuation consists in extending the definition of the vector
         field to the whole open subset ``V`` by demanding that the components
@@ -781,8 +781,8 @@ class Section(ModuleElement):
         We have then::
 
             sage: a.display(fS)
-            a = (2*u^3 + 2*u*v^2 + u*v)/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_1) +
-             u*v/(u^4 + 2*u^2*v^2 + v^4) (phi_V^*e_2)
+            a = (2*u^2 + 2*v^2 + v)/(u^2 + v^2) (phi_V^*e_1) + u/(u^2 + v^2)
+             (phi_V^*e_2)
 
         and `a` is defined on the entire manifold `S^2`.
 
@@ -911,12 +911,12 @@ class Section(ModuleElement):
         open subsets::
 
             sage: M = Manifold(2, 'M', structure='top')
-            sage: c_xy.<x, y> = M.chart()
+            sage: X.<x, y> = M.chart()
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: M.declare_union(U, V)
             sage: XU = X.restrict(U); XV = X.restrict(V)
             sage: E = M.vector_bundle(2, 'E')
-            sage: e = E.local_frame('e' domain=U) ; e
+            sage: e = E.local_frame('e', domain=U); e
             Local frame (E|_U, (e_0,e_1))
             sage: f = E.local_frame('f', domain=V); f
             Local frame (E|_V, (f_0,f_1))
@@ -950,124 +950,97 @@ class Section(ModuleElement):
         rst = self.restrict(basis._domain)
         return rst.comp(basis=basis, from_basis=from_basis)
 
-    #
-    # Till here, doctest finished!
-    #
-
     def display(self, frame=None, chart=None):
         r"""
-        Display the tensor field in terms of its expansion with respect
-        to a given vector frame.
+        Display the section in terms of its expansion with respect to a given
+        local frame.
 
         The output is either text-formatted (console mode) or LaTeX-formatted
         (notebook mode).
 
         INPUT:
 
-        - ``frame`` -- (default: ``None``) vector frame with respect to
-          which the tensor is expanded; if ``frame`` is ``None`` and ``chart``
-          is not ``None``, the coordinate frame associated with ``chart`` is
-          assumed; if both ``frame`` and ``chart`` are ``None``, the default
-          frame of the domain of definition of the tensor field is assumed
+        - ``frame`` -- (default: ``None``) local frame with respect to
+          which the section is expanded; if ``frame`` is ``None`` and ``chart``
+          is not ``None``, the default frame in the corresponding section module
+          is assumed
         - ``chart`` -- (default: ``None``) chart with respect to which the
-          components of the tensor field in the selected frame are expressed;
-          if ``None``, the default chart of the vector frame domain is assumed
+          components of the section in the selected frame are expressed;
+          if ``None``, the default chart of the local frame domain is assumed
 
         EXAMPLES:
 
-        Display of a type-`(1,1)` tensor field on a 2-dimensional manifold::
+        Display of section on a 2-rank vector bundle over the 2-sphere::
 
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:                    intersection_name='W', restrictions1= x>0,
-            ....:                    restrictions2= u+v>0)
-            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
+            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
+            sage: S2.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS,
+            ....:                                   (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                   intersection_name='W',
+            ....:                                   restrictions1= x^2+y^2!=0,
+            ....:                                   restrictions2= u^2+v^2!=0)
             sage: W = U.intersection(V)
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t[e_xy,:] = [[x, 1], [y, 0]]
-            sage: t.add_comp_by_continuation(e_uv, W, c_uv)
-            sage: t.display(e_xy)
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
-            sage: t.display(e_uv)
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,1],[1,0]])
+            sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
+            sage: s = E.section(name='s')
+            sage: s[fN,:] = [x, y]
+            sage: s.add_comp_by_continuation(fS, W, stereoS)
+            sage: s.display(fN)
+            s = x (phi_U^*e_1) + y (phi_U^*e_2)
+            sage: s.display(fS)
+            s = v/(u^2 + v^2) (phi_V^*e_1) + u/(u^2 + v^2) (phi_V^*e_2)
 
-        Since ``e_xy`` is ``M``'s default frame, the argument ``e_xy`` can
-        be omitted::
+        Since ``fN`` is the default frame on ``E|_U``, the argument ``fN`` can
+        be omitted after restricting::
 
-            sage: e_xy is M.default_frame()
+            sage: fN is E.section_module(domain=U).default_frame()
             True
-            sage: t.display()
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            sage: s.restrict(U).display()
+            s = x (phi_U^*e_1) + y (phi_U^*e_2)
 
-        Similarly, since ``e_uv`` is ``V``'s default frame, the argument ``e_uv``
-        can be omitted when considering the restriction of ``t`` to ``V``::
+        Similarly, since ``fS`` is ``V``'s default frame, the argument ``fS``
+        can be omitted when considering the restriction of ``s`` to ``V``::
 
-            sage: t.restrict(V).display()
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            sage: s.restrict(V).display()
+            s = v/(u^2 + v^2) (phi_V^*e_1) + u/(u^2 + v^2) (phi_V^*e_2)
 
-        If the coordinate expression of the components are to be displayed in
-        a chart distinct from the default one on the considered domain, then
-        the chart has to be passed as the second argument of ``display``.
-        For instance, on `W = U \cap V`, two charts are available:
-        ``c_xy.restrict(W)`` (the default one) and ``c_uv.restrict(W)``.
-        Accordingly, one can have two views of the expansion of ``t`` in the
-        *same* vector frame ``e_uv.restrict(W)``::
+        The second argument comes into play whenever the frame's domain is
+        covered by two distinct charts. Since ``stereoN.restrict(W)`` is the
+        default chart on ``W``, the second argument can be omitted for the
+        expression in this chart::
 
-            sage: t.display(e_uv.restrict(W))  # W's default chart assumed
-            t = (1/2*x + 1/2*y + 1/2) d/du*du + (1/2*x + 1/2*y - 1/2) d/du*dv
-              + (1/2*x - 1/2*y + 1/2) d/dv*du + (1/2*x - 1/2*y - 1/2) d/dv*dv
-            sage: t.display(e_uv.restrict(W), c_uv.restrict(W))
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            sage: s.display(fS.restrict(W))
+            s = y (phi_V^*e_1) + x (phi_V^*e_2)
 
-        As a shortcut, one can pass just a chart to ``display``. It is then
-        understood that the expansion is to be performed with respect to the
-        coordinate frame associated with this chart. Therefore the above
-        command can be abridged to::
+        To get the expression in the other chart, the second argument must be
+        used::
 
-            sage: t.display(c_uv.restrict(W))
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            sage: s.display(fN.restrict(W), stereoS.restrict(W))
+            s = u/(u^2 + v^2) (phi_U^*e_1) + v/(u^2 + v^2) (phi_U^*e_2)
 
-        and one has::
-
-            sage: t.display(c_xy)
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
-            sage: t.display(c_uv)
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
-            sage: t.display(c_xy.restrict(W))
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
-            sage: t.restrict(W).display(c_uv.restrict(W))
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
-
-        One can ask for the display with respect to a frame in which ``t`` has
+        One can ask for the display with respect to a frame in which ``s`` has
         not been initialized yet (this will automatically trigger the use of
         the change-of-frame formula for tensors)::
 
-            sage: a = V.automorphism_field()
-            sage: a[:] = [[1+v, -u^2], [0, 1-u]]
-            sage: f = e_uv.new_frame(a, 'f')
-            sage: [f[i].display() for i in M.irange()]
-            [f_0 = (v + 1) d/du, f_1 = -u^2 d/du + (-u + 1) d/dv]
-            sage: t.display(f)
-            t = -1/2*(u^2*v + 1)/(u - 1) f_0*f^0
-              - 1/2*(2*u^3 - 5*u^2 - (u^4 + u^3 - u^2)*v + 3*u - 1)/((u - 1)*v + u - 1) f_0*f^1
-              - 1/2*(v^2 + 2*v + 1)/(u - 1) f_1*f^0
-              + 1/2*(u^2 + (u^2 + u - 1)*v - u + 1)/(u - 1) f_1*f^1
+            sage: a = E.section_module(domain=U).automorphism()
+            sage: a[:] = [[1+x^2,0],[0,1+y^2]]
+            sage: e = fN.new_frame(a, 'e')
+            sage: [e[i].display() for i in S2.irange()]
+            [e_1 = (x^2 + 1) (phi_U^*e_1), e_2 = (y^2 + 1) (phi_U^*e_2)]
+            sage: s.display(e)
+            s = x/(x^2 + 1) e_1 + y/(y^2 + 1) e_2
 
         A shortcut of ``display()`` is ``disp()``::
 
-            sage: t.disp(e_uv)
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            sage: s.disp(fS)
+            s = v/(u^2 + v^2) (phi_V^*e_1) + u/(u^2 + v^2) (phi_V^*e_2)
 
         """
         if frame is None:
@@ -1079,9 +1052,13 @@ class Section(ModuleElement):
 
     disp = display
 
+    #
+    # Till here, doctest finished!
+    #
+
     def display_comp(self, frame=None, chart=None, only_nonzero=True):
         r"""
-        Display the tensor components with respect to a given frame,
+        Display the section components with respect to a given frame,
         one per line.
 
         The output is either text-formatted (console mode) or LaTeX-formatted
@@ -1089,8 +1066,8 @@ class Section(ModuleElement):
 
         INPUT:
 
-        - ``frame`` -- (default: ``None``) vector frame with respect to which
-          the tensor field components are defined; if ``None``, then
+        - ``frame`` -- (default: ``None``) local frame with respect to which
+          the section components are defined; if ``None``, then
 
           * if ``chart`` is not ``None``, the coordinate frame associated to
             ``chart`` is used

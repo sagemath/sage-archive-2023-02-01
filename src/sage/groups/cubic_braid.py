@@ -81,17 +81,76 @@ AUTHORS:
 
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.richcmp import richcmp, richcmp_not_equal, rich_to_bool
-from sage.rings.integer import Integer
+from sage.libs.gap.element import GapElement
 from sage.groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
 from sage.groups.braid import BraidGroup
+from sage.rings.integer import Integer
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.finite_rings.finite_field_constructor import GF
 
 from enum import Enum
 
+
+##############################################################################
+#
+#   helper functions
+#
+##############################################################################
+
+def _reduce_tietze(tietze_list):
+    r"""
+    Reduce the length of a list representing a cubic braid as much as it is
+    easily possible using the second braid relation and degree reduction.
+
+    EXAMPLES::
+ 
+        sage: from sage.groups.cubic_braid import _reduce_tietze
+        sage: _reduce_tietze((2, 2, -3, 5, 3, 1, 1, 5))
+        [-2, -5, -1]
+    """
+    def eleminate_item(tietze_list):
+        """
+        this sub method searches for an item in the Tietze expression such
+        that it together with the first entry gives a pair which can be
+        replaced by the second braid relation and the generators degree
+        reduction. If no such pair exists, it returns None. Else-wise the
+        reduced tietze list is returned.
+        """
+        l = len(tietze_list)
+        if l < 2:
+            return None
+        first  = tietze_list[0]
+        second = None
+        for i in range(1,l):
+            if tietze_list[i] in (first, -first):
+                if i == 1:
+                    second = tietze_list[i]
+                    break
+                if min(abs(abs(tietze_list[j])-abs(first)) for j in range(1, i)) > 1:
+                    # the entry on position i can be moved right to the first entry
+                    # by the second braid relation
+                    second = tietze_list[i]
+                    break
+        if second is None:
+            return None
+        middle = tietze_list[1:i]
+        end    = tietze_list[i+1:l]
+        if first == second:
+            return [-first] + middle + end
+        else:
+            return middle + end
+
+    tietze_list = list(tietze_list)
+    l = len(tietze_list)
+    for i in range(l):
+        end = tietze_list[i:l]
+        tietze_list_red = eleminate_item(end)
+        if tietze_list_red is not None:
+            start = tietze_list[:i]
+            return start + _reduce_tietze(tietze_list_red)
+    return tietze_list
 
 
 
@@ -188,41 +247,28 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         True
     """
 
-    @cached_method
-    def _richcmp_braid_burau(self, other, op):
+    def __init__(self, parent, x, check=True):
         """
-        helper method to compare self with an other cubic braid using
-        the comparision of the braid preimage and the Burau matrix.
+        The Python constructor.
+        It is overloaded to achieve a reduction of the Tietze expression
 
         EXAMPLES::
 
-            sage: C6.<c1, c2, c3, c4, c5> = CubicBraidGroup(6)
-            sage: ele1 = c1*c2*c3^2*c4*c5
-            sage: ele2 = c1*c2*~c3*c4*c5
-            sage: ele1 == ele2           # indirect doctest
-            True
-
-        TESTS::
-
-            sage: S7 = AssionGroupS(7)
-            sage: all(S7(rel).is_one() for rel in S7.relations())
-            True
+            sage: C6 = CubicBraidGroup(6)
+            sage: C6.inject_variables()
+            Defining c0, c1, c2, c3, c4
+            sage: c1**2*~c2*c4*c0**2*c4   # indirect doctest
+            c1^-1*c2^-1*c4^-1*c0^-1
         """
-        sbraid = self.braid()
-        obraid = other.braid()
-        if sbraid == obraid:
-            return rich_to_bool(op, 0)
-        smat =  self.burau_matrix()
-        omat =  other.burau_matrix()
-        skeys = smat.dict().keys()
-        okeys = omat.dict().keys()
-        if skeys != okeys:
-            # certainly different: compare braid preimages
-            return richcmp(sbraid, obraid, op)
-        if smat == omat:
-            return rich_to_bool(op, 0)
-        # certainly different: compare braid preimages
-        return richcmp(sbraid, obraid, op)
+        if type(x) in (tuple, list):
+            x = tuple(_reduce_tietze(tuple(x)))
+        elif isinstance(x, GapElement):
+            tietze_list = x.UnderlyingElement().TietzeWordAbstractWord().sage()
+            tietze_red = _reduce_tietze(tietze_list)
+            if tietze_red != tietze_list:
+                x = tuple(tietze_red)
+        super(CubicBraidElement, self).__init__(parent, x, check=check)
+
 
 
     def _richcmp_(self, other, op):
@@ -238,12 +284,52 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
             sage: ele2 = c1*c2*c4*c5
             sage: ele1 == ele2    # indirect doctest
             False
-            sage: ele1 < ele2     # indirect doctest
+            sage: ele1 > ele2     # indirect doctest
+            True
+
+        TESTS::
+
+            sage: S7 = AssionGroupS(7)
+            sage: all(S7(rel).is_one() for rel in S7.relations())
             True
         """
         if self.parent().strands() < 6:
             return super(CubicBraidElement, self)._richcmp_(other, op)
-        return self._richcmp_braid_burau(other, op)
+        smat = self._matrix_()
+        omat = other._matrix_()
+        return smat._richcmp_(omat, op)
+
+
+    def __hash__(self):
+        r"""
+        Return a hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: C3.<c1, c2> = CubicBraidGroup(3)
+            sage: hash(~c1) == hash(c1**2)
+            True
+        """
+        return hash(self._matrix_())
+
+    @cached_method
+    def _matrix_(self):
+        r"""
+        Return self as a matrix group element according to its parent's default matrix group.
+        So far this method returns the same results as :meth:`burau_matrix` in the default
+        case. But its behavior with respect to performance is different: The first invocation
+        for a group will be slower but all successive ones will be faster!
+
+        EXAMPLES::
+
+            sage: S3.<s1, s2> = AssionGroupS(3)
+            sage: matrix(S3.an_element())
+            [2 1 1]
+            [1 0 0]
+            [0 1 0]
+        """
+        mat_grp = self.parent().as_matrix_group()
+        return mat_grp(self).matrix()
 
 
     def braid(self):
@@ -1309,6 +1395,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
     # ----------------------------------------------------------------------------------
     # as_matrix_group
     # ----------------------------------------------------------------------------------
+    @cached_method
     def as_matrix_group(self, root_bur=None, domain=None, characteristic=None, var='t', reduced=False):
         r"""
        Creates an epimorphic image of ``self`` as a matrix group by use of the burau representation.
@@ -1440,6 +1527,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
     # we use the classical group implementation (by performance reason) to get
     # the permutation_group.
     # ----------------------------------------------------------------------------------
+    @cached_method
     def as_permutation_group(self, use_classical=True):
         r"""
         This method returns a permutation group isomorphic to ``self`` together

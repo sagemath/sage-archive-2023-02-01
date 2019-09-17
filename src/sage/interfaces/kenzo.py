@@ -99,6 +99,8 @@ spectral_sequence_differential_matrix = EclObject("spectral-sequence-differentia
 eilenberg_moore_spectral_sequence = EclObject("eilenberg-moore-spectral-sequence")
 serre_whitehead_spectral_sequence = EclObject("serre-whitehead-spectral-sequence")
 serre_spectral_sequence_product = EclObject("serre-spectral-sequence-product")
+wedge = EclObject("wedge")
+join = EclObject("join")
 
 
 def Sphere(n):
@@ -699,6 +701,58 @@ class KenzoSimplicialSet(KenzoChainComplex):
               Z   0   Z
         """
         return KenzoSpectralSequence(serre_spectral_sequence_product(self._kenzo))
+
+    def wedge(self, other):
+        r"""
+        Return the wedge of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- the Kenzo simplicial set with which the wedge is made
+
+        OUTPUT:
+
+        - A :class:`KenzoSimplicialSet`
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import Sphere    # optional - kenzo
+            sage: s2 = Sphere(2)                              # optional - kenzo
+            sage: s3 = Sphere(3)                              # optional - kenzo
+            sage: w = s2.wedge(s3)                            # optional - kenzo
+            sage: type(w)                                     # optional - kenzo
+            <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
+            sage: [w.homology(i) for i in range(6)]           # optional - kenzo
+            [Z, 0, Z, Z, 0, 0]
+        """
+        wedge_kenzo = wedge(self._kenzo, other._kenzo)
+        return KenzoSimplicialSet(wedge_kenzo)
+
+    def join(self, other):
+        r"""
+        Return the join of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- the Kenzo simplicial set with which the join is made
+
+        OUTPUT:
+
+        - A :class:`KenzoSimplicialSet`
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import Sphere    # optional - kenzo
+            sage: s2 = Sphere(2)                              # optional - kenzo
+            sage: s3 = Sphere(3)                              # optional - kenzo
+            sage: j = s2.join(s3)                             # optional - kenzo
+            sage: type(j)                                     # optional - kenzo
+            <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
+            sage: [j.homology(i) for i in range(6)]           # optional - kenzo
+            [Z, 0, 0, 0, 0, 0]
+        """
+        join_kenzo = join(self._kenzo, other._kenzo)
+        return KenzoSimplicialSet(join_kenzo)
 
 
 class KenzoSimplicialGroup(KenzoSimplicialSet):

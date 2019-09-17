@@ -122,12 +122,12 @@ from six import string_types
 import os
 import re
 
-from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction
+from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
+                                    FunctionElement)
 from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
-from sage.cpython.string import bytes_to_str
 
 
 def remove_output_labels(s):
@@ -270,20 +270,6 @@ class Macaulay2(ExtraTabCompletion, Expect):
             True
         """
         return 'load "%s"' % filename
-
-    def __getattr__(self, attrname):
-        """
-        EXAMPLES::
-
-            sage: gb = macaulay2.gb  # optional - macaulay2
-            sage: type(gb)           # optional - macaulay2
-            <class 'sage.interfaces.macaulay2.Macaulay2Function'>
-            sage: gb._name           # optional - macaulay2
-            'gb'
-        """
-        if attrname[:1] == "_":
-            raise AttributeError
-        return Macaulay2Function(self, attrname)
 
     def eval(self, code, strip=True, **kwds):
         """
@@ -451,15 +437,36 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
     def _object_class(self):
         """
-        Returns the class of Macaulay2 elements.
+        Return the class of Macaulay2 elements.
 
         EXAMPLES::
 
             sage: macaulay2._object_class()
             <class 'sage.interfaces.macaulay2.Macaulay2Element'>
-
         """
         return Macaulay2Element
+
+    def _function_class(self):
+        """
+        Return the class of Macaulay2 functions.
+
+        EXAMPLES::
+
+            sage: macaulay2._function_class()
+            <class 'sage.interfaces.macaulay2.Macaulay2Function'>
+        """
+        return Macaulay2Function
+
+    def _function_element_class(self):
+        """
+        Return the class of partially-applied Macaulay2 functions.
+
+        EXAMPLES::
+
+            sage: macaulay2._function_element_class()
+            <class 'sage.interfaces.macaulay2.Macaulay2FunctionElement'>
+        """
+        return Macaulay2FunctionElement
 
     def console(self):
         """
@@ -659,8 +666,26 @@ class Macaulay2(ExtraTabCompletion, Expect):
             ...
               * "input" -- read Macaulay2 commands and echo
               * "notify" -- whether to notify the user when a file is loaded
+
+        TESTS:
+
+        Check that help also works for Macaulay2 keywords and variables
+        (:trac:`28565`)::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('macaulay2.help("try")')  # optional - macaulay2
+            try -- catch an error
+            ****...
+            The object "try" is a keyword.
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('macaulay2.help("errorDepth")')  # optional - macaulay2
+            errorDepth...
+            The object "errorDepth" is an integer.
         """
-        r = self.eval("help %s" % s)
+        r = self.eval('help "%s"' % s)
         end = r.rfind("\n\nDIV")
         if end != -1:
             r = r[:end]
@@ -1390,35 +1415,110 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
 @instancedoc
 class Macaulay2Function(ExpectFunction):
+    """
+    TESTS::
+
+        sage: gb = macaulay2.gb  # optional - macaulay2
+        sage: type(gb)           # optional - macaulay2
+        <class 'sage.interfaces.macaulay2.Macaulay2Function'>
+        sage: gb._name           # optional - macaulay2
+        'gb'
+    """
+
     def _instancedoc_(self):
         """
         EXAMPLES::
 
             sage: print(macaulay2.load.__doc__)  # optional - macaulay2
+            nodetex,noreplace
             load...
             ****...
             ...
               * "input" -- read Macaulay2 commands and echo
               * "notify" -- whether to notify the user when a file is loaded
+
+        TESTS:
+
+        Check that detex is disabled, so that the output does not get
+        reformatted (:trac:`28565`)::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('macaulay2.matrix?')  # optional - macaulay2
+            ...
+            +----------------------------+
+            |i1 : matrix{{1,2,3},{4,5,6}}|
+            |                            |
+            |o1 = | 1 2 3 |              |
+            |     | 4 5 6 |              |
+            |                            |
+            |              2        3    |
+            |o1 : Matrix ZZ  <--- ZZ     |
+            +----------------------------+
+            ...
         """
-        return self._parent.help(self._name)
+        r = self._parent.help(self._name)
+        return AsciiArtString('nodetex,noreplace\n' + r)
 
     def _sage_src_(self):
         """
         EXAMPLES::
 
-            sage: print(macaulay2.gb._sage_src_())  # optional - macaulay2
-            code(methods gb)
+            sage: macaulay2.gb._sage_src_()  # optional - macaulay2
+            -- code for method: gb(Ideal)...
+            -- code for method: gb(Matrix)...
             ...
         """
-        if self._parent._expect is None:
-            self._parent._start()
-        E = self._parent._expect
-        E.sendline("code(methods %s)"%self._name)
-        E.expect(self._parent._prompt)
-        s = E.before
-        self._parent.eval("2+2")
-        return bytes_to_str(s)
+        return self._parent.eval('code methods %s' % self._name)
+
+
+@instancedoc
+class Macaulay2FunctionElement(FunctionElement):
+    def _instancedoc_(self):
+        """
+        TESTS:
+
+        Since :trac:`28565`, the help output includes all documentation nodes
+        that can take ``self._obj`` as first argument. This also checks that
+        detex is disabled, so that the output does not get reformatted. ::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('I = macaulay2("ideal {4}")')  # optional - macaulay2
+            sage: shell.run_cell('I.resolution?')  # optional - macaulay2
+            Signature:...
+            Docstring:
+            resolution -- projective resolution
+            ****...
+            <BLANKLINE>
+            resolution(Ideal) -- compute a projective resolution of...
+            ****...
+            |      1      4      6      4      1      |
+            |o3 = R  <-- R  <-- R  <-- R  <-- R  <-- 0|
+            |                                         |
+            |     0      1      2      3      4      5|
+            ...
+        """
+        P = self._obj.parent()
+        r = P.eval('help prepend({0}, select(methods {0}, m->'
+                   'instance({1}, m#1)))'.format(self._name, self._obj._name))
+        end = r.rfind("\n\nDIV")
+        if end != -1:
+            r = r[:end]
+        return AsciiArtString('nodetex,noreplace\n' + r)
+
+    def _sage_src_(self):
+        """
+        EXAMPLES::
+
+            sage: m = macaulay2('matrix {{4,6}}')  # optional - macaulay2
+            sage: m.resolution._sage_src_()  # optional - macaulay2
+            -- code for method: resolution(Matrix)...
+        """
+        return self._obj.parent().eval(
+            'code select(methods %s, m->instance(%s, m#1))'
+            % (self._name, self._obj._name))
+
 
 def is_Macaulay2Element(x):
     """

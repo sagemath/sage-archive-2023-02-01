@@ -1513,6 +1513,42 @@ cdef class Expression(CommutativeRingElement):
         except TypeError:
             raise TypeError("unable to simplify to a complex interval approximation")
 
+    def _arb_(self, R):
+        r"""
+        Convert this expression to a real or complex ball.
+
+        (In spite of its name, this method also works in the complex case.)
+
+        EXAMPLES::
+
+            sage: RBF(pi, 1/1000)
+            [3.14 +/- 2.60e-3]
+            sage: RBF(pi/2 + 2*arctan(1))
+            [3.14159265358979...]
+            sage: (pi + I)._arb_(CBF)
+            [3.14159265358979...] + 1.000000000000000*I
+            sage: RBF(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x to a RealBall
+        """
+        # Note that we deliberately don't use _eval_self and don't try going
+        # through RIF/CIF in order to avoid unsafe conversions.
+        operator = self.operator()
+        try:
+            if operator is None:
+                return R(self.pyobject())
+            else:
+                res = self.operator()(*[R(operand) for operand in self.operands()])
+                if res.parent() is R:
+                    return res
+        except (TypeError, ValueError):
+            pass
+        # Typically more informative and consistent than the exceptions that
+        # would propagate
+        raise TypeError("unable to convert {!r} to a {!s}".format(
+                self, R.element_class.__name__))
+
     def _real_double_(self, R):
         """
         EXAMPLES::

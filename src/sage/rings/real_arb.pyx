@@ -414,7 +414,7 @@ class RealBallField(UniqueRepresentation, Field):
                 category=sage.categories.fields.Fields().Infinite())
         self._prec = precision
         from sage.rings.real_lazy import RLF
-        self._populate_coercion_lists_([ZZ, QQ], convert_method_name='_arb_')
+        self._populate_coercion_lists_(coerce_list=[ZZ, QQ], convert_method_name='_arb_')
 
     def _repr_(self):
         r"""
@@ -486,7 +486,7 @@ class RealBallField(UniqueRepresentation, Field):
         non-canonically.
 
         In addition to the inputs supported by :meth:`RealBall.__init__`,
-        anything that is convertible to a real interval can also be used to
+        elements that can be coerced to real intervals can also be used to
         construct a real ball::
 
             sage: RBF(RIF(0, 1))                  # indirect doctest
@@ -498,8 +498,7 @@ class RealBallField(UniqueRepresentation, Field):
             ...
             TypeError: unable to convert x to a RealBall
 
-        Various symbolic constants can be converted without going through real
-        intervals. (This is faster and yields tighter error bounds.) ::
+        Various symbolic constants are supported::
 
             sage: RBF(e)
             [2.718281828459045 +/- ...e-16]
@@ -512,24 +511,33 @@ class RealBallField(UniqueRepresentation, Field):
             [4.808227612638377 +/- ...e-16]
             sage: RBF(exp(1), 0.01)
             [2.7 +/- ...]
+
+        TESTS:
+
+        The following conversions used to yield incorrect results::
+
+            sage: RBF(airy_ai(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert airy_ai(1) to a RealBall
+            sage: RBF(zetaderiv(1, 3/2))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert zetaderiv(1, 3/2) to a RealBall
         """
+        # Symbolic expressions are handled in a special way, see
+        # Expression._arb_(). A call like RBF(expr, rad) converts expr to a
+        # ball using its _arb_() method and sends us the result to adjust the
+        # radius thanks to hte general mechanism implemented in
+        # NamedConvertMap.
         try:
             return self.element_class(self, mid, rad)
         except TypeError:
             pass
         try:
-            return self.element_class(self, mid.pyobject(), rad)
-        except (AttributeError, TypeError):
-            pass
-        try:
-            val = mid.operator()(*[self(operand) for operand in mid.operands()])
-            return self.element_class(self, val, rad)
-        except (AttributeError, TypeError):
-            pass
-        try:
-            mid = RealIntervalField(self._prec)(mid)
-            return self.element_class(self, mid, rad)
-        except TypeError:
+            _mid = RealIntervalField(self._prec)(mid)
+            return self.element_class(self, _mid, rad)
+        except (TypeError, ValueError):
             pass
         raise TypeError("unable to convert {!r} to a RealBall".format(mid))
 

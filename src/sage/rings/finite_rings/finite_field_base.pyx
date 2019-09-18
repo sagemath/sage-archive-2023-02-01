@@ -1539,6 +1539,7 @@ cdef class FiniteField(Field):
                 return [(K, self.coerce_map_from(K))]
 
         divisors = n.divisors()
+
         if name is None:
             if hasattr(self, '_prefix'):
                 name = self._prefix
@@ -1548,7 +1549,12 @@ cdef class FiniteField(Field):
             name = {m: name + str(m) for m in divisors}
         elif not isinstance(name, dict):
             raise ValueError("name must be None, a string or a dictionary indexed by divisors of the degree")
-        return [self.subfields(m, name=name[m])[0] for m in divisors]
+
+        pairs = []
+        for m in divisors:
+            K = self.subfield(m, name=name[m])
+            pairs.append((K, self.coerce_map_from(K)))
+        return pairs
 
     @cached_method
     def algebraic_closure(self, name='z', **kwds):

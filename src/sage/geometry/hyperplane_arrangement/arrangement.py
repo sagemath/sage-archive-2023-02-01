@@ -2632,7 +2632,7 @@ class HyperplaneArrangementElement(Element):
             sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z)
             sage: A.orlik_terao_algebra()
             Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
-             represented over the Rational Field
+             represented over the Rational Field over Rational Field
             sage: A.orlik_terao_algebra(base_ring=QQ['t'])
             Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
              represented over the Rational Field

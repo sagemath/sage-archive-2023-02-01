@@ -25,6 +25,7 @@ from sage.libs.pynac.pynac import (register_symbol, symbol_table, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.misc.latex import latex
+from sage.structure.element import Element
 import math
 
 from sage.structure.element import coercion_model
@@ -1639,12 +1640,11 @@ class Function_factorial(GinacFunction):
         elif isinstance(x, Rational):
             from sage.functions.gamma import gamma
             return gamma(x + 1)
+        elif isinstance(x, Element) and hasattr(x.parent(), 'prec'):
+            return (x + 1).gamma()
         elif self._is_numerical(x):
-            try:
-                return (x + 1).gamma()
-            except AttributeError:
-                from sage.functions.gamma import gamma
-                return gamma(x + 1)
+            from sage.functions.gamma import gamma
+            return gamma(x + 1)
 
 factorial = Function_factorial()
 

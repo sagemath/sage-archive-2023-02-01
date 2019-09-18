@@ -21,6 +21,21 @@ heavily modified:
 
 - Travis Scrimshaw (2012-10-18): Added documentation to get full coverage.
 
+
+.. WARNING::
+
+    Mixing symbolic expressions with intervals (in particular, converting
+    constant symbolic expressions to intervals), can lead to incorrect
+    results::
+
+        sage: ref = ComplexIntervalField(100)(ComplexBallField(100).one().airy_ai())
+        sage: ref
+        0.135292416312881415524147423515?
+        sage: val = CIF(airy_ai(1)); val # known bug
+        0.13529241631288142?
+        sage: val.overlaps(ref)          # known bug
+        False
+
 .. TODO::
 
     Implement :class:`ComplexIntervalFieldElement` multiplicative

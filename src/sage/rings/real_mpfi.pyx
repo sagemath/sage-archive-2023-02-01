@@ -214,6 +214,20 @@ specified if given a non-interval and an interval::
     sage: RIF(0, 1).lexico_cmp(RIF(0, 1))
     0
 
+.. WARNING::
+
+    Mixing symbolic expressions with intervals (in particular, converting
+    constant symbolic expressions to intervals), can lead to incorrect
+    results::
+
+        sage: ref = RealIntervalField(100)(ComplexBallField(100).one().airy_ai().real())
+        sage: ref
+        0.135292416312881415524147423515?
+        sage: val = RIF(airy_ai(1)); val # known bug
+        0.13529241631288142?
+        sage: val.overlaps(ref)          # known bug
+        False
+
 TESTS:
 
 Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::

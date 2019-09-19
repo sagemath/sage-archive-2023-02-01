@@ -561,7 +561,7 @@ class int_range:
             self._intervals = [(int(indices), int(range))]
         else:
             self._intervals = []
-            if len(indices) == 0:
+            if not indices:
                 return
             indices.sort()
             start = None

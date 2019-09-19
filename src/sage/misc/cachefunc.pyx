@@ -3350,7 +3350,7 @@ class FileCache(object):
             1
         """
         from sage.misc.misc import sage_makedirs
-        if len(dir) == 0 or dir[-1] != '/':
+        if not dir or dir[-1] != '/':
             dir += '/'
         self._dir = dir
         sage_makedirs(dir)

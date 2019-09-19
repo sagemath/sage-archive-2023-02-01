@@ -2696,8 +2696,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     @cached_method
     def _is_numerical(self):
         r"""
-        Test whether this parent can be (canonically) considered a subring of
-        the complex numbers.
+        Test if elements of this parent can be numerically evaluated as complex
+        numbers (in a canonical way).
 
         EXAMPLES::
 
@@ -2715,8 +2715,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     @cached_method
     def _is_real_numerical(self):
         r"""
-        Test whether this parent can be (canonically) considered a subring of
-        the real numbers.
+        Test if elements of this parent can be numerically evaluated as real
+        numbers (in a canonical way).
 
         EXAMPLES::
 

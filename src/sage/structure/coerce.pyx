@@ -367,14 +367,16 @@ cpdef bint parent_is_integers(P) except -1:
 
 def parent_is_numerical(P):
     r"""
-    Return True when this parent or type can be canonically considered a
-    subring of the complex numbers.
+    Test if elements of the parent or type ``P`` can be numerically evaluated
+    as complex numbers (in a canonical way).
 
     EXAMPLES::
 
         sage: from sage.structure.coerce import parent_is_numerical
-        sage: [parent_is_numerical(R) for R in RR, CC, QQ, QuadraticField(-1), int, complex]
-        [True, True, True, True, True, True]
+        sage: import gmpy2, numpy
+        sage: [parent_is_numerical(R) for R in [RR, CC, QQ, QuadraticField(-1),
+        ....:         int, complex, gmpy2.mpc, numpy.complexfloating]]
+        [True, True, True, True, True, True, True, True]
         sage: [parent_is_numerical(R) for R in SR, QQ['x'], QQ[['x']], str]
         [False, False, False, False]
         sage: [parent_is_numerical(R) for R in RIF, RBF, CIF, CBF]
@@ -388,16 +390,19 @@ def parent_is_numerical(P):
 
 def parent_is_real_numerical(P):
     r"""
-    Return True when this parent or type can be canonically considered a
-    subring of the complex numbers.
+    Test if elements of the parent or type ``P`` can be numerically evaluated
+    as real numbers (in a canonical way).
 
     EXAMPLES::
 
         sage: from sage.structure.coerce import parent_is_real_numerical
-        sage: [parent_is_real_numerical(R) for R in RR, QQ, ZZ, RLF, QuadraticField(2), int, float]
-        [True, True, True, True, True, True, True]
-        sage: [parent_is_real_numerical(R) for R in CC, QuadraticField(-1), complex]
-        [False, False, False]
+        sage: import gmpy2, numpy
+        sage: [parent_is_real_numerical(R) for R in [RR, QQ, ZZ, RLF,
+        ....:         QuadraticField(2), int, float, gmpy2.mpq, numpy.integer]]
+        [True, True, True, True, True, True, True, True, True]
+        sage: [parent_is_real_numerical(R) for R in [CC, QuadraticField(-1),
+        ....:         complex, gmpy2.mpc, numpy.complexfloating]]
+        [False, False, False, False, False]
         sage: [parent_is_real_numerical(R) for R in SR, QQ['x'], QQ[['x']], str]
         [False, False, False, False]
         sage: [parent_is_real_numerical(R) for R in RIF, RBF, CIF, CBF]

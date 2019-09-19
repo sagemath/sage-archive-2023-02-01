@@ -702,8 +702,8 @@ cdef class Polynomial_complex_arb(Polynomial):
 
     def _lambert_w_series(self, long n, branch=0):
         r"""
-        Return the series expansion of the Lambert W function composed
-        with this polynomial, truncated before degree ``n``.
+        Return the series expansion of the specified branch of the Lambert W
+        function composed with this polynomial, truncated before degree ``n``.
 
         EXAMPLES::
 
@@ -736,8 +736,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         Return the series expansion of the Hurwitz zeta function composed
         with this polynomial, truncated before degree ``n``.
 
-        For ``a = 1`` or ``a = None``, this computes the usual Riemann
-        zeta function.
+        For ``a = 1``, this computes the usual Riemann zeta function.
 
         If ``deflate`` is True, evaluate ζ(s,a) + 1/(1-s), see the Arb
         documentation for details.
@@ -752,8 +751,6 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: (1 + x)._zeta_series(2, deflate=True)
             ([0.07281584...])*x + [0.57721566...]
         """
-        if a is None:
-            a = 1
         if n < 0:
             n = 0
         cdef ComplexBall _a = <ComplexBall> (self._parent._base.coerce(a))

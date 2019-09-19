@@ -104,9 +104,7 @@ from sage.misc.cachefunc import cached_function
 
 
 class Differential(with_metaclass(
-        InheritComparisonClasscallMetaclass,
-        UniqueRepresentation, Morphism
-        )):
+        InheritComparisonClasscallMetaclass, UniqueRepresentation, Morphism)):
     r"""
     Differential of a commutative graded algebra.
 
@@ -2331,8 +2329,8 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         EXAMPLES::
 
-            sage: S.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees = (1,1,2))
-            sage: d = S.differential({x:x*y,y:x*y})
+            sage: S.<x, y, z> = GradedCommutativeAlgebra(QQ, degrees = (1, 1, 2))
+            sage: d = S.differential({x:x*y, y:x*y})
             sage: R = S.cdg_algebra(d)
             sage: p = R.minimal_model()
             sage: T = p.domain()
@@ -2361,8 +2359,8 @@ class DifferentialGCAlgebra(GCAlgebra):
 
 
 
-            sage: A.<e1,e2,e3,e4,e5,e6,e7> = GradedCommutativeAlgebra(QQ)
-            sage: d = A.differential({e1:e1*e7,e2:e2*e7,e3:-e3*e7, e4:-e4*e7})
+            sage: A.<e1, e2, e3, e4, e5, e6, e7> = GradedCommutativeAlgebra(QQ)
+            sage: d = A.differential({e1:e1*e7, e2:e2*e7, e3:-e3*e7, e4:-e4*e7})
             sage: B = A.cdg_algebra(d)
             sage: phi = B.minimal_model(i=3)
             sage: M = phi.domain()
@@ -2420,7 +2418,8 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         ALGORITHM:
 
-        Construct the minimal Sullivan algebra ``S`` by iteratively adding
+        We follow the algorithm described in [Man2019]_. It consists in
+        constructing the minimal Sullivan algebra ``S`` by iteratively adding
         generators to it. Start with one closed generator of degree 1 for each
         element in the basis of the first cohomology of the algebra. Then
         proceed degree by degree. At each degree `d`, we keep adding generators
@@ -2444,7 +2443,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         TESTS::
 
-            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ,degrees = (1,2,3,3))
+            sage: A.<x, y, z, t> = GradedCommutativeAlgebra(QQ,degrees = (1, 2, 3, 3))
             sage: d = A.differential({x:y})
             sage: B = A.cdg_algebra(d)
             sage: B.minimal_model(i=3)
@@ -2458,6 +2457,12 @@ class DifferentialGCAlgebra(GCAlgebra):
                z --> 0
                t --> 0
               Defn: (x3_0, x3_1) --> (z, t)
+
+        REFERENCES:
+
+        - [Fel2001]_
+
+        - [Man2019]_
 
         """
         max_degree = int(i)
@@ -2604,8 +2609,8 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<e1,e2,e3,e4,e5,e6,e7> = GradedCommutativeAlgebra(QQ)
-            sage: d = A.differential({e1:-e1*e6,e2:-e2*e6,e3:-e3*e6,e4:-e5*e6,e5:e4*e6})
+            sage: A.<e1, e2, e3, e4, e5, e6, e7> = GradedCommutativeAlgebra(QQ)
+            sage: d = A.differential({e1:-e1*e6, e2:-e2*e6, e3:-e3*e6, e4:-e5*e6, e5:e4*e6})
             sage: B = A.cdg_algebra(d)
             sage: M = B.cohomology_algebra()
             sage: M
@@ -2660,7 +2665,9 @@ class DifferentialGCAlgebra(GCAlgebra):
 
     def numerical_invariants(self, max_degree=3, max_iterations=3):
         r"""
-        Return the numerical invariants of the algebra, up to degree ``d``.
+        Return the numerical invariants of the algebra, up to degree ``d``. The
+        numerical invariants reflect the number of generators added at each step
+        of the construction of the minimal model.
 
         The numerical invariants are the dimensions of the subsequent Hirsch
         extensions used at each degree to compute the minimal model.
@@ -2668,15 +2675,15 @@ class DifferentialGCAlgebra(GCAlgebra):
         INPUT:
 
         - ``max_degree`` -- integer (default: `3`); the degree up to which the
-        numerical invariants are computed.
+          numerical invariants are computed.
 
         - ``max_iterations`` -- integer (default: `3`); the maximum number of iterations
-        used to compute the minimal model, if it is not already cached.
+          used to compute the minimal model, if it is not already cached.
 
         EXAMPLES::
 
-            sage: A.<e1,e2,e3> = GradedCommutativeAlgebra(QQ)
-            sage: B = A.cdg_algebra({e3:e1*e2})
+            sage: A.<e1, e2, e3> = GradedCommutativeAlgebra(QQ)
+            sage: B = A.cdg_algebra({e3 : e1*e2})
             sage: B.minimal_model(4)
             Commutative Differential Graded Algebra morphism:
             From: Commutative Differential Graded Algebra with generators ('x1_0', 'x1_1', 'y1_0') in degrees (1, 1, 1) over Rational Field with differential:
@@ -2691,6 +2698,10 @@ class DifferentialGCAlgebra(GCAlgebra):
             sage: B.numerical_invariants(2)
             {1: [2, 1, 0], 2: [0, 0]}
 
+        ALGORITHM:
+
+        The numerical invariants are stored as the minimal model is constructed.
+
         .. WARNING::
 
             The method is not granted to finish (it can't, since the minimal
@@ -2700,6 +2711,10 @@ class DifferentialGCAlgebra(GCAlgebra):
             enough, an exception is raised. If you think that the result will
             be finitely generated, you can try to run it again with a higher
             value for ``max_iterations``.
+
+        REFERENCES:
+
+        For a precise definition and properties, see [Man2019]_ .
 
         """
         M = self.minimal_model(max_degree, max_iterations)
@@ -2716,7 +2731,7 @@ class DifferentialGCAlgebra(GCAlgebra):
         - ``i`` -- integer; the degree up to which the formality is checked.
 
         - ``max_iterations`` -- integer (default: `3`); the maximum number of
-        iterations used in the computation of the minimal model.
+          iterations used in the computation of the minimal model.
 
         .. WARNING::
 
@@ -2735,12 +2750,20 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<e1,e2,e3,e4,e5> = GradedCommutativeAlgebra(QQ)
-            sage: B = A.cdg_algebra({e5:e1*e2+e3*e4})
+            sage: A.<e1, e2, e3, e4, e5> = GradedCommutativeAlgebra(QQ)
+            sage: B = A.cdg_algebra({e5 : e1*e2 + e3*e4})
             sage: B.is_formal(1)
             True
             sage: B.is_formal(2)
             False
+
+        ALGORITHM:
+
+        Apply the criteria in [Man2019]_ . Both the `i`-minimal model of the
+        algebra and its cohomology algebra are computed. If the numerical
+        invariants are different, the algebra is not `i`-formal.
+
+        If the numerical invariants match, the `\psi` condition is checked.
         """
         from sage.misc.flatten import flatten
         phi = self.minimal_model(i, max_iterations)
@@ -2755,7 +2778,7 @@ class DifferentialGCAlgebra(GCAlgebra):
         if any([N1[n] != N2[n] for n in range(1, i + 1)]):
             return False    # numerical invariants don't match
         P = M._QuotientRing_nc__R
-        subsdict = {y.lift():0 for y in M.gens() if not y.differential().is_zero()}
+        subsdict = {y.lift(): 0 for y in M.gens() if not y.differential().is_zero()}
         tocheck = [M(g.differential().lift().subs(subsdict)) for g in M.gens()]
         if all([c.is_coboundary() for c in tocheck]):
             return True     # the morphism xi->[xi], yi->0 is i-quasi-iso

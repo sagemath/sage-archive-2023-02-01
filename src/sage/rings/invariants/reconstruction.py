@@ -78,8 +78,7 @@ def binary_polynomial_from_invariants(degree, invariants, as_form=True, *args, *
         + 1033866765362693115/67108864*x^2*z^3 + 12849486940936328715/268435456*x*z^4
         - 23129076493685391687/2147483648*z^5
         sage: binary_polynomial_from_invariants(5, invariants, scaling='normalized')
-        -24389/650717652052224*x^5 - 4205/8033551259904*x^4*z
-        - 1015/153055008*x^2*z^3 + 145/944784*x*z^4 + 1/3888*z^5
+        24389/892616806656*x^5 + 4205/11019960576*x^4*z + 1015/209952*x^2*z^3 - 145/1296*x*z^4 - 3/16*z^5
         sage: scaled_form = binary_polynomial_from_invariants(5, invariants, scaling='coprime')
         sage: scaled_form
         -2048*x^5 + 3840*x^4*z + 876960*x^2*z^3 + 2724840*x*z^4 - 613089*z^5
@@ -436,7 +435,7 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
             else:
                 if scaling == 'normalized':
                     # scaling z by (R/A**3)
-                    scale = [ A**-14*(R/A**3)**i for i in range(6) ]
+                    scale = [ (-N)**-5*A**6*(R/A**3)**i for i in range(6) ]
                 D = -N
                 Delta = C
                 a = [0]
@@ -452,17 +451,17 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
                 return (1,0,10,0,-15,0)
             elif scaling == 'normalized':
                 # scaling x by A and z by sqrt(A)
-                scale = [ sqrt(A)**(i-18) for i in range(6) ]
+                scale = [ (-M)**(-5)*sqrt(A)**(12+i) for i in range(6) ]
         else:
             if A == 0:
                 if B == 0:
                     return (1,0,0,1,0,0)
                 elif scaling == 'normalized':
                     # scaling y by R/B**2
-                    scale = [ R**-2*(R/B**2)**i for i in range(6) ]
+                    scale = [ (-M)**(-3)*(R/B**2)**i for i in range(6) ]
             elif scaling == 'normalized':
                 # scaling y by R/A**4
-                scale = [ A**-9*(R/A**4)**i for i in range(6) ]
+                scale = [ (-M)**(-3)*(R/A**4)**i for i in range(6) ]
         D = -M
         Delta = A
         a = [0]

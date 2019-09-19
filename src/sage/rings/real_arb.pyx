@@ -205,6 +205,7 @@ from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from libc.stdlib cimport abort
 
 from sage.libs.arb.arb cimport *
+from sage.libs.arb.arb_hypgeom cimport *
 from sage.libs.arb.arf cimport *
 from sage.libs.arb.arf cimport *
 from sage.libs.arb.mag cimport *
@@ -3443,6 +3444,21 @@ cdef class RealBall(RingElement):
         return res
 
     # Special functions
+
+    def erf(self):
+        """
+        Error function.
+
+        EXAMPLES::
+
+            sage: RBF(1/2).erf()
+            [0.520499877813047 +/- 6.10e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_erf(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
 
     def gamma(self):
         """

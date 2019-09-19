@@ -5300,7 +5300,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError('{} is not an edge of {} but has been '
                                  'provided as an edge of the external face'
                                  ''.format(external_face, self))
-        
+
         _triangulate(G, G._embedding)
 
         # Optional error-checking
@@ -16243,12 +16243,12 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: vertex '6' is not in the (di)graph
-            
+
         If no path exists from ``u`` to ``v`` (:trac:`28098`)::
-        
+
             sage: G = Graph()
             sage: G.add_vertices([1, 2])
-            sage: for alg in ['BFS', 'BFS_Bid', 'Dijkstra_NetworkX', 'Dijkstra_Bid_NetworkX', 
+            sage: for alg in ['BFS', 'BFS_Bid', 'Dijkstra_NetworkX', 'Dijkstra_Bid_NetworkX',
             ....:             'Dijkstra_Bid', 'Bellman-Ford_Boost']:
             ....:     G.shortest_path(1, 2, algorithm=alg)
             []
@@ -16435,9 +16435,9 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: vertex '6' is not in the (di)graph
-            
+
         If no path exists from ``u`` to ``v`` (:trac:`28098`)::
-        
+
             sage: G = Graph()
             sage: G.add_vertices([1, 2])
             sage: for alg in ['BFS', 'BFS_Bid', 'Dijkstra_NetworkX', 'Dijkstra_Bid_NetworkX',
@@ -16543,7 +16543,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: the weight function cannot find the weight of (0, 3, {'name': 'd', 'weight': 'd'})
-        
+
         Numeric string as a weight in weight_function::
 
             sage: G = Graph({0: {1: '123'}})
@@ -20341,7 +20341,7 @@ class GenericGraph(GenericGraph_pyx):
                      vertex_colors=None, vertex_size=0.06, vertex_labels=False,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,
                      pos3d=None, color_by_label=False,
-                     engine='jmol', **kwds):
+                     engine='threejs', **kwds):
         r"""
         Plot a graph in three dimensions.
 
@@ -20384,11 +20384,14 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``layout``, ``iterations``, ... -- layout options; see :meth:`layout`
 
-        - ``engine`` -- string (default: ``'jmol'``); the renderer to use among:
+        - ``engine`` -- string (default: ``'threejs'``); the renderer to use among:
 
-          -  ``'jmol'`` - default
+           * ``'threejs'``: interactive web-based 3D viewer using JavaScript
+             and a WebGL renderer
 
-          -  ``'tachyon'``
+           * ``'jmol'``: interactive 3D viewer using Java
+
+           * ``'tachyon'``: ray tracer generating a static PNG image
 
         - ``xres`` -- resolution
 
@@ -20490,7 +20493,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.has_multiple_edges() or self.has_loops():
             raise NotImplementedError("3D plotting of multiple edges or loops not implemented")
-        if engine == 'jmol':
+        if engine in ['threejs', 'jmol']:
             from sage.plot.plot3d.all import sphere, line3d, arrow3d, text3d
             from sage.plot.plot3d.texture import Texture
             kwds.setdefault('aspect_ratio', [1, 1, 1])
@@ -20581,10 +20584,9 @@ class GenericGraph(GenericGraph_pyx):
     def show3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,
                      pos3d=None, color_by_label=False,
-                     engine='jmol', **kwds):
+                     engine='threejs', **kwds):
         """
-        Plot the graph using :class:`~sage.plot.plot3d.tachyon.Tachyon`, and
-        show the resulting plot.
+        Plot the graph and show the resulting plot.
 
         INPUT:
 
@@ -20622,11 +20624,14 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``layout``, ``iterations``, ... -- layout options; see :meth:`layout`
 
-        - ``engine`` -- string (default: ``'jmol'``); the renderer to use among:
+        - ``engine`` -- string (default: ``'threejs'``); the renderer to use among:
 
-          -  ``'jmol'`` - default
+           * ``'threejs'``: interactive web-based 3D viewer using JavaScript
+             and a WebGL renderer
 
-          -  ``'tachyon'``
+           * ``'jmol'``: interactive 3D viewer using Java
+
+           * ``'tachyon'``: ray tracer generating a static PNG image
 
         - ``xres`` -- resolution
 

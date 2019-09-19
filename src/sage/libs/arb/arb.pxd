@@ -106,6 +106,8 @@ cdef extern from "arb_wrap.h":
     void arb_neg(arb_t y, const arb_t x)
     void arb_neg_round(arb_t y, const arb_t x, long prec)
     void arb_abs(arb_t x, const arb_t y)
+    void arb_min(arb_t z, const arb_t x, const arb_t y, long prec)
+    void arb_max(arb_t z, const arb_t x, const arb_t y, long prec)
     void arb_add(arb_t z, const arb_t x, const arb_t y, long prec)
     void arb_add_arf(arb_t z, const arb_t x, const arf_t y, long prec)
     void arb_add_ui(arb_t z, const arb_t x, unsigned long y, long prec)

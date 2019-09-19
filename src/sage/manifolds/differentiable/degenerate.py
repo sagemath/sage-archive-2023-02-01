@@ -1,3 +1,7 @@
+r"""
+Degenerate manifolds
+"""
+
 from sage.rings.infinity import infinity
 from sage.manifolds.structure import DegenerateStructure
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
@@ -9,10 +13,10 @@ class DegenerateManifold(DifferentiableManifold):
 
     Degenerate Manifolds
 
-    A *degenerate manifold* (or a *null manifold*) is a pair`(M,g) 
+    A *degenerate manifold* (or a *null manifold*) is a pair `(M,g)`
     where `M` is a real differentiable manifold  (see
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
-    and `g` is a field of degenerate symmetric bilinear forms on `M (see
+    and `g` is a field of degenerate symmetric bilinear forms on `M` (see
     :class:`~sage.manifolds.differentiable.metric.DegenerateMetric`).
 
     INPUT:
@@ -81,12 +85,10 @@ class DegenerateManifold(DifferentiableManifold):
     of the metric class). Both methods are also covered in the
     documentation of method :meth:`metric` below.
 
-REFERENCES:
+    REFERENCES:
 
-- [DB1996]_
-- [DS2010]_
-
-
+    - [DB1996]_
+    - [DS2010]_
     """
     def __init__(self, n, name, metric_name='g', signature=None, base_manifold=None,
                  diff_degree=infinity, latex_name=None,

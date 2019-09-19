@@ -12,15 +12,15 @@ for instance in Differential Geometry (especially in geometry of
 lightlike submanifold) and in General Relativity. In geometry of lightlike 
 submanifolds, according to the dimension `r` of the radical distribution
 (see below for definition of radical distribution), degenerate submanifolds 
-have been classify into 4 subgroups: `r-`lightlike submanifolds, Coisotropic 
+have been classify into 4 subgroups: `r`-lightlike submanifolds, Coisotropic
 submanifolds, Isotropic submanifolds and Totally lightlike submanifolds.
 (See the book of Krishan L. Duggal and Aurel Bejancu in *REFERENCES*.) 
 
 In the present module, you can definie any of the 4 types but most of the
 methods are implemented only for degenerate hypersurfaces who belong to
-`r-`lightlike submanifolds. However, their might be generalized to
-`1-`lightlike submanifolds. In the litterature there is a new approach
-(the rigging technique) for studying `1-`lightlike submanifolds but
+`r`-lightlike submanifolds. However, their might be generalized to
+`1`-lightlike submanifolds. In the litterature there is a new approach
+(the rigging technique) for studying `1`-lightlike submanifolds but
 here we we the method of Krishan L. Duggal and Aurel Bejancu base on
 the screen distribution.
 
@@ -28,7 +28,7 @@ Let `H` be a lightlike hypersurface of a pseudo-Riemannian manifold
 `(M,g)`. Then the normal bundle `T^\perp H` intersect the tangent 
 bundle `TH`. The radical distribution is defined as
 'Rad(TH)=TH\cap T^\perp H'. In case of hypersurfaces, and more
-generally `1-`lightlike submanifolds, this is a rank 1 distribution. 
+generally `1`-lightlike submanifolds, this is a rank 1 distribution. 
 A screen distribution `S(TH)` is a complementary of `Rad(TH)` in `TH`.
 
 Giving a screen distribution `S(TH)` and a null vector field `\xi` 
@@ -41,10 +41,10 @@ is giving by the formula
 
     N = \frac{1}{g(\xi, v)}\left(v-\frac{g(v,v)}{2g(xi, v)}\xi\right)
 
-Tensors on the ambient manifold 'M' are projected on 'H' along 'N'
+Tensors on the ambient manifold `M` are projected on `H` along `N`
 to obtain induced objects. For instance, induced connection is the
 linear connexion defined on H through the Levi-Civitta connection of
-'g' along `N`.
+`g` along `N`.
 
 To work on a degenerate submanifold, after defining `H` as an instance
 of :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`,
@@ -234,7 +234,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     EXAMPLES:
 
-    A `2-`dimensional degenerate submanifold of a Lorentzian manifold::
+    A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
 
         sage: M = Manifold(4, 'M', structure="Lorentzian")
         sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric') 
@@ -257,7 +257,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         EXAMPLES::
 
-        A `2-`dimensional degenerate submanifold of a Lorentzian manifold::
+        A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
 
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric') 
@@ -317,7 +317,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         TESTS::
 
-        A `2-`dimensional degenerate submanifold of a Lorentzian manifold::
+        A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
 
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric') 
@@ -385,6 +385,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         EXAMPLES:
 
         The lightcone of the 4-dimensional Minkowski space `\RR^4_1`::
+
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
@@ -435,6 +436,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         EXAMPLES:
 
         The lightcone of the 4-dimensional Minkowski space `\RR^4_1`::
+
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
@@ -521,6 +523,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         EXAMPLES:
 
         The lightcone of the 4-dimensional Minkowski space `\RR^4_1`::
+
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
@@ -742,6 +745,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         - ``screen`` -- (default: ``None``); an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
           if ``None`` default screen is used.
+
         OUTPUT:
 
         - a frame on the ambient manifold
@@ -749,6 +753,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         EXAMPLES:
 
         The lightcone of the 4-dimensional Minkowski space `\RR^4_1`::
+
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
@@ -824,6 +829,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         - ``screen`` -- (default: ``None``); an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
           if ``None`` default screen is used.
+
         OUTPUT:
 
         - a frame on the ambient manifold along the submanifold
@@ -831,6 +837,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         EXAMPLES:
 
         The lightcone of the 4-dimensional Minkowski space `\RR^4_1`::
+
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
@@ -879,7 +886,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         .. MATH::
 
-        \nabla_UV=D(U,V)+B(U,V)N
+            \nabla_UV=D(U,V)+B(U,V)N
 
         being `\nabla` the ambient connection, `D` the induced connection
         and `N` the choosen rigging.
@@ -887,12 +894,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`Screen`
-          if ``None`` default screen is used.
+          :class:`Screen`. If ``None`` default screen is used.
+
         OUTPUT:
 
-        - an instance of
-        :class:`TangentTensor`
+        - an instance of :class:`TangentTensor`
 
         EXAMPLES:
 
@@ -953,7 +959,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         vector fields `v_1,\ldots,v_r`, `T'(v_1,\ldots,v_r)` is the projection
         of  `T(v_1,\ldots,v_r)` on ``self`` along the bundle spans by the
         transversal vector fields provided by the 
-        :method:`~sage.manifolds.differentiable.degenerate_submanifold.set_transverse`
+        :meth:`~sage.manifolds.differentiable.degenerate_submanifold.set_transverse`
 
         INPUT:
 
@@ -966,6 +972,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         EXAMPLES:
 
         The lightcone of the 4-dimensional Minkowski space `\RR^4_1`::
+
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
@@ -1028,6 +1035,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         EXAMPLES:
 
         The lightcone of the 4-dimensional Minkowski space `\RR^4_1`::
+
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
@@ -1078,8 +1086,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None`` default screen is used.
+
         OUTPUT:
 
         - a scalar function on ``self``
@@ -1137,8 +1146,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None`` default screen is used.
+
         OUTPUT:
 
         - a dictionnary
@@ -1204,8 +1214,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None`` default screen is used.
+
         OUTPUT:
 
         - a dictionnary
@@ -1266,8 +1277,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None`` default screen is used.
+
         OUTPUT:
 
         - a dictionnary
@@ -1376,12 +1388,12 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         r"""
 
         This method is implemented only for hypersurfaces. 
-        *Weigarten map* is the `1-`form `W` defined for a vector field
+        *Weigarten map* is the `1`-form `W` defined for a vector field
         `U` tangent to ``self`` by 
 
         .. MATH::
 
-        W(U)=\nabla_U\xi
+            W(U)=\nabla_U\xi
 
         being `\nabla` the Levi-Civita connection of the ambient manifold
         and `\xi` the choosen vector field spanning the radical distribution.
@@ -1389,8 +1401,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None`` default screen is used.
+
         OUTPUT:
 
         - a dictionnary
@@ -1435,12 +1448,12 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         r"""
 
         This method is implemented only for hypersurfaces. 
-        *Weigarten map* is the `1-`form `W` defined for a vector field
+        *Weigarten map* is the `1`-form `W` defined for a vector field
         `U` tangent to ``self`` by 
 
         .. MATH::
 
-        W(U)=\nabla_U\xi
+            W(U)=\nabla_U\xi
 
         being `\nabla` the Levi-Civita connection of the ambient manifold
         and `\xi` the choosen vector field spanning the radical distribution.
@@ -1448,8 +1461,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None`` default screen is used.
+
         OUTPUT:
 
         - tensor of type `(1,1)` instance of
@@ -1508,8 +1522,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None`` default screen is used.
+
         OUTPUT:
 
         - tensor of type `(1,1)` instance of
@@ -1563,7 +1578,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         r"""
 
         This method is implemented only for hypersurfaces. 
-        *rotation one form* is the `1-`form `\tau` such that for any
+        *rotation one form* is the `1`-form `\tau` such that for any
         vector field `U` tangent to ``self``, the Weingarten map `W`
         and the shape operator `A^*` are related by
 
@@ -1576,8 +1591,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`Screen`
-          if ``None`` default screen is used.
+          :class:`Screen`. If ``None`` default screen is used.
+
         OUTPUT:
 
         - tensor of type `(0,1)` instance of

@@ -1535,15 +1535,31 @@ cdef class Expression(CommutativeRingElement):
         # Note that we deliberately don't use _eval_self and don't try going
         # through RIF/CIF in order to avoid unsafe conversions.
         operator = self.operator()
-        try:
-            if operator is None:
+        # Constants
+        if operator is None:
+            try:
                 return R(self.pyobject())
+            except (TypeError, ValueError):
+                pass
+        else:
+            # Intended for BuiltinFunctions with a well-defined main argument
+            args = self.operands()
+            try:
+                args = operator._method_arguments(*args)
+                method = getattr(R(args[0]), operator.name())
+            except (AttributeError, TypeError):
+                pass
             else:
-                res = self.operator()(*[R(operand) for operand in self.operands()])
+                if callable(method):
+                    return method(*args[1:])
+            # Generic case: walk through the expression
+            try:
+                res = self.operator()(*[R(a) for a in args])
+            except (TypeError, ValueError):
+                pass
+            else:
                 if res.parent() is R:
                     return res
-        except (TypeError, ValueError):
-            pass
         # Typically more informative and consistent than the exceptions that
         # would propagate
         raise TypeError("unable to convert {!r} to a {!s}".format(

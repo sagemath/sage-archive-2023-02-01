@@ -625,10 +625,10 @@ class ComplexBallField(UniqueRepresentation, Field):
             [0.1352924163128814 +/- 4.17e-17]
             sage: a.overlaps(ComplexBallField(100).one().airy_ai())
             True
-            sage: CBF(zetaderiv(1, 3/2))
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert zetaderiv(1, 3/2) to a ComplexBall
+            sage: v = CBF(zetaderiv(1, 3/2)); v
+            [-3.932239737431101 +/- 5.58e-16]
+            sage: v.overlaps(ComplexBallField(100)(3/2).zetaderiv(1))
+            True
         """
         try:
             return self.element_class(self, x, y)

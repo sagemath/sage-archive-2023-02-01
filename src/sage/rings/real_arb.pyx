@@ -521,10 +521,11 @@ class RealBallField(UniqueRepresentation, Field):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert airy_ai(1) to a RealBall
-            sage: RBF(zetaderiv(1, 3/2))
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert zetaderiv(1, 3/2) to a RealBall
+            sage: v = RBF(zetaderiv(1, 3/2)); v
+            [-3.932239737431101 +/- 5.58e-16]
+            sage: v.overlaps(RealBallField(100)(3/2).zetaderiv(1))
+            True
+
         """
         # Symbolic expressions are handled in a special way, see
         # Expression._arb_(). A call like RBF(expr, rad) converts expr to a

@@ -139,15 +139,15 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
             sage: P = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
             sage: p = P._ehrhart_polynomial_latte()    # optional - latte_int
-            sage: p                             # optional - latte_int
+            sage: p                                    # optional - latte_int
             7/2*t^3 + 2*t^2 - 1/2*t + 1
-            sage: p(1)                          # optional - latte_int
+            sage: p(1)                                 # optional - latte_int
             6
-            sage: len(P.integral_points())
+            sage: len(P.integral_points())             # optional - latte_int
             6
-            sage: p(2)                          # optional - latte_int
+            sage: p(2)                                 # optional - latte_int
             36
-            sage: len((2*P).integral_points())
+            sage: len((2*P).integral_points())         # optional - latte_int
             36
 
         The unit hypercubes::
@@ -248,12 +248,12 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         EXAMPLES::
 
             sage: c = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
-            sage: c._ehrhart_polynomial_normaliz()  # optional - pynormaliz
+            sage: c._ehrhart_polynomial_normaliz()             # optional - pynormaliz
             t^3 + 3*t^2 + 3*t + 1
 
         Changing the variable works::
 
-            sage: c._ehrhart_polynomial_normaliz(variable='k')
+            sage: c._ehrhart_polynomial_normaliz(variable='k') # optional - pynormaliz
             k^3 + 3*k^2 + 3*k + 1
 
         TESTS:
@@ -261,7 +261,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         Receive a type error if the backend is not normaliz::
 
             sage: c = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]])
-            sage: c._ehrhart_polynomial_normaliz()
+            sage: c._ehrhart_polynomial_normaliz()             # optional - pynormaliz
             Traceback (most recent call last):
             ...
             TypeError: The polyhedron's backend should be 'normaliz'
@@ -343,31 +343,31 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
             sage: poly = simplex.ehrhart_polynomial(engine = 'latte')  # optional - latte_int
-            sage: poly                         
+            sage: poly                                                 # optional - latte_int 
             7/2*t^3 + 2*t^2 - 1/2*t + 1
-            sage: poly(1)                          
+            sage: poly(1)                                              # optional - latte_int
             6
-            sage: len(simplex.integral_points())
+            sage: len(simplex.integral_points())                       # optional - latte_int
             6
-            sage: poly(2)  
+            sage: poly(2)                                              # optional - latte_int
             36
-            sage: len((2*simplex).integral_points())
+            sage: len((2*simplex).integral_points())                   # optional - latte_int
             36
         
         Now we find the same Ehrhart polynomial, this time using
         ``engine='normaliz'``. To use the Normaliz engine, the ``simplex`` must 
         be defined with ``backend='normaliz'``::
 
-            sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') #optioanl - pynormaliz
-            sage: poly = simplex.ehrhart_polynomial(engine='normaliz') #optional - pynormaliz
-            sage: poly                         
+            sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') # optional - pynormaliz
+            sage: poly = simplex.ehrhart_polynomial(engine='normaliz') # optional - pynormaliz
+            sage: poly                                                 # optional - pynormaliz
             7/2*t^3 + 2*t^2 - 1/2*t + 1
 
         If the ``engine='normaliz'``, the backend should be ``'normaliz'``, otherwise
         it returns an error::
 
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
-            sage: simplex.ehrhart_polynomial(engine='normaliz')
+            sage: simplex.ehrhart_polynomial(engine='normaliz')        # optional - pynormaliz
             Traceback (most recent call last):
             ...
             TypeError: The polyhedron's backend should be 'normaliz'
@@ -384,22 +384,22 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             ....:     return Polyhedron(vertices=list(product([0,1],repeat=d)))
             sage: hypercube(3).ehrhart_polynomial()   # optional - latte_int
             t^3 + 3*t^2 + 3*t + 1
-            sage: hypercube(4).ehrhart_polynomial()   
+            sage: hypercube(4).ehrhart_polynomial()   # optional - latte_int
             t^4 + 4*t^3 + 6*t^2 + 4*t + 1
-            sage: hypercube(5).ehrhart_polynomial()  
+            sage: hypercube(5).ehrhart_polynomial()   # optional - latte_int
             t^5 + 5*t^4 + 10*t^3 + 10*t^2 + 5*t + 1
-            sage: hypercube(6).ehrhart_polynomial()
+            sage: hypercube(6).ehrhart_polynomial()   # optional - latte_int
             t^6 + 6*t^5 + 15*t^4 + 20*t^3 + 15*t^2 + 6*t + 1
 
             sage: def hypercube(d):
             ....:     return Polyhedron(vertices=list(product([0,1],repeat=d)),backend='normaliz') # optional - pynormaliz
-            sage: hypercube(3).ehrhart_polynomial(engine='normaliz')   
+            sage: hypercube(3).ehrhart_polynomial(engine='normaliz') # optional - pynormaliz 
             t^3 + 3*t^2 + 3*t + 1
-            sage: hypercube(4).ehrhart_polynomial(engine='normaliz')  
+            sage: hypercube(4).ehrhart_polynomial(engine='normaliz') # optional - pynormaliz
             t^4 + 4*t^3 + 6*t^2 + 4*t + 1
-            sage: hypercube(5).ehrhart_polynomial(engine='normaliz') 
+            sage: hypercube(5).ehrhart_polynomial(engine='normaliz') # optional - pynormaliz
             t^5 + 5*t^4 + 10*t^3 + 10*t^2 + 5*t + 1
-            sage: hypercube(6).ehrhart_polynomial(engine='normaliz')  
+            sage: hypercube(6).ehrhart_polynomial(engine='normaliz') # optional - pynormaliz
             t^6 + 6*t^5 + 15*t^4 + 20*t^3 + 15*t^2 + 6*t + 1
 
         An empty polyhedron::
@@ -410,7 +410,13 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: parent(_)                
             Univariate Polynomial Ring in t over Rational Field
 
-        TESTS::
+        The polyhedron should be compact::
+
+            sage: C = Polyhedron(rays=[[1,2],[2,1]])
+            sage: C.ehrhart_polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: Ehrhart polynomial only defined for compact polyhedra
         """
         if self.is_empty():
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

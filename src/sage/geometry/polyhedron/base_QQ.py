@@ -290,25 +290,25 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
             sage: simplex = simplex.change_ring(QQ)
             sage: poly = simplex.ehrhart_polynomial(engine='latte')  # optional - latte_int
-            sage: poly                         
-            7/2*t^3 + 2*t^2 - 1/2*t + 1
-            sage: poly(1)                          
-            6
-            sage: len(simplex.integral_points())
-            6
-            sage: poly(2)  
-            36
-            sage: len((2*simplex).integral_points())
+            sage: poly                                               # optional - latte_int
+            7/2*t^3 + 2*t^2 - 1/2*t + 1                                                                                                                         
+            sage: poly(1)                                            # optional - latte_int
+            6                                                                                                                                                   
+            sage: len(simplex.integral_points())                     # optional - latte_int
+            6                                                                                                                                                   
+            sage: poly(2)                                            # optional - latte_int
+            36                                                                                                                                                  
+            sage: len((2*simplex).integral_points())                 # optional - latte_int
             36
         
         Now we find the same Ehrhart polynomial, this time using
         ``engine='normaliz'``. To use the Normaliz engine, the ``simplex`` must 
         be defined with ``backend='normaliz'``::
 
-            sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') #optional - pynormaliz
-            sage: simplex = simplex.change_ring(QQ)
-            sage: poly = simplex.ehrhart_polynomial(engine = 'normaliz') #optional - pynormaliz
-            sage: poly                         
+            sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') # optional - pynormaliz
+            sage: simplex = simplex.change_ring(QQ)                                                       # optional - pynormaliz
+            sage: poly = simplex.ehrhart_polynomial(engine = 'normaliz')                                  # optional - pynormaliz
+            sage: poly                                                                                    # optional - pynormaliz
             7/2*t^3 + 2*t^2 - 1/2*t + 1
 
         If the ``engine='normaliz'``, the backend should be ``'normaliz'``, otherwise
@@ -316,10 +316,27 @@ class Polyhedron_QQ(Polyhedron_base):
 
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
             sage: simplex = simplex.change_ring(QQ)
-            sage: simplex.ehrhart_polynomial(engine='normaliz')
+            sage: simplex.ehrhart_polynomial(engine='normaliz')  # optional - pynormaliz
             Traceback (most recent call last):
             ...
             TypeError: The backend of ``self`` should be 'normaliz'
+
+        The polyhedron should be compact::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
+            sage: C = C.change_ring(QQ)                                  # optional - pynormaliz
+            sage: C.ehrhart_polynomial()                                 # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            ValueError: Ehrhart polynomial only defined for compact polyhedra
+        
+        The polyhedron should have integral vertices::
+
+            sage: L = Polyhedron(vertices = [[0],[1/2]])
+            sage: L.ehrhart_polynomial()
+            Traceback (most recent call last):
+            ...
+            TypeError: the polytope has nonintegral vertices, use ehrhart_quasipolynomial with backend 'normaliz'
         """
         #check if ``self`` is compact and has vertices in ZZ
         if self.is_empty():
@@ -366,7 +383,7 @@ class Polyhedron_QQ(Polyhedron_base):
         If the polyhedron  has rational, nonintegral vertices, returns a tuple 
         of polynomials in ``variable`` over a rational field.
         The Ehrhart counting function of a polytope `P` with rational 
-        vertices is given by a *quasi-polynomial*. That is, there exists a 
+        vertices is given by a *quasipolynomial*. That is, there exists a 
         positive integer `l` and `l` polynomials 
         `ehr_{P,i} \text{ for } i \in \{1,\dots,l \}` such that if `t` is 
         equivalent to `i` mod `l` then `tP \cap \mathbb Z^d = ehr_{P,i}(t)`. 
@@ -426,17 +443,17 @@ class Polyhedron_QQ(Polyhedron_base):
         
         EXAMPLES:
 
-        As a first example, consider the line segment ` ``line_seg``=[0,1/2]`. If we
+        As a first example, consider the line segment [0,1/2]. If we
         dilate this line segment by an even integeral factor `k`, 
         then the dilated line segment will contain `k/2 +1` lattice points. 
         If `k` is odd then there will be `k/2+1/2` lattice points in 
         the dilated line segment. Note that it is necessary to set the 
         backend of the polytope to 'normaliz':: 
         
-            sage: line_seg = Polyhedron(vertices=[[0],[1/2]],backend='normaliz')
-            sage: line_seg
+            sage: line_seg = Polyhedron(vertices=[[0],[1/2]],backend='normaliz') # optional - pynormaliz
+            sage: line_seg                                                       # optional - pynormaliz
             A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
-            sage: line_seg.ehrhart_quasipolynomial()
+            sage: line_seg.ehrhart_quasipolynomial()                             # optional - pynormaliz
             (1/2*t + 1, 1/2*t + 1/2)
 
         For a more exciting example, let us look at the subpolytope of the 
@@ -448,45 +465,52 @@ class Polyhedron_QQ(Polyhedron_base):
             ....:  [5/2, 1, 4, 5/2],
             ....:  [5/2, 4, 1, 5/2],
             ....:  [7/2, 1, 2, 7/2],
-            ....:  [7/2, 2, 1, 7/2]], backend = 'normaliz')
-            sage: eq = subpoly.ehrhart_quasipolynomial()
-            sage: eq
+            ....:  [7/2, 2, 1, 7/2]], backend = 'normaliz') # optional - pynormaliz
+            sage: eq = subpoly.ehrhart_quasipolynomial()    # optional - pynormaliz
+            sage: eq                                        # optional - pynormaliz
             (4*t^2 + 3*t + 1, 4*t^2 + 2*t)
-            sage: eq = subpoly.ehrhart_quasipolynomial()
-            sage: eq
+            sage: eq = subpoly.ehrhart_quasipolynomial()    # optional - pynormaliz
+            sage: eq                                        # optional - pynormaliz
             (4*t^2 + 3*t + 1, 4*t^2 + 2*t)
-            sage: even_ep = eq[0]
-            sage: odd_ep  = eq[1]
-            sage: even_ep(2)
-            23
-            sage: ts = 2*subpoly
-            sage: ts.integral_points_count()
-            23
-            sage: odd_ep(1)
-            6
-            sage: subpoly.integral_points_count()
+            sage: even_ep = eq[0]                           # optional - pynormaliz
+            sage: odd_ep  = eq[1]                           # optional - pynormaliz                     
+            sage: even_ep(2)                                # optional - pynormaliz                      
+            23                                                                    
+            sage: ts = 2*subpoly                            # optional - pynormaliz
+            sage: ts.integral_points_count()                # optional - pynormaliz
+            23                                                                    
+            sage: odd_ep(1)                                 # optional - pynormaliz 
+            6                                                                     
+            sage: subpoly.integral_points_count()           # optional - pynormaliz
             6
 
         A polytope with rational nonintegral vertices must have 
         ``backend``='normaliz'::
+
             sage: line_seg = Polyhedron(vertices=[[0],[1/2]])
             sage: line_seg.ehrhart_quasipolynomial()
             Traceback (most recent call last):
             ...
             TypeError: The backend of ``self`` should be 'normaliz'
 
+        The polyhedron should be compact::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1/2,2],[2,1]])  # optional - pynormaliz
+            sage: C.ehrhart_quasipolynomial()                              # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            ValueError: Ehrhart quasipolynomial only defined for compact polyhedra
 
         If the polytope happens to be a lattice polytope, the Ehrhart
         polynomial is returned:: 
 
-            sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz')
-            sage: simplex = simplex.change_ring(QQ)
-            sage: poly = simplex.ehrhart_quasipolynomial(engine='normaliz')
-            sage: poly
+            sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') # optional - pynormaliz
+            sage: simplex = simplex.change_ring(QQ)                                                       # optional - pynormaliz
+            sage: poly = simplex.ehrhart_quasipolynomial(engine='normaliz')                               # optional - pynormaliz
+            sage: poly                                                                                    # optional - pynormaliz
             7/2*t^3 + 2*t^2 - 1/2*t + 1
-            sage: simplex.ehrhart_polynomial()
+            sage: simplex.ehrhart_polynomial()                                                            # optional - pynormaliz
             7/2*t^3 + 2*t^2 - 1/2*t + 1
-
         """
         if self.is_empty():
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -518,8 +542,8 @@ class Polyhedron_QQ(Polyhedron_base):
 
     def _ehrhart_quasipolynomial_normaliz(self, variable='t'):
         r"""
-        Compute the Ehrhart polynomial of a lattice polytope using the Normaliz
-        engine.
+        Compute the Ehrhart quasipolynomial of a lattice or rational polytope 
+        using the Normaliz engine.
 
         INPUT:
 
@@ -528,7 +552,8 @@ class Polyhedron_QQ(Polyhedron_base):
 
         OUTPUT:
 
-        A univariate polynomial over a rational field. 
+        A univariate polynomial over a rational field or a tuple of such 
+        polynomials.
 
         EXAMPLES:
 
@@ -540,29 +565,26 @@ class Polyhedron_QQ(Polyhedron_base):
             ....:  [5/2, 1, 4, 5/2],
             ....:  [5/2, 4, 1, 5/2],
             ....:  [7/2, 1, 2, 7/2],
-            ....:  [7/2, 2, 1, 7/2]], backend = 'normaliz')
-            sage: eq = subpoly.ehrhart_quasipolynomial()
-            sage: eq
+            ....:  [7/2, 2, 1, 7/2]], backend = 'normaliz')         # optional - pynormaliz
+            sage: eq = subpoly._ehrhart_quasipolynomial_normaliz()  # optional - pynormaliz
+            sage: eq                                                # optional - pynormaliz
             (4*t^2 + 3*t + 1, 4*t^2 + 2*t)
-            sage: eq = subpoly.ehrhart_quasipolynomial()
-            sage: eq
-            (4*t^2 + 3*t + 1, 4*t^2 + 2*t)
-            sage: even_ep = eq[0]
-            sage: odd_ep  = eq[1]
-            sage: even_ep(2)
+            sage: even_ep = eq[0]                                   # optional - pynormaliz
+            sage: odd_ep  = eq[1]                                   # optional - pynormaliz
+            sage: even_ep(2)                                        # optional - pynormaliz
             23
-            sage: ts = 2*subpoly
-            sage: ts.integral_points_count()
+            sage: ts = 2*subpoly                                    # optional - pynormaliz
+            sage: ts.integral_points_count()                        # optional - pynormaliz 
             23
-            sage: odd_ep(1)
+            sage: odd_ep(1)                                         # optional - pynormaliz
             6
-            sage: subpoly.integral_points_count()
+            sage: subpoly.integral_points_count()                   # optional - pynormaliz
             6
 
         TESTS::
 
             sage: line_seg = Polyhedron(vertices=[[0],[1/2]])
-            sage: line_seg._ehrhart_quasipolynomial_normaliz()
+            sage: line_seg._ehrhart_quasipolynomial_normaliz()      # optional - pynormaliz
             Traceback (most recent call last):
             ...
             TypeError: The backend of ``self`` should be 'normaliz'
@@ -642,15 +664,15 @@ class Polyhedron_QQ(Polyhedron_base):
 
             sage: P = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
             sage: p = P._ehrhart_polynomial_latte()    # optional - latte_int
-            sage: p                             # optional - latte_int
+            sage: p                                    # optional - latte_int
             7/2*t^3 + 2*t^2 - 1/2*t + 1
-            sage: p(1)                          # optional - latte_int
+            sage: p(1)                                 # optional - latte_int
             6
-            sage: len(P.integral_points())
+            sage: len(P.integral_points())             # optional - latte_int
             6
-            sage: p(2)                          # optional - latte_int
+            sage: p(2)                                 # optional - latte_int
             36
-            sage: len((2*P).integral_points())
+            sage: len((2*P).integral_points())         # optional - latte_int
             36
 
         The unit hypercubes::

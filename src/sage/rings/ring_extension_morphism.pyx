@@ -59,6 +59,7 @@ def backend_morphism(f, forget="all"):
             g = RingExtensionBackendReverseIsomorphism(f.codomain().Hom(ring)) * g
     return g
 
+# I don't trust the operator ==
 def are_equal_morphisms(f, g):
     if f is None and g is None:
         return True
@@ -204,10 +205,11 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
                 base_map = self * domain.coerce_map_from(base)
         elif isinstance(base_map, dict):
             base_map = base.hom(**self._base_map_construction)
-        if not(base_map is None or are_equal_morphisms(backend_morphism(base_map), None)):
-            if base_map.codomain() is not self.codomain():
-                base_map = base_map.extend_codomain(self.codomain())
-            return base_map
+        if base_map is None or are_equal_morphisms(backend_morphism(base_map), None):
+            return None
+        if base_map.codomain() is not self.codomain():
+            base_map = base_map.extend_codomain(self.codomain())
+        return base_map
 
     cpdef _richcmp_(self, other, int op):
         return self._backend()._richcmp_(backend_morphism(other), op)
@@ -244,6 +246,8 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
         domain = right.domain()
         codomain = self.codomain()
         backend_right = backend_morphism(right)
+        if self._backend_morphism is None:
+            print(self)
         backend = self._backend_morphism * backend_right
         if isinstance(domain, RingExtension_class) or isinstance(codomain, RingExtension_class):
             return RingExtensionHomomorphism(domain.Hom(codomain), backend)
@@ -260,7 +264,7 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
         return slots
 
 
-class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
+cdef class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
     def __init__(self, parent):
         RingHomomorphism.__init__(self, parent)
         domain = self.domain()
@@ -272,22 +276,12 @@ class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
     def _repr_defn(self):
         return ""
 
-    def _call_(self, x):
+    cpdef Element _call_(self, x):
         codomain = self.codomain()
         return codomain.element_class(codomain, x)
 
-    # Why is it needed???
-    def _backend(self):
-        return self._backend_morphism
 
-    def is_injective(self):
-        return True
-
-    def is_surjective(self):
-        return True
-
-
-class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
+cdef class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
     def __init__(self, parent):
         RingHomomorphism.__init__(self, parent)
         codomain = self.codomain()
@@ -299,18 +293,8 @@ class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
     def _repr_defn(self):
         return ""
 
-    def _call_(self, x):
+    cpdef Element _call_(self, x):
         return x._backend()
-
-    # Why is it needed???
-    def _backend(self):
-        return self._backend_morphism
-
-    def is_injective(self):
-        return True
-
-    def is_surjective(self):
-        return True
 
 
 class MapVectorSpaceToRelativeField(Map):

@@ -199,11 +199,14 @@ class Rings(CategoryWithAxiom):
             from sage.rings.morphism import RingHomomorphism_from_fraction_field
             if self.domain().is_field() and self.codomain().is_field():
                 return self
-            if not self.is_injective():
-                raise ValueError("the morphism is not injective")
+            try:
+                if self.is_injective():
+                    raise ValueError("the morphism is not injective")
+            except NotImplementedError:   # we trust the user
+                pass
             domain = self.domain().fraction_field()
             codomain = self.codomain().fraction_field()
-            parent = domain.Hom(codomain)  # category = ...
+            parent = domain.Hom(codomain)  # category = category=self.category_for() ???
             return RingHomomorphism_from_fraction_field(parent, self)
 
 

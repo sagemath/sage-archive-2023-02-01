@@ -1595,7 +1595,12 @@ cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
         self._morphism = morphism
 
     cpdef Element _call_(self, x):
-        return self._morphism(x.numerator()) / self._morphism(x.denominator())
+        denom = x.denominator()
+        try:
+            num = x.numerator()
+        except AttributeError:
+            num = x * denom
+        return self._morphism(num) / self._morphism(denom)
 
     cdef _update_slots(self, dict _slots):
         self._morphism = _slots['__morphism']

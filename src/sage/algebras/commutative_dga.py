@@ -2520,7 +2520,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                     nbasis.append(g)
                 nimags = nbasis
                 ndegrees = [degree for j in nbasis]
-                return extend(phi, ndegrees, [B.zero() for g in nimags],
+                return extend(phi, ndegrees, [B.zero() for nimag in nimags],
                               nimags, nnames)
             return phi
 
@@ -2716,7 +2716,7 @@ class DifferentialGCAlgebra(GCAlgebra):
         For a precise definition and properties, see [Man2019]_ .
 
         """
-        M = self.minimal_model(max_degree, max_iterations)
+        self.minimal_model(max_degree, max_iterations)
         return {i: self._numerical_invariants[i]
                 for i in range(1, max_degree + 1)}
 
@@ -2764,19 +2764,17 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         If the numerical invariants match, the `\psi` condition is checked.
         """
-        from sage.misc.flatten import flatten
         phi = self.minimal_model(i, max_iterations)
         M = phi.domain()
         H = M.cohomology_algebra(i + 1)
         try:
-            MH = H.minimal_model(i, max_iterations)
+            H.minimal_model(i, max_iterations)
         except ValueError:  # If we could compute the minimal model in max_iterations
             return False    # but not for the cohomology, the invariants are distinct
         N1 = self.numerical_invariants(i, max_iterations)
         N2 = H.numerical_invariants(i, max_iterations)
         if any(N1[n] != N2[n] for n in range(1, i + 1)):
             return False    # numerical invariants don't match
-        P = M._QuotientRing_nc__R
         subsdict = {y.lift(): 0 for y in M.gens() if not y.differential().is_zero()}
         tocheck = [M(g.differential().lift().subs(subsdict)) for g in M.gens()]
         if all(c.is_coboundary() for c in tocheck):

@@ -30,7 +30,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         if not isinstance(parent, RingExtension_class):
             raise TypeError("%s is not a ring extension" % parent)
         if isinstance(x, RingExtensionElement):
-            x = x._backend()
+            x = (<RingExtensionElement>x)._backend
         try:
             parentx = x.parent()
             if parent.base().has_coerce_map_from(parentx):
@@ -39,11 +39,11 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         except AttributeError:
             pass
         Element.__init__(self, parent)
-        ring = parent._backend()
-        self._element = ring(x, *args, **kwds)
+        ring = parent._backend
+        self._backend = ring(x, *args, **kwds)
 
     def __hash__(self):
-        return hash(self._element)
+        return hash(self._backend)
 
     def _repr_(self):
         r"""
@@ -65,7 +65,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: x._repr_()
             'z4'
         """
-        return str(self._element)
+        return str(self._backend)
 
     def _latex_(self):
         r"""
@@ -88,15 +88,12 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             'z_{4}'
         """
         from sage.misc.latex import latex
-        return str(latex(self._element))
-
-    def _backend(self):
-        return self._element
+        return str(latex(self._backend))
 
     cpdef _richcmp_(left, right, int op):
         if isinstance(right, RingExtensionElement):
-            right = right._backend()
-        return left._element._richcmp_(right, op)
+            right = (<RingExtensionElement>right)._backend
+        return left._backend._richcmp_(right, op)
 
     cpdef _add_(self,other):
         r"""
@@ -111,10 +108,10 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x+y).parent() is E
             True
         """
-        return self._parent(self._element + other._backend())
+        return self._parent(self._backend + (<RingExtensionElement>other)._backend)
 
     cpdef _neg_(self):
-        return self._parent(-self._element)
+        return self._parent(-self._backend)
 
     cpdef _sub_(self,other):
         r"""
@@ -129,7 +126,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x-y).parent() is E
             True
         """
-        return self._parent(self._element - other._backend())
+        return self._parent(self._backend - (<RingExtensionElement>other)._backend)
 
     cpdef _mul_(self,other):
         r"""
@@ -144,13 +141,13 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x*y).parent() is E
             True
         """
-        return self._parent(self._element * other._backend())
+        return self._parent(self._backend * (<RingExtensionElement>other)._backend)
 
     cpdef _div_(self,other):
-        return self._parent.fraction_field()(self._element / other._backend())
+        return self._parent.fraction_field()(self._backend / (<RingExtensionElement>other)._backend)
 
     cpdef _floordiv_(self, other):
-        return self._parent(self._element // other._backend())
+        return self._parent(self._backend // (<RingExtensionElement>other)._backend)
 
     def additive_order(self):
         r"""
@@ -166,7 +163,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: x.additive_order()
             5
         """
-        return self._element.additive_order()
+        return self._backend.additive_order()
 
     def multiplicative_order(self):
         r"""
@@ -182,7 +179,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: x.multiplicative_order()
             624
         """
-        return self._element.multiplicative_order()
+        return self._backend.multiplicative_order()
 
     def is_unit(self):
         r"""
@@ -198,7 +195,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: E(x).is_unit()
             False
         """
-        return self._element.is_unit()
+        return self._backend.is_unit()
 
     def is_nilpotent(self):
         r"""
@@ -214,7 +211,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: E(x).is_nilpotent()
             False
         """
-        return self._element.is_nilpotent()
+        return self._backend.is_nilpotent()
 
     def is_prime(self):
         r"""
@@ -230,7 +227,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: E(x^2-1).is_prime()
             False
         """
-        return self._element.is_prime()
+        return self._backend.is_prime()
 
 
 
@@ -316,8 +313,8 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         from sage.matrix.matrix_space import MatrixSpace
         parent = self._parent
         _, _, j = parent._free_module(base, map=True)
-        x = self._backend()
-        M = [ j(x * b._backend()) for b in parent.basis(base) ]
+        x = self._backend
+        M = [ j(x * (<RingExtensionElement>b)._backend) for b in parent._basis_over(base) ]
         return MatrixSpace(base, len(M))(M)
 
     def trace(self, base=None):

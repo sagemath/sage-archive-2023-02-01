@@ -22,6 +22,7 @@ from sage.rings.ring_extension import _common_base
 def _backend_morphism(f):
     from sage.categories.map import FormalCompositeMap
     from sage.categories.morphism import IdentityMorphism
+    domain = f.domain()
     if not isinstance(f.domain(), RingExtension_class) and not isinstance(f.codomain(), RingExtension_class):
         return f
     elif isinstance(f, RingExtensionHomomorphism):
@@ -29,10 +30,15 @@ def _backend_morphism(f):
     elif isinstance(f, FormalCompositeMap):
         return _backend_morphism(f.then()) * _backend_morphism(f.first())
     elif isinstance(f, IdentityMorphism):
-        ring = f.domain()._backend()
+        ring = domain._backend()
         return ring.Hom(ring).identity()
-    else:
-        raise NotImplementedError
+    elif domain is domain.base_ring():
+        ring = f.codomain()
+        if isinstance(ring, RingExtension_class):
+            ring = ring._backend()
+        if ring.has_coerce_map_from(domain):
+            return ring.coerce_map_from(domain)
+    raise NotImplementedError
 
 def backend_morphism(f, forget="all"):
     try:
@@ -47,11 +53,24 @@ def backend_morphism(f, forget="all"):
         g = f
         if (forget == "all" or forget == "domain") and isinstance(f.domain(), RingExtension_class):
             ring = f.domain()._backend()
-            g = g * RingExtensionHomomorphism(ring.Hom(f.domain()), ring.Hom(ring).identity())
+            g = g * RingExtensionBackendIsomorphism(ring.Hom(f.domain()))
         if (forget == "all" or forget == "codomain") and isinstance(f.codomain(), RingExtension_class):
             ring = f.codomain()._backend()
-            g = RingExtensionHomomorphism(f.codomain().Hom(ring), ring.Hom(ring).identity()) * g
+            g = RingExtensionBackendReverseIsomorphism(f.codomain().Hom(ring)) * g
     return g
+
+def are_equal_morphisms(f, g):
+    if f is None and g is None:
+        return True
+    if f is None:
+        f, g = g, f
+    if g is None:
+        for x in f.domain().gens():
+            if f(x) != x: return False
+    else:
+        for x in f.domain().gens():
+            if f(x) != g(x): return False
+    return True
 
 
 # Classes
@@ -175,6 +194,8 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
     def base_map(self):
         domain = self.domain()
         base = domain.base_ring()
+        if base is base.base_ring():
+            return None
         base_map = self._base_map_construction
         if base_map is False:
             if base is domain:
@@ -183,7 +204,7 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
                 base_map = self * domain.coerce_map_from(base)
         elif isinstance(base_map, dict):
             base_map = base.hom(**self._base_map_construction)
-        if base_map is not None and base_map != base_map.codomain().coerce_map_from(base):
+        if not(base_map is None or are_equal_morphisms(backend_morphism(base_map), None)):
             if base_map.codomain() is not self.codomain():
                 base_map = base_map.extend_codomain(self.codomain())
             return base_map
@@ -237,6 +258,59 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
         slots = RingHomomorphism._extra_slots(self)
         slots['_backend_morphism'] = self._backend_morphism
         return slots
+
+
+class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
+    def __init__(self, parent):
+        RingHomomorphism.__init__(self, parent)
+        domain = self.domain()
+        self._backend_morphism = domain.Hom(domain).identity()
+
+    def _repr_type(self):
+        return "Coercion"
+
+    def _repr_defn(self):
+        return ""
+
+    def _call_(self, x):
+        codomain = self.codomain()
+        return codomain.element_class(codomain, x)
+
+    # Why is it needed???
+    def _backend(self):
+        return self._backend_morphism
+
+    def is_injective(self):
+        return True
+
+    def is_surjective(self):
+        return True
+
+
+class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
+    def __init__(self, parent):
+        RingHomomorphism.__init__(self, parent)
+        codomain = self.codomain()
+        self._backend_morphism = codomain.Hom(codomain).identity()
+
+    def _repr_type(self):
+        return "Canonical"
+
+    def _repr_defn(self):
+        return ""
+
+    def _call_(self, x):
+        return x._backend()
+
+    # Why is it needed???
+    def _backend(self):
+        return self._backend_morphism
+
+    def is_injective(self):
+        return True
+
+    def is_surjective(self):
+        return True
 
 
 class MapVectorSpaceToRelativeField(Map):

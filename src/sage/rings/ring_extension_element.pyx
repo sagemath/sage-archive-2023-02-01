@@ -42,6 +42,9 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         ring = parent._backend()
         self._element = ring(x, *args, **kwds)
 
+    def __hash__(self):
+        return hash(self._element)
+
     def _repr_(self):
         r"""
         Return a string representation of this element
@@ -230,6 +233,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         return self._element.is_prime()
 
 
+
 cdef class RingExtensionWithBasisElement(RingExtensionElement):
     @cached_method
     def _repr_(self):
@@ -290,10 +294,10 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             degree *= reldeg
             degrees.append(reldeg)
             if b is b.base_ring():
-                raise ValueError("(%s) is not defined over (%s)" % (self, base))
+                raise ValueError("not defined over (%s)" % (self, base))
             b = b.base_ring()
-        v = self.vector(base)
         coeffs = { }
+        v = self.vector(base)
         S = PolynomialRing(base, len(degrees), names=var)
         for i in range(degree):
             ii = ZZ(i)
@@ -305,38 +309,44 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         return S(coeffs)
 
     def matrix(self, base=None):
+        base = self._parent._check_base(base)
+        return self._matrix(base)
+
+    def _matrix(self, base):
         from sage.matrix.matrix_space import MatrixSpace
         parent = self._parent
-        if base is None:
-            base = parent._base
-        _, _, j = parent.free_module(base, map=True)
+        _, _, j = parent._free_module(base, map=True)
         x = self._backend()
         M = [ j(x * b._backend()) for b in parent.basis(base) ]
         return MatrixSpace(base, len(M))(M)
 
     def trace(self, base=None):
-        if base is None or base is self._parent._base:
-            return self.matrix().trace()
-        t = self
-        b = self._parent
-        while b is not base:
-            t = t.trace()
-            if b is b.base_ring():
-                raise ValueError("(%s) is not defined over (%s)" % (self, base))
-            b = b.base_ring()
-        return t
+        base = self._parent._check_base(base)
+        return self._trace(base)
+
+    def _trace(self, base):
+        parent = self._parent
+        if base is parent:
+            return self
+        b = parent.base_ring()
+        t = self._matrix(b).trace()
+        if base is b:
+            return t
+        return t._trace(base)
 
     def norm(self, base=None):
-        if base is None or base is self._parent._base:
-            return self.matrix().determinant()
-        n = self
-        b = self._parent
-        while b is not base:
-            n = n.norm()
-            if b is b.base_ring():
-                raise ValueError("(%s) is not defined over (%s)" % (self, base))
-            b = b.base_ring()
-        return n
+        base = self._parent._check_base(base)
+        return self._norm(base)
+
+    def _norm(self, base):
+        parent = self._parent
+        if base is parent:
+            return self
+        b = parent.base_ring()
+        n = self._matrix(b).determinant()
+        if base is b:
+            return n
+        return n._norm(base)
 
     def charpoly(self, base=None, var='x'):
         return self.matrix(base).charpoly(var)

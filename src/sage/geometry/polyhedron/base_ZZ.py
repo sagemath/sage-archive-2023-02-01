@@ -211,7 +211,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             ...
             Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd '--bim-bam-boum=19' /dev/stdin
             Unknown command/option --bim-bam-boum=19
-        """ 
+        """
         # note: the options below are explicitely written in the function
         # declaration in order to keep tab completion (see #18211).
         kwds.update({
@@ -234,16 +234,16 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         r"""
         Compute the Ehrhart polynomial of a lattice polytope using Normaliz.
 
-        The backend of ``self`` must be 'normaliz'. 
+        The backend of ``self`` must be 'normaliz'.
 
         INPUT:
 
-        - ``variable`` -- (string, default='t'); the variable in which the 
+        - ``variable`` -- (string, default='t'); the variable in which the
           Ehrhart polynomial is expressed.
 
         OUTPUT:
 
-        A univariate polynomial over a rational field. 
+        A univariate polynomial over a rational field.
 
         EXAMPLES::
 
@@ -269,7 +269,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         raise TypeError("The polyhedron's backend should be 'normaliz'")
 
     @cached_method
-    def ehrhart_polynomial(self,engine=None,variable='t',verbose=False, dual=None,
+    def ehrhart_polynomial(self, engine=None, variable='t', verbose=False, dual=None,
             irrational_primal=None, irrational_all_primal=None, maxdet=None,
             no_decomposition=None, compute_vertex_cones=None, smith_form=None,
             dualization=None, triangulation=None, triangulation_max_height=None,
@@ -281,22 +281,22 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         \cap \ZZ^d)`. Then E. Ehrhart proved in 1962 that `L` coincides with a
         rational polynomial of degree `d` for integer `t`. `L` is called the
         *Ehrhart polynomial* of `P`. For more information see the
-        :wikipedia:`Ehrhart_polynomial`. 
-        
-        The Ehrhart polynomial may be computed using either  LattE Integrale 
+        :wikipedia:`Ehrhart_polynomial`.
+
+        The Ehrhart polynomial may be computed using either  LattE Integrale
         or Normaliz by setting ``engine``  to 'latte' or 'normaliz' respectively.
 
         INPUT:
-        
+
         - ``engine`` -- string; The backend to use. Allowed values are:
-        
+
             * ``None`` (default); When no input is given the Ehrhart polynomial
               is computed using LattE Integrale (optional)
             * ``'latte'``; use LattE integrale program (optional)
-            * ``'normaliz'``; use Normaliz program (optional). The backend of 
-              ``self`` must be set to 'normaliz'. 
+            * ``'normaliz'``; use Normaliz program (optional). The backend of
+              ``self`` must be set to 'normaliz'.
 
-        -  ``variable`` -- string (default: 't'); The variable in which the 
+        -  ``variable`` -- string (default: 't'); The variable in which the
            Ehrhart polynomial should be expressed.
 
         - When the ``engine`` is 'latte' or None, the additional input values are:
@@ -316,7 +316,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
               in the primal space using irrationalization.
             * ``maxdet`` -- integer; decompose down to an index (determinant) of
               ``maxdet`` instead of index 1 (unimodular cones).
-            * ``no_decomposition`` -- boolean; do not signed-decompose 
+            * ``no_decomposition`` -- boolean; do not signed-decompose
               simplicial cones.
             * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
             * ``smith_form`` -- string; either 'ilio' or 'lidia'
@@ -327,7 +327,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
         OUTPUT:
 
-        The Ehrhart polynomial as a a univariate polynomial in ``variable`` 
+        The Ehrhart polynomial as a a univariate polynomial in ``variable``
         over a rational field.
 
         .. SEEALSO::
@@ -340,10 +340,10 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         To start, we find the Ehrhart polynomial of a three-dimensional
         ``simplex``, first using ``engine``='latte'. Leaving the engine
         unspecified sets the ``engine`` to 'latte' by default::
-        
+
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
             sage: poly = simplex.ehrhart_polynomial(engine = 'latte')  # optional - latte_int
-            sage: poly                                                 # optional - latte_int 
+            sage: poly                                                 # optional - latte_int
             7/2*t^3 + 2*t^2 - 1/2*t + 1
             sage: poly(1)                                              # optional - latte_int
             6
@@ -353,9 +353,9 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             36
             sage: len((2*simplex).integral_points())                   # optional - latte_int
             36
-        
+
         Now we find the same Ehrhart polynomial, this time using
-        ``engine='normaliz'``. To use the Normaliz engine, the ``simplex`` must 
+        ``engine='normaliz'``. To use the Normaliz engine, the ``simplex`` must
         be defined with ``backend='normaliz'``::
 
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') # optional - pynormaliz
@@ -372,11 +372,11 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             ...
             TypeError: The polyhedron's backend should be 'normaliz'
 
-        Now we find the Ehrhart polynomials of the unit hypercubes of 
-        dimensions three through six. They are computed first with 
-        ``engine``='latte' and then with ``engine``='normaliz'. 
-        The degree of the Ehrhart polynomial matches the dimension of the 
-        hypercube, and the coefficient of the leading monomial equals the 
+        Now we find the Ehrhart polynomials of the unit hypercubes of
+        dimensions three through six. They are computed first with
+        ``engine``='latte' and then with ``engine``='normaliz'.
+        The degree of the Ehrhart polynomial matches the dimension of the
+        hypercube, and the coefficient of the leading monomial equals the
         volume of the unit hypercube::
 
             sage: from itertools import product
@@ -393,7 +393,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
             sage: def hypercube(d):
             ....:     return Polyhedron(vertices=list(product([0,1],repeat=d)),backend='normaliz') # optional - pynormaliz
-            sage: hypercube(3).ehrhart_polynomial(engine='normaliz') # optional - pynormaliz 
+            sage: hypercube(3).ehrhart_polynomial(engine='normaliz') # optional - pynormaliz
             t^3 + 3*t^2 + 3*t + 1
             sage: hypercube(4).ehrhart_polynomial(engine='normaliz') # optional - pynormaliz
             t^4 + 4*t^3 + 6*t^2 + 4*t + 1
@@ -407,7 +407,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p = Polyhedron(ambient_dim=3, vertices=[])
             sage: p.ehrhart_polynomial()
             0
-            sage: parent(_)                
+            sage: parent(_)
             Univariate Polynomial Ring in t over Rational Field
 
         The polyhedron should be compact::
@@ -423,7 +423,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             from sage.rings.rational_field import QQ
             R = PolynomialRing(QQ, variable)
             return R.zero()
-        
+
         if not self.is_compact():
             raise ValueError("Ehrhart polynomial only defined for compact polyhedra")
 
@@ -437,7 +437,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             dualization, triangulation, triangulation_max_height,
             **kwds)
             return poly.change_variable_name(variable)
-            # TO DO: replace this change of variable by creating the appropriate 
+            # TO DO: replace this change of variable by creating the appropriate
             #        polynomial ring in the latte interface.
 
         elif engine == 'normaliz':

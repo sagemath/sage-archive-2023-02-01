@@ -216,16 +216,17 @@ class Polyhedron_QQ(Polyhedron_base):
                 cdd=True,
                 verbose=verbose,
                 **kwds)
-    def ehrhart_polynomial(self,engine=None,variable='t',verbose=False, 
-            dual=None, irrational_primal=None, irrational_all_primal=None, 
-            maxdet=None, no_decomposition=None, compute_vertex_cones=None, 
-            smith_form=None, dualization=None, triangulation=None, 
+
+    def ehrhart_polynomial(self,engine=None,variable='t',verbose=False,
+            dual=None, irrational_primal=None, irrational_all_primal=None,
+            maxdet=None, no_decomposition=None, compute_vertex_cones=None,
+            smith_form=None, dualization=None, triangulation=None,
             triangulation_max_height=None, **kwds):
         r"""
         Return the Ehrhart polynomial of this polyhedron.
 
-        The polyhedron must be a lattice polytope. Let `P` be a lattice 
-        polytope in `\RR^d` and define `L(P,t) = \# (tP\cap \ZZ^d)`. 
+        The polyhedron must be a lattice polytope. Let `P` be a lattice
+        polytope in `\RR^d` and define `L(P,t) = \# (tP\cap \ZZ^d)`.
         Then E. Ehrhart proved in 1962 that `L` coincides with a
         rational polynomial of degree `d` for integer `t`. `L` is called the
         *Ehrhart polynomial* of `P`. For more information see the
@@ -234,16 +235,16 @@ class Polyhedron_QQ(Polyhedron_base):
         'latte' or 'normaliz' respectively.
 
         INPUT:
-        
+
         - ``engine`` -- string; The backend to use. Allowed values are:
-        
+
             * ``None`` (default); When no input is given the Ehrhart polynomial
               is computed using LattE Integrale (optional)
             * ``'latte'``; use LattE integrale program (optional)
             * ``'normaliz'``; use Normaliz program (optional package pynormaliz).
-              The backend of ``self`` must be set to 'normaliz'. 
+              The backend of ``self`` must be set to 'normaliz'.
 
-        -  ``variable`` -- string (default: 't'); The variable in which the 
+        -  ``variable`` -- string (default: 't'); The variable in which the
               Ehrhart polynomial should be expressed.
 
         - When the ``engine`` is 'latte', the additional input values are:
@@ -263,7 +264,7 @@ class Polyhedron_QQ(Polyhedron_base):
               in the primal space using irrationalization.
             * ``maxdet`` -- integer; decompose down to an index (determinant) of
               ``maxdet`` instead of index 1 (unimodular cones).
-            * ``no_decomposition`` -- boolean; do not signed-decompose 
+            * ``no_decomposition`` -- boolean; do not signed-decompose
               simplicial cones.
             * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
             * ``smith_form`` -- string; either 'ilio' or 'lidia'
@@ -286,23 +287,23 @@ class Polyhedron_QQ(Polyhedron_base):
         To start, we find the Ehrhart polynomial of a three-dimensional
         ``simplex``, first using ``engine``='latte'. Leaving the engine
         unspecified sets the ``engine`` to 'latte' by default::
-        
+
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
             sage: simplex = simplex.change_ring(QQ)
             sage: poly = simplex.ehrhart_polynomial(engine='latte')  # optional - latte_int
             sage: poly                                               # optional - latte_int
-            7/2*t^3 + 2*t^2 - 1/2*t + 1                                                                                                                         
+            7/2*t^3 + 2*t^2 - 1/2*t + 1
             sage: poly(1)                                            # optional - latte_int
-            6                                                                                                                                                   
+            6
             sage: len(simplex.integral_points())                     # optional - latte_int
-            6                                                                                                                                                   
+            6
             sage: poly(2)                                            # optional - latte_int
-            36                                                                                                                                                  
+            36
             sage: len((2*simplex).integral_points())                 # optional - latte_int
             36
-        
+
         Now we find the same Ehrhart polynomial, this time using
-        ``engine='normaliz'``. To use the Normaliz engine, the ``simplex`` must 
+        ``engine='normaliz'``. To use the Normaliz engine, the ``simplex`` must
         be defined with ``backend='normaliz'``::
 
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') # optional - pynormaliz
@@ -329,7 +330,7 @@ class Polyhedron_QQ(Polyhedron_base):
             Traceback (most recent call last):
             ...
             ValueError: Ehrhart polynomial only defined for compact polyhedra
-        
+
         The polyhedron should have integral vertices::
 
             sage: L = Polyhedron(vertices = [[0],[1/2]])
@@ -338,19 +339,19 @@ class Polyhedron_QQ(Polyhedron_base):
             ...
             TypeError: the polytope has nonintegral vertices, use ehrhart_quasipolynomial with backend 'normaliz'
         """
-        #check if ``self`` is compact and has vertices in ZZ
+        # check if ``self`` is compact and has vertices in ZZ
         if self.is_empty():
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.rational_field import QQ
             R = PolynomialRing(QQ, variable)
             return R.zero()
-            
+
         if not self.is_compact():
             raise ValueError("Ehrhart polynomial only defined for compact polyhedra")
-            
+
         if any(not v.is_integral() for v in self.vertex_generator()):
             raise TypeError("the polytope has nonintegral vertices, use ehrhart_quasipolynomial with backend 'normaliz'")
-        #Passes to specific latte or normaliz subfunction depending on engine
+        # Passes to specific latte or normaliz subfunction depending on engine
         if engine is None:
             # set default engine to latte
             engine = 'latte'
@@ -361,45 +362,45 @@ class Polyhedron_QQ(Polyhedron_base):
             dualization, triangulation, triangulation_max_height,
             **kwds)
             return poly.change_variable_name(variable)
-            # TO DO: replace this change of variable by creating the appropriate 
+            # TO DO: replace this change of variable by creating the appropriate
             #        polynomial ring in the latte interface.
 
         elif engine is 'normaliz':
             return self._ehrhart_polynomial_normaliz(variable)
         else:
             raise ValueError("engine must be 'latte' or 'normaliz'")
- 
-    def ehrhart_quasipolynomial(self,variable='t', engine=None, verbose=False, 
-            dual=None, irrational_primal=None, irrational_all_primal=None, 
-            maxdet=None, no_decomposition=None, compute_vertex_cones=None, 
-            smith_form=None, dualization=None, triangulation=None, 
+
+    def ehrhart_quasipolynomial(self, variable='t', engine=None, verbose=False,
+            dual=None, irrational_primal=None, irrational_all_primal=None,
+            maxdet=None, no_decomposition=None, compute_vertex_cones=None,
+            smith_form=None, dualization=None, triangulation=None,
             triangulation_max_height=None, **kwds):
         r"""
         Compute the Ehrhart quasipolynomial of this polyhedron with rational
         vertices.
 
-        If the polyhedron is a lattice polytope, returns the Ehrhart polynomial, 
+        If the polyhedron is a lattice polytope, returns the Ehrhart polynomial,
         a univariate polynomial in ``variable`` over a rational field.
-        If the polyhedron  has rational, nonintegral vertices, returns a tuple 
+        If the polyhedron  has rational, nonintegral vertices, returns a tuple
         of polynomials in ``variable`` over a rational field.
-        The Ehrhart counting function of a polytope `P` with rational 
-        vertices is given by a *quasipolynomial*. That is, there exists a 
-        positive integer `l` and `l` polynomials 
-        `ehr_{P,i} \text{ for } i \in \{1,\dots,l \}` such that if `t` is 
-        equivalent to `i` mod `l` then `tP \cap \mathbb Z^d = ehr_{P,i}(t)`. 
+        The Ehrhart counting function of a polytope `P` with rational
+        vertices is given by a *quasipolynomial*. That is, there exists a
+        positive integer `l` and `l` polynomials
+        `ehr_{P,i} \text{ for } i \in \{1,\dots,l \}` such that if `t` is
+        equivalent to `i` mod `l` then `tP \cap \mathbb Z^d = ehr_{P,i}(t)`.
 
         INPUT:
 
-        -  ``variable`` -- string (default: 't'); The variable in which the 
+        -  ``variable`` -- string (default: 't'); The variable in which the
               Ehrhart polynomial should be expressed.
-        
+
         - ``engine`` -- string; The backend to use. Allowed values are:
-        
+
             * ``None`` (default); When no input is given the Ehrhart polynomial
               is computed using LattE Integrale (optional)
             * ``'latte'``; use LattE integrale program (optional)
             * ``'normaliz'``; use Normaliz program (optional package pynormaliz).
-              The backend of ``self`` must be set to 'normaliz'. 
+              The backend of ``self`` must be set to 'normaliz'.
 
         - When the ``engine`` is 'latte', the additional input values are:
 
@@ -418,7 +419,7 @@ class Polyhedron_QQ(Polyhedron_base):
               in the primal space using irrationalization.
             * ``maxdet`` -- integer; decompose down to an index (determinant) of
               ``maxdet`` instead of index 1 (unimodular cones).
-            * ``no_decomposition`` -- boolean; do not signed-decompose 
+            * ``no_decomposition`` -- boolean; do not signed-decompose
               simplicial cones.
             * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
             * ``smith_form`` -- string; either 'ilio' or 'lidia'
@@ -428,7 +429,7 @@ class Polyhedron_QQ(Polyhedron_base):
               height from 1 to this number
 
         OUTPUT:
-        
+
         A univariate polynomial over a rational field or a tuple of such
         polynomials.
 
@@ -438,26 +439,26 @@ class Polyhedron_QQ(Polyhedron_base):
             `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_
 
         .. WARNING::
-            If the polytope has rational, non integral vertices, 
+            If the polytope has rational, non integral vertices,
             it must have ``backend='normaliz'``.
-        
+
         EXAMPLES:
 
         As a first example, consider the line segment [0,1/2]. If we
-        dilate this line segment by an even integeral factor `k`, 
-        then the dilated line segment will contain `k/2 +1` lattice points. 
-        If `k` is odd then there will be `k/2+1/2` lattice points in 
-        the dilated line segment. Note that it is necessary to set the 
-        backend of the polytope to 'normaliz':: 
-        
+        dilate this line segment by an even integeral factor `k`,
+        then the dilated line segment will contain `k/2 +1` lattice points.
+        If `k` is odd then there will be `k/2+1/2` lattice points in
+        the dilated line segment. Note that it is necessary to set the
+        backend of the polytope to 'normaliz'::
+
             sage: line_seg = Polyhedron(vertices=[[0],[1/2]],backend='normaliz') # optional - pynormaliz
             sage: line_seg                                                       # optional - pynormaliz
             A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
             sage: line_seg.ehrhart_quasipolynomial()                             # optional - pynormaliz
             (1/2*t + 1, 1/2*t + 1/2)
 
-        For a more exciting example, let us look at the subpolytope of the 
-        3 dimensional permutahedron fixed by the reflection 
+        For a more exciting example, let us look at the subpolytope of the
+        3 dimensional permutahedron fixed by the reflection
         across the hyperplane `x_1 = x_4`::
 
             sage: subpoly = Polyhedron(vertices = [[3/2, 3, 4, 3/2],
@@ -473,18 +474,18 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: eq                                        # optional - pynormaliz
             (4*t^2 + 3*t + 1, 4*t^2 + 2*t)
             sage: even_ep = eq[0]                           # optional - pynormaliz
-            sage: odd_ep  = eq[1]                           # optional - pynormaliz                     
-            sage: even_ep(2)                                # optional - pynormaliz                      
-            23                                                                    
+            sage: odd_ep  = eq[1]                           # optional - pynormaliz
+            sage: even_ep(2)                                # optional - pynormaliz
+            23
             sage: ts = 2*subpoly                            # optional - pynormaliz
             sage: ts.integral_points_count()                # optional - pynormaliz
-            23                                                                    
-            sage: odd_ep(1)                                 # optional - pynormaliz 
-            6                                                                     
+            23
+            sage: odd_ep(1)                                 # optional - pynormaliz
+            6
             sage: subpoly.integral_points_count()           # optional - pynormaliz
             6
 
-        A polytope with rational nonintegral vertices must have 
+        A polytope with rational nonintegral vertices must have
         ``backend``='normaliz'::
 
             sage: line_seg = Polyhedron(vertices=[[0],[1/2]])
@@ -502,7 +503,7 @@ class Polyhedron_QQ(Polyhedron_base):
             ValueError: Ehrhart quasipolynomial only defined for compact polyhedra
 
         If the polytope happens to be a lattice polytope, the Ehrhart
-        polynomial is returned:: 
+        polynomial is returned::
 
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)], backend='normaliz') # optional - pynormaliz
             sage: simplex = simplex.change_ring(QQ)                                                       # optional - pynormaliz
@@ -529,35 +530,35 @@ class Polyhedron_QQ(Polyhedron_base):
         if engine is 'latte':
             if any(not v.is_integral() for v in self.vertex_generator()):
                 raise TypeError("the polytope has nonintegral vertices, the engine and backend of self should be 'normaliz'")
-            poly =  self._ehrhart_polynomial_latte(verbose, dual,
+            poly = self._ehrhart_polynomial_latte(verbose, dual,
             irrational_primal, irrational_all_primal, maxdet,
             no_decomposition, compute_vertex_cones, smith_form,
             dualization, triangulation, triangulation_max_height,
             **kwds)
             return poly.change_variable_name(variable)
-            # TO DO: replace this change of variable by creating the appropriate 
+            # TO DO: replace this change of variable by creating the appropriate
             #        polynomial ring in the latte interface.
         else:
             raise TypeError("the engine should be 'latte' or 'normaliz'")
 
     def _ehrhart_quasipolynomial_normaliz(self, variable='t'):
         r"""
-        Compute the Ehrhart quasipolynomial of a lattice or rational polytope 
+        Compute the Ehrhart quasipolynomial of a lattice or rational polytope
         using the Normaliz engine.
 
         INPUT:
 
-        - ``variable`` -- string (default: 't'); The variable in which the 
+        - ``variable`` -- string (default: 't'); The variable in which the
           Ehrhart polynomial is expressed.
 
         OUTPUT:
 
-        A univariate polynomial over a rational field or a tuple of such 
+        A univariate polynomial over a rational field or a tuple of such
         polynomials.
 
         EXAMPLES:
 
-        The subpolytope of the 3 dimensional permutahedron fixed by the 
+        The subpolytope of the 3 dimensional permutahedron fixed by the
         reflection across the hyperplane `x_1 = x_4`::
 
             sage: subpoly = Polyhedron(vertices = [[3/2, 3, 4, 3/2],
@@ -574,7 +575,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: even_ep(2)                                        # optional - pynormaliz
             23
             sage: ts = 2*subpoly                                    # optional - pynormaliz
-            sage: ts.integral_points_count()                        # optional - pynormaliz 
+            sage: ts.integral_points_count()                        # optional - pynormaliz
             23
             sage: odd_ep(1)                                         # optional - pynormaliz
             6
@@ -755,4 +756,3 @@ class Polyhedron_QQ(Polyhedron_base):
         from sage.interfaces.latte import count
         ine = self.cdd_Hrepresentation()
         return count(ine, cdd=True, ehrhart_polynomial=True, verbose=verbose, **kwds)
-

@@ -994,9 +994,9 @@ class RingExtensionWithBasis(RingExtension_class):
         base = self._check_base(base)
         return self._free_module(base, map)
 
-    @cached_method
+    # @cached_method
     def _free_module(self, base, map):
-        d = self.degree(base)
+        d = self._degree_over(base)
         if map:
             from sage.rings.ring_extension_morphism import MapVectorSpaceToRelativeField, MapRelativeFieldToVectorSpace
             return base**d, MapVectorSpaceToRelativeField(self, base), MapRelativeFieldToVectorSpace(self, base)

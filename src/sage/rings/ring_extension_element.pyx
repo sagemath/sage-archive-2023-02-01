@@ -14,7 +14,9 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element cimport CommutativeAlgebraElement
 from sage.structure.element cimport Element
 from sage.rings.integer_ring import ZZ
+from sage.categories.fields import Fields
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+#from sage.rings.ring_extension_morphism cimport MapRelativeFieldToVectorSpace
 
 
 cdef class RingExtensionElement(CommutativeAlgebraElement):
@@ -232,6 +234,9 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
 
 cdef class RingExtensionWithBasisElement(RingExtensionElement):
+    def __hash__(self):
+        return hash(self._backend)
+
     @cached_method
     def _repr_(self):
         names = self._parent._basis_names
@@ -274,7 +279,11 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         return s
 
     def vector(self, base=None):
-        _, _, j = self._parent.free_module(base, map=True)
+        base = self._parent._check_base(base)
+        return self._vector(base)
+
+    def _vector(self, base):
+        _, _, j = self._parent._free_module(base, map=True)
         return j(self)
 
     def polynomial(self, base=None, var='x'):
@@ -347,3 +356,33 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
 
     def charpoly(self, base=None, var='x'):
         return self.matrix(base).charpoly(var)
+
+    def minpoly(self, base=None, var='x'):
+        from sage.modules.free_module import VectorSpace
+        from sage.rings.ring_extension import RingExtension_class
+        #cdef MapRelativeFieldToVectorSpace j
+
+        base = self._parent._check_base(base)
+        if not base in Fields():
+            raise NotImplementedError("minpoly is not implemented when the base is a field")
+        if isinstance(base, RingExtension_class):
+            K = base._backend
+        else:
+            K = base
+        degree = self._parent._degree_over(base)
+        _, _, j = self._parent._free_module(base, map=True)
+        V = VectorSpace(K, degree)
+        vector = [K(1)] + (degree-1)*[K(0)]
+        vectors = [vector]
+        W = V.span(vectors)
+        elt = self
+        while True:
+            vector = V(j.backend_coefficients(elt))
+            if vector in W: break
+            vectors.append(vector)
+            W += V.span([vector])
+            elt *= self
+        W = V.span_of_basis(vectors)
+        coeffs = [ -c for c in W.coordinate_vector(vector) ] + [K(1)]
+        return PolynomialRing(base, name=var)(coeffs)
+

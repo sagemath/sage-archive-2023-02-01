@@ -312,6 +312,7 @@ class MapVectorSpaceToRelativeField(Map):
     def is_surjective(self):
         return True
 
+    #cpdef Element _call_(self, v):
     def _call_(self, v):
         elt = sum(self._f(v[i]) * self._basis[i] for i in range(self._degree))
         return self.codomain()(elt)
@@ -355,11 +356,16 @@ class MapRelativeFieldToVectorSpace(Map):
     def is_surjective(self):
         return True
 
+    #cpdef Element _call_(self, x):
     def _call_(self, x):
+        coeffs = self.backend_coefficients(x)
+        return self.codomain()(coeffs)
+
+    def backend_coefficients(self, x):
         dK = self._dimK
         w = (self._jL((<RingExtensionElement>x)._backend) * self._matrix).list()
         coeffs = [ ]
         for i in range(self._degree):
             coeff = self._iK(w[i*dK:(i+1)*dK])
             coeffs.append(coeff)
-        return self.codomain()(coeffs)
+        return coeffs

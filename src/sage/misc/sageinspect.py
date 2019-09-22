@@ -1576,10 +1576,10 @@ def sage_getargspec(obj):
         ....:     '    def __call__(self):\n'
         ....:     '        return None\n'
         ....:     '    def _sage_src_(self):\n'
-        ....:     '        return ""')
+        ....:     '        return "the source code string"')
         sage: shell.run_cell('f = Foo()')
         sage: shell.run_cell('f??')
-        Signature: f()...
+        ...the source code string...
 
     AUTHORS:
 

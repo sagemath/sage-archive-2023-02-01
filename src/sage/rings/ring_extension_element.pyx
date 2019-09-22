@@ -47,7 +47,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
     def __hash__(self):
         return hash(self._backend)
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Return a string representation of this element
 
@@ -67,7 +67,10 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: x._repr_()
             'z4'
         """
-        return str(self._backend)
+        print_as = self._parent._print_elements_as
+        if print_as is not None:
+            return str(print_as(self._backend))
+        return self._repr_()
 
     def _latex_(self):
         r"""
@@ -232,6 +235,45 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         return self._backend.is_prime()
 
 
+# Fraction fields
+#################
+
+cdef class RingExtensionFractionFieldElement(RingExtensionElement):
+    def _repr_(self):
+        num = self.numerator()
+        denom = self.denominator()
+        if denom == 1:
+            sd = ""
+        elif denom == -1:
+            num = -num
+            sd = ""
+        elif denom._is_atomic():
+            sd = "/%s" % denom
+        elif (-denom)._is_atomic():
+            sd = "/%s" % (-denom)
+            num = -num
+        if num._is_atomic():
+            return "%s%s" % (num, sd)
+        else:
+            return "(%s)%s" % (num, sd)
+
+    def numerator(self):
+        parent = self._parent._base
+        try:
+            num = self._backend.numerator()
+        except AttributeError:
+            num = self._backend * self._backend.denominator()
+            num = parent._backend(num)
+        return parent(num)
+
+    def denominator(self):
+        parent = self._parent._base
+        denom = self._backend.denominator()
+        return parent(denom)
+
+
+# Finite free extensions
+########################
 
 cdef class RingExtensionWithBasisElement(RingExtensionElement):
     def __hash__(self):
@@ -364,7 +406,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
 
         base = self._parent._check_base(base)
         if not base in Fields():
-            raise NotImplementedError("minpoly is not implemented when the base is a field")
+            raise NotImplementedError("minpoly is only implemented when the base is a field")
         if isinstance(base, RingExtension_class):
             K = base._backend
         else:

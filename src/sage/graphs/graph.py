@@ -1426,7 +1426,7 @@ class Graph(GenericGraph):
 
         If the graph is disconnected, returns the empty list.
 
-        Uses the Read-Tarjan backtracking algorithm [RT1975]_.
+        Uses the Read-Tarjan backtracking algorithm [RT1975a]_.
 
         INPUT:
 

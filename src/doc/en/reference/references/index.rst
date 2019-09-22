@@ -4377,10 +4377,10 @@ REFERENCES:
              *Spectra of Symmetrized Shuffling Operators*.
              :arxiv:`1102.2460v2`.
 
-.. [RT1975] Read, R. C. and Tarjan, R. E. *Bounds on Backtrack Algorithms for
-            Listing Cycles, Paths, and Spanning Trees*.
-            Networks, Volume 5 (1975), numer 3, pages 237-252.
-            :doi:`10.1002/net.1975.5.3.237`.
+.. [RT1975a] Read, R. C. and Tarjan, R. E. *Bounds on Backtrack Algorithms for
+             Listing Cycles, Paths, and Spanning Trees*.
+             Networks, Volume 5 (1975), numer 3, pages 237-252.
+             :doi:`10.1002/net.1975.5.3.237`.
 
 .. [RT1975] Rose, D.J. and Tarjan, R.E.,
             *Algorithmic aspects of vertex elimination*,

@@ -2442,14 +2442,14 @@ class Graph(GenericGraph):
         return True
 
     @doc_index("Graph properties")
-    def is_triangle_free(self, algorithm='bitset'):
+    def is_triangle_free(self, algorithm='dense_graph'):
         r"""
-        Returns whether ``self`` is triangle-free
+        Check whether ``self`` is triangle-free
 
         INPUT:
 
-        - ``algorithm`` -- (default: ``'bitset'``) specifies the algorithm to
-          use among:
+        - ``algorithm`` -- (default: ``'dense_graph'``) specifies the algorithm
+          to use among:
 
           - ``'matrix'`` -- tests if the trace of the adjacency matrix is
             positive.
@@ -2458,6 +2458,9 @@ class Graph(GenericGraph):
             bitset operations to test if the input graph contains a
             triangle. This method is generally faster than standard matrix
             multiplication.
+
+          - ``'dense_graph'`` -- use the implementation of
+            :mod:`sage.graphs.base.static_dense_graph`
 
         EXAMPLES:
 
@@ -2474,6 +2477,8 @@ class Graph(GenericGraph):
             True
             sage: G.is_triangle_free(algorithm='bitset')
             True
+            sage: G.is_triangle_free(algorithm='dense_graph')
+            True
 
         a tripartite graph, though, contains many triangles::
 
@@ -2481,6 +2486,8 @@ class Graph(GenericGraph):
             sage: G.is_triangle_free(algorithm='matrix')
             False
             sage: G.is_triangle_free(algorithm='bitset')
+            False
+            sage: G.is_triangle_free(algorithm='dense_graph')
             False
 
         TESTS:
@@ -2491,7 +2498,8 @@ class Graph(GenericGraph):
             ....:     G = graphs.RandomBarabasiAlbert(50,2)
             ....:     bm = G.is_triangle_free(algorithm='matrix')
             ....:     bb = G.is_triangle_free(algorithm='bitset')
-            ....:     if bm != bb:
+            ....:     bd = G.is_triangle_free(algorithm='dense_graph')
+            ....:     if bm != bb or bm != bd:
             ....:        print("That's not good!")
 
         Asking for an unknown algorithm::
@@ -2506,8 +2514,12 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_triangle_free()
             True
         """
-        if not self.order():
+        if self.order() < 3:
             return True
+
+        elif algorithm == 'dense_graph':
+            from sage.graphs.base.static_dense_graph import is_triangle_free
+            return is_triangle_free(self)
 
         if algorithm == 'bitset':
             from sage.data_structures.bitset import Bitset
@@ -2533,7 +2545,7 @@ class Graph(GenericGraph):
                     return False
             return True
 
-        elif algorithm=='matrix':
+        elif algorithm == 'matrix':
             return (self.adjacency_matrix()**3).trace() == 0
 
         else:

@@ -40,6 +40,7 @@ Index
     :delim: |
 
     :meth:`is_strongly_regular` | Check whether the graph is strongly regular
+    :meth:`is_triangle_free` | Check whether `G` is triangle free
     :meth:`triangles_count` | Return the number of triangles containing `v`, for every `v`
     :meth:`connected_subgraph_iterator` | Iterator over the induced connected subgraphs of order at most `k`
 
@@ -263,6 +264,53 @@ def is_strongly_regular(g, parameters=False):
         return (n, k, llambda, mu)
     else:
         return True
+
+def is_triangle_free(G, certificate=False):
+    r"""
+    Check whether `G` is triangle free.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    - ``certificate`` -- boolean (default: ``False``); whether to return a
+      triangle if one is found
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.static_dense_graph import is_triangle_free
+        sage: is_triangle_free(graphs.PetersenGraph())
+        True
+        sage: is_triangle_free(graphs.CompleteGraph(4))
+        False
+
+    TESTS::
+
+        sage: from sage.graphs.base.static_dense_graph import is_triangle_free
+        sage: is_triangle_free(Graph())
+        True
+    """
+    G._scream_if_not_simple()
+    cdef int n = G.order()
+    if n < 3:
+        return True
+
+    cdef binary_matrix_t g
+    cdef list int_to_vertex = list(G)
+    dense_graph_init(g, G, translation=int_to_vertex)
+
+    cdef mp_size_t i, j
+    for i in range(n):
+        j = bitset_next(g.rows[i], i + 1)
+        while j != -1:
+            if bitset_are_disjoint(g.rows[i], g.rows[j]):
+                j = bitset_next(g.rows[i], j + 1)
+            else:
+                binary_matrix_free(g)
+                return False
+
+    binary_matrix_free(g)
+    return True
 
 def triangles_count(G):
     r"""

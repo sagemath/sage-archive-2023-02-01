@@ -1084,6 +1084,13 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         sage: skew_hadamard_matrix(100,existence=True)
         Unknown
 
+    Check that :trac:`28526` is fixed::
+
+        sage: skew_hadamard_matrix(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter n must be strictly positive
+
     REFERENCES:
 
     .. [Ha83] \M. Hall,
@@ -1091,6 +1098,8 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
       2nd edition,
       Wiley, 1983
     """
+    if n < 1:
+        raise ValueError("parameter n must be strictly positive")
     def true():
         _skew_had_cache[n]=True
         return True

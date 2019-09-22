@@ -573,6 +573,15 @@ class Function_polylog(GinacFunction):
         else:
             return 'polylog(%s, %s)' % (n, x)
 
+    def _method_arguments(self, k, z):
+        r"""
+        TESTS::
+
+            sage: b = RBF(1/2, .0001)
+            sage: polylog(2, b)
+            [0.582 +/- ...]
+        """
+        return [z, k]
 
 polylog = Function_polylog()
 

@@ -1454,6 +1454,10 @@ cdef class CommutativeRing(Ring):
             self.__ideal_monoid = M
             return M
 
+    def over(self, *args, **kwargs):
+        from sage.rings.ring_extension import RingExtension
+        return RingExtension(self, *args, **kwargs)
+
     def extension(self, poly, name=None, names=None, **kwds):
         """
         Algebraically extends self by taking the quotient ``self[x] / (f(x))``.

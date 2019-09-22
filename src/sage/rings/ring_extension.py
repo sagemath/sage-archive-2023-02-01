@@ -342,8 +342,8 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
         base = defining_morphism.domain()
         ring = defining_morphism.codomain()
     elif len(rings) == 1:
+        base = None
         ring = rings[0]
-        base = ring.base_ring()
     elif len(rings) == 2:
         ring, base = rings
     else:
@@ -353,6 +353,8 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
     print_parent_as = None
     print_elements_as = None
     if defining_morphism is None:
+        if base is None:
+            base = ring.base_ring()
         if isinstance(base, RingExtension_class):
             backend_base = base._backend
             if ring.has_coerce_map_from(backend_base):
@@ -363,7 +365,9 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
         if defining_morphism is None:
             raise ValueError("No coercion map from %s to %s" % (base,ring))
     else:
-        if defining_morphism.domain() is not base:
+        if base is None:
+            base = defining_morphism.domain()
+        elif defining_morphism.domain() is not base:
             defining_morphism = defining_morphism.extend_domain(base)
         if defining_morphism.codomain() is not ring:
             defining_morphism = defining_morphism.extend_codomain(ring)

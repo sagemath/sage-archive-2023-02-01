@@ -790,6 +790,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef int i, j
         cdef list ind_map = []
         cdef int e
+        cdef poly ** termlist
+        cdef int n_terms
         if _ring!=currRing: rChangeCurrRing(_ring)
 
         base_ring = self.base_ring()
@@ -815,6 +817,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         elif isinstance(element, MPolynomial_polydict):
             if element.parent() == self:
                 _p = p_ISet(0, _ring)
+                # this look needs improvement
                 for (m,c) in element.element().dict().iteritems():
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, sa2si(c, _ring), _ring)
@@ -893,6 +896,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 El_ring = Element._parent_ring
                 El_base = El_parent._base
 
+                #this loop needs improvement
                 while El_poly:
                     c = si2sa(p_GetCoeff(El_poly, El_ring), El_ring, El_base)
                     if check:
@@ -926,6 +930,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             if element.parent().ngens() <= self.ngens():
                 # Map variables by indices
                 _p = p_ISet(0, _ring)
+                # this loop needs improvement
                 for (m,c) in element.element().dict().iteritems():
                     if check:
                         try:
@@ -982,26 +987,46 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             return self._coerce_c(element)
 
         if isinstance(element, dict):
-            _p = p_ISet(0, _ring)
-            for (m,c) in element.iteritems():
-                if check:
-                    try:
-                        c = base_ring(c)
-                    except TypeError:
-                        p_Delete(&_p, _ring)
-                        raise
-                if not c:
-                    continue
-                mon = p_Init(_ring)
-                p_SetCoeff(mon, sa2si(c , _ring), _ring)
-                if len(m) != self.ngens():
-                    raise TypeError("tuple key must have same length as ngens")
-                for pos from 0 <= pos < len(m):
-                    if m[pos]:
-                        overflow_check(m[pos], _ring)
-                        p_SetExp(mon, pos+1, m[pos], _ring)
-                p_Setm(mon, _ring)
-                _p = p_Add_q(_p, mon, _ring)
+            if len(element)==0:
+                _p = p_ISet(0, _ring)
+            else:
+                termlist = <poly**>sig_malloc(len(element)*sizeof(poly*))
+                n_terms = 0
+                try:
+                    #this loop needs improvement
+                    for (m,c) in element.iteritems():
+                        if check:
+                            try:
+                                c = base_ring(c)
+                            except TypeError:
+                                raise
+                        if not c:
+                            continue
+                        mon = p_Init(_ring)
+                        p_SetCoeff(mon, sa2si(c , _ring), _ring)
+                        if len(m) != self.ngens():
+                            raise TypeError("tuple key must have same length as ngens")
+                        for pos from 0 <= pos < len(m):
+                            if m[pos]:
+                                overflow_check(m[pos], _ring)
+                                p_SetExp(mon, pos+1, m[pos], _ring)
+                        p_Setm(mon, _ring)
+                        termlist[n_terms] = mon
+                        n_terms += 1
+                    j = 0
+                    while n_terms > 1:
+                        n_terms -= 1
+                        if j > 0:
+                            j -= 1
+                        else:
+                            j = n_terms // 2
+                        termlist[j] = p_Add_q(termlist[j], termlist[n_terms], _ring)
+                    n_terms -= 1
+                    _p = termlist[n_terms]
+                finally:
+                    for i in range(n_terms):
+                        p_Delete(&(termlist[i]), _ring)
+                    sig_free(termlist)
 
             return new_MP(self, _p)
 
@@ -2901,6 +2926,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             raise TypeError("The input degrees must be a dictionary of variables to exponents.")
 
         # Extract the monomials that match the specifications
+        # this loop needs improvement
         while(p):
             flag = 0
             for i from 0<=i<gens:

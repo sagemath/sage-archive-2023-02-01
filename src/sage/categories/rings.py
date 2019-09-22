@@ -200,7 +200,7 @@ class Rings(CategoryWithAxiom):
             if self.domain().is_field() and self.codomain().is_field():
                 return self
             try:
-                if self.is_injective():
+                if not self.is_injective():
                     raise ValueError("the morphism is not injective")
             except NotImplementedError:   # we trust the user
                 pass

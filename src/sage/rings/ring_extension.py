@@ -305,29 +305,22 @@ class RingExtensionFactory(UniqueFactory):
 
     - Xavier Caruso (2016)
     """
-    def create_key_and_extra_args(self, classes, defining_morphism, **extra_args):
-        gen = names = None
-        if 'gen' in extra_args:
-            gen = extra_args['gen']
-        if 'names' in extra_args:
-            names = extra_args['names']
-        extra_args['_classes'] = classes
+    def create_key_and_extra_args(self, constructors, defining_morphism, gen=None, names=None):
         key = (defining_morphism, gen, names)
-        return key, extra_args
+        return key, { 'constructors': constructors }
 
     def create_object(self, version, key, **extra_args):
         (defining_morphism, gen, names) = key
-        classes = extra_args['_classes']
-        del extra_args['_classes']
-        for i in range(len(classes)-1):
-            parent_class = classes[i]
+        constructors = extra_args['constructors']
+        for (constructor, kwargs) in constructors[:-1]:
             try:
-                return parent_class(defining_morphism, **extra_args)
+                return constructor(defining_morphism, **kwargs)
             except (NotImplementedError, ValueError, TypeError):
                 pass
-        return classes[-1](defining_morphism, **extra_args)
+        (constructor, kwargs) = constructors[-1]
+        return constructor(defining_morphism, **kwargs)
 
-RingExtension_factory = RingExtensionFactory("RingExtension")
+_RingExtension = RingExtensionFactory("RingExtension")
 
 
 def RingExtension(*args, gen=None, gens=None, name=None, names=None):
@@ -357,6 +350,8 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
         raise TypeError("you must specify at least a ring or a defining morphism")
 
     # We compute the defining morphism
+    print_parent_as = None
+    print_elements_as = None
     if defining_morphism is None:
         if isinstance(base, RingExtension_class):
             backend_base = base._backend
@@ -375,9 +370,10 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
     if isinstance(ring, RingExtension_class):
         from sage.rings.ring_extension_morphism import backend_morphism
         defining_morphism = backend_morphism(defining_morphism, forget="codomain")
+        # print_parent_as = ...
+        print_elements_as = ring
         ring = ring._backend
 
-    classes = [ RingExtension_class ]
     if names is None and name is not None:
         names = name
     if gens is not None:
@@ -389,12 +385,15 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
             raise NotImplementedError("only ring extensions with a single generator are implemented")
         gen = ring(gens[0])
     if gen is not None:
-        classes = [ RingExtensionWithGen ]
         if names is None:
             raise TypeError("you must specify the name of the generator")
         names = normalize_names(1, names)
+        constructors = [ (RingExtensionWithGen, {'gen': gen, 'names': names}) ]
     else:
+        kwargs = { 'print_parent_as': print_parent_as, 'print_elements_as': print_elements_as }
+        constructors = [ (RingExtension_class, kwargs) ]
         # we check if there is a canonical generator
+        # if so, we first try the constructor RingExtensionWithGen
         if ring.ngens() == 1:
             gen = ring.gen()
             if names is None:
@@ -405,9 +404,9 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
                 names = tuple(names)
             else:
                 names = (names,)
-        classes = [ RingExtensionWithGen, RingExtension_class ]
+            constructors = [ (RingExtensionWithGen, {'gen': gen, 'names': names}) ] + constructors
 
-    return RingExtension_factory(classes, defining_morphism, gen=gen, names=names)
+    return _RingExtension(constructors, defining_morphism, gen, names)
 
 
 # General extensions
@@ -800,13 +799,16 @@ class RingExtension_class(CommutativeAlgebra):
     def is_field(self, proof=False):
         return self._backend.is_field(proof=proof)
 
-    @cached_method
     def fraction_field(self, extend_base=False):
         defining_morphism = self._defining_morphism_fraction_field(extend_base)
         if defining_morphism is None:
             return self
-        return RingExtension_factory([RingExtensionFractionField], defining_morphism)
+        if extend_base:
+            return _RingExtension([(RingExtensionFractionField, {'ring': self})], defining_morphism)
+        else:
+            return _RingExtension([(RingExtensionFractionField, {})], defining_morphism)
 
+    @cached_method
     def _defining_morphism_fraction_field(self, extend_base):
         from sage.rings.ring_extension_morphism import RingExtensionHomomorphism
         from sage.rings.ring_extension_morphism import backend_morphism
@@ -845,8 +847,24 @@ class RingExtension_class(CommutativeAlgebra):
 class RingExtensionFractionField(RingExtension_class):
     Element = RingExtensionFractionFieldElement
 
+    def __init__(self, defining_morphism, ring=None, **kwargs):
+        RingExtension_class.__init__(self, defining_morphism, **kwargs)
+        if ring is None:
+            self._ring = self._base
+        else:
+            self._ring = ring
+
+    def ring(self):
+        return self._ring
+
     def _repr_(self):
-        return "Fraction field of %s" % self._base
+        if self._ring in Fields():
+            s = str(self._ring)
+        else:
+            s = "Fraction field of %s" % self._ring
+        if not isinstance(self._ring, RingExtension_class):
+            s += " over its base"
+        return s
 
 
 # Finite free extensions
@@ -929,10 +947,15 @@ class RingExtensionWithBasis(RingExtension_class):
         if defining_morphism is None:
             return self
         if extend_base:
-            return RingExtension_factory([RingExtensionWithBasis], defining_morphism, basis=self._basis, names=self._basis_names, check=False)
+            basis = self._basis
+            names = self._basis_names
+            constructor = RingExtensionWithBasis
+            kwargs = { 'basis': basis, 'names': names, 'check': False }
         else:
-            frac = self.fraction_field(extend_base=True)
-            return RingExtension_factory([RingExtensionFractionField], defining_morphism, print_elements_as=frac)
+            gen = names = None
+            constructor = RingExtensionFractionField
+            kwargs = { 'print_elements_as': self.fraction_field(extend_base=True) }
+        return _RingExtension([(constructor, kwargs)], defining_morphism, gen, names)
 
 
 class RingExtensionWithGen(RingExtensionWithBasis):
@@ -983,7 +1006,12 @@ class RingExtensionWithGen(RingExtensionWithBasis):
         if defining_morphism is None:
             return self
         if extend_base:
-            return RingExtension_factory([RingExtensionWithGen], defining_morphism, gen=self._gen, names=(self._name,), check=False)
+            gen = self._gen
+            names = self._names
+            constructor = RingExtensionWithGen
+            kwargs = { 'gen': gen, 'names': names, 'check': False }
         else:
-            frac = self.fraction_field(extend_base=True)
-            return RingExtension_factory([RingExtensionFractionField], defining_morphism, print_elements_as=frac)
+            gen = names = None
+            constructor = RingExtensionFractionField
+            kwargs = { 'print_elements_as': self.fraction_field(extend_base=True) }
+        return _RingExtension([(constructor, kwargs)], defining_morphism, gen, names)

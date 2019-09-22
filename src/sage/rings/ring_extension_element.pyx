@@ -72,6 +72,9 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             return str(print_as(self._backend))
         return self._repr_()
 
+    def _repr_(self):
+        return str(self._backend)
+
     def _latex_(self):
         r"""
         Return a latex representation of this element
@@ -258,13 +261,12 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
             return "(%s)%s" % (num, sd)
 
     def numerator(self):
-        parent = self._parent._base
+        ring = self._parent._ring
         try:
             num = self._backend.numerator()
         except AttributeError:
             num = self._backend * self._backend.denominator()
-            num = parent._backend(num)
-        return parent(num)
+        return ring(num)
 
     def denominator(self):
         parent = self._parent._base

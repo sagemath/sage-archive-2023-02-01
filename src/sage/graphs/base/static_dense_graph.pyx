@@ -281,36 +281,49 @@ def is_triangle_free(G, certificate=False):
         sage: from sage.graphs.base.static_dense_graph import is_triangle_free
         sage: is_triangle_free(graphs.PetersenGraph())
         True
-        sage: is_triangle_free(graphs.CompleteGraph(4))
+        sage: K4 = graphs.CompleteGraph(4)
+        sage: is_triangle_free(K4)
         False
+        sage: b, certif = is_triangle_free(K4, certificate=True)
+        sage: K4.subgraph(certif).is_clique()
+        True
 
     TESTS::
 
         sage: from sage.graphs.base.static_dense_graph import is_triangle_free
         sage: is_triangle_free(Graph())
         True
+        sage: is_triangle_free(Graph(), certificate=True)
+        (True, [])
     """
     G._scream_if_not_simple()
     cdef int n = G.order()
     if n < 3:
-        return True
+        return (True, []) if certificate else True
 
     cdef binary_matrix_t g
     cdef list int_to_vertex = list(G)
     dense_graph_init(g, G, translation=int_to_vertex)
 
-    cdef mp_size_t i, j
+    cdef mp_size_t i, j, k
     for i in range(n):
         j = bitset_next(g.rows[i], i + 1)
         while j != -1:
             if bitset_are_disjoint(g.rows[i], g.rows[j]):
                 j = bitset_next(g.rows[i], j + 1)
             else:
+                if certificate:
+                    # Search for a common neighbor
+                    k = bitset_first(g.rows[i])
+                    while bitset_not_in(g.rows[j], k):
+                        k = bitset_next(g.rows[j], k + 1)
+                    certif = [int_to_vertex[i], int_to_vertex[j], int_to_vertex[k]]
+
                 binary_matrix_free(g)
-                return False
+                return (False, certif) if certificate else False
 
     binary_matrix_free(g)
-    return True
+    return (True, []) if certificate else True
 
 def triangles_count(G):
     r"""

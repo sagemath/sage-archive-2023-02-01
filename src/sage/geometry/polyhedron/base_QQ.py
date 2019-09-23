@@ -439,6 +439,7 @@ class Polyhedron_QQ(Polyhedron_base):
             `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_
 
         .. WARNING::
+
             If the polytope has rational, non integral vertices,
             it must have ``backend='normaliz'``.
 

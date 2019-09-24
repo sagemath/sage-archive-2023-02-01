@@ -15,6 +15,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+import numbers
+
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
 
@@ -24,6 +26,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapperCheckWrappedClass
 
+from sage.categories.rings import Rings
+_Rings = Rings()
 
 class CartesianProduct(UniqueRepresentation, Parent):
     """
@@ -110,9 +114,21 @@ class CartesianProduct(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: (1, 3, 4) should be of length 2
+
+            sage: R = ZZ.cartesian_product(ZZ)
+            sage: R(0)
+            (0, 0)
+            sage: R(-5)
+            (-5, -5)
         """
+        # NOTE: should we more generlly allow diagonal embedding
+        # if we have a conversion?
+        if self in _Rings and isinstance(x, numbers.Integral):
+            return x * self.one()
+
         from builtins import zip
         x = tuple(x)
+
         if len(x) != len(self._sets):
             raise ValueError(
                 "{} should be of length {}".format(x, len(self._sets)))

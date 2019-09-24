@@ -45,7 +45,6 @@ from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
 from sage.structure.element cimport have_same_parent
 from sage.misc.misc import verbose, get_verbose
-from sage.categories.fields import Fields
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
@@ -68,7 +67,6 @@ from sage.matrix.matrix_misc import permanental_minor_polynomial
 # used to deprecate only adjoint method
 from sage.misc.superseded import deprecated_function_alias
 
-_Fields = Fields()
 
 cdef class Matrix(Matrix1):
     """
@@ -446,7 +444,7 @@ cdef class Matrix(Matrix1):
                     ret = ret.Vec().sage()
                     return (K ** self.ncols())(ret)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
-        if K not in _Fields:
+        if not K.is_field():
             K = K.fraction_field()
             self = self.change_ring(K)
 
@@ -1675,7 +1673,12 @@ cdef class Matrix(Matrix1):
         # asymptotics.
         # TODO: Find a reasonable cutoff point.  (This is field specific, but
         # seems to be quite large for Q[x].)
-        if (algorithm is None and R in _Fields and R.is_exact()) or (algorithm == "hessenberg"):
+        if algorithm is None:
+            try:
+                R_is_field_attempt = R.is_field()
+            except NotImplementedError:
+                R_is_field_attempt = False
+        if (algorithm is None and R_is_field_attempt and R.is_exact()) or (algorithm == "hessenberg"):
             try:
                 c = self.charpoly('x', algorithm="hessenberg")[0]
             except ValueError:
@@ -2336,29 +2339,28 @@ cdef class Matrix(Matrix1):
             x^2 - 3.00000000000000*x - 2.00000000000000
 
         """
+
         f = self.fetch('charpoly')
         if f is not None:
             return f.change_variable_name(var)
 
-        if algorithm is None:
-            from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
+        if algorithm is None:
             R = self._base_ring
             if is_NumberField(R):
                 f = self._charpoly_over_number_field(var)
             elif is_IntegerModRing(R):
                 f = self.lift().charpoly(var).change_ring(R)
-            elif R in _Fields and R.is_exact():
+            elif R.is_field(proof = False) and R.is_exact():
                 f = self._charpoly_hessenberg(var)
             else:
                 f = self._charpoly_df(var)
         else:
             if algorithm == "hessenberg":
                 f = self._charpoly_hessenberg(var)
-            elif algorithm == "df":
-                f = self._charpoly_df(var)
             else:
-                raise ValueError('algorithm must be "hessenberg" or "df"')
+                f = self._charpoly_df(var)
 
         # Cache the result, and return it.
         self.cache('charpoly', f)
@@ -2792,7 +2794,7 @@ cdef class Matrix(Matrix1):
         if not X is None:
             return X
         R = self._base_ring
-        if R not in _Fields:
+        if not R.is_field():
             try:
                 K = self._base_ring.fraction_field()
                 H = self.change_ring(K)
@@ -2851,7 +2853,7 @@ cdef class Matrix(Matrix1):
         if not self.is_square():
             raise TypeError("self must be square")
 
-        if self._base_ring not in _Fields:
+        if not self._base_ring.is_field():
             raise TypeError("Hessenbergize only possible for matrices over a field")
 
         self.check_mutability()
@@ -3769,7 +3771,7 @@ cdef class Matrix(Matrix1):
             raise ValueError("'flint' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
         elif algorithm == 'pari' and not (is_IntegerRing(R) or (is_NumberField(R) and not is_RationalField(R))):
             raise ValueError("'pari' matrix kernel algorithm only available over non-trivial number fields and the integers, not over %s" % R)
-        elif algorithm == 'generic' and R not in _Fields:
+        elif algorithm == 'generic' and not R.is_field():
             raise ValueError("'generic' matrix kernel algorithm only available over a field, not over %s" % R)
         elif algorithm == 'pluq' and not isinstance(self, sage.matrix.matrix_mod2_dense.Matrix_mod2_dense):
             raise ValueError("'pluq' matrix kernel algorithm only available over integers mod 2, not over %s" % R)
@@ -3780,7 +3782,7 @@ cdef class Matrix(Matrix1):
             basis = 'echelon'
         elif not basis in ['computed', 'echelon', 'pivot', 'LLL']:
             raise ValueError("matrix kernel basis format '%s' not recognized" % basis )
-        elif basis == 'pivot' and R not in _Fields:
+        elif basis == 'pivot' and not R.is_field():
             raise ValueError('pivot basis only available over a field, not over %s' % R)
         elif basis == 'LLL' and not is_IntegerRing(R):
             raise ValueError('LLL-reduced basis only available over the integers, not over %s' % R)
@@ -3825,7 +3827,7 @@ cdef class Matrix(Matrix1):
         if M is None and is_NumberField(R):
             format, M = self._right_kernel_matrix_over_number_field()
 
-        if M is None and R in _Fields:
+        if M is None and R.is_field():
             format, M = self._right_kernel_matrix_over_field()
 
         if M is None and R.is_integral_domain():
@@ -4757,7 +4759,7 @@ cdef class Matrix(Matrix1):
             [ 0  0  0  1 -2  1], False)
             ]
         """
-        if algorithm == 'kernel' or self.base_ring() not in _Fields:
+        if algorithm == 'kernel' or not self.base_ring().is_field():
             return self._decomposition_using_kernels(is_diagonalizable = is_diagonalizable, dual=dual)
         elif algorithm == 'spin':
             X = self._decomposition_spin_generic(is_diagonalizable = is_diagonalizable)
@@ -4785,7 +4787,7 @@ cdef class Matrix(Matrix1):
         if not self.is_square():
             raise ValueError("self must be a square matrix")
 
-        if self.base_ring() not in _Fields:
+        if not self.base_ring().is_field():
             raise TypeError("self must be over a field.")
 
         if self.nrows() == 0:
@@ -5080,7 +5082,7 @@ cdef class Matrix(Matrix1):
         if V.rank() == 0 or V.degree() == 0:
             return self.new_matrix(nrows=0, ncols=0)
 
-        if not check and V.base_ring() in _Fields and not V.has_user_basis():
+        if not check and V.base_ring().is_field() and not V.has_user_basis():
             B = V.echelonized_basis_matrix()
             P = B.pivots()
             return B*self.matrix_from_columns(P)
@@ -5993,8 +5995,12 @@ cdef class Matrix(Matrix1):
 
         # now we need to find a natural algebraic closure for the base ring
         K = self.base_ring()
+        try:
+            is_field = K.is_field()
+        except (ValueError, AttributeError):
+            is_field = False
 
-        if K not in _Fields:
+        if not is_field:
             if not K.is_integral_domain():
                 raise NotImplementedError("eigenvalues() not implemented for non integral domains")
             K = K.fraction_field()
@@ -6491,11 +6497,11 @@ cdef class Matrix(Matrix1):
             [0 1 0]
             [0 0 1]
         """
-        R = self.base_ring()
-        if R in _Fields:
+        R=self.base_ring()
+        if R.is_field():
             return self.echelon_form()
         else:
-            F = R.fraction_field()
+            F=R.fraction_field()
             return self.change_ring(F).echelon_form()
 
     def _echelonize_ring(self, **kwds):
@@ -7749,7 +7755,7 @@ cdef class Matrix(Matrix1):
 
         self.check_mutability()
 
-        if self._base_ring not in _Fields:
+        if not self._base_ring.is_field():
             raise ValueError("Echelon form not defined over this base ring.")
 
         if cutoff == 0:
@@ -9084,13 +9090,33 @@ cdef class Matrix(Matrix1):
             This is all left to the method `adjugate`.
 
         """
-        n  = self._ncols
-
-        if self._nrows != n:
+        # self must be square
+        if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
 
-        A = self.charpoly().shift(-1)(self)
-        return A if n%2 else -A
+        # as self is square, we do not need to test for 0 x n or m x 0
+        # matrices
+        if self._ncols == 0:
+            return self.copy()
+
+        # extract parameters
+        n  = self._ncols
+        R  = self._base_ring
+        MS = self._parent
+
+        f = self.charpoly()
+
+        # A will be the adjugate of M and N is used to store powers of M
+        A = f[1] * MS.identity_matrix()
+        N = R(1) * MS.identity_matrix()
+        for i in range(1, n):
+            # set N to M^i
+            N = N * self
+            A = A + f[i+1] * N
+        if not (n % 2):
+            A = - A
+
+        return A
 
     def QR(self, full=True):
         r"""
@@ -10239,7 +10265,7 @@ cdef class Matrix(Matrix1):
             raise ValueError("Jordan normal form not implemented over inexact rings.")
 
         # Make sure we're working with a field.
-        if inferred_base_ring in _Fields:
+        if inferred_base_ring.is_field():
             if base_ring is not None:
                 A = self.change_ring(inferred_base_ring)
             else:
@@ -10519,7 +10545,7 @@ cdef class Matrix(Matrix1):
             self = self.change_ring(base_field)
         if not self.base_ring().is_exact():
             raise ValueError('base field must be exact, not {0}'.format(self.base_ring()))
-        if self.base_ring() not in _Fields:
+        if not self.base_ring().is_field():
             raise ValueError('matrix entries must be from a field, not {0}'.format(self.base_ring()))
 
         evals = self.charpoly().roots()
@@ -11287,7 +11313,7 @@ cdef class Matrix(Matrix1):
             raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
         if v.degree() != n:
             raise TypeError('vector must have degree equal to the size of the matrix, not {0}'.format(v.degree()))
-        if not (R in _Fields and R.is_exact()):
+        if not (R.is_field() and R.is_exact()):
             try:
                 fraction_field = R.fraction_field()
             except TypeError:
@@ -12039,7 +12065,7 @@ cdef class Matrix(Matrix1):
         if not R.is_exact():
             msg = 'base ring of the matrix must be exact, not {0}'
             raise TypeError(msg.format(R))
-        if R not in _Fields:
+        if not R.is_field():
             try:
                 F = R.fraction_field()
             except Exception:
@@ -14437,7 +14463,7 @@ cdef class Matrix(Matrix1):
         R = self.base_ring()
         if not self.is_square():
             raise TypeError("matrix must be square, not {0} x {1}".format(self.nrows(), self.ncols()))
-        if not (R in _Fields and R.is_exact()):
+        if not (R.is_field() and R.is_exact()):
             raise TypeError("matrix entries must come from an exact field, not {0}".format(R))
         if transformation not in [True, False]:
             raise ValueError("'transformation' keyword must be True or False, not {0}".format(transformation))
@@ -14827,7 +14853,7 @@ cdef class Matrix(Matrix1):
         R = self.base_ring()
         if not self.is_square():
             raise TypeError("matrix must be square, not {0} x {1}".format(self.nrows(), self.ncols()))
-        if not (R in _Fields and R.is_exact()):
+        if not (R.is_field() and R.is_exact()):
             raise TypeError("matrix entries must come from an exact field, not {0}".format(R))
         if format not in ['right', 'bottom', 'left', 'top', 'invariants']:
             raise ValueError("'format' keyword must be 'right', 'bottom', 'left', 'top' or 'invariants', not {0}".format(format))

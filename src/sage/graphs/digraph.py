@@ -2943,7 +2943,7 @@ class DiGraph(GenericGraph):
 
         The faces and volume of these polytopes are of interest. Examples of
         these polytopes are the Chan-Robbins-Yuen polytope and the
-        Pitman-Stanley polytope [PitSta]_.
+        Pitman-Stanley polytope [PS2002]_.
 
         INPUT:
 
@@ -3055,12 +3055,6 @@ class DiGraph(GenericGraph):
             sage: Z.flow_polytope()
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull
             of 1 vertex
-
-        REFERENCES:
-
-        .. [PitSta] Jim Pitman, Richard Stanley, "A polytope related to
-           empirical distributions, plane trees, parking functions, and
-           the associahedron", :arxiv:`math/9908029`
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         if edges is None:

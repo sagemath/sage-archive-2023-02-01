@@ -36,8 +36,6 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
     def __getattribute__(self,name):
         r"""
-        Return the specified attribute of the lattice polyhedron.
-
         TESTS:
 
         A lattice polytope doesn't have a Ehrhart quasipolynomial because it
@@ -58,10 +56,10 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
     def __dir__(self):
         r"""
-        Removes the Ehrhart quasipolynomial from the list of methods for the 
-        lattice polyhedron.
+        TESTS:
 
-        TESTS::
+        Removes the Ehrhart quasipolynomial from the list of methods for the 
+        lattice polyhedron::
 
             sage: P = polytopes.cube()
             sage: 'ehrhart_polynomial' in P.__dir__()

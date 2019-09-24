@@ -320,7 +320,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: simplex.ehrhart_polynomial(engine='normaliz')  # optional - pynormaliz
             Traceback (most recent call last):
             ...
-            TypeError: The backend of ``self`` should be 'normaliz'
+            TypeError: The backend of the polyhedron should be 'normaliz'
 
         The polyhedron should be compact::
 
@@ -493,7 +493,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: line_seg.ehrhart_quasipolynomial()
             Traceback (most recent call last):
             ...
-            TypeError: The backend of ``self`` should be 'normaliz'
+            TypeError: The backend of the polyhedron should be 'normaliz'
 
         The polyhedron should be compact::
 
@@ -589,9 +589,9 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: line_seg._ehrhart_quasipolynomial_normaliz()      # optional - pynormaliz
             Traceback (most recent call last):
             ...
-            TypeError: The backend of ``self`` should be 'normaliz'
+            TypeError: The backend of the polyhedron should be 'normaliz'
         """
-        raise TypeError("The backend of ``self`` should be 'normaliz'")
+        raise TypeError("The backend of the polyhedron should be 'normaliz'")
 
     _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 

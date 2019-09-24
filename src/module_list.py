@@ -1228,6 +1228,9 @@ ext_modules = [
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
 
+    Extension('sage.rings.ring_extension',
+              sources = ['sage/rings/ring_extension.pyx']),
+
     Extension('sage.rings.ring_extension_element',
               sources = ['sage/rings/ring_extension_element.pyx']),
 

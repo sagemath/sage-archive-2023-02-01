@@ -12,15 +12,18 @@ from sage.misc.cachefunc import cached_method
 
 from sage.structure.element cimport Element
 from sage.categories.map import Map
-from sage.rings.morphism cimport RingHomomorphism
-from sage.rings.ring_extension import RingExtension_class, RingExtensionWithBasis
-from sage.rings.ring_extension import _common_base
+from sage.rings.ring cimport CommutativeRing
+from sage.rings.morphism cimport RingMap
+from sage.rings.ring_extension cimport RingExtension_class, RingExtensionWithBasis
 from sage.rings.ring_extension_element cimport RingExtensionElement
+from sage.rings.ring_extension cimport _common_base
+from sage.rings.ring_extension cimport backend_parent
+from sage.rings.ring_extension_element cimport backend_element
 
 
 # Helper functions
 
-cpdef _backend_morphism(f):
+cdef _backend_morphism(f):
     from sage.categories.map import FormalCompositeMap
     from sage.categories.morphism import IdentityMorphism
     domain = f.domain()
@@ -31,7 +34,7 @@ cpdef _backend_morphism(f):
     elif isinstance(f, FormalCompositeMap):
         return _backend_morphism(f.then()) * _backend_morphism(f.first())
     elif isinstance(f, IdentityMorphism):
-        ring = domain._backend
+        ring = backend_parent(domain)
         return ring.Hom(ring).identity()
     elif domain is domain.base_ring():
         ring = f.codomain()
@@ -41,7 +44,7 @@ cpdef _backend_morphism(f):
             return ring.coerce_map_from(domain)
     raise NotImplementedError
 
-def backend_morphism(f, forget="all"):
+cpdef backend_morphism(f, forget="all"):
     try:
         g = _backend_morphism(f)
         if forget is None and (isinstance(f.domain(), RingExtension_class) or isinstance(f.codomain(), RingExtension_class)):
@@ -61,7 +64,7 @@ def backend_morphism(f, forget="all"):
     return g
 
 # I don't trust the operator ==
-def are_equal_morphisms(f, g):
+cdef are_equal_morphisms(f, g):
     if f is None and g is None:
         return True
     if f is None:
@@ -77,7 +80,7 @@ def are_equal_morphisms(f, g):
 
 # Classes
 
-cdef class RingExtensionHomomorphism(RingHomomorphism):
+cdef class RingExtensionHomomorphism(RingMap):
     r"""
     Homomorphisms between extensions
 
@@ -91,13 +94,11 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
 
     """
     def __init__(self, parent, defn, base_map=None, check=True):
-        RingHomomorphism.__init__(self, parent)
-        backend_domain = domain = self.domain()
-        if isinstance(backend_domain, RingExtension_class):
-            backend_domain = backend_domain._backend
-        backend_codomain = codomain = self.codomain()
-        if isinstance(backend_codomain, RingExtension_class):
-            backend_codomain = backend_codomain._backend
+        RingMap.__init__(self, parent)
+        domain = self.domain()
+        backend_domain = backend_parent(domain)
+        codomain = self.codomain()
+        backend_codomain = backend_parent(codomain)
         # We construct the backend morphism
         if isinstance(defn, Map):
             if base_map is not None:
@@ -141,19 +142,13 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
                     if base_map is not None:
                         pol = pol.map_coefficients(base_map)
                     y = pol(im_gens)
-                    if isinstance(codomain, RingExtension_class):
-                        y = (<RingExtensionElement>y)._backend
-                    current_im_gens.append(y)
+                    current_im_gens.append(backend_element(y))
                 current_morphism = current_domain.hom(current_im_gens, base_map=current_morphism, check=check)
             # We check that everything went well
             if check:
                 for i in range(len(gens)):
-                    x = domain(gens[i])
-                    if isinstance(domain, RingExtension_class):
-                        x = (<RingExtensionElement>x)._backend
-                    y = im_gens[i]
-                    if isinstance(codomain, RingExtension_class):
-                        y = (<RingExtensionElement>y)._backend
+                    x = backend_element(domain(gens[i]))
+                    y = backend_element(im_gens[i])
                     if current_morphism(x) != y:
                         raise ValueError("images do not define a valid homomorphism")
                 coercion_morphism = backend_morphism(domain.defining_morphism(base))
@@ -177,10 +172,11 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
         else:
             raise TypeError
 
+    def _repr_type(self):
+        return "Ring"
+
     cpdef Element _call_(self, x):
-        if isinstance(self.domain(), RingExtension_class):
-            x = (<RingExtensionElement>x)._backend
-        y = self._backend(x)
+        y = self._backend(backend_element(x))
         if isinstance(self.codomain(), RingExtension_class):
             y = self._codomain(y)
         return y
@@ -244,8 +240,6 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
         domain = right.domain()
         codomain = self.codomain()
         backend_right = backend_morphism(right)
-        if self._backend is None:
-            print(self)
         backend = self._backend * backend_right
         if isinstance(domain, RingExtension_class) or isinstance(codomain, RingExtension_class):
             return RingExtensionHomomorphism(domain.Hom(codomain), backend)
@@ -254,17 +248,17 @@ cdef class RingExtensionHomomorphism(RingHomomorphism):
 
     cdef _update_slots(self, dict _slots):
         self._backend = _slots['_backend']
-        RingHomomorphism._update_slots(self, _slots)
+        RingMap._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):
-        slots = RingHomomorphism._extra_slots(self)
+        slots = RingMap._extra_slots(self)
         slots['_backend'] = self._backend
         return slots
 
 
 cdef class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
     def __init__(self, parent):
-        RingHomomorphism.__init__(self, parent)
+        RingMap.__init__(self, parent)
         domain = self.domain()
         self._backend = domain.Hom(domain).identity()
 
@@ -281,7 +275,7 @@ cdef class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
 
 cdef class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
     def __init__(self, parent):
-        RingHomomorphism.__init__(self, parent)
+        RingMap.__init__(self, parent)
         codomain = self.codomain()
         self._backend = codomain.Hom(codomain).identity()
 
@@ -295,10 +289,8 @@ cdef class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
         return (<RingExtensionElement>x)._backend
 
 
-class MapVectorSpaceToRelativeField(Map):
+cdef class MapVectorSpaceToRelativeField(Map):
     def __init__(self, E, K):
-        if not isinstance(E, RingExtensionWithBasis):
-            raise TypeError("you must pass in a RingExtensionWithBasis")
         self._degree = E.degree(K)
         self._basis = [ (<RingExtensionElement>x)._backend for x in E.basis_over(K) ]
         self._f = backend_morphism(E.defining_morphism(K), forget="codomain")
@@ -318,23 +310,21 @@ class MapVectorSpaceToRelativeField(Map):
         return self.codomain()(elt)
 
 
-class MapRelativeFieldToVectorSpace(Map):
+cdef class MapRelativeFieldToVectorSpace(Map):
     def __init__(self, E, K):
-        if not isinstance(E, RingExtensionWithBasis):
-            raise TypeError("you must pass in a RingExtensionWithBasis")
-        self._degree = E.degree(K)
+        cdef CommutativeRing L, base
+
+        self._degree = (<RingExtensionWithBasis>E)._degree_over(K)
         self._basis = [ (<RingExtensionElement>x)._backend for x in E.basis_over(K) ]
         f = backend_morphism(E.defining_morphism(K), forget="codomain")
         codomain = K ** self._degree
-        parent = E.Hom(codomain)
-        Map.__init__(self, parent)
+        Map.__init__(self, E.Hom(codomain))
 
-        if isinstance(K, RingExtension_class):
-            K = K._backend
-        L = E._backend
+        K = backend_parent(K)
+        L = (<RingExtensionWithBasis>E)._backend
 
         # We compute the matrix of our isomorphism (over base)
-        base = _common_base(K,L)
+        base = _common_base(K, L, False)
         EK, iK, jK = K.free_module(base, map=True)
         EL, iL, jL = L.free_module(base, map=True)
 
@@ -356,14 +346,13 @@ class MapRelativeFieldToVectorSpace(Map):
     def is_surjective(self):
         return True
 
-    #cpdef Element _call_(self, x):
-    def _call_(self, x):
+    cpdef Element _call_(self, x):
         coeffs = self.backend_coefficients(x)
         return self.codomain()(coeffs)
 
-    def backend_coefficients(self, x):
+    cdef list backend_coefficients(self, RingExtensionElement x):
         dK = self._dimK
-        w = (self._jL((<RingExtensionElement>x)._backend) * self._matrix).list()
+        w = (self._jL(x._backend) * self._matrix).list()
         coeffs = [ ]
         for i in range(self._degree):
             coeff = self._iK(w[i*dK:(i+1)*dK])

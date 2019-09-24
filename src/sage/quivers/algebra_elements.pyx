@@ -246,12 +246,12 @@ cdef class PathAlgebraElement(RingElement):
             while T!=NULL:
                 sig_check()
                 if T.mon.path.length:
-                    L.append(([offset+biseq_getitem(T.mon.path,i) for i in range(T.mon.path.length)],
+                    L.append(([offset + biseq_getitem(T.mon.path, i) for i in range(<size_t>T.mon.path.length)],
                               <object>(T.coef)))
                 else:
                     L.append(([vertices.index(H.start)], <object>(T.coef)))
                 T = T.nxt
-            if len(L) != H.poly.nterms:
+            if <size_t>len(L) != H.poly.nterms:
                 print("Term count of polynomial is wrong, got", len(L),
                       "expected", H.poly.nterms)
             L_total.extend(L)

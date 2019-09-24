@@ -835,13 +835,13 @@ cdef class BooleanFunction(SageObject):
             sage: B.correlation_immunity()
             2
         """
-        cdef int c
+        cdef size_t c
         if self._correlation_immunity is None:
             c = self._nvariables
             W = self.walsh_hadamard_transform()
             for 0 < i < len(W):
                 sig_check()
-                if (W[i] != 0):
+                if W[i]:
                     c = min( c , hamming_weight_int(i) )
             self._correlation_immunity = ZZ(c-1)
         return self._correlation_immunity

@@ -5330,7 +5330,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [1267650600228229401496703205375  422550200076076467165567735126]
 
         Matrices over p-adics. See :trac:`17272` ::
-
+        
             sage: R = ZpCA(5,5,print_mode='val-unit')
             sage: A = matrix(R,3,3,[250,2369,1147,106,927,362,90,398,2483])
             sage: A
@@ -5341,7 +5341,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [5 * 212 + O(5^5)    3031 + O(5^5)    2201 + O(5^5)]
             [   1348 + O(5^5) 5 * 306 + O(5^5)    2648 + O(5^5)]
             [   1987 + O(5^5) 5 * 263 + O(5^5)     154 + O(5^5)]
-
+            
         This matrix isn't invertible::
 
             sage: m = matrix(Zmod(9),2,[2,1,3,3])

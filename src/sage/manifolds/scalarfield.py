@@ -1205,9 +1205,9 @@ class ScalarField(CommutativeAlgebraElement):
 
     def is_unit(self):
         r"""
-        Return ``True`` iff ``self`` is not identically zero since most scalar
-        fields are invertible and an actual computation would take too much
-        time.
+        Return ``True`` iff ``self`` is not trivially zero in at least one of
+        the given expressions since most scalar fields are invertible and a
+        complete computation would take too much time.
 
         EXAMPLES::
 
@@ -1220,7 +1220,10 @@ class ScalarField(CommutativeAlgebraElement):
             False
 
         """
-        return not self._is_zero
+        if self._is_zero:
+            return False
+        return not any(func.is_trivial_zero()
+                       for func in self._express.values())
 
     def __eq__(self, other):
         r"""

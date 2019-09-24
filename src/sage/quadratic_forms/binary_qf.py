@@ -1470,15 +1470,14 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
             b = D.sqrt()
             c = ZZ(0)
             # -b/2 < a <= b/2
-            for a in xsrange((-b/2).floor() + 1, (b/2).floor()+1):
-                Q = BinaryQF(a,b,c)
+            for a in xsrange((-b/2).floor() + 1, (b/2).floor() + 1):
+                Q = BinaryQF(a, b, c)
                 form_list.append(Q)
-        # We follow the description of Buchmann/Vollmer 6.7.1
-        # He ennumerates all reduced forms.
-        # We only want representatives
+        # We follow the description of Buchmann/Vollmer 6.7.1.  They
+        # enumerate all reduced forms.  We only want representatives.
         else:
             sqrt_d = D.sqrt(prec=53)
-            for b in xsrange(1, sqrt_d.floor()+1):
+            for b in xsrange(1, sqrt_d.floor() + 1):
                 if (D - b) % 2 != 0:
                     continue
                 A = (D - b**2) / 4
@@ -1489,7 +1488,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
                         continue
                     c = -A/a
                     if c in ZZ:
-                        if (not primitive_only) or gcd([a,b,c])==1:
+                        if (not primitive_only) or gcd([a, b, c])==1:
                             Q = BinaryQF(a, b, c)
                             Q1 = BinaryQF(-a, b, -c)
                             form_list.append(Q)
@@ -1521,7 +1520,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
         # filter for equivalence classes
         form_list_new = []
         for q in form_list:
-            if not any(q.is_equivalent(q1,proper=proper) for q1 in form_list_new):
+            if not any(q.is_equivalent(q1, proper=proper) for q1 in form_list_new):
                 form_list_new.append(q)
         form_list = form_list_new
 

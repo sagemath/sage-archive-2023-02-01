@@ -384,7 +384,6 @@ compare equal::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 

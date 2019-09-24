@@ -9,7 +9,6 @@ existence of this file -- is now a non-issue, since some bugs in
 Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_check
 

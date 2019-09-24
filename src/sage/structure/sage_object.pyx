@@ -2,7 +2,6 @@
 r"""
 Abstract base class for Sage objects
 """
-from __future__ import absolute_import, print_function
 
 from sage.misc.persist import (_base_dumps, _base_save,
                                register_unpickle_override, make_None)

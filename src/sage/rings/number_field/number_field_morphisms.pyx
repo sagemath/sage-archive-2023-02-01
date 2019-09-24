@@ -19,7 +19,6 @@ fields (generally `\RR` or `\CC`).
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import sage.rings.complex_double
 

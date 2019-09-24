@@ -13,7 +13,6 @@ Classes for symbolic functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import division, absolute_import
 
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger

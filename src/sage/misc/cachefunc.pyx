@@ -414,7 +414,6 @@ the parent as its first argument::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 cdef extern from "methodobject.h":
     cdef int METH_NOARGS, METH_O

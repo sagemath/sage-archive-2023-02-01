@@ -153,7 +153,7 @@ AUTHORS:
 #  the License, or (at youroption) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
 from sage.misc.superseded import deprecation
 from cysignals.signals cimport sig_on, sig_off
 

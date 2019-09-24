@@ -282,8 +282,6 @@ Methods
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from libc.string cimport memset
 from cysignals.memory cimport check_malloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off

@@ -1,3 +1,4 @@
+# cython: language_level=2
 """
 Ranges and the ``[1,2,..,n]`` notation
 

@@ -109,7 +109,6 @@ This is a test from :trac:`20211`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx

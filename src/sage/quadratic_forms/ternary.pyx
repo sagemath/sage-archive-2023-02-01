@@ -11,8 +11,6 @@ Helper code for ternary quadratic forms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, identity_matrix, diagonal_matrix

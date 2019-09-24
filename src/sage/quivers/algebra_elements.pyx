@@ -15,9 +15,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division, print_function
-
 include "algebra_elements.pxi"
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import repr_lincomb
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool

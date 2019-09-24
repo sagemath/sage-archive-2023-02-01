@@ -117,8 +117,6 @@ Make sure we don't have a new field for every new literal::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import math # for log
 import sys
 import re

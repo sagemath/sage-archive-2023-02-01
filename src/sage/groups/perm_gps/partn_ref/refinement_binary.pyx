@@ -26,8 +26,6 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
-
 include "sage/data_structures/bitset.pxi"
 from .data_structures cimport *
 from sage.rings.integer cimport Integer

@@ -30,7 +30,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from textwrap import dedent
 from sage.misc.superseded import deprecation

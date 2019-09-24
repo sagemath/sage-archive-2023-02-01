@@ -102,7 +102,6 @@ This came up in some subtle bug once::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
 from cpython.bool cimport *

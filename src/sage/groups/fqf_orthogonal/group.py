@@ -24,7 +24,6 @@ AUTHORS:
 
 from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_subgroup, AbelianGroupAutomorphism, AbelianGroupAutomorphismGroup_gap
 from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-from sage.groups.fqf_orthogonal.gens import _gens
 from sage.misc.cachefunc import cached_method
 from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
 from sage.rings.all import mod, ZZ, IntegerModRing, Zp, QQ
@@ -464,3 +463,83 @@ class ActionOnFqf(Action):
             v = (a.vector()*g.matrix())
             P = a.parent()
             return P.linear_combination_of_smith_form_gens(v)
+
+
+def _isom_fqf(A, B=None):
+    r"""
+    Return isometries from `A` to `B`.
+
+    INPUT:
+
+    - ``A`` -- a torsion quadratic module
+    - ``B`` -- (default: ``None``) a torsion quadratic module
+
+    OUTPUT:
+
+    A list of generators of the orthogonal group of A.
+    If ``B`` is given returns instead an isometry of `A` and `B` or
+    raises an ``ValueError`` if `A` and `B` are not isometric.
+    """
+    if B is None:
+        B = A
+        automorphisms = True
+    else:
+        automorphisms = False
+    if A.invariants() != B.invariants():
+        raise ValueError()
+    na = len(A.smith_form_gens())
+    nb = len(B.smith_form_gens())
+
+    b_cand = [[b for b in B if b.q()==a.q() and b.order() == a.order()] for a in A.smith_form_gens()]
+
+    res = []
+    G = B.orthogonal_group(tuple(res))
+    ambient = G.ambient()
+    waiting = [[]]
+    while len(waiting) > 0:
+        f = waiting.pop()
+        i = len(f)
+        if i == na:
+            if not automorphisms:
+                return f
+            g = ambient(matrix(f))
+            if not g in G:
+                res.append(tuple(f))
+                G = B.orthogonal_group(tuple(ambient(s.matrix()) for s in G.gens())+(g,))
+                waiting = _orbits(G, waiting)
+            continue
+        a = A.smith_form_gens()[i]
+        card = ZZ.prod(A.smith_form_gen(k).order() for k in range(i+1))
+        for b in b_cand[i]:
+            if all(b.b(f[k])==a.b(A.smith_form_gens()[k]) for k in range(i)):
+                fnew = f + [b]
+                # check that the elements of fnew are independent
+                if B.submodule(fnew).cardinality() == card:
+                    waiting.append(fnew)
+
+
+    if len(res) == 0:
+        raise ValueError()
+    return res
+
+def _orbits(G, L):
+    r"""
+    Return the orbits of `L` under `G`.
+
+    INPUT:
+
+    - ``G`` -- a torsion orthogonal group
+    - ``L`` -- a list of tuples of elements of the domain of ``G``
+
+    EXAMPLES::
+
+        sage:
+        sage:
+    """
+    D = G.invariant_form()
+    A = G.domain()
+    L = libgap([[A(g).gap() for g in f] for f in L])
+    orb = G.gap().Orbits(L,libgap.OnTuples)
+    orb = [g[0] for g in orb]
+    orb = [[D.linear_combination_of_smith_form_gens(A(g).exponents()) for g in f] for f in orb]
+    return orb

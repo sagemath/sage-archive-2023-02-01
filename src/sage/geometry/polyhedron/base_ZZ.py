@@ -19,7 +19,6 @@ from sage.modules.free_module_element import vector
 from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd
 from .constructor import Polyhedron
-from .base import Polyhedron_base
 
 
 #########################################################################
@@ -36,15 +35,42 @@ class Polyhedron_ZZ(Polyhedron_QQ):
     _base_ring = ZZ
 
     def __getattribute__(self,name):
+        r"""
+        Return the specified attribute of the lattice polyhedron.
+
+        TESTS:
+
+        A lattice polytope doesn't have a Ehrhart quasipolynomial because it
+        is always a polynomial::
+
+            sage: P = polytopes.cube()
+            sage: P.__getattribute__(name='ehrhart_polynomial')()
+            8*t^3 + 12*t^2 + 6*t + 1
+            sage: P.__getattribute__(name='ehrhart_quasipolynomial')
+            Traceback (most recent call last):
+            ...
+            AttributeError: ehrhart_quasipolynomial
+        """
         if name in ['ehrhart_quasipolynomial']:
             raise AttributeError(name)
         else:
             return super(Polyhedron_ZZ,self).__getattribute__(name)
 
     def __dir__(self):
+        r"""
+        Removes the Ehrhart quasipolynomial from the list of methods for the 
+        lattice polyhedron.
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: 'ehrhart_polynomial' in P.__dir__()
+            True
+            sage: 'ehrhart_quasipolynomial' in P.__dir__()
+            False
+        """
         orig_dir = (set(dir(self.__class__)) | set(self.__dict__.keys()))
         return sorted(orig_dir - set(['ehrhart_quasipolynomial']))
-
 
     def is_lattice_polytope(self):
         r"""
@@ -290,40 +316,40 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
         - ``engine`` -- string; The backend to use. Allowed values are:
 
-            * ``None`` (default); When no input is given the Ehrhart polynomial
-              is computed using LattE Integrale (optional)
-            * ``'latte'``; use LattE integrale program (optional)
-            * ``'normaliz'``; use Normaliz program (optional). The backend of
-              ``self`` must be set to 'normaliz'.
+          * ``None`` (default); When no input is given the Ehrhart polynomial
+            is computed using LattE Integrale (optional)
+          * ``'latte'``; use LattE integrale program (optional)
+          * ``'normaliz'``; use Normaliz program (optional). The backend of
+            ``self`` must be set to 'normaliz'.
 
-        -  ``variable`` -- string (default: 't'); The variable in which the
-           Ehrhart polynomial should be expressed.
+        - ``variable`` -- string (default: 't'); The variable in which the
+          Ehrhart polynomial should be expressed.
 
         - When the ``engine`` is 'latte' or None, the additional input values are:
 
-            * ``verbose`` - boolean (default: ``False``); if ``True``, print the
-              whole output of the LattE command.
+          * ``verbose`` - boolean (default: ``False``); if ``True``, print the
+            whole output of the LattE command.
 
-            The following options are passed to the LattE command, for details
-            consult `the LattE documentation
-            <https://www.math.ucdavis.edu/~latte/software/packages/latte_current/>`__:
+          The following options are passed to the LattE command, for details
+          consult `the LattE documentation
+          <https://www.math.ucdavis.edu/~latte/software/packages/latte_current/>`__:
 
-            * ``dual`` - boolean; triangulate and signed-decompose in the dual
-              space
-            * ``irrational_primal`` - boolean; triangulate in the dual space,
-              signed-decompose in the primal space using irrationalization.
-            * ``irrational_all_primal`` - boolean; Triangulate and signed-decompose
-              in the primal space using irrationalization.
-            * ``maxdet`` -- integer; decompose down to an index (determinant) of
-              ``maxdet`` instead of index 1 (unimodular cones).
-            * ``no_decomposition`` -- boolean; do not signed-decompose
-              simplicial cones.
-            * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
-            * ``smith_form`` -- string; either 'ilio' or 'lidia'
-            * ``dualization`` -- string; either 'cdd' or '4ti2'
-            * ``triangulation`` - string; 'cddlib', '4ti2' or 'topcom'
-            * ``triangulation_max_height`` - integer; use a uniform distribution of
-              height from 1 to this number
+          * ``dual`` - boolean; triangulate and signed-decompose in the dual
+            space
+          * ``irrational_primal`` - boolean; triangulate in the dual space,
+            signed-decompose in the primal space using irrationalization.
+          * ``irrational_all_primal`` - boolean; Triangulate and signed-decompose
+            in the primal space using irrationalization.
+          * ``maxdet`` -- integer; decompose down to an index (determinant) of
+            ``maxdet`` instead of index 1 (unimodular cones).
+          * ``no_decomposition`` -- boolean; do not signed-decompose
+            simplicial cones.
+          * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
+          * ``smith_form`` -- string; either 'ilio' or 'lidia'
+          * ``dualization`` -- string; either 'cdd' or '4ti2'
+          * ``triangulation`` - string; 'cddlib', '4ti2' or 'topcom'
+          * ``triangulation_max_height`` - integer; use a uniform distribution of
+            height from 1 to this number
 
         OUTPUT:
 

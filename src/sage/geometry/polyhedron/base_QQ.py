@@ -238,40 +238,40 @@ class Polyhedron_QQ(Polyhedron_base):
 
         - ``engine`` -- string; The backend to use. Allowed values are:
 
-            * ``None`` (default); When no input is given the Ehrhart polynomial
-              is computed using LattE Integrale (optional)
-            * ``'latte'``; use LattE integrale program (optional)
-            * ``'normaliz'``; use Normaliz program (optional package pynormaliz).
-              The backend of ``self`` must be set to 'normaliz'.
+          * ``None`` (default); When no input is given the Ehrhart polynomial
+            is computed using LattE Integrale (optional)
+          * ``'latte'``; use LattE integrale program (optional)
+          * ``'normaliz'``; use Normaliz program (optional package pynormaliz).
+            The backend of ``self`` must be set to 'normaliz'.
 
         -  ``variable`` -- string (default: 't'); The variable in which the
-              Ehrhart polynomial should be expressed.
+           Ehrhart polynomial should be expressed.
 
         - When the ``engine`` is 'latte', the additional input values are:
 
-            * ``verbose`` - boolean (default: ``False``); If ``True``, print the
-              whole output of the LattE command.
+          * ``verbose`` - boolean (default: ``False``); If ``True``, print the
+            whole output of the LattE command.
 
-            The following options are passed to the LattE command, for details
-            consult `the LattE documentation
-            <https://www.math.ucdavis.edu/~latte/software/packages/latte_current/>`__:
+          The following options are passed to the LattE command, for details
+          consult `the LattE documentation
+          <https://www.math.ucdavis.edu/~latte/software/packages/latte_current/>`__:
 
-            * ``dual`` - boolean; triangulate and signed-decompose in the dual
-              space
-            * ``irrational_primal`` - boolean; triangulate in the dual space,
-              signed-decompose in the primal space using irrationalization.
-            * ``irrational_all_primal`` - boolean; triangulate and signed-decompose
-              in the primal space using irrationalization.
-            * ``maxdet`` -- integer; decompose down to an index (determinant) of
-              ``maxdet`` instead of index 1 (unimodular cones).
-            * ``no_decomposition`` -- boolean; do not signed-decompose
-              simplicial cones.
-            * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
-            * ``smith_form`` -- string; either 'ilio' or 'lidia'
-            * ``dualization`` -- string; either 'cdd' or '4ti2'
-            * ``triangulation`` - string; 'cddlib', '4ti2' or 'topcom'
-            * ``triangulation_max_height`` - integer; use a uniform distribution of
-              height from 1 to this number
+          * ``dual`` - boolean; triangulate and signed-decompose in the dual
+            space
+          * ``irrational_primal`` - boolean; triangulate in the dual space,
+            signed-decompose in the primal space using irrationalization.
+          * ``irrational_all_primal`` - boolean; triangulate and signed-decompose
+            in the primal space using irrationalization.
+          * ``maxdet`` -- integer; decompose down to an index (determinant) of
+            ``maxdet`` instead of index 1 (unimodular cones).
+          * ``no_decomposition`` -- boolean; do not signed-decompose
+            simplicial cones.
+          * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
+          * ``smith_form`` -- string; either 'ilio' or 'lidia'
+          * ``dualization`` -- string; either 'cdd' or '4ti2'
+          * ``triangulation`` - string; 'cddlib', '4ti2' or 'topcom'
+          * ``triangulation_max_height`` - integer; use a uniform distribution
+            of height from 1 to this number
 
         OUTPUT:
 
@@ -391,42 +391,42 @@ class Polyhedron_QQ(Polyhedron_base):
 
         INPUT:
 
-        -  ``variable`` -- string (default: 't'); The variable in which the
-              Ehrhart polynomial should be expressed.
+        - ``variable`` -- string (default: 't'); The variable in which the
+          Ehrhart polynomial should be expressed.
 
         - ``engine`` -- string; The backend to use. Allowed values are:
 
-            * ``None`` (default); When no input is given the Ehrhart polynomial
-              is computed using LattE Integrale (optional)
-            * ``'latte'``; use LattE integrale program (optional)
-            * ``'normaliz'``; use Normaliz program (optional package pynormaliz).
-              The backend of ``self`` must be set to 'normaliz'.
+          * ``None`` (default); When no input is given the Ehrhart polynomial
+            is computed using LattE Integrale (optional)
+          * ``'latte'``; use LattE integrale program (optional)
+          * ``'normaliz'``; use Normaliz program (optional package pynormaliz).
+            The backend of ``self`` must be set to 'normaliz'.
 
         - When the ``engine`` is 'latte', the additional input values are:
 
-            * ``verbose`` - boolean (default: ``False``); If ``True``, print the
-              whole output of the LattE command.
+          * ``verbose`` - boolean (default: ``False``); If ``True``, print the
+            whole output of the LattE command.
 
-            The following options are passed to the LattE command, for details
-            consult `the LattE documentation
-            <https://www.math.ucdavis.edu/~latte/software/packages/latte_current/>`__:
+          The following options are passed to the LattE command, for details
+          consult `the LattE documentation
+          <https://www.math.ucdavis.edu/~latte/software/packages/latte_current/>`__:
 
-            * ``dual`` - boolean; triangulate and signed-decompose in the dual
-              space
-            * ``irrational_primal`` - boolean; triangulate in the dual space,
-              signed-decompose in the primal space using irrationalization.
-            * ``irrational_all_primal`` - boolean; triangulate and signed-decompose
-              in the primal space using irrationalization.
-            * ``maxdet`` -- integer; decompose down to an index (determinant) of
-              ``maxdet`` instead of index 1 (unimodular cones).
-            * ``no_decomposition`` -- boolean; do not signed-decompose
-              simplicial cones.
-            * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
-            * ``smith_form`` -- string; either 'ilio' or 'lidia'
-            * ``dualization`` -- string; either 'cdd' or '4ti2'
-            * ``triangulation`` - string; 'cddlib', '4ti2' or 'topcom'
-            * ``triangulation_max_height`` - integer; use a uniform distribution of
-              height from 1 to this number
+          * ``dual`` - boolean; triangulate and signed-decompose in the dual
+            space
+          * ``irrational_primal`` - boolean; triangulate in the dual space,
+            signed-decompose in the primal space using irrationalization.
+          * ``irrational_all_primal`` - boolean; triangulate and signed-decompose
+            in the primal space using irrationalization.
+          * ``maxdet`` -- integer; decompose down to an index (determinant) of
+            ``maxdet`` instead of index 1 (unimodular cones).
+          * ``no_decomposition`` -- boolean; do not signed-decompose
+            simplicial cones.
+          * ``compute_vertex_cones`` -- string; either 'cdd' or 'lrs' or '4ti2'
+          * ``smith_form`` -- string; either 'ilio' or 'lidia'
+          * ``dualization`` -- string; either 'cdd' or '4ti2'
+          * ``triangulation`` - string; 'cddlib', '4ti2' or 'topcom'
+          * ``triangulation_max_height`` - integer; use a uniform distribution of
+            height from 1 to this number
 
         OUTPUT:
 

@@ -1052,10 +1052,6 @@ class Section(ModuleElement):
 
     disp = display
 
-    #
-    # Till here, doctest finished!
-    #
-
     def display_comp(self, frame=None, chart=None, only_nonzero=True):
         r"""
         Display the section components with respect to a given frame,
@@ -1067,57 +1063,39 @@ class Section(ModuleElement):
         INPUT:
 
         - ``frame`` -- (default: ``None``) local frame with respect to which
-          the section components are defined; if ``None``, then
-
-          * if ``chart`` is not ``None``, the coordinate frame associated to
-            ``chart`` is used
-          * otherwise, the default basis of the vector field module on which
-            the tensor field is defined is used
-
+          the section components are defined; if ``None``, then the default
+          frame on the section module is used
         - ``chart`` -- (default: ``None``) chart specifying the coordinate
           expression of the components; if ``None``, the default chart of the
-          tensor field domain is used
-        - ``coordinate_labels`` -- (default: ``True``) boolean; if ``True``,
-          coordinate symbols are used by default (instead of integers) as
-          index labels whenever ``frame`` is a coordinate frame
+          section domain is used
         - ``only_nonzero`` -- (default: ``True``) boolean; if ``True``, only
           nonzero components are displayed
-        - ``only_nonredundant`` -- (default: ``False``) boolean; if ``True``,
-          only nonredundant components are displayed in case of symmetries
 
         EXAMPLES:
 
-        Display of the components of a type-`(1,1)` tensor field defined
-        on two open subsets::
+        Display of the components of a section defined on two open subsets::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U')
             sage: c_xy.<x, y> = U.chart()
-            sage: e = U.default_frame()
             sage: V = M.open_subset('V')
             sage: c_uv.<u, v> = V.chart()
-            sage: f = V.default_frame()
             sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t[e,0,0] = - x + y^3
-            sage: t[e,0,1] = 2+x
-            sage: t[f,1,1] = - u*v
-            sage: t.display_comp(e)
-            t^x_x = y^3 - x
-            t^x_y = x + 2
-            sage: t.display_comp(f)
-            t^v_v = -u*v
-
-        Components in a chart frame::
-
-            sage: t.display_comp(chart=c_xy)
-            t^x_x = y^3 - x
-            t^x_y = x + 2
-            sage: t.display_comp(chart=c_uv)
-            t^v_v = -u*v
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e', domain=U)
+            sage: f = E.local_frame('f', domain=V)
+            sage: s = E.section(name='s')
+            sage: s[e,0] = - x + y^3
+            sage: s[e,1] = 2+x
+            sage: s[f,1] = - u*v
+            sage: s.display_comp(e)
+            s^0 = y^3 - x
+            s^1 = x + 2
+            sage: s.display_comp(f)
+            s^1 = -u*v
 
         See documentation of
-        :meth:`sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.display_comp`
+        :meth:`sage.manifolds.section.TrivialSection.display_comp`
         for more options.
 
         """
@@ -1129,25 +1107,22 @@ class Section(ModuleElement):
         return rst.display_comp(frame=frame, chart=chart,
                                 only_nonzero=only_nonzero)
 
+    #
+    # Till here, doctest finished!
+    #
+
     def at(self, point):
         r"""
         Value of ``self`` at a point of its domain.
 
-        If the current tensor field is
+        If the current section is
 
         .. MATH::
 
-            t:\ U  \longrightarrow T^{(k,l)} M
+            s:\ U  \longrightarrow E ,
 
-        associated with the differentiable map
-
-        .. MATH::
-
-            \Phi:\ U \longrightarrow M,
-
-        where `U` and `M` are two manifolds (possibly `U = M` and
-        `\Phi = \mathrm{Id}_M`), then for any point `p \in U`, `t(p)`
-        is a tensor on the tangent space to `M` at the point `\Phi(p)`.
+        then for any point `p \in U`, `s(p)` is a vector in the fiber `E_p` of
+        `E` at `p`.
 
         INPUT:
 
@@ -1156,28 +1131,34 @@ class Section(ModuleElement):
 
         OUTPUT:
 
-        - :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
-          representing the tensor `t(p)` on the tangent vector space
-          `T_{\Phi(p)} M`
+        - :class:`~sage.manifolds.vector_bundle_fiber_element.VectorBundleFiberElement`
+          representing the vector `s(p)` in the fiber `E_p` of `E` at `p`.
 
         EXAMPLES:
 
-        Tensor on a tangent space of a non-parallelizable 2-dimensional
+        Section on a tangent space of a non-parallelizable 2-dimensional
         manifold::
 
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:                    intersection_name='W', restrictions1= x>0,
-            ....:                    restrictions2= u+v>0)
-            sage: inv = transf.inverse()
+            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
+            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
+            sage: S2.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: xy_to_uv = stereoN.transition_map(stereoS,
+            ....:                                   (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                   intersection_name='W',
+            ....:                                   restrictions1= x^2+y^2!=0,
+            ....:                                   restrictions2= u^2+v^2!=0)
             sage: W = U.intersection(V)
-            sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(1, 1, {eU: [[1+y,x], [0,x+y]]}, name='a')
-            sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-            sage: a.display(eU)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,1],[1,0]])
+            sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
+            sage: s = E.section({fN: [x^2, -2y+x]}, name='s')
+            sage: s.add_comp_by_continuation(fS, W, chart=c_uv)
+            sage: s.display(eU)
             a = (y + 1) d/dx*dx + x d/dx*dy + (x + y) d/dy*dy
             sage: a.display(eV)
             a = (u + 1/2) d/du*du + (-1/2*u - 1/2*v + 1/2) d/du*dv

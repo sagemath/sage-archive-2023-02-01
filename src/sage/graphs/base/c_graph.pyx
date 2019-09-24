@@ -606,8 +606,8 @@ cdef class CGraph:
             sage: G.verts()
             [1, 2]
         """
-        cdef unsigned long i
-        return [i for i in range(self.active_vertices.size)
+        cdef int i
+        return [i for i in range(<int>self.active_vertices.size)
                 if bitset_in(self.active_vertices, i)]
 
     cpdef realloc(self, int total):

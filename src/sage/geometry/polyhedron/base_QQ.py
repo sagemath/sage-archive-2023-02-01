@@ -487,7 +487,7 @@ class Polyhedron_QQ(Polyhedron_base):
             6
 
         A polytope with rational nonintegral vertices must have
-        ``backend``='normaliz'::
+        ``backend='normaliz'``::
 
             sage: line_seg = Polyhedron(vertices=[[0],[1/2]])
             sage: line_seg.ehrhart_quasipolynomial()

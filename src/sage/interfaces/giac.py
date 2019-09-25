@@ -317,6 +317,7 @@ class Giac(Expect):
                         name = 'giac',
                         prompt = '[0-9]*>> ',
                         command = "giac --sage",
+                        env = {"LANG": "C"},
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,
@@ -1037,7 +1038,7 @@ class GiacElement(ExpectElement):
             - numbers, i.e. integers, floats, complex numbers;
             - functions and named constants also present in Sage, where:
                 - Sage knows how to translate the function or constant's name
-                from Giac's naming scheme through the symbols_table, or
+                from Giac's naming scheme through the ``symbol_table``, or
                 - you provide a translation dictionary ``locals``.
 
         New conversions can be added using Pynac's ``register_symbol``.
@@ -1063,7 +1064,7 @@ class GiacElement(ExpectElement):
             sage: ex._sage_({'myFun': sin})
             sin(x)
 
-        Same but by adding a new entry to the ``symbols_table``::
+        Same but by adding a new entry to the ``symbol_table``::
 
             sage: ex = giac('myFun(x)')
             sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})

@@ -95,6 +95,11 @@ related ?
     4: A079263: Number of constrained mixed models with n factors.
     5: A079265: Number of antisymmetric transitive binary relations on n unlabeled points.
     6: A263859: Triangle read by rows: T(n,k) (n>=1, k>=0) is the number of posets with n elements and rank k (or depth k+1).
+    7: A316978: Number of factorizations of n into factors > 1 with no equivalent primes.
+    8: A319559: Number of non-isomorphic T_0 set systems of weight n.
+    9: A326939: Number of T_0 sets of subsets of {1..n} that cover all n vertices.
+    10: A326943: Number of T_0 sets of subsets of {1..n} that cover all n vertices and are closed under intersection.
+    ...
 
 
 What does the Taylor expansion of the `e^(e^x-1)`` function have to do with
@@ -926,7 +931,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's ...
+            A087778: Decimal expansion ... Avogadro...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23

@@ -1,5 +1,5 @@
 """
-Coercion via Construction Functors
+Coercion via construction functors
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
@@ -1859,7 +1859,7 @@ class VectorFunctor(ConstructionFunctor):
 
         """
 #        Functor.__init__(self, Rings(), FreeModules()) # FreeModules() takes a base ring
-#        Functor.__init__(self, Objects(), Objects())   # Object() makes no sence, since FreeModule raises an error, e.g., on Set(['a',1]).
+#        Functor.__init__(self, Objects(), Objects())   # Object() makes no sense, since FreeModule raises an error, e.g., on Set(['a',1]).
         ## FreeModule requires a commutative ring. Thus, we have
         Functor.__init__(self, CommutativeRings(), CommutativeAdditiveGroups())
         self.n = n
@@ -3971,14 +3971,14 @@ def pushout(R, S):
     elif S.has_coerce_map_from(Rs[-1]):
         while not Ss[-1].has_coerce_map_from(Rs[-1]):
             Ss.pop()
-        while len(Rs) > 0 and Ss[-1].has_coerce_map_from(Rs[-1]):
+        while Rs and Ss[-1].has_coerce_map_from(Rs[-1]):
             Rs.pop()
         Z = Ss.pop()
 
     elif R.has_coerce_map_from(Ss[-1]):
         while not Rs[-1].has_coerce_map_from(Ss[-1]):
             Rs.pop()
-        while len(Ss) > 0 and Rs[-1].has_coerce_map_from(Ss[-1]):
+        while Ss and Rs[-1].has_coerce_map_from(Ss[-1]):
             Ss.pop()
         Z = Rs.pop()
 
@@ -4006,8 +4006,7 @@ def pushout(R, S):
         return c * all
 
     try:
-
-        while len(Rc) > 0 or len(Sc) > 0:
+        while Rc or Sc:
             # if we are out of functors in either tower, there is no ambiguity
             if len(Sc) == 0:
                 all = apply_from(Rc)

@@ -483,12 +483,12 @@ class R(ExtraTabCompletion, Interface):
         self._seed = seed
         self._initialized = False # done lazily
 
-
     def _lazy_init(self):
         """
-        Initialize the R interpreter. This will set the initial options and
-        implicitly (through lazy_import) import rpy2 if it is not alreay
-        imported.
+        Initialize the R interpreter.
+
+        This will set the initial options and implicitly (through
+        lazy_import) import rpy2 if it is not already imported.
 
         Importing rpy2 takes something in the order of hundreds of milliseconds.
         It also takes tens of megabytes of RAM. Since an instance of R is

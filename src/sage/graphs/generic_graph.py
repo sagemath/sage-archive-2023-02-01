@@ -124,6 +124,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
+    :meth:`~GenericGraph.shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices.
 
 **Linear algebra:**
 
@@ -198,7 +199,11 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.breadth_first_search` | Return an iterator over the vertices in a breadth-first ordering.
     :meth:`~GenericGraph.depth_first_search` | Return an iterator over the vertices in a depth-first ordering.
-    :meth:`~GenericGraph.lex_BFS` | Perform a Lex BFS on the graph.
+    :meth:`~GenericGraph.lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
+    :meth:`~GenericGraph.lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
+    :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
+    :meth:`~GenericGraph.lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
+    :meth:`~GenericGraph.lex_M` | Return an ordering of the vertices according the LexM graph traversal.
 
 **Distances:**
 
@@ -217,7 +222,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.center` | Return the set of vertices in the center of the graph
     :meth:`~GenericGraph.diameter` | Return the largest distance between any two vertices.
     :meth:`~GenericGraph.distance_graph` | Return the graph on the same vertex set as the original graph but vertices are adjacent in the returned graph if and only if they are at specified distances in the original graph.
-    :meth:`~GenericGraph.girth` | Compute the girth of the graph.
+    :meth:`~GenericGraph.girth` | Return the girth of the graph.
+    :meth:`~GenericGraph.odd_girth` | Return the odd girth of the graph.
     :meth:`~GenericGraph.periphery` | Return the set of vertices in the periphery
     :meth:`~GenericGraph.shortest_path` | Return a list of vertices representing some shortest path from `u` to `v`
     :meth:`~GenericGraph.shortest_path_length` | Return the minimal length of paths from u to v
@@ -438,8 +444,6 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.matrix.constructor import matrix
 from sage.rings.rational_field import QQ
-from sage.categories.cartesian_product import cartesian_product
-from sage.misc.misc_c import prod
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -3506,7 +3510,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``certificate`` -- boolean (default: ``False``); whether to return a
-          certificate. If set to ``True``, the certificate returned in a proper
+          certificate. If set to ``True``, the certificate returned is a proper
           2-coloring when `G` is bipartite, and an odd cycle otherwise.
 
         EXAMPLES::
@@ -3949,9 +3953,20 @@ class GenericGraph(GenericGraph_pyx):
             [('D', 'L'), ('L', 'H'), ('H', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'D')]
             sage: Graph({0: [0, 1, 1, 1, 1]}).eulerian_circuit(labels=False)
             [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
+
+        Check graphs without edges (:trac:`28451`)::
+
+            sage: G = Graph()
+            sage: G.add_vertex(0)
+            sage: G.eulerian_circuit()
+            []
+            sage: G = Graph()
+            sage: G.add_vertices(range(10))
+            sage: G.eulerian_circuit(return_vertices=True)
+            ([], [])
         """
         # trivial case
-        if not self.order():
+        if not self.size():
             return ([], []) if return_vertices else []
 
         # check if the graph has proper properties to be Eulerian
@@ -4738,7 +4753,7 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             return networkx.minimum_cycle_basis(G, weight='weight')
-        elif algorithm == None:
+        elif algorithm is None:
             from sage.graphs.base.boost_graph import min_cycle_basis
             if self.is_connected():
                 CC = [self]
@@ -5127,8 +5142,7 @@ class GenericGraph(GenericGraph_pyx):
         del graph
         return result
 
-    # TODO: rename into _layout_planar
-    def set_planar_positions(self, test = False, **layout_options):
+    def set_planar_positions(self, test=False, **layout_options):
         """
         Compute a planar layout for self using Schnyder's algorithm,
         and save it as default layout.
@@ -5137,6 +5151,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CycleGraph(7)
             sage: g.set_planar_positions(test=True)
+            doctest:...: DeprecationWarning: This method is replaced by the method layout. Please use layout(layout="planar", save_pos=True) instead.
+            See http://trac.sagemath.org/24494 for details.
             True
 
         This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
@@ -5144,51 +5160,111 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.layout(layout = "planar", save_pos = True)
             {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
         """
-        self.layout(layout = "planar", save_pos = True, test = test, **layout_options)
-        if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
-            return self.is_drawn_free_of_edge_crossings() # returns true if tests pass
+        deprecation(24494, 'This method is replaced by the method layout. '
+                           'Please use layout(layout="planar", save_pos=True) '
+                           'instead.')
+        self.layout(layout="planar", save_pos=True, test=test, **layout_options)
+        if test: # Optional error-checking (looking for edge-crossings O(n^2))
+            # returns true if tests pass
+            return self.is_drawn_free_of_edge_crossings()
         else:
             return
 
-    def layout_planar(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False, **options):
+    def layout_planar(self, set_embedding=False, on_embedding=None,
+                      external_face=None, test=False, circular=False,
+                      **options):
         """
         Compute a planar layout of the graph using Schnyder's algorithm.
+
+        If ``set_embedding`` is set, a new combinatorial embedding is computed
+        for the layout. Otherwise: if ``on_embedding`` is provided, then that
+        combinatorial embedding is used for the layout. Otherwise: if a
+        combinatorial embedding is set to the instance field variable of the
+        graph (e.g. using
+        :meth:`~sage/graphs/generic_graph.GenericGraph.set_embedding`), then
+        that one is used, and if no combinatorial embedding is set, then one is
+        computed.
 
         If the graph is not planar, an error is raised.
 
         INPUT:
 
         - ``set_embedding`` -- boolean (default: ``False``); whether to set the
-           combinatorial embedding used (see
-           :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
+          instance field variable that contains a combinatorial embedding to the
+          combinatorial embedding used for the planar layout (see
+          :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
 
         - ``on_embedding`` -- dictionary (default: ``None``); provide a
-           combinatorial embedding
+          combinatorial embedding
 
-        -  ``external_face`` -- ignored
+        - ``external_face`` -- a pair `(u,v)` of vertices (default: ``None``);
+          the external face of the drawing is chosen in such a way that `u` and
+          `v` are consecutive vertices in the clockwise traversal of the
+          external face, in particular `uv` has to be an edge of the graph. If
+          ``external_face == None``, an arbitrary external face is chosen.
 
         - ``test`` -- boolean (default: ``False``); whether to perform sanity
-           tests along the way
+          tests along the way
 
-        -  ``circular`` -- ignored
-
+        - ``circular`` -- ignored
 
         EXAMPLES::
 
             sage: g = graphs.PathGraph(10)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: g.layout(layout='planar', save_pos=True, test=True)
+            {0: [3, 2],
+             1: [4, 3],
+             2: [3, 4],
+             3: [4, 4],
+             4: [2, 6],
+             5: [8, 1],
+             6: [1, 7],
+             7: [0, 8],
+             8: [1, 1],
+             9: [1, 0]}
             sage: g = graphs.BalancedTree(3, 4)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: pos = g.layout(layout='planar', save_pos=True, test=True)
+            sage: pos[0]
+            [2, 116]
+            sage: pos[120]
+            [3, 64]
             sage: g = graphs.CycleGraph(7)
-            sage: g.set_planar_positions(test=True)
-            True
+            sage: g.layout(layout='planar', save_pos=True, test=True)
+            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
             sage: g = graphs.CompleteGraph(5)
-            sage: g.set_planar_positions(test=True, set_embedding=True)
+            sage: g.layout(layout='planar', save_pos=True, test=True, set_embedding=True)
             Traceback (most recent call last):
             ...
             ValueError: Complete graph is not a planar graph
+
+        Choose the external face of the drawing::
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.layout(layout='planar', external_face=(0,1))
+            {0: [0, 2], 1: [2, 1], 2: [1, 0], 3: [1, 1]}
+            sage: g.layout(layout='planar', external_face=(3,1))
+            {0: [2, 1], 1: [0, 2], 2: [1, 1], 3: [1, 0]}
+
+        TESTS::
+
+            sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
+            sage: G.layout(layout='planar', external_face=(1, 2))
+            Traceback (most recent call last):
+            ...
+            ValueError: (1, 2) is not an edge of Graph on 4 vertices but has been provided as an edge of the external face
+
+        Check the dependence of the computed position on the given combinatorial
+        embedding (:trac:`28152`)::
+
+            sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
+            sage: G.set_embedding({0: [1, 2, 3], 1: [0], 2: [0], 3: [0]})
+            sage: pos1 = G.layout('planar', save_pos=True)
+            sage: G._check_embedding_validity()
+            True
+            sage: G.set_embedding({0: [3, 2, 1], 1: [0], 2: [0], 3: [0]})
+            sage: pos2 = G.layout('planar', save_pos=True)
+            sage: pos1 == pos2
+            False
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
@@ -5202,7 +5278,7 @@ class GenericGraph(GenericGraph_pyx):
         if set_embedding:
             if not G.is_planar(set_embedding=True):
                 raise ValueError('%s is not a planar graph'%self)
-            embedding_copy = G._embedding
+            embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
         else:
             if on_embedding is not None:
                 G._check_embedding_validity(on_embedding,boolean=False)
@@ -5213,51 +5289,38 @@ class GenericGraph(GenericGraph_pyx):
                     if G._check_embedding_validity():
                         if not G.is_planar(on_embedding=G._embedding):
                             raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
-                        embedding_copy = G._embedding
+                        embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
                     else:
                         raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:
                     G.is_planar(set_embedding=True)
-        # The following is what was breaking the code.  It is where we were specifying the external
-        #       face ahead of time.  This is definitely a TODO:
-        #
-        # Running is_planar(set_embedding=True) has set attribute self._embedding
-        #if external_face is None:
-        #    faces = faces( self, self._embedding )
-        #    faces.sort(key=len)
-        #    external_face = faces[-1]
 
-        #n = len(external_face)
-        #other_added_edges = []
-        #if n > 3:
-        #    v1, v2, v3 = external_face[0][0], external_face[int(n/3)][0], external_face[int(2*n/3)][0]
-        #    if not self.has_edge( (v1,v2) ):
-        #        self.add_edge( (v1, v2) )
-        #        other_added_edges.append( (v1, v2) )
-        #    if not self.has_edge( (v2,v3) ):
-        #        self.add_edge( (v2, v3) )
-        #        other_added_edges.append( (v2, v3) )
-        #    if not self.has_edge( (v3,v1) ):
-        #        self.add_edge( (v3, v1) )
-        #        other_added_edges.append( (v3, v1) )
-        #    if not self.is_planar(set_embedding=True): # get new combinatorial embedding (with added edges)
-        #        raise ValueError('modified graph %s is not planar.  Try specifying an external face'%self)
-
-        # Triangulate the graph
+        if external_face:
+            if not self.has_edge(external_face):
+                raise ValueError('{} is not an edge of {} but has been '
+                                 'provided as an edge of the external face'
+                                 ''.format(external_face, self))
+        
         _triangulate(G, G._embedding)
 
         # Optional error-checking
         if test:
-            G.is_planar(set_embedding=True) # to get new embedding
+            if G._check_embedding_validity():
+                if not G.is_planar(on_embedding=G._embedding):
+                    raise ValueError('%s has nonplanar _embedding attribute. Try putting set_embedding=True' % self)
             test_faces = G.faces(G._embedding)
             for face in test_faces:
                 if len(face) != 3:
                     raise RuntimeError('BUG: Triangulation returned face: %s'%face)
 
-        G.is_planar(set_embedding=True)
         faces = G.faces(G._embedding)
-        # Assign a normal label to the graph
-        label = _normal_label(G, G._embedding, faces[0])
+        outer_face = faces[0]
+        if external_face:
+            for face in faces:
+                if external_face in face:
+                    outer_face = face
+                    break
+        label = _normal_label(G, G._embedding, outer_face)
 
         # Get dictionary of tree nodes from the realizer
         tree_nodes = _realizer(G, label)
@@ -5290,7 +5353,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: D = graphs.DodecahedralGraph()
-            sage: D.set_planar_positions()
+            sage: pos = D.layout(layout='planar', save_pos=True)
             sage: D.is_drawn_free_of_edge_crossings()
             True
         """
@@ -13604,7 +13667,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: [sum(1 for g in graphs(i) if g.is_interval()) for i in range(8)]  # long time
             [1, 1, 2, 4, 10, 27, 92, 369]
 
-        Test certicate on a larger graph by re-doing isomorphic graph::
+        Test certificate on a larger graph by re-doing isomorphic graph::
 
             sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
             sage: d = g.is_interval(certificate=True)[1]
@@ -15168,15 +15231,21 @@ class GenericGraph(GenericGraph_pyx):
                     D.add_edge(u, v)
         return D
 
-    def girth(self):
+    def girth(self, certificate=False):
         """
         Return the girth of the graph.
 
-        For directed graphs, computes the girth of the undirected graph,
-        i.e. ``Graph(self)``.
+        The girth is the length of the shortest cycle in the graph
+        (directed cycle if the graph is directed). Graphs without
+        (directed) cycles have infinite girth.
 
-        The girth is the length of the shortest cycle in the graph. Graphs
-        without cycles have infinite girth.
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the girth and ``c`` is a list
+          of vertices of a (directed) cycle of length ``g`` in the graph,
+          thus providing a certificate that the girth is at most ``g``,
+          or ``None`` if ``g``  infinite
 
         EXAMPLES::
 
@@ -15184,8 +15253,8 @@ class GenericGraph(GenericGraph_pyx):
             3
             sage: graphs.CubeGraph(3).girth()
             4
-            sage: graphs.PetersenGraph().girth()
-            5
+            sage: graphs.PetersenGraph().girth(certificate=True)  # random
+            (5, [4, 3, 2, 1, 0])
             sage: graphs.HeawoodGraph().girth()
             6
             sage: next(graphs.trees(9)).girth()
@@ -15193,8 +15262,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.graph.Graph.odd_girth` -- computes
-              the odd girth of a graph.
+            * :meth:`~GenericGraph.odd_girth` -- return the odd girth
+              of the graph.
 
         TESTS:
 
@@ -15217,66 +15286,263 @@ class GenericGraph(GenericGraph_pyx):
 
         Girth < 3 (see :trac:`12355`)::
 
-           sage: g = graphs.PetersenGraph()
-           sage: g.allow_multiple_edges(True)
-           sage: g.allow_loops(True)
-           sage: g.girth()
-           5
-           sage: g.add_edge(0,0)
-           sage: g.girth()
-           1
-           sage: g.delete_edge(0,0)
-           sage: g.add_edge(0,1)
-           sage: g.girth()
-           2
-           sage: g.delete_edge(0,1)
-           sage: g.girth()
-           5
-           sage: g = DiGraph(g)
-           sage: g.girth()
-           2
+            sage: g = graphs.PetersenGraph()
+            sage: g.allow_multiple_edges(True)
+            sage: g.allow_loops(True)
+            sage: g.girth()
+            5
+            sage: g.add_edge(0,0)
+            sage: g.girth()
+            1
+            sage: g.delete_edge(0,0)
+            sage: g.add_edge(0,1)
+            sage: g.girth()
+            2
+            sage: g.delete_edge(0,1)
+            sage: g.girth()
+            5
+            sage: g = DiGraph(g)
+            sage: g.girth()
+            2
+
+        Directed graphs (see :trac:`28142`)::
+
+            sage: g = digraphs.Circuit(6)
+            sage: g.girth()
+            6
+            sage: g = digraphs.RandomDirectedGNC(10)
+            sage: g.girth()
+            +Infinity
+            sage: g = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: g.girth()
+            4
+            sage: Graph(g).girth()
+            3
         """
         # Cases where girth <= 2
-        if self.has_loops():
-            return 1
+        if self.allows_loops():
+            for u in self:
+                if self.has_edge(u, u):
+                    return (1, [u]) if certificate else 1
         if self.is_directed():
-            if any(self.has_edge(v, u) for u, v in self.edge_iterator(labels=False)):
-                return 2
-        else:
-            if self.has_multiple_edges():
-                return 2
+            for u, v in self.edge_iterator(labels=False):
+                if self.has_edge(v, u):
+                    return (2, [u, v]) if certificate else 2
+        elif self.allows_multiple_edges():
+            edges = set()
+            for e in self.edge_iterator(labels=False):
+                if e in edges:
+                    return (2, list(e)) if certificate else 2
+                edges.add(e)
 
+        return self._girth_bfs(odd=False, certificate=certificate)
+
+    def odd_girth(self, algorithm="bfs", certificate=False):
+        r"""
+        Return the odd girth of the graph.
+
+        The odd girth is the length of the shortest cycle of odd length
+        in the graph (directed cycle if the graph is directed).
+        Bipartite graphs have infinite odd girth.
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``"bfs"``); the algorithm to use:
+
+          - ``"bfs"`` -- BFS-based algorithm
+
+          - any algorithm accepted by
+            :meth:`~sage.matrix.matrix_integer_dense.Matrix_integer_dense.charpoly`
+            for computation from the characteristic polynomial (see
+            [Har1962]_ and [Big1993]_, p. 45)
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the odd girth and ``c`` is a list of
+          vertices of a (directed) cycle of length ``g`` in the graph, thus
+          providing a certificate that the odd girth is at most ``g``, or
+          ``None`` if ``g`` is infinite. So far, this parameter is accepted only
+          when ``algorithm = "bfs"``.
+
+        EXAMPLES:
+
+        The McGee graph has girth 7 and therefore its odd girth is 7 as well::
+
+            sage: G = graphs.McGeeGraph()
+            sage: G.girth()
+            7
+            sage: G.odd_girth()
+            7
+
+        Any complete (directed) graph on more than 2 vertices contains
+        a (directed) triangle and has thus odd girth 3::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.odd_girth(certificate=True)  # random
+            (3, [2, 1, 0])
+            sage: G = digraphs.Complete(5)
+            sage: G.odd_girth(certificate=True)  # random
+            (3, [1, 2, 0])
+
+        Bipartite graphs have no odd cycle and consequently have
+        infinite odd girth::
+
+            sage: G = graphs.RandomBipartite(6, 6, .5)
+            sage: G.odd_girth()
+            +Infinity
+            sage: G = graphs.Grid2dGraph(3, 4)
+            sage: G.odd_girth()
+            +Infinity
+
+        The odd girth of a (directed) graph with loops is 1::
+
+            sage: G = graphs.RandomGNP(10, .5)
+            sage: G.allow_loops(True)
+            sage: G.add_edge(0, 0)
+            sage: G.odd_girth()
+            1
+            sage: G = digraphs.RandomDirectedGNP(10, .5)
+            sage: G.allow_loops(True)
+            sage: G.add_edge(0, 0)
+            sage: G.odd_girth()
+            1
+
+        .. SEEALSO::
+
+            * :meth:`~GenericGraph.girth` -- return the girth of the graph.
+
+        TESTS:
+
+        Odd girth of odd cycles::
+
+            sage: [graphs.CycleGraph(i).odd_girth() for i in range(3, 12, 2)]
+            [3, 5, 7, 9, 11]
+
+        Directed graphs (see :trac:`28142`)::
+
+            sage: g = digraphs.Circuit(7)
+            sage: g.odd_girth()
+            7
+            sage: g = graphs.CompleteBipartiteGraph(10, 10).random_orientation()
+            sage: g.odd_girth()
+            +Infinity
+            sage: g = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: g.odd_girth()
+            5
+            sage: Graph(g).odd_girth()
+            3
+
+        Small cases::
+
+            sage: [graphs.CompleteGraph(i).odd_girth() for i in range(5)]
+            [+Infinity, +Infinity, +Infinity, 3, 3]
+            sage: [digraphs.Complete(i).odd_girth() for i in range(5)]
+            [+Infinity, +Infinity, +Infinity, 3, 3]
+        """
+        # Case where odd girth is 1
+        if self.allows_loops():
+            for u in self:
+                if self.has_edge(u, u):
+                    return (1, [u]) if certificate else 1
+
+        if self.is_bipartite():
+            from sage.rings.infinity import Infinity
+            return (Infinity, None) if certificate else Infinity
+
+        if algorithm == "bfs":
+            return self._girth_bfs(odd=True, certificate=certificate)
+
+        if certificate:
+            raise ValueError("certificate is only supported with algorithm='bfs'")
+
+        ch = self.am().charpoly(algorithm=algorithm).coefficients(sparse=False)
+
+        n = self.order()
+        for i in range(n-1, -1, -2):
+            if ch[i]:
+                return n - i
+
+    def _girth_bfs(self, odd=False, certificate=False):
+        r"""
+        Return the girth of the graph using breadth-first search.
+
+        Loops and parallel edges are ignored,
+        so the returned value is at least 3.
+
+        INPUT:
+
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd
+          girth instead instead of the girth
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list
+          of vertices of a cycle of length ``g`` in the graph,
+          thus providing a certificate that the (odd) girth is at most ``g``,
+          or ``None`` if ``g``  infinite
+
+        EXAMPLES:
+
+        The 5-prism has girth 4 and odd girth 5::
+
+            sage: G = graphs.CycleGraph(5).cartesian_product(graphs.CompleteGraph(2))
+            sage: G._girth_bfs(certificate=True)  # random
+            (4, [(2, 0), (1, 0), (1, 1), (2, 1)])
+            sage: G._girth_bfs(odd=True)
+            5
+
+        .. SEEALSO::
+
+            * :meth:`~GenericGraph.girth` -- return the girth of the graph.
+            * :meth:`~GenericGraph.odd_girth` -- return the odd girth of the graph.
+        """
         n = self.num_verts()
         best = n + 1
-        seen = {}
+        seen = set()
         for w in self:
-            seen[w] = None
-            span = set([w])
+            seen.add(w)
+            span = {w: None}
             depth = 1
             thisList = set([w])
-            while 2 * depth <= best and 3 < best:
+            while 2 * depth <= best:
                 nextList = set()
                 for v in thisList:
                     for u in self.neighbor_iterator(v):
                         if u in seen:
                             continue
-                        if not u in span:
-                            span.add(u)
+                        if u not in span:
+                            span[u] = v
                             nextList.add(u)
                         else:
                             if u in thisList:
                                 best = depth * 2 - 1
+                                ends = (u, v)
+                                bestSpan = span
                                 break
-                            if u in nextList:
+                            if not odd and u in nextList:
                                 best = depth * 2
+                                ends = (u, v)
+                                bestSpan = span
                     if best == 2 * depth - 1:
                         break
+                if best <= 3:
+                    break
                 thisList = nextList
                 depth += 1
         if best == n + 1:
             from sage.rings.infinity import Infinity
-            return Infinity
-        return best
+            return (Infinity, None) if certificate else Infinity
+        if certificate:
+            cycles = {}
+            for x in ends:
+                cycles[x] = []
+                y = x
+                while bestSpan[y] is not None:
+                    cycles[x].append(y)
+                    y = bestSpan[y]
+            cycles[x].append(y)
+            u, v = ends
+            return (best, list(reversed(cycles[u])) + cycles[v])
+        else:
+            return best
 
 
     def periphery(self, by_weight=False, algorithm=None, weight_function=None,
@@ -15684,21 +15950,24 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             if by_weight:
                 if self.is_directed():
-                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                    G = networkx.DiGraph([(e[1], e[0], {'weight': weight_function(e)}) for e in self.edge_iterator()])
                 else:
                     G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             else:
-                G = self.networkx_graph()
+                if self.is_directed():
+                    G = self.reverse().networkx_graph()
+                else:
+                    G = self.networkx_graph()
             G.add_nodes_from(self)
 
             degree = self.out_degree if self.is_directed() else self.degree
             if vert is None:
-                closeness = networkx.closeness_centrality(G, vert, reverse=True, distance='weight' if by_weight else None)
+                closeness = networkx.closeness_centrality(G, vert, distance='weight' if by_weight else None)
                 return {v: c for v, c in iteritems(closeness) if degree(v)}
             closeness = {}
             for x in v_iter:
                 if degree(x):
-                    closeness[x] = networkx.closeness_centrality(G, x, reverse=True, distance='weight' if by_weight else None)
+                    closeness[x] = networkx.closeness_centrality(G, x, distance='weight' if by_weight else None)
             if onlyone:
                 return closeness.get(vert, None)
             else:
@@ -15735,248 +16004,6 @@ class GenericGraph(GenericGraph_pyx):
                 return closeness.get(vert, None)
             else:
                 return closeness
-
-    ### Paths
-
-    def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels=False):
-        """
-        Return the list of all paths between a pair of vertices.
-
-        If ``start`` is the same vertex as ``end``, then ``[[start]]`` is
-        returned -- a list containing the 1-vertex, 0-edge path "``start``".
-
-        If ``self`` has multiple edges, a path will be returned as many
-        times as the product of the multiplicity of the edges along that path
-        depending on the value of the flag ``use_multiedges``.
-
-        INPUT:
-
-        - ``start`` -- a vertex of a graph, where to start
-
-        - ``end`` -- a vertex of a graph, where to end
-
-        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-          used only if the graph has multiple edges.
-
-          - If ``False``, the graph is considered as simple and an edge label
-            is arbitrarily selected for each edge as in
-            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
-
-          - If ``True``, a path will be reported as many times as the edges
-            multiplicities along that path (when ``report_edges = False`` or
-            ``labels = False``), or with all possible combinations of edge
-            labels (when ``report_edges = True`` and ``labels = True``)
-
-        - ``report_edges`` -- boolean (default: ``False``); whether to report
-          paths as list of vertices (default) or list of edges, if ``False``
-          then ``labels`` parameter is ignored
-
-        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.
-
-        EXAMPLES::
-
-            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-            sage: eg1.all_paths(0,6)
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg2 = graphs.PetersenGraph()
-            sage: sorted(eg2.all_paths(1,4))
-            [[1, 0, 4],
-             [1, 0, 5, 7, 2, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 8, 3, 2, 7, 9, 4],
-             [1, 0, 5, 8, 3, 4],
-             [1, 0, 5, 8, 6, 9, 4],
-             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 2, 3, 4],
-             [1, 2, 3, 8, 5, 0, 4],
-             [1, 2, 3, 8, 5, 7, 9, 4],
-             [1, 2, 3, 8, 6, 9, 4],
-             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 7, 5, 0, 4],
-             [1, 2, 7, 5, 8, 3, 4],
-             [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
-             [1, 6, 8, 3, 4],
-             [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 2, 3, 4],
-             [1, 6, 8, 5, 7, 9, 4],
-             [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
-             [1, 6, 9, 7, 5, 0, 4],
-             [1, 6, 9, 7, 5, 8, 3, 4]]
-            sage: dg = DiGraph({0:[1,3], 1:[3], 2:[0,3]})
-            sage: sorted(dg.all_paths(0,3))
-            [[0, 1, 3], [0, 3]]
-            sage: ug = dg.to_undirected()
-            sage: sorted(ug.all_paths(0,3))
-            [[0, 1, 3], [0, 2, 3], [0, 3]]
-
-            sage: g = Graph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
-            sage: g.all_paths(0, 2, use_multiedges=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-
-            sage: dg = DiGraph({0:[1, 2, 1], 3:[0, 0]}, multiedges=True)
-            sage: dg.all_paths(3, 1, use_multiedges=True)
-            [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
-
-            sage: g = Graph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
-            sage: g.all_paths(0, 2, use_multiedges=False)
-            [[0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True)
-            [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True, labels=True)
-            [((0, 1, 'b'), (1, 2, 'd')),
-             ((0, 1, 'b'), (1, 2, 'c')),
-             ((0, 1, 'a'), (1, 2, 'd')),
-             ((0, 1, 'a'), (1, 2, 'c'))]
-            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=True, labels=True)
-            [((0, 1, 'b'), (1, 2, 'd'))]
-            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=False, labels=True)
-            [[0, 1, 2]]
-            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-
-        TESTS:
-
-        Starting and ending at the same vertex (see :trac:`13006`)::
-
-            sage: graphs.CompleteGraph(4).all_paths(2, 2)
-            [[2]]
-
-        Non-existing vertex as end vertex (see :trac:`24495`)::
-
-            sage: g = graphs.PathGraph(5)
-            sage: g.all_paths(1, 'junk')
-            Traceback (most recent call last):
-            ...
-            LookupError: end vertex (junk) is not a vertex of the graph
-
-        Distinguishing between multiedged paths (see :trac:`27501`)::
-
-            sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0, 3, 1)
-            sage: g.add_edge(0, 2, 3)
-            sage: g.add_edge(0, 1, 3)
-            sage: g.add_edge(2, 3, 5)
-            sage: g.add_edge(2, 3, 15)
-            sage: g.add_edge(2, 4, 12)
-            sage: g.add_edge(3, 5, 7)
-            sage: g.all_paths(0, 5, use_multiedges=True)
-            [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]
-
-            sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0, 1, 1)
-            sage: g.add_edge(0, 2, 3)
-            sage: g.add_edge(1, 4, 3)
-            sage: g.add_edge(2, 3, 5)
-            sage: g.add_edge(2, 4, 15)
-            sage: g.add_edge(2, 4, 12)
-            sage: g.add_edge(4, 5, 7)
-            sage: g.add_edge(4, 5, 8)
-            sage: g.add_edge(5, 6, 2)
-            sage: g.all_paths(0, 6, use_multiedges=True)
-            [[0, 1, 4, 5, 6],
-             [0, 1, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6],
-             [0, 2, 4, 5, 6]]
-
-        Added reporting of edges (see :trac:`27501`)::
-
-            sage: G = DiGraph(multiedges=True)
-            sage: G.add_edges([(0,2), (0,3), (0,4), (1,2), (1,2), (1,5), (3,5), (3,5)])
-            sage: G.all_paths(0, 5, report_edges=True)
-            [[(0, 3), (3, 5)]]
-            sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
-            [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
-
-        """
-        if start not in self:
-            raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
-        if end not in self:
-            raise LookupError("end vertex ({0}) is not a vertex of the graph".format(end))
-
-        if self.is_directed():
-            iterator = self.neighbor_out_iterator
-        else:
-            iterator = self.neighbor_iterator
-
-        if report_edges and labels:
-            edge_labels = {}
-            if use_multiedges:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) in edge_labels:
-                        edge_labels[(e[0], e[1])].append(e)
-                    else:
-                        edge_labels[(e[0], e[1])] = [e]
-            else:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) not in edge_labels:
-                        edge_labels[(e[0], e[1])] = [e]
-            if not self.is_directed():
-                for u, v in list(edge_labels):
-                    edge_labels[v, u] = edge_labels[u, v]
-        elif use_multiedges and self.has_multiple_edges():
-            from collections import Counter
-            edge_multiplicity = Counter(self.edge_iterator(labels=False))
-
-        if start == end:
-            return [[start]]
-
-        all_paths = []      # list of
-        act_path = []       # the current path
-        act_path_iter = []  # the neighbor/successor-iterators of the current path
-        done = False
-        s = start
-        while not done:
-            if s == end:    # if path completes, add to list
-                all_paths.append(act_path + [s])
-            else:
-                if s not in act_path:   # we want vertices just once in a path
-                    act_path.append(s)  # extend current path
-                    act_path_iter.append(iterator(s))  # save the state of the neighbor/successor-iterator of the current vertex
-            s = None
-            while (s is None) and not done:
-                try:
-                    s = next(act_path_iter[-1])  # try to get the next neighbor/successor, ...
-                except (StopIteration):          # ... if there is none ...
-                    act_path.pop()               # ... go one step back
-                    act_path_iter.pop()
-                if not act_path:                 # there is no other vertex ...
-                    done = True                  # ... so we are done
-
-        if report_edges and labels:
-            path_with_labels = []
-            for p in all_paths:
-                path_with_labels.extend(cartesian_product([edge_labels[e] for e in zip(p[:-1], p[1:])]))
-            return path_with_labels
-        elif use_multiedges and self.has_multiple_edges():
-            multiple_all_paths = []
-            for p in all_paths:
-                m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
-                if report_edges:
-                    ep = list(zip(p[:-1], p[1:]))
-                for _ in range(m):
-                    if report_edges:
-                        multiple_all_paths.append(ep)
-                    else:
-                        multiple_all_paths.append(p)
-            return multiple_all_paths
-        elif report_edges:
-            return [list(zip(p[:-1], p[1:])) for p in all_paths]
-        return all_paths
 
     def triangles_count(self, algorithm=None):
         r"""
@@ -16119,7 +16146,7 @@ class GenericGraph(GenericGraph_pyx):
           - ``'BFS'``: performs a BFS from ``u``. Does not work with edge
             weights.
 
-          - ``'BFS_Bid``: performs a BFS from ``u`` and from ``v``. Does not
+          - ``'BFS_Bid'``: performs a BFS from ``u`` and from ``v``. Does not
             work with edge weights.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
@@ -16216,6 +16243,20 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: vertex '6' is not in the (di)graph
+            
+        If no path exists from ``u`` to ``v`` (:trac:`28098`)::
+        
+            sage: G = Graph()
+            sage: G.add_vertices([1, 2])
+            sage: for alg in ['BFS', 'BFS_Bid', 'Dijkstra_NetworkX', 'Dijkstra_Bid_NetworkX', 
+            ....:             'Dijkstra_Bid', 'Bellman-Ford_Boost']:
+            ....:     G.shortest_path(1, 2, algorithm=alg)
+            []
+            []
+            []
+            []
+            []
+            []
         """ #         TODO- multiple edges??
         if not self.has_vertex(u):
             raise ValueError("vertex '{}' is not in the (di)graph".format(u))
@@ -16229,7 +16270,10 @@ class GenericGraph(GenericGraph_pyx):
             algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
-            return self.shortest_paths(u, by_weight, algorithm, weight_function, check_weight)[v]
+            all_paths = self.shortest_paths(u, by_weight, algorithm, weight_function, check_weight)
+            if v in all_paths:
+                return all_paths[v]
+            return []
 
         if weight_function is None and by_weight:
             def weight_function(e):
@@ -16257,7 +16301,10 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             G.add_nodes_from(self)
-            return networkx.bidirectional_dijkstra(G, u, v)[1]
+            try:
+                return networkx.bidirectional_dijkstra(G, u, v)[1]
+            except networkx.NetworkXNoPath:
+                return []
         elif algorithm == "BFS_Bid":
             return self._backend.shortest_path(u, v)
         else:
@@ -16287,7 +16334,7 @@ class GenericGraph(GenericGraph_pyx):
           - ``'BFS'``: performs a BFS from ``u``. Does not work with edge
             weights.
 
-          - ``'BFS_Bid``: performs a BFS from ``u`` and from ``v``. Does not
+          - ``'BFS_Bid'``: performs a BFS from ``u`` and from ``v``. Does not
             work with edge weights.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
@@ -16388,6 +16435,20 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: vertex '6' is not in the (di)graph
+            
+        If no path exists from ``u`` to ``v`` (:trac:`28098`)::
+        
+            sage: G = Graph()
+            sage: G.add_vertices([1, 2])
+            sage: for alg in ['BFS', 'BFS_Bid', 'Dijkstra_NetworkX', 'Dijkstra_Bid_NetworkX',
+            ....:             'Dijkstra_Bid', 'Bellman-Ford_Boost']:
+            ....:     G.shortest_path_length(1, 2, algorithm=alg)
+            +Infinity
+            +Infinity
+            +Infinity
+            +Infinity
+            +Infinity
+            +Infinity
         """
         if not self.has_vertex(u):
             raise ValueError("vertex '{}' is not in the (di)graph".format(u))
@@ -16408,7 +16469,11 @@ class GenericGraph(GenericGraph_pyx):
                 return e[2]
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
-            return self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)[v]
+            all_path_lengths = self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)
+            if v in all_path_lengths:
+                return all_path_lengths[v]
+            from sage.rings.infinity import Infinity
+            return Infinity
 
         if by_weight:
             if algorithm == 'BFS_Bid':
@@ -16429,7 +16494,11 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             G.add_nodes_from(self)
-            return networkx.bidirectional_dijkstra(G, u, v)[0]
+            try:
+                return networkx.bidirectional_dijkstra(G, u, v)[0]
+            except networkx.NetworkXNoPath:
+                from sage.rings.infinity import Infinity
+                return Infinity
         elif algorithm == "BFS_Bid":
             return self._backend.shortest_path(u, v, distance_flag=True)
         else:
@@ -16453,7 +16522,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The standard weight function outputs labels::
 
-            sage: G = Graph([(0,1,1), (1,2,3), (2,3,2)])
+            sage: G = Graph([(0, 1, 1), (1, 2, 3), (2, 3, 2)])
             sage: weight_function=lambda e:e[2]
             sage: G._check_weight_function(weight_function)
             sage: [weight_function(e) for e in G.edges()]
@@ -16461,7 +16530,7 @@ class GenericGraph(GenericGraph_pyx):
 
         However, it might be more complicated::
 
-            sage: G = Graph([(0,1,{'name':'a', 'weight':1}), (1,2,{'name':'b', 'weight':3}), (2,3,{'name':'c', 'weight':2})])
+            sage: G = Graph([(0, 1, {'name':'a', 'weight':1}), (1, 2, {'name': 'b', 'weight': 3}), (2, 3, {'name': 'c', 'weight': 2})])
             sage: weight_function=lambda e:e[2]['weight']
             sage: G._check_weight_function(weight_function)
             sage: [weight_function(e) for e in G.edges()]
@@ -16469,19 +16538,30 @@ class GenericGraph(GenericGraph_pyx):
 
         A weight function that does not match labels::
 
-            sage: G.add_edge((0,3,{'name':'d', 'weight':'d'}))
+            sage: G.add_edge((0, 3, {'name': 'd', 'weight': 'd'}))
             sage: G._check_weight_function(weight_function)
             Traceback (most recent call last):
             ...
             ValueError: the weight function cannot find the weight of (0, 3, {'name': 'd', 'weight': 'd'})
+        
+        Numeric string as a weight in weight_function::
+
+            sage: G = Graph({0: {1: '123'}})
+            sage: weight_function=lambda e:e[2]
+            sage: G._check_weight_function(weight_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (0, 1, '123')
         """
         for e in self.edge_iterator():
             try:
-                float(weight_function(e))
+                temp = weight_function(e)
+                float(temp)
+                if isinstance(temp, (str, bytes)):
+                    raise ValueError()
             except Exception:
                 raise ValueError("the weight function cannot find the "
                                  "weight of " + str(e))
-
 
     def shortest_paths(self, u, by_weight=False, algorithm=None,
                        weight_function=None, check_weight=True, cutoff=None):
@@ -17268,7 +17348,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The Wiener index of a graph `G` is `W(G) = \frac{1}{2} \sum_{u,v\in G}
         d(u,v)` where `d(u,v)` denotes the distance between vertices `u` and `v`
-        (see [KRG96b]_).
+        (see [KRG1996]_).
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths` and
@@ -17817,117 +17897,6 @@ class GenericGraph(GenericGraph_pyx):
                         for w in neighbors(v):
                             if w not in seen:
                                 queue.append((w, d + 1))
-
-    def lex_BFS(self, reverse=False, tree=False, initial_vertex=None):
-        r"""
-        Perform a Lex BFS on the graph.
-
-        A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth First
-        Search used for the recognition of Chordal Graphs. For more information,
-        see the :wikipedia:`Lexicographic_breadth-first_search`.
-
-        INPUT:
-
-        - ``reverse`` -- boolean (default: ``False``); whether to return the
-          vertices in discovery order, or the reverse
-
-        - ``tree`` -- boolean (default: ``False``); whether to return the
-          discovery directed tree (each vertex being linked to the one that saw
-          it for the first time)
-
-        - ``initial_vertex`` -- (default: ``None``); the first vertex to
-          consider
-
-        ALGORITHM:
-
-        This algorithm maintains for each vertex left in the graph a code
-        corresponding to the vertices already removed. The vertex of maximal
-        code (according to the lexicographic order) is then removed, and the
-        codes are updated.
-
-        This algorithm runs in time `O(n^2)` ( where `n` is the number of
-        vertices in the graph ), which is not optimal.  An optimal algorithm
-        would run in time `O(m)` ( where `m` is the number of edges in the graph
-        ), and require the use of a doubly-linked list which are not available
-        in python and can not really be written efficiently. This could be done
-        in Cython, though.
-
-        EXAMPLES:
-
-        A Lex BFS is obviously an ordering of the vertices::
-
-            sage: g = graphs.PetersenGraph()
-            sage: len(g.lex_BFS()) == g.order()
-            True
-
-        For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
-
-            sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
-            sage: g.lex_BFS(reverse=True)  # py2
-            [(2, 0), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1)]
-            sage: g.lex_BFS(reverse=True)  # py3
-            [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
-
-        And the vertices at the end of the tree of discovery are, for chordal
-        graphs, simplicial vertices (their neighborhood is a complete graph)::
-
-            sage: g = graphs.ClawGraph().lexicographic_product(graphs.CompleteGraph(2))
-            sage: v = g.lex_BFS()[-1]
-            sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
-            sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
-            sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
-            True
-
-        TESTS:
-
-        There were some problems with the following call in the past
-        (:trac:`10899`) -- now it should be fine::
-
-            sage: Graph(1).lex_BFS(tree=True)
-            ([0], Digraph on 1 vertex)
-
-        """
-        id_inv = list(self)
-        code = [[] for i in range(self.order())]
-        m = self.am(vertices=id_inv)
-
-        l = lambda x: code[x]
-        vertices = set(range(self.order()))
-
-        value = []
-        pred = [-1] * self.order()
-
-        add_element = (lambda y: value.append(id_inv[y])) if not reverse else (lambda y: value.insert(0, id_inv[y]))
-
-        # Should we take care of the first vertex we pick ?
-        first = True if initial_vertex is not None else False
-
-        while vertices:
-
-            if not first:
-                v = max(vertices, key=l)
-            else:
-                v = id_inv.index(initial_vertex)
-                first = False
-
-            vertices.remove(v)
-            vector = m.column(v)
-            for i in vertices:
-                code[i].append(vector[i])
-                if vector[i]:
-                    pred[i] = v
-            add_element(v)
-
-        if tree:
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(sparse=True)
-            g.add_vertices(id_inv)
-            edges = [(id_inv[i], id_inv[pred[i]]) for i in range(self.order()) if pred[i] != -1]
-            g.add_edges(edges)
-            return value, g
-
-        else:
-            return value
 
     ### Constructors
 
@@ -22370,6 +22339,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.subgroups()
             [Subgroup generated by [()] of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]),
              Subgroup generated by [(0,7)(1,4)(2,3)(6,8)] of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)])]
+
+        We check that the representations of the groups returned with ``'sage'``
+        and ``'bliss'`` are the same (:trac:`27571`)::
+
+            sage: G = graphs.PaleyGraph(9)
+            sage: a1 = G.automorphism_group(algorithm='sage')
+            sage: V = sorted(G, reverse=True)
+            sage: a2 = G.automorphism_group(algorithm='sage', partition=[V])
+            sage: a1.is_isomorphic(a2)
+            True
+            sage: str(a1) == str(a2)
+            False
+            sage: b1 = G.automorphism_group(algorithm='bliss')  # optional - bliss
+            sage: str(a1) == str(b1)                            # optional - bliss
+            True
+            sage: b2 = G.automorphism_group(algorithm='bliss', partition=[V])  # optional - bliss
+            sage: str(a2) == str(b2)                                           # optional - bliss
+            True
         """
         from sage.features.bliss import Bliss
         have_bliss = Bliss().is_present()
@@ -22412,6 +22399,8 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.graphs.all import Graph, DiGraph
+        from itertools import chain
         dig = (self._directed or self.has_loops())
 
         if partition is None:
@@ -22419,9 +22408,8 @@ class GenericGraph(GenericGraph_pyx):
 
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
-            G_vertices = sum(partition, [])
+            G_vertices = list(chain(*partition))
             G_to = {u: i for i,u in enumerate(G_vertices)}
-            from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
@@ -22461,9 +22449,8 @@ class GenericGraph(GenericGraph_pyx):
             a = real_aut_gp
             b = translation_d
         else:
-            G_vertices = sum(partition, [])
+            G_vertices = list(chain(*partition))
             G_to = {u: i for i,u in enumerate(G_vertices)}
-            from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=self.allows_loops())
             HB = H._backend
@@ -22677,13 +22664,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: E.relabel(gamma)
             sage: a,b = D.is_isomorphic(E, certificate=True); a
             True
-            sage: from sage.plot.graphics import GraphicsArray
             sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
             sage: position_D = spring_layout_fast(D)
             sage: position_E = {}
             sage: for vert in position_D:
             ....:  position_E[b[vert]] = position_D[vert]
-            sage: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show() # long time
+            sage: graphics_array([D.plot(pos=position_D), E.plot(pos=position_E)]).show() # long time
 
         ::
 
@@ -22887,7 +22873,7 @@ class GenericGraph(GenericGraph_pyx):
         self_vertices = list(self)
         other_vertices = list(other)
         if edge_labels or self.has_multiple_edges():
-            if edge_labels and sorted(self.edge_labels()) != sorted(other.edge_labels()):
+            if edge_labels and sorted(self.edge_labels(), key=str) != sorted(other.edge_labels(), key=str):
                 return (False, None) if certificate else False
             else:
                 G, partition, relabeling, G_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
@@ -23006,7 +22992,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g, c = g1.canonical_label(algorithm='sage', certificate=True)
             sage: g
             Grid Graph for [2, 3]: Graph on 6 vertices
-            sage: c
+            sage: c  # py2
+            {(0, 0): 2, (0, 1): 4, (0, 2): 3, (1, 0): 1, (1, 1): 5, (1, 2): 0}
+            sage: c  # py3
             {(0, 0): 3, (0, 1): 4, (0, 2): 2, (1, 0): 0, (1, 1): 5, (1, 2): 1}
 
         Multigraphs and directed graphs work too::
@@ -23059,9 +23047,11 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G = Graph({'a': ['b']})
+            sage: G = Graph([['a', 'b'], [('a', 'b')]])
             sage: G.canonical_label(algorithm='sage', certificate=True)
             (Graph on 2 vertices, {'a': 0, 'b': 1})
+            sage: G.canonical_label(algorithm='bliss', certificate=True)  # optional - bliss
+            (Graph on 2 vertices, {'a': 1, 'b': 0})
 
         Check for immutable graphs (:trac:`16602`)::
 
@@ -23129,17 +23119,16 @@ class GenericGraph(GenericGraph_pyx):
 
         # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        from sage.graphs.all import Graph, DiGraph
+        from itertools import chain
 
         dig = (self.has_loops() or self._directed)
         if partition is None:
-            partition = [self.vertices()]
+            partition = [list(self)]
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
-            G_vertices = sum(partition, [])
-            G_to = {}
-            for i,u in enumerate(G_vertices):
-                G_to[u] = i
-            from sage.graphs.all import Graph, DiGraph
+            G_vertices = list(chain(*partition))
+            G_to = {u: i for i,u in enumerate(G_vertices)}
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
@@ -23150,31 +23139,20 @@ class GenericGraph(GenericGraph_pyx):
             a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
-            c_new = {}
-            for v in self.vertices():
-                c_new[v] = c[G_to[relabeling[v]]]
-            H.relabel(c_new)
-            if certificate:
-                return H, c_new
-            else:
-                return H
-        G_vertices = sum(partition, [])
-        G_to = {}
-        for i,u in enumerate(G_vertices):
-            G_to[u] = i
-        from sage.graphs.all import Graph, DiGraph
-        DoDG = DiGraph if self._directed else Graph
-        H = DoDG(len(G_vertices), loops=self.allows_loops())
-        HB = H._backend
-        for u,v in self.edge_iterator(labels=False):
-            HB.add_edge(G_to[u], G_to[v], None, self._directed)
-        GC = HB.c_graph()[0]
-        partition = [[G_to[vv] for vv in cell] for cell in partition]
-        a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
-        H = copy(self)
-        c_new = {}
-        for v in G_to:
-            c_new[v] = c[G_to[v]]
+            c_new = {v: c[G_to[relabeling[v]]] for v in self}
+        else:
+            G_vertices = list(chain(*partition))
+            G_to = {u: i for i,u in enumerate(G_vertices)}
+            DoDG = DiGraph if self._directed else Graph
+            H = DoDG(len(G_vertices), loops=self.allows_loops())
+            HB = H._backend
+            for u, v in self.edge_iterator(labels=False):
+                HB.add_edge(G_to[u], G_to[v], None, self._directed)
+            GC = HB.c_graph()[0]
+            partition = [[G_to[vv] for vv in cell] for cell in partition]
+            a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+            H = copy(self)
+            c_new = {v: c[G_to[v]] for v in G_to}
         H.relabel(c_new)
         if certificate:
             return H, c_new
@@ -23444,7 +23422,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return self.is_isomorphic(self.complement())
 
-
     # Aliases to functions defined in other modules
     from sage.graphs.distances_all_pairs import distances_distribution
     from sage.graphs.base.boost_graph import dominator_tree
@@ -23463,6 +23440,13 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
+    from sage.graphs.path_enumeration import shortest_simple_paths
+    from sage.graphs.path_enumeration import all_paths
+    from sage.graphs.traversals import lex_BFS
+    from sage.graphs.traversals import lex_UP
+    from sage.graphs.traversals import lex_DFS
+    from sage.graphs.traversals import lex_DOWN
+    from sage.graphs.traversals import lex_M
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""
@@ -23763,67 +23747,126 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
     return TT, pos3d
 
 def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_label=None, return_relabeling=False, return_edge_labels=False, inplace=False, ignore_edge_labels=False):
-    """
+    r"""
     Helper function for canonical labeling of edge labeled (di)graphs.
 
-    Translates to a bipartite incidence-structure type graph
-    appropriate for computing canonical labels of edge labeled and/or multi-edge graphs.
-    Note that this is actually computationally equivalent to
-    implementing a change on an inner loop of the main algorithm-
-    namely making the refinement procedure sort for each label.
+    Translates to a bipartite incidence-structure type graph appropriate for
+    computing canonical labels of edge labeled and/or multi-edge graphs.
+    Note that this is actually computationally equivalent to implementing a
+    change on an inner loop of the main algorithm -- namely making the
+    refinement procedure sort for each label.
 
     If the graph is a multigraph, it is translated to a non-multigraph,
-    where each edge is labeled with a dictionary describing how many
-    edges of each label were originally there. Then in either case we
-    are working on a graph without multiple edges. At this point, we
-    create another (bipartite) graph, whose left vertices are the
-    original vertices of the graph, and whose right vertices represent
-    the edges. We partition the left vertices as they were originally,
-    and the right vertices by common labels: only automorphisms taking
-    edges to like-labeled edges are allowed, and this additional
-    partition information enforces this on the bipartite graph.
+    where each instance of multiple edges is converted to a single
+    edge labeled with a list ``[[label1, multiplicity], [label2,
+    multiplicity], ...]`` describing how many edges of each label were
+    originally there. Then in either case we are working on a graph
+    without multiple edges. At this point, we create another
+    (partially bipartite) graph, whose left vertices are the original
+    vertices of the graph, and whose right vertices represent the
+    labeled edges. Any unlabeled edges in the original graph are also
+    present in the new graph, and -- this is the bipartite aspect --
+    for every labeled edge `e` from `v` to `w` in the original graph,
+    there is an edge between the right vertex corresponding to `e` and
+    each of the left vertices corresponding to `v` and `w`. We
+    partition the left vertices as they were originally, and the right
+    vertices by common labels: only automorphisms taking edges to
+    like-labeled edges are allowed, and this additional partition
+    information enforces this on the new graph.
 
     INPUT:
 
     - ``g`` -- Graph or DiGraph
-    - ``partition`` -- (default:None) if given, the partition of the vertices is as well relabeled
-    - ``standard_label`` -- (default:None) the standard label is not considered to be changed
-    - ``return_relabeling`` -- (default: False) if True, a dictionary containing the relabeling is returned
-    - ``return_edge_labels`` -- (default: False) if True, the different edge_labels are returned (useful if inplace is True)
-    - ``inplace`` -- (default:False) if True, g is modified, otherwise the result is returned. Note that attributes of g are *not* copied for speed issues, only edges and vertices.
+
+    - ``partition`` -- list (default: ``None``); a partition of the
+      vertices as a list of lists of vertices. If given, the partition
+      of the vertices is as well relabeled
+
+    - ``standard_label`` -- (default: ``None``); edges in ``g`` with
+      this label are preserved in the new graph
+
+    - ``return_relabeling`` -- boolean (default: ``False``); whether
+      to return a dictionary containing the relabeling
+
+    - ``return_edge_labels`` -- boolean (default: ``False``); whether
+      the different ``edge_labels`` are returned (useful if inplace is
+      ``True``)
+
+    - ``inplace`` -- boolean (default: ``False``); whether the input
+      (di)graph ``g`` is modified or the return a new (di)graph. Note
+      that attributes of ``g`` are *not* copied for speed issues, only
+      edges and vertices.
+
+    - ``ignore_edge_labels`` -- boolean (default: ``False``): if
+      ``True``, ignore edge labels, so when constructing the new
+      graph, only multiple edges are replaced with vertices. Labels on
+      multiple edges are ignored -- only the multiplicity is relevant,
+      so multiple edges with the same multiplicity in the original
+      graph correspond to right vertices in the same partition in the
+      new graph.
 
     OUTPUT:
 
-    - if not inplace: the unlabeled graph without multiple edges
+    - if ``inplace`` is ``False``: the unlabeled graph without
+      multiple edges
     - the partition of the vertices
-    - if return_relabeling: a dictionary containing the relabeling
-    - if return_edge_labels: the list of (former) edge labels is returned
+    - if ``return_relabeling`` is ``True``: a dictionary containing
+      the relabeling
+    - if ``return_edge_labels`` is ``True``: the list of (former) edge
+      labels is returned
 
     EXAMPLES::
 
         sage: from sage.graphs.generic_graph import graph_isom_equivalent_non_edge_labeled_graph
 
         sage: G = Graph(multiedges=True,sparse=True)
-        sage: G.add_edges( (0,1,i) for i in range(10) )
+        sage: G.add_edges((0, 1, i) for i in range(10))
         sage: G.add_edge(1,2,'string')
         sage: G.add_edge(2,123)
-        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G, partition=[[0,123],[1,2]]); g
-        [Graph on 6 vertices, [[1, 0], [2, 3], [4], [5]]]
+        sage: graph_isom_equivalent_non_edge_labeled_graph(G, partition=[[0,123],[1,2]])
+        [Graph on 6 vertices, [[1, 0], [2, 3], [5], [4]]]
 
-        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G); g
-        [Graph on 6 vertices, [[0, 1, 2, 3], [4], [5]]]
-        sage: g[0].edges()
+        sage: g, part = graph_isom_equivalent_non_edge_labeled_graph(G)
+        sage: g, sorted(part)
+        (Graph on 6 vertices, [[0, 1, 2, 3], [4], [5]])
+        sage: g.edges(sort=True)
         [(0, 3, None), (1, 4, None), (2, 4, None), (2, 5, None), (3, 5, None)]
 
-        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G,standard_label='string',return_edge_labels=True); g
-        [Graph on 6 vertices, [[0, 1, 2, 3], [5], [4]], [[[None, 1]], [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1]], [['string', 1]]]]
-        sage: g[0].edges()
+        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G,standard_label='string',return_edge_labels=True)
+        sage: g[0]
+        Graph on 6 vertices
+        sage: g[0].edges(sort=True)
         [(0, 5, None), (1, 4, None), (2, 3, None), (2, 4, None), (3, 5, None)]
+        sage: g[1]
+        [[0, 1, 2, 3], [4], [5]]
+        sage: g[2]
+        [[['string', 1]], [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1]], [[None, 1]]]
 
-        sage: graph_isom_equivalent_non_edge_labeled_graph(G,inplace=True)
-        [[[0, 1, 2, 3], [4], [5]]]
-        sage: G.edges()
+        sage: graph_isom_equivalent_non_edge_labeled_graph(G, inplace=True)
+        [[[0, 1, 2, 3], [5], [4]]]
+        sage: G.edges(sort=True)
         [(0, 3, None), (1, 4, None), (2, 4, None), (2, 5, None), (3, 5, None)]
+
+        sage: G = Graph(multiedges=True,sparse=True)
+        sage: G.add_edges((0, 1) for i in range(10))
+        sage: G.add_edge(1, 2, 'a')
+        sage: G.add_edge(1, 3, 'b')
+        sage: G.add_edge(2, 3, 'b')
+        sage: graph_isom_equivalent_non_edge_labeled_graph(G)[0]
+        Graph on 8 vertices
+        sage: graph_isom_equivalent_non_edge_labeled_graph(G, ignore_edge_labels=True)[0]
+        Graph on 5 vertices
+
+        sage: G = Graph(multiedges=True,sparse=True)
+        sage: G.add_edges((0, 1, i) for i in range(5))
+        sage: G.add_edges((0, 2, i+10) for i in range(5))
+        sage: G.add_edges((0, 3) for i in range(4))
+        sage: g0 = graph_isom_equivalent_non_edge_labeled_graph(G)
+        sage: g1 = graph_isom_equivalent_non_edge_labeled_graph(G, ignore_edge_labels=True)
+        sage: g0
+        [Graph on 7 vertices, [[0, 1, 2, 3], [4], [5], [6]]]
+        sage: g1
+        [Graph on 7 vertices, [[0, 1, 2, 3], [6], [4, 5]]]
 
     TESTS:
 
@@ -23840,36 +23883,58 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: H.is_isomorphic(HH, edge_labels=True)
         False
 
+    Note that the new graph need not be bipartite::
+
+        sage: G = Graph(multiedges=True,sparse=True)
+        sage: G.add_edges((0, 1) for i in range(10))
+        sage: G.add_edge(1,2)
+        sage: G.add_edge(1,3)
+        sage: G.add_edge(2,3)
+        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G)
+        sage: g[0].is_bipartite()
+        False
     """
     from sage.graphs.all import Graph, DiGraph
+    from itertools import chain
 
     g_has_multiple_edges = g.has_multiple_edges()
 
     if g_has_multiple_edges:
+        # We build a **simple** (Di)Graph G where the label of edge uv is a list
+        # [[label, multiplicity], [label, multiplicity], ...] encoding the
+        # number of edges uv in g with same label
         if g._directed:
-            G = DiGraph(loops=g.allows_loops(),sparse=True)
-            edge_iter = g._backend.iterator_in_edges(g,True)
+            G = DiGraph(loops=g.allows_loops(), sparse=True)
+            edge_iter = g._backend.iterator_in_edges(g, False)
         else:
-            G = Graph(loops=g.allows_loops(),sparse=True)
-            edge_iter = g._backend.iterator_edges(g,True)
-        for u,v,l in edge_iter:
+            G = Graph(loops=g.allows_loops(), sparse=True)
+            edge_iter = g._backend.iterator_edges(g, False)
+
+        for u, v in edge_iter:
+            if G.has_edge(u, v):
+                continue
+            # We count the number of occurence of each distinct label
             if ignore_edge_labels:
-                l = None
-            if not G.has_edge(u,v):
-                G.add_edge(u,v,[[l,1]])
+                G.add_edge(u, v, [[None, len(g.edge_label(u, v))]])
             else:
-                label_list = copy( G.edge_label(u,v) )
-                seen_label = False
-                for i in range(len(label_list)):
-                    if label_list[i][0] == l:
-                        label_list[i][1] += 1
-                        G.set_edge_label(u,v,label_list)
-                        seen_label = True
-                        break
-                if not seen_label:
-                    label_list.append([l,1])
-                    label_list.sort()
-                    G.set_edge_label(u,v,label_list)
+                label_list = []
+                for l in g.edge_label(u, v):
+                    seen_label = False
+                    for elt in label_list:
+                        if elt[0] == l:
+                            elt[1] += 1
+                            seen_label = True
+                            break
+                    if not seen_label:
+                        label_list.append([l, 1])
+
+                # We sort label_list to enable equality check.
+                # The use of key=str should be enough...
+                label_list = sorted(label_list, key=str)
+
+                # We add edge u,v to G, labeled with label_list
+                G.add_edge(u, v, label_list)
+
         if G.order() < g.order():
             G.add_vertices(g)
         if inplace:
@@ -23880,10 +23945,10 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         G = g
 
     G_order = G.order()
-    # Do not relabel if the set of vertices is equal to the set
-    # range(n). This helps to ensure that *equal* graphs on range(n)
-    # yield *equal* (not just isomorphic) canonical labelings. This
-    # is just a convenience, there is no mathematical meaning.
+    # Do not relabel if the set of vertices is equal to the set range(n).
+    # This helps to ensure that *equal* graphs on range(n) yield *equal* (not
+    # just isomorphic) canonical labelings. This is just a convenience, there is
+    # no mathematical meaning.
     if set(G) != set(range(G_order)):
         relabel_dict = G.relabel(return_map=True, inplace=True)
     else:
@@ -23891,93 +23956,95 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         relabel_dict = {i: int(i) for i in G}
 
     if partition is None:
-        partition = [G.vertices()]
+        partition = [list(G)]
     else:
+        # We relabel as well the vertices of the partition
         partition = [[relabel_dict[i] for i in part] for part in partition]
 
+    # We build the list of distinct edge labels
+    edge_labels = []
+    for _,_,label in G.edge_iterator():
+        if label != standard_label and label not in edge_labels:
+            edge_labels.append(label)
+
+    edge_labels = sorted(edge_labels, key=str)
+
+
+    # We now add to G, for each edge (u, v, l), a new vertex i in [n..n + m] and
+    # arcs (u, i, None) and (i, v, None). We record for each distinct label l
+    # the list of added vertices.
+
+    edge_partition = [(el, []) for el in edge_labels]
+
+    if g_has_multiple_edges:
+        standard_label = [[standard_label, 1]]
+
     if G._directed:
-        edge_iter = G._backend.iterator_in_edges(G,True)
+        edges = list(G._backend.iterator_in_edges(G, True))
     else:
-        edge_iter = G._backend.iterator_edges(G,True)
+        edges = list(G._backend.iterator_edges(G, True))
 
-    edges = [ edge for edge in edge_iter ]
-    edge_labels = sorted([ label for v1,v2,label in edges if not label == standard_label])
-    i = 1
-
-    # edge_labels is sorted. We now remove values which are not unique
-    while i < len(edge_labels):
-        if edge_labels[i] == edge_labels[i-1]:
-            edge_labels.pop(i)
-        else:
-            i += 1
     i = G_order
-    edge_partition = [(el,[]) for el in edge_labels]
-
-    if g_has_multiple_edges: standard_label = [[standard_label,1]]
-
     for u,v,l in edges:
-        if not l == standard_label:
+        if l != standard_label:
             for el, part in edge_partition:
                 if el == l:
                     part.append(i)
                     break
 
-            G._backend.add_edge(u,i,None,True)
-            G._backend.add_edge(i,v,None,True)
-            G.delete_edge(u,v)
+            G._backend.add_edge(u, i, None, True)
+            G._backend.add_edge(i, v, None, True)
+            G.delete_edge(u, v)
             i += 1
+
         elif standard_label is not None:
-            G._backend.set_edge_label(u,v,None,True)
+            G._backend.set_edge_label(u, v, None, True)
 
     # Should we pay attention to edge labels ?
     if ignore_edge_labels:
 
-        # If there are no multiple edges, we can just say that all edges are
-        # equivalent to each other without any further consideration.
-        if not g_has_multiple_edges:
-            edge_partition = [el[1] for el in sorted(edge_partition)]
-            edge_partition = [sum(edge_partition,[])]
-
-        # An edge between u and v with label l and multiplicity k being encoded
-        # as an uv edge with label [l,k], we must not assume that an edge with
-        # multiplicity 2 is equivalent to a simple edge !
-        # Hence, we still distinguish edges with different multiplicity
         if g_has_multiple_edges:
+            # An edge between u and v with label l and multiplicity k being
+            # encoded as an uv edge with label [l,k], we must not assume that an
+            # edge with multiplicity 2 is equivalent to a simple edge !
+            # Hence, we still distinguish edges with different multiplicity
 
-            # Compute the multiplicity the label
-            multiplicity = lambda x : sum((y[1] for y in x))
-
-            # Sort the edge according to their multiplicity
-            edge_partition = sorted([[multiplicity(el),part] for el, part in sorted(edge_partition)])
-
-            # Gather together the edges with same multiplicity
-            i = 1
-            while i < len(edge_partition):
-                if edge_partition[i][0] == edge_partition[i-1][0]:
-                    edge_partition[i-1][1].extend(edge_partition[i][1])
-                    edge_partition.pop(i)
+            # Gather the partitions of edges with same multiplicity
+            tmp = {}
+            for el, part in edge_partition:
+                # The multiplicity of a label is the number of edges from u to v
+                # it represents
+                m = sum((y[1] for y in el))
+                if m in tmp:
+                    tmp[m].append(part)
                 else:
-                    i += 1
+                    tmp[m] = part
 
-            # now edge_partition has shape [[multiplicity, list_of_edges],
-            # [multiplicity, liste of edges], ...], and we can flatted it to
-            # [list of edges, list of edges, ...]
-            edge_partition = [el[1] for el in sorted(edge_partition)]
+            # Flatten edge_partition to [list of edges, list of edges, ...]
+            # The groups are ordered by increasing multiplicity
+            edge_partition = [tmp[mu] for mu in sorted(tmp.keys())]
 
             # Now the edges are partitionned according to the multiplicity they
             # represent, and edge labels are forgotten.
 
-    else:
-        edge_partition = [el[1] for el in sorted(edge_partition)]
+        else:
+            # If there are no multiple edges, we can just say that all edges are
+            # equivalent to each other without any further consideration.
+            edge_partition = [el[1] for el in edge_partition]
+            edge_partition = [list(chain(*edge_partition))]
 
-    new_partition = [ part for part in partition + edge_partition if not part == [] ]
+    else:
+        # Flatten edge_partition to [list of edges, list of edges, ...]
+        edge_partition = [part for _,part in edge_partition]
+
+    new_partition = [part for part in chain(partition, edge_partition) if part]
 
     return_data = []
     if not inplace:
-        return_data.append( G )
-    return_data.append( new_partition )
+        return_data.append(G)
+    return_data.append(new_partition)
     if return_relabeling:
-        return_data.append( relabel_dict )
+        return_data.append(relabel_dict)
     if return_edge_labels:
-        return_data.append( edge_labels )
+        return_data.append(edge_labels)
     return return_data

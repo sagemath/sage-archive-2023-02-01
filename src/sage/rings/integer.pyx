@@ -160,7 +160,6 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.misc.superseded import deprecated_function_alias
 from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.arith.long cimport (pyobject_to_long, integer_check_long,
                               integer_check_long_py)
@@ -882,25 +881,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ilist = [-4r,-1r,0r,1r,2r,5r]
             sage: llist = [-12345678901234567890123456788r, 12345678901234567890123456788r, 12345678901234567890123456900r]
             sage: flist = [-21.8r, -1.2r, -.000005r, 0.0r, .999999r, 1000000000000.0r]
-            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a == b) == (RR(a) == RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a == b) == (RR(a) == RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a <= b) == (RR(a) <= RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a <= b) == (RR(a) <= RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a >= b) == (RR(a) >= RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a >= b) == (RR(a) >= RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a != b) == (RR(a) != RR(b)) for (a, b) in zip(Ilist, ilist)])
+            sage: all((a != b) == (RR(a) != RR(b)) for (a, b) in zip(Ilist, ilist))
             True
-            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, llist)])
+            sage: all((a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, llist))
             True
-            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, llist)])
+            sage: all((a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, llist))
             True
-            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, flist)])
+            sage: all((a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, flist))
             True
-            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist)])
+            sage: all((a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist))
             True
 
         Verify that :trac:`12149` was fixed (and the fix is consistent
@@ -1607,6 +1606,114 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # all we need to do is return
         return l
 
+    def balanced_digits(self, base=10, positive_shift=True):
+        r'''
+        Return the list of balanced digits for ``self`` in the given base.
+
+        The balanced base ``b`` uses ``b`` digits centered around zero. Thus
+        if ``b`` is odd, there is only one possibility, namely digits
+        between ``-b//2`` and ``b//2`` (both included). For instance in base 9,
+        one uses digits from -4 to 4. If ``b`` is even, one has to choose
+        between digits from ``-b//2`` to ``b//2 - 1`` or ``-b//2 + 1`` to ``b//2``
+        (base 10 for instance: either -5 to 4 or -4 to 5), and this is
+        defined by the value of ``positive_shift``.
+
+        INPUT:
+
+        - ``base`` -- integer (default: 10); when ``base`` is 2, only the
+          nonnegative or the nonpositive integers can be represented by
+          ``balanced_digits``. Thus we say base must be greater than 2.
+
+        - ``positive_shift`` -- boolean (default: True); for even bases, the
+          representation uses digits from ``-b//2 + 1`` to ``b//2`` if set to
+          True, and from ``-b//2`` to ``b//2 - 1`` otherwise. This has no
+          effect for odd bases.
+
+        EXAMPLES::
+
+            sage: 8.balanced_digits(3)
+            [-1, 0, 1]
+            sage: (-15).balanced_digits(5)
+            [0, 2, -1]
+            sage: 17.balanced_digits(6)
+            [-1, 3]
+            sage: 17.balanced_digits(6, positive_shift=False)
+            [-1, -3, 1]
+            sage: (-46).balanced_digits()
+            [4, 5, -1]
+            sage: (-46).balanced_digits(positive_shift=False)
+            [4, -5]
+            sage: (-23).balanced_digits(12)
+            [1, -2]
+            sage: (-23).balanced_digits(12, positive_shift=False)
+            [1, -2]
+            sage: 0.balanced_digits(7)
+            []
+            sage: 14.balanced_digits(5.8)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be an integer
+            sage: 14.balanced_digits(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be > 2
+
+        TESTS::
+
+            sage: base = 5; n = 39
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 12; n = -52
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 8; n = 37
+            sage: l = n.balanced_digits(base)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+            sage: base = 8; n = 37
+            sage: l = n.balanced_digits(base, positive_shift=False)
+            sage: sum(l[i]*base^i for i in range(len(l))) == n
+            True
+
+        .. SEEALSO::
+
+            :func:`digits <digits>`
+        '''
+        if not isinstance(base, Integer):
+            try:
+                base = Integer(base)
+            except TypeError:
+                raise ValueError('base must be an integer')
+        if base <= 2:
+            raise ValueError('base must be > 2')
+
+        neg = False
+        if self < 0:
+            neg = True
+            positive_shift = not positive_shift
+
+        if positive_shift or base % 2 == 1:
+            m = base//2
+        else:
+            m = base//2 - 1
+        digits = abs(self).digits(base)
+
+        for i in range(len(digits)):
+            if digits[i] > m:
+                digits[i] = digits[i] - base
+                try:
+                    digits[i+1] += 1
+                except IndexError:
+                    if neg:
+                        digits.append(-1)
+                    else:
+                        digits.append(1)
+            if neg:
+                digits[i] = -digits[i]
+        return digits
+
     def ndigits(self, base=10):
         """
         Return the number of digits of self expressed in the given base.
@@ -2095,11 +2202,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in t over Rational Field to Rational Field
-            sage: 'sage' ^ 3
-            doctest:...:
-            DeprecationWarning: raising a string to an integer power is deprecated
-            See http://trac.sagemath.org/24260 for details.
-            'sagesagesage'
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
@@ -2109,10 +2211,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>left)._pow_(right)
         elif isinstance(left, Element):
             return coercion_model.bin_op(left, right, operator.pow)
-        elif isinstance(left, str):
-            from sage.misc.superseded import deprecation
-            deprecation(24260, "raising a string to an integer power is deprecated")
-            return left * int(right)
         # left is a non-Element: do the powering with a Python int
         return left ** int(right)
 
@@ -3488,8 +3586,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ArithmeticError("rational reconstruction of %s (mod %s) does not exist" % (a, m))
         return x
 
-    powermodm_ui = deprecated_function_alias(17852, powermod)
-
     def __int__(self):
         """
         Return the Python int (or long) corresponding to this Sage
@@ -3587,48 +3683,45 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -920384
             sage: hash(int(n))
             -920384
-            sage: n = -920390823904823094890238490238484; n.__hash__()
-            -873977844            # 32-bit
-            6874330978542788722   # 64-bit
-            sage: hash(long(n))
-            -873977844            # 32-bit
-            6874330978542788722   # 64-bit
+            sage: n = -920390823904823094890238490238484
+            sage: n.__hash__()    # random
+            -43547310504077801
+            sage: n.__hash__() == hash(int(n))
+            True
 
         TESTS::
 
             sage: hash(-1), hash(0), hash(1)
             (-2, 0, 1)
             sage: n = 2^31 + 2^63 + 2^95 + 2^127 + 2^128*(2^32-2)
-            sage: hash(n) == hash(long(n))
+            sage: hash(n) == hash(int(n))
             True
-            sage: hash(n-1) == hash(long(n-1))
+            sage: hash(n-1) == hash(int(n-1))
             True
-            sage: hash(-n) == hash(long(-n))
+            sage: hash(-n) == hash(int(-n))
             True
-            sage: hash(1-n) == hash(long(1-n))
+            sage: hash(1-n) == hash(int(1-n))
             True
             sage: n = 2^63 + 2^127 + 2^191 + 2^255 + 2^256*(2^64-2)
-            sage: hash(n) == hash(long(n))
+            sage: hash(n) == hash(int(n))
             True
-            sage: hash(n-1) == hash(long(n-1))
+            sage: hash(n-1) == hash(int(n-1))
             True
-            sage: hash(-n) == hash(long(-n))
+            sage: hash(-n) == hash(int(-n))
             True
-            sage: hash(1-n) == hash(long(1-n))
+            sage: hash(1-n) == hash(int(1-n))
             True
 
         These tests come from :trac:`4957`::
 
             sage: n = 2^31 + 2^13
-            sage: hash(n)
-            -2147475456               # 32-bit
-            2147491840                # 64-bit
+            sage: hash(n)             # random
+            2147491840
             sage: hash(n) == hash(int(n))
             True
             sage: n = 2^63 + 2^13
-            sage: hash(n)
-            -2147475456               # 32-bit
-            -9223372036854767616      # 64-bit
+            sage: hash(n)             # random
+            8196
             sage: hash(n) == hash(int(n))
             True
         """
@@ -4184,6 +4277,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     # Alias for valuation
     ord = valuation
 
+    def p_primary_part(self, p):
+        """
+        Return the p-primary part of ``self``.
+
+        INPUT:
+
+        - ``p`` -- a prime integer.
+
+        OUTPUT: Largest power of ``p`` dividing ``self``.
+
+        EXAMPLES::
+
+            sage: n = 40
+            sage: n.p_primary_part(2)
+            8
+            sage: n.p_primary_part(5)
+            5
+            sage: n.p_primary_part(7)
+            1
+            sage: n.p_primary_part(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 is not a prime number
+        """
+        p = smallInteger(p)
+        if not p.is_prime():
+            raise ValueError("{} is not a prime number".format(p))
+        return p**self._valuation(p)
+
     def val_unit(self, p):
         r"""
         Returns a pair: the p-adic valuation of self, and the p-adic unit
@@ -4352,6 +4474,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
         """
         return self
+
+    def as_integer_ratio(self):
+        """
+        Return the pair ``(self.numerator(), self.denominator())``,
+        which is ``(self, 1)``.
+
+        EXAMPLES::
+
+            sage: x = -12
+            sage: x.as_integer_ratio()
+            (-12, 1)
+        """
+        return (self, one)
 
     def factorial(self):
         r"""
@@ -7094,8 +7229,11 @@ cdef class int_to_Z(Morphism):
 
     EXAMPLES::
 
-        sage: f = ZZ.coerce_map_from(int); type(f)
+        sage: f = ZZ.coerce_map_from(int)
+        sage: type(f)  # py2
         <type 'sage.rings.integer.int_to_Z'>
+        sage: type(f)  # py3
+        <class 'sage.rings.integer.long_to_Z'>
         sage: f(5r)
         5
         sage: type(f(5r))
@@ -7172,9 +7310,15 @@ cdef class long_to_Z(Morphism):
     """
     EXAMPLES::
 
-        sage: f = ZZ.coerce_map_from(long); f
+        sage: f = ZZ.coerce_map_from(long)  # py2
+        sage: f = ZZ.coerce_map_from(int)   # py3
+        sage: f  # py2
         Native morphism:
           From: Set of Python objects of class 'long'
+          To:   Integer Ring
+        sage: f  # py3
+        Native morphism:
+          From: Set of Python objects of class 'int'
           To:   Integer Ring
         sage: f(1rL)
         1

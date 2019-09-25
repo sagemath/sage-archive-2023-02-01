@@ -742,6 +742,7 @@ class RewritingSystem(object):
         except ValueError:
             raise ValueError('could not make the system confluent')
 
+
 class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     Group, ParentLibGAP):
     """
@@ -783,7 +784,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     """
     Element = FinitelyPresentedGroupElement
 
-    def __init__(self, free_group, relations):
+    def __init__(self, free_group, relations, category=None):
         """
         The Python constructor.
 
@@ -808,9 +809,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         self._free_group = free_group
         self._relations = relations
         self._assign_names(free_group.variable_names())
-        parent_gap = free_group.gap() / libgap([ rel.gap() for rel in relations])
+        parent_gap = free_group.gap() / libgap([rel.gap() for rel in relations])
         ParentLibGAP.__init__(self, parent_gap)
-        Group.__init__(self)
+        Group.__init__(self, category=category)
 
     def _repr_(self):
         """

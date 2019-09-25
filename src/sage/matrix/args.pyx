@@ -26,7 +26,7 @@ from .matrix_space import MatrixSpace
 from sage.rings.all import ZZ, RDF, CDF
 from sage.structure.coerce cimport (coercion_model,
         is_numpy_type, py_scalar_parent)
-from sage.structure.element cimport Element, RingElement
+from sage.structure.element cimport Element, RingElement, Vector
 from sage.arith.long cimport pyobject_to_long
 from sage.misc.misc_c import sized_iter
 from sage.categories import monoids
@@ -236,6 +236,12 @@ cdef class MatrixArgs:
         [0 1 1]
         [1 0 1]
         [1 1 0]
+
+        sage: ma = MatrixArgs([vector([0,1], sparse=True), vector([0,0], sparse=True)], sparse=True)
+        sage: ma.finalized(); ma.matrix()
+        <MatrixArgs for Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring; typ=SEQ_SPARSE; entries=[SparseEntry(0, 1, 1)]>
+        [0 1]
+        [0 0]
 
     Test invalid input::
 
@@ -1098,6 +1104,21 @@ cdef class MatrixArgs:
             # Everything known => OK
             return 0
 
+        # When sparse and given a list of sparse vectors, convert to a sparse sequence
+        cdef long i, j
+        if isinstance(e[0], Vector) and all(vec.is_sparse() for vec in e):
+            if self.base is None:
+                self.base = coercion_model.common_parent(*[(<Vector>vec)._parent._base
+                                                           for vec in e])
+            self.entries = []
+            for i, row in enumerate(e):
+                for j, val in (<Vector?>row).iteritems():
+                    self.entries.append(make_SparseEntry(i, j, val))
+
+            self.set_ncols(max((<Vector>vec)._parent.ambient_module().rank() for vec in e))
+            self.typ = MA_ENTRIES_SEQ_SPARSE
+            return 0
+
         # Process everything and convert to SEQ_FLAT
         cdef list entries = []
         cdef long c
@@ -1272,7 +1293,7 @@ cdef class MatrixArgs:
         if not self.entries:
             return MA_ENTRIES_SEQ_FLAT
         x = self.entries[0]
-        if isinstance(x, (list, tuple)):
+        if isinstance(x, (list, tuple, Vector)):
             return MA_ENTRIES_SEQ_SEQ
         if type(x) is SparseEntry:
             return MA_ENTRIES_SEQ_SPARSE

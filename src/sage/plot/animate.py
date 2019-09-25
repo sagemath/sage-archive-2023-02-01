@@ -45,7 +45,7 @@ Animate as an APNG_::
 
     sage: a.apng()  # long time
 
-An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
+An animated :class:`sage.plot.multigraphics.GraphicsArray` of rotating ellipses::
 
     sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15)))
     sage: str(E)    # animations produced from a generator do not have a known length
@@ -475,10 +475,10 @@ class Animation(WithEqualityById, SageObject):
 
     def graphics_array(self, ncols=3):
         r"""
-        Return a :class:`sage.plot.graphics.GraphicsArray` with plots of the
+        Return a :class:`sage.plot.multigraphics.GraphicsArray` with plots of the
         frames of this animation, using the given number of columns.
         The frames must be acceptable inputs for
-        :class:`sage.plot.graphics.GraphicsArray`.
+        :class:`sage.plot.multigraphics.GraphicsArray`.
 
 
         EXAMPLES::

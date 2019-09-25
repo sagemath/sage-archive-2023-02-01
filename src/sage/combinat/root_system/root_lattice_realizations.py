@@ -777,8 +777,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: [PR.unrank(i) for i in range(5)]
                 [alpha[1],
                  alpha[2],
-                 2*alpha[1] + alpha[2],
                  alpha[1] + alpha[2],
+                 2*alpha[1] + alpha[2],
                  alpha[0] + alpha[1] + alpha[2]]
 
                 sage: Q = RootSystem(['D',3,2]).root_lattice()

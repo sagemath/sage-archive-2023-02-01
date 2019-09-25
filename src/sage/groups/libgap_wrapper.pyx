@@ -449,6 +449,7 @@ class ParentLibGAP(SageObject):
         else:
             return self.one()
 
+
 cdef class ElementLibGAP(MultiplicativeGroupElement):
     """
     A class for LibGAP-based Sage group elements

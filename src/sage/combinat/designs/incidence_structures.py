@@ -1347,21 +1347,8 @@ class IncidenceStructure(object):
         else:
             self._point_to_index = {v:i for i,v in enumerate(self._points)}
 
-    def __hash__(self):
-        r"""
-        Not Implemented
-
-        This object is mutable because of .relabel()
-
-        EXAMPLES::
-
-            sage: TD=designs.transversal_design(5,5)
-            sage: hash(TD)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: This object is mutable !
-        """
-        raise RuntimeError("This object is mutable !")
+    __hash__ = None
+    # This object is mutable because of .relabel()
 
     #####################
     # real computations #
@@ -1638,7 +1625,8 @@ class IncidenceStructure(object):
 
         .. NOTE::
 
-            Some references (e.g. [PT09]_ or [GQwiki]_) only allow *regular*
+            Some references (e.g. [PT2009]_ or
+            :wikipedia:`Generalized_quadrangle`) only allow *regular*
             generalized quadrangles. To use such a definition, see the
             ``parameters`` optional argument described below, or the methods
             :meth:`is_regular` and :meth:`is_uniform`.

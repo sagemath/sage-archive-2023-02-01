@@ -104,8 +104,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         sage: S.<th, ph> = manifolds.Sphere()
         sage: S
-        2-dimensional pseudo-Riemannian submanifold S embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold S embedded in the Euclidean
+         space E^3
         sage: S.atlas()
         [Chart (S, (th, ph))]
         sage: S.metric().display()
@@ -113,13 +113,12 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         sage: S = manifolds.Sphere(2, stereo2d=True)  # long time
         sage: S  # long time
-        2-dimensional pseudo-Riemannian submanifold S embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold S embedded in the Euclidean
+         space E^3
         sage: S.metric().display()  # long time
         gamma = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
          + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
     """
-    from functools import reduce
     from sage.functions.trig import cos, sin, atan, atan2
     from sage.functions.other import sqrt
     from sage.symbolic.constants import pi
@@ -154,7 +153,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         stereoN_to_S = stereoN.transition_map(stereoS,
           (x / (x**2 + y**2), y / (x**2 + y**2)), intersection_name='W',
           restrictions1=x**2 + y**2 != 0, restrictions2=xp**2+yp**2!=0)
-        stereoN_to_S.set_inverse(xp / (xp**2 + yp**2), yp / (xp**2 + yp**2))
+        stereoN_to_S.set_inverse(xp / (xp**2 + yp**2), yp / (xp**2 + yp**2),
+                                 check=False)
         W = U.intersection(V)
         stereoN_W = stereoN.restrict(W)
         stereoS_W = stereoS.restrict(W)
@@ -171,7 +171,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         th, ph = spher[:]
         spher_to_stereoN = spher.transition_map(stereoN_A, (sin(th)*cos(ph) / (1-cos(th)),
                                                             sin(th)*sin(ph) / (1-cos(th))))
-        spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi)
+        spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi,
+                                     check=False)
         stereoN_to_S_A = stereoN_to_S.restrict(A)
         stereoN_to_S_A * spher_to_stereoN # generates spher_to_stereoS
         stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)
@@ -350,12 +351,12 @@ def Torus(R=2, r=1, names=None):
 
         sage: T.<theta, phi> = manifolds.Torus(3, 1)
         sage: T
-        2-dimensional pseudo-Riemannian submanifold M embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold T embedded in the Euclidean
+         space E^3
         sage: T.atlas()
-        [Chart (M, (theta, phi))]
+        [Chart (T, (theta, phi))]
         sage: T.embedding().display()
-        M --> E^3
+        T --> E^3
            (theta, phi) |--> (X, Y, Z) = ((cos(theta) + 3)*cos(phi),
                                           (cos(theta) + 3)*sin(phi),
                                           sin(theta))
@@ -366,7 +367,7 @@ def Torus(R=2, r=1, names=None):
     from sage.manifolds.manifold import Manifold
     from sage.manifolds.differentiable.euclidean import EuclideanSpace
     E = EuclideanSpace(3, symbols='X Y Z')
-    M = Manifold(2, 'M', ambient=E, structure="Riemannian")
+    M = Manifold(2, 'T', ambient=E, structure="Riemannian")
     if names is None:
         names = ("th", "ph")
     names = tuple([names[i] + ":(-pi,pi):periodic" for i in range(2)])

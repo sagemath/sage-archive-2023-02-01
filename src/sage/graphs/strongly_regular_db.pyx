@@ -779,7 +779,7 @@ def is_NU(int v,int k,int l,int mu):
 
     Note that n>2; for n=2 there is no s.r.g. For more information, see
     :func:`sage.graphs.graph_generators.GraphGenerators.NonisotropicUnitaryPolarGraph`
-    and series C14 in [Hu75]_.
+    and series C14 in [Hub1975]_.
 
     INPUT:
 
@@ -1733,11 +1733,12 @@ cdef eigenvalues(int v,int k,int l,int mu):
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
 
-def eigenmatrix(int v,int k,int l,int mu):
-    r"""
-    Return the 1st eigenmatrix of a `(v,k,l,mu)`-strongly regular graph.
 
-    The adjacency matrix `A` of an s.r.g. commutes with the adacency matrix
+def eigenmatrix(int v, int k, int l, int mu):
+    r"""
+    Return the first eigenmatrix of a `(v,k,l,mu)`-strongly regular graph.
+
+    The adjacency matrix `A` of an s.r.g. commutes with the adjacency matrix
     `A'=J-A-I` of its complement (here `J` is all-1 matrix, and `I` the identity
     matrix).  Thus, they can be simultaneously diagonalized and so `A` and `A'`
     share eigenspaces.
@@ -2080,7 +2081,7 @@ def SRG_176_105_68_54():
     To build this graph, we first build a `2-(22,7,16)` design, by removing one
     point from the :func:`~sage.combinat.designs.block_design.WittDesign` on 23
     points. We then build the intersection graph of blocks with intersection
-    size 3. Known as S.7 in [Hu75]_.
+    size 3. Known as S.7 in [Hub1975]_.
 
     EXAMPLES::
 
@@ -2194,7 +2195,7 @@ def SRG_253_140_87_65():
     To build this graph, we first build the
     :func:`~sage.combinat.designs.block_design.WittDesign` on 23 points which is
     a `2-(23,7,21)` design. We then build the intersection graph of blocks with
-    intersection size 3. Known as S.6 in [Hu75]_.
+    intersection size 3. Known as S.6 in [Hub1975]_.
 
     EXAMPLES::
 
@@ -2442,7 +2443,7 @@ def SRG_416_100_36_20():
     (among 2 that exists) of the group `G_2(4)`.
     This graph is isomorphic to the subgraph of the from :meth:`Suzuki Graph
     <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
-    the neighbors of a vertex. Known as S.14 in [Hu75]_.
+    the neighbors of a vertex. Known as S.14 in [Hub1975]_.
 
     EXAMPLES::
 

@@ -11,7 +11,7 @@ AUTHORS:
 - Tim Joseph Dumol (2009-09-29): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,14 +19,13 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
 import os
 import re
 import shutil
 from tempfile import mkdtemp
-from sage.env import SAGE_DOC_SRC
 from sphinx.application import Sphinx
 
 
@@ -82,12 +81,36 @@ def sphinxify(docstring, format='html'):
     with open(rst_name, 'w') as filed:
         filed.write(docstring)
 
-    confdir = os.path.join(SAGE_DOC_SRC, 'en', 'introspect')
+    confdir = os.path.join(srcdir, 'en' , 'introspect')
+    os.makedirs(confdir)
+    with open(os.path.join(confdir, 'conf.py'), 'w') as filed:
+        filed.write(r"""
+from sage.docs.conf import *
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax', 'sphinx.ext.todo', 'sphinx.ext.extlinks']
 
-    open(os.path.join(srcdir, 'docutils.conf'), 'w').write(r"""
+templates_path = ['templates']
+html_static_path = ['static']
+
+html_use_modindex = False
+html_use_index = False
+html_split_index = False
+html_copy_source = False
+
+todo_include_todos = True""")
+    templatesdir = os.path.join(confdir, 'templates')
+    os.makedirs(templatesdir)
+    with open(os.path.join(templatesdir, 'layout.html'), 'w') as filed:
+        filed.write(r"""<div class="docstring">
+    {% block body %} {% endblock %}
+</div>""")
+    staticdir = os.path.join(confdir, 'static')
+    os.makedirs(staticdir)
+    with open(os.path.join(staticdir, 'empty'), 'w') as filed: pass
+
+    with open(os.path.join(srcdir, 'docutils.conf'), 'w') as filed:
+        filed.write(r"""
 [parsers]
-smart_quotes = no
-""")
+smart_quotes = no""")
     doctreedir = os.path.join(srcdir, 'doctrees')
     confoverrides = {'html_context': {}, 'master_doc': 'docstring'}
 
@@ -118,7 +141,7 @@ smart_quotes = no
                         'src="/doc/static/reference/media/\\2"',
                         output)
         # Remove spurious \(, \), \[, \].
-        output = output.replace('\\(', '').replace('\\)', '').replace('\\[', '').replace('\\]', '')
+        output = output.replace(r'\(', '').replace(r'\)', '').replace(r'\[', '').replace(r'\]', '')
     else:
         from warnings import warn
         warn("Sphinx did not produce any output", Warning)

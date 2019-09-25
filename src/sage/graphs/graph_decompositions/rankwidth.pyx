@@ -10,7 +10,7 @@ rank-decomposition [RWKlause]_.
 Given a graph `G` and a subset `S\subseteq V(G)` of vertices, the *rank-width*
 of `S` in `G`, denoted `rw_G(S)`, is equal to the rank in `GF(2)` of the `|S|
 \times (|V|-|S|)` matrix of the adjacencies between the vertices of `S` and
-`V\backslash S`. By definition, `rw_G(S)` is qual to `rw_G(\overline S)` where
+`V\backslash S`. By definition, `rw_G(S)` is equal to `rw_G(\overline S)` where
 `\overline S` is the complement of `S` in `V(G)`.
 
 A *rank-decomposition* of `G` is a tree whose `n` leaves are the elements of

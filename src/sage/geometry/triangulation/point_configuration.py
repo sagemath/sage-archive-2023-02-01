@@ -375,8 +375,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         - ``engine`` -- either 'auto' (default), 'internal', or
           'topcom'. The latter two instruct this package to always use
           its own triangulation algorithms or TOPCOM's algorithms,
-          respectively. By default ('auto'), TOPCOM is used if it is
-          available and internal routines otherwise.
+          respectively. By default ('auto'), internal routines are used.
 
         EXAMPLES::
 
@@ -393,10 +392,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         if engine not in ['auto', 'topcom', 'internal']:
             raise ValueError('Unknown value for "engine": '+str(engine))
 
-        have_TOPCOM = PointConfiguration._have_TOPCOM()
-        PointConfiguration._use_TOPCOM = \
-            (engine == 'topcom') or (engine == 'auto' and have_TOPCOM)
-
+        PointConfiguration._use_TOPCOM = (engine == 'topcom')
 
     def star_center(self):
         r"""

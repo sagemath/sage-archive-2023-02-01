@@ -209,8 +209,9 @@ class PSModularSymbolElement(ModuleElement):
 
     def values(self):
         r"""
-        Return the values of the symbol self on our chosen generators
-        (generators are listed in ``self.dict().keys()``)
+        Return the values of the symbol ``self`` on our chosen generators.
+
+        The generators are listed in ``self.dict()``.
 
         EXAMPLES::
 
@@ -230,7 +231,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _normalize(self, **kwds):
         """
-        Normalize all of the values of the symbol self
+        Normalize all of the values of the symbol ``self``.
 
         EXAMPLES::
 

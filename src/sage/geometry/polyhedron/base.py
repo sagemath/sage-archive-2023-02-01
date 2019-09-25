@@ -20,6 +20,7 @@ import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
+from sage.cpython.string import bytes_to_str
 
 from sage.misc.all import cached_method, prod
 from sage.misc.randstate import current_randstate
@@ -395,9 +396,9 @@ class Polyhedron_base(Element):
 
         - ``backend`` -- the new backend, see
           :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
-          If ``None`` (the default), use the same defaulting behavior
-          as described there; it is not attempted to keep the same
-          backend.
+          If ``None`` (the default), attempt to keep the same backend.
+          Otherwise, use the same defaulting behavior
+          as described there.
 
         OUTPUT:
 
@@ -436,10 +437,10 @@ class Polyhedron_base(Element):
         - ``base_ring`` -- the new base ring
 
         - ``backend`` -- the new backend or ``None`` (default), see
-            :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
-            If ``None`` (the default), use the same defaulting behavior
-            as described there; it is not attempted to keep the same
-            backend.
+          :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+          If ``None`` (the default), attempt to keep the same backend.
+          Otherwise, use the same defaulting behavior
+          as described there.
 
         EXAMPLES::
 
@@ -489,18 +490,10 @@ class Polyhedron_base(Element):
        """
 
         from sage.categories.all import Rings
-        from sage.rings.all import RDF, RR
 
         if base_ring not in Rings:
             raise ValueError("invalid base ring")
 
-        if not base_ring.is_exact():
-            if base_ring is RR:
-                base_ring = RDF
-            elif base_ring is not RDF:
-                raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
-
-        x = None
         try:
             vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
@@ -2692,6 +2685,309 @@ class Polyhedron_base(Element):
                    for facet in self.Hrepresentation()
                    if not facet.is_equation())
 
+    def is_pyramid(self, certificate=False):
+        """
+        Test whether the polytope is a pyramid over one of its facets.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+          to return a vertex of the polytope which is the apex of a pyramid,
+          if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. The apex of the pyramid or ``None``.
+
+        If ``certificate`` is ``False`` returns a boolean.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex(3)
+            sage: P.is_pyramid()
+            True
+            sage: P.is_pyramid(certificate=True)
+            (True, A vertex at (0, 0, 0, 1))
+            sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
+            sage: egyptian_pyramid.is_pyramid()
+            True
+            sage: Q = polytopes.octahedron()
+            sage: Q.is_pyramid()
+            False
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron has to be compact")
+
+        # Find a vertex that is incident to all elements in Hrepresentation but one.
+        IM = self.incidence_matrix()
+        for index in range(self.n_vertices()):
+            vertex_incidences = IM.row(index)
+            if sum(vertex_incidences) == IM.ncols() - 1:
+                if certificate:
+                    return (True, self.vertices()[index])
+                return True
+        if certificate:
+            return (False, None)
+        return False
+
+    def is_bipyramid(self, certificate=False):
+        r"""
+        Test whether the polytope is combinatorially equivalent to a
+        bipyramid over some polytope.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+          to return two vertices of the polytope which are the apices of a
+          bipyramid, if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. ``None`` or a tuple containing:
+            a. The first apex.
+            b. The second apex.
+
+        If ``certificate`` is ``False`` returns a boolean.
+
+        EXAMPLES::
+
+            sage: P = polytopes.octahedron()
+            sage: P.is_bipyramid()
+            True
+            sage: P.is_bipyramid(certificate=True)
+            (True, [A vertex at (-1, 0, 0), A vertex at (1, 0, 0)])
+            sage: Q = polytopes.cyclic_polytope(3,7)
+            sage: Q.is_bipyramid()
+            False
+            sage: R = Q.bipyramid()
+            sage: R.is_bipyramid(certificate=True)
+            (True, [A vertex at (-1, 3, 13, 63), A vertex at (1, 3, 13, 63)])
+
+        TESTS::
+
+            sage: P = polytopes.permutahedron(4).bipyramid()
+            sage: P.is_bipyramid()
+            True
+
+            sage: P = polytopes.cube()
+            sage: P.is_bipyramid()
+            False
+
+            sage: P = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
+            sage: P.is_bipyramid()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+
+        ALGORITHM:
+
+        Assume all faces of a polyhedron to be given as lists of vertices.
+
+        A polytope is a bipyramid with apexes `v`, `w` if and only if for each
+        proper face `v \in F` there exists a face `G` with
+        `G \setminus \{w\} = F \setminus \{v\}`
+        and vice versa (for each proper face
+        `w \in F` there exists ...).
+
+        To check this property it suffices to check for all facets of the polyhedron.
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron has to be compact")
+
+        from sage.misc.functional import is_odd
+        n_verts = self.n_vertices()
+        n_facets = self.n_facets()
+        if is_odd(n_facets):
+            if certificate:
+                return (False, None)
+            return False
+
+        IM = self.incidence_matrix()
+        if self.n_equations():
+            # Remove equations from the incidence matrix,
+            # such that this is the vertex-facet incidences matrix.
+            I1 = IM.transpose()
+            I2 = I1[[i for i in range(self.n_Hrepresentation())
+                     if not self.Hrepresentation()[i].is_equation()]]
+            IM = I2.transpose()
+
+        facets_incidences = [set(column.nonzero_positions()) for column in IM.columns()]
+        verts_incidences = dict()
+        for i in range(n_verts):
+            v_i = set(IM.row(i).nonzero_positions())
+            if len(v_i) == n_facets/2:
+                verts_incidences[i] = v_i
+
+        # Find two vertices ``vert1`` and ``vert2`` such that one of them
+        # lies on exactly half of the facets, and the other one lies on
+        # exactly the other half.
+        from itertools import combinations
+        for index1, index2 in combinations(verts_incidences, 2):
+            vert1_incidences = verts_incidences[index1]
+            vert2_incidences = verts_incidences[index2]
+            vert1and2 = vert1_incidences.union(vert2_incidences)
+            if len(vert1and2) == n_facets:
+                # We have found two candidates for apexes.
+                # Remove from each facet ``index1`` resp. ``index2``.
+                test_facets = set(frozenset(facet_inc.difference({index1, index2}))
+                                  for facet_inc in facets_incidences)
+                if len(test_facets) == n_facets/2:
+                    # For each `F` containing `index1` there is
+                    # `G` containing `index2` such that
+                    # `F \setminus \{index1\} =  G \setminus \{index2\}
+                    # and vice versa.
+                    if certificate:
+                        V = self.vertices()
+                        return (True, [V[index1], V[index2]])
+                    return True
+
+        if certificate:
+            return (False, None)
+        return False
+
+    def is_prism(self, certificate=False):
+        """
+        Test whether the polytope is combinatorially equivalent to a prism of
+        some polytope.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+          to return two facets of the polytope which are the bases of a prism,
+          if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. ``None`` or a tuple containing:
+            a. List of the vertices of the first base facet.
+            b. List of the vertices of the second base facet.
+
+        If ``certificate`` is ``False`` returns a boolean.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.is_prism()
+            True
+            sage: P.is_prism(certificate=True)
+            (True,
+             [[A vertex at (-1, -1, 1),
+               A vertex at (-1, 1, 1),
+               A vertex at (1, -1, 1),
+               A vertex at (1, 1, 1)],
+              [A vertex at (-1, -1, -1),
+               A vertex at (-1, 1, -1),
+               A vertex at (1, -1, -1),
+               A vertex at (1, 1, -1)]])
+            sage: Q = polytopes.cyclic_polytope(3,8)
+            sage: Q.is_prism()
+            False
+            sage: R = Q.prism()
+            sage: R.is_prism(certificate=True)
+            (True,
+             [[A vertex at (1, 0, 0, 0),
+               A vertex at (1, 1, 1, 1),
+               A vertex at (1, 2, 4, 8),
+               A vertex at (1, 3, 9, 27),
+               A vertex at (1, 4, 16, 64),
+               A vertex at (1, 5, 25, 125),
+               A vertex at (1, 6, 36, 216),
+               A vertex at (1, 7, 49, 343)],
+              [A vertex at (0, 0, 0, 0),
+               A vertex at (0, 1, 1, 1),
+               A vertex at (0, 2, 4, 8),
+               A vertex at (0, 3, 9, 27),
+               A vertex at (0, 4, 16, 64),
+               A vertex at (0, 5, 25, 125),
+               A vertex at (0, 6, 36, 216),
+               A vertex at (0, 7, 49, 343)]])
+
+        TESTS::
+
+            sage: P = polytopes.cross_polytope(5)
+            sage: P.is_prism()
+            False
+
+            sage: P = polytopes.permutahedron(4).prism()
+            sage: P.is_prism()
+            True
+
+            sage: P = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
+            sage: P.is_prism()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polyhedron has to be compact
+
+        ALGORITHM:
+
+        See :meth:`Polyhedron_base.is_bipyramid`.
+        """
+        if not self.is_compact():
+            raise NotImplementedError("polyhedron has to be compact")
+
+        from sage.misc.functional import is_odd
+        n_verts = self.n_vertices()
+        n_facets = self.n_facets()
+        if is_odd(n_verts):
+            if certificate:
+                return (False, None)
+            return False
+
+        IM = self.incidence_matrix()
+        if self.n_equations():
+            # Remove equations from the incidence matrix,
+            # such that this is the vertex-facet incidences matrix.
+            I1 = IM.transpose()
+            I2 = I1[[i for i in range(self.n_Hrepresentation())
+                     if not self.Hrepresentation()[i].is_equation()]]
+            IM = I2.transpose()
+
+        verts_incidences = [set(row.nonzero_positions()) for row in IM.rows()]
+        facets_incidences = dict()
+        for j in range(n_facets):
+            F_j = set(IM.column(j).nonzero_positions())
+            if len(F_j) == n_verts/2:
+                facets_incidences[j] = F_j
+
+        # Find two vertices ``facet1`` and ``facet2`` such that one of them
+        # contains exactly half of the vertices, and the other one contains
+        # exactly the other half.
+        from itertools import combinations
+        for index1, index2 in combinations(facets_incidences, 2):
+            facet1_incidences = facets_incidences[index1]
+            facet2_incidences = facets_incidences[index2]
+            facet1and2 = facet1_incidences.union(facet2_incidences)
+            if len(facet1and2) == n_verts:
+                # We have found two candidates for base faces.
+                # Remove from each vertex ``index1`` resp. ``index2``.
+                test_verts = set(frozenset(vert_inc.difference({index1, index2}))
+                                  for vert_inc in verts_incidences)
+                if len(test_verts) == n_verts/2:
+                    # For each vertex containing `index1` there is
+                    # another one contained in `index2`
+                    # and vice versa.
+                    # Other than `index1` and `index2` both are contained in
+                    # exactly the same facets.
+                    if certificate:
+                        V = self.vertices()
+                        facet1_vertices = [V[i] for i in facet1_incidences]
+                        facet2_vertices = [V[i] for i in facet2_incidences]
+                        return (True, [facet1_vertices, facet2_vertices])
+                    return True
+
+        if certificate:
+            return (False, None)
+        return False
+
     def hyperplane_arrangement(self):
         """
         Return the hyperplane arrangement defined by the equations and
@@ -2760,9 +3056,18 @@ class Polyhedron_base(Element):
         return A_ker.basis_matrix().transpose().rows()
 
     @cached_method
-    def normal_fan(self):
+    def normal_fan(self, direction='inner'):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
+
+        This returns the inner normal fan of ``self``. For the outer normal fan,
+        use ``direction='outer'``.
+
+        INPUT:
+
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if
+          set to ``'inner'``, use the inner normal vectors to span the cones of
+          the fan, if set to ``'outer'``, use the outer normal vectors.
 
         OUTPUT:
 
@@ -2803,6 +3108,30 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: normal fan handles only polytopes over the rationals
 
+            sage: P = Polyhedron(vertices=[[0,0],[2,0],[0,2],[2,1],[1,2]])
+            sage: P.normal_fan(direction=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: the direction should be 'inner' or 'outer'
+
+            sage: inner_nf = P.normal_fan()
+            sage: inner_nf.rays()
+            N( 1,  0),
+            N( 0, -1),
+            N( 0,  1),
+            N(-1,  0),
+            N(-1, -1)
+            in 2-d lattice N
+
+            sage: outer_nf = P.normal_fan(direction='outer')
+            sage: outer_nf.rays()
+            N( 1,  0),
+            N( 1,  1),
+            N( 0,  1),
+            N(-1,  0),
+            N( 0, -1)
+            in 2-d lattice N
+
         REFERENCES:
 
         For more information, see Chapter 7 of [Zie2007]_.
@@ -2811,8 +3140,12 @@ class Polyhedron_base(Element):
 
         if not QQ.has_coerce_map_from(self.base_ring()):
             raise NotImplementedError('normal fan handles only polytopes over the rationals')
-
-        return NormalFan(self)
+        if direction == 'inner':
+            return NormalFan(self)
+        elif direction == 'outer':
+            return NormalFan(-self)
+        else:
+            raise TypeError("the direction should be 'inner' or 'outer'")
 
     @cached_method
     def face_fan(self):
@@ -3270,13 +3603,20 @@ class Polyhedron_base(Element):
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
             sage: P.translation( vector(QQ,[2,1]) )
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
+
+        TESTS::
+
+            sage: P = Polyhedron([[0,0],[1,0],[0,1]], base_ring=ZZ, backend='field')
+            sage: P.translation([2,1]).backend()
+            'field'
         """
         displacement = vector(displacement)
         new_vertices = [x.vector()+displacement for x in self.vertex_generator()]
         new_rays = self.rays()
         new_lines = self.lines()
-        new_ring = self.parent()._coerce_base_ring(displacement)
-        return Polyhedron(vertices=new_vertices, rays=new_rays, lines=new_lines, base_ring=new_ring)
+
+        parent = self.parent().base_extend(displacement)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def product(self, other):
         """
@@ -3317,6 +3657,17 @@ class Polyhedron_base(Element):
 
             sage: polytopes.hypercube(1) * polytopes.hypercube(2)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+
+        Check that the product preserves the backend, where possible::
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: (P*Q).backend()
+            'cdd'
+            sage: (Q*P).backend()
+            'ppl'
+            sage: (P * polytopes.dodecahedron(backend='field')).backend()
+            'field'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3336,9 +3687,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*self.ambient_dim()+l
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     _mul_ = product
 
@@ -3379,6 +3730,13 @@ class Polyhedron_base(Element):
             sage: S = Polyhedron([[1]])
             sage: C.join(S).is_combinatorially_isomorphic(C.pyramid())
             True
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: P.join(Q).backend()
+            'cdd'
+            sage: Q.join(P).backend()
+            'ppl'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3401,9 +3759,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*dim_self+l+[1]
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def subdirect_sum(self, other):
         """
@@ -3434,6 +3792,15 @@ class Polyhedron_base(Element):
 
             :meth:`join`
             :meth:`direct_sum`
+
+        TESTS::
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: P.subdirect_sum(Q).backend()
+            'cdd'
+            sage: Q.subdirect_sum(P).backend()
+            'ppl'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3456,9 +3823,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*dim_self+l
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def direct_sum(self, other):
         """
@@ -3489,6 +3856,15 @@ class Polyhedron_base(Element):
 
             :meth:`join`
             :meth:`subdirect_sum`
+
+        TESTS::
+
+            sage: P = polytopes.simplex(backend='cdd')
+            sage: Q = polytopes.simplex(backend='ppl')
+            sage: P.direct_sum(Q).backend()
+            'cdd'
+            sage: Q.direct_sum(P).backend()
+            'ppl'
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -3511,9 +3887,9 @@ class Polyhedron_base(Element):
                             for l in self.line_generator() ] )
         new_lines.extend( [ [0]*dim_self + l
                             for l in other.line_generator() ] )
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def dilation(self, scalar):
         """
@@ -3558,6 +3934,12 @@ class Polyhedron_base(Element):
             ()
             sage: (0*p).lines()
             ()
+
+        Dilation respects backend::
+
+            sage: P = polytopes.simplex(backend='field')
+            sage: P.dilation(3).backend()
+            'field'
         """
         if scalar > 0:
             new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
@@ -3571,10 +3953,9 @@ class Polyhedron_base(Element):
             new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
             new_rays = []
             new_lines = []
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(scalar),
-                          ambient_dim=self.ambient_dim())
+
+        parent = self.parent().base_extend(scalar)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def _acted_upon_(self, actor, self_on_left):
         """
@@ -3768,6 +4149,11 @@ class Polyhedron_base(Element):
             24
             sage: trunc_cube.n_inequalities()
             14
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='field').truncation().backend()
+            'field'
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
@@ -3781,9 +4167,8 @@ class Polyhedron_base(Element):
         new_rays = self.rays()
         new_lines = self.lines()
 
-        return Polyhedron(vertices=new_vertices, rays=new_rays,
-                          lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(cut_frac))
+        parent = self.parent().base_extend(cut_frac)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def face_truncation(self, face, linear_coefficients=None, cut_frac=None):
         r"""
@@ -3903,6 +4288,13 @@ class Polyhedron_base(Element):
               A vertex at (-1/3, -1, -1))
              sage: face_trunc.face_lattice().is_isomorphic(Cube.face_lattice())
              True
+
+        TESTS::
+
+            sage: Cube = polytopes.cube(backend='field')
+            sage: face_trunc = Cube.face_truncation(Cube.faces(2)[0])
+            sage: face_trunc.backend()
+            'field'
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
@@ -3939,8 +4331,8 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        return Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
-                          base_ring=self.parent()._coerce_base_ring(cut_frac))
+        parent = self.parent().base_extend(cut_frac)
+        return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     def stack(self, face, position=None):
         r"""
@@ -3963,7 +4355,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: cube = polytopes.cube()
-            sage: square_face = cube.faces(2)[2]
+            sage: square_face = cube.facets()[2]
             sage: stacked_square = cube.stack(square_face)
             sage: stacked_square.f_vector()
             (1, 9, 16, 9, 1)
@@ -4015,6 +4407,13 @@ class Polyhedron_base(Element):
              A vertex at (1, 0),
              A ray in the direction (1, 1),
              A vertex at (2, 0))
+
+        TESTS::
+
+            sage: Cube = polytopes.cube(backend='field')
+            sage: stack = Cube.stack(Cube.faces(2)[0])
+            sage: stack.backend()
+            'field'
         """
         from sage.geometry.polyhedron.face import PolyhedronFace
         if not isinstance(face, PolyhedronFace):
@@ -4056,9 +4455,141 @@ class Polyhedron_base(Element):
         if not locus_polyhedron.contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
-        return Polyhedron(vertices=self.vertices() + (new_vertex,),
-                          rays=self.rays(),
-                          lines=self.lines())
+        parent = self.parent().base_extend(new_vertex)
+        return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
+
+    def wedge(self, face, width=1):
+        r"""
+        Return the wedge over a ``face`` of the polytope ``self``.
+
+        The wedge over a face `F` of a polytope `P` with width `w \not= 0`
+        is defined as:
+
+        .. MATH::
+
+            (P \times \mathbb{R}) \cap \{a^\top x + |w x_{d+1}| \leq b\}
+
+        where `\{x | a^\top x = b\}` is a supporting hyperplane defining `F`.
+
+        INPUT:
+
+        - ``face`` -- a PolyhedronFace of ``self``, the face which we take
+          the wedge over
+        - ``width`` -- a nonzero number (default: ``1``);
+          specifies how wide the wedge will be
+
+        OUTPUT:
+
+        A (bounded) polyhedron
+
+        EXAMPLES::
+
+            sage: P_4 = polytopes.regular_polygon(4)
+            sage: W1 = P_4.wedge(P_4.faces(1)[0]); W1
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 6 vertices
+            sage: triangular_prism = polytopes.regular_polygon(3).prism()
+            sage: W1.is_combinatorially_isomorphic(triangular_prism)
+            True
+
+            sage: Q = polytopes.hypersimplex(4,2)
+            sage: W2 = Q.wedge(Q.faces(2)[0]); W2
+            A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 9 vertices
+            sage: W2.vertices()
+            (A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 1, 0, 1),
+             A vertex at (1, 1, 0, 0, -1),
+             A vertex at (0, 1, 1, 0, 0),
+             A vertex at (1, 0, 1, 0, -1),
+             A vertex at (1, 1, 0, 0, 1))
+
+            sage: W3 = Q.wedge(Q.faces(1)[0]); W3
+            A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
+            sage: W3.vertices()
+            (A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 1, 0, 2),
+             A vertex at (0, 1, 1, 0, 1),
+             A vertex at (1, 0, 1, 0, -2),
+             A vertex at (1, 1, 0, 0, 2),
+             A vertex at (0, 1, 1, 0, -1),
+             A vertex at (1, 1, 0, 0, -2))
+
+            sage: C_3_7 = polytopes.cyclic_polytope(3,7)
+            sage: P_6 = polytopes.regular_polygon(6)
+            sage: W4 = P_6.wedge(P_6.faces(1)[0])
+            sage: W4.is_combinatorially_isomorphic(C_3_7.polar())
+            True
+
+        REFERENCES:
+
+        For more information, see Chapter 15 of [HoDaCG17]_.
+
+        TESTS::
+
+        The backend should be preserved as long as the value of width permits.
+        The base_ring will change to the field of fractions of the current
+        base_ring, unless width forces a different ring.
+
+            sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='field')
+            sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()
+            Rational Field
+            'field'
+            sage: W2 = P.wedge(P.faces(2)[0], width=5/2); W2.base_ring(); W2.backend()
+            Rational Field
+            'field'
+            sage: W2 = P.wedge(P.faces(2)[0], width=4/2); W2.base_ring(); W2.backend()
+            Rational Field
+            'field'
+            sage: W2.vertices()
+            (A vertex at (3, 9, 27, -1/2),
+             A vertex at (4, 16, 64, -2),
+             A vertex at (6, 36, 216, -10),
+             A vertex at (5, 25, 125, -5),
+             A vertex at (2, 4, 8, 0),
+             A vertex at (1, 1, 1, 0),
+             A vertex at (0, 0, 0, 0),
+             A vertex at (3, 9, 27, 1/2),
+             A vertex at (4, 16, 64, 2),
+             A vertex at (6, 36, 216, 10),
+             A vertex at (5, 25, 125, 5))
+            sage: W2 = P.wedge(P.faces(2)[0], width=1.0); W2.base_ring(); W2.backend()
+            Real Double Field
+            'cdd'
+        """
+        width = width*ZZ.one()
+
+        if not self.is_compact():
+            raise ValueError("polyhedron 'self' must be a polytope")
+
+        if width == 0:
+            raise ValueError("the width should be nonzero")
+
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if not isinstance(face, PolyhedronFace):
+            raise TypeError("{} should be a PolyhedronFace of {}".format(face, self))
+
+        F_Hrep = vector([0]*(self.ambient_dim()+1))
+        for facet in face.ambient_Hrepresentation():
+            if facet.is_inequality():
+                F_Hrep = F_Hrep + facet.vector()
+        F_Hrep = list(F_Hrep)
+
+        # Preserve the backend, if value of ``width`` permits.
+        backend = None
+        from .parent import does_backend_handle_base_ring
+        if does_backend_handle_base_ring(width.base_ring().fraction_field(), self.backend()):
+            backend = self.backend()
+
+        L = Polyhedron(lines=[[1]])
+        Q = self.product(L)
+        ieqs = [F_Hrep + [width], F_Hrep + [-width]]
+        H = Polyhedron(ieqs=ieqs, backend=backend)
+        return Q.intersection(H)
 
     def lawrence_extension(self, v):
         """
@@ -4083,6 +4614,16 @@ class Polyhedron_base(Element):
         REFERENCES:
 
             For more information, see Section 6.6 of [Zie2007]_.
+
+        TESTS::
+
+            sage: P = polytopes.simplex(2, backend='cdd')
+            sage: P.lawrence_extension(P.vertices()[0]).backend()
+            'cdd'
+
+            sage: P = polytopes.simplex(2, backend='ppl')
+            sage: P.lawrence_extension(P.vertices()[0]).backend()
+            'ppl'
         """
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
@@ -4094,7 +4635,8 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        return Polyhedron(lambda_V)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
+        return parent.element_class(parent, [lambda_V, None, None], None)
 
     def lawrence_polytope(self):
         r"""
@@ -4130,6 +4672,16 @@ class Polyhedron_base(Element):
         REFERENCES:
 
             For more information, see Section 6.6 of [Zie2007]_.
+
+        TESTS::
+
+            sage: P = polytopes.simplex(2, backend='cdd')
+            sage: P.lawrence_polytope().backend()
+            'cdd'
+
+            sage: P = polytopes.simplex(2, backend='ppl')
+            sage: P.lawrence_polytope().backend()
+            'ppl'
         """
         from sage.matrix.constructor import block_matrix
 
@@ -4140,7 +4692,8 @@ class Polyhedron_base(Element):
         n = self.n_vertices()
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
-        return Polyhedron(lambda_V)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
+        return parent.element_class(parent, [lambda_V, None, None], None)
 
     def is_lawrence_polytope(self):
         """
@@ -4243,6 +4796,11 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]], backend='field')
             sage: P.barycentric_subdivision()
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+
+            sage: polytopes.simplex(backend='field').barycentric_subdivision().backend()
+            'field'
+            sage: polytopes.cube(backend='cdd').barycentric_subdivision().backend()
+            'cdd'
         """
         if subdivision_frac is None:
             subdivision_frac = ZZ.one() / 3
@@ -4253,15 +4811,17 @@ class Polyhedron_base(Element):
             raise ValueError("the subdivision fraction should be "
                              "between 0 and 1/2")
 
-        b_ring = self.parent()._coerce_base_ring(subdivision_frac)
         barycenter = self.center()
+        parent = self.parent().base_extend(subdivision_frac)
 
         ambient_dim = self.ambient_dim()
         polytope_dim = self.dimension()
 
         if ambient_dim != polytope_dim:
-            start_polar = Polyhedron((self - barycenter).polar().vertices())
-            polar = Polyhedron((self - barycenter).polar().vertices())
+            start_polar = parent.element_class(
+                    parent, [((self - barycenter).polar().vertices()), [], []], None)
+            polar = parent.element_class(
+                    parent, [((self - barycenter).polar().vertices()), [], []], None)
         else:
             start_polar = (self - barycenter).polar()
             polar = (self - barycenter).polar()
@@ -4299,11 +4859,10 @@ class Polyhedron_base(Element):
             new_ieqs = polar.inequalities_list() + new_ineq
             new_eqns = polar.equations_list()
 
-            polar = Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
-                               base_ring=b_ring)
+            polar = parent.element_class(parent, None, [new_ieqs, new_eqns])
 
         if ambient_dim != polytope_dim:
-            return (Polyhedron(polar.polar().vertices())) + barycenter
+            return (parent.element_class(parent, [polar.polar().vertices(), [], []], None)) + barycenter
         else:
             return (polar.polar()) + barycenter
 
@@ -4516,7 +5075,9 @@ class Polyhedron_base(Element):
         A tuple of
         :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
         :mod:`~sage.geometry.polyhedron.face` for details. The order
-        random but fixed.
+        is random but fixed.
+
+        .. SEEALSO:: :meth:`faces`
 
         EXAMPLES:
 
@@ -4572,7 +5133,7 @@ class Polyhedron_base(Element):
             ()
             sage: pr.faces(3)[0].ambient_V_indices()
             (0, 1, 2, 3)
-            sage: pr.faces(2)[0].ambient_V_indices()
+            sage: pr.facets()[0].ambient_V_indices()
             (0, 1, 2)
             sage: pr.faces(1)
             ()
@@ -4587,6 +5148,54 @@ class Polyhedron_base(Element):
         if index >= len(fl) or index < 1:
             return tuple()
         return tuple(fl[index])
+
+    def facets(self):
+        r"""
+        Return the facets of the polyhedron.
+
+        A facet of a `d`-dimensional polyhedron is a face of dimension
+        `d-1`.
+
+        OUTPUT:
+
+        A tuple of
+        :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
+        :mod:`~sage.geometry.polyhedron.face` for details. The order
+        is random but fixed.
+
+        .. SEEALSO:: :meth:`facets`
+
+        EXAMPLES:
+
+        Here we find the eight three-dimensional facets of the
+        four-dimensional hypercube::
+
+            sage: p = polytopes.hypercube(4)
+            sage: p.facets()
+            (A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices)
+
+        This is the same result as explicitly finding the
+        three-dimensional faces::
+
+            sage: dim = p.dimension()
+            sage: p.faces(dim-1)
+            (A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices)
+        """
+        return self.faces(self.dimension()-1)
 
     @cached_method
     def f_vector(self):
@@ -4759,8 +5368,43 @@ class Polyhedron_base(Element):
         assert self.is_compact(), "Not a polytope."
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
-        base_ring = self.parent()._coerce_base_ring(self.center().parent())
-        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring, backend=self.backend())
+        parent = self.parent().base_extend(self.center().parent())
+        return parent.element_class(parent, None, [[[1] + list(v) for v in verts], []])
+
+    def is_self_dual(self):
+        r"""
+        Return whether the polytope is self-dual.
+
+        A polytope is self-dual if its face lattice is isomorphic to the face
+        lattice of its dual polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.simplex().is_self_dual()
+            True
+            sage: polytopes.twenty_four_cell().is_self_dual()
+            True
+            sage: polytopes.cube().is_self_dual()
+            False
+            sage: polytopes.hypersimplex(5,2).is_self_dual()
+            False
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]]).is_self_dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron has to be compact")
+
+        n = self.n_vertices()
+        m = self.n_facets()
+        if n != m:
+            return False
+
+        G1 = self.vertex_facet_graph()
+        G2 = G1.reverse()
+        return G1.is_isomorphic(G2)
 
     def pyramid(self):
         """
@@ -4780,11 +5424,20 @@ class Polyhedron_base(Element):
             A vertex at (0, 1, -1)
             A vertex at (0, 1, 1)
             A vertex at (1, 0, 0)
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='cdd').pyramid().backend()
+            'cdd'
         """
+        assert self.is_compact(), "Not a polytope."
+
         new_verts = \
             [[0] + x for x in self.Vrep_generator()] + \
             [[1] + list(self.center())]
-        return Polyhedron(vertices=new_verts)
+
+        parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, [], []], None)
 
     def bipyramid(self):
         """
@@ -4812,6 +5465,11 @@ class Polyhedron_base(Element):
             sage: q2 = [list(v) for v in polytopes.cross_polytope(4).vertex_generator()]
             sage: [v in q2 for v in q]
             [True, True, True, True, True, True, True, True]
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='cdd').bipyramid().backend()
+            'cdd'
         """
         new_verts = \
             [[ 0] + list(x) for x in self.vertex_generator()] + \
@@ -4819,7 +5477,9 @@ class Polyhedron_base(Element):
             [[-1] + list(self.center())]
         new_rays = [[0] + r for r in self.rays()]
         new_lines = [[0] + list(l) for l in self.lines()]
-        return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines)
+
+        parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
 
     def prism(self):
         """
@@ -4834,14 +5494,20 @@ class Polyhedron_base(Element):
             sage: hypercube = cube.prism()
             sage: hypercube.n_vertices()
             16
+
+        TESTS::
+
+            sage: polytopes.simplex(backend='cdd').prism().backend()
+            'cdd'
         """
         new_verts = []
         new_verts.extend( [ [0] + v for v in self.vertices()] )
         new_verts.extend( [ [1] + v for v in self.vertices()] )
         new_rays =        [ [0] + r for r in self.rays()]
         new_lines =       [ [0] + l for l in self.lines()]
-        return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
-                          base_ring=self.base_ring())
+
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
 
     def one_point_suspension(self, vertex):
         """
@@ -4940,8 +5606,8 @@ class Polyhedron_base(Element):
         new_lines = []
         new_lines.extend( [ l + [0] for l in self.line_generator() ] )
 
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def projection(self):
         """
@@ -5077,6 +5743,7 @@ class Polyhedron_base(Element):
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
+
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()
@@ -5088,6 +5755,8 @@ class Polyhedron_base(Element):
         lrs_procs = Popen(['lrs', in_filename],
                           stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = lrs_procs.communicate()
+        ans = bytes_to_str(ans)
+        err = bytes_to_str(err)
         if verbose:
             print(ans)
         # FIXME: check err
@@ -7010,7 +7679,7 @@ class Polyhedron_base(Element):
 
         - ``extend`` (boolean, default = False) -- if ``True``,
           allow base ring to be extended if necessary. This becomes
-          relevant when requiering an orthonormal transformation.
+          relevant when requiring an orthonormal transformation.
 
         OUTPUT:
 
@@ -7248,6 +7917,11 @@ class Polyhedron_base(Element):
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+
+            Check that backend is preserved::
+
+            sage: polytopes.simplex(backend='field').affine_hull().backend()
+            'field'
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
@@ -7302,7 +7976,7 @@ class Polyhedron_base(Element):
         lines = [pivot(_) for _ in self.lines()]
         if as_affine_map:
             raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
-        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
+        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring(), backend=self.backend())
 
     def _polymake_init_(self):
         """

@@ -149,7 +149,7 @@ class SBox(SageObject):
             if R.characteristic() != 2:
                 raise TypeError("Only polynomials over rings with characteristic 2 allowed")
             S = [poly(v) for v in sorted(R)]
-        elif len(args) == 1 and isinstance(args[0], (list, tuple)):
+        elif len(args) == 1:  # iterables
             S = args[0]
         elif len(args) > 1:
             S = args

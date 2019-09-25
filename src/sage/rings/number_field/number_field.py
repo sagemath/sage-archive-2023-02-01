@@ -1643,10 +1643,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: L(gap(tau)^3)     # indirect doctest
             2
 
-        Check that :trac:`22202` is fixed::
+        Check that :trac:`22202` and :trac:`27765` are fixed::
 
             sage: y = QQ['y'].gen()
-            sage: R = QQ.extension(y^2-2,'a')['x']
+            sage: R = QQ.extension(y^2-1/2,'a')['x']
             sage: R("a*x").factor()
             (a) * x
         """
@@ -1675,17 +1675,19 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if x.type() in ["t_INT", "t_FRAC"]:
                 pass
             elif x.type() == "t_POL":
-                var = self.absolute_polynomial().variable_name()
-                if check and self.pari_polynomial(var) != self.absolute_polynomial().monic():
-                    from warnings import warn
-                    warn("interpreting PARI polynomial %s relative to the defining polynomial %s of the PARI number field"
-                         % (x, self.pari_polynomial()))
                 # We consider x as a polynomial in the standard
                 # generator of the PARI number field, and convert it
                 # to a polynomial in the Sage generator.
-                if x.poldegree() > 0:
+                if any(x.poldegree(v) > 0 for v in x.variables()):
+                    var = self.absolute_polynomial().variable_name()
+                    if check and self.pari_polynomial(var) != self.absolute_polynomial().monic():
+                        from warnings import warn
+                        warn("interpreting PARI polynomial %s relative to the defining polynomial %s of the PARI number field"
+                             % (x, self.pari_polynomial()))
                     beta = self._pari_absolute_structure()[2]
                     x = x(beta).lift()
+                else: # constant polynomial
+                    x = x[0]
             else:
                 raise TypeError("%s has unsupported PARI type %s" % (x, x.type()))
             x = self.absolute_polynomial().parent()(x)
@@ -1913,7 +1915,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             True
         """
         if not is_NumberFieldHomsetCodomain(codomain):
-            raise TypeError("{} is not suitable as codomain for homomorphisms from {}".format(codomain, self))
+            # Using LazyFormat fixes #28036 - infinite loop
+            from sage.misc.lazy_format import LazyFormat
+            raise TypeError(LazyFormat("%s is not suitable as codomain for homomorphisms from %s") % (codomain, self))
         from .morphism import NumberFieldHomset
         return NumberFieldHomset(self, codomain, category)
 
@@ -5917,60 +5921,86 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                     S.append(self(theta))
         return S
 
-
     def zeta_function(self, prec=53,
                       max_imaginary_part=0,
-                      max_asymp_coeffs=40):
+                      max_asymp_coeffs=40, algorithm=None):
         r"""
-        Return the Zeta function of this number field.
+        Return the Dedekind zeta function of this number field.
 
-        This actually returns an interface to Tim Dokchitser's program for
-        computing with the Dedekind zeta function zeta_F(s) of the number
-        field F.
+        Actually, this returns an interface for computing with the
+        Dedekind zeta function `\zeta_F(s)` of the number field `F`.
 
         INPUT:
 
+        - ``prec`` -- optional integer (default 53) bits precision
 
-        -  ``prec`` - integer (bits precision)
+        - ``max_imaginary_part`` -- optional real number (default 0)
 
-        -  ``max_imaginary_part`` - real number
+        - ``max_asymp_coeffs`` -- optional integer (default 40)
 
-        -  ``max_asymp_coeffs`` - integer
-
+        - ``algorithm`` -- optional (default "gp") either "gp" or "pari"
 
         OUTPUT: The zeta function of this number field.
+
+        If algorithm is "gp", this returns an interface to Tim
+        Dokchitser's gp script for computing with L-functions.
+
+        If algorithm is "pari", this returns instead an interface to Pari's
+        own general implementation of L-functions.
 
         EXAMPLES::
 
             sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
-            sage: Z = K.zeta_function()
-            sage: Z
-            Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
+            sage: Z = K.zeta_function(); Z
+            PARI zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
             sage: Z(-1)
             0.0333333333333333
             sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
             sage: Z = L.zeta_function()
             sage: Z(5)
             1.00199015670185
+
+        Using the algorithm "pari"::
+
+            sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
+            sage: Z = K.zeta_function(algorithm="pari")
+            sage: Z(-1)
+            0.0333333333333333
+            sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
+            sage: Z = L.zeta_function(algorithm="pari")
+            sage: Z(5)
+            1.00199015670185
         """
-        from sage.lfunctions.all import Dokchitser
-        r1, r2 = self.signature()
-        zero = [0]
-        one = [1]
-        Z = Dokchitser(conductor = abs(self.absolute_discriminant()),
-                       gammaV = (r1+r2)*zero + r2*one,
-                       weight = 1,
-                       eps = 1,
-                       poles = [1],
-                       prec = prec)
-        s = 'nf = nfinit(%s);' % self.absolute_polynomial()
-        s += 'dzk = dirzetak(nf,cflength());'
-        Z.init_coeffs('dzk[k]', pari_precode=s,
-                      max_imaginary_part=max_imaginary_part,
-                      max_asymp_coeffs=max_asymp_coeffs)
-        Z.check_functional_equation()
-        Z.rename('Zeta function associated to %s' % self)
-        return Z
+        if algorithm is None:
+            algorithm = 'pari'
+        
+        if algorithm == 'gp':
+            from sage.lfunctions.all import Dokchitser
+            r1, r2 = self.signature()
+            zero = [0]
+            one = [1]
+            Z = Dokchitser(conductor=abs(self.absolute_discriminant()),
+                           gammaV=(r1 + r2) * zero + r2 * one,
+                           weight=1,
+                           eps=1,
+                           poles=[1],
+                           prec=prec)
+            s = 'nf = nfinit(%s);' % self.absolute_polynomial()
+            s += 'dzk = dirzetak(nf,cflength());'
+            Z.init_coeffs('dzk[k]', pari_precode=s,
+                          max_imaginary_part=max_imaginary_part,
+                          max_asymp_coeffs=max_asymp_coeffs)
+            Z.check_functional_equation()
+            Z.rename('Dokchitser Zeta function associated to %s' % self)
+            return Z
+
+        if algorithm == 'pari':
+            from sage.lfunctions.pari import lfun_number_field, LFunction
+            Z = LFunction(lfun_number_field(self), prec=prec)
+            Z.rename('PARI zeta function associated to %s' % self)
+            return Z
+
+        raise ValueError('algorithm must be "gp" or "pari"')
 
     @cached_method
     def narrow_class_group(self, proof=None):
@@ -8888,6 +8918,14 @@ class NumberField_absolute(NumberField_generic):
             Number Field in r with defining polynomial x^2 - i*x - 1 over its base field
             sage: M.base_field()
             Number Field in i with defining polynomial x^2 + 1
+
+        See :trac:`27469`::
+
+            sage: L.<z24> = CyclotomicField(24)
+            sage: K.<z8> = L.subfield(z24^3)[0]
+            sage: L.relativize(K.hom(L), L.variable_name()+'0' )
+            Number Field in z2400 with defining polynomial x^2 + z240^3*x - z240^2 over its base field
+
         """
         # step 1: construct the abstract field generated by alpha.w
         # step 2: make a relative extension of it.
@@ -8906,7 +8944,7 @@ class NumberField_absolute(NumberField_generic):
                 f = polygen(QQ)
             else:
                 f = L.defining_polynomial() # = alpha.minpoly()
-            names = normalize_names(1, names)
+            names = normalize_names(len(names), names)
         else:
             # alpha must be an element coercible to self
             alpha = self(alpha)

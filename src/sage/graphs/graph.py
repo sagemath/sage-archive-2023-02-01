@@ -413,7 +413,6 @@ from six.moves import range
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
@@ -1244,24 +1243,10 @@ class Graph(GenericGraph):
                 self.add_vertices(range(data))
 
         elif format == 'list_of_edges':
-            self.allow_multiple_edges(False if multiedges is False else True, check=False)
-            self.allow_loops(False if loops is False else True, check=False)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
+            self.allow_loops(True if loops else False, check=False)
             self.add_edges(data)
-            if multiedges is not True and self.has_multiple_edges():
-                deprecation(15706, "You created a graph with multiple edges "
-                            "from a list. Please set 'multiedges' to 'True' "
-                            "when you do so, as in the future the default "
-                            "behaviour will be to ignore those edges")
-            elif multiedges is None:
-                self.allow_multiple_edges(False, check=False)
-
-            if loops is not True and self.has_loops():
-                deprecation(15706, "You created a graph with loops from a list. "+
-                            "Please set 'loops' to 'True' when you do so, as in "+
-                            "the future the default behaviour will be to ignore "+
-                            "those edges")
-            elif loops is None:
-                self.allow_loops(False, check=False)
         else:
             raise ValueError("Unknown input format '{}'".format(format))
 
@@ -1441,7 +1426,7 @@ class Graph(GenericGraph):
 
         If the graph is disconnected, returns the empty list.
 
-        Uses the Read-Tarjan backtracking algorithm [RT75]_.
+        Uses the Read-Tarjan backtracking algorithm [RT1975]_.
 
         INPUT:
 
@@ -1482,7 +1467,8 @@ class Graph(GenericGraph):
              Graph on 6 vertices,
              Graph on 6 vertices]
 
-        Edges of the spanning trees can be labeled or unlabeled (:trac:27557)::
+        Edges of the spanning trees can be labeled
+        or unlabeled (:trac:`27557`)::
 
             sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
             sage: l = g.spanning_trees(labels=True)
@@ -1492,12 +1478,6 @@ class Graph(GenericGraph):
             [(1, 2, 1), (1, 4, 5)]
             sage: l[2].edges()
             [(1, 2, 2), (1, 4, 5)]
-
-        REFERENCES:
-
-        .. [RT75] Read, R. C. and Tarjan, R. E.
-          Bounds on Backtrack Algorithms for Listing Cycles, Paths, and Spanning Trees
-          Networks, Volume 5 (1975), numer 3, pages 237-252.
         """
 
         def _recursive_spanning_trees(G, forest, labels):
@@ -2300,7 +2280,7 @@ class Graph(GenericGraph):
 
         Even-hole-free graphs always contain a bisimplicial vertex, which
         ensures that their chromatic number is at most twice their clique number
-        [ABCHRS08]_.
+        [ACHRS2008]_.
 
         INPUT:
 
@@ -2359,13 +2339,6 @@ class Graph(GenericGraph):
             ....:       isinstance(Graph(x).is_even_hole_free(certificate=True), Graph))
             sage: all( t(graphs.RandomBipartite(10, 10, .5)) for i in range(100) )
             True
-
-        REFERENCE:
-
-        .. [ABCHRS08] \L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour
-          Bisimplicial vertices in even-hole-free graphs
-          Journal of Combinatorial Theory, Series B
-          vol 98, n.6 pp 1119-1164, 2008
         """
         girth = self.girth()
 
@@ -2405,7 +2378,7 @@ class Graph(GenericGraph):
         (resp. odd) if its length is even (resp. odd).
 
         It is interesting to notice that while it is polynomial to check whether
-        a graph has an odd hole or an odd antihole [CRST06]_, it is not known
+        a graph has an odd hole or an odd antihole [CCLSV2005]_, it is not known
         whether testing for one of these two cases independently is polynomial
         too.
 
@@ -2440,13 +2413,6 @@ class Graph(GenericGraph):
             sage: g = graphs.RandomIntervalGraph(20)
             sage: g.is_odd_hole_free()
             True
-
-        REFERENCES:
-
-        .. [CRST06] \M. Chudnovsky, G. Cornuejols, X. Liu, P. Seymour, K. Vuskovic
-          Recognizing berge graphs
-          Combinatorica vol 25, n 2, pages 143--186
-          2005
         """
         girth = self.odd_girth()
 
@@ -2583,7 +2549,7 @@ class Graph(GenericGraph):
         induce a complete graph, and those of `I` are an independent set.
 
         There is a simple test to check whether a graph is a split graph (see,
-        for instance, the book "Graph Classes, a survey" [GraphClasses]_ page
+        for instance, the book "Graph Classes, a survey" [BLS1999]_ page
         203) :
 
         Given the degree sequence `d_1 \geq ... \geq d_n` of `G`, a graph is a
@@ -2615,20 +2581,13 @@ class Graph(GenericGraph):
             sage: g.is_split()
             True
 
-        Another caracterisation of split graph states that a graph is a split
+        Another characterisation of split graph states that a graph is a split
         graph if and only if does not contain the 4-cycle, 5-cycle or `2K_2` as
         an induced subgraph. Hence for the above graph we have::
 
             sage: forbidden_subgraphs = [graphs.CycleGraph(4), graphs.CycleGraph(5), 2 * graphs.CompleteGraph(2)]
             sage: sum(g.subgraph_search_count(H,induced=True) for H in forbidden_subgraphs)
             0
-
-        REFERENCES:
-
-        .. [GraphClasses] \A. Brandstadt, VB Le and JP Spinrad
-          Graph classes: a survey
-          SIAM Monographs on Discrete Mathematics and Applications},
-          1999
         """
         self._scream_if_not_simple()
         # our degree sequence is numbered from 0 to n-1, so to avoid
@@ -2953,8 +2912,8 @@ class Graph(GenericGraph):
         A graph `G` is said to be perfect if `\chi(H)=\omega(H)` hold for any
         induced subgraph `H\subseteq_i G` (and so for `G` itself, too), where
         `\chi(H)` represents the chromatic number of `H`, and `\omega(H)` its
-        clique number. The Strong Perfect Graph Theorem [SPGT]_ gives another
-        characterization of perfect graphs:
+        clique number. The Strong Perfect Graph Theorem [CRST2006]_ gives
+        another characterization of perfect graphs:
 
         A graph is perfect if and only if it contains no odd hole (cycle on an
         odd number `k` of vertices, `k>3`) nor any odd antihole (complement of a
@@ -3026,14 +2985,6 @@ class Graph(GenericGraph):
             sage: g.is_perfect()
             False
 
-        REFERENCES:
-
-        .. [SPGT] \M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
-          The strong perfect graph theorem
-          Annals of Mathematics
-          vol 164, number 1, pages 51--230
-          2006
-
         TESTS::
 
             sage: Graph(':Ab').is_perfect()
@@ -3070,73 +3021,6 @@ class Graph(GenericGraph):
 
         return self_complement.is_odd_hole_free(certificate=certificate)
 
-    @doc_index("Graph properties")
-    def odd_girth(self):
-        r"""
-        Returns the odd girth of self.
-
-        The odd girth of a graph is defined as the smallest cycle of odd length.
-
-        OUTPUT:
-
-        The odd girth of ``self``.
-
-        EXAMPLES:
-
-        The McGee graph has girth 7 and therefore its odd girth is 7 as well::
-
-            sage: G = graphs.McGeeGraph()
-            sage: G.odd_girth()
-            7
-
-        Any complete graph on more than 2 vertices contains a triangle and has
-        thus odd girth 3::
-
-            sage: G = graphs.CompleteGraph(10)
-            sage: G.odd_girth()
-            3
-
-        Every bipartite graph has no odd cycles and consequently odd girth of
-        infinity::
-
-            sage: G = graphs.CompleteBipartiteGraph(100,100)
-            sage: G.odd_girth()
-            +Infinity
-
-        .. SEEALSO::
-
-            * :meth:`~sage.graphs.generic_graph.GenericGraph.girth` -- computes
-              the girth of a graph.
-
-        REFERENCES:
-
-        The property relating the odd girth to the coefficients of the
-        characteristic polynomial is an old result from algebraic graph theory
-        see
-
-        .. [Har62] Harary, F (1962). The determinant of the adjacency matrix of
-          a graph, SIAM Review 4, 202-210
-
-        .. [Biggs93] Biggs, N. L. Algebraic Graph Theory, 2nd ed. Cambridge,
-          England: Cambridge University Press, pp. 45, 1993.
-
-        TESTS::
-
-            sage: graphs.CycleGraph(5).odd_girth()
-            5
-            sage: graphs.CycleGraph(11).odd_girth()
-            11
-        """
-        ch = ((self.am()).charpoly()).coefficients(sparse=False)
-        n = self.order()
-
-        for i in range(n-1, -1, -2):
-            if ch[i]:
-                return n-i
-
-        from sage.rings.infinity import Infinity
-
-        return Infinity
 
     @doc_index("Graph properties")
     def is_edge_transitive(self):
@@ -3517,7 +3401,7 @@ class Graph(GenericGraph):
 
         Given a Graph `G`, it is polynomial to compute an orientation `D` of the
         edges of `G` such that the maximum out-degree in `D` is minimized. This
-        problem, though, is NP-complete in the weighted case [AMOZ06]_.
+        problem, though, is NP-complete in the weighted case [AMOZ2006]_.
 
         INPUT:
 
@@ -3550,14 +3434,6 @@ class Graph(GenericGraph):
             sage: o = g.minimum_outdegree_orientation()
             sage: max(o.out_degree()) == ceil((4*3)/(3+4))
             True
-
-        REFERENCES:
-
-        .. [AMOZ06] Asahiro, Y. and Miyano, E. and Ono, H. and Zenmyo, K.
-          Graph orientation algorithms to minimize the maximum outdegree
-          Proceedings of the 12th Computing: The Australasian Theory Symposium
-          Volume 51, page 20
-          Australian Computer Society, Inc. 2006
         """
         self._scream_if_not_simple()
         if self.is_directed():
@@ -4230,7 +4106,7 @@ class Graph(GenericGraph):
         Return the chromatic symmetric function of ``self``.
 
         Let `G` be a graph. The chromatic symmetric function `X_G` was described
-        in [Stanley95]_, specifically Theorem 2.5 states that
+        in [Sta1995]_, specifically Theorem 2.5 states that
 
         .. MATH::
 
@@ -4279,12 +4155,6 @@ class Graph(GenericGraph):
             sage: XG3 = G3.chromatic_symmetric_function()
             sage: XG == XG1 + XG2 - XG3
             True
-
-        REFERENCES:
-
-        .. [Stanley95] \R. P. Stanley, *A symmetric function generalization
-           of the chromatic polynomial of a graph*, Adv. Math., ***111***
-           no.1 (1995), 166-194.
         """
         from sage.combinat.sf.sf import SymmetricFunctions
         from sage.combinat.partition import _Partitions
@@ -4304,8 +4174,8 @@ class Graph(GenericGraph):
         Return the chromatic quasisymmetric function of ``self``.
 
         Let `G` be a graph whose vertex set is totally ordered. The chromatic
-        quasisymmetric function `X_G(t)` was first described in [SW12]_. We use
-        the equivalent definition given in [BC15]_:
+        quasisymmetric function `X_G(t)` was first described in [SW2012]_. We
+        use the equivalent definition given in [BC2018]_:
 
         .. MATH::
 
@@ -4369,19 +4239,6 @@ class Graph(GenericGraph):
              + 6*M[2, 1, 1] + M[3, 1]
             sage: p(XG.to_symmetric_function())
             p[1, 1, 1, 1] - 3*p[2, 1, 1] + 3*p[3, 1] - p[4]
-
-        REFERENCES:
-
-        .. [SW12] John Shareshian and Michelle Wachs.
-           *Chromatic quasisymmetric functions and Hessenberg varieties*.
-           Configuration Spaces. CRM Series. Scuola Normale Superiore.
-           (2012) pp. 433-460.
-           http://www.math.miami.edu/~wachs/papers/chrom.pdf
-
-        .. [BC15] Patrick Brosnan and Timothy Y. Chow.
-           *Unit interval orders and the dot action on the cohomology
-           of regular semisimple Hessenberg varieties*.
-           (2015) :arxiv:`1511.00773v1`.
         """
         from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
         from sage.combinat.set_partition_ordered import OrderedSetPartitions
@@ -4940,7 +4797,7 @@ class Graph(GenericGraph):
 
         It generalizes, for example, graph coloring and graph list coloring.
 
-        (See [AhaBerZiv07]_ for more information.)
+        (See [ABZ2007]_ for more information.)
 
         INPUT:
 
@@ -4992,14 +4849,6 @@ class Graph(GenericGraph):
             True
             True
             True
-
-        REFERENCE:
-
-        .. [AhaBerZiv07] \R. Aharoni and E. Berger and R. Ziv
-          Independent systems of representatives in weighted graphs
-          Combinatorica vol 27, num 3, p253--267
-          2007
-
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
         p = MixedIntegerLinearProgram(solver=solver)
@@ -5884,7 +5733,7 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- can be set to ``"native"`` (default) to use Sage's
           own implementation, or to ``"NetworkX"`` to use NetworkX'
-          implementation of the Bron and Kerbosch Algorithm [BroKer1973]_.
+          implementation of the Bron and Kerbosch Algorithm [BK1973]_.
 
 
         .. NOTE::
@@ -5905,14 +5754,7 @@ class Graph(GenericGraph):
         ALGORITHM:
 
         This function is based on NetworkX's implementation of the Bron and
-        Kerbosch Algorithm [BroKer1973]_.
-
-        REFERENCE:
-
-        .. [BroKer1973] Coen Bron and Joep Kerbosch. (1973). Algorithm 457:
-          Finding All Cliques of an Undirected Graph. Commun. ACM. v
-          16. n 9.  pages 575-577. ACM Press. [Online] Available:
-          http://www.ram.org/computing/rambin/rambin.html
+        Kerbosch Algorithm [BK1973]_.
 
         EXAMPLES::
 
@@ -5959,7 +5801,7 @@ class Graph(GenericGraph):
         - ``algorithm`` -- the algorithm to be used :
 
           - If ``algorithm = "Cliquer"`` (default), wraps the C program
-            Cliquer [NisOst2003]_.
+            Cliquer [NO2003]_.
 
           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
             Integer Linear Program.
@@ -5991,7 +5833,7 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-        This function is based on Cliquer [NisOst2003]_.
+        This function is based on Cliquer [NO2003]_.
 
         EXAMPLES:
 
@@ -6052,10 +5894,10 @@ class Graph(GenericGraph):
         - ``algorithm`` -- the algorithm to be used :
 
           - If ``algorithm = "Cliquer"``, wraps the C program Cliquer
-            [NisOst2003]_.
+            [NO2003]_.
 
           - If ``algorithm = "networkx"``, uses the NetworkX's implementation of
-            the Bron and Kerbosch Algorithm [BroKer1973]_.
+            the Bron and Kerbosch Algorithm [BK1973]_.
 
           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
             Integer Linear Program.
@@ -6082,7 +5924,7 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-        This function is based on Cliquer [NisOst2003]_ and [BroKer1973]_.
+        This function is based on Cliquer [NO2003]_ and [BK1973]_.
 
         EXAMPLES::
 
@@ -6260,7 +6102,7 @@ class Graph(GenericGraph):
         - ``algorithm`` -- the algorithm to be used
 
           * If ``algorithm = "Cliquer"`` (default), the problem is solved
-            using Cliquer [NisOst2003]_.
+            using Cliquer [NO2003]_.
 
             (see the :mod:`Cliquer modules <sage.graphs.cliquer>`)
 
@@ -6808,10 +6650,10 @@ class Graph(GenericGraph):
 
          - ``algorithm`` -- either ``cliquer`` or ``networkx``
 
-           - ``cliquer`` -- This wraps the C program Cliquer [NisOst2003]_.
+           - ``cliquer`` -- This wraps the C program Cliquer [NO2003]_.
 
            - ``networkx`` -- This function is based on NetworkX's implementation
-             of the Bron and Kerbosch Algorithm [BroKer1973]_.
+             of the Bron and Kerbosch Algorithm [BK1973]_.
 
         - ``vertices`` -- the vertices to inspect (default is entire graph).
           Ignored unless ``algorithm=='networkx'``.
@@ -7012,7 +6854,7 @@ class Graph(GenericGraph):
         IMPLEMENTATION:
 
         This implementation is based on the NetworkX implementation of the
-        algorithm described in [BZ]_.
+        algorithm described in [BZ2003]_.
 
         INPUT:
 
@@ -7036,18 +6878,6 @@ class Graph(GenericGraph):
 
            * Graph cores is also a notion related to graph homomorphisms. For
              this second meaning, see :meth:`Graph.has_homomorphism_to`.
-
-        REFERENCES:
-
-        .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
-          Emergence of a Giant k-Core in a Random
-          Graph. (1996). J. Combinatorial Theory. Ser B 67. pages
-          111-151. [Online] Available:
-          http://cs.nyu.edu/cs/faculty/spencer/papers/k-core.pdf
-
-        .. [BZ] Vladimir Batagelj and Matjaz Zaversnik. An `O(m)`
-          Algorithm for Cores Decomposition of
-          Networks. :arxiv:`cs/0310049v1`.
 
         EXAMPLES::
 
@@ -7163,7 +6993,7 @@ class Graph(GenericGraph):
 
         You may also be interested in the survey from Michel Habib and
         Christophe Paul entitled "A survey on Algorithmic aspects of modular
-        decomposition" [HabPau10]_.
+        decomposition" [HP2010]_.
 
         OUTPUT:
 
@@ -7203,23 +7033,11 @@ class Graph(GenericGraph):
 
         This function uses python implementation of algorithm published by Marc
         Tedder, Derek Corneil, Michel Habib and Christophe Paul
-        [TedCorHabPaul08]_.
+        [TCHP2008]_.
 
         .. SEEALSO::
 
             - :meth:`is_prime` -- Tests whether a graph is prime.
-
-        REFERENCE:
-
-        .. [HabPau10] Michel Habib and Christophe Paul
-          A survey of the algorithmic aspects of modular decomposition
-          Computer Science Review
-          vol 4, number 1, pages 41--59, 2010
-          http://www.lirmm.fr/~paul/md-survey.pdf
-
-        .. [TedCorHabPaul08] Marc Tedder, Derek Corneil, Michel Habib and
-          Christophe Paul
-          :arxiv:`0710.3901`
 
         TESTS:
 
@@ -7810,7 +7628,7 @@ class Graph(GenericGraph):
         ALGORITHM:
 
             This is computed here using a determinant, as explained in Section
-            3.1 of [Marcolli2009]_.
+            3.1 of [Mar2009a]_.
 
             As an intermediate step, one computes a cycle basis `\mathcal C` of
             `G` and a rectangular `|\mathcal C| \times |E(G)|` matrix with
@@ -7857,13 +7675,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [Marcolli2009] Matilde Marcolli, Feynman Motives, Chapter 3,
-           Feynman integrals and algebraic varieties,
-           http://www.its.caltech.edu/~matilde/LectureN3.pdf
-
-        .. [Brown2011] Francis Brown, Multiple zeta values and periods: From
-           moduli spaces to Feynman integrals, in Contemporary Mathematics vol
-           539
+        [Bro2011]_
         """
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
@@ -7988,7 +7800,7 @@ class Graph(GenericGraph):
         This is computed here as the (reversed) characteristic polynomial of a
         square matrix of size twice the number of edges, related to the
         adjacency matrix of the line graph, see for example Proposition 9 in
-        [ScottStorm]_ and Def. 4.1 in [Terras]_.
+        [SS2008]_ and Def. 4.1 in [Ter2011]_.
 
         The graph is first replaced by its 2-core, as this does not change the
         Ihara zeta function.
@@ -8014,16 +7826,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [HST] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
-           What are zeta functions of graphs and what are they good for?
-           in Quantum graphs and their applications, 173-189,
-           Contemp. Math., Vol. 415
-
-        .. [Terras] Audrey Terras, Zeta functions of graphs: a stroll through
-           the garden, Cambridge Studies in Advanced Mathematics, Vol. 128
-
-        .. [ScottStorm] Geoffrey Scott and Christopher Storm, The coefficients
-           of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
+        [HST2001]_
         """
         from sage.matrix.constructor import matrix
 
@@ -8733,6 +8536,9 @@ class Graph(GenericGraph):
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
+    from sage.graphs.connectivity import is_triconnected
+    from sage.graphs.comparability import is_comparability
+    from sage.graphs.comparability import is_permutation
 
 
 _additional_categories = {
@@ -8752,13 +8558,16 @@ _additional_categories = {
     "is_strongly_regular"       : "Graph properties",
     "is_line_graph"             : "Graph properties",
     "is_partial_cube"           : "Graph properties",
+    "is_comparability"          : "Graph properties",
+    "is_permutation"            : "Graph properties",
     "tutte_polynomial"          : "Algorithmically hard stuff",
     "lovasz_theta"              : "Leftovers",
     "strong_orientations_iterator" : "Connectivity, orientations, trees",
     "random_orientation"        : "Connectivity, orientations, trees",
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
-    "spqr_tree"                 : "Connectivity, orientations, trees"
+    "spqr_tree"                 : "Connectivity, orientations, trees",
+    "is_triconnected"           : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

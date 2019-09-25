@@ -658,7 +658,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     Hermitean form, points of the `(m-1)`-dimensional projective space over `F_q`,
     with points adjacent whenever they lie on a tangent (to the set of isotropic points)
     line.
-    For more information, see Sect. 9.9 of [BH12]_ and series C14 in [Hu75]_.
+    For more information, see Sect. 9.9 of [BH12]_ and series C14 in [Hub1975]_.
 
     INPUT:
 
@@ -681,13 +681,6 @@ def NonisotropicUnitaryPolarGraph(m, q):
         Traceback (most recent call last):
         ...
         ValueError: q must be a prime power
-
-    REFERENCE:
-
-    .. [Hu75] \X. L. Hubaut.
-      Strongly regular graphs.
-      Disc. Math. 13(1975), pp 357--381.
-      :doi:`10.1016/0012-365X(75)90057-6`
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0:
@@ -727,7 +720,7 @@ def UnitaryDualPolarGraph(m, q):
     Returns the Dual Unitary Polar Graph `U(m,q)`.
 
     For more information on Unitary Dual Polar graphs, see [BCN1989]_ and
-    Sect. 2.3.1 of [Co81]_.
+    Sect. 2.3.1 of [Coh1981]_.
 
     INPUT:
 
@@ -735,7 +728,8 @@ def UnitaryDualPolarGraph(m, q):
 
     EXAMPLES:
 
-    The point graph of a generalized quadrangle (see [GQwiki]_, [PT09]_) of order (8,4)::
+    The point graph of a generalized quadrangle (see
+    :wikipedia:`Generalized_quadrangle`, [PT2009]_) of order (8,4)::
 
         sage: G = graphs.UnitaryDualPolarGraph(5,2); G   # long time
         Unitary Dual Polar Graph DU(5, 2); GQ(8, 4): Graph on 297 vertices
@@ -780,7 +774,7 @@ def SymplecticDualPolarGraph(m, q):
     Returns the Symplectic Dual Polar Graph `DSp(m,q)`.
 
     For more information on Symplectic Dual Polar graphs, see [BCN1989]_ and
-    Sect. 2.3.1 of [Co81]_.
+    Sect. 2.3.1 of [Coh1981]_.
 
     INPUT:
 
@@ -803,13 +797,6 @@ def SymplecticDualPolarGraph(m, q):
         Traceback (most recent call last):
         ...
         GAPError: Error, <subfield> must be a prime or a finite field
-
-    REFERENCE:
-
-    .. [Co81] \A. M. Cohen,
-      `A synopsis of known distance-regular graphs with large diameters
-      <http://persistent-identifier.org/?identifier=urn:nbn:nl:ui:18-6775>`_,
-      Stichting Mathematisch Centrum, 1981.
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_graph(m, q, libgap.SymplecticGroup(m, q),
@@ -937,8 +924,9 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
     r"""
     Return the collinearity graph of the generalized quadrangle `AS(q)`, or of its dual
 
-    Let `q` be an odd prime power.  `AS(q)` is a generalized quadrangle [GQwiki]_ of
-    order `(q-1,q+1)`, see 3.1.5 in [PT09]_. Its points are elements
+    Let `q` be an odd prime power.  `AS(q)` is a generalized quadrangle
+    (:wikipedia:`Generalized_quadrangle`) of
+    order `(q-1,q+1)`, see 3.1.5 in [PT2009]_. Its points are elements
     of `F_q^3`, and lines are sets of size `q` of the form
 
     * `\{ (\sigma, a, b) \mid \sigma\in F_q \}`
@@ -964,15 +952,6 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
         AS(5)*; GQ(6, 4): Graph on 175 vertices
         sage: g.is_strongly_regular(parameters=True)
         (175, 30, 5, 5)
-
-    REFERENCE:
-
-    .. [GQwiki] :wikipedia:`Generalized_quadrangle`
-
-    .. [PT09] \S. Payne, J. A. Thas.
-      Finite generalized quadrangles.
-      European Mathematical Society,
-      2nd edition, 2009.
     """
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     p, k = is_prime_power(q,get_data=True)
@@ -998,8 +977,10 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     r"""
     Return the collinearity graph of the generalized quadrangle `T_2^*(q)`, or of its dual
 
-    Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalized quadrangle [GQwiki]_
-    of order `(q-1,q+1)`, see 3.1.3 in [PT09]_. Fix a plane `\Pi \subset \Theta` and a
+    Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalized quadrangle
+    (:wikipedia:`Generalized_quadrangle`)
+    of order `(q-1,q+1)`, see 3.1.3 in [PT2009]_. Fix a plane `\Pi \subset
+    \Theta` and a
     `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
     `O \subset \Pi`. The points of `T_2^*(q):=T_2^*(O)` are the points of `\Theta`
     outside `\Pi`, and the lines are the lines of `\Theta` outside `\Pi`
@@ -1228,10 +1209,10 @@ def CossidentePenttilaGraph(q):
     Cossidente-Penttila `((q^3+1)(q+1)/2,(q^2+1)(q-1)/2,(q-3)/2,(q-1)^2/2)`-strongly regular graph
 
     For each odd prime power `q`, one can partition the points of the `O_6^-(q)`-generalized
-    quadrange `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
-    the point graph of the GQ has parameters as above [CP05]_.
+    quadrangle `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
+    the point graph of the GQ has parameters as above [CP2005]_.
 
-    Directly following the construction in [CP05]_ is not efficient,
+    Directly following the construction in [CP2005]_ is not efficient,
     as one then needs to construct the dual `GQ(q^2,q)`. Thus we
     describe here a more efficient approach that we came up with, following a suggestion by
     T.Penttila. Namely, this partition is invariant
@@ -1277,12 +1258,6 @@ def CossidentePenttilaGraph(q):
         Traceback (most recent call last):
         ...
         ValueError: q(=2) must be an odd prime power
-
-    REFERENCES:
-
-    .. [CP05] \A.Cossidente and T.Penttila
-       Hemisystems on the Hermitian surface
-       Journal of London Math. Soc. 72(2005), 731--741
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p==2:
@@ -1339,9 +1314,10 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 
     `C` contains `q(q-1)^2/2` words without 0 entries. The subgraph of the strongly
     regular graph of `C` induced on the latter words is also strongly regular,
-    assuming `q>4`. This is a construction due to A.E.Brouwer [AB16]_, and leads
-    to graphs with parameters also given by a construction in [HHL09]_. According
-    to [AB16]_, these two constructions are likely to produce isomorphic graphs.
+    assuming `q>4`. This is a construction due to A.E.Brouwer [Bro2016]_, and
+    leads to graphs with parameters also given by a construction in [HHL2009]_.
+    According to [Bro2016]_, these two constructions are likely to produce
+    isomorphic graphs.
 
     INPUT:
 
@@ -1400,17 +1376,6 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval
-
-    REFERENCES:
-
-    .. [HHL09] \T. Huang, L. Huang, M.I. Lin
-       On a class of strongly regular designs and quasi-semisymmetric designs.
-       In: Recent Developments in Algebra and Related Areas, ALM vol. 8, pp. 129--153.
-       International Press, Somerville (2009)
-
-    .. [AB16] \A.E. Brouwer
-       Personal communication, 2016
-
     """
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
     from sage.matrix.constructor import matrix

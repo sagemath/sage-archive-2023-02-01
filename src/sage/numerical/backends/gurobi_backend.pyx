@@ -48,6 +48,12 @@ cdef class GurobiBackend(GenericBackend):
 
         sage: p = MixedIntegerLinearProgram(solver="Gurobi")                # optional - Gurobi
         sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - Gurobi
+
+    Ticket :trac:`28206` is fixed::
+
+        sage: G = graphs.PetersenGraph()
+        sage: G.maximum_average_degree(solver='gurobi')  # optional - Gurobi
+        3
     """
 
     def __init__(self, maximization = True):
@@ -163,7 +169,7 @@ cdef class GurobiBackend(GenericBackend):
         cdef char * c_name = ""
 
         if name is None:
-            name = "x_"+str(self.ncols())
+            name = b"x_" + bytes(self.ncols())
 
         c_name = name
 
@@ -533,17 +539,17 @@ cdef class GurobiBackend(GenericBackend):
             name = ""
 
         if upper_bound is not None and lower_bound is None:
-            error = GRBaddconstr(self.model, n, row_i, row_values, GRB_LESS_EQUAL, <double> upper_bound, name)
+            error = GRBaddconstr(self.model, n, row_i, row_values, GRB_LESS_EQUAL, <double> upper_bound, str_to_bytes(name))
 
         elif lower_bound is not None and upper_bound is None:
-            error = GRBaddconstr(self.model, n, row_i, row_values, GRB_GREATER_EQUAL, <double> lower_bound, name)
+            error = GRBaddconstr(self.model, n, row_i, row_values, GRB_GREATER_EQUAL, <double> lower_bound, str_to_bytes(name))
 
         elif upper_bound is not None and lower_bound is not None:
             if lower_bound == upper_bound:
-                error = GRBaddconstr(self.model, n, row_i, row_values, GRB_EQUAL, <double> lower_bound, name)
+                error = GRBaddconstr(self.model, n, row_i, row_values, GRB_EQUAL, <double> lower_bound, str_to_bytes(name))
 
             else:
-                error = GRBaddrangeconstr(self.model, n, row_i, row_values, <double> lower_bound, <double> upper_bound, name)
+                error = GRBaddrangeconstr(self.model, n, row_i, row_values, <double> lower_bound, <double> upper_bound, str_to_bytes(name))
 
         check(self.env,error)
 

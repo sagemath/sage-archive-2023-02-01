@@ -61,7 +61,7 @@ is called ``sage`` (via ``./sage`` on the command line).
 
 The first time you run Sage, you will see a message like
 
-.. CODE-BLOCK: text
+.. CODE-BLOCK:: text
 
    Rewriting paths for your new installation directory
    ===================================================
@@ -77,7 +77,7 @@ Once you are able to launch Sage you might want to create a shortcut
 so that ``sage`` just works from the command line. To do so simply use
 the ``ln`` program from the command line:
 
-.. CODE-BLOCK: shell-session
+.. CODE-BLOCK:: shell-session
 
     $ sudo ln -s /path/to/SageMath/sage /usr/local/bin/sage
 

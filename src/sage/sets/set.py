@@ -20,7 +20,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -33,8 +33,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 import six
 from six import integer_types
@@ -226,7 +226,7 @@ class Set_object(Set_generic):
 
     TESTS:
 
-    See trac ticket :trac:`14486`::
+    See :trac:`14486`::
 
         sage: 0 == Set([1]), Set([1]) == 0
         (False, False)

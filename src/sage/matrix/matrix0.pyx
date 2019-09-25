@@ -5426,14 +5426,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             if R.is_exact():
                 if not A[self._nrows-1, self._ncols-1].is_one():
                     raise ZeroDivisionError("input matrix must be nonsingular")
+                if self.is_sparse():
+                    return self.build_inverse_from_augmented_sparse(A)
             else:
                 if not A[self._nrows-1, self._ncols-1]:
                     raise ZeroDivisionError("input matrix must be nonsingular")
-
-            if self.is_sparse():
-                return self.build_inverse_from_augmented_sparse(A)
-            else:
-                return A.matrix_from_columns(list(range(self._ncols, 2 * self._ncols)))
+            return A.matrix_from_columns(list(range(self._ncols, 2 * self._ncols)))
 
     cdef build_inverse_from_augmented_sparse(self, A):
         # We can directly use the dict entries of A

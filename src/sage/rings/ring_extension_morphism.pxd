@@ -4,8 +4,6 @@ from sage.rings.morphism cimport RingMap
 from sage.rings.ring_extension_element cimport RingExtensionElement
 
 
-cdef _backend_morphism(f)
-cpdef backend_morphism(f, forget=*)
 cdef are_equal_morphisms(f, g)
 
 

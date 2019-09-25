@@ -5,13 +5,6 @@ from sage.rings.ring_extension cimport RingExtension_class
 
 cdef _common_base(K, L, degree)
 
-cpdef backend_parent(R)
-cpdef from_backend_parent(R, RingExtension_class E)
-
-cdef to_backend(arg)
-cdef from_backend(arg, RingExtension_class E)
-
-
 cdef class RingExtension_class(CommutativeAlgebra):
     cdef _type
     cdef _backend
@@ -19,6 +12,7 @@ cdef class RingExtension_class(CommutativeAlgebra):
     cdef _backend_defining_morphism
     cdef _print_parent_as
     cdef _print_elements_as
+    cdef bint _import_methods
 
     cpdef is_defined_over(self, base)
     cpdef CommutativeRing _check_base(self, CommutativeRing base)

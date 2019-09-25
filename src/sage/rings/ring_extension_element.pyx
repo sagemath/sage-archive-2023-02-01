@@ -19,25 +19,9 @@ from sage.categories.fields import Fields
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.rings.ring_extension cimport RingExtension_class, RingExtensionWithGen
-from sage.rings.ring_extension cimport backend_parent, from_backend_parent
-from sage.rings.ring_extension cimport to_backend, from_backend
 from sage.rings.ring_extension_morphism cimport MapRelativeFieldToVectorSpace
-
-
-# Helper function
-
-cpdef backend_element(x):
-    if isinstance(x, RingExtensionElement):
-        return (<RingExtensionElement>x)._backend
-    else:
-        return x
-
-cpdef from_backend_element(x, RingExtension_class E):
-    parent = from_backend_parent(x.parent(),E)
-    if parent is None:
-        return x
-    else:
-        return parent(x)
+from sage.rings.ring_extension_conversion cimport backend_parent, backend_element
+from sage.rings.ring_extension_conversion import to_backend, from_backend
 
 
 # Classes
@@ -71,7 +55,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def __getattr__(self, name):
         method = None
-        if hasattr(self._backend, name):
+        if (<RingExtension_class>self._parent)._import_methods and hasattr(self._backend, name):
             method = getattr(self._backend, name)
         if not callable(method):
             raise AttributeError(AttributeErrorMessage(self, name))
@@ -83,6 +67,8 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def __dir__(self):
         d = dir(self.__class__)
+        if not (<RingExtension_class>self._parent)._import_methods:
+            return d
         for name in dir(self._backend):
             try:
                 attribute = getattr(self._backend, name)

@@ -6,10 +6,6 @@ from sage.rings.ring_extension cimport RingExtensionFractionField
 from sage.rings.ring_extension cimport RingExtensionWithBasis
 
 
-cpdef backend_element(x)
-cpdef from_backend_element(x, RingExtension_class E)
-
-
 cdef class RingExtensionElement(CommutativeAlgebraElement):
     cdef Element _backend
 

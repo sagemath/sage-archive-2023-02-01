@@ -37,13 +37,13 @@ from sage.rings.infinity import Infinity
 from sage.rings.ring_extension_element cimport RingExtensionElement
 from sage.rings.ring_extension_element cimport RingExtensionFractionFieldElement
 from sage.rings.ring_extension_element cimport RingExtensionWithBasisElement
-from sage.rings.ring_extension_element cimport backend_element, from_backend_element
 from sage.rings.ring_extension_morphism cimport RingExtensionHomomorphism
 from sage.rings.ring_extension_morphism cimport RingExtensionBackendIsomorphism
 from sage.rings.ring_extension_morphism cimport RingExtensionBackendReverseIsomorphism
-from sage.rings.ring_extension_morphism cimport backend_morphism, are_equal_morphisms
+from sage.rings.ring_extension_morphism cimport are_equal_morphisms
 from sage.rings.ring_extension_morphism cimport MapVectorSpaceToRelativeField, MapRelativeFieldToVectorSpace
-
+from sage.rings.ring_extension_conversion cimport backend_parent, backend_morphism
+from sage.rings.ring_extension_conversion import to_backend, from_backend
 
 
 # Helper functions
@@ -88,51 +88,6 @@ cdef _common_base(K, L, degree):
         return base, degrees_K[iK], degrees_L[iL]
     else:
         return base
-
-
-cpdef backend_parent(R):
-    if isinstance(R, RingExtension_class):
-        return (<RingExtension_class>R)._backend
-    else:
-        return R
-
-cpdef from_backend_parent(R, RingExtension_class E):
-    cdef CommutativeRing base = E
-    while isinstance(base, RingExtension_class):
-        if (<RingExtension_class>base)._backend is R:
-            return base
-        base = base._base
-
-
-cdef to_backend(arg):
-    if isinstance(arg, list):
-        return [ to_backend(x) for x in arg ]
-    elif isinstance(arg, tuple):
-        return ( to_backend(x) for x in arg )
-    elif isinstance(arg, dict):
-        return { to_backend(key): to_backend(value) for (key, value) in arg.items() }
-    elif isinstance(arg, RingExtension_class):
-        return (<RingExtension_class>arg)._backend
-    elif isinstance(arg, RingExtensionElement):
-        return (<RingExtensionElement>arg)._backend
-    return arg
-
-cdef from_backend(arg, RingExtension_class E):
-    cdef ans = None
-    if isinstance(arg, list):
-        ans = [ from_backend(x,E) for x in arg ]
-    elif isinstance(arg, tuple):
-        ans = tuple(from_backend(x,E) for x in arg)
-    elif isinstance(arg, dict):
-        ans = { from_backend(key,E): from_backend(value,E) for (key, value) in arg.items() }
-    elif isinstance(arg, Parent):
-        ans = from_backend_parent(arg,E)
-    elif isinstance(arg, Element):
-        ans = from_backend_element(arg,E)
-    if ans is None:
-        return arg
-    else:
-        return ans
 
 
 # Factory
@@ -511,7 +466,7 @@ cdef class RingExtension_class(CommutativeAlgebra):
     # (Is there a better solution to fix this issue?)
     Element = _element_constructor_ = RingExtensionElement
 
-    def __init__(self, defining_morphism, print_parent_as=None, print_elements_as=None):
+    def __init__(self, defining_morphism, print_parent_as=None, print_elements_as=None, import_methods=True):
         r"""
         TESTS::
 
@@ -542,6 +497,7 @@ cdef class RingExtension_class(CommutativeAlgebra):
         self._defining_morphism = RingExtensionHomomorphism(self._base.Hom(self), defining_morphism)
         self._print_parent_as = print_parent_as
         self._print_elements_as = print_elements_as
+        self._import_methods = import_methods
         self._type = "Ring"
         if self._backend in Fields():
             self._type = "Field"
@@ -573,7 +529,7 @@ cdef class RingExtension_class(CommutativeAlgebra):
 
     def __getattr__(self, name):
         method = None
-        if hasattr(self._backend, name):
+        if self._import_methods and hasattr(self._backend, name):
             method = getattr(self._backend, name)
         if not callable(method):
             raise AttributeError(AttributeErrorMessage(self, name))
@@ -585,6 +541,8 @@ cdef class RingExtension_class(CommutativeAlgebra):
 
     def __dir__(self):
         d = dir(self.__class__)
+        if not self._import_methods:
+            return d
         for name in dir(self._backend):
             try:
                 attribute = getattr(self._backend, name)
@@ -601,6 +559,10 @@ cdef class RingExtension_class(CommutativeAlgebra):
         (defining_morphism, gen, names) = self._factory_data[2]
         constructors = self._factory_data[3]['constructors']
         return _RingExtension, (constructors, defining_morphism, gen, names)
+
+    def construction(self):
+        # construction for generic ring extensions does not make sense
+        pass
 
     def from_base_ring(self, r):
         r"""

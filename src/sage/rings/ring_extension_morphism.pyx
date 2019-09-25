@@ -17,51 +17,8 @@ from sage.rings.morphism cimport RingMap
 from sage.rings.ring_extension cimport RingExtension_class, RingExtensionWithBasis
 from sage.rings.ring_extension_element cimport RingExtensionElement
 from sage.rings.ring_extension cimport _common_base
-from sage.rings.ring_extension cimport backend_parent
-from sage.rings.ring_extension_element cimport backend_element
+from sage.rings.ring_extension_conversion cimport backend_parent, backend_element, backend_morphism
 
-
-# Helper functions
-
-cdef _backend_morphism(f):
-    from sage.categories.map import FormalCompositeMap
-    from sage.categories.morphism import IdentityMorphism
-    domain = f.domain()
-    if not isinstance(f.domain(), RingExtension_class) and not isinstance(f.codomain(), RingExtension_class):
-        return f
-    elif isinstance(f, RingExtensionHomomorphism):
-        return (<RingExtensionHomomorphism>f)._backend
-    elif isinstance(f, FormalCompositeMap):
-        return _backend_morphism(f.then()) * _backend_morphism(f.first())
-    elif isinstance(f, IdentityMorphism):
-        ring = backend_parent(domain)
-        return ring.Hom(ring).identity()
-    elif domain is domain.base_ring():
-        ring = f.codomain()
-        if isinstance(ring, RingExtension_class):
-            ring = ring._backend
-        if ring.has_coerce_map_from(domain):
-            return ring.coerce_map_from(domain)
-    raise NotImplementedError
-
-cpdef backend_morphism(f, forget="all"):
-    try:
-        g = _backend_morphism(f)
-        if forget is None and (isinstance(f.domain(), RingExtension_class) or isinstance(f.codomain(), RingExtension_class)):
-            g = RingExtensionHomomorphism(f.domain().Hom(f.codomain()), g)
-        if forget == "domain" and isinstance(f.codomain(), RingExtension_class):
-            g = RingExtensionHomomorphism(g.domain().Hom(f.codomain()), g)
-        if forget == "codomain" and isinstance(f.domain(), RingExtension_class):
-            g = RingExtensionHomomorphism(f.domain().Hom(g.codomain()), g)
-    except NotImplementedError:
-        g = f
-        if (forget == "all" or forget == "domain") and isinstance(f.domain(), RingExtension_class):
-            ring = f.domain()._backend
-            g = g * RingExtensionBackendIsomorphism(ring.Hom(f.domain()))
-        if (forget == "all" or forget == "codomain") and isinstance(f.codomain(), RingExtension_class):
-            ring = f.codomain()._backend
-            g = RingExtensionBackendReverseIsomorphism(f.codomain().Hom(ring)) * g
-    return g
 
 # I don't trust the operator ==
 cdef are_equal_morphisms(f, g):

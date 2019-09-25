@@ -907,7 +907,7 @@ class Section(ModuleElement):
 
         EXAMPLES:
 
-        Components of a type-`(1,1)` tensor field defined on two
+        Components of a section defined on a rank 2 vector bundle over two
         open subsets::
 
             sage: M = Manifold(2, 'M', structure='top')
@@ -1107,10 +1107,6 @@ class Section(ModuleElement):
         return rst.display_comp(frame=frame, chart=chart,
                                 only_nonzero=only_nonzero)
 
-    #
-    # Till here, doctest finished!
-    #
-
     def at(self, point):
         r"""
         Value of ``self`` at a point of its domain.
@@ -1127,7 +1123,7 @@ class Section(ModuleElement):
         INPUT:
 
         - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
-          point `p` in the domain of the tensor field `U`
+          point `p` in the domain of the section `U`
 
         OUTPUT:
 
@@ -1136,44 +1132,40 @@ class Section(ModuleElement):
 
         EXAMPLES:
 
-        Section on a tangent space of a non-parallelizable 2-dimensional
-        manifold::
+        Vector on a 2-rank vector bundle fiber over a non-parallelizable
+        2-dimensional manifold::
 
-            sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
-            sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
-            sage: S2.declare_union(U,V)
-            sage: stereoN.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: stereoS.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: xy_to_uv = stereoN.transition_map(stereoS,
-            ....:                                   (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                   intersection_name='W',
-            ....:                                   restrictions1= x^2+y^2!=0,
-            ....:                                   restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: inv = transf.inverse()
             sage: W = U.intersection(V)
-            sage: uv_to_xy = xy_to_uv.inverse()
-            sage: E = S2.vector_bundle(2, 'E') # define vector bundle
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
             sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
             sage: phi_V = E.trivialization('phi_V', domain=V)
-            sage: transf = phi_U.transition_map(phi_V, [[0,1],[1,0]])
-            sage: fN = phi_U.frame(); fS = phi_V.frame() # get induced frames
-            sage: s = E.section({fN: [x^2, -2y+x]}, name='s')
-            sage: s.add_comp_by_continuation(fS, W, chart=c_uv)
-            sage: s.display(eU)
-            a = (y + 1) d/dx*dx + x d/dx*dy + (x + y) d/dy*dy
-            sage: a.display(eV)
-            a = (u + 1/2) d/du*du + (-1/2*u - 1/2*v + 1/2) d/du*dv
-             + 1/2 d/dv*du + (1/2*u - 1/2*v + 1/2) d/dv*dv
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame() # get induced frames
+            sage: s = E.section({fU: [1+y, x]}, name='s')
+            sage: s.add_comp_by_continuation(fV, W, chart=c_uv)
+            sage: s.display(fU)
+            s = (y + 1) (phi_U^*e_1) + x (phi_U^*e_2)
+            sage: s.display(fV)
+            s = (1/4*u^2 + 1/2*u*v + 1/4*v^2) (phi_V^*e_1) + (1/4*u^2 - 1/4*v^2
+             + 1/2*u + 1/2*v) (phi_V^*e_2)
             sage: p = M.point((2,3), chart=c_xy, name='p')
-            sage: ap = a.at(p) ; ap
-            Type-(1,1) tensor a on the Tangent space at Point p on the
-             2-dimensional differentiable manifold M
-            sage: ap.parent()
-            Free module of type-(1,1) tensors on the Tangent space at Point p
-             on the 2-dimensional differentiable manifold M
-            sage: ap.display(eU.at(p))
-            a = 4 d/dx*dx + 2 d/dx*dy + 5 d/dy*dy
-            sage: ap.display(eV.at(p))
-            a = 11/2 d/du*du - 3/2 d/du*dv + 1/2 d/dv*du + 7/2 d/dv*dv
+            sage: sp = s.at(p) ; sp
+            Vector s in the fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: sp.parent()
+            Fiber of E at Point p on the 2-dimensional topological manifold M
+            sage: sp.display(fU.at(p))
+            s = 4 (phi_U^*e_1) + 2 (phi_U^*e_2)
+            sage: sp.display(fV.at(p))
+            s = 4 (phi_V^*e_1) + 8 (phi_V^*e_2)
             sage: p.coord(c_uv) # to check the above expression
             (5, -1)
 
@@ -1195,41 +1187,39 @@ class Section(ModuleElement):
           provided, all the components are returned
 
         The frame can be passed as the first item of ``args``. If not, the
-        default frame of the tensor field's domain is assumed. If ``args``
-        is a string, this method acts as a shortcut for tensor contractions
-        and symmetrizations, the string containing abstract indices.
+        default frame of the corresponding section module is assumed.
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(3, 'M', structure='top') # the 2-dimensional sphere S^3
             sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: c_xyz.<x,y,z> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: e_xy = c_xy.frame()
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[e_xy, :] = [[x+y, -2], [3*y^2, x*y]]
-            sage: t.__getitem__((1,0))
+            sage: c_uvt.<u,v,t> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^3 is the union of U and V
+            sage: E = M.vector_bundle(3, 'E')
+            sage: e = E.local_frame('e')
+            sage: s = E.section(name='s')
+            sage: s[e, :] = [x+y, -2*z, 3*y^2]
+            sage: s.__getitem__(1)
+            -2*z
+            sage: s.__getitem__(2)
             3*y^2
-            sage: t.__getitem__((1,1))
-            x*y
-            sage: t.__getitem__((e_xy,1,0))
-            3*y^2
-            sage: t.__getitem__(slice(None))
-            [x + y    -2]
-            [3*y^2   x*y]
-            sage: t.__getitem__((e_xy,slice(None)))
-            [x + y    -2]
-            [3*y^2   x*y]
-            sage: t.__getitem__('^a_a')  # trace
-            Scalar field on the 2-dimensional differentiable manifold M
-            sage: t.__getitem__('^a_a').display()
-            M --> R
-            on U: (x, y) |--> (x + 1)*y + x
+            sage: s.__getitem__((e,1))
+            -2*z
+            sage: s.__getitem__((e, 1, c_xyz))
+            -2*z
+            sage: s.__getitem__(slice(None))
+            [x + y, -2*z, 3*y^2]
+            sage: s.__getitem__((e,slice(None)))
+            [x + y, -2*z, 3*y^2]
+            sage: s.__getitem__((e,[slice(None)]))
+            [Scalar field on the 3-dimensional topological manifold M,
+             Scalar field on the 3-dimensional topological manifold M,
+             Scalar field on the 3-dimensional topological manifold M]
 
         """
-        if isinstance(args, str): # tensor with specified indices
+        if isinstance(args, str): # section with specified indices
             return TensorWithIndices(self, args).update()
         if isinstance(args, list):  # case of [[...]] syntax
             if not isinstance(args[0], (int, Integer, slice)):
@@ -1249,36 +1239,37 @@ class Section(ModuleElement):
 
     def __setitem__(self, args, value):
         r"""
-        Sets a component with respect to some vector frame.
+        Sets a component with respect to some local frame.
 
         INPUT:
 
         - ``args`` -- list of indices; if ``[:]`` is provided, all the
           components are set; the frame can be passed as the first item
-          of ``args``; if not, the default frame of the tensor field's
-          domain is assumed
+          of ``args``; if not, the default frame of the corresponding section
+          module is assumed
         - ``value`` -- the value to be set or a list of values if
           ``args = [:]``
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(3, 'M', structure='top') # the 2-dimensional sphere S^3
             sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: c_xyz.<x,y,z> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: e_xy = c_xy.frame()
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t.__setitem__((e_xy, 0, 1), x+y^2)
-            sage: t.display(e_xy)
-            t = (y^2 + x) d/dx*dy
-            sage: t.__setitem__((0, 1), x+y^2)  # same as above since e_xy is the default frame on M
-            sage: t.display()
-            t = (y^2 + x) d/dx*dy
-            sage: t.__setitem__(slice(None), [[x+y, -2], [3*y^2, x*y]])
-            sage: t.display()
-            t = (x + y) d/dx*dx - 2 d/dx*dy + 3*y^2 d/dy*dx + x*y d/dy*dy
+            sage: c_uvt.<u,v,t> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^3 is the union of U and V
+            sage: E = M.vector_bundle(3, 'E')
+            sage: e = E.local_frame('e')
+            sage: s = E.section(name='s')
+            sage: s.__setitem__((e, 0), x+y^2)
+            sage: s.display(e)
+            s = (y^2 + x) e_0
+            sage: s.__setitem__(0, x+y^2)  # same as above since e is the default frame on E
+            sage: s.display()
+            s = (y^2 + x) e_0
+            sage: s.__setitem__(slice(None), [x+y, 3*y^2, x*y])
+            sage: s.display()
+            s = (x + y) e_0 + 3*y^2 e_1 + x*y e_2
 
         """
         if isinstance(args, list):  # case of [[...]] syntax
@@ -1303,13 +1294,14 @@ class Section(ModuleElement):
 
         .. NOTE::
 
-            The name and the derived quantities are not copied.
+            The name and the derived quantities are copied, too.
 
         EXAMPLES:
 
-        Copy of a type-`(1,1)` tensor field on a 2-dimensional manifold::
+        Copy of a section on a rank 2 vector bundle over a 2-dimensional
+        manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -1317,32 +1309,42 @@ class Section(ModuleElement):
             ....:                    intersection_name='W', restrictions1= x>0,
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
-            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: s = t.copy(); s
-            Tensor field of type (1,1) on
-             the 2-dimensional differentiable manifold M
-            sage: s.display(e_xy)
-            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
-            sage: s == t
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [2, 1-y]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: t = s.copy(); t
+            Section s on the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
+            sage: t.display(fU)
+            s = 2 (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
+            sage: t == s
             True
 
-        If the original tensor field is modified, the copy is not::
+        If the original section is modified, the copy is not::
 
-            sage: t[e_xy,0,0] = -1
-            sage: t.display(e_xy)
-            t = -d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
-            sage: s.display(e_xy)
-            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
-            sage: s == t
+            sage: s[fU,0] = -1
+            sage: s.display(fU)
+            s = -(phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
+            sage: t.display(fU)
+            s = 2 (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
+            sage: t == s
             False
 
         """
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
+        ###
+        # Propagate names to all restrictions
+        resu_name = self._name
+        resu_latex = self._latex_name
+        resu.set_name(name=resu_name, latex_name=resu_latex)
         return resu
 
     def _common_subdomains(self, other):
@@ -1352,7 +1354,7 @@ class Section(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -1360,24 +1362,29 @@ class Section(ModuleElement):
             ....:                    intersection_name='W', restrictions1= x>0,
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[e_xy,:] = [[x+y, 0], [2, 0]]
-            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: sorted(t._common_subdomains(t), key=str)
-            [Open subset U of the 2-dimensional differentiable manifold M,
-             Open subset V of the 2-dimensional differentiable manifold M,
-             Open subset W of the 2-dimensional differentiable manifold M]
-            sage: a = M.tensor_field(1, 1, name='a')
-            sage: t._common_subdomains(a)
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x+y, 0]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: sorted(s._common_subdomains(s), key=str)
+            [Open subset U of the 2-dimensional topological manifold M,
+             Open subset V of the 2-dimensional topological manifold M,
+             Open subset W of the 2-dimensional topological manifold M]
+            sage: t = E.section(name='t')
+            sage: t._common_subdomains(s)
             []
-            sage: a[e_xy, 0, 1] = 0
-            sage: t._common_subdomains(a)
-            [Open subset U of the 2-dimensional differentiable manifold M]
-            sage: a[e_uv, 0, 0] = 0
-            sage: sorted(t._common_subdomains(a), key=str)
-            [Open subset U of the 2-dimensional differentiable manifold M,
-             Open subset V of the 2-dimensional differentiable manifold M]
+            sage: t[fU, 0] = 0
+            sage: t._common_subdomains(s)
+            [Open subset U of the 2-dimensional topological manifold M]
+            sage: t[fV, 0] = 0
+            sage: sorted(t._common_subdomains(s), key=str)
+            [Open subset U of the 2-dimensional topological manifold M,
+             Open subset V of the 2-dimensional topological manifold M]
 
         """
         resu = []
@@ -1400,7 +1407,39 @@ class Section(ModuleElement):
 
         TESTS::
 
-            TODO
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x+y, 0]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: s == s
+            True
+            sage: s == s.copy()
+            True
+            sage: t = E.section(name='t')
+            sage: t.set_restriction(s.restrict(U))
+            sage: s == t  # False since t has not been defined on V
+            False
+            sage: t.set_restriction(s.restrict(V))
+            sage: s == t  # True now
+            True
+            sage: t[fU, 0] = -1
+            sage: s == t  # False since a has been reset on U (domain of fU)
+            False
+            sage: s.parent().zero() == 0
+            True
 
         """
         if other is self:
@@ -1451,7 +1490,7 @@ class Section(ModuleElement):
 
         INPUT:
 
-        - ``other`` -- a tensor field or 0
+        - ``other`` -- section or 0
 
         OUTPUT:
 
@@ -1460,7 +1499,7 @@ class Section(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -1468,19 +1507,118 @@ class Section(ModuleElement):
             ....:                    intersection_name='W', restrictions1= x>0,
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
-            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: t != t
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x+y, 0]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: s != s
             False
-            sage: t != t.copy()
+            sage: s != s.copy()
             False
-            sage: t != 0
+            sage: s != 0
             True
 
         """
         return not (self == other)
+
+    def __pos__(self):
+        r"""
+        Unary plus operator.
+
+        OUTPUT:
+
+        - an exact copy of ``self``
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x, 1]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: t = s.__pos__(); t
+            Section +s on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2
+            sage: t.display(fU)
+            +s = x (phi_U^*e_1) + (phi_U^*e_2)
+
+        """
+        resu = self._new_instance()
+        for dom, rst in self._restrictions.items():
+            resu._restrictions[dom] = + rst
+        if self._name is not None:
+            resu._name = '+' + self._name
+        if self._latex_name is not None:
+            resu._latex_name = '+' + self._latex_name
+        return resu
+
+    def __neg__(self):
+        r"""
+        Unary minus operator.
+
+        OUTPUT:
+
+        - the tensor field `-T`, where `T` is ``self``
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x, 1]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: s.display(fU)
+            s = x (phi_U^*e_1) + (phi_U^*e_2)
+            sage: s.display(fV)
+            s = (1/2*u + 1/2*v) (phi_V^*e_1) + (1/4*u^2 + 1/2*u*v + 1/4*v^2) (phi_V^*e_2)
+            sage: t = s.__neg__(); t
+            Section -s on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2
+            sage: t.display(fU)
+            -s = -x (phi_U^*e_1) - (phi_U^*e_2)
+            sage: t.display(fV)
+            -s = (-1/2*u - 1/2*v) (phi_V^*e_1) + (-1/4*u^2 - 1/2*u*v - 1/4*v^2) (phi_V^*e_2)
+            sage: s == -t  # indirect doctest
+            True
+
+        """
+        resu = self._new_instance()
+        for dom, rst in self._restrictions.items():
+            resu._restrictions[dom] = - rst
+        if self._name is not None:
+            resu._name = '-' + self._name
+        if self._latex_name is not None:
+            resu._latex_name = '-' + self._latex_name
+        return resu
 
     ######### ModuleElement arithmetic operators ########
 
@@ -1498,7 +1636,7 @@ class Section(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -1506,30 +1644,35 @@ class Section(ModuleElement):
             ....:                    intersection_name='W', restrictions1= x>0,
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: a = M.tensor_field(1, 1, name='a')
-            sage: a[e_xy,:] = [[x, 1], [y, 0]]
-            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: b = M.tensor_field(1, 1, name='b')
-            sage: b[e_xy,:] = [[2, y], [x, -x]]
-            sage: b.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: s = a._add_(b); s
-            Tensor field a+b of type (1,1) on the 2-dimensional differentiable
-             manifold M
-            sage: a.display(e_xy)
-            a = x d/dx*dx + d/dx*dy + y d/dy*dx
-            sage: b.display(e_xy)
-            b = 2 d/dx*dx + y d/dx*dy + x d/dy*dx - x d/dy*dy
-            sage: s.display(e_xy)
-            a+b = (x + 2) d/dx*dx + (y + 1) d/dx*dy + (x + y) d/dy*dx - x d/dy*dy
-            sage: s == a + b  # indirect doctest
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x, 1]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: t = E.section(name='t')
+            sage: t[fU,:] = [2, y]
+            sage: t.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: u = s._add_(t); u
+            Section s+t on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2
+            sage: s.display(fU)
+            s = x (phi_U^*e_1) + (phi_U^*e_2)
+            sage: t.display(fU)
+            t = 2 (phi_U^*e_1) + y (phi_U^*e_2)
+            sage: u.display(fU)
+            s+t = (x + 2) (phi_U^*e_1) + (y + 1) (phi_U^*e_2)
+            sage: u == s + t  # indirect doctest
             True
-            sage: z = a.parent().zero(); z
-            Tensor field zero of type (1,1) on the 2-dimensional differentiable
-             manifold M
-            sage: a._add_(z) == a
+            sage: z = s.parent().zero(); z
+            Section zero on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2
+            sage: s._add_(z) == s
             True
-            sage: z._add_(a) == a
+            sage: z._add_(s) == s
             True
 
         """
@@ -1558,7 +1701,7 @@ class Section(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -1566,28 +1709,33 @@ class Section(ModuleElement):
             ....:                    intersection_name='W', restrictions1= x>0,
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: a = M.tensor_field(1, 1, name='a')
-            sage: a[e_xy,:] = [[x, 1], [y, 0]]
-            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: b = M.tensor_field(1, 1, name='b')
-            sage: b[e_xy,:] = [[2, y], [x, -x]]
-            sage: b.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: s = a._sub_(b); s
-            Tensor field a-b of type (1,1) on the 2-dimensional differentiable
-             manifold M
-            sage: a.display(e_xy)
-            a = x d/dx*dx + d/dx*dy + y d/dy*dx
-            sage: b.display(e_xy)
-            b = 2 d/dx*dx + y d/dx*dy + x d/dy*dx - x d/dy*dy
-            sage: s.display(e_xy)
-            a-b = (x - 2) d/dx*dx + (-y + 1) d/dx*dy + (-x + y) d/dy*dx + x d/dy*dy
-            sage: s == a - b
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x, 1]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: t = E.section(name='t')
+            sage: t[fU,:] = [2, y]
+            sage: t.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: u = s._sub_(t); s
+            Section s on the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
+            sage: s.display(fU)
+            s = x (phi_U^*e_1) + (phi_U^*e_2)
+            sage: t.display(fU)
+            t = 2 (phi_U^*e_1) + y (phi_U^*e_2)
+            sage: u.display(fU)
+            s-t = (x - 2) (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
+            sage: u == s - t
             True
-            sage: z = a.parent().zero()
-            sage: a._sub_(z) == a
+            sage: z = s.parent().zero()
+            sage: s._sub_(z) == s
             True
-            sage: z._sub_(a) == -a
+            sage: z._sub_(s) == -s
             True
 
         """
@@ -1620,7 +1768,7 @@ class Section(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -1628,41 +1776,64 @@ class Section(ModuleElement):
             ....:                    intersection_name='W', restrictions1= x>0,
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: a = M.tensor_field(1, 1, name='a')
-            sage: a[e_xy,:] = [[x, 1], [y, 0]]
-            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2)}, name='f')
-            sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
-            sage: f.display()
-            f: M --> R
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]])
+            sage: fU = phi_U.frame(); fV = phi_V.frame()
+            sage: s = E.section(name='s')
+            sage: s[fU,:] = [x, 1]
+            sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
+            sage: g = M.scalar_field({c_xy: 1/(1+x^2+y^2)}, name='g')
+            sage: g.add_expr_by_continuation(c_uv, U.intersection(V))
+            sage: g.display()
+            g: M --> R
             on U: (x, y) |--> 1/(x^2 + y^2 + 1)
             on V: (u, v) |--> 2/(u^2 + v^2 + 2)
-            sage: s = a._rmul_(f); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable
-             manifold M
-            sage: a.display(e_xy)
-            a = x d/dx*dx + d/dx*dy + y d/dy*dx
-            sage: s.display(e_xy)
-            x/(x^2 + y^2 + 1) d/dx*dx + 1/(x^2 + y^2 + 1) d/dx*dy + y/(x^2 + y^2 + 1) d/dy*dx
-            sage: a.display(e_uv)
-            a = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
-            sage: s.display(e_uv)
-            (u + 1)/(u^2 + v^2 + 2) d/du*du + (u - 1)/(u^2 + v^2 + 2) d/du*dv + (v + 1)/(u^2 + v^2 + 2) d/dv*du + (v - 1)/(u^2 + v^2 + 2) d/dv*dv
-            sage: s == f*a  # indirect doctest
+            sage: t = s._rmul_(g); t
+            Section g*s on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2
+            sage: s.display(fU)
+            s = x (phi_U^*e_1) + (phi_U^*e_2)
+            sage: t.display(fU)
+            g*s = x/(x^2 + y^2 + 1) (phi_U^*e_1) + 1/(x^2 + y^2 + 1) (phi_U^*e_2)
+            sage: s.display(fV)
+            s = (1/2*u + 1/2*v) (phi_V^*e_1) + (1/4*u^2 + 1/2*u*v + 1/4*v^2) (phi_V^*e_2)
+            sage: t.display(fV)
+            g*s = (u + v)/(u^2 + v^2 + 2) (phi_V^*e_1) + 1/2*(u^2 + 2*u*v + v^2)/(u^2 + v^2 + 2) (phi_V^*e_2)
+            sage: t == g*s  # indirect doctest
             True
-            sage: z = a.parent().zero(); z
-            Tensor field zero of type (1,1) on the 2-dimensional differentiable
-             manifold M
-            sage: a._rmul_(M.zero_scalar_field()) == z
+            sage: z = s.parent().zero(); z
+            Section zero on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2
+            sage: s._rmul_(M.zero_scalar_field()) == z
             True
-            sage: z._rmul_(f) == z
+            sage: z._rmul_(g) == z
             True
 
         """
+        ###
+        # Case zero:
+        zero = scalar.parent().zero()
+        if scalar is zero:
+            return self.parent().zero()
+        ###
+        # Case one:
+        one = scalar.parent().one()
+        if scalar is one:
+            return self.copy()
+        ###
+        # General case:
+        from sage.tensor.modules.format_utilities import (format_mul_txt,
+                                                          format_mul_latex)
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
+        resu_name = format_mul_txt(scalar._name, '*', self._name)
+        resu_latex = format_mul_latex(scalar._latex_name, ' \cdot ',
+                                      self._latex_name)
+        resu.set_name(name=resu_name, latex_name=resu_latex)
         return resu
 
     ######### End of ModuleElement arithmetic operators ########
@@ -1672,9 +1843,34 @@ class Section(ModuleElement):
 class TrivialSection(FiniteRankFreeModuleElement, Section):
     r"""
     Trivial sections
+
+    TODO
+
     """
     def __init__(self, section_module, name=None, latex_name=None):
         r"""
+        Construct a section on a trivial vector bundle.
+
+        TESTS:
+
+        Construction via ``parent.element_class``, and not via a direct call
+        to ``TrivialSection``, to fit with the category framework::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: X.<x,y> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: C0 = E.section_module()
+            sage: s = C0.element_class(C0, name='s'); s
+            Section s on the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
+            sage: s[:] = [1+x^2, x*y]
+            sage: s.display()
+            s = (x^2 + 1) e_0 + x*y e_1
+            sage: s.parent()
+            Free module C^0(M;E) of sections on the 2-dimensional topological
+             manifold M with values in the real vector bundle E of rank 2
+            sage: TestSuite(s).run()
 
         """
         FiniteRankFreeModuleElement.__init__(self, section_module,
@@ -1692,10 +1888,11 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
-            sage: X.<x,y> = M.chart()  # makes M parallelizable
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t._init_derived()
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s._init_derived()
 
         """
         FiniteRankFreeModuleElement._init_derived(self)
@@ -1712,10 +1909,11 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
-            sage: X.<x,y> = M.chart()  # makes M parallelizable
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t._del_derived()
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s._del_derived()
 
         """
         FiniteRankFreeModuleElement._del_derived(self)
@@ -1727,25 +1925,38 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         TESTS::
 
-            TODO
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s._repr_()
+            'Section s on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2'
+            sage: repr(s)  # indirect doctest
+            'Section s on the 2-dimensional topological manifold M with values
+             in the real vector bundle E of rank 2'
+            sage: s  # indirect doctest
+            Section s on the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
 
         """
         return Section._repr_(self)
 
     def _new_instance(self):
         r"""
-        Create an instance of the same class as ``self`` on the same
-        vector field module, with the same tensor type and same symmetries.
+        Create an instance of the same class as ``self`` on the same section
+        module.
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
-            sage: X.<x,y> = M.chart()  # makes M parallelizable
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t._new_instance()
-            Tensor field of type (1,1) on the 2-dimensional differentiable
-             manifold M
-            sage: type(t._new_instance()) is type(t)
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s._new_instance()
+            Section on the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
+            sage: type(s._new_instance()) is type(s)
             True
 
         """
@@ -1753,8 +1964,8 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
     def set_comp(self, basis=None):
         r"""
-        Return the components of the tensor field in a given vector frame
-        for assignment.
+        Return the components of the section in a given local frame for
+        assignment.
 
         The components with respect to other frames on the same domain are
         deleted, in order to avoid any inconsistency. To keep them, use the
@@ -1762,9 +1973,9 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the
+        - ``basis`` -- (default: ``None``) local frame in which the
           components are defined; if none is provided, the components are
-          assumed to refer to the tensor field domain's default frame
+          assumed to refer to the section module's default frame
 
         OUTPUT:
 
@@ -1774,48 +1985,49 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: X.<x,y> = M.chart()
-            sage: e_xy = X.frame()
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t.set_comp(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
-            sage: t.set_comp(e_xy)[1,0] = 2
-            sage: t.display(e_xy)
-            t = 2 d/dy*dx
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s.set_comp(e)
+            1-index components w.r.t. Local frame (E|_M, (e_0,e_1))
+            sage: s.set_comp(e)[0] = 2
+            sage: s.display(e)
+            s = 2 e_0
 
-        Setting components in a new frame (``e``)::
+        Setting components in a new frame (``f``)::
 
-            sage: e = M.vector_frame('e')
-            sage: t.set_comp(e)
-            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
-            sage: t.set_comp(e)[0,1] = x
-            sage: t.display(e)
-            t = x e_0*e^1
+            sage: f = E.local_frame('f')
+            sage: s.set_comp(f)
+            1-index components w.r.t. Local frame (E|_M, (f_0,f_1))
+            sage: s.set_comp(f)[0] = x
+            sage: s.display(f)
+            s = x f_0
 
-        The components with respect to the frame ``e_xy`` have be erased::
+        The components with respect to the frame ``e`` have be erased::
 
-            sage: t.display(e_xy)
+            sage: s.display(e)
             Traceback (most recent call last):
             ...
             ValueError: no basis could be found for computing the components
-             in the Coordinate frame (M, (d/dx,d/dy))
+             in the Local frame (E|_M, (e_0,e_1))
 
         Setting components in a frame defined on a subdomain deletes
         previously defined components as well::
 
             sage: U = M.open_subset('U', coord_def={X: x>0})
-            sage: f = U.vector_frame('f')
-            sage: t.set_comp(f)
-            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
-            sage: t.set_comp(f)[0,1] = 1+y
-            sage: t.display(f)
-            t = (y + 1) f_0*f^1
-            sage: t.display(e)
+            sage: g = E.local_frame('g', domain=U)
+            sage: s.set_comp(g)
+            1-index components w.r.t. Local frame (E|_U, (g_0,g_1))
+            sage: s.set_comp(g)[0] = 1+y
+            sage: s.display(g)
+            s = (y + 1) g_0
+            sage: s.display(f)
             Traceback (most recent call last):
             ...
             ValueError: no basis could be found for computing the components
-             in the Vector frame (M, (e_0,e_1))
+             in the Local frame (E|_M, (f_0,f_1))
 
         """
         if basis is None:
@@ -1840,17 +2052,17 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
     def add_comp(self, basis=None):
         r"""
-        Return the components of the tensor field in a given vector frame
-        for assignment.
+        Return the components of the section in a given local frame for
+        assignment.
 
         The components with respect to other frames on the same domain are
         kept. To delete them, use the method :meth:`set_comp` instead.
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the
+        - ``basis`` -- (default: ``None``) local frame in which the
           components are defined; if none is provided, the components are
-          assumed to refer to the tensor field domain's default frame
+          assumed to refer to the section module's default frame
 
         OUTPUT:
 
@@ -1860,46 +2072,47 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: X.<x,y> = M.chart()
-            sage: e_xy = X.frame()
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t.add_comp(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
-            sage: t.add_comp(e_xy)[1,0] = 2
-            sage: t.display(e_xy)
-            t = 2 d/dy*dx
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s.add_comp(e)
+            1-index components w.r.t. Local frame (E|_M, (e_0,e_1))
+            sage: s.add_comp(e)[0] = 2
+            sage: s.display(e)
+            s = 2 e_0
 
-        Adding components with respect to a new frame (``e``)::
+        Adding components with respect to a new frame (``f``)::
 
-            sage: e = M.vector_frame('e')
-            sage: t.add_comp(e)
-            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
-            sage: t.add_comp(e)[0,1] = x
-            sage: t.display(e)
-            t = x e_0*e^1
+            sage: f = E.local_frame('f')
+            sage: s.add_comp(f)
+            1-index components w.r.t. Local frame (E|_M, (f_0,f_1))
+            sage: s.add_comp(f)[0] = x
+            sage: s.display(f)
+            s = x f_0
 
-        The components with respect to the frame ``e_xy`` are kept::
+        The components with respect to the frame ``e`` are kept::
 
-            sage: t.display(e_xy)
-            t = 2 d/dy*dx
+            sage: s.display(e)
+            s = 2 e_0
 
         Adding components in a frame defined on a subdomain::
 
             sage: U = M.open_subset('U', coord_def={X: x>0})
-            sage: f = U.vector_frame('f')
-            sage: t.add_comp(f)
-            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
-            sage: t.add_comp(f)[0,1] = 1+y
-            sage: t.display(f)
-            t = (y + 1) f_0*f^1
+            sage: g = E.local_frame('g', domain=U)
+            sage: s.add_comp(g)
+            1-index components w.r.t. Local frame (E|_U, (g_0,g_1))
+            sage: s.add_comp(g)[0] = 1+y
+            sage: s.display(g)
+            s = (y + 1) g_0
 
         The components previously defined are kept::
 
-            sage: t.display(e_xy)
-            t = 2 d/dy*dx
-            sage: t.display(e)
-            t = x e_0*e^1
+            sage: s.display(e)
+            s = 2 e_0
+            sage: s.display(f)
+            s = x f_0
 
         """
         if basis is None:
@@ -1924,43 +2137,45 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
     def comp(self, basis=None, from_basis=None):
         r"""
-        Return the components in a given vector frame.
+        Return the components in a given local frame.
 
         If the components are not known already, they are computed by the
-        tensor change-of-basis formula from components in another vector frame.
+        tensor change-of-basis formula from components in another local frame.
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the components
+        - ``basis`` -- (default: ``None``) local frame in which the components
           are required; if none is provided, the components are assumed to
-          refer to the tensor field domain's default frame
-        - ``from_basis`` -- (default: ``None``) vector frame from which the
+          refer to the section module's default frame
+        - ``from_basis`` -- (default: ``None``) local frame from which the
           required components are computed, via the tensor change-of-basis
           formula, if they are not known already in the basis ``basis``
 
         OUTPUT:
 
-        - components in the vector frame ``basis``, as an instance of the
+        - components in the local frame ``basis``, as an instance of the
           class :class:`~sage.tensor.modules.comp.Components`
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', structure='top', start_index=1)
             sage: X.<x,y> = M.chart()
-            sage: t = M.tensor_field(1,2, name='t')
-            sage: t[1,2,1] = x*y
-            sage: t.comp(X.frame())
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
-            sage: t.comp()  # the default frame is X.frame()
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
-            sage: t.comp()[:]
-            [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
-            sage: e = M.vector_frame('e')
-            sage: t[e, 2,1,1] = x-3
-            sage: t.comp(e)
-            3-indices components w.r.t. Vector frame (M, (e_1,e_2))
-            sage: t.comp(e)[:]
-            [[[0, 0], [0, 0]], [[x - 3, 0], [0, 0]]]
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s[1] = x*y
+            sage: s.comp(e)
+            1-index components w.r.t. Local frame (E|_M, (e_1,e_2))
+            sage: s.comp()  # the default frame is e
+            1-index components w.r.t. Local frame (E|_M, (e_1,e_2))
+            sage: s.comp()[:]
+            [x*y, 0]
+            sage: f = E.local_frame('f')
+            sage: s[f, 1] = x-3
+            sage: s.comp(f)
+            1-index components w.r.t. Local frame (E|_M, (f_1,f_2))
+            sage: s.comp(f)[:]
+            [x - 3, 0]
 
         """
         if basis is None:
@@ -1985,57 +2200,51 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         - ``subdomain`` --
           :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`;
-          open subset `U` of the tensor field domain `S`
-        - ``dest_map`` --
-          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          (default: ``None``); destination map
-          `\Psi:\ U \rightarrow V`, where `V` is an open subset
-          of the manifold `M` where the tensor field takes it values;
-          if ``None``, the restriction of `\Phi` to `U` is used, `\Phi`
-          being the differentiable map `S \rightarrow M` associated
-          with the tensor field
+          open subset `U` of the section module domain `S`
 
         OUTPUT:
 
-        - instance of :class:`TensorFieldParal` representing the restriction
+        - instance of :class:`TrivialSection` representing the restriction
 
         EXAMPLES:
 
-        Restriction of a vector field defined on `\RR^2` to a disk::
+        Restriction of a section defined over `\RR^2` to a disk::
 
             sage: M = Manifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
-            sage: v = M.vector_field(x+y, -1+x^2, name='v')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(x+y, -1+x^2, name='s')
             sage: D = M.open_subset('D') # the unit open disc
+            sage: e_D = e.restrict(D)
             sage: c_cart_D = c_cart.restrict(D, x^2+y^2<1)
-            sage: v_D = v.restrict(D) ; v_D
-            Vector field v on the Open subset D of the 2-dimensional
-             differentiable manifold R^2
-            sage: v_D.display()
-            v = (x + y) d/dx + (x^2 - 1) d/dy
+            sage: s_D = s.restrict(D) ; s_D
+            Section s on the Open subset D of the 2-dimensional differentiable
+             manifold R^2 with values in the real vector bundle E of rank 2
+            sage: s_D.display(e_D)
+            s = (x + y) e_0 + (x^2 - 1) e_1
 
         The symbolic expressions of the components with respect to
         Cartesian coordinates are equal::
 
-            sage: bool( v_D[1].expr() == v[1].expr() )
+            sage: bool( s_D[1].expr() == s[1].expr() )
             True
 
         but neither the chart functions representing the components (they are
         defined on different charts)::
 
-            sage: v_D[1] == v[1]
+            sage: s_D[1] == s[1]
             False
 
         nor the scalar fields representing the components (they are
         defined on different open subsets)::
 
-            sage: v_D[[1]] == v[[1]]
+            sage: s_D[[1]] == s[[1]]
             False
 
-        The restriction of the vector field to its own domain is of
-        course itself::
+        The restriction of the section to its own domain is of course itself::
 
-            sage: v.restrict(M) is v
+            sage: s.restrict(M) is s
             True
 
         """
@@ -2111,122 +2320,76 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
         return self._restrictions[subdomain]
 
-    def display_comp(self, frame=None, chart=None, only_nonzero=True):
+    def display_comp(self, frame=None, chart=None, only_nonzero=False):
         r"""
-        Display the tensor components with respect to a given frame,
-        one per line.
+        Display the section components with respect to a given frame, one per
+        line.
 
         The output is either text-formatted (console mode) or LaTeX-formatted
         (notebook mode).
 
         INPUT:
 
-        - ``frame`` -- (default: ``None``) vector frame with respect to which
-          the tensor field components are defined; if ``None``, then
-
-          * if ``chart`` is not ``None``, the coordinate frame associated to
-            ``chart`` is used
-          * otherwise, the default basis of the vector field module on which
-            the tensor field is defined is used
-
+        - ``frame`` -- (default: ``None``) local frame with respect to which
+          the section components are defined; if ``None``, then the default
+          basis of the section module on which the section is defined is used
         - ``chart`` -- (default: ``None``) chart specifying the coordinate
           expression of the components; if ``None``, the default chart of the
-          tensor field domain is used
-        - ``coordinate_labels`` -- (default: ``True``) boolean; if ``True``,
-          coordinate symbols are used by default (instead of integers) as
-          index labels whenever ``frame`` is a coordinate frame
-        - ``only_nonzero`` -- (default: ``True``) boolean; if ``True``, only
+          section module domain is used
+        - ``only_nonzero`` -- (default: ``False``) boolean; if ``True``, only
           nonzero components are displayed
-        - ``only_nonredundant`` -- (default: ``False``) boolean; if ``True``,
-          only nonredundant components are displayed in case of symmetries
 
         EXAMPLES:
 
-        Display of the components of a type-`(2,1)` tensor field on a
-        2-dimensional manifold::
+        Display of the components of a section on a rank 4 vector bundle over
+        a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: X.<x,y> = M.chart()
-            sage: t = M.tensor_field(2, 1, name='t', sym=(0,1))
-            sage: t[0,0,0], t[0,1,0], t[1,1,1] = x+y, x*y, -3
-            sage: t.display_comp()
-            t^xx_x = x + y
-            t^xy_x = x*y
-            t^yx_x = x*y
-            t^yy_y = -3
+            sage: E = M.vector_bundle(3, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(name='s')
+            sage: s[0], s[2] = x+y, x*y
+            sage: s.display_comp()
+            s^0 = x + y
+            s^1 = 0
+            s^2 = x*y
 
-        By default, only the non-vanishing components are displayed;
-        to see all the components, the argument ``only_nonzero`` must
-        be set to ``False``::
+        By default, the vanishing components are displayed, too;
+        to see only non-vanishing components, the argument ``only_nonzero`` must
+        be set to ``True``::
 
-            sage: t.display_comp(only_nonzero=False)
-            t^xx_x = x + y
-            t^xx_y = 0
-            t^xy_x = x*y
-            t^xy_y = 0
-            t^yx_x = x*y
-            t^yx_y = 0
-            t^yy_x = 0
-            t^yy_y = -3
+            sage: s.display_comp(only_nonzero=True)
+            s^0 = x + y
+            s^2 = x*y
 
-        ``t`` being symmetric with respect to its first two indices, one
-        may ask to skip the components that can be deduced by symmetry::
+        Display in a frame different from the default one::
 
-            sage: t.display_comp(only_nonredundant=True)
-            t^xx_x = x + y
-            t^xy_x = x*y
-            t^yy_y = -3
-
-        Instead of coordinate labels, one may ask for integers::
-
-            sage: t.display_comp(coordinate_labels=False)
-            t^00_0 = x + y
-            t^01_0 = x*y
-            t^10_0 = x*y
-            t^11_1 = -3
-
-        Display in a frame different from the default one (note that
-        since ``f`` is not a coordinate frame, integer are used to
-        label the indices)::
-
-            sage: a = M.automorphism_field()
-            sage: a[:] = [[1+y^2, 0], [0, 2+x^2]]
-            sage: f = X.frame().new_frame(a, 'f')
-            sage: t.display_comp(frame=f)
-            t^00_0 = (x + y)/(y^2 + 1)
-            t^01_0 = x*y/(x^2 + 2)
-            t^10_0 = x*y/(x^2 + 2)
-            t^11_1 = -3/(x^2 + 2)
+            sage: a = E.section_module().automorphism()
+            sage: a[:] = [[1+y^2, 0, 0], [0, 2+x^2, 0], [0, 0, 1]]
+            sage: f = e.new_frame(a, 'f')
+            sage: s.display_comp(frame=f)
+            s^0 = (x + y)/(y^2 + 1)
+            s^1 = 0
+            s^2 = x*y
 
         Display with respect to a chart different from the default one::
 
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
             sage: Y_to_X = X_to_Y.inverse()
-            sage: t.display_comp(chart=Y)
-            t^uu_u = 1/4*u^2 - 1/4*v^2 + 1/2*u - 3/2
-            t^uu_v = 1/4*u^2 - 1/4*v^2 + 1/2*u + 3/2
-            t^uv_u = 1/2*u + 3/2
-            t^uv_v = 1/2*u - 3/2
-            t^vu_u = 1/2*u + 3/2
-            t^vu_v = 1/2*u - 3/2
-            t^vv_u = -1/4*u^2 + 1/4*v^2 + 1/2*u - 3/2
-            t^vv_v = -1/4*u^2 + 1/4*v^2 + 1/2*u + 3/2
-
-        Note that the frame defining the components is the coordinate frame
-        associated with chart ``Y``, i.e. we have::
-
-            sage: str(t.display_comp(chart=Y)) == str(t.display_comp(frame=Y.frame(), chart=Y))
-            True
+            sage: s.display_comp(chart=Y)
+            s^0 = u
+            s^1 = 0
+            s^2 = 1/4*u^2 - 1/4*v^2
 
         Display of the components with respect to a specific frame, expressed
         in terms of a specific chart::
 
-            sage: t.display_comp(frame=f, chart=Y)
-            t^00_0 = 4*u/(u^2 - 2*u*v + v^2 + 4)
-            t^01_0 = (u^2 - v^2)/(u^2 + 2*u*v + v^2 + 8)
-            t^10_0 = (u^2 - v^2)/(u^2 + 2*u*v + v^2 + 8)
-            t^11_1 = -12/(u^2 + 2*u*v + v^2 + 8)
+            sage: s.display_comp(frame=f, chart=Y)
+            s^0 = 4*u/(u^2 - 2*u*v + v^2 + 4)
+            s^1 = 0
+            s^2 = 1/4*u^2 - 1/4*v^2
 
         """
         from sage.misc.latex import latex
@@ -2239,120 +2402,52 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
                                   format_spec=chart,
                                   only_nonzero=only_nonzero)
 
+    #
+    # Doctest finished
+    #
+
     def at(self, point):
         r"""
         Value of ``self`` at a point of its domain.
 
-        If the current tensor field is
+        If the current section is
 
         .. MATH::
 
-            t:\ U  \longrightarrow T^{(k,l)} M
+            s:\ U  \longrightarrow E ,
 
-        associated with the differentiable map
-
-        .. MATH::
-
-            \Phi:\ U \longrightarrow M,
-
-        where `U` and `M` are two manifolds (possibly `U = M` and
-        `\Phi = \mathrm{Id}_M`), then for any point `p\in U`, `t(p)` is
-        a tensor on the tangent space to `M` at the point `\Phi(p)`.
+        then for any point `p\in U`, `s(p)` is
+        a vector in the fiber `E_p` of `E` at the point `p \in U`.
 
         INPUT:
 
         - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`
-          point `p` in the domain of the tensor field `U`
+          point `p` in the domain of the section `U`
 
         OUTPUT:
 
         - :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
-          representing the tensor `t(p)` on the tangent vector space
-          `T_{\Phi(p)} M`
+          representing the vector `s(p)` in the vector space `E_p`
 
         EXAMPLES:
 
         Vector in a tangent space of a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
-            sage: c_xy.<x,y> = M.chart()
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: X.<x,y> = M.chart()
             sage: p = M.point((-2,3), name='p')
-            sage: v = M.vector_field(y, x^2, name='v')
-            sage: v.display()
-            v = y d/dx + x^2 d/dy
-            sage: vp = v.at(p) ; vp
-            Tangent vector v at Point p on the 2-dimensional differentiable
-             manifold M
-            sage: vp.parent()
-            Tangent space at Point p on the 2-dimensional differentiable
-             manifold M
-            sage: vp.display()
-            v = 3 d/dx + 4 d/dy
-
-        A 1-form gives birth to a linear form in the tangent space::
-
-            sage: w = M.one_form(-x, 1+y, name='w')
-            sage: w.display()
-            w = -x dx + (y + 1) dy
-            sage: wp = w.at(p) ; wp
-            Linear form w on the Tangent space at Point p on the 2-dimensional
-             differentiable manifold M
-            sage: wp.parent()
-            Dual of the Tangent space at Point p on the 2-dimensional
-             differentiable manifold M
-            sage: wp.display()
-            w = 2 dx + 4 dy
-
-        A tensor field of type `(1,1)` yields a tensor of type `(1,1)`
-        in the tangent space::
-
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[0,0], t[0,1], t[1,1] = 1+x, x*y, 1-y
-            sage: t.display()
-            t = (x + 1) d/dx*dx + x*y d/dx*dy + (-y + 1) d/dy*dy
-            sage: tp = t.at(p) ; tp
-            Type-(1,1) tensor t on the Tangent space at Point p on the
-             2-dimensional differentiable manifold M
-            sage: tp.parent()
-            Free module of type-(1,1) tensors on the Tangent space at Point p
-             on the 2-dimensional differentiable manifold M
-            sage: tp.display()
-            t = -d/dx*dx - 6 d/dx*dy - 2 d/dy*dy
-
-        A 2-form yields an alternating form of degree 2 in the tangent space::
-
-            sage: a = M.diff_form(2, name='a')
-            sage: a[0,1] = x*y
-            sage: a.display()
-            a = x*y dx/\dy
-            sage: ap = a.at(p) ; ap
-            Alternating form a of degree 2 on the Tangent space at Point p on
-             the 2-dimensional differentiable manifold M
-            sage: ap.parent()
-            2nd exterior power of the dual of the Tangent space at Point p on
-             the 2-dimensional differentiable manifold M
-            sage: ap.display()
-            a = -6 dx/\dy
-
-        Example with a non trivial map `\Phi`::
-
-            sage: U = Manifold(1, 'U')  # (0,2*pi) as a 1-dimensional manifold
-            sage: T.<t> = U.chart(r't:(0,2*pi)')  # canonical chart on U
-            sage: Phi = U.diff_map(M, [cos(t), sin(t)], name='Phi',
-            ....:                  latex_name=r'\Phi')
-            sage: v = U.vector_field(1+t, t^2, name='v', dest_map=Phi) ; v
-            Vector field v along the 1-dimensional differentiable manifold U
-             with values on the 2-dimensional differentiable manifold M
-            sage: v.display()
-            v = (t + 1) d/dx + t^2 d/dy
-            sage: p = U((pi/6,))
-            sage: vp = v.at(p) ; vp
-            Tangent vector v at Point on the 2-dimensional differentiable
-             manifold M
-            sage: vp.parent() is M.tangent_space(Phi(p))
-            True
-            sage: vp.display()
-            v = (1/6*pi + 1) d/dx + 1/36*pi^2 d/dy
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # makes E trivial
+            sage: s = E.section(y, x^2, name='s')
+            sage: s.display()
+            s = y e_0 + x^2 e_1
+            sage: sp = s.at(p) ; sp
+            Vector s in the fiber of E at Point p on the 2-dimensional
+             topological manifold M
+            sage: sp.parent()
+            Fiber of E at Point p on the 2-dimensional topological manifold M
+            sage: sp.display()
+            s = 3 e_0 + 4 e_1
 
         """
         if point not in self._domain:

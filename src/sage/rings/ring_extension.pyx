@@ -375,7 +375,7 @@ class RingExtensionFactory(UniqueFactory):
         (constructor, kwargs) = constructors[-1]
         return constructor(defining_morphism, **kwargs)
 
-_RingExtension = RingExtensionFactory("RingExtension")
+_RingExtension = RingExtensionFactory("sage.rings.ring_extension._RingExtension")
 
 
 def RingExtension(*args, gen=None, gens=None, name=None, names=None):
@@ -448,7 +448,7 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
             raise TypeError("you must specify the name of the generator")
         names = normalize_names(1, names)
         constructors = [ (RingExtensionWithGen, {'gen': gen, 'names': names}) ]
-    else:
+    elif gen is not False:
         kwargs = { 'print_parent_as': print_parent_as, 'print_elements_as': print_elements_as }
         constructors = [ (RingExtension_class, kwargs) ]
         # we check if there is a canonical generator
@@ -583,8 +583,24 @@ cdef class RingExtension_class(CommutativeAlgebra):
         wrapper.__doc__ = method.__doc__
         return wrapper
 
+    def __dir__(self):
+        d = dir(self.__class__)
+        for name in dir(self._backend):
+            try:
+                attribute = getattr(self._backend, name)
+                if callable(attribute):
+                    d.append(name)
+            except:
+                pass
+        return sorted(set(d))
+
     def __hash__(self):
         return id(self)
+
+    def __reduce__(self):
+        (defining_morphism, gen, names) = self._factory_data[2]
+        constructors = self._factory_data[3]['constructors']
+        return _RingExtension, (constructors, defining_morphism, gen, names)
 
     def from_base_ring(self, r):
         r"""

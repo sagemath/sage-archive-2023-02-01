@@ -54,11 +54,10 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
     def __init__(self, RingExtension_class parent, x, *args, **kwds):
         if not isinstance(parent, RingExtension_class):
             raise TypeError("%s is not a ring extension" % parent)
-        if isinstance(x, RingExtensionElement):
-            x = (<RingExtensionElement>x)._backend
+        x = backend_element(x)
         try:
             parentx = x.parent()
-            if parent.base().has_coerce_map_from(parentx):
+            if parent._base.has_coerce_map_from(parentx):
                 x = parent._base.coerce_map_from(parentx)(x)
                 x = parent._backend_defining_morphism(x)
         except AttributeError:
@@ -66,6 +65,9 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         Element.__init__(self, parent)
         ring = parent._backend
         self._backend = ring(x, *args, **kwds)
+
+    def __reduce__(self):
+        return self._parent, (self._backend,)
 
     def __getattr__(self, name):
         method = None
@@ -80,8 +82,15 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         return wrapper
 
     def __dir__(self):
-        from sage.cpython.getattr import dir_with_other_class
-        return dir_with_other_class(self, self._backend.__class__)
+        d = dir(self.__class__)
+        for name in dir(self._backend):
+            try:
+                attribute = getattr(self._backend, name)
+                if callable(attribute):
+                    d.append(name)
+            except:
+                pass
+        return sorted(set(d))
 
     def __hash__(self):
         return hash(self._backend)

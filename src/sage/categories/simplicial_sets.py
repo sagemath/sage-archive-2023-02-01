@@ -15,7 +15,6 @@ from sage.categories.sets_cat import Sets
 from sage.categories.homsets import HomsetsCategory
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
-from sage.interfaces.gap import gap
 
 class SimplicialSets(Category_singleton):
     r"""

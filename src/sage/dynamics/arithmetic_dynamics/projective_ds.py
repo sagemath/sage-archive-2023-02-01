@@ -3347,8 +3347,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: f = DynamicalSystem_projective([x^2-x*y+y^2, x^2-y^2+x*y])
             sage: f.periodic_points(1)
-            [(-0.500000000000000? - 0.866025403784439?*I : 1),
-             (-0.500000000000000? + 0.866025403784439?*I : 1),
+            [(-0.50000000000000000? - 0.866025403784439?*I : 1),
+             (-0.50000000000000000? + 0.866025403784439?*I : 1),
              (1 : 1)]
 
         ::
@@ -3398,10 +3398,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: f = DynamicalSystem_projective([x^2+y^2,y^2])
             sage: f.periodic_points(2, R=QQbar, minimal=False)
-            [(-0.500000000000000? - 1.322875655532296?*I : 1),
-             (-0.500000000000000? + 1.322875655532296?*I : 1),
-             (0.500000000000000? - 0.866025403784439?*I : 1),
-             (0.500000000000000? + 0.866025403784439?*I : 1),
+            [(-0.50000000000000000? - 1.322875655532296?*I : 1),
+             (-0.50000000000000000? + 1.322875655532296?*I : 1),
+             (0.50000000000000000? - 0.866025403784439?*I : 1),
+             (0.50000000000000000? + 0.866025403784439?*I : 1),
              (1 : 0)]
 
         ::

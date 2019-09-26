@@ -205,7 +205,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         return ans
 
     cpdef _div_(self,other):
-        cdef RingExtensionElement and
+        cdef RingExtensionElement ans
         cdef RingExtension_class parent = self._parent
         if parent._fraction_field is None:
             parent._fraction_field = parent.fraction_field()

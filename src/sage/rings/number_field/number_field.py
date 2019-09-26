@@ -3758,7 +3758,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             # since the coefficients of f are in QQ, if there is a hom
             # from QQ to codomain it's probably unique and just the coercion
             if base_map is not None:
-                f = f.change_ring(base_map)
+                f = f.map_coefficients(base_map)
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False

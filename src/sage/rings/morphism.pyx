@@ -807,6 +807,23 @@ cdef class RingHomomorphism(RingMap):
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
+        We check that composition works when there is a base map::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = GF(7^2)
+            sage: L.<u> = K.extension(x^3 - 3)
+            sage: phi = L.hom([u^7], base_map=K.frobenius_endomorphism())
+            sage: phi
+            Ring endomorphism of Univariate Quotient Polynomial Ring in u over Finite Field in a of size 7^2 with modulus u^3 + 4
+              Defn: u |--> 2*u
+                    with map of base ring
+            sage: psi = phi^3; psi
+            Ring endomorphism of Univariate Quotient Polynomial Ring in u over Finite Field in a of size 7^2 with modulus u^3 + 4
+              Defn: u |--> u
+                    with map of base ring
+            sage: psi(a) == phi(phi(phi(a)))
+            True
+
         AUTHORS:
 
         - Simon King (2010-05)
@@ -818,8 +835,28 @@ cdef class RingHomomorphism(RingMap):
             return self
         if homset.homset_category().is_subcategory(Rings()):
             if isinstance(right, RingHomomorphism_im_gens):
+                rbm = right.base_map()
+                kwds = {'check': False}
+                if isinstance(self, RingHomomorphism_im_gens):
+                    sbm = self.base_map()
+                    if sbm is not None or rbm is not None:
+                        if rbm is None:
+                            rbm = right.codomain().base_ring().coerce_map_from(right.domain().base_ring())
+                            if rbm is None:
+                                rbm = right.codomain().coerce_map_from(right.domain().base_ring())
+                                if rbm is None:
+                                    raise ValueError("Unable to find base map coercion")
+                        if sbm is None:
+                            sbm = self.codomain().base_ring().coerce_map_from(rbm.codomain())
+                            if sbm is None:
+                                sbm = self.codomain().coerce_map_from(rbm.codomain())
+                                if sbm is None:
+                                    raise ValueError("Unable to find base map coercion")
+                        kwds['base_map'] = sbm * rbm
+                elif rbm is not None:
+                    kwds['base_map'] = self * rbm
                 try:
-                    return homset([self(g) for g in right.im_gens()], check=False)
+                    return homset([self(g) for g in right.im_gens()], **kwds)
                 except ValueError:
                     pass
             from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs

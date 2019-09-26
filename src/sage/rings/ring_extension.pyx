@@ -1108,7 +1108,10 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
     def _latex_extension(self):
         if self._name is None:
             return RingExtension_class._latex_extension(self)
-        return "%s[%s]" % (latex(self._base), self.latex_variable_names()[0])
+        if isinstance(self._base, RingExtension_class):
+            return "%s[%s]" % (self._base._latex_extension(), self.latex_variable_names()[0])
+        else:
+            return "%s[%s]" % (latex(self._base), self.latex_variable_names()[0])
 
     def modulus(self, var='x'):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

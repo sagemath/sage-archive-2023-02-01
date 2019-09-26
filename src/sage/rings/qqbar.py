@@ -700,6 +700,12 @@ class AlgebraicField_common(sage.rings.ring.Field):
         - [GCL1992]_ Section 8.8
         - https://trac.sagemath.org/attachment/ticket/25390/qqbar.pdf
 
+        .. TODO::
+
+        Investigate whether performance can be improved by testing if
+        the multivariate polynomial is actually univariate, and using
+        the univariate code if so.
+
         TESTS::
 
             sage: R.<x,y> = QQbar[]

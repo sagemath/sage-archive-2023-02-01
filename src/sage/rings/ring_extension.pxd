@@ -12,6 +12,9 @@ cdef class RingExtension_class(CommutativeAlgebra):
     cdef _backend_defining_morphism
     cdef dict _print_options
     cdef bint _import_methods
+    # For division
+    cdef RingExtension_class _fraction_field
+    cdef type _fraction_field_type
 
     cpdef is_defined_over(self, base)
     cpdef CommutativeRing _check_base(self, CommutativeRing base)

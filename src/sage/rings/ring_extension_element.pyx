@@ -9,6 +9,7 @@
 #****************************************************************************
 
 
+from sage.ext.stdsage cimport PY_NEW
 from sage.misc.cachefunc import cached_method
 from sage.cpython.getattr cimport AttributeErrorMessage
 from sage.misc.latex import latex
@@ -156,10 +157,16 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x+y).parent() is E
             True
         """
-        return self._parent(self._backend + (<RingExtensionElement>other)._backend)
+        cdef RingExtensionElement ans = PY_NEW(type(self))
+        ans._parent = self._parent
+        ans._backend = self._backend + (<RingExtensionElement>other)._backend
+        return ans
 
     cpdef _neg_(self):
-        return self._parent(-self._backend)
+        cdef RingExtensionElement ans = PY_NEW(type(self))
+        ans._parent = self._parent
+        ans._backend = -self._backend
+        return ans
 
     cpdef _sub_(self,other):
         r"""
@@ -174,7 +181,10 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x-y).parent() is E
             True
         """
-        return self._parent(self._backend - (<RingExtensionElement>other)._backend)
+        cdef RingExtensionElement ans = PY_NEW(type(self))
+        ans._parent = self._parent
+        ans._backend = self._backend - (<RingExtensionElement>other)._backend
+        return ans
 
     cpdef _mul_(self,other):
         r"""
@@ -189,13 +199,27 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: (x*y).parent() is E
             True
         """
-        return self._parent(self._backend * (<RingExtensionElement>other)._backend)
+        cdef RingExtensionElement ans = PY_NEW(type(self))
+        ans._parent = self._parent
+        ans._backend = self._backend * (<RingExtensionElement>other)._backend
+        return ans
 
     cpdef _div_(self,other):
-        return self._parent.fraction_field()(self._backend / (<RingExtensionElement>other)._backend)
+        cdef RingExtensionElement and
+        cdef RingExtension_class parent = self._parent
+        if parent._fraction_field is None:
+            parent._fraction_field = parent.fraction_field()
+            parent._fraction_field_type = <type>parent._fraction_field.element_class
+        ans = PY_NEW(parent._fraction_field_type)
+        ans._parent = parent._fraction_field
+        ans._backend = self._backend / (<RingExtensionElement>other)._backend
+        return ans
 
     cpdef _floordiv_(self, other):
-        return self._parent(self._backend // (<RingExtensionElement>other)._backend)
+        cdef RingExtensionElement ans = PY_NEW(type(self))
+        ans._parent = self._parent
+        ans._backend = self._backend // (<RingExtensionElement>other)._backend
+        return ans
 
     def sqrt(self, extend=True, all=False, name=None):
         return self._parent(self._backend.sqrt(extend, all, name))

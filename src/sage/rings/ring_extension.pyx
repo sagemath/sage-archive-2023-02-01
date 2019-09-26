@@ -1075,7 +1075,7 @@ cdef class RingExtensionWithBasis(RingExtension_class):
         else:
             gen = names = None
             constructor = RingExtensionFractionField
-            kwargs = { 'print_elements_as': self.fraction_field(extend_base=True) }
+            kwargs = { 'print_options': {'print_elements_as': self.fraction_field(extend_base=True)} }
         return _RingExtension([(constructor, kwargs)], defining_morphism, gen, names)
 
 
@@ -1145,5 +1145,5 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         else:
             gen = names = None
             constructor = RingExtensionFractionField
-            kwargs = { 'print_elements_as': self.fraction_field(extend_base=True) }
+            kwargs = { 'print_options': {'print_elements_as': self.fraction_field(extend_base=True)} }
         return _RingExtension([(constructor, kwargs)], defining_morphism, gen, names)

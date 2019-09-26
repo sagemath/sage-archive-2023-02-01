@@ -10,8 +10,7 @@ cdef class RingExtension_class(CommutativeAlgebra):
     cdef _backend
     cdef _defining_morphism
     cdef _backend_defining_morphism
-    cdef _print_parent_as
-    cdef _print_elements_as
+    cdef dict _print_options
     cdef bint _import_methods
 
     cpdef is_defined_over(self, base)
@@ -29,6 +28,7 @@ cdef class RingExtensionFractionField(RingExtension_class):
 cdef class RingExtensionWithBasis(RingExtension_class):
     cdef _basis
     cdef _basis_names
+    cdef _basis_latex_names
 
     cpdef _basis_over(self, CommutativeRing base)
     # cpdef _free_module(self, CommutativeRing base, bint map)

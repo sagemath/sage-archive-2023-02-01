@@ -11,6 +11,7 @@
 
 from sage.misc.cachefunc import cached_method
 from sage.cpython.getattr cimport AttributeErrorMessage
+from sage.misc.latex import latex
 
 from sage.structure.element cimport CommutativeAlgebraElement
 from sage.structure.element cimport Element
@@ -81,7 +82,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
     def __hash__(self):
         return hash(self._backend)
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return a string representation of this element
 
@@ -102,12 +103,12 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             'z4'
         """
         cdef RingExtension_class parent = self._parent
-        print_as = parent._print_elements_as
+        print_as = parent._print_options.get('print_elements_as')
         if print_as is not None:
             return str(print_as(self._backend))
-        return self._repr_()
+        return self._repr_extension()
 
-    def _repr_(self):
+    def _repr_extension(self):
         return str(self._backend)
 
     def _latex_(self):
@@ -130,8 +131,14 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: x._latex_()
             'z_{4}'
         """
-        from sage.misc.latex import latex
-        return str(latex(self._backend))
+        cdef RingExtension_class parent = self._parent
+        print_as = parent._print_options.get('print_elements_as')
+        if print_as is not None:
+            return latex(print_as(self._backend))
+        return self._latex_extension()
+
+    def _latex_extension(self):
+        return latex(self._backend)
 
     cpdef _richcmp_(left, right, int op):
         return left._backend._richcmp_(backend_element(right), op)
@@ -288,7 +295,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 #################
 
 cdef class RingExtensionFractionFieldElement(RingExtensionElement):
-    def _repr_(self):
+    def _repr_extension(self):
         num = self.numerator()
         denom = self.denominator()
         if denom == 1:
@@ -305,6 +312,17 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
             return "%s%s" % (num, sd)
         else:
             return "(%s)%s" % (num, sd)
+
+    def _latex_extension(self):
+        num = self.numerator()
+        denom = self.denominator()
+        if denom == -1:
+            denom = 1
+            num = -num
+        if denom == 1:
+            return str(latex(num))
+        else:
+            return "\\frac{%s}{%s}" % (latex(num), latex(denom))
 
     def numerator(self):
         ring = (<RingExtensionFractionField>self._parent)._ring
@@ -327,10 +345,21 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
     def __hash__(self):
         return hash(self._backend)
 
-    @cached_method
-    def _repr_(self):
-        names = (<RingExtensionWithBasis>self._parent)._basis_names
-        coeffs = self.vector()
+    def _repr_extension(self):
+        cdef RingExtensionWithBasis parent = self._parent
+        base = parent._print_options['base']
+        coeffs = self._vector(base)
+        names = parent._basis_names
+        b = parent._base
+        while b is not base:
+            new_names = [ ]
+            for y in names:
+                for x in (<RingExtensionWithBasis>b)._basis_names:
+                    if x == "": new_names.append(y)
+                    elif y == "": new_names.append(x)
+                    else: new_names.append(x + "*" + y)
+            names = new_names
+            b = (<RingExtensionWithBasis>b)._base
         s = ""
         for i in range(len(names)):
             if coeffs[i].is_zero(): continue
@@ -366,6 +395,51 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         if s == "": return "0"
         if s[0] == "(" and s[-1] == ")":
             s = s[1:-1]
+        return s
+
+    def _latex_(self):
+        cdef RingExtensionWithBasis parent = self._parent
+        base = parent._print_options['base']
+        coeffs = self._vector(base)
+        names = parent._basis_latex_names
+        b = parent._base
+        while b is not base:
+            names = [ x + y for y in names for x in (<RingExtensionWithBasis>b)._basis_latex_names ]
+            b = (<RingExtensionWithBasis>b)._base
+        s = ""
+        for i in range(len(names)):
+            if coeffs[i].is_zero(): continue
+            c = coeffs[i]
+            sign = 1
+            ss = ""
+            if c == 1:
+                pass
+            elif c == -1:
+                sign = -1
+            else:
+                atomic = c._is_atomic()
+                if not atomic and (-c)._is_atomic():
+                    c = -c
+                    sign = -sign
+                    atomic = True
+                sc = latex(c)
+                if atomic:
+                    ss += sc
+                else:
+                    ss += "\\left(" + sc + "\\right)"
+            if ss != "" and ss[0] == "-":
+                ss = ss[1:]
+                sign *= -1
+            if s == "":
+                if sign == -1: s = "-"
+            else:
+                s += " + " if sign == 1 else " - "
+            ss += names[i]
+            if ss == "": ss += "1"
+            s += ss
+        if s == "": return "0"
+        if s[:5] == "\\left(" and s[-6] == "\\right)":
+            s = s[5:-6]
         return s
 
     def vector(self, base=None):

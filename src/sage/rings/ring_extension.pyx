@@ -21,6 +21,7 @@ AUTHOR:
 
 from sage.misc.cachefunc import cached_method
 from sage.cpython.getattr cimport AttributeErrorMessage
+from sage.misc.latex import latex, latex_variable_name
 
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent cimport Parent
@@ -404,8 +405,8 @@ def RingExtension(*args, gen=None, gens=None, name=None, names=None):
         names = normalize_names(1, names)
         constructors = [ (RingExtensionWithGen, {'gen': gen, 'names': names}) ]
     elif gen is not False:
-        kwargs = { 'print_parent_as': print_parent_as, 'print_elements_as': print_elements_as }
-        constructors = [ (RingExtension_class, kwargs) ]
+        print_options = { 'print_parent_as': print_parent_as, 'print_elements_as': print_elements_as }
+        constructors = [ (RingExtension_class, { 'print_options': print_options }) ]
         # we check if there is a canonical generator
         # if so, we first try the constructor RingExtensionWithGen
         if ring.ngens() == 1:
@@ -466,7 +467,7 @@ cdef class RingExtension_class(CommutativeAlgebra):
     # (Is there a better solution to fix this issue?)
     Element = _element_constructor_ = RingExtensionElement
 
-    def __init__(self, defining_morphism, print_parent_as=None, print_elements_as=None, import_methods=True):
+    def __init__(self, defining_morphism, print_options={}, import_methods=True):
         r"""
         TESTS::
 
@@ -495,8 +496,9 @@ cdef class RingExtension_class(CommutativeAlgebra):
         self._backend = ring
         self._backend_defining_morphism = defining_morphism
         self._defining_morphism = RingExtensionHomomorphism(self._base.Hom(self), defining_morphism)
-        self._print_parent_as = print_parent_as
-        self._print_elements_as = print_elements_as
+        self._print_options = print_options.copy()
+        if 'over' not in self._print_options:
+            self._print_options['over'] = ZZ(0)
         self._import_methods = import_methods
         self._type = "Ring"
         if self._backend in Fields():
@@ -606,7 +608,21 @@ cdef class RingExtension_class(CommutativeAlgebra):
             raise TypeError("%s is not an element of the base of %s (= %s)" % (r, self._backend, self._base))
         return self.element_class(self, r)
 
-    def __repr__(self):
+    def print_options(self, **options):
+        for (name, value) in options.items():
+            method = None
+            if hasattr(self, '_print_option_' + name):
+                method = getattr(self, '_print_option_' + name)
+            if not callable(method):
+                raise ValueError("option '%s' does not exist" % name)
+            method(value)
+
+    def _print_option_over(self, over):
+        if over is not Infinity:
+            over = ZZ(over)
+        self._print_options['over'] = over
+
+    def _repr_(self, over=None):
         r"""
         Return a string representation of this extension.
 
@@ -621,15 +637,30 @@ cdef class RingExtension_class(CommutativeAlgebra):
             sage: E._repr_()
             'Finite Field in z4 of size 5^4 over its base'
         """
-        print_as = self._print_parent_as
+        print_as = self._print_options.get('print_parent_as')
+        if over is None:
+            over = self._print_options['over']
         if print_as is not None:
-            return str(print_as)
-        return self._repr_()
+            if isinstance(print_as, RingExtension_class):
+                return print_as._repr_(over=over)
+            else:
+                return str(print_as)
+        s = self._repr_extension()
+        if over is None or over == 0:
+            s += " over its base"
+        else:
+            s += " over "
+            base = self._base
+            if isinstance(base, RingExtension_class):
+                s += base._repr_(over=over-1)
+            else:
+                s += str(base)
+        return s
 
-    def _repr_(self):
-        return "%s over its base" % self._backend
+    def _repr_extension(self, over=False):
+        return str(self._backend)
 
-    def _latex_(self):
+    def _latex_(self, over=None):
         r"""
         Return a latex representation of this extension.
 
@@ -641,8 +672,26 @@ cdef class RingExtension_class(CommutativeAlgebra):
             sage: latex(E)
             \Bold{F}_{5^{4}}/\Bold{F}_{5^{2}}
         """
-        from sage.misc.latex import latex
-        return "%s/%s" % (latex(self._backend), latex(self._base))
+        print_as = self._print_options.get('print_parent_as')
+        if over is None:
+            over = self._print_options['over']
+        if print_as is not None:
+            if isinstance(print_as, RingExtension_class):
+                return print_as._latex_(over=over)
+            else:
+                return latex(print_as)
+        s = self._latex_extension()
+        if over > 0:
+            s += " / "
+            base = self._base
+            if isinstance(base, RingExtension_class):
+                s += base._latex_(over=over-1)
+            else:
+                s += latex(base)
+        return s
+
+    def _latex_extension(self):
+        return latex(self._backend)
 
     def _coerce_map_from_(self, other):
         cdef RingExtension_class right
@@ -906,14 +955,21 @@ cdef class RingExtensionFractionField(RingExtension_class):
     def ring(self):
         return self._ring
 
-    def _repr_(self):
-        if self._ring in Fields():
-            s = str(self._ring)
+    def _repr_extension(self):
+        if isinstance(self._ring, RingExtension_class):
+            sr = self._ring._repr_extension()
         else:
-            s = "Fraction field of %s" % self._ring
-        if not isinstance(self._ring, RingExtension_class):
-            s += " over its base"
-        return s
+            sr = str(self._ring)
+        if self._ring in Fields():
+            return sr
+        else:
+            return "Fraction Field of %s" % sr
+
+    def _latex_extension(self):
+        if self._ring in Fields():
+            return self._ring._latex_extension()
+        else:
+            return "\\mathrm{Frac}(%s)" % latex(self._ring)
 
 
 # Finite free extensions
@@ -940,12 +996,28 @@ cdef class RingExtensionWithBasis(RingExtension_class):
             if len(names) != len(self._basis):
                 raise ValueError("the number of names does not match the cardinality of the basis")
         self._basis_names = names
+        self._basis_latex_names = [ latex_variable_name(name) for name in names ]
         self._names = tuple(names)
         if check:
             try:
                 _ = self.free_module(map=True)
             except (ZeroDivisionError, ArithmeticError):
                 raise ValueError("the given family is not a basis")
+        if 'base' not in self._print_options:
+            self._print_options['base'] = self._base
+
+    def _print_option_base(self, base):
+        if 'print_elements_as' in self._print_options:
+            raise NotImplementedError("printing is handled by an external function or another parent")
+        base = self._check_base(base)
+        if base is self:
+            raise ValueError("base must be strict")
+        b = self._base
+        while b is not base:
+            if not isinstance(b, RingExtensionWithBasis):
+                raise NotImplementedError
+            b = b.base_ring()
+        self._print_options['base'] = base
 
     cpdef _degree_over(self, CommutativeRing base):
         if base is self:
@@ -976,7 +1048,7 @@ cdef class RingExtensionWithBasis(RingExtension_class):
             return self._basis[:]
         else:
             b = self._base._basis_over(base)
-            return [ x*y for y in b for x in self._basis ]
+            return [ x*y for x in self._basis for y in b ]
 
     def free_module(self, base=None, map=True):
         base = self._check_base(base)
@@ -1014,20 +1086,29 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         _, deg_domain, deg_codomain = _common_base(backend_base, defining_morphism.codomain(), True)
         degree = deg_codomain // deg_domain
         basis_names = [ "" ]
+        basis_latex_names = [ "" ]
         if degree == 1:
             self._name = None
         else:
             basis_names += [ self._name ] + [ "%s^%s" % (self._name, i) for i in range(2,degree) ]
+            latex_name = latex_variable_name(self._name)
+            basis_latex_names += [ latex_name ] + [ "%s^{%s}" % (latex_name, i) for i in range(2,degree) ]
         basis = [ gen ** i for i in range(degree) ]
         RingExtensionWithBasis.__init__(self, defining_morphism, basis, basis_names, check, **kwargs)
         self._gen = self._backend(gen)
         self._names = (self._name,)
+        self._latex_names = (latex_variable_name(self._name),)
+        self._basis_latex_names = basis_latex_names
 
-    def _repr_(self, base=None):
+    def _repr_extension(self):
         if self._name is None:
-            return "%s over its base" % self._backend
-        else:
-            return "%s in %s with defining polynomial %s over its base" % (self._type, self._name, self.modulus())
+            return RingExtension_class._repr_extension(self)
+        return "%s in %s with defining polynomial %s" % (self._type, self._name, self.modulus())
+
+    def _latex_extension(self):
+        if self._name is None:
+            return RingExtension_class._latex_extension(self)
+        return "%s[%s]" % (latex(self._base), self.latex_variable_names()[0])
 
     def modulus(self, var='x'):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

@@ -1034,6 +1034,23 @@ cdef extern from "singular/polys/prCopy.h":
 
     cdef int LANG_TOP
 
+cdef extern from "singular/polys/sbuckets.h":
+    ctypedef struct sBucket:
+        pass
+    sBucket *sBucketCreate(ring *r)
+    void sBucketClearMerge(sBucket *bucket, poly **p, int *length)
+    void sBucketClearAdd(sBucket *bucket, poly **p, int *length)
+    void sBucketDestroyMerge(sBucket *bucket, poly **p, int *length)
+    void sBucketDestroyAdd(sBucket *bucket, poly *p, int *length)
+    void sBucketDeleteAndDestroy(sBucket **bucket_pt);
+    void sBucket_Merge_p(sBucket *bucket, poly *p, int lp);
+    void sBucket_Merge_m(sBucket *bucket, poly *p);
+
+    void sBucket_Add_p(sBucket *bucket, poly *p, int lp);
+    void sBucket_Add_m(sBucket *bucket, poly *p);
+    poly *sBucketSortMerge(poly *p, const ring *r);
+    poly *sBucketSortAdd(poly *p, const ring *r);
+
 cdef extern from "singular/polys/nc/nc.h":
     # Non-commutative functions
     ctypedef enum nc_type:

@@ -182,7 +182,8 @@ from sage.cpython.string cimport char_to_str, str_to_bytes
 
 # singular types
 from sage.libs.singular.decl cimport (ring, poly, ideal, intvec, number,
-    currRing, n_unknown, n_Z, n_Zn, n_Znm, n_Z2m)
+    currRing, n_unknown, n_Z, n_Zn, n_Znm, n_Z2m, sBucket, sBucketCreate,
+    sBucket_Merge_m, sBucketClearMerge, sBucketDeleteAndDestroy)
 
 # singular functions
 from sage.libs.singular.decl cimport (
@@ -788,10 +789,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
         cdef int i, j
-        cdef list ind_map = []
         cdef int e
-        cdef poly ** termlist
-        cdef int n_terms
+        cdef list ind_map = []
+        cdef sBucket *bucket
+
         if _ring!=currRing: rChangeCurrRing(_ring)
 
         base_ring = self.base_ring()
@@ -817,7 +818,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         elif isinstance(element, MPolynomial_polydict):
             if element.parent() == self:
                 _p = p_ISet(0, _ring)
-                # this look needs improvement
+                # this loop needs improvement
                 for (m,c) in element.element().dict().iteritems():
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, sa2si(c, _ring), _ring)
@@ -990,16 +991,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             if len(element)==0:
                 _p = p_ISet(0, _ring)
             else:
-                termlist = <poly**>sig_malloc(len(element)*sizeof(poly*))
-                n_terms = 0
+                bucket = sBucketCreate(_ring)
                 try:
                     #this loop needs improvement
                     for (m,c) in element.iteritems():
                         if check:
-                            try:
-                                c = base_ring(c)
-                            except TypeError:
-                                raise
+                            c = base_ring(c)
                         if not c:
                             continue
                         mon = p_Init(_ring)
@@ -1011,23 +1008,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                                 overflow_check(m[pos], _ring)
                                 p_SetExp(mon, pos+1, m[pos], _ring)
                         p_Setm(mon, _ring)
-                        termlist[n_terms] = mon
-                        n_terms += 1
-                    j = 0
-                    while n_terms > 1:
-                        n_terms -= 1
-                        if j > 0:
-                            j -= 1
-                        else:
-                            j = n_terms // 2
-                        termlist[j] = p_Add_q(termlist[j], termlist[n_terms], _ring)
-                    n_terms -= 1
-                    _p = termlist[n_terms]
-                finally:
-                    for i in range(n_terms):
-                        p_Delete(&(termlist[i]), _ring)
-                    sig_free(termlist)
-
+                        sBucket_Merge_m(bucket, mon)
+                        e=0
+                    sBucketClearMerge(bucket, &_p, &e)
+                except TypeError:
+                    sBucketDeleteAndDestroy(&bucket)
+                    raise
             return new_MP(self, _p)
 
         try: #if hasattr(element,'_polynomial_'):

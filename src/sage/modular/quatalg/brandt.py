@@ -207,7 +207,6 @@ from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule,
                                     HeckeModuleElement)
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all import MatrixSpace, matrix
-from sage.misc.mrange import cartesian_product_iterator
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.cachefunc import cached_method
 
@@ -282,7 +281,7 @@ def BrandtModule(N, M=1, weight=2, base_ring=QQ, use_cache=True):
         raise NotImplementedError("Brandt modules currently only implemented when N is a prime")
     if M < 1:
         raise ValueError("M must be positive")
-    if gcd(M, N) != 1:
+    if M.gcd(N) != 1:
         raise ValueError("M must be coprime to N")
     if weight < 2:
         raise ValueError("weight must be at least 2")
@@ -447,14 +446,14 @@ def right_order(R, basis):
 def quaternion_order_with_given_level(A, level):
     """
     Return an order in the quaternion algebra A with given level.
-    (Implemented only when the base field is the rational numbers.)
+
+    This is implemented only when the base field is the rational numbers.
 
     INPUT:
 
     - ``level`` -- The level of the order to be returned. Currently this
       is only implemented when the level is divisible by at
-      most one power of a prime that ramifies in this
-      quaternion algebra.
+      most one power of a prime that ramifies in this quaternion algebra.
 
     EXAMPLES::
 
@@ -482,16 +481,16 @@ def quaternion_order_with_given_level(A, level):
     M1 = level / N1
 
     O = maximal_order(A)
-    if False and N1 != 1:
-        # we don't know why magma does the following, so we don't do it.
-        for p in A.ramified_primes():
-            if level % p**2 == 0:
-                raise NotImplementedError("Currently sage can only compute orders whose level is divisible by at most one power of any prime that ramifies in the quaternion algebra")
+    # if N1 != 1:
+    #     # we do not know why magma does the following, so we do not do it.
+    #     for p in A.ramified_primes():
+    #         if not (level % p**2):
+    #             raise NotImplementedError("Currently sage can only compute orders whose level is divisible by at most one power of any prime that ramifies in the quaternion algebra")
 
-        P = basis_for_left_ideal(O, [N1] + [x * y - y * x
-                                            for x in A.basis()
-                                            for y in A.basis()])
-        O = A.quaternion_order(P)
+    #     P = basis_for_left_ideal(O, [N1] + [x * y - y * x
+    #                                         for x in A.basis()
+    #                                         for y in A.basis()])
+    #     O = A.quaternion_order(P)
 
     fact = factor(M1)
     B = O.basis()
@@ -881,7 +880,7 @@ class BrandtModule_class(AmbientHeckeModule):
         """
         if not Integer(p).is_prime():
             raise ValueError("p must be a prime")
-        if self.level() % p == 0:
+        if not(self.level() % p):
             raise ValueError("p must be coprime to the level")
 
         R = self.order_of_level_N()
@@ -927,7 +926,7 @@ class BrandtModule_class(AmbientHeckeModule):
                     v = [A(1), alpha, beta, alpha * beta]
                     M = rational_matrix_from_rational_quaternions(v)
                     e = M.determinant()
-                    if e and (d / e).valuation(p) == 0:
+                    if e and not((d / e).valuation(p)):
                         S = A.quaternion_order(v)
                         break
                 if S is not None:
@@ -1182,7 +1181,7 @@ class BrandtModule_class(AmbientHeckeModule):
         for r in range(len(C)):
             percent_done = 100 * r // len(C)
             if percent_done != last_percent:
-                if percent_done % 5 == 0:
+                if not(percent_done % 5):
                     verbose("percent done: %s" % percent_done)
                 last_percent = percent_done
             if use_fast_alg:
@@ -1301,7 +1300,7 @@ class BrandtModule_class(AmbientHeckeModule):
         """
         level = self.level()
         p = ZZ(2)
-        while level % p == 0:
+        while not(level % p):
             p = next_prime(p)
         return p
 
@@ -1560,7 +1559,7 @@ class BrandtModule_class(AmbientHeckeModule):
         p = Integer(2)
         N = self.level()
         while V.dimension() >= 2:
-            while N % p == 0:
+            while not(N % p):
                 p = p.next_prime()
             A = V.T(p) - (p + 1)
             V = A.kernel()
@@ -1568,7 +1567,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
     def is_cuspidal(self):
         r"""
-        Returns whether ``self`` is cuspidal, i.e. has no Eisenstein part.
+        Return whether ``self`` is cuspidal, i.e. has no Eisenstein part.
 
         EXAMPLES::
 

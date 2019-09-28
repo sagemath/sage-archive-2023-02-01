@@ -96,7 +96,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
         def numerator(self):
             """
-            Return the numerator of this element, normalized is such a
+            Return the numerator of this element, normalized in such a
             way that `x = x.numerator() / x.denominator()` always holds
             true.
 
@@ -251,7 +251,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
 
         def numerator(self):
             """
-            Return the numerator of this element, normalized is such a
+            Return the numerator of this element, normalized in such a
             way that `x = x.numerator() / x.denominator()` always holds
             true.
 

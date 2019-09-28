@@ -817,16 +817,21 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
         elif isinstance(element, MPolynomial_polydict):
             if element.parent() == self:
-                _p = p_ISet(0, _ring)
-                # this loop needs improvement
-                for (m,c) in element.element().dict().iteritems():
-                    mon = p_Init(_ring)
-                    p_SetCoeff(mon, sa2si(c, _ring), _ring)
-                    for pos in m.nonzero_positions():
-                        overflow_check(m[pos], _ring)
-                        p_SetExp(mon, pos+1, m[pos], _ring)
-                    p_Setm(mon, _ring)
-                    _p = p_Add_q(_p, mon, _ring)
+                bucket = sBucketCreate(_ring)
+                try:
+                    for (m,c) in element.element().dict().iteritems():
+                        mon = p_Init(_ring)
+                        p_SetCoeff(mon, sa2si(c, _ring), _ring)
+                        for pos in m.nonzero_positions():
+                            overflow_check(m[pos], _ring)
+                            p_SetExp(mon, pos+1, m[pos], _ring)
+                        p_Setm(mon, _ring)
+                        sBucket_Merge_m(bucket, mon)
+                    e=0
+                    sBucketClearMerge(bucket, &_p, &e)
+                except:
+                     sBucketDeleteAndDestroy(&bucket)
+                     raise
                 return new_MP(self, _p)
             elif element.parent().ngens() == 0:
                 # zero variable polynomials
@@ -930,24 +935,26 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
             if element.parent().ngens() <= self.ngens():
                 # Map variables by indices
-                _p = p_ISet(0, _ring)
+                bucket = sBucketCreate(_ring)
                 # this loop needs improvement
-                for (m,c) in element.element().dict().iteritems():
-                    if check:
-                        try:
+                try:
+                    for (m,c) in element.element().dict().iteritems():
+                        if check:
                             c = base_ring(c)
-                        except TypeError:
-                            p_Delete(&_p, _ring)
-                            raise
-                    if not c:
-                        continue
-                    mon = p_Init(_ring)
-                    p_SetCoeff(mon, sa2si(c , _ring), _ring)
-                    for pos in m.nonzero_positions():
-                        overflow_check(m[pos], _ring)
-                        p_SetExp(mon, ind_map[pos], m[pos], _ring)
-                    p_Setm(mon, _ring)
-                    _p = p_Add_q(_p, mon, _ring)
+                        if not c:
+                            continue
+                        mon = p_Init(_ring)
+                        p_SetCoeff(mon, sa2si(c , _ring), _ring)
+                        for pos in m.nonzero_positions():
+                            overflow_check(m[pos], _ring)
+                            p_SetExp(mon, ind_map[pos], m[pos], _ring)
+                        p_Setm(mon, _ring)
+                        sBucket_Merge_m(bucket, mon)
+                    e=0
+                    sBucketClearMerge(bucket, &_p, &e)
+                except TypeError:
+                    sBucketDeleteAndDestroy(&bucket)
+                    raise
                 return new_MP(self, _p)
 
         from sage.rings.polynomial.pbori import BooleanPolynomial
@@ -1009,7 +1016,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                                 p_SetExp(mon, pos+1, m[pos], _ring)
                         p_Setm(mon, _ring)
                         sBucket_Merge_m(bucket, mon)
-                        e=0
+                    e=0
                     sBucketClearMerge(bucket, &_p, &e)
                 except TypeError:
                     sBucketDeleteAndDestroy(&bucket)
@@ -5529,26 +5536,33 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     cdef poly *m
     cdef poly *p
     cdef int _i, _e
-    p = p_ISet(0,r)
+    cdef int ln
+    cdef sBucket *bucket
+
     rChangeCurrRing(r)
-    for mon,c in d.iteritems():
-        m = p_Init(r)
-        for i,e in mon.sparse_iter():
-            _i = i
-            if _i >= r.N:
-                p_Delete(&p, r)
-                p_Delete(&m, r)
-                raise TypeError("variable index too big")
-            _e = e
-            if _e <= 0:
-                p_Delete(&p, r)
-                p_Delete(&m, r)
-                raise TypeError("exponent too small")
-            overflow_check(_e, r)
-            p_SetExp(m, _i+1, _e, r)
-        p_SetCoeff(m, sa2si(c, r), r)
-        p_Setm(m, r)
-        p = p_Add_q(p, m, r)
+    bucket = sBucketCreate(r)
+    try:
+        for mon,c in d.iteritems():
+            m = p_Init(r)
+            for i,e in mon.sparse_iter():
+                _i = i
+                if _i >= r.N:
+                    p_Delete(&m, r)
+                    raise TypeError("variable index too big")
+                _e = e
+                if _e <= 0:
+                    p_Delete(&m, r)
+                    raise TypeError("exponent too small")
+                overflow_check(_e, r)
+                p_SetExp(m, _i+1, _e, r)
+            p_SetCoeff(m, sa2si(c, r), r)
+            p_Setm(m, r)
+            sBucket_Merge_m(bucket, m)
+        ln=0
+        sBucketClearMerge(bucket, &p, &ln)
+    except:
+        sBucketDeleteAndDestroy(&bucket)
+        raise
     return new_MP(R, p)
 
 

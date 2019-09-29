@@ -826,8 +826,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                             overflow_check(m[pos], _ring)
                             p_SetExp(mon, pos+1, m[pos], _ring)
                         p_Setm(mon, _ring)
+                        #we can use "_m" because we're merging a monomial and
+                        #"Merge" because this monomial is different from the rest 
                         sBucket_Merge_m(bucket, mon)
                     e=0
+                    #we can use "Merge" because the monomials are distinct
                     sBucketClearMerge(bucket, &_p, &e)
                 except:
                      sBucketDeleteAndDestroy(&bucket)
@@ -934,9 +937,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 ind_map = [i+1 for i in range(_ring.N)]
 
             if element.parent().ngens() <= self.ngens():
-                # Map variables by indices
                 bucket = sBucketCreate(_ring)
-                # this loop needs improvement
                 try:
                     for (m,c) in element.element().dict().iteritems():
                         if check:
@@ -1000,7 +1001,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             else:
                 bucket = sBucketCreate(_ring)
                 try:
-                    #this loop needs improvement
                     for (m,c) in element.iteritems():
                         if check:
                             c = base_ring(c)

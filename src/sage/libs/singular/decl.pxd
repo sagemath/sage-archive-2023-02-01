@@ -1035,20 +1035,49 @@ cdef extern from "singular/polys/prCopy.h":
     cdef int LANG_TOP
 
 cdef extern from "singular/polys/sbuckets.h":
+    #sBucket is actually a class, but we handle it opaquely, so we call it a "struct" here.
     ctypedef struct sBucket:
         pass
+    
+    #create an sBucket
     sBucket *sBucketCreate(ring *r)
+    
+    #merge contents of sBucket into polynomial and clear bucket
+    #(use when monomials are distinct).
+    #assumes length <= 0 || pLength(p) == length
     void sBucketClearMerge(sBucket *bucket, poly **p, int *length)
+    
+    #add contents of sBuctet into polynomial an clear bucket
+    #(can handle repeated monomials)
     void sBucketClearAdd(sBucket *bucket, poly **p, int *length)
+
+    #inline versions that in addition clear the pointer bucket afterwards
     void sBucketDestroyMerge(sBucket *bucket, poly **p, int *length)
     void sBucketDestroyAdd(sBucket *bucket, poly *p, int *length)
+    
+    #delete bucket constant and clear pointer
     void sBucketDeleteAndDestroy(sBucket **bucket_pt);
+    
+    #merge p into bucket (distinct monomials assumed)
+    #destroys poly in the process
     void sBucket_Merge_p(sBucket *bucket, poly *p, int lp);
+
+    #merge p into bucket  (distinct monomials assumed)
+    #destroys poly in the process
     void sBucket_Merge_m(sBucket *bucket, poly *p);
 
+    #adds p into bucket (distinct monomials assumed)
+    #destroys poly in the process
     void sBucket_Add_p(sBucket *bucket, poly *p, int lp);
+
+    #adds p into bucket (distinct monomials assumed)
+    #destroys poly in the process
     void sBucket_Add_m(sBucket *bucket, poly *p);
+
+    #sorts p with bucketSort: assumes all monomials of p are different
     poly *sBucketSortMerge(poly *p, const ring *r);
+
+    #sorts p with bucketSort: p may have equal monomials
     poly *sBucketSortAdd(poly *p, const ring *r);
 
 cdef extern from "singular/polys/nc/nc.h":

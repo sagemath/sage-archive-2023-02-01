@@ -123,6 +123,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 include "sage/libs/ntl/decl.pxi"
 
+from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.element cimport Element
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -145,6 +146,7 @@ from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.all import IntegerModRing
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_FM_Eis
 from sage.misc.superseded import deprecated_function_alias, deprecation
+
 
 cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec=None, relprec=None, empty=False):
@@ -431,7 +433,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ans.prime_pow = self.prime_pow
         return ans
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         First compare valuations, then compare the values.
 
@@ -453,18 +455,18 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         cdef long x_ordp = _left.valuation_c()
         cdef long y_ordp = _right.valuation_c()
         if x_ordp < y_ordp:
-            return -1
+            return rich_to_bool(op, -1)
         elif x_ordp > y_ordp:
-            return 1
+            return rich_to_bool(op, 1)
         else:  # equal ordp
             _left.prime_pow.restore_top_context()
             if x_ordp == left.prime_pow.ram_prec_cap:
-                return 0 # since both are zero
+                return rich_to_bool(op, 0)  # since both are zero
             elif _left.value == _right.value:
-                return 0
+                return rich_to_bool(op, 0)
             else:
                 # for now just return 1
-                return 1
+                return rich_to_bool(op, 1)
 
     def __invert__(self):
         """

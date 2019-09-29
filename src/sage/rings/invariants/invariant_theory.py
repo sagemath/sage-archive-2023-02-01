@@ -114,7 +114,7 @@ from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.cachefunc import cached_method
-from sage.rings.invariants.reconstruction import binary_polynomial_from_invariants
+import sage.rings.invariants.reconstruction as reconstruction
 
 
 ######################################################################
@@ -961,6 +961,29 @@ class QuadraticForm(AlgebraicForm):
         super(QuadraticForm, self).__init__(n, 2, polynomial, *args)
 
 
+    @classmethod
+    def from_invariants(cls, discriminant, x, z, *args, **kwargs):
+        """
+        Construct a binary quadratic from its discriminant.
+
+        This function constructs a binary quadratic whose discriminant equal
+        the one provided as argument up to scaling.
+
+        OUTPUT:
+        A QuadraticForm with 2 variables.
+
+        TESTS::
+
+            sage: R.<x,y> = QQ[]
+            sage: from sage.rings.invariants.invariant_theory import QuadraticForm
+            sage: QuadraticForm.from_invariants(1, x, y)
+            Binary quadratic with coefficients (1, -1/4, 0)
+        """
+        coeffs = reconstruction.binary_quadratic_coefficients_from_invariants(discriminant, *args, **kwargs)
+        polynomial = sum([coeffs[i]*x**(2-i)*z**i for i in range(3)])
+        return cls(2, 2, polynomial, *args)
+
+
     @cached_method
     def monomials(self):
         """
@@ -1633,12 +1656,34 @@ class BinaryQuintic(AlgebraicForm):
         self._x = self._variables[0]
         self._y = self._variables[1]
 
+    @classmethod
+    def from_invariants(cls, invariants, x, z, *args, **kwargs):
+        """
+        Construct a binary quintic from its invariants.
+
+        This function constructs a binary quintic whose invariants equal
+        the ones provided as argument up to scaling.
+
+        OUTPUT:
+        A BinaryQuintic.
+
+        TESTS::
+
+            sage: R.<x,y> = QQ[]
+            sage: from sage.rings.invariants.invariant_theory import BinaryQuintic
+            sage: BinaryQuintic.from_invariants([3,6,12], x, y)
+            Binary quintic with coefficients (0, 1, 0, 0, 1, 0)
+        """
+        coeffs = reconstruction.binary_quintic_coefficients_from_invariants(invariants, *args, **kwargs)
+        polynomial = sum([coeffs[i]*x**i*z**(5-i) for i in range(6)])
+        return cls(2, 5, polynomial, *args)
+
     @cached_method
     def monomials(self):
         """
         List the basis monomials of the form.
 
-        This functions lists a basis of monomials of the space of binary
+        This function lists a basis of monomials of the space of binary
         quintics of which this form is an element.
 
         OUTPUT:
@@ -2417,9 +2462,11 @@ class BinaryQuintic(AlgebraicForm):
         """
         clebsch = self.clebsch_invariants(as_tuple=True)
         if reduce_gcd:
-            return invariant_theory.binary_form_from_invariants(5, clebsch, scaling='coprime')
+            return invariant_theory.binary_form_from_invariants(5, clebsch,
+                                variables=self.variables(), scaling='coprime')
         else:
-            return invariant_theory.binary_form_from_invariants(5, clebsch, scaling='normalized')
+            return invariant_theory.binary_form_from_invariants(5, clebsch,
+                                variables=self.variables(), scaling='normalized')
 
 
 ######################################################################
@@ -4252,50 +4299,173 @@ can then be queried for invariant and covariants. For example,
         """
         return BinaryQuintic(2, 5, quintic, *args, **kwds)
 
-    def binary_form_from_invariants(self, degree, invariants, *args, **kwds):
-        """
-        Construct binary form from invariant values.
-
-        Constructs a binary form based on the given invariants. For a more
-        detailed description, see :mod:`~sage.rings.invariant_theory.reconstruction`
+    def binary_form_from_invariants(self, degree, invariants, variables=None, as_form=True, *args, **kwargs):
+        r"""
+        Reconstruct a binary form from the values of its invariants.
 
         INPUT:
 
-        - ``degree`` -- The degree of the binary form.
+        - ``degree`` --  The degree of the binary form.
 
-        - ``invariants`` -- A list or tuple of values of the invariants of the
+        - ``invariants`` --  A list or tuple of values of the invariants of the
           binary form.
 
-        REFERENCES:
+        - ``invariant_choice`` --  The type of invariants provided. For degree 2
+          or 3, the default choice is the discriminant. For degree 5, the default
+          option is clebsch invariants.
 
-        - :wikipedia:`Invariant_of_a_binary_form`
+        - ``as_form`` --  boolean. If ``False``, the function will return a tuple
+          of coefficients of a binary form.
 
-        EXAMPLES::
+        OUTPUT:
 
-            invariant_theory.binary_form_from_invariants(5, [1,3,2])
-            Binary quintic with coefficients (67618020872076774263589747/4398046511104,
-            -985685435453014202093145/1099511627776, 957906156902832072005/34359738368,
-            0, -8142067989552245/134217728, 4747561509943/6291456)
-            sage: invariant_theory.binary_form_from_invariants(3, [1])
-            Warning: Construction of binary forms of degree 3 is not implemented; a polynomial was returned.
-            x^2*z - x*z^2
-            sage: discriminant = 17
-            sage: invariant_theory.binary_form_from_invariants(2, (discriminant,)).discriminant() == discriminant
+        A binary form or a tuple of its coefficients, whose invariants are equal
+        to the given ``invariants`` up to a scaling.
+
+        EXAMPLES:
+
+        In the case of binary quadratics and cubics, the form is reconstructed
+        based on the value of the discriminant. See also
+        :meth:`binary_quadratic_coefficients_from_invariants` and
+        :meth:`binary_cubic_coefficients_from_invariants`. These methods will always return the
+        same result if the discriminant is non-zero::
+
+            sage: discriminant = 1
+            sage: invariant_theory.binary_form_from_invariants(2, [discriminant])
+            Binary quadratic with coefficients (1, -1/4, 0)
+            sage: invariant_theory.binary_form_from_invariants(3, [discriminant], as_form=false)
+            (0, 1, -1, 0)
+
+        For binary cubics, there is no class implemented yet, so ``as_form=true``
+        will yield an ``NotImplementedError``::
+
+            sage: invariant_theory.binary_form_from_invariants(3, [discriminant])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: No class for binary cubics implemented
+
+        For binary quintics, the three Clebsch invariants of the form should be
+        provided to reconstruct the form. For more details about these invariants,
+        see :meth:`~sage.rings.invariants.invariant_theory.BinaryQuintic.clebsch_invariants`::
+
+            sage: invariants = [1, 0, 0]
+            sage: invariant_theory.binary_form_from_invariants(5, invariants)
+            Binary quintic with coefficients (1, 0, 0, 0, 0, 1)
+
+        An optional ``scaling`` argument may be provided in order to scale the
+        resulting quintic. For more details, see :meth:`binary_quintic_coefficients_from_invariants`::
+
+            sage: invariants = [3, 4, 7]
+            sage: invariant_theory.binary_form_from_invariants(5, invariants)
+            Binary quintic with coefficients (-37725479487783/1048576,
+            565882192316745/8388608, 0, 1033866765362693115/67108864,
+            12849486940936328715/268435456, -23129076493685391687/2147483648)
+            sage: invariant_theory.binary_form_from_invariants(5, invariants, scaling='normalized')
+            Binary quintic with coefficients (24389/892616806656,
+            4205/11019960576, 0, 1015/209952, -145/1296, -3/16)
+            sage: invariant_theory.binary_form_from_invariants(5, invariants, scaling='coprime')
+            Binary quintic with coefficients (-2048, 3840, 0, 876960, 2724840,
+            -613089)
+
+        The invariants can also be computed using the invariants of a given binary
+        quintic. The resulting form has the same invariants up to scaling, is
+        `GL(2,\QQ)`-equivalent to the provided form and hence has the same
+        canonical form (see
+        :meth:`~sage.rings.invariants.invariant_theory.BinaryQuintic.canonical_form`)::
+
+            sage: R.<x0, x1> = QQ[]
+            sage: p = 3*x1^5 + 6*x1^4*x0 + 3*x1^3*x0^2 + 4*x1^2*x0^3 - 5*x1*x0^4 + 4*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: invariants = quintic.clebsch_invariants(as_tuple=True)
+            sage: newquintic = invariant_theory.binary_form_from_invariants(5, invariants, variables=quintic.variables())
+            sage: newquintic
+            Binary quintic with coefficients (9592267437341790539005557/244140625000000,
+            2149296928207625556323004064707/610351562500000000,
+            11149651890347700974453304786783/76293945312500000,
+            122650775751894638395648891202734239/47683715820312500000,
+            323996630945706528474286334593218447/11920928955078125000,
+            1504506503644608395841632538558481466127/14901161193847656250000)
+            sage: quintic.canonical_form() == newquintic.canonical_form()
             True
 
-        """
+        For binary forms of other degrees, no reconstruction has been
+        implemented yet. For forms of degree 6, see :trac:`26462`::
 
-        polynomial = binary_polynomial_from_invariants(degree, invariants, *args, **kwds)
-        ic = ['constant form', 'monic', 'quadratic', 'cubic', 'quartic', 'quintic',
-              'sextic', 'septimic', 'octavic', 'nonic', 'decimic',
-              'undecimic', 'duodecimic']
-        try:
-            construct_method = 'self.binary_' + ic[degree] + '(polynomial)'
-            return eval(construct_method)
-        except (IndexError, AttributeError):
-            print('Warning: Construction of binary forms of degree {} is not'
-                 ' implemented; a polynomial was returned.'.format(degree))
-            return polynomial
+            sage: invariant_theory.binary_form_from_invariants(6, invariants)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: No reconstruction for binary forms of degree 6 implemented.
+
+        TESTS::
+
+            sage: invariant_theory.binary_form_from_invariants(2, [1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Incorrect number of invariants provided. Only one invariant should be provided.
+            sage: invariant_theory.binary_form_from_invariants(2, [1], invariant_choice='unknown')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown choice of invariants unknown for a binary quadratic.
+            sage: invariant_theory.binary_form_from_invariants(3, [1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Incorrect number of invariants provided. Only one invariant should be provided.
+            sage: invariant_theory.binary_form_from_invariants(3, [1], as_form=false, invariant_choice='unknown')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown choice of invariants unknown for a binary cubic.
+            sage: invariant_theory.binary_form_from_invariants(5, [1,2,3], invariant_choice='unknown')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown choice of invariants unknown for a binary quintic.
+            sage: invariant_theory.binary_form_from_invariants(42, invariants)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: No reconstruction for binary forms of degree 42 implemented.
+        """
+        if as_form:
+            from sage.rings.fraction_field import FractionField
+            from sage.structure.sequence import Sequence
+            from sage.rings.all import PolynomialRing
+            K = FractionField(Sequence(list(invariants)).universe())
+            if variables is None:
+                x,z = PolynomialRing(K, 'x,z').gens()
+            elif len(variables) == 2:
+                x,z = variables
+            else:
+                raise ValueError('Incorrect number of variables provided. '
+                                 'Exactly two variables should be provided.')
+        if degree == 2:
+            if len(invariants) == 1:
+                if as_form:
+                    return QuadraticForm.from_invariants(invariants[0], x, z,
+                                                           *args, **kwargs)
+                else:
+                    return reconstruction.binary_quadratic_coefficients_from_invariants(
+                                            invariants[0], *args, **kwargs)
+            else:
+                raise ValueError('Incorrect number of invariants provided. '
+                                 'Only one invariant should be provided.')
+        elif degree == 3:
+            if len(invariants) == 1:
+                if as_form:
+                    raise NotImplementedError('No class for binary cubics implemented')
+                else:
+                    return reconstruction.binary_cubic_coefficients_from_invariants(
+                                            invariants[0], *args, **kwargs)
+            else:
+                raise ValueError('Incorrect number of invariants provided. Only '
+                                 'one invariant should be provided.')
+        elif degree == 5:
+            if as_form:
+                return BinaryQuintic.from_invariants(invariants, x, z,
+                                                   *args, **kwargs)
+            else:
+                return reconstruction.binary_quintic_coefficients_from_invariants(
+                                            invariants, *args, **kwargs)
+        else:
+            raise NotImplementedError('No reconstruction for binary forms of '
+                                      'degree {} implemented.'.format(degree))
 
     def ternary_quadratic(self, quadratic, *args, **kwds):
         """

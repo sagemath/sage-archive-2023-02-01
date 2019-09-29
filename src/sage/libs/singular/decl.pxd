@@ -1042,12 +1042,15 @@ cdef extern from "singular/polys/sbuckets.h":
     #create an sBucket
     sBucket *sBucketCreate(ring *r)
     
+    #destroy an sBucket (note: pointer to pointer)
+    void sBucketDestroy(sBucket **bucket);
+
     #merge contents of sBucket into polynomial and clear bucket
     #(use when monomials are distinct).
     #assumes length <= 0 || pLength(p) == length
     void sBucketClearMerge(sBucket *bucket, poly **p, int *length)
     
-    #add contents of sBuctet into polynomial an clear bucket
+    #add contents of sBucket into polynomial an clear bucket
     #(can handle repeated monomials)
     void sBucketClearAdd(sBucket *bucket, poly **p, int *length)
 

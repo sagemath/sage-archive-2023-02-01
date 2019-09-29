@@ -183,7 +183,7 @@ from sage.cpython.string cimport char_to_str, str_to_bytes
 # singular types
 from sage.libs.singular.decl cimport (ring, poly, ideal, intvec, number,
     currRing, n_unknown, n_Z, n_Zn, n_Znm, n_Z2m, sBucket, sBucketCreate,
-    sBucket_Merge_m, sBucketClearMerge, sBucketDeleteAndDestroy)
+    sBucketDestroy, sBucket_Merge_m, sBucketClearMerge, sBucketDeleteAndDestroy)
 
 # singular functions
 from sage.libs.singular.decl cimport (
@@ -832,6 +832,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                     e=0
                     #we can use "Merge" because the monomials are distinct
                     sBucketClearMerge(bucket, &_p, &e)
+                    sBucketDestroy(&bucket)
                 except:
                      sBucketDeleteAndDestroy(&bucket)
                      raise
@@ -953,6 +954,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                         sBucket_Merge_m(bucket, mon)
                     e=0
                     sBucketClearMerge(bucket, &_p, &e)
+                    sBucketDestroy(&bucket)
                 except TypeError:
                     sBucketDeleteAndDestroy(&bucket)
                     raise
@@ -1018,6 +1020,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                         sBucket_Merge_m(bucket, mon)
                     e=0
                     sBucketClearMerge(bucket, &_p, &e)
+                    sBucketDestroy(&bucket)
                 except TypeError:
                     sBucketDeleteAndDestroy(&bucket)
                     raise
@@ -5560,6 +5563,7 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
             sBucket_Merge_m(bucket, m)
         ln=0
         sBucketClearMerge(bucket, &p, &ln)
+        sBucketDestroy(&bucket)
     except:
         sBucketDeleteAndDestroy(&bucket)
         raise

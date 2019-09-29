@@ -3242,6 +3242,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: x.change_ring(ZZ['x']) == ZZ['x']['x'].gen()
             True
+
+        Check that :trac:`28541` is fixed::
+
+            sage: F.<a> = GF(7^2)
+            sage: S.<x> = F[]
+            sage: P = x^2 + a*x + a^2
+            sage: P.change_ring(F.frobenius_endomorphism())
+            x^2 + (6*a + 1)*x + 6*a + 5
         """
         if isinstance(R, Map):
             return self.map_coefficients(R)

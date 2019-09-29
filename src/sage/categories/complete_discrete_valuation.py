@@ -80,7 +80,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             When the denominator is indistinguishable from 0 and the
             precision on the input is `O(p^n)`, the return value is `1`
-            if `n` is nonnegative and `p^(-n)` otherwise.
+            if `n` is nonnegative and `p^(-n)` otherwise::
 
                 sage: x = K(0,5); x
                 O(7^5)
@@ -230,7 +230,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
 
             When the denominator is indistinguishable from 0 and the
             precision on the input is `O(p^n)`, the return value is `1`
-            if `n` is nonnegative and `p^(-n)` otherwise.
+            if `n` is nonnegative and `p^(-n)` otherwise::
 
                 sage: x = K(0,5); x
                 O(7^5)

@@ -174,6 +174,7 @@ Comprehensive Module list
     sage/combinat/partition
     sage/combinat/partition_algebra
     sage/combinat/partition_kleshchev
+    sage/combinat/partition_shifting_algebras
     sage/combinat/partition_tuple
     sage/combinat/partitions
     sage/combinat/perfect_matching

@@ -2249,6 +2249,61 @@ class Polyhedron_base(Element):
 
     adjacency_matrix = vertex_adjacency_matrix
 
+    def boundary_complex(self):
+        """
+        Return the simplicial complex given by the boundary faces of ``self``,
+        if it is simplicial.
+
+        OUTPUT:
+
+        A (spherical) simplicial complex
+
+        EXAMPLES:
+
+        The boundary complex of the octahedron::
+
+            sage: oc = polytopes.octahedron()
+            sage: sc_oc = oc.boundary_complex()
+            sage: fl_oc = oc.face_lattice()
+            sage: fl_sc = sc_oc.face_poset()
+            sage: [len(x) for x in fl_oc.level_sets()]
+            [1, 6, 12, 8, 1]
+            sage: [len(x) for x in fl_sc.level_sets()]
+            [6, 12, 8]
+            sage: sc_oc.euler_characteristic()
+            2
+            sage: sc_oc.homology()
+            {0: 0, 1: 0, 2: Z}
+
+        The polyhedron should be simplicial::
+
+            sage: c = polytopes.cube()
+            sage: c.boundary_complex()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is only implemented for simplicial polytopes
+
+        TESTS::
+
+            sage: p = Polyhedron(rays=[[1,1]])
+            sage: p.boundary_complex()
+            Traceback (most recent call last):
+            ...
+            ValueError: self should be compact
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        if not self.is_compact():
+            raise ValueError("self should be compact")
+
+        if self.is_simplicial():
+            inc_mat_cols = self.incidence_matrix().columns()
+            ineq_indices = [inc_mat_cols[i].nonzero_positions()
+                            for i in range(self.n_Hrepresentation())
+                            if self.Hrepresentation()[i].is_inequality()]
+            return SimplicialComplex(ineq_indices,maximality_check=False)
+        else:
+            raise NotImplementedError("this function is only implemented for simplicial polytopes")
+
     @cached_method
     def facet_adjacency_matrix(self):
         """
@@ -5077,7 +5132,7 @@ class Polyhedron_base(Element):
         :mod:`~sage.geometry.polyhedron.face` for details. The order
         is random but fixed.
 
-        .. SEEALSO:: :meth:`faces`
+        .. SEEALSO:: :meth:`facets`
 
         EXAMPLES:
 

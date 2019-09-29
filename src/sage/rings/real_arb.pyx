@@ -510,6 +510,8 @@ class RealBallField(UniqueRepresentation, Field):
 
             sage: RBF(4*zeta(3))
             [4.808227612638377 +/- ...e-16]
+            sage: RBF(exp(1), 0.01)
+            [2.7 +/- ...]
         """
         try:
             return self.element_class(self, mid, rad)
@@ -520,7 +522,8 @@ class RealBallField(UniqueRepresentation, Field):
         except (AttributeError, TypeError):
             pass
         try:
-            return mid.operator()(*[self(operand) for operand in mid.operands()])
+            val = mid.operator()(*[self(operand) for operand in mid.operands()])
+            return self.element_class(self, val, rad)
         except (AttributeError, TypeError):
             pass
         try:

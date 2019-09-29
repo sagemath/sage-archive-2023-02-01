@@ -2442,14 +2442,14 @@ class Graph(GenericGraph):
         return True
 
     @doc_index("Graph properties")
-    def is_triangle_free(self, algorithm='bitset'):
+    def is_triangle_free(self, algorithm='dense_graph', certificate=False):
         r"""
-        Returns whether ``self`` is triangle-free
+        Check whether ``self`` is triangle-free
 
         INPUT:
 
-        - ``algorithm`` -- (default: ``'bitset'``) specifies the algorithm to
-          use among:
+        - ``algorithm`` -- (default: ``'dense_graph'``) specifies the algorithm
+          to use among:
 
           - ``'matrix'`` -- tests if the trace of the adjacency matrix is
             positive.
@@ -2458,6 +2458,13 @@ class Graph(GenericGraph):
             bitset operations to test if the input graph contains a
             triangle. This method is generally faster than standard matrix
             multiplication.
+
+          - ``'dense_graph'`` -- use the implementation of
+            :mod:`sage.graphs.base.static_dense_graph`
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          triangle if one is found. This parameter is ignored when ``algorithm``
+          is ``'matrix'``.
 
         EXAMPLES:
 
@@ -2474,6 +2481,8 @@ class Graph(GenericGraph):
             True
             sage: G.is_triangle_free(algorithm='bitset')
             True
+            sage: G.is_triangle_free(algorithm='dense_graph')
+            True
 
         a tripartite graph, though, contains many triangles::
 
@@ -2482,6 +2491,16 @@ class Graph(GenericGraph):
             False
             sage: G.is_triangle_free(algorithm='bitset')
             False
+            sage: G.is_triangle_free(algorithm='dense_graph')
+            False
+
+        Asking for a certificate::
+
+            sage: K4 = graphs.CompleteGraph(4)
+            sage: K4.is_triangle_free(algorithm='dense_graph', certificate=True)
+            (False, [0, 1, 2])
+            sage: K4.is_triangle_free(algorithm='bitset', certificate=True)
+            (False, [0, 1, 2])
 
         TESTS:
 
@@ -2491,7 +2510,8 @@ class Graph(GenericGraph):
             ....:     G = graphs.RandomBarabasiAlbert(50,2)
             ....:     bm = G.is_triangle_free(algorithm='matrix')
             ....:     bb = G.is_triangle_free(algorithm='bitset')
-            ....:     if bm != bb:
+            ....:     bd = G.is_triangle_free(algorithm='dense_graph')
+            ....:     if bm != bb or bm != bd:
             ....:        print("That's not good!")
 
         Asking for an unknown algorithm::
@@ -2506,34 +2526,39 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_triangle_free()
             True
         """
-        if not self.order():
-            return True
+        if algorithm == 'dense_graph':
+            from sage.graphs.base.static_dense_graph import is_triangle_free
+            return is_triangle_free(self, certificate=certificate)
 
         if algorithm == 'bitset':
+            if self.order() < 3:
+                return (True, []) if certificate else True
             from sage.data_structures.bitset import Bitset
             N = self.order()
             vertex_to_int = {}
             B = {}
-            for i,u in enumerate(self):
+            for i, u in enumerate(self):
                 vertex_to_int[u] = i
                 B[u] = Bitset(capacity=N)
             # map adjacency to bitsets
-            for u,v in self.edge_iterator(labels=None):
-                B[u].add(vertex_to_int[v])
-                B[v].add(vertex_to_int[u])
-            # map lengths 2 paths to bitsets
-            BB = Bitset(capacity=N)
-            for u in self:
-                BB.clear()
-                for v in self:
-                    if B[u] & B[v]:
-                        BB.add(vertex_to_int[v])
-                # search for triangles
-                if B[u] & BB:
+            for u, v in self.edge_iterator(labels=None):
+                if u != v:
+                    B[u].add(vertex_to_int[v])
+                    B[v].add(vertex_to_int[u])
+            # Search for a triangle
+            for u, v in self.edge_iterator(labels=None):
+                BB = B[u] & B[v]
+                if BB:
+                    if certificate:
+                        for w in self.neighbor_iterator(u):
+                            if vertex_to_int[w] in BB:
+                                return False, [u, v, w]
                     return False
-            return True
+            return (True, []) if certificate else True
 
-        elif algorithm=='matrix':
+        elif algorithm == 'matrix':
+            if self.order() < 3:
+                return True
             return (self.adjacency_matrix()**3).trace() == 0
 
         else:

@@ -520,6 +520,9 @@ class ReferenceBuilder(AllBuilder):
                 continue
             output_dir = self._output_dir(format, lang)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
+            if format == 'pdf' and lang == 'en':
+                logger.warning('Building bibliography')
+                getattr(ReferenceSubBuilder('reference/references', 'en'), 'pdf')(*args, **kwds)
             build_many(build_ref_doc, L)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.

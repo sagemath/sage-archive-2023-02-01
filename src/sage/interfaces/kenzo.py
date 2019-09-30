@@ -99,7 +99,9 @@ serre_whitehead_spectral_sequence = EclObject("serre-whitehead-spectral-sequence
 serre_spectral_sequence_product = EclObject("serre-spectral-sequence-product")
 wedge = EclObject("wedge")
 join = EclObject("join")
-
+kmorphismchaincomplex_aux1 = EclObject("kmorphismchaincomplex_aux1")
+bicomplex_spectral_sequence = EclObject("bicomplex-spectral-sequence")
+nreverse = EclObject("nreverse")
 
 def Sphere(n):
     r"""
@@ -1098,3 +1100,491 @@ def SFiniteSimplicialSet(ksimpset, limit):
     for i in range(len(simplices)):
         rslt[simplices[i]] = faces[i]
     return SimplicialSet(rslt)
+
+
+class KenzoChainComplexMorphism(KenzoObject):
+    r"""
+    Wrapper to Kenzo morphisms between chain complexes.
+    """
+
+    def source_complex(self):
+        r"""
+        Return the source chain complex of the morphism.
+        OUTPUT:
+        - A :class:`KenzoChainComplex`
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import KChainComplex                # optional - kenzo
+            sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+            sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+            sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+            sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)   # optional - kenzo
+            sage: kenzo_chcm = KChainComplex(sage_chcm)                          # optional - kenzo
+            sage: kenzo_chcm                                                     # optional - kenzo
+            [K1 Chain-Complex]
+            sage: differential_morphism = kenzo_chcm.differential()              # optional - kenzo
+            sage: differential_morphism                                          # optional - kenzo
+            [K2 Morphism (degree -1): K1 -> K1]
+            sage: differential_morphism.source_complex()                         # optional - kenzo
+            [K1 Chain-Complex]
+        """
+        return KenzoChainComplex(sorc_aux(self._kenzo))  
+    
+    def target_complex(self):
+        r"""
+        Return the target chain complex of the morphism.
+        OUTPUT:
+        - A :class:`KenzoChainComplex`
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import KChainComplex                # optional - kenzo
+            sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+            sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+            sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+            sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)   # optional - kenzo
+            sage: kenzo_chcm = KChainComplex(sage_chcm)                          # optional - kenzo
+            sage: kenzo_chcm                                                     # optional - kenzo
+            [K1 Chain-Complex]
+            sage: differential_morphism = kenzo_chcm.differential()              # optional - kenzo
+            sage: differential_morphism                                          # optional - kenzo
+            [K2 Morphism (degree -1): K1 -> K1]
+            sage: differential_morphism.target_complex()                         # optional - kenzo
+            [K1 Chain-Complex]
+        """
+        return KenzoChainComplex(trgt_aux(self._kenzo)) 
+
+    def degree(self):
+        r"""
+        Return the degree of the morphism.
+        OUTPUT:
+        - An integer number, the degree of the morphism.
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import KChainComplex                # optional - kenzo
+            sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+            sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+            sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+            sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)   # optional - kenzo
+            sage: kenzo_chcm = KChainComplex(sage_chcm)                          # optional - kenzo
+            sage: kenzo_chcm                                                     # optional - kenzo
+            [K1 Chain-Complex]
+            sage: differential_morphism = kenzo_chcm.differential()              # optional - kenzo
+            sage: differential_morphism                                          # optional - kenzo
+            [K2 Morphism (degree -1): K1 -> K1]
+            sage: differential_morphism.degree()                                 # optional - kenzo
+            -1
+            sage: differential_morphism.composite(differential_morphism).degree() # optional - kenzo
+            -2
+            sage: kenzo_chcm.null_morphism().degree()                            # optional - kenzo
+            0
+        """
+        return degr_aux(self._kenzo).python()
+
+    def orgn(self):
+        return str(orgn_aux1(self._kenzo))
+    
+    def evaluation(self, dim, comb):
+        r"""
+        Apply the morphism on a combination ``comb`` of dimension ``dim``.
+        INPUT:
+        - ``dim``- An integer number
+        - ``comb``- A list representing a formal sum of generators in the module
+        of dimension ``dim``. For example, to represent G7G12 + 3*G7G0 - 5*G7G3
+        we use the list [3, 'G7G0', -5, 'G7G3', 1, 'G7G12']. Note that the
+        generators must be in ascending order respect to the number after the
+        second G in their representation; the parameter
+        ``comb`` = [1, 'G7G12', 3, 'G7G0', -5, 'G7G3'] will produce an error in
+        Kenzo.
+        OUTPUT:
+        - A Kenzo combination representing the result of applying the morphism on the formal
+        combination represented by ``comb`` in the chain complex ``self`` in
+        dimension ``dim``.
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import KChainComplex                 # optional - kenzo
+            sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+            sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+            sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+            sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)
+            sage: kenzo_chcm = KChainComplex(sage_chcm)                           # optional - kenzo
+            sage: kenzo_chcm                                                      # optional - kenzo
+            [K1 Chain-Complex]
+            sage: differential_morphism = kenzo_chcm.differential()               # optional - kenzo
+            sage: differential_morphism                                           # optional - kenzo
+            [K2 Morphism (degree -1): K1 -> K1]
+            sage: dif_squared = differential_morphism.composite(differential_morphism)  # optional - kenzo
+            sage: dif_squared                                                     # optional - kenzo
+            [K3 Morphism (degree -2): K1 -> K1]
+            sage: kenzo_chcm.basis(5)                                             # optional - kenzo
+            ['G5G0', 'G5G1', 'G5G2']
+            sage: kenzo_chcm.differential(5, [1, 'G5G0', 2, 'G5G2'])              # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <6 * G4G0>
+            <-3 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+            sage: differential_morphism.evaluation(5, [1, 'G5G0', 2, 'G5G2'])     # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <6 * G4G0>
+            <-3 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+            sage: dif_squared.evaluation(5, [1, 'G5G0', 2, 'G5G2'])               # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 3}
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+            sage: id = kenzo_chcm.identity_morphism()                             # optional - kenzo
+            sage: idx2 = id.sum(id)                                               # optional - kenzo
+            sage: id.evaluation(5, [1, 'G5G0', 2, 'G5G2'])                        # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 5}
+            <1 * G5G0>
+            <2 * G5G2>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+            sage: idx2.evaluation(5, [1, 'G5G0', 2, 'G5G2'])                      # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 5}
+            <2 * G5G0>
+            <4 * G5G2>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+        """
+        if isinstance(dim, Integer):
+            if isinstance(comb, list):
+                cmbn_list = pairing(comb)
+                return KenzoObject(evaluation_aux1(self._kenzo, dim, cmbn_list))
+            else:
+                raise ValueError("'comb' parameter must be a list")
+        else:
+            raise ValueError("'dim' parameter must be an integer number")
+
+    def opposite(self):
+        r"""
+        Return the opposite morphism of ``self``, i.e., -1 x ``self``.
+        OUTPUT:
+        - A :class:`KenzoChainComplexMorphism`
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import KChainComplex                # optional - kenzo
+            sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+            sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+            sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+            sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)   # optional - kenzo
+            sage: kenzo_chcm = KChainComplex(sage_chcm)                          # optional - kenzo
+            sage: kenzo_chcm                                                     # optional - kenzo
+            [K1 Chain-Complex]
+            sage: id = kenzo_chcm.identity_morphism()                            # optional - kenzo
+            sage: id                                                             # optional - kenzo
+            [K3 Morphism (degree 0): K1 -> K1]
+            sage: opps_id = id.opposite()                                        # optional - kenzo
+            sage: opps_id                                                        # optional - kenzo
+            [K4 Morphism (degree 0): K1 -> K1]
+            sage: kenzo_chcm.basis(4)                                            # optional - kenzo
+            ['G4G0', 'G4G1']
+            sage: id.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                      # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <2 * G4G0>
+            <-5 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+            sage: opps_id.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                 # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <-2 * G4G0>
+            <5 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+        """
+        return KenzoChainComplexMorphism(opps(self._kenzo))
+
+    def composite(self, object=None):
+        r"""
+        Return the composite of ``self`` and the morphism(s) given by the parameter ``object``.
+        INPUT:
+        - ``object``- A KenzoChainComplexMorphism instance, a KenzoChainComplex instance, a tuple 
+          of KenzoChainComplexMorphism and KenzoChainComplex instances, or None (default).
+        OUTPUT:
+        - A :class:`KenzoChainComplexMorphism`: if ``object`` is a KenzoChainComplexMorphism, the 
+          composite of ``self`` and ``object`` is returned; if ``object`` is a KenzoChainComplex, 
+          the composite of ``self`` and the differential morphism of ``object`` is returned; if 
+          ``object`` is a tuple, the composite of ``self`` and the morphisms or the differential 
+          morphisms of the given chain complexes in ``object`` is returned (if ``object``==None, 
+          ``self`` morphism is returned).
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import Sphere                   # optional - kenzo
+            sage: s2 = Sphere(2)                                             # optional - kenzo
+            sage: s3 = Sphere(3)                                             # optional - kenzo
+            sage: tp22 = s2.tensor_product(s2)                               # optional - kenzo
+            sage: tp23 = s2.tensor_product(s3)                               # optional - kenzo
+            sage: id = tp22.identity_morphism()                              # optional - kenzo
+            sage: id                                                         # optional - kenzo
+            [K13 Morphism (degree 0): K3 -> K3]
+            sage: null = tp23.null_morphism(target = tp22, degree = 4)       # optional - kenzo
+            sage: null                                                       # optional - kenzo
+            [K14 Morphism (degree 4): K11 -> K3]
+            sage: id.composite((tp22, null))                                 # optional - kenzo
+            [K15 Morphism (degree 3): K11 -> K3]
+        """
+        if object==None:
+            return self
+        if isinstance(object, KenzoChainComplexMorphism):
+            return KenzoChainComplexMorphism(cmps(self._kenzo, object._kenzo))
+        elif isinstance(object, KenzoChainComplex):
+            return KenzoChainComplexMorphism(cmps(self._kenzo, dffr_aux(object._kenzo)))
+        elif isinstance(object, tuple):
+            rslt = self._kenzo
+            for mrph in object:
+                rslt = cmps(rslt, mrph._kenzo)
+            return KenzoChainComplexMorphism(rslt)
+
+    def sum(self, object=None):
+        r"""
+        Return a morphism, sum of the morphism ``self`` and the morphism(s) given by the parameter ``object``.
+        INPUT:
+        - ``object``- A KenzoChainComplexMorphism instance, a tuple of KenzoChainComplexMorphism instances or None (default).
+        OUTPUT:
+        - A :class:`KenzoChainComplexMorphism`, sum of the morphism ``self`` and the morphism(s) given by ``object`` (if ``object``==None, ``self`` morphism is returned).
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import KChainComplex                # optional - kenzo
+            sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+            sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+            sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+            sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)   # optional - kenzo
+            sage: kenzo_chcm = KChainComplex(sage_chcm)                          # optional - kenzo
+            sage: kenzo_chcm                                                     # optional - kenzo
+            [K1 Chain-Complex]
+            sage: id = kenzo_chcm.identity_morphism()                            # optional - kenzo
+            sage: id                                                             # optional - kenzo
+            [K3 Morphism (degree 0): K1 -> K1]
+            sage: opps_id = id.opposite()                                        # optional - kenzo
+            sage: opps_id                                                        # optional - kenzo
+            [K4 Morphism (degree 0): K1 -> K1]
+            sage: null = kenzo_chcm.null_morphism()                              # optional - kenzo
+            sage: null                                                           # optional - kenzo
+            [K5 Morphism (degree 0): K1 -> K1]
+            sage: idx2 = id.sum(id)                                              # optional - kenzo
+            sage: idx5 = idx2.sum((opps_id, id, id, null, idx2.sum(id), opps_id))  # optional - kenzo
+            sage: kenzo_chcm.basis(4)                                            # optional - kenzo
+            ['G4G0', 'G4G1']
+            sage: idx2.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <4 * G4G0>
+            <-10 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+            sage: idx5.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <10 * G4G0>
+            <-25 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+        """
+        if object==None:
+            return self
+        if isinstance(object, KenzoChainComplexMorphism):
+            return KenzoChainComplexMorphism(add(self._kenzo, object._kenzo))
+        elif isinstance(object, tuple):
+            rslt = self._kenzo
+            for mrph in object:
+                rslt = add(rslt, mrph._kenzo)
+            return KenzoChainComplexMorphism(rslt)
+
+    def substract(self, object=None):
+        r"""
+        Return a morphism, difference of the morphism ``self`` and the morphism(s) given by the parameter ``object``.
+        INPUT:
+        - ``object``- A KenzoChainComplexMorphism instance, a tuple of KenzoChainComplexMorphism instances or None (default).
+        OUTPUT:
+        - A :class:`KenzoChainComplexMorphism`, difference of the morphism ``self`` and the morphism(s) given by ``object`` (if ``object``==None, ``self`` morphism is returned). For example, if ``object`` = (mrph1, mrph2, mrph3) the result is ``self`` - mrph1 - mrph2 - mrph3.
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import KChainComplex                # optional - kenzo
+            sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+            sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+            sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+            sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)   # optional - kenzo
+            sage: kenzo_chcm = KChainComplex(sage_chcm)                          # optional - kenzo
+            sage: kenzo_chcm                                                     # optional - kenzo
+            [K1 Chain-Complex]
+            sage: id = kenzo_chcm.identity_morphism()                            # optional - kenzo
+            sage: id                                                             # optional - kenzo
+            [K3 Morphism (degree 0): K1 -> K1]
+            sage: opps_id = id.opposite()                                        # optional - kenzo
+            sage: opps_id                                                        # optional - kenzo
+            [K4 Morphism (degree 0): K1 -> K1]
+            sage: null = kenzo_chcm.null_morphism()                              # optional - kenzo
+            sage: null                                                           # optional - kenzo
+            [K5 Morphism (degree 0): K1 -> K1]
+            sage: idx2 = id.substract(opps_id)                                   # optional - kenzo
+            sage: opps_idx2 = idx2.substract((opps_id, id, id, null, idx2.substract(opps_id)))  # optional - kenzo
+            sage: kenzo_chcm.basis(4)                                            # optional - kenzo
+            ['G4G0', 'G4G1']
+            sage: idx2.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <4 * G4G0>
+            <-10 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+            sage: opps_idx2.evaluation(4, [2, 'G4G0', -5, 'G4G1'])               # optional - kenzo
+            <BLANKLINE>
+            ----------------------------------------------------------------------{CMBN 4}
+            <-4 * G4G0>
+            <10 * G4G1>
+            ------------------------------------------------------------------------------
+            <BLANKLINE>
+        """
+        if object==None:
+            return self
+        if isinstance(object, KenzoChainComplexMorphism):
+            return KenzoChainComplexMorphism(sbtr(self._kenzo, object._kenzo))
+        elif isinstance(object, tuple):
+            rslt = self._kenzo
+            for mrph in object:
+                rslt = sbtr(rslt, mrph._kenzo)
+            return KenzoChainComplexMorphism(rslt)
+
+    def change_source_target_complex(self, source=None, target=None):
+        r"""
+        Build, from the morphism ``self``, a new morphism with ``source`` and ``target`` as source and target Kenzo chain complexes, respectively.
+        INPUT:
+        - ``source``- A KenzoChainComplex instance or None (default).
+        - ``target``- A KenzoChainComplex instance or None (default).
+        OUTPUT:
+        - A :class:`KenzoChainComplexMorphism` inheriting from ``self`` the degree (:degr slot in Kenzo), the algorithm (:intr slot in Kenzo) and the strategy (:strt slot in Kenzo). The source and target slots of this new morphism are given by the parameters ``source`` and ``target`` respectively; if any parameter is ommited, the corresponding slot is inherited from ``self``.
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import Sphere               # optional - kenzo
+            sage: ZCC = KenzoChainComplex(ecl_eval("(z-chcm)"))          # optional - kenzo
+            sage: ZCC                                                    # optional - kenzo
+            [K1 Chain-Complex]
+            sage: s2 = Sphere(2)                                         # optional - kenzo
+            sage: s3 = Sphere(3)                                         # optional - kenzo
+            sage: tp = s2.tensor_product(s3)                             # optional - kenzo
+            sage: tp                                                     # optional - kenzo
+            [K13 Chain-Complex]
+            sage: null = ZCC.null_morphism(tp)                           # optional - kenzo
+            sage: null                                                   # optional - kenzo
+            [K15 Morphism (degree 0): K1 -> K13]
+            sage: null.source_complex()                                  # optional - kenzo
+            [K1 Chain-Complex]
+            sage: null2 = null.change_source_target_complex(source = tp) # optional - kenzo
+            sage: null2                                                  # optional - kenzo
+            [K16 Morphism (degree 0): K13 -> K13]
+            sage: null2.source_complex()                                 # optional - kenzo
+            [K13 Chain-Complex]
+        """
+        source = source or self.source_complex()
+        target = target or self.target_complex()
+        return KenzoChainComplexMorphism(change_sorc_trgt_aux(self._kenzo, source._kenzo, target._kenzo))
+
+    def destructive_change_source_target_complex(self, source=None, target=None):
+        r"""
+        Modify destructively the morphism ``self`` taking ``source`` and ``target`` as source and target Kenzo chain complexes of ``self``, respectively.
+        INPUT:
+        - ``source``- A KenzoChainComplex instance or None (default).
+        - ``target``- A KenzoChainComplex instance or None (default).
+        OUTPUT:
+        - A :class:`KenzoChainComplexMorphism`. The source and target slots of ``self`` are replaced respectively by the parameters ``source`` and ``target``; if any parameter is ommited, the corresponding slot is inherited from ``self``.
+        EXAMPLES::
+            sage: from sage.interfaces.kenzo import Sphere               # optional - kenzo
+            sage: ZCC = KenzoChainComplex(ecl_eval("(z-chcm)"))          # optional - kenzo
+            sage: ZCC                                                    # optional - kenzo
+            [K1 Chain-Complex]
+            sage: s2 = Sphere(2)                                         # optional - kenzo
+            sage: s3 = Sphere(3)                                         # optional - kenzo
+            sage: tp = s2.tensor_product(s3)                             # optional - kenzo
+            sage: tp                                                     # optional - kenzo
+            [K13 Chain-Complex]
+            sage: null = ZCC.null_morphism(tp)                           # optional - kenzo
+            sage: null                                                   # optional - kenzo
+            [K15 Morphism (degree 0): K1 -> K13]
+            sage: null.target_complex()                                  # optional - kenzo
+            [K13 Chain-Complex]
+            sage: null.destructive_change_source_target_complex(target = ZCC) # optional - kenzo
+            [K15 Cohomology-Class on K1 of degree 0]
+            sage: null.target_complex()                                  # optional - kenzo
+            [K1 Chain-Complex]
+        """
+        source = source or self.source_complex()
+        target = target or self.target_complex()
+        return KenzoChainComplexMorphism(dstr_change_sorc_trgt_aux(self._kenzo, source._kenzo, target._kenzo))
+
+
+def build_morphism(source_complex, target_complex, degree, algorithm, strategy, orgn):
+    return KenzoChainComplexMorphism(build_mrph_aux(source_complex._kenzo, target_complex._kenzo, degree, algorithm, ":"+strategy, orgn))
+
+def morphism_dictmat(morphism):
+    r"""
+    Computes a list of matrices in ECL associated to a morphism in Sage.
+    """
+    rslt = EclObject([])
+    source = morphism.domain()
+    d = source.differential()
+    for k in d.keys():
+        rslt = EclObject(k).cons(s2k_matrix(morphism.in_degree(k))).cons(rslt)
+    return rslt
+
+def KChainComplexMorphism(morphism):
+    r"""
+    Construct a KenzoChainComplexMorphism from a ChainComplexMorphism in Sage.
+    INPUT:
+    - ``morphism`` - A morphism of chain complexes
+    OUTPUT:
+    - A :class:`KenzoChainComplexMorphism`
+    EXAMPLES::
+        sage: C = ChainComplex({0: identity_matrix(ZZ, 1)})
+        sage: D = ChainComplex({0: zero_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
+        sage: f = Hom(C,D)({0: identity_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
+        sage: g = KChainComplexMorphism(f)					# optional - kenzo
+        sage: g
+        [K5 Morphism (degree 0): K1 -> K3]
+        sage: g.source_complex()						# optional - kenzo
+        [K1 Chain-Complex]
+        sage: g.target_complex()						# optional - kenzo
+        [K3 Chain-Complex]
+    """
+    source = KChainComplex(morphism.domain())
+    target = KChainComplex(morphism.codomain())
+    matrix_list = morphism_dictmat(morphism)
+    return KenzoChainComplexMorphism(kmorphismchaincomplex_aux1(matrix_list, source._kenzo, target._kenzo))
+
+
+def s2k_listofmorphisms (l):
+    r"""
+    Computes a list of morphisms of chain complexes in Kenzo from a list of morphisms in Sage.
+    """
+    rslt = EclObject([])
+    for m in l:
+        rslt = EclObject(KChainComplexMorphism(m)._kenzo).cons(rslt)
+    return nreverse(rslt)
+
+
+def BicomplexSpectralSequence(l):
+    r"""
+    Construct the spectral sequence associated to the bicomplex given by a list of morphisms.
+    INPUT:
+    - ``l`` - A list of morphisms of chain complexes
+    OUTPUT:
+    - A :class:`KenzoChainComplexMorphism`
+    EXAMPLES::
+        sage: C1 = ChainComplex({1: matrix(ZZ, 0, 2, [])}, degree_of_differential=-1)
+        sage: C2 = ChainComplex({1: matrix(ZZ, 1, 2, [1, 0])},degree_of_differential=-1)
+        sage: C3 = ChainComplex({0: matrix(ZZ, 0,2 , [])},degree_of_differential=-1)
+        sage: M1 = Hom(C2,C1)({1: matrix(ZZ, 2, 2, [2, 0, 0, 2])})
+        sage: M2 = Hom(C3,C2)({0: matrix(ZZ, 1, 2, [2, 0])})
+        sage: l = [M1, M2]
+        sage: E = BicomplexSpectralSequence(l)
+        sage: E.group(2,0,1)
+        Additive abelian group isomorphic to Z/2 + Z
+        sage: E.table(3,0,2,0,2)
+        0           0   0
+        Z/2 + Z/4   0   0
+        0           0   Z
+        sage: E.matrix(2,2,0)
+        [ 0 -4]
+        [ 0  0]
+    """
+    return KenzoSpectralSequence(bicomplex_spectral_sequence(s2k_listofmorphisms(l)))
+
+

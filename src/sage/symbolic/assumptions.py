@@ -348,9 +348,9 @@ class GenericDeclaration(SageObject):
         elif self._assumption == 'noninteger':
             return value in ZZ
         elif self._assumption == 'even':
-            return value not in ZZ or ZZ(value) % 2 != 0
+            return value not in ZZ or ZZ(value) % 2
         elif self._assumption == 'odd':
-            return value not in ZZ or ZZ(value) % 2 != 1
+            return value not in ZZ or not ZZ(value) % 2
         elif self._assumption == 'rational':
             return value not in QQ
         elif self._assumption == 'irrational':

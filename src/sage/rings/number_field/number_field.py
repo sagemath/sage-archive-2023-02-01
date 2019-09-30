@@ -9397,7 +9397,7 @@ class NumberField_absolute(NumberField_generic):
         b = self(b)
         if b == 0:
             raise ValueError("second argument must be nonzero")
-        if len(S) % 2 != 0:
+        if len(S) % 2:
             raise ValueError("the list should be of even cardinality")
         if check:
             for p in S:

@@ -5700,13 +5700,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 F = factor_trial_division(self,bound)
             n = one
             for pp, e in F:
-                if e % 2 != 0:
+                if e % 2:
                     n = n * pp
             return n * F.unit()
 
     def next_probable_prime(self):
         """
-        Returns the next probable prime after self, as determined by PARI.
+        Return the next probable prime after self, as determined by PARI.
 
         EXAMPLES::
 

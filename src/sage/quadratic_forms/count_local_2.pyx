@@ -66,7 +66,7 @@ def count_modp__by_gauss_sum(n, p, m, Qdet):
     if Qdet % p == 0:
         raise RuntimeError("Qdet must be non-zero.")
 
-    ## Check that p is prime > 0
+    ## Check that p is prime > 2
     if not is_prime(p) or p == 2:
         raise RuntimeError("p must be a prime number > 2.")
 
@@ -76,13 +76,13 @@ def count_modp__by_gauss_sum(n, p, m, Qdet):
 
     ## Compute the Gauss sum
     neg1 = -1
-    if (m % p == 0):
-        if (n % 2 != 0):
+    if not (m % p):
+        if n % 2:
             count = (p**(n-1))
         else:
             count = (p**(n-1)) + (p-1) * (p**((n-2)/2)) * kronecker_symbol(((neg1**(n/2)) * Qdet) % p, p)
     else:
-        if (n % 2 != 0):
+        if n % 2:
             count = (p**(n-1)) + (p**((n-1)/2)) * kronecker_symbol(((neg1**((n-1)/2)) * Qdet * m) % p, p)
         else:
             count = (p**(n-1)) - (p**((n-2)/2)) * kronecker_symbol(((neg1**(n/2)) * Qdet) % p, p)

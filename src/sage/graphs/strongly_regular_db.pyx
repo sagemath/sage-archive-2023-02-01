@@ -1290,7 +1290,7 @@ def is_unitary_polar(int v,int k,int l,int mu):
     if q*mu != k or q < 2:
         return
     p,t = is_prime_power(q, get_data=True)
-    if p**t != q or t % 2 != 0:
+    if p**t != q or t % 2:
         return
     # at this point we know that we should have U(n,q) for some n and q=p^t, t even
     if r > 0:
@@ -1356,7 +1356,7 @@ def is_unitary_dual_polar(int v,int k,int l,int mu):
     if q < 2:
         return
     p,t = is_prime_power(q, get_data=True)
-    if p**t != q or t % 2 != 0:
+    if p**t != q or t % 2:
         return
     if (r < 0 and q != -r - 1) or (s < 0 and q != -s - 1):
        return

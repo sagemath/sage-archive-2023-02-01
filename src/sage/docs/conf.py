@@ -1,5 +1,5 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, SAGE_SHARE
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
@@ -260,13 +260,12 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
     from sage.misc.latex_macros import sage_mathjax_macros
     html_theme_options['mathjax_macros'] = sage_mathjax_macros()
 
-    mathjax_relative = 'mathjax'
+    mathjax_relative = os.path.basename(MATHJAX_DIR)
 
     # It would be really nice if sphinx would copy the entire mathjax directory,
     # (so we could have a _static/mathjax directory), rather than the contents of the directory
 
-    mathjax_static = os.path.join(SAGE_SHARE, mathjax_relative)
-    html_static_path.append(mathjax_static)
+    html_static_path.append(MATHJAX_DIR)
     exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
                          for i in ('docs', 'README*', 'test',
                                    'unpacked', 'LICENSE')]

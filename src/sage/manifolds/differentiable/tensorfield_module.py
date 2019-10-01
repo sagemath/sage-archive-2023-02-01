@@ -26,7 +26,7 @@ REFERENCES:
 
 """
 
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -34,8 +34,8 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -751,7 +751,7 @@ class TensorFieldFreeModule(TensorFreeModule):
         kcon = tensor_type[0]
         lcov = tensor_type[1]
         name = "T^({},{})({}".format(kcon, lcov, domain._name)
-        latex_name = r"\mathcal{{T}}^{{({}, {})}}\left(".format(kcon,
+        latex_name = r"\mathcal{{T}}^{{({}, {})}}\left({}".format(kcon,
                                                lcov, domain._latex_name)
         if dest_map is not domain.identity_map():
             dm_name = dest_map._name

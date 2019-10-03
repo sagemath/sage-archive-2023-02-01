@@ -1022,12 +1022,13 @@ class HasseDiagram(DiGraph):
                 m = {}
                 for i in range(n - 1, -1, -1):
                     m[(i, i)] = ZZ.one()
+                    available = []
                     for k in greater_than[i]:
                         if k != i:
+                            available.append(k)
                             m[(i, k)] = -ZZ.sum(m[(j, k)]
-                                                for j in greater_than[i]
-                                                if i != j and
-                                                k in greater_than[j])
+                                                for j in available
+                                                if k in greater_than[j])
                 M = matrix(ZZ, n, n, m, sparse=True)
             else:
                 M = self.lequal_matrix().inverse_of_unit()

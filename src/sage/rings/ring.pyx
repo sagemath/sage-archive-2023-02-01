@@ -1454,9 +1454,46 @@ cdef class CommutativeRing(Ring):
             self.__ideal_monoid = M
             return M
 
-    def over(self, *args, **kwargs):
+    def over(self, base=None, gen=None, gens=None, name=None, names=None):
+        r"""
+        Return this ring, considered as an extension of ``base``.
+
+        INPUT:
+
+        - ``base`` -- a commutative ring or a morphism or ``None``
+          (default: ``None``); the base of this extension or this defining
+          morphism
+
+        - ``gen`` -- a generator of this extension (over its base) or ``None``
+          (default: ``None``);
+
+        - ``gens`` -- a list of generators of this extension (over its base)
+          or ``None`` (default: ``None``);
+
+        - ``name`` -- a variable name or ``None`` (default: ``None``)
+
+        - ``names`` -- a list or a tuple of variable names or ``None``
+          (default: ``None``)
+
+        EXAMPLES:
+
+        We construct the ring extension `QQ/ZZ`::
+
+            sage: QQ.over(ZZ)
+            Rational field over its base
+
+
+        """
         from sage.rings.ring_extension import RingExtension
-        return RingExtension(self, *args, **kwargs)
+        if name is not None:
+            if names is not None:
+                raise ValueError("keyword argument 'name' cannot be combined with 'names'")
+            names = (name,)
+        if gen is not None:
+            if gens is not None:
+                raise ValueError("keyword argument 'gen' cannot be combined with 'gens'")
+            gens = (gen,)
+        return RingExtension(self, base, gens, names)
 
     def extension(self, poly, name=None, names=None, **kwds):
         """

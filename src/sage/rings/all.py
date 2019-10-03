@@ -170,6 +170,3 @@ from .asymptotic.all import *
 from . import numbers_abc
 
 del absolute_import
-
-# Extensions
-from sage.rings.ring_extension import RingExtension

@@ -9,12 +9,13 @@
 #****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp import op_EQ, op_NE
 
 from sage.structure.element cimport Element
 from sage.categories.map import Map
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.morphism cimport RingMap
-from sage.rings.ring_extension cimport RingExtension_class, RingExtensionWithBasis
+from sage.rings.ring_extension cimport RingExtension_generic, RingExtensionWithBasis
 from sage.rings.ring_extension_element cimport RingExtensionElement
 from sage.rings.ring_extension cimport _common_base
 from sage.rings.ring_extension_conversion cimport backend_parent, backend_element, backend_morphism
@@ -134,7 +135,7 @@ cdef class RingExtensionHomomorphism(RingMap):
 
     cpdef Element _call_(self, x):
         y = self._backend(backend_element(x))
-        if isinstance(self.codomain(), RingExtension_class):
+        if isinstance(self.codomain(), RingExtension_generic):
             y = self._codomain(y)
         return y
 
@@ -163,7 +164,12 @@ cdef class RingExtensionHomomorphism(RingMap):
         return base_map
 
     cpdef _richcmp_(self, other, int op):
-        return self._backend._richcmp_(backend_morphism(other), op)
+        eq = are_equal_morphisms(self._backend, backend_morphism(other))
+        if op == op_EQ:
+            return eq
+        if op == op_NE:
+            return not eq
+        raise NotImplemented
 
     def is_identity(self):
         if self.domain() is not self.codomain():
@@ -198,7 +204,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         codomain = self.codomain()
         backend_right = backend_morphism(right)
         backend = self._backend * backend_right
-        if isinstance(domain, RingExtension_class) or isinstance(codomain, RingExtension_class):
+        if isinstance(domain, RingExtension_generic) or isinstance(codomain, RingExtension_generic):
             return RingExtensionHomomorphism(domain.Hom(codomain), backend)
         else:
             return backend
@@ -261,9 +267,11 @@ cdef class MapVectorSpaceToRelativeField(Map):
     def is_surjective(self):
         return True
 
-    #cpdef Element _call_(self, v):
-    def _call_(self, v):
-        elt = sum(self._f(v[i]) * self._basis[i] for i in range(self._degree))
+    cpdef Element _call_(self, v):
+        cdef Element elt
+        elt = self._f(v[0]) * self._basis[0]
+        for i in range(1, self._degree):
+            elt += self._f(v[i]) * self._basis[i]
         return self.codomain()(elt)
 
 

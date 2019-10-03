@@ -14,7 +14,7 @@ from sage.structure.element cimport Element
 from sage.categories.pushout import construction_tower
 from sage.categories.map cimport Map, FormalCompositeMap
 from sage.categories.morphism import IdentityMorphism
-from sage.rings.ring_extension cimport RingExtension_class
+from sage.rings.ring_extension cimport RingExtension_generic
 from sage.rings.ring_extension_element cimport RingExtensionElement
 from sage.rings.ring_extension_morphism cimport RingExtensionHomomorphism
 from sage.rings.ring_extension_morphism cimport RingExtensionBackendIsomorphism
@@ -25,12 +25,12 @@ from sage.rings.ring_extension_morphism cimport RingExtensionBackendReverseIsomo
 #############
 
 cpdef backend_parent(R):
-    if isinstance(R, RingExtension_class):
-        return (<RingExtension_class>R)._backend
+    if isinstance(R, RingExtension_generic):
+        return (<RingExtension_generic>R)._backend
     else:
         return R
 
-cpdef from_backend_parent(R, RingExtension_class E):
+cpdef from_backend_parent(R, RingExtension_generic E):
     tower = construction_tower(R)
     bases_tower = [ parent for (_, parent) in tower ]
     for base in E.bases():
@@ -56,7 +56,7 @@ cpdef backend_element(x):
     else:
         return x
 
-cpdef from_backend_element(x, RingExtension_class E):
+cpdef from_backend_element(x, RingExtension_generic E):
     parent = from_backend_parent(x.parent(),E)
     if parent is None:
         return x
@@ -69,7 +69,7 @@ cpdef from_backend_element(x, RingExtension_class E):
 
 cdef _backend_morphism(f):
     domain = f.domain()
-    if not isinstance(f.domain(), RingExtension_class) and not isinstance(f.codomain(), RingExtension_class):
+    if not isinstance(f.domain(), RingExtension_generic) and not isinstance(f.codomain(), RingExtension_generic):
         return f
     elif isinstance(f, RingExtensionHomomorphism):
         return (<RingExtensionHomomorphism>f)._backend
@@ -80,7 +80,7 @@ cdef _backend_morphism(f):
         return ring.Hom(ring).identity()
     elif domain is domain.base_ring():
         ring = f.codomain()
-        if isinstance(ring, RingExtension_class):
+        if isinstance(ring, RingExtension_generic):
             ring = ring._backend
         if ring.has_coerce_map_from(domain):
             return ring.coerce_map_from(domain)
@@ -89,23 +89,23 @@ cdef _backend_morphism(f):
 cpdef backend_morphism(f, forget="all"):
     try:
         g = _backend_morphism(f)
-        if forget is None and (isinstance(f.domain(), RingExtension_class) or isinstance(f.codomain(), RingExtension_class)):
+        if forget is None and (isinstance(f.domain(), RingExtension_generic) or isinstance(f.codomain(), RingExtension_generic)):
             g = RingExtensionHomomorphism(f.domain().Hom(f.codomain()), g)
-        if forget == "domain" and isinstance(f.codomain(), RingExtension_class):
+        if forget == "domain" and isinstance(f.codomain(), RingExtension_generic):
             g = RingExtensionHomomorphism(g.domain().Hom(f.codomain()), g)
-        if forget == "codomain" and isinstance(f.domain(), RingExtension_class):
+        if forget == "codomain" and isinstance(f.domain(), RingExtension_generic):
             g = RingExtensionHomomorphism(f.domain().Hom(g.codomain()), g)
     except NotImplementedError:
         g = f
-        if (forget == "all" or forget == "domain") and isinstance(f.domain(), RingExtension_class):
+        if (forget == "all" or forget == "domain") and isinstance(f.domain(), RingExtension_generic):
             ring = f.domain()._backend
             g = g * RingExtensionBackendIsomorphism(ring.Hom(f.domain()))
-        if (forget == "all" or forget == "codomain") and isinstance(f.codomain(), RingExtension_class):
+        if (forget == "all" or forget == "codomain") and isinstance(f.codomain(), RingExtension_generic):
             ring = f.codomain()._backend
             g = RingExtensionBackendReverseIsomorphism(f.codomain().Hom(ring)) * g
     return g
 
-cpdef from_backend_morphism(f, RingExtension_class E):
+cpdef from_backend_morphism(f, RingExtension_generic E):
     cdef domain = from_backend_parent(f.domain(), E)
     cdef codomain = from_backend_parent(f.codomain(), E)
     return domain.Hom(codomain)(f)
@@ -121,8 +121,8 @@ def to_backend(arg):
         return tuple([ to_backend(x) for x in arg ])
     elif isinstance(arg, dict):
         return { to_backend(key): to_backend(value) for (key, value) in arg.items() }
-    elif isinstance(arg, RingExtension_class):
-        return (<RingExtension_class>arg)._backend
+    elif isinstance(arg, RingExtension_generic):
+        return (<RingExtension_generic>arg)._backend
     elif isinstance(arg, RingExtensionElement):
         return (<RingExtensionElement>arg)._backend
     return arg

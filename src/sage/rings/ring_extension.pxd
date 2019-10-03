@@ -1,19 +1,20 @@
 from sage.categories.map cimport Map
 from sage.rings.ring cimport CommutativeRing, CommutativeAlgebra
-from sage.rings.ring_extension cimport RingExtension_class
+from sage.rings.ring_extension cimport RingExtension_generic
 
 
 cdef _common_base(K, L, degree)
 
-cdef class RingExtension_class(CommutativeAlgebra):
+cdef class RingExtension_generic(CommutativeAlgebra):
     cdef _type
     cdef _backend
     cdef _defining_morphism
     cdef _backend_defining_morphism
     cdef dict _print_options
     cdef bint _import_methods
+    cdef bint _is_backend_exposed
     # For division
-    cdef RingExtension_class _fraction_field
+    cdef RingExtension_generic _fraction_field
     cdef type _fraction_field_type
 
     cpdef is_defined_over(self, base)
@@ -24,11 +25,11 @@ cdef class RingExtension_class(CommutativeAlgebra):
     cdef Map _defining_morphism_fraction_field(self, bint extend_base)
 
 
-cdef class RingExtensionFractionField(RingExtension_class):
+cdef class RingExtensionFractionField(RingExtension_generic):
     cdef _ring
 
 
-cdef class RingExtensionWithBasis(RingExtension_class):
+cdef class RingExtensionWithBasis(RingExtension_generic):
     cdef _basis
     cdef _basis_names
     cdef _basis_latex_names

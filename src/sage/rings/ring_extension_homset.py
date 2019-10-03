@@ -1,5 +1,5 @@
 from sage.rings.homset import RingHomset_generic
-from sage.rings.ring_extension import RingExtension_class
+from sage.rings.ring_extension import RingExtension_generic
 from sage.rings.ring_extension_morphism import RingExtensionHomomorphism
 
 class RingExtensionHomset(RingHomset_generic):
@@ -10,10 +10,10 @@ class RingExtensionHomset(RingHomset_generic):
         if isinstance(x, RingExtensionHomomorphism):
             x = x._backend()
         domain = self.domain()
-        if isinstance(domain, RingExtension_class):
+        if isinstance(domain, RingExtension_generic):
             domain = domain._backend()
         codomain = self.codomain()
-        if isinstance(codomain, RingExtension_class):
+        if isinstance(codomain, RingExtension_generic):
             codomain = codomain._backend()
         if domain is x.domain() and codomain is x.codomain():
             return RingExtensionHomomorphism(self, x)

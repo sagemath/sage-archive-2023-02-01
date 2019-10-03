@@ -840,6 +840,16 @@ cdef class RingHomomorphism(RingMap):
               To:   Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
               Defn: x |--> 2*x
 
+            sage: S.<x> = QQ[]
+            sage: T.<y> = S[]
+            sage: cc = S.hom([x+y])
+            sage: f = T.hom([x-y], base_map=cc)
+            sage: g = T.hom([x-y])
+            sage: (f*g)(x)
+            y + x
+            sage: f(g(x))
+            y + x
+
         AUTHORS:
 
         - Simon King (2010-05)
@@ -854,6 +864,8 @@ cdef class RingHomomorphism(RingMap):
             if isinstance(right, RingHomomorphism_im_gens):
                 rbm = right.base_map()
                 kwds = {'check': False}
+                if rbm is None and isinstance(self, RingHomomorphism_im_gens) and self.base_map() is not None:
+                    rbm = right.codomain().coerce_map_from(right.domain().base_ring())
                 if rbm is not None:
                     kwds['base_map'] = self * rbm
                 try:

@@ -9085,7 +9085,7 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_Order, self._gobj, hold))
 
-    def gamma(self, hold=False):
+    def gamma(self, *, hold=False):
         """
         Return the Gamma function evaluated at self.
 
@@ -9131,6 +9131,17 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = SR(1/2).gamma(hold=True); a.unhold()
             sqrt(pi)
+
+        TESTS:
+
+        Check that no confusion with the incomplete gamma function is
+        possible::
+
+            sage: x, y = SR.var('x,y')
+            sage: x.gamma(y)
+            Traceback (most recent call last):
+            ...
+            TypeError: gamma() takes exactly 0 positional arguments (1 given)
         """
         cdef GEx x
         sig_on()

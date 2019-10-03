@@ -3,8 +3,6 @@ from sage.rings.ring cimport CommutativeRing, CommutativeAlgebra
 from sage.rings.ring_extension cimport RingExtension_generic
 
 
-cdef _common_base(K, L, degree)
-
 cdef class RingExtension_generic(CommutativeAlgebra):
     cdef _type
     cdef _backend

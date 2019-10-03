@@ -49,7 +49,64 @@ from sage.rings.ring_extension_conversion import to_backend, from_backend
 # Helper functions
 ##################
 
-cdef _common_base(K, L, degree):
+def tower_bases(ring, degree):
+    r"""
+    Return the list of bases of ``ring`` (including itself); if
+    degree is ``True``, restrict to finite extensions and return
+    in addition the degree of ``ring`` over each base.
+
+    INPUT:
+
+    - ``ring`` -- a commutative ring
+
+    - ``degree`` -- a boolean
+
+    EXAMPLES::
+
+        sage: from sage.rings.ring_extension import tower_bases
+        sage: S.<x> = QQ[]
+        sage: T.<y> = S[]
+        sage: tower_bases(T, False)
+        ([Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field,
+          Univariate Polynomial Ring in x over Rational Field,
+          Rational Field],
+         [])
+        sage: tower_bases(T, True)
+        ([Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field],
+         [1])
+
+        sage: K.<a> = Qq(5^2)
+        sage: L.<w> = K.extension(x^3 - 5)
+        sage: tower_bases(L, True)
+        ([5-adic Eisenstein Extension Field in w defined by x^3 - 5 over its base field,
+          5-adic Unramified Extension Field in a defined by x^2 + 4*x + 2,
+          5-adic Field with capped relative precision 20],
+         [1, 3, 6])
+    """
+    bases = [ ]
+    degrees = [ ]
+    base = ring
+    deg = 1
+    while True:
+        bases.append(base)
+        if degree:
+            degrees.append(deg)
+            try:
+                d = base.relative_degree()
+            except AttributeError:
+                try:
+                    d = base.degree()
+                except AttributeError:
+                    break
+            if d is Infinity: break
+            deg *= d
+        newbase = base._base
+        if newbase is base: break
+        base = newbase
+    return bases, degrees
+
+
+def common_base(K, L, degree):
     """
     Return a common base on which ``K`` and ``L`` are defined.
 
@@ -62,18 +119,9 @@ cdef _common_base(K, L, degree):
     - ``degree`` -- a boolean; if true, return the degree of
       ``K`` and ``L`` over their common base
 
-    OUTPUT:
+    EXAMPLES::
 
-    EXAMPLES:
-
-    We need a wrapper because ``_common_base`` is a cdef method::
-
-        sage: cython('''
-        ....: from sage.rings.ring_extension cimport _common_base
-        ....: def common_base(K, L, degree):
-        ....:     return _common_base(K, L, degree)
-        ....: ''')
-
+        sage: from sage.rings.ring_extension import common_base
 
         sage: common_base(GF(5^3), GF(5^7), False)
         Finite Field of size 5
@@ -97,30 +145,8 @@ cdef _common_base(K, L, degree):
         NotImplementedError: unable to find a common base
 
     """
-    def tower_bases(ring):
-        bases = [ ]
-        base = ring
-        deg = 1
-        degrees = [ ]
-        while True:
-            bases.append(base)
-            if degree:
-                degrees.append(deg)
-                try:
-                    d = base.relative_degree()
-                except AttributeError:
-                    try:
-                        d = base.degree()
-                    except AttributeError:
-                        break
-                if d is Infinity: break
-                deg *= d
-            newbase = base.base_ring()
-            if newbase is base: break
-            base = newbase
-        return bases, degrees
-    bases_K, degrees_K = tower_bases(K)
-    bases_L, degrees_L = tower_bases(L)
+    bases_K, degrees_K = tower_bases(K, degree)
+    bases_L, degrees_L = tower_bases(L, degree)
     base = None
     for iL in range(len(bases_L)):
         try:
@@ -135,6 +161,63 @@ cdef _common_base(K, L, degree):
         return base, degrees_K[iK], degrees_L[iL]
     else:
         return base
+
+
+def generators(ring, base):
+    r"""
+    Return the generators of ``ring`` over ``base``.
+
+    INPUT:
+
+    - ``ring`` -- a commutative ring
+
+    - ``base`` -- a commutative ring
+
+    EXAMPLES::
+
+        sage: from sage.rings.ring_extension import generators
+        sage: S.<x> = QQ[]
+        sage: T.<y> = S[]
+
+        sage: generators(T, S)
+        (y,)
+        sage: generators(T, QQ)
+        (y, x)
+    """
+    gens = tuple()
+    while ring is not ring.base_ring() and (base is None or not base.has_coerce_map_from(ring)):
+        gens += ring.gens()
+        ring = ring.base_ring()
+    return gens
+
+
+def variable_names(ring, base):
+    r"""
+    Return the variable names of the generators of ``ring``
+    over ``base``.
+
+    INPUT:
+
+    - ``ring`` -- a commutative ring
+
+    - ``base`` -- a commutative ring
+
+    EXAMPLES::
+
+        sage: from sage.rings.ring_extension import variable_names
+        sage: S.<x> = QQ[]
+        sage: T.<y> = S[]
+
+        sage: variable_names(T, S)
+        ('y',)
+        sage: variable_names(T, QQ)
+        ('y', 'x')
+    """
+    names = tuple()
+    while ring is not ring.base_ring() and (base is None or not base.has_coerce_map_from(ring)):
+        names += ring.variable_names()
+        ring = ring.base_ring()
+    return names
 
 
 # Factory
@@ -190,10 +273,8 @@ class RingExtensionFactory(UniqueFactory):
             ((Ring morphism:
                 From: Integer Ring
                 To:   Rational Field
-                Defn: 1 |--> 1, (1,), ('x',)),
-             {'constructors': [(<class 'sage.rings.ring_extension.RingExtensionWithGen'>,
-                {'gen': 1, 'is_backend_exposed': True, 'names': ('x',)}),
-               (<class 'sage.rings.ring_extension.RingExtension_generic'>,
+                Defn: 1 |--> 1, (), ()),
+             {'constructors': [(<class 'sage.rings.ring_extension.RingExtension_generic'>,
                 {'is_backend_exposed': True,
                  'print_options': {'print_elements_as': None, 'print_parent_as': None}})]})
 
@@ -255,10 +336,9 @@ class RingExtensionFactory(UniqueFactory):
             names = normalize_names(len(gens), names)
             use_generic_constructor = False
         else:
-            gens = ring.gens()
+            gens = generators(ring, base)
             if names is None:
-                fallback = True
-                names = ring.variable_names()
+                names = variable_names(ring, base)
                 if len(names) != len(gens):
                     gens = names = None
             else:
@@ -1089,22 +1169,29 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         INPUT:
 
         - ``base`` -- a commutative ring (which might be itself an
-          extension) or ``None`` (default: ``None``)
+          extension) or ``None`` (default: ``None``); if omitted,
+          use the base of this extension
 
         EXAMPLES::
 
             sage: K.<a> = GF(5^2).over()  # over GF(5)
             sage: K.gens()
             (a,)
-
             sage: L.<b> = GF(5^4).over(K)
             sage: L.gens()
             (b,)
             sage: L.gens(GF(5))
             (b, a)
+
+            sage: S.<x> = QQ[]
+            sage: T.<y> = S[]
+            sage: T.over(S).gens()
+            (y,)
+            sage: T.over(QQ).gens()
+            (y, x)
         """
         self._check_base(base)
-        return tuple([ self(x) for x in self._backend.gens() ])
+        return tuple([ self(x) for x in generators(self._backend, backend_parent(self._base)) ])
 
     def ngens(self, base=None):
         r"""
@@ -2242,7 +2329,7 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         """
         self._name = names[0]
         backend_base = backend_parent(defining_morphism.domain())
-        _, deg_domain, deg_codomain = _common_base(backend_base, defining_morphism.codomain(), True)
+        _, deg_domain, deg_codomain = common_base(backend_base, defining_morphism.codomain(), True)
         degree = deg_codomain // deg_domain
         basis_names = [ "" ]
         basis_latex_names = [ "" ]

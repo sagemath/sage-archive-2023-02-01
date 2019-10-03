@@ -17,7 +17,6 @@ from sage.rings.ring cimport CommutativeRing
 from sage.rings.morphism cimport RingMap
 from sage.rings.ring_extension cimport RingExtension_generic, RingExtensionWithBasis
 from sage.rings.ring_extension_element cimport RingExtensionElement
-from sage.rings.ring_extension cimport _common_base
 from sage.rings.ring_extension_conversion cimport backend_parent, backend_element, backend_morphism
 
 
@@ -36,12 +35,22 @@ cdef are_equal_morphisms(f, g):
 
     TESTS::
 
-        sage: K.<a> = GF(5^2).over()
-        sage: phi = K.hom([a^5])
-        sage: phi^3 == phi
+        sage: S.<x> = QQ[]
+        sage: T.<y> = S[]
+        sage: TT = T.over(QQ)
+        sage: H = End(TT)
+
+        sage: cc = S.hom([-x])
+        sage: f = T.hom([x^2 + y^2], base_map=cc)
+        sage: g = T.hom([x^2 + y^2])
+
+        sage: H(f) == H(g)      # indirect doctest
+        False
+        sage: H(f^2) == H(g^2)  # indirect doctest
         True
     """
     cdef CommutativeRing b
+    cdef tuple gens
     if f is None and g is None:
         return True
     if f is None:
@@ -317,7 +326,8 @@ cdef class MapRelativeFieldToVectorSpace(Map):
         L = (<RingExtensionWithBasis>E)._backend
 
         # We compute the matrix of our isomorphism (over base)
-        base = _common_base(K, L, False)
+        from sage.rings.ring_extension import common_base
+        base = common_base(K, L, False)
         EK, iK, jK = K.free_module(base, map=True)
         EL, iL, jL = L.free_module(base, map=True)
 

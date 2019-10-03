@@ -32,7 +32,7 @@ For more information about active vertices, see the documentation for the
 method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import, division
 
@@ -3215,6 +3215,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
             ....:      for i in range(50))                              # long time
             True
+
+        TESTS::
+
+            sage: m = Matrix(3,[0, 1, 1, 0, 0, 0, 0, 1, 0])
+            sage: g = DiGraph(m)
+            sage: g.is_directed_acyclic(certificate=True)
+            (True, [0, 2, 1])
         """
         if not self._directed:
             raise ValueError("Input must be a directed graph.")
@@ -3265,12 +3272,11 @@ cdef class CGraphBackend(GenericGraphBackend):
                 # out-neighbors have been de-activated already, for we put them
                 # *after* u in the stack.
                 if bitset_in(tried, u):
-                    ordering.insert(0, self.vertex_label(u))
+                    ordering.append(self.vertex_label(u))
                     bitset_discard(tried, u)
                     bitset_discard(activated, u)
                     stack.pop(-1)
                     continue
-
 
                 # If we never tried it, now is the time to do it. We also must
                 # remember it
@@ -3312,9 +3318,11 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(tried)
 
         if certificate:
+            ordering.reverse()
             return (True, ordering)
         else:
             return True
+
 
 cdef class Search_iterator:
     r"""

@@ -807,6 +807,23 @@ cdef class RingHomomorphism(RingMap):
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
+        We check that composition works when there is a base map::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = GF(7^2)
+            sage: L.<u> = K.extension(x^3 - 3)
+            sage: phi = L.hom([u^7], base_map=K.frobenius_endomorphism())
+            sage: phi
+            Ring endomorphism of Univariate Quotient Polynomial Ring in u over Finite Field in a of size 7^2 with modulus u^3 + 4
+              Defn: u |--> 2*u
+                    with map of base ring
+            sage: psi = phi^3; psi
+            Ring endomorphism of Univariate Quotient Polynomial Ring in u over Finite Field in a of size 7^2 with modulus u^3 + 4
+              Defn: u |--> u
+                    with map of base ring
+            sage: psi(a) == phi(phi(phi(a)))
+            True
+
         AUTHORS:
 
         - Simon King (2010-05)
@@ -818,8 +835,28 @@ cdef class RingHomomorphism(RingMap):
             return self
         if homset.homset_category().is_subcategory(Rings()):
             if isinstance(right, RingHomomorphism_im_gens):
+                rbm = right.base_map()
+                kwds = {'check': False}
+                if isinstance(self, RingHomomorphism_im_gens):
+                    sbm = self.base_map()
+                    if sbm is not None or rbm is not None:
+                        if rbm is None:
+                            rbm = right.codomain().base_ring().coerce_map_from(right.domain().base_ring())
+                            if rbm is None:
+                                rbm = right.codomain().coerce_map_from(right.domain().base_ring())
+                                if rbm is None:
+                                    raise ValueError("Unable to find base map coercion")
+                        if sbm is None:
+                            sbm = self.codomain().base_ring().coerce_map_from(rbm.codomain())
+                            if sbm is None:
+                                sbm = self.codomain().coerce_map_from(rbm.codomain())
+                                if sbm is None:
+                                    raise ValueError("Unable to find base map coercion")
+                        kwds['base_map'] = sbm * rbm
+                elif rbm is not None:
+                    kwds['base_map'] = self * rbm
                 try:
-                    return homset([self(g) for g in right.im_gens()], False)
+                    return homset([self(g) for g in right.im_gens()], **kwds)
                 except ValueError:
                     pass
             from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
@@ -1014,7 +1051,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
     """
     A ring homomorphism determined by the images of generators.
     """
-    def __init__(self, parent, im_gens, check=True):
+    def __init__(self, parent, im_gens, check=True, base_map=None):
         """
         EXAMPLES::
 
@@ -1038,6 +1075,16 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             ...
             TypeError: images do not define a valid homomorphism
 
+        You can give a map of the base ring::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<t> = K[]
+            sage: z = 1 + i*t + (3+4*i)*t^2
+            sage: z._im_gens_(R, [t^2], base_map=cc)
+            (-4*i + 3)*t^4 - i*t^2 + 1
+
         There is a check option, but it may be ignored in some cases
         -- it's purpose isn't so you can lie to Sage, but to sometimes
         speed up creation of a homomorphism::
@@ -1056,14 +1103,16 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         if check:
             if len(im_gens) != parent.domain().ngens():
                 raise ValueError("number of images must equal number of generators")
-            t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens)
+            tkwds = {} if base_map is None else {'base_map': base_map}
+            t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens, **tkwds)
             if not t:
                 raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators")
         if not im_gens.is_immutable():
             import copy
             im_gens = copy.copy(im_gens)
             im_gens.set_immutable()
-        self.__im_gens = im_gens
+        self._im_gens = im_gens
+        self._base_map = base_map
 
     def im_gens(self):
         """
@@ -1087,7 +1136,33 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f.im_gens()
             [x, x + y]
         """
-        return list(self.__im_gens)
+        return list(self._im_gens)
+
+    def base_map(self):
+        """
+        Return the map on the base ring that is part of the defining
+        data for this morphism.  May return ``None`` if a coercion is used.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: S.<y> = K[]
+            sage: phi = S.hom([y^2], base_map=cc)
+            sage: phi
+            Ring endomorphism of Univariate Polynomial Ring in y over Number Field in i with defining polynomial x^2 + 1
+              Defn: y |--> y^2
+                    with map of base ring
+            sage: phi(y)
+            y^2
+            sage: phi(i*y)
+            -i*y^2
+            sage: phi.base_map()
+            Ring endomorphism of Number Field in i with defining polynomial x^2 + 1
+              Defn: i |--> -i
+        """
+        return self._base_map
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1105,7 +1180,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: g(y)
             x + y
         """
-        self.__im_gens = _slots['__im_gens']
+        self._im_gens = _slots['__im_gens'] # double underscores for legacy pickles
+        self._base_map = _slots.get('_base_map')
         RingHomomorphism._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):
@@ -1125,7 +1201,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             x + y
         """
         slots = RingHomomorphism._extra_slots(self)
-        slots['__im_gens'] = self.__im_gens
+        slots['__im_gens'] = self._im_gens
+        slots['_base_map'] = self._base_map
         return slots
 
     cpdef _richcmp_(self, other, int op):
@@ -1192,9 +1269,11 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             # Generic comparison
             return RingMap._richcmp_(self, other, op)
         # Check equality using the images of the generators.
-        self_im = self.__im_gens
-        other_im = (<RingHomomorphism_im_gens>other).__im_gens
-        return richcmp(self_im, other_im, op)
+        self_im = self._im_gens
+        other_im = (<RingHomomorphism_im_gens>other)._im_gens
+        self_hom = self._base_map
+        other_hom = (<RingHomomorphism_im_gens>other)._base_map
+        return richcmp((self_im, self_hom), (other_im, other_hom), op)
 
     def __hash__(self):
         """
@@ -1211,7 +1290,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: {s: 1}[s]
             1
         """
-        return hash(self.__im_gens)
+        return hash((self._im_gens, self._base_map))
 
     def _repr_defn(self):
         """
@@ -1225,9 +1304,12 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             y |--> x + y
         """
         D = self.domain()
-        ig = self.__im_gens
-        return '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
+        ig = self._im_gens
+        s = '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
                        i in range(D.ngens())])
+        if s and self._base_map is not None:
+            s += '\nwith map of base ring'
+        return s
 
     cpdef Element _call_(self, x):
         """
@@ -1239,7 +1321,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f(x+2*y+3*z)             # indirect doctest
             2*x + 3*y + 2*z
         """
-        return x._im_gens_(self.codomain(), self.im_gens())
+        return x._im_gens_(self.codomain(), self.im_gens(), base_map=self.base_map())
 
 
 cdef class RingHomomorphism_from_base(RingHomomorphism):
@@ -1356,7 +1438,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             raise ValueError("The given homomorphism has to have the codomain %s"%parent.codomain().base())
         if parent.domain().construction()[0] != parent.codomain().construction()[0]:
             raise ValueError(f"domain ({parent.domain()}) and codomain ({parent.codomain()}) must have the same functorial construction over their base rings")
-        self.__underlying = underlying
+        self._underlying = underlying
 
     def underlying_map(self):
         """
@@ -1373,7 +1455,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: g.underlying_map() == f
             True
         """
-        return self.__underlying
+        return self._underlying
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1402,7 +1484,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: psi(x*t)
             2*z*t
         """
-        self.__underlying = _slots['__underlying']
+        self._underlying = _slots['__underlying'] # double underscore for legacy pickles
         RingHomomorphism._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):
@@ -1433,7 +1515,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             2*z*t
         """
         slots = RingHomomorphism._extra_slots(self)
-        slots['__underlying'] = self.__underlying
+        slots['__underlying'] = self._underlying
         return slots
 
     cpdef _richcmp_(self, other, int op):
@@ -1488,8 +1570,8 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         if not isinstance(other, RingHomomorphism_from_base):
             # Generic comparison
             return RingMap._richcmp_(self, other, op)
-        self_underlying = self.__underlying
-        other_underlying = (<RingHomomorphism_from_base>other).__underlying
+        self_underlying = self._underlying
+        other_underlying = (<RingHomomorphism_from_base>other)._underlying
         return richcmp(self_underlying, other_underlying, op)
 
     def _repr_defn(self):
@@ -1514,7 +1596,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
                               Defn: x |--> x + y
                                     y |--> x - y
         """
-        U = repr(self.__underlying).split('\n')
+        U = repr(self._underlying).split('\n')
         return 'Induced from base ring by\n'+'\n'.join(U)
 
     cpdef Element _call_(self, x):
@@ -1530,15 +1612,15 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         P = self.codomain()
         try:
-            return P(dict([(a, self.__underlying(b)) for a,b in x.dict().items()]))
+            return P(dict([(a, self._underlying(b)) for a,b in x.dict().items()]))
         except Exception:
             pass
         try:
-            return P([self.__underlying(b) for b in x])
+            return P([self._underlying(b) for b in x])
         except Exception:
             pass
         try:
-            return P(self.__underlying(x.numerator()))/P(self.__underlying(x.denominator()))
+            return P(self._underlying(x.numerator()))/P(self._underlying(x.denominator()))
         except Exception:
             raise TypeError("invalid argument %s" % repr(x))
 

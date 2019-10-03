@@ -824,10 +824,27 @@ cdef class RingHomomorphism(RingMap):
             sage: psi(a) == phi(phi(phi(a)))
             True
 
+        It also works when the image of the base map is not contained within the base ring of the codomain::
+
+            sage: S.<x> = QQ[]
+            sage: T.<y> = S[]
+            sage: cc = S.hom([x+y])
+            sage: f = T.hom([x-y], base_map=cc)
+            sage: f*f
+            Ring endomorphism of Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+              Defn: y |--> 2*y
+                    with map of base ring
+            sage: (f*f).base_map()
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+              Defn: x |--> 2*x
+
         AUTHORS:
 
         - Simon King (2010-05)
         - Francis Clarke (2011-02)
+        - David Roe (2019-10)
         """
         from sage.categories.morphism import IdentityMorphism
         from sage.categories.rings import Rings
@@ -837,23 +854,7 @@ cdef class RingHomomorphism(RingMap):
             if isinstance(right, RingHomomorphism_im_gens):
                 rbm = right.base_map()
                 kwds = {'check': False}
-                if isinstance(self, RingHomomorphism_im_gens):
-                    sbm = self.base_map()
-                    if sbm is not None or rbm is not None:
-                        if rbm is None:
-                            rbm = right.codomain().base_ring().coerce_map_from(right.domain().base_ring())
-                            if rbm is None:
-                                rbm = right.codomain().coerce_map_from(right.domain().base_ring())
-                                if rbm is None:
-                                    raise ValueError("Unable to find base map coercion")
-                        if sbm is None:
-                            sbm = self.codomain().base_ring().coerce_map_from(rbm.codomain())
-                            if sbm is None:
-                                sbm = self.codomain().coerce_map_from(rbm.codomain())
-                                if sbm is None:
-                                    raise ValueError("Unable to find base map coercion")
-                        kwds['base_map'] = sbm * rbm
-                elif rbm is not None:
+                if rbm is not None:
                     kwds['base_map'] = self * rbm
                 try:
                     return homset([self(g) for g in right.im_gens()], **kwds)
@@ -1085,6 +1086,18 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: z._im_gens_(R, [t^2], base_map=cc)
             (-4*i + 3)*t^4 - i*t^2 + 1
 
+        The base map's codomain is extended to the whole codomain::
+
+            sage: S.<x> = QQ[]
+            sage: T.<y> = S[]
+            sage: cc = S.hom([x+1])
+            sage: f = T.hom([x-y], base_map=cc)
+            sage: g = T.hom([x-y], base_map=cc.extend_codomain(T))
+            sage: f == g
+            True
+            sage: f.base_map() == cc.extend_codomain(T)
+            True
+
         There is a check option, but it may be ignored in some cases
         -- it's purpose isn't so you can lie to Sage, but to sometimes
         speed up creation of a homomorphism::
@@ -1103,6 +1116,12 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         if check:
             if len(im_gens) != parent.domain().ngens():
                 raise ValueError("number of images must equal number of generators")
+            if base_map is None:
+                tkwds = {}
+            else:
+                if base_map.codomain() is not self.codomain():
+                    base_map = base_map.extend_codomain(self.codomain())
+                tkwds = {'base_map': base_map}
             tkwds = {} if base_map is None else {'base_map': base_map}
             t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens, **tkwds)
             if not t:

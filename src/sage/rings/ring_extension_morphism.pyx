@@ -25,7 +25,7 @@ from sage.rings.ring_extension_conversion cimport backend_parent, backend_elemen
 cdef are_equal_morphisms(f, g):
     r"""
     Return ``True`` if ``f`` and ``g`` coincide on the
-    generator of the domain, ``False`` otherwise.
+    generators of the domain, ``False`` otherwise.
 
     INPUT:
 
@@ -41,15 +41,21 @@ cdef are_equal_morphisms(f, g):
         sage: phi^3 == phi
         True
     """
+    cdef CommutativeRing b
     if f is None and g is None:
         return True
     if f is None:
         f, g = g, f
+    gens = tuple()
+    b = f.domain()
+    while b is not b._base:
+        gens += b.gens()
+        b = b._base
     if g is None:
-        for x in f.domain().gens():
+        for x in gens:
             if f(x) != x: return False
     else:
-        for x in f.domain().gens():
+        for x in gens:
             if f(x) != g(x): return False
     return True
 
@@ -196,7 +202,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         raise NotImplemented
 
     def is_identity(self):
-        return are_equal_morphism(self._backend, None)
+        return are_equal_morphisms(self._backend, None)
 
     def is_injective(self):
         return self._backend.is_injective()

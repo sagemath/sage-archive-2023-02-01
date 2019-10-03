@@ -231,7 +231,6 @@ class RingExtensionFactory(UniqueFactory):
             if defining_morphism is None:
                 raise ValueError("No coercion map from %s to %s" % (base,ring))
         else:
-            # Should we allow conversion maps (and not only coercion maps) here?
             if defining_morphism.domain() is not base:
                 defining_morphism = defining_morphism.extend_domain(base)
             if defining_morphism.codomain() is not ring:
@@ -344,8 +343,15 @@ cdef class RingExtension_generic(CommutativeAlgebra):
           parent (resp. its elements) import the methods of the backend 
           parent class (resp. element class)
 
-        - ``is_backend_exposed`` -- a boolean (default: ``False``) whether
+        - ``is_backend_exposed`` -- a boolean (default: ``False``); whether
           the backend ring can be exposed to the user
+
+        .. NOTE:
+
+            The attribute `is_backend_exposed` is only used for printing;
+            when it is ``False``, printing an element like its backend is
+            disabled (and a ``RuntimeError`` is raised when it is going to
+            occur).
 
         OUTPUT:
 
@@ -713,6 +719,8 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: E._repr_topring()
             'Rational Field'
         """
+        if not self._is_backend_exposed:
+            raise RuntimeError("backend is not exposed to the user; cannot print")
         return str(self._backend)
 
     def _latex_(self, over=None):
@@ -763,6 +771,8 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: E._latex_topring()
             \Bold{Q}
         """
+        if not self._is_backend_exposed:
+            raise RuntimeError("backend is not exposed to the user; cannot print")
         return latex(self._backend)
 
     cpdef _coerce_map_from_(self, other):

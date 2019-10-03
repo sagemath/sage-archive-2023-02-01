@@ -670,7 +670,7 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
             True
         """
         ring = (<RingExtensionFractionField>self._parent)._ring
-        denom = self._backend.numerator()
+        denom = self._backend.denominator()
         return ring(denom)
 
 

@@ -407,7 +407,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         x = im_gens[0]
         u = self.__u
         if base_map is not None:
-            u = u.change_ring(base_map)
+            u = u.map_coefficients(base_map)
         return codomain(u(x) * x**self.__n)
 
     cpdef __normalize(self):

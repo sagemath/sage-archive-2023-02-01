@@ -587,7 +587,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         f = self.modulus()
         try:
             if base_map is not None:
-                f = f.change_ring(base_map)
+                f = f.map_coefficients(base_map)
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False

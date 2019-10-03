@@ -482,7 +482,7 @@ cdef class NumberFieldElement(FieldElement):
         # The current implementation won't productively use base_map
         # since the coefficients of f are in QQ.
         if base_map is not None:
-            f = f.change_ring(base_map)
+            f = f.map_coefficients(base_map)
         return codomain(f(im_gens[0]))
 
     def _latex_(self):

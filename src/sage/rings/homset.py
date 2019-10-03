@@ -184,6 +184,15 @@ class RingHomset_generic(HomsetWithBase):
             sage: phi(z2*x) == z2^3 * x^2
             True
 
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = GF(7^2)
+            sage: L.<u> = K.extension(x^3 - 3)
+            sage: phi = L.hom([u^7], base_map=K.frobenius_endomorphism())
+            sage: phi(u) == u^7
+            True
+            sage: phi(a) == a^7
+            True
+
         TESTS::
 
             sage: H = Hom(ZZ, QQ)

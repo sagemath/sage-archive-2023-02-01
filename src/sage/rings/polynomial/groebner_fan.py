@@ -1193,7 +1193,7 @@ class GroebnerFan(SageObject):
         except AttributeError:
             f = self.gfan(cmd='topolyhedralfan', I=self._gfan_reduced_groebner_bases())
             self.__polyhedralfan = PolyhedralFan(f)
-            return PolyhedralFan(f)
+            return self.__polyhedralfan
 
     def homogeneity_space(self):
         """

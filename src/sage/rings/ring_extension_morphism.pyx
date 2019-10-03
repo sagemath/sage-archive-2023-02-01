@@ -23,6 +23,24 @@ from sage.rings.ring_extension_conversion cimport backend_parent, backend_elemen
 
 # I don't trust the operator ==
 cdef are_equal_morphisms(f, g):
+    r"""
+    Return ``True`` if ``f`` and ``g`` coincide on the
+    generator of the domain, ``False`` otherwise.
+
+    INPUT:
+
+    - ``f`` - a ring homomorphism or ``None``; if ``None``,
+      we consider that ``f`` is a coercion map
+
+    - ``g`` - a ring homomorphism or ``None``
+
+    TESTS::
+
+        sage: K.<a> = GF(5^2).over()
+        sage: phi = K.hom([a^5])
+        sage: phi^3 == phi
+        True
+    """
     if f is None and g is None:
         return True
     if f is None:
@@ -36,22 +54,28 @@ cdef are_equal_morphisms(f, g):
     return True
 
 
-# Classes
-
 cdef class RingExtensionHomomorphism(RingMap):
     r"""
-    Homomorphisms between extensions
+    A class for ring homomorphisms between extensions.
 
     EXAMPLES:
 
-        sage: F = GF(5^2)
-        sage: K = GF(5^4)
-        sage: L = GF(5^8)
-        sage: E1 = RingExtension(K,F)
-        sage: E2 = RingExtension(L,K)
+        sage: K.<a> = GF(5^2).over()
+        sage: L.<b> = GF(5^4).over(K)
+        sage: phi = L.hom([b^5, a^5])
+        sage: phi
+        Ring endomorphism of Field in b with defining polynomial x^2 + (3 - a)*x + a over its base
+          Defn: b |--> (2 + a) + 2*b
+                with map on base ring:
+                a |--> 1 - a
+
+        sage: TestSuite(phi).run()
 
     """
     def __init__(self, parent, defn, base_map=None, check=True):
+        r"""
+        Initialize this morphism.
+        """
         RingMap.__init__(self, parent)
         domain = self.domain()
         backend_domain = backend_parent(domain)
@@ -60,7 +84,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         # We construct the backend morphism
         if isinstance(defn, Map):
             if base_map is not None:
-                raise ValueError("base_map must not be set when providing the backend morphism")
+                raise ValueError("base_map cannot be set when passing in the backend morphism")
             backend = backend_morphism(defn)
             if backend.domain() is not backend_domain:
                 raise TypeError("the domain of the backend morphism is not correct")
@@ -172,9 +196,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         raise NotImplemented
 
     def is_identity(self):
-        if self.domain() is not self.codomain():
-            return False
-        return self._backend.is_identity()
+        return are_equal_morphism(self._backend, None)
 
     def is_injective(self):
         return self._backend.is_injective()

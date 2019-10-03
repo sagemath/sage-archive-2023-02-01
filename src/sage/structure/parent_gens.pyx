@@ -316,8 +316,13 @@ cdef class ParentWithGens(ParentWithBase):
             Join of Category of euclidean domains and Category of commutative algebras over (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
             sage: f(-1)
             0
+            sage: f(1)
+            2
+
+        The base map is only applied to nonzero coefficients of the input::
+
             sage: f(0)
-            1
+            0
         """
         if self._element_constructor is not None:
             return parent.Parent.hom(self, im_gens, codomain, base_map=base_map, category=category, check=check)

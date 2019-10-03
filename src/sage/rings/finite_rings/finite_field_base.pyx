@@ -441,7 +441,7 @@ cdef class FiniteField(Field):
 
         f = self.modulus()
         if base_map is not None:
-            f = f.change_ring(base_map)
+            f = f.map_coefficients(base_map)
         return f(im_gens[0]).is_zero()
 
     def _Hom_(self, codomain, category=None):

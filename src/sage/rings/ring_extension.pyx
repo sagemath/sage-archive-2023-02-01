@@ -318,15 +318,14 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
     TESTS::
 
-        sage: E = QQ.over(ZZ)  # indirect doctest
-        sage: E
+        sage: Q = QQ.over(ZZ)  # indirect doctest
+        sage: Q
         Rational Field over its base
 
-        sage: from sage.rings.ring_extension import RingExtension_generic
-        sage: isinstance(E, RingExtension_generic)
-        True
+        sage: type(Q)
+        <class 'sage.rings.ring_extension.RingExtension_generic'>
 
-        sage: TestSuite(E).run()
+        sage: TestSuite(Q).run()
 
     """
     Element = RingExtensionElement
@@ -449,7 +448,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         except AttributeError:
             pass
         method = None
-        if name[0] != "_" and self._import_methods and hasattr(self._backend, name):
+        if self._import_methods and hasattr(self._backend, name):
             method = getattr(self._backend, name)
         if not callable(method):
             raise AttributeError(AttributeErrorMessage(self, name))
@@ -468,10 +467,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         EXAMPLES::
 
-            sage: K.<a> = QQ.extension(x^2 - 2)
-            sage: E = K.over()
+            sage: A.<a> = QQ.extension(x^2 - 2)
+            sage: K.<a> = A.over()
 
-            sage: E.__dir__()
+            sage: dir(K)
             ['CartesianProduct',
              'Element',
              'Hom',
@@ -511,6 +510,16 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
     def __reduce__(self):
         """
+        Return a tuple of a function and data that can be used to unpickle this
+        extension.
+
+        TESTS::
+
+            sage: K = GF(7^3).over()
+            sage: type(K)
+            <class 'sage.rings.ring_extension.RingExtensionWithGen'>
+            sage: loads(dumps(K)) is K
+            True
         """
         (defining_morphism, gens, names) = self._factory_data[2]
         constructors = self._factory_data[3]['constructors']
@@ -1642,9 +1651,8 @@ cdef class RingExtensionFractionField(RingExtension_generic):
         sage: Q
         Fraction Field of Integer Ring over its base
 
-        sage: from sage.rings.ring_extension import RingExtensionFractionField
-        sage: isinstance(Q, RingExtensionFractionField)
-        True
+        sage: type(Q)
+        <class 'sage.rings.ring_extension.RingExtensionFractionField'>
 
         sage: TestSuite(Q).run()
 
@@ -1740,10 +1748,6 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
         sage: E = GF(5^4).over(GF(5^2))
         sage: E
         Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
-
-        sage: from sage.rings.ring_extension import RingExtensionWithBasis
-        sage: isinstance(E, RingExtensionWithBasis)
-        True
 
         sage: TestSuite(E).run()
 
@@ -2195,9 +2199,8 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         sage: A.<a> = QQ.extension(x^3 - 7)
         sage: K = A.over()
 
-        sage: from sage.rings.ring_extension import RingExtensionWithGen
-        sage: isinstance(K, RingExtensionWithGen)
-        True
+        sage: type(K)
+        <class 'sage.rings.ring_extension.RingExtensionWithGen'>
 
         sage: TestSuite(K).run()
 

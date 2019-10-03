@@ -1231,7 +1231,7 @@ class HasseDiagram(DiGraph):
         return M
 
     def lequal_matrix(self, boolean=False):
-        """
+        r"""
         Return a matrix whose ``(i,j)`` entry is 1 if ``i`` is less
         than ``j`` in the poset, and 0 otherwise; and redefines
         ``__lt__`` to use the boolean version of this matrix.

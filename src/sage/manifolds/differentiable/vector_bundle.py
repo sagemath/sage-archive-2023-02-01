@@ -157,6 +157,39 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         """
         return self._diff_degree
 
+    def total_space(self, update_atlas=True):
+        r"""
+        Return the total space of ``self``.
+
+        OUTPUT:
+
+        - the total space of ``self`` as an instance of
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: E.total_space()
+            6-dimensional differentiable manifold E
+
+        """
+        if self._total_space is None:
+            from sage.manifolds.manifold import Manifold
+            base_space = self._base_space
+            dim = base_space._dim * self._rank
+            sindex = base_space.start_index()
+            self._total_space = Manifold(dim, self._name,
+                                latex_name=self._latex_name,
+                                field=self._field, structure='differentiable',
+                                diff_degree=self._diff_degree,
+                                start_index=sindex)
+        if update_atlas:
+            # TODO: if self._atlas not empty, introduce charts
+            pass
+
+        return self._total_space
+
 # *****************************************************************************
 
 class TensorBundle(DifferentiableVectorBundle):

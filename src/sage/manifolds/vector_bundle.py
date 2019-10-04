@@ -812,7 +812,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: M = Manifold(3, 'M')
+            sage: M = Manifold(3, 'M', structure='top')
             sage: E = M.vector_bundle(2, 'E')
             sage: E.total_space()
             6-dimensional topological manifold E

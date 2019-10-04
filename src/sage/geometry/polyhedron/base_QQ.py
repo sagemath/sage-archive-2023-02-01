@@ -285,7 +285,7 @@ class Polyhedron_QQ(Polyhedron_base):
         EXAMPLES:
 
         To start, we find the Ehrhart polynomial of a three-dimensional
-        ``simplex``, first using ``engine``='latte'. Leaving the engine
+        ``simplex``, first using ``engine='latte'``. Leaving the engine
         unspecified sets the ``engine`` to 'latte' by default::
 
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
@@ -355,7 +355,7 @@ class Polyhedron_QQ(Polyhedron_base):
         if engine is None:
             # set default engine to latte
             engine = 'latte'
-        if engine is 'latte':
+        if engine == 'latte':
             poly = self._ehrhart_polynomial_latte(verbose, dual,
             irrational_primal, irrational_all_primal, maxdet,
             no_decomposition, compute_vertex_cones, smith_form,
@@ -365,7 +365,7 @@ class Polyhedron_QQ(Polyhedron_base):
             # TO DO: replace this change of variable by creating the appropriate
             #        polynomial ring in the latte interface.
 
-        elif engine is 'normaliz':
+        elif engine == 'normaliz':
             return self._ehrhart_polynomial_normaliz(variable)
         else:
             raise ValueError("engine must be 'latte' or 'normaliz'")
@@ -462,12 +462,13 @@ class Polyhedron_QQ(Polyhedron_base):
         3 dimensional permutahedron fixed by the reflection
         across the hyperplane `x_1 = x_4`::
 
-            sage: subpoly = Polyhedron(vertices = [[3/2, 3, 4, 3/2],
+            sage: verts = [[3/2, 3, 4, 3/2],
             ....:  [3/2, 4, 3, 3/2],
             ....:  [5/2, 1, 4, 5/2],
             ....:  [5/2, 4, 1, 5/2],
             ....:  [7/2, 1, 2, 7/2],
-            ....:  [7/2, 2, 1, 7/2]], backend = 'normaliz') # optional - pynormaliz
+            ....:  [7/2, 2, 1, 7/2]]
+            sage: subpoly = Polyhedron(vertices=verts, backend='normaliz') # optional - pynormaliz
             sage: eq = subpoly.ehrhart_quasipolynomial()    # optional - pynormaliz
             sage: eq                                        # optional - pynormaliz
             (4*t^2 + 3*t + 1, 4*t^2 + 2*t)
@@ -526,9 +527,9 @@ class Polyhedron_QQ(Polyhedron_base):
         if engine is None:
             # setting the default to 'normaliz'
             engine = 'normaliz'
-        if engine is 'normaliz':
+        if engine == 'normaliz':
             return self._ehrhart_quasipolynomial_normaliz(variable)
-        if engine is 'latte':
+        if engine == 'latte':
             if any(not v.is_integral() for v in self.vertex_generator()):
                 raise TypeError("the polytope has nonintegral vertices, the engine and backend of self should be 'normaliz'")
             poly = self._ehrhart_polynomial_latte(verbose, dual,
@@ -562,12 +563,13 @@ class Polyhedron_QQ(Polyhedron_base):
         The subpolytope of the 3 dimensional permutahedron fixed by the
         reflection across the hyperplane `x_1 = x_4`::
 
-            sage: subpoly = Polyhedron(vertices = [[3/2, 3, 4, 3/2],
+            sage: verts = [[3/2, 3, 4, 3/2],
             ....:  [3/2, 4, 3, 3/2],
             ....:  [5/2, 1, 4, 5/2],
             ....:  [5/2, 4, 1, 5/2],
             ....:  [7/2, 1, 2, 7/2],
-            ....:  [7/2, 2, 1, 7/2]], backend = 'normaliz')         # optional - pynormaliz
+            ....:  [7/2, 2, 1, 7/2]]
+            sage: subpoly = Polyhedron(vertices=verts, backend='normaliz')         # optional - pynormaliz
             sage: eq = subpoly._ehrhart_quasipolynomial_normaliz()  # optional - pynormaliz
             sage: eq                                                # optional - pynormaliz
             (4*t^2 + 3*t + 1, 4*t^2 + 2*t)

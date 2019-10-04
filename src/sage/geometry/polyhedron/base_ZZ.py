@@ -34,11 +34,11 @@ class Polyhedron_ZZ(Polyhedron_QQ):
     """
     _base_ring = ZZ
 
-    def __getattribute__(self,name):
+    def __getattribute__(self, name):
         r"""
         TESTS:
 
-        A lattice polytope doesn't have a Ehrhart quasipolynomial because it
+        A lattice polytope does not have a Ehrhart quasipolynomial because it
         is always a polynomial::
 
             sage: P = polytopes.cube()
@@ -52,7 +52,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         if name in ['ehrhart_quasipolynomial']:
             raise AttributeError(name)
         else:
-            return super(Polyhedron_ZZ,self).__getattribute__(name)
+            return super(Polyhedron_ZZ, self).__getattribute__(name)
 
     def __dir__(self):
         r"""
@@ -362,7 +362,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         EXAMPLES:
 
         To start, we find the Ehrhart polynomial of a three-dimensional
-        ``simplex``, first using ``engine``='latte'. Leaving the engine
+        ``simplex``, first using ``engine='latte'``. Leaving the engine
         unspecified sets the ``engine`` to 'latte' by default::
 
             sage: simplex = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
@@ -398,7 +398,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
         Now we find the Ehrhart polynomials of the unit hypercubes of
         dimensions three through six. They are computed first with
-        ``engine``='latte' and then with ``engine``='normaliz'.
+        ``engine='latte'`` and then with ``engine='normaliz'``.
         The degree of the Ehrhart polynomial matches the dimension of the
         hypercube, and the coefficient of the leading monomial equals the
         volume of the unit hypercube::

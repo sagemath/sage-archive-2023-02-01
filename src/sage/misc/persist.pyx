@@ -55,7 +55,7 @@ cdef _normalize_filename(s):
     return s
 
 
-def load(*filename, compress=True, verbose=True):
+def load(*filename, compress=True, verbose=True, **kwargs):
     r"""
     Load Sage object from the file with name filename, which will have
     an ``.sobj`` extension added if it doesn't have one.  Or, if the input
@@ -70,9 +70,17 @@ def load(*filename, compress=True, verbose=True):
     specifying the full URL.  (Setting ``verbose = False`` suppresses
     the loading progress indicator.)
 
+    When a pickle created with Python 2 is unpickled in Python 3, Sage
+    uses the default encoding ``latin1`` to unpickle data of type :class:`str`.
+
     Finally, if you give multiple positional input arguments, then all
     of those files are loaded, or all of the objects are loaded and a
     list of the corresponding loaded objects is returned.
+
+    If ``compress`` is true (the default), then the data stored in the file
+    are supposed to be compressed. If ``verbose`` is true (the default), then
+    some logging is printed when accessing remote files. Further keyword
+    arguments are passed to :func:`pickle.load`.
 
     EXAMPLES::
 
@@ -123,7 +131,7 @@ def load(*filename, compress=True, verbose=True):
     """
     import sage.repl.load
     if len(filename) != 1:
-        v = [load(file, compress=compress, verbose=verbose) for file in filename]
+        v = [load(file, compress=compress, verbose=verbose, **kwargs) for file in filename]
         # Return v if one of the filenames refers to an object and not
         # a loadable filename.
         for file in filename:
@@ -149,7 +157,7 @@ def load(*filename, compress=True, verbose=True):
 
     ## Load file by absolute filename
     with open(filename, 'rb') as fobj:
-        X = loads(fobj.read(), compress=compress)
+        X = loads(fobj.read(), compress=compress, **kwargs)
     try:
         X._default_filename = os.path.abspath(filename)
     except AttributeError:
@@ -704,6 +712,7 @@ ELSE:
         """
 
         def __init__(self, file_obj, persistent_load=None, *, **kwargs):
+            kwargs.setdefault('encoding', 'latin1')
             super(_BaseUnpickler, self).__init__(file_obj, **kwargs)
             self._persistent_load = persistent_load
 
@@ -746,7 +755,7 @@ ELSE:
 
 
 class SagePickler(_BasePickler):
-    """
+    r"""
     Subclass `pickle.Pickler` with Sage-specific default options, and
     built-in support for external object persistence.
 
@@ -766,6 +775,11 @@ class SagePickler(_BasePickler):
       (instead of 4) and fixing up imports of standard library modules and
       types whose names changed between Python 2 and 3.  This is enabled by
       default for the best chances of cross-Python compatibility.
+
+    - Further arguments are passed to :func:`pickle.load`, where in Python-3
+      Sage sets the default ``encoding='latin1'``. This is essential to make
+      pickles readable in Python-3 that were created in Python-2. See
+      :trac:`28444` for details.
 
     .. _pickling and unpickling external objects: https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-external-objects
 
@@ -793,6 +807,36 @@ class SagePickler(_BasePickler):
         sage: def load_object_from_table(obj_id):
         ....:     tag, obj_id
         ....:     return table[obj_id]
+
+    TESTS:
+
+    The following is an indirect doctest.
+    ::
+
+        sage: class Foo(object):
+        ....:     def __init__(self, s):
+        ....:         self.bar = s
+        ....:     def __reduce__(self):
+        ....:         return Foo, (self.bar,)
+        ....:
+        sage: import __main__
+        sage: __main__.Foo = Foo
+
+    The data that is passed to ``loads`` in the following line was created
+    by ``dumps(Foo('\x80\x07')`` in Python-2. We demonstrate that it can
+    be correctly unpickled in Python-3::
+
+        sage: g = loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{')
+        sage: type(g), g.bar
+        (<class '__main__.Foo'>, '\x80\x07')
+
+    The following line demonstrates what would happen without :trac:`28444`::
+
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
+        Traceback (most recent call last):
+        ...
+        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+
     """
 
     def __init__(self, file_obj, persistent_id=None, py2compat=True):
@@ -920,8 +964,8 @@ class SageUnpickler(_BaseUnpickler):
         return cls(io.BytesIO(data), **kwargs).load()
 
 
-def loads(s, compress=True):
-    """
+def loads(s, compress=True, **kwargs):
+    r"""
     Recover an object x that has been dumped to a string s
     using ``s = dumps(x)``.
 
@@ -939,6 +983,7 @@ def loads(s, compress=True):
     the data with zlib and with bz2 (in turn); if neither succeeds,
     it will assume the data is actually uncompressed.  If compress=False
     is explicitly specified, then no decompression is attempted.
+    Further arguments are passed to python's :func:`pickle.load`.
 
     ::
 
@@ -951,6 +996,37 @@ def loads(s, compress=True):
         Traceback (most recent call last):
         ...
         UnpicklingError: invalid load key, 'x'.
+
+    The next example demonstrates that Sage strives to avoid data loss
+    in the transition from Python-2 to Python-3. The problem is that Python-3
+    by default would not be able to unpickle a non-ASCII Python-2 string appearing
+    in a pickle. See :trac:`28444` for details.
+    ::
+
+        sage: class Foo(object):
+        ....:     def __init__(self, s):
+        ....:         self.bar = s
+        ....:     def __reduce__(self):
+        ....:         return Foo, (self.bar,)
+        ....:
+        sage: import __main__
+        sage: __main__.Foo = Foo
+
+    The data that is passed to ``loads`` in the following line was created
+    by ``dumps(Foo('\x80\x07')`` in Python-2.
+    ::
+
+        sage: g = loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{')
+        sage: type(g), g.bar
+        (<class '__main__.Foo'>, '\x80\x07')
+
+    The following line demonstrates what would happen without :trac:`28444`::
+
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
+        Traceback (most recent call last):
+        ...
+        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+
     """
     if not isinstance(s, bytes):
         raise TypeError("s must be bytes")
@@ -965,7 +1041,7 @@ def loads(s, compress=True):
                 # Maybe data is uncompressed?
                 pass
 
-    unpickler = SageUnpickler(io.BytesIO(s))
+    unpickler = SageUnpickler(io.BytesIO(s), **kwargs)
     return unpickler.load()
 
 

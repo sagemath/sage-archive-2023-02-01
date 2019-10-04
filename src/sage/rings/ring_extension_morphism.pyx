@@ -73,7 +73,7 @@ cdef class RingExtensionHomomorphism(RingMap):
     r"""
     A class for ring homomorphisms between extensions.
 
-    EXAMPLES:
+    TESTS::
 
         sage: K.<a> = GF(5^2).over()
         sage: L.<b> = GF(5^4).over(K)
@@ -84,12 +84,49 @@ cdef class RingExtensionHomomorphism(RingMap):
                 with map on base ring:
                 a |--> 1 - a
 
+        sage: type(phi)
+        <class 'sage.rings.ring_extension_morphism.RingExtensionHomomorphism'>
+
         sage: TestSuite(phi).run()
 
     """
     def __init__(self, parent, defn, base_map=None, check=True):
         r"""
         Initialize this morphism.
+
+        INPUT:
+
+        - ``defn`` -- the definition of the morphism
+
+        - ``base_map`` -- a ring homomorphism or ``None`` (default: ``None``);
+          the action of this morphism on one of the bases of the domain;
+          if ``None``, a coercion map is used
+
+        - ``check`` -- a boolean (default: ``True``); whether to check if
+          the given data define a valid homomorphism
+
+        TESTS::
+
+            sage: S.<x> = QQ[]
+            sage: T.<x,y> = QQ[]
+            sage: f = T.hom([x^2, y^2])
+            sage: f
+            Ring endomorphism of Multivariate Polynomial Ring in x, y over Rational Field
+              Defn: x |--> x^2
+                    y |--> y^2
+
+            sage: TT = T.over(QQ)
+            sage: End(TT)(f)
+            Ring endomorphism of Multivariate Polynomial Ring in x, y over Rational Field over its base
+              Defn: x |--> x^2
+                    y |--> y^2
+
+            sage: TT = T.over(S)
+            sage: End(TT)(f)
+            Ring endomorphism of Multivariate Polynomial Ring in x, y over Rational Field over its base
+              Defn: y |--> y^2
+                    with map on base ring:
+                    x |--> x^2
         """
         RingMap.__init__(self, parent)
         domain = self.domain()
@@ -170,9 +207,48 @@ cdef class RingExtensionHomomorphism(RingMap):
             raise TypeError
 
     def _repr_type(self):
+        r"""
+        Return a string that describes the type of this morphism.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()  # over GF(5)
+            sage: f = K.hom([a^5])
+            sage: f
+            Ring endomorphism of Field in a with defining polynomial x^2 + 4*x + 2 over its base
+              Defn: a |--> 1 - a
+
+            sage: f._repr_type()
+            'Ring'
+        """
         return "Ring"
 
     cpdef Element _call_(self, x):
+        r"""
+        Return the image of ``x`` under this morphism.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this morphism
+
+        EXAMPLES::
+
+            sage: A.<sqrt2> = QQ.extension(x^2 - 2)
+            sage: K.<sqrt2> = A.over()
+            sage: f = K.hom([-sqrt2])
+            sage: f
+            Ring endomorphism of Field in sqrt2 with defining polynomial x^2 - 2 over its base
+              Defn: sqrt2 |--> -sqrt2
+            sage: f(sqrt2)
+            -sqrt2
+
+        TESTS::
+
+            sage: a = QQ.random_element()
+            sage: b = QQ.random_element()
+            sage: f(a + b*sqrt2) == a - b*sqrt2
+            True
+        """
         y = self._backend(backend_element(x))
         if isinstance(self.codomain(), RingExtension_generic):
             y = self._codomain(y)
@@ -180,6 +256,40 @@ cdef class RingExtensionHomomorphism(RingMap):
 
     @cached_method
     def base_map(self):
+        r"""
+        Return the base map of this morphism
+        or just ``None`` if the base map is a coercion map.
+
+        EXAMPLES::
+
+            sage: F = GF(5)
+            sage: K.<a> = GF(5^2).over(F)
+            sage: L.<b> = GF(5^6).over(K)
+
+        We define the absolute Frobenius of L::
+
+            sage: FrobL = L.hom([b^5, a^5])
+            sage: FrobL
+            Ring endomorphism of Field in b with defining polynomial x^3 + (2 + 2*a)*x - a over its base
+              Defn: b |--> (-1 + a) + (1 + 2*a)*b + a*b^2
+                    with map on base ring:
+                    a |--> 1 - a
+            sage: FrobL.base_map()
+            Ring morphism:
+              From: Field in a with defining polynomial x^2 + 4*x + 2 over its base
+              To:   Field in b with defining polynomial x^3 + (2 + 2*a)*x - a over its base
+              Defn: a |--> 1 - a
+
+        The square of ``FrobL`` acts trivially on K; in other words, it has 
+        a trivial base map::
+
+            sage: phi = FrobL^2
+            sage: phi
+            Ring endomorphism of Field in b with defining polynomial x^3 + (2 + 2*a)*x - a over its base
+              Defn: b |--> 2 + 2*a*b + (2 - a)*b^2
+            sage: phi.base_map()
+
+        """
         domain = self.domain()
         codomain = self.codomain()
         base = domain.base_ring()
@@ -203,6 +313,29 @@ cdef class RingExtensionHomomorphism(RingMap):
         return base_map
 
     cpdef _richcmp_(self, other, int op):
+        r"""
+        Compare this element with ``other`` according to
+        the rich comparison operator ``op``.
+
+        INPUT:
+
+        - ``other`` -- a morphism with the same codomain and codomain
+
+        - ``op`` -- the comparison operator
+
+        TESTS::
+
+            sage: K.<a> = GF(5^2).over()   # over GF(5)
+            sage: L.<b> = GF(5^6).over(K)
+
+            sage: FrobK = K.hom([a^5])
+            sage: FrobL = L.hom([b^5], base_map=FrobK)
+
+            sage: FrobK^2 == End(K).identity()
+            True        
+            sage: FrobL^6 == End(L).identity()
+            True        
+        """
         eq = are_equal_morphisms(self._backend, backend_morphism(other))
         if op == op_EQ:
             return eq
@@ -211,15 +344,108 @@ cdef class RingExtensionHomomorphism(RingMap):
         raise NotImplemented
 
     def is_identity(self):
+        r"""
+        Return whether this morphism is the identity.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()   # over GF(5)
+            sage: FrobK = K.hom([a^5])
+            sage: FrobK.is_identity()
+            False
+            sage: (FrobK^2).is_identity()
+            True        
+
+        Coercion maps are not considered as identity morphisms::
+
+            sage: L.<b> = GF(5^6).over(K)
+            sage: iota = L.defining_morphism()
+            sage: iota
+            Ring morphism:
+              From: Field in a with defining polynomial x^2 + 4*x + 2 over its base
+              To:   Field in b with defining polynomial x^3 + (2 + 2*a)*x - a over its base
+              Defn: a |--> a
+            sage: iota.is_identity()
+            False
+        """
+        if self.domain() is not self.codomain():
+            return False
         return are_equal_morphisms(self._backend, None)
 
     def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: K = GF(5^10).over(GF(5^5))
+            sage: iota = K.defining_morphism()
+            sage: iota
+            Ring morphism:
+              From: Finite Field in z5 of size 5^5
+              To:   Field in z10 with defining polynomial x^2 + (2*z5^3 + 2*z5^2 + 4*z5 + 4)*x + z5 over its base
+              Defn: z5 |--> z5
+            sage: iota.is_injective()
+            True
+
+            sage: K = GF(7).over(ZZ)
+            sage: iota = K.defining_morphism()
+            sage: iota
+            Ring morphism:
+              From: Integer Ring
+              To:   Finite Field of size 7 over its base
+              Defn: 1 |--> 1
+            sage: iota.is_injective()
+            False
+        """
         return self._backend.is_injective()
 
     def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: K = GF(5^10).over(GF(5^5))
+            sage: iota = K.defining_morphism()
+            sage: iota
+            Ring morphism:
+              From: Finite Field in z5 of size 5^5
+              To:   Field in z10 with defining polynomial x^2 + (2*z5^3 + 2*z5^2 + 4*z5 + 4)*x + z5 over its base
+              Defn: z5 |--> z5
+            sage: iota.is_surjective()
+            False
+
+            sage: K = GF(7).over(ZZ)
+            sage: iota = K.defining_morphism()
+            sage: iota
+            Ring morphism:
+              From: Integer Ring
+              To:   Finite Field of size 7 over its base
+              Defn: 1 |--> 1
+            sage: iota.is_surjective()
+            True
+        """
         return self._backend.is_surjective()
 
     def _repr_defn(self):
+        r"""
+        Return a string definition of this morphism.
+
+        By default, we show the action of the morphism on the
+        generators of the domain.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()   # over GF(5)
+            sage: L.<b> = GF(5^6).over(K)
+            sage: FrobL = L.hom([b^5, a^5])  # absolute Frobenius
+
+            sage: print(FrobL._repr_defn())
+            b |--> (-1 + a) + (1 + 2*a)*b + a*b^2
+            with map on base ring:
+            a |--> 1 - a
+        """
         import re
         s = ""
         gens = self.domain().gens()
@@ -237,6 +463,22 @@ cdef class RingExtensionHomomorphism(RingMap):
         return s
 
     def _composition(self, right):
+        r"""
+        Return the composite ``self o right``.
+
+        TESTS::
+
+            sage: A.<sqrt5> = QQ.extension(x^2 - 5)
+            sage: K.<sqrt5> = A.over()
+            sage: f = K.hom([-sqrt5])
+            sage: f
+            Ring endomorphism of Field in sqrt5 with defining polynomial x^2 - 5 over its base
+              Defn: sqrt5 |--> -sqrt5
+
+            sage: f^2  # indirect doctest
+            Ring endomorphism of Field in sqrt5 with defining polynomial x^2 - 5 over its base
+              Defn: sqrt5 |--> sqrt5
+        """
         domain = right.domain()
         codomain = self.codomain()
         backend_right = backend_morphism(right)
@@ -247,50 +489,253 @@ cdef class RingExtensionHomomorphism(RingMap):
             return backend
 
     cdef _update_slots(self, dict _slots):
+        """
+        Helper function for copying and pickling.
+
+        TESTS::
+
+            sage: K.<a> = GF(5^2).over()   # over GF(5)
+            sage: f = K.hom([a^5])
+
+            sage: g = copy(f)    # indirect doctest
+            sage: f == g
+            True
+            sage: f is g
+            False
+        """
         self._backend = _slots['_backend']
         RingMap._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):
+        """
+        Helper function for copying and pickling.
+
+        TESTS::
+
+            sage: K.<a> = GF(5^2).over()   # over GF(5)
+            sage: f = K.hom([a^5])
+            sage: loads(dumps(f)) == f
+            True
+        """
         slots = RingMap._extra_slots(self)
         slots['_backend'] = self._backend
         return slots
 
 
 cdef class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
+    r"""
+    A class for implementating isomorphisms taking an element of the
+    backend to its ring extension.
+
+    TESTS::
+
+        sage: K = GF(11^9).over(GF(11^3))
+        sage: f = K.coerce_map_from(GF(11^9))
+        sage: f
+        Coercion morphism:
+          From: Finite Field in z9 of size 11^9
+          To:   Field in z9 with defining polynomial x^3 + (9*z3^2 + 5*z3 + 1)*x^2 + (4*z3 + 3)*x + 10*z3 over its base
+
+        sage: type(f)
+        <class 'sage.rings.ring_extension_morphism.RingExtensionBackendIsomorphism'>
+
+        sage: TestSuite(f).run()
+    """
     def __init__(self, parent):
+        r"""
+        Initialize this morphism.
+
+        TESTS::
+
+            sage: A.<a> = QQ.extension(x^2 - 5)
+            sage: K = A.over()
+            sage: K.coerce_map_from(A)
+            Coercion morphism:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Field in a with defining polynomial x^2 - 5 over its base
+        """
         RingMap.__init__(self, parent)
         domain = self.domain()
         self._backend = domain.Hom(domain).identity()
 
     def _repr_type(self):
+        r"""
+        Return a string that describes the type of this morphism.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()  # over GF(5)
+            sage: f = K.coerce_map_from(GF(5^2))
+            sage: f
+            Coercion morphism:
+              From: Finite Field in z2 of size 5^2
+              To:   Field in a with defining polynomial x^2 + 4*x + 2 over its base
+
+            sage: f._repr_type()
+            'Coercion'
+        """
         return "Coercion"
 
     def _repr_defn(self):
+        r"""
+        Return the empty string since this morphism is canonical.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()  # over GF(5)
+            sage: f = K.coerce_map_from(GF(5^2))
+            sage: f
+            Coercion morphism:
+              From: Finite Field in z2 of size 5^2
+              To:   Field in a with defining polynomial x^2 + 4*x + 2 over its base
+
+            sage: f._repr_defn()
+            ''
+        """
         return ""
 
     cpdef Element _call_(self, x):
+        r"""
+        Return the image of ``x`` under this morphism.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this morphism
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()  # over GF(5)
+            sage: f = K.coerce_map_from(GF(5^2))
+            sage: f(GF(5^2).gen())
+            a
+        """
         codomain = self.codomain()
         return codomain.element_class(codomain, x)
 
 
 cdef class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
+    r"""
+    A class for implementating isomorphisms from a ring extension to
+    its backend.
+
+    TESTS::
+
+        sage: K = GF(11^9).over(GF(11^3))
+        sage: f = GF(11^9).convert_map_from(K)
+        sage: f
+        Canonical morphism:
+          From: Field in z9 with defining polynomial x^3 + (9*z3^2 + 5*z3 + 1)*x^2 + (4*z3 + 3)*x + 10*z3 over its base
+          To:   Finite Field in z9 of size 11^9
+
+        sage: type(f)
+        <class 'sage.rings.ring_extension_morphism.RingExtensionBackendReverseIsomorphism'>
+
+        sage: TestSuite(f).run()
+
+    """
     def __init__(self, parent):
+        r"""
+        Initialize this morphism.
+
+        TESTS::
+
+            sage: A.<a> = QQ.extension(x^2 - 5)
+            sage: K = A.over()
+            sage: A.convert_map_from(K)
+            Canonical morphism:
+              From: Field in a with defining polynomial x^2 - 5 over its base
+              To:   Number Field in a with defining polynomial x^2 - 5
+        """
         RingMap.__init__(self, parent)
         codomain = self.codomain()
         self._backend = codomain.Hom(codomain).identity()
 
     def _repr_type(self):
+        r"""
+        Return a string that describes the type of this morphism.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()  # over GF(5)
+            sage: f = GF(5^2).convert_map_from(K)
+            sage: f
+            Canonical morphism:
+              From: Field in a with defining polynomial x^2 + 4*x + 2 over its base
+              To:   Finite Field in z2 of size 5^2
+
+            sage: f._repr_type()
+            'Canonical'
+        """
         return "Canonical"
 
     def _repr_defn(self):
+        r"""
+        Return the empty string since this morphism is canonical.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()  # over GF(5)
+            sage: f = GF(5^2).convert_map_from(K)
+            sage: f
+            Canonical morphism:
+              From: Field in a with defining polynomial x^2 + 4*x + 2 over its base
+              To:   Finite Field in z2 of size 5^2
+
+            sage: f._repr_defn()
+            ''
+        """
         return ""
 
     cpdef Element _call_(self, x):
+        r"""
+        Return the image of ``x`` under this morphism.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this morphism
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^2).over()  # over GF(5)
+            sage: f = GF(5^2).convert_map_from(K)
+            sage: f(a)
+            z2
+        """
         return (<RingExtensionElement>x)._backend
 
 
-cdef class MapVectorSpaceToRelativeField(Map):
+cdef class MapFreeModuleToRelativeRing(Map):
+    """
+    Base class of the module isomorphism between a ring extension
+    and a free module over one of its bases.
+
+    TESTS::
+
+        sage: K = GF(5^2).over()
+        sage: V, i, j = K.free_module()
+        sage: type(i)
+        <class 'sage.rings.ring_extension_morphism.MapFreeModuleToRelativeRing'>
+
+    """
     def __init__(self, E, K):
+        r"""
+        Initialize this morphism.
+
+        INPUT:
+
+        - ``E`` -- a ring extension
+
+        - ``K`` -- a commutative ring; one base of ``E``
+
+        TESTS::
+
+            sage: K = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: i
+            Generic map:
+              From: Vector space of dimension 2 over Finite Field in z3 of size 11^3
+              To:   Field in z6 with defining polynomial x^2 + (10*z3^2 + z3 + 6)*x + z3 over its base
+        """
         self._degree = E.degree(K)
         self._basis = [ (<RingExtensionElement>x)._backend for x in E.basis_over(K) ]
         self._f = backend_morphism(E.defining_morphism(K), forget="codomain")
@@ -299,12 +744,46 @@ cdef class MapVectorSpaceToRelativeField(Map):
         Map.__init__(self, parent)
 
     def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: K = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: i.is_injective()
+            True
+        """
         return True
 
     def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: K = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: i.is_surjective()
+            True
+        """
         return True
 
     cpdef Element _call_(self, v):
+        r"""
+        Return the image of ``x`` under this morphism.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this morphism
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: i((0,1))
+            a
+        """
         cdef Element elt
         elt = self._f(v[0]) * self._basis[0]
         for i in range(1, self._degree):
@@ -312,8 +791,38 @@ cdef class MapVectorSpaceToRelativeField(Map):
         return self.codomain()(elt)
 
 
-cdef class MapRelativeFieldToVectorSpace(Map):
+cdef class MapRelativeRingToFreeModule(Map):
+    """
+    Base class of the module isomorphism between a ring extension
+    and a free module over one of its bases.
+
+    TESTS::
+
+        sage: K = GF(5^2).over()
+        sage: V, i, j = K.free_module()
+        sage: type(j)
+        <class 'sage.rings.ring_extension_morphism.MapRelativeRingToFreeModule'>
+
+    """
     def __init__(self, E, K):
+        r"""
+        Initialize this morphism.
+
+        INPUT:
+
+        - ``E`` -- a ring extension
+
+        - ``K`` -- a commutative ring; one base of ``E``
+
+        TESTS::
+
+            sage: K = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: j
+            Generic map:
+              From: Field in z6 with defining polynomial x^2 + (10*z3^2 + z3 + 6)*x + z3 over its base
+              To:   Vector space of dimension 2 over Finite Field in z3 of size 11^3
+        """
         cdef CommutativeRing L, base
 
         self._degree = (<RingExtensionWithBasis>E)._degree_over(K)
@@ -344,19 +853,68 @@ cdef class MapRelativeFieldToVectorSpace(Map):
         self._matrix = MatrixSpace(base,len(M))(M).inverse_of_unit()
 
     def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: K = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: j.is_injective()
+            True
+        """
         return True
 
     def is_surjective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: K = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: j.is_surjective()
+            True
+        """
         return True
 
     cpdef Element _call_(self, x):
+        r"""
+        Return the image of ``x`` under this morphism.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this morphism
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(11^6).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: j(a)
+            (0, 1)
+        """
         coeffs = self.backend_coefficients(x)
         return self.codomain()(coeffs)
 
     cdef list backend_coefficients(self, RingExtensionElement x):
+        r"""
+        Return the coordinates of the image of ``x`` 
+        as elements of the backend ring.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this morphism
+
+        TESTS::
+
+            sage: K.<a> = GF(11^9).over(GF(11^3))
+            sage: V, i, j = K.free_module()
+            sage: j(a + 2*a^2)   # indirect doctest
+            (0, 1, 2)
+        """
+        cdef list coeffs = [ ]
         dK = self._dimK
         w = (self._jL(x._backend) * self._matrix).list()
-        coeffs = [ ]
         for i in range(self._degree):
             coeff = self._iK(w[i*dK:(i+1)*dK])
             coeffs.append(coeff)

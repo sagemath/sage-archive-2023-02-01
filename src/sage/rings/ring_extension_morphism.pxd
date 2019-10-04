@@ -18,12 +18,12 @@ cdef class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
 cdef class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
     pass
 
-cdef class MapVectorSpaceToRelativeField(Map):
+cdef class MapFreeModuleToRelativeRing(Map):
     cdef _degree
     cdef list _basis
     cdef Map _f
 
-cdef class MapRelativeFieldToVectorSpace(Map):
+cdef class MapRelativeRingToFreeModule(Map):
     cdef _degree
     cdef list _basis
     cdef _dimK

@@ -23,7 +23,7 @@ from sage.categories.fields import Fields
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.rings.ring_extension cimport RingExtension_generic, RingExtensionWithGen
-from sage.rings.ring_extension_morphism cimport MapRelativeFieldToVectorSpace
+from sage.rings.ring_extension_morphism cimport MapRelativeRingToFreeModule
 from sage.rings.ring_extension_conversion cimport backend_parent, backend_element
 from sage.rings.ring_extension_conversion import to_backend, from_backend
 
@@ -247,7 +247,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``right`` -- a Tate algebra term
+        - ``right`` -- an element in the same parent
 
         - ``op`` -- the comparison operator
 
@@ -1364,9 +1364,9 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: L(u).minpoly(F).degree() in [ 1, 3 ]
             True
         """
-        from sage.modules.free_module import VectorSpace
+        from sage.modules.free_module import FreeModule
         cdef RingExtensionWithBasis parent = self._parent
-        cdef MapRelativeFieldToVectorSpace j
+        cdef MapRelativeRingToFreeModule j
 
         base = parent._check_base(base)
         if not (parent._is_finite_over(base) and parent._is_free_over(base)):
@@ -1376,7 +1376,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         K = backend_parent(base)
         degree = parent._degree_over(base)
         _, _, j = parent._free_module(base, map=True)
-        V = VectorSpace(K, degree)
+        V = FreeModule(K, degree)
         vector = [K(1)] + (degree-1)*[K(0)]
         vectors = [vector]
         W = V.span(vectors)

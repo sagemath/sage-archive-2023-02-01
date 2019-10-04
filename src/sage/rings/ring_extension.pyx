@@ -1,5 +1,4 @@
-r"""
-Extension of rings
+r""" Extension of rings
 
 AUTHOR:
 
@@ -41,7 +40,7 @@ from sage.rings.ring_extension_morphism cimport RingExtensionHomomorphism
 from sage.rings.ring_extension_morphism cimport RingExtensionBackendIsomorphism
 from sage.rings.ring_extension_morphism cimport RingExtensionBackendReverseIsomorphism
 from sage.rings.ring_extension_morphism cimport are_equal_morphisms
-from sage.rings.ring_extension_morphism cimport MapVectorSpaceToRelativeField, MapRelativeFieldToVectorSpace
+from sage.rings.ring_extension_morphism cimport MapFreeModuleToRelativeRing, MapRelativeRingToFreeModule
 from sage.rings.ring_extension_conversion cimport backend_parent, backend_morphism
 from sage.rings.ring_extension_conversion import to_backend, from_backend
 
@@ -186,9 +185,12 @@ def generators(ring, base):
     """
     gens = tuple()
     while ring is not ring.base_ring() and (base is None or not base.has_coerce_map_from(ring)):
-        gens += ring.gens()
+        gens += tuple(ring.gens())
         ring = ring.base_ring()
-    return gens
+    if base is None:
+        return gens
+    else:
+        return tuple([x for x in gens if x not in base])
 
 
 def variable_names(ring, base):
@@ -215,7 +217,16 @@ def variable_names(ring, base):
     """
     names = tuple()
     while ring is not ring.base_ring() and (base is None or not base.has_coerce_map_from(ring)):
-        names += ring.variable_names()
+        gens = ring.gens()
+        vars = ring.variable_names()
+        if len(gens) != len(vars):
+            raise NotImplementedError("cannot figure out the variable names")
+        if base is None:
+            names += tuple(vars)
+        else:
+            for i in range(len(gens)):
+                if gens[i] not in base:
+                    names += (vars[i],)
         ring = ring.base_ring()
     return names
 
@@ -2202,7 +2213,7 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
         """
         d = self._degree_over(base)
         if map:
-            return base**d, MapVectorSpaceToRelativeField(self, base), MapRelativeFieldToVectorSpace(self, base)
+            return base**d, MapFreeModuleToRelativeRing(self, base), MapRelativeRingToFreeModule(self, base)
         else:
             return base**d
 

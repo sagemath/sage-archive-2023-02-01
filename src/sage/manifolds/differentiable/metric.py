@@ -2552,7 +2552,7 @@ class DegenerateMetric(TensorField):
         - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
         + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
         
-    The position vector is a lightlike vector field.
+    The position vector is a lightlike vector field::
 
         sage: v = M.vector_field()
         sage: v[0], v[1], v[2] = x , y, z
@@ -2868,7 +2868,7 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
         - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
         + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
         
-    The position vector is a lightlike vector field.
+    The position vector is a lightlike vector field::
 
         sage: v = M.vector_field()
         sage: v[0], v[1], v[2] = x , y, z

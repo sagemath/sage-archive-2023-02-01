@@ -1376,7 +1376,7 @@ class TopologicalManifold(ManifoldSubset):
               Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (r, s))}
 
         """
-        return self._coord_changes
+        return self._coord_changes.copy()
 
     def is_manifestly_coordinate_domain(self):
         r"""

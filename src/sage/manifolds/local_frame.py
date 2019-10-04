@@ -12,11 +12,12 @@ the fiber `E_p` for any `p \in U`.
 
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
+- Eric Gourgoulhon, Michal Bejger (2013-2015): initial version (originally
+  ``differentiable/vectorframe.py``)
 - Travis Scrimshaw (2016): review tweaks
 - Eric Gourgoulhon (2018): some refactoring and more functionalities in the
   choice of symbols for vector frame elements (:trac:`24792`)
-- Michael Jung (2019): Generalization to vector bundles and file renamed
+- Michael Jung (2019): Generalization to vector bundles (now: ``local_frame.py``)
 
 EXAMPLES:
 
@@ -628,8 +629,11 @@ class LocalFrame(FreeModuleBasis):
         """
         from sage.tensor.modules.finite_rank_free_module import \
             FiniteRankFreeModule
+        # Some sanity check:
         if not isinstance(section_module, FiniteRankFreeModule):
-            raise ValueError("'section_module' must be a free module")
+            raise ValueError("the {} has already been constructed as a "
+                             "non-free module and therefore cannot have "
+                             "a basis".format(vector_field_module))
         self._domain = section_module.domain()
         self._base_space = section_module.base_space()
         self._vbundle = section_module.vector_bundle()
@@ -638,10 +642,23 @@ class LocalFrame(FreeModuleBasis):
                                  indices=indices, latex_indices=latex_indices,
                                  symbol_dual=symbol_dual,
                                  latex_symbol_dual=latex_symbol_dual)
-        self._coframe = self.dual_basis()  # Shortcut for self._dual_basis
+        # The frame is added to the domain's modules of frames, as well as to
+        # all the superdomain's modules of frames; moreover the first defined
+        # frame is considered as the default one
+        for sd in self._domain._supersets:
+            if sd in self._vbundle._section_modules:
+                smodule = self._vbundle._section_modules[sd]
+                if smodule.default_frame() is None:
+                    smodule.set_default_frame(self)
+                # Initialization of the zero element of the section module:
+                if not isinstance(smodule, FiniteRankFreeModule):
+                    smodule(0).add_comp(self)
+                    # (since new components are initialized to zero)
         ###
         # Add this frame to the list of frames of the overlying vector bundle:
         self._vbundle._add_local_frame(self)
+
+        self._coframe = self.dual_basis()  # Shortcut for self._dual_basis
         ###
         # Frame restrictions:
         self._subframes = set([self]) # Set of frames which are just a

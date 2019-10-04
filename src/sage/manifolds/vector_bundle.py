@@ -7,10 +7,10 @@ Let `K` be a topological field. A *vector bundle* of rank `n` over the field
 such that for every point `p \in B`
 - the set `E_p=\pi^{-1}(p)` has the vector space structure of `K^n`,
 - there is a neighborhood `U \subset B` of `p` and a homeomorphism
-  `\varphi: \pi^{-1}(p) \to U \times K^n` such that `\varphi` is compatible
-  with the fibers, namely `\pi \circ \varphi^{-1} = \mathrm{pr}_1`, and
-  `v \mapsto \varphi^{-1}(q,v)` is a linear isomorphism between `K^n` and `E_q`
-  for any `q \in U`.
+  (trivialization) `\varphi: \pi^{-1}(p) \to U \times K^n` such that `\varphi`
+  is compatible with the fibers, namely `\pi \circ \varphi^{-1} = \mathrm{pr}_1`,
+  and `v \mapsto \varphi^{-1}(q,v)` is a linear isomorphism between `K^n` and
+  `E_q` for any `q \in U`.
 
 AUTHORS:
 
@@ -45,11 +45,11 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     INPUT:
 
     - ``rank`` -- positive integer; rank of the vector bundle
-    - ``name```-- string representation given to the total space
+    - ``name`` -- string representation given to the total space
     - ``base_space`` -- the base space (topological manifold) over which the
       vector bundle is defined
     - ``field`` -- field `K` which gives the fibers the structure of a
-     vector space over `K`; allowed values are
+      vector space over `K`; allowed values are
 
       - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
         a vector bundle over `\RR`
@@ -81,6 +81,104 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         sage: E.rank()
         1
 
+       For a more sophisticated example, let us define a non-trivial
+       2-manifold to work with::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E'); E
+            Topological real vector bundle E -> M of rank 2 over the base space
+             2-dimensional topological manifold M
+
+        Now, there a two ways to go. Most effortlessly, we define
+        trivializations similar to charts (see
+        :class:`~sage.manifolds.trivialization.Trivialization`)::
+
+            sage: phi_U = E.trivialization('phi_U', domain=U); phi_U
+            Trivialization (phi_U, E|_U)
+            sage: phi_V = E.trivialization('phi_V', domain=V); phi_V
+            Trivialization (phi_V, E|_V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]]) # transition map between trivializations
+            sage: fU = phi_U.frame(); fU
+            Trivialization frame (E|_U, ((phi_U^*e_1),(phi_U^*e_2)))
+            sage: fV = phi_V.frame(); fV
+            Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2)))
+            sage: E.changes_of_frame() # random
+            {(Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2))),
+             Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2)))): Automorphism
+             phi_U^(-1)*phi_V^(-1) of the Free module C^0(W;E) of sections on
+             the Open subset W of the 2-dimensional topological manifold M with
+             values in the real vector bundle E of rank 2,
+             (Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2))),
+             Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2)))): Automorphism
+             phi_U^(-1)*phi_V of the Free module C^0(W;E) of sections on the
+             Open subset W of the 2-dimensional topological manifold M with
+             values in the real vector bundle E of rank 2}
+
+        Then, the atlas of `E` consists of all known trivializations defined
+        on E::
+
+            sage: E.atlas() # a shallow copy of the atlas
+            [Trivialization (phi_U, E|_U), Trivialization (phi_V, E|_V)]
+
+        Or we just define frames, an automorphism on the free
+        section module over the intersection domain `W` and declare the change
+        of frame manually (for more details consult
+        :class:`~sage.manifolds.local_frames.LocalFrame`)::
+
+            sage: eU = E.local_frame('eU', domain=U); eU
+            Local frame (E|_U, (eU_0,eU_1))
+            sage: eUW = eU.restrict(W) # to trivialize E|_W
+            sage: eV = E.local_frame('eV', domain=V); eV
+            Local frame (E|_V, (eV_0,eV_1))
+            sage: eVW = eV.restrict(W)
+            sage: a = E.section_module(domain=W).automorphism(); a
+            Automorphism of the Free module C^0(W;E) of sections on the Open
+             subset W of the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
+            sage: a[eUW,:] = [[0,x],[x,0]]
+            sage: E.set_change_of_frame(eUW, eVW, a)
+            sage: E.change_of_frame(eUW, eVW)
+            Automorphism of the Free module C^0(W;E) of sections on the Open
+             subset W of the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
+
+        Now, the list of all known frames defined on `E` can be displayed via
+        :meth:`frames`::
+
+            sage: E.frames() # a shallow copy of all known frames on E
+            [Trivialization frame (E|_U, ((phi_U^*e_1),(phi_U^*e_2))),
+             Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2))),
+             Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2))),
+             Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2))),
+             Local frame (E|_U, (eU_0,eU_1)),
+             Local frame (E|_W, (eU_0,eU_1)),
+             Local frame (E|_V, (eV_0,eV_1)),
+             Local frame (E|_W, (eV_0,eV_1))]
+
+        By definition `E` is a manifold, in this case of dimension 4 (notice
+        that the induced charts are not implemented, yet)::
+
+            sage: E.total_space()
+            4-dimensional topological manifold E
+
+        The method :meth:`section` returns a section while the method
+        :meth:`section_module` returns the section module on the corresponding
+        domain::
+
+            sage: s = E.section(name='s'); s
+            Section s on the 2-dimensional topological manifold M with values in
+             the real vector bundle E of rank 2
+            sage: s in E.section_module()
+            True
+
     """
     def __init__(self, rank, name, base_space, field='real',
                  latex_name=None, category=None, unique_tag=None):
@@ -98,6 +196,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         if base_space is None:
             raise ValueError("a base space must be provided")
+        ###
         # Handle the field:
         if field == 'real':
             self._field = RR
@@ -118,6 +217,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             raise ValueError("for concrete implementation, manifold's base "
                              "field must be a subfield of the vector bundle's "
                              "base field")
+        ###
         # Get the category:
         if category is None:
             category = VectorBundles(base_space, self._field)
@@ -128,11 +228,13 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             raise TypeError("the rank must be an integer")
         if rank < 1:
             raise ValueError("the rank must be strictly positive")
+        ###
         # Define remaining attributes:
         self._rank = rank
         self._diff_degree = 0
         self._base_space = base_space
         self._total_space = None
+        ###
         # Set names:
         self._name = name
         if latex_name is None:
@@ -140,15 +242,30 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         else:
             self._latex_name = latex_name
         ###
-        # Now, the trivializations come into play:
+        # Initialize derived quantities like frames and trivializations:
+        self._init_derived()
+
+    def _init_derived(self):
+        r"""
+        Initialize the derived quantities.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: E._init_derived()
+
+        """
+        self._section_modules = {} # dict of section modules with domains as
+                                   # keys
         self._atlas = []  # list of trivializations defined on self
         self._transitions = {} # dictionary of transition maps (key: pair of
-                    # of trivializations)
+                               # of trivializations)
         self._frames = []  # list of local frames for self
         self._frame_changes = {}  # dictionary of changes of frames
         self._coframes = [] # list of local coframes for self
         self._trivial_parts = set() # subsets of base space on which self is
-                    # trivial
+                                    # trivial
 
     def base_space(self):
         r"""
@@ -175,7 +292,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
           - ``'real'`` for the real field `\RR`
           - ``'complex'`` for the complex field `\CC`
           - ``'neither_real_nor_complex'`` for a field different
-            from `\RR`, `\CC` and `\QQ`
+            from `\RR` and `\CC`
 
         EXAMPLES::
 
@@ -528,11 +645,15 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         if domain is None:
             domain = self._base_space
-        from sage.manifolds.section_module import \
-                                            SectionModule, SectionFreeModule
-        if force_free or domain in self._trivial_parts:
-            return SectionFreeModule(self, domain)
-        return SectionModule(self, domain)
+        from sage.manifolds.section_module import (SectionModule,
+                                                   SectionFreeModule)
+        if domain not in self._section_modules:
+            if force_free or domain in self._trivial_parts:
+                self._section_modules[domain] = SectionFreeModule(self, domain)
+            else:
+                self._section_modules[domain] = SectionModule(self, domain)
+
+        return self._section_modules[domain]
 
     def fiber(self, point):
         r"""
@@ -646,9 +767,28 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         - an instance of :class:`~sage.manifolds.section.Section` representing
           a continuous section of `M` with values on `E`
 
-        EXAMPLES::
+        EXAMPLES:
 
-        TODO
+        A section on a non-trivial 2-rank vector bundle over a non-trivial
+        2-manifold::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: E = M.vector_bundle(2, 'E') # define the vector bundle
+            sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+            sage: phi_V = E.trivialization('phi_V', domain=V)
+            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]]) # transition map between trivializations
+            sage: fU = phi_U.frame(); fV = phi_V.frame() # define induced frames
+            sage: s = E.section(name='s'); s
+            Section s on the 2-dimensional topological manifold M with values in the
+             real vector bundle E of rank 2
 
         """
         domain = kwargs.pop('domain', self._base_space)
@@ -660,38 +800,6 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             # Some components are to be initialized
             resu._init_components(*comp, **kwargs)
         return resu
-
-    # def whitney_sum(self, vector_bundle):
-    #     r"""
-    #     Return the Whitney sum ``self`` with ``vector_bundle``.
-    #
-    #     INPUT:
-    #
-    #     - ``vector_bundle`` --
-    #
-    #     OUTPUT:
-    #
-    #     -
-    #
-    #     """
-    #     # TODO: Implement
-    #     pass
-    #
-    # def tensor_product(self, vector_bundle):
-    #     r"""
-    #     Return the tensor product of ``self```with ``vector_bundle``.
-    #
-    #     INPUT:
-    #
-    #     - ``vector_bundle`` --
-    #
-    #     OUTPUT:
-    #
-    #     -
-    #
-    #     """
-    #     # TODO: Implement
-    #     pass
 
     def total_space(self, update_atlas=True):
         r"""
@@ -744,7 +852,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
           automorphism is computed and the change from basis `(f_i)` to `(e_i)`
           is set to it in the internal dictionary ``self._frame_changes``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = Manifold(3, 'M')
             sage: c_xyz.<x,y,z> = M.chart()
@@ -762,7 +870,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             e_0 = f_0
             sage: e[1].display(f)
             e_1 = -2/3 f_0 + 1/3 f_1
-            sage: M.change_of_frame(e,f)[e,:]
+            sage: E.change_of_frame(e,f)[e,:]
             [1 2]
             [0 3]
 
@@ -795,13 +903,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         OUTPUT:
 
-        - a
-          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
-          representing, at each point, the vector space automorphism `P`
-          that relates frame 1, `(e_i)` say, to frame 2, `(f_i)` say,
-          according to `f_i = P(e_i)`
+        - a :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
+          representing, at each point, the vector space automorphism `P` that
+          relates frame 1, `(e_i)` say, to frame 2, `(f_i)` say, according to
+          `f_i = P(e_i)`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = Manifold(3, 'M', structure='top')
             sage: X.<x,y,z> = M.chart()
@@ -892,7 +999,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         - list of coframes defined on ``self``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = Manifold(3, 'M', structure='top')
             sage: E = M.vector_bundle(2, 'E')

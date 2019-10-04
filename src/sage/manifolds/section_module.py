@@ -14,7 +14,8 @@ Depending on the domain, there are two classes of section modules:
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
-- Michael Jung (2019): Generalization to vector bundles and file renamed
+  (originally ``differentiable/tensorfield_module.py``)
+- Michael Jung (2019): Generalization to vector bundles
 
 """
 
@@ -401,12 +402,12 @@ class SectionModule(UniqueRepresentation, Parent):
             True
 
         """
-        elt = self.element_class(self, name='zero', latex_name='0')
+        res = self.element_class(self, name='zero', latex_name='0')
         for frame in self._vbundle._frames:
             if frame._domain.is_subset(self._domain):
-                elt.add_comp(frame)
+                res.add_comp(frame)
                 # (since new components are initialized to zero)
-        return elt
+        return res
 
     def default_frame(self):
         r"""
@@ -414,7 +415,7 @@ class SectionModule(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-        Get the default local frame of non-trivial section module::
+        Get the default local frame of a non-trivial section module::
 
             sage: M = Manifold(3, 'M', structure='top')
             sage: U = M.open_subset('U')
@@ -423,14 +424,7 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: E = M.vector_bundle(2, 'E')
             sage: C0 = E.section_module()
             sage: e = E.local_frame('e', domain=U)
-            sage: type(C0.default_frame())
-            <type 'NoneType'>
-
-        As we can see, the frame `e` is not applied automatically. So, we need
-        to do that by hand::
-
-            sage: C0.set_default_frame(e) # Set the frame manually
-            sage: C0.default_frame() # Now, we have a default frame on C^0(M;E)
+            sage: C0.default_frame()
             Local frame (E|_U, (e_0,e_1))
 
         The local frame is indeed the same, and not a copy::
@@ -833,8 +827,5 @@ class SectionFreeModule(FiniteRankFreeModule):
                           symbol_dual=symbol_dual,
                           latex_symbol_dual=latex_symbol_dual)
 
-    def default_frame(self):
-        r"""
-
-        """
-        return self._def_basis
+    set_default_frame = FiniteRankFreeModule.set_default_basis
+    default_frame = FiniteRankFreeModule.default_basis

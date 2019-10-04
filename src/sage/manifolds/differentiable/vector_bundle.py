@@ -2,14 +2,17 @@ r"""
 Differentiable Vector Bundles
 
 Let `K` be a topological field. A `C^k`-differentiable *vector bundle* of rank
-`n` over the field `K` and over a `C^k`-differentiable manifold `B` (base space)
+`n` over the field `K` and over a `C^k`-differentiable manifold `M` (base space)
 is a `C^k`-differentiable manifold `E` (total space) together with a
-`C^k` differentiable and surjective projection `\pi: E \to B` such that for
-every point `x \in B`
+`C^k` differentiable and surjective map `\pi: E \to M` such that for
+every point `x \in M`
 - the set `E_x=\pi^{-1}(x)` has the vector space structure of `K^n`,
-- there is a neighborhood `U \subset B` of `x` and a `C^k`-diffeomorphism
+- there is a neighborhood `U \subset M` of `x` and a `C^k`-diffeomorphism
   `\varphi: \pi^{-1}(x) \to U \times K^n` such that
   `v \mapsto \varphi^{-1}(y,v)` is a linear isomorphism for any `y \in U`.
+
+An important case of a differentiable vector bundle over a differentiable
+manifold is the tensor bundle (see :class:`TensorBundle`)
 
 AUTHORS:
 
@@ -41,8 +44,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
     - ``rank`` -- positive integer; rank of the vector bundle
     - ``name```-- string representation given to the total space
-    - ``base_space`` -- the base space (differentiable manifold) over which the
-      vector bundle is defined
+    - ``base_space`` -- the base space (differentiable manifold) `M` over which
+      the vector bundle is defined
     - ``field`` -- field `K` which gives the fibers the structure of a
      vector space over `K`; allowed values are
 
@@ -65,15 +68,36 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
     EXAMPLES:
 
+    A differentiable vector bundle of rank 2 over a 3-dimensional differentiable
+    manifold::
+
+        sage: M = Manifold(3, 'M')
+        sage: E = M.vector_bundle(2, 'E', field='complex'); E
+        Differentiable complex vector bundle E -> M of rank 2 over the base
+         space 3-dimensional differentiable manifold M
+        sage: E.category()
+        Category of smooth vector bundles over Complex Field with 53 bits of
+         precision with base space 3-dimensional differentiable manifold M
+
+    At this stage, the differentiable vector bundle has the same
+    differentiability degree as the base manifold::
+
+        sage: M.diff_degree() == E.diff_degree()
+        True
+
     """
     def __init__(self, rank, name, base_space, field='real', latex_name=None,
                  category=None, unique_tag=None):
         r"""
-        Construct a differentiable vector bundle over some base space.
+        Construct a differentiable vector bundle.
 
         TESTS::
 
-
+            sage: M = Manifold(2, 'M')
+            sage: from sage.manifolds.differentiable.vector_bundle import DifferentiableVectorBundle
+            sage: DifferentiableVectorBundle(2, 'E', M)
+            Differentiable real vector bundle E -> M of rank 2 over the base
+             space 2-dimensional differentiable manifold M
 
         """
         diff_degree = base_space._diff_degree
@@ -96,32 +120,187 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
     def _repr_(self):
         r"""
+        String representation of ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: E = M.vector_bundle(1, 'E')
+            sage: E._repr_()
+            'Differentiable real vector bundle E -> M of rank 1 over the base
+             space 2-dimensional differentiable manifold M'
 
         """
         desc = "Differentiable "
         return desc + TopologicalVectorBundle._repr_object_name(self)
 
+    def diff_degree(self):
+        r"""
+        Return the vector bundle's degree of differentiability.
+
+        The degree of differentiability is the integer `k` (possibly
+        `k=\infty`) such that the vector bundle is of class `C^k`-manifold over
+        its base field. The degree always corresponds to the degree of
+        differentiability of it's base space.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: E.diff_degree()
+            +Infinity
+            sage: M = Manifold(2, 'M', structure='differentiable', diff_degree=3)
+            sage: E = M.vector_bundle(2, 'E')
+            sage: E.diff_degree()
+            3
+
+        """
+        return self._diff_degree
+
 # *****************************************************************************
 
 class TensorBundle(DifferentiableVectorBundle):
     r"""
+    Tensor bundle over a differentiable manifold along a differentiable map.
+
+    An instance of this class represents the pullback tensor bundle
+    `\Phi^* T^{(k,l)}M` along a differentiable map
+
+    .. MATH::
+
+        \Phi: U \longrightarrow M
+
+    between two differentiable manifolds `U` and `M` over the topological field
+    `K`.
+
+    More precisely, `\Phi^* T^{(k,l)}M` consists of all pairs
+    `(p,t) \in U \times T^{(k,l)}M` such that `t \in T_q^{(k,l)}M` for
+    `q = \Phi(p)`, namely
+
+    .. MATH::
+
+        t:\ \underbrace{T_q^*M\times\cdots\times T_q^*M}_{k\ \; \mbox{times}}
+            \times \underbrace{T_q M\times\cdots\times T_q M}_{l\ \; \mbox{times}}
+            \longrightarrow K
+
+    (`k` is called the *contravariant* and `l` the *covariant* rank of the
+    tensor bundle).
+
+    The trivializations are directly given by charts on the codomain of `\Phi`.
+    In particular, let `(V, \varphi)` be a chart of `M` with components
+    `(x^1, \dots, x^n)` such that `q=\Phi(p) \in V`. Then, the matrix entries of
+    `t \in T_q^{(k,l)}M` are given by
+
+    .. MATH::
+
+        t^{a_1 \ldots a_k}_{\phantom{a_1 \ldots a_k} \, b_1 \ldots b_l} =
+            t \left( \left.\frac{\partial}{\partial x^{a_1}}\right|_q, \dots,
+            \left.\frac{\partial}{\partial x^{a_k}}\right|_q,
+            \left.\mathrm{d}x^{b_1}\right|_q, \dots,
+            \left.\mathrm{d}x^{b_l}\right|_q \right) \in K
+
+    and a trivialization over `\Phi^{-1}(V) \subset U` is obtained via
+
+    .. MATH::
+
+        (p,t) \mapsto \left(p, t^{1 \ldots 1}_{\phantom{1 \ldots 1} \, 1 \ldots 1},
+            \dots, t^{n \ldots n}_{\phantom{n \ldots n} \, n \ldots n} \right)
+            \in U \times K^{n(k+l)}
+
+    The standard case of a tensor bundle over a differentiable manifold
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
+    open interval of `\RR`).
+
+    INPUT:
+
+    - ``base_space`` -- the base space (differentiable manifold) `U` over which
+      the tensor bundle is defined
+    - ``k`` -- the contravariant rank of the corresponding tensor bundle
+    - ``l`` -- the covariant rank of the corresponding tensor bundle
+    - ``dest_map`` -- (default: ``None``) destination map
+      `\Phi:\ U \rightarrow M`
+      (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`); if
+      ``None``, it is assumed that `U=M` and `\Phi` is the identity map of
+      `M` (case of the standard tensor bundle over `M`)
+
+    EXAMPLES:
+
+    Pullback tangent bundle of `R^2` along a curve `\Phi`::
+
+        sage: M = Manifold(2, 'M')
+        sage: c_cart.<x,y> = M.chart()
+        sage: R = Manifold(1, 'R')
+        sage: T.<t> = R.chart()  # canonical chart on R
+        sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
+        Differentiable map Phi from the 1-dimensional differentiable manifold R
+         to the 2-dimensional differentiable manifold M
+        sage: Phi.display()
+        Phi: R --> M
+           t |--> (x, y) = (cos(t), sin(t))
+        sage: PhiTM = M.tangent_bundle(dest_map=Phi); PhiTM
+        Tangent bundle Phi^*TM over the 2-dimensional differentiable manifold M
+         along the Differentiable map Phi from the 1-dimensional differentiable
+         manifold R to the 2-dimensional differentiable manifold M
+
+    The section module is the corresponding tensor field module::
+
+        sage: M.tensor_field_module((1,0), dest_map=Phi) is PhiTM.section_module()
+        True
 
     """
-    def __init__(self, manifold, k, l):
-        rank = manifold.dim()**(k+l)
-        if (k, l) == (1, 0):
-            name = "T{}".format(manifold._name)
-            latex_name = r'T{}'.format(manifold._latex_name)
-        elif (k, l) == (0, 1):
-            name = "T*{}".format(manifold._name)
-            latex_name = r'T^*{}'.format(manifold._latex_name)
+    def __init__(self, base_space, k, l, dest_map=None):
+        if dest_map is None:
+            self._dest_map = base_space.identity_map()
         else:
-            name = "T^({}{}){}".format(k, l, manifold._name)
-            latex_name = r'T^{{{({}{})}}}{}'.format(k, l, manifold._latex_name)
-        DifferentiableVectorBundle.__init__(self, rank, name, manifold,
-                                            latex_name=latex_name)
+            self._dest_map = dest_map
+        self._ambient_domain = self._dest_map._codomain
         self._tensor_type = (k, l)
-        # TODO: if manifold._atlas not empty, introduce trivializations
+        ###
+        # Set total space name:
+        if not self._dest_map.is_identity():
+            if self._dest_map._name is None:
+                name = "(unnamed map)^*"
+            else:
+                name = self._dest_map._name + "^*"
+            if self._dest_map._latex_name is None:
+                latex_name = r'\mbox{(unnamed map)}^* '
+            else:
+                latex_name = self._dest_map._latex_name + r'^* '
+        else:
+            name = ""
+            latex_name = ""
+        if self._tensor_type == (1, 0):
+            name += "T{}".format(self._ambient_domain._name)
+            latex_name += r'T{}'.format(self._ambient_domain._latex_name)
+        elif self._tensor_type == (0, 1):
+            name += "T*{}".format(self._ambient_domain._name)
+            latex_name += r'T^*{}'.format(self._ambient_domain._latex_name)
+        else:
+            name += "T^({},{}){}".format(k, l, self._ambient_domain._name)
+            latex_name += r'T^{(' + str(k) + r',' + str(l) + r')}' + \
+                          self._ambient_domain._latex_name
+        ###
+        # Initialize differentiable vector bundle:
+        rank = self._ambient_domain.dim() ** (k + l)
+        DifferentiableVectorBundle.__init__(self, rank, name, base_space,
+                                            field=base_space._field,
+                                            latex_name=latex_name)
+
+    def _init_derived(self):
+        r"""
+        Initialize the derived quantities.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: TM._init_derived()
+
+        """
+        ###
+        # Nothing to do here:
+        pass
 
     def _repr_(self):
         r"""
@@ -129,21 +308,803 @@ class TensorBundle(DifferentiableVectorBundle):
 
         TESTS::
 
+        String representation of ``self``.
 
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: TM # indirect doctest
+            Tangent bundle TM over the 2-dimensional differentiable manifold M
+            sage: repr(TM) # indirect doctest
+            'Tangent bundle TM over the 2-dimensional differentiable manifold M'
+            sage: TM._repr_()
+            'Tangent bundle TM over the 2-dimensional differentiable manifold M'
+            sage: cTM = M.cotangent_bundle()
+            sage: cTM._repr_()
+            'Cotangent bundle T*M over the 2-dimensional differentiable
+             manifold M'
+            sage: T12M = M.tensor_bundle(1, 2)
+            sage: T12M._repr_()
+            'Tensor bundle T^(1,2)M over the 2-dimensional differentiable
+             manifold M'
 
         """
-        if self._tensor_type == (1,0):
+        if self._tensor_type == (1, 0):
             desc = "Tangent bundle "
-        elif self._tensor_type == (0,1):
+        elif self._tensor_type == (0, 1):
             desc = "Cotangent bundle "
         else:
             desc = "Tensor bundle "
         desc += self._name + " "
-        desc += "over {}".format(self._base_space._name)
+        desc += "over the {}".format(self._ambient_domain)
+        if not self._dest_map.is_identity():
+            desc += " along the {}".format(self._dest_map)
         return desc
 
     def fiber(self, point):
         r"""
+        Return the tensor bundle fiber at ``point``.
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.tangent_space`.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: p = M((0,2,1), name='p'); p
+            Point p on the 3-dimensional differentiable manifold M
+            sage: TM = M.tangent_bundle(); TM
+            Tangent bundle TM over the 3-dimensional differentiable manifold M
+            sage: TM.fiber(p)
+            Tangent space at Point p on the 3-dimensional differentiable
+             manifold M
 
         """
-        return self._base_space.tangent_space(point).tensor_module(self._tensor_type)
+        amb_point = self._dest_map(point)
+        return self._ambient_domain.tangent_space(amb_point).tensor_module(*self._tensor_type)
+
+    def atlas(self):
+        r"""
+        Return the list of charts that have been defined on the codomain of
+        `\Phi`.
+
+        .. SEEALSO::
+
+            This method invokes :meth:`~sage.manifolds.manifold.Manifold.atlas`.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: TM = M.tangent_bundle()
+            sage: TM.atlas()
+            [Chart (M, (x, y)), Chart (M, (u, v))]
+
+        """
+        return self._base_space.atlas()
+
+    def section_module(self, domain=None):
+        r"""
+        Return the section module, namely the corresponding tensor field module,
+        of ``self``.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.tensor_field_module`.
+
+        INPUT:
+
+        - ``domain`` -- (default: ``None``) the domain of the corresponding
+          section module; if ``None``, the base space is assumed
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
+          (or if `M` is parallelizable, a
+          :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`)
+          representing the module `\mathcal{T}^{(k,l)}(M,\Phi)` of type-`(k,l)`
+          tensor fields on `U` taking values on `\Phi(U)\subset M`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: U = M.open_subset('U')
+            sage: TM = M.tangent_bundle()
+            sage: TUM = TM.section_module(domain=U); TUM
+            Module X(U) of vector fields on the Open subset U of the
+             2-dimensional differentiable manifold M
+            sage: TUM is U.tensor_field_module((1,0))
+            True
+
+        """
+        if domain is None:
+            return self._base_space.tensor_field_module(self._tensor_type,
+                                                        dest_map=self._dest_map)
+        else:
+            return domain.tensor_field_module(self._tensor_type,
+                                       dest_map=self._dest_map.restrict(domain))
+
+    def section(self, *args, **kwargs):
+        r"""
+        Return a section of ``self``, namely a tensor field on the corresponding
+        tensor field module.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.tensor_field`.
+
+        INPUT:
+
+        - ``comp`` -- (optional) either the components of the tensor field
+          with respect to the vector frame specified by the argument
+          ``frame`` or a dictionary of components, the keys of which are vector
+          frames or pairs ``(f, c)`` where ``f`` is a vector frame and ``c``
+          the chart in which the components are expressed
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
+        - ``name`` -- (default: ``None``) name given to the tensor field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          tensor field; if ``None``, the LaTeX symbol is set to ``name``
+        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
+          among the tensor arguments: each symmetry is described by a tuple
+          containing the positions of the involved arguments, with the
+          convention ``position=0`` for the first argument; for instance:
+
+          * ``sym = (0,1)`` for a symmetry between the 1st and 2nd arguments
+          * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
+            arguments and a symmetry between the 2nd, 4th and 5th arguments
+
+        - ``antisym`` -- (default: ``None``) antisymmetry or list of
+          antisymmetries among the arguments, with the same convention as for
+          ``sym``
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+          (or if `M` is parallelizable, a
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`)
+          representing the defined tensor field
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            ....:                              restrictions1= x>0, restrictions2= u+v>0)
+            sage: inv = transf.inverse()
+            sage: W = U.intersection(V)
+            sage: eU = c_xy.frame() ; eV = c_uv.frame()
+            sage: T11M = M.tensor_bundle(1, 1); T11M
+            Tensor bundle T^(1,1)M over the 2-dimensional differentiable
+             manifold M
+            sage: t = T11M.section({eU: [[1, x], [0, 2]]}, name='t'); t
+            Tensor field t of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: t.display()
+            t = d/dx*dx + x d/dx*dy + 2 d/dy*dy
+
+        """
+        nargs = [self._tensor_type[0], self._tensor_type[1]]
+        nargs.extend(args)
+        domain = kwargs.pop('domain', self._base_space)
+        kwargs['dest_map'] = self._dest_map
+        return domain.tensor_field(*nargs, **kwargs)
+
+    def set_change_of_frame(self, frame1, frame2, change_of_frame,
+                            compute_inverse=True):
+        r"""
+        Relate two vector frames by an automorphism.
+
+        This updates the internal dictionary ``self._frame_changes`` of the
+        base space `M`.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.set_change_of_frame`.
+
+        INPUT:
+
+        - ``frame1`` -- frame 1, denoted `(e_i)` below
+        - ``frame2`` -- frame 2, denoted `(f_i)` below
+        - ``change_of_frame`` -- instance of class
+          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
+          describing the automorphism `P` that relates the basis `(e_i)` to
+          the basis `(f_i)` according to `f_i = P(e_i)`
+        - ``compute_inverse`` (default: True) -- if set to True, the inverse
+          automorphism is computed and the change from basis `(f_i)` to `(e_i)`
+          is set to it in the internal dictionary ``self._frame_changes``
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: e = M.vector_frame('e')
+            sage: f = M.vector_frame('f')
+            sage: a = M.automorphism_field()
+            sage: a[e,:] = [[1,2],[0,3]]
+            sage: TM = M.tangent_bundle()
+            sage: TM.set_change_of_frame(e, f, a)
+            sage: f[0].display(e)
+            f_0 = e_0
+            sage: f[1].display(e)
+            f_1 = 2 e_0 + 3 e_1
+            sage: e[0].display(f)
+            e_0 = f_0
+            sage: e[1].display(f)
+            e_1 = -2/3 f_0 + 1/3 f_1
+            sage: TM.change_of_frame(e,f)[e,:]
+            [1 2]
+            [0 3]
+
+        """
+        if not frame1._domain.is_subset(self._ambient_domain):
+            raise ValueError("the frames must be defined on a subset of "
+                             "the {}".format(self._ambient_domain))
+        frame1._domain.set_change_of_frame(frame1=frame1, frame2=frame2,
+                                           change_of_frame=change_of_frame,
+                                           compute_inverse=compute_inverse)
+
+    def change_of_frame(self, frame1, frame2):
+        r"""
+        Return a change of vector frames defined on ``self``.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.change_of_frame`.
+
+        INPUT:
+
+        - ``frame1`` -- local frame 1
+        - ``frame2`` -- local frame 2
+
+        OUTPUT:
+
+        - a :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
+          representing, at each point, the vector space automorphism `P` that
+          relates frame 1, `(e_i)` say, to frame 2, `(f_i)` say, according to
+          `f_i = P(e_i)`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: c_uv.<u,v> = M.chart()
+            sage: c_xy.transition_map(c_uv, (x+y, x-y))
+            Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
+            sage: TM = M.tangent_bundle()
+            sage: TM.change_of_frame(c_xy.frame(), c_uv.frame())
+            Field of tangent-space automorphisms on the 2-dimensional
+             differentiable manifold M
+            sage: TM.change_of_frame(c_xy.frame(), c_uv.frame())[:]
+            [ 1/2  1/2]
+            [ 1/2 -1/2]
+            sage: TM.change_of_frame(c_uv.frame(), c_xy.frame())
+            Field of tangent-space automorphisms on the 2-dimensional
+             differentiable manifold M
+            sage: TM.change_of_frame(c_uv.frame(), c_xy.frame())[:]
+            [ 1  1]
+            [ 1 -1]
+            sage: TM.change_of_frame(c_uv.frame(), c_xy.frame()) == \
+            ....:       M.change_of_frame(c_xy.frame(), c_uv.frame()).inverse()
+            True
+
+        """
+        return self._base_space.change_of_frame(frame1=frame1, frame2=frame2)
+
+    def changes_of_frame(self):
+        r"""
+        Return all the changes of vector frames defined on ``self``.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.changes_of_frame`.
+
+        OUTPUT:
+
+        - dictionary of automorphisms on the tangent bundle representing
+          the changes of frames, the keys being the pair of frames
+
+        EXAMPLES:
+
+        Let us consider a first vector frame on a 2-dimensional
+        differentiable manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: TM = M.tangent_bundle()
+            sage: e = X.frame(); e
+            Coordinate frame (M, (d/dx,d/dy))
+
+        At this stage, the dictionary of changes of frame is empty::
+
+            sage: TM.changes_of_frame()
+            {}
+
+        We introduce a second frame on the manifold, relating it to
+        frame ``e`` by a field of tangent space automorphisms::
+
+            sage: a = M.automorphism_field(name='a')
+            sage: a[:] = [[-y, x], [1, 2]]
+            sage: f = e.new_frame(a, 'f'); f
+            Vector frame (M, (f_0,f_1))
+
+        Then we have::
+
+            sage: TM.changes_of_frame()  # random (dictionary output)
+            {(Coordinate frame (M, (d/dx,d/dy)),
+              Vector frame (M, (f_0,f_1))): Field of tangent-space
+               automorphisms on the 2-dimensional differentiable manifold M,
+             (Vector frame (M, (f_0,f_1)),
+              Coordinate frame (M, (d/dx,d/dy))): Field of tangent-space
+               automorphisms on the 2-dimensional differentiable manifold M}
+
+        Some checks::
+
+            sage: TM.changes_of_frame()[(e,f)] == a
+            True
+            sage: TM.changes_of_frame()[(f,e)] == a^(-1)
+            True
+
+        """
+        return self._base_space.changes_of_frame()
+
+    def frames(self):
+        r"""
+        Return the list of vector frames defined on ``self``.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.frames`.
+
+        OUTPUT:
+
+        - list of local frames defined on ``self``
+
+        EXAMPLES:
+
+        Vector frames on subsets of `\RR^2`::
+
+            sage: M = Manifold(2, 'R^2')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: TM = M.tangent_bundle()
+            sage: TM.frames()
+            [Coordinate frame (R^2, (d/dx,d/dy))]
+            sage: e = TM.vector_frame('e')
+            sage: TM.frames()
+            [Coordinate frame (R^2, (d/dx,d/dy)),
+             Vector frame (R^2, (e_0,e_1))]
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}) # unit disk
+            sage: TU = U.tangent_bundle()
+            sage: TU.frames()
+            [Coordinate frame (U, (d/dx,d/dy))]
+            sage: TM.frames()
+            [Coordinate frame (R^2, (d/dx,d/dy)),
+             Vector frame (R^2, (e_0,e_1)),
+             Coordinate frame (U, (d/dx,d/dy))]
+
+        """
+        if self._dest_map.is_identity():
+            return self._base_space.frames()
+        else:
+            ###
+            # Filter out all frames with respect to dest_map:
+            frames = []
+            for frame in self._base_space.frames():
+                if frame._dest_map is self._dest_map:
+                    frames.append(frame)
+            return frames
+
+    def coframes(self):
+        r"""
+        Return the list of coframes defined on ``self``.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.differentiable.manifold.Manifold.coframes`.
+
+        OUTPUT:
+
+        - list of coframes defined on ``self``
+
+        EXAMPLES:
+
+        Coframes on subsets of `\RR^2`::
+
+            sage: M = Manifold(2, 'R^2')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: TM = M.tangent_bundle()
+            sage: TM.coframes()
+            [Coordinate coframe (R^2, (dx,dy))]
+            sage: e = TM.vector_frame('e')
+            sage: M.coframes()
+            [Coordinate coframe (R^2, (dx,dy)), Coframe (R^2, (e^0,e^1))]
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}) # unit disk
+            sage: TU = U.tangent_bundle()
+            sage: TU.coframes()
+            [Coordinate coframe (U, (dx,dy))]
+            sage: e.restrict(U)
+            Vector frame (U, (e_0,e_1))
+            sage: TU.coframes()
+            [Coordinate coframe (U, (dx,dy)), Coframe (U, (e^0,e^1))]
+            sage: TM.coframes()
+            [Coordinate coframe (R^2, (dx,dy)),
+             Coframe (R^2, (e^0,e^1)),
+             Coordinate coframe (U, (dx,dy)),
+             Coframe (U, (e^0,e^1))]
+
+        """
+        if self._dest_map.is_identity():
+            return self._base_space.coframes()
+        else:
+            ###
+            # Filter out all coframes with respect to dest_map:
+            coframes = []
+            for coframe in self._base_space.coframes():
+                if coframe._dest_map is self._dest_map:
+                    coframes.append(coframe)
+            return coframes
+
+    def trivialization(self, coordinates='', names=None, calc_method=None):
+        r"""
+        Return a trivialization of ``self`` in terms of a chart on the codomain
+        of the destination map.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.manifold.Manifold.chart`.
+
+        INPUT:
+
+        - ``coordinates`` --  (default: ``''`` (empty string)) string
+          defining the coordinate symbols, ranges and possible periodicities,
+          see below
+        - ``names`` -- (default: ``None``) unused argument, except if
+          ``coordinates`` is not provided; it must then be a tuple containing
+          the coordinate symbols (this is guaranteed if the shortcut operator
+          ``<,>`` is used)
+        - ``calc_method`` -- (default: ``None``) string defining the calculus
+          method to be used on this chart; must be one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+          - ``None``: the current calculus method defined on the manifold is
+            used (cf. :meth:`set_calculus_method`)
+
+        The coordinates declared in the string ``coordinates`` are
+        separated by ``' '`` (whitespace) and each coordinate has at most four
+        fields, separated by a colon (``':'``):
+
+        1. The coordinate symbol (a letter or a few letters).
+        2. (optional, only for manifolds over `\RR`) The interval `I`
+           defining the coordinate range: if not provided, the coordinate
+           is assumed to span all `\RR`; otherwise `I` must be provided
+           in the form ``(a,b)`` (or equivalently ``]a,b[``)
+           The bounds ``a`` and ``b`` can be ``+/-Infinity``, ``Inf``,
+           ``infinity``, ``inf`` or ``oo``. For *singular* coordinates,
+           non-open intervals such as ``[a,b]`` and
+           ``(a,b]`` (or equivalently ``]a,b]``) are allowed. Note that
+           the interval declaration must not contain any space character.
+        3. (optional) Indicator of the periodic character of the coordinate,
+           either as ``period=T``, where ``T`` is the period, or, for manifolds
+           over `\RR` only, as the keyword ``periodic`` (the value of the
+           period is then deduced from the interval `I` declared in field 2;
+           see the example below)
+        4. (optional) The LaTeX spelling of the coordinate; if not provided
+           the coordinate symbol given in the first field will be used.
+
+        The order of fields 2 to 4 does not matter and each of them can
+        be omitted. If it contains any LaTeX expression, the string
+        ``coordinates`` must be declared with the prefix 'r' (for "raw") to
+        allow for a proper treatment of the backslash character (see
+        examples below). If no interval range, no period and no LaTeX spelling
+        is to be set for any coordinate, the argument ``coordinates`` can be
+        omitted when the shortcut operator ``<,>`` is used to declare the
+        chart (see examples below).
+
+        OUTPUT:
+
+        - the created chart, as an instance of
+          :class:`~sage.manifolds.chart.Chart` or one of its subclasses, like
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart` for
+          differentiable manifolds over `\RR`.
+
+        EXAMPLES:
+
+        Chart on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: X = TM.trivialization('x y'); X
+            Chart (M, (x, y))
+            sage: X[0]
+            x
+            sage: X[1]
+            y
+            sage: X[:]
+            (x, y)
+
+        """
+        return self._ambient_domain.chart(coordinates=coordinates, names=names,
+                                          calc_method=calc_method)
+
+    def transitions(self):
+        r"""
+        Return the coordinate changes defined via charts on the codomain of
+        the destination map.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.manifold.Manifold.coord_changes`.
+
+        EXAMPLES:
+
+        Various changes of coordinates on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: c_uv.<u,v> = M.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, [x+y, x-y])
+            sage: TM = M.tangent_bundle()
+            sage: TM.transitions()
+            {(Chart (M, (x, y)),
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: TM.transitions()  # random (dictionary output)
+            {(Chart (M, (u, v)),
+              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
+             (Chart (M, (x, y)),
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
+            sage: c_rs.<r,s> = M.chart()
+            sage: uv_to_rs = c_uv.transition_map(c_rs, [-u+2*v, 3*u-v])
+            sage: TM.transitions()  # random (dictionary output)
+            {(Chart (M, (u, v)),
+              Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (r, s)),
+             (Chart (M, (u, v)),
+              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
+             (Chart (M, (x, y)),
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
+            sage: xy_to_rs = uv_to_rs * xy_to_uv
+            sage: TM.transitions()  # random (dictionary output)
+            {(Chart (M, (u, v)),
+              Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (r, s)),
+             (Chart (M, (u, v)),
+              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
+             (Chart (M, (x, y)),
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v)),
+             (Chart (M, (x, y)),
+              Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (r, s))}
+
+        """
+        return self._ambient_domain.coord_changes()
+
+    def transition(self, chart1, chart2):
+        r"""
+        Return the coordinate change between two differentiable charts defined
+        on codomain of the destination map.
+
+        The differentiable chart must have been defined previously, for instance
+        by the method :meth:`~sage.manifolds.chart.Chart.transition_map`.
+
+        .. SEEALSO::
+
+            This method invokes
+            :meth:`~sage.manifolds.manifold.Manifold.coord_change`.
+
+        INPUT:
+
+        - ``chart1`` -- chart 1
+        - ``chart2`` -- chart 2
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.chart.CoordChange`
+          representing the transition map from chart 1 to chart 2
+
+        EXAMPLES:
+
+        Change of coordinates on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: c_uv.<u,v> = M.chart()
+            sage: c_xy.transition_map(c_uv, (x+y, x-y)) # defines the coord. change
+            Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
+            sage: TM = M.tangent_bundle()
+            sage: TM.transition(c_xy, c_uv) # returns the coord. change defined above
+            Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
+
+        """
+        return self._ambient_domain.coord_change(chart1, chart2)
+
+    def is_manifestly_trivial(self):
+        r"""
+        Return ``True`` if ``self`` is known to be a trivial and ``False``
+        otherwise.
+
+        If ``False`` is returned, either the tensor bundle is not trivial
+        or no vector frame has been defined on it yet.
+
+        EXAMPLES:
+
+        A just created manifold has no a priori manifestly trivial tensor
+        bundle::
+
+            sage: M = Manifold(2, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: TM.is_manifestly_trivial()
+            False
+
+        Defining a vector frame on it makes it trivial::
+
+            sage: e = TM.vector_frame('e')
+            sage: TM.is_manifestly_trivial()
+            True
+
+        Defining a coordinate chart on the whole manifold also makes it
+        trivial::
+
+            sage: N = Manifold(4, 'N')
+            sage: X.<t,x,y,z> = N.chart()
+            sage: TN = N.tangent_bundle()
+            sage: TN.is_manifestly_trivial()
+            True
+
+        The situation is not so clear anymore when a destination map to a
+        non-parallelizable manifold is stated::
+
+            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                 restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: Phi = U.diff_map(M, {(c_xy, c_xy): [x, y]}, name='Phi') # inclusion map
+            sage: PhiTU = U.tangent_bundle(dest_map=Phi); PhiTU
+            Tangent bundle Phi^*TS^2 over the 2-dimensional differentiable
+             manifold S^2 along the Differentiable map Phi from the Open subset
+             U of the 2-dimensional differentiable manifold S^2 to the
+             2-dimensional differentiable manifold S^2
+
+        A priori, the pullback tangent bundle is not trivial::
+
+            sage: PhiTU.is_manifestly_trivial()
+            False
+
+        But certainly, this bundle must be trivial since `U` is parallelizable.
+        To ensure this, we need to define a local frame on `U` with values
+        in `\Phi^*TS^2`::
+
+            sage: PhiTU.local_frame('e', from_frame=c_xy.frame())
+            Vector frame (U, (e_0,e_1)) with values on the 2-dimensional
+             differentiable manifold S^2
+            sage: PhiTU.is_manifestly_trivial()
+            True
+
+        """
+        if self._dest_map.is_identity():
+            ###
+            # The standard case:
+            return self._base_space.is_manifestly_parallelizable()
+        else:
+            ###
+            # If the ambient domain is manifestly trivial, the pullback bundle
+            # is certainly trivial:
+            if self._ambient_domain.is_manifestly_parallelizable():
+                return True
+            ###
+            # Otherwise check whether a global frame on the pullback bundle is
+            # given:
+            for frame in self.frames():
+                if frame._domain is self._base_space:
+                    return True
+            return False
+
+    def local_frame(self, symbol=None, latex_symbol=None, from_frame=None,
+                    indices=None, latex_indices=None, symbol_dual=None,
+                    latex_symbol_dual=None, domain=None):
+        r"""
+        Define a vector frame on ``self``.
+
+        A *vector frame* is a field on the manifold that provides, at each
+        point `p` of the manifold, a vector basis of the tangent space at `p`
+        (or at `\Phi(p)` when a destination map is given to the bundle).
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+            for complete documentation.
+
+        INPUT:
+
+        - ``symbol`` -- (default: ``None``) either a string, to be used as a
+          common base for the symbols of the vector fields constituting the
+          vector frame, or a list/tuple of strings, representing the individual
+          symbols of the vector fields; can be ``None`` only if ``from_frame``
+          is not ``None`` (see below)
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the vector fields
+          constituting the vector frame, or a list/tuple of strings,
+          representing the individual LaTeX symbols of the vector fields;
+          if ``None``, ``symbol`` is used in place of ``latex_symbol``
+        - ``from_frame`` -- (default: ``None``) vector frame `\tilde{e}`
+          on the codomain `M` of the destination map `\Phi`; the returned
+          frame `e` is then such that for all `p \in U`,
+          we have `e(p) = \tilde{e}(\Phi(p))`
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices labelling
+          the vector fields of the frame; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the vector fields;
+          if ``None``, ``indices`` is used instead
+        - ``symbol_dual`` -- (default: ``None``) same as ``symbol`` but for the
+          dual coframe; if ``None``, ``symbol`` must be a string and is used
+          for the common base of the symbols of the elements of the dual
+          coframe
+        - ``latex_symbol_dual`` -- (default: ``None``) same as ``latex_symbol``
+          but for the dual coframe
+        - ``domain`` -- (default: ``None``) domain on which the local frame is
+          defined; if ``None`` is provided, the base space is assumed
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+          representing the defined vector frame
+
+        EXAMPLES:
+
+        Setting a vector frame on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: TM = M.tangent_bundle()
+            sage: e = TM.vector_frame('e'); e
+            Vector frame (M, (e_0,e_1,e_2))
+            sage: e[0]
+            Vector field e_0 on the 3-dimensional differentiable manifold M
+
+        .. SEEALSO::
+
+            For more options, in particular for the choice of symbols and
+            indices, see
+            :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`.
+
+        """
+        from .vectorframe import VectorFrame
+        if domain is None:
+            domain = self._base_space
+        return VectorFrame(domain.vector_field_module(dest_map=self._dest_map,
+                                                      force_free=True),
+                           symbol=symbol, latex_symbol=latex_symbol,
+                           from_frame=from_frame, indices=indices,
+                           latex_indices=latex_indices, symbol_dual=symbol_dual,
+                           latex_symbol_dual=latex_symbol_dual)
+
+    vector_frame = local_frame

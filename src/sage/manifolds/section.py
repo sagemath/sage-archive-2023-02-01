@@ -1,21 +1,21 @@
 r"""
-Local Sections
+Sections
 
-The class :class:`~sage.manifolds.section.Section` implements local sections on
-vector bundles. The derived class :class:`~sage.manifolds.section.TrivialSection`
+The class :class:`~sage.manifolds.section.Section` implements sections on vector
+bundles. The derived class :class:`~sage.manifolds.section.TrivialSection`
 is devoted to sections on trivial parts of a vector bundle.
 
 AUTHORS:
 
-- Michael Jung (2019): initial version
-
-EXAMPLES:
-
-TODO
+- Eric Gourgoulhon, Michal Bejger (2014-2015): initial version (originally
+  ``differentiable/tensorfield.py`` and ``differentiable/tensorfield_paral.py``)
+- Michael Jung (2019): Generalization to vector bundles
 
 """
 
 #******************************************************************************
+#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -33,9 +33,9 @@ class Section(ModuleElement):
     r"""
     Section in a vector bundle.
 
-    An instance of this class is a local section in a vector bundle `E \to M` of
-    class `C^k`. More precisely, a *section* on a subset `U \in M` is a map of
-    class `C^k`
+    An instance of this class is a section in a vector bundle `E \to M` of class
+    `C^k`, where `E|_U` is not manifestly trivial. More precisely, a
+    *(local) section* on a subset `U \in M` is a map of class `C^k`
 
     .. MATH::
 
@@ -47,7 +47,7 @@ class Section(ModuleElement):
 
         \forall p \in U,\ s(p) \in E_p
 
-    where `E_p` denotes the vector bundle fiber of `E` over the point `p`.
+    where `E_p` denotes the vector bundle fiber of `E` over the point `p \in U`.
 
     If `E|_U` is trivial, the class
     :class:`~sage.manifolds.section.TrivialSection` should be used instead.
@@ -55,9 +55,134 @@ class Section(ModuleElement):
     This is a Sage *element* class, the corresponding *parent* class being
     :class:`~sage.manifolds.section_module.SectionModule`.
 
+    INPUT:
+
+    - ``section_module`` -- module `C^k(U;E)` of sections on `E` over `U`
+      (cf. :class:`~sage.manifolds.section_module.SectionModule`)
+    - ``name`` -- (default: ``None``) name given to the section
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the section;
+      if none is provided, the LaTeX symbol is set to ``name``
+
     EXAMPLES:
 
-        TODO
+    A section on a non-trivial 2-rank vector bundle over a non-trivial
+    2-manifold::
+
+        sage: M = Manifold(2, 'M', structure='top')
+        sage: U = M.open_subset('U') ; V = M.open_subset('V')
+        sage: M.declare_union(U,V)   # M is the union of U and V
+        sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+        ....:                    intersection_name='W', restrictions1= x>0,
+        ....:                    restrictions2= u+v>0)
+        sage: uv_to_xy = xy_to_uv.inverse()
+        sage: W = U.intersection(V)
+        sage: E = M.vector_bundle(2, 'E') # define the vector bundle
+        sage: phi_U = E.trivialization('phi_U', domain=U) # define trivializations
+        sage: phi_V = E.trivialization('phi_V', domain=V)
+        sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]]) # transition map between trivializations
+        sage: fU = phi_U.frame(); fV = phi_V.frame() # define induced frames
+        sage: s = E.section(name='s'); s
+        Section s on the 2-dimensional topological manifold M with values in the
+         real vector bundle E of rank 2
+
+    The parent of `s` is not a free module, since `E` is not trivial::
+
+        sage: isinstance(s.parent(), FiniteRankFreeModule)
+        False
+
+    To fully define `s`, we have to specify its components in some local
+    frames defined on the trivial parts of `E`. The components consist of
+    scalar fields defined on the corresponding domain. Let us start with
+    `E|_U`::
+
+        sage: s[fU,:] = [x^2, 1-y]
+        sage: s.display(fU)
+        s = x^2 (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
+
+    To set the components of `s` on `V` consistently, we copy the expressions
+    of the components in the common subset `W`::
+
+        sage: fUW = fU.restrict(W); fVW = fV.restrict(W)
+        sage: c_uvW = c_uv.restrict(W)
+        sage: s[fV,0] = s[fVW,0,c_uvW].expr()  # long time
+        sage: s[fV,1] = s[fVW,1,c_uvW].expr()  # long time
+
+    Actually, the operation above can be performed in a single line by means
+    of the method :meth:`add_comp_by_continuation`::
+
+        sage: s.add_comp_by_continuation(fV, W, chart=c_uv)
+
+    At this stage, `s` is fully defined, having components in frames fU and fV
+    and the union of the domains of fU and fV being the whole manifold::
+
+        sage: s.display(fV)
+        s = (-1/4*u^2 + 1/4*v^2 + 1/2*u + 1/2*v) (phi_V^*e_1)
+            + (1/8*u^3 + 3/8*u^2*v + 3/8*u*v^2 + 1/8*v^3) (phi_V^*e_2)
+
+    Sections can be pointwisely added::
+
+        sage: t = E.section([x,y], frame=fU, name='t'); t
+        Section t on the 2-dimensional topological manifold M with values in the
+         real vector bundle E of rank 2
+        sage: t.add_comp_by_continuation(fV, W, chart=c_uv)
+        sage: t.display(fV)
+        t = (1/4*u^2 - 1/4*v^2) (phi_V^*e_1) + (1/4*u^2 + 1/2*u*v + 1/4*v^2) (phi_V^*e_2)
+        sage: a = s + t; a
+        Section s+t on the 2-dimensional topological manifold M with values
+         in the real vector bundle E of rank 2
+        sage: a.display(fU)
+        s+t = (x^2 + x) (phi_U^*e_1) + (phi_U^*e_2)
+        sage: a.display(fV)
+        s+t = (1/2*u + 1/2*v) (phi_V^*e_1) + (1/8*u^3 + 1/8*(3*u + 2)*v^2
+              + 1/8*v^3 + 1/4*u^2 + 1/8*(3*u^2 + 4*u)*v) (phi_V^*e_2)
+
+    and multiplied by scalar fields::
+
+        sage: f = M.scalar_field(y^2-x^2, name='f')
+        sage: f.add_expr_by_continuation(c_uv, W)
+        sage: f.display()
+        f: M --> R
+        on U: (x, y) |--> -x^2 + y^2
+        on V: (u, v) |--> -u*v
+        sage: b = f*s; b
+        Section f*s on the 2-dimensional topological manifold M with values
+         in the real vector bundle E of rank 2
+        sage: b.display(fU)
+        f*s = (-x^4 + x^2*y^2) (phi_U^*e_1) + (x^2*y - y^3 - x^2 + y^2) (phi_U^*e_2)
+        sage: b.display(fV)
+        f*s = (-1/4*u*v^3 - 1/2*u*v^2 + 1/4*(u^3 - 2*u^2)*v) (phi_V^*e_1)
+              + (-1/8*u^4*v - 3/8*u^3*v^2 - 3/8*u^2*v^3 - 1/8*u*v^4) (phi_V^*e_2)
+
+    The domain on which the section should be defined, can be stated via the
+    ``domain`` option in :meth:`~sage.manifolds.vector_bundle.TopologicalVectorBundle.section`::
+
+        sage: cU = E.section([1,x], domain=U, name='c'); cU
+        Section c on the Open subset U of the 2-dimensional topological manifold
+         M with values in the real vector bundle E of rank 2
+        sage: cU.display()
+        c = (phi_U^*e_1) + x (phi_U^*e_2)
+
+    Since `E|_U` is trivial, ``cU`` now belongs to the free module::
+
+        sage: isinstance(cU.parent(), FiniteRankFreeModule)
+        True
+
+    Omitting the ``domain`` option, the section is defined on the whole base
+    space::
+
+        sage: c = E.section(name='c'); c
+        Section c on the 2-dimensional topological manifold M with values in the
+         real vector bundle E of rank 2
+
+    Via :meth:`set_restriction`, ``cU`` can be defined as the restriction of
+    ``c`` to `U`::
+
+        sage: c.set_restriction(cU)
+        sage: c.display(fU)
+        c = (phi_U^*e_1) + x (phi_U^*e_2)
+        sage: c.restrict(U) == cU
+        True
 
     """
     def __init__(self, section_module, name=None, latex_name=None):
@@ -423,12 +548,12 @@ class Section(ModuleElement):
             sage: phi_U = E.trivialization('phi_U', domain=U)
             sage: phi_V = E.trivialization('phi_V', domain=V)
             sage: s = E.section(name='s')
-            sage: su = E.section(domain=U, name='s')
-            sage: su[:] = x+y, x
-            sage: s.set_restriction(su)
+            sage: sU = E.section(domain=U, name='s')
+            sage: sU[:] = x+y, x
+            sage: s.set_restriction(sU)
             sage: s.display(phi_U.frame())
             s = (x + y) (phi_U^*e_1) + x (phi_U^*e_2)
-            sage: s.restrict(U) == su
+            sage: s.restrict(U) == sU
             True
 
         """
@@ -1842,9 +1967,82 @@ class Section(ModuleElement):
 
 class TrivialSection(FiniteRankFreeModuleElement, Section):
     r"""
-    Trivial sections
+    Section in a trivial vector bundle.
 
-    TODO
+    An instance of this class is a section in a vector bundle `E \to M` of class
+    `C^k`, where `E|_U` is manifestly trivial. More precisely, a *(local)
+    section* on a subset `U \in M` is a map of class `C^k`
+
+    .. MATH::
+
+        s: U \longrightarrow E
+
+    such that
+
+    .. MATH::
+
+        \forall p \in U,\ s(p) \in E_p
+
+    where `E_p` denotes the vector bundle fiber of `E` over the point `p \in U`.
+    `E` being trivial means `E` being homeomorphic to `E \times F`, for `F` is
+    the typical fiber of `E`, namely the underlying topological vector space. By
+    this means, `s` can be seen as a map of class `C^k(U;E)`
+
+    .. MATH::
+
+        s: U \longrightarrow F ,
+
+    so that the set of all sections `C^k(U;E)` becomes a *free* module over the
+    algebra of scalar fields on `U`.
+
+    .. NOTE::
+
+        If `E|_U` is not manifestly trivial, the class
+        :class:`~sage.manifolds.section.Section` should be used instead.
+
+    This is a Sage *element* class, the corresponding *parent* class being
+    :class:`~sage.manifolds.section_module.SectionFreeModule`.
+
+    INPUT:
+
+    - ``section_module`` -- free module `C^k(U;E)` of sections on `E` over `U`
+      (cf. :class:`~sage.manifolds.section_module.SectionFreeModule`)
+    - ``name`` -- (default: ``None``) name given to the section
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the section;
+      if none is provided, the LaTeX symbol is set to ``name``
+
+    EXAMPLES:
+
+    A section on a trivial 3-rank vector bundle over the 3-sphere::
+
+        sage: M = Manifold(3, 'S^3', structure='top')
+        sage: U = M.open_subset('U') ; V = M.open_subset('V') # complement of the North and South pole, respectively
+        sage: M.declare_union(U,V)
+        sage: stereoN.<x,y,z> = U.chart() # stereographic coordinates from the North pole
+        sage: stereoS.<u,v,t> = V.chart() # stereographic coordinates from the South pole
+        sage: xyz_to_uvt = stereoN.transition_map(stereoS,
+        ....:           (x/(x^2+y^2+z^2), y/(x^2+y^2+z^2), z/(x^2+y^2+z^2)),
+        ....:           intersection_name='W',
+        ....:           restrictions1= x^2+y^2+z^2!=0,
+        ....:           restrictions2= u^2+v^2+t^2!=0)
+        sage: W = U.intersection(V)
+        sage: uvt_to_xyz = xyz_to_uvt.inverse()
+        sage: E = M.vector_bundle(3, 'E')
+        sage: e = E.local_frame('e') # Trivializes E
+        sage: s = E.section(name='s'); s
+        Section s on the 3-dimensional topological manifold S^3 with values in
+         the real vector bundle E of rank 3
+        sage: s[e,:] = z^2, x-y, 1-x
+        sage: s.display()
+        s = z^2 e_0 + (x - y) e_1 + (-x + 1) e_2
+
+    Since `E` is trivial, `s` is now element of a free section module::
+
+        sage: s.parent()
+        Free module C^0(S^3;E) of sections on the 3-dimensional topological
+         manifold S^3 with values in the real vector bundle E of rank 3
+        sage: isinstance(s.parent(), FiniteRankFreeModule)
+        True
 
     """
     def __init__(self, section_module, name=None, latex_name=None):
@@ -2401,10 +2599,6 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
         return FiniteRankFreeModuleElement.display_comp(self, basis=frame,
                                   format_spec=chart,
                                   only_nonzero=only_nonzero)
-
-    #
-    # Doctest finished
-    #
 
     def at(self, point):
         r"""

@@ -1549,7 +1549,6 @@ class VectorFrame(FreeModuleBasis):
             self._latex_name = r"\left({}, {}\right)".format(
                                     self._domain._latex_name, self._latex_name)
 
-
 #******************************************************************************
 
 class CoordCoFrame(CoFrame):

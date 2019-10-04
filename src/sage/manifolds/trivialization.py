@@ -103,7 +103,7 @@ class Trivialization(UniqueRepresentation, SageObject):
 
     The automorphisms are listed in the frame changes of the vector bundle::
 
-        sage: E.changes_of_frame()
+        sage: E.changes_of_frame() # random
         {(Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2))),
          Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2)))): Automorphism
          phi_U^(-1)*phi_V^(-1) of the Free module C^0(W;E) of sections on the
@@ -555,7 +555,7 @@ class TransitionMap(SageObject):
         r"""
         Return the inverse transition map.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='top')
             sage: X.<x,y> = M.chart()
@@ -568,8 +568,7 @@ class TransitionMap(SageObject):
             sage: phi_V = E.trivialization('phi_V', domain=V)
             sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, [[1,1],[-1,1]])
             sage: phi_V_to_phi_U = phi_U_to_phi_V.inverse(); phi_V_to_phi_U
-            Transition map from Trivialization (phi_V, E|_V) to
-             Trivialization (phi_U, E|_U)
+            Transition map from Trivialization (phi_V, E|_V) to Trivialization (phi_U, E|_U)
             sage: phi_V_to_phi_U.automorphism() == phi_U_to_phi_V.automorphism().inverse()
             True
 

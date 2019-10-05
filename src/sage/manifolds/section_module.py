@@ -13,15 +13,12 @@ Depending on the domain, there are two classes of section modules:
 
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
-  (originally ``differentiable/tensorfield_module.py``)
-- Michael Jung (2019): Generalization to vector bundles
+- Michael Jung (2019): initial version
 
 """
 
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -299,13 +296,11 @@ class SectionModule(UniqueRepresentation, Parent):
              manifold M with values in the real vector bundle E of rank 2
 
         """
-        desc = "Module "
-        desc += self._name + " "
-        desc += "of sections "
-        desc += "on the {} ".format(self._domain)
-        desc += "with values in the " + self._vbundle.base_field_type() + " "
-        desc += "vector bundle " + self._vbundle._name + " "
-        desc += "of rank {}".format(self._vbundle.rank())
+        desc = "Module {} of sections on the {} with values in the {} vector " \
+               "bundle of rank {}"
+        desc = desc.format(self._name, self._domain,
+                           self._vbundle.base_field_type(),
+                           self._vbundle.rank())
         return desc
 
     def _latex_(self):
@@ -437,7 +432,7 @@ class SectionModule(UniqueRepresentation, Parent):
 
     def set_default_frame(self, basis):
         r"""
-        Sets the default local frame on ``self``.
+        Set the default local frame on ``self``.
 
         EXAMPLES:
 

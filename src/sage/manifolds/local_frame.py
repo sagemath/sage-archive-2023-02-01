@@ -12,12 +12,7 @@ the fiber `E_p` for any `p \in U`.
 
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2013-2015): initial version (originally
-  ``differentiable/vectorframe.py``)
-- Travis Scrimshaw (2016): review tweaks
-- Eric Gourgoulhon (2018): some refactoring and more functionalities in the
-  choice of symbols for vector frame elements (:trac:`24792`)
-- Michael Jung (2019): Generalization to vector bundles (now: ``local_frame.py``)
+- Michael Jung (2019): initial version
 
 EXAMPLES:
 
@@ -169,8 +164,6 @@ Let us check the components of `f` with respect to the frame `e`::
 
 #******************************************************************************
 #       Copyright (C) 2013-2018 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2013, 2014 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

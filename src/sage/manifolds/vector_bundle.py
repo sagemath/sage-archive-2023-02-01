@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
 r"""
 Topological Vector Bundle
 
 Let `K` be a topological field. A *vector bundle* of rank `n` over the field
 `K` and over a topological manifold `B` (base space) is a topological manifold
 `E` (total space) together with a continuous and surjective map `\pi: E \to B`
-such that for every point `p \in B`
+such that for every point `p \in B`, we have:
+
 - the set `E_p=\pi^{-1}(p)` has the vector space structure of `K^n`,
 - there is a neighborhood `U \subset B` of `p` and a homeomorphism
   (trivialization) `\varphi: \pi^{-1}(p) \to U \times K^n` such that `\varphi`
@@ -584,7 +586,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         EXAMPLES:
 
-        Module of sections on the Moebius bundle::
+        Module of sections on the Möbius bundle::
 
             sage: M = Manifold(1, 'S^1', structure='top', start_index=1)
             sage: U = M.open_subset('U')  # the complement of one point
@@ -621,7 +623,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             sage: isinstance(C0, FiniteRankFreeModule)
             False
 
-        since the Moebius bundle is not trivial::
+        since the Möbius bundle is not trivial::
 
             sage: E.is_manifestly_trivial()
             False
@@ -801,7 +803,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             resu._init_components(*comp, **kwargs)
         return resu
 
-    def total_space(self, update_atlas=True):
+    def total_space(self):
         r"""
         Return the total space of ``self``.
 
@@ -827,9 +829,8 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                                    latex_name=self._latex_name,
                                    field=self._field, structure='topological',
                                    start_index=sindex)
-        if update_atlas:
-            # TODO: if self._atlas not empty, introduce charts
-            pass
+
+        # TODO: if update_atlas: introduce charts via self._atlas
 
         return self._total_space
 

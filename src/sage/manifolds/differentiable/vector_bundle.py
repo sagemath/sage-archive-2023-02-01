@@ -5,7 +5,8 @@ Let `K` be a topological field. A `C^k`-differentiable *vector bundle* of rank
 `n` over the field `K` and over a `C^k`-differentiable manifold `M` (base space)
 is a `C^k`-differentiable manifold `E` (total space) together with a
 `C^k` differentiable and surjective map `\pi: E \to M` such that for
-every point `x \in M`
+every point `x \in M`:
+
 - the set `E_x=\pi^{-1}(x)` has the vector space structure of `K^n`,
 - there is a neighborhood `U \subset M` of `x` and a `C^k`-diffeomorphism
   `\varphi: \pi^{-1}(x) \to U \times K^n` such that
@@ -47,7 +48,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
     - ``base_space`` -- the base space (differentiable manifold) `M` over which
       the vector bundle is defined
     - ``field`` -- field `K` which gives the fibers the structure of a
-     vector space over `K`; allowed values are
+      vector space over `K`; allowed values are
 
       - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
         a vector bundle over `\RR`
@@ -184,9 +185,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
                                 field=self._field, structure='differentiable',
                                 diff_degree=self._diff_degree,
                                 start_index=sindex)
-        if update_atlas:
-            # TODO: if self._atlas not empty, introduce charts
-            pass
+
+        # TODO: if update_atlas: introduce charts via self._atlas
 
         return self._total_space
 

@@ -6,7 +6,7 @@ This module implements method related to :wikipedia:`Comparability_graph` and
 :wikipedia:`Permutation_graph`, that is, for the moment, only recognition
 algorithms.
 
-Most of the information found here can alo be found in [Cleanup]_ or [ATGA]_.
+Most of the information found here can alo be found in [ST1994]_ or [Sha1997]_.
 
 The following methods are implemented in this module
 
@@ -84,7 +84,7 @@ to be the equivalence class in `G` of the oriented edge `uv`.
 Of course, if there exists a transitive orientation of a graph `G`, then no edge
 `uv` implies its contrary `vu`, i.e. it is necessary to ensure that `\forall
 uv\in G, vu\not\in C^G_{uv}`. The key result on which the greedy algorithm is
-built is the following (see [Cleanup]_):
+built is the following (see [ST1994]_):
 
   **Theorem** -- The following statements are equivalent :
 
@@ -184,18 +184,6 @@ This is done by a call to :meth:`Graph.is_bipartite`, and here is how :
     The greedy algorithm implemented here is just there to check the correction
     of more complicated ones, and it is reaaaaaaaaaaaalllly bad whenever you
     look at it with performance in mind.
-
-References
-----------
-
-.. [ATGA] Advanced Topics in Graph Algorithms,
-  Ron Shamir,
-  `<http://www.cs.tau.ac.il/~rshamir/atga/atga.html>`_
-
-.. [Cleanup] A cleanup on transitive orientation,
-  Orders, Algorithms, and Applications, 1994,
-  Simon, K. and Trunz, P.,
-  `<ftp://ftp.inf.ethz.ch/doc/papers/ti/ga/ST94.ps.gz>`_
 
 Methods
 -------

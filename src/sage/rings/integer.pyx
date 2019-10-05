@@ -2039,7 +2039,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3 / QQbar.zero()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: rational division by zero
+            ZeroDivisionError: division by zero in algebraic field
         """
         cdef Rational x
         if type(left) is type(right):

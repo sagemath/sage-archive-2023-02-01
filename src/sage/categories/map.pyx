@@ -1826,10 +1826,25 @@ cdef class FormalCompositeMap(Map):
             sage: g = S.hom([2*x])
             sage: (f*g).then() == f
             True
+
+            sage: f = QQ.coerce_map_from(ZZ)
+            sage: f = f.extend_domain(ZZ).extend_codomain(QQ)
+            sage: f.then()
+            Composite map:
+            From: Integer Ring
+            To:   Rational Field
+            Defn:   Natural morphism:
+            From: Integer Ring
+            To:   Rational Field
+            then
+            Identity endomorphism of Rational Field
         """
         if len(self.__list) == 2:
             return self.__list[1]
-        return FormalCompositeMap(self.__list[1:])
+        domain = self.__list[0].codomain()
+        codomain = self.codomain()
+        H = homset.Hom(domain, codomain, category=self._category_for)
+        return FormalCompositeMap(H, self.__list[1:])
 
     def is_injective(self):
         """

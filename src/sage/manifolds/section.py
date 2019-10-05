@@ -2587,15 +2587,13 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
             s^2 = 1/4*u^2 - 1/4*v^2
 
         """
-        from sage.misc.latex import latex
-        from sage.manifolds.differentiable.vectorframe import CoordFrame
         if frame is None:
                 frame = self._smodule.default_basis()
         if chart is None:
             chart = self._domain.default_chart()
         return FiniteRankFreeModuleElement.display_comp(self, basis=frame,
-                                  format_spec=chart,
-                                  only_nonzero=only_nonzero)
+                                                      format_spec=chart,
+                                                      only_nonzero=only_nonzero)
 
     def at(self, point):
         r"""

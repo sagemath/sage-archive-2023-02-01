@@ -33,7 +33,6 @@ AUTHORS:
 from sage.categories.vector_bundles import VectorBundles
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
-from sage.rings.infinity import infinity, minus_infinity
 from sage.manifolds.vector_bundle import TopologicalVectorBundle
 
 class DifferentiableVectorBundle(TopologicalVectorBundle):
@@ -337,10 +336,6 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def _repr_(self):
         r"""
-        String representation of ``self``.
-
-        TESTS::
-
         String representation of ``self``.
 
         TESTS::

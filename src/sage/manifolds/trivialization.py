@@ -566,7 +566,8 @@ class TransitionMap(SageObject):
             sage: E = M.vector_bundle(2, 'E')
             sage: phi_U = E.trivialization('phi_U', domain=U)
             sage: phi_V = E.trivialization('phi_V', domain=V)
-            sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, [[1,1],[-1,1]])
+            sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, [[1,1],[-1,1]],
+            ....:                                       compute_inverse=False)
             sage: phi_V_to_phi_U = phi_U_to_phi_V.inverse(); phi_V_to_phi_U
             Transition map from Trivialization (phi_V, E|_V) to Trivialization (phi_U, E|_U)
             sage: phi_V_to_phi_U.automorphism() == phi_U_to_phi_V.automorphism().inverse()
@@ -574,10 +575,12 @@ class TransitionMap(SageObject):
 
         """
         if self._inverse is None:
-            self._vbundle.set_change_of_frame(self._frame1, self._frame2, ~auto)
-            if compute_inverse:
-                self._inverse = type(self)(self._triv2, self._triv1, ~auto)
-                self._inverse._inverse = self
+            self._vbundle.set_change_of_frame(self._frame1, self._frame2,
+                                              ~self._automorphism)
+            self._inverse = type(self)(self._triv2, self._triv1,
+                                       ~self._automorphism,
+                                       compute_inverse=False)
+            self._inverse._inverse = self
         return self._inverse
 
     def det(self):

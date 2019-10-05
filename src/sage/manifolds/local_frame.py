@@ -620,13 +620,12 @@ class LocalFrame(FreeModuleBasis):
             sage: TestSuite(e).run()
 
         """
-        from sage.tensor.modules.finite_rank_free_module import \
-            FiniteRankFreeModule
+        ###
         # Some sanity check:
         if not isinstance(section_module, FiniteRankFreeModule):
             raise ValueError("the {} has already been constructed as a "
                              "non-free module and therefore cannot have "
-                             "a basis".format(vector_field_module))
+                             "a basis".format(section_module))
         self._domain = section_module.domain()
         self._base_space = section_module.base_space()
         self._vbundle = section_module.vector_bundle()
@@ -1440,12 +1439,23 @@ class TrivializationFrame(LocalFrame):
         from .trivialization import Trivialization
         if not isinstance(trivialization, Trivialization):
             raise TypeError("the first argument must be a trivialization")
+        ###
+        # Some useful variables:
         triv = trivialization
         domain = triv.domain()
+        vbundle = triv.vector_bundle()
+        ###
+        # Some sanity check:
+        smodule = vbundle._section_modules.get(domain)
+        if smodule and not isinstance(smodule, FiniteRankFreeModule):
+            raise ValueError("the {} has already been constructed as a "
+                             "non-free module and therefore cannot have "
+                             "a basis".format(smodule))
+        ###
+        # Set trivialization:
         self._trivialization = triv
         ###
         # Define trivialization names
-        vbundle = triv.vector_bundle()
         rank = vbundle.rank()
         symbol = tuple("(" + triv._name + "^*" + "e_" + str(i) + ")"
             for i in range(1, rank + 1))

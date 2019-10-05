@@ -1626,7 +1626,7 @@ cdef class Matrix(Matrix1):
         f = self.fetch('charpoly')
         if f is not None:
             c = f[0]
-            if self._nrows % 2 != 0:
+            if self._nrows % 2:
                 c = -c
             d = self._coerce_element(c)
             self.cache('det', d)

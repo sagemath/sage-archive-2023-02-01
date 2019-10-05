@@ -6,7 +6,7 @@ AUTHORS:
 - Vincent Knight, James Campbell, Kevin Dilks, Emily Gunawan (2015): Initial version
 - Vincent Delecroix (2017): cleaning and enhanced plotting function
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Vincent Knight <vincent.knight@gmail.com>
 #                          James Campbell <james.campbell@tanti.org.uk>
 #                          Kevin Dilks <kdilks@gmail.com>
@@ -22,8 +22,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 # python3
 from __future__ import division, print_function
 from six import add_metaclass
@@ -981,14 +981,14 @@ class FullyPackedLoop(Element):
         orbit = [pos]
         sv = self._six_vertex_model
         n = len(sv)
-        i,j = pos
+        i, j = pos
 
         # deal with boundary cases
         if i < -1 or i > n or j < -1 or j > n:
             raise ValueError('indices out of range')
-        if (i == -1 or i == n) and (i+j)%2 != 1:
+        if (i == -1 or i == n) and not (i+j) % 2:
             raise ValueError('left and right boundary values must have odd sum')
-        if (j == -1 or j == n) and (i+j)%2 != 0:
+        if (j == -1 or j == n) and (i+j) % 2:
             raise ValueError('up and down boundary values must have even sum')
 
         if i == -1:

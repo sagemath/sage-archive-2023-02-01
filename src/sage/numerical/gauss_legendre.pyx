@@ -15,15 +15,15 @@ The code here is directly based on mpmath (see http://mpmath.org), but has a hig
 optimized routine to compute the nodes.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Nils Bruin <nbruin@sfu.ca>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 #as it turns out, computing the nodes can easily turn out to be more
 #expensive than computing the integrals. So it's worth optimizing this.
@@ -74,8 +74,8 @@ def nodes(degree,prec):
     cdef RealField_class R
     if prec < 53:
         prec = 53
-    if degree !=3 and degree % 2 !=0:
-        raise ValueError("degree=%s not supported (degree must be 3 or even)"%degree)
+    if degree != 3 and degree % 2:
+        raise ValueError("degree=%s not supported (degree must be 3 or even)" % degree)
     R = RealField(int(prec*3/2))
     Rout = RealField(prec)
     mpfr_init2(u,R.__prec)

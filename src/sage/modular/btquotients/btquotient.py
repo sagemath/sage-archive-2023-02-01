@@ -3385,7 +3385,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if twom is None:
             twom = v1.determinant().valuation(p) + v2.determinant().valuation(p)
         if check_parity:
-            if twom % 2 != 0:
+            if twom % 2:
                 self._cached_equivalent[(v1, v2, as_edges)] = None
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)

@@ -559,6 +559,20 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             return 'PolynomialRing(%s,[%s])'%(gap(self.base_ring()).name(),','.join(L))
         return 'PolynomialRing(%s,[%s])'%(self.base_ring()._gap_init_(),','.join(L))
 
+    cpdef bint is_exact(self) except -2:
+        """
+        Test whether this multivariate polynomial ring is defined over an exact
+        base ring.
+
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ, 2, 'x').is_exact()
+            True
+            sage: PolynomialRing(RDF, 2, 'x').is_exact()
+            False
+        """
+        return self.base_ring().is_exact()
+
     def is_field(self, proof = True):
         """
         Test whether this multivariate polynomial ring is a field.

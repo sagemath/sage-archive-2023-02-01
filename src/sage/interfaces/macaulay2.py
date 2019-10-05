@@ -601,22 +601,20 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
     def ring(self, base_ring='ZZ', vars='[x]', order='Lex'):
         r"""
-        Create a Macaulay2 ring.
+        Create a Macaulay2 polynomial ring.
 
         INPUT:
 
-        - base_ring -- base ring (see examples below)
-        - vars -- a tuple or string that defines the variable names
-        - order -- string -- the monomial order (default: 'Lex')
+        - ``base_ring`` -- base ring (see examples below)
+        - ``vars`` -- a tuple or string that defines the variable names
+        - ``order`` -- string (default: 'Lex'); the monomial order
 
-        OUTPUT:
-
-        - a Macaulay2 ring (with base ring ZZ)
+        OUTPUT: a Macaulay2 ring
 
         EXAMPLES:
 
-        This is a ring in variables named a through d over the finite field
-        of order 7, with graded reverse lex ordering::
+        This is a ring in variables named ``a`` through ``d`` over the finite
+        field of order 7, with graded reverse lex ordering::
 
             sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex')  # optional - macaulay2
             sage: R1.describe()  # optional - macaulay2
@@ -644,10 +642,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: macaulay2.ring('QQ', '[a_0..a_2,b..<d,f]').vars()     # optional - macaulay2
             | a_0 a_1 a_2 b c f |
         """
-        varstr = str(vars)[1:-1]
-        r = re.compile(r"(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
-        varstr = "symbol " + r.sub("symbol ", varstr)
-        return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(base_ring, varstr, order))
+        return self.new(_macaulay2_input_ring(base_ring, vars, order))
 
     def help(self, s):
         """
@@ -732,6 +727,40 @@ class Macaulay2(ExtraTabCompletion, Expect):
         type = self(type)
         value = self(value)
         return self.new("new %s from %s"%(type.name(), value.name()))
+
+
+def _macaulay2_input_ring(base_ring, vars, order='GRevLex'):
+    """
+    Build a string representation of a polynomial ring which can be used as
+    Macaulay2 input.
+
+    TESTS::
+
+        sage: R = GF(101)['x']
+        sage: from sage.interfaces.macaulay2 import _macaulay2_input_ring
+        sage: _macaulay2_input_ring(R.base_ring(), R.gens(), 'Lex')
+        'ZZ/101[symbol x, MonomialSize=>16, MonomialOrder=>Lex]'
+    """
+    if not isinstance(base_ring, string_types):
+        from sage.rings.integer_ring import is_IntegerRing
+        if base_ring.is_prime_field():
+            if base_ring.characteristic() == 0:
+                base_ring = "QQ"
+            else:
+                # Note that we explicitly use ZZ/p, since computations are
+                # faster than with GF p in Macaulay2 (2019).
+                base_ring = "ZZ/" + str(base_ring.characteristic())
+        elif is_IntegerRing(base_ring):
+            base_ring = "ZZ"
+        else:
+            raise TypeError("no conversion of %s to a Macaulay2 ring defined"
+                            % base_ring)
+
+    varstr = str(vars)[1:-1].rstrip(',')
+    r = re.compile(r"(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
+    varstr = "symbol " + r.sub("symbol ", varstr)
+    return '%s[%s, MonomialSize=>16, MonomialOrder=>%s]' % (base_ring, varstr,
+                                                            order)
 
 
 @instancedoc

@@ -1707,19 +1707,3 @@ class Set_object_symmetric_difference(Set_object_binary):
         """
         return (x in self._X and x not in self._Y) \
                or (x in self._Y and x not in self._X)
-
-def is_Set(x):
-    """
-    Deprecated. Use ``isinstance(x, Set_generic)`` instead.
-
-    TESTS::
-
-        sage: from sage.sets.set import is_Set
-        sage: is_Set(Primes())
-        doctest:...: DeprecationWarning: Please use isinstance(x, Set_generic)
-        See http://trac.sagemath.org/24443 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(24443, "Please use isinstance(x, Set_generic)")
-    return isinstance(x, Set_generic)

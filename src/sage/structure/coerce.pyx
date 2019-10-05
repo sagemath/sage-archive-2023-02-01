@@ -377,9 +377,9 @@ def parent_is_numerical(P):
         sage: [parent_is_numerical(R) for R in [RR, CC, QQ, QuadraticField(-1),
         ....:         int, complex, gmpy2.mpc, numpy.complexfloating]]
         [True, True, True, True, True, True, True, True]
-        sage: [parent_is_numerical(R) for R in SR, QQ['x'], QQ[['x']], str]
+        sage: [parent_is_numerical(R) for R in [SR, QQ['x'], QQ[['x']], str]]
         [False, False, False, False]
-        sage: [parent_is_numerical(R) for R in RIF, RBF, CIF, CBF]
+        sage: [parent_is_numerical(R) for R in [RIF, RBF, CIF, CBF]]
         [False, False, False, False]
     """
     if not isinstance(P, Parent):
@@ -403,9 +403,9 @@ def parent_is_real_numerical(P):
         sage: [parent_is_real_numerical(R) for R in [CC, QuadraticField(-1),
         ....:         complex, gmpy2.mpc, numpy.complexfloating]]
         [False, False, False, False, False]
-        sage: [parent_is_real_numerical(R) for R in SR, QQ['x'], QQ[['x']], str]
+        sage: [parent_is_real_numerical(R) for R in [SR, QQ['x'], QQ[['x']], str]]
         [False, False, False, False]
-        sage: [parent_is_real_numerical(R) for R in RIF, RBF, CIF, CBF]
+        sage: [parent_is_real_numerical(R) for R in [RIF, RBF, CIF, CBF]]
         [False, False, False, False]
     """
     if not isinstance(P, Parent):

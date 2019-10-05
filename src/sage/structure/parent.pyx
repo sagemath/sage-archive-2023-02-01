@@ -2701,11 +2701,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: [R._is_numerical() for R in RR, CC, QQ, QuadraticField(-1)]
+            sage: [R._is_numerical() for R in [RR, CC, QQ, QuadraticField(-1)]]
             [True, True, True, True]
-            sage: [R._is_numerical() for R in SR, QQ['x'], QQ[['x']]]
+            sage: [R._is_numerical() for R in [SR, QQ['x'], QQ[['x']]]]
             [False, False, False]
-            sage: [R._is_numerical() for R in RIF, RBF, CIF, CBF]
+            sage: [R._is_numerical() for R in [RIF, RBF, CIF, CBF]]
             [False, False, False, False]
         """
         from sage.rings.complex_field import ComplexField
@@ -2720,13 +2720,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: [R._is_real_numerical() for R in RR, QQ, ZZ, RLF, QuadraticField(2)]
+            sage: [R._is_real_numerical() for R in [RR, QQ, ZZ, RLF, QuadraticField(2)]]
             [True, True, True, True, True]
-            sage: [R._is_real_numerical() for R in CC, QuadraticField(-1)]
+            sage: [R._is_real_numerical() for R in [CC, QuadraticField(-1)]]
             [False, False]
-            sage: [R._is_real_numerical() for R in SR, QQ['x'], QQ[['x']]]
+            sage: [R._is_real_numerical() for R in [SR, QQ['x'], QQ[['x']]]]
             [False, False, False]
-            sage: [R._is_real_numerical() for R in RIF, RBF, CIF, CBF]
+            sage: [R._is_real_numerical() for R in [RIF, RBF, CIF, CBF]]
             [False, False, False, False]
         """
         from sage.rings.real_mpfr import RealField, mpfr_prec_min

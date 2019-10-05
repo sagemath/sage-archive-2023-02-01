@@ -158,7 +158,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         """
         return self._diff_degree
 
-    def total_space(self, update_atlas=True):
+    def total_space(self):
         r"""
         Return the total space of ``self``.
 

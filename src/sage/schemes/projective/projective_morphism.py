@@ -1778,7 +1778,6 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if K in NumberFields() or K is QQbar:
             return self._number_field_from_algebraics()
         if K in FiniteFields():
-            CR = self.domain().coordinate_ring()
             #find the degree of the extension containing the coefficients
             c = [v for g in self for v in g.coefficients()]
             d = lcm([a.minpoly().degree() for a in c])

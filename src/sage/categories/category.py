@@ -2539,7 +2539,7 @@ class Category(UniqueRepresentation, SageObject):
         shall be kept to a strict minimum. The object is therefore not
         meant to be used for other applications; most of the time a
         full featured version is available elsewhere in Sage, and
-        should be used insted.
+        should be used instead.
 
         Technical note: by default ``FooBar(...).example()`` is
         constructed by looking up

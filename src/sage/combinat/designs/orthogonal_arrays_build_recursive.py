@@ -1583,8 +1583,8 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
 
         else:
             assert e2 == 1, "equivalent to x!=1"
-            # Extending the x partitions into bocks of size t with each of the
-            # new x points.
+            # Extending the x partitions into blocks of size t with
+            # each of the new x points.
 
             for i,partition in enumerate(partition_of_blocks_of_size_t):
                 for B in partition:

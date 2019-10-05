@@ -1,7 +1,7 @@
 r"""
 Combinatorial face of a polyhedron
 
-This module provides the combinatorical type of a polyhedral face.
+This module provides the combinatorial type of a polyhedral face.
 
 ,, SEEALSO::
 

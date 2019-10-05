@@ -2318,7 +2318,7 @@ cdef class MPolynomial(CommutativeRingElement):
         R = self.parent()
         x,y = R.gens()
 
-        # finding quadratic Q_0, gives us our convariant, z_0
+        # finding quadratic Q_0, gives us our covariant, z_0
         from sage.rings.polynomial.binary_form_reduce import covariant_z0
         try:
             z, th = covariant_z0(self, prec=prec, emb=emb, z0_cov=True)

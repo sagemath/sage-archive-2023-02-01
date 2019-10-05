@@ -150,7 +150,7 @@ AUTHORS:
 
     - Marshall Hampton: improved documentation and doctest coverage
 
-    - Volker Braun: rewrite using Parent/Element and catgories. Added
+    - Volker Braun: rewrite using Parent/Element and categories. Added
       a Point class. More doctests. Less zombies.
 
     - Volker Braun: Cythonized parts of it, added a C++ implementation

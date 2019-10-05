@@ -500,7 +500,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
 
         # Next determine coefficient of multinomial
         c =  si2sa( p_GetCoeff(p, r), r, base)
-        if len(multi) == 0:
+        if not multi:
             multi = latex(c)
         elif c != 1:
             if  c == -1:
@@ -523,7 +523,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
     poly = poly.lstrip().rstrip()
     poly = poly.replace("+ -","- ")
 
-    if len(poly) == 0:
+    if not poly:
         return "0"
     return poly
 

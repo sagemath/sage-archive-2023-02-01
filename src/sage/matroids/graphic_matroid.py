@@ -2020,7 +2020,18 @@ class GraphicMatroid(Matroid):
             True
             sage: M == N
             False
+
+        TESTS:
+
+        Check that :trac:`28482` is fixed::
+
+            sage: G = Graph([[3, 4], [4, 1], [1, 2], [2, 3], [3, 5], [5, 6], [6, 3]])
+            sage: M = Matroid(G)
+            sage: R = M.regular_matroid()
+            sage: set(M.circuits()) == set(R.circuits())
+            True
         """
         from sage.matroids.constructor import Matroid as ConstructorMatroid
-        return ConstructorMatroid(groundset=self._groundset, graph=self._G,
-            regular=True)
+        X = [l for u,v,l in self._G.edge_iterator()]
+        return ConstructorMatroid(groundset=X, graph=self._G, regular=True)
+

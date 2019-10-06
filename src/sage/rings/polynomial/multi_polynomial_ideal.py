@@ -3023,12 +3023,6 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: I = ideal(x*y-z^2, y^2-w^2)
             sage: I.groebner_basis('macaulay2')                # indirect doctest; optional - macaulay2
             [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
-            sage: I.groebner_basis('macaulay2:gb')             # indirect doctest; optional - macaulay2
-            [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
-            sage: I.groebner_basis('macaulay2:f4')             # indirect doctest; optional - macaulay2
-            [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
-            sage: I.groebner_basis('macaulay2:mgb')            # indirect doctest; optional - macaulay2
-            [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
 
         The Groebner basis can be used to compute in
         `\ZZ/n\ZZ[x,\ldots]`.
@@ -3042,10 +3036,19 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: I = ideal([y^2*z - x^3 - 19^2*x*z, y^2, 19^2])
             sage: I.groebner_basis('macaulay2')               # optional - macaulay2
             [x^3, y^2, 361]
-            sage: I.groebner_basis('macaulay2:f4')            # optional - macaulay2
-            [x^3, y^2, 361]
-            sage: I.groebner_basis('macaulay2:mgb')           # optional - macaulay2
-            [x^3, y^2, 361]
+
+        Over finite fields, Macaulay2 supports different algorithms to compute
+        Gröbner bases::
+
+            sage: R = PolynomialRing(GF(101), 'x', 4)
+            sage: I = sage.rings.ideal.Cyclic(R)
+            sage: gb1 = I.groebner_basis('macaulay2:gb')  # optional - macaulay2
+            sage: I = sage.rings.ideal.Cyclic(R)
+            sage: gb2 = I.groebner_basis('macaulay2:mgb')  # optional - macaulay2
+            sage: I = sage.rings.ideal.Cyclic(R)
+            sage: gb3 = I.groebner_basis('macaulay2:f4')  # optional - macaulay2
+            sage: gb1 == gb2 == gb3
+            True
 
         TESTS::
 
@@ -3958,7 +3961,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: gb == gb.reduced()
             False
 
-        but that ``toy:buchberger2`` does.::
+        but that ``toy:buchberger2`` does. ::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: gb = I.groebner_basis('toy:buchberger2'); gb
@@ -3966,19 +3969,21 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: gb == gb.reduced()
             True
 
-        Here we use Macaulay2 with three different strategies.::
+        Here we use Macaulay2 with three different strategies over a finite
+        field. ::
 
-            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: R.<a,b,c> = PolynomialRing(GF(101), 3)
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
             sage: I.groebner_basis('macaulay2:gb')  # optional - macaulay2
-            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
 
-            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
             sage: I.groebner_basis('macaulay2:f4')  # optional - macaulay2
-            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
 
-            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
             sage: I.groebner_basis('macaulay2:mgb') # optional - macaulay2
-            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
 
         ::
 
@@ -3987,7 +3992,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Singular and libSingular can compute Groebner basis with degree
-        restrictions.::
+        restrictions. ::
 
             sage: R.<x,y> = QQ[]
             sage: I = R*[x^3+y^2,x^2*y+1]
@@ -4030,7 +4035,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         The list of available options is provided at
         :class:`~sage.libs.singular.option.LibSingularOptions`.
 
-        Note that Groebner bases over `\ZZ` can also be computed.::
+        Note that Groebner bases over `\ZZ` can also be computed. ::
 
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
@@ -4795,7 +4800,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         EXAMPLES:
 
-        We compute a uniformly random element up to the provided degree.::
+        We compute a uniformly random element up to the provided degree. ::
 
             sage: P.<x,y,z> = GF(127)[]
             sage: I = sage.rings.ideal.Katsura(P)

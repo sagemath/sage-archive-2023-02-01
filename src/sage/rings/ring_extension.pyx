@@ -1,4 +1,5 @@
-r""" Extension of rings
+r"""
+Extension of rings
 
 AUTHOR:
 
@@ -759,7 +760,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                 raise ValueError("'over' must be nonnegative")
         return over
 
-    def _repr_(self, over=None):
+    def _repr_(self, **options):
         r"""
         Return a string representation of this extension.
 
@@ -781,15 +782,25 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: E._repr_(over=Infinity)
             'Rational Field over Integer Ring'
         """
-        print_as = self._print_options.get('print_parent_as')
-        if over is None:
-            over = self._print_options['over']
+        if 'print_parent_as' in options:
+            print_as = options.pop('print_parent_as')
+        else:
+            print_as = self._print_options.get('print_parent_as')
         if print_as is not None:
             if isinstance(print_as, RingExtension_generic):
-                return print_as._repr_(over=over)
+                return print_as._repr_(**options)
             else:
                 return str(print_as)
-        s = self._repr_topring()
+        print_options = self._print_options.copy()
+        for (name, value) in options.items():
+            method = None
+            if hasattr(self, '_print_option_' + name):
+                method = getattr(self, '_print_option_' + name)
+            if not callable(method):
+                raise ValueError("option '%s' does not exist" % name)
+            print_options[name] = method(value)
+        over = print_options.pop('over', None)
+        s = self._repr_topring(**print_options)
         if over is None or over == 0:
             s += " over its base"
         else:
@@ -801,7 +812,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                 s += str(base)
         return s
 
-    def _repr_topring(self, over=False):
+    def _repr_topring(self, **options):
         r"""
         Return a string representation of top ring of this extension.
 
@@ -815,7 +826,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             raise RuntimeError("backend is not exposed to the user; cannot print")
         return str(self._backend)
 
-    def _latex_(self, over=None):
+    def _latex_(self, **options):
         r"""
         Return a LaTeX representation of this extension.
 
@@ -835,15 +846,25 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: E._latex_(over=Infinity)
             \Bold{Q} / \Bold{Z}
         """
-        print_as = self._print_options.get('print_parent_as')
-        if over is None:
-            over = self._print_options['over']
+        if 'print_parent_as' in options:
+            print_as = options.pop('print_parent_as')
+        else:
+            print_as = self._print_options.get('print_parent_as')
         if print_as is not None:
             if isinstance(print_as, RingExtension_generic):
-                return print_as._latex_(over=over)
+                return print_as._latex_(**options)
             else:
                 return latex(print_as)
-        s = self._latex_topring()
+        print_options = self._print_options.copy()
+        for (name, value) in options.items():
+            method = None
+            if hasattr(self, '_print_option_' + name):
+                method = getattr(self, '_print_option_' + name)
+            if not callable(method):
+                raise ValueError("option '%s' does not exist" % name)
+            print_options[name] = method(value)
+        over = print_options.pop('over', None)
+        s = self._latex_topring(**print_options)
         if over > 0:
             s += " / "
             base = self._base
@@ -853,7 +874,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                 s += latex(base)
         return s
 
-    def _latex_topring(self):
+    def _latex_topring(self, **options):
         r"""
         Return a string representation of top ring of this extension.
 
@@ -1815,7 +1836,7 @@ cdef class RingExtensionFractionField(RingExtension_generic):
         """
         return self._ring
 
-    def _repr_topring(self):
+    def _repr_topring(self, **options):
         r"""
         Return a string representation of top ring of this extension.
 
@@ -1829,7 +1850,7 @@ cdef class RingExtensionFractionField(RingExtension_generic):
             'Fraction Field of Order in Number Field in a with defining polynomial x^2 - 2'
         """
         if isinstance(self._ring, RingExtension_generic):
-            sr = self._ring._repr_topring()
+            sr = self._ring._repr_topring(**options)
         else:
             sr = str(self._ring)
         if self._ring in Fields():
@@ -1837,9 +1858,9 @@ cdef class RingExtensionFractionField(RingExtension_generic):
         else:
             return "Fraction Field of %s" % sr
 
-    def _latex_topring(self):
+    def _latex_topring(self, **options):
         if self._ring in Fields():
-            return self._ring._latex_topring()
+            return self._ring._latex_topring(**options)
         else:
             return "\\mathrm{Frac}(%s)" % latex(self._ring)
 
@@ -2358,7 +2379,7 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         self._latex_names = (latex_variable_name(self._name),)
         self._basis_latex_names = basis_latex_names
 
-    def _repr_topring(self):
+    def _repr_topring(self, **options):
         r"""
         Return a string representation of top ring of this extension.
 
@@ -2373,7 +2394,7 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
             'Field in b with defining polynomial x^3 + (1 + 3*a^2)*x^2 + (3 + 2*a + 2*a^2)*x - a'
         """
         if self._name is None:
-            return RingExtension_generic._repr_topring(self)
+            return RingExtension_generic._repr_topring(self, **options)
         return "%s in %s with defining polynomial %s" % (self._type, self._name, self.modulus())
 
     def _latex_topring(self):

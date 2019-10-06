@@ -1,3 +1,11 @@
+r"""
+Elements lying in extension of rings
+
+AUTHOR:
+
+- Xavier Caruso (2019)
+"""
+
 #############################################################################
 #    Copyright (C) 2019 Xavier Caruso <xavier.caruso@normalesup.org>
 #
@@ -22,7 +30,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-from sage.rings.ring_extension cimport RingExtension_generic, RingExtensionWithGen
+from sage.rings.ring_extension cimport RingExtension_generic, RingExtensionWithGen, RingExtensionFractionField
 from sage.rings.ring_extension_morphism cimport MapRelativeRingToFreeModule
 from sage.rings.ring_extension_conversion cimport backend_parent, backend_element
 from sage.rings.ring_extension_conversion cimport to_backend, from_backend
@@ -171,7 +179,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         """
         return hash(self._backend)
 
-    def _repr_(self):
+    def _repr_(self, **options):
         r"""
         Return a string representation of this element
 
@@ -186,25 +194,36 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             'b'
         """
         cdef RingExtension_generic parent = self._parent
-        print_as = parent._print_options.get('print_elements_as')
+        if 'print_elements_as' in options:
+            print_as = options.pop('print_elements_as')
+        else:
+            print_as = parent._print_options.get('print_elements_as')
         if print_as is not None:
-            return str(print_as(self._backend))
-        return self._repr_extension()
+            return print_as(self._backend)._repr_(**options)
+        print_options = parent._print_options.copy()
+        for (name, value) in options.items():
+            method = None
+            if hasattr(parent, '_print_option_' + name):
+                method = getattr(parent, '_print_option_' + name)
+            if not callable(method):
+                raise ValueError("option '%s' does not exist" % name)
+            print_options[name] = method(value)
+        return self._repr_extension(**print_options)
 
-    def _repr_extension(self):
+    def _repr_extension(self, **options):
         r"""
         Return a string representation of this element
 
         TESTS::
 
-            sage: K.<a> = GF(5^2).over()
-            sage: L.<b> = GF(5^4).over(K)
-            sage: b._repr_extension()
-            'b'
+            sage: K = QQ.over(ZZ)
+            sage: x = K(1/2)
+            sage: x._repr_extension()
+            '1/2'
         """
         return str(self._backend)
 
-    def _latex_(self):
+    def _latex_(self, **options):
         r"""
         Return a LaTeX representation of this element
 
@@ -219,21 +238,32 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             'b'
         """
         cdef RingExtension_generic parent = self._parent
-        print_as = parent._print_options.get('print_elements_as')
+        if 'print_elements_as' in options:
+            print_as = options.pop('print_elements_as')
+        else:
+            print_as = parent._print_options.get('print_elements_as')
         if print_as is not None:
-            return latex(print_as(self._backend))
-        return self._latex_extension()
+            return print_as(self._backend)._latex_(**options)
+        print_options = parent._print_options.copy()
+        for (name, value) in options.items():
+            method = None
+            if hasattr(parent, '_print_option_' + name):
+                method = getattr(parent, '_print_option_' + name)
+            if not callable(method):
+                raise ValueError("option '%s' does not exist" % name)
+            print_options[name] = method(value)
+        return self._latex_extension(**print_options)
 
-    def _latex_extension(self):
+    def _latex_extension(self, **options):
         r"""
         Return a LaTeX representation of this element
 
         TESTS::
 
-            sage: K.<a> = GF(5^2).over()
-            sage: L.<b> = GF(5^4).over(K)
-            sage: b._latex_extension()
-            'b'
+            sage: K = QQ.over(ZZ)
+            sage: x = K(1/2)
+            sage: x._latex_extension()
+            \frac{1}{2}
         """
         return latex(self._backend)
 
@@ -552,7 +582,7 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
         """
         return hash(self._backend)
 
-    def _repr_extension(self):
+    def _repr_extension(self, **options):
         r"""
         Return a string representation of this element.
 
@@ -581,7 +611,7 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
         else:
             return "(%s)%s" % (num, sd)
 
-    def _latex_extension(self):
+    def _latex_extension(self, **options):
         r"""
         Return a LaTeX representation of this element.
 
@@ -598,10 +628,16 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
         if denom == -1:
             denom = 1
             num = -num
-        if denom == 1:
-            return str(latex(num))
+        if isinstance((<RingExtensionFractionField>self._parent)._ring, RingExtension_generic):
+            snum = num._latex_(**options)
+            sdenom = denom._latex_(**options)
         else:
-            return "\\frac{%s}{%s}" % (latex(num), latex(denom))
+            snum = latex(num)
+            sdenom = latex(denom)
+        if denom == 1:
+            return snum
+        else:
+            return "\\frac{%s}{%s}" % (snum, sdenom)
 
     def numerator(self):
         r"""
@@ -702,9 +738,29 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         """
         return hash(self._backend)
 
-    def _repr_extension(self):
+    def _repr_extension(self, base, **options):
+        r"""
+        Return a string representation of this element written as
+        a linear combination over ``base`` in the basis provided by
+        the method :meth:`basis_over`.
+
+        INPUT:
+
+        - ``base`` -- a commutative ring (which might be itself an
+          extension) or ``None``
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^3).over()
+            sage: L.<b> = GF(5^9).over(K)
+            sage: u = 1/(a+b)
+
+            sage: u._repr_extension(base=K)
+            '(2 + 2*a) + (-1 + a - a^2)*b + (2 + 3*a + 3*a^2)*b^2'
+            sage: u._repr_extension(base=GF(5))
+            '2 + 2*a - b + a*b - a^2*b + 2*b^2 + 3*a*b^2 + 3*a^2*b^2'
+        """
         cdef RingExtensionWithBasis parent = self._parent
-        base = parent._print_options['base']
         coeffs = self._vector(base)
         names = parent._basis_names
         b = parent._base
@@ -754,9 +810,29 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             s = s[1:-1]
         return s
 
-    def _latex_extension(self):
+    def _latex_extension(self, base, **options):
+        r"""
+        Return a LaTeX representation of this element written as
+        a linear combination over ``base`` in the basis provided by
+        the method :meth:`basis_over`.
+
+        INPUT:
+
+        - ``base`` -- a commutative ring (which might be itself an
+          extension) or ``None``
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(5^3).over()
+            sage: L.<b> = GF(5^9).over(K)
+            sage: u = 1/(a+b)
+
+            sage: u._latex_extension(base=K)
+            \left( 2 + 2 a \right) + \left( -1 + a - a^{2} \right) b + \left( 2 + 3 a + 3 a^{2} \right) b^{2}
+            sage: u._latex_extension(base=GF(5))
+            2 + 2 a - b + ab - a^{2}b + 2 b^{2} + 3 ab^{2} + 3 a^{2}b^{2}
+        """
         cdef RingExtensionWithBasis parent = self._parent
-        base = parent._print_options['base']
         coeffs = self._vector(base)
         names = parent._basis_latex_names
         b = parent._base

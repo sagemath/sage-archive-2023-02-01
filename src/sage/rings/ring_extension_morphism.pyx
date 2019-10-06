@@ -1,3 +1,11 @@
+r"""
+Morphisms between extension of rings
+
+AUTHOR:
+
+- Xavier Caruso (2019)
+"""
+
 #############################################################################
 #    Copyright (C) 2019 Xavier Caruso <xavier.caruso@normalesup.org>
 #

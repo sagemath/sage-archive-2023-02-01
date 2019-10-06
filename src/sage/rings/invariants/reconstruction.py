@@ -28,8 +28,12 @@ def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice
 
     INPUT:
 
-    - ``discriminant`` --  The value of the the discriminant of the
+    - ``discriminant`` -- The value of the the discriminant of the
       binary quadratic.
+
+    - ``invariant_choice`` -- The type of invariants provided. The accepted
+      options are ``'discriminant'`` and ``'default'``, which are the same. No
+      other options are implemented.
 
     OUTPUT:
 
@@ -39,8 +43,11 @@ def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice
     EXAMPLES::
 
         sage: from sage.rings.invariants.reconstruction import binary_quadratic_coefficients_from_invariants
-        sage: binary_quadratic_coefficients_from_invariants(24)
-        (1, 0, -6)
+        sage: quadratic = invariant_theory.binary_form_from_invariants(2, [24]) # indirect doctest
+        sage: quadratic
+        Binary quadratic with coefficients (1, -6, 0)
+        sage: quadratic.discriminant()
+        24
         sage: binary_quadratic_coefficients_from_invariants(0)
         (1, 0, 0)
     """
@@ -62,8 +69,12 @@ def binary_cubic_coefficients_from_invariants(discriminant, invariant_choice='de
 
     INPUT:
 
-    - ``discriminant`` --  The value of the the discriminant of the
+    - ``discriminant`` -- The value of the the discriminant of the
       binary cubic.
+
+    - ``invariant_choice`` -- The type of invariants provided. The accepted
+      options are ``'discriminant'`` and ``'default'``, which are the same. No
+      other options are implemented.
 
     OUTPUT:
 
@@ -98,16 +109,21 @@ def binary_cubic_coefficients_from_invariants(discriminant, invariant_choice='de
         return (0, 1, -1, 0)
 
 
-def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_choice='clebsch', scaling='none'):
+def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_choice='default', scaling='none'):
     r"""
-    Reconstruct a binary quintic from the values of its Clebsch invariants.
+    Reconstruct a binary quintic from the values of its (Clebsch) invariants.
 
     INPUT:
 
-    - ``invariants`` --  A list or tuple of values of the three or four
-      Clebsch invariants `A`, `B`, `C` and `R` of the binary quintic.
+    - ``invariants`` -- A list or tuple of values of the three or four
+      invariants. The default option requires the Clebsch invariants `A`, `B`,
+      `C` and `R` of the binary quintic.
 
     - ``K`` -- The field over which the quintic is defined.
+
+    - ``invariant_choice`` -- The type of invariants provided. The accepted
+      options are ``'clebsch'`` and ``'default'``, which are the same. No
+      other options are implemented.
 
     - ``scaling`` -- How the coefficients should be scaled. The accepted
       values are ``'none'`` for no scaling, ``'normalized'`` to scale in such
@@ -117,8 +133,8 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
 
     OUTPUT:
 
-    A set of coefficients of a binary quintic, whose Clebsch invariants
-    are equal to the given ``invariants`` up to a scaling.
+    A set of coefficients of a binary quintic, whose invariants are equal to
+    the given ``invariants`` up to a scaling.
 
     EXAMPLES:
 
@@ -170,7 +186,8 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
     different way::
 
         sage: [A,B,C] = [3,1,2]
-        sage: M = 2*A*B - 3*C; M
+        sage: M = 2*A*B - 3*C
+        sage: M
         0
         sage: from sage.rings.invariants.reconstruction import binary_quintic_coefficients_from_invariants
         sage: reconstructed = binary_quintic_coefficients_from_invariants([A,B,C])
@@ -343,9 +360,9 @@ def _reduce_invariants(invariants, weights):
 
     INPUT:
 
-    - ``invariants`` --  The values of the invariants.
+    - ``invariants`` -- The values of the invariants.
 
-    - ``weights`` --  The respective weights of the invariants.
+    - ``weights`` -- The respective weights of the invariants.
 
     OUTPUT:
 

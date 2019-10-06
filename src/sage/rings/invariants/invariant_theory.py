@@ -969,10 +969,16 @@ class QuadraticForm(AlgebraicForm):
         This function constructs a binary quadratic whose discriminant equal
         the one provided as argument up to scaling.
 
+        INPUT:
+
+        - ``discriminant`` -- Value of the discriminant used to reconstruct
+          the binary quadratic.
+
         OUTPUT:
+
         A QuadraticForm with 2 variables.
 
-        TESTS::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariants.invariant_theory import QuadraticForm
@@ -1160,7 +1166,7 @@ class QuadraticForm(AlgebraicForm):
 
         INPUT:
 
-        - ``type`` --  The type of invariants to return. The default choice
+        - ``type`` -- The type of invariants to return. The default choice
           is to return the discriminant.
 
         OUTPUT:
@@ -1664,10 +1670,16 @@ class BinaryQuintic(AlgebraicForm):
         This function constructs a binary quintic whose invariants equal
         the ones provided as argument up to scaling.
 
+        INPUT:
+
+        - ``invariants`` -- A list or tuple of invariants that are used to
+          reconstruct the binary quintic.
+
         OUTPUT:
+
         A BinaryQuintic.
 
-        TESTS::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariants.invariant_theory import BinaryQuintic
@@ -1687,6 +1699,7 @@ class BinaryQuintic(AlgebraicForm):
         quintics of which this form is an element.
 
         OUTPUT:
+
         A tuple of monomials. They are in the same order as
         :meth:`coeffs`.
 
@@ -2289,7 +2302,7 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``type`` --  The type of invariants to return. The default choice
+        - ``type`` -- The type of invariants to return. The default choice
           is to return the Clebsch invariants.
 
         OUTPUT:
@@ -4305,16 +4318,16 @@ can then be queried for invariant and covariants. For example,
 
         INPUT:
 
-        - ``degree`` --  The degree of the binary form.
+        - ``degree`` -- The degree of the binary form.
 
-        - ``invariants`` --  A list or tuple of values of the invariants of the
+        - ``invariants`` -- A list or tuple of values of the invariants of the
           binary form.
 
-        - ``invariant_choice`` --  The type of invariants provided. For degree 2
-          or 3, the default choice is the discriminant. For degree 5, the default
-          option is clebsch invariants.
+        - ``variables`` -- A list or tuple of two variables that are used for
+          the resulting form (only if ``as_form`` is ``True``). If no variables
+          are provided, two abstract variables ``x`` and ``z`` will be used.
 
-        - ``as_form`` --  boolean. If ``False``, the function will return a tuple
+        - ``as_form`` -- boolean. If ``False``, the function will return a tuple
           of coefficients of a binary form.
 
         OUTPUT:
@@ -4336,7 +4349,7 @@ can then be queried for invariant and covariants. For example,
             sage: invariant_theory.binary_form_from_invariants(3, [discriminant], as_form=false)
             (0, 1, -1, 0)
 
-        For binary cubics, there is no class implemented yet, so ``as_form=true``
+        For binary cubics, there is no class implemented yet, so ``as_form=True``
         will yield an ``NotImplementedError``::
 
             sage: invariant_theory.binary_form_from_invariants(3, [discriminant])

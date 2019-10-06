@@ -1266,6 +1266,11 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: R.sage()               # optional - macaulay2
             Vector space of dimension 2 over Rational Field
 
+            sage: macaulay2("vector {4_QQ, 2}").sage()  # optional - macaulay2
+            (4, 2)
+            sage: _.parent()                            # optional - macaulay2
+            Vector space of dimension 2 over Rational Field
+
             sage: m = macaulay2('"hello"')  # optional - macaulay2
             sage: m.sage()                  # optional - macaulay2
             'hello'
@@ -1375,6 +1380,9 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 from sage.misc.sage_eval import sage_eval
                 gens_dict = parent.gens_dict()
                 return sage_eval(self.external_string(), gens_dict)
+            elif cls_cls_str == "Module":
+                entries = self.entries()._sage_()
+                return parent._element_constructor_(entries)
 
         from sage.misc.sage_eval import sage_eval
         try:

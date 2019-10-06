@@ -349,8 +349,9 @@ class RingExtensionFactory(UniqueFactory):
         else:
             gens = generators(ring, base)
             if names is None:
-                names = variable_names(ring, base)
-                if len(names) != len(gens):
+                try:
+                    names = variable_names(ring, base)
+                except NotImplementedError:
                     gens = names = None
             else:
                 names = normalize_names(len(gens), names)

@@ -25,7 +25,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.ring_extension cimport RingExtension_generic, RingExtensionWithGen
 from sage.rings.ring_extension_morphism cimport MapRelativeRingToFreeModule
 from sage.rings.ring_extension_conversion cimport backend_parent, backend_element
-from sage.rings.ring_extension_conversion import to_backend, from_backend
+from sage.rings.ring_extension_conversion cimport to_backend, from_backend
 
 
 # Classes

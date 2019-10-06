@@ -11,3 +11,7 @@ cdef _backend_morphism(f)
 cpdef backend_morphism(f, forget=*)
 cpdef from_backend_morphism(f, RingExtension_generic E)
 
+cpdef to_backend(arg)
+cpdef from_backend(arg, E)
+
+

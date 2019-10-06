@@ -1859,6 +1859,17 @@ cdef class RingExtensionFractionField(RingExtension_generic):
             return "Fraction Field of %s" % sr
 
     def _latex_topring(self, **options):
+        r"""
+        Return a LaTeX representation of top ring of this extension.
+
+        EXAMPLES::
+
+            sage: Z = ZZ.over()
+            sage: Q = Z.fraction_field()
+
+            sage: Q._latex_topring()
+            '\\mathrm{Frac}(\\Bold{Z})'
+        """
         if self._ring in Fields():
             return self._ring._latex_topring(**options)
         else:

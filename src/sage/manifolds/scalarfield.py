@@ -414,10 +414,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> (x^3 + x*y^2 + x + 1)/(x^2 + y^2 + 1)
+        on W: (u, v) |--> (u^4 + v^4 + u^3 + (2*u^2 + u)*v^2 + u)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s = f + u; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> (x^3 + (x + 1)*y^2 + x^2 + x)/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) |--> (u^3 + (u + 1)*v^2 + u^2 + u)/(u^2 + v^2 + 1)
 
     The addition of two scalar fields with different domains is possible if
@@ -429,13 +431,13 @@ class ScalarField(CommutativeAlgebraElement):
         sage: g.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s = f + g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f+g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
+        f+g: U --> R
+           (x, y) |--> (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
         on W: (u, v) |--> (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6 + u*v^3
          + (u^3 + u)*v)/(u^6 + v^6 + (3*u^2 + 1)*v^4 + u^4 + (3*u^4 + 2*u^2)*v^2)
 
@@ -486,10 +488,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> x/(x^2 + y^2 + 1)
+        on W: (u, v) |--> u/(u^2 + v^2 + 1)
         sage: s = u*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> x/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) |--> (u^2 + v^2)*u/(u^2 + v^2 + 1)
 
     Some tests::
@@ -530,11 +534,11 @@ class ScalarField(CommutativeAlgebraElement):
         (2-dimensional topological manifold M,
          Open subset U of the 2-dimensional topological manifold M)
         sage: s = f*g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f*g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> x*y/(x^2 + y^2 + 1)
+        f*g: U --> R
+           (x, y) |--> x*y/(x^2 + y^2 + 1)
         on W: (u, v) |--> u*v/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s == f.restrict(U)*g
         True
@@ -555,11 +559,11 @@ class ScalarField(CommutativeAlgebraElement):
            (x, y) |--> x*y/H(x, y)
         on W: (u, v) |--> u*v/((u^4 + 2*u^2*v^2 + v^4)*H(u/(u^2 + v^2), v/(u^2 + v^2)))
         sage: s = f/g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f/g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> 1/(x*y^3 + (x^3 + x)*y)
+        f/g: U --> R
+           (x, y) |--> 1/(x*y^3 + (x^3 + x)*y)
         on W: (u, v) |--> (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6)/(u*v^3 + (u^3 + u)*v)
         sage: s == f.restrict(U)/g
         True
@@ -869,10 +873,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> (x**3 + x*y**2 + x + 1)/(x**2 + y**2 + 1)
+        on W: (u, v) |--> (u**4 + u**3 + 2*u**2*v**2 + u*v**2 + u + v**4)/(u**4 + 2*u**2*v**2 + u**2 + v**4 + v**2)
         sage: s = f + u; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> (x**3 + x**2 + x*y**2 + x + y**2)/(x**4 + 2*x**2*y**2 + x**2 + y**4 + y**2)
         on V: (u, v) |--> (u**3 + u**2 + u*v**2 + u + v**2)/(u**2 + v**2 + 1)
 
     The addition of two scalar fields with different domains is possible if
@@ -884,13 +890,13 @@ class ScalarField(CommutativeAlgebraElement):
         sage: g.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s = f + g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f+g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> (x**3*y + x*y**3 + x*y + 1)/(x**2 + y**2 + 1)
+        f+g: U --> R
+           (x, y) |--> (x**3*y + x*y**3 + x*y + 1)/(x**2 + y**2 + 1)
         on W: (u, v) |--> (u**6 + 3*u**4*v**2 + u**3*v + 3*u**2*v**4 + u*v**3 + u*v + v**6)/(u**6 + 3*u**4*v**2 + u**4 + 3*u**2*v**4 + 2*u**2*v**2 + v**6 + v**4)
 
     The operation actually performed is `f|_U + g`::
@@ -925,10 +931,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> x/(x**2 + y**2 + 1)
+        on W: (u, v) |--> u/(u**2 + v**2 + 1)
         sage: s = u*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> x/(x**4 + 2*x**2*y**2 + x**2 + y**4 + y**2)
         on V: (u, v) |--> u*(u**2 + v**2)/(u**2 + v**2 + 1)
 
     Some tests::
@@ -969,11 +977,11 @@ class ScalarField(CommutativeAlgebraElement):
         (2-dimensional topological manifold M,
          Open subset U of the 2-dimensional topological manifold M)
         sage: s = f*g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f*g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> x*y/(x**2 + y**2 + 1)
+        f*g: U --> R
+           (x, y) |--> x*y/(x**2 + y**2 + 1)
         on W: (u, v) |--> u*v/(u**4 + 2*u**2*v**2 + u**2 + v**4 + v**2)
 
         sage: s == f.restrict(U)*g
@@ -996,11 +1004,11 @@ class ScalarField(CommutativeAlgebraElement):
         on W: (u, v) |--> u*v/((u**4 + 2*u**2*v**2 + v**4)*H(u/(u**2 + v**2), v/(u**2 + v**2)))
 
         sage: s = f/g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f/g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> 1/(x*y*(x**2 + y**2 + 1))
+        f/g: U --> R
+           (x, y) |--> 1/(x*y*(x**2 + y**2 + 1))
         on W: (u, v) |--> (u**6 + 3*u**4*v**2 + 3*u**2*v**4 + v**6)/(u*v*(u**2 + v**2 + 1))
         sage: s == f.restrict(U)/g
         True
@@ -1412,6 +1420,26 @@ class ScalarField(CommutativeAlgebraElement):
                 self._latex_name = self._name
         if latex_name is not None:
             self._latex_name = latex_name
+        for rst in self._restrictions.values():
+            rst.set_name(name=name, latex_name=latex_name)
+
+    def _new_instance(self):
+        r"""
+        Create an instance of the same class as ``self`` in the same parent.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: f = M.scalar_field(name='f')
+            sage: f1 = f._new_instance(); f1
+            Scalar field on the 2-dimensional differentiable manifold M
+            sage: type(f1) == type(f)
+            True
+            sage: f1.parent() is f.parent()
+            True
+
+        """
+        return type(self)(self.parent())
 
     def domain(self):
         r"""
@@ -1461,11 +1489,12 @@ class ScalarField(CommutativeAlgebraElement):
             False
 
         """
-        result = type(self)(self.parent(), name=self._name,
-                            latex_name=self._latex_name)
+        res = self._new_instance()
+        res._name = self._name
+        res._latex_name = self._latex_name
         for chart, funct in self._express.items():
-            result._express[chart] = funct.copy()
-        return result
+            res._express[chart] = funct.copy()
+        return res
 
     def coord_function(self, chart=None, from_chart=None):
         r"""
@@ -1762,6 +1791,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f.display()
             f: S^2 --> R
             on U: (x, y) |--> arctan(x^2 + y^2)
+            on W: (u, v) |--> arctan(1/(u^2 + v^2))
 
         We note that on `W = U \cap V`, the expression of `f` in terms of
         coordinates `(u,v)` can be deduced from that in the coordinates
@@ -1792,20 +1822,58 @@ class ScalarField(CommutativeAlgebraElement):
         self._is_zero = False # a priori
         self._del_derived()
 
+    def set_restriction(self, rst):
+        r"""
+        Define a restriction of ``self`` to some subdomain.
+
+        INPUT:
+
+        - ``rst`` -- :class:`ScalarField` defined on a subdomain of
+          the domain of ``self``
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: f = M.scalar_field(name='f')
+            sage: g = U.scalar_field(x^2+y)
+            sage: f.set_restriction(g)
+            sage: f.display()
+            f: M --> R
+            on U: (x, y) |--> x^2 + y
+            sage: f.restrict(U) == g
+            True
+
+        """
+        if not isinstance(rst, ScalarField):
+            raise TypeError("the argument must be a scalar field")
+        if not rst._domain.is_subset(self._domain):
+            raise ValueError("the domain of the declared restriction is not " +
+                             "a subset of the field's domain")
+        self._restrictions[rst._domain] = rst.copy()
+        self._restrictions[rst._domain].set_name(name=self._name,
+                                                 latex_name=self._latex_name)
+        for chart, expr in rst._express.items():
+            intersection = chart._domain.intersection(rst._domain)
+            self._express[chart.restrict(intersection)] = expr
+        self._is_zero = False  # a priori
+
     def display(self, chart=None):
         r"""
         Display the expression of the scalar field in a given chart.
 
-        Without any argument, this function displays the expressions of the
-        scalar field in all the charts defined on the scalar field's domain
-        that are not restrictions of another chart to some subdomain
-        (the "top charts").
+        Without any argument, this function displays all known, distinct
+        expressions.
 
         INPUT:
 
         - ``chart`` -- (default: ``None``) chart with respect to which
           the coordinate expression is to be displayed; if ``None``, the
-          display is performed in all the top charts in which the
+          display is performed in all the greatest charts in which the
           coordinate expression is known
 
         The output is either text-formatted (console mode) or LaTeX-formatted
@@ -1835,6 +1903,19 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f.disp()
             f: M --> R
                (x, y) |--> sqrt(x + 1)
+
+        In case the scalar field is piecewise-defined, the ``display()``
+        command still outputs all expressions. Each expression displayed
+        corresponds to the chart on the greatest domain where this particular
+        expression is known::
+
+            sage: U = M.open_subset('U')
+            sage: f.set_expr(y^2, c_xy.restrict(U))
+            sage: f.display()
+            f: M --> R
+            on U: (x, y) |--> y^2
+            sage: latex(f.display())
+            \begin{array}{llcl} f:& M & \longrightarrow & \mathbb{R} \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto & y^{2} \end{array}
 
         """
         from sage.misc.latex import latex
@@ -1891,7 +1972,25 @@ class ScalarField(CommutativeAlgebraElement):
                         field_latex_name + r" \\"
         if chart is None:
             for ch in self._domain._top_charts:
-                _display_expression(self, ch, result)
+                ###
+                # Get the greatest domain of top chart restrictions where the
+                # expression is known:
+                max_dom = None
+                for sch in ch._subcharts:
+                    if max_dom is None:
+                        try:
+                            self.coord_function(sch)
+                            max_dom = sch._domain
+                        except (TypeError, ValueError):
+                            pass
+                    elif max_dom.is_subset(sch._domain):
+                        try:
+                            self.coord_function(sch)
+                            max_dom = sch._domain
+                        except (TypeError, ValueError):
+                            pass
+                if max_dom is not None:
+                    _display_expression(self, ch.restrict(max_dom), result)
         else:
             _display_expression(self, chart, result)
         result._txt = result._txt[:-1]
@@ -1967,10 +2066,15 @@ class ScalarField(CommutativeAlgebraElement):
                     self._restrictions[subdomain] = rst.restrict(subdomain)
                     break
             else:
-            # If this fails, the restriction is obtained via coercion
-                resu = subdomain.scalar_field_algebra()(self)
-                resu._name = self._name
-                resu._latex_name = self._latex_name
+            # If this fails, the restriction must be created from scratch:
+                sexpress = {}
+                for chart, funct in self._express.items():
+                    for schart in subdomain.atlas():
+                        if schart in chart._subcharts:
+                            sexpress[schart] = funct.expr()
+                resu = type(self)(subdomain.scalar_field_algebra(),
+                                  coord_expression=sexpress, name=self._name,
+                                  latex_name=self._latex_name)
                 self._restrictions[subdomain] = resu
         return self._restrictions[subdomain]
 
@@ -2224,7 +2328,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        result = type(self)(self.parent())
+        result = self._new_instance()
         for chart in self._express:
             result._express[chart] = + self._express[chart]
         if self._name is not None:
@@ -2255,7 +2359,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        result = type(self)(self.parent())
+        result = self._new_instance()
         for chart in self._express:
             result._express[chart] = - self._express[chart]
         if self._name is not None:
@@ -2306,7 +2410,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the addition")
-        result = type(self)(self.parent())
+        result = self._new_instance()
         for chart in com_charts:
             # ChartFunction addition:
             result._express[chart] = self._express[chart] + other._express[chart]
@@ -2355,7 +2459,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the subtraction")
-        result = type(self)(self.parent())
+        result = self._new_instance()
         for chart in com_charts:
             # ChartFunction subtraction:
             result._express[chart] = self._express[chart] - other._express[chart]
@@ -2407,7 +2511,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the multiplication")
-        result = type(self)(self.parent())
+        result = self._new_instance()
         for chart in com_charts:
             # ChartFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
@@ -2459,7 +2563,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the division")
-        result = type(self)(self.parent())
+        result = self._new_instance()
         for chart in com_charts:
             # ChartFunction division:
             result._express[chart] = self._express[chart] / other._express[chart]
@@ -2517,7 +2621,7 @@ class ScalarField(CommutativeAlgebraElement):
         """
         if number == 0:
             return self.parent().zero()
-        result = type(self)(self.parent())
+        result = self._new_instance()
         if isinstance(number, Expression):
             var = number.variables()  # possible symbolic variables in number
             if var:
@@ -2634,8 +2738,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("exp", r"\exp")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("exp", r"\exp")
         for chart, func in self._express.items():
             resu._express[chart] = func.exp()
         return resu
@@ -2667,8 +2771,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("ln", r"\ln")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("ln", r"\ln")
         for chart, func in self._express.items():
             resu._express[chart] = func.log()
         return resu
@@ -2727,7 +2831,9 @@ class ScalarField(CommutativeAlgebraElement):
         else:
             latex_name = r"{" + self._latex_name + r"}^{" + \
                          latex(exponent) + r"}"
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name = name
+        resu._latex_name = latex_name
         for chart, func in self._express.items():
             resu._express[chart] = func.__pow__(exponent)
         return resu
@@ -2762,9 +2868,9 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("sqrt", r"\sqrt",
-                                               parentheses=False)
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("sqrt", r"\sqrt",
+                                                           parentheses=False)
         for chart, func in self._express.items():
             resu._express[chart] = func.sqrt()
         return resu
@@ -2798,8 +2904,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("cos", r"\cos")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("cos", r"\cos")
         for chart, func in self._express.items():
             resu._express[chart] = func.cos()
         return resu
@@ -2833,8 +2939,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("sin", r"\sin")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("sin", r"\sin")
         for chart, func in self._express.items():
             resu._express[chart] = func.sin()
         return resu
@@ -2870,8 +2976,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("tan", r"\tan")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("tan", r"\tan")
         for chart, func in self._express.items():
             resu._express[chart] = func.tan()
         return resu
@@ -2914,8 +3020,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arccos", r"\arccos")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("arccos", r"\arccos")
         for chart, func in self._express.items():
             resu._express[chart] = func.arccos()
         return resu
@@ -2958,8 +3064,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arcsin", r"\arcsin")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("arcsin", r"\arcsin")
         for chart, func in self._express.items():
             resu._express[chart] = func.arcsin()
         return resu
@@ -3002,8 +3108,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arctan", r"\arctan")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("arctan", r"\arctan")
         for chart, func in self._express.items():
             resu._express[chart] = func.arctan()
         return resu
@@ -3035,8 +3141,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("cosh", r"\cosh")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("cosh", r"\cosh")
         for chart, func in self._express.items():
             resu._express[chart] = func.cosh()
         return resu
@@ -3068,8 +3174,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("sinh", r"\sinh")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("sinh", r"\sinh")
         for chart, func in self._express.items():
             resu._express[chart] = func.sinh()
         return resu
@@ -3103,8 +3209,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("tanh", r"\tanh")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("tanh", r"\tanh")
         for chart, func in self._express.items():
             resu._express[chart] = func.tanh()
         return resu
@@ -3146,8 +3252,9 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arccosh", r"\,\mathrm{arccosh}")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("arccosh",
+                                                           r"\,\mathrm{arccosh}")
         for chart, func in self._express.items():
             resu._express[chart] = func.arccosh()
         return resu
@@ -3189,8 +3296,9 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arcsinh", r"\,\mathrm{arcsinh}")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("arcsinh",
+                                                           r"\,\mathrm{arcsinh}")
         for chart, func in self._express.items():
             resu._express[chart] = func.arcsinh()
         return resu
@@ -3234,8 +3342,9 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arctanh", r"\,\mathrm{arctanh}")
-        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        resu = self._new_instance()
+        resu._name, resu._latex_name = self._function_name("arctanh",
+                                                           r"\,\mathrm{arctanh}")
         for chart, func in self._express.items():
             resu._express[chart] = func.arctanh()
         return resu

@@ -1326,6 +1326,7 @@ class TensorField(ModuleElement):
             sage: sorted(v._components.values())[0]._comp[(0,)].display()
             S --> R
             on U: (x, y) |--> x
+            on W: (xp, yp) |--> xp/(xp^2 + yp^2)
 
         To fix that, we first extend the components from ``W`` to ``V`` using
         :meth:`add_comp_by_continuation`::

@@ -2398,8 +2398,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        from sage.tensor.modules.format_utilities import format_mul_txt, \
-                                                         format_mul_latex
+        from sage.tensor.modules.format_utilities import (format_mul_txt,
+                                                         format_mul_latex)
         # Special cases:
         if self._is_zero or other._is_zero:
             return self._domain.zero_scalar_field()
@@ -2412,7 +2412,7 @@ class ScalarField(CommutativeAlgebraElement):
             # ChartFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
         result._name = format_mul_txt(self._name, '*', other._name)
-        result._latex_name = format_mul_latex(self._latex_name, ' ',
+        result._latex_name = format_mul_latex(self._latex_name, ' \cdot ',
                                              other._latex_name)
         return result
 

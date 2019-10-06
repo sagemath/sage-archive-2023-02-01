@@ -981,7 +981,7 @@ class MixedForm(AlgebraElement):
         different name, but has the very same values::
 
             sage: B = A.copy(); B.disp()
-            f + (unnamed 1-form) + (unnamed 2-form)
+            f + omega + zero
             sage: B.disp(e_uv)
             [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
             sage: A == B

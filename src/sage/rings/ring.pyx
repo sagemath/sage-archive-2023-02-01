@@ -661,7 +661,10 @@ cdef class Ring(ParentWithGens):
 
     def __truediv__(self, I):
         """
-        TESTS::
+        Dividing one ring by another is not supported because there is no good
+        way to specify generator names.
+
+        EXAMPLES::
 
             sage: QQ['x'] / ZZ
             Traceback (most recent call last):
@@ -1461,7 +1464,7 @@ cdef class CommutativeRing(Ring):
         INPUT:
 
         - ``base`` -- a commutative ring or a morphism or ``None``
-          (default: ``None``); the base of this extension or this defining
+          (default: ``None``); the base of this extension or its defining
           morphism
 
         - ``gen`` -- a generator of this extension (over its base) or ``None``
@@ -1556,7 +1559,7 @@ cdef class CommutativeRing(Ring):
             sage: L.base_ring()
             Number Field in a with defining polynomial x^2 - 2
 
-        Similarly, one can create a tower 
+        Similarly, one can create a tower of extensions::
 
             sage: K = k.over()
             sage: L = l.over(Hom(K,l)(f))

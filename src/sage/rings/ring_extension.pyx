@@ -264,8 +264,8 @@ class RingExtensionFactory(UniqueFactory):
         - ``ring`` -- a commutative ring
 
         - ``defining_morphism`` -- a ring homomorphism or a commutative 
-          or ``None`` (default: ``None``); the defining morphism of this
-          extension or its base (if it coerces to ``ring``)
+          ring or ``None`` (default: ``None``); the defining morphism of 
+          this extension or its base (if it coerces to ``ring``)
 
         - ``gens`` -- a list of generators of this extension (over its base)
           or ``None`` (default: ``None``);

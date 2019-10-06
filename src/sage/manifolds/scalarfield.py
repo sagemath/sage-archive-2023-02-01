@@ -1465,6 +1465,7 @@ class ScalarField(CommutativeAlgebraElement):
                             latex_name=self._latex_name)
         for chart, funct in self._express.items():
             result._express[chart] = funct.copy()
+        result._is_zero = self._is_zero
         return result
 
     def coord_function(self, chart=None, from_chart=None):

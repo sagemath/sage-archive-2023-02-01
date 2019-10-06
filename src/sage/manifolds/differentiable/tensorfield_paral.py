@@ -792,6 +792,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         if basis is None:
             basis = self._fmodule._def_basis
 
+        self._is_zero = False  # a priori
+
         if basis._domain == self._domain:
             # Setting components on the tensor field domain:
             return FreeModuleTensor.set_comp(self, basis=basis)
@@ -876,6 +878,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         """
         if basis is None:
             basis = self._fmodule._def_basis
+
+        self._is_zero = False  # a priori
 
         if basis._domain == self._domain:
             # Adding components on the tensor field domain:

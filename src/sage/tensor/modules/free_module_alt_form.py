@@ -538,7 +538,6 @@ class FreeModuleAltForm(FreeModuleTensor):
 
     disp = display
 
-
     def wedge(self, other):
         r"""
         Exterior product of ``self`` with the alternating form ``other``.
@@ -614,10 +613,12 @@ class FreeModuleAltForm(FreeModuleTensor):
         if self._tensor_rank == 0:
             return self*other
         fmodule = self._fmodule
+        rank_r = self._tensor_rank + other._tensor_rank
+        if self is other and (self._tensor_rank % 2) == 1:
+            return fmodule.dual_exterior_power(rank_r).zero()
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the exterior product")
-        rank_r = self._tensor_rank + other._tensor_rank
         cmp_s = self._components[basis]
         cmp_o = other._components[basis]
         cmp_r = CompFullyAntiSym(fmodule._ring, basis, rank_r,

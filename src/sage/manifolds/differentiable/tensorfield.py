@@ -411,6 +411,8 @@ class TensorField(ModuleElement):
         self._vmodule = vector_field_module
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
+        self._is_zero = False # a priori, may be changed below or via
+                              # method __bool__()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -504,7 +506,13 @@ class TensorField(ModuleElement):
             sage: t.is_zero()  # indirect doctest
             False
         """
-        return any(bool(rst) for rst in self._restrictions.values())
+        if self._is_zero:
+            return False
+        if any(bool(rst) for rst in self._restrictions.values()):
+            self._is_zero = False
+            return True
+        self._is_zero = True
+        return False
 
     __nonzero__ = __bool__  # For Python2 compatibility
 
@@ -710,6 +718,7 @@ class TensorField(ModuleElement):
 
         """
         comp0 = comp[0]
+        self._is_zero = False  # a priori
         if isinstance(comp0, dict):
             for frame, components in comp0.items():
                 chart = None
@@ -915,6 +924,7 @@ class TensorField(ModuleElement):
         self._restrictions[rst._domain] = rst.copy()
         self._restrictions[rst._domain].set_name(name=self._name,
                                                  latex_name=self._latex_name)
+        self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):
         r"""
@@ -1126,6 +1136,7 @@ class TensorField(ModuleElement):
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
+        self._is_zero = False  # a priori
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.set_comp(basis)
 
@@ -1184,6 +1195,7 @@ class TensorField(ModuleElement):
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
+        self._is_zero = False  # a priori
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.add_comp(basis)
 
@@ -1262,6 +1274,7 @@ class TensorField(ModuleElement):
         resu = self.add_comp(frame) # _del_derived is performed here
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
+        self._is_zero = False  # a priori
 
     def add_expr_from_subdomain(self, frame, subdomain):
         r"""
@@ -1360,6 +1373,7 @@ class TensorField(ModuleElement):
 
         rst = self._restrictions.copy()
         self._del_derived()         # delete restrictions
+        self._is_zero = False  # a priori
         self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):
@@ -1832,6 +1846,7 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
+        resu._is_zero = self._is_zero
         return resu
 
     def _common_subdomains(self, other):
@@ -2136,6 +2151,14 @@ class TensorField(ModuleElement):
             True
 
         """
+        ###
+        # Case zero:
+        if self._is_zero:
+            return other
+        if other._is_zero:
+            return self
+        ###
+        # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
@@ -2199,6 +2222,14 @@ class TensorField(ModuleElement):
             True
 
         """
+        ###
+        # Case zero:
+        if self._is_zero:
+            return -other
+        if other._is_zero:
+            return self
+        ###
+        # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
@@ -2272,6 +2303,16 @@ class TensorField(ModuleElement):
             True
 
         """
+        ###
+        # Case zero:
+        if scalar._is_zero:
+            return self.parent().zero()
+        ###
+        # Case one:
+        if scalar is self._domain._one_scalar_field:
+            return self
+        ###
+        # Generic case:
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst

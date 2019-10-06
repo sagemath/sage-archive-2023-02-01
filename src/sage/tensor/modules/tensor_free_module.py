@@ -59,6 +59,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
@@ -506,6 +507,28 @@ class TensorFreeModule(FiniteRankFreeModule):
                                       sym=sym, antisym=antisym)
             if comp:
                 resu.set_comp(basis)[:] = comp
+        return resu
+
+    @cached_method
+    def zero(self):
+        r"""
+        Return the zero of ``self``.
+
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: T11 = M.tensor_module(1,1)
+            sage: T11.zero()
+            Type-(1,1) tensor zero on the Rank-3 free module M over the Integer
+             Ring
+
+        """
+        resu = self._element_constructor_(name='zero', latex_name='0')
+        for basis in self._fmodule._known_bases:
+            resu.add_comp(basis)
+            # (since new components are initialized to zero)
+        resu._is_zero = True # This element is certainly zero
         return resu
 
     def _an_element_(self):

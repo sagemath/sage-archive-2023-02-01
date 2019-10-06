@@ -316,8 +316,10 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         resu_comp.append(self._domain.scalar_field_algebra().zero())
         resu_comp.extend([self._domain.diff_form_module(j, dest_map=dmap).zero()
                           for j in range(1, self._max_deg + 1)])
-        return self.element_class(self, comp=resu_comp, name='zero',
+        resu = self.element_class(self, comp=resu_comp, name='zero',
                                   latex_name='0')
+        resu._is_zero = True  # This element is certainly zero
+        return resu
 
     @cached_method
     def one(self):
@@ -340,7 +342,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         resu_comp.extend([self._domain.diff_form_module(j, dest_map=dmap).zero()
                           for j in range(1, self._max_deg + 1)])
         return self.element_class(self, comp=resu_comp, name='one',
-                                          latex_name='1')
+                                  latex_name='1')
 
     def vector_field_module(self):
         r"""

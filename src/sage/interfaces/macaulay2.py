@@ -199,7 +199,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
             True
         """
         if command is None:
-            command = os.getenv('SAGE_MACAULAY2_COMMAND') or 'M2'        
+            command = os.getenv('SAGE_MACAULAY2_COMMAND') or 'M2'
         init_str = (
             # Prompt changing commands
             """ZZ#{Standard,Core#"private dictionary"#"InputPrompt"} = lineno -> "%s";""" % PROMPT +
@@ -495,14 +495,14 @@ class Macaulay2(ExtraTabCompletion, Expect):
         return r"""
     Your attempt to start Macaulay2 failed, either because you do not have
     have Macaulay2 installed, or because it is not configured correctly.
-        
+
     - Macaulay2 is not included with Sage, but you can obtain it from
       https://faculty.math.illinois.edu/Macaulay2/.  No additional
       optional Sage packages are required.
 
     - If you have Macaulay2 installed, then perhaps it is not configured
       correctly. Sage assumes that you can start Macaulay2 with the command
-      M2. 
+      M2.
 
     - Alternatively, you can use the following command
       to point Sage to the correct command for your system.
@@ -510,8 +510,8 @@ class Macaulay2(ExtraTabCompletion, Expect):
           m2 = Macaulay2(command='/usr/local/bin/M2')
 
       or by setting the environment variable SAGE_MACAULAY2_COMMAND.
-        """ 
-    
+        """
+
     def _left_list_delim(self):
         """
         Returns the Macaulay2 left delimiter for lists.

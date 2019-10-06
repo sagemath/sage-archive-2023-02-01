@@ -1286,10 +1286,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             if cls_str == "List":
                 return [entry._sage_() for entry in self]
             elif cls_str == "Matrix":
-                from sage.matrix.all import matrix
                 base_ring = self.ring()._sage_()
-                entries = self.entries()._sage_()
-                return matrix(base_ring, entries)
+                return self._matrix_(base_ring)
             elif cls_str == 'HashTable':
                 return {x._sage_(): y._sage_() for (x, y) in self.pairs()}
             elif cls_str == "Ideal":
@@ -1386,6 +1384,27 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
     from sage.misc.superseded import deprecated_function_alias
     to_sage = deprecated_function_alias(27848, ExpectElement.sage)
+
+    def _matrix_(self, R):
+        r"""
+        If ``self`` is a Macaulay2 matrix, return the corresponding Sage matrix
+        over the Sage ring ``R``.
+
+        INPUT:
+
+        - ``R`` - ring to coerce into
+
+        OUTPUT: matrix
+
+        EXAMPLES::
+
+            sage: A = macaulay2('matrix {{1,2},{3,4}}')  # optional - macaulay2
+            sage: matrix(QQ, A)                          # optional - macaulay2, indirect doctest
+            [1 2]
+            [3 4]
+        """
+        from sage.matrix.all import matrix
+        return matrix(R, self.entries()._sage_())
 
 
 @instancedoc

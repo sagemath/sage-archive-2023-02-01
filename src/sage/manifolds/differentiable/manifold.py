@@ -1072,7 +1072,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: M = Manifold(2, 'M')
             sage: M.vector_bundle(2, 'E')
             Differentiable real vector bundle E -> M of rank 2 over the base
-             space 2-dimensional topological manifold M
+             space 2-dimensional differentiable manifold M
 
         """
         from sage.manifolds.differentiable.vector_bundle \

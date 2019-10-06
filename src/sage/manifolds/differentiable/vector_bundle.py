@@ -34,6 +34,7 @@ from sage.categories.vector_bundles import VectorBundles
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.manifolds.vector_bundle import TopologicalVectorBundle
+from sage.rings.infinity import infinity
 
 class DifferentiableVectorBundle(TopologicalVectorBundle):
     r"""
@@ -282,6 +283,22 @@ class TensorBundle(DifferentiableVectorBundle):
 
     """
     def __init__(self, base_space, k, l, dest_map=None):
+        r"""
+        Construct a tensor bundle.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: N = Manifold(2, 'N')
+            sage: Phi = M.diff_map(N, name='Phi')
+            sage: from sage.manifolds.differentiable.vector_bundle import TensorBundle
+            sage: TensorBundle(M, 1, 2, dest_map=Phi)
+            Tensor bundle Phi^*T^(1,2)N over the 2-dimensional differentiable
+             manifold M along the Differentiable map Phi from the 2-dimensional
+             differentiable manifold M to the 2-dimensional differentiable
+             manifold N
+
+        """
         if dest_map is None:
             self._dest_map = base_space.identity_map()
         else:
@@ -364,8 +381,7 @@ class TensorBundle(DifferentiableVectorBundle):
             desc = "Cotangent bundle "
         else:
             desc = "Tensor bundle "
-        desc += self._name + " "
-        desc += "over the {}".format(self._ambient_domain)
+        desc += self._name + " over the {}".format(self._base_space)
         if not self._dest_map.is_identity():
             desc += " along the {}".format(self._dest_map)
         return desc
@@ -1015,10 +1031,10 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: W = U.intersection(V)
             sage: Phi = U.diff_map(M, {(c_xy, c_xy): [x, y]}, name='Phi') # inclusion map
             sage: PhiTU = U.tangent_bundle(dest_map=Phi); PhiTU
-            Tangent bundle Phi^*TS^2 over the 2-dimensional differentiable
-             manifold S^2 along the Differentiable map Phi from the Open subset
-             U of the 2-dimensional differentiable manifold S^2 to the
-             2-dimensional differentiable manifold S^2
+            Tangent bundle Phi^*TS^2 over the Open subset U of the 2-dimensional
+             differentiable manifold S^2 along the Differentiable map Phi from
+             the Open subset U of the 2-dimensional differentiable manifold S^2
+             to the 2-dimensional differentiable manifold S^2
 
         A priori, the pullback tangent bundle is not trivial::
 

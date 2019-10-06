@@ -3510,8 +3510,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Entries of the vector get promoted to the base ring::
 
             sage: R.<x,y> = QQ[]
-            sage: v = macaulay2(vector(R, [1, 2]))                     # optional - macaulay2
-            sage: v.ring()._operator('===', R._macaulay2_())._sage_()  # optional - macaulay2
+            sage: v = macaulay2(vector(R, [1, 2]))      # optional - macaulay2
+            sage: v.ring()._operator('===', R).sage()   # optional - macaulay2
             True
         """
         if macaulay2 is None:

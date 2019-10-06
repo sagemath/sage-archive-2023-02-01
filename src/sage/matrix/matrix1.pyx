@@ -446,8 +446,8 @@ cdef class Matrix(Matrix0):
         Entries of the matrix get promoted to the base ring (:trac:`28566`)::
 
             sage: R.<x,y> = QQ[]
-            sage: m = macaulay2(matrix(R, [[1, 2], [3, 4]]))           # optional - macaulay2
-            sage: m.ring()._operator('===', R._macaulay2_())._sage_()  # optional - macaulay2
+            sage: m = macaulay2(matrix(R, [[1, 2], [3, 4]]))    # optional - macaulay2
+            sage: m.ring()._operator('===', R).sage()           # optional - macaulay2
             True
         """
         if macaulay2 is None:

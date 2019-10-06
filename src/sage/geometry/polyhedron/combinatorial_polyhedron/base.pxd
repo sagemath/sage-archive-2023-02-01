@@ -34,14 +34,14 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     cdef size_t **_edges                    # stores edges labeled by vertex indices
     cdef size_t _n_edges
-    cdef size_t **_ridges                   # stores ridges labeld by facet indices
+    cdef size_t **_ridges                   # stores ridges labeled by facet indices
     cdef size_t _n_ridges
     cdef size_t **_face_lattice_incidences  # stores incidences in Hasse diagram labeled indices of the faces
     cdef size_t _n_face_lattice_incidences
     cdef PolyhedronFaceLattice _all_faces          # class to generate Hasse diagram incidences
 
     # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
-    # Upon sucess they are copied to ``_mem_tuple``.
+    # Upon success they are copied to ``_mem_tuple``.
     # Thus deallocation (at the correct time) is taken care of.
     cdef tuple _mem_tuple
 

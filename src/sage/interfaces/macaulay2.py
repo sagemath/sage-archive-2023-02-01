@@ -147,7 +147,7 @@ def remove_output_labels(s):
 
     .. note::
 
-        If ``s`` consists of several outputs and their lables have
+        If ``s`` consists of several outputs and their labels have
         different width, it is possible that some strings will have leading
         spaces (or maybe even pieces of output labels). However, this
         function will try not cut any messages.
@@ -161,7 +161,7 @@ def remove_output_labels(s):
     """
     label = re.compile("^o[0-9]+ (=|:) |^ *")
     lines = s.split("\n")
-    matches = [label.match(l) for l in lines if l != ""]
+    matches = [label.match(l) for l in lines if l]
     if not matches:
         return s
     else:

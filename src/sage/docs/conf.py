@@ -30,7 +30,7 @@ extensions = ['inventory_builder',
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
-# through mathplotlib, so that it will be displayed in the HTML doc
+# through matplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
 plot_pre_code = """
 def sphinx_plot(graphics, **kwds):

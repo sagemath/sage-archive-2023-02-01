@@ -46,12 +46,12 @@ REFERENCES:
 .. [CM] Benoit Collins, Sho Matsumoto, On some properties of
    orthogonal Weingarten functions, :arxiv:`0903.5143`.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Valentin Feray <feray@labri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import division, print_function
 from six.moves import range
@@ -636,7 +636,7 @@ class PerfectMatchings(SetPartitions_set):
         if len(s) % 2 != 0:
             return
         # The iterator from fixed-point-free involutions has the resulting
-        #   list of pairs sorted by their minimial element.
+        #   list of pairs sorted by their minimal element.
         for val in perfect_matchings_iterator(len(s)//2):
             yield self.element_class(self, ((s[a], s[b]) for a,b in val), check=False, sort=False)
 

@@ -267,7 +267,7 @@ class MatrixGroup_base(Group):
             [4 1], [0 1]
             )
 
-        case of being a subroup::
+        case of being a subgroup::
 
             sage: CF3 = CyclotomicField(3)
             sage: G  = GL(2, CF3)

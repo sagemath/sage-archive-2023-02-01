@@ -240,7 +240,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(P2).f_vector()
         (1, 3, 3, 1)
 
-    Some other tests regaring small polyhedra::
+    Some other tests regarding small polyhedra::
 
         sage: P = Polyhedron(rays=[[1,0],[0,1]])
         sage: C = CombinatorialPolyhedron(P)

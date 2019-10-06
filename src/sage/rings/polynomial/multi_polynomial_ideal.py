@@ -2997,7 +2997,7 @@ class MPolynomialIdeal_macaulay2_repr:
         self.__macaulay2[macaulay2] = z
         return z
 
-    def _groebner_basis_macaulay2(self):
+    def _groebner_basis_macaulay2(self, strategy=None):
         r"""
         Return the Groebner basis for this ideal, computed using
         Macaulay2.
@@ -3031,7 +3031,15 @@ class MPolynomialIdeal_macaulay2_repr:
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
         I = self._macaulay2_()
-        G = str(I.gb().generators().external_string()).replace('\n','')
+        if strategy is None:
+            m2G = I.gb().generators()
+        elif strategy == 'f4':
+            m2G = I.groebnerBasis('Strategy=>F4')
+        elif strategy == 'mgb':
+            m2G = I.groebnerBasis('Strategy=>MGB')
+        else:
+            raise ValueError("Wrong M2 option")
+        G = str(m2G.external_string()).replace('\n','')
         i = G.rfind('{{')
         j = G.rfind('}}')
         G = G[i+2:j].split(',')

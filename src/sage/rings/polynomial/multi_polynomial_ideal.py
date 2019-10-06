@@ -3062,9 +3062,9 @@ class MPolynomialIdeal_macaulay2_repr:
         if strategy == "gb" or strategy is None:
             m2G = I.gb().generators()
         elif strategy == 'f4':
-            m2G = I.groebnerBasis('Strategy=>F4')
+            m2G = I.groebnerBasis('Strategy=>"F4"')
         elif strategy == 'mgb':
-            m2G = I.groebnerBasis('Strategy=>MGB')
+            m2G = I.groebnerBasis('Strategy=>"MGB"')
         else:
             raise ValueError("unsupported Macaulay2 strategy")
         G = str(m2G.external_string()).replace('\n','')

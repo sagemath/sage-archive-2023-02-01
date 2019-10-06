@@ -177,7 +177,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
     Interface to the Macaulay2 interpreter.
     """
     def __init__(self, maxread=None, script_subdirectory=None,
-                 logfile=None, server=None,server_tmpdir=None):
+                 logfile=None, server=None, server_tmpdir=None, command=None):
         """
         Initialize a Macaulay2 interface instance.
 
@@ -198,6 +198,8 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: macaulay2 == loads(dumps(macaulay2))
             True
         """
+        if command is None:
+            command = os.getenv('SAGE_MACAULAY2_COMMAND') or 'M2'
         init_str = (
             # Prompt changing commands
             """ZZ#{Standard,Core#"private dictionary"#"InputPrompt"} = lineno -> "%s";""" % PROMPT +
@@ -209,10 +211,11 @@ class Macaulay2(ExtraTabCompletion, Expect):
             # Assignment of internal expect variables.
             'sageAssign = (k, v) -> (if not instance(v, Sequence) then use v; k <- v);'
             )
+        command = "%s --no-debug --no-readline --silent -e '%s'" % (command, init_str)
         Expect.__init__(self,
                         name = 'macaulay2',
                         prompt = PROMPT,
-                        command = "M2 --no-debug --no-readline --silent -e '%s'" % init_str,
+                        command = command,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -481,6 +484,40 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
         """
         macaulay2_console()
+
+    def _install_hints(self):
+        r"""
+
+        TESTS::
+
+            sage: m2 = Macaulay2(command='/wrongpath/M2')
+            sage: m2('3+2')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to start macaulay2 because the command '/wrongpath/M2 ...' failed: The command was not found or was not executable: /wrongpath/M2.
+            <BLANKLINE>
+                Your attempt to start Macaulay2 failed, either because you do not have
+                have Macaulay2 installed, or because it is not configured correctly...
+        """
+        return r"""
+    Your attempt to start Macaulay2 failed, either because you do not have
+    have Macaulay2 installed, or because it is not configured correctly.
+
+    - Macaulay2 is not included with Sage, but you can obtain it from
+      https://faculty.math.illinois.edu/Macaulay2/.  No additional
+      optional Sage packages are required.
+
+    - If you have Macaulay2 installed, then perhaps it is not configured
+      correctly. Sage assumes that you can start Macaulay2 with the command
+      M2.
+
+    - Alternatively, you can use the following command
+      to point Sage to the correct command for your system.
+
+          m2 = Macaulay2(command='/usr/local/bin/M2')
+
+      or by setting the environment variable SAGE_MACAULAY2_COMMAND.
+        """
 
     def _left_list_delim(self):
         """

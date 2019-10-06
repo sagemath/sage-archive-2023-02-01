@@ -554,7 +554,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             (2, 0)
 
         """
-        return self._tensor_type
+        return tuple(self._tensor_type)
 
     @cached_method
     def zero(self):

@@ -1189,10 +1189,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             R._check_valid()
             return R
         except (AttributeError, ValueError):
-            self.__macaulay2 = macaulay2(self._macaulay2_init_())
+            self.__macaulay2 = macaulay2(self._macaulay2_init_(macaulay2))
         return self.__macaulay2
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 

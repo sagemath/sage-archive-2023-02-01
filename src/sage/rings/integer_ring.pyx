@@ -1448,7 +1448,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'IntegerRing()'
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         Return a macaulay2 representation of ``self``.
 

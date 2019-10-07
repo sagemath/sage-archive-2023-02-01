@@ -83,7 +83,7 @@ class MPolynomialRing_macaulay2_repr:
     """
     A mixin class for polynomial rings that support conversion to Macaulay2.
     """
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 

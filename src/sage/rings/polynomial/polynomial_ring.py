@@ -913,7 +913,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
                                     gens_syntax=gens_syntax)
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 

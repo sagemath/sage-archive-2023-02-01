@@ -303,26 +303,6 @@ cdef class ParentWithGens(ParentWithBase):
               To:   Finite Field in z of size 2^6
               Defn: b |--> z^4 + z^3 + 1
                     with map of base ring
-
-        Note that the presence of a base map is ignored when determining the category of the
-        resulting morphism.  If you pass in a bad base morphism you can get nonsensical results::
-
-            sage: R.<x> = GF(3)[]
-            sage: f = R.hom([x+1], base_map=lambda t: t+1); f
-            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 3
-              Defn: x |--> x + 1
-                    with map of base ring
-            sage: f.category_for()
-            Join of Category of euclidean domains and Category of commutative algebras over (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
-            sage: f(-1)
-            0
-            sage: f(1)
-            2
-
-        The base map is only applied to nonzero coefficients of the input::
-
-            sage: f(0)
-            0
         """
         if self._element_constructor is not None:
             return parent.Parent.hom(self, im_gens, codomain, base_map=base_map, category=category, check=check)

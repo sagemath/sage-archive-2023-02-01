@@ -1466,12 +1466,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: P = x * (x-1) * (x-2) * (x-3) * (x-4)
             sage: P.roots(multiplicities=False)
             [39370 + O(3^10),
-             19684 + O(3^10), 
+             19684 + O(3^10),
              2 + O(3^10),
              3 + O(3^10),
              O(3^10)]
 
-        The result is not quite what we excepted. 
+        The result is not quite what we expected.
         In fact, the roots are correct but the precision is not::
 
             sage: [ root.add_bigoh(9) for root in P.roots(multiplicities=False) ]
@@ -1483,7 +1483,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         This is due to the fact that we are using ``"pari"`` which does not
         track precision (it can only compute `p`-adic roots of exact polynomials).
-        If we are switching to ``"sage"`` then the precision on the result 
+        If we are switching to ``"sage"`` then the precision on the result
         becomes correct (but the computation is much slower)::
 
             sage: P.roots(multiplicities=False, algorithm="sage")
@@ -1560,7 +1560,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             try:
                 return self._roots_univariate_polynomial(P, ring, multiplicities, "pari", secure)
             except (NotImplementedError, PrecisionError):
-                return self._roots_univariate_polynomial(P, ring, multiplicities, "sage", secure)                
+                return self._roots_univariate_polynomial(P, ring, multiplicities, "sage", secure)
         elif algorithm == "pari":
             P = P.change_ring(ring)
             try:

@@ -1235,7 +1235,7 @@ def GoethalsSeidelGraph(k,r):
     Returns the graph `\text{Goethals-Seidel}(k,r)`.
 
     The graph `\text{Goethals-Seidel}(k,r)` comes from a construction presented
-    in Theorem 2.4 of [GS70]_. It relies on a :func:`(v,k)-BIBD
+    in Theorem 2.4 of [GS1970]_. It relies on a :func:`(v,k)-BIBD
     <sage.combinat.designs.bibd.balanced_incomplete_block_design>` with `r`
     blocks and a
     :func:`~sage.combinat.matrices.hadamard_matrix.hadamard_matrix` of order
@@ -2148,7 +2148,7 @@ def PasechnikGraph(n):
     :func:`~sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph`,
     also known as pseudo Latin squares graph `L_{2n-1}(4n-1)`,
     constructed from a skew Hadamard matrix of order `4n` following
-    [Pa92]_.
+    [Pas1992]_.
 
     .. SEEALSO::
 
@@ -2180,7 +2180,8 @@ def SquaredSkewHadamardMatrixGraph(n):
     :func:`OrthogonalArrayBlockGraph
     <sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
     known as pseudo Latin squares graph `L_{2n}(4n-1)`, constructed from a
-    skew Hadamard matrix of order `4n`, due to Goethals and Seidel, see [BvL84]_.
+    skew Hadamard matrix of order `4n`, due to Goethals and Seidel, see
+    [BL1984]_.
 
     .. SEEALSO::
 
@@ -3057,7 +3058,7 @@ def MathonPseudocyclicMergingGraph(M, t):
     r"""
     Mathon's merging of classes in a pseudo-cyclic 3-class association scheme
 
-    Construct strongly regular graphs from p.97 of [BvL84]_.
+    Construct strongly regular graphs from p.97 of [BL1984]_.
 
     INPUT:
 

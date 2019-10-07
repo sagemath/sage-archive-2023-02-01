@@ -831,7 +831,7 @@ class QuotientRingElement(RingElement):
 
     def _macaulay2_init_(self, macaulay2=None):
         """
-        Return a Macaulay2 string representation of this polynomial.
+        The Macaulay2 element corresponding to this polynomial.
 
         EXAMPLES::
 

@@ -182,7 +182,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         if (algorithm == "pari_primes"):
             print("""
 Warning: algorithm "pari_primes" cannot find primes greater than {}.
-Using "pari_isprime" instead (which may be slower).""".format(prime_init_max - prime_gap_bound - 1))
+Using "pari_isprime" instead (which may be slower).""".format(init_primes_max - prime_gap_bound - 1))
 
         from sage.arith.all import primes
         res = list(primes(start, stop))

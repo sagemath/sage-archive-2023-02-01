@@ -981,9 +981,9 @@ class MixedForm(AlgebraElement):
         different name, but has the very same values::
 
             sage: B = A.copy(); B.disp()
-            f + omega + zero
+            A = f + omega + zero
             sage: B.disp(e_uv)
-            [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
+            A = [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
             sage: A == B
             True
             sage: A is B
@@ -998,11 +998,13 @@ class MixedForm(AlgebraElement):
             sage: A.disp(e_xy)
             A = [x] + [y dx] + [0]
             sage: B.disp(e_xy)
-            [x] + [x dx] + [0]
+            A = [x] + [x dx] + [0]
 
         """
         resu_comp = [form.copy() for form in self._comp]
-        return type(self)(self.parent(), comp=resu_comp)
+        resu = type(self)(self.parent(), comp=resu_comp)
+        resu.set_name(name=self._name, latex_name=self._latex_name)
+        return resu
 
     def __setitem__(self, index, values):
         r"""

@@ -1308,7 +1308,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
             sage: I = R.ideal([x^2 - y])
             sage: Q = R.quotient_ring(I); Q
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 - y)
-            sage: Q._macaulay2_init_()
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
             QQ[x, y]
             --------
               2
@@ -1318,7 +1318,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
             sage: I = R.ideal([x*y-z^2, y^2-w^2])
             sage: Q = R.quotient(I); Q
             Quotient of Multivariate Polynomial Ring in x, y, z, w over Integer Ring by the ideal (x*y - z^2, y^2 - w^2)
-            sage: Q._macaulay2_init_()
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
                ZZ[x, y, z, w]
             -------------------
                     2   2    2
@@ -1328,7 +1328,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
             sage: I = R.ideal([x^2 + x, y^2 + y])
             sage: Q = R.quotient_ring(I); Q
             Quotient of Multivariate Polynomial Ring in x, y over Finite Field of size 101 by the ideal (x^2 + x, y^2 + y)
-            sage: macaulay2(Q)                              # optional - macaulay2
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
                  ZZ
                 ---[x, y]
                 101
@@ -1342,7 +1342,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: Q = R.quotient_ring(I); Q
             Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
-            sage: Q._macaulay2_init_()
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
                     ZZ[x]
             ---------------------
               2            2

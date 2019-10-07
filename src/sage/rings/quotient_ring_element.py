@@ -840,9 +840,15 @@ class QuotientRingElement(RingElement):
             sage: x, y = Q.gens()
             sage: f = (x^3 + 2*y^2*x)^7; f
             2*xbar*ybar^17 + xbar*ybar^10
-            sage: macaulay2(f)                      # optional - macaulay2
+            sage: mf = macaulay2(f); mf             # optional - macaulay2
                 17      10
             2x*y   + x*y
+            sage: mf.sage()                         # optional - macaulay2
+            2*x*y^17 + x*y^10
+            sage: mf.sage() == f                    # optional - macaulay2
+            True
+            sage: Q(mf)                             # optional - macaulay2
+            2*xbar*ybar^17 + xbar*ybar^10
 
         In Macaulay2, the variable names for a quotient ring are inherited from
         the variable names of the ambient ring. This is in contrast to Sage's
@@ -861,6 +867,8 @@ class QuotientRingElement(RingElement):
             sage: macaulay2(f)                      # optional - macaulay2
                 17      10
             2x*y   + x*y
+            sage: _.sage()                          # optional - macaulay2
+            2*x*y^17 + x*y^10
 
         """
         if macaulay2 is None:

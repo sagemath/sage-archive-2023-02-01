@@ -119,7 +119,6 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     Confirm the fix for trac ticket 28467::
     
         sage: prime_range(436271790,436271791)
-
         Warning: algorithm "pari_primes" cannot find primes greater than 436271789.
         Using "pari_isprime" instead (which may be slower).
         []

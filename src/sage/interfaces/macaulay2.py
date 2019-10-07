@@ -1356,6 +1356,13 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: X.sage()      # optional - macaulay2
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y)
 
+            sage: S = ZZ['x,y'].quotient('x^2-y')
+            sage: macaulay2(S).sage() == S         # optional - macaulay2
+            True
+            sage: S = GF(101)['x,y'].quotient('x^2-y')
+            sage: macaulay2(S).sage() == S         # optional - macaulay2
+            True
+
             sage: R = macaulay2("QQ^2")  # optional - macaulay2
             sage: R.sage()               # optional - macaulay2
             Vector space of dimension 2 over Rational Field
@@ -1430,7 +1437,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 return parent.ideal(*gens)
             elif cls_str == "QuotientRing":
                 #Handle the ZZ/n case
-                if "ZZ" in repr_str and "--" in repr_str:
+                ambient = self.ambient()
+                if ambient.external_string() == 'ZZ':
                     from sage.rings.all import ZZ, GF
                     external_string = self.external_string()
                     zz, n = external_string.split("/")
@@ -1439,9 +1447,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     #coming from Macaulay 2
                     return GF(ZZ(n))
 
-                ambient = self.ambient()._sage_()
                 ideal = self.ideal()._sage_()
-                return ambient.quotient(ideal)
+                return ambient._sage_().quotient(ideal)
             elif cls_str == "PolynomialRing":
                 from sage.rings.all import PolynomialRing
                 from sage.rings.polynomial.term_order import inv_macaulay2_name_mapping

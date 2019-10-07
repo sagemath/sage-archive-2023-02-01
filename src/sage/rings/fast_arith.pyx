@@ -53,8 +53,8 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     first argument.
 
     Algorithm "pari_primes" is faster but may use a lot of memory and cannot find
-    primes greater than 436271790.
-    Algorithm "pari_isprime" is slower but will work for much larger input.
+    primes greater than 436271789. Algorithm "pari_isprime" is slower but will work 
+    for much larger input.
 
     INPUT:
 
@@ -120,8 +120,8 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     
         sage: prime_range(436271790,436271791)
 
-        Warning: algorithm "pari_primes" cannot find primes greater than 436271790.
-        Using "pari_isprime" instead.
+        Warning: algorithm "pari_primes" cannot find primes greater than 436271789.
+        Using "pari_isprime" instead (which may be slower).
         []
 
     Test for non-existing algorithm::
@@ -141,7 +141,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     cdef Integer z
     cdef long c_start, c_stop, p
     cdef byteptr pari_prime_ptr
-    DEF prime_init_max = 436273290 # hardcoded maximum in definition of prime_init
+    DEF init_primes_max = 436273290 # hardcoded maximum in definition of pari.init_primes
     DEF prime_gap_bound = 1500 # upper bound for gap between primes less than 2^63
     
     if stop is None:
@@ -156,10 +156,11 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     if c_stop <= c_start:
         return []
 
-    if (algorithm == "pari_primes") and (c_stop + prime_gap_bound <= prime_init_max):
+    if (algorithm == "pari_primes") and (c_stop + prime_gap_bound <= init_primes_max):
         if maxprime() < c_stop:
             # Adding prime_gap_bound should be sufficient to guarantee an
             # additional prime, given that c_stop < 2^63.
+            # Input to pari.init_primes cannot be greater than init_primes_max.
             pari.init_primes(c_stop + prime_gap_bound)
             assert maxprime() >= c_stop
 
@@ -181,7 +182,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         if (algorithm == "pari_primes"):
             print("""
 Warning: algorithm "pari_primes" cannot find primes greater than {}.
-Using "pari_isprime" instead.""".format(prime_init_max - prime_gap_bound))
+Using "pari_isprime" instead (which may be slower).""".format(prime_init_max - prime_gap_bound - 1))
 
         from sage.arith.all import primes
         res = list(primes(start, stop))

@@ -143,20 +143,21 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     cdef byteptr pari_prime_ptr
     DEF init_primes_max = 436273290 # hardcoded maximum in definition of pari.init_primes
     DEF prime_gap_bound = 1500 # upper bound for gap between primes less than 2^63
-    
-    if stop is None:
-        # In this case, "start" is really stop
-        c_start = 1
-        c_stop = start
-    else:
-        c_start = start
-        c_stop = stop
-        if c_start < 1:
-            c_start = 1
-    if c_stop <= c_start:
-        return []
 
-    if (algorithm == "pari_primes") and (c_stop + prime_gap_bound <= init_primes_max):
+    if (algorithm == "pari_primes") and (max(start,stop) + prime_gap_bound <= init_primes_max):
+    
+        if stop is None:
+            # In this case, "start" is really stop
+            c_start = 1
+            c_stop = start
+        else:
+            c_start = start
+            c_stop = stop
+            if c_start < 1:
+                c_start = 1
+        if c_stop <= c_start:
+            return []
+
         if maxprime() < c_stop:
             # Adding prime_gap_bound should be sufficient to guarantee an
             # additional prime, given that c_stop < 2^63.

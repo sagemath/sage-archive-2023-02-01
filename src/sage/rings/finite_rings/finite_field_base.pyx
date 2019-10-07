@@ -245,20 +245,26 @@ cdef class FiniteField(Field):
 
     def _macaulay2_init_(self, macaulay2=None):
         """
-        Returns the string representation of ``self`` that Macaulay2 can
-        understand.
+        Return the string representation of this finite field that Macaulay2
+        can understand.
+
+        Note that, in the case of a prime field, this returns ``ZZ/p`` instead
+        of the Galois field ``GF p``, since computations in polynomial rings
+        over ``ZZ/p`` are faster in Macaulay2 (as of 2019).
 
         EXAMPLES::
 
-            sage: GF(97,'a')._macaulay2_init_()
-            'GF 97'
-
-            sage: macaulay2(GF(97, 'a'))       # optional - macaulay2
-            GF 97
-            sage: macaulay2(GF(49, 'a'))       # optional - macaulay2
+            sage: macaulay2(GF(97, 'a'))       # indirect doctest, optional - macaulay2
+            ZZ
+            --
+            97
+            sage: macaulay2(GF(49, 'a'))       # indirect doctest, optional - macaulay2
             GF 49
         """
-        return "GF %s"%(self.order())
+        if self.is_prime_field():
+            return "ZZ/%s" % self.order()
+        else:
+            return "GF %s" % self.order()
 
     def _sage_input_(self, sib, coerced):
         r"""

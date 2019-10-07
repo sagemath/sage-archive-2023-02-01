@@ -1197,11 +1197,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         EXAMPLES::
 
             sage: PolynomialRing(QQ, 'x', 2, order='deglex')._macaulay2_init_()
-            'QQ[symbol x0,symbol x1, MonomialSize=>16, MonomialOrder=>GLex]'
+            'sage...[symbol x0,symbol x1, MonomialSize=>16, MonomialOrder=>GLex]'
         """
-        from sage.interfaces.macaulay2 import _macaulay2_input_ring
-        return _macaulay2_input_ring(self.base_ring(), self.gens(),
-                                     self.term_order().macaulay2_str())
+        if macaulay2 is None:
+            macaulay2 = macaulay2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens(),
+                                               self.term_order().macaulay2_str())
 
     def _singular_(self, singular=singular_default):
         """

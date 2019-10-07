@@ -933,8 +933,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: macaulay2(R) is macaulay2(R)  # optional - macaulay2
             True
         """
-        from sage.interfaces.macaulay2 import _macaulay2_input_ring
-        return _macaulay2_input_ring(self.base_ring(), self.gens())
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens())
 
 
     def _is_valid_homomorphism_(self, codomain, im_gens):

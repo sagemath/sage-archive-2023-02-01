@@ -3517,7 +3517,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         if macaulay2 is None:
             from sage.interfaces.macaulay2 import macaulay2 as m2_default
             macaulay2 = m2_default
-        return macaulay2(self.list()).vector().promote(self.base_ring())
+        return (macaulay2(self.base_ring()).matrix([self.list()]).transpose()
+                .vector())
 
     def _mathematica_init_(self):
         """

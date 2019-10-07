@@ -454,7 +454,7 @@ cdef class Matrix(Matrix0):
             from sage.interfaces.macaulay2 import macaulay2 as m2_default
             macaulay2 = m2_default
         entries = [list(row) for row in self]
-        return macaulay2(entries).matrix().promote(self.base_ring())
+        return macaulay2(self.base_ring()).matrix(entries)
 
 
     def _scilab_init_(self):

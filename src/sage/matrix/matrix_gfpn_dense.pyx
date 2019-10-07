@@ -30,6 +30,7 @@ from __future__ import print_function, absolute_import, division
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
+from sage.cpython.string cimport str_to_bytes
 from cysignals.signals cimport sig_on, sig_off, sig_check
 cimport cython
 
@@ -1791,7 +1792,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 from sage.misc.superseded import deprecation
 
-def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
+def mtx_unpickle(f, int nr, int nc, data, bint m):
     r"""
     Helper function for unpickling.
 
@@ -1905,6 +1906,12 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
     """
+    # The expected input type is bytes. However, Python-2 legacy pickles do
+    # not distinguish between str and bytes. If such pickle is unpickled
+    # in Python-3, Sage will receive a str in `latin1` encoding. Therefore,
+    # in the following line, we use a helper function that would return bytes,
+    # regardless whether the input is bytes or str.
+    cdef bytes Data = str_to_bytes(data, encoding='latin1')
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
         MS = MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense)

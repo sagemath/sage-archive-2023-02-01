@@ -673,4 +673,4 @@ class TensorFreeModule(FiniteRankFreeModule):
             (1, 2)
 
         """
-        return tuple(self._tensor_type)
+        return self._tensor_type

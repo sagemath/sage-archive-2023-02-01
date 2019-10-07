@@ -802,7 +802,7 @@ class TensorField(ModuleElement):
             (1, 0)
 
         """
-        return tuple(self._tensor_type)
+        return self._tensor_type
 
     def tensor_rank(self):
         r"""

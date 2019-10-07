@@ -52,15 +52,9 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     If the second argument is omitted, this returns the primes up to the
     first argument.
 
-    This function is closely related to (and can use) the primes
-    iterator.  Use algorithm ``"pari_primes"`` when both ``start`` and
-    ``stop`` are not too large, since in all cases this function makes
-    a table of primes up to ``stop``. If both are large, use algorithm
-    ``"pari_isprime"`` instead.
-
-    Algorithm ``"pari_primes"`` is faster for most input, but crashes
-    for larger input.
-    Algorithm ``"pari_isprime"`` is slower but will work for much larger input.
+    Algorithm "pari_primes" is faster but may use a lot of memory and cannot find
+    primes greater than 436271790.
+    Algorithm "pari_isprime" is slower but will work for much larger input.
 
     INPUT:
 
@@ -121,6 +115,14 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
         sage: prime_range(4652360, 4652400)
         []
+    
+    Confirm the fix for trac ticket 28467::
+    
+        sage: prime_range(436271790,436271791)
+
+        Warning: algorithm "pari_primes" cannot find primes greater than 436271790.
+        Using "pari_isprime" instead.
+        []
 
     Test for non-existing algorithm::
 
@@ -180,6 +182,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
             print("""
 Warning: algorithm "pari_primes" cannot find primes greater than {}.
 Using "pari_isprime" instead.""".format(prime_init_max - prime_gap_bound))
+
         from sage.arith.all import primes
         res = list(primes(start, stop))
     else:

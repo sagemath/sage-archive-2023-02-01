@@ -1277,6 +1277,14 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: X.sage()      # optional - macaulay2
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y)
 
+            sage: R = GF(13)['a,b']['c,d']
+            sage: macaulay2(R).sage() == R  # optional - macaulay2
+            True
+            sage: macaulay2('a^2 + c').sage() == R('a^2 + c')  # optional - macaulay2
+            True
+            sage: macaulay2.substitute('a', R).sage().parent() is R  # optional - macaulay2
+            True
+
             sage: R = macaulay2("QQ^2")  # optional - macaulay2
             sage: R.sage()               # optional - macaulay2
             Vector space of dimension 2 over Rational Field
@@ -1336,7 +1344,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 gens = str(self.gens().toString())[1:-1]
 
                 # Check that we are dealing with default degrees, i.e. 1's.
-                if self.degrees().any("x -> x != {1}")._sage_():
+                if self.options().sharp("Degrees").any("x -> x != {1}")._sage_():
                     raise ValueError("cannot convert Macaulay2 polynomial ring with non-default degrees to Sage")
                 #Handle the term order
                 external_string = self.external_string()
@@ -1390,8 +1398,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
             if cls_cls_str == "PolynomialRing":
                 from sage.misc.sage_eval import sage_eval
-                gens_dict = parent.gens_dict()
-                return sage_eval(self.external_string(), gens_dict)
+                return parent(self.external_string())
 
         from sage.misc.sage_eval import sage_eval
         try:

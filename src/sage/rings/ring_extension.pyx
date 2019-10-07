@@ -1,5 +1,99 @@
 r"""
-Extension of rings
+Extension of rings.
+
+Sage offers the possibility to work with ring extensions `L/K` as
+actual parents and perform meaningful operations on them and their
+elements.
+
+The simplest way to build an extension is to use the method
+:meth:`sage.rings.ring.CommutativeRing.over` on the top ring,
+that is `L`.
+For example, the following line constructs the extension of
+finite fields `\mathbf{F}_{5^4}/\mathbf{F}_{5^2}`::
+
+    sage: GF(5^4).over(GF(5^2))
+    Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base    
+
+By default, Sage reuses the canonical generator of the top ring
+(here `z_4 \in \mathbf{F}_{5^4}`), together with its name. However, 
+the user can customize them by passing in appropriate arguments::
+
+    sage: F = GF(5^2)
+    sage: k = GF(5^4)
+    sage: z4 = k.gen()
+    sage: K.<a> = k.over(F, gen = 1-z4)
+    sage: K
+    Field in a with defining polynomial x^2 + z2*x + 4 over its base
+
+The base of the extension is available via the method :meth:`base` (or
+equivalently :meth:`base_ring`)::
+
+    sage: K.base()
+    Finite Field in z2 of size 5^2
+
+It also possible to building an extension on top of another extension,
+obtaining this way a tower of extensions::
+
+    sage: L.<b> = GF(5^8).over(K)
+    sage: L
+    Field in b with defining polynomial x^2 + (4*z2 + 3*a)*x + 1 - a over its base
+    sage: L.base()
+    Field in a with defining polynomial x^2 + z2*x + 4 over its base
+    sage: L.base().base()
+    Finite Field in z2 of size 5^2
+
+The method :meth:`bases` gives access to the complete list of rings in
+a tower::
+
+    sage: L.bases()
+    [Field in b with defining polynomial x^2 + (4*z2 + 3*a)*x + 1 - a over its base,
+     Field in a with defining polynomial x^2 + z2*x + 4 over its base,
+     Finite Field in z2 of size 5^2]
+
+Once we have constructed an extension (or a tower of extensions), we
+have interesting methods attached to it. As a basic example, one can
+compute a basis of the top ring over any base in the tower::
+
+    sage: L.basis_over(K)
+    [1, b]
+    sage: L.basis_over(F)
+    [1, a, b, a*b]
+
+When the base is omitted, the default is the natural base of the extension::
+
+    sage: L.basis_over()
+    [1, b]
+
+The method :meth:`sage.rings.ring_extension_element.RingExtensionWithBasis.vector`
+computes the coordinates of an element according to the above basis::
+
+    sage: u = a + 2*b + 3*a*b
+    sage: u.vector()   # over K
+    (a, 2 + 3*a)
+    sage: u.vector(F)
+    (0, 1, 2, 3)
+
+One can also compute traces and norms with respect to any base of the tower::
+
+    sage: u.trace()           # over K
+    (2*z2 + 1) + (2*z2 + 1)*a
+    sage: u.trace(F)
+    z2 + 1
+    sage: u.trace().trace()   # over K, then over F
+    z2 + 1
+
+    sage: u.norm()            # over K
+    (z2 + 1) + (4*z2 + 2)*a
+    sage: u.norm(F)
+    2*z2 + 2
+
+And minimal polynomials::
+
+    sage: u.minpoly()
+    x^2 + ((3*z2 + 4) + (3*z2 + 4)*a)*x + (z2 + 1) + (4*z2 + 2)*a
+    sage: u.minpoly(F)
+    x^4 + (4*z2 + 4)*x^3 + x^2 + (z2 + 1)*x + 2*z2 + 2
+
 
 AUTHOR:
 
@@ -9,7 +103,7 @@ AUTHOR:
 #############################################################################
 #    Copyright (C) 2019 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#    This program is free software: you can redistribute it and/or modify
+#    This program is free softwGare: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.

@@ -2317,7 +2317,7 @@ class ChartFunction(AlgebraElement):
             sage: f = X.function((x^2-1)/(x+1)); f
             (x^2 - 1)/(x + 1)
             sage: f.simplify()
-            x - 1
+            1 - x
 
         Examples taking into account the declared range of a coordinate::
 

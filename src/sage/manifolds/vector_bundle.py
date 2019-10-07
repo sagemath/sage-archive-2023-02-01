@@ -82,103 +82,103 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         sage: E.rank()
         1
 
-       For a more sophisticated example, let us define a non-trivial
-       2-manifold to work with::
+    For a more sophisticated example, let us define a non-trivial
+    2-manifold to work with::
 
-            sage: M = Manifold(2, 'M', structure='top')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:                    intersection_name='W', restrictions1= x>0,
-            ....:                    restrictions2= u+v>0)
-            sage: uv_to_xy = xy_to_uv.inverse()
-            sage: W = U.intersection(V)
-            sage: E = M.vector_bundle(2, 'E'); E
-            Topological real vector bundle E -> M of rank 2 over the base space
-             2-dimensional topological manifold M
+        sage: M = Manifold(2, 'M', structure='top')
+        sage: U = M.open_subset('U') ; V = M.open_subset('V')
+        sage: M.declare_union(U,V)   # M is the union of U and V
+        sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+        ....:                    intersection_name='W', restrictions1= x>0,
+        ....:                    restrictions2= u+v>0)
+        sage: uv_to_xy = xy_to_uv.inverse()
+        sage: W = U.intersection(V)
+        sage: E = M.vector_bundle(2, 'E'); E
+        Topological real vector bundle E -> M of rank 2 over the base space
+         2-dimensional topological manifold M
 
-        Now, there a two ways to go. Most effortlessly, we define
-        trivializations similar to charts (see
-        :class:`~sage.manifolds.trivialization.Trivialization`)::
+    Now, there a two ways to go. Most effortlessly, we define
+    trivializations similar to charts (see
+    :class:`~sage.manifolds.trivialization.Trivialization`)::
 
-            sage: phi_U = E.trivialization('phi_U', domain=U); phi_U
-            Trivialization (phi_U, E|_U)
-            sage: phi_V = E.trivialization('phi_V', domain=V); phi_V
-            Trivialization (phi_V, E|_V)
-            sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]]) # transition map between trivializations
-            sage: fU = phi_U.frame(); fU
-            Trivialization frame (E|_U, ((phi_U^*e_1),(phi_U^*e_2)))
-            sage: fV = phi_V.frame(); fV
-            Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2)))
-            sage: E.changes_of_frame() # random
-            {(Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2))),
-             Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2)))): Automorphism
-             phi_U^(-1)*phi_V^(-1) of the Free module C^0(W;E) of sections on
-             the Open subset W of the 2-dimensional topological manifold M with
-             values in the real vector bundle E of rank 2,
-             (Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2))),
-             Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2)))): Automorphism
-             phi_U^(-1)*phi_V of the Free module C^0(W;E) of sections on the
-             Open subset W of the 2-dimensional topological manifold M with
-             values in the real vector bundle E of rank 2}
+        sage: phi_U = E.trivialization('phi_U', domain=U); phi_U
+        Trivialization (phi_U, E|_U)
+        sage: phi_V = E.trivialization('phi_V', domain=V); phi_V
+        Trivialization (phi_V, E|_V)
+        sage: transf = phi_U.transition_map(phi_V, [[0,x],[x,0]]) # transition map between trivializations
+        sage: fU = phi_U.frame(); fU
+        Trivialization frame (E|_U, ((phi_U^*e_1),(phi_U^*e_2)))
+        sage: fV = phi_V.frame(); fV
+        Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2)))
+        sage: E.changes_of_frame() # random
+        {(Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2))),
+         Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2)))): Automorphism
+         phi_U^(-1)*phi_V^(-1) of the Free module C^0(W;E) of sections on
+         the Open subset W of the 2-dimensional topological manifold M with
+         values in the real vector bundle E of rank 2,
+         (Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2))),
+         Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2)))): Automorphism
+         phi_U^(-1)*phi_V of the Free module C^0(W;E) of sections on the
+         Open subset W of the 2-dimensional topological manifold M with
+         values in the real vector bundle E of rank 2}
 
-        Then, the atlas of `E` consists of all known trivializations defined
-        on E::
+    Then, the atlas of `E` consists of all known trivializations defined
+    on E::
 
-            sage: E.atlas() # a shallow copy of the atlas
-            [Trivialization (phi_U, E|_U), Trivialization (phi_V, E|_V)]
+        sage: E.atlas() # a shallow copy of the atlas
+        [Trivialization (phi_U, E|_U), Trivialization (phi_V, E|_V)]
 
-        Or we just define frames, an automorphism on the free
-        section module over the intersection domain `W` and declare the change
-        of frame manually (for more details consult
-        :class:`~sage.manifolds.local_frames.LocalFrame`)::
+    Or we just define frames, an automorphism on the free
+    section module over the intersection domain `W` and declare the change
+    of frame manually (for more details consult
+    :class:`~sage.manifolds.local_frames.LocalFrame`)::
 
-            sage: eU = E.local_frame('eU', domain=U); eU
-            Local frame (E|_U, (eU_0,eU_1))
-            sage: eUW = eU.restrict(W) # to trivialize E|_W
-            sage: eV = E.local_frame('eV', domain=V); eV
-            Local frame (E|_V, (eV_0,eV_1))
-            sage: eVW = eV.restrict(W)
-            sage: a = E.section_module(domain=W).automorphism(); a
-            Automorphism of the Free module C^0(W;E) of sections on the Open
-             subset W of the 2-dimensional topological manifold M with values in
-             the real vector bundle E of rank 2
-            sage: a[eUW,:] = [[0,x],[x,0]]
-            sage: E.set_change_of_frame(eUW, eVW, a)
-            sage: E.change_of_frame(eUW, eVW)
-            Automorphism of the Free module C^0(W;E) of sections on the Open
-             subset W of the 2-dimensional topological manifold M with values in
-             the real vector bundle E of rank 2
+        sage: eU = E.local_frame('eU', domain=U); eU
+        Local frame (E|_U, (eU_0,eU_1))
+        sage: eUW = eU.restrict(W) # to trivialize E|_W
+        sage: eV = E.local_frame('eV', domain=V); eV
+        Local frame (E|_V, (eV_0,eV_1))
+        sage: eVW = eV.restrict(W)
+        sage: a = E.section_module(domain=W).automorphism(); a
+        Automorphism of the Free module C^0(W;E) of sections on the Open
+         subset W of the 2-dimensional topological manifold M with values in
+         the real vector bundle E of rank 2
+        sage: a[eUW,:] = [[0,x],[x,0]]
+        sage: E.set_change_of_frame(eUW, eVW, a)
+        sage: E.change_of_frame(eUW, eVW)
+        Automorphism of the Free module C^0(W;E) of sections on the Open
+         subset W of the 2-dimensional topological manifold M with values in
+         the real vector bundle E of rank 2
 
-        Now, the list of all known frames defined on `E` can be displayed via
-        :meth:`frames`::
+    Now, the list of all known frames defined on `E` can be displayed via
+    :meth:`frames`::
 
-            sage: E.frames() # a shallow copy of all known frames on E
-            [Trivialization frame (E|_U, ((phi_U^*e_1),(phi_U^*e_2))),
-             Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2))),
-             Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2))),
-             Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2))),
-             Local frame (E|_U, (eU_0,eU_1)),
-             Local frame (E|_W, (eU_0,eU_1)),
-             Local frame (E|_V, (eV_0,eV_1)),
-             Local frame (E|_W, (eV_0,eV_1))]
+        sage: E.frames() # a shallow copy of all known frames on E
+        [Trivialization frame (E|_U, ((phi_U^*e_1),(phi_U^*e_2))),
+         Trivialization frame (E|_V, ((phi_V^*e_1),(phi_V^*e_2))),
+         Local frame (E|_W, ((phi_U^*e_1),(phi_U^*e_2))),
+         Local frame (E|_W, ((phi_V^*e_1),(phi_V^*e_2))),
+         Local frame (E|_U, (eU_0,eU_1)),
+         Local frame (E|_W, (eU_0,eU_1)),
+         Local frame (E|_V, (eV_0,eV_1)),
+         Local frame (E|_W, (eV_0,eV_1))]
 
-        By definition `E` is a manifold, in this case of dimension 4 (notice
-        that the induced charts are not implemented, yet)::
+    By definition `E` is a manifold, in this case of dimension 4 (notice
+    that the induced charts are not implemented, yet)::
 
-            sage: E.total_space()
-            4-dimensional topological manifold E
+        sage: E.total_space()
+        4-dimensional topological manifold E
 
-        The method :meth:`section` returns a section while the method
-        :meth:`section_module` returns the section module on the corresponding
-        domain::
+    The method :meth:`section` returns a section while the method
+    :meth:`section_module` returns the section module on the corresponding
+    domain::
 
-            sage: s = E.section(name='s'); s
-            Section s on the 2-dimensional topological manifold M with values in
-             the real vector bundle E of rank 2
-            sage: s in E.section_module()
-            True
+        sage: s = E.section(name='s'); s
+        Section s on the 2-dimensional topological manifold M with values in
+         the real vector bundle E of rank 2
+        sage: s in E.section_module()
+        True
 
     """
     def __init__(self, rank, name, base_space, field='real',

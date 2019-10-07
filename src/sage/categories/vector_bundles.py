@@ -61,6 +61,7 @@ class VectorBundles(Category_over_base_ring):
             sage: from sage.categories.vector_bundles import VectorBundles
             sage: VectorBundles(M, RR).super_categories()
             [Category of topological spaces]
+
         """
         return [Sets().Topological()]
 
@@ -138,9 +139,10 @@ class VectorBundles(Category_over_base_ring):
 
             TESTS::
 
-                sage: TestSuite(VectorBundles(RR).Smooth()).run()
-                sage: VectorBundles(RR).Smooth.__module__
-                'sage.categories.manifolds'
+                sage: TestSuite(VectorBundles(M, RR).Smooth()).run()
+                sage: VectorBundles(M, RR).Smooth.__module__
+                'sage.categories.vector_bundles'
+
             """
             return self._with_axiom('Smooth')
 

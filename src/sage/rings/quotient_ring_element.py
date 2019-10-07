@@ -829,6 +829,46 @@ class QuotientRingElement(RingElement):
         R = magma(self.parent())
         return '{}!{}'.format(R.name(), g._ref())
 
+    def _macaulay2_init_(self, macaulay2=None):
+        """
+        Return a Macaulay2 string representation of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(GF(7), 2)
+            sage: Q = R.quotient([x^2 - y])
+            sage: x, y = Q.gens()
+            sage: f = (x^3 + 2*y^2*x)^7; f
+            2*xbar*ybar^17 + xbar*ybar^10
+            sage: macaulay2(f)                      # optional - macaulay2
+                17      10
+            2x*y   + x*y
+
+        In Macaulay2, the variable names for a quotient ring are inherited from
+        the variable names of the ambient ring. This is in contrast to Sage's
+        default behaviour in which the variable names for the quotient ring are
+        obtained by appending ``bar`` to the variable names of the ambient
+        ring. This can be controlled using the ``names`` argument of the
+        ``quotient`` method.
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(GF(7), 2)
+            sage: Q = R.quotient([x^2 - y], names=R.gens())
+            sage: x, y = Q.gens()
+            sage: f = (x^3 + 2*y^2*x)^7; f
+            2*x*y^17 + x*y^10
+            sage: macaulay2(f)                      # optional - macaulay2
+                17      10
+            2x*y   + x*y
+
+        """
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        m2_parent = self.parent()._macaulay2_(macaulay2)
+        return macaulay2.substitute(repr(self.lift()), m2_parent)
+
     def reduce(self, G):
         r"""
         Reduce this quotient ring element by a set of quotient ring

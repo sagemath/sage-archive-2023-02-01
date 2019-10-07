@@ -422,6 +422,9 @@ ext_modules = [
               language="c++",
               package = 'tdlib'),
 
+    Extension('sage.graphs.graph_decompositions.clique_separators',
+              sources = ['sage/graphs/graph_decompositions/clique_separators.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 

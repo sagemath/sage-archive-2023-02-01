@@ -829,7 +829,7 @@ class QuotientRingElement(RingElement):
         R = magma(self.parent())
         return '{}!{}'.format(R.name(), g._ref())
 
-    def _macaulay2_init_(self, macaulay2=None):
+    def _macaulay2_(self, macaulay2=None):
         """
         The Macaulay2 element corresponding to this polynomial.
 
@@ -870,11 +870,29 @@ class QuotientRingElement(RingElement):
             sage: _.sage()                          # optional - macaulay2
             2*x*y^17 + x*y^10
 
+        TESTS:
+
+        Check that changing the currently defined global variables (`x`, `y`,
+        ...) in Macaulay2 does not affect the result of this conversion::
+
+            sage: R.<x,y> = PolynomialRing(GF(7), 2)
+            sage: Z = R.quotient([x, y])
+            sage: Q = R.quotient([x^2 - y], names=R.gens())
+            sage: x, y = Q.gens()
+            sage: f = (x^3 + 2*y^2*x)^7
+            sage: macaulay2(f)
+                17      10
+            2x*y   + x*y
+            sage: macaulay2.use(Z)
+            sage: macaulay2(f)
+                17      10
+            2x*y   + x*y
         """
         if macaulay2 is None:
             from sage.interfaces.macaulay2 import macaulay2 as m2_default
             macaulay2 = m2_default
         m2_parent = self.parent()._macaulay2_(macaulay2)
+        macaulay2.use(m2_parent)
         return macaulay2.substitute(repr(self.lift()), m2_parent)
 
     def reduce(self, G):

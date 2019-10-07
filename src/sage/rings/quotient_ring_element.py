@@ -876,15 +876,14 @@ class QuotientRingElement(RingElement):
         ...) in Macaulay2 does not affect the result of this conversion::
 
             sage: R.<x,y> = PolynomialRing(GF(7), 2)
-            sage: Z = R.quotient([x, y])
             sage: Q = R.quotient([x^2 - y], names=R.gens())
             sage: x, y = Q.gens()
             sage: f = (x^3 + 2*y^2*x)^7
-            sage: macaulay2(f)
+            sage: macaulay2(f)                      # optional - macaulay2
                 17      10
             2x*y   + x*y
-            sage: macaulay2.use(Z)
-            sage: macaulay2(f)
+            sage: macaulay2.use(R.quotient([x, y])) # optional - macaulay2
+            sage: macaulay2(f)                      # optional - macaulay2
                 17      10
             2x*y   + x*y
         """

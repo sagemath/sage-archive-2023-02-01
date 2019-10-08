@@ -5486,6 +5486,14 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: m * m.inverse_of_unit()
             [(1, 1) (0, 0)]
             [(0, 0) (1, 1)]
+
+        Test for :trac:`28570`::
+
+            sage: m = matrix(Zmod(2**2), 1, 1, [1], sparse=True)
+            sage: mi = ~m; mi
+            [1]
+            sage: mi.parent()
+            Full MatrixSpace of 1 by 1 sparse matrices over Ring of integers modulo 4
         """
         n = self.nrows()
         if n != self.ncols():
@@ -5499,11 +5507,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             # the right answer. Note that of course there
             # could be a much faster algorithm, e.g., using
             # CRT or p-adic lifting.
-            N = R.characteristic()
-            m, D = self.lift_centered()._invert_flint()
-            if not D.gcd(N).is_one():
+            try:
+                return (~self.lift_centered()).change_ring(R)
+            except (TypeError, ZeroDivisionError):
                 raise ZeroDivisionError("input matrix must be nonsingular")
-            return D.inverse_mod(N) * m.change_ring(R)
         elif algorithm is None or algorithm == "df":
             d = self.det()
             if d.is_one():

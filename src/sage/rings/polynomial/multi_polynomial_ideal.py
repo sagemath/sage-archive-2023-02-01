@@ -3047,7 +3047,7 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: gb2 = I.groebner_basis('macaulay2:mgb')  # optional - macaulay2
             sage: I = sage.rings.ideal.Cyclic(R)
             sage: gb3 = I.groebner_basis('macaulay2:f4')  # optional - macaulay2
-            sage: gb1 == gb2 == gb3
+            sage: gb1 == gb2 == gb3  # optional - macaulay2
             True
 
         TESTS::

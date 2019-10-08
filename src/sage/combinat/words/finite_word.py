@@ -6871,13 +6871,13 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: Word('cacao').squares()
+            sage: sorted(Word('cacao').squares())
             [word: , word: caca]
-            sage: Word('1111').squares()
-            [word: , word: 1111, word: 11]
+            sage: sorted(Word('1111').squares())
+            [word: , word: 11, word: 1111]
             sage: w = Word('00110011010')
-            sage: w.squares()
-            [word: , word: 01100110, word: 00110011, word: 00, word: 11, word: 1010]
+            sage: sorted(w.squares())
+            [word: , word: 00, word: 00110011, word: 01100110, word: 1010, word: 11]
         """
         from sage.combinat.words.suffix_trees import DecoratedSuffixTree
         T = DecoratedSuffixTree(self)

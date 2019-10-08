@@ -1631,6 +1631,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         Return a string representation of ``self``.
 
         EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
             sage: w = Word('0011001')
             sage: t = DecoratedSuffixTree(w)
@@ -1826,7 +1827,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
             sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
             sage: w = Word('aabb')
-            sage: DecoratedSuffixTree(w).square_vocabulary()
+            sage: sorted(DecoratedSuffixTree(w).square_vocabulary())
             [(0, 0), (0, 2), (2, 2)]
             sage: w = Word('00110011010')
             sage: sorted(DecoratedSuffixTree(w).square_vocabulary(output="word"))
@@ -1855,4 +1856,3 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             return squares
         else:
             return [self.word()[i:i+l] for (i, l) in squares]
-

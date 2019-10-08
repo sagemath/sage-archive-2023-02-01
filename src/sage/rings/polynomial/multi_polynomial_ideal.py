@@ -2952,7 +2952,7 @@ class MPolynomialIdeal_macaulay2_repr:
         Ideal (x*y - z^2, y^2 - w^2) of Multivariate Polynomial Ring in x, y, z, w over Integer Ring
     """
 
-    def _groebner_basis_macaulay2(self):
+    def _groebner_basis_macaulay2(self, strategy=None):
         r"""
         Return the Groebner basis for this ideal, computed using
         Macaulay2.

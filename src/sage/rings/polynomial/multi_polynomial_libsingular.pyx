@@ -1196,7 +1196,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         """
         EXAMPLES::
 
-            sage: PolynomialRing(QQ, 'x', 2, order='deglex')._macaulay2_init_()
+            sage: PolynomialRing(QQ, 'x', 2, order='deglex')._macaulay2_init_()     # optional - macaulay2
             'sage...[symbol x0,symbol x1, MonomialSize=>16, MonomialOrder=>GLex]'
         """
         if macaulay2 is None:

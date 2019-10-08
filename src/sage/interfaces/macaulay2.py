@@ -736,7 +736,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         TESTS::
 
             sage: R = GF(101)['x']
-            sage: macaulay2._macaulay2_input_ring(R.base_ring(), R.gens(), 'Lex')
+            sage: macaulay2._macaulay2_input_ring(R.base_ring(), R.gens(), 'Lex')   # optional - macaulay2
             'sage...[symbol x, MonomialSize=>16, MonomialOrder=>Lex]'
         """
         if not isinstance(base_ring, string_types):

@@ -154,7 +154,7 @@ def _guess_variables(polynomial, *args):
     if isinstance(polynomial, (list, tuple)):
         R = polynomial[0].parent()
         if not all(p.parent() is R for p in polynomial):
-            raise ValueError('All input polynomials must be in the same ring.')
+            raise ValueError('all input polynomials must be in the same ring')
     if not args or (len(args) == 1 and args[0] is None):
         if isinstance(polynomial, (list, tuple)):
             variables = tuple()
@@ -251,7 +251,7 @@ def transvectant(f, g, h=1, scale='default'):
         sage: transvectant(quintic, quintic, 2)
         Traceback (most recent call last):
         ...
-        ValueError: Polynomial is not homogeneous.
+        ValueError: polynomial is not homogeneous
         sage: R.<y> = QQ[]
         sage: S.<x> = R[]
         sage: quintic = invariant_theory.binary_quintic(x^5+x^3+2*x^2+y^5, x)
@@ -264,7 +264,7 @@ def transvectant(f, g, h=1, scale='default'):
     g = g.homogenized()
     R = f._ring
     if g._ring is not R:
-        raise ValueError('All input forms must be in the same polynomial ring.')
+        raise ValueError('all input forms must be in the same polynomial ring')
     x = f._variables[0]
     y = f._variables[1]
     degree = f._d + g._d - 2*h
@@ -278,7 +278,7 @@ def transvectant(f, g, h=1, scale='default'):
         elif scale == 'none':
             scalar = 1
         else:
-            raise ValueError('Unknown scale type: %s' %scale)
+            raise ValueError('unknown scale type: %s' %scale)
 
         def diff(j):
             df = f.form().derivative(x,j).derivative(y,h-j)
@@ -507,12 +507,12 @@ class AlgebraicForm(FormsBase):
         sage: AlgebraicForm(2, 1, p, [x,y]).variables()
         Traceback (most recent call last):
         ...
-        ValueError: Polynomial is of the wrong degree.
+        ValueError: polynomial is of the wrong degree
 
         sage: AlgebraicForm(2, 2, x^2+y, [x,y]).variables()
         Traceback (most recent call last):
         ...
-        ValueError: Polynomial is not homogeneous.
+        ValueError: polynomial is not homogeneous
     """
 
     def __init__(self, n, d, polynomial, *args, **kwds):
@@ -537,7 +537,7 @@ class AlgebraicForm(FormsBase):
         elif len(variables) == n-1:
             variables = variables + (None,)
         else:
-            raise ValueError('Need '+str(n)+' or '+
+            raise ValueError('need '+str(n)+' or '+
                              str(n-1)+' variables, got '+str(variables))
         ring = polynomial.parent()
         homogeneous = variables[-1] is not None
@@ -567,13 +567,13 @@ class AlgebraicForm(FormsBase):
                             for x in self._variables if x is not None ])
                 degrees.add(deg)
         if self._homogeneous and len(degrees)>1:
-            raise ValueError('Polynomial is not homogeneous.')
+            raise ValueError('polynomial is not homogeneous')
         if degrees == set() or \
                 (self._homogeneous and degrees == set([self._d])) or \
                 (not self._homogeneous and max(degrees) <= self._d):
             return
         else:
-            raise ValueError('Polynomial is of the wrong degree.')
+            raise ValueError('polynomial is of the wrong degree')
 
     def _check_covariant(self, method_name, g=None, invariant=False):
         r"""
@@ -605,7 +605,7 @@ class AlgebraicForm(FormsBase):
             sage: quartic._check_covariant('h_covariant', invariant=True)
             Traceback (most recent call last):
             ...
-            AssertionError: Not invariant.
+            AssertionError: not invariant
         """
         assert self._homogeneous
         from sage.matrix.constructor import vector, random_matrix
@@ -621,10 +621,10 @@ class AlgebraicForm(FormsBase):
         # The transform of the covariant
         g_cov = getattr(self, method_name)().subs(transform)
         # they must be the same
-        assert (g_cov - cov_g).is_zero(), 'Not covariant.'
+        assert (g_cov - cov_g).is_zero(), 'not covariant'
         if invariant:
             cov = getattr(self, method_name)()
-            assert (cov - cov_g).is_zero(), 'Not invariant.'
+            assert (cov - cov_g).is_zero(), 'not invariant'
 
     def __richcmp__(self, other, op):
         """
@@ -805,7 +805,7 @@ class AlgebraicForm(FormsBase):
             sage: univariate._extract_coefficients(m[1:])
             Traceback (most recent call last):
             ...
-            ValueError: Less monomials were passed than the form actually has.
+            ValueError: less monomials were passed than the form actually has
         """
         R = self._ring
         if self._homogeneous:
@@ -838,7 +838,7 @@ class AlgebraicForm(FormsBase):
             coeffs[i] = c*m + coeffs.pop(i, R.zero())
         result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
         if len(coeffs):
-            raise ValueError('Less monomials were passed than the form actually has.')
+            raise ValueError('less monomials were passed than the form actually has')
         return result
 
 
@@ -1183,14 +1183,14 @@ class QuadraticForm(AlgebraicForm):
             sage: quadratic.invariants('unknown')
             Traceback (most recent call last):
             ...
-            ValueError: Unknown type of invariants unknown for a binary quadratic.
+            ValueError: unknown type of invariants unknown for a binary quadratic
 
         """
         if type == 'discriminant':
             return (self.discriminant(),)
         else:
-            raise ValueError('Unknown type of invariants {} for a binary'
-                             ' quadratic.'.format(type))
+            raise ValueError('unknown type of invariants {} for a binary'
+                             ' quadratic'.format(type))
 
     @cached_method
     def dual(self):
@@ -2322,7 +2322,7 @@ class BinaryQuintic(AlgebraicForm):
             sage: quintic.invariants('unknown')
             Traceback (most recent call last):
             ...
-            ValueError: Unknown type of invariants unknown for a binary quintic.
+            ValueError: unknown type of invariants unknown for a binary quintic
 
         """
         if type == 'clebsch':
@@ -2330,8 +2330,8 @@ class BinaryQuintic(AlgebraicForm):
         elif type == 'arithmetic':
             return self.arithmetic_invariants(as_tuple=True)
         else:
-            raise ValueError('Unknown type of invariants {} for a binary'
-                             ' quintic.'.format(type))
+            raise ValueError('unknown type of invariants {} for a binary'
+                             ' quintic'.format(type))
 
     @cached_method
     def clebsch_invariants(self, as_tuple=False):
@@ -2363,8 +2363,8 @@ class BinaryQuintic(AlgebraicForm):
 
         """
         if self._ring.characteristic() in [2, 3, 5]:
-            raise NotImplementedError('No invariants implemented for fields '
-                                      'of characteristic 2, 3 or 5.')
+            raise NotImplementedError('no invariants implemented for fields '
+                                      'of characteristic 2, 3 or 5')
         # todo: add support
         else:
             invariants = {}
@@ -3135,14 +3135,14 @@ class SeveralAlgebraicForms(FormsBase):
             sage: pr = SeveralAlgebraicForms([p, r])
             Traceback (most recent call last):
             ...
-            ValueError: All forms must be in the same variables.
+            ValueError: all forms must be in the same variables
         """
         forms = tuple(forms)
         f = forms[0]
         super(SeveralAlgebraicForms, self).__init__(f._n, f._homogeneous, f._ring, f._variables)
         s = set(f._variables)
         if not all(set(f._variables) == s for f in forms):
-            raise ValueError('All forms must be in the same variables.')
+            raise ValueError('all forms must be in the same variables')
         self._forms = forms
 
     def __richcmp__(self, other, op):
@@ -3302,7 +3302,7 @@ class SeveralAlgebraicForms(FormsBase):
             sage: q._check_covariant('T_prime_covariant', invariant=True)
             Traceback (most recent call last):
             ...
-            AssertionError: Not invariant.
+            AssertionError: not invariant
         """
         assert self._homogeneous
         from sage.matrix.constructor import vector, random_matrix
@@ -3319,10 +3319,10 @@ class SeveralAlgebraicForms(FormsBase):
         # The transform of the covariant
         g_cov = getattr(self, method_name)().subs(transform)
         # they must be the same
-        assert (g_cov - cov_g).is_zero(), 'Not covariant.'
+        assert (g_cov - cov_g).is_zero(), 'not covariant'
         if invariant:
             cov = getattr(self, method_name)()
-            assert (cov - cov_g).is_zero(), 'Not invariant.'
+            assert (cov - cov_g).is_zero(), 'not invariant'
 
 
 ######################################################################
@@ -4302,7 +4302,7 @@ can then be queried for invariant and covariants. For example,
             sage: quintic = invariant_theory.binary_quintic(x^5+z*y^5)
             Traceback (most recent call last):
             ...
-            ValueError: Need 2 or 1 variables, got (x, y, z)
+            ValueError: need 2 or 1 variables, got (x, y, z)
             sage: quintic = invariant_theory.binary_quintic(x^5+z*y^5, x, y)
             sage: quintic
             Binary quintic with coefficients (z, 0, 0, 0, 0, 1)
@@ -4355,7 +4355,7 @@ can then be queried for invariant and covariants. For example,
             sage: invariant_theory.binary_form_from_invariants(3, [discriminant])
             Traceback (most recent call last):
             ...
-            NotImplementedError: No class for binary cubics implemented
+            NotImplementedError: no class for binary cubics implemented
 
         For binary quintics, the three Clebsch invariants of the form should be
         provided to reconstruct the form. For more details about these invariants,
@@ -4407,34 +4407,34 @@ can then be queried for invariant and covariants. For example,
             sage: invariant_theory.binary_form_from_invariants(6, invariants)
             Traceback (most recent call last):
             ...
-            NotImplementedError: No reconstruction for binary forms of degree 6 implemented.
+            NotImplementedError: no reconstruction for binary forms of degree 6 implemented
 
         TESTS::
 
             sage: invariant_theory.binary_form_from_invariants(2, [1,2])
             Traceback (most recent call last):
             ...
-            ValueError: Incorrect number of invariants provided. Only one invariant should be provided.
+            ValueError: incorrect number of invariants provided, only one invariant should be provided
             sage: invariant_theory.binary_form_from_invariants(2, [1], invariant_choice='unknown')
             Traceback (most recent call last):
             ...
-            ValueError: Unknown choice of invariants unknown for a binary quadratic.
+            ValueError: unknown choice of invariants unknown for a binary quadratic
             sage: invariant_theory.binary_form_from_invariants(3, [1,2])
             Traceback (most recent call last):
             ...
-            ValueError: Incorrect number of invariants provided. Only one invariant should be provided.
+            ValueError: incorrect number of invariants provided, only one invariant should be provided
             sage: invariant_theory.binary_form_from_invariants(3, [1], as_form=false, invariant_choice='unknown')
             Traceback (most recent call last):
             ...
-            ValueError: Unknown choice of invariants unknown for a binary cubic.
+            ValueError: unknown choice of invariants unknown for a binary cubic
             sage: invariant_theory.binary_form_from_invariants(5, [1,2,3], invariant_choice='unknown')
             Traceback (most recent call last):
             ...
-            ValueError: Unknown choice of invariants unknown for a binary quintic.
+            ValueError: unknown choice of invariants unknown for a binary quintic
             sage: invariant_theory.binary_form_from_invariants(42, invariants)
             Traceback (most recent call last):
             ...
-            NotImplementedError: No reconstruction for binary forms of degree 42 implemented.
+            NotImplementedError: no reconstruction for binary forms of degree 42 implemented
         """
         if as_form:
             from sage.rings.fraction_field import FractionField
@@ -4446,8 +4446,8 @@ can then be queried for invariant and covariants. For example,
             elif len(variables) == 2:
                 x,z = variables
             else:
-                raise ValueError('Incorrect number of variables provided. '
-                                 'Exactly two variables should be provided.')
+                raise ValueError('incorrect number of variables provided, '
+                                 'exactly two variables should be provided')
         if degree == 2:
             if len(invariants) == 1:
                 if as_form:
@@ -4457,18 +4457,18 @@ can then be queried for invariant and covariants. For example,
                     return reconstruction.binary_quadratic_coefficients_from_invariants(
                                             invariants[0], *args, **kwargs)
             else:
-                raise ValueError('Incorrect number of invariants provided. '
-                                 'Only one invariant should be provided.')
+                raise ValueError('incorrect number of invariants provided, '
+                                 'only one invariant should be provided')
         elif degree == 3:
             if len(invariants) == 1:
                 if as_form:
-                    raise NotImplementedError('No class for binary cubics implemented')
+                    raise NotImplementedError('no class for binary cubics implemented')
                 else:
                     return reconstruction.binary_cubic_coefficients_from_invariants(
                                             invariants[0], *args, **kwargs)
             else:
-                raise ValueError('Incorrect number of invariants provided. Only '
-                                 'one invariant should be provided.')
+                raise ValueError('incorrect number of invariants provided, only '
+                                 'one invariant should be provided')
         elif degree == 5:
             if as_form:
                 return BinaryQuintic.from_invariants(invariants, x, z,
@@ -4477,8 +4477,8 @@ can then be queried for invariant and covariants. For example,
                 return reconstruction.binary_quintic_coefficients_from_invariants(
                                             invariants, *args, **kwargs)
         else:
-            raise NotImplementedError('No reconstruction for binary forms of '
-                                      'degree {} implemented.'.format(degree))
+            raise NotImplementedError('no reconstruction for binary forms of '
+                                      'degree {} implemented'.format(degree))
 
     def ternary_quadratic(self, quadratic, *args, **kwds):
         """

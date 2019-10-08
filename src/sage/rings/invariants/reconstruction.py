@@ -52,8 +52,8 @@ def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice
         (1, 0, 0)
     """
     if invariant_choice not in ['default', 'discriminant']:
-        raise ValueError('Unknown choice of invariants {} for a binary '
-                         'quadratic.'.format(invariant_choice))
+        raise ValueError('unknown choice of invariants {} for a binary '
+                         'quadratic'.format(invariant_choice))
     if discriminant == 0:
         return (1, 0, 0)
     else:
@@ -97,14 +97,14 @@ def binary_cubic_coefficients_from_invariants(discriminant, invariant_choice='de
         sage: binary_cubic_coefficients_from_invariants(0)
         Traceback (most recent call last):
         ...
-        ValueError: No unique reconstruction possible for binary cubics with a double root.
+        ValueError: no unique reconstruction possible for binary cubics with a double root
     """
     if invariant_choice not in ['default', 'discriminant']:
-        raise ValueError('Unknown choice of invariants {} for a binary cubic.'
+        raise ValueError('unknown choice of invariants {} for a binary cubic'
                          .format(invariant_choice))
     if discriminant == 0:
-        raise ValueError('No unique reconstruction possible for binary '
-                         'cubics with a double root.')
+        raise ValueError('no unique reconstruction possible for binary '
+                         'cubics with a double root')
     else:
         return (0, 1, -1, 0)
 
@@ -233,7 +233,7 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
         sage: binary_quintic_coefficients_from_invariants([3,1,2], K=GF(5))
         Traceback (most recent call last):
         ...
-        NotImplementedError: No reconstruction of binary quintics implemented for fields of characteristic 2, 3 or 5.
+        NotImplementedError: no reconstruction of binary quintics implemented for fields of characteristic 2, 3 or 5
 
     TESTS::
 
@@ -241,13 +241,13 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
         sage: binary_quintic_coefficients_from_invariants([1,2,3], scaling='unknown')
         Traceback (most recent call last):
         ...
-        ValueError: Unknown scaling option 'unknown'.
+        ValueError: unknown scaling option 'unknown'
     """
     if invariant_choice not in ['default', 'clebsch']:
-        raise ValueError('Unknown choice of invariants {} for a binary quintic.'
+        raise ValueError('unknown choice of invariants {} for a binary quintic'
                          .format(invariant_choice))
     if scaling not in ['none', 'normalized', 'coprime']:
-        raise ValueError("Unknown scaling option '%s'." % scaling)
+        raise ValueError("unknown scaling option '%s'" % scaling)
     if scaling == 'coprime':
         if len(invariants) == 3:
             invariants = _reduce_invariants(invariants, [1,2,3])
@@ -258,8 +258,8 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
         from sage.rings.fraction_field import FractionField
         K = FractionField(A.parent())
     if K.characteristic() in [2, 3, 5]:
-        raise NotImplementedError('No reconstruction of binary quintics '
-                          'implemented for fields of characteristic 2, 3 or 5.')
+        raise NotImplementedError('no reconstruction of binary quintics '
+                          'implemented for fields of characteristic 2, 3 or 5')
     M = 2*A*B - 3*C
     N = K(2)**-1 * (A*C-B**2)
     R2 = -K(2)**-1 * (A*N**2-2*B*M*N+C*M**2)
@@ -276,17 +276,17 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
             R = R2**5
     elif len(invariants) == 4:
         if invariants[3]**2 != R2:
-            raise ValueError('Provided invariants do not satisfy the syzygy '
-                             'for Clebsch invariants of a binary quintic.')
+            raise ValueError('provided invariants do not satisfy the syzygy '
+                             'for Clebsch invariants of a binary quintic')
         R = invariants[3]
     else:
-        raise ValueError('Incorrect number of invariants provided. This '
-                         'method requires 3 or 4 invariants.')
+        raise ValueError('incorrect number of invariants provided, this '
+                         'method requires 3 or 4 invariants')
     if M == 0:
         if N == 0:
             if A == 0:
-                raise ValueError('No unique reconstruction possible for '
-                                 'quintics with a treefold linear factor.')
+                raise ValueError('no unique reconstruction possible for '
+                                 'quintics with a treefold linear factor')
             else:
                 if B == 0:
                     return (1,0,0,0,0,1)

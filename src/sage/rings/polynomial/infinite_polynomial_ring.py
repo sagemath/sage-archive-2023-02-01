@@ -238,7 +238,7 @@ from six.moves import range
 
 import six
 from sage.rings.ring import CommutativeRing
-from sage.categories.all import Rings
+from sage.categories.rings import Rings
 from sage.structure.all import SageObject, parent
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method

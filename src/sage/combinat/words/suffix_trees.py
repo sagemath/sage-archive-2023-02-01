@@ -1743,7 +1743,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             got to a point already registered in ``QP``. Registers all visited
             point in ``Q``.
 
-            INPUTS:
+            INPUT:
 
             - ``(u, v)`` -- edge on which the point is registered
             - ``l`` -- depth of the registered point on (u,v)
@@ -1787,7 +1787,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             labeled points on each edges of T. The fonction is recursive, call
             treat_node(0,0,0) to initiate the search.
 
-            INPUTS:
+            INPUT:
 
             - ``current_node`` - The node to treat
             - ``(i, j)`` - Pair of index such that the path from 0 to

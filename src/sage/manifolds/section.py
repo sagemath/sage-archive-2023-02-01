@@ -513,7 +513,7 @@ class Section(ModuleElement):
             sage: s.base_module()
             Module C^0(U;E) of sections on the Open subset U of the
              3-dimensional topological manifold M with values in the real vector
-             bundle of rank 2
+             bundle E of rank 2
 
         """
         return self._smodule

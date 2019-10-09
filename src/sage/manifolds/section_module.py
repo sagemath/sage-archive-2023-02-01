@@ -83,7 +83,7 @@ class SectionModule(UniqueRepresentation, Parent):
         sage: transf = phi_U.transition_map(phi_V, [[-1]])
         sage: C0 = E.section_module(); C0
         Module C^0(S^1;E) of sections on the 1-dimensional topological manifold
-         S^1 with values in the real vector bundle of rank 1
+         S^1 with values in the real vector bundle E of rank 1
 
     `C^0(S^1;E)` is a module over the algebra `C^0(M)`::
 
@@ -128,7 +128,7 @@ class SectionModule(UniqueRepresentation, Parent):
         sage: C0_U.coerce_map_from(C0)
         Coercion map:
           From: Module C^0(S^1;E) of sections on the 1-dimensional topological
-           manifold S^1 with values in the real vector bundle of rank 1
+           manifold S^1 with values in the real vector bundle E of rank 1
           To:   Free module C^0(U;E) of sections on the Open subset U of the
            1-dimensional topological manifold S^1 with values in the real vector
            bundle E of rank 1
@@ -164,8 +164,7 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: transf = phi_U.transition_map(phi_V, [[-1]])
             sage: C0 = E.section_module(); C0
             Module C^0(S^1;E) of sections on the 1-dimensional topological
-             manifold S^1 with values in the real vector bundle of rank 1
-            True
+             manifold S^1 with values in the real vector bundle E of rank 1
             sage: TestSuite(C0).run()
 
         """
@@ -286,19 +285,20 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: C0 = E.section_module()
             sage: C0._repr_()
             'Module C^0(M;E) of sections on the 2-dimensional topological
-             manifold M with values in the real vector bundle of rank 2'
+             manifold M with values in the real vector bundle E of rank 2'
             sage: repr(C0)  # indirect doctest
             'Module C^0(M;E) of sections on the 2-dimensional topological
-             manifold M with values in the real vector bundle of rank 2'
+             manifold M with values in the real vector bundle E of rank 2'
             sage: C0  # indirect doctest
             Module C^0(M;E) of sections on the 2-dimensional topological
-             manifold M with values in the real vector bundle of rank 2
+             manifold M with values in the real vector bundle E of rank 2
 
         """
         desc = "Module {} of sections on the {} with values in the {} vector " \
-               "bundle of rank {}"
+               "bundle {} of rank {}"
         desc = desc.format(self._name, self._domain,
                            self._vbundle.base_field_type(),
+                           self._vbundle._name,
                            self._vbundle.rank())
         return desc
 
@@ -331,7 +331,7 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: C0 = E.section_module(); C0
             Module C^0(U;E) of sections on the Open subset U of the
              3-dimensional topological manifold M with values in the real vector
-             bundle of rank 2
+             bundle E of rank 2
             sage: C0.base_space()
             Open subset U of the 3-dimensional topological manifold M
 
@@ -350,7 +350,7 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: C0_U = E.section_module(domain=U); C0_U
             Module C^0(U;E) of sections on the Open subset U of the
              3-dimensional topological manifold M with values in the real vector
-             bundle of rank 2
+             bundle E of rank 2
             sage: C0_U.domain()
             Open subset U of the 3-dimensional topological manifold M
 
@@ -368,7 +368,7 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: E = M.vector_bundle(2, 'E')
             sage: C0 = E.section_module(); C0
             Module C^0(M;E) of sections on the 3-dimensional topological
-             manifold M with values in the real vector bundle of rank 2
+             manifold M with values in the real vector bundle E of rank 2
             sage: C0.vector_bundle()
             Topological real vector bundle E -> M of rank 2 over the base space
              3-dimensional topological manifold M
@@ -444,7 +444,7 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: E = M.vector_bundle(2, 'E')
             sage: C0 = E.section_module(); C0
             Module C^0(M;E) of sections on the 3-dimensional topological
-             manifold M with values in the real vector bundle of rank 2
+             manifold M with values in the real vector bundle E of rank 2
             sage: e = E.local_frame('e', domain=U)
             sage: C0.set_default_frame(e)
             sage: C0.default_frame()
@@ -683,13 +683,12 @@ class SectionFreeModule(FiniteRankFreeModule):
              manifold M with values in the real vector bundle E of rank 2
 
         """
-        desc = "Free module "
-        desc += self._name + " "
-        desc += "of sections "
-        desc += "on the {} ".format(self._domain)
-        desc += "with values in the " + self._vbundle.base_field_type() + " "
-        desc += "vector bundle " + self._vbundle._name + " "
-        desc += "of rank {}".format(self._vbundle.rank())
+        desc = "Free module {} of sections on the {} with values in the {} " \
+               "vector bundle {} of rank {}"
+        desc = desc.format(self._name, self._domain,
+                           self._vbundle.base_field_type(),
+                           self._vbundle._name,
+                           self._vbundle.rank())
         return desc
 
     def domain(self):

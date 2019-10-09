@@ -505,7 +505,7 @@ class DiffForm(TensorField):
             sage: c1.display(e_xy)
             c = (-x^3 - (x - 1)*y^2) dx/\dy
 
-        Wedging with a scalar fields yields to the multiplication from right::
+        Wedging with scalar fields yields the multiplication from right::
 
             sage: f = M.scalar_field(x, name='f')
             sage: f.add_expr_by_continuation(c_uv, W)
@@ -1425,7 +1425,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: s[1,2,3] == a[1]*b[2,3] + a[2]*b[3,1] + a[3]*b[1,2]
             True
 
-        Wedging with a scalar fields yields to the multiplication from right::
+        Wedging with scalar fields yields the multiplication from right::
 
             sage: f = M.scalar_field(x, name='f')
             sage: t = a.wedge(f)

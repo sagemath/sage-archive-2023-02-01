@@ -193,6 +193,8 @@ class Trivialization(UniqueRepresentation, SageObject):
         r"""
         Return the manifold on which the trivialization is defined.
 
+        EXAMPLES::
+
             sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U')
             sage: E = M.vector_bundle(2, 'E')
@@ -335,8 +337,8 @@ class TransitionMap(SageObject):
     - ``triv1`` -- trivialization 1
     - ``triv2`` -- trivialization 2
     - ``transf`` -- the transformation between both trivializations in form of a
-      matrix of scalar fields (:class:`sage.manifolds.scalarfield.ScalarField)
-      or coordinate functions (:class:`sage.manifolds.chart_func.ChartFunction),
+      matrix of scalar fields (:class:`sage.manifolds.scalarfield.ScalarField`)
+      or coordinate functions (:class:`sage.manifolds.chart_func.ChartFunction`),
       or a bundle automorphism
       (:class:`sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`)
     - ``compute_inverse`` -- (default: ``True``) determines whether the inverse

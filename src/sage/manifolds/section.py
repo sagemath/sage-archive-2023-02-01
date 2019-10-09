@@ -302,11 +302,11 @@ class Section(ModuleElement):
 
             sage: M = Manifold(3, 'M')
             sage: E = M.vector_bundle(2, 'E')
-            sage: omega = E.section(name='\omega')
-            sage: omega._latex_()
-            '\\omega'
-            sage: latex(omega) # indirect doctest
-            \omega
+            sage: sigma = E.section(name='sigma', latex_name=r'\sigma')
+            sage: sigma._latex_()
+            '\\sigma'
+            sage: latex(sigma) # indirect doctest
+            \sigma
 
         """
         if self._latex_name is None:

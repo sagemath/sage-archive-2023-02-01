@@ -46,6 +46,7 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.integer_ring import is_IntegerRing
 
 import sage.modules.free_module
 
@@ -5487,7 +5488,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             [(1, 1) (0, 0)]
             [(0, 0) (1, 1)]
 
-        Test for :trac:`28570`::
+        Tests for :trac:`28570`::
+
+            sage: P = posets.TamariLattice(7)
+            sage: M = P._hasse_diagram._leq_matrix
+            sage: M.inverse_of_unit()   # this was very slow, now 1s
+            429 x 429 sparse matrix over Integer Ring...
 
             sage: m = matrix(Zmod(2**2), 1, 1, [1], sparse=True)
             sage: mi = ~m; mi
@@ -5502,7 +5508,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         R = self.base_ring()
         if algorithm is None and R in _Fields:
             return ~self
-        elif algorithm is None and is_IntegerModRing(R):
+        elif algorithm is None and (is_IntegerModRing(R) or
+                                    is_IntegerRing(R)):
             # This is "easy" in that we either get an error or
             # the right answer. Note that of course there
             # could be a much faster algorithm, e.g., using

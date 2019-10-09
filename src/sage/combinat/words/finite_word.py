@@ -6867,7 +6867,7 @@ class FiniteWord_class(Word_class):
 
     def squares(self):
         r"""
-        Returns a list of all distinct squares of ``self``.
+        Returns a set of all distinct squares of ``self``.
 
         EXAMPLES::
 
@@ -6881,7 +6881,7 @@ class FiniteWord_class(Word_class):
         """
         from sage.combinat.words.suffix_trees import DecoratedSuffixTree
         T = DecoratedSuffixTree(self)
-        return T.square_vocabulary(output='word')
+        return set(T.square_vocabulary(output='word'))
 
     def is_cube(self):
         r"""

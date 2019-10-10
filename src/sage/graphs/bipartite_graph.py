@@ -1021,7 +1021,7 @@ class BipartiteGraph(Graph):
         r"""
         Compute the matching polynomial.
 
-        The *matching polynomial* is defined as in [Godsil93]_, where `p(G, k)`
+        The *matching polynomial* is defined as in [God1993]_, where `p(G, k)`
         denotes the number of `k`-matchings (matchings with `k` edges) in `G` :
 
         .. MATH::

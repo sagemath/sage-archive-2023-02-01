@@ -452,7 +452,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
     81
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    119
+    120
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::

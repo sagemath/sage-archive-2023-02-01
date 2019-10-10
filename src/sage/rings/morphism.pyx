@@ -839,6 +839,7 @@ cdef class RingHomomorphism(RingMap):
               From: Univariate Polynomial Ring in x over Rational Field
               To:   Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
               Defn: x |--> 2*x
+                    with map of base ring
 
             sage: S.<x> = QQ[]
             sage: T.<y> = S[]
@@ -1114,7 +1115,9 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         -- it's purpose isn't so you can lie to Sage, but to sometimes
         speed up creation of a homomorphism::
 
-            sage: phi = S.hom([xx+1,xx-1],check=False)
+            sage: R.<x,y> = QQ[]
+            sage: S.<xx,yy> = R.quotient(x - y)
+            sage: phi = S.hom([xx+1,xx-1], check=False)
             Traceback (most recent call last):
             ...
             TypeError: images do not define a valid homomorphism
@@ -1190,8 +1193,15 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: phi(i*y)
             -i*y^2
             sage: phi.base_map()
-            Ring endomorphism of Number Field in i with defining polynomial x^2 + 1
-              Defn: i |--> -i
+            Composite map:
+              From: Number Field in i with defining polynomial x^2 + 1
+              To:   Univariate Polynomial Ring in y over Number Field in i with defining polynomial x^2 + 1
+              Defn:   Ring endomorphism of Number Field in i with defining polynomial x^2 + 1
+                      Defn: i |--> -i
+                    then
+                      Polynomial base injection morphism:
+                      From: Number Field in i with defining polynomial x^2 + 1
+                      To:   Univariate Polynomial Ring in y over Number Field in i with defining polynomial x^2 + 1
         """
         return self._base_map
 

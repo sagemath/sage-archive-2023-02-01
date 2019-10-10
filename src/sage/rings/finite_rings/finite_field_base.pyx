@@ -254,17 +254,30 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
+            sage: GF(97,'x')._macaulay2_init_()
+            'GF(97,Variable=>symbol x)'
             sage: macaulay2(GF(97, 'a'))       # indirect doctest, optional - macaulay2
             ZZ
             --
             97
             sage: macaulay2(GF(49, 'a'))       # indirect doctest, optional - macaulay2
             GF 49
+
+        TESTS:
+
+        The variable name is preserved (:trac:`28566`)::
+
+            sage: K = macaulay2(GF(49, 'b'))  # optional - macaulay2
+            sage: K.gens()                    # optional - macaulay2
+            {b}
+            sage: K._sage_()                  # optional - macaulay2
+            Finite Field in b of size 7^2
         """
         if self.is_prime_field():
             return "ZZ/%s" % self.order()
-        else:
-            return "GF %s" % self.order()
+        return "GF(%s,Variable=>symbol %s)" % (self.order(),
+                                               self.variable_name())
+
 
     def _sage_input_(self, sib, coerced):
         r"""

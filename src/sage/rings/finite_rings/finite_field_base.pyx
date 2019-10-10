@@ -254,8 +254,6 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: GF(97,'x')._macaulay2_init_()
-            'GF(97,Variable=>symbol x)'
             sage: macaulay2(GF(97, 'a'))       # indirect doctest, optional - macaulay2
             ZZ
             --

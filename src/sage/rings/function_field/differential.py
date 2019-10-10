@@ -797,7 +797,7 @@ class DifferentialsSpaceInclusion(Morphism):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQbar); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: OK = K.space_of_differentials()
             sage: OL = L.space_of_differentials()

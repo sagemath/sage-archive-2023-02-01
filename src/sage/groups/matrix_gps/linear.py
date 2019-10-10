@@ -145,13 +145,17 @@ def GL(n, R, var='a'):
 
         sage: groups.matrix.GL(2, 3)
         General Linear Group of degree 2 over Finite Field of size 3
+        sage: groups.matrix.GL(1, ZZ).category()
+        Category of groups
     """
     degree, ring = normalize_args_vectorspace(n, R, var='a')
     try:
         if ring.is_finite():
             cat = Groups().Finite()
-        else:
+        elif n > 1:
             cat = Groups().Infinite()
+        else:
+            cat = Groups()
     except AttributeError:
         cat = Groups()
     name = 'General Linear Group of degree {0} over {1}'.format(degree, ring)

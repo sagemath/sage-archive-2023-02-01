@@ -10,4 +10,6 @@ Topological Vector Bundles
 
    sage/manifolds/local_frame
 
+   sage/manifolds/section_module
+
    sage/manifolds/section

@@ -243,7 +243,7 @@ cdef class FiniteField(Field):
         s = "ext<%s|%s>"%(B._magma_init_(magma),p._magma_init_(magma))
         return magma._with_names(s, self.variable_names())
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         Returns the string representation of ``self`` that Macaulay2 can
         understand.

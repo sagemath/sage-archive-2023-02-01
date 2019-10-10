@@ -5508,14 +5508,19 @@ cdef class Matrix(sage.structure.element.Matrix):
         R = self.base_ring()
         if algorithm is None and R in _Fields:
             return ~self
-        elif algorithm is None and (is_IntegerModRing(R) or
-                                    is_IntegerRing(R)):
+        elif algorithm is None and is_IntegerModRing(R):
+            # Finite fields are handled above.
             # This is "easy" in that we either get an error or
             # the right answer. Note that of course there
             # could be a much faster algorithm, e.g., using
             # CRT or p-adic lifting.
             try:
                 return (~self.lift_centered()).change_ring(R)
+            except (TypeError, ZeroDivisionError):
+                raise ZeroDivisionError("input matrix must be nonsingular")
+        elif algorithm is None and is_IntegerRing(R):
+            try:
+                return (~self).change_ring(R)
             except (TypeError, ZeroDivisionError):
                 raise ZeroDivisionError("input matrix must be nonsingular")
         elif algorithm is None or algorithm == "df":

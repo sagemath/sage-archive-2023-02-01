@@ -335,7 +335,7 @@ def lower_bound(G):
 
     cdef FastDigraph FD = FastDigraph(G)
     cdef int * g = FD.graph
-    cdef int n = FD.n
+    cdef unsigned int n = <unsigned int>FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
     cdef uint8_t* minimums = <uint8_t*> check_malloc(n * sizeof(uint8_t))

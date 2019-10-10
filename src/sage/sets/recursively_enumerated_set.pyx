@@ -108,9 +108,9 @@ Breadth first search iterator::
     sage: it_breadth = R.breadth_first_search_iterator()
     sage: [next(it_breadth) for _ in range(5)]
     [[1, 2, 3, 4, 5],
+     [2, 1, 3, 4, 5],
      [1, 3, 2, 4, 5],
      [1, 2, 4, 3, 5],
-     [2, 1, 3, 4, 5],
      [1, 2, 3, 5, 4]]
 
 Elements of given depth iterator::
@@ -268,7 +268,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
         A recursively enumerated set with a graded structure (breadth first search)
         sage: it = iter(C)
         sage: [next(it) for _ in range(7)]
-        [0, 1, I, I + 1, 2, 2*I, I + 2]
+        [0, 1, I, 2, I + 1, 2*I, 3]
 
     .. WARNING::
 
@@ -279,7 +279,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
             sage: C = RecursivelyEnumeratedSet([0], f, structure='graded')
             sage: it = iter(C)
             sage: [next(it) for _ in range(7)]
-            [0, 1, -1, 0, 2, -2, 1]
+            [0, -1, 1, -2, 0, 2, -3]
 
     TESTS:
 
@@ -1161,20 +1161,24 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
             [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (3, 0)]
         """
-        cdef set next_level
+        cdef list next_level
+        cdef set set_next_level
         cdef int depth
         if max_depth is None:
             max_depth = self._max_depth
         current_level = self._seeds
         depth = 0
         while current_level and depth <= max_depth:
-            next_level = set()
+            next_level = list()
+            set_next_level = set()
+
             for x in current_level:
                 yield x
                 for y in self.successors(x):
-                    if y is None or y in next_level:
+                    if y is None or y in set_next_level:
                         continue
-                    next_level.add(y)
+                    next_level.append(y)
+                    set_next_level.add(y)
             current_level = next_level
             depth += 1
 

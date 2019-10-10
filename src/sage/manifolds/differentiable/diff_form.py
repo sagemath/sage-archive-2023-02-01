@@ -963,6 +963,14 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         ....:                [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
         sage: cart_to_spher = spher_to_cart.set_inverse(sqrt(x^2+y^2+z^2),
         ....:                              atan2(sqrt(x^2+y^2),z), atan2(y, x))
+        Check of the inverse coordinate transformation:
+          r == r  *passed*
+          th == arctan2(r*sin(th), r*cos(th))  **failed**
+          ph == arctan2(r*sin(ph)*sin(th), r*cos(ph)*sin(th))  **failed**
+          x == x  *passed*
+          y == y  *passed*
+          z == z  *passed*
+        NB: a failed report can reflect a mere lack of simplification.
         sage: eps.comp(c_spher.frame()) # computation of the components in the spherical frame
         Fully antisymmetric 3-indices components w.r.t. Coordinate frame
          (R3, (d/dr,d/dth,d/dph))

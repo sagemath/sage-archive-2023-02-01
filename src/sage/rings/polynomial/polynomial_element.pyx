@@ -2325,7 +2325,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             18009460*y^6*x^6 + 2349060*y^5*x^5 + ... + 51*y*x + 1
 
         Check that fallback method is used when it is not possible to compute
-        the characteristic of the base ring (trac:`24308`)::
+        the characteristic of the base ring (:trac:`24308`)::
 
             sage: kk.<a,b> = GF(2)[]
             sage: k.<y,w> = kk.quo(a^2+a+1)
@@ -3244,9 +3244,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         if isinstance(R, Map):
-            # we're given a hom of the base ring extend to a poly hom
-            if R.domain() == self.base_ring():
-                R = self._parent.hom(R, self._parent.change_ring(R.codomain()))
+            # extend to a hom of the base ring of the polynomial
+            R = self._parent.hom(R, self._parent.change_ring(R.codomain()))
             return R(self)
         else:
             return self._parent.change_ring(R)(self.list(copy=False))
@@ -7587,6 +7586,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: eq = x^6+x-17
             sage: eq.roots(multiplicities=False)
             [3109038, 17207405]
+
+        Test that roots in fixed modulus p-adic fields work (:trac:`17598`)::
+
+            sage: len(cyclotomic_polynomial(3).roots(ZpFM(739, 566)))
+            2
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
@@ -7856,11 +7860,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for fac in F:
             g = fac[0]
             if g.degree() == 1:
-                rt = -g[0] / g[1]
-                # We need to check that this root is actually in K;
-                # otherwise we'd return roots in the fraction field of K.
-                if rt in K:
-                    rt = K(rt)
+                try:
+                    # We need to check that this root is actually in K;
+                    # otherwise we'd return roots in the fraction field of K.
+                    rt = K(-g[0] / g[1])
+                except (ValueError, ArithmeticError, TypeError):
+                    pass
+                else:
                     if multiplicities:
                         seq.append((rt,fac[1]))
                     else:
@@ -8167,7 +8173,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (x^2 + a*x - 5, x - 2, 4)
             sage: (u*(x+2)).trace_polynomial()
             (x^2 + a*x - 5, x + 2, 4)
-         """
+
+        TESTS:
+
+        Check that :trac:`28395` is fixed::
+
+            sage: P.<t> = QQ[]
+            sage: u = t^4 + 3*t^2 + 1
+            sage: u.trace_polynomial()
+            (t^2 + 1, 1, 1)
+        """
         S = self.parent()
         A = S.base_ring()
         x = S.gen()
@@ -8197,7 +8212,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = []
         m = Q.degree() // 2
         for i in reversed(range(m + 1)):
-            coeffs.insert(0, Q.leading_coefficient())
+            coeffs.insert(0, Q[2*i]) # Note: degree of Q may be less than 2*i
             Q = (Q % (x**2 + q)**i) // x
         return S(coeffs), cofactor, q
 
@@ -8232,6 +8247,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P2.is_weil_polynomial()
             False
 
+        TESTS:
+
+        Check that :trac:`28395` is fixed::
+
+            sage: P.<t> = QQ[]
+            sage: u = t^10 + 4*t^9 + 8*t^8 + 18*t^7 + 81*t^6 + 272*t^5 + 567*t^4 + 882*t^3 + 2744*t^2 + 9604*t + 16807
+            sage: u.is_weil_polynomial()
+            True
+
         AUTHORS:
 
         David Zureick-Brown (2017-10-01)
@@ -8251,7 +8275,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             b = Q.all_roots_in_interval(-2*q.sqrt(), 2*q.sqrt())
         if return_q:
-            return (b, ZZ(q.sqrt())) if b else (b, 0)
+            return (b, self.base_ring()(q.sqrt())) if b else (b, 0)
         else:
             return b
 

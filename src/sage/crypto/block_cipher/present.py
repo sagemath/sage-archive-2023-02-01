@@ -70,8 +70,10 @@ from six import integer_types
 
 def _smallscale_present_linearlayer(nsboxes=16):
     """
-    TODO: switch to sage.crypto.linearlayer
-    (https://trac.sagemath.org/ticket/25735) as soon as it is included in sage
+    .. TODO::
+
+        switch to sage.crypto.linearlayer
+        (:trac:`25735`) as soon as it is included in sage
 
     EXAMPLES::
 
@@ -512,7 +514,7 @@ class PRESENT(SageObject):
         return out
 
     def sbox_layer(self, state, inverse=False):
-        """
+        r"""
         Apply the sBoxLayer of PRESENT to the bit vector ``state`` and return
         the result.
 

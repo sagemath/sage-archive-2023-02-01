@@ -1,11 +1,11 @@
 r"""
 Conversions
 
-This module provides conversions to class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces` from
+This module provides conversions to :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces` from
 - an incidence matrix of a polyhedron or
 - a tuple of facets (as tuple of vertices each).
 
-Also this module provides a conversion from the data of class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`,
+Also this module provides a conversion from the data of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`,
 which is a Bit-vector representing incidences of a face,
 to a list of entries which are incident.
 

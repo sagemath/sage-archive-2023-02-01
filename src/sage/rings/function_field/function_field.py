@@ -1703,8 +1703,8 @@ class FunctionField_polymod(FunctionField):
         """
         return self._ring
 
-    @cached_method(key=lambda self, base: self.base_field() if base is None else base)
-    def vector_space(self, base=None):
+    @cached_method(key=lambda self, base, basis, map: (self.base_field() if base is None else base, basis, map))
+    def free_module(self, base=None, basis=None, map=True):
         """
         Return a vector space and isomorphisms from the field to and from the
         vector space.
@@ -1716,16 +1716,21 @@ class FunctionField_polymod(FunctionField):
         INPUT:
 
         - ``base`` -- a function field (default: ``None``), the returned vector
-          space is over ``base`` which defaults to the base field of this
+          space is over this subfield `R`, which defaults to the base field of this
           function field.
+
+        - ``basis`` -- a basis for this field over the base.
+
+        - ``maps`` -- boolean (default ``True``), whether to return
+          `R`-linear maps to and from `V`.
 
         OUTPUT:
 
         - a vector space over the base function field
 
-        - an isomorphism from the vector space to the field
+        - an isomorphism from the vector space to the field (if requested)
 
-        - an isomorphism from the field to the vector space
+        - an isomorphism from the field to the vector space (if requested)
 
         EXAMPLES:
 
@@ -1737,7 +1742,7 @@ class FunctionField_polymod(FunctionField):
 
         We get the vector spaces, and maps back and forth::
 
-            sage: V, from_V, to_V = L.vector_space()
+            sage: V, from_V, to_V = L.free_module()
             sage: V
             Vector space of dimension 5 over Rational function field in x over Rational Field
             sage: from_V
@@ -1778,7 +1783,7 @@ class FunctionField_polymod(FunctionField):
         And we show how it works over an extension of an extension field::
 
             sage: R2.<z> = L[]; M.<z> = L.extension(z^2 -y)
-            sage: M.vector_space()
+            sage: M.free_module()
             (Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x, Isomorphism:
               From: Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
               To:   Function field in z defined by z^2 - y, Isomorphism:
@@ -1787,7 +1792,7 @@ class FunctionField_polymod(FunctionField):
 
         We can also get the vector space of ``M`` over ``K``::
 
-            sage: M.vector_space(K)
+            sage: M.free_module(K)
             (Vector space of dimension 10 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 10 over Rational function field in x over Rational Field
               To:   Function field in z defined by z^2 - y, Isomorphism:
@@ -1795,11 +1800,15 @@ class FunctionField_polymod(FunctionField):
               To:   Vector space of dimension 10 over Rational function field in x over Rational Field)
 
         """
+        if basis is not None:
+            raise NotImplementedError
         from .maps import MapVectorSpaceToFunctionField, MapFunctionFieldToVectorSpace
         if base is None:
             base = self.base_field()
         degree = self.degree(base)
         V = base**degree;
+        if not map:
+            return V
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)
@@ -2240,8 +2249,8 @@ class FunctionField_polymod(FunctionField):
         N_to_M = N.hom(v)
 
         # the morphism M -> N, b |-> M_b, a |-> M_a
-        V, V_to_M, M_to_V = M.vector_space(K)
-        V, V_to_N, N_to_V = N.vector_space(K)
+        V, V_to_M, M_to_V = M.free_module(K)
+        V, V_to_N, N_to_V = N.free_module(K)
         from sage.matrix.matrix_space import MatrixSpace
         MS = MatrixSpace(V.base_field(), V.dimension())
         # the power basis of v over K
@@ -3050,7 +3059,7 @@ class FunctionField_global(FunctionField_polymod):
         else:
             dec = self.maximal_order().decomposition(p.prime_ideal())
 
-        return tuple([p.place() for p, deg, exp in dec])
+        return tuple([q.place() for q, deg, exp in dec])
 
     def constant_field(self):
         """
@@ -3375,13 +3384,13 @@ class FunctionField_integral(FunctionField_polymod):
         # get a basis that starts with 1 and is ordered in increasing
         # y-degrees. The trick is to use the reversed Hermite normal form.
         # Note that it is important that the overall denominator l lies in k[x].
-        V, fr_V, to_V = self.vector_space()
-        basis_V = [to_V(b) for b in _basis]
-        l = lcm([v.denominator() for v in basis_V])
+        V, fr_V, to_V = self.free_module()
+        basis_V = [to_V(bvec) for bvec in _basis]
+        l = lcm([vvec.denominator() for vvec in basis_V])
 
         # Why do we have 'reversed' here? I don't know. But without it, the
         # time to get hermite_form_reversed dramatically increases.
-        _mat = matrix([[c.numerator() for c in l*v] for v in reversed(basis_V)])
+        _mat = matrix([[coeff.numerator() for coeff in l*v] for v in reversed(basis_V)])
 
         # compute the reversed hermite form
         _mat.reverse_rows_and_columns()
@@ -3868,8 +3877,8 @@ class RationalFunctionField(FunctionField):
         """
         return self[var]
 
-    @cached_method(key=lambda self, base: None)
-    def vector_space(self, base=None):
+    @cached_method(key=lambda self, base, basis, map: map)
+    def free_module(self, base=None, basis=None, map=True):
         """
         Return a vector space `V` and isomorphisms from the field to `V` and
         from `V` to the field.
@@ -3884,6 +3893,10 @@ class RationalFunctionField(FunctionField):
         - ``base`` -- the base field of the vector space; must be the function
           field itself (the default)
 
+        - ``basis`` -- (ignored) a basis for the vector space
+
+        - ``map`` -- (default ``True``), whether to return maps to and from the vector space
+
         OUTPUT:
 
         - a vector space `V` over base field
@@ -3895,7 +3908,7 @@ class RationalFunctionField(FunctionField):
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: K.vector_space()
+            sage: K.free_module()
             (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
               To:   Rational function field in x over Rational Field, Isomorphism:
@@ -3904,7 +3917,7 @@ class RationalFunctionField(FunctionField):
 
         TESTS::
 
-            sage: K.vector_space()
+            sage: K.free_module()
             (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
               To:   Rational function field in x over Rational Field, Isomorphism:
@@ -3912,12 +3925,16 @@ class RationalFunctionField(FunctionField):
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
 
         """
+        if basis is not None:
+            raise NotImplementedError
         from .maps import MapVectorSpaceToFunctionField, MapFunctionFieldToVectorSpace
         if base is None:
             base = self
         elif base is not self:
             raise ValueError("base must be the rational function field itself")
         V = base**1
+        if not map:
+            return V
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)

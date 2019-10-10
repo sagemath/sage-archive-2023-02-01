@@ -645,7 +645,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
             | a_0 a_1 a_2 b c f |
         """
         varstr = str(vars)[1:-1]
-        r = re.compile("(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
+        r = re.compile(r"(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
         varstr = "symbol " + r.sub("symbol ", varstr)
         return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(base_ring, varstr, order))
 

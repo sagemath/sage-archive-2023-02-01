@@ -3704,7 +3704,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             C = self.__complement
         except AttributeError:
             pass
-        if self.dimension() is 0:
+        if self.dimension() == 0:
             if A is None:
                 C = self.ambient_variety()
             else:

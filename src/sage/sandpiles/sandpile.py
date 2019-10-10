@@ -1674,7 +1674,7 @@ class Sandpile(DiGraph):
         """
         Compute the avalanche polynomial.  See ``self.avalanche_polynomial`` for details.
 
-        Examples::
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
             sage: s._set_avalanche_polynomial()

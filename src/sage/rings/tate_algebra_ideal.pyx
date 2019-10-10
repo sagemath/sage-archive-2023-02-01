@@ -111,6 +111,9 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
                     heappush(S, (t._valuation_c(), t._exponent, i, j, s))
 
     # Main loop of Buchberger algorithm
+    # Loop invariant:
+    # the S-polynomials of pairs of elements in rgb 
+    # all reduce to zero modulo (rgb,S)
     while S:
         # We reduce the Grobner basis if needed
         if reduce:
@@ -123,7 +126,7 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
 
         # We pop a new S-polynomial
         _, _, i, j, f = heappop(S)
-        if gb[i] is None or gb[j] is None:
+        if i >= 0 and (gb[i] is None or gb[j] is None):
             continue
         _, r = f._quo_rem_c(rgb, False, True, integral)
         if r.is_zero():
@@ -149,6 +152,7 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
             ti = (<TateAlgebraElement>rgb[i])._terms_c()[0]
             if tj._divides_c(ti, integral):
                 if indices[i] >= l:
+                    heappush(S, (ti._valuation_c(), ti._exponent, -1, -1, rgb[i]))
                     gb[indices[i]] = None
                 del rgb[i]
                 del indices[i]
@@ -269,11 +273,11 @@ class TateAlgebraIdeal(Ideal_generic):
              ...0001*x^2*y + O(2^4 * <x, y>),
              ...0001*y^2 + O(2^4 * <x, y>)]
             sage: I.groebner_basis(algorithm='buchberger')
-            [...01*x^4 + O(2^2 * <x, y>),
-             ...1*x^2*y + O(2 * <x, y>),
-             ...01*y^2 + O(2^2 * <x, y>)]
+            [...001*x^4 + O(2^3 * <x, y>),
+             ...001*x^2*y + O(2^3 * <x, y>),
+             ...001*y^2 + O(2^3 * <x, y>)]
 
-       TESTS::
+        TESTS::
 
             sage: I.groebner_basis(algorithm="F4")
             Traceback (most recent call last):

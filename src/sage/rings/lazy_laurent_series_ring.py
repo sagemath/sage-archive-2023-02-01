@@ -260,7 +260,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         return self._element_constructor_(0)
 
     def series(self, coefficient, valuation, constant=None):
-        """
+        r"""
         Return a lazy Laurent series.
 
         INPUT:

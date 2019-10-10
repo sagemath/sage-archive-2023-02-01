@@ -372,6 +372,31 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         """
         return self._section_class(self)
 
+    def inverse_image(self, b):
+        """
+        Return the unique ``a`` such that ``self(a) = b`` if one such exists.
+
+        This method is simply a shorthand for calling the map returned by
+        ``self.section()`` on ``b``.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(3^7)
+            sage: K.<T>, f = k.extension(3, map=True)
+            sage: b = f(t^2); b
+            2*T^20 + 2*T^19 + T^18 + T^15 + 2*T^14 + 2*T^13 + 2*T^12 + T^8 + 2*T^6 + T^5 + 2*T^4 + T^3 + 2*T^2 + T
+            sage: f.inverse_image(b)
+            t^2
+            sage: f.inverse_image(T)
+            Traceback (most recent call last):
+            ...
+            ValueError: T is not in the image of Ring morphism:
+            From: Finite Field in t of size 3^7
+            To:   Finite Field in T of size 3^21
+            Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
+        """
+        return self.section()(b)
+
     def __hash__(self):
         return Morphism.__hash__(self)
 

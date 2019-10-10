@@ -36,7 +36,6 @@ from sage.misc.all import prod
 from sage.rings.all import Integer
 from sage.arith.all import gcd
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
-from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer_ring import ZZ
@@ -991,16 +990,20 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
               Defn: Defined on coordinates by sending (x) to
                     (x^2 + (t^3 + 2*t^2 - t)*x + (t^5 - 2*t^4 + t^2 - t))
         """
-        N = self.codomain().dimension_relative()
         g = self.homogenize(0).reduce_base_field().dehomogenize(0)
         from sage.schemes.affine.affine_space import AffineSpace
-        new_domain = AffineSpace(g.domain().base_ring(), self.domain().dimension_relative(), self.domain().variable_names())
-        new_codomain = AffineSpace(g.codomain().base_ring(), self.codomain().dimension_relative(), self.codomain().variable_names())
+        new_domain = AffineSpace(g.domain().base_ring(),
+                                 self.domain().dimension_relative(),
+                                 self.domain().variable_names())
+        new_codomain = AffineSpace(g.codomain().base_ring(),
+                                   self.codomain().dimension_relative(),
+                                   self.codomain().variable_names())
         R = new_domain.coordinate_ring()
         H = Hom(new_domain, new_codomain)
         if isinstance(g[0], FractionFieldElement):
             return H([R(G.numerator())/R(G.denominator()) for G in g])
         return H([R(G) for G in g])
+
 
 class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynomial_affine_space_field):
 

@@ -1180,7 +1180,7 @@ If this all works, you can then make calls like:
 
         A quick consistency check on the time that the above took::
 
-            sage: w = walltime(t); 0.3 < w < 2
+            sage: w = walltime(t); 0.3 < w < 10
             True
 
         We tell Singular to print abc, which equals 25.

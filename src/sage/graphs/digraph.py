@@ -2912,7 +2912,7 @@ class DiGraph(GenericGraph):
 
         return g
 
-    def flow_polytope(self, edges=None, ends=None):
+    def flow_polytope(self, edges=None, ends=None, backend=None):
         r"""
         Return the flow polytope of a digraph.
 
@@ -2943,7 +2943,7 @@ class DiGraph(GenericGraph):
 
         The faces and volume of these polytopes are of interest. Examples of
         these polytopes are the Chan-Robbins-Yuen polytope and the
-        Pitman-Stanley polytope [PitSta]_.
+        Pitman-Stanley polytope [PS2002]_.
 
         INPUT:
 
@@ -2959,6 +2959,9 @@ class DiGraph(GenericGraph):
 
         - ``ends`` -- (optional, default: ``(self.sources(), self.sinks())``) a
           pair `(S, T)` of an iterable `S` and an iterable `T`.
+
+        - ``backend`` -- string or ``None`` (default); the backend to use;
+          see :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
 
         .. NOTE::
 
@@ -3052,12 +3055,6 @@ class DiGraph(GenericGraph):
             sage: Z.flow_polytope()
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull
             of 1 vertex
-
-        REFERENCES:
-
-        .. [PitSta] Jim Pitman, Richard Stanley, "A polytope related to
-           empirical distributions, plane trees, parking functions, and
-           the associahedron", :arxiv:`math/9908029`
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         if edges is None:
@@ -3086,7 +3083,7 @@ class DiGraph(GenericGraph):
             eq = [const] + eq
             eqs.append(eq)
 
-        return Polyhedron(ieqs=ineqs, eqns=eqs)
+        return Polyhedron(ieqs=ineqs, eqns=eqs, backend=backend)
 
     def is_tournament(self):
         r"""

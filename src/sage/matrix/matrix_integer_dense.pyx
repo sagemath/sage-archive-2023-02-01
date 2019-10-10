@@ -876,7 +876,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: M(range(9)) ** -1
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: matrix must be nonsingular
 
         TESTS::
 
@@ -4068,7 +4068,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         fmpz_clear(fden)
         if res == 0:
-            raise ZeroDivisionError('Matrix is singular')
+            raise ZeroDivisionError('matrix must be nonsingular')
         if den < 0:
             return -M, -den
         else:
@@ -4105,7 +4105,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: ~M.zero_matrix()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: matrix must be nonsingular
         """
         A, d = self._invert_flint()
         return A / d
@@ -5014,24 +5014,24 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         INPUT:
 
-
-        -  ``D`` - a small integer that is assumed to be a
+        -  ``D`` -- a small integer that is assumed to be a
            multiple of 2\*det(self)
-
 
         OUTPUT:
 
+        -  ``matrix`` -- the Hermite normal form of self
 
-        -  ``matrix`` - the Hermite normal form of self.
+        EXAMPLES:
 
-        A ValueError is raised if the matrix is not square, fixing :trac:`5548`::
+        A ``ValueError`` is raised if the matrix is not square,
+        fixing :trac:`5548`::
 
             sage: random_matrix(ZZ,16,4)._hnf_mod(100)
             Traceback (most recent call last):
             ...
             ValueError: matrix is not square
         """
-        t = verbose('hermite mod %s'%D, caller_name='matrix_integer_dense')
+        t = verbose('hermite mod %s' % D, caller_name='matrix_integer_dense')
         if self._nrows != self._ncols:
             raise ValueError("matrix is not square")
         cdef Matrix_integer_dense res = self._new(self._nrows,self._ncols)

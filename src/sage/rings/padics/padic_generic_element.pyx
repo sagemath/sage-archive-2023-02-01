@@ -40,13 +40,13 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.structure.element import coerce_binop
-
+from sage.structure.richcmp cimport rich_to_bool
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         First compare valuations, then compare normalized
         residue of unit part.
@@ -103,22 +103,41 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a < b
             True
         """
+        # handle exact zeros
+        left_zero = left._is_exact_zero()
+        right_zero = right._is_exact_zero()
+        if left_zero and right_zero:
+            return rich_to_bool(op, 0)
+        elif left_zero:
+            if right.is_zero():
+                return rich_to_bool(op, 0)
+            return rich_to_bool(op, 1)
+        elif right_zero:
+            if left.is_zero():
+                return rich_to_bool(op, 0)
+            return rich_to_bool(op, -1)
+
         m = min(left.precision_absolute(), right.precision_absolute())
         x_ordp = left.valuation()
-        if x_ordp >= m :
-            x_ordp = infinity
+        left_zero =  bool(x_ordp >= m)
         y_ordp = right.valuation()
-        if y_ordp >= m :
-            y_ordp = infinity
+        right_zero = bool(y_ordp >= m)
+        # handle approximate zeros
+        if left_zero and right_zero:
+            return rich_to_bool(op, 0)
+        elif left_zero:
+            return rich_to_bool(op, 1)
+        elif right_zero:
+            return rich_to_bool(op, -1)
+
+        # no more zeros
         if x_ordp < y_ordp:
-            return -1
+            return rich_to_bool(op, -1)
         elif x_ordp > y_ordp:
-            return 1
+            return rich_to_bool(op, 1)
         else:  # equal ordp
-            if x_ordp is infinity:
-                return 0 # since both are zero
-            else:
-                return (<pAdicGenericElement>left.unit_part())._cmp_units(right.unit_part())
+            test = (<pAdicGenericElement>left.unit_part())._cmp_units(right.unit_part())
+            return rich_to_bool(op, test)
 
     cdef int _cmp_units(left, pAdicGenericElement right) except -2:
         raise NotImplementedError
@@ -1366,6 +1385,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: l2 = [F(a/(p-1)).gamma(algorithm='sage') for a in range(p-1)]
             sage: all(l1[i] == l2[i] for i in range(p-1))
             True
+
+        The `p`-adic Gamma function has anomalous behavior for the prime 2::
+
+            sage: F = Qp(2)
+            sage: x = F(-1) + O(2^2)
+            sage: x.gamma(algorithm='pari')
+            1 + O(2)
+            sage: x.gamma(algorithm='sage')
+            1 + O(2)
+            sage: x = F(-1) + O(2^3)
+            sage: x.gamma(algorithm='pari')
+            1 + O(2^3)
+            sage: x.gamma(algorithm='sage')
+            1 + O(2^3)
         """
         if self.parent().absolute_degree() > 1 or self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
@@ -1379,10 +1412,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             p = parent.prime()
-            bd = n + 2*n // p
-            k = Integer(-self.residue(field=False)) # avoid GF(p) for efficiency
+            bd = -((-n*p)//(p-1))
+            k = (-self) % p
             x = (self+k) >> 1
-            return -x.dwork_expansion(bd, a=k)
+            if p==2 and n>=3:
+                x = x.lift_to_precision(n)
+            return -x.dwork_expansion(bd, k.lift())
 
     @coerce_binop
     def gcd(self, other):

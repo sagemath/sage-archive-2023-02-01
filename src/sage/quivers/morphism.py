@@ -282,7 +282,7 @@ class QuiverRepHom(CallMorphism):
                     m = Matrix(self._base_ring, domain_dims[v], codomain_dims[v], maps_dict[v])
             else:
                 m = Matrix(self._base_ring, domain_dims[v], codomain_dims[v])
-            for i in range(0, domain_dims[v]):
+            for i in range(domain_dims[v]):
                 vector += list(m[i])
 
         # Wrap as a vector, check it, and return
@@ -1136,7 +1136,7 @@ class QuiverRepHom(CallMorphism):
         # Find the images in the domain and create the module
         # H = QuiverHomSpace(self._domain, self._quiver.free_module(self._base_ring))
         im_gens = [codomain({v: (g*self)._vector})
-                    for v in self._quiver for g in domain_gens[v]]
+                   for v in self._quiver for g in domain_gens[v]]
         return domain.hom(im_gens, codomain)
 
     def direct_sum(self, maps, return_maps=False, pinch=None):
@@ -1234,7 +1234,7 @@ class QuiverRepHom(CallMorphism):
         result = domain.hom(codomain)
 
         # Add each factor
-        for i in range(0, len(maplist)):
+        for i in range(len(maplist)):
             if pinch == 'domain':
                 result += c_incl[i]*maplist[i]
             elif pinch == 'codomain':
@@ -1327,4 +1327,3 @@ class QuiverRepHom(CallMorphism):
             True
         """
         self._vector *= scalar
-

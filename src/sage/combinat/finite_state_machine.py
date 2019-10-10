@@ -1324,13 +1324,10 @@ class FSMState(SageObject):
         sage: T.state(3).hook = stop
         sage: T.process([9, 9, 9, 9])
         (False, 3, ['a', 'b', 'c'])
-    """
 
-    is_initial = False
-    """
-    Describes whether the state is initial.
+    TESTS:
 
-    EXAMPLES::
+    Test for ``is_initial``::
 
         sage: T = Automaton([(0,0,0)])
         sage: T.initial_states()
@@ -1338,20 +1335,17 @@ class FSMState(SageObject):
         sage: T.state(0).is_initial = True
         sage: T.initial_states()
         [0]
-    """
 
-    initial_probability = None
-    """
-    The probability of starting in this state if it is part of a Markov chain.
-
-    EXAMPLES::
+    Test for ``initial_probability``::
 
         sage: from sage.combinat.finite_state_machine import FSMState
         sage: S = FSMState('state', initial_probability=1/3)
         sage: S.initial_probability
         1/3
     """
-
+    is_initial = False  # Describes whether the state is initial
+    initial_probability = None
+    # The probability of starting in this state if it is part of a Markov chain
 
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,

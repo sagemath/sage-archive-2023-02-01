@@ -13,7 +13,7 @@ from . import Executable, FeatureTestResult
 
 class CSDP(Executable):
     r"""
-    A class:`sage.features.Feature` which checks for the ``theta`` binary
+    A :class:`sage.features.Feature` which checks for the ``theta`` binary
     of CSDP.
 
     EXAMPLES::

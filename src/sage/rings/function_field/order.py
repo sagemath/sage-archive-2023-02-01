@@ -1626,32 +1626,63 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
              of Function field in y defined by y^3 + x^6 + x^4 + x^2, 1, 1),
              (Ideal (x + 1, (1/(x^3 + x^2 + x))*y^2 + y + 1) of Maximal order
              of Function field in y defined by y^3 + x^6 + x^4 + x^2, 2, 1)]
+
+        ALGORITHM:
+
+        In principle, we're trying to compute a primary decomposition
+        of ``ideal``'s extension in ``self`` (an order, and therefore
+        a ring).  However, while we have primary decomposition methods
+        for polynomial rings, we lack any such method for an order.
+        Therefore, we construct ``self`` mod ``ideal`` as a
+        finite-dimensional algebra, a construct for which we do
+        support primary decomposition.
+
+        See https://trac.sagemath.org/attachment/ticket/28094/decomposition.pdf
+
+        .. TODO::
+
+        Use Kummer's theorem to shortcut this code if possible, like
+        is done in `FunctionFieldMaximalOrder_global`'s `decomposition`
+        method.
+
         """
 
         F = self.function_field()
         n = F.degree()
 
-        # We expect o to be the maximal order of the base polynomial ring
-        # and p to be an irreducible polynomial
+        # We expect `o` to be the maximal order of the base polynomial
+        # ring and `p` to be an irreducible polynomial
         o = ideal.ring()
         p = ideal.gen().numerator()
 
-        # Using the o we just computed doesn't work too well (yet),
+        # Using the `o` we just computed doesn't work too well (yet),
         # so instead let's do something isomorphic
         K = self.function_field().base_field()
         o = PolynomialRing(K.constant_field(), K.gen())
         prime = o(p)
 
-        # These matrices show how to multiply by the basis elements,
-        # and when reduced modulo a prime (prime in o), will be used
-        # to form the algebra O mod p.
+        # Given an element of the function field expressed as a
+        # K-vector times the basis of this order, construct the n
+        # n-by-n matrices that show how to multiply by each of the
+        # basis elements.
 
         algebra_matrices = [matrix([self.coordinate_vector(b1*b2) for b1 in self.basis()]).change_ring(o) for b2 in self.basis()]
 
-        factors = []
+        # When reduced modulo `prime`, `algebra_matrices` give the
+        # multiplication matrices used to form the algebra `self` mod
+        # `prime`.
+
         field = o.quo(prime)
         algebra_matrices_reduced = map(lambda M: M.mod(prime), algebra_matrices)
         A = FiniteDimensionalAlgebra(field, algebra_matrices_reduced)
+
+        # Each prime ideal of the algebra corresponds to a prime ideal
+        # of `self`, and since the algebra is an Artinian ring, all of
+        # its prime ideals are maximal [stacks 00JA].  Thus, we find
+        # all of our factors by iterating over the algebra's maximal
+        # ideals.
+
+        factors = []
 
         for q in A.maximal_ideals():
             if q == A.ideal():
@@ -1667,17 +1698,12 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
             else:
                 # I'd like qq = q.basis_matrix().change_ring(K.constant_field()),
                 # but that produces exceptions like "TypeError: unable to convert 1 to a rational"
-                qqq = matrix([[e.lift() for e in r] for r in q.basis_matrix()])
-                I = self.ideal(*((prime,) + tuple((matrix(self.basis()) * qqq.transpose())[0])))
+                qq = matrix([[e.lift() for e in r] for r in q.basis_matrix()])
+                I = self.ideal(*((prime,) + tuple((matrix(self.basis()) * qq.transpose())[0])))
 
                 # Compute an element beta in O (self: the maximal
                 # order), but not in pO (p: ideal's underlying prime),
                 # and with betaI in pO.
-
-                # How to find beta is explained in Section 4.8.3 of
-                # [Coh1993]. We keep beta as a vector over k[x] with
-                # respect to the basis of O.  beta is used when
-                # computing the valuation.
 
                 # Since beta is in O (a k[x]-module), we keep beta as
                 # a vector in k[x] w.r.t. the basis of O.  As long as
@@ -1698,7 +1724,7 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
                 m =[]
                 for g in q.basis_matrix():
                     for i in range(n):
-                        m.extend(list(matrix([g * algebra_matrices_reduced[i] for  i in range(n)]).transpose()))
+                        m.extend(list(matrix([g * algebra_matrices_reduced[i] for i in range(n)]).transpose()))
                 beta  = [c.lift() for c in matrix(m).right_kernel().basis()[0]]
 
                 qq = q
@@ -1710,18 +1736,11 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
                     qq = qqq
                     index = index + 1
 
-                I._q = q
                 I.is_prime.set_cache(True)
                 I._prime_below = ideal
-                #I._relative_degree = degree
-                #I._ramification_index = index
-                I._relative_degree = q.basis_matrix().right_nullity()
+                I._relative_degree = n - q.basis_matrix().nrows()
                 I._ramification_index = index
                 I._beta = beta
-
-            # This doesn't work because is_prime() just calls this
-            # routine to try to factor the ideal!
-            # assert I.is_prime()
 
             factors.append((I, I._relative_degree, I._ramification_index))
 

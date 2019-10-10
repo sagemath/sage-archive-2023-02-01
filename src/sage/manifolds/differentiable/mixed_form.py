@@ -187,15 +187,6 @@ class MixedForm(AlgebraElement):
         sage: A.display_expansion(e_xy)
         A = [x] + [x*y dx] + [(-2*x^3 + 2*x^2*y + 2*x*y^2 - 2*y^3) dx/\dy]
 
-    .. WARNING::
-
-        Once the components of mixed forms are established and fully defined,
-        they are seen as immutable elements and further manipulations, like with
-        :meth:`add_comp_by_continuation` or :meth:`set_restriction`, might cause
-        trouble. So, be careful using this methods and don't change anything
-        afterwards unless you know what you're doing or it is really necessary
-        or unavoidable.
-
     """
     def __init__(self, parent, name=None, latex_name=None):
         r"""
@@ -1114,15 +1105,6 @@ class MixedForm(AlgebraElement):
             sage: A.restrict(U) == AU
             True
 
-        .. WARNING::
-
-            Once the components of mixed forms are established and fully
-            defined, they are seen as immutable elements and further
-            manipulations, like with :meth:`add_comp_by_continuation` or
-            :meth:`set_restriction`, might cause trouble. So, be careful using
-            this methods and don't change anything afterwards unless you know
-            what you're doing or it is really necessary or unavoidable.
-
         """
         if not isinstance(rst, MixedForm):
             raise TypeError("the argument must be a mixed form")
@@ -1265,15 +1247,6 @@ class MixedForm(AlgebraElement):
             F = [u/(u^2 + v^2)] + [-(u^3 - u*v^2)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 +
              v^6) du - 2*u^2*v/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) dv] +
              [u*v du/\dv]
-
-        .. WARNING::
-
-            Once the components of mixed forms are established and fully
-            defined, they are seen as immutable elements and further
-            manipulations, like with :meth:`add_comp_by_continuation` or
-            :meth:`set_restriction`, might cause trouble. So, be careful using
-            this methods and don't change anything afterwards unless you know
-            what you're doing or it is really necessary or unavoidable.
 
         """
         if chart is None:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interface to Macaulay2
 
@@ -1293,7 +1294,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     #Conversion to Sage#
     ####################
     def _sage_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: macaulay2(ZZ).sage()         # optional - macaulay2, indirect doctest
@@ -1380,6 +1381,27 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: g.sage().edges(labels=False)          # optional - macaulay2
             [(1, 2), (2, 1), (3, 1)]
 
+        Chain complexes and maps of chain complexes can be converted::
+
+            sage: R = ZZ['a,b,c']
+            sage: C = macaulay2(ideal(R.gens())).resolution()  # optional - macaulay2
+            sage: unicode_art(C.sage())                        # optional - macaulay2
+                                   ⎛-b  0 -c⎞     ⎛ c⎞
+                                   ⎜ a -c  0⎟     ⎜ a⎟
+                       (a b c)     ⎝ 0  b  a⎠     ⎝-b⎠
+             0 ⟵── C_0 ⟵────── C_1 ⟵───────── C_2 ⟵─── C_3 ⟵── 0
+            sage: F = C.dot('dd')  # optional - macaulay2
+            sage: G = F.sage()     # optional - macaulay2
+            sage: G.in_degree(2)   # optional - macaulay2
+            [-b  0 -c]
+            [ a -c  0]
+            [ 0  b  a]
+            sage: F.underscore(2).sage() == G.in_degree(2)  # optional - macaulay2
+            True
+            sage: (F^2).sage()     # optional - macaulay2
+            Chain complex morphism:
+              From: Chain complex with at most 4 nonzero terms over Multivariate Polynomial Ring in a, b, c over Integer Ring
+              To:   Chain complex with at most 4 nonzero terms over Multivariate Polynomial Ring in a, b, c over Integer Ring
         """
         repr_str = str(self)
         cls_str = str(self.cls())
@@ -1477,6 +1499,30 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 g = graph_cls(adj_mat, format='adjacency_matrix')
                 g.relabel(self.vertices())
                 return g
+            elif cls_str == "ChainComplex":
+                from sage.homology.chain_complex import ChainComplex
+                ring = self.ring()._sage_()
+                dd = self.dot('dd')
+                degree = dd.degree()._sage_()
+                a = self.min()._sage_()
+                b = self.max()._sage_()
+                matrices = {i: dd.underscore(i)._matrix_(ring)
+                            for i in range(a, b+1)}
+                return ChainComplex(matrices, degree=degree)
+            elif cls_str == "ChainComplexMap":
+                from sage.homology.chain_complex_morphism import ChainComplexMorphism
+                ring = self.ring()._sage_()
+                source = self.source()
+                a = source.min()._sage_()
+                b = source.max()._sage_()
+                degree = self.degree()._sage_()
+                matrices = {i: self.underscore(i)._matrix_(ring)
+                            for i in range(a, b+1)}
+                C = source._sage_()
+                # in Sage, chain complex morphisms are degree-preserving,
+                # so we shift the degrees of the target
+                D = self.target()._operator(' ', '[%s]' % degree)._sage_()
+                return ChainComplexMorphism(matrices, C, D)
         else:
             #Handle the integers and rationals separately
             if cls_str == "ZZ":
@@ -1526,9 +1572,22 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: matrix(QQ, A)                          # optional - macaulay2, indirect doctest
             [1 2]
             [3 4]
+
+        TESTS:
+
+        Check that degenerate matrix dimensions are preserved (:trac:`28591`)::
+
+            sage: m = macaulay2('matrix {{},{}}')  # optional - macaulay2
+            sage: matrix(ZZ, m).dimensions()  # optional - macaulay2
+            (2, 0)
+            sage: matrix(ZZ, m.transpose()).dimensions()  # optional - macaulay2
+            (0, 2)
         """
         from sage.matrix.all import matrix
-        return matrix(R, self.entries()._sage_())
+        m = matrix(R, self.entries()._sage_())
+        if not m.nrows():
+            return matrix(R, 0, self.numcols()._sage_())
+        return m
 
 
 @instancedoc

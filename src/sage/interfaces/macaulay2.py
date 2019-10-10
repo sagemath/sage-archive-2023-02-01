@@ -1270,6 +1270,20 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                  # optional - macaulay2
             'hello'
 
+            sage: macaulay2.needsPackage('"Graphs"')    # optional - macaulay2
+            sage: g = macaulay2.barbellGraph(3)         # optional - macaulay2
+            sage: g.sage()                              # optional - macaulay2
+            Graph on 6 vertices
+            sage: g.sage().edges(labels=False)          # optional - macaulay2
+            [(0, 1), (0, 2), (1, 2), (2, 3), (3, 4), (3, 5), (4, 5)]
+
+            sage: d = 'digraph ({{1,2},{2,1},{3,1}}, EntryMode => "edges")'
+            sage: g = macaulay2(d)                      # optional - macaulay2
+            sage: g.sage()                              # optional - macaulay2
+            Digraph on 3 vertices
+            sage: g.sage().edges(labels=False)          # optional - macaulay2
+            [(1, 2), (2, 1), (3, 1)]
+
         """
         repr_str = str(self)
         cls_str = str(self.cls())
@@ -1358,6 +1372,17 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     ring = self.ring()._sage_()
                     rank = self.rank()._sage_()
                     return FreeModule(ring, rank)
+            elif cls_str in ("Graph", "Digraph"):
+                if cls_str == "Graph":
+                    from sage.graphs.graph import Graph
+                    graph_cls = Graph
+                else:
+                    from sage.graphs.digraph import DiGraph
+                    graph_cls = DiGraph
+                adj_mat = self.adjacencyMatrix().sage()
+                g = graph_cls(adj_mat, format='adjacency_matrix')
+                g.relabel(self.vertices())
+                return g
         else:
             #Handle the integers and rationals separately
             if cls_str == "ZZ":

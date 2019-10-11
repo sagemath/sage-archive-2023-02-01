@@ -1224,6 +1224,23 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         return self.parent()("class %s"%self.name())
 
+    def after_print_text(self):
+        r"""
+        Obtain the type information about this Macaulay2 element that is
+        displayed using ``AfterPrint`` in the Macaulay2 interpreter.
+
+        EXAMPLES::
+
+            sage: B = macaulay2(matrix([[1, 2], [3, 6]])).kernel(); B  # optional - macaulay2
+            image | 2  |
+                  | -1 |
+            sage: B.after_print_text()  # optional - macaulay2
+                                      2
+            ZZ-module, submodule of ZZ
+        """
+        return self.parent().eval('(lookup({topLevelMode,AfterPrint},' +
+                                  'class {0}))({0})'.format(self._name))
+
     ##########################
     #Aliases for M2 operators#
     ##########################

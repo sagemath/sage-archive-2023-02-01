@@ -1039,6 +1039,33 @@ class FunctionField(Field):
             s^-1 + ...
             sage: f.coefficient(100)
             0
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 - x)
+            sage: O = L.maximal_order()
+            sage: decomp = O.decomposition(K.maximal_order().ideal(x-1))
+            sage: pls = (decomp[0][0].place(), decomp[1][0].place())
+            sage: m = L.completion(pls[0]); m
+            Completion map:
+              From: Function field in y defined by y^2 - x
+              To:   Laurent Series Ring in s over Quotient of Multivariate Polynomial Ring in y, x
+                    over Rational Field by the ideal (x - 1, y - 1, y^2 - x)
+            sage: xe = m(x)
+            sage: ye = m(y)
+            sage: ye^2 - xe == 0
+            True
+
+            sage: decomp2 = O.decomposition(K.maximal_order().ideal(x^2+1))
+            sage: pls2 = decomp2[0][0].place()
+            sage: m = L.completion(pls2); m
+            Completion map:
+              From: Function field in y defined by y^2 - x
+              To:   Laurent Series Ring in s over Quotient of Multivariate Polynomial Ring in y, x
+                    over Rational Field by the ideal (x^2 + 1, y*x^2 + y, y^2 - x)
+            sage: xe = m(x)
+            sage: ye = m(y)
+            sage: ye^2 - xe == 0
+            True
         """
         from .maps import FunctionFieldCompletion
         return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name)

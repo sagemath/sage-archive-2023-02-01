@@ -63,6 +63,9 @@ from sage.misc.cachefunc import cached_method
 
 from sage.arith.all import lcm
 
+from sage.rings.qqbar import QQbar
+from sage.rings.number_field.number_field_base import is_NumberField
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -844,6 +847,21 @@ class FunctionFieldPlace_polymod(FunctionFieldPlace):
 
             from_K = lambda e: from_F(_from_K(e))
             to_K = lambda f: _to_K(to_F(f))
+            return K, from_K, to_K
+
+        if is_NumberField(F.constant_base_field()):
+            R = F.base_field()
+            ideal_gens = map(lambda e: R._to_bivariate_polynomial(e)[0], prime.gens() + (F.polynomial(),))
+            I = ideal_gens[0].parent().ideal(ideal_gens)
+            if F.constant_base_field() is QQbar:
+                K = QQbar
+            else:
+                K = I.ring().quotient(I)
+            def from_K(e):
+                return F(e)
+            def to_K(f):
+                (n,d) = R._to_bivariate_polynomial(f)
+                return K(I.reduce(I.ring()(n))) / K(I.reduce(I.ring()(d)))
             return K, from_K, to_K
 
         O = F.maximal_order()

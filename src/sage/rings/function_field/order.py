@@ -96,6 +96,8 @@ from sage.arith.all import lcm, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.algebras.all import FiniteDimensionalAlgebra
 
+from sage.rings.number_field.number_field_base import is_NumberField
+
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 
@@ -914,11 +916,20 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
         """
         F = self.function_field()
 
-        if not F.is_global():
-            raise NotImplementedError
-
         q = ideal.gen().element().numerator()
-        R, _from_R, _to_R = self._residue_field_global(q, name=name)
+
+        if q.degree() == 1:
+            R = F.constant_base_field()
+            _from_R = lambda e: e
+            _to_R = lambda e: e % q
+        elif F.is_global():
+            R, _from_R, _to_R = self._residue_field_global(q, name=name)
+        elif is_NumberField(F.constant_base_field()):
+            R = F.constant_base_field().extension(q)
+            _from_R = lambda e: e
+            _to_R = lambda e: (e % q)(R.gen(0))
+        else:
+            raise NotImplementedError
 
         def from_R(e):
             return F(_from_R(e))

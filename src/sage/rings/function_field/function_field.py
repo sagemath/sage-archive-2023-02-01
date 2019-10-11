@@ -2788,6 +2788,70 @@ class FunctionField_polymod(FunctionField):
         t = self.hom( [k.gen() for k in ret._intermediate_fields(ret.rational_function_field())] )
         return ret, f, t
 
+    @cached_method
+    def _inversion_isomorphism(self):
+        r"""
+        Return an inverted function field isomorphic to ``self`` and isomorphisms
+        between them.
+
+        An *inverted* function field `M` is an extension of the base rational
+        function field `k(x)` of ``self``, and isomorphic to ``self`` by an
+        isomorphism sending `x` to `1/x`, which we call an *inversion*
+        isomorphism.  Also the defining polynomial of the function field `M` is
+        required to be monic and integral.
+
+        The inversion isomorphism is for internal use to reposition infinite
+        places to finite places.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: F._inversion_isomorphism()
+            (Function field in s defined by s^3 + x^16 + x^14 + x^12, Composite map:
+               From: Function field in s defined by s^3 + x^16 + x^14 + x^12
+               To:   Function field in y defined by y^3 + x^6 + x^4 + x^2
+               Defn:   Function Field morphism:
+                       From: Function field in s defined by s^3 + x^16 + x^14 + x^12
+                       To:   Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       Defn: s |--> x^6*T
+                             x |--> x
+                     then
+                       Function Field morphism:
+                       From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       To:   Function field in y defined by y^3 + x^6 + x^4 + x^2
+                       Defn: T |--> y
+                             x |--> 1/x, Composite map:
+               From: Function field in y defined by y^3 + x^6 + x^4 + x^2
+               To:   Function field in s defined by s^3 + x^16 + x^14 + x^12
+               Defn:   Function Field morphism:
+                       From: Function field in y defined by y^3 + x^6 + x^4 + x^2
+                       To:   Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       Defn: y |--> T
+                             x |--> 1/x
+                     then
+                       Function Field morphism:
+                       From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       To:   Function field in s defined by s^3 + x^16 + x^14 + x^12
+                       Defn: T |--> 1/x^6*s
+                             x |--> x)
+        """
+        K = self.base_field()
+        R = PolynomialRing(K,'T')
+        x = K.gen()
+        xinv = 1/x
+
+        h = K.hom(xinv)
+        F_poly = R([h(c) for c in self.polynomial().list()])
+        F = K.extension(F_poly)
+
+        self2F = self.hom([F.gen(),xinv])
+        F2self = F.hom([self.gen(),xinv])
+
+        M, M2F, F2M = F.monic_integral_model('s')
+
+        return M, F2self*M2F, F2M*self2F
+
 class FunctionField_charzero_polymod(FunctionField_polymod, FunctionField_charzero):
     pass
 
@@ -2852,70 +2916,6 @@ class FunctionField_global(FunctionField_polymod):
         """
         from .order import FunctionFieldMaximalOrder_global
         return FunctionFieldMaximalOrder_global(self)
-
-    @cached_method
-    def _inversion_isomorphism(self):
-        r"""
-        Return an inverted function field isomorphic to ``self`` and isomorphisms
-        between them.
-
-        An *inverted* function field `M` is an extension of the base rational
-        function field `k(x)` of ``self``, and isomorphic to ``self`` by an
-        isomorphism sending `x` to `1/x`, which we call an *inversion*
-        isomorphism.  Also the defining polynomial of the function field `M` is
-        required to be monic and integral.
-
-        The inversion isomorphism is for internal use to reposition infinite
-        places to finite places.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: F._inversion_isomorphism()
-            (Function field in s defined by s^3 + x^16 + x^14 + x^12, Composite map:
-               From: Function field in s defined by s^3 + x^16 + x^14 + x^12
-               To:   Function field in y defined by y^3 + x^6 + x^4 + x^2
-               Defn:   Function Field morphism:
-                       From: Function field in s defined by s^3 + x^16 + x^14 + x^12
-                       To:   Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
-                       Defn: s |--> x^6*T
-                             x |--> x
-                     then
-                       Function Field morphism:
-                       From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
-                       To:   Function field in y defined by y^3 + x^6 + x^4 + x^2
-                       Defn: T |--> y
-                             x |--> 1/x, Composite map:
-               From: Function field in y defined by y^3 + x^6 + x^4 + x^2
-               To:   Function field in s defined by s^3 + x^16 + x^14 + x^12
-               Defn:   Function Field morphism:
-                       From: Function field in y defined by y^3 + x^6 + x^4 + x^2
-                       To:   Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
-                       Defn: y |--> T
-                             x |--> 1/x
-                     then
-                       Function Field morphism:
-                       From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
-                       To:   Function field in s defined by s^3 + x^16 + x^14 + x^12
-                       Defn: T |--> 1/x^6*s
-                             x |--> x)
-        """
-        K = self.base_field()
-        R = PolynomialRing(K,'T')
-        x = K.gen()
-        xinv = 1/x
-
-        h = K.hom(xinv)
-        F_poly = R([h(c) for c in self.polynomial().list()])
-        F = K.extension(F_poly)
-
-        self2F = self.hom([F.gen(),xinv])
-        F2self = F.hom([self.gen(),xinv])
-
-        M, M2F, F2M = F.monic_integral_model('s')
-
-        return M, F2self*M2F, F2M*self2F
 
     def residue_field(self, place, name=None):
         """

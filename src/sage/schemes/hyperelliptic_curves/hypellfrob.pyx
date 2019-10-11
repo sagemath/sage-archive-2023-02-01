@@ -28,6 +28,8 @@ from libcpp.vector cimport vector
 
 from sage.libs.ntl.ntl_ZZ_pContext import ZZ_pContext_factory
 from sage.libs.ntl.all import ZZ, ZZX
+from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
+
 from sage.matrix.all import Matrix
 from sage.rings.all import Qp, O as big_oh
 from sage.arith.all import is_prime
@@ -43,6 +45,9 @@ from sage.libs.ntl.conversion cimport set_ntl_matrix_modn_dense
 
 include "sage/libs/ntl/decl.pxi"
 
+
+from sage.libs.ntl.conversion cimport (
+    set_ntl_matrix_modn_dense)
 
 cdef extern from "hypellfrob.h":
     int hypellfrob_matrix "hypellfrob::matrix" (mat_ZZ_c output, ZZ_c p,

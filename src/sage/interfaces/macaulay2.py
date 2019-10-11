@@ -128,6 +128,7 @@ from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.global_options import GlobalOptions
 
 
 def remove_output_labels(s):
@@ -332,6 +333,17 @@ class Macaulay2(ExtraTabCompletion, Expect):
         self.eval('setRandomSeed(%d)' % seed)
         self._seed = seed
         return seed
+
+    class options(GlobalOptions):
+        NAME = 'Macaulay2'
+        module = 'sage.interfaces.macaulay2'
+        # GlobalOptions currently only supports strings, so we use yes/no
+        # rather than True/False to avoid confusion with booleans
+        after_print = dict(default='no',
+                           values=dict(
+                               yes='append AfterPrint type information to '
+                                   'textual representations',
+                               no='do not append AfterPrint text'))
 
     def get(self, var):
         """
@@ -892,9 +904,32 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             23, 24, 25)
             sage: str(macaulay2('1..25'))  # optional - macaulay2
             (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
+
+        If ``AfterPrint`` is enabled, the ``repr`` contains type information,
+        but the string representation does not::
+
+            sage: macaulay2.options.after_print = 'yes'  # optional - macaulay2
+            sage: repr(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+            --------------------------------------------------------------------------------
+            23, 24, 25)
+            <BLANKLINE>
+            Sequence
+            sage: str(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
+            sage: macaulay2.options.after_print = 'no'  # optional - macaulay2
         """
         from sage.typeset.ascii_art import empty_ascii_art
         P = self.parent()
+        if P.options.after_print == 'yes':
+            # In M2, the wrapped output is indented by the width of the prompt,
+            # which we strip in Sage. We hardcode the width of the prompt to
+            # 14=len('o1000000001 = '), which is tested in the doctests by the
+            # output getting wrapped at 80 characters.
+            width = 14 + empty_ascii_art._terminal_width()
+            return P.eval('printWidth=%d;%s' % (width, self._name))
+        # Otherwise manually wrap the net representation which does not display
+        # AfterPrint text
         return P.eval('print(wrap(%d,"-",net %s))'
                       % (empty_ascii_art._terminal_width(), self._name),
                       strip=False)
@@ -985,7 +1020,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             <... 'int'>
         """
         self._check_valid()
-        return int(self.parent()("#%s"%self.name()))
+        # we use str instead of repr to avoid wrapping
+        return int(str(self.parent()("#%s"%self.name())))
 
     def __getitem__(self, n):
         """
@@ -1237,6 +1273,25 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: B.after_print_text()  # optional - macaulay2
                                       2
             ZZ-module, submodule of ZZ
+
+        Note that Macaulay2 by default includes this information in the output.
+        In Sage, this behaviour can optionally be enabled by setting
+        :attr:`Macaulay2.options.after_print`. ::
+
+            sage: macaulay2.options.after_print = 'yes'  # optional - macaulay2
+            sage: A = macaulay2(matrix([[1, 2], [3, 6]])); A  # optional - macaulay2
+            | 1 2 |
+            | 3 6 |
+            <BLANKLINE>
+                     2        2
+            Matrix ZZ  <--- ZZ
+            sage: A.kernel()  # optional - macaulay2
+            image | 2  |
+                  | -1 |
+            <BLANKLINE>
+                                      2
+            ZZ-module, submodule of ZZ
+            sage: macaulay2.options.after_print = 'no'  # optional - macaulay2
         """
         return self.parent().eval('(lookup({topLevelMode,AfterPrint},' +
                                   'class {0}))({0})'.format(self._name))

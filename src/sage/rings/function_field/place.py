@@ -849,7 +849,7 @@ class FunctionFieldPlace_polymod(FunctionFieldPlace):
             to_K = lambda f: _to_K(to_F(f))
             return K, from_K, to_K
 
-        if is_NumberField(F.constant_base_field()):
+        if is_NumberField(F.constant_base_field()) or F.constant_base_field() == QQbar:
             R = F.base_field()
             ideal_gens = map(lambda e: R._to_bivariate_polynomial(e)[0], prime.gens() + (F.polynomial(),))
             I = ideal_gens[0].parent().ideal(ideal_gens)

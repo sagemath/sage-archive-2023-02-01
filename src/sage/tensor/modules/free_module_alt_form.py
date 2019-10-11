@@ -609,11 +609,13 @@ class FreeModuleAltForm(FreeModuleTensor):
             raise TypeError("the second argument for the exterior product " +
                             "must be an alternating form")
         if other._tensor_rank == 0:
-            return other*self
+            return other * self
         if self._tensor_rank == 0:
-            return self*other
+            return self * other
         fmodule = self._fmodule
         rank_r = self._tensor_rank + other._tensor_rank
+        if self._is_zero or other._is_zero:
+            return fmodule.dual_exterior_power(rank_r).zero()
         if self is other and (self._tensor_rank % 2) == 1:
             return fmodule.dual_exterior_power(rank_r).zero()
         basis = self.common_basis(other)

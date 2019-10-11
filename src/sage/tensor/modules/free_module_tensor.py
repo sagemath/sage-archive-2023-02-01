@@ -899,14 +899,16 @@ class FreeModuleTensor(ModuleElement):
         """
         if basis is None:
             basis = self._fmodule._def_basis
-        if self._name is not None:
-            symbol = self._name
-        else:
-            symbol = 'X'
-        if self._latex_name is not None:
-            latex_symbol = self._latex_name
-        else:
-            latex_symbol = 'X'
+        if symbol is None:
+            if self._name is not None:
+                symbol = self._name
+            else:
+                symbol = 'X'
+        if latex_symbol is None:
+            if self._latex_name is not None:
+                latex_symbol = self._latex_name
+            else:
+                latex_symbol = 'X'
         index_positions = self._tensor_type[0]*'u' + self._tensor_type[1]*'d'
         return self.comp(basis).display(symbol,
                                         latex_symbol=latex_symbol,
@@ -1258,6 +1260,7 @@ class FreeModuleTensor(ModuleElement):
             if self is self.parent().zero():
                 raise AssertionError("the components of the zero element "
                                      "cannot be changed")
+            self._is_zero = False  # a priori
         if basis is None:
             basis = self._fmodule._def_basis
         if basis not in self._components:
@@ -1341,7 +1344,9 @@ class FreeModuleTensor(ModuleElement):
             if self is self.parent().zero():
                 raise AssertionError("the components of the zero element "
                                      "cannot be changed")
-        if basis is None: basis = self._fmodule._def_basis
+            self._is_zero = False  # a priori
+        if basis is None:
+            basis = self._fmodule._def_basis
         if basis not in self._components:
             if basis not in self._fmodule._known_bases:
                 raise ValueError("the {} has not been ".format(basis) +
@@ -1546,7 +1551,7 @@ class FreeModuleTensor(ModuleElement):
         resu = self._new_instance()
         for basis, comp in self._components.items():
              resu._components[basis] = comp.copy()
-        self._is_zero = False  # a priori
+        resu._is_zero = self._is_zero
         return resu
 
     def common_basis(self, other):

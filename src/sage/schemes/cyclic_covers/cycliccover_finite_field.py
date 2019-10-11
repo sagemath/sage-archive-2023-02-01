@@ -171,7 +171,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             self._Fq = self._f.base_ring()
             self._p = self._Fq.characteristic()
             self._q = self._Fq.cardinality()
-            self._n = self._Fq.vector_space().dimension()
+            self._n = self._Fq.degree()
             self._epsilon = 0 if self._delta == 1 else 1
 
 

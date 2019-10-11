@@ -1270,7 +1270,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                  # optional - macaulay2
             'hello'
 
-            sage: macaulay2.needsPackage('"Graphs"')    # optional - macaulay2
+            sage: macaulay2.needsPackage('"Graphs"');   # optional - macaulay2
             sage: g = macaulay2.barbellGraph(3)         # optional - macaulay2
             sage: g.sage()                              # optional - macaulay2
             Graph on 6 vertices

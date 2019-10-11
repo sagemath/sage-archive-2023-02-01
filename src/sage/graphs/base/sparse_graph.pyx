@@ -1374,7 +1374,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     something like the following example, which creates a Sage Graph instance
     which wraps a SparseGraph object::
 
-        sage: G = Graph(30, implementation="c_graph", sparse=True)
+        sage: G = Graph(30, sparse=True)
         sage: G.add_edges([(0,1), (0,3), (4,5), (9, 23)])
         sage: G.edges(labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
@@ -1456,7 +1456,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: D = DiGraph(implementation='c_graph', sparse=True)
+            sage: D = DiGraph(sparse=True)
             sage: D.add_edge(0,1,2)
             sage: D.add_edge(0,1,3)
             sage: D.edges()
@@ -1472,6 +1472,17 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: G = Graph(3, sparse=True, loops=True)
             sage: G.add_edge(0,0); G.edges()
             [(0, 0, None)]
+            
+        Remove edges correctly when multiedges are not allowed (:trac:`28077`)::
+        
+            sage: D = DiGraph(multiedges=False)
+            sage: D.add_edge(1, 2, 'A')
+            sage: D.add_edge(1, 2, 'B')
+            sage: D.delete_edge(1, 2)
+            sage: D.incoming_edges(2)
+            []
+            sage: D.shortest_path(1, 2)
+            []
         """
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
@@ -1493,7 +1504,9 @@ cdef class SparseGraphBackend(CGraphBackend):
                 return
             else:
                 self._cg.del_all_arcs(u_int, v_int)
-                if not directed:
+                if directed:
+                    self._cg_rev.del_all_arcs(v_int, u_int)
+                else:
                     self._cg.del_all_arcs(v_int, u_int)
         if directed:
             self._cg.add_arc_label(u_int, v_int, l_int)
@@ -1565,13 +1578,13 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: G = Graph(implementation='c_graph', sparse=True)
+            sage: G = Graph(sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.delete_edge(0,1)
             sage: G.edges()
             []
 
-            sage: G = Graph(multiedges=True, implementation='c_graph', sparse=True)
+            sage: G = Graph(multiedges=True, sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.add_edge(0,1,None)
             sage: G.delete_edge(0,1)
@@ -1580,7 +1593,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         Do we remove loops correctly? (:trac:`12135`)::
 
-            sage: g=Graph({0:[0,0,0]}, implementation='c_graph', sparse=True)
+            sage: g=Graph({0:[0,0,0]}, sparse=True)
             sage: g.edges(labels=False)
             [(0, 0), (0, 0), (0, 0)]
             sage: g.delete_edge(0,0); g.edges(labels=False)

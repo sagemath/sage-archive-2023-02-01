@@ -360,7 +360,7 @@ Sage example in ./domaines.tex, line 1496::
 
 Sage example in ./domaines.tex, line 1509::
 
-  sage: prod( (a-b) for (a,b) in Subsets([x1,x2,x3,x4],2) )
+  sage: P = prod( (a-b) for (a,b) in Subsets([x1,x2,x3,x4],2) ); P * P.lc()
   x1^3*x2^2*x3 - x1^2*x2^3*x3 - x1^3*x2*x3^2 + x1*x2^3*x3^2
   + x1^2*x2*x3^3 - x1*x2^2*x3^3 - x1^3*x2^2*x4 + x1^2*x2^3*x4
   + x1^3*x3^2*x4 - x2^3*x3^2*x4 - x1^2*x3^3*x4 + x2^2*x3^3*x4
@@ -426,8 +426,7 @@ Sage example in ./domaines.tex, line 1665::
 Sage example in ./domaines.tex, line 1685::
 
   sage: R = QQ[sqrt(2)]['x']; R
-  Univariate Polynomial Ring in x over Number Field in sqrt2
-  with defining polynomial x^2 - 2
+    Univariate Polynomial Ring in x over Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
   sage: q = R(p); q
   54*x^4 + 36*x^3 - 102*x^2 - 72*x - 12
   sage: factor(q)

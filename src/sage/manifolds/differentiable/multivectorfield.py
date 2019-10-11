@@ -808,6 +808,14 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         ....:                [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
         sage: cart_to_spher = spher_to_cart.set_inverse(sqrt(x^2+y^2+z^2),
         ....:                              atan2(sqrt(x^2+y^2),z), atan2(y, x))
+        Check of the inverse coordinate transformation:
+          r == r  *passed*
+          th == arctan2(r*sin(th), r*cos(th))  **failed**
+          ph == arctan2(r*sin(ph)*sin(th), r*cos(ph)*sin(th))  **failed**
+          x == x  *passed*
+          y == y  *passed*
+          z == z  *passed*
+        NB: a failed report can reflect a mere lack of simplification.
         sage: a.comp(c_spher.frame()) # computation of components w.r.t. spherical frame
         Fully antisymmetric 3-indices components w.r.t. Coordinate frame
          (R3, (d/dr,d/dth,d/dph))
@@ -816,6 +824,13 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         sage: a.display(c_spher.frame())
         a = sqrt(x^2 + y^2 + z^2)/sqrt(x^2 + y^2) d/dr/\d/dth/\d/dph
         sage: a.display(c_spher.frame(), c_spher)
+        a = 1/sin(th) d/dr/\d/dth/\d/dph
+
+    As a shortcut of the above command, on can pass just the chart ``c_spher``
+    to ``display``, the vector frame being then assumed to be the coordinate
+    frame associated with the chart::
+
+        sage: a.display(c_spher)
         a = 1/sin(th) d/dr/\d/dth/\d/dph
 
     The exterior product of two multivector fields is performed via the method

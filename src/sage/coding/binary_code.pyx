@@ -736,6 +736,17 @@ cdef class BinaryCode:
 
     """
     def __cinit__(self, arg1, arg2=None):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: M = Matrix(GF(2), [[1,1,1,1]])
+            sage: B = BinaryCode(M)
+            sage: TestSuite(B).run()
+        """
         cdef int nrows, i, j, size
         cdef int nwords, other_nwords, parity, combination
         cdef codeword word, glue_word
@@ -1259,6 +1270,16 @@ cdef class OrbitPartition:
 
     """
     def __cinit__(self, int nrows, int ncols):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: O = OrbitPartition(4, 8)
+            sage: TestSuite(O).run(skip='_test_pickling')
+        """
         cdef int col
         cdef int nwords, word
         nwords = (1 << nrows)
@@ -1558,6 +1579,16 @@ cdef class PartitionStack:
     group computation.
     """
     def __cinit__(self, arg1, arg2=None):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: P = PartitionStack(2, 6)
+            sage: TestSuite(P).run(skip='_test_pickling')
+        """
         cdef int k, nwords, ncols, sizeof_int
         cdef PartitionStack other = None
         cdef int *wd_ents
@@ -3047,6 +3078,16 @@ cdef class PartitionStack:
 cdef class BinaryCodeClassifier:
 
     def __cinit__(self):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: BC = BinaryCodeClassifier()
+            sage: TestSuite(BC).run(skip='_test_pickling')
+        """
         self.radix = sizeof(codeword) << 3
         self.ham_wts = hamming_weights()
         self.L = 100 # memory limit for Phi and Omega- multiply by 8KB

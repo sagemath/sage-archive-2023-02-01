@@ -129,17 +129,6 @@ fi
 # Make NEW_SAGE_ROOT absolute
 NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
 
-# Sanity check NEW_SAGE_ROOT
-if [ -f "$NEW_SAGE_ROOT/sage" -a -d "$NEW_SAGE_ROOT/build" ]; then
-    :
-else
-    echo >&2 "Error: SAGE_ROOT is set to a bad value:"
-    echo >&2 "SAGE_ROOT=$SAGE_ROOT"
-    echo >&2 "You must correct it or erase it and run this script from the SAGE_ROOT"
-    echo >&2 "or SAGE_ROOT/local/bin/ directory."
-    return 1
-fi
-
 # Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
 if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
     echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
@@ -360,11 +349,6 @@ if [ -n "$MULTI_ARCH" ]; then
     LIBRARY_PATH="${LIBRARY_PATH}:/usr/lib/$MULTI_ARCH"
     CPATH="${CPATH}:/usr/include/$MULTI_ARCH"
 fi
-
-# For PARI/GP
-GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
-GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
-GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
 
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE

@@ -446,6 +446,7 @@ from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.manifolds.manifold import TopologicalManifold
+from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
 
 ###############################################################################
 
@@ -488,9 +489,9 @@ class DifferentiableManifold(TopologicalManifold):
     - ``structure`` -- manifold structure (see
       :class:`~sage.manifolds.structure.DifferentialStructure` or
       :class:`~sage.manifolds.structure.RealDifferentialStructure`)
-    - ``ambient`` -- (default: ``None``) if not ``None``, must be a
+    - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       differentiable manifold; the created object is then an open subset of
-      ``ambient``
+      ``base_manifold``
     - ``diff_degree`` -- (default: ``infinity``) degree `k` of
       differentiability
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
@@ -1072,8 +1073,8 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
           (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`)
-          representing the module `\mathfrak{X}(M,\Phi)` of vector fields on
-          `M` taking values on `\Phi(M)\subset N`
+          representing the `C^k(M)`-module `\mathfrak{X}(M,\Phi)` of vector
+          fields on `M` taking values on `\Phi(M)\subset N`
 
         EXAMPLES:
 
@@ -1136,6 +1137,58 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: XU_R3.rank()
             3
+
+        Without any information on the manifold, the vector field module is
+        not free by default::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: isinstance(XM, FiniteRankFreeModule)
+            False
+
+        In particular, declaring a coordinate chart on ``M`` would yield an
+        error::
+
+            sage: X.<x,y> = M.chart()
+            Traceback (most recent call last):
+            ...
+            ValueError: the Module X(M) of vector fields on the 2-dimensional
+             differentiable manifold M has already been constructed as a
+             non-free module, which implies that the 2-dimensional
+             differentiable manifold M is not parallelizable and hence cannot
+             be the domain of a coordinate chart
+
+        Similarly, one cannot declare a vector frame on `M`::
+
+            sage: e = M.vector_frame('e')
+            Traceback (most recent call last):
+            ...
+            ValueError: the Module X(M) of vector fields on the 2-dimensional
+             differentiable manifold M has already been constructed as a
+             non-free module and therefore cannot have a basis
+
+        One shall use the keyword ``force_free=True`` to construct a free
+        module before declaring the chart::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module(force_free=True)
+            sage: X.<x,y> = M.chart()  # OK
+            sage: e = M.vector_frame('e')  # OK
+
+        If one declares the chart or the vector frame before asking for the
+        vector field module, the latter is initialized as a free module,
+        without the need to specify ``force_free=True``. Indeed, the
+        information that `M` is the domain of a chart or a vector frame implies
+        that `M` is parallelizable and is therefore sufficient to assert that
+        `\mathfrak{X}(M)` is a free module over `C^k(M)`::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: XM = M.vector_field_module()
+            sage: isinstance(XM, FiniteRankFreeModule)
+            True
+            sage: M.is_manifestly_parallelizable()
+            True
 
         """
         from sage.manifolds.differentiable.vectorfield_module import \
@@ -1271,6 +1324,56 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         return self.vector_field_module(dest_map=dest_map).dual_exterior_power(degree)
+
+    def mixed_form_algebra(self, dest_map=None):
+        r"""
+        Return the set of mixed forms defined on ``self``, possibly with values
+        in another manifold, as a graded algebra.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`
+            for complete documentation.
+
+        INPUT:
+
+        - ``dest_map`` -- (default: ``None``) destination map, i.e. a
+          differentiable map `\Phi:\ M \rightarrow N`, where `M` is the
+          current manifold and `N` a differentiable manifold;
+          if ``None``, it is assumed that `N = M` and that `\Phi` is the
+          identity map (case of mixed forms *on* `M`), otherwise
+          ``dest_map`` must be a
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`
+          representing the graded algebra `\Omega^*(M,\Phi)` of mixed forms on `M`
+          taking values on `\Phi(M)\subset N`
+
+        EXAMPLES:
+
+        Graded algebra of mixed forms on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: M.mixed_form_algebra()
+            Graded algebra Omega^*(M) of mixed differential forms on the
+             2-dimensional differentiable manifold M
+            sage: M.mixed_form_algebra().category()
+            Category of graded algebras over Symbolic Ring
+            sage: M.mixed_form_algebra().base_ring()
+            Symbolic Ring
+
+        The outcome is cached::
+
+            sage: M.mixed_form_algebra() is M.mixed_form_algebra()
+            True
+
+        """
+        vmodule = self.vector_field_module(dest_map=dest_map)
+        return MixedFormAlgebra(vmodule)
 
     def multivector_module(self, degree, dest_map=None):
         r"""
@@ -2081,6 +2184,82 @@ class DifferentiableManifold(TopologicalManifold):
         if comp:
             # Some components are to be initialized
             resu._init_components(*comp, **kwargs)
+        return resu
+
+    def mixed_form(self, name=None, latex_name=None, dest_map=None, comp=None):
+        r"""
+        Define a mixed form on ``self``.
+
+        Via the argument ``dest_map``, it is possible to let the
+        mixed form take its values on another manifold. More
+        precisely, if `M` is the current manifold, `N` a differentiable
+        manifold, `\Phi:\  M \rightarrow N` a differentiable map, a
+        *mixed form along* `\Phi` can be considered as a differentiable map
+
+        .. MATH::
+
+            a: M  \longrightarrow \bigoplus^n_{k=0} T^{(0,k)}N
+
+        (`T^{(0,k)} N` being the tensor bundle of type `(0,k)` over `N`, `\oplus`
+        being the Whitney sum and `n` being the dimension of `N`) such that
+
+        .. MATH::
+
+            \forall x \in M,\quad a(x) \in \bigoplus^n_{k=0} \Lambda^k(T^*_{\Phi(x)} N),
+
+        where `\Lambda^k(T^*_{\Phi(x)} N)` is the `k`-th exterior power
+        of the dual of the tangent space `T_{\Phi(x)} N`.
+
+        The standard case of a mixed form *on* `M` corresponds
+        to `N = M` and `\Phi = \mathrm{Id}_M`.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.mixed_form.MixedForm`
+            for complete documentation.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the differential form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
+          the differential form; if none is provided, the LaTeX symbol
+          is set to ``name``
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that
+          `N = M` and that `\Phi` is the identity map (case of a
+          differential form *on* `M`), otherwise ``dest_map`` must be a
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+        - ``comp`` -- (default: ``None``) homogeneous components of the mixed
+          form as a list; if none is provided, the components are set to
+          innocent unnamed differential forms
+
+        OUTPUT:
+
+        - the mixed form as a
+          :class:`~sage.manifolds.differentiable.mixed_form.MixedForm`
+
+        EXAMPLES:
+
+        A mixed form on an open subset of a 3-dimensional differentiable
+        manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U', latex_name=r'\mathcal{U}'); U
+            Open subset U of the 3-dimensional differentiable manifold M
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: f = U.mixed_form(name='F'); f
+            Mixed differential form F on the Open subset U of the 3-dimensional
+             differentiable manifold M
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.mixed_form.MixedForm` for
+        more examples.
+
+        """
+        algebra = self.mixed_form_algebra(dest_map=dest_map)
+        resu = algebra.element_class(algebra, name=name, latex_name=latex_name)
+        if comp is not None:
+            resu[:] = comp
         return resu
 
     def automorphism_field(self, *comp, **kwargs):

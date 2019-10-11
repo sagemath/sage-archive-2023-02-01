@@ -510,6 +510,8 @@ class RealBallField(UniqueRepresentation, Field):
 
             sage: RBF(4*zeta(3))
             [4.808227612638377 +/- ...e-16]
+            sage: RBF(exp(1), 0.01)
+            [2.7 +/- ...]
         """
         try:
             return self.element_class(self, mid, rad)
@@ -520,7 +522,8 @@ class RealBallField(UniqueRepresentation, Field):
         except (AttributeError, TypeError):
             pass
         try:
-            return mid.operator()(*[self(operand) for operand in mid.operands()])
+            val = mid.operator()(*[self(operand) for operand in mid.operands()])
+            return self.element_class(self, val, rad)
         except (AttributeError, TypeError):
             pass
         try:
@@ -1938,6 +1941,29 @@ cdef class RealBall(RingElement):
         return res
 
     # Precision and accuracy
+
+    def nbits(self):
+        r"""
+        Return the minimum precision sufficient to represent this ball exactly.
+
+        In other words, return the number of bits needed to represent the
+        absolute value of the mantissa of the midpoint of this ball. The result
+        is 0 if the midpoint is a special value.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).nbits()
+            53
+            sage: RBF(1023, .1).nbits()
+            10
+            sage: RBF(1024, .1).nbits()
+            1
+            sage: RBF(0).nbits()
+            0
+            sage: RBF(infinity).nbits()
+            0
+        """
+        return arb_bits(self.value)
 
     def round(self):
         """
@@ -3512,6 +3538,39 @@ cdef class RealBall(RingElement):
             if _do_sig(prec(self)): sig_on()
             arb_hurwitz_zeta(res.value, self.value, a_ball.value, prec(self))
             if _do_sig(prec(self)): sig_off()
+        return res
+
+    def zetaderiv(self, k):
+        r"""
+        Return the image of this ball by the k-th derivative of the Riemann
+        zeta function.
+
+        For a more flexible interface, see the low-level method
+        ``_zeta_series`` of polynomials with complex ball coefficients.
+
+        EXAMPLES::
+
+            sage: RBF(1/2).zetaderiv(1)
+            [-3.92264613920915...]
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        Pol = PolynomialRing(self._parent.complex_field(), 'x')
+        ser = Pol([self, 1])._zeta_series(k + 1)
+        return ser[k].real()
+
+    def lambert_w(self):
+        r"""
+        Return the image of this ball by the Lambert W function.
+
+        EXAMPLES::
+
+            sage: RBF(1).lambert_w()
+            [0.5671432904097...]
+        """
+        cdef RealBall res = self._new()
+        sig_on()
+        arb_lambertw(res.value, self.value, 0, prec(self))
+        sig_off()
         return res
 
     def polylog(self, s):

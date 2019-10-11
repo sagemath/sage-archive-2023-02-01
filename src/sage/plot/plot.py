@@ -76,9 +76,9 @@ The following plotting functions are supported:
 The following miscellaneous Graphics functions are included:
 
 
--  :func:`Graphics`
+-  :func:`~sage.plot.graphics.Graphics`
 
--  :func:`is_Graphics`
+-  :func:`~sage.plot.graphics.is_Graphics`
 
 -  :func:`~sage.plot.colors.hue`
 
@@ -396,10 +396,9 @@ Symbolline::
 
 Cycliclink::
 
-    sage: x = var('x')
     sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
     sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
-    sage: show(graphics_array([g1, g2], 2, 1), xmin=0)
+    sage: show(graphics_array([g1, g2], 2, 1))
 
 .. PLOT::
 
@@ -578,7 +577,8 @@ from sage.ext.fast_eval import fast_float, is_fast_float
 
 from sage.misc.decorators import options
 
-from .graphics import Graphics, GraphicsArray
+from .graphics import Graphics
+from .multigraphics import GraphicsArray
 from sage.plot.polygon import polygon
 
 # import of line2d below is only for redirection of imports
@@ -1015,9 +1015,9 @@ def plot(funcs, *args, **kwds):
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
-      
+
     MATPLOTLIB STYLE SHEET OPTION:
-    
+
     - ``stylesheet`` - (Default: classic) Support for loading a full matplotlib style sheet.
       Any style sheet listed in ``matplotlib.pyplot.style.available`` is acceptable. If a
       non-existing style is provided the default classic is applied.
@@ -1552,7 +1552,7 @@ def plot(funcs, *args, **kwds):
         p3 = plot(sin(x), -pi, pi, fill='max')
         p4 = plot(sin(x), -pi, pi, fill=(1-x)/3, fillcolor='blue', fillalpha=.2)
         g = graphics_array([[p1, p2], [p3, p4]])
-        sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
+        sphinx_plot(g, frame=True, axes=False)
 
     The basic options for filling a list of plots::
 
@@ -1571,7 +1571,7 @@ def plot(funcs, *args, **kwds):
         p3 = plot([f1, f2], -pi, pi, fill=[0, [0]], fillcolor=['orange','red'], fillalpha=1, color={1: 'blue'})
         p4 = plot([f1, f2], (x,-pi, pi), fill=[x/3, 0], fillcolor=['grey'], color=['red', 'blue'])
         g = graphics_array([[p1, p2], [p3, p4]])
-        sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
+        sphinx_plot(g, frame=True, axes=False)
 
 
     A example about the growth of prime numbers::
@@ -2201,7 +2201,7 @@ def _plot(funcs, xrange, parametric=False,
             elif isinstance(legend_label_temp, (list, tuple)):
                 if i < len(legend_label_temp):
                     legend_label_entry = legend_label_temp[i]
-            elif legend_label_temp is not 'automatic':
+            elif legend_label_temp != 'automatic':
                 # assume it is None or str.
                 legend_label_entry = legend_label_temp
 
@@ -3291,7 +3291,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
         If ``plotjoined`` is ``False`` then the vertical axis must have all
         points strictly positive. Otherwise the plot will come up empty.
-        For instance the following plot contains a point at `(1,0)`. Further, 
+        For instance the following plot contains a point at `(1,0)`. Further,
         matplotlib will display a user warning.
 
         ::
@@ -3404,33 +3404,38 @@ def reshape(v, n, m):
 
 def graphics_array(array, nrows=None, ncols=None):
     r"""
-    ``graphics_array`` take a list of lists (or tuples) of
-    graphics objects and plots them all on one canvas (single plot).
+    Plot a list of lists (or tuples) of graphics objects on one canvas,
+    arranged as an array.
 
     INPUT:
 
-    - ``array`` -- a list of lists or tuples. The graphics objects to
-       combine into a graphics array.
+    - ``array`` -- either a list of lists of
+      :class:`~sage.plot.graphics.Graphics` elements or a
+      single list of :class:`~sage.plot.graphics.Graphics` elements
 
     - ``nrows, ncols`` -- (optional) integers. If both are given then
-       the input array is flattened and turned into an ``nrows`` x
-       ``ncols`` array, with blank graphics objects padded at the end,
-       if necessary. If only one is specified, the other is chosen
-       automatically.
+      the input array is flattened and turned into an ``nrows`` x
+      ``ncols`` array, with blank graphics objects padded at the end,
+      if necessary. If only one is specified, the other is chosen
+      automatically.
+
+    OUTPUT:
+
+    - instance of :class:`~sage.plot.multigraphics.GraphicsArray`
 
     EXAMPLES: Make some plots of `\sin` functions::
 
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
         sage: h(x) = sin(4*x)
-        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5)) # long time
-        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9)) # long time
-        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6)) # long time
-        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0)) # long time
+        sage: p1 = plot(f, (-2*pi,2*pi), color=hue(0.5)) # long time
+        sage: p2 = plot(g, (-2*pi,2*pi), color=hue(0.9)) # long time
+        sage: p3 = parametric_plot((f,g), (0,2*pi), color=hue(0.6)) # long time
+        sage: p4 = parametric_plot((f,h), (0,2*pi), color=hue(1.0)) # long time
 
     Now make a graphics array out of the plots::
 
-        sage: graphics_array(((p1,p2),(p3,p4))) # long time
+        sage: graphics_array(((p1,p2), (p3,p4))) # long time
         Graphics Array of size 2 x 2
 
     .. PLOT::
@@ -3438,42 +3443,65 @@ def graphics_array(array, nrows=None, ncols=None):
         def f(x): return sin(x)
         def g(x): return sin(2*x)
         def h(x): return sin(4*x)
-        p1 = plot(f,(-2*pi,2*pi),color=hue(0.5)) # long time
-        p2 = plot(g,(-2*pi,2*pi),color=hue(0.9)) # long time
-        p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6)) # long time
-        p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0)) # long time
-        g = graphics_array(((p1,p2),(p3,p4))) # long time
+        p1 = plot(f, (-2*pi,2*pi), color=hue(0.5)) # long time
+        p2 = plot(g, (-2*pi,2*pi), color=hue(0.9)) # long time
+        p3 = parametric_plot((f,g), (0,2*pi), color=hue(0.6)) # long time
+        p4 = parametric_plot((f,h), (0,2*pi), color=hue(1.0)) # long time
+        g = graphics_array(((p1, p2), (p3, p4))) # long time
         sphinx_plot(g)
 
-    One can also name the array, and then use :meth:`~sage.plot.graphics.GraphicsArray.show`
-    or :meth:`~sage.plot.graphics.GraphicsArray.save`::
+    One can also name the array, and then use
+    :meth:`~sage.plot.multigraphics.MultiGraphics.show`
+    or :meth:`~sage.plot.multigraphics.MultiGraphics.save`::
 
-        sage: ga = graphics_array(((p1,p2),(p3,p4))) # long time
-        sage: ga.show() # long time
+        sage: ga = graphics_array(((p1,p2), (p3,p4))) # long time
+        sage: ga.show() # long time; same output as above
 
     Here we give only one row::
 
         sage: p1 = plot(sin,(-4,4))
         sage: p2 = plot(cos,(-4,4))
-        sage: g = graphics_array([p1, p2]); print(g)
+        sage: ga = graphics_array([p1, p2])
+        sage: ga
         Graphics Array of size 1 x 2
-        sage: g.show()
+        sage: ga.show()
 
     .. PLOT::
 
         p1 = plot(sin,(-4,4))
         p2 = plot(cos,(-4,4))
-        g = graphics_array([p1, p2])
-        sphinx_plot(g)
+        ga = graphics_array([p1, p2])
+        sphinx_plot(ga)
 
     It is possible to use ``figsize`` to change the size of the plot
     as a whole::
 
-        sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
-        sage: G = graphics_array(L)
-        sage: G.show(figsize=[5,3])  # smallish and compact
-        sage: G.show(figsize=[10,20])  # bigger and tall and thin; long time (2s on sage.math, 2012)
-        sage: G.show(figsize=8)  # figure as a whole is a square
+        sage: L = [plot(sin(k*x), (x,-pi,pi)) for k in [1..3]]
+        sage: ga = graphics_array(L)
+        sage: ga.show(figsize=[5,3])  # smallish and compact
+
+    .. PLOT::
+
+        ga = graphics_array([plot(sin(k*x), (x,-pi,pi)) for k in range(1, 4)])
+        sphinx_plot(ga, figsize=[5,3])
+
+    ::
+
+        sage: ga.show(figsize=[5,7])  # tall and thin; long time
+
+    .. PLOT::
+
+        ga = graphics_array([plot(sin(k*x), (x,-pi,pi)) for k in range(1, 4)])
+        sphinx_plot(ga, figsize=[5,7])
+
+    ::
+
+        sage: ga.show(figsize=4)  # width=4 inches, height fixed from default aspect ratio
+
+    .. PLOT::
+
+        ga = graphics_array([plot(sin(k*x), (x,-pi,pi)) for k in range(1, 4)])
+        sphinx_plot(ga, figsize=4)
 
     Specifying only the number of rows or the number of columns
     computes the other dimension automatically::
@@ -3484,6 +3512,37 @@ def graphics_array(array, nrows=None, ncols=None):
         sage: ga = graphics_array([plot(sin)] * 10, ncols=3)
         sage: ga.nrows(), ga.ncols()
         (4, 3)
+        sage: ga = graphics_array([plot(sin)] * 4, nrows=2)
+        sage: ga.nrows(), ga.ncols()
+        (2, 2)
+        sage: ga = graphics_array([plot(sin)] * 6, ncols=2)
+        sage: ga.nrows(), ga.ncols()
+        (3, 2)
+
+    The options like ``fontsize``, ``scale`` or ``frame`` passed to individual
+    plots are preserved::
+
+        sage: p1 = plot(sin(x^2), (x, 0, 6),
+        ....:           axes_labels=[r'$\theta$', r'$\sin(\theta^2)$'], fontsize=16)
+        sage: p2 = plot(x^3, (x, 1, 100), axes_labels=[r'$x$', r'$y$'],
+        ....:           scale='semilogy', frame=True, gridlines='minor')
+        sage: ga = graphics_array([p1, p2])
+        sage: ga.show()
+
+    .. PLOT::
+
+        p1 = plot(sin(x**2), (x, 0, 6), \
+                  axes_labels=[r'$\theta$', r'$\sin(\theta^2)$'], fontsize=16)
+        p2 = plot(x**3, (x, 1, 100), axes_labels=[r'$x$', r'$y$'], \
+                  scale='semilogy', frame=True, gridlines='minor')
+        ga = graphics_array([p1, p2])
+        sphinx_plot(ga)
+
+    .. SEEALSO::
+
+        :class:`~sage.plot.multigraphics.GraphicsArray` for more examples
+
+
     """
     # TODO: refactor the whole array flattening and reshaping into a class
     if nrows is None and ncols is None:
@@ -3500,10 +3559,14 @@ def graphics_array(array, nrows=None, ncols=None):
             length = sum(map(len, array))
         if nrows is None:
             ncols = int(ncols)
-            nrows = length // ncols + 1
+            nrows = length // ncols
+            if nrows*ncols < length or nrows == 0:
+                nrows += 1
         elif ncols is None:
             nrows = int(nrows)
-            ncols = length // nrows + 1
+            ncols = length // nrows
+            if nrows*ncols < length or ncols == 0:
+                ncols += 1
         else:
             assert False
         array = reshape(array, nrows, ncols)
@@ -3512,7 +3575,7 @@ def graphics_array(array, nrows=None, ncols=None):
 
 def minmax_data(xdata, ydata, dict=False):
     """
-    Return the minimums and maximums of xdata and ydata.
+    Return the minimums and maximums of ``xdata`` and ``ydata``.
 
     If dict is False, then minmax_data returns the tuple (xmin, xmax,
     ymin, ymax); otherwise, it returns a dictionary whose keys are
@@ -3526,19 +3589,25 @@ def minmax_data(xdata, ydata, dict=False):
         (-1, 1, -1, 1)
         sage: minmax_data([-1, 2], [4, -3])
         (-1, 2, -3, 4)
+        sage: minmax_data([1, 2], [4, -3])
+        (1, 2, -3, 4)
         sage: d = minmax_data([-1, 2], [4, -3], dict=True)
         sage: list(sorted(d.items()))
         [('xmax', 2), ('xmin', -1), ('ymax', 4), ('ymin', -3)]
+        sage: d = minmax_data([1, 2], [3, 4], dict=True)
+        sage: list(sorted(d.items()))
+        [('xmax', 2), ('xmin', 1), ('ymax', 4), ('ymin', 3)]
     """
-    xmin = min(xdata) if len(xdata) > 0 else -1
-    xmax = max(xdata) if len(xdata) > 0 else 1
-    ymin = min(ydata) if len(ydata) > 0 else -1
-    ymax = max(ydata) if len(ydata) > 0 else 1
+    xmin = min(xdata) if len(xdata) else -1
+    xmax = max(xdata) if len(xdata) else 1
+    ymin = min(ydata) if len(ydata) else -1
+    ymax = max(ydata) if len(ydata) else 1
     if dict:
-        return {'xmin':xmin, 'xmax':xmax,
-                'ymin':ymin, 'ymax':ymax}
+        return {'xmin': xmin, 'xmax': xmax,
+                'ymin': ymin, 'ymax': ymax}
     else:
         return xmin, xmax, ymin, ymax
+
 
 def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0):
     r"""

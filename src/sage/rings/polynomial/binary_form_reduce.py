@@ -27,9 +27,9 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import division
 
-from sage.arith.misc import gcd
 from sage.calculus.functions import jacobian
 from sage.functions.hyperbolic import cosh, sinh
+from sage.functions.log import exp
 from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
 from sage.modules.free_module_element import vector
@@ -41,7 +41,6 @@ from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
-from sage.symbolic.constants import e
 
 
 def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
@@ -102,7 +101,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     ::
 
         sage: R.<x,y> = QQ[]
-        sage: covariant_z0(x^2*y - x*y^2, prec=100)
+        sage: covariant_z0(x^2*y - x*y^2, prec=100) # tol 1e-28
          (0.50000000000000000000000000003 + 0.86602540378443864676372317076*I,
          1.5396007178390020386910634147)
 
@@ -145,7 +144,6 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
             mat = matrix(ZZ,2,2,[0,-1,1,0])
         else:
             t = 0
-            poly_ring = f.parent()
             while f(t) == 0:
                 t += 1
             mat = matrix(ZZ,2,2,[t,-1,1,0])
@@ -196,7 +194,6 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     else:
         # solve the minimization problem for 'true' covariant
         CF = ComplexIntervalField(prec=prec) # keeps trac of our precision error
-        RF = RealField(prec=prec)
         z = CF(z)
         FM = F(list(mat * vector(R.gens()))).subs({R.gen(1):1}).univariate_polynomial()
         from sage.rings.polynomial.complex_roots import complex_roots
@@ -291,7 +288,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
 
         sage: from sage.rings.polynomial.binary_form_reduce import epsinv
         sage: R.<x,y> = QQ[]
-        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597)
+        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597) # tol 1e-12
         4.02520895942207       
     """
     def coshdelta(z):
@@ -314,14 +311,6 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
         return min([pol(r/r.abs()).real() for r in drts])
 
     C = ComplexField(prec=prec)
-    if F.base_ring() != C:
-        if emb is None:
-            compF = F.change_ring(C)
-        else:
-            compF = F.change_ring(emb)
-    else:
-        compF = F
-
     R = F.parent()
     d = F.degree()
     if z is None:
@@ -334,7 +323,6 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
 
     f = F.subs({R.gen(1):1}).univariate_polynomial()
     #now we have a single variable polynomial
-    x = f.parent().gen()
     if (max([ex for p,ex in f.roots(ring=C)]) >= QQ(d)/2)\
       or (f.degree() < QQ(d)/2):
         raise ValueError('cannot have root with multiplicity >= deg(F)/2')
@@ -411,9 +399,9 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
         sage: from sage.rings.polynomial.binary_form_reduce import get_bound_poly
         sage: R.<x,y> = QQ[]
         sage: F = -2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3
-        sage: get_bound_poly(F)
+        sage: get_bound_poly(F) # tol 1e-12
         28.0049336543295
-        sage: get_bound_poly(F, norm_type='height')
+        sage: get_bound_poly(F, norm_type='height') # tol 1e-11
         111.890642019092
     """
     def coshdelta(z):
@@ -431,13 +419,12 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
     assert(n>2), "degree 2 polynomial"
 
     z0F, thetaF = covariant_z0(compF, prec=prec, emb=emb)
-    cosh_delta = coshdelta(z0F)
     if norm_type == 'norm':
          #euclidean norm squared
         normF = (sum([abs(i)**2 for i in compF.coefficients()]))
         target = (2**(n-1))*normF/thetaF
     elif norm_type == 'height':
-        hF = e**max([c.global_height(prec=prec) for c in F.coefficients()]) #height
+        hF = exp(max([c.global_height(prec=prec) for c in F.coefficients()]))  # height
         target = (2**(n-1))*(n+1)*(hF**2)/thetaF
     else:
         raise ValueError('type must be norm or height')
@@ -480,6 +467,7 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
 
     ::
 
+        sage: from sage.rings.polynomial.binary_form_reduce import smallest_poly, get_bound_poly
         sage: R.<x,y> = QQ[]
         sage: F = -2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3
         sage: smallest_poly(F)
@@ -487,13 +475,18 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
                                                [1 4]
         -2*x^3 - 22*x^2*y - 77*x*y^2 + 43*y^3, [0 1]
         ]
-        sage: smallest_poly(F, norm_type='height')
-        [
+        sage: F0, M = smallest_poly(F, norm_type='height')
+        sage: F0, M  # random
+        (
                                                 [5 4]
         -58*x^3 - 47*x^2*y + 52*x*y^2 + 43*y^3, [1 1]
-        ]
+        )
+        sage: M in SL2Z, F0 == R.hom(M * vector([x, y]))(F)
+        (True, True)
+        sage: get_bound_poly(F0, norm_type='height')  # tol 1e-12
+        23.3402702199809
 
-    an example with a multiple root::
+    An example with a multiple root::
 
         sage: R.<x,y> = QQ[]
         sage: F = -16*x^7 - 114*x^6*y - 345*x^5*y^2 - 599*x^4*y^3 - 666*x^3*y^4\
@@ -532,7 +525,7 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
     if norm_type == 'norm':
         current_size = sum([abs(i)**2 for i in G.coefficients()]) #euclidean norm squared
     elif norm_type == 'height': #height
-        current_size = e**max([c.global_height(prec=prec) for c in G.coefficients()])
+        current_size = exp(max([c.global_height(prec=prec) for c in G.coefficients()]))
     else:
         raise ValueError('type must be norm or height')
     v0, th = covariant_z0(G, prec=prec, emb=emb)
@@ -560,7 +553,7 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
         if norm_type == 'norm':
             new_size = sum([abs(i)**2 for i in G.coefficients()]) #euclidean norm squared         
         else: #height
-            new_size = e**max([c.global_height(prec=prec) for c in G.coefficients()])
+            new_size = exp(max([c.global_height(prec=prec) for c in G.coefficients()]))
         if new_size < current_size:
             current_min = [G, v, rep, M, coshdelta(v)]
             current_size = new_size

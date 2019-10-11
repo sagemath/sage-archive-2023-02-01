@@ -30,8 +30,10 @@ with ``delete()``.
     :func:`min_spanning_tree` | Compute a minimum spanning tree of a (weighted) graph.
     :func:`shortest_paths` | Use Dijkstra or Bellman-Ford algorithm to compute the single-source shortest paths.
     :func:`johnson_shortest_paths` | Use Johnson algorithm to compute the all-pairs shortest paths.
+    :func:`floyd_warshall_shortest_paths` | Use Floyd-Warshall algorithm to compute the all-pairs shortest paths.
     :func:`johnson_closeness_centrality` | Use Johnson algorithm to compute the closeness centrality of all vertices.
     :func:`blocks_and_cut_vertices` | Use Tarjan's algorithm to compute the blocks and cut vertices of the graph.
+    :func:`min_cycle_basis` | Return a minimum weight cycle basis of the input graph.
 
 Functions
 ---------
@@ -50,7 +52,8 @@ from __future__ import absolute_import
 
 cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
-
+from libcpp.set cimport set as cset
+from libcpp.pair cimport pair
 
 cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, vertex_to_int, reverse=False):
     r"""
@@ -1016,14 +1019,71 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     return (dist, pred)
 
 
-cpdef johnson_shortest_paths(g, weight_function=None):
+cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed, weight_type):
+    r"""
+    Return the predecessor matrix from the distance matrix of the graph.
+    
+    INPUT:
+    
+    - ``g`` -- the input boost graph
+    
+    - ``result`` -- the matrix of shortest distances
+    
+    - ``int_to_v`` -- a list; it is a mapping from `(0, \ldots, n-1)`
+      to the vertex set of the original sage graph.
+    
+    - ``directed`` -- boolean; whether the input graph is directed
+    
+    - ``weight_type`` -- correct data type for edge weights
+    
+    OUTPUT:
+    
+    A dictionary of dictionaries ``pred`` such that ``pred[u][v]`` indicates 
+    the predecessor  of `v` in the shortest path from `u` to `v`.
+
+    TESTS::
+
+        sage: from sage.graphs.base.boost_graph import johnson_shortest_paths
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: expected = {0: {0: None, 1: 0, 2: 1, 3: 2},
+        ....:             1: {0: 1, 1: None, 2: 1, 3: 2},
+        ....:             2: {0: 1, 1: 2, 2: None, 3: 2},
+        ....:             3: {0: 1, 1: 2, 2: 3, 3: None}}
+        sage: johnson_shortest_paths(g, distances=False, predecessors=True) == expected
+        True
+    """
+    cdef vector[pair[int, pair[int, double]]] edges
+    sig_on()
+    edges = g.edge_list()
+    sig_off()
+    cdef int N = g.num_verts()
+    cdef dict pred = {v: {v: None} for v in int_to_v}
+    import sys
+    for p in edges:
+        dst = weight_type(p.second.second)
+        # dst is the weight of the edge (u, v)
+        u = p.first
+        v = p.second.first
+        for k in range(N):
+            if result[k][u] == sys.float_info.max or result[k][v] == sys.float_info.max:
+                continue
+            if weight_type(result[k][u]) + dst == weight_type(result[k][v]):
+                pred[int_to_v[k]][int_to_v[v]] = int_to_v[u]
+            if directed:
+                continue
+            if weight_type(result[k][u]) == weight_type(result[k][v]) + dst:
+                pred[int_to_v[k]][int_to_v[u]] = int_to_v[v]
+    return pred
+
+cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecessors=False):
     r"""
     Use Johnson algorithm to solve the all-pairs-shortest-paths.
 
-    This routine outputs the distance between each pair of vertices, using a
-    dictionary of dictionaries. It works on all kinds of graphs, but it is
-    designed specifically for graphs with negative weights (otherwise there are
-    more efficient algorithms, like Dijkstra).
+    This routine outputs the distance between each pair of vertices and the 
+    predecessors matrix (depending on the values of boolean ``distances`` and
+    ``predecessors``) using a dictionary of dictionaries. It works on all kinds
+    of graphs, but it is designed specifically for graphs with negative weights
+    (otherwise there are more efficient algorithms, like Dijkstra).
 
     The time-complexity is `O(mn\log n)`, where `n` is the number of nodes and
     `m` is the number of edges.
@@ -1035,11 +1095,20 @@ cpdef johnson_shortest_paths(g, weight_function=None):
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
       ``g`` are used, if available, otherwise all edges have weight 1.
+      
+    - ``distances`` -- boolean (default: ``True``); whether to return the
+      dictionary of shortest distances
+      
+    - ``predecessors`` -- boolean (default: ``False``); whether to return the
+      predecessors matrix 
 
     OUTPUT:
 
-    A dictionary of dictionary ``distances`` such that ``distances[v][w]`` is
-    the distance between vertex ``v`` and vertex ``w``.
+    Depending on the input, this function return the dictionary of
+    predecessors, the dictionary of distances, or a pair of dictionaries
+    ``(distances, predecessors)`` where ``distance[u][v]`` denotes the distance
+    of a shortest path from `u` to `v` and ``predecessors[u][v]`` indicates the
+    predecessor of `w` on a shortest path from `u` to `v`.
 
     EXAMPLES:
 
@@ -1052,6 +1121,12 @@ cpdef johnson_shortest_paths(g, weight_function=None):
          1: {0: 1, 1: 0, 2: 2, 3: 3},
          2: {0: 3, 1: 2, 2: 0, 3: 1},
          3: {0: 4, 1: 3, 2: 1, 3: 0}}
+        sage: expected = {0: {0: None, 1: 0, 2: 1, 3: 2},
+        ....:             1: {0: 1, 1: None, 2: 1, 3: 2},
+        ....:             2: {0: 1, 1: 2, 2: None, 3: 2},
+        ....:             3: {0: 1, 1: 2, 2: 3, 3: None}}
+        sage: johnson_shortest_paths(g, distances=False, predecessors=True) == expected
+        True
 
     Directed graphs::
 
@@ -1061,6 +1136,12 @@ cpdef johnson_shortest_paths(g, weight_function=None):
          1: {1: 0, 2: -2, 3: -1},
          2: {2: 0, 3: 1},
          3: {3: 0}}
+        sage: g = DiGraph([(1,2,3),(2,3,2),(1,4,1),(4,2,1)], weighted=True)
+        sage: johnson_shortest_paths(g, distances=False, predecessors=True)
+        {1: {1: None, 2: 4, 3: 2, 4: 1},
+         2: {2: None, 3: 2},
+         3: {3: None},
+         4: {2: 4, 3: 2, 4: None}}
 
     TESTS:
 
@@ -1080,11 +1161,20 @@ cpdef johnson_shortest_paths(g, weight_function=None):
         ValueError: the graph contains a negative cycle
     """
     from sage.graphs.generic_graph import GenericGraph
+    cdef dict dist = {}
+    cdef dict pred = {}
 
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
     elif not g.num_edges():
-        return {v: {v: 0} for v in g}
+        dist = {v: {v: 0} for v in g}
+        pred = {v: {v: None} for v in g}
+        if distances and predecessors:
+            return (dist, pred)
+        if distances:
+            return dist
+        if predecessors:
+            return pred
     # These variables are automatically deleted when the function terminates.
     cdef v_index i
     cdef list int_to_v = list(g)
@@ -1093,6 +1183,7 @@ cpdef johnson_shortest_paths(g, weight_function=None):
     cdef BoostVecWeightedGraph g_boost_und
     cdef int N = g.num_verts()
     cdef vector[vector[double]] result
+    cdef int u_int, v_int
 
     if g.is_directed():
         boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
@@ -1120,9 +1211,178 @@ cpdef johnson_shortest_paths(g, weight_function=None):
         correct_type = RR
 
     import sys
-    return {int_to_v[v]: {int_to_v[w]: correct_type(result[v][w])
-                    for w in range(N) if result[v][w] != sys.float_info.max}
-            for v in range(N)}
+    if distances:
+        dist = {int_to_v[v]: {int_to_v[w]: correct_type(result[v][w])
+                              for w in range(N) if result[v][w] != sys.float_info.max}
+                for v in range(N)}
+
+    if predecessors:
+        if g.is_directed():
+            pred = get_predecessors(g_boost_dir, result, int_to_v, True, correct_type)
+        else:
+            pred = get_predecessors(g_boost_und, result, int_to_v, False, correct_type)
+
+    if distances and predecessors:
+        return (dist, pred)
+    if distances:
+        return dist
+    if predecessors:
+        return pred
+
+cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, predecessors=False):
+    r"""
+    Use Floyd-Warshall algorithm to solve the all-pairs-shortest-paths.
+
+    This routine outputs the distance between each pair of vertices and the 
+    predecessors matrix (depending on the values of boolean ``distances`` and
+    ``predecessors``) using a dictionary of dictionaries. This method should be
+    preferred only if the graph is dense. If the graph is sparse the much
+    faster johnson_shortest_paths should be used.
+    
+    The time-complexity is `O(n^3 + nm)`, where `n` is the number of nodes and
+    `m` the number of edges. The factor `nm` in the complexity is added only
+    when ``predecessors`` is set to ``True``.
+    
+    INPUT:
+
+    - ``g`` -- the input Sage graph
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if available, otherwise all edges have weight 1.
+      
+    - ``distances`` -- boolean (default: ``True``); whether to return
+      the dictionary of shortest distances
+      
+    - ``predecessors`` -- boolean (default: ``False``); whether to return the
+      predecessors matrix 
+
+    OUTPUT:
+
+    Depending on the input, this function return the dictionary of
+    predecessors, the dictionary of distances, or a pair of dictionaries
+    ``(distances, predecessors)`` where ``distance[u][v]`` denotes the distance
+    of a shortest path from `u` to `v` and ``predecessors[u][v]`` indicates the
+    predecessor of `w` on a shortest path from `u` to `v`.
+
+    EXAMPLES:
+
+    Undirected graphs::
+
+        sage: from sage.graphs.base.boost_graph import floyd_warshall_shortest_paths
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g)
+        {0: {0: 0, 1: 1, 2: 3, 3: 4},
+         1: {0: 1, 1: 0, 2: 2, 3: 3},
+         2: {0: 3, 1: 2, 2: 0, 3: 1},
+         3: {0: 4, 1: 3, 2: 1, 3: 0}}
+        sage: expected = {0: {0: None, 1: 0, 2: 1, 3: 2},
+        ....:             1: {0: 1, 1: None, 2: 1, 3: 2},
+        ....:             2: {0: 1, 1: 2, 2: None, 3: 2},
+        ....:             3: {0: 1, 1: 2, 2: 3, 3: None}}
+        sage: floyd_warshall_shortest_paths(g, distances=False, predecessors=True) == expected
+        True
+
+    Directed graphs::
+
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(1,3,4),(2,3,1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g)
+        {0: {0: 0, 1: 1, 2: -1, 3: 0},
+         1: {1: 0, 2: -2, 3: -1},
+         2: {2: 0, 3: 1},
+         3: {3: 0}}
+        sage: g = DiGraph([(1,2,3),(2,3,2),(1,4,1),(4,2,1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g, distances=False, predecessors=True)
+        {1: {1: None, 2: 4, 3: 2, 4: 1},
+         2: {2: None, 3: 2},
+         3: {3: None},
+         4: {2: 4, 3: 2, 4: None}}
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: floyd_warshall_shortest_paths("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        TypeError: the input must be a Sage graph
+
+    If there is a negative cycle:
+
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph contains a negative cycle
+    """
+    from sage.graphs.generic_graph import GenericGraph
+    cdef dict dist = {}
+    cdef dict pred = {}
+
+    if not isinstance(g, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
+    elif not g.num_edges():
+        dist = {v: {v: 0} for v in g}
+        pred = {v: {v: None} for v in g}
+        if distances and predecessors:
+            return (dist, pred)
+        if distances:
+            return dist
+        if predecessors:
+            return pred
+    # These variables are automatically deleted when the function terminates.
+    cdef v_index i
+    cdef list int_to_v = list(g)
+    cdef dict v_to_int = {v: i for i, v in enumerate(int_to_v)}
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef int N = g.num_verts()
+    cdef vector[vector[double]] result
+    cdef int u_int, v_int
+
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
+        sig_on()
+        result = g_boost_dir.floyd_warshall_shortest_paths()
+        sig_off()
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
+        sig_on()
+        result = g_boost_und.floyd_warshall_shortest_paths()
+        sig_off()
+
+    if not result.size():
+        raise ValueError("the graph contains a negative cycle")
+
+    if weight_function is not None:
+        correct_type = type(weight_function(next(g.edge_iterator())))
+    elif g.weighted():
+        correct_type = type(next(g.edge_iterator())[2])
+    else:
+        correct_type = int
+    # Needed for rational curves.
+    from sage.rings.real_mpfr import RealNumber, RR
+    if correct_type == RealNumber:
+        correct_type = RR
+
+    import sys
+    if distances:
+        dist = {int_to_v[v]: {int_to_v[w]: correct_type(result[v][w])
+                              for w in range(N) if result[v][w] != sys.float_info.max}
+                for v in range(N)}
+
+    if predecessors:
+        if g.is_directed():
+            pred = get_predecessors(g_boost_dir, result, int_to_v, True, correct_type)
+        else:
+            pred = get_predecessors(g_boost_und, result, int_to_v, False, correct_type)
+
+    if distances and predecessors:
+        return (dist, pred)
+    if distances:
+        return dist
+    if predecessors:
+        return pred
 
 
 cpdef johnson_closeness_centrality(g, weight_function=None):
@@ -1227,3 +1487,120 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
             closeness.push_back(sys.float_info.max)
         sig_check()
     return {v: closeness[i] for i,v in enumerate(int_to_v) if closeness[i] != sys.float_info.max}
+
+cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
+    r"""
+    Return a minimum weight cycle basis of the input graph ``g_sage``.
+
+    A cycle basis is a list of cycles (list of vertices forming a cycle) of
+    ``g_sage``. Note that the vertices are not necessarily returned in the order
+    in which they appear in the cycle.
+
+    A minimum weight cycle basis is a cycle basis that minimizes the sum of the
+    weights (length for unweighted graphs) of its cycles.
+
+    Not implemented for directed graphs and multigraphs.
+
+    INPUT:
+
+    - ``g_sage`` -- a Sage Graph
+
+    - ``weight_function`` -- function (default: ``None``); a function that takes
+      as input an edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+      ``by_weight`` is automatically set to ``True``. If ``None`` and
+      ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+
+    - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges in
+      the graph are weighted, otherwise all edges have weight 1
+
+    EXAMPLES::
+
+        sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
+        sage: sorted(g.minimum_cycle_basis(by_weight=True))
+        [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
+        sage: sorted(g.minimum_cycle_basis())
+        [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+
+    .. SEEALSO::
+
+        * :wikipedia:`Cycle_basis`
+    """
+    cdef Py_ssize_t u_int, v_int, i, j
+    cdef object u, v
+    cdef Py_ssize_t n = g_sage.num_verts()
+    cdef list int_to_vertex = list(g_sage)
+    cdef dict vertex_to_int = {u: u_int for u_int, u in enumerate(int_to_vertex)}
+    cdef list edgelist
+    if by_weight and weight_function is not None:
+        edgelist = [(vertex_to_int[e[0]], vertex_to_int[e[1]], float(weight_function(e)))
+                        for e in g_sage.edge_iterator()]
+    if by_weight:
+        edgelist = [(vertex_to_int[e[0]], vertex_to_int[e[1]], float(e[2]))
+                        for e in g_sage.edge_iterator()]
+    else:
+        edgelist = [(vertex_to_int[u], vertex_to_int[v], 1) for u, v in g_sage.edge_iterator(labels=False)]
+
+    # We just need the edges of any spanning tree here not necessarily a
+    # minimum spanning tree.
+    
+    cdef list sp_edges = min_spanning_tree(g_sage)
+    cdef cset[pair[int, int]] edges_s
+    for a, b, c in sp_edges:
+        edges_s.insert((a, b))
+    # Edges of self that are not in the spanning tree
+    cdef list edges_c = [e for e in g_sage.edge_iterator(labels=False) if not edges_s.count(e)]
+    cdef list edges_complement = [frozenset((vertex_to_int[u], vertex_to_int[v])) for u, v in edges_c]
+    cdef Py_ssize_t l = len(edges_complement)
+    cdef list orth_set = [set([e]) for e in edges_complement]
+    cdef list cycle_basis = []
+    cdef set base
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef vector[vector[double]] all_pair_shortest_pathlens
+    cdef result_distances min_path
+    cdef list min_path_nodes
+    cdef dict cross_paths_lens
+    cdef float edge_w
+
+    for i in range(l):
+        base = orth_set[i]
+        # For each edge in g, add 2 edges to g_boost_und: "cross" edges if edge
+        # is in base, otherwise "in-plane" edges
+        g_boost_und = BoostVecWeightedGraph()
+        for u_int in range(2 * n):
+            g_boost_und.add_vertex()
+        for u_int, v_int, edge_w in edgelist:
+            # mapping the nodes in g from 0 to n-1
+            if frozenset((u_int, v_int)) in base:
+                g_boost_und.add_edge(u_int, n + v_int, edge_w)
+                g_boost_und.add_edge(n + u_int, v_int, edge_w)
+            else:
+                g_boost_und.add_edge(u_int, v_int, edge_w)
+                g_boost_und.add_edge(n + u_int, n + v_int, edge_w)
+
+        sig_on()
+        all_pair_shortest_pathlens = g_boost_und.johnson_shortest_paths()
+        sig_off()
+        cross_paths_lens = {j: all_pair_shortest_pathlens[j][n + j] for j in range(n)}
+        u_int = min(cross_paths_lens, key=cross_paths_lens.get)
+        v_int = n + u_int
+        sig_on()
+        min_path = g_boost_und.dijkstra_shortest_paths(u_int)
+        sig_off()
+        # Mapping the nodes in G to nodes in g
+        min_path_nodes = [v_int if v_int < n else v_int - n]
+        while v_int != u_int:
+            v_int = min_path.predecessors[v_int]
+            min_path_nodes.append(v_int if v_int < n else v_int - n)
+
+        # removal of edges occuring even number of times
+        edges = set()
+        for edge in zip(min_path_nodes[:-1], min_path_nodes[1:]):
+            edges ^= {edge}
+        new_cycle = {frozenset(e) for e in edges}
+        cycle_basis.append([int_to_vertex[u_int] for u_int in set().union(*new_cycle)])
+        # updating orth_set so that i+1, i+2, ...th elements are orthogonal
+        # to the newly found cycle
+        for j in range(i + 1, l):
+            if len(orth_set[j] & new_cycle) % 2:
+                orth_set[j] = orth_set[j] ^ base
+    return cycle_basis

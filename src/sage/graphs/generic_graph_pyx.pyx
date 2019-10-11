@@ -409,7 +409,7 @@ def binary_string_to_graph6(x):
     r"""
     Transforms a binary string into its graph6 representation.
 
-    This helper function is named `R` in [McK]_.
+    This helper function is named `R` in [McK2015]_.
 
     INPUT:
 
@@ -420,11 +420,6 @@ def binary_string_to_graph6(x):
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
         'vUqwK@?G'
-
-    REFERENCES:
-
-    .. [McK] McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
-       http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
     """
     # The length of x must be a multiple of 6. We extend it with 0s.
     x += '0' * ( (6 - (len(x) % 6)) % 6)
@@ -440,7 +435,7 @@ def small_integer_to_graph6(n):
     r"""
     Encodes a small integer (i.e. a number of vertices) as a graph6 string.
 
-    This helper function is named `N` [McK]_.
+    This helper function is named `N` [McK2015]_.
 
     INPUT:
 
@@ -466,7 +461,7 @@ def length_and_string_from_graph6(s):
     r"""
     Returns a pair ``(length,graph6_string)`` from a graph6 string of unknown length.
 
-    This helper function is the inverse of `N` from [McK]_.
+    This helper function is the inverse of `N` from [McK2015]_.
 
     INPUT:
 
@@ -499,7 +494,7 @@ def binary_string_from_graph6(s, n):
     r"""
     Decodes a binary string from its graph6 representation
 
-    This helper function is the inverse of `R` from [McK]_.
+    This helper function is the inverse of `R` from [McK2015]_.
 
     INPUT:
 

@@ -19,6 +19,7 @@ from sage.structure.element import is_Vector
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import ZZ
 from sage.modules.free_module_element import vector
+from copy import copy
 
 
 
@@ -172,9 +173,18 @@ class PolyhedronRepresentation(SageObject):
             (-1.0, -1.0, 0.0)
             sage: vector(RDF, v)
             (-1.0, -1.0, 0.0)
+
+        TESTS:
+
+        Checks that :trac:`27709` is fixed::
+
+            sage: C = polytopes.cube()
+            sage: C.vertices()[0].vector()[0] = 3
+            sage: C.vertices()[0]
+            A vertex at (-1, -1, -1)
         """
         if (base_ring is None) or (base_ring is self._base_ring):
-            return self._vector
+            return copy(self._vector)
         else:
             return vector(base_ring, self._vector)
 
@@ -205,18 +215,18 @@ class PolyhedronRepresentation(SageObject):
             sage: v.__call__()
             (1, 2, 3)
         """
-        return self._vector
+        return copy(self._vector)
 
     def index(self):
         """
-        Returns an arbitrary but fixed number according to the internal
+        Return an arbitrary but fixed number according to the internal
         storage order.
 
         NOTES:
 
         H-representation and V-representation objects are enumerated
         independently. That is, amongst all vertices/rays/lines there
-        will be one with ``index()==0``, and amongs all
+        will be one with ``index()==0``, and amongst all
         inequalities/equations there will be one with ``index()==0``,
         unless the polyhedron is empty or spans the whole space.
 
@@ -410,8 +420,17 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: pH = p.Hrepresentation(2)
             sage: pH.A()
             (1, 0)
+
+        TESTS:
+
+        Checks that :trac:`27709` is fixed::
+
+            sage: C = polytopes.cube()
+            sage: C.inequalities()[0].A()[2] = 5
+            sage: C.inequalities()[0]
+            An inequality (0, 0, -1) x + 1 >= 0
         """
-        return self._A
+        return copy(self._A)
 
     def b(self):
         r"""
@@ -752,6 +771,23 @@ class Inequality(Hrepresentation):
             return self.polyhedron()._is_positive( self.eval(Vobj) )
         else: # Vobj.is_ray()
             return self.polyhedron()._is_nonneg( self.eval(Vobj) )
+
+    def outer_normal(self):
+        r"""
+        Return the outer normal vector of ``self``.
+
+        OUTPUT:
+        
+        The normal vector directed away from the interior of the polyhedron.
+        
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
+            sage: a = next(p.inequality_generator())
+            sage: a.outer_normal()
+            (1, -1, 0)
+        """
+        return -self.A()
 
 
 class Equation(Hrepresentation):

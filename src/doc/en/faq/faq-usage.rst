@@ -72,7 +72,7 @@ Debian/Ubuntu, you can install these prerequisites as follows:
     $ sudo apt-get install build-essential m4
 
 If you have a multi-core system, you can opt for a parallel build of
-Sage. The command ::
+Sage. The command
 
 .. CODE-BLOCK:: shell-session
 
@@ -88,7 +88,7 @@ How to get Sage's Python to recognize my system's Tcl/Tk install?
 
 It may be that you have Tcl/Tk installed and that your system's Python
 recognizes it but Sage's Python does not. To fix that, install the
-tcl/tk development library. On Ubuntu, this is the command :
+tcl/tk development library. On Ubuntu, this is the command
 
 .. CODE-BLOCK:: shell-session
 
@@ -167,15 +167,12 @@ every change applied to the file simple.py will be automatically updated in Sage
 Can I use SageMath with Python 3.x?
 """""""""""""""""""""""""""""""""""
 
-Currently, (September 2018) you can build the source code of SageMath with
-Python 3 using the instructions at the bottom of
-https://wiki.sagemath.org/Python3-compatible%20code
+As of August 2019, most of SageMath works fine with Python 3. However, we still
+consider Python 3 support to be experimental and no official Python 3 release
+has been made yet.
 
-Beware that this is still at an experimental stage.
-
-Work in progress aims to allow usage of Python 3 in the not-so-far
-future. Until this task is completed, SageMath will continue to use
-Python 2.x.
+You can build the source code of SageMath with Python 3 using the instructions
+at the bottom of https://wiki.sagemath.org/Python3-compatible%20code
 
 See :trac:`15530` and :trac:`26212` for tracking the current progress.
 
@@ -488,7 +485,7 @@ your system.
 For Linux users, if you suspect that the compilation fails because of
 a resource issue, a fix might be to edit your ``/etc/inittab`` so that
 Linux boots into run level 3. The file ``/etc/inittab`` usually
-contains something similar to the following snippet::
+contains something similar to the following snippet:
 
 .. CODE-BLOCK:: text
 
@@ -505,7 +502,7 @@ contains something similar to the following snippet::
 
 which directs your Linux distribution to boot into a graphical login
 screen. Comment out the line ``id:5:initdefault:`` and add the line
-``id:3:initdefault:``, so that you now have something like::
+``id:3:initdefault:``, so that you now have something like:
 
 .. CODE-BLOCK:: text
 

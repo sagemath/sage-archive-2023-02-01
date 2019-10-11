@@ -2,19 +2,14 @@
 Gamma and related functions
 """
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
-from sage.libs.pynac.pynac import (register_symbol, symbol_table,
-        py_factorial_py, I)
-from sage.structure.element import coercion_model
+from sage.libs.pynac.pynac import (register_symbol, symbol_table)
 from sage.structure.all import parent as s_parent
-from sage.symbolic.expression import Expression
-from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
+from sage.rings.all import Rational, ComplexField
+from sage.rings.complex_number import is_ComplexNumber
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
-from sage.arith.all import binomial as arith_binomial
 from .log import exp
 from .other import sqrt
 from sage.symbolic.constants import pi
@@ -86,6 +81,17 @@ class Function_gamma(GinacFunction):
 
             sage: plot(gamma1(x),(x,1,5))
             Graphics object consisting of 1 graphics primitive
+
+        We are also able to compute the Laurent expansion of the
+        Gamma function (as well as of functions containing
+        the Gamma function)::
+
+            sage: gamma(x).series(x==0, 2)
+            1*x^(-1) + (-euler_gamma)
+            + (1/2*euler_gamma^2 + 1/12*pi^2)*x + Order(x^2)
+            sage: (gamma(x)^2).series(x==0, 1)
+            1*x^(-2) + (-2*euler_gamma)*x^(-1)
+            + (2*euler_gamma^2 + 1/6*pi^2) + Order(x)
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -338,14 +344,30 @@ class Function_gamma_inc(BuiltinFunction):
             sage: integrate(-exp(-x)*x^(t-1), x, algorithm="fricas")            # optional - fricas
             gamma(t, x)
 
-    .. SEEALSO::
+        .. SEEALSO::
 
-        :meth:`gamma`
+            :meth:`gamma`
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
                              'maple':'GAMMA', 'sympy':'uppergamma', 'fricas':'Gamma',
                              'giac':'ugamma'})
+
+    def _method_arguments(self, x, y):
+        r"""
+        TESTS::
+
+            sage: b = RBF(1, 1e-10)
+            sage: gamma(b)
+            [1.00000000 +/- 8.07e-10]
+            sage: gamma(CBF(b))
+            [1.00000000 +/- 8.07e-10]
+            sage: gamma(CBF(b), 4)
+            [0.01831564 +/- 2.65e-9]
+            sage: gamma(CBF(1), b)
+            [0.3678794412 +/- 6.54e-11]
+        """
+        return [x, y]
 
     def _eval_(self, x, y):
         """

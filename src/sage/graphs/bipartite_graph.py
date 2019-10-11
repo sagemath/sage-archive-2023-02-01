@@ -36,11 +36,12 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from six import iteritems
 from six.moves import range
+
+from collections import defaultdict
 
 from .generic_graph import GenericGraph
 from .graph import Graph
@@ -105,7 +106,7 @@ class BipartiteGraph(Graph):
         sage: B = BipartiteGraph(graphs.CycleGraph(5))
         Traceback (most recent call last):
         ...
-        TypeError: input graph is not bipartite
+        ValueError: input graph is not bipartite
         sage: G = Graph({0: [5, 6], 1: [4, 5], 2: [4, 6], 3: [4, 5, 6]})
         sage: B = BipartiteGraph(G)
         sage: B == G
@@ -393,10 +394,7 @@ class BipartiteGraph(Graph):
             self.left, self.right = left, right
         elif isinstance(data, GenericGraph):
             Graph.__init__(self, data, *args, **kwds)
-            try:
-                self.left, self.right = self.bipartite_sets()
-            except Exception:
-                raise TypeError("input graph is not bipartite")
+            self._upgrade_from_graph()
         else:
             import networkx
             Graph.__init__(self, data, *args, **kwds)
@@ -416,10 +414,7 @@ class BipartiteGraph(Graph):
                                 "assumption (is not 'Top' or 'Bottom')")
             # make sure we found a bipartition
             if not (hasattr(self, "left") and hasattr(self, "right")):
-                try:
-                    self.left, self.right = self.bipartite_sets()
-                except Exception:
-                    raise TypeError("input graph is not bipartite")
+                self._upgrade_from_graph()
 
         # restore vertex partition checking
         del self.add_vertex
@@ -431,6 +426,38 @@ class BipartiteGraph(Graph):
             self.load_afile(data)
 
         return
+
+    def _upgrade_from_graph(self):
+        """
+        Set the left and right sets of vertices from the input graph.
+
+        TESTS::
+
+            sage: B = BipartiteGraph(Graph(1))
+            sage: B.left, B.right
+            ({0}, set())
+            sage: B = BipartiteGraph(Graph(2))
+            sage: B.left, B.right
+            ({0, 1}, set())
+            sage: B = BipartiteGraph(graphs.PathGraph(2))
+            sage: B.left, B.right
+            ({0}, {1})
+            sage: B = BipartiteGraph(graphs.PathGraph(3))
+            sage: B.left, B.right
+            ({0, 2}, {1})
+            sage: B = BipartiteGraph(graphs.CycleGraph(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: input graph is not bipartite
+        """
+        ans, certif = GenericGraph.is_bipartite(self, certificate=True)
+        if not ans:
+            raise ValueError("input graph is not bipartite")
+        cols = defaultdict(set)
+        for k, v in iteritems(certif):
+            cols[v].add(k)
+        self.left = cols[1]
+        self.right = cols[0]
 
     def __repr__(self):
         r"""
@@ -842,6 +869,43 @@ class BipartiteGraph(Graph):
         if new is True:
             raise ValueError("loops are not allowed in bipartite graphs")
 
+    def is_bipartite(self, certificate=False):
+        r"""
+        Check whether the graph is bipartite.
+
+        This method always returns ``True`` as first value, plus a certificate
+        when ``certificate == True``.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate. If set to ``True``, the certificate returned is a proper
+          2-coloring of the vertices.
+
+        .. SEEALSO:: :meth:`~GenericGraph.is_bipartite`
+
+        EXAMPLES::
+
+            sage: g = BipartiteGraph(graphs.RandomBipartite(3, 3, .5))
+            sage: g.is_bipartite()
+            True
+            sage: g.is_bipartite(certificate=True)  # random
+            (True, {(0, 0): 0, (0, 1): 0, (0, 2): 0, (1, 0): 1, (1, 1): 1, (1, 2): 1})
+
+        TESTS::
+
+            sage: BipartiteGraph().is_bipartite()
+            True
+            sage: BipartiteGraph().is_bipartite(certificate=True)
+            (True, {})
+        """
+        if certificate:
+            color = {u: 0 for u in self.left}
+            color.update({u: 1 for u in self.right})
+            return True, color
+        else:
+            return True
+
     def complement(self):
         """
         Return a complement of this graph.
@@ -957,7 +1021,7 @@ class BipartiteGraph(Graph):
         r"""
         Compute the matching polynomial.
 
-        The *matching polynomial* is defined as in [Godsil93]_, where `p(G, k)`
+        The *matching polynomial* is defined as in [God1993]_, where `p(G, k)`
         denotes the number of `k`-matchings (matchings with `k` edges) in `G` :
 
         .. MATH::

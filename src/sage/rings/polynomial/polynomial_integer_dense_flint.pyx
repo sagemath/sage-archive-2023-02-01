@@ -42,7 +42,6 @@ from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
 from sage.arith.long cimport pyobject_to_long
 
-from sage.libs.flint.fmpz_poly cimport *
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element
 from sage.structure.element import coerce_binop
@@ -59,7 +58,8 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.arith.all import lcm
 
 from sage.libs.flint.fmpz cimport *
-from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.types cimport ulong, fmpz_poly_t
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ZZX cimport *
 from sage.rings.integer cimport Integer, smallInteger
@@ -730,7 +730,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return qq, rr
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         """
         Returns True if self is equal to zero.
 
@@ -746,7 +746,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return (fmpz_poly_degree(self.__poly) == -1)
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         """
         Returns True if self is equal to one.
 

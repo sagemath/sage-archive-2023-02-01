@@ -197,7 +197,7 @@ def init_sage():
     debug.refine_category_hash_check = True
 
     # We import readline before forking, otherwise Pdb doesn't work
-    # os OS X: http://trac.sagemath.org/14289
+    # on OS X: http://trac.sagemath.org/14289
     import readline
 
     try:
@@ -545,16 +545,26 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         Check that :trac:`26038` is fixed::
 
-            sage: a = 1
+            sage: a = 1 # py2
             ....: b = 2
             Traceback (most recent call last):
             ...
             SyntaxError: doctest is not a single statement
-            sage: a = 1
+            sage: a = 1 # py3
+            ....: b = 2
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
+            sage: a = 1 # py2
             ....: @syntax error
             Traceback (most recent call last):
             ...
             SyntaxError: invalid syntax
+            sage: a = 1 # py3
+            ....: @syntax error
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
         """
         # Ensure that injecting globals works as expected in doctests
         set_globals(test.globs)
@@ -602,7 +612,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             # If 'SKIP' is set, then skip this example.
             if self.optionflags & doctest.SKIP:
                 continue
-            
+
             # Record that we started this example.
             tries += 1
 
@@ -745,7 +755,25 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                                     break
 
                 if not quiet:
-                    got += doctest._exception_traceback(exception)
+                    exc_tb = doctest._exception_traceback(exception)
+                    if not isinstance(exc_tb, six.text_type):
+                        # On Python 2, if the traceback contains non-ASCII
+                        # text we can get a UnicodeDecodeError here if we
+                        # don't explicitly decode it first; first try utf-8
+                        # and then fall back on latin-1.
+                        try:
+                            exc_tb = exc_tb.decode('utf-8')
+                        except UnicodeDecodeError:
+                            exc_tb = exc_tb.decode('latin-1')
+
+                    got += exc_tb
+
+                if not isinstance(exc_msg, six.text_type):
+                    # Same here as above
+                    try:
+                        exc_msg = exc_msg.decode('utf-8')
+                    except UnicodeDecodeError:
+                        exc_msg = exc_msg.decode('latin-1')
 
                 # If `example.exc_msg` is None, then we weren't expecting
                 # an exception.
@@ -1963,7 +1991,12 @@ class DocTestDispatcher(SageObject):
             # Hack to ensure multiprocessing leaves these processes
             # alone (in particular, it doesn't wait for them when we
             # exit).
-            multiprocessing.current_process()._children = set()
+            if six.PY2:
+                p = multiprocessing.current_process()
+            else:
+                p = multiprocessing.process
+            assert hasattr(p, '_children')
+            p._children = set()
 
     def dispatch(self):
         """
@@ -2078,7 +2111,7 @@ class DocTestWorker(multiprocessing.Process):
         # Temporary file for stdout/stderr of the child process.
         # Normally, this isn't used in the master process except to
         # debug timeouts/crashes.
-        self.outtmpfile = tempfile.TemporaryFile()
+        self.outtmpfile = tempfile.NamedTemporaryFile(delete=False)
 
         # Create string for the master process to store the messages
         # (usually these are the doctest failures) of the child.
@@ -2139,22 +2172,6 @@ class DocTestWorker(multiprocessing.Process):
             task(self.options, self.outtmpfile, msgpipe, self.result_queue)
         finally:
             msgpipe.close()
-            # Note: This closes the tempfile in the child process, but in the
-            # parent process self.outtmpfile will not be closed yet, and can
-            # still be accessed in save_result_output
-            if hasattr(self.outtmpfile, 'delete'):
-                # On some platforms (notably Cygwin) tempfile.TemporaryFile is
-                # actually replaced by tempfile.NamedTemporaryFile with
-                # delete=True for this file
-                # This means that we end up with two NamedTemporaryFile
-                # instances--one on the parent process and one on the worker
-                # process.  Since NamedTemporaryFile automatically unlinks the
-                # file when it is closed, this can lead to an unhandled
-                # exception in the parent process if the child process closes
-                # this file first.  See https://trac.sagemath.org/ticket/25107#comment:14
-                # for more details.
-                self.outtmpfile.delete = False
-
             self.outtmpfile.close()
 
     def start(self):
@@ -2269,6 +2286,16 @@ class DocTestWorker(multiprocessing.Process):
 
         self.outtmpfile.seek(0)
         self.output = bytes_to_str(self.outtmpfile.read())
+        self.outtmpfile.close()
+        try:
+            # Now it is safe to delete the outtmpfile; we manage this manually
+            # so that the file does not get deleted via TemporaryFile.__del__
+            # in the worker process
+            os.unlink(self.outtmpfile.name)
+        except OSError as exc:
+            if exc.errno != errno.ENOENT:
+                raise
+
         del self.outtmpfile
 
     def kill(self):

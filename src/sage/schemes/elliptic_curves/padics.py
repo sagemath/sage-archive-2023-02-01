@@ -1113,9 +1113,9 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     sigma = theta * theta.parent().gen()
 
     # Convert the answer to power series over p-adics; drop the precision
-    # of the $t^k$ coefficient to $p^(N-k+1)$.
+    # of the t^k coefficient to p^(N-k+1).
     # [Note: there are actually more digits available, but it's a bit
-    # tricky to figure out exactly how many, and we only need $p^(N-k+1)$
+    # tricky to figure out exactly how many, and we only need p^(N-k+1)
     # for p-adic height purposes anyway]
     K = rings.pAdicField(p, N + 1)
 
@@ -1302,7 +1302,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
     sigma = theta * theta.parent().gen()
 
     # Convert the answer to power series over p-adics; drop the precision
-    # of the $t^j$ coefficient to $p^{N - 2 + (3 - j)(lamb + 1)})$.
+    # of the t^j coefficient to p^{N - 2 + (3 - j)(lamb + 1)}).
     K = rings.pAdicField(p, N - 2 + 3*(lamb+1))
 
     sigma = sigma.padded_list(trunc+1)

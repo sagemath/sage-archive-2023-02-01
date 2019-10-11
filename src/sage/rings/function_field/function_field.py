@@ -95,7 +95,7 @@ ideals of those maximal orders::
     sage: O.basis()
     (1, y, 1/x*y^2 + 1/x*y, 1/x^3*y^3 + 2/x^3*y^2 + 1/x^3*y)
     sage: I = O.ideal(x,y); I
-    Ideal (x, y + x) of Maximal order of Function field in y defined by y^4 + y + 2*x^5
+    Ideal (x, y) of Maximal order of Function field in y defined by y^4 + y + 2*x^5
     sage: J = I^-1
     sage: J.basis_matrix()
     [  1   0   0   0]
@@ -158,7 +158,7 @@ AUTHORS:
 
 """
 from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2011-2018 Julian Rüth <julian.rueth@gmail.com>
@@ -167,8 +167,8 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.cachefunc import cached_method
 
 from sage.interfaces.all import singular
@@ -182,6 +182,8 @@ from sage.modules.free_module_element import vector
 
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
+
+from .differential import DifferentialsSpace, DifferentialsSpace_global
 
 from .element import (
     FunctionFieldElement,
@@ -234,6 +236,8 @@ class FunctionField(Field):
         sage: K
         Rational function field in x over Rational Field
     """
+    _differentials_space = DifferentialsSpace
+
     def __init__(self, base_field, names, category=FunctionFields()):
         """
         Initialize.
@@ -730,7 +734,7 @@ class FunctionField(Field):
 
         OUTPUT:
 
-        - a list of fields; the first entry is ``base``, the last entry is this field.
+        - a list of fields; the first entry is this field, the last entry is ``base``
 
         EXAMPLES::
 
@@ -926,8 +930,7 @@ class FunctionField(Field):
             sage: L.space_of_differentials()
             Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
         """
-        from .differential import DifferentialsSpace
-        return DifferentialsSpace(self)
+        return self._differentials_space(self)
 
     def divisor_group(self):
         """
@@ -1323,7 +1326,7 @@ class FunctionField_polymod(FunctionField):
             to_ret = self.hom( [L_to_ret(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())] )
             return ret, from_ret, to_ret
         else:
-            if self.polynomial().is_monic() and all([c.denominator().is_one() for c in self.polynomial()]):
+            if self.polynomial().is_monic() and all(c.denominator().is_one() for c in self.polynomial()):
                 # self is already monic and integral
                 if names is None or names == ():
                     names = (self.variable_name(),)
@@ -1580,8 +1583,8 @@ class FunctionField_polymod(FunctionField):
         """
         return self._ring
 
-    @cached_method(key=lambda self, base: self.base_field() if base is None else base)
-    def vector_space(self, base=None):
+    @cached_method(key=lambda self, base, basis, map: (self.base_field() if base is None else base, basis, map))
+    def free_module(self, base=None, basis=None, map=True):
         """
         Return a vector space and isomorphisms from the field to and from the
         vector space.
@@ -1593,16 +1596,21 @@ class FunctionField_polymod(FunctionField):
         INPUT:
 
         - ``base`` -- a function field (default: ``None``), the returned vector
-          space is over ``base`` which defaults to the base field of this
+          space is over this subfield `R`, which defaults to the base field of this
           function field.
+
+        - ``basis`` -- a basis for this field over the base.
+
+        - ``maps`` -- boolean (default ``True``), whether to return
+          `R`-linear maps to and from `V`.
 
         OUTPUT:
 
         - a vector space over the base function field
 
-        - an isomorphism from the vector space to the field
+        - an isomorphism from the vector space to the field (if requested)
 
-        - an isomorphism from the field to the vector space
+        - an isomorphism from the field to the vector space (if requested)
 
         EXAMPLES:
 
@@ -1614,7 +1622,7 @@ class FunctionField_polymod(FunctionField):
 
         We get the vector spaces, and maps back and forth::
 
-            sage: V, from_V, to_V = L.vector_space()
+            sage: V, from_V, to_V = L.free_module()
             sage: V
             Vector space of dimension 5 over Rational function field in x over Rational Field
             sage: from_V
@@ -1655,7 +1663,7 @@ class FunctionField_polymod(FunctionField):
         And we show how it works over an extension of an extension field::
 
             sage: R2.<z> = L[]; M.<z> = L.extension(z^2 -y)
-            sage: M.vector_space()
+            sage: M.free_module()
             (Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x, Isomorphism:
               From: Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
               To:   Function field in z defined by z^2 - y, Isomorphism:
@@ -1664,7 +1672,7 @@ class FunctionField_polymod(FunctionField):
 
         We can also get the vector space of ``M`` over ``K``::
 
-            sage: M.vector_space(K)
+            sage: M.free_module(K)
             (Vector space of dimension 10 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 10 over Rational function field in x over Rational Field
               To:   Function field in z defined by z^2 - y, Isomorphism:
@@ -1672,11 +1680,15 @@ class FunctionField_polymod(FunctionField):
               To:   Vector space of dimension 10 over Rational function field in x over Rational Field)
 
         """
+        if basis is not None:
+            raise NotImplementedError
         from .maps import MapVectorSpaceToFunctionField, MapFunctionFieldToVectorSpace
         if base is None:
             base = self.base_field()
         degree = self.degree(base)
         V = base**degree;
+        if not map:
+            return V
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)
@@ -2089,8 +2101,8 @@ class FunctionField_polymod(FunctionField):
         N_to_M = N.hom(v)
 
         # the morphism M -> N, b |-> M_b, a |-> M_a
-        V, V_to_M, M_to_V = M.vector_space(K)
-        V, V_to_N, N_to_V = N.vector_space(K)
+        V, V_to_M, M_to_V = M.free_module(K)
+        V, V_to_N, N_to_V = N.free_module(K)
         from sage.matrix.matrix_space import MatrixSpace
         MS = MatrixSpace(V.base_field(), V.dimension())
         # the power basis of v over K
@@ -2589,8 +2601,16 @@ class FunctionField_global(FunctionField_polymod):
         sage: L.<y> = K.extension((1 - x)*Y^7 - x^3)
         sage: L.gaps()
         [1, 2, 3]
+
+    or may define a trivial extension::
+
+        sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y-1)
+        sage: L.genus()
+        0
     """
     Element = FunctionFieldElement_global
+    _differentials_space = DifferentialsSpace_global
 
     def __init__(self, polynomial, names):
         """
@@ -2900,6 +2920,33 @@ class FunctionField_global(FunctionField_polymod):
             if place.degree() == degree:
                 yield place
 
+    def places_above(self, p):
+        """
+        Return places lying above ``p``.
+
+        INPUT:
+
+        - ``p`` -- place of the base rational function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: all(q.place_below() == p for p in K.places() for q in F.places_above(p))
+            True
+        """
+        R = self.base_field()
+
+        if not p in R.place_set():
+            raise TypeError("not a place of the base rational function field")
+
+        if p.is_infinite_place():
+            dec = self.maximal_order_infinite().decomposition()
+        else:
+            dec = self.maximal_order().decomposition(p.prime_ideal())
+
+        return tuple([q.place() for q, deg, exp in dec])
+
     def different(self):
         """
         Return the different of the function field.
@@ -3114,6 +3161,74 @@ class FunctionField_global(FunctionField_polymod):
         from .maps import FunctionFieldCompletion_global
         return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
 
+    @cached_method
+    def L_polynomial(self, name='t'):
+        """
+        Return the L-polynomial of the function field.
+
+        INPUT:
+
+        - ``name`` -- (default: ``t``) name of the variable of the polynomial
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: F.L_polynomial()
+            2*t^2 + t + 1
+        """
+        from sage.rings.all import ZZ
+        q = self.constant_field().order()
+        g = self.genus()
+
+        B = [len(self.places(i+1)) for i in range(g)]
+        N = [sum(d * B[d-1] for d in ZZ(i+1).divisors()) for i in range(g)]
+        S = [N[i] - q**(i+1) - 1 for i in range(g)]
+
+        a = [1]
+        for i in range(1, g+1):
+            a.append(sum(S[j] * a[i-j-1] for j in range(i)) / i)
+        for j in range(1, g+1):
+            a.append(q**j * a[g-j])
+
+        return ZZ[name](a)
+
+    def number_of_rational_places(self, r=1):
+        """
+        Return the number of rational places of the function field whose
+        constant field extended by degree ``r``.
+
+        INPUT:
+
+        - ``r`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: F.number_of_rational_places()
+            4
+            sage: [F.number_of_rational_places(r) for r in [1..10]]
+            [4, 8, 4, 16, 44, 56, 116, 288, 508, 968]
+        """
+        from sage.rings.all import IntegerRing
+
+        q = self.constant_field().order()
+        L = self.L_polynomial()
+        Lp = L.derivative()
+
+        R = IntegerRing()[[L.parent().gen()]] # power series ring
+
+        old_prec = R.default_prec()
+        R.set_default_prec(r)
+
+        f = R(Lp / L)
+        n = f[r-1] + q**r + 1
+
+        R.set_default_prec(old_prec)
+
+        return n
+
 class FunctionField_global_integral(FunctionField_global):
     """
     Global function fields defined by an irreducible and separable polynomial,
@@ -3154,7 +3269,7 @@ class FunctionField_global_integral(FunctionField_global):
         g = sum([v[i].numerator().subs(x) * y**i for i in range(len(v))])
 
         # Singular "normalP" algorithm assumes affine domain over
-        # a prime field. So we constuct gflat lifting g as in
+        # a prime field. So we construct gflat lifting g as in
         # k_prime[yy,xx,zz]/(k_poly) where k = k_prime[zz]/(k_poly)
         R = PolynomialRing(k.prime_subfield(), names='yy,xx,zz')
         gflat = R.zero()
@@ -3201,13 +3316,13 @@ class FunctionField_global_integral(FunctionField_global):
         # get a basis that starts with 1 and is ordered in increasing
         # y-degrees. The trick is to use the reversed Hermite normal form.
         # Note that it is important that the overall denominator l lies in k[x].
-        V, fr_V, to_V = self.vector_space()
-        basis_V = [to_V(b) for b in _basis]
-        l = lcm([v.denominator() for v in basis_V])
+        V, fr_V, to_V = self.free_module()
+        basis_V = [to_V(bvec) for bvec in _basis]
+        l = lcm([vvec.denominator() for vvec in basis_V])
 
         # Why do we have 'reversed' here? I don't know. But without it, the
         # time to get hermite_form_reversed dramatically increases.
-        _mat = matrix([[c.numerator() for c in l*v] for v in reversed(basis_V)])
+        _mat = matrix([[coeff.numerator() for coeff in l*v] for v in reversed(basis_V)])
 
         # compute the reversed hermite form
         _mat.reverse_rows_and_columns()
@@ -3337,7 +3452,7 @@ class RationalFunctionField(FunctionField):
             sage: TestSuite(K).run()
 
             sage: FunctionField(QQ[I], 'alpha')
-            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1
+            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
         Must be over a field::
 
@@ -3683,8 +3798,8 @@ class RationalFunctionField(FunctionField):
         """
         return self[var]
 
-    @cached_method(key=lambda self, base: None)
-    def vector_space(self, base=None):
+    @cached_method(key=lambda self, base, basis, map: map)
+    def free_module(self, base=None, basis=None, map=True):
         """
         Return a vector space `V` and isomorphisms from the field to `V` and
         from `V` to the field.
@@ -3699,6 +3814,10 @@ class RationalFunctionField(FunctionField):
         - ``base`` -- the base field of the vector space; must be the function
           field itself (the default)
 
+        - ``basis`` -- (ignored) a basis for the vector space
+
+        - ``map`` -- (default ``True``), whether to return maps to and from the vector space
+
         OUTPUT:
 
         - a vector space `V` over base field
@@ -3710,7 +3829,7 @@ class RationalFunctionField(FunctionField):
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: K.vector_space()
+            sage: K.free_module()
             (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
               To:   Rational function field in x over Rational Field, Isomorphism:
@@ -3719,7 +3838,7 @@ class RationalFunctionField(FunctionField):
 
         TESTS::
 
-            sage: K.vector_space()
+            sage: K.free_module()
             (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
               To:   Rational function field in x over Rational Field, Isomorphism:
@@ -3727,12 +3846,16 @@ class RationalFunctionField(FunctionField):
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
 
         """
+        if basis is not None:
+            raise NotImplementedError
         from .maps import MapVectorSpaceToFunctionField, MapFunctionFieldToVectorSpace
         if base is None:
             base = self
         elif base is not self:
             raise ValueError("base must be the rational function field itself")
         V = base**1
+        if not map:
+            return V
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)
@@ -4071,6 +4194,8 @@ class RationalFunctionField_global(RationalFunctionField):
     """
     Rational function field over finite fields.
     """
+    _differentials_space = DifferentialsSpace_global
+
     def places(self, degree=1):
         """
         Return all places of the degree.
@@ -4224,6 +4349,15 @@ class RationalFunctionField_global(RationalFunctionField):
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x)
             s^-1 + O(s^19)
+
+            sage: m = K.completion(p, prec=infinity); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Lazy Laurent Series Ring in s over Finite Field of size 2
+            sage: f = m(x); f
+            s^-1 + ...
+            sage: f.coefficient(100)
+            0
         """
         from .maps import FunctionFieldCompletion_global
         return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)

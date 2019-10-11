@@ -142,7 +142,7 @@ coordinates, as we can check from the metric components in it::
 
 The expression of the metric tensor in terms of polar coordinates is::
 
-    sage: g.display(polar.frame(), polar)
+    sage: g.display(polar)
     g = dr*dr + r^2 dph*dph
 
 A vector field on ``E``::
@@ -1205,7 +1205,7 @@ class EuclideanPlane(EuclideanSpace):
         r, ph = chart_pol[:]
         pol_to_cart = chart_pol.transition_map(chart_cart,
                                                [r*cos(ph), r*sin(ph)])
-        pol_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y,x))
+        pol_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y,x), check=False)
         # Automorphism Cartesian frame --> orthonormal polar frame:
         oframe = self._polar_frame
         cframe = chart_cart.frame()
@@ -1455,8 +1455,7 @@ class EuclideanPlane(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.polar_frame():
-            ....:     e.display(E.polar_coordinates().frame(),
-            ....:               E.polar_coordinates())
+            ....:     e.display(E.polar_coordinates())
             e_r = d/dr
             e_ph = 1/r d/dph
 
@@ -1796,7 +1795,8 @@ class Euclidean3dimSpace(EuclideanSpace):
         spher_to_cart = chart_spher.transition_map(chart_cart,
                              [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
         spher_to_cart.set_inverse(sqrt(x**2+y**2+z**2),
-                                  atan2(sqrt(x**2+y**2),z), atan2(y, x))
+                                  atan2(sqrt(x**2+y**2),z), atan2(y, x),
+                                  check=False)
         # Automorphism Cartesian frame --> orthonormal spherical frame:
         oframe = self._spherical_frame
         cframe = chart_cart.frame()
@@ -1873,7 +1873,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         rh, ph, z = chart_cylind[:]
         cylind_to_cart = chart_cylind.transition_map(chart_cart,
                                                      [rh*cos(ph), rh*sin(ph), z])
-        cylind_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y, x), z)
+        cylind_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y, x), z, check=False)
         # Automorphism Cartesian frame --> orthonormal cylindrical frame:
         oframe = self._cylindrical_frame
         cframe = chart_cart.frame()
@@ -1950,7 +1950,8 @@ class Euclidean3dimSpace(EuclideanSpace):
         r, th, ph = spher[:]
         spher_to_cylind = spher.transition_map(cylind,
                                                [r*sin(th), ph, r*cos(th)])
-        spher_to_cylind.set_inverse(sqrt(rh**2 + z**2), atan2(rh,z), ph)
+        spher_to_cylind.set_inverse(sqrt(rh**2 + z**2), atan2(rh,z), ph,
+                                    check=False)
         # Automorphism orthon. cylindrical frame -> orthon. spherical frame
         cf = cylind.frame() # coordinate cylindrical frame
         sf = spher.frame()  # coordinate spherical frame
@@ -2203,8 +2204,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.spherical_frame():
-            ....:     e.display(E.spherical_coordinates().frame(),
-            ....:               E.spherical_coordinates())
+            ....:     e.display(E.spherical_coordinates())
             e_r = d/dr
             e_th = 1/r d/dth
             e_ph = 1/(r*sin(th)) d/dph
@@ -2352,8 +2352,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial z}\right)`::
 
             sage: for e in E.cylindrical_frame():
-            ....:     e.display(E.cylindrical_coordinates().frame(),
-            ....:               E.cylindrical_coordinates())
+            ....:     e.display(E.cylindrical_coordinates())
             e_rh = d/drh
             e_ph = 1/rh d/dph
             e_z = d/dz

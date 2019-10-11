@@ -360,13 +360,29 @@ class PerfectMatching(SetPartition):
 
             sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')])
             sage: n = PerfectMatching([('a','b'),('d','f'),('e','c')])
-            sage: m.loops(n)
+            sage: loops = m.loops(n)
+            sage: loops # random
             [['a', 'e', 'c', 'b'], ['d', 'f']]
 
             sage: o = PerfectMatching([(1, 7), (2, 4), (3, 8), (5, 6)])
             sage: p = PerfectMatching([(1, 6), (2, 7), (3, 4), (5, 8)])
             sage: o.loops(p)
             [[1, 7, 2, 4, 3, 8, 5, 6]]
+
+        TESTS:
+
+        Test whether the shorter element of ``loops`` is ``['d', 'f']``
+        and the longer element is the cycle ``['a', 'e', 'c', 'b']`` or
+        its reverse, or one of their cyclic permutations::
+
+            sage: loops = sorted(loops, key=len)
+            sage: sorted(loops[0])
+            ['d', 'f']
+            sage: G = SymmetricGroup(4)
+            sage: g = G([(1,2,3,4)])
+            sage: ((loops[1] in [permutation_action(g**i, ['a', 'e', 'c', 'b']) for i in range(4)])
+            ....:      or (loops[1] in [permutation_action(g**i, ['a', 'b', 'c', 'e']) for i in range(4)]))
+            True
         """
         return list(self.loops_iterator(other))
 
@@ -504,13 +520,14 @@ class PerfectMatching(SetPartition):
     is_non_nesting = deprecated_function_alias(23982, SetPartition.is_nonnesting)
     conjugate_by_permutation = deprecated_function_alias(23982, SetPartition.apply_permutation)
 
+
 class PerfectMatchings(SetPartitions_set):
     r"""
     Perfect matchings of a ground set.
 
     INPUT:
 
-    - ``s`` -- an itegerable of hashable objects or an integer
+    - ``s`` -- an iterable of hashable objects or an integer
 
     EXAMPLES:
 
@@ -530,13 +547,22 @@ class PerfectMatchings(SetPartitions_set):
         sage: PerfectMatchings(8).cardinality()
         105
         sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
-        sage: M.an_element()
+        sage: x = M.an_element()
+        sage: x # random
         [('a', 'c'), ('b', 'e'), ('d', 'f')]
         sage: all(PerfectMatchings(i).an_element() in PerfectMatchings(i)
         ....:     for i in range(2,11,2))
         True
 
-    TESTS::
+    TESTS:
+
+    Test that ``x = M.an_element()`` is actually a perfect matching::
+
+
+        sage: set([]).union(*x) == M.base_set()
+        True
+        sage: sum([len(a) for a in x]) == M.base_set().cardinality()
+        True
 
         sage: M = PerfectMatchings(6)
         sage: TestSuite(M).run()
@@ -708,11 +734,14 @@ class PerfectMatchings(SetPartitions_set):
         EXAMPLES::
 
             sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
-            sage: M.random_element()
+            sage: x = M.random_element()
+            sage: x # random
             [('a', 'b'), ('c', 'd'), ('e', 'f')]
 
         TESTS::
 
+            sage: x in M
+            True
             sage: p = PerfectMatchings(13).random_element()
             Traceback (most recent call last):
             ...

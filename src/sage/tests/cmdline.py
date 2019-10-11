@@ -195,42 +195,42 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--root"])
-        sage: len(out) >= 2   # at least one character + newline
+        sage: (out, err, ret) = test_executable(["sage", "--root"])  # optional - build
+        sage: len(out) >= 2   # at least one character + newline; optional - build
         True
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional -build
         0
 
     Test ``sage --info [packages]`` and the equivalent
     ``sage -p --info --info [packages]`` (the doubling of ``--info``
     is intentional, that option should be idempotent)::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
-        sage: print(out)
+        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
+        sage: print(out)  # optional - build
         Found local metadata for sqlite-...
         = SQLite =
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional - build
         0
 
-        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
-        sage: print(out)
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
+        sage: print(out)  # optional - build
         Found local metadata for sqlite-...
         = SQLite =
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional - build
         0
 
     Test ``sage-run`` on a Python file, both with an absolute and with a relative path::
@@ -261,7 +261,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: _ = F.write("k.<a> = GF(5^3); print(a^124)\n")
+        sage: _ = F.write("from __future__ import print_function\nk.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)
@@ -402,18 +402,20 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         1
 
     Check that Sage refuses to run doctests from a directory whose
-    permissions are too loose.  We create a world-writable directory
-    inside a safe temporary directory to test this::
+    permissions are too loose. Note that this is relevant only for
+    Sage's Python 2, which is patched to produce this behavior. We
+    create a world-writable directory inside a safe temporary
+    directory to test this::
 
         sage: d = os.path.join(tmp_dir(), "test")
         sage: os.mkdir(d)
         sage: os.chmod(d, 0o777)
-        sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d)
-        sage: print(err)
+        sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d) # py2
+        sage: print(err) # py2
         ...
         RuntimeError: refusing to run doctests...
-        sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d)
-        sage: print(err)
+        sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d) # py2
+        sage: print(err) # py2
         ...
         RuntimeError: refusing to run doctests...
 

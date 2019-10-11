@@ -92,14 +92,14 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu> and
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import inspect
 from warnings import warn
@@ -238,8 +238,8 @@ class Category(UniqueRepresentation, SageObject):
         ....:         def fD(self):
         ....:             return "D"
 
-    Categories should always have unique representation; by trac ticket
-    :trac:`12215`, this means that it will be kept in cache, but only
+    Categories should always have unique representation; by :trac:`12215`,
+    this means that it will be kept in cache, but only
     if there is still some strong reference to it.
 
     We check this before proceeding::
@@ -794,19 +794,23 @@ class Category(UniqueRepresentation, SageObject):
     ##########################################################################
 
     def category_graph(self):
-         r"""
-         Returns the graph of all super categories of this category
+        r"""
+        Returns the graph of all super categories of this category
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: C = Algebras(QQ)
-             sage: G = C.category_graph()
-             sage: G.is_directed_acyclic()
-             True
-             sage: G.girth()
-             4
-         """
-         return category_graph([self])
+            sage: C = Algebras(QQ)
+            sage: G = C.category_graph()
+            sage: G.is_directed_acyclic()
+            True
+
+        The girth of a directed acyclic graph is infinite, however,
+        the girth of the underlying undirected graph is 4 in this case::
+
+            sage: Graph(G).girth()
+            4
+        """
+        return category_graph([self])
 
     @abstract_method
     def super_categories(self):

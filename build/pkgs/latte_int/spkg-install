@@ -1,7 +1,7 @@
 cd src
 
 sdh_configure --enable-shared=yes --enable-static=false \
-              --with-gmp=$SAGE_LOCAL --with-ntl=$SAGE_LOCAL \
+              $SAGE_CONFIGURE_GMP $SAGE_CONFIGURE_NTL \
               --with-cddlib=$SAGE_LOCAL --with-4ti2=$SAGE_LOCAL \
               --with-lidia=$SAGE_LOCAL
 sdh_make

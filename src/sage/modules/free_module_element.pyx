@@ -393,10 +393,10 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
         sage: vector(u).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
         sage: v = vector(K, (0, 1) )
         sage: vector(v).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
 
     Constructing a vector from a numpy array behaves as expected::
 
@@ -3273,7 +3273,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             Full MatrixSpace of 3 by 4 dense matrices over Rational Field
 
         The more general :meth:`sage.matrix.matrix2.tensor_product` is an
-        operation on a pair of matrices.  If we construe a pair of vectors
+        operation on a pair of matrices.  If we construct a pair of vectors
         as a column vector and a row vector, then an outer product and a
         tensor product are identical.  Thus `tensor_product` is a synonym
         for this method.  ::

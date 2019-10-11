@@ -95,6 +95,11 @@ related ?
     4: A079263: Number of constrained mixed models with n factors.
     5: A079265: Number of antisymmetric transitive binary relations on n unlabeled points.
     6: A263859: Triangle read by rows: T(n,k) (n>=1, k>=0) is the number of posets with n elements and rank k (or depth k+1).
+    7: A316978: Number of factorizations of n into factors > 1 with no equivalent primes.
+    8: A319559: Number of non-isomorphic T_0 set systems of weight n.
+    9: A326939: Number of T_0 sets of subsets of {1..n} that cover all n vertices.
+    10: A326943: Number of T_0 sets of subsets of {1..n} that cover all n vertices and are closed under intersection.
+    ...
 
 
 What does the Taylor expansion of the `e^(e^x-1)`` function have to do with
@@ -154,6 +159,7 @@ from six.moves.urllib.request import urlopen
 from six.moves.urllib.parse import urlencode
 
 from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.cpython.string import bytes_to_str
 from sage.rings.integer import Integer
 from sage.misc.misc import verbose
@@ -287,10 +293,11 @@ class OEIS:
 
     The database can be searched by subsequence::
 
-        sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
-        0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-        1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-        2: ...
+        sage: search = oeis([1,2,3,5,8,13])                         # optional -- internet
+        sage: search = sorted(search, key=lambda x: x.id()); search # optional -- internet
+        [A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.,
+         A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.,
+         A290689: Number of transitive rooted trees with n nodes.]
 
         sage: fibo = search[0]                         # optional -- internet
 
@@ -331,11 +338,11 @@ class OEIS:
 
     The database can be searched by description::
 
-        sage: oeis('prime gap factorization', max_results=4)                # optional -- internet
-        0: A073491: Numbers having no prime gaps in their factorization.
-        1: A073490: Number of prime gaps in factorization of n.
-        2: A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.
-        3: A073492: Numbers having at least one prime gap in their factorization.
+        sage: sorted(oeis('prime gap factorization', max_results=4), key=lambda x: x.id()) # optional --internet
+        [A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.,
+         A073490: Number of prime gaps in factorization of n.,
+         A073491: Numbers having no prime gaps in their factorization.,
+         A073492: Numbers having at least one prime gap in their factorization.]
 
     .. WARNING::
 
@@ -343,9 +350,7 @@ class OEIS:
         database, and once again for creating the sequence ``fibo``)::
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
-            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: ...
+            ...
 
             sage: fibo = oeis('A000045')                # optional -- internet
 
@@ -353,10 +358,10 @@ class OEIS:
         Instead, do the following, to reuse the result of the search to create
         the sequence::
 
-            sage: oeis([1,2,3,5,8,13])                  # optional -- internet
-            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: ...
+            sage: sorted(oeis([1,2,3,5,8,13]), key=lambda x: x.id()) # optional -- internet
+            [A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.,
+             A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.,
+             A290689: Number of transitive rooted trees with n nodes.]
 
             sage: fibo = _[0]                           # optional -- internet
     """
@@ -447,10 +452,10 @@ class OEIS:
 
         EXAMPLES::
 
-            sage: oeis.find_by_description('prime gap factorization')       # optional -- internet
-            0: A073491: Numbers having no prime gaps in their factorization.
-            1: A073490: Number of prime gaps in factorization of n.
-            2: A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.
+            sage: sorted(oeis.find_by_description('prime gap factorization'), key=lambda x: x.id()) # optional -- internet
+            [A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.,
+             A073490: Number of prime gaps in factorization of n.,
+             A073491: Numbers having no prime gaps in their factorization.]
 
             sage: prime_gaps = _[1] ; prime_gaps        # optional -- internet
             A073490: Number of prime gaps in factorization of n.
@@ -606,7 +611,7 @@ class OEIS:
         return OEISSequence(self._imaginary_entry(keywords))
 
 
-class OEISSequence(SageObject):
+class OEISSequence(SageObject, UniqueRepresentation):
     r"""
     The class of OEIS sequences.
 
@@ -667,7 +672,6 @@ class OEISSequence(SageObject):
             from warnings import warn
             warn('This sequence is dead: "{}: {}"'.format(self.id(), self.name()), RuntimeWarning)
 
-
     def id(self, format='A'):
         r"""
         The ID of the sequence ``self`` is the A-number that identifies
@@ -704,7 +708,41 @@ class OEISSequence(SageObject):
         if format == 'A':
             return self._id
         elif format == 'int':
-            return Integer(self._id[1:].lstrip("0"))
+            return int(self._id[1:].lstrip("0"))
+
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``, which is its numerical OEIS ID.
+
+        This method allows unique representation of OEIS sequences.
+
+        OUTPUT:
+
+        - Python `int`.
+
+        EXAMPLES::
+
+            sage: s = oeis([1,2,3,5,8,13])[0]           # optional -- internet
+            sage: hash(s)                               # optional -- internet
+            45
+
+        We have unique representation::
+
+            sage: t = oeis(45)                          # optional -- internet
+            sage: s is t                                # optional -- internet
+            True
+            sage: s == t                                # optional -- internet
+            True
+
+        TESTS::
+
+            sage: s = oeis._imaginary_sequence()
+            sage: s is oeis._imaginary_sequence()
+            True
+            sage: s == oeis._imaginary_sequence()
+            True
+        """
+        return self.id(format='int')
 
     def raw_entry(self):
         r"""
@@ -927,7 +965,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's ...
+            A087778: Decimal expansion ... Avogadro...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23
@@ -1312,60 +1350,6 @@ class OEISSequence(SageObject):
         if not self.is_full():
             raise LookupError("Future values not provided by OEIS.")
 
-    def __eq__(self, other):
-        r"""
-        Returns ``True`` if ``self`` is equal to ``other`` and ``False``
-        otherwise.  Two integer sequences are considered equal if they have the
-        same OEIS ID.
-
-        INPUT:
-
-        - ``other`` - an oeis sequence.
-
-        OUTPUT:
-
-        - boolean.
-
-        EXAMPLES::
-
-            sage: oeis([1,2,3,5,8,13])[0] == oeis(45)   # optional -- internet
-            True
-
-        TESTS::
-
-            sage: s = oeis._imaginary_sequence()
-            sage: s == oeis._imaginary_sequence()
-            True
-
-        """
-        return self.id() == other.id()
-
-    def __ne__(self, other):
-        r"""
-        Returns ``True`` if ``self`` has a different OEIS ID than ``other`` and
-        ``False`` otherwise.
-
-        INPUT:
-
-        - ``other`` - an oeis sequence.
-
-        OUTPUT:
-
-        - boolean.
-
-        EXAMPLES::
-
-            sage: oeis([1,2,3,5,8,13])[0] != oeis(40)   # optional -- internet
-            True
-
-        TESTS::
-
-            sage: s = oeis._imaginary_sequence()
-            sage: s != oeis._imaginary_sequence()
-            False
-        """
-        return not self == other
-
     def references(self):
         r"""
         Return a tuple of references associated to the sequence ``self``.
@@ -1746,7 +1730,7 @@ class OEISSequence(SageObject):
             A001113: Decimal expansion of e.
 
             sage: ee.programs()[0]                      # optional -- internet
-            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } \\\\ _Harry J. Smith_, Apr 15 2009'
+            '(PARI) default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); \\\\ _Harry J. Smith_, Apr 15 2009'
 
         TESTS::
 

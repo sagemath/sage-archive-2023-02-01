@@ -8,7 +8,7 @@ Suffix Tries and Suffix Trees
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from six.moves import range
 from six import iteritems
@@ -112,15 +112,15 @@ class SuffixTrie(SageObject):
             Suffix Trie of the word: ababbab
         """
         r = self._active_state
+        old_s = None
         # While r is not the auxiliary vertex, or
         # there is not transition from r along letter, ...
-        while r != -1 and \
-                (r,letter) not in self._transition_function:
+        while r != -1 and (r, letter) not in self._transition_function:
             # adjoin a new state s
             s = len(self._suffix_link)
             self._suffix_link.append(None)
             # create a transition from r to s along letter
-            self._transition_function[(r,letter)] = s
+            self._transition_function[(r, letter)] = s
             if r != self._active_state:
                 # update the suffix link
                 self._suffix_link[old_s] = s
@@ -130,7 +130,7 @@ class SuffixTrie(SageObject):
         if r == -1:
             self._suffix_link[old_s] = 0
         else:
-            self._suffix_link[old_s] = self._transition_function[(r,letter)]
+            self._suffix_link[old_s] = self._transition_function[(r, letter)]
         # update the active state
         self._active_state = \
                 self._transition_function[(self._active_state, letter)]
@@ -1286,7 +1286,7 @@ class ImplicitSuffixTree(SageObject):
 
         The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a
         word `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k`
-        that has an occurence starting before `u_i` or a letter if this prefix
+        that has an occurrence starting before `u_i` or a letter if this prefix
         is empty.
 
         OUTPUT:
@@ -1333,6 +1333,87 @@ class ImplicitSuffixTree(SageObject):
             i += max(1, l)
             iB.append(i)
         return iB
+
+    def _count_and_skip(self, node, i, j):
+        r"""
+        Use count and skip trick to follow the path starting at ``node`` and
+        reading ``self.word()[i:j]``. We assume that reading
+        ``self.word()[i:j]`` is possible from ``node``
+
+        INPUT:
+
+        - ``node`` -- explicit node of ``self``
+        - ``i`` -- beginning of factor ``T.word()[i:j]``
+        - ``j`` -- end of factor ``T.word()[i:j]``
+
+        OUTPUT:
+
+        The node obtained by starting at ``node`` and following the edges
+        labeled by the letters of ``T.word()[i:j]``.
+        Return ``("explicit", end_node)`` if w ends at the node ``end_node``,
+        and ``("implicit", edge, d)`` if it ends after reading ``d`` letters along
+        the edge ``edge``.
+
+        EXAMPLES::
+
+            sage: T = Word('00110111011').suffix_tree()
+            sage: T._count_and_skip(5, 2, 5)
+            ('implicit', (9, 10), 2)
+            sage: T._count_and_skip(0, 1, 4)
+            ('explicit', 7)
+            sage: T._count_and_skip(0, 8, 10)
+            ('implicit', (2, 7), 1)
+            sage: T = Word('cacao').suffix_tree()
+            sage: T._count_and_skip(3, 2, 5)
+            ('explicit', 1)
+        """
+        trans = self._find_transition(node, self._letters[i])
+        while (trans[0][1] is not None and trans[0][1] - trans[0][0] + 1 <= j - i):
+            node = trans[1]
+            i += trans[0][1] - trans[0][0] + 1
+            if i == j:
+                return ('explicit', node)
+            else:
+                trans = self._find_transition(node, self._letters[i])
+        if trans[0][1] is None and len(self.word()) - trans[0][0] + 1 <= j - i:
+            return ('explicit', trans[1])
+        else:
+            return ('implicit', (node, trans[1]), j - i)
+
+    def suffix_walk(self, edge, l):
+        r"""
+        Return the state of "w" if the input state is "aw".
+
+        If the input state ``(edge, l)`` is path labeled "aw" with "a" a letter, the output is
+        the state which is path labeled "w".
+
+        INPUT:
+
+        - ``edge`` -- the edge containing the state
+        - ``l`` -- the string-depth of the state on edge (``l``>0)
+
+        OUTPUT:
+
+        Return ``("explicit", end_node)`` if the state of w is an explicit
+        state and ``("implicit", edge, d)`` is obtained by reading ``d``
+        letters on ``edge``.
+
+        EXAMPLES::
+
+            sage: T = Word('00110111011').suffix_tree()
+            sage: T.suffix_walk((0, 5), 1)
+            ('explicit', 0)
+            sage: T.suffix_walk((7, 3), 1)
+            ('implicit', (9, 4), 1)
+        """
+        # Select the transition that corresponds to edge
+        for (i, j) in self._transition_function[edge[0]]:
+            if self._transition_function[edge[0]][(i, j)] == edge[1]:
+                break
+        # self.word()[i-1:j] is the word on the edges
+        i -= 1
+        parent = self.suffix_link(edge[0])
+        return self._count_and_skip(parent, i, i+l)
 
     #####
     # Miscellaneous methods

@@ -79,7 +79,7 @@ is returned by generators::
     sage: P.get_autom_order_permutation() == GL(3, GF(3)).order()/(len(GF(3))-1)
     True
     sage: A = P.get_autom_gens()
-    sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
+    sage: all((a*mat).echelon_form() == mat.echelon_form() for a in A)
     True
 """
 
@@ -488,7 +488,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         sage: P.get_autom_order_permutation() == GL(3, GF(3)).order()/(len(GF(3))-1)
         True
         sage: A = P.get_autom_gens()
-        sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
+        sage: all((a*mat).echelon_form() == mat.echelon_form() for a in A)
         True
     """
     def __cinit__(self):
@@ -717,7 +717,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
             sage: A = P.get_autom_gens()
-            sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
+            sage: all((a*mat).echelon_form() == mat.echelon_form() for a in A)
             True
         """
         return self._autom_group_generators

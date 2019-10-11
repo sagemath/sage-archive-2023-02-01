@@ -2081,12 +2081,22 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 EXAMPLES::
 
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]):
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py2
                     ....:     print((x, y))
                     (1, 'a')
                     (1, 'b')
                     (2, 'a')
                     (2, 'b')
+
+                Sets are intrinsically unordered, so a different
+                ordering may occur when using Python 3::
+
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py3 random
+                    ....:     print((x, y))
+                    (1, 'b')
+                    (1, 'a')
+                    (2, 'b')
+                    (2, 'a')
 
                     sage: A = FiniteEnumeratedSets()(["a", "b"])
                     sage: B = FiniteEnumeratedSets().example(); B
@@ -2460,11 +2470,29 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: A = GroupAlgebra(KleinFourGroup(), QQ)
-                    sage: A.construction()
+                    sage: F, arg = A.construction(); F, arg
                     (GroupAlgebraFunctor, Rational Field)
+                    sage: F(arg) is A
+                    True
+
+                This also works for structures such as monoid algebras (see
+                :trac:`27937`)::
+
+                    sage: A = FreeAbelianMonoid('x,y').algebra(QQ)
+                    sage: F, arg = A.construction(); F, arg
+                    (The algebra functorial construction,
+                     Free abelian monoid on 2 generators (x, y))
+                    sage: F(arg) is A
+                    True
                 """
-                from sage.categories.algebra_functor import GroupAlgebraFunctor
-                return GroupAlgebraFunctor(self.group()), self.base_ring()
+                from sage.categories.algebra_functor import (
+                        GroupAlgebraFunctor, AlgebraFunctor)
+                try:
+                    group = self.group()
+                except AttributeError:
+                    return (AlgebraFunctor(self.base_ring()),
+                            self.basis().keys())
+                return GroupAlgebraFunctor(group), self.base_ring()
 
             def _repr_(self):
                 r"""

@@ -208,10 +208,10 @@ class FreeModuleAltForm(FreeModuleTensor):
     The exterior product is nilpotent on linear forms::
 
         sage: s = b.wedge(b) ; s
-        Alternating form b/\b of degree 2 on the Rank-3 free module M over the
+        Alternating form zero of degree 2 on the Rank-3 free module M over the
          Integer Ring
         sage: s.display(e)
-        b/\b = 0
+        zero = 0
 
     """
     def __init__(self, fmodule, degree, name=None, latex_name=None):

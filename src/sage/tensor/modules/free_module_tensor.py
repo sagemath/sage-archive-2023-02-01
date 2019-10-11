@@ -192,6 +192,7 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 # *****************************************************************************
 from __future__ import absolute_import
 
+from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
@@ -1184,7 +1185,7 @@ class FreeModuleTensor(ModuleElement):
 
     comp = components
 
-    def set_comp(self, basis=None):
+    def set_comp(self, basis=None, **kwargs):
         r"""
         Return the components of ``self`` w.r.t. a given module basis for
         assignment.
@@ -1243,7 +1244,20 @@ class FreeModuleTensor(ModuleElement):
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_module(1, 1).zero()
+            sage: z.set_comp(e)[0,1] = 1
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        check_zero = kwargs.pop('check_zero', True)
+        if check_zero:
+            if self is self.parent().zero():
+                raise AssertionError("the components of the zero element "
+                                     "cannot be changed")
         if basis is None:
             basis = self._fmodule._def_basis
         if basis not in self._components:
@@ -1253,10 +1267,9 @@ class FreeModuleTensor(ModuleElement):
             self._components[basis] = self._new_comp(basis)
         self._del_derived() # deletes the derived quantities
         self.del_other_comp(basis)
-        self._is_zero = False  # a priori
         return self._components[basis]
 
-    def add_comp(self, basis=None):
+    def add_comp(self, basis=None, **kwargs):
         r"""
         Return the components of ``self`` w.r.t. a given module basis for
         assignment, keeping the components w.r.t. other bases.
@@ -1273,7 +1286,7 @@ class FreeModuleTensor(ModuleElement):
         .. WARNING::
 
             If the tensor has already components in other bases, it
-            is the user's responsability to make sure that the components
+            is the user's responsibility to make sure that the components
             to be added are consistent with them.
 
         OUTPUT:
@@ -1314,7 +1327,20 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display(e)
             t = -3 e_0*e^1 + 2 e_1*e^2
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_module(1, 1).zero()
+            sage: z.add_comp(e)[0,1] = 1
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        check_zero = kwargs.pop('check_zero', True)
+        if check_zero:
+            if self is self.parent().zero():
+                raise AssertionError("the components of the zero element "
+                                     "cannot be changed")
         if basis is None: basis = self._fmodule._def_basis
         if basis not in self._components:
             if basis not in self._fmodule._known_bases:
@@ -1322,9 +1348,7 @@ class FreeModuleTensor(ModuleElement):
                                  "defined on the {}".format(self._fmodule))
             self._components[basis] = self._new_comp(basis)
         self._del_derived() # deletes the derived quantities
-        self._is_zero = False  # a priori
         return self._components[basis]
-
 
     def del_other_comp(self, basis=None):
         r"""

@@ -177,6 +177,7 @@ from sage.arith.all import lcm
 
 from sage.rings.ring import Field
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.qqbar_decorators import handle_AA_and_QQbar
 
 from sage.modules.free_module_element import vector
 
@@ -3321,6 +3322,32 @@ class FunctionField_global(FunctionField_polymod):
 
         return n
 
+@handle_AA_and_QQbar
+def _singular_normal(ideal):
+        from sage.libs.singular.function import singular_function, lib
+        lib('normal.lib')
+        normal = singular_function('normal')
+        execute = singular_function('execute')
+
+        try:
+            get_printlevel = singular_function('get_printlevel')
+        except NameError:
+            execute('proc get_printlevel {return (printlevel);}')
+            get_printlevel = singular_function('get_printlevel')
+
+        # Call Singular.  Singular's "normal" function returns an
+        # integral basis as the generators of a k[x,y]-subalgebra of
+        # k(x,y)/(g).  The last polynomial in the returned list is a
+        # common denominator to divide all of them by.  It's fairly
+        # verbose unless printlevel is -1.
+
+        saved_printlevel = get_printlevel()
+        execute('printlevel=-1')
+        retval = normal(ideal)
+        execute('printlevel={}'.format(saved_printlevel))
+
+        return retval
+
 class FunctionField_integral(FunctionField_polymod):
     """
     Integral function fields defined by an irreducible and separable polynomial,
@@ -3348,17 +3375,6 @@ class FunctionField_integral(FunctionField_polymod):
         """
         from sage.matrix.constructor import matrix
 
-        from sage.libs.singular.function import singular_function, lib
-        lib('normal.lib')
-        normal = singular_function('normal')
-        execute = singular_function('execute')
-
-        try:
-            get_printlevel = singular_function('get_printlevel')
-        except NameError:
-            execute('proc get_printlevel {return (printlevel);}')
-            get_printlevel = singular_function('get_printlevel')
-
         k = self.constant_base_field()
         K = self.base_field() # rational function field
         n = self.degree()
@@ -3376,10 +3392,7 @@ class FunctionField_integral(FunctionField_polymod):
         # common denominator to divide all of them by.  It's fairly
         # verbose unless printlevel is -1.
 
-        saved_printlevel = get_printlevel()
-        execute('printlevel=-1')
-        pols_in_S = normal(S.ideal(g))[1][0]
-        execute('printlevel={}'.format(saved_printlevel))
+        pols_in_S = _singular_normal(S.ideal(g))[1][0]
 
         # reconstruct polynomials in the function field
         x = K.gen()

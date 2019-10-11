@@ -86,8 +86,8 @@ Function fields over the rational field are supported:
     sage: O = F.maximal_order()
     sage: I = O.ideal(y)
     sage: I.divisor()
-    2*Place (x, (1/(x^3 + x^2 + x))*y^2)
-     + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
+    2*Place (x, y, (1/(x^3 + x^2 + x))*y^2)
+     + 2*Place (x^2 + x + 1, y, (1/(x^3 + x^2 + x))*y^2)
 
     sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
     sage: L.<y> = K.extension(Y^2+Y+x+1/x)

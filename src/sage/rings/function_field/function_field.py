@@ -63,6 +63,40 @@ and inseparable extension function fields::
     sage: O.<v> = J.extension(v^5 - x); O
     Function field in v defined by v^5 + 4*x
 
+Function fields over the rational field are supported:
+
+    sage: F.<x> = FunctionField(QQ)
+    sage: R.<Y> = F[]
+    sage: L.<y> = F.extension(Y^2 - x^8 - 1)
+    sage: O = L.maximal_order()
+    sage: I = O.ideal(x, y-1)
+    sage: P = I.place()
+    sage: D = P.divisor()
+    sage: D.basis_function_space()
+    [1]
+    sage: (2*D).basis_function_space()
+    [1]
+    sage: (3*D).basis_function_space()
+    [1]
+    sage: (4*D).basis_function_space()
+    [1, 1/x^4*y + 1/x^4]
+
+    sage: K.<x> = FunctionField(QQ); _.<t> = PolynomialRing(K)
+    sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+    sage: O = F.maximal_order()
+    sage: I = O.ideal(y)
+    sage: I.divisor()
+    2*Place (x, (1/(x^3 + x^2 + x))*y^2)
+     + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
+
+    sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^2+Y+x+1/x)
+    sage: O = L.maximal_order()
+    sage: I = O.ideal(y)
+    sage: I.divisor()
+    - Place (x, x*y)
+     + Place (x^2 + 1, x*y)
+
 TESTS::
 
     sage: TestSuite(J).run()

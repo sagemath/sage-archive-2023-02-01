@@ -3,11 +3,11 @@ Cyclic cover curve constructor
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# *****************************************************************************
 #  Copyright (C) 2018 Edgar Costa <edgarcosta@math.dartmouth.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
@@ -108,27 +108,30 @@ def CyclicCover(r, f, names=None, check_smooth=True):
     f = P(f)
     if check_smooth:
         if P(r) == 0:
-            raise ValueError("As the characteristic divides the order of the cover, "\
-                    "this model is not smooth.")
+            raise ValueError(
+                "As the characteristic divides the order of the cover, "
+                "this model is not smooth."
+            )
 
         try:
             from .cycliccover_generic import check_squarefree
+
             smooth = check_squarefree(f)
         except NotImplementedError as err:
-            raise NotImplementedError(str(err) +  "Use " \
-                      "check_smooth=False to skip this check.")
+            raise NotImplementedError(
+                str(err) + "Use " "check_smooth=False to skip this check."
+            )
         if not smooth:
-            raise ValueError("Not a smooth Cyclic Cover of P^1: " \
-                              "singularity in the provided affine patch.")
+            raise ValueError(
+                "Not a smooth Cyclic Cover of P^1: "
+                "singularity in the provided affine patch."
+            )
     R = P.base_ring()
     if names is None:
-        names = ["x","y"]
-    A2 = AffineSpace(2, R, names = names)
+        names = ["x", "y"]
+    A2 = AffineSpace(2, R, names=names)
 
     if is_FiniteField(R):
         return CyclicCover_finite_field(A2, r, f, names=names)
     else:
         return CyclicCover_generic(A2, r, f, names=names)
-
-
-

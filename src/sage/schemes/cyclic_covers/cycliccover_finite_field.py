@@ -1106,10 +1106,10 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             sage: CyclicCover(4,x^5 + x + 1).frobenius_polynomial()
             x^12 - 64*x^11 + 5018*x^10 - 488640*x^9 + 28119583*x^8 - 641791616*x^7 + 124245485932*x^6 - 3208316288384*x^5 + 702708407289583*x^4 - 61043359329111360*x^3 + 3133741752599645018*x^2 - 199800079984001599936*x + 15606259372500374970001
 
-            sage: CyclicCover(11, PolynomialRing(GF(1129), 'x')([-1] + [0]*(5-1) + [1])).frobenius_polynomial() # long
+            sage: CyclicCover(11, PolynomialRing(GF(1129), 'x')([-1] + [0]*(5-1) + [1])).frobenius_polynomial() # long time
             x^40 + 7337188909826596*x^30 + 20187877911930897108199045855206*x^20 + 24687045654725446027864774006541463602997309796*x^10 + 11320844849639649951608809973589776933203136765026963553258401
 
-            sage: CyclicCover(3, PolynomialRing(GF(1009^2), 'x')([-1] + [0]*(5-1) + [1])).frobenius_polynomial() # long
+            sage: CyclicCover(3, PolynomialRing(GF(1009^2), 'x')([-1] + [0]*(5-1) + [1])).frobenius_polynomial() # long time
             x^8 + 532*x^7 - 2877542*x^6 - 242628176*x^5 + 4390163797795*x^4 - 247015136050256*x^3 - 2982540407204025062*x^2 + 561382189105547134612*x + 1074309286591662654798721
 
 

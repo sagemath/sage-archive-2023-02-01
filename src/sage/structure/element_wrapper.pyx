@@ -420,7 +420,7 @@ class DummyParent(UniqueRepresentation, Parent):
             ....:            "_test_elements", "_test_elements_eq_reflexive",
             ....:            "_test_elements_eq_symmetric",
             ....:            "_test_elements_eq_transitive",
-            ....:            "_test_elements_neq", "_test_some_elements"])
+            ....:            "_test_elements_neq", "_test_some_elements"]
             sage: TestSuite(parent).run(skip=skipped)
         """
         self.name = name

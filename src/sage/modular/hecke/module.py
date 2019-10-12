@@ -502,7 +502,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             ....:    "_test_elements_eq_symmetric",
             ....:    "_test_elements_eq_transitive", "_test_elements_neq",
             ....:    "_test_pickling", "_test_some_elements",
-            ....:    "_test_zero", "_test_eq"])
+            ....:    "_test_zero", "_test_eq"]
             sage: TestSuite(M).run(skip=skipped)
 
         .. NOTE:: Is this supposed to be an abstract parent without elements?

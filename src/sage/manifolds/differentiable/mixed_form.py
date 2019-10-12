@@ -1,9 +1,9 @@
 r"""
 Mixed Differential Forms
 
-Let `M` and `N` be differentiable manifolds and `\varphi : M \longrightarrow N` a
-differentiable map. A *mixed differential form along* `\varphi` is an element of
-the graded algebra represented by
+Let `M` and `N` be differentiable manifolds and `\varphi : M \longrightarrow N`
+a differentiable map. A *mixed differential form along* `\varphi` is an element
+of the graded algebra represented by
 :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`.
 Its homogeneous components consist of differential forms along `\varphi`. Mixed
 forms are useful to represent characteristic classes and perform computations
@@ -206,10 +206,10 @@ class MixedForm(AlgebraElement):
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: omega = M.diff_form(1, name='omega')
             sage: omega[e_xy,0] = y*x
-            sage: omega.add_comp_by_continuation(e_uv, W, c_uv) # continuation onto M
+            sage: omega.add_comp_by_continuation(e_uv, W, c_uv)
             sage: eta = M.diff_form(2, name='eta')
             sage: eta[e_uv,0,1] = u*v^2
-            sage: eta.add_comp_by_continuation(e_xy, W, c_xy) # continuation onto M
+            sage: eta.add_comp_by_continuation(e_xy, W, c_xy)
             sage: A = M.mixed_form_algebra()
             sage: F = A([x, omega, eta], name='F')
             sage: TestSuite(F).run(skip='_test_pickling')
@@ -252,20 +252,20 @@ class MixedForm(AlgebraElement):
              manifold M'
 
         """
-        description = "Mixed differential form "
+        desc = "Mixed differential form "
         if self._name is not None:
-            description += self._name + " "
+            desc += self._name + " "
         if self._dest_map is self._domain.identity_map():
-            description += "on the {}".format(self._domain)
+            desc += "on the {}".format(self._domain)
         else:
-            description += "along the {} with values on the {} ".format(
-                self._domain, self._ambient_domain)
+            desc += "along the {} with values on the {} "
+            desc += desc.format(self._domain, self._ambient_domain)
             if self._dest_map._name is None:
                 dm_name = "unnamed map"
             else:
                 dm_name = self._dest_map._name
-            description += "via the map " + dm_name
-        return description
+            desc += "via the map " + dm_name
+        return desc
 
     def _latex_(self):
         r"""
@@ -400,7 +400,7 @@ class MixedForm(AlgebraElement):
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
         ###
-        # Check names:
+        # Mixed form name:
         if self._name is not None:
             resu_txt = self._name + " = "
         else:
@@ -409,6 +409,8 @@ class MixedForm(AlgebraElement):
             resu_latex = self._latex_name + r" = "
         else:
             resu_latex = ""
+        ###
+        # Scalar field:
         if self[0]._name is None:
             resu_txt += "(unnamed scalar field) "
         else:
@@ -417,6 +419,8 @@ class MixedForm(AlgebraElement):
             resu_latex += r"\mbox{(unnamed scalar field)}"
         else:
             resu_latex += latex(self[0])
+        ###
+        # Differential forms:
         for j in self.irange(1):
             if self[j]._name is None:
                 resu_txt += " + (unnamed " + str(j) + "-form)"

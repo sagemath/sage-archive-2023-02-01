@@ -73,7 +73,7 @@ def check_squarefree(f):
             squarefree = should_be_coprime[0].resultant(should_be_coprime[1]) != 0
         except (AttributeError, NotImplementedError, TypeError):
             raise NotImplementedError(
-                "Cannot determine whether " "polynomial %s is square free." % (f,)
+                "Cannot determine whether polynomial %s is square free." % (f,)
             )
     return squarefree
 
@@ -287,7 +287,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         if self._d == self._r:
             return plane_curve.AffinePlaneCurve.projective_closure(self, **kwds)
         else:
-            raise NotImplementedError("Weighted Projective Space " "is not implemented")
+            raise NotImplementedError("Weighted Projective Space is not implemented")
 
     def cover_polynomial(self, K=None, var="x"):
         """
@@ -309,7 +309,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
     def is_singular(self):
         r"""
 
-        Returns if this curve is singular or not.
+        Return if this curve is singular or not.
 
         This just checks that the characteristic of the ring does not divide the
         order of the cover and that the defining polynomial of the cover is

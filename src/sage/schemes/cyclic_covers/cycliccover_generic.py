@@ -132,7 +132,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         self._genus = ((self._d - 1) * (self._r - 1) - (self._delta - 1)) // 2
         self._f = f
 
-        F = y ** r - f(x)
+        F = y**r - f(x)
         plane_curve.AffinePlaneCurve.__init__(self, AA, F)
         if names is None:
             names = ("x", "y")
@@ -185,7 +185,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         x, y = self.ambient_space().gens()
         r = self._r
         f = self._f
-        return "Cyclic Cover of P^1 over %s defined by %s = %s" % (R, y ** r, f(x))
+        return "Cyclic Cover of P^1 over %s defined by %s = %s" % (R, y**r, f(x))
 
     def __eq__(self, other):
         """

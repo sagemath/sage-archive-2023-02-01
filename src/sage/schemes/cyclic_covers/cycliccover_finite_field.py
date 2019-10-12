@@ -223,9 +223,9 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             if self._plarge and self._nodenominators:
                 if self._n == 1:
                     # IntegerModRing is significantly faster than Zq
-                    self._Zq = IntegerModRing(self._p ** (self._N))
+                    self._Zq = IntegerModRing(self._p**self._N)
                     if self._sqrtp:
-                        self._Zq0 = IntegerModRing(self._p ** (self._N - 1))
+                        self._Zq0 = IntegerModRing(self._p**(self._N - 1))
                     self._Qq = Qq(self._p, prec=self._N, type="capped-rel")
                     self._w = 1
                 else:
@@ -326,15 +326,17 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         -   ``i`` - The power of x in the expression `Frob(x^i dx/y^j) / dx`
 
-        -   ``j`` - The (negative) power of y in the expression `Frob(x^i dx/y^j) /
-            dx`
+        -   ``j`` - The (negative) power of y in the expression
+                    `Frob(x^i dx/y^j) / dx`
 
         OUTPUT:
 
         ``frobij`` - a Matrix of size  (d * (N0 - 1) + ) x (N0)
-                     that represents the Frobenius expansion of x^i dx/y^j modulo p^(N0 + 1)
+                     that represents the Frobenius expansion of
+                     x^i dx/y^j modulo p^(N0 + 1)
 
-                    the entry (l, s) corresponds to the coefficient associated to the monomial x ** (p * (i + 1 + l) -1) * y ** (p * -(j + r*s))
+                    the entry (l, s) corresponds to the coefficient associated
+                    to the monomial x**(p * (i + 1 + l) -1) * y**(p * -(j + r*s))
                     (l, s) --> (p * (i + 1 + l) -1, p * -(j + r*s))
 
         ALGORITHM:

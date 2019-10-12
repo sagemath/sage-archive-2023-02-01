@@ -2,15 +2,15 @@
 """
 Root lattice realizations
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #                          2012 Nicolas Borie  <nicolas.borie at univ-mlv.fr>
 #
 #       (with contributions of many others)
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 
@@ -2882,8 +2882,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             And another with some foldings::
 
-                sage: L.plot_alcoves(bounding_box=3) +\
-                ....: L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
+                sage: pic = L.plot_alcoves(bounding_box=3)   # long time
+                sage: pic += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
                 ....:                      foldings = [False, False, True, False, False, False, True, False, True, False],
                 ....:                      color="green")            # long time (3s)
                 Graphics object consisting of 155 graphics primitives

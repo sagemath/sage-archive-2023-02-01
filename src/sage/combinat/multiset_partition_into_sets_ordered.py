@@ -1710,8 +1710,8 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             sage: OMPs = OrderedMultisetPartitionsIntoSets(**c)
             sage: OMPs._satisfies_constraints([{2,4}, {1}, {1,4}])
             True
-            sage: failures = {((2,4), (2,4)), ((1,2,4), (1,), (1,4)), \
-                              ((2,4), (3,), (3,)), ((2,4), (1,), (2,4))}
+            sage: failures = {((2,4), (2,4)), ((1,2,4), (1,), (1,4)),
+            ....:             ((2,4), (3,), (3,)), ((2,4), (1,), (2,4))}
             sage: any(OMPs._satisfies_constraints(x) for x in failures)
             False
             sage: c = {"max_length":4, "weight":{1:2, 2:1, 4:2}}
@@ -2744,7 +2744,7 @@ def _base_iterator(constraints):
     if "weight" in constraints:
         return _iterator_weight(constraints["weight"])
     elif "size" in constraints:
-        return _iterator_size(constraints["size"], \
+        return _iterator_size(constraints["size"],
             constraints.get("length",None), constraints.get("alphabet",None))
     elif "alphabet" in constraints:
         A = constraints["alphabet"]
@@ -2790,9 +2790,9 @@ def _iterator_weight(weight):
         sage: OMP = OrderedMultisetPartitionsIntoSets(weight)
         sage: l = list(_iterator_weight(weight))
 
-        sage: sorted(map(OMP, l), key=str) == sorted(map(OMP, \
-        [[{1}, {1}, {'b'}], [{1}, {1,'b'}], [{1}, {'b'}, {1}], \
-         [{1,'b'}, {1}], [{'b'}, {1}, {1}]]), key=str)
+        sage: sorted(map(OMP, l), key=str) == sorted(map(OMP,
+        ....:     [[{1}, {1}, {'b'}], [{1}, {1,'b'}], [{1}, {'b'}, {1}],
+        ....:     [{1,'b'}, {1}], [{'b'}, {1}, {1}]]), key=str)
         True
         sage: OMP = OrderedMultisetPartitionsIntoSets({1:3, 3:1})
         sage: list(map(OMP, _iterator_weight([3,0,1])))

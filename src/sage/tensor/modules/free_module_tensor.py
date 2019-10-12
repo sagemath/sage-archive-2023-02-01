@@ -1255,8 +1255,8 @@ class FreeModuleTensor(ModuleElement):
             AssertionError: the components of the zero element cannot be changed
 
         """
-        check_zero = kwargs.pop('check_zero', True)
-        if check_zero:
+        check_elements = kwargs.pop('check_elements', True)
+        if check_elements:
             if self is self.parent().zero():
                 raise AssertionError("the components of the zero element "
                                      "cannot be changed")
@@ -1339,8 +1339,8 @@ class FreeModuleTensor(ModuleElement):
             AssertionError: the components of the zero element cannot be changed
 
         """
-        check_zero = kwargs.pop('check_zero', True)
-        if check_zero:
+        check_elements = kwargs.pop('check_elements', True)
+        if check_elements:
             if self is self.parent().zero():
                 raise AssertionError("the components of the zero element "
                                      "cannot be changed")

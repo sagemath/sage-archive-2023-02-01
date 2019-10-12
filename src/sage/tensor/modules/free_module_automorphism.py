@@ -293,7 +293,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         # MultiplicativeGroupElement attributes:
         # - none
         # Local attributes:
-        self._is_identity = False # A priori
+        self._is_identity = False # a priori
         self._inverse = None    # inverse automorphism not set yet
         self._matrices = {}
 
@@ -484,11 +484,10 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         if self._is_identity:
             raise AssertionError("the components of the identity map cannot be "
                                  "changed")
-        return FreeModuleTensor.set_comp(self, basis=basis, check_zero=False)
+        return FreeModuleTensor.set_comp(self, basis=basis, check_elements=False)
 
     def add_comp(self, basis=None):
         r"""
-
         Return the components of ``self`` w.r.t. a given module basis for
         assignment, keeping the components w.r.t. other bases.
 
@@ -557,7 +556,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         if self._is_identity:
             raise AssertionError("the components of the identity map cannot be "
                                  "changed")
-        return FreeModuleTensor.add_comp(self, basis=basis, check_zero=False)
+        return FreeModuleTensor.add_comp(self, basis=basis, check_elements=False)
 
     def __call__(self, *arg):
         r"""

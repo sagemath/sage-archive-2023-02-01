@@ -244,6 +244,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         # exterior_power and dual_exterior_power
         self._exterior_powers = {1: self}
         self._dual_exterior_powers = {}
+        self._general_linear_group = None
 
     #### Parent methods
 
@@ -692,9 +693,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.automorphismfield_group import \
-                                                         AutomorphismFieldGroup
-        return AutomorphismFieldGroup(self)
+        if self._general_linear_group is None:
+            from sage.manifolds.differentiable.automorphismfield_group import \
+                                                          AutomorphismFieldGroup
+            self._general_linear_group = AutomorphismFieldGroup(self)
+        return self._general_linear_group
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None, specific_type=None):
@@ -1030,7 +1033,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         elt = self.element_class(self, name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                elt.add_comp(frame)
+                elt.add_comp(frame, check_elements=False)
                 # (since new components are initialized to zero)
         return elt
 
@@ -1412,13 +1415,6 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                 subframe._superframes.update(basis._superframes)
                                 basis._subframes.update(subframe._subframes)
                                 basis._restrictions.update(subframe._restrictions)
-
-        # Initialization of the components of the zero element:
-        zero = self.zero()
-        for frame in self._domain._frames:
-            if frame._dest_map == self._dest_map:
-                zero.add_comp(frame) # since new components are
-                                     # initialized to zero
 
     #### Parent methods
 

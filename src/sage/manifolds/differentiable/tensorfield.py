@@ -1077,7 +1077,7 @@ class TensorField(ModuleElement):
 
         return self._restrictions[subdomain]
 
-    def set_comp(self, basis=None):
+    def set_comp(self, basis=None, **kwargs):
         r"""
         Return the components of ``self`` in a given vector frame
         for assignment.
@@ -1132,15 +1132,28 @@ class TensorField(ModuleElement):
             ValueError: no basis could be found for computing the components
              in the Coordinate frame (V, (d/du,d/dv))
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.set_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        check_elements = kwargs.pop('check_elements', True)
+        if check_elements:
+            if self is self.parent().zero():
+                raise AssertionError("the components of the zero element "
+                                     "cannot be changed")
+            self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
-        self._is_zero = False  # a priori
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.set_comp(basis)
+        return rst.set_comp(basis, **kwargs)
 
-    def add_comp(self, basis=None):
+    def add_comp(self, basis=None, **kwargs):
         r"""
         Return the components of ``self`` in a given vector frame
         for assignment.
@@ -1191,13 +1204,26 @@ class TensorField(ModuleElement):
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.add_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        check_elements = kwargs.pop('check_elements', True)
+        if check_elements:
+            if self is self.parent().zero():
+                raise AssertionError("the components of the zero element "
+                                     "cannot be changed")
+            self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
-        self._is_zero = False  # a priori
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.add_comp(basis)
+        return rst.add_comp(basis, **kwargs)
 
     def add_comp_by_continuation(self, frame, subdomain, chart=None):
         r"""
@@ -1271,10 +1297,10 @@ class TensorField(ModuleElement):
         sframe = frame.restrict(subdomain)
         schart = chart.restrict(subdomain)
         scomp = self.comp(sframe)
-        resu = self.add_comp(frame) # _del_derived is performed here
+        resu = self.add_comp(frame, check_elements=False) # _del_derived is
+                                                          # performed here
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
-        self._is_zero = False  # a priori
 
     def add_expr_from_subdomain(self, frame, subdomain):
         r"""
@@ -1366,14 +1392,13 @@ class TensorField(ModuleElement):
         if frame not in self.restrict(frame.domain())._components:
             raise ValueError("the tensor doesn't have an expression in "
                              "the frame"+frame._repr_())
-        comp = self.comp(frame)
+        comp = self.add_comp(frame, check_elements=False)
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
 
         rst = self._restrictions.copy()
         self._del_derived()         # delete restrictions
-        self._is_zero = False  # a priori
         self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):

@@ -601,15 +601,15 @@ class FreeModuleBasis(Basis_abstract):
         # base module itself, since it is considered as a type-(1,0) tensor
         # module):
         for t in fmodule._tensor_modules.values():
-            t(0).add_comp(basis=self, check_zero=False)
+            t(0).add_comp(basis=self, check_elements=False)
             # (since new components are initialized to zero)
         # Initialization of the components w.r.t the current basis of the zero
         # elements of all exterior powers of the module and its dual
         # constructed up to now:
         for t in fmodule._exterior_powers.values():
-            t(0).add_comp(basis=self, check_zero=False)
+            t(0).add_comp(basis=self, check_elements=False)
         for t in fmodule._dual_exterior_powers.values():
-            t(0).add_comp(basis=self, check_zero=False)
+            t(0).add_comp(basis=self, check_elements=False)
         # Initialization of the components w.r.t. the current basis of the
         # identity map of the general linear group:
         if fmodule._general_linear_group is not None:

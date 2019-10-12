@@ -1988,7 +1988,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         """
         resu = self._element_constructor_(name='zero', latex_name='0')
         for basis in self._known_bases:
-            resu.add_comp(basis=basis, check_zero=False)
+            resu.add_comp(basis=basis, check_elements=False)
             # (since new components are initialized to zero)
         resu._is_zero = True # This element is certainly zero
         return resu

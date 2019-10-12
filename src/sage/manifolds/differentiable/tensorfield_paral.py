@@ -722,7 +722,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             self._extensions_graph = {self._domain: self}
             self._restrictions_graph = {self._domain: self}
 
-    def set_comp(self, basis=None):
+    def set_comp(self, basis=None, **kwargs):
         r"""
         Return the components of the tensor field in a given vector frame
         for assignment.
@@ -796,7 +796,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         if basis._domain == self._domain:
             # Setting components on the tensor field domain:
-            return FreeModuleTensor.set_comp(self, basis=basis)
+            return FreeModuleTensor.set_comp(self, basis=basis, **kwargs)
 
         # Setting components on a subdomain:
         #
@@ -810,9 +810,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # deleted by _del_derived):
         self._restrictions[basis._domain] = rst
         # The set_comp operation is performed on the subdomain:
-        return rst.set_comp(basis=basis)
+        return rst.set_comp(basis=basis, **kwargs)
 
-    def add_comp(self, basis=None):
+    def add_comp(self, basis=None, **kwargs):
         r"""
         Return the components of the tensor field in a given vector frame
         for assignment.
@@ -887,7 +887,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             # they are deleted by FreeModuleTensor.add_comp (which
             # invokes del_derived()), and restore them afterwards
             restrictions_save = self._restrictions.copy()
-            comp = FreeModuleTensor.add_comp(self, basis=basis)
+            comp = FreeModuleTensor.add_comp(self, basis=basis, **kwargs)
             self._restrictions = restrictions_save
             return comp
 
@@ -899,7 +899,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # subdomains:
         self._del_derived(del_restrictions=False)
         # The add_comp operation is performed on the subdomain:
-        return rst.add_comp(basis=basis)
+        return rst.add_comp(basis=basis, **kwargs)
 
     def comp(self, basis=None, from_basis=None):
         r"""

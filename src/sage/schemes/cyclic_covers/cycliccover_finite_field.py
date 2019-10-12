@@ -78,9 +78,9 @@ from . import cycliccover_generic
 
 def _N0_nodenominators(p, g, n):
     """
-    Return the necessary p-adic precision for the frobenius matrix to deduce
-    the characteristic polynomial of frobenius using the Newton identities,
-    using  :meth:`charpoly_frobenius`, which assumes that the frobenius matrix
+    Return the necessary p-adic precision for the Frobenius matrix to deduce
+    the characteristic polynomial of Frobenius using the Newton identities,
+    using  :meth:`charpoly_frobenius`, which assumes that the Frobenius matrix
     is instegral, i.e., has no denominators.
 
 
@@ -124,7 +124,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _init_frob(self, desired_prec=None):
         """
-        Initialise everything for frobenius polynomial computation.
+        Initialise everything for Frobenius polynomial computation.
 
         TESTS::
 
@@ -926,7 +926,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         INPUT:
 
         - `i`,`j` -- exponents of the basis differential
-        - `N0` -- desired p-adic precision for the frobenius expansion
+        - `N0` -- desired p-adic precision for the Frobenius expansion
 
         TESTS::
 
@@ -991,7 +991,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
     @cached_method
     def frobenius_matrix(self, N=None):
         """
-        Compute p-adic frobenius matrix to precision p^N. If N not
+        Compute p-adic Frobenius matrix to precision p^N. If N not
         supplied, a default value is selected, which is the minimum needed
         to recover the charpoly unambiguously.
 

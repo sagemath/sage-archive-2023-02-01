@@ -6,7 +6,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2018 Edgar Costa <edgarcosta@math.dartmouth.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -18,7 +18,7 @@ from .cycliccover_finite_field import CyclicCover_finite_field
 
 def CyclicCover(r, f, names=None, check_smooth=True):
     r"""
-    Returns the cyclic cover of the projective line given by `y^r = f`, for
+    Return the cyclic cover of the projective line given by `y^r = f`, for
     a univariate polynomial `f`.
 
     INPUT:

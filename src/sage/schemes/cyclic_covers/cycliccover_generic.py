@@ -37,7 +37,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2018 Edgar Costa <edgarcosta@math.dartmouth.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.polynomial.all import PolynomialRing
@@ -47,7 +47,7 @@ import sage.schemes.curves.affine_curve as plane_curve
 
 def check_squarefree(f):
     r"""
-    Checks if a polynomial `f` is squarefree
+    Check if a polynomial `f` is squarefree
 
 
     EXAMPLES::
@@ -139,7 +139,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
 
     def change_ring(self, R):
         """
-        Returns this HyperellipticCurve over a new base ring R.
+        Return this HyperellipticCurve over a new base ring R.
 
         EXAMPLES::
 
@@ -327,7 +327,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
 
     def is_smooth(self):
         r"""
-        Returns if this curve is smooth or not.
+        Return if this curve is smooth or not.
 
         This just checks that the characteristic of the ring does not divide the
         order of the cover and that the defining polynomial of the cover is

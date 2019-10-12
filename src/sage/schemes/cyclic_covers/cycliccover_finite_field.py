@@ -56,7 +56,7 @@ from __future__ import absolute_import
 #                       Richard Magner <rmagner@bu.edu>,
 #                       Nicholas Triantafillou <ngtriant@mit.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 
@@ -78,7 +78,11 @@ from . import cycliccover_generic
 
 def _N0_nodenominators(p, g, n):
     """
-    Assuming that the frobenius matrix has no denominators return the necessary p-adic precision for the frobenius matrix to deduce the characteristic polynomial of frobenius using the Newton identities, using  :meth:`charpoly_frobenius`.
+    Return the necessary p-adic precision for the frobenius matrix to deduce
+    the characteristic polynomial of frobenius using the Newton identities,
+    using  :meth:`charpoly_frobenius`, which assumes that the frobenius matrix
+    is instegral, i.e., has no denominators.
+
 
     INPUT:
 
@@ -276,7 +280,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _divide_vector(self, D, vect, R):
         """
-        Divides the vector `vect` by `D` as a vector over `R`.
+        Divide the vector `vect` by `D` as a vector over `R`.
 
         TESTS::
 
@@ -301,7 +305,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _frob_sparse(self, i, j, N0):
         r"""
-        Computes `Frob(x^i y^(-j) dx ) / dx` for y^r = f(x) with N0 terms
+        Compute `Frob(x^i y^(-j) dx ) / dx` for y^r = f(x) with N0 terms
 
         INPUT:
 
@@ -320,7 +324,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         ALGORITHM:
 
-        Computes:
+        Compute:
 
         Frob(x^i dx/y^j) / dx = p * x ** (p * (i+1) - 1) * y ** (-j*p) * Sigma
 
@@ -633,7 +637,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _initialize_fat_horizontal(self, s, L):
         """
-        Initialises reduction matrices for horizontal reductions for blocks from `s` to `L`.
+        Initialise reduction matrices for horizontal reductions for blocks from `s` to `L`.
 
         TESTS::
 
@@ -812,7 +816,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _initialize_fat_vertical(self, s0, max_upper_target):
         """
-        Initialises reduction matrices for vertical reductions for blocks from `s0` to `s0 + max_upper_target`.
+        Initialise reduction matrices for vertical reductions for blocks from `s0` to `s0 + max_upper_target`.
 
 
         TESTS::
@@ -951,7 +955,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         def _frobenius_matrix_p(N0):
             r"""
-            Computes the matrix that represents the p-power Frobenius
+            Compute the matrix that represents the p-power Frobenius
             """
             assert self._init_frobQ
 
@@ -980,7 +984,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
     @cached_method
     def frobenius_polynomial(self):
         r"""
-        Returns the characteristic polynomial of Frobenius.
+        Return the characteristic polynomial of Frobenius.
 
         EXAMPLES:
 

@@ -61,7 +61,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of topological fields
 
-    - ``latex_name`` -- (default: ``None``) latex representation given to the
+    - ``latex_name`` -- (default: ``None``) LaTeX representation given to the
       total space
     - ``category`` -- (default: ``None``) to specify the category; if
       ``None``, ``VectorBundles(base_space, c_field)`` is assumed (see the
@@ -132,7 +132,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     Or we just define frames, an automorphism on the free
     section module over the intersection domain `W` and declare the change
     of frame manually (for more details consult
-    :class:`~sage.manifolds.local_frames.LocalFrame`)::
+    :class:`~sage.manifolds.local_frame.LocalFrame`)::
 
         sage: eU = E.local_frame('eU', domain=U); eU
         Local frame (E|_U, (eU_0,eU_1))
@@ -270,7 +270,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
     def base_space(self):
         r"""
-        Return the base space of the vector bundle
+        Return the base space of the vector bundle.
 
         EXAMPLES::
 
@@ -421,7 +421,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         - ``domain`` -- (default: ``None``) domain on which the trivialization
           is defined; if ``None`` the base space is assumed
         - ``name`` -- (default: ``None``) name given to the trivialization
-        - ``latex_name`` -- (default: ``None``) latex name given to the
+        - ``latex_name`` -- (default: ``None``) LaTeX name given to the
           trivialization
 
         OUTPUT:
@@ -660,6 +660,15 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         r"""
         Return the vector bundle fiber at ``point``.
 
+        INPUT:
+
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` at which the fiber is defined
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.vector_bundle_fiber.VectorBundleFiber`
+
         EXAMPLES::
 
             sage: M = Manifold(3, 'M', structure='top')
@@ -770,7 +779,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         EXAMPLES:
 
-        A section on a non-trivial 2-rank vector bundle over a non-trivial
+        A section on a non-trivial rank 2 vector bundle over a non-trivial
         2-manifold::
 
             sage: M = Manifold(2, 'M', structure='top')

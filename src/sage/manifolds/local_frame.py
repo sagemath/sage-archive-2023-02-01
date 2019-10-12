@@ -2,8 +2,8 @@ r"""
 Local Frames
 
 The class :class:`LocalFrame` implements local frames on vector bundles
-(see :class:`sage.manifolds.vector_bundle.TopologicalVectorBundle` or
-:class:`sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`).
+(see :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle` or
+:class:`~sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`).
 
 For `k=0,1,\dots`, a *local frame* on a vector bundle `E \to M` of class `C^k`
 and rank `n` is a local section `(e_1,\dots,e_n):U \to E^n` of class `C^k`

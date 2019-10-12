@@ -62,7 +62,7 @@ class Section(ModuleElement):
 
     EXAMPLES:
 
-    A section on a non-trivial 2-rank vector bundle over a non-trivial
+    A section on a non-trivial rank 2 vector bundle over a non-trivial
     2-manifold::
 
         sage: M = Manifold(2, 'M', structure='top')
@@ -110,8 +110,9 @@ class Section(ModuleElement):
 
         sage: s.add_comp_by_continuation(fV, W, chart=c_uv)
 
-    At this stage, `s` is fully defined, having components in frames fU and fV
-    and the union of the domains of fU and fV being the whole manifold::
+    At this stage, `s` is fully defined, having components in frames ``fU``
+    and ``fV`` and the union of the domains of ``fU`` and ``fV`` being the
+    whole manifold::
 
         sage: s.display(fV)
         s = (-1/4*u^2 + 1/4*v^2 + 1/2*u + 1/2*v) (phi_V^*e_1)
@@ -576,7 +577,7 @@ class Section(ModuleElement):
 
         EXAMPLES:
 
-        Restrictions of a section on a 2-rank vector bundle over the 2-sphere::
+        Restrictions of a section on a rank 2 vector bundle over the 2-sphere::
 
             sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
             sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
@@ -1092,7 +1093,7 @@ class Section(ModuleElement):
 
         EXAMPLES:
 
-        Display of section on a 2-rank vector bundle over the 2-sphere::
+        Display of section on a rank 2 vector bundle over the 2-sphere::
 
             sage: S2 = Manifold(2, 'S^2', structure='top', start_index=1)
             sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
@@ -1254,7 +1255,7 @@ class Section(ModuleElement):
 
         EXAMPLES:
 
-        Vector on a 2-rank vector bundle fiber over a non-parallelizable
+        Vector on a rank 2 vector bundle fiber over a non-parallelizable
         2-dimensional manifold::
 
             sage: M = Manifold(2, 'M', structure='top')
@@ -1953,7 +1954,7 @@ class Section(ModuleElement):
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
         resu_name = format_mul_txt(scalar._name, '*', self._name)
-        resu_latex = format_mul_latex(scalar._latex_name, ' \cdot ',
+        resu_latex = format_mul_latex(scalar._latex_name, r' \cdot ',
                                       self._latex_name)
         resu.set_name(name=resu_name, latex_name=resu_latex)
         return resu
@@ -2010,7 +2011,7 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
 
     EXAMPLES:
 
-    A section on a trivial 3-rank vector bundle over the 3-sphere::
+    A section on a trivial rank 3 vector bundle over the 3-sphere::
 
         sage: M = Manifold(3, 'S^3', structure='top')
         sage: U = M.open_subset('U') ; V = M.open_subset('V') # complement of the North and South pole, respectively

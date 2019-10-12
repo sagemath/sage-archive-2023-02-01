@@ -1571,7 +1571,7 @@ class TopologicalManifold(ManifoldSubset):
         - ``name`` -- name given to the total space
         - ``field`` -- (default: ``'real'``) topological field giving the
           vector space structure to the fibers
-        - ``latex_name`` -- optional latex name for the total space
+        - ``latex_name`` -- optional LaTeX name for the total space
 
         OUTPUT:
 

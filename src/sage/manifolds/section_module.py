@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Section Modules
 
@@ -55,6 +56,9 @@ class SectionModule(UniqueRepresentation, Parent):
 
     where `E_p` is the vector bundle fiber of `E` at the point `p`.
 
+    `C^k(U;E)` is a module over `C^k(U)`, the algebra of `C^k` scalar fields on
+    `U`.
+
     INPUT:
 
     - ``vbundle`` -- vector bundle `E` on which the sections takes its values
@@ -63,7 +67,7 @@ class SectionModule(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
-    Module of sections on the Moebius bundle::
+    Module of sections on the Möbius bundle::
 
         sage: M = Manifold(1, 'S^1', structure='top', start_index=1)
         sage: U = M.open_subset('U')  # the complement of one point
@@ -85,7 +89,7 @@ class SectionModule(UniqueRepresentation, Parent):
         Module C^0(S^1;E) of sections on the 1-dimensional topological manifold
          S^1 with values in the real vector bundle E of rank 1
 
-    `C^0(S^1;E)` is a module over the algebra `C^0(M)`::
+    `C^0(S^1;E)` is a module over the algebra `C^0(S^1)`::
 
         sage: C0.category()
         Category of modules over Algebra of scalar fields on the 1-dimensional
@@ -98,7 +102,7 @@ class SectionModule(UniqueRepresentation, Parent):
         sage: isinstance(C0, FiniteRankFreeModule)
         False
 
-    since the Moebius bundle is not trivial::
+    since the Möbius bundle is not trivial::
 
         sage: E.is_manifestly_trivial()
         False
@@ -455,7 +459,7 @@ class SectionModule(UniqueRepresentation, Parent):
             sage: e is C0.default_frame()
             True
 
-        Notice, that the local frame is defined on a subset and not part of
+        Notice, that the local frame is defined on a subset and is not part of
         the section module `C^k(M;E)`::
 
             sage: C0.default_frame().domain()
@@ -524,7 +528,7 @@ class SectionFreeModule(FiniteRankFreeModule):
         sage: C0.base_ring() is M.scalar_field_algebra()
         True
 
-    The vector bundle admits a global frame and is therefore trivial:
+    The vector bundle admits a global frame and is therefore trivial::
 
         sage: E.is_manifestly_trivial()
         True
@@ -557,7 +561,7 @@ class SectionFreeModule(FiniteRankFreeModule):
         sage: C0.bases()
         [Local frame (E|_R^2, (e_0,e_1))]
 
-    The test suite is passed aswell::
+    The test suite is passed as well::
 
         sage: TestSuite(C0).run()
 

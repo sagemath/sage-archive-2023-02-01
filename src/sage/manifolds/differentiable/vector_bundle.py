@@ -44,7 +44,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
     INPUT:
 
     - ``rank`` -- positive integer; rank of the vector bundle
-    - ``name```-- string representation given to the total space
+    - ``name`` -- string representation given to the total space
     - ``base_space`` -- the base space (differentiable manifold) `M` over which
       the vector bundle is defined
     - ``field`` -- field `K` which gives the fibers the structure of a
@@ -59,11 +59,10 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of topological fields
 
-    - ``latex_name`` -- (default: ``None``) latex representation given to the
+    - ``latex_name`` -- (default: ``None``) LaTeX representation given to the
       total space
     - ``category`` -- (default: ``None``) to specify the category; if
-      ``None``, ``VectorBundles(base_space, c_field).Differentiable()`` (or
-      ``Manifolds(field).Smooth()`` if ``diff_degree`` = ``infinity``)`` is
+      ``None``, ``VectorBundles(base_space, c_field).Differentiable()`` is
       assumed (see the category
       :class:`~sage.categories.vector_bundles.VectorBundles`)
 
@@ -140,7 +139,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         Return the vector bundle's degree of differentiability.
 
         The degree of differentiability is the integer `k` (possibly
-        `k=\infty`) such that the vector bundle is of class `C^k`-manifold over
+        `k=\infty`) such that the vector bundle is of class `C^k` over
         its base field. The degree always corresponds to the degree of
         differentiability of it's base space.
 
@@ -390,9 +389,15 @@ class TensorBundle(DifferentiableVectorBundle):
         r"""
         Return the tensor bundle fiber at ``point``.
 
-        .. SEEALSO::
+        INPUT:
 
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.tangent_space`.
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` at which the fiber is defined
+
+        OUPUT:
+
+        - an instance of :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
+          representing the tensor bundle fiber
 
         EXAMPLES::
 
@@ -405,6 +410,19 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: TM.fiber(p)
             Tangent space at Point p on the 3-dimensional differentiable
              manifold M
+            sage: TM.fiber(p) is M.tangent_space(p)
+            True
+
+        ::
+
+            sage: T11M = M.tensor_bundle(1,1); T11M
+            Tensor bundle T^(1,1)M over the 3-dimensional differentiable
+             manifold M
+            sage: T11M.fiber(p)
+            Free module of type-(1,1) tensors on the Tangent space at Point p
+             on the 3-dimensional differentiable manifold M
+            sage: T11M.fiber(p) is M.tangent_space(p).tensor_module(1,1)
+            True
 
         """
         amb_point = self._dest_map(point)
@@ -417,7 +435,10 @@ class TensorBundle(DifferentiableVectorBundle):
 
         .. SEEALSO::
 
-            This method invokes :meth:`~sage.manifolds.manifold.Manifold.atlas`.
+            This method invokes
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.atlas`
+            of class
+            :class:`~sage.manifolds.manifold.TopologicalManifold`
 
         EXAMPLES::
 
@@ -439,7 +460,7 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.tensor_field_module`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field_module`.
 
         INPUT:
 
@@ -483,7 +504,7 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.tensor_field`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field`.
 
         INPUT:
 
@@ -560,7 +581,7 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.set_change_of_frame`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.set_change_of_frame`.
 
         INPUT:
 
@@ -611,7 +632,8 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.change_of_frame`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.change_of_frame`
+            of class :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         INPUT:
 
@@ -659,7 +681,8 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.changes_of_frame`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.changes_of_frame`
+            of class :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         OUTPUT:
 
@@ -717,7 +740,9 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.frames`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.frames`
+            of class
+            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         OUTPUT:
 
@@ -764,7 +789,9 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.Manifold.coframes`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.coframes`
+            of class
+            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         OUTPUT:
 
@@ -816,7 +843,7 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.manifold.Manifold.chart`.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.chart`.
 
         INPUT:
 
@@ -864,7 +891,7 @@ class TensorBundle(DifferentiableVectorBundle):
         examples below). If no interval range, no period and no LaTeX spelling
         is to be set for any coordinate, the argument ``coordinates`` can be
         omitted when the shortcut operator ``<,>`` is used to declare the
-        chart (see examples below).
+        trivialization.
 
         OUTPUT:
 
@@ -900,7 +927,7 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.manifold.Manifold.coord_changes`.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_changes`.
 
         EXAMPLES:
 
@@ -954,7 +981,7 @@ class TensorBundle(DifferentiableVectorBundle):
         .. SEEALSO::
 
             This method invokes
-            :meth:`~sage.manifolds.manifold.Manifold.coord_change`.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_change`.
 
         INPUT:
 
@@ -992,7 +1019,7 @@ class TensorBundle(DifferentiableVectorBundle):
 
         EXAMPLES:
 
-        A just created manifold has no a priori manifestly trivial tensor
+        A just created manifold has a priori no manifestly trivial tangent
         bundle::
 
             sage: M = Manifold(2, 'M')

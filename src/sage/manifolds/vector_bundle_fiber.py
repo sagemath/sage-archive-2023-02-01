@@ -33,15 +33,15 @@ class VectorBundleFiber(FiniteRankFreeModule):
 
     INPUT:
 
-    - ``vector_bundle`` -- :class:`~sage.manifolds.vector_bundle.VectorBundle`;
+    - ``vector_bundle`` -- :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle`;
       vector bundle `E` on which the fiber is defined
     - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
       point `p` at which the fiber is defined
 
     EXAMPLES:
 
-    A vector bundle fiber in a trivial 2-rank vector bundle over a 4-dimensional
-    topological manifold::
+    A vector bundle fiber in a trivial rank 2 vector bundle over a
+    4-dimensional topological manifold::
 
         sage: M = Manifold(4, 'M', structure='top')
         sage: X.<x,y,z,t> = M.chart()

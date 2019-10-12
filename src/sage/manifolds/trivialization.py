@@ -3,7 +3,7 @@ Trivializations
 
 The class :class:`Trivialization` implements trivializations on vector bundles.
 The corresponding transition maps between two trivializations are represented by
-:class:TransitionMap`.
+:class:`TransitionMap`.
 
 AUTHORS:
 
@@ -31,8 +31,8 @@ class Trivialization(UniqueRepresentation, SageObject):
 
     Let `\pi:E \to M` be a vector bundle of rank `n` and class `C^k` over the
     field `K`
-    (see: :class:~sage.manifolds.vector_bundle.TopologicalVectorBundle` or
-    :class:~sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`).
+    (see :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle` or
+    :class:`~sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`).
     A *local trivialization* over an open subset `U \subset M` is a
     `C^k`-diffeomorphism `\varphi: \pi^{-1}(U) \to U \times K^n` such that
     `\pi \circ \varphi^{-1}=\mathrm{pr}_1` and `v \mapsto \varphi^{-1}(q,v)`
@@ -41,7 +41,7 @@ class Trivialization(UniqueRepresentation, SageObject):
     .. NOTE::
 
         Notice that frames and trivializations are equivalent concepts (for
-        further details see :class:`sage.manifolds.local_frame.LocalFrame`).
+        further details see :class:`~sage.manifolds.local_frame.LocalFrame`).
         However, in order to facilitate applications and being consistent with
         the implementations of charts, trivializations are introduced
         separately.
@@ -115,7 +115,7 @@ class Trivialization(UniqueRepresentation, SageObject):
          subset W of the 2-dimensional topological manifold S^2 with values in
          the real vector bundle E of rank 2}
 
-    Let us check the components of ``f1` with respect to the frame ``f2``::
+    Let us check the components of ``fU`` with respect to the frame ``fV``::
 
         sage: fU[0].comp(fV.restrict(W))[:]
         [0, 1]
@@ -275,7 +275,7 @@ class Trivialization(UniqueRepresentation, SageObject):
 
         .. SEEALSO::
 
-            :class:`sage.manifolds.local_frame.LocalFrame`
+            :class:`~sage.manifolds.local_frame.LocalFrame`
 
         EXAMPLES::
 
@@ -294,7 +294,7 @@ class Trivialization(UniqueRepresentation, SageObject):
 
         .. SEEALSO::
 
-            :class:`sage.manifolds.local_frame.LocalCoFrame`
+            :class:`~sage.manifolds.local_frame.LocalCoFrame`
 
         EXAMPLES::
 
@@ -317,7 +317,7 @@ class TransitionMap(SageObject):
     field `K`, and two trivializations
     `\varphi_U : \pi^{-1}(U) \to U \times K^n` and
     `\varphi_V : \pi^{-1}(V) \to V \times K^n`, the transition map from
-    `\varphi_U` to \varphi_V` is given by the composition
+    `\varphi_U` to `\varphi_V` is given by the composition
 
     .. MATH::
 
@@ -337,16 +337,16 @@ class TransitionMap(SageObject):
     - ``triv1`` -- trivialization 1
     - ``triv2`` -- trivialization 2
     - ``transf`` -- the transformation between both trivializations in form of a
-      matrix of scalar fields (:class:`sage.manifolds.scalarfield.ScalarField`)
-      or coordinate functions (:class:`sage.manifolds.chart_func.ChartFunction`),
+      matrix of scalar fields (:class:`~sage.manifolds.scalarfield.ScalarField`)
+      or coordinate functions (:class:`~sage.manifolds.chart_func.ChartFunction`),
       or a bundle automorphism
-      (:class:`sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`)
+      (:class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`)
     - ``compute_inverse`` -- (default: ``True``) determines whether the inverse
       shall be computed or not
 
     EXAMPLES:
 
-    Transition map of two trivializations on a real 2-rank vector bundle of the
+    Transition map of two trivializations on a real rank 2 vector bundle of the
     2-sphere::
 
         sage: S2 = Manifold(2, 'S^2', structure='top')
@@ -521,9 +521,9 @@ class TransitionMap(SageObject):
         Then, for each point `p \in M`, the matrix `g(p)` is the representation
         of the induced automorphism on the fiber `E_p=\pi^{-1}(p)` in the basis
         `\left( (\varphi_V^*e_i)(p)\right)_{i=1,\dots,n}`.
-        
+
         EXAMPLES::
-        
+
             sage: S2 = Manifold(2, 'S^2', structure='top')
             sage: U = S2.open_subset('U') ; V = S2.open_subset('V') # complement of the North and South pole, respectively
             sage: S2.declare_union(U,V)
@@ -591,7 +591,7 @@ class TransitionMap(SageObject):
 
         OUTPUT:
 
-        - An instance of :class:`sage.manifolds.scalarfield.ScalarField`.
+        - An instance of :class:`~sage.manifolds.scalarfield.ScalarField`.
 
         EXAMPLES::
 

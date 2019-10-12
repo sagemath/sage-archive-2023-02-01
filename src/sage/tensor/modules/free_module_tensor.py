@@ -1397,7 +1397,7 @@ class FreeModuleTensor(ModuleElement):
         self._del_derived() # deletes the derived quantities
         return self._components[basis]
 
-    def add_comp(self, basis=None, **kwargs):
+    def add_comp(self, basis=None):
         r"""
         Return the components of ``self`` w.r.t. a given module basis for
         assignment, keeping the components w.r.t. other bases.

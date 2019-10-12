@@ -35,7 +35,7 @@ EXAMPLES::
 from __future__ import absolute_import
 
 # *****************************************************************************
-#  Copyright (C) 2018 Edgar Costa <edgarcosta@math.dartmouth.edu>
+#  Copyright (C) 2018 Edgar Costa <edgarc@mit.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************

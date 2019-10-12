@@ -81,7 +81,7 @@ def _N0_nodenominators(p, g, n):
     Return the necessary p-adic precision for the Frobenius matrix to deduce
     the characteristic polynomial of Frobenius using the Newton identities,
     using  :meth:`charpoly_frobenius`, which assumes that the Frobenius matrix
-    is instegral, i.e., has no denominators.
+    is integral, i.e., has no denominators.
 
 
     INPUT:

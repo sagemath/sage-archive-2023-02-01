@@ -175,8 +175,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         if not self._init_frobQ or self._N0 != desired_prec:
             if self._r < 2 or self._d < 2:
-                raise NotImplementedError(
-                        "Only implemented for r, f.degree() >= 2")
+                raise NotImplementedError("Only implemented for r, f.degree() >= 2")
 
             self._init_frobQ = True
 
@@ -281,7 +280,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             self._frobpow_list = [elt.list() for elt in frobpow]
 
             if self._sqrtp:
-                ## precision of self._Zq0
+                # precision of self._Zq0
                 N = self._N - 1
                 vandermonde = matrix(self._Zq0, N, N)
                 for i in range(N):
@@ -972,10 +971,10 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
                 )  # d * (s + 1) )
             # G represents G(x) * x^(p ** l - 1) y^(-p(j + r*s)) /dx
             G = vector(self._Zq, d)
-            for l in reversed(range(1, d * s + (i + 1) + 1)):
-                if l >= (i + 1):
-                    G[0] += frobij[l - (i + 1), s]
-                G = self._reduce_vector_horizontal(G, p * l - 1, p * j + p * r * s, p)
+            for ell in reversed(range(1, d * s + (i + 1) + 1)):
+                if ell >= (i + 1):
+                    G[0] += frobij[ell - (i + 1), s]
+                G = self._reduce_vector_horizontal(G, p * ell - 1, p * j + p * r * s, p)
             assert G[0] == 0
             H += vector(G.list()[1:])
             if s > 0:

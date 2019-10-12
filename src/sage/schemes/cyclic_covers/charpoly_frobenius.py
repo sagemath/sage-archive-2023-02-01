@@ -17,7 +17,9 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
 
     - ``frob_matrix`` -- a matrix representing the Frobenius matrix up to some precision
 
-    - ``charpoly_prec`` -- a vector ai, such that, frob_matrix.change_ring(ZZ).charpoly()[i] will be correct mod `p^ai`, this can be easily deduced from the hodge numbers and knowing the q-adic precision of `frob_matrix`
+    - ``charpoly_prec`` -- a vector ai, such that, `frob_matrix.change_ring(ZZ).charpoly()[i]`
+        will be correct mod `p^ai`, this can be easily deduced from the hodge numbers and
+        knowing the q-adic precision of `frob_matrix`
 
     - ``p`` -- prime `p`
 
@@ -181,8 +183,7 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
 
     """
     assert known_factor[-1] == 1
-    F = frob_matrix.change_ring(ZZ)
-    cp = F.charpoly().list()
+    cp = frob_matrix.change_ring(ZZ).charpoly().list()
     assert len(charpoly_prec) == len(cp) - (len(known_factor) - 1)
     assert cp[-1] == 1
 
@@ -211,25 +212,12 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
             )
             # Note: degree*weight = 0 mod 2
             if cp[i] % p_power != 0 and cp[degree - i] % p_power != 0:
-                if (
-                    0
-                    == (
-                        cp[i]
-                        + cp[degree - i] * p**(a * (degree - 2 * i) * weight / 2)
-                    )
-                    % p_power
-                ):
+                other = cp[degree - i] * p**(a * (degree - 2 * i) * weight / 2)
+                if (cp[i] + other) % p_power == 0:
                     sign = -1
                 else:
                     sign = 1
-                assert (
-                    0
-                    == (
-                        -sign * cp[i]
-                        + cp[degree - i] * p**(a * (degree - 2 * i) * weight / 2)
-                    )
-                    % p_power
-                )
+                assert (-sign * cp[i] + other) % p_power == 0
                 break
     cp[0] = sign * p**(a * degree * weight / 2)
 

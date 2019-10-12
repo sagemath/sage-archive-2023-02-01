@@ -46,37 +46,6 @@ from sage.arith.misc import GCD
 import sage.schemes.curves.affine_curve as plane_curve
 
 
-def check_squarefree(f):
-    r"""
-    Check if a polynomial `f` is squarefree
-
-
-    EXAMPLES::
-
-        sage: from sage.schemes.cyclic_covers.cycliccover_generic import check_squarefree
-        sage: x = polygen(QQ)
-        sage: check_squarefree((x-1)^2)
-        False
-        sage: x = polygen(Qp(5))
-        sage: check_squarefree(x^2 + 5)
-        True
-        sage: x = polygen(GF(2))
-        sage: check_squarefree(x^2 + x +1)
-        True
-
-    """
-    should_be_coprime = [f, f.derivative()]
-    try:
-        squarefree = should_be_coprime[0].gcd(should_be_coprime[1]).degree() == 0
-    except (AttributeError, NotImplementedError, TypeError):
-        try:
-            squarefree = should_be_coprime[0].resultant(should_be_coprime[1]) != 0
-        except (AttributeError, NotImplementedError, TypeError):
-            raise NotImplementedError(
-                "Cannot determine whether polynomial %s is square free." % (f,)
-            )
-    return squarefree
-
 
 class CyclicCover_generic(plane_curve.AffinePlaneCurve):
     def __init__(self, AA, r, f, names=None):
@@ -327,7 +296,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         if P(r) == 0:
             return True
         else:
-            return not check_squarefree(self._f)
+            return not self._f.is_squarefree()
 
     def is_smooth(self):
         r"""

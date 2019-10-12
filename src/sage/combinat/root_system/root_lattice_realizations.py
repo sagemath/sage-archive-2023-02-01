@@ -2883,9 +2883,9 @@ class RootLatticeRealizations(Category_over_base_ring):
             And another with some foldings::
 
                 sage: pic = L.plot_alcoves(bounding_box=3)   # long time
-                sage: pic += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
+                sage: pic += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],    # long time (3s)
                 ....:                      foldings = [False, False, True, False, False, False, True, False, True, False],
-                ....:                      color="green"); pic       # long time (3s)
+                ....:                      color="green"); pic
                 Graphics object consisting of 155 graphics primitives
 
             TESTS::

@@ -710,7 +710,7 @@ class VectorFrame(FreeModuleBasis):
                     xsd = sd._vector_field_modules[dest_map]
                     if not isinstance(xsd, FiniteRankFreeModule):
                         for t in xsd._tensor_modules.values():
-                            t(0).add_comp(self, check_elements=False)
+                            t(0)._add_comp_unsafe(self)
                             # (since new components are initialized to zero)
         if dest_map is self._domain.identity_map():
             # The frame is added to the list of the domain's covering frames:

@@ -484,7 +484,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         if self._is_identity:
             raise AssertionError("the components of the identity map cannot be "
                                  "changed")
-        return FreeModuleTensor.set_comp(self, basis=basis, check_elements=False)
+        return FreeModuleTensor._set_comp_unsafe(self, basis=basis)
 
     def add_comp(self, basis=None):
         r"""
@@ -556,7 +556,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         if self._is_identity:
             raise AssertionError("the components of the identity map cannot be "
                                  "changed")
-        return FreeModuleTensor.add_comp(self, basis=basis, check_elements=False)
+        return FreeModuleTensor._add_comp_unsafe(self, basis=basis)
 
     def __call__(self, *arg):
         r"""

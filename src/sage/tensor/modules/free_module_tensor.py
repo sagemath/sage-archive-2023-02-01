@@ -1187,7 +1187,79 @@ class FreeModuleTensor(ModuleElement):
 
     comp = components
 
-    def set_comp(self, basis=None, **kwargs):
+    def _set_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` w.r.t. a given module basis for
+        assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other bases are deleted, in order to
+        avoid any inconsistency. To keep them, use the method
+        :meth:`_add_comp_unsafe` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) basis in which the components are
+          defined; if none is provided, the components are assumed to refer to
+          the module's default basis
+
+        OUTPUT:
+
+        - components in the given basis, as an instance of the
+          class :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created.
+
+        TESTS:
+
+        Setting components of a type-`(1,1)` tensor::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: t = M.tensor((1,1), name='t')
+            sage: t._set_comp_unsafe()[0,1] = -3
+            sage: t.display()
+            t = -3 e_0*e^1
+            sage: t._set_comp_unsafe()[1,2] = 2
+            sage: t.display()
+            t = -3 e_0*e^1 + 2 e_1*e^2
+            sage: t._set_comp_unsafe(e)
+            2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+             Rank-3 free module M over the Integer Ring
+
+        Setting components in a new basis::
+
+            sage: f =  M.basis('f')
+            sage: t._set_comp_unsafe(f)[0,1] = 4
+            sage: list(t._components) # the components w.r.t. basis e have been deleted
+            [Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
+            sage: t.display(f)
+            t = 4 f_0*f^1
+
+        The components w.r.t. basis e can be deduced from those w.r.t. basis f,
+        once a relation between the two bases has been set::
+
+            sage: a = M.automorphism()
+            sage: a[:] = [[0,0,1], [1,0,0], [0,-1,0]]
+            sage: M.set_change_of_basis(e, f, a)
+            sage: t.display(e)
+            t = -4 e_1*e^2
+            sage: sorted(t._components, key=repr)
+            [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
+             Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
+
+        """
+        if basis is None:
+            basis = self._fmodule._def_basis
+        if basis not in self._components:
+            if basis not in self._fmodule._known_bases:
+                raise ValueError("the {} has not been ".format(basis) +
+                                 "defined on the {}".format(self._fmodule))
+            self._components[basis] = self._new_comp(basis)
+        self._del_derived() # deletes the derived quantities
+        self.del_other_comp(basis)
+        return self._components[basis]
+
+    def set_comp(self, basis=None):
         r"""
         Return the components of ``self`` w.r.t. a given module basis for
         assignment.
@@ -1255,12 +1327,66 @@ class FreeModuleTensor(ModuleElement):
             AssertionError: the components of the zero element cannot be changed
 
         """
-        check_elements = kwargs.pop('check_elements', True)
-        if check_elements:
-            if self is self.parent().zero():
-                raise AssertionError("the components of the zero element "
-                                     "cannot be changed")
-            self._is_zero = False  # a priori
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
+        return self._set_comp_unsafe(basis)
+
+    def _add_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` w.r.t. a given module basis for
+        assignment, keeping the components w.r.t. other bases. This private
+        method invokes no security check. Use this method at your own risk.
+
+        To delete the components w.r.t. other bases, use the method
+        :meth:`_set_comp_unsafe` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) basis in which the components are
+          defined; if none is provided, the components are assumed to refer to
+          the module's default basis
+
+        OUTPUT:
+
+        - components in the given basis, as an instance of the
+          class :class:`~sage.tensor.modules.comp.Components`;
+          if such components did not exist previously, they are created
+
+        TESTS:
+
+        Setting components of a type-`(1,1)` tensor::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: t = M.tensor((1,1), name='t')
+            sage: t._add_comp_unsafe()[0,1] = -3
+            sage: t.display()
+            t = -3 e_0*e^1
+            sage: t._add_comp_unsafe()[1,2] = 2
+            sage: t.display()
+            t = -3 e_0*e^1 + 2 e_1*e^2
+            sage: t._add_comp_unsafe(e)
+            2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+             Rank-3 free module M over the Integer Ring
+
+        Adding components in a new basis::
+
+            sage: f =  M.basis('f')
+            sage: t._add_comp_unsafe(f)[0,1] = 4
+
+        The components w.r.t. basis e have been kept::
+
+            sage: sorted(t._components, key=repr)
+            [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
+             Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
+            sage: t.display(f)
+            t = 4 f_0*f^1
+            sage: t.display(e)
+            t = -3 e_0*e^1 + 2 e_1*e^2
+
+        """
         if basis is None:
             basis = self._fmodule._def_basis
         if basis not in self._components:
@@ -1269,7 +1395,6 @@ class FreeModuleTensor(ModuleElement):
                                  "defined on the {}".format(self._fmodule))
             self._components[basis] = self._new_comp(basis)
         self._del_derived() # deletes the derived quantities
-        self.del_other_comp(basis)
         return self._components[basis]
 
     def add_comp(self, basis=None, **kwargs):
@@ -1339,21 +1464,11 @@ class FreeModuleTensor(ModuleElement):
             AssertionError: the components of the zero element cannot be changed
 
         """
-        check_elements = kwargs.pop('check_elements', True)
-        if check_elements:
-            if self is self.parent().zero():
-                raise AssertionError("the components of the zero element "
-                                     "cannot be changed")
-            self._is_zero = False  # a priori
-        if basis is None:
-            basis = self._fmodule._def_basis
-        if basis not in self._components:
-            if basis not in self._fmodule._known_bases:
-                raise ValueError("the {} has not been ".format(basis) +
-                                 "defined on the {}".format(self._fmodule))
-            self._components[basis] = self._new_comp(basis)
-        self._del_derived() # deletes the derived quantities
-        return self._components[basis]
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
+        return self._add_comp_unsafe(basis)
 
     def del_other_comp(self, basis=None):
         r"""

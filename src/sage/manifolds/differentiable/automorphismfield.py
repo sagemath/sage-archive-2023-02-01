@@ -317,7 +317,7 @@ class AutomorphismField(TensorField):
         if self._is_identity:
             raise AssertionError("the components of the identity map cannot be "
                                  "changed")
-        return TensorField.set_comp(self, basis=basis, check_elements=False)
+        return TensorField._set_comp_unsafe(self, basis=basis)
 
     def add_comp(self, basis=None, **kwargs):
         r"""
@@ -391,7 +391,7 @@ class AutomorphismField(TensorField):
         if self._is_identity:
             raise AssertionError("the components of the identity map cannot be "
                                  "changed")
-        return TensorField.add_comp(self, basis=basis, check_elements=False)
+        return TensorField._add_comp_unsafe(self, basis=basis)
 
     def _new_instance(self):
         r"""

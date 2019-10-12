@@ -1033,7 +1033,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         elt = self.element_class(self, name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                elt.add_comp(frame, check_elements=False)
+                elt._add_comp_unsafe(frame)
                 # (since new components are initialized to zero)
         return elt
 

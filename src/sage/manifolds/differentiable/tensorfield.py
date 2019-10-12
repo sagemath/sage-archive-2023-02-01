@@ -1077,7 +1077,71 @@ class TensorField(ModuleElement):
 
         return self._restrictions[subdomain]
 
-    def set_comp(self, basis=None, **kwargs):
+    def _set_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are deleted, in order to avoid any
+        inconsistency. To keep them, use the method :meth:`_add_comp_unsafe`
+        instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 2, name='t')
+            sage: t._set_comp_unsafe(e_uv)
+            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: t._set_comp_unsafe(e_uv)[1,0,1] = u+v
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
+        Setting the components in a new frame (``e``)::
+
+            sage: e = V.vector_frame('e')
+            sage: t._set_comp_unsafe(e)
+            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: t._set_comp_unsafe(e)[0,1,1] = u*v
+            sage: t.display(e)
+            t = u*v e_0*e^1*e^1
+
+        Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
+        components w.r.t. ``e_uv`` have been erased::
+
+            sage: t.display(c_uv.frame())
+            Traceback (most recent call last):
+            ...
+            ValueError: no basis could be found for computing the components
+             in the Coordinate frame (V, (d/du,d/dv))
+
+        """
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst._set_comp_unsafe(basis)
+
+    def set_comp(self, basis=None):
         r"""
         Return the components of ``self`` in a given vector frame
         for assignment.
@@ -1141,19 +1205,76 @@ class TensorField(ModuleElement):
             AssertionError: the components of the zero element cannot be changed
 
         """
-        check_elements = kwargs.pop('check_elements', True)
-        if check_elements:
-            if self is self.parent().zero():
-                raise AssertionError("the components of the zero element "
-                                     "cannot be changed")
-            self._is_zero = False  # a priori
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.set_comp(basis, **kwargs)
+        return rst.set_comp(basis)
 
-    def add_comp(self, basis=None, **kwargs):
+    def _add_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are kept. To delete them, use the
+        method :meth:`_set_comp_unsafe` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if ``None``, the components are assumed
+          to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 2, name='t')
+            sage: t._add_comp_unsafe(e_uv)
+            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: t._add_comp_unsafe(e_uv)[1,0,1] = u+v
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
+        Setting the components in a new frame::
+
+            sage: e = V.vector_frame('e')
+            sage: t._add_comp_unsafe(e)
+            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: t._add_comp_unsafe(e)[0,1,1] = u*v
+            sage: t.display(e)
+            t = u*v e_0*e^1*e^1
+
+        The components with respect to ``e_uv`` are kept::
+
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
+        """
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst._add_comp_unsafe(basis)
+
+    def add_comp(self, basis=None):
         r"""
         Return the components of ``self`` in a given vector frame
         for assignment.
@@ -1213,17 +1334,15 @@ class TensorField(ModuleElement):
             AssertionError: the components of the zero element cannot be changed
 
         """
-        check_elements = kwargs.pop('check_elements', True)
-        if check_elements:
-            if self is self.parent().zero():
-                raise AssertionError("the components of the zero element "
-                                     "cannot be changed")
-            self._is_zero = False  # a priori
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.add_comp(basis, **kwargs)
+        return rst.add_comp(basis)
 
     def add_comp_by_continuation(self, frame, subdomain, chart=None):
         r"""
@@ -1297,8 +1416,7 @@ class TensorField(ModuleElement):
         sframe = frame.restrict(subdomain)
         schart = chart.restrict(subdomain)
         scomp = self.comp(sframe)
-        resu = self.add_comp(frame, check_elements=False) # _del_derived is
-                                                          # performed here
+        resu = self._add_comp_unsafe(frame) # _del_derived is performed here
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
@@ -1392,7 +1510,7 @@ class TensorField(ModuleElement):
         if frame not in self.restrict(frame.domain())._components:
             raise ValueError("the tensor doesn't have an expression in "
                              "the frame"+frame._repr_())
-        comp = self.add_comp(frame, check_elements=False)
+        comp = self._add_comp_unsafe(frame)
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)

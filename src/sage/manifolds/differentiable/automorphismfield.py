@@ -247,7 +247,7 @@ class AutomorphismField(TensorField):
         # then deletes the inverse automorphism:
         self._inverse = None
 
-    def set_comp(self, basis=None, **kwargs):
+    def set_comp(self, basis=None):
         r"""
         Return the components of ``self`` w.r.t. a given module basis for
         assignment.
@@ -319,7 +319,7 @@ class AutomorphismField(TensorField):
                                  "changed")
         return TensorField._set_comp_unsafe(self, basis=basis)
 
-    def add_comp(self, basis=None, **kwargs):
+    def add_comp(self, basis=None):
         r"""
 
         Return the components of ``self`` w.r.t. a given module basis for

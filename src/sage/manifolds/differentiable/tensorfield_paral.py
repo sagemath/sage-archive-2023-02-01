@@ -886,7 +886,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         if basis._domain == self._domain:
             # Setting components on the tensor field domain:
-            return FreeModuleTensor.set_comp(self, basis=basis, **kwargs)
+            return FreeModuleTensor.set_comp(self, basis=basis)
 
         # Setting components on a subdomain:
         #

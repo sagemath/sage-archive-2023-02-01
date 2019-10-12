@@ -34,16 +34,17 @@ EXAMPLES::
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# *****************************************************************************
 #  Copyright (C) 2018 Edgar Costa <edgarcosta@math.dartmouth.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.category_object import normalize_names
 from sage.arith.misc import GCD
 import sage.schemes.curves.affine_curve as plane_curve
+
 
 def check_squarefree(f):
     r"""
@@ -66,14 +67,16 @@ def check_squarefree(f):
     """
     should_be_coprime = [f, f.derivative()]
     try:
-        squarefree = should_be_coprime[0].gcd(should_be_coprime[1]).degree()==0
+        squarefree = should_be_coprime[0].gcd(should_be_coprime[1]).degree() == 0
     except (AttributeError, NotImplementedError, TypeError):
         try:
-            squarefree = should_be_coprime[0].resultant(should_be_coprime[1])!=0
+            squarefree = should_be_coprime[0].resultant(should_be_coprime[1]) != 0
         except (AttributeError, NotImplementedError, TypeError):
-            raise NotImplementedError("Cannot determine whether " \
-                      "polynomial %s is square free." % (f,))
+            raise NotImplementedError(
+                "Cannot determine whether " "polynomial %s is square free." % (f,)
+            )
     return squarefree
+
 
 class CyclicCover_generic(plane_curve.AffinePlaneCurve):
     def __init__(self, AA, r, f, names=None):
@@ -129,7 +132,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         self._genus = ((self._d - 1) * (self._r - 1) - (self._delta - 1)) // 2
         self._f = f
 
-        F = y**r - f(x)
+        F = y ** r - f(x)
         plane_curve.AffinePlaneCurve.__init__(self, AA, F)
         if names is None:
             names = ("x", "y")
@@ -157,6 +160,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
             Cyclic Cover of P^1 over Finite Field of size 17 defined by y^5 = x^5 + x + 1
         """
         from .constructor import CyclicCover
+
         return CyclicCover(self._r, self._f.change_ring(R), self._names)
 
     base_extend = change_ring
@@ -181,7 +185,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         x, y = self.ambient_space().gens()
         r = self._r
         f = self._f
-        return "Cyclic Cover of P^1 over %s defined by %s = %s" % (R, y**r, f(x))
+        return "Cyclic Cover of P^1 over %s defined by %s = %s" % (R, y ** r, f(x))
 
     def __eq__(self, other):
         """
@@ -206,8 +210,11 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         if not isinstance(other, CyclicCover_generic):
             return False
 
-        return (self.base_ring() == other.base_ring()) and (self._r == other._r)\
-                and (self._f == other._f)
+        return (
+            (self.base_ring() == other.base_ring())
+            and (self._r == other._r)
+            and (self._f == other._f)
+        )
 
     def __ne__(self, other):
         """
@@ -280,11 +287,9 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         if self._d == self._r:
             return plane_curve.AffinePlaneCurve.projective_closure(self, **kwds)
         else:
-            raise NotImplementedError("Weighted Projective Space "\
-                    "is not implemented")
+            raise NotImplementedError("Weighted Projective Space " "is not implemented")
 
-
-    def cover_polynomial(self, K=None, var='x'):
+    def cover_polynomial(self, K=None, var="x"):
         """
         Return the polynomial of defining the cyclic cover.
 
@@ -342,6 +347,3 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
             False
         """
         return not self.is_singular()
-
-
-

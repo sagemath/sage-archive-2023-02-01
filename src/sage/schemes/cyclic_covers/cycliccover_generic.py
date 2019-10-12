@@ -142,7 +142,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
 
     def change_ring(self, R):
         """
-        Return this HyperellipticCurve over a new base ring R.
+        Return this CyclicCover over a new base ring R.
 
         EXAMPLES::
 
@@ -308,7 +308,6 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
 
     def is_singular(self):
         r"""
-
         Return if this curve is singular or not.
 
         This just checks that the characteristic of the ring does not divide the

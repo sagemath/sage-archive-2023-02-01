@@ -181,6 +181,20 @@ class MixedForm(AlgebraElement):
         sage: F.disp(e_xy)
         F = [x] + [x*y dx] + [(-2*x^3 + 2*x^2*y + 2*x*y^2 - 2*y^3) dx/\dy]
 
+    Since zero and one are special elements, their components cannot be
+    changed::
+
+        sage: z = M.mixed_form_algebra().zero()
+        sage: z[0] = 1
+        Traceback (most recent call last):
+        ...
+        AssertionError: the components of the element zero cannot be changed
+        sage: one = M.mixed_form_algebra().one()
+        sage: one[0] = 0
+        Traceback (most recent call last):
+        ...
+        AssertionError: the components of the element one cannot be changed
+
     """
     def __init__(self, parent, comp=None, name=None, latex_name=None):
         r"""
@@ -1067,6 +1081,9 @@ class MixedForm(AlgebraElement):
             A = [x] + [y dx] + [x*y dx/\dy]
 
         """
+        if self is self.parent().one() or self is self.parent().zero():
+            raise AssertionError("the components of the element "
+                                 "{} cannot be changed".format(self._name))
         if isinstance(index, (int, Integer)):
             start = index
             stop = index + 1

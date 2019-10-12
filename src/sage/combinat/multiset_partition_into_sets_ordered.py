@@ -1952,7 +1952,8 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
 
         # slice by 'order'
         if "alphabet" in fc:
-            no_alpha = {k: v for (k, v) in iteritems(self.constraints) if k is not "alphabet"}
+            no_alpha = {k: v for (k, v) in iteritems(self.constraints)
+                        if k != "alphabet"}
             return OrderedMultisetPartitionsIntoSets(fc["alphabet"], size, **no_alpha)
 
         # slice by 'size'

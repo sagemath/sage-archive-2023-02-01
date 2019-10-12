@@ -1,19 +1,17 @@
-#*****************************************************************************
-#  Copyright (C) 2018 Edgar Costa <edgarcosta@math.dartmouth.edu>
+# *****************************************************************************
+#  Copyright (C) 2018 Edgar Costa <edgarc@mit.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.rings.integer_ring import ZZ
-from sage.matrix.constructor import matrix
 from sage.functions.log import log
 from sage.functions.other import ceil
 
 
-
-def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a = 1, known_factor = [1]):
+def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=[1]):
     """
-    Returns the characteristic polynomial of the given Frobenius matrix.
+    Return the characteristic polynomial of the given Frobenius matrix.
 
     INPUT:
 
@@ -189,10 +187,10 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a = 1, known_facto
 
     # reduce cp mod prec
     degree = len(charpoly_prec) - 1
-    halfdegree = ceil(degree/2) + 1
+    halfdegree = ceil(degree / 2) + 1
     mod = [0] * (degree + 1)
     for i in range(len(charpoly_prec)):
-        mod[-i] = p**charpoly_prec[ -i]
+        mod[-i] = p ** charpoly_prec[-i]
         cp[-i] = cp[-i] % mod[-i]
 
     # figure out the sign
@@ -205,44 +203,67 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a = 1, known_facto
         # For the moment I will not worry about this case
         if known_factor != [1]:
             raise NotImplementedError()
-        for i in range(degree/2):
-            p_power = p ** min( charpoly_prec[i], charpoly_prec[degree - i] + (a*(degree - 2*i)*weight/2))
+        for i in range(degree / 2):
+            p_power = p ** min(
+                charpoly_prec[i],
+                charpoly_prec[degree - i] + (a * (degree - 2 * i) * weight / 2),
+            )
             # Note: degree*weight = 0 mod 2
-            if cp[i] % p_power != 0 and cp[degree-i] % p_power != 0:
-                if 0 == (cp[i] + cp[degree - i] * p**(a*(degree-2*i)*weight/2)) %  p_power:
+            if cp[i] % p_power != 0 and cp[degree - i] % p_power != 0:
+                if (
+                    0
+                    == (
+                        cp[i]
+                        + cp[degree - i] * p ** (a * (degree - 2 * i) * weight / 2)
+                    )
+                    % p_power
+                ):
                     sign = -1
                 else:
                     sign = 1
-                assert 0 == (-sign*cp[i] + cp[degree - i] * p**(a*(degree-2*i)*weight/2)) %  p_power
+                assert (
+                    0
+                    == (
+                        -sign * cp[i]
+                        + cp[degree - i] * p ** (a * (degree - 2 * i) * weight / 2)
+                    )
+                    % p_power
+                )
                 break
-    cp[0] = sign * p**(a*degree*weight/2)
+    cp[0] = sign * p ** (a * degree * weight / 2)
 
-    #calculate the i-th power sum of the roots and correct cp along the way
+    # calculate the i-th power sum of the roots and correct cp along the way
     e = cp[-halfdegree:]
     e.reverse()
     for k in range(halfdegree):
         if k % 2 != 0:
             e[k] = -e[k] % mod[degree - k]
-        #e[k] = cp[degree - k] if (k%2 ==0) else -cp[degree - k]
+        # e[k] = cp[degree - k] if (k%2 ==0) else -cp[degree - k]
         if k > 0:
             # verify if p^charpoly_prec[degree - k] > 2*degree/k * q^(w*k/2)
-            assert log(k)/log(p) + charpoly_prec[degree - k] > log(2*degree)/log(p) + a*0.5*weight*k, "log(k)/log(p) + charpoly_prec[degree - k] <= log(2*degree)/log(p) + a*0.5*weight*k, k = %d" % k
+            assert (
+                log(k) / log(p) + charpoly_prec[degree - k]
+                > log(2 * degree) / log(p) + a * 0.5 * weight * k
+            ), (
+                "log(k)/log(p) + charpoly_prec[degree - k] <= log(2*degree)/log(p) + a*0.5*weight*k, k = %d"
+                % k
+            )
 
     fix_e = known_factor[:]
     fix_e.reverse()
     if len(fix_e) < halfdegree:
-        fix_e.extend([0]*(halfdegree - len(fix_e)))
+        fix_e.extend([0] * (halfdegree - len(fix_e)))
     for i in range(halfdegree):
-        if i%2 != 0:
+        if i % 2 != 0:
             fix_e[i] *= -1
 
     # e[k] = \sum x_{i_1} x_{i_2} ... x_{i_k} # where x_* are eigenvalues
     # and i_1 < i_2 ... < i_k
 
     # s[k] = \sum x_i ^k for k>0
-    s = [None]*(halfdegree)
-    res = [None]*len(charpoly_prec)
-    res[0] = sign * p**(a*degree*weight/2)
+    s = [None] * (halfdegree)
+    res = [None] * len(charpoly_prec)
+    res[0] = sign * p ** (a * degree * weight / 2)
     res[-1] = 1
     e[1] -= fix_e[1]
     e[1] = e[1] % mod[degree - 1]
@@ -251,27 +272,27 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a = 1, known_facto
         # e[k] correct modulo mod[degree - k]
         # S = sum (-1)^i e[k-i] * s[i]
         # s[k] = (-1)^(k-1) (k*e[k] + S) ==> (-1)^(k-1) s[k] - S = k*e[k]
-        S = sum((-1)**i * e[k-i] * s[i] for i in range(1, k))
-        s[k] = (-1)**(k - 1) * (S + k*e[k])
+        S = sum((-1) ** i * e[k - i] * s[i] for i in range(1, k))
+        s[k] = (-1) ** (k - 1) * (S + k * e[k])
         # hence s[k] is correct modulo k*mod[degree - k]
-        localmod = k*mod[degree - k]
+        localmod = k * mod[degree - k]
         # s[k] +=   (-1)**k * fix_power_sum[k]
         s[k] = s[k] % localmod
 
         # |x_i| = p^(w*0.5)
         # => s[k] <= degree*p^(a*w*k*0.5)
         # recall, 2*degree*p^(a*w*k*0.5) /k < mod[degree - k]
-        if s[k]**2 > degree**2*p**(a*weight*k):
+        if s[k] ** 2 > degree ** 2 * p ** (a * weight * k):
             s[k] = -(-s[k] % localmod)
 
         # now correct e[k] with:
         # (-1)^(k-1) s[k] - S = k*e[k]
-        e[k] = (-S + (-1)**(k - 1) * s[k])//k
-        assert (-S + (-1)**(k - 1) * s[k]) % k == 0
+        e[k] = (-S + (-1) ** (k - 1) * s[k]) // k
+        assert (-S + (-1) ** (k - 1) * s[k]) % k == 0
         res[degree - k] = e[k] if k % 2 == 0 else -e[k]
-        res[k] = sign*res[degree - k]*p**(a*(degree-2*k)*weight/2)
+        res[k] = sign * res[degree - k] * p ** (a * (degree - 2 * k) * weight / 2)
         # fix e[k + 1]
         if k + 1 < halfdegree:
             e[k + 1] -= sum([fix_e[k + 1 - i] * e[i] for i in range(k + 1)])
-            e[k + 1] = e[k + 1] % mod[degree-(k+1)]
+            e[k + 1] = e[k + 1] % mod[degree - (k + 1)]
     return res

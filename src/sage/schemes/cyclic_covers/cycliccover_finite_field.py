@@ -1119,11 +1119,11 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             min_val = 0
         else:
             # are there any denominators in F?
-            min_val = min( [ min( [self._Qq(elt).valuation() for elt in row] ) for row in F.rows()])
+            min_val = min([min([self._Qq(elt).valuation() for elt in row]) for row in F.rows()])
 
         if min_val >= 0:
             prec = _N0_nodenominators(self._p, self._genus, self._n)
-            charpoly_prec = [prec + i  for i in reversed(range(1,self._genus + 1))] + [prec ]*(self._genus + 1)
+            charpoly_prec = [prec + i  for i in reversed(range(1, self._genus + 1))] + [prec]*(self._genus + 1)
             cp = charpoly_frobenius(F, charpoly_prec, self._p, 1, self._n,  denom.list())
             return R(cp)
         else:

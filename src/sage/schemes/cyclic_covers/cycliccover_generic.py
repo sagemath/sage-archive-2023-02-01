@@ -167,7 +167,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
 
     def _repr_(self):
         """
-        String representation of hyperelliptic curves.
+        String representation of cyclic covers.
 
         EXAMPLES::
 
@@ -291,7 +291,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
 
     def cover_polynomial(self, K=None, var="x"):
         """
-        Return the polynomial of defining the cyclic cover.
+        Return the polynomial defining the cyclic cover.
 
         EXAMPLES::
 

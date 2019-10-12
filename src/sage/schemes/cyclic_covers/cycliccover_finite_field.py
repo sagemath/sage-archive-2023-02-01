@@ -601,9 +601,11 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
     def _reduce_vector_horizontal(self, G, e, s, k=1):
         """
         INPUT:
+
         - a vector -- G \in W_{e, s}
 
         OUTPUT:
+
         - a vector -- H \in W_{e - k, s} such that
             G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
 
@@ -628,9 +630,11 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
     def _reduce_vector_horizontal_BSGS(self, G, e, s):
         r"""
         INPUT:
+
         - a vector -- G \in W_{e, s}
 
         OUTPUT:
+
         - a vector -- H \in W_{e - p, s} such that
             G x^e y^{-s} dx \cong H x^{e - p} y^{-s} dx
 
@@ -749,9 +753,11 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
     def _reduce_vector_horizontal_plain(self, G, e, s, k=1):
         r"""
         INPUT:
+
         - a vector -- G \in W_{e, s}
 
         OUTPUT:
+
         - a vector -- H \in W_{e - k, s} such that
             G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
 
@@ -807,9 +813,11 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         Reduce the vector `G` representing an element of `W_{-1,rs + s0}` by `r k` steps
 
         INPUT:
+
         - a vector -- G \in W_{-1, r*s + s0}
 
         OUTPUT:
+
         - a vector -- `H \in W_{-1, r*(s - k) + s0}` such that
             `G y^{-(r*s + s0)} dx \cong H y^{-(r*(s -k) + s0)} dx`
 
@@ -826,9 +834,11 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         def _reduce_vector_vertical_plain(G, s0, s, k=1):
             r"""
             INPUT:
+
             - a vector -- G \in W_{-1, r*s + s0}
 
             OUTPUT:
+
             - a vector -- `H \in W_{-1, r*(s - k) + s0}` such that
             `G y^{-(r*s + s0)} dx \cong H y^{-(r*(s -k) + s0)} dx`
             """

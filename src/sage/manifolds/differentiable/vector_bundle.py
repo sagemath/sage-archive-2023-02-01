@@ -161,6 +161,10 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         r"""
         Return the total space of ``self``.
 
+        .. NOTE::
+
+            At this stage, the total space does not come with induced charts.
+
         OUTPUT:
 
         - the total space of ``self`` as an instance of
@@ -196,17 +200,17 @@ class TensorBundle(DifferentiableVectorBundle):
     Tensor bundle over a differentiable manifold along a differentiable map.
 
     An instance of this class represents the pullback tensor bundle
-    `\Phi^* T^{(k,l)}M` along a differentiable map
+    `\Phi^* T^{(k,l)}M` along a differentiable map (called *destination map*)
 
     .. MATH::
 
-        \Phi: U \longrightarrow M
+        \Phi: N \longrightarrow M
 
-    between two differentiable manifolds `U` and `M` over the topological field
+    between two differentiable manifolds `N` and `M` over the topological field
     `K`.
 
     More precisely, `\Phi^* T^{(k,l)}M` consists of all pairs
-    `(p,t) \in U \times T^{(k,l)}M` such that `t \in T_q^{(k,l)}M` for
+    `(p,t) \in N \times T^{(k,l)}M` such that `t \in T_q^{(k,l)}M` for
     `q = \Phi(p)`, namely
 
     .. MATH::
@@ -231,29 +235,29 @@ class TensorBundle(DifferentiableVectorBundle):
             \left.\mathrm{d}x^{b_1}\right|_q, \dots,
             \left.\mathrm{d}x^{b_l}\right|_q \right) \in K
 
-    and a trivialization over `\Phi^{-1}(V) \subset U` is obtained via
+    and a trivialization over `\Phi^{-1}(V) \subset N` is obtained via
 
     .. MATH::
 
         (p,t) \mapsto \left(p, t^{1 \ldots 1}_{\phantom{1 \ldots 1} \, 1 \ldots 1},
             \dots, t^{n \ldots n}_{\phantom{n \ldots n} \, n \ldots n} \right)
-            \in U \times K^{n(k+l)}
+            \in N \times K^{n(k+l)}
 
     The standard case of a tensor bundle over a differentiable manifold
-    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
-    `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
+    corresponds to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    `\Phi` being an immersion and `\Phi` being a curve in `M` (`N` is then an
     open interval of `\RR`).
 
     INPUT:
 
-    - ``base_space`` -- the base space (differentiable manifold) `U` over which
+    - ``base_space`` -- the base space (differentiable manifold) `N` over which
       the tensor bundle is defined
     - ``k`` -- the contravariant rank of the corresponding tensor bundle
     - ``l`` -- the covariant rank of the corresponding tensor bundle
     - ``dest_map`` -- (default: ``None``) destination map
-      `\Phi:\ U \rightarrow M`
+      `\Phi:\ N \rightarrow M`
       (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`); if
-      ``None``, it is assumed that `U=M` and `\Phi` is the identity map of
+      ``None``, it is assumed that `N=M` and `\Phi` is the identity map of
       `M` (case of the standard tensor bundle over `M`)
 
     EXAMPLES:
@@ -430,15 +434,16 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def atlas(self):
         r"""
-        Return the list of charts that have been defined on the codomain of
-        `\Phi`.
+        Return the list of charts that have been defined on the codomain of the
+        destination map.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            This method invokes
+            Since an atlas of charts gives rise to an atlas of trivializations,
+            this method directly invokes
             :meth:`~sage.manifolds.manifold.TopologicalManifold.atlas`
             of class
-            :class:`~sage.manifolds.manifold.TopologicalManifold`
+            :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
         EXAMPLES::
 
@@ -457,9 +462,9 @@ class TensorBundle(DifferentiableVectorBundle):
         Return the section module, namely the corresponding tensor field module,
         of ``self``.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            This method invokes
+            This method directly invokes
             :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field_module`.
 
         INPUT:
@@ -474,7 +479,7 @@ class TensorBundle(DifferentiableVectorBundle):
           (or if `M` is parallelizable, a
           :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`)
           representing the module `\mathcal{T}^{(k,l)}(M,\Phi)` of type-`(k,l)`
-          tensor fields on `U` taking values on `\Phi(U)\subset M`
+          tensor fields on `N` taking values on `\Phi(N)\subset M`
 
         EXAMPLES::
 
@@ -501,9 +506,9 @@ class TensorBundle(DifferentiableVectorBundle):
         Return a section of ``self``, namely a tensor field on the base
         manifold.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            This method invokes
+            This method directly invokes
             :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field`.
 
         INPUT:
@@ -586,11 +591,17 @@ class TensorBundle(DifferentiableVectorBundle):
         Relate two vector frames by an automorphism.
 
         This updates the internal dictionary ``self._frame_changes`` of the
-        base space `M`.
+        base space `N`.
 
         .. SEEALSO::
 
-            This method invokes
+            For further details on frames on ``self`` see
+            :meth:`local_frame`.
+
+        .. NOTE::
+
+            Since frames on ``self`` are directly induced by vector frames on
+            the base space, this method directly invokes
             :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.set_change_of_frame`.
 
         INPUT:
@@ -637,11 +648,17 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def change_of_frame(self, frame1, frame2):
         r"""
-        Return a change of vector frames defined on ``self``.
+        Return a change of vector frames defined on the base space of ``self``.
 
         .. SEEALSO::
 
-            This method invokes
+            For further details on frames on ``self`` see
+            :meth:`local_frame`.
+
+        .. NOTE::
+
+            Since frames on ``self`` are directly induced by vector frames on
+            the base space, this method directly invokes
             :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.change_of_frame`
             of class :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
@@ -686,13 +703,13 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def changes_of_frame(self):
         r"""
-        Return all the changes of vector frames defined on ``self``.
+        Return the changes of vector frames defined on the base space of
+        ``self`` with respect to the destination map.
 
         .. SEEALSO::
 
-            This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.changes_of_frame`
-            of class :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
+            For further details on frames on ``self`` see
+            :meth:`local_frame`.
 
         OUTPUT:
 
@@ -741,18 +758,24 @@ class TensorBundle(DifferentiableVectorBundle):
             True
 
         """
-        return self._base_space.changes_of_frame()
+        base_cof = self._base_space.changes_of_frame()
+        ###
+        # Filter out all frames with respect to dest_map:
+        cof = {}
+        for frames in base_cof:
+            if frames[0]._dest_map == self._dest_map:
+                cof[(frames[0], frames[1])] = base_cof[frames]
+        return cof
 
     def frames(self):
         r"""
-        Return the list of vector frames defined on ``self``.
+        Return the list of all vector frames defined on the base space of
+        ``self`` with respect to the destination map.
 
         .. SEEALSO::
 
-            This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.frames`
-            of class
-            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
+            For further details on frames on ``self`` see
+            :meth:`local_frame`.
 
         OUTPUT:
 
@@ -788,20 +811,19 @@ class TensorBundle(DifferentiableVectorBundle):
             # Filter out all frames with respect to dest_map:
             frames = []
             for frame in self._base_space.frames():
-                if frame._dest_map is self._dest_map:
+                if frame._dest_map == self._dest_map:
                     frames.append(frame)
             return frames
 
     def coframes(self):
         r"""
-        Return the list of coframes defined on ``self``.
+        Return the list of coframes defined on the base manifold of ``self``
+        with respect to the destination map.
 
         .. SEEALSO::
 
-            This method invokes
-            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.coframes`
-            of class
-            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
+            For further details on frames on ``self`` see
+            :meth:`local_frame`.
 
         OUTPUT:
 
@@ -841,7 +863,7 @@ class TensorBundle(DifferentiableVectorBundle):
             # Filter out all coframes with respect to dest_map:
             coframes = []
             for coframe in self._base_space.coframes():
-                if coframe._dest_map is self._dest_map:
+                if coframe._dest_map == self._dest_map:
                     coframes.append(coframe)
             return coframes
 
@@ -850,9 +872,10 @@ class TensorBundle(DifferentiableVectorBundle):
         Return a trivialization of ``self`` in terms of a chart on the codomain
         of the destination map.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            This method invokes
+            Since a chart gives direct rise to a trivialization, this method is
+            nothing but an invocation of
             :meth:`~sage.manifolds.manifold.TopologicalManifold.chart`.
 
         INPUT:
@@ -931,12 +954,14 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def transitions(self):
         r"""
-        Return the coordinate changes defined via charts on the codomain of
-        the destination map.
+        Return the transition maps between trivialization maps in terms of
+        coordinate changes defined via charts on the codomain of the destination
+        map.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            This method invokes
+            Since a chart gives direct rise to a trivialization, this method is
+            nothing but an invocation of
             :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_changes`.
 
         EXAMPLES:
@@ -982,15 +1007,17 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def transition(self, chart1, chart2):
         r"""
-        Return the coordinate change between two differentiable charts defined
-        on codomain of the destination map.
+        Return the change of trivializations in terms of a coordinate change
+        between two differentiable charts defined on the codomain of the
+        destination map.
 
         The differentiable chart must have been defined previously, for instance
         by the method :meth:`~sage.manifolds.chart.Chart.transition_map`.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            This method invokes
+            Since a chart gives direct rise to a trivialization, this method is
+            nothing but an invocation of
             :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_change`.
 
         INPUT:
@@ -1101,7 +1128,7 @@ class TensorBundle(DifferentiableVectorBundle):
                 return True
             ###
             # Otherwise check whether a global frame on the pullback bundle is
-            # given:
+            # defined:
             for frame in self.frames():
                 if frame._domain is self._base_space:
                     return True
@@ -1111,14 +1138,28 @@ class TensorBundle(DifferentiableVectorBundle):
                     indices=None, latex_indices=None, symbol_dual=None,
                     latex_symbol_dual=None, domain=None):
         r"""
-        Define a local frame for ``self`` over some open subset of the base
-        space.
+        Define a vector frame over ``domain``, possibly with values in the
+        tangent bundle of the codomain of the destination map. This
+        automatically induces a local frame on the tensor bundle ``self``.
 
-        If `k` is the (vector bundle) rank of ``self`` and `U` is an open
-        subset of the base manifold of ``self``, a *local frame over* `U` is
-        a `k`-tuple of local sections `(s_1,\ldots,s_k)` over `U` such that
-        for each `p\in U`, `(s_1(p),\ldots,s_k(p))` is a vector basis of the
-        fiber over `p` .
+        More precisely, if `e: U \to \Phi^*TM` is a vector frame over
+        `U \subset N` with values in `\Phi^*TM` along the destination map
+
+        .. MATH::
+
+            \Phi: N \longrightarrow M
+
+        then the map
+
+        .. MATH::
+
+            p \mapsto \Big(\underbrace{e^*(p), \dots, e^*(p)}_{k\ \; \mbox{times}},
+            \underbrace{e(p), \dots, e(p)}_{l\ \; \mbox{times}}\Big) \in
+            T^{(k,l)}_q M ,
+
+        with `q=\Phi(p)`, defines a basis at each point `p \in U` and
+        therefore gives rise to a local frame on `\Phi^* T^{(k,l)}M` over the
+        domain `U`.
 
         .. SEEALSO::
 
@@ -1139,7 +1180,7 @@ class TensorBundle(DifferentiableVectorBundle):
           if ``None``, ``symbol`` is used in place of ``latex_symbol``
         - ``from_frame`` -- (default: ``None``) vector frame `\tilde{e}`
           on the codomain `M` of the destination map `\Phi`; the returned
-          frame `e` is then such that for all `p \in U`,
+          frame `e` is then such that for all `p \in N`,
           we have `e(p) = \tilde{e}(\Phi(p))`
         - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
           single string) tuple of strings representing the indices labelling
@@ -1160,10 +1201,9 @@ class TensorBundle(DifferentiableVectorBundle):
 
         OUTPUT:
 
-        - the local frame corresponding to the above specifications; this is
+        - the vector frame corresponding to the above specifications; this is
           an instance of
-          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
-          if ``self`` is a tangent bundle.
+          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`.
 
         EXAMPLES:
 
@@ -1177,7 +1217,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: e[0]
             Vector field e_0 on the 3-dimensional differentiable manifold M
 
-        Specifying the domain of the local frame::
+        Specifying the domain of the vector frame::
 
             sage: U = M.open_subset('U')
             sage: f = TM.local_frame('f', domain=U); f
@@ -1194,10 +1234,6 @@ class TensorBundle(DifferentiableVectorBundle):
 
         """
         from .vectorframe import VectorFrame
-        if self._tensor_type != (1, 0):
-            raise NotImplementedError("local frames are not implemented for "
-                                      "tensor bundles of type {}".format(
-                                      self._tensor_type))
         if domain is None:
             domain = self._base_space
         return VectorFrame(domain.vector_field_module(

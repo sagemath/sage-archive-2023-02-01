@@ -816,6 +816,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         r"""
         Return the total space of ``self``.
 
+        .. NOTE::
+
+            At this stage, the total space does not come with induced charts.
+
         OUTPUT:
 
         - the total space of ``self`` as an instance of

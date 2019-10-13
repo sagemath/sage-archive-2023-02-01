@@ -122,6 +122,8 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         Warning: algorithm "pari_primes" cannot find primes greater than 436271789.
         Using "pari_isprime" instead (which may be slower).
         []
+        sage: prime_range("90","100")
+        [97]
 
     Test for non-existing algorithm::
 
@@ -142,6 +144,10 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     cdef byteptr pari_prime_ptr
     DEF init_primes_max = 436273290 # hardcoded maximum in definition of pari.init_primes
     DEF prime_gap_bound = 1500 # upper bound for gap between primes less than 2^63
+
+    start = Integer(start)
+    if stop is not None:
+        stop = Integer(stop)
 
     if (algorithm == "pari_primes") and (max(start,stop) + prime_gap_bound <= init_primes_max):
     

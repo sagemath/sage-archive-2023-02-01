@@ -19,8 +19,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cpython.sequence cimport PySequence_Fast
 
 import sage.modules.free_module

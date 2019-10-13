@@ -34,7 +34,6 @@ This module implements two classes
 Classes and methods
 -------------------
 """
-from __future__ import print_function
 
 from cysignals.memory cimport check_calloc, sig_free
 

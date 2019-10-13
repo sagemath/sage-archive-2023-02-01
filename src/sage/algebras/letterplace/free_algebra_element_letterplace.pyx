@@ -15,7 +15,6 @@ AUTHOR:
 - Simon King (2011-03-23): Trac ticket :trac:`7797`
 
 """
-from __future__ import print_function
 
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.misc import repr_lincomb

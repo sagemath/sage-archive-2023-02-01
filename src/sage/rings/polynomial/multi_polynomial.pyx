@@ -10,8 +10,6 @@ Base class for elements of multivariate polynomial rings
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.coerce cimport coercion_model

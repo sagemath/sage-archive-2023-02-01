@@ -12,8 +12,6 @@ Descent on elliptic curves over `\QQ` with a 2-isogeny
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 

@@ -30,8 +30,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 cimport cython
 from cysignals.signals cimport sig_check
 from cpython.array cimport array

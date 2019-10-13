@@ -57,7 +57,7 @@ Here is what the module can do:
 Methods
 -------
 """
-from __future__ import absolute_import
+
 from sage.rings.integer cimport Integer
 from cysignals.memory cimport sig_malloc, sig_free
 

@@ -67,8 +67,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 from .infinity import infinity
 
 from sage.rings.integer_ring import ZZ

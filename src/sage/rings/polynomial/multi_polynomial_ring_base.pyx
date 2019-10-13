@@ -1,7 +1,6 @@
 r"""
 Base class for multivariate polynomial rings
 """
-from __future__ import absolute_import, print_function
 
 import sage.misc.latex
 from sage.misc.cachefunc import cached_method

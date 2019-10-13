@@ -281,8 +281,6 @@ continue down the MRO and find the ``_add_`` method in the category.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, division, print_function
-
 cimport cython
 from cpython cimport *
 from cpython.ref cimport PyObject

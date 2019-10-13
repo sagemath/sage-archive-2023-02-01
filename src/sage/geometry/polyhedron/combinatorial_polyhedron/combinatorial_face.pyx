@@ -64,8 +64,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division, print_function
-
 import numbers
 from sage.rings.integer         cimport smallInteger
 from .conversions               cimport bit_repr_to_Vrepr_list

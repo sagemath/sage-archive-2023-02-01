@@ -31,8 +31,6 @@ We check that the buggy gcd is fixed (see :trac:`17816`)::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
 

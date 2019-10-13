@@ -611,10 +611,8 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                 raise ValueError("exotic defining morphism between two rings in the tower; consider using another variable name")
 
         # We register coercion/conversion maps
-        self._unset_coercions_used()
         self.register_coercion(self._defining_morphism.__copy__())
         self.register_coercion(RingExtensionBackendIsomorphism(ring.Hom(self)))
-        ring._unset_coercions_used()
         ring.register_conversion(RingExtensionBackendReverseIsomorphism(self.Hom(ring)))
 
     def __getattr__(self, name):
@@ -1000,12 +998,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         extensions. 
         Given two iterated extensions `A = (A_n/\cdots/A_2/A_1)` and
         `B = (B_m/\cdots/B_2/B_1)`, there is a coercion map `A \to B`
-        if and only if there exists an increasing function
+        if there exists a strictly increasing function
         `sigma : \{1,\ldots,n\} \to \{1,\ldots,m\}` and coercion maps
         `A_i \to B_{\sigma(i)}` making all the appropriate diagrams
         commutative.
-        In particular, we underline that a coercion map `A \to B` can
-        exist only if `n \leq m`.
 
         .. NOTE::
 
@@ -1076,6 +1072,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
             sage: L.base() is K
             True
+
+        .. SEEALSO::
+
+            :meth:`bases`, :meth:`absolute_base`, :meth:`is_defined_over`
         """
         return self._base
 
@@ -1104,6 +1104,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
              Field in z4 with defining polynomial x^2 + (3 - z2)*x + z2 over its base,
              Field in z2 with defining polynomial x^2 + 4*x + 2 over its base,
              Finite Field of size 5]
+
+        .. SEEALSO::
+
+            :meth:`base`, :meth:`absolute_base`, :meth:`is_defined_over`
         """
         L = [ self ]
         base = self
@@ -1131,6 +1135,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             Finite Field of size 5
             sage: L.absolute_base()
             Finite Field of size 5
+
+        .. SEEALSO::
+
+            :meth:`base`, :meth:`bases`, :meth:`is_defined_over`
         """
         return self.bases()[-1]
 
@@ -1169,6 +1177,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             True
             sage: A.is_defined_over(GF(5^4))
             True
+
+        .. SEEALSO::
+
+            !meth:`base`, :meth:`bases`, :meth:`absolute_base`
         """
         cdef CommutativeRing b
         b = self
@@ -1475,6 +1487,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             Traceback (most recent call last):
             ...
             ValueError: not (explicitely) defined over Finite Field of size 5
+
+        .. SEEALSO::
+
+            :meth:`relative_degree`, :meth:`absolute_degree`
         """
         return self.degree_over(base)
 
@@ -1487,6 +1503,10 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: A = GF(5^4).over(GF(5^2))
             sage: A.relative_degree()
             2
+
+        .. SEEALSO::
+
+            :meth:`degree`, :meth:`absolute_degree`
         """
         return self._degree_over(self._base)
 
@@ -1497,8 +1517,16 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         EXAMPLES::
 
             sage: A = GF(5^4).over(GF(5^2))
-            sage: A.relative_degree()
+            sage: B = GF(5^12).over(A)
+
+            sage: A.absolute_degree()
             2
+            sage: B.absolute_degree()
+            6
+
+        .. SEEALSO::
+
+            :meth:`degree`, :meth:`relative_degree`
         """
         return self._degree_over(self.absolute_base())
 
@@ -1663,7 +1691,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         If ``extend_base`` is ``False``, the fraction field of the 
         extension `L/K` is defined as `\textrm{Frac}(L)/L/K`, except
-        is `L` is already a field in which base the fraction field 
+        if `L` is already a field in which base the fraction field 
         of `L/K` is `L/K` itself.
 
         If ``extend_base`` is ``True``, the fraction field of the 
@@ -1693,7 +1721,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             [Fraction Field of Order in Number Field in a with defining polynomial x^2 - 5 over its base,
              Rational Field]
 
-        Note that there is no coercion map between `K_1` and `K_2`::
+        Note that there is no coercion between `K_1` and `K_2`::
 
             sage: K1.has_coerce_map_from(K2)
             False
@@ -1798,10 +1826,9 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         INPUT:
 
-        - ``im_gens`` -- the images in the codomain of the generators of
-          this object under the homomorphism
+        - ``im_gens`` -- the images of the generators of this extension
 
-        - ``codomain`` -- the codomain of the homomorphism; if omitted, it 
+        - ``codomain`` -- the codomain of this homomorphism; if omitted, it 
           is set to the smallest parent containing all the entries of ``im_gens``
 
         - ``base_map`` -- a map from one of the bases of this extension into 
@@ -1825,7 +1852,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
               Defn: b |--> 2 + 2*a*b + (2 - a)*b^2
 
         Defining the absolute Frobenius of `L` is a bit more complicated
-        because it is not a homomorphism of `L`-algebras.
+        because it is not a homomorphism of `K`-algebras.
         For this reason, the construction ``L.hom([b^5])`` fails::
 
             sage: L.hom([b^5])
@@ -2285,7 +2312,7 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
             sage: i((1,2,3,4,5,6))
             (1 + 2*a) + (3 + 4*a)*b + (5 + 6*a)*b^2
 
-        When the base is omitted, the default is the base of this extension::
+        When ``base`` is omitted, the default is the base of this extension::
 
             sage: L.free_module(map=False)
             Vector space of dimension 3 over Field in a with defining polynomial x^2 + 7*x + 2 over its base
@@ -2329,7 +2356,6 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
 
         TESTS::
 
-            sage: F = GF(7)
             sage: K = GF(7^5).over()
             sage: L = GF(7^15).over(K)
             sage: for base in L.bases():
@@ -2355,7 +2381,7 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
 
         If ``extend_base`` is ``False``, the fraction field of the 
         extension `L/K` is defined as `\textrm{Frac}(L)/L/K`, except
-        is `L` is already a field in which base the fraction field 
+        if `L` is already a field in which base the fraction field 
         of `L/K` is `L/K` itself.
 
         If ``extend_base`` is ``True``, the fraction field of the 

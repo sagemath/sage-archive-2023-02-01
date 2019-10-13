@@ -658,16 +658,17 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
     def fiber(self, point):
         r"""
-        Return the vector bundle fiber at ``point``.
+        Return the vector bundle fiber over a point.
 
         INPUT:
 
         - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
-          point `p` at which the fiber is defined
+          point `p` of the base space of ``self``
 
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.vector_bundle_fiber.VectorBundleFiber`
+          representing the fiber over `p`
 
         EXAMPLES::
 

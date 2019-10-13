@@ -387,17 +387,17 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def fiber(self, point):
         r"""
-        Return the tensor bundle fiber at ``point``.
+        Return the tensor bundle fiber over a point.
 
         INPUT:
 
         - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
-          point `p` at which the fiber is defined
+          point `p` of the base manifold of ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - an instance of :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
-          representing the tensor bundle fiber
+          representing the tensor bundle fiber over `p`
 
         EXAMPLES::
 
@@ -498,8 +498,8 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def section(self, *args, **kwargs):
         r"""
-        Return a section of ``self``, namely a tensor field on the corresponding
-        tensor field module.
+        Return a section of ``self``, namely a tensor field on the base
+        manifold.
 
         .. SEEALSO::
 
@@ -520,6 +520,8 @@ class TensorBundle(DifferentiableVectorBundle):
           is a dictionary) coordinate chart in which the components are
           expressed; if ``None``, the default chart on the domain of ``frame``
           is assumed
+        - ``domain`` -- (default: ``None``) domain of the section; if ``None``,
+          ``self.base_space()`` is assumed
         - ``name`` -- (default: ``None``) name given to the tensor field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           tensor field; if ``None``, the LaTeX symbol is set to ``name``
@@ -563,11 +565,19 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: t.display()
             t = d/dx*dx + x d/dx*dy + 2 d/dy*dy
 
+        An example of use with the arguments ``comp`` and ``domain``::
+
+            sage: TM = M.tangent_bundle()
+            sage: w = TM.section([-y, x], domain=U); w
+            Vector field on the Open subset U of the 2-dimensional differentiable manifold M
+            sage: w.display()
+            -y d/dx + x d/dy
+
         """
         nargs = [self._tensor_type[0], self._tensor_type[1]]
         nargs.extend(args)
         domain = kwargs.pop('domain', self._base_space)
-        kwargs['dest_map'] = self._dest_map
+        kwargs['dest_map'] = self._dest_map.restrict(domain)
         return domain.tensor_field(*nargs, **kwargs)
 
     def set_change_of_frame(self, frame1, frame2, change_of_frame,
@@ -1101,11 +1111,14 @@ class TensorBundle(DifferentiableVectorBundle):
                     indices=None, latex_indices=None, symbol_dual=None,
                     latex_symbol_dual=None, domain=None):
         r"""
-        Define a vector frame on ``self``.
+        Define a local frame for ``self`` over some open subset of the base
+        space.
 
-        A *vector frame* is a field on the manifold that provides, at each
-        point `p` of the manifold, a vector basis of the tangent space at `p`
-        (or at `\Phi(p)` when a destination map is given to the bundle).
+        If `k` is the (vector bundle) rank of ``self`` and `U` is an open
+        subset of the base manifold of ``self``, a *local frame over* `U` is
+        a `k`-tuple of local sections `(s_1,\ldots,s_k)` over `U` such that
+        for each `p\in U`, `(s_1(p),\ldots,s_k(p))` is a vector basis of the
+        fiber over `p` .
 
         .. SEEALSO::
 
@@ -1142,24 +1155,36 @@ class TensorBundle(DifferentiableVectorBundle):
         - ``latex_symbol_dual`` -- (default: ``None``) same as ``latex_symbol``
           but for the dual coframe
         - ``domain`` -- (default: ``None``) domain on which the local frame is
-          defined; if ``None`` is provided, the base space is assumed
+          defined; if ``None`` is provided, the base space of ``self`` is
+          assumed
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
-          representing the defined vector frame
+        - the local frame corresponding to the above specifications; this is
+          an instance of
+          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+          if ``self`` is a tangent bundle.
 
         EXAMPLES:
 
-        Setting a vector frame on a 3-dimensional manifold::
+        Defining a local frame for the tangent bundle of a 3-dimensional
+        manifold::
 
             sage: M = Manifold(3, 'M')
-            sage: X.<x,y,z> = M.chart()
             sage: TM = M.tangent_bundle()
-            sage: e = TM.vector_frame('e'); e
+            sage: e = TM.local_frame('e'); e
             Vector frame (M, (e_0,e_1,e_2))
             sage: e[0]
             Vector field e_0 on the 3-dimensional differentiable manifold M
+
+        Specifying the domain of the local frame::
+
+            sage: U = M.open_subset('U')
+            sage: f = TM.local_frame('f', domain=U); f
+            Vector frame (U, (f_0,f_1,f_2))
+            sage: f[0]
+            Vector field f_0 on the Open subset U of the 3-dimensional
+             differentiable manifold M
 
         .. SEEALSO::
 
@@ -1169,10 +1194,15 @@ class TensorBundle(DifferentiableVectorBundle):
 
         """
         from .vectorframe import VectorFrame
+        if self._tensor_type != (1, 0):
+            raise NotImplementedError("local frames are not implemented for "
+                                      "tensor bundles of type {}".format(
+                                      self._tensor_type))
         if domain is None:
             domain = self._base_space
-        return VectorFrame(domain.vector_field_module(dest_map=self._dest_map,
-                                                      force_free=True),
+        return VectorFrame(domain.vector_field_module(
+                                    dest_map=self._dest_map.restrict(domain),
+                                    force_free=True),
                            symbol=symbol, latex_symbol=latex_symbol,
                            from_frame=from_frame, indices=indices,
                            latex_indices=latex_indices, symbol_dual=symbol_dual,

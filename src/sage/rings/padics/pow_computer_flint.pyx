@@ -361,12 +361,11 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             return (op == Py_EQ)
         if op != Py_NE:
             return NotImplemented
-        # return cmp(self.polynomial(), other.polynomial())
         return False
 
     cdef fmpz_poly_t* get_modulus(self, unsigned long k):
         """
-        Returns the defining polynomial reduced modulo `p^k`.
+        Return the defining polynomial reduced modulo `p^k`.
 
         The same warnings apply as for
         :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`.

@@ -234,7 +234,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 for B in nonbases:
                     b = frozenset(B)
                     if len(b) != self._matroid_rank:
-                        raise ValueError("nonbasis has wrong cardinalty.")
+                        raise ValueError("nonbasis has wrong cardinality")
                     if not b.issubset(self._groundset):
                         raise ValueError("nonbasis is not a subset of the groundset")
                     self.__pack(self._b, b)

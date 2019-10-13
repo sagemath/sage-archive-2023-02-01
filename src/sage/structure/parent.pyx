@@ -881,7 +881,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             raise NotImplementedError(f"cannot construct elements of {self}")
         cdef Py_ssize_t i
         cdef R = parent(x)
-        cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
+        cdef bint no_extra_args = (not args and not kwds)
         if R is self and no_extra_args:
             return x
 

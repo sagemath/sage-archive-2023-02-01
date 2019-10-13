@@ -1316,7 +1316,7 @@ class ParallelogramPolyomino(ClonableList):
         Convert to a binary tree using the Aval-Boussicault algorithm.
 
         You can use the parameter ``position`` to use the bijection on
-        a new parallelogram polyomino (PP). This PP is obtained by cuting the
+        a new parallelogram polyomino (PP). This PP is obtained by cutting the
         PP in such a way the cell at position ``position`` becomes the
         top-left most corner of the PP.
 

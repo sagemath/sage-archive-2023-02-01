@@ -380,7 +380,8 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         if c: v.append(c)
         c = print_coeff(w,k,atomic)
         if c: v.append(c)
-        if len(v) == 0: return '0'
+        if not v:
+            return '0'
         return ' + '.join(v).replace('+ -','- ')
 
     def _repr_(self):

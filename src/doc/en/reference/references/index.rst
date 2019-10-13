@@ -1227,6 +1227,10 @@ REFERENCES:
              Theory*. Morgan & Claypool Publishers, (2011). ISBN
              9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
 
+.. [CF2005] Raul Cordovil and David Forge.
+            *Gröbner and diagonal bases in Orlik-Solomon type algebras*
+            Cubo **7** (2), (2005). pp. 1-20.
+
 .. [CFHM2013] Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney,
               *On the Hyperbolicity of Small-World and Treelike Random Graphs*,
               Internet Mathematics 9:4 (2013), 434-491.
@@ -2000,8 +2004,8 @@ REFERENCES:
             Vol. 15, number 3, pages 835--855.
             :doi:`10.2140/pjm.1965.15.835`.
 
-.. [FH2015] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
-            Wehler K3 Surfaces over finite fields. New Zealand Journal
+.. [FH2015] \J. A. de Faria, B. Hutz. *Combinatorics of Cycle Lengths on
+            Wehler K3 Surfaces over finite fields*. New Zealand Journal
             of Mathematics 45 (2015), 19–31.
 
 .. [FIV2012] \H. Fournier, A. Ismail, and A. Vigneron. *Computing the Gromov
@@ -2010,14 +2014,18 @@ REFERENCES:
 
 .. [FK1991] \I. A. Faradjev and M. H. Klin,
             *Computer package for computations with coherent configurations*,
-            Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
+            Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219-223;
             code, by I.A.Faradjev (with contributions by A.E.Brouwer,
             D.V.Pasechnik). https://github.com/dimpase/coco
 
-.. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
+.. [FL2001] David Forge and Michel Las Vergnas.
+            *Orlik-Solomon type algebras*. European J. Combin.
+            **22** (5), (2001). pp. 699-704.
+
+.. [FM2014] Cameron Franc and Marc Masdeu, *Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
             automorphic forms, and the canonical embedding of Shimura
-            curves". LMS Journal of Computation and Mathematics
+            curves*. LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
 
 .. [FMSS1995] Fulton, MacPherson, Sottile, Sturmfels:
@@ -4027,6 +4035,10 @@ REFERENCES:
          :arxiv:`math/0110077v1`.
          Possibly newer version at
          http://www.wisdom.weizmann.ac.il/~regev/papers/FrobeniusSchurFunctions.ps
+
+.. [OT1994] Peter Orlik and Hiroaki Terao.
+            *Commutative algebras for arrangements*. Nagoya Math. J. **134**
+            (1994), 65-73.
 
 .. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
             Langlands dual quantum affine algebras: Exceptional cases*.

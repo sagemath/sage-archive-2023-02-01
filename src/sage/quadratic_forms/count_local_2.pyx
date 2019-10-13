@@ -223,10 +223,9 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
     n = Q.dim()
 
-
     ## Check if the solution satisfies the zvec "zero" congruence conditions
     ## (either zvec is empty or its components index the zero vector mod p)
-    if (zvec is None) or (len(zvec) == 0):
+    if (zvec is None) or (not zvec):
         zero_flag = True
     else:
         zero_flag = False

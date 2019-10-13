@@ -3840,8 +3840,9 @@ cdef class TriconnectivitySPQR:
     cdef __assemble_triconnected_components(self):
         """
         Iterate through all the split components built by :meth:`__path_finder`
-        and merges two bonds or two polygons that share an edge for contructing
+        and merges two bonds or two polygons that share an edge for constructing
         the final triconnected components.
+
         Subsequently, convert the edges in triconnected components into original
         vertices and edges. The triconnected components are stored in
         ``self.comp_final_edge_list`` and ``self.comp_type``.

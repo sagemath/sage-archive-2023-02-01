@@ -1940,6 +1940,28 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def real(self):
+        r"""
+        Return the real part of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).real()
+            [0.3333333333333333 +/- 7.04e-17]
+        """
+        return self
+
+    def imag(self):
+        r"""
+        Return the imaginary part of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).imag()
+            0
+        """
+        return self._parent.zero()
+
     # Precision and accuracy
 
     def nbits(self):
@@ -2368,12 +2390,7 @@ cdef class RealBall(RingElement):
             sage: RBF(infinity).min(3, 1/3)
             [0.3333333333333333 +/- ...e-17]
 
-        Note that calls involving NaNs try to return a number when possible.
-        This is consistent with IEEE-754-2008 but may be surprising. ::
-
             sage: RBF('nan').min(0)
-            0
-            sage: RBF('nan').min(RBF('nan'))
             nan
 
         .. SEEALSO:: :meth:`max`
@@ -2385,9 +2402,14 @@ cdef class RealBall(RingElement):
             sage: RBF(infinity).min().rad()
             0.00000000
         """
-        iv = self._real_mpfi_(RealIntervalField(prec(self)))
-        my_others = [self._parent.coerce(x) for x in others]
-        return self._parent(iv.min(*my_others))
+        cdef RealBall res = self._new()
+        cdef long p = prec(self)
+        arb_set(res.value, self.value)
+        for b in others:
+            if not isinstance(b, RealBall):
+                b = self._parent.coerce(b)
+            arb_min(res.value, res.value, (<RealBall> b).value, p)
+        return res
 
     def max(self, *others):
         """
@@ -2405,12 +2427,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-infinity).max(-3, 1/3)
             [0.3333333333333333 +/- ...e-17]
 
-        Note that calls involving NaNs try to return a number when possible.
-        This is consistent with IEEE-754-2008 but may be surprising. ::
-
             sage: RBF('nan').max(0)
-            0
-            sage: RBF('nan').max(RBF('nan'))
             nan
 
         .. SEEALSO:: :meth:`min`
@@ -2420,9 +2437,14 @@ cdef class RealBall(RingElement):
             sage: RBF(0).max()
             0
         """
-        iv = self._real_mpfi_(RealIntervalField(prec(self)))
-        my_others = [self._parent.coerce(x) for x in others]
-        return self._parent(iv.max(*my_others))
+        cdef RealBall res = self._new()
+        cdef long p = prec(self)
+        arb_set(res.value, self.value)
+        for b in others:
+            if not isinstance(b, RealBall):
+                b = self._parent.coerce(b)
+            arb_max(res.value, res.value, (<RealBall> b).value, p)
+        return res
 
     def is_finite(self):
         """

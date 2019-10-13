@@ -1027,7 +1027,7 @@ class TamariIntervalPoset(Element):
         `n + 1 - a` precedes `n + 1 - b` in `P`.
 
         In terms of the Tamari lattice, the *complement* is the symmetric
-        of ``self``. It is formed from the left-right symmeterized of
+        of ``self``. It is formed from the left-right symmetrized of
         the binary trees of the interval (switching left and right
         subtrees, see
         :meth:`~sage.combinat.binary_tree.BinaryTree.left_right_symmetry`).

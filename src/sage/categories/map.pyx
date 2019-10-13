@@ -817,7 +817,7 @@ cdef class Map(Element):
             ...
             NotImplementedError: _call_with_args not overridden to accept arguments for <type 'sage.categories.map.Map'>
         """
-        if len(args) == 0 and len(kwds) == 0:
+        if not args and not kwds:
             return self(x)
         else:
             raise NotImplementedError("_call_with_args not overridden to accept arguments for %s" % type(self))

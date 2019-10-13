@@ -335,7 +335,7 @@ def lower_bound(G):
 
     cdef FastDigraph FD = FastDigraph(G)
     cdef int * g = FD.graph
-    cdef int n = FD.n
+    cdef unsigned int n = <unsigned int>FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
     cdef uint8_t* minimums = <uint8_t*> check_malloc(n * sizeof(uint8_t))
@@ -968,7 +968,7 @@ def vertex_separation_exp(G, verbose=False):
     return k, [g.int_to_vertices[i] for i in order]
 
 ##############################################################################
-# Actual algorithm, breadh-first search and updates of the costs of the sets #
+# Actual algorithm, breadth-first search and updates of the costs of the sets #
 ##############################################################################
 
 cdef inline int exists(FastDigraph g, uint8_t* neighborhoods, int current, int cost):
@@ -1574,7 +1574,7 @@ def vertex_separation_BAB(G,
 
     # ==> Allocate and initialize some data structures
 
-    # We use a binary matrix to store the (di)graph. This way the neighborhoud
+    # We use a binary matrix to store the (di)graph. This way the neighborhood
     # of a vertex is stored in one bitset.
     cdef binary_matrix_t H
     cdef int i

@@ -439,7 +439,7 @@ cdef class IdentityMorphism(Morphism):
         return x
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}): 
-        if len(args) == 0 and len(kwds) == 0:
+        if not args and not kwds:
             return x
         cdef Parent C = self._codomain
         if C._element_init_pass_parent:

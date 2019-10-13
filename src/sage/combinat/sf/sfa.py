@@ -4443,7 +4443,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar_jack(self, x, t=None):
         r"""
-        Return the Jack-scalar product beween ``self`` and ``x``.
+        Return the Jack-scalar product between ``self`` and ``x``.
 
         This scalar product is defined so that the power sum elements
         `p_{\mu}` are orthogonal and `\langle p_{\mu}, p_{\mu} \rangle =

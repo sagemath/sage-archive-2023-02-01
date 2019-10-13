@@ -64,7 +64,7 @@ multiplied by the `(n-1)`-simplex obtained by omitting vertex `v_i`.
 In the implementation here, the vertex set must be finite. To define a
 simplicial complex, specify its *facets*: the maximal subsets (with
 respect to inclusion) of the vertex set belonging to `K`. Each facet
-can be specifed as a list, a tuple, or a set.
+can be specified as a list, a tuple, or a set.
 
 .. NOTE::
 

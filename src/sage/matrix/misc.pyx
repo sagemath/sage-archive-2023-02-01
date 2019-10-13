@@ -393,7 +393,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 prod = prod * X[i].base_ring().order()
         verbose("finished comparing pivots", level=2, t=t, caller_name="multimod echelon")
         try:
-            if len(Y) == 0:
+            if not Y:
                 raise ValueError("not enough primes")
             t = verbose("start crt linear combination", level=2, caller_name="multimod echelon")
             a = CRT_basis([w[1] for w in Y])

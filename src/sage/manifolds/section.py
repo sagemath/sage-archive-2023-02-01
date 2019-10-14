@@ -1375,7 +1375,7 @@ class Section(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(3, 'M', structure='top') # the 2-dimensional sphere S^3
+            sage: M = Manifold(3, 'M', structure='top') # the 3-dimensional sphere S^3
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xyz.<x,y,z> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole

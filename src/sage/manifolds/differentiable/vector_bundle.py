@@ -932,7 +932,8 @@ class TensorBundle(DifferentiableVectorBundle):
           - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
           - ``'sympy'``: SymPy
           - ``None``: the current calculus method defined on the manifold is
-            used (cf. :meth:`set_calculus_method`)
+            used (cf.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.set_calculus_method`)
 
         The coordinates declared in the string ``coordinates`` are
         separated by ``' '`` (whitespace) and each coordinate has at most four

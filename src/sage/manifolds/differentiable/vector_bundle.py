@@ -222,7 +222,8 @@ class TensorBundle(DifferentiableVectorBundle):
     (`k` is called the *contravariant* and `l` the *covariant* rank of the
     tensor bundle).
 
-    The trivializations are directly given by charts on the codomain of `\Phi`.
+    The trivializations are directly given by charts on the codomain (called
+    *ambient domain*) of `\Phi`.
     In particular, let `(V, \varphi)` be a chart of `N` with components
     `(x^1, \dots, x^n)` such that `q=\Phi(p) \in V`. Then, the matrix entries of
     `t \in T_q^{(k,l)}N` are given by
@@ -830,13 +831,11 @@ class TensorBundle(DifferentiableVectorBundle):
              manifold R along the Differentiable map Phi from the 1-dimensional
              differentiable manifold R to the 2-dimensional differentiable
              manifold M
-            sage: f = PhiT11.local_frame('f', from_frame=e_cart); f
-            Vector frame (R, (f_0,f_1)) with values on the 2-dimensional
+            sage: f = PhiT11.local_frame(); f
+            Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
              differentiable manifold M
             sage: PhiT11.frames()
             [Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
-             differentiable manifold M,
-             Vector frame (R, (f_0,f_1)) with values on the 2-dimensional
              differentiable manifold M]
 
         """
@@ -1183,11 +1182,17 @@ class TensorBundle(DifferentiableVectorBundle):
                     latex_symbol_dual=None, domain=None):
         r"""
         Define a vector frame on ``domain``, possibly with values in the
-        tangent bundle of the codomain of the destination map. This
-        automatically induces a local frame on the tensor bundle ``self``.
+        tangent bundle of the ambient domain.
 
-        More precisely, if `e: U \to \Phi^*TN` is a vector frame on
-        `U \subset M` with values in `\Phi^*TN` along the destination map
+        If the basis specified by the given symbol already exists, it is
+        simply returned.
+        If no argument is provided the vector field module's default frame is
+        returned.
+
+        Notice, that a vector frame automatically induces a local frame on the
+        tensor bundle ``self``. More precisely, if `e: U \to \Phi^*TN` is a
+        vector frame on `U \subset M` with values in `\Phi^*TN` along the
+        destination map
 
         .. MATH::
 
@@ -1224,7 +1229,7 @@ class TensorBundle(DifferentiableVectorBundle):
           if ``None``, ``symbol`` is used in place of ``latex_symbol``
         - ``from_frame`` -- (default: ``None``) vector frame `\tilde{e}`
           on the codomain `N` of the destination map `\Phi`; the returned
-          frame `e` is then such that for all `p \in M`,
+          frame `e` is then such that for all `p \in U`,
           we have `e(p) = \tilde{e}(\Phi(p))`
         - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
           single string) tuple of strings representing the indices labelling
@@ -1277,15 +1282,74 @@ class TensorBundle(DifferentiableVectorBundle):
             :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`.
 
         """
-        from .vectorframe import VectorFrame
         if domain is None:
             domain = self._base_space
-        return VectorFrame(domain.vector_field_module(
-                                    dest_map=self._dest_map.restrict(domain),
-                                    force_free=True),
-                           symbol=symbol, latex_symbol=latex_symbol,
-                           from_frame=from_frame, indices=indices,
-                           latex_indices=latex_indices, symbol_dual=symbol_dual,
-                           latex_symbol_dual=latex_symbol_dual)
+        vmodule = domain.vector_field_module(
+                                       dest_map=self._dest_map.restrict(domain),
+                                       force_free=True)
+        return vmodule.basis(symbol=symbol, latex_symbol=latex_symbol,
+                             from_frame=from_frame,
+                             indices=indices, latex_indices=latex_indices,
+                             symbol_dual=symbol_dual,
+                             latex_symbol_dual=latex_symbol_dual)
 
     vector_frame = local_frame
+
+    def ambient_domain(self):
+        r"""
+        Return the codomain of the destination map.
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+          representing the codomain of the destination map
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_cart.<x,y> = M.chart()
+            sage: e_cart = c_cart.frame() # standard basis
+            sage: R = Manifold(1, 'R')
+            sage: T.<t> = R.chart()  # canonical chart on R
+            sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold R to the 2-dimensional differentiable manifold M
+            sage: Phi.display()
+            Phi: R --> M
+               t |--> (x, y) = (cos(t), sin(t))
+            sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
+            sage: PhiT11.ambient_domain()
+            2-dimensional differentiable manifold M
+
+        """
+        return self._ambient_domain
+
+    def destination_map(self):
+        r"""
+        Return the the destination map.
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.differentiable.diff_map.DifferentialMap`
+          representing the destination map
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_cart.<x,y> = M.chart()
+            sage: e_cart = c_cart.frame() # standard basis
+            sage: R = Manifold(1, 'R')
+            sage: T.<t> = R.chart()  # canonical chart on R
+            sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold R to the 2-dimensional differentiable manifold M
+            sage: Phi.display()
+            Phi: R --> M
+               t |--> (x, y) = (cos(t), sin(t))
+            sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
+            sage: PhiT11.destination_map()
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold R to the 2-dimensional differentiable manifold M
+
+        """
+        return self._dest_map

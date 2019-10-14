@@ -925,7 +925,7 @@ cdef class CachedFunction(object):
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
             sage: from sage.misc.sageinspect import sage_getsourcelines
-            sage: l = "        elif algorithm == 'macaulay2:gb':\n"
+            sage: l = '        elif algorithm.startswith("macaulay2:"):\n'
             sage: l in sage_getsourcelines(I.groebner_basis)[0] # indirect doctest
             True
 

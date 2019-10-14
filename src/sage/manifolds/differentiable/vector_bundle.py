@@ -200,32 +200,32 @@ class TensorBundle(DifferentiableVectorBundle):
     Tensor bundle over a differentiable manifold along a differentiable map.
 
     An instance of this class represents the pullback tensor bundle
-    `\Phi^* T^{(k,l)}M` along a differentiable map (called *destination map*)
+    `\Phi^* T^{(k,l)}N` along a differentiable map (called *destination map*)
 
     .. MATH::
 
-        \Phi: N \longrightarrow M
+        \Phi: M \longrightarrow N
 
-    between two differentiable manifolds `N` and `M` over the topological field
+    between two differentiable manifolds `M` and `N` over the topological field
     `K`.
 
-    More precisely, `\Phi^* T^{(k,l)}M` consists of all pairs
-    `(p,t) \in N \times T^{(k,l)}M` such that `t \in T_q^{(k,l)}M` for
+    More precisely, `\Phi^* T^{(k,l)}N` consists of all pairs
+    `(p,t) \in M \times T^{(k,l)}N` such that `t \in T_q^{(k,l)}N` for
     `q = \Phi(p)`, namely
 
     .. MATH::
 
-        t:\ \underbrace{T_q^*M\times\cdots\times T_q^*M}_{k\ \; \mbox{times}}
-            \times \underbrace{T_q M\times\cdots\times T_q M}_{l\ \; \mbox{times}}
+        t:\ \underbrace{T_q^*N\times\cdots\times T_q^*N}_{k\ \; \mbox{times}}
+            \times \underbrace{T_q N\times\cdots\times T_q N}_{l\ \; \mbox{times}}
             \longrightarrow K
 
     (`k` is called the *contravariant* and `l` the *covariant* rank of the
     tensor bundle).
 
     The trivializations are directly given by charts on the codomain of `\Phi`.
-    In particular, let `(V, \varphi)` be a chart of `M` with components
+    In particular, let `(V, \varphi)` be a chart of `N` with components
     `(x^1, \dots, x^n)` such that `q=\Phi(p) \in V`. Then, the matrix entries of
-    `t \in T_q^{(k,l)}M` are given by
+    `t \in T_q^{(k,l)}N` are given by
 
     .. MATH::
 
@@ -235,29 +235,29 @@ class TensorBundle(DifferentiableVectorBundle):
             \left.\mathrm{d}x^{b_1}\right|_q, \dots,
             \left.\mathrm{d}x^{b_l}\right|_q \right) \in K
 
-    and a trivialization over `\Phi^{-1}(V) \subset N` is obtained via
+    and a trivialization over `U=\Phi^{-1}(V) \subset M` is obtained via
 
     .. MATH::
 
         (p,t) \mapsto \left(p, t^{1 \ldots 1}_{\phantom{1 \ldots 1} \, 1 \ldots 1},
             \dots, t^{n \ldots n}_{\phantom{n \ldots n} \, n \ldots n} \right)
-            \in N \times K^{n(k+l)}
+            \in U \times K^{n^{(k+l)}}.
 
     The standard case of a tensor bundle over a differentiable manifold
-    corresponds to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
-    `\Phi` being an immersion and `\Phi` being a curve in `M` (`N` is then an
+    corresponds to `M=N` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    `\Phi` being an immersion and `\Phi` being a curve in `N` (`M` is then an
     open interval of `\RR`).
 
     INPUT:
 
-    - ``base_space`` -- the base space (differentiable manifold) `N` over which
+    - ``base_space`` -- the base space (differentiable manifold) `M` over which
       the tensor bundle is defined
     - ``k`` -- the contravariant rank of the corresponding tensor bundle
     - ``l`` -- the covariant rank of the corresponding tensor bundle
     - ``dest_map`` -- (default: ``None``) destination map
-      `\Phi:\ N \rightarrow M`
+      `\Phi:\ M \rightarrow N`
       (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`); if
-      ``None``, it is assumed that `N=M` and `\Phi` is the identity map of
+      ``None``, it is assumed that `M=M` and `\Phi` is the identity map of
       `M` (case of the standard tensor bundle over `M`)
 
     EXAMPLES:
@@ -274,14 +274,14 @@ class TensorBundle(DifferentiableVectorBundle):
         sage: Phi.display()
         Phi: R --> M
            t |--> (x, y) = (cos(t), sin(t))
-        sage: PhiTM = M.tangent_bundle(dest_map=Phi); PhiTM
-        Tangent bundle Phi^*TM over the 2-dimensional differentiable manifold M
+        sage: PhiTM = R.tangent_bundle(dest_map=Phi); PhiTM
+        Tangent bundle Phi^*TM over the 1-dimensional differentiable manifold R
          along the Differentiable map Phi from the 1-dimensional differentiable
          manifold R to the 2-dimensional differentiable manifold M
 
     The section module is the corresponding tensor field module::
 
-        sage: M.tensor_field_module((1,0), dest_map=Phi) is PhiTM.section_module()
+        sage: R.tensor_field_module((1,0), dest_map=Phi) is PhiTM.section_module()
         True
 
     """
@@ -442,7 +442,7 @@ class TensorBundle(DifferentiableVectorBundle):
             Since an atlas of charts gives rise to an atlas of trivializations,
             this method directly invokes
             :meth:`~sage.manifolds.manifold.TopologicalManifold.atlas`
-            of class
+            of the class
             :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
         EXAMPLES::
@@ -459,13 +459,15 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def section_module(self, domain=None):
         r"""
-        Return the section module, namely the corresponding tensor field module,
-        of ``self``.
+        Return the section module on ``domain``, namely the corresponding tensor
+        field module, of ``self`` on ``domain``.
 
         .. NOTE::
 
             This method directly invokes
-            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field_module`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field_module`
+            of the class
+            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         INPUT:
 
@@ -476,10 +478,11 @@ class TensorBundle(DifferentiableVectorBundle):
 
         - a
           :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
-          (or if `M` is parallelizable, a
+          (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`)
-          representing the module `\mathcal{T}^{(k,l)}(M,\Phi)` of type-`(k,l)`
-          tensor fields on `N` taking values on `\Phi(N)\subset M`
+          representing the module `\mathcal{T}^{(k,l)}(U,\Phi)` of type-`(k,l)`
+          tensor fields on the domain `U \subset M` taking values on
+          `\Phi(U) \subset N`
 
         EXAMPLES::
 
@@ -503,13 +506,15 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def section(self, *args, **kwargs):
         r"""
-        Return a section of ``self``, namely a tensor field on the base
-        manifold.
+        Return a section of ``self`` on ``domain``, namely a tensor field on the
+        subset ``domain`` of the base space.
 
         .. NOTE::
 
             This method directly invokes
-            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tensor_field`
+            of the class
+            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         INPUT:
 
@@ -546,9 +551,9 @@ class TensorBundle(DifferentiableVectorBundle):
         OUTPUT:
 
         - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-          (or if `M` is parallelizable, a
+          (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`)
-          representing the defined tensor field
+          representing the defined tensor field on the domain `U \subset M`
 
         EXAMPLES::
 
@@ -591,7 +596,7 @@ class TensorBundle(DifferentiableVectorBundle):
         Relate two vector frames by an automorphism.
 
         This updates the internal dictionary ``self._frame_changes`` of the
-        base space `N`.
+        base space `M`.
 
         .. SEEALSO::
 
@@ -602,7 +607,9 @@ class TensorBundle(DifferentiableVectorBundle):
 
             Since frames on ``self`` are directly induced by vector frames on
             the base space, this method directly invokes
-            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.set_change_of_frame`.
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.set_change_of_frame`
+            of the class
+            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         INPUT:
 
@@ -660,7 +667,8 @@ class TensorBundle(DifferentiableVectorBundle):
             Since frames on ``self`` are directly induced by vector frames on
             the base space, this method directly invokes
             :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.change_of_frame`
-            of class :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
+            of the class
+            :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`.
 
         INPUT:
 
@@ -803,6 +811,34 @@ class TensorBundle(DifferentiableVectorBundle):
              Vector frame (R^2, (e_0,e_1)),
              Coordinate frame (U, (d/dx,d/dy))]
 
+        List of vector frames of a tensor bundle of type `(1 ,1)` along a
+        curve::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_cart.<x,y> = M.chart()
+            sage: e_cart = c_cart.frame() # standard basis
+            sage: R = Manifold(1, 'R')
+            sage: T.<t> = R.chart()  # canonical chart on R
+            sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold R to the 2-dimensional differentiable manifold M
+            sage: Phi.display()
+            Phi: R --> M
+               t |--> (x, y) = (cos(t), sin(t))
+            sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi); PhiT11
+            Tensor bundle Phi^*T^(1,1)M over the 1-dimensional differentiable
+             manifold R along the Differentiable map Phi from the 1-dimensional
+             differentiable manifold R to the 2-dimensional differentiable
+             manifold M
+            sage: f = PhiT11.local_frame('f', from_frame=e_cart); f
+            Vector frame (R, (f_0,f_1)) with values on the 2-dimensional
+             differentiable manifold M
+            sage: PhiT11.frames()
+            [Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
+             differentiable manifold M,
+             Vector frame (R, (f_0,f_1)) with values on the 2-dimensional
+             differentiable manifold M]
+
         """
         if self._dest_map.is_identity():
             return self._base_space.frames()
@@ -876,7 +912,10 @@ class TensorBundle(DifferentiableVectorBundle):
 
             Since a chart gives direct rise to a trivialization, this method is
             nothing but an invocation of
-            :meth:`~sage.manifolds.manifold.TopologicalManifold.chart`.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.chart` of the
+            class
+            :class:`~sage.manifolds.manifold.TopologicalManifold`.
+
 
         INPUT:
 
@@ -962,7 +1001,9 @@ class TensorBundle(DifferentiableVectorBundle):
 
             Since a chart gives direct rise to a trivialization, this method is
             nothing but an invocation of
-            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_changes`.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_changes`
+            of the class
+            :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
         EXAMPLES:
 
@@ -1018,7 +1059,9 @@ class TensorBundle(DifferentiableVectorBundle):
 
             Since a chart gives direct rise to a trivialization, this method is
             nothing but an invocation of
-            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_change`.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_change` of
+            the class
+            :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
         INPUT:
 
@@ -1138,16 +1181,16 @@ class TensorBundle(DifferentiableVectorBundle):
                     indices=None, latex_indices=None, symbol_dual=None,
                     latex_symbol_dual=None, domain=None):
         r"""
-        Define a vector frame over ``domain``, possibly with values in the
+        Define a vector frame on ``domain``, possibly with values in the
         tangent bundle of the codomain of the destination map. This
         automatically induces a local frame on the tensor bundle ``self``.
 
-        More precisely, if `e: U \to \Phi^*TM` is a vector frame over
-        `U \subset N` with values in `\Phi^*TM` along the destination map
+        More precisely, if `e: U \to \Phi^*TN` is a vector frame on
+        `U \subset M` with values in `\Phi^*TN` along the destination map
 
         .. MATH::
 
-            \Phi: N \longrightarrow M
+            \Phi: M \longrightarrow N
 
         then the map
 
@@ -1155,10 +1198,10 @@ class TensorBundle(DifferentiableVectorBundle):
 
             p \mapsto \Big(\underbrace{e^*(p), \dots, e^*(p)}_{k\ \; \mbox{times}},
             \underbrace{e(p), \dots, e(p)}_{l\ \; \mbox{times}}\Big) \in
-            T^{(k,l)}_q M ,
+            T^{(k,l)}_q N ,
 
         with `q=\Phi(p)`, defines a basis at each point `p \in U` and
-        therefore gives rise to a local frame on `\Phi^* T^{(k,l)}M` over the
+        therefore gives rise to a local frame on `\Phi^* T^{(k,l)}N` on the
         domain `U`.
 
         .. SEEALSO::
@@ -1179,8 +1222,8 @@ class TensorBundle(DifferentiableVectorBundle):
           representing the individual LaTeX symbols of the vector fields;
           if ``None``, ``symbol`` is used in place of ``latex_symbol``
         - ``from_frame`` -- (default: ``None``) vector frame `\tilde{e}`
-          on the codomain `M` of the destination map `\Phi`; the returned
-          frame `e` is then such that for all `p \in N`,
+          on the codomain `N` of the destination map `\Phi`; the returned
+          frame `e` is then such that for all `p \in M`,
           we have `e(p) = \tilde{e}(\Phi(p))`
         - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
           single string) tuple of strings representing the indices labelling

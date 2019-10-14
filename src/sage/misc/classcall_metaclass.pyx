@@ -9,7 +9,7 @@ AUTHORS:
   documentation, Cythonization and optimization.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009      Nicolas M. Thiery <nthiery at users.sf.net>
 #       Copyright (C) 2010-2012 Florent Hivert <Florent.Hivert at lri.fr>
 #
@@ -18,7 +18,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function
 
 from cpython.object cimport *
@@ -270,7 +270,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
 
         Typical applications include the implementation of factories or of
         unique representation (see :class:`UniqueRepresentation`). Such
-        features are traditionaly implemented by either using a wrapper
+        features are traditionally implemented by either using a wrapper
         function, or fiddling with :meth:`~object.__new__`.
 
         The benefit, compared with fiddling directly with

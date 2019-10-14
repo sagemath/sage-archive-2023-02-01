@@ -446,7 +446,7 @@ class Polyhedron_QQ(Polyhedron_base):
         EXAMPLES:
 
         As a first example, consider the line segment [0,1/2]. If we
-        dilate this line segment by an even integeral factor `k`,
+        dilate this line segment by an even integral factor `k`,
         then the dilated line segment will contain `k/2 +1` lattice points.
         If `k` is odd then there will be `k/2+1/2` lattice points in
         the dilated line segment. Note that it is necessary to set the

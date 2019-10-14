@@ -42,8 +42,6 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         is always a polynomial::
 
             sage: P = polytopes.cube()
-            sage: P.__getattribute__(name='ehrhart_polynomial')()
-            8*t^3 + 12*t^2 + 6*t + 1
             sage: P.__getattribute__(name='ehrhart_quasipolynomial')
             Traceback (most recent call last):
             ...

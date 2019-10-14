@@ -185,7 +185,7 @@ class TensorField(ModuleElement):
         sage: t[eV,1,0] = t[eVW,1,0,c_uvW].expr()  # long time
         sage: t[eV,1,1] = t[eVW,1,1,c_uvW].expr()  # long time
 
-    Actually, the above operation can by performed in a single line by means
+    Actually, the above operation can be performed in a single line by means
     of the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.add_comp_by_continuation`::
 

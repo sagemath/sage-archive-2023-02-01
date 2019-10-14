@@ -66,6 +66,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     - ``category`` -- (default: ``None``) to specify the category; if
       ``None``, ``VectorBundles(base_space, c_field)`` is assumed (see the
       category :class:`~sage.categories.vector_bundles.VectorBundles`)
+    - ``unique_tag`` -- (default: ``None``) tag used to force the construction
+      of a new object when all the other arguments have been used previously
+      (without ``unique_tag``, the
+      :class:`~sage.structure.unique_representation.UniqueRepresentation`
+      behavior would return the previously constructed object corresponding to
+      these arguments)
 
     EXAMPLES:
 

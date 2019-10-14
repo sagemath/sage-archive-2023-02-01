@@ -4439,11 +4439,11 @@ class Polyhedron_base(Element):
             sage: stack.backend()
             'field'
 
-        Taking the stacking vertex too far with the parameter `position`
+        Taking the stacking vertex too far with the parameter ``position``
         may result in a failure to produce the desired
         (combinatorial type of) polytope.
-        The interval of permittable values is always open.
-        This is the smallest non-permittable value::
+        The interval of permitted values is always open.
+        This is the smallest unpermitted value::
 
             sage: P = polytopes.octahedron()
             sage: P.stack(P.faces(2)[0], position=4)

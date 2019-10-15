@@ -7802,7 +7802,7 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
-            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()], base_ring=A.base_ring())
+            return Polyhedron([A*vector(A.base_ring(), w) for w in Q.vertices()], base_ring=A.base_ring())
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()

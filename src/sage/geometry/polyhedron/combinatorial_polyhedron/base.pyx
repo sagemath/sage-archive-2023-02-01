@@ -1179,12 +1179,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.cyclic_polytope(4,6)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.ridge_graph()
-            doctest:...: DeprecationWarning: the method sage.geometry.polyhedron.combinatorial_polyhedron.ridge_graph is deprecated
+            doctest:...: DeprecationWarning: the method ridge_graph of CombinatorialPolyhedron is deprecated
             See https://trac.sagemath.org/28604 for details.
             Graph on 9 vertices
         """
         from sage.misc.superseded import deprecation
-        deprecation(28604, "the method sage.geometry.polyhedron.combinatorial_polyhedron.ridge_graph is deprecated")
+        deprecation(28604, "the method ridge_graph of CombinatorialPolyhedron is deprecated")
         return Graph(self.ridges(names=names), format="list_of_edges")
 
     def f_vector(self):

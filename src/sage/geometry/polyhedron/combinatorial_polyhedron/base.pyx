@@ -1016,8 +1016,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.ridges()
             ((An inequality (0, -1) x + 2 >= 0, An inequality (0, 1) x - 1 >= 0),)
             sage: C.ridges(add_equalities=True)
-            (((An equation (1, 1) x - 3 == 0, An inequality (0, -1) x + 2 >= 0),
-              (An equation (1, 1) x - 3 == 0, An inequality (0, 1) x - 1 >= 0)),)
+            (((An inequality (0, -1) x + 2 >= 0, An equation (1, 1) x - 3 == 0),
+              (An inequality (0, 1) x - 1 >= 0, An equation (1, 1) x - 3 == 0)),)
 
             sage: P = polytopes.cyclic_polytope(4,5)
             sage: C = CombinatorialPolyhedron(P)
@@ -1113,8 +1113,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         if add_equalities and names:
             # Also getting the equalities for each facet.
             return tuple(
-                ((self._equalities + (facet_one(i),)),
-                 (self._equalities + (facet_two(i),)))
+                (((facet_one(i),) + self._equalities),
+                 ((facet_two(i),) + self._equalities))
                 for i in range(n_ridges))
         else:
             return tuple((facet_one(i), facet_two(i))
@@ -1149,6 +1149,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             A 3-dimensional combinatorial polyhedron with 6 facets
             sage: C.facet_graph(names=False)
             Graph on 6 vertices
+
+            sage: C = CombinatorialPolyhedron(polytopes.hypersimplex(5,2)); C
+            A 4-dimensional combinatorial polyhedron with 10 facets
+            sage: C.facet_graph()
+            Graph on 10 vertices
         """
         face_iter = self.face_iter(self.dimension() - 1, dual=False)
         V = list(facet.Hrepr(names=names) for facet in face_iter)

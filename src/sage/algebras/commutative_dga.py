@@ -102,6 +102,41 @@ from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.misc.cachefunc import cached_function
 
+def sorting_keys(element):
+    r"""
+    Auxiliary function to sort the elements of a basis of a Cohomology group.
+
+    It is needed to ensure that elements of a cohomology group are represented
+    in a consistent way.
+
+    INPUT:
+
+    - ``element`` - A CohomologyClass
+
+    OUTPUT:
+
+    Its coordinates in the corresponding cohomology_raw quotoent vector space
+
+    EXAMPLES::
+
+        sage: from sage.algebras.commutative_dga import sorting_keys
+        sage: A.<e1,e2,e3,e4,e5> = GradedCommutativeAlgebra(QQ)
+        sage: B = A.cdg_algebra({e5:e1*e2+e3*e4})
+        sage: B.inject_variables()
+        Defining e1, e2, e3, e4, e5
+        sage: C = B.cohomology(3)
+        sage: [sorting_keys(el) for el in C.basis().keys()]
+        [[1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1]]
+    """
+    x = element._x
+    P = x.parent()
+    CR = P.cohomology_raw(x.degree())
+    V = CR.V()
+    return list(CR(V(x.basis_coefficients())))
 
 class Differential(with_metaclass(
         InheritComparisonClasscallMetaclass, UniqueRepresentation, Morphism)):
@@ -505,7 +540,10 @@ class Differential(with_metaclass(
                    H_basis_raw]
         # Put brackets around classes.
         H_basis_brackets = [CohomologyClass(b) for b in H_basis]
-        return CombinatorialFreeModule(A.base_ring(), H_basis_brackets)
+        return CombinatorialFreeModule(A.base_ring(),
+                                       H_basis_brackets,
+                                       sorting_key=sorting_keys,
+                                       monomial_reverse=True)
 
     def _is_nonzero(self):
         """
@@ -794,7 +832,10 @@ class Differential_multigraded(Differential):
                    for coeffs in H_basis_raw]
         # Put brackets around classes.
         H_basis_brackets = [CohomologyClass(b) for b in H_basis]
-        return CombinatorialFreeModule(A.base_ring(), H_basis_brackets)
+        return CombinatorialFreeModule(A.base_ring(),
+                                       H_basis_brackets,
+                                       sorting_key=sorting_keys,
+                                       monomial_reverse=True)
 
 
 ###########################################################
@@ -2908,7 +2949,7 @@ class DifferentialGCAlgebra(GCAlgebra):
             CR = self.parent().cohomology_raw(d)
             V = CR.V()
             cohomcoefs = CR(V(self.basis_coefficients()))
-            return C(sum(a * b for (a, b) in zip(cohomcoefs, C.basis().values())))
+            return C.sum(a * b for (a, b) in zip(cohomcoefs, C.basis().values()))
 
         def _cohomology_class_dict(self):
             r"""

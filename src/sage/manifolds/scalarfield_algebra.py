@@ -616,3 +616,18 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         return self.element_class(self,
                                   coord_expression=coord_express,
                                   name='1', latex_name='1')
+
+    def is_field(self, proof=True):
+        """
+        Return ``True``, since the algebra of scalar fields is (for the most
+        part) a field.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: A = M.scalar_field_algebra()
+            sage: A.is_field()
+            True
+
+        """
+        return True

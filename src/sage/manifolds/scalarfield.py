@@ -1203,28 +1203,6 @@ class ScalarField(CommutativeAlgebraElement):
             return True
         return all(func.is_trivial_zero() for func in self._express.values())
 
-    def is_unit(self):
-        r"""
-        Return ``True`` iff ``self`` is not trivially zero in at least one of
-        the given expressions since most scalar fields are invertible and a
-        complete computation would take too much time.
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M', structure='top')
-            sage: one = M.scalar_field_algebra().one()
-            sage: one.is_unit()
-            True
-            sage: zero = M.scalar_field_algebra().zero()
-            sage: zero.is_unit()
-            False
-
-        """
-        if self._is_zero:
-            return False
-        return not any(func.is_trivial_zero()
-                       for func in self._express.values())
-
     def __eq__(self, other):
         r"""
         Comparison (equality) operator.

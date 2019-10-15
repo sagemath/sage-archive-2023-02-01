@@ -75,7 +75,7 @@ from __future__ import print_function, absolute_import
 from six import string_types
 
 from sage.misc.six import with_metaclass
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import UniqueRepresentation, CachedRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -3729,7 +3729,7 @@ class GCAlgebraHomset(RingHomset_generic):
 ################################################
 # Miscellaneous utility classes and functions
 
-class CohomologyClass(SageObject):
+class CohomologyClass(SageObject, CachedRepresentation):
     """
     A class for representing cohomology classes.
 

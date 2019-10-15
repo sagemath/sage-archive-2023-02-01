@@ -1142,10 +1142,21 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
             sage: CombinatorialPolyhedron(P).facet_graph()
             Graph on 2 vertices
+
+        Checking that :trac:`28604` is fixed::
+
+            sage: C = CombinatorialPolyhedron(polytopes.cube()); C
+            A 3-dimensional combinatorial polyhedron with 6 facets
+            sage: C.facet_graph(names=False)
+            Graph on 6 vertices
         """
         face_iter = self.face_iter(self.dimension() - 1, dual=False)
         V = list(facet.Hrepr(names=names) for facet in face_iter)
         E = self.ridges(names=names, add_equalities=True)
+        if not names:
+            # If names is false, the ridges are given as tuple of indices,
+            # i.e. (1,2) instead of (('f1',), ('f2',)).
+            V = list(v[0] for v in V)
         return Graph([V, E], format="vertices_and_edges")
 
     def ridge_graph(self, names=True):

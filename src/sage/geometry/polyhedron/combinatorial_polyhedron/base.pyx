@@ -982,7 +982,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             [3, 3, 4, 4, 4]
         """
         from sage.misc.superseded import deprecation
-        deprecation(28603, "the method edge_graph of CombinatorialPolyhedron is deprecated; use vertex_graph")
+        deprecation(28603, "the method edge_graph of CombinatorialPolyhedron is deprecated; use vertex_graph", 3)
         return Graph(self.edges(names=names), format="list_of_edges")
 
     def ridges(self, add_equalities=False, names=True):

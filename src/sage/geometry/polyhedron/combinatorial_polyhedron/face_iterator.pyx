@@ -69,7 +69,7 @@ Obtain the Vrepresentation::
 
     sage: it = FaceIterator(C, False)
     sage: face = next(it)
-    sage: face.Vrepr()
+    sage: face.ambient_Vrepresentation()
     (A vertex at (0, -1, 0), A vertex at (0, 0, -1), A vertex at (1, 0, 0))
     sage: face.n_ambient_Vrepresentation()
     3
@@ -120,10 +120,10 @@ In dual mode one can ignore all faces that contain the current face::
 
     sage: it = FaceIterator(C, True)
     sage: face = next(it)
-    sage: face.Vrepr(names=False)
+    sage: face.ambient_V_indices()
     (5,)
     sage: it.ignore_supfaces()
-    sage: [face.Vrepr(names=False) for face in it]
+    sage: [face.ambient_V_indices() for face in it]
     [(4,),
     (3,),
     (2,),
@@ -210,7 +210,7 @@ cdef class FaceIterator(SageObject):
         sage: P = Polyhedron(rays=[[0,0,1], [0,1,0], [1,0,0]])
         sage: C = CombinatorialPolyhedron(P)
         sage: it = C.face_iter()
-        sage: [face.Vrepr() for face in it]
+        sage: [face.ambient_Vrepresentation() for face in it]
         [(A vertex at (0, 0, 0),
           A ray in the direction (0, 1, 0),
           A ray in the direction (1, 0, 0)),
@@ -284,9 +284,9 @@ cdef class FaceIterator(SageObject):
         sage: next(it)
         A 0-dimensional face of a 3-dimensional combinatorial polyhedron
         sage: face = next(it)
-        sage: face.Vrepr(names=False)
+        sage: face.ambient_V_indices()
         (6,)
-        sage: [face.Vrepr(names=False) for face in it]
+        sage: [face.ambient_V_indices() for face in it]
         [(5,),
          (4,),
          (3,),

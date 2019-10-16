@@ -1319,7 +1319,7 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: mod_ring(1,algorithm="default") is mod_ring(1,algorithm="algorithm") is mod_ring(1) is mod_ring(1,'default')
         True
 
-    TESTS::
+    TESTS:
 
     Check that :trac:`16316` has been fixed, i.e., caching works for
     immutable unhashable objects which define

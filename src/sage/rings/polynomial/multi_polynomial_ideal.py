@@ -4069,7 +4069,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         Uses Singular, Magma (if available), Macaulay2 (if available),
         Giac (if available), or a toy implementation.
 
-        TESTS::
+        TESTS:
 
         Check :trac:`27445`::
 

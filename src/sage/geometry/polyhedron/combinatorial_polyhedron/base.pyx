@@ -1184,7 +1184,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             Graph on 9 vertices
         """
         from sage.misc.superseded import deprecation
-        deprecation(28604, "the method ridge_graph of CombinatorialPolyhedron is deprecated; use facet_graph")
+        deprecation(28604, "the method ridge_graph of CombinatorialPolyhedron is deprecated; use facet_graph", 3)
         return Graph(self.ridges(names=names), format="list_of_edges")
 
     def f_vector(self):

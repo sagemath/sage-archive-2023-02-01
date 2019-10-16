@@ -3,7 +3,7 @@ Combinatorial face of a polyhedron
 
 This module provides the combinatorial type of a polyhedral face.
 
-,, SEEALSO::
+.. SEEALSO::
 
     :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.base`,
     :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`.
@@ -133,7 +133,7 @@ cdef class CombinatorialFace(SageObject):
          An inequality (-210, 317, -125, 19, -1) x + 0 >= 0)
         sage: face.Hrepr(names=False)
         (3, 4, 5, 6, 7, 8, 9, 10, 11, 18, 19)
-        sage: face.n_Hrepresentation()
+        sage: face.n_ambient_Hrepresentation()
         11
     """
     def __init__(self, data, dimension=None, index=None):
@@ -400,6 +400,26 @@ cdef class CombinatorialFace(SageObject):
         else:
             return smallInteger(self.n_atom_rep())
 
+    def n_Vrepr(self):
+        r"""
+        .. SEEALSO::
+
+            :meth:`CombinatorialFace.n_ambient_Vrepresentation`
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: _ = face.n_Vrepr()
+            doctest:...: DeprecationWarning: the method n_Vrepr of CombinatorialFace is deprecated
+            See https://trac.sagemath.org/28614 for details.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(28614, "the method n_Vrepr of CombinatorialFace is deprecated")
+        return self.n_ambient_Vrepresentation()
+
     def Hrepr(self, names=True):
         r"""
         Return the Hrepresentation of the face.
@@ -488,7 +508,7 @@ cdef class CombinatorialFace(SageObject):
                 return tuple(smallInteger(self.atom_repr[i])
                              for i in range(length))
 
-    def n_Hrepresentation(self):
+    def n_ambient_Hrepresentation(self):
         r"""
         Returns the length of the :meth:`Hrepr`.
 
@@ -499,13 +519,33 @@ cdef class CombinatorialFace(SageObject):
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: all(face.n_Hrepresentation() == len(face.Hrepr()) for face in it)
+            sage: all(face.n_ambient_Hrepresentation() == len(face.Hrepr()) for face in it)
             True
         """
         if not self._dual:
             return smallInteger(self.set_coatom_repr())
         else:
             return smallInteger(self.n_atom_rep())
+
+    def n_Hrepr(self):
+        r"""
+        .. SEEALSO::
+
+            :meth:`CombinatorialFace.n_ambient_Hrepresentation`
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: _ = face.n_Hrepr()
+            doctest:...: DeprecationWarning: the method n_Hrepr of CombinatorialFace is deprecated
+            See https://trac.sagemath.org/28614 for details.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(28614, "the method n_Hrepr of CombinatorialFace is deprecated")
+        return self.n_ambient_Hrepresentation()
 
     cdef size_t n_atom_rep(self) except -1:
         r"""

@@ -85,7 +85,7 @@ Obtain the facet-representation::
        An inequality (-1, 1, 1) x + 1 >= 0)
     sage: face.Hrepr(names=False)
     (4, 5, 6, 7)
-    sage: face.n_Hrepresentation()
+    sage: face.n_ambient_Hrepresentation()
     4
 
 In non-dual mode one can ignore all faces contained in the current face::
@@ -641,7 +641,7 @@ cdef class FaceIterator(SageObject):
             sage: it = C.face_iter(dual=True)
             sage: n_faces_with_non_simplex_quotient = 1
             sage: for face in it:
-            ....:     if face.n_Hrepresentation() > C.dimension() - face.dimension() + 1:
+            ....:     if face.n_ambient_Hrepresentation() > C.dimension() - face.dimension() + 1:
             ....:         n_faces_with_non_simplex_quotient += 1
             ....:     else:
             ....:         it.ignore_supfaces()

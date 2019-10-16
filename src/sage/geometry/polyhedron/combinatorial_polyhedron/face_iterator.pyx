@@ -78,12 +78,12 @@ Obtain the facet-representation::
 
     sage: it = FaceIterator(C, True)
     sage: face = next(it)
-    sage: face.Hrepr()
+    sage: face.ambient_Hrepresentation()
     (An inequality (-1, -1, 1) x + 1 >= 0,
      An inequality (-1, -1, -1) x + 1 >= 0,
       An inequality (-1, 1, -1) x + 1 >= 0,
        An inequality (-1, 1, 1) x + 1 >= 0)
-    sage: face.Hrepr(names=False)
+    sage: face.ambient_H_indices()
     (4, 5, 6, 7)
     sage: face.n_ambient_Hrepresentation()
     4
@@ -92,10 +92,10 @@ In non-dual mode one can ignore all faces contained in the current face::
 
     sage: it = FaceIterator(C, False)
     sage: face = next(it)
-    sage: face.Hrepr(names=False)
+    sage: face.ambient_H_indices()
     (7,)
     sage: it.ignore_subfaces()
-    sage: [face.Hrepr(names=False) for face in it]
+    sage: [face.ambient_H_indices() for face in it]
     [(6,),
     (5,),
     (4,),
@@ -248,10 +248,10 @@ cdef class FaceIterator(SageObject):
         sage: C = CombinatorialPolyhedron(P)
         sage: it = C.face_iter(dual=False)
         sage: face = next(it)
-        sage: face.Hrepr(names=False)
+        sage: face.ambient_H_indices()
         (5,)
         sage: it.ignore_subfaces()
-        sage: [face.Hrepr(names=False) for face in it]
+        sage: [face.ambient_H_indices() for face in it]
         [(4,),
          (3,),
          (2,),

@@ -36,7 +36,7 @@ Obtain further information regarding a face::
     A 2-dimensional face of a 3-dimensional combinatorial polyhedron
     sage: face.Vrepr()
     (A vertex at (0, 0, 1), A vertex at (0, 1, 0), A vertex at (1, 0, 0))
-    sage: face.length_Vrepr()
+    sage: face.n_ambient_Vrepresentation()
     3
     sage: face.Hrepr(names=False)
     (5,)
@@ -114,7 +114,7 @@ cdef class CombinatorialFace(SageObject):
         (A vertex at (6, 36, 216, 1296, 7776),)
         sage: face.Vrepr(names=False)
         (6,)
-        sage: face.length_Vrepr()
+        sage: face.n_ambient_Vrepresentation()
         1
 
     The Hrepresentation::
@@ -133,7 +133,7 @@ cdef class CombinatorialFace(SageObject):
          An inequality (-210, 317, -125, 19, -1) x + 0 >= 0)
         sage: face.Hrepr(names=False)
         (3, 4, 5, 6, 7, 8, 9, 10, 11, 18, 19)
-        sage: face.length_Hrepr()
+        sage: face.n_Hrepresentation()
         11
     """
     def __init__(self, data, dimension=None, index=None):
@@ -381,7 +381,7 @@ cdef class CombinatorialFace(SageObject):
                 return tuple(smallInteger(self.atom_repr[i])
                              for i in range(length))
 
-    def length_Vrepr(self):
+    def n_ambient_Vrepresentation(self):
         r"""
         Return the length of the face.
 
@@ -392,13 +392,13 @@ cdef class CombinatorialFace(SageObject):
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: all(face.length_Vrepr() == len(face.Vrepr()) for face in it)
+            sage: all(face.n_ambient_Vrepresentation() == len(face.Vrepr()) for face in it)
             True
         """
         if self._dual:
             return smallInteger(self.set_coatom_repr())
         else:
-            return smallInteger(self.length_atom_repr())
+            return smallInteger(self.n_atom_rep())
 
     def Hrepr(self, names=True):
         r"""
@@ -488,7 +488,7 @@ cdef class CombinatorialFace(SageObject):
                 return tuple(smallInteger(self.atom_repr[i])
                              for i in range(length))
 
-    def length_Hrepr(self):
+    def n_Hrepresentation(self):
         r"""
         Returns the length of the :meth:`Hrepr`.
 
@@ -499,15 +499,15 @@ cdef class CombinatorialFace(SageObject):
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: all(face.length_Hrepr() == len(face.Hrepr()) for face in it)
+            sage: all(face.n_Hrepresentation() == len(face.Hrepr()) for face in it)
             True
         """
         if not self._dual:
             return smallInteger(self.set_coatom_repr())
         else:
-            return smallInteger(self.length_atom_repr())
+            return smallInteger(self.n_atom_rep())
 
-    cdef size_t length_atom_repr(self) except -1:
+    cdef size_t n_atom_rep(self) except -1:
         r"""
         Compute the number of atoms in the current face by counting the
         number of set bits.

@@ -71,7 +71,7 @@ Obtain the Vrepresentation::
     sage: face = next(it)
     sage: face.Vrepr()
     (A vertex at (0, -1, 0), A vertex at (0, 0, -1), A vertex at (1, 0, 0))
-    sage: face.length_Vrepr()
+    sage: face.n_ambient_Vrepresentation()
     3
 
 Obtain the facet-representation::
@@ -85,7 +85,7 @@ Obtain the facet-representation::
        An inequality (-1, 1, 1) x + 1 >= 0)
     sage: face.Hrepr(names=False)
     (4, 5, 6, 7)
-    sage: face.length_Hrepr()
+    sage: face.n_Hrepresentation()
     4
 
 In non-dual mode one can ignore all faces contained in the current face::
@@ -608,7 +608,7 @@ cdef class FaceIterator(SageObject):
             sage: it = C.face_iter(dual=False)
             sage: n_non_simplex_faces = 1
             sage: for face in it:
-            ....:     if face.length_Vrepr() > face.dimension() + 1:
+            ....:     if face.n_ambient_Vrepresentation() > face.dimension() + 1:
             ....:         n_non_simplex_faces += 1
             ....:     else:
             ....:         it.ignore_subfaces()
@@ -641,7 +641,7 @@ cdef class FaceIterator(SageObject):
             sage: it = C.face_iter(dual=True)
             sage: n_faces_with_non_simplex_quotient = 1
             sage: for face in it:
-            ....:     if face.length_Hrepr() > C.dimension() - face.dimension() + 1:
+            ....:     if face.n_Hrepresentation() > C.dimension() - face.dimension() + 1:
             ....:         n_faces_with_non_simplex_quotient += 1
             ....:     else:
             ....:         it.ignore_supfaces()
@@ -785,12 +785,12 @@ cdef class FaceIterator(SageObject):
             self.first_time[self.current_dimension] = True
             return 0
 
-    cdef size_t length_atom_repr(self) except -1:
+    cdef size_t n_atom_rep(self) except -1:
         r"""
         Compute the number of atoms in the current face by counting the
         number of set bits.
 
-        This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.length_atom_repr`
+        This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.n_atom_rep`
         """
         if self.face:
             return count_atoms(self.face, self.face_length)

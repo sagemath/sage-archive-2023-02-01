@@ -455,7 +455,7 @@ cdef class CombinatorialFace(SageObject):
              A vertex at (5, 2, 4, 1, 3))
         """
         from sage.misc.superseded import deprecation
-        deprecation(28616, "the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation")
+        deprecation(28616, "the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation", 3)
         if names:
             return self.ambient_Vrepresentation()
         else:
@@ -632,7 +632,7 @@ cdef class CombinatorialFace(SageObject):
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
         """
         from sage.misc.superseded import deprecation
-        deprecation(28616, "the method Hrepr of CombinatorialPolyhedron is deprecated; use ambient_H_indices or ambient_Hrepresentation")
+        deprecation(28616, "the method Hrepr of CombinatorialPolyhedron is deprecated; use ambient_H_indices or ambient_Hrepresentation", 3)
         if names:
             return self.ambient_Hrepresentation()
         else:

@@ -7,6 +7,7 @@
 from sage.rings.integer_ring import ZZ
 from sage.functions.log import log
 from sage.functions.other import ceil
+from __future__ import division
 
 
 def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=[1]):
@@ -18,8 +19,8 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
     - ``frob_matrix`` -- a matrix representing the Frobenius matrix up to some precision
 
     - ``charpoly_prec`` -- a vector ai, such that, `frob_matrix.change_ring(ZZ).charpoly()[i]`
-        will be correct mod `p^ai`, this can be easily deduced from the hodge numbers and
-        knowing the q-adic precision of `frob_matrix`
+        will be correct mod `p^ai`, this can be easily deduced from the Hodge numbers and
+        knowing the q-adic precision of ``frob_matrix``
 
     - ``p`` -- prime `p`
 
@@ -31,7 +32,7 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
 
     OUTPUT:
 
-    a list of integers corresponding to the characteristic polynomial of the Frobenius action
+    A list of integers corresponding to the characteristic polynomial of the Frobenius action
 
     EXAMPLES::
 

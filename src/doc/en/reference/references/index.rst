@@ -67,6 +67,8 @@ REFERENCES:
                     "Lilliput-AE: a New Lightweight Tweakable BlockCipher for Authenticated Encryption with AssociatedData"
                     https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/LILLIPUT-AE-spec.pdf
 
+.. [ABCMT2019] \V. Arul, A. J. Best, E. Costa, R. Magner, and N. Triantafillou, *Computing zeta functions of cyclic covers in large characteristic,* The Open Book Series, vol. 2, no. 1, pp. 37–53, Jan. 2019.
+
 .. [ABZ2007] \R. Aharoni and E. Berger and R. Ziv.
              *Independent systems of representatives in weighted graphs*.
              Combinatorica vol 27, num 3, p253--267, 2007.

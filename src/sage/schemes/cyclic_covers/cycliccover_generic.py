@@ -43,11 +43,11 @@ from __future__ import absolute_import
 from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.category_object import normalize_names
 from sage.arith.misc import GCD
-import sage.schemes.curves.affine_curve as plane_curve
+import sage.schemes.curves.affine_curve import AffinePlaneCurve
 
 
 
-class CyclicCover_generic(plane_curve.AffinePlaneCurve):
+class CyclicCover_generic(AffinePlaneCurve):
     def __init__(self, AA, r, f, names=None):
         """
         Cyclic covers over a general ring
@@ -102,7 +102,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         self._f = f
 
         F = y**r - f(x)
-        plane_curve.AffinePlaneCurve.__init__(self, AA, F)
+        AffinePlaneCurve.__init__(self, AA, F)
         if names is None:
             names = ("x", "y")
         else:
@@ -254,7 +254,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         """
         # test d = 3 and 4
         if self._d == self._r:
-            return plane_curve.AffinePlaneCurve.projective_closure(self, **kwds)
+            return AffinePlaneCurve.projective_closure(self, **kwds)
         else:
             raise NotImplementedError("Weighted Projective Space is not implemented")
 

@@ -273,7 +273,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             # This variable will store the powers of frob(f)
             frobpow = [None] * (self._N0 + 2)
             frobpow[0] = self._Zqx(1)
-            for k in range(0, self._N0 + 1):
+            for k in range(self._N0 + 1):
                 frobpow[k + 1] = self._frobf * frobpow[k]
             # We don't make it a polynomials as we need to keep track that the
             # ith coefficient represents  (i*p)-th
@@ -435,7 +435,6 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _horizontal_matrix_reduction(self, s):
         r"""
-
         Return the tuple of tuples that represents the horizontal matrix
         reduction at pole order ``s``.
 
@@ -538,8 +537,8 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         OUTPUT:
 
-            A tuple of tuples ``( (D0, D1), (M0, M1) )``
-            where MV_t  = M0 + t * M1 and DV_t = D0 + t * D1
+        A tuple of tuples ``( (D0, D1), (M0, M1) )``
+        where MV_t  = M0 + t * M1 and DV_t = D0 + t * D1
 
         TESTS::
 
@@ -747,7 +746,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
                     DH.append(D)
 
             iDH = [1 / elt for elt in DH]
-            self._horizontal_fat_s[s] = [(iDH[i], MH[i]) for i in range(0, L)]
+            self._horizontal_fat_s[s] = [(iDH[i], MH[i]) for i in range(L)]
         assert len(self._horizontal_fat_s[s]) >= L
 
     def _reduce_vector_horizontal_plain(self, G, e, s, k=1):
@@ -973,7 +972,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         k = (p * j) // r
         s0 = (p * j) % r
 
-        for s in reversed(range(0, N0)):
+        for s in reversed(range(N0)):
             if self._sqrtp:
                 # (i + 1) <= d
                 self._initialize_fat_horizontal(
@@ -1004,9 +1003,10 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
     @cached_method
     def frobenius_matrix(self, N=None):
         """
-        Compute p-adic Frobenius matrix to precision p^N. If N not
-        supplied, a default value is selected, which is the minimum needed
-        to recover the charpoly unambiguously.
+        Compute p-adic Frobenius matrix to precision p^N.
+
+        If `N` not supplied, a default value is selected, which is the minimum
+        needed to recover the charpoly unambiguously.
 
         EXAMPLES::
 
@@ -1045,7 +1045,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             # Want to build m, "slice by slice" using the output of _frob
             for j in range(1, self._r):
                 s0 = (j * self._p) % self._r
-                for i in range(0, self._d - 1):
+                for i in range(self._d - 1):
                     m[
                         (s0 - 1) * (self._d - 1) : s0 * (self._d - 1),
                         i + (j - 1) * (self._d - 1),
@@ -1059,7 +1059,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         else:
             current = FrobP
             total = FrobP
-            for i in range(0, self._n - 1):
+            for i in range(self._n - 1):
                 current = matrix(
                     [[entry.frobenius() for entry in row] for row in current]
                 )
@@ -1207,9 +1207,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             min_val = 0
         else:
             # are there any denominators in F?
-            min_val = min(
-                [min([self._Qq(elt).valuation() for elt in row]) for row in F.rows()]
-            )
+            min_val = min(self._Qq(elt).valuation() for row in F.rows() for elt in row)
 
         if min_val >= 0:
             prec = _N0_nodenominators(self._p, self._genus, self._n)

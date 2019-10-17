@@ -25,8 +25,7 @@ def CyclicCover(r, f, names=None, check_smooth=True):
 
     - ``r`` - the order of the cover
 
-    - ``f`` - univariate polynomial
-      is not given, then it defaults to 0.
+    - ``f`` - univariate polynomial if not given, then it defaults to 0.
 
     - ``names``  (default: ``["x","y"]``) - names for the
        coordinate functions

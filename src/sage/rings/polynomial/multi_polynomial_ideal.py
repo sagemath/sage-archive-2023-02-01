@@ -2962,8 +2962,20 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: macaulay2(I) # optional - macaulay2
                           2   2    2
             ideal (x*y - z , y  - w )
+
+        TESTS:
+
+        Check that a cached base ring is used (:trac:`28074`)::
+
+            sage: R.<x,y> = QQ[]
+            sage: R1 = macaulay2(R)                        # optional - macaulay2
+            sage: _ = macaulay2('ZZ[x,y]')                 # optional - macaulay2
+            sage: R2 = macaulay2(R.ideal(y^2 - x)).ring()  # optional - macaulay2
+            sage: R1._operator('===', R2)                  # optional - macaulay2
+            true
         """
-        if macaulay2 is None: macaulay2 = macaulay2_default
+        if macaulay2 is None:
+            macaulay2 = macaulay2_default
         try:
             I = self.__macaulay2[macaulay2]
             I._check_valid()
@@ -2976,7 +2988,7 @@ class MPolynomialIdeal_macaulay2_repr:
             pass
 
         R = self.ring()
-        R._macaulay2_set_ring(macaulay2)
+        macaulay2.use(R._macaulay2_(macaulay2))
 
         gens = [repr(x) for x in self.gens()]
         if len(gens) == 0:

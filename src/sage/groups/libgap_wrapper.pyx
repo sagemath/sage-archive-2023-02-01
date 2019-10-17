@@ -56,7 +56,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 
 from sage.libs.gap.element cimport GapElement
@@ -129,7 +129,7 @@ class ParentLibGAP(SageObject):
         self._libgap = libgap_parent
         self._ambient = ambient
         if ambient is not None:
-            phi = self.hom(lambda x: ambient(x.gap()), codomain=ambient) # the .gap() avoids an infinite recusion
+            phi = self.hom(lambda x: ambient(x.gap()), codomain=ambient)  # the .gap() avoids an infinite recursion
             ambient.register_coercion(phi)
 
     def ambient(self):

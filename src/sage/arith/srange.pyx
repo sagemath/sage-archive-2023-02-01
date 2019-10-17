@@ -157,7 +157,7 @@ def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include
         return
 
     cur = start
-    # yield in chuncks of 1024
+    # yield in chunks of 1024
     cdef long k
     while icount > 1024:
         for k in range(1024):

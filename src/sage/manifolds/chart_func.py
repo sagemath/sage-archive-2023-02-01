@@ -2269,7 +2269,7 @@ class ChartFunction(AlgebraElement):
         If ``self`` has been defined with the small parameter
         ``expansion_symbol`` and some truncation order, the coordinate
         expression of ``self`` will be expanded in power series of that
-        parameter and truncated to the the given order.
+        parameter and truncated to the given order.
 
         OUTPUT:
 

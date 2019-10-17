@@ -36,8 +36,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -611,7 +610,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: Z.periods()
             {1: sqrt(2)}
 
-        Complex manifod with a periodic coordinate::
+        Complex manifold with a periodic coordinate::
 
             sage: M = Manifold(2, 'M', field='complex', structure='topological',
             ....:              start_index=1)

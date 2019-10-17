@@ -27,7 +27,7 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from __future__ import division
@@ -1266,7 +1266,7 @@ class DifferentialPrecisionGeneric(SageObject):
 
         - ``separate_reduce`` -- a boolean (default: ``False``); specify
           whether partial/full Hermite reduction should be displayed
-          separatedly
+          separately
 
         - ``timings`` -- a boolean (default: ``True``); specify whether
           timings should be displayed

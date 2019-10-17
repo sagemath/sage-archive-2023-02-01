@@ -21,7 +21,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 #from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method

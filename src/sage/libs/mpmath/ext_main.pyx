@@ -14,8 +14,6 @@ context class, and related utilities.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cpython.int cimport *
 from cpython.long cimport *
 from cpython.float cimport *

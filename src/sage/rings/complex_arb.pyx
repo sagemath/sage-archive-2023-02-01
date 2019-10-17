@@ -141,7 +141,6 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import operator, sys, warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error

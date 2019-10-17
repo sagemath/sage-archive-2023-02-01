@@ -945,7 +945,7 @@ cdef class Sphere(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(1).get_grid(100)
-            ([-10.0, ..., 0.0, ..., 10.0],
+            ([-10.0, ..., 10.0],
              [0.0, ..., 3.141592653589793, ..., 0.0])
         """
         cdef int K, u_res, v_res

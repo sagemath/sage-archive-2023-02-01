@@ -614,10 +614,16 @@ class FreeModuleAltForm(FreeModuleTensor):
             return self * other
         fmodule = self._fmodule
         rank_r = self._tensor_rank + other._tensor_rank
+        ###
+        # Facilitate computations involving zero:
+        if rank_r > fmodule._rank:
+            return fmodule.dual_exterior_power(rank_r).zero()
         if self._is_zero or other._is_zero:
             return fmodule.dual_exterior_power(rank_r).zero()
         if self is other and (self._tensor_rank % 2) == 1:
             return fmodule.dual_exterior_power(rank_r).zero()
+        ###
+        # Generic case:
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the exterior product")

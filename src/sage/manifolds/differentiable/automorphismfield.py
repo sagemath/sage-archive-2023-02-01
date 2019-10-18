@@ -984,6 +984,84 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         else:
             raise TypeError("wrong number of arguments")
 
+    def __invert__(self):
+        r"""
+        Return the inverse automorphism of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: a = M.automorphism_field([[0, 2], [-1, 0]], name='a')
+            sage: b = a.inverse(); b
+            Field of tangent-space automorphisms a^(-1) on the 2-dimensional
+             differentiable manifold M
+            sage: b[:]
+            [  0  -1]
+            [1/2   0]
+            sage: a[:]
+            [ 0  2]
+            [-1  0]
+
+        The result is cached::
+
+            sage: a.inverse() is b
+            True
+
+        Instead of ``inverse()``, one can use the power minus one to get the
+        inverse::
+
+            sage: b is a^(-1)
+            True
+
+        or the operator ``~``::
+
+            sage: b is ~a
+            True
+
+        """
+        from sage.matrix.constructor import matrix
+        from sage.tensor.modules.comp import Components
+        from sage.manifolds.differentiable.vectorframe import CoordFrame
+        if self._is_identity:
+            return self
+        if self._inverse is None:
+            if self._name is None:
+                inv_name = None
+            else:
+                inv_name = self._name  + '^(-1)'
+            if self._latex_name is None:
+                inv_latex_name = None
+            else:
+                inv_latex_name = self._latex_name + r'^{-1}'
+            fmodule = self._fmodule
+            si = fmodule._sindex ; nsi = fmodule._rank + si
+            self._inverse = fmodule.automorphism(name=inv_name,
+                                                 latex_name=inv_latex_name)
+            for frame in self._components:
+                if isinstance(frame, CoordFrame):
+                    chart = frame._chart
+                else:
+                    chart = self._domain._def_chart #!# to be improved
+                try:
+                    # TODO: do the computation without the 'SR' enforcement
+                    mat_self = matrix(
+                              [[self.comp(frame)[i, j, chart].expr(method='SR')
+                              for j in range(si, nsi)] for i in range(si, nsi)])
+                except (KeyError, ValueError):
+                    continue
+                mat_inv = mat_self.inverse()
+                cinv = Components(fmodule._ring, frame, 2, start_index=si,
+                                  output_formatter=fmodule._output_formatter)
+                for i in range(si, nsi):
+                    for j in range(si, nsi):
+                        val = chart.simplify(mat_inv[i-si,j-si], method='SR')
+                        cinv[i, j] = {chart: val}
+                self._inverse._components[frame] = cinv
+        return self._inverse
+
+    inverse = __invert__
+
     def restrict(self, subdomain, dest_map=None):
         r"""
         Return the restriction of ``self`` to some subset of its domain.

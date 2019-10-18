@@ -5336,8 +5336,12 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        Returns a vector whose ``i``-th entry is the number of
-        ``i``-dimensional faces of the polytope.
+        Returns a vector whose `i`-th entry is the number of
+        `i-2`-dimensional faces of the polytope.
+
+        Note that the ``vertices`` as given by :meth:`Polyhedron_base.vertices`
+        do not need to correspond to `0`-dimensional faces. If a polyhedron
+        contains `k` lines they correspond to `k`-dimensional faces.
 
         EXAMPLES::
 
@@ -5345,6 +5349,19 @@ class Polyhedron_base(Element):
             ....:     [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [0, 0, 0]])
             sage: p.f_vector()
             (1, 7, 12, 7, 1)
+
+            sage: polytopes.cyclic_polytope(4,10).f_vector()
+            (1, 10, 45, 70, 35, 1)
+
+            sage: polytopes.hypercube(5).f_vector()
+            (1, 32, 80, 80, 40, 10, 1)
+
+        Polyhedra with lines do not have `0`-faces::
+
+            sage: Polyhedron(ieqs=[[1,-1,0],[1,1,0]]).f_vector()
+            (1, 0, 2, 1)
+            sage: Polyhedron(ieqs=[[1,-1,0,0],[1,1,0,0]]).f_vector()
+            (1, 0, 0, 2, 1)
         """
         return self.combinatorial_polyhedron().f_vector()
 

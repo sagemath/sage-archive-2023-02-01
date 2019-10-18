@@ -654,7 +654,7 @@ class TensorField(ModuleElement):
         """
         self._lie_derivatives = {} # dict. of Lie derivatives of self (keys: id(vector))
 
-    def _del_derived(self):
+    def _del_derived(self, del_restrictions=False):
         r"""
         Delete the derived quantities.
 
@@ -670,6 +670,10 @@ class TensorField(ModuleElement):
             del val[0]._lie_der_along_self[id(self)]
         # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
+        if del_restrictions:
+            self._restrictions.clear()
+            self._extensions_graph = {self._domain: self}
+            self._restrictions_graph = {self._domain: self}
 
     def _init_components(self, *comp, **kwargs):
         r"""
@@ -890,6 +894,14 @@ class TensorField(ModuleElement):
             sage: t.restrict(U) == s
             True
 
+        If the restriction is defined on the very same domain, the tensor field
+        becomes a copy of it (see :meth:`copy_from`)::
+
+            sage: v = M.tensor_field(1, 2, name='v')
+            sage: v.set_restriction(t)
+            sage: v.restrict(U) == t.restrict(U)
+            True
+
         """
         if not isinstance(rst, TensorField):
             raise TypeError("the argument must be a tensor field")
@@ -912,9 +924,12 @@ class TensorField(ModuleElement):
         if rst._antisym != self._antisym:
             raise ValueError("the declared restriction has not the same " +
                              "antisymmetries as the current tensor field")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        if self._domain is rst._domain:
+            self.copy_from(rst)
+        else:
+            self._restrictions[rst._domain] = rst.copy()
+            self._restrictions[rst._domain].set_name(name=self._name,
+                                            latex_name=self._latex_name)
 
     def restrict(self, subdomain, dest_map=None):
         r"""
@@ -1357,10 +1372,7 @@ class TensorField(ModuleElement):
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
-
-        rst = self._restrictions.copy()
-        self._del_derived()         # delete restrictions
-        self._restrictions = rst
+        self._del_derived(del_restrictions=False)
 
     def comp(self, basis=None, from_basis=None):
         r"""
@@ -1785,6 +1797,65 @@ class TensorField(ModuleElement):
             else:
                 frame = self._domain._def_frame
         self.set_comp(frame)[args] = value
+
+    def copy_from(self, other):
+        r"""
+        Make ``self`` to a copy from ``other``.
+
+        INPUT:
+
+        - ``other`` -- other tensor field in the very same module from which
+          ``self`` should be a copy of
+
+        .. NOTE::
+
+            While the derived quantities are not copied, the name is kept.
+
+        .. WARNING::
+
+            All previous defined components and restrictions will be deleted!
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 1, name='t')
+            sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
+            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: s = M.tensor_field(1, 1, name='s')
+            sage: s.copy_from(t)
+            sage: s.display(e_xy)
+            s = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            sage: s == t
+            True
+
+        If the original tensor field is modified, the copy is not::
+
+            sage: t[e_xy,0,0] = -1
+            sage: t.display(e_xy)
+            t = -d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            sage: s.display(e_xy)
+            s = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            sage: s == t
+            False
+
+        """
+        if other not in self.parent():
+            raise TypeError("the original must be an element "
+                            + "of {}".format(self.parent()))
+        self._del_derived(del_restrictions=True)  # delete restrictions
+        name, latex_name = self._name, self._latex_name
+        for dom, rst in other._restrictions.items():
+            self._restrictions[dom] = rst.copy()
+        self.set_name(name=name, latex_name=latex_name)
+        # TODO: Apply _is_zero attribute
 
     def copy(self):
         r"""

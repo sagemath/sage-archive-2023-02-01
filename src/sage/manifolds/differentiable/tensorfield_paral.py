@@ -950,6 +950,48 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.comp(basis=basis, from_basis=from_basis)
 
+    def copy_from(self, other):
+        r"""
+        Make ``self`` to a copy from ``other``.
+
+        INPUT:
+
+        - ``other`` -- other tensor field in the very same module from which
+          ``self`` should be a copy of
+
+        .. WARNING::
+
+            All previous defined components and restrictions will be deleted!
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: t = M.tensor_field(1,1, name='t')
+            sage: t[0,1] = x^2
+            sage: s = M.tensor_field(1,1, name='s')
+            sage: s.copy_from(t)
+            sage: s.display()
+            s = x^2 d/dx*dy
+            sage: s == t
+            True
+
+        If the original tensor field is modified, the copy is not::
+
+            sage: t[0,0] = -1
+            sage: t.display()
+            t = -d/dx*dx + x^2 d/dx*dy
+            sage: s.display()
+            s = x^2 d/dx*dy
+            sage: s == t
+            False
+
+        """
+        if other not in self.parent():
+            raise TypeError("the original must be an element "
+                            + "of {}".format(self.parent()))
+        TensorField.copy_from(self, other)
+        FreeModuleTensor.copy_from(self, other)
 
     def _common_coord_frame(self, other):
         r"""

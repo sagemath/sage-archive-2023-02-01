@@ -17,6 +17,9 @@ AUTHORS:
 
 - Moritz Firsching (2016): modifies handling of dead sequence, see :trac:`17330`
 
+- Thierry Monteil (2019): refactorization (unique representation :trac:`28480`,
+  laziness :trac:`28627`)
+
 EXAMPLES::
 
         sage: oeis
@@ -316,7 +319,7 @@ class OEIS:
         sage: fibo == oeis(45)                          # optional -- internet
         True
 
-        sage: sfibo = oeis('A039834')                   # optional -- internet
+        sage: sfibo = oeis('A039834')
         sage: sfibo.first_terms()                       # optional -- internet
         (1, 1, 0, 1, -1, 2, -3, 5, -8, 13, -21, 34, -55, 89, -144, 233,
         -377, 610, -987, 1597, -2584, 4181, -6765, 10946, -17711, 28657,
@@ -398,7 +401,7 @@ class OEIS:
         """
         return "The On-Line Encyclopedia of Integer Sequences (%s)" % oeis_url
 
-    def find_by_id(self, ident):
+    def find_by_id(self, ident, fetch=False):
         r"""
 
         INPUT:
@@ -406,10 +409,12 @@ class OEIS:
         - ``ident`` - a string representing the A-number of the sequence
           or an integer representing its number.
 
+        - ``fetch`` - (bool, default: ``False``) whether to force fetching the
+          content of the sequence on the internet.
+
         OUTPUT:
 
-        - The OEIS sequence whose A-number or number corresponds to
-          ``ident``.
+        - The OEIS sequence whose A-number or number corresponds to ``ident``.
 
         EXAMPLES::
 
@@ -419,13 +424,27 @@ class OEIS:
             sage: oeis.find_by_id(40)                   # optional -- internet
             A000040: The prime numbers.
         """
-        if not isinstance(ident, str):
-            ident = str(ident)
-            ident = 'A000000'[:-len(ident)] + ident
-        options = {'q': ident, 'n': '1', 'fmt': 'text'}
-        url = oeis_url + "search?" + urlencode(options)
-        sequence = _fetch(url).split('\n\n')[2]
-        return OEISSequence(sequence)
+        sequence = OEISSequence(ident=ident)
+        if fetch:
+            sequence.online_update()
+        return sequence
+
+    def find_by_entry(self, entry):
+        r"""
+
+        INPUT:
+
+        - ``entry`` - a string corresponding to an entry in the internal format
+          of the OEIS.
+
+        OUTPUT:
+
+        - The corresponding OEIS sequence.
+        """
+        ident = entry[3:10]
+        sequence = OEISSequence(ident=ident)
+        sequence._raw = entry
+        return sequence
 
     def find_by_description(self, description, max_results=3, first_result=0):
         r"""
@@ -479,7 +498,7 @@ class OEIS:
                    'start': str(first_result)}
         url = oeis_url + "search?" + urlencode(options)
         sequence_list = _fetch(url).split('\n\n')[2:-1]
-        return FancyTuple([OEISSequence(_) for _ in sequence_list])
+        return FancyTuple([self.find_by_entry(entry=_) for _ in sequence_list])
 
     def find_by_subsequence(self, subsequence, max_results=3, first_result=0):
         r"""
@@ -615,9 +634,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
     r"""
     The class of OEIS sequences.
 
-    This class implements OEIS sequences. Such sequences are produced from a
-    string in the OEIS format. They are usually produced by calls to the
-    On-Line Encyclopedia of Integer Sequences, represented by the class
+    This class implements OEIS sequences. They are usually produced by calls to
+    the On-Line Encyclopedia of Integer Sequences, represented by the class
     :class:`OEIS`.
 
     .. NOTE::
@@ -626,7 +644,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
         between calling and getting item, see :meth:`__call__` for more details
         ::
 
-            sage: sfibo = oeis('A039834')               # optional -- internet
+            sage: sfibo = oeis('A039834')
             sage: sfibo.first_terms()[:10]              # optional -- internet
             (1, 1, 0, 1, -1, 2, -3, 5, -8, 13)
 
@@ -644,33 +662,77 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     .. automethod:: __call__
     """
+    @staticmethod
+    def __classcall__(cls, ident):
+        r"""
+        Canonicalize the ID of the sequence into a A-number.
+        """
+        if not isinstance(ident, str):
+            ident = str(ident)
+            ident = 'A000000'[:-len(ident)] + ident
+        return super(OEISSequence, cls).__classcall__(cls, ident)
 
-    def __init__(self, entry):
+    def __init__(self, ident):
         r"""
         Initializes an OEIS sequence.
 
+        There is no fetching of additional information about the sequence at
+        this point, only the A-number is required to construct a sequence.
+
+        INPUT:
+
+        - ``ident`` - a string representing the A-number of the sequence or an
+          integer representing its number.
+
         TESTS::
 
-            sage: sfibo = oeis('A039834')               # optional -- internet
-
-        Handle dead sequences: see  :trac:`17330` ::
-
-            sage: oeis(17)                              # optional -- internet
-            doctest:warning
-            ...
-            RuntimeWarning: This sequence is dead: "A000017: Erroneous version of A032522."
-            A000017: Erroneous version of A032522.
+            sage: sfibo = oeis('A039834')
 
             sage: s = oeis._imaginary_sequence()
         """
-        self._raw = entry
-        self._id = entry[3:10]
-        self._fields = defaultdict(list)
-        for line in entry.splitlines():
-            self._fields[line[1]].append(line[11:])
-        if 'dead' in self.keywords():
-            from warnings import warn
-            warn('This sequence is dead: "{}: {}"'.format(self.id(), self.name()), RuntimeWarning)
+        self._id = ident
+
+    def online_update(self):
+        r"""
+        Fetch the online OEIS to update the informations about this sequence.
+
+        TESTS::
+
+        sage: s = oeis._imaginary_sequence(ident='A004238')
+        sage: s
+        A004238: The characteristic sequence of 42 plus one, starting from 38.
+        sage: s.online_update()                         # optional -- internet
+        sage: s                                         # optional -- internet
+        A004238: a(n) = 100*log(n) rounded to nearest integer.
+        """
+        options = {'q': self._id, 'n': '1', 'fmt': 'text'}
+        url = oeis_url + "search?" + urlencode(options)
+        self._raw = _fetch(url).split('\n\n')[2]
+        try:
+            del self._fields
+        except AttributeError:
+            pass
+
+    def _field(self, key):
+        r"""
+        Return the ``key`` field of the entry of ``self``.
+
+        This method allows to handle the ``_fields`` dictionary in a lazy way.
+
+        TESTS::
+
+            sage: s = oeis._imaginary_sequence()
+            sage: s._field('C')[0]
+            '42 is the product of the first 4 prime numbers, except 5 and perhaps 1.'
+        """
+        try:
+            return self._fields[key]
+        except AttributeError:
+            fields = defaultdict(list)
+            for line in self.raw_entry().splitlines():
+                fields[line[1]].append(line[11:])
+            self._fields = fields
+            return self._fields[key]
 
     def id(self, format='A'):
         r"""
@@ -748,6 +810,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
         r"""
         Return the raw entry of the sequence ``self``, in the OEIS format.
 
+        The raw entry is fetched online if needed.
+
         OUTPUT:
 
         - string.
@@ -769,7 +833,11 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.raw_entry() == oeis._imaginary_entry('sign,easy')
             True
         """
-        return self._raw
+        try:
+            return self._raw
+        except AttributeError:
+            self.online_update()
+            return self._raw
 
     def name(self):
         r"""
@@ -793,7 +861,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.name()
             'The characteristic sequence of 42 plus one, starting from 38.'
         """
-        return self._fields['N'][0]
+        return self._field('N')[0]
 
     def old_IDs(self):
         r"""
@@ -820,7 +888,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.old_IDs()
             ('M9999', 'N9999')
         """
-        return tuple(self._fields['I'][0].split(' '))
+        return tuple(self._field('I')[0].split(' '))
 
     def offsets(self):
         r"""
@@ -855,7 +923,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.offsets()
             (38, 4)
         """
-        return to_tuple(self._fields['O'][0])
+        return to_tuple(self._field('O')[0])
 
     def author(self):
         r"""
@@ -879,7 +947,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.author()
             'Anonymous.'
         """
-        return self._fields['A'][0]
+        return self._field('A')[0]
 
     def keywords(self):
         r"""
@@ -907,7 +975,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.keywords()
             ('nonn', 'hard')
         """
-        return tuple(self._fields['K'][0].split(','))
+        return tuple(self._field('K')[0].split(','))
 
     def natural_object(self):
         r"""
@@ -1150,7 +1218,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             (1, 1, 1, 1, 2)
         """
         fields = ['S', 'T', 'U']
-        return to_tuple(" ".join(flatten([self._fields[a] for a in fields])))[:number]
+        return to_tuple(" ".join(flatten([self._field(a) for a in fields])))[:number]
 
     def _repr_(self):
         r"""
@@ -1379,7 +1447,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.references()[1]
             'Lewis Carroll, The Hunting of the Snark.'
         """
-        return FancyTuple(self._fields['D'])
+        return FancyTuple(self._field('D'))
 
     def links(self, browse=None, format='guess'):
         r"""
@@ -1439,15 +1507,15 @@ class OEISSequence(SageObject, UniqueRepresentation):
                 else:
                     return self.links(format='url')
             elif format == 'raw':
-                return FancyTuple(self._fields['H'])
+                return FancyTuple(self._field('H'))
             elif format == 'html':
-                return HtmlFragment(FancyTuple([url_absolute(_) for _ in self._fields['H']]))
+                return HtmlFragment(FancyTuple([url_absolute(_) for _ in self._field('H')]))
             elif format == 'url':
-                url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
+                url_list = flatten([_urls(url_absolute(string)) for string in self._field('H')])
                 return FancyTuple(url_list)
         else:
             import webbrowser
-            url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
+            url_list = flatten([_urls(url_absolute(string)) for string in self._field('H')])
             if isinstance(browse, (int, Integer)):
                 webbrowser.open(url_list[browse])
             elif isinstance(browse, (list, tuple)):
@@ -1480,7 +1548,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             0: For n big enough, s(n+1) - s(n) = 0.
 
         """
-        return FancyTuple(self._fields['F'])
+        return FancyTuple(self._field('F'))
 
     def cross_references(self, fetch=False):
         r"""
@@ -1518,7 +1586,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.cross_references()
             ('A000042', 'A000024')
         """
-        ref_list = re.findall('A[0-9]{6}', " ".join(self._fields['Y']))
+        ref_list = re.findall('A[0-9]{6}', " ".join(self._field('Y')))
         if fetch:
             return FancyTuple([oeis.find_by_id(_) for _ in ref_list])
         else:
@@ -1548,7 +1616,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             0: This sequence does not contain errors.
 
         """
-        return FancyTuple(self._fields['E'])
+        return FancyTuple(self._field('E'))
 
     def examples(self):
         r"""
@@ -1574,7 +1642,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.examples()
             0: s(42) + s(43) = 0.
         """
-        return FancyTuple(self._fields['e'])
+        return FancyTuple(self._field('e'))
 
     def comments(self):
         r"""
@@ -1601,7 +1669,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             0: 42 is the product of the first 4 prime numbers, except 5 and perhaps 1.
             1: Apart from that, i have no comment.
         """
-        return FancyTuple(self._fields['C'])
+        return FancyTuple(self._field('C'))
 
     def url(self):
         r"""
@@ -1753,11 +1821,11 @@ class OEISSequence(SageObject, UniqueRepresentation):
             0: Mathematica neither.
         """
         if language == "maple":
-            return FancyTuple(self._fields['p'])
+            return FancyTuple(self._field('p'))
         elif language == "mathematica":
-            return FancyTuple(self._fields['t'])
+            return FancyTuple(self._field('t'))
         else:
-            return FancyTuple(self._fields['o'])
+            return FancyTuple(self._field('o'))
 
 
 class FancyTuple(tuple):

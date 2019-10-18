@@ -855,9 +855,10 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         return self._calc_method.is_trivial_zero(self.expr(curr))
 
+    # TODO: Remove this method as soon as ticket #28629 is solved?
     def is_unit(self):
         r"""
-        Return ``True`` iff ``self`` is not identically zero since most chart
+        Return ``True`` iff ``self`` is not trivially zero since most chart
         functions are invertible and an actual computation would take too much
         time.
 
@@ -873,7 +874,7 @@ class ChartFunction(AlgebraElement):
             False
 
         """
-        return not self.is_zero()
+        return not self.is_trivial_zero()
 
     def copy(self):
         r"""

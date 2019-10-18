@@ -545,11 +545,13 @@ class OEIS:
         import webbrowser
         webbrowser.open(oeis_url)
 
-    def _imaginary_entry(self, keywords=''):
+    def _imaginary_entry(self, ident='A999999', keywords=''):
         r"""
         This is an imaginary entry of an OEIS sequence for offline tests.
 
         INPUT:
+
+        - ``ident`` - a string representing the A-number of the sequence.
 
         - ``keywords`` - a string corresponding to the keyword field of the
           sequence.
@@ -563,52 +565,53 @@ class OEIS:
             sage: oeis._imaginary_entry().split('\n')[0]
             '%I A999999 M9999 N9999'
 
-            sage: from sage.databases.oeis import OEISSequence
             sage: keywords = 'simon,cussonet'
-            sage: s = OEISSequence(oeis._imaginary_entry(keywords))
+            sage: s = oeis.find_by_entry(entry=oeis._imaginary_entry(ident='A999998', keywords=keywords))
             sage: ','.join(s.keywords()) == keywords
             True
 
         """
-        return ('%I A999999 M9999 N9999\n'
-                '%S A999999 1,1,1,1,2,1,1,1,\n'
-                '%T A999999 1,1,1,1,1,1,1,1,1,\n'
-                '%U A999999 1,1,1,1,1,1,1,1,1\n'
-                '%N A999999 The characteristic sequence of 42 plus one, starting from 38.\n'
-                '%D A999999 Lewis Carroll, Alice\'s Adventures in Wonderland.\n'
-                '%D A999999 Lewis Carroll, The Hunting of the Snark.\n'
-                '%D A999999 Deep Thought, The Answer to the Ultimate Question of Life, The Universe, and Everything.\n'
-                '%H A999999 Wikipedia, <a href="https://en.wikipedia.org/wiki/42_(number)">42 (number)</a>\n'
-                '%H A999999 See. also <a href="https://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>\n'
-                '%H A999999 Do not confuse with the sequence <a href="/A000042">A000042</a> or the sequence <a href="/A000024">A000024</a>\n'
-                '%H A999999 The string http://42.com is not a link.\n'
-                '%F A999999 For n big enough, s(n+1) - s(n) = 0.\n'
-                '%Y A999999 Related sequences are A000042 and its friend A000024.\n'
-                '%A A999999 Anonymous.\n'
-                '%O A999999 38,4\n'
-                '%E A999999 This sequence does not contain errors.\n'
-                '%e A999999 s(42) + s(43) = 0.\n'
-                '%p A999999 Do not even try, Maple is not able to produce such a sequence.\n'
-                '%t A999999 Mathematica neither.\n'
-                '%o A999999 (Python)\n'
-                '%o A999999 def A999999(n):\n'
-                '%o A999999     assert(isinstance(n, (int, Integer))), "n must be an integer."\n'
-                '%o A999999     if n < 38:\n'
-                '%o A999999         raise ValueError("The value %s is not accepted." %str(n)))\n'
-                '%o A999999     elif n == 42:\n'
-                '%o A999999         return 2\n'
-                '%o A999999     else:\n'
-                '%o A999999         return 1\n'
-                '%K A999999 ' + keywords + '\n'
-                '%C A999999 42 is the product of the first 4 prime numbers, except 5 and perhaps 1.\n'
-                '%C A999999 Apart from that, i have no comment.')
+        return ('%I ' + ident + ' M9999 N9999\n'
+                '%S ' + ident + ' 1,1,1,1,2,1,1,1,\n'
+                '%T ' + ident + ' 1,1,1,1,1,1,1,1,1,\n'
+                '%U ' + ident + ' 1,1,1,1,1,1,1,1,1\n'
+                '%N ' + ident + ' The characteristic sequence of 42 plus one, starting from 38.\n'
+                '%D ' + ident + ' Lewis Carroll, Alice\'s Adventures in Wonderland.\n'
+                '%D ' + ident + ' Lewis Carroll, The Hunting of the Snark.\n'
+                '%D ' + ident + ' Deep Thought, The Answer to the Ultimate Question of Life, The Universe, and Everything.\n'
+                '%H ' + ident + ' Wikipedia, <a href="https://en.wikipedia.org/wiki/42_(number)">42 (number)</a>\n'
+                '%H ' + ident + ' See. also <a href="https://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>\n'
+                '%H ' + ident + ' Do not confuse with the sequence <a href="/A000042">A000042</a> or the sequence <a href="/A000024">A000024</a>\n'
+                '%H ' + ident + ' The string http://42.com is not a link.\n'
+                '%F ' + ident + ' For n big enough, s(n+1) - s(n) = 0.\n'
+                '%Y ' + ident + ' Related sequences are A000042 and its friend A000024.\n'
+                '%A ' + ident + ' Anonymous.\n'
+                '%O ' + ident + ' 38,4\n'
+                '%E ' + ident + ' This sequence does not contain errors.\n'
+                '%e ' + ident + ' s(42) + s(43) = 0.\n'
+                '%p ' + ident + ' Do not even try, Maple is not able to produce such a sequence.\n'
+                '%t ' + ident + ' Mathematica neither.\n'
+                '%o ' + ident + ' (Python)\n'
+                '%o ' + ident + ' def ' + ident + '(n):\n'
+                '%o ' + ident + '     assert(isinstance(n, (int, Integer))), "n must be an integer."\n'
+                '%o ' + ident + '     if n < 38:\n'
+                '%o ' + ident + '         raise ValueError("The value %s is not accepted." %str(n)))\n'
+                '%o ' + ident + '     elif n == 42:\n'
+                '%o ' + ident + '         return 2\n'
+                '%o ' + ident + '     else:\n'
+                '%o ' + ident + '         return 1\n'
+                '%K ' + ident + ' ' + keywords + '\n'
+                '%C ' + ident + ' 42 is the product of the first 4 prime numbers, except 5 and perhaps 1.\n'
+                '%C ' + ident + ' Apart from that, i have no comment.')
 
-    def _imaginary_sequence(self, keywords='sign,easy'):
+    def _imaginary_sequence(self, ident='A999999', keywords='sign,easy'):
         r"""
         This is the OEIS sequence corresponding to the imaginary entry.
         Its main purpose is to allow offline doctesting.
 
         INPUT:
+
+        - ``ident`` - a string representing the A-number of the sequence.
 
         - ``keywords`` - string (default: 'sign,easy'), a list of words
           separated by commas.
@@ -627,8 +630,7 @@ class OEIS:
             sage: s(42)
             2
         """
-        return OEISSequence(self._imaginary_entry(keywords))
-
+        return self.find_by_entry(entry=self._imaginary_entry(ident=ident, keywords=keywords))
 
 class OEISSequence(SageObject, UniqueRepresentation):
     r"""
@@ -830,7 +832,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
         TESTS::
 
             sage: s = oeis._imaginary_sequence()
-            sage: s.raw_entry() == oeis._imaginary_entry('sign,easy')
+            sage: s.raw_entry() == oeis._imaginary_entry(keywords='sign,easy')
             True
         """
         try:
@@ -971,7 +973,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.keywords()
             ('sign', 'easy')
 
-            sage: s = oeis._imaginary_sequence(keywords='nonn,hard')
+            sage: s = oeis._imaginary_sequence(ident='A999997', keywords='nonn,hard')
             sage: s.keywords()
             ('nonn', 'hard')
         """
@@ -1056,11 +1058,11 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         TESTS::
 
-            sage: s = oeis._imaginary_sequence('nonn,cofr')
+            sage: s = oeis._imaginary_sequence(ident='A999996', keywords='nonn,cofr')
             sage: type(s.natural_object())
             <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
-            sage: s = oeis._imaginary_sequence('nonn')
+            sage: s = oeis._imaginary_sequence(ident='A999995', keywords='nonn')
             sage: s.natural_object().universe()
             Non negative integer semiring
 
@@ -1124,7 +1126,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.is_finite()
             Unknown
 
-            sage: s = oeis._imaginary_sequence('nonn,finit')
+            sage: s = oeis._imaginary_sequence(ident='A999993', keywords='nonn,finit')
             sage: s.is_finite()
             True
 
@@ -1170,7 +1172,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.is_full()
             Unknown
 
-            sage: s = oeis._imaginary_sequence('nonn,full,finit')
+            sage: s = oeis._imaginary_sequence(ident='A999992', keywords='nonn,full,finit')
             sage: s.is_full()
             True
         """
@@ -1410,7 +1412,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             ....:         break
             2
 
-            sage: s = oeis._imaginary_sequence(keywords='sign,full')
+            sage: s = oeis._imaginary_sequence(ident='A999991', keywords='sign,full')
             sage: for i in s: pass
         """
         for x in self.first_terms():

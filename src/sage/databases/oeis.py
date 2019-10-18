@@ -433,6 +433,13 @@ class OEIS:
         OUTPUT:
 
         - The corresponding OEIS sequence.
+
+        EXAMPLES::
+
+            sage: entry = '%I A262002\n%N A262002 L.g.f.: log( Sum_{n>=0} x^n/n! * Product_{k=1..n} (k^2 + 1) ).\n%K A262002 nonn'
+            sage: s = oeis.find_by_entry(entry)
+            sage: s
+            A262002: L.g.f.: log( Sum_{n>=0} x^n/n! * Product_{k=1..n} (k^2 + 1) ).
         """
         ident = entry[3:10]
         sequence = OEISSequence(ident=ident)
@@ -661,6 +668,11 @@ class OEISSequence(SageObject, UniqueRepresentation):
     def __classcall__(cls, ident):
         r"""
         Canonicalize the ID of the sequence into a A-number.
+
+        TESTS::
+
+            sage: oeis(45) is oeis('A000045')
+            True
         """
         if not isinstance(ident, str):
             ident = str(ident)
@@ -693,12 +705,12 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         TESTS::
 
-        sage: s = oeis._imaginary_sequence(ident='A004238')
-        sage: s
-        A004238: The characteristic sequence of 42 plus one, starting from 38.
-        sage: s.online_update()                         # optional -- internet
-        sage: s                                         # optional -- internet
-        A004238: a(n) = 100*log(n) rounded to nearest integer.
+            sage: s = oeis._imaginary_sequence(ident='A004238')
+            sage: s
+            A004238: The characteristic sequence of 42 plus one, starting from 38.
+            sage: s.online_update()                     # optional -- internet
+            sage: s                                     # optional -- internet
+            A004238: a(n) = 100*log(n) rounded to nearest integer.
         """
         options = {'q': self._id, 'n': '1', 'fmt': 'text'}
         url = oeis_url + "search?" + urlencode(options)

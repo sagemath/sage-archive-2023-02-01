@@ -718,9 +718,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         FreeModuleTensor._del_derived(self)
         TensorField._del_derived(self)
         if del_restrictions:
-            self._restrictions.clear()
-            self._extensions_graph = {self._domain: self}
-            self._restrictions_graph = {self._domain: self}
+            self._del_restrictions()
 
     def set_comp(self, basis=None):
         r"""

@@ -1523,7 +1523,7 @@ class FreeModuleTensor(ModuleElement):
         self._components.clear()
         for basis, comp in other._components.items():
             self._components[basis] = comp.copy()
-        # TODO: Apply _is_zero attribute
+        # TODO: Apply _is_zero attribute in ticket #28519
 
     def copy(self):
         r"""

@@ -654,7 +654,7 @@ class TensorField(ModuleElement):
         """
         self._lie_derivatives = {} # dict. of Lie derivatives of self (keys: id(vector))
 
-    def _del_derived(self, del_restrictions=False):
+    def _del_derived(self):
         r"""
         Delete the derived quantities.
 
@@ -670,10 +670,30 @@ class TensorField(ModuleElement):
             del val[0]._lie_der_along_self[id(self)]
         # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
-        if del_restrictions:
-            self._restrictions.clear()
-            self._extensions_graph = {self._domain: self}
-            self._restrictions_graph = {self._domain: self}
+
+    def _del_restrictions(self):
+        r"""
+        Delete the restrictions defined on ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: t = M.tensor_field(1,2)
+            sage: U = M.open_subset('U', coord_def={c_xy: x<0})
+            sage: h = t.restrict(U)
+            sage: t._restrictions
+            {Open subset U of the 2-dimensional differentiable manifold M:
+             Tensor field of type (1,2) on the Open subset U of the
+             2-dimensional differentiable manifold M}
+            sage: t._del_restrictions()
+            sage: t._restrictions
+            {}
+
+        """
+        self._restrictions.clear()
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
 
     def _init_components(self, *comp, **kwargs):
         r"""
@@ -1372,7 +1392,10 @@ class TensorField(ModuleElement):
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
-        self._del_derived(del_restrictions=False)
+
+        rst = self._restrictions.copy()
+        self._del_derived()  # may delete restrictions
+        self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):
         r"""
@@ -1850,12 +1873,13 @@ class TensorField(ModuleElement):
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))
-        self._del_derived(del_restrictions=True)  # delete restrictions
-        name, latex_name = self._name, self._latex_name
+        self._del_derived()
+        self._del_restrictions() # delete restrictions
+        name, latex_name = self._name, self._latex_name # keep names
         for dom, rst in other._restrictions.items():
             self._restrictions[dom] = rst.copy()
         self.set_name(name=name, latex_name=latex_name)
-        # TODO: Apply _is_zero attribute
+        # TODO: Apply _is_zero attribute in ticket #28519
 
     def copy(self):
         r"""

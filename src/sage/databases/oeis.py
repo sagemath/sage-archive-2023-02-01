@@ -347,26 +347,20 @@ class OEIS:
          A073491: Numbers having no prime gaps in their factorization.,
          A073492: Numbers having at least one prime gap in their factorization.]
 
-    .. WARNING::
+    .. NOTE::
 
-        The following will fetch the OEIS database twice (once for searching the
-        database, and once again for creating the sequence ``fibo``)::
+        The following will fetch the OEIS database only once::
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
-            ...
+            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+            1: A290689: Number of transitive rooted trees with n nodes.
+            2: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
 
-            sage: fibo = oeis('A000045')                # optional -- internet
+            sage: oeis('A000045')                       # optional -- internet
+            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-        Do not do this, it is slow, it costs bandwidth and server resources !
-        Instead, do the following, to reuse the result of the search to create
-        the sequence::
-
-            sage: sorted(oeis([1,2,3,5,8,13]), key=lambda x: x.id()) # optional -- internet
-            [A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.,
-             A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.,
-             A290689: Number of transitive rooted trees with n nodes.]
-
-            sage: fibo = _[0]                           # optional -- internet
+        Indeed, due to some caching mechanism, the sequence is not re-created
+        when called from its ID.
     """
 
     def __call__(self, query, max_results=3, first_result=0):

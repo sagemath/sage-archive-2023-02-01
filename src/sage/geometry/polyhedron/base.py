@@ -2731,6 +2731,27 @@ class Polyhedron_base(Element):
         """
         return self.n_rays() == 0 and self.n_lines() == 0
 
+    @cached_method
+    def combinatorial_polyhedron(self):
+        r"""
+        Return the combinatorial type of ``self``.
+
+        See :class:`sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
+
+        EXAMPLES::
+
+            sage: polytopes.cube().combinatorial_polyhedron()
+            A 3-dimensional combinatorial polyhedron with 6 facets
+
+            sage: polytopes.cyclic_polytope(4,10).combinatorial_polyhedron()
+            A 4-dimensional combinatorial polyhedron with 35 facets
+
+            sage: Polyhedron(rays=[[0,1], [1,0]]).combinatorial_polyhedron()
+            A 2-dimensional combinatorial polyhedron with 2 facets
+        """
+        from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
+        return CombinatorialPolyhedron(self)
+
     def is_simple(self):
         """
         Test for simplicity of a polytope.

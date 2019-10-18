@@ -1520,6 +1520,7 @@ class FreeModuleTensor(ModuleElement):
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))
         self._del_derived()
+        self._components.clear()
         for basis, comp in other._components.items():
             self._components[basis] = comp.copy()
         # TODO: Apply _is_zero attribute

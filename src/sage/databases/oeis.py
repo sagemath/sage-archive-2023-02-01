@@ -734,6 +734,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             for line in self.raw_entry().splitlines():
                 fields[line[1]].append(line[11:])
             self._fields = fields
+            self.is_dead(warn_only=True)
             return self._fields[key]
 
     def id(self, format='A'):
@@ -1087,6 +1088,53 @@ class OEISSequence(SageObject, UniqueRepresentation):
             from sage.rings.integer_ring import ZZ
             return Sequence(self.first_terms(), ZZ)
 
+    def is_dead(self, warn_only=False):
+        r"""
+        Tells whether the sequence is dead (i.e. eroneous).
+
+        INPUT:
+
+        - warn_only - (bool, default: ``False``), whether to warn when the
+          sequence is dead instead of returning a boolean.
+
+        EXAMPLES:
+
+        A warn_only test is triggered as soon as some information on the
+        sequence is queried::
+
+            sage: s = oeis(17)
+            sage: s                                 # optional -- internet
+            doctest:warning
+            ...
+            RuntimeWarning: This sequence is dead: "A000017: Erroneous version of A032522."
+            A000017: Erroneous version of A032522.
+
+        TESTS::
+
+            sage: s.is_dead()                       # optional -- internet
+            True
+
+            sage: t = oeis._imaginary_sequence()
+            sage: t.is_dead()
+            False
+
+            sage: u = oeis._imaginary_sequence(ident='A999994', keywords='dead')
+            sage: u
+            doctest:warning
+            ...
+            RuntimeWarning: This sequence is dead: "A999994: The characteristic sequence of 42 plus one, starting from 38."
+            A999994: The characteristic sequence of 42 plus one, starting from 38.
+
+            sage: u.is_dead()
+            True
+        """
+        if warn_only:
+            if 'dead' in self.keywords():
+                from warnings import warn
+                warn('This sequence is dead: "{}: {}"'.format(self.id(), self.name()), RuntimeWarning)
+        else:
+            return 'dead' in self.keywords()
+
     def is_finite(self):
         r"""
         Tells whether the sequence is finite.
@@ -1203,7 +1251,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: f.first_terms()[:10]                  # optional -- internet
             (0, 1, 1, 2, 3, 5, 8, 13, 21, 34)
 
-        Handle dead sequences: see  :trac:`17330` ::
+        Handle dead sequences, see :trac:`17330` ::
 
             sage: oeis(5000).first_terms(12)              # optional -- internet
             doctest:warning

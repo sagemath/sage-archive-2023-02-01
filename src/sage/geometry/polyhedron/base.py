@@ -5364,36 +5364,7 @@ class Polyhedron_base(Element):
             sage: s4.is_eulerian()
             True
         """
-        from itertools import combinations
-        inequalities = self.inequalities()
-        vertices     = self.vertices()
-
-        # Associated to 'v' the inequalities in contact with v
-        vertex_ineq_incidence = [frozenset([i for i, ineq in enumerate(inequalities) if self._is_zero(ineq.eval(v))])
-                                 for i, v in enumerate(vertices)]
-
-        # the dual incidence structure
-        ineq_vertex_incidence = [set() for _ in range(len(inequalities))]
-        for v, ineq_list in enumerate(vertex_ineq_incidence):
-            for ineq in ineq_list:
-                ineq_vertex_incidence[ineq].add(v)
-
-        n = len(vertices)
-
-        pairs = []
-        for i, j in combinations(range(n), 2):
-            common_ineq = vertex_ineq_incidence[i] & vertex_ineq_incidence[j]
-            if not common_ineq:  # or len(common_ineq) < d-2:
-                continue
-
-            if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
-                pairs.append((i, j))
-
-        from sage.graphs.graph import Graph
-        g = Graph()
-        g.add_vertices(vertices)
-        g.add_edges((vertices[i], vertices[j]) for i, j in pairs)
-        return g
+        return self.combinatorial_polyhedron().vertex_graph()
 
     graph = vertex_graph
 

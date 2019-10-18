@@ -5346,7 +5346,7 @@ class Polyhedron_base(Element):
             sage: p.f_vector()
             (1, 7, 12, 7, 1)
         """
-        return vector(ZZ, [len(x) for x in self.face_lattice().level_sets()])
+        return self.combinatorial_polyhedron().f_vector()
 
     def vertex_graph(self):
         """

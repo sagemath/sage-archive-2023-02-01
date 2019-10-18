@@ -296,13 +296,12 @@ class OEIS:
 
     The database can be searched by subsequence::
 
-        sage: search = oeis([1,2,3,5,8,13])                         # optional -- internet
-        sage: search = sorted(search, key=lambda x: x.id()); search # optional -- internet
-        [A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.,
-         A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.,
-         A290689: Number of transitive rooted trees with n nodes.]
+        sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
+        0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+        1: A290689: Number of transitive rooted trees with n nodes.
+        2: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
 
-        sage: fibo = search[0]                         # optional -- internet
+        sage: fibo = search[0]                          # optional -- internet
 
         sage: fibo.name()                               # optional -- internet
         'Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.'
@@ -341,11 +340,11 @@ class OEIS:
 
     The database can be searched by description::
 
-        sage: sorted(oeis('prime gap factorization', max_results=4), key=lambda x: x.id()) # optional --internet
-        [A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.,
-         A073490: Number of prime gaps in factorization of n.,
-         A073491: Numbers having no prime gaps in their factorization.,
-         A073492: Numbers having at least one prime gap in their factorization.]
+        sage: oeis('prime gap factorization', max_results=4) # optional --internet
+        0: A073491: Numbers having no prime gaps in their factorization.
+        1: A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.
+        2: A073490: Number of prime gaps in factorization of n.
+        3: A073492: Numbers having at least one prime gap in their factorization.
 
     .. NOTE::
 
@@ -465,12 +464,12 @@ class OEIS:
 
         EXAMPLES::
 
-            sage: sorted(oeis.find_by_description('prime gap factorization'), key=lambda x: x.id()) # optional -- internet
-            [A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.,
-             A073490: Number of prime gaps in factorization of n.,
-             A073491: Numbers having no prime gaps in their factorization.]
+            sage: oeis.find_by_description('prime gap factorization') # optional -- internet
+            0: A073491: Numbers having no prime gaps in their factorization.
+            1: A073485: Product of any number of consecutive primes; squarefree numbers with no gaps in their prime factorization.
+            2: A073490: Number of prime gaps in factorization of n.
 
-            sage: prime_gaps = _[1] ; prime_gaps        # optional -- internet
+            sage: prime_gaps = _[2] ; prime_gaps        # optional -- internet
             A073490: Number of prime gaps in factorization of n.
 
         ::

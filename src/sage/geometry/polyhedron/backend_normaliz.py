@@ -975,6 +975,26 @@ class Polyhedron_normaliz(Polyhedron_base):
         else:
             return s
 
+    def __copy__(self):
+        r"""
+        Return a copy of ``self``.
+
+        TESTS::
+
+            sage: P = polytopes.cube(backend='normaliz') # optional - pynormaliz
+            sage: Q = copy(P)
+            sage: P._normaliz_cone is Q._normaliz_cone
+            False
+        """
+        other = super(Polyhedron_normaliz, self).__copy__()
+
+        # Make a copy of the cone.
+        cone = self._normaliz_cone
+        import PyNormaliz
+        conecopy = PyNormaliz.NmzConeCopy(cone)
+        other._normaliz_cone = conecopy
+        return other
+
     def integral_hull(self):
         r"""
         Return the integral hull in the polyhedron.

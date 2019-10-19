@@ -41,7 +41,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         cdef int i,j
         self.degree = matrix.ncols()
         self.dimension = matrix.nrows()
-        if self.dimension >= (sizeof(int) << 3):
+        if self.dimension >= <int>(sizeof(int) << 3):
             raise NotImplementedError
             # By the time the dimension gets this big, the computation is infeasible anyway...
         self.nwords = 1<<self.dimension

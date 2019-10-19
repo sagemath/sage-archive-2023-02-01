@@ -3723,7 +3723,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 split_primes.append(p)
         return split_primes
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Return whether or not there is a homomorphism defined by the given
         images of generators.
@@ -3748,12 +3748,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if len(im_gens) != 1:
             return False
-        # We need that elements of the base ring of the polynomial
-        # ring map canonically into codomain.
-        if not codomain.has_coerce_map_from(QQ):
+        if base_map is None and not codomain.has_coerce_map_from(QQ):
+            # We need that elements of the base ring of the polynomial
+            # ring map canonically into codomain.
             return False
         f = self.defining_polynomial()
         try:
+            # The current implementation won't productively use base_map
+            # since the coefficients of f are in QQ, if there is a hom
+            # from QQ to codomain it's probably unique and just the coercion
+            if base_map is not None:
+                f = f.map_coefficients(base_map)
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False
@@ -8124,24 +8129,37 @@ class NumberField_absolute(NumberField_generic):
         self._order.set_cache(ret, gens)
         return ret
 
-    def vector_space(self):
+    @cached_method(key=lambda self, base, basis, map: (base or self.base_ring(), basis, map))
+    def free_module(self, base=None, basis=None, map=True):
         """
         Return a vector space V and isomorphisms self --> V and V --> self.
+
+        INPUT:
+
+        - ``base`` -- a subfield (default: ``None``); the returned vector
+          space is over this subfield `R`, which defaults to the base field of this
+          function field
+
+        - ``basis`` -- a basis for this field over the base
+
+        - ``maps`` -- boolean (default ``True``), whether to return
+          `R`-linear maps to and from `V`
+
 
         OUTPUT:
 
 
         -  ``V`` - a vector space over the rational numbers
 
-        -  ``from_V`` - an isomorphism from V to self
+        -  ``from_V`` - an isomorphism from V to self (if requested)
 
-        -  ``to_V`` - an isomorphism from self to V
+        -  ``to_V`` - an isomorphism from self to V (if requested)
 
 
         EXAMPLES::
 
             sage: k.<a> = NumberField(x^3 + 2)
-            sage: V, from_V, to_V  = k.vector_space()
+            sage: V, from_V, to_V  = k.free_module()
             sage: from_V(V([1,2,3]))
             3*a^2 + 2*a + 1
             sage: to_V(1 + 2*a + 3*a^2)
@@ -8157,16 +8175,20 @@ class NumberField_absolute(NumberField_generic):
             sage: to_V(from_V(V([0,-1/7,0])))
             (0, -1/7, 0)
         """
-        try:
-            return self.__vector_space
-        except AttributeError:
-            V = QQ**self.degree()
-            from_V = maps.MapVectorSpaceToNumberField(V, self)
-            to_V   = maps.MapNumberFieldToVectorSpace(self, V)
-            self.__vector_space = (V, from_V, to_V)
-            return self.__vector_space
+        if base is None:
+            base = QQ
+        elif base is self:
+            return super(NumberField_absolute, self).free_module(base=base, basis=basis, map=map)
+        if basis is not None or base is not QQ:
+            raise NotImplementedError
+        V = QQ**self.degree()
+        if not map:
+            return V
+        from_V = maps.MapVectorSpaceToNumberField(V, self)
+        to_V   = maps.MapNumberFieldToVectorSpace(self, V)
+        return (V, from_V, to_V)
 
-    def absolute_vector_space(self):
+    def absolute_vector_space(self, *args, **kwds):
         r"""
         Return vector space over `\QQ` corresponding to this
         number field, along with maps from that space to this number field
@@ -8187,7 +8209,7 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in a with defining polynomial x^3 - 5
               To:   Vector space of dimension 3 over Rational Field)
         """
-        return self.vector_space()
+        return self.free_module(*args, **kwds)
 
     def _galois_closure_and_embedding(self, names=None):
         r"""
@@ -9027,7 +9049,7 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.polynomial()
 
-    def relative_vector_space(self):
+    def relative_vector_space(self, *args, **kwds):
         """
         A synonym for vector_space.
 
@@ -9043,7 +9065,7 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in i with defining polynomial x^2 + 1
               To:   Vector space of dimension 2 over Rational Field)
         """
-        return self.vector_space()
+        return self.free_module(*args, **kwds)
 
     def absolute_discriminant(self):
         """
@@ -10678,7 +10700,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         n = self._n()
         z = CC.zeta(n)
         X = [m for m in range(n) if arith.gcd(m,n) == 1]
-        v = [self.hom([z**n], check=False) for n in X]
+        v = [self.hom([z**i], check=False) for i in X]
         self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
                                          check=False, universe=self.Hom(CC))
         return self.__embeddings[CC]

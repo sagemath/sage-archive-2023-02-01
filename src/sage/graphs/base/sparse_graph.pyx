@@ -298,7 +298,7 @@ cdef class SparseGraph(CGraph):
         """
         cdef SparseGraphBTNode **temp
         cdef SparseGraphLLNode *label_temp
-        cdef int i
+        cdef size_t i
 
         # Freeing the list of arcs attached to each vertex
         for i from 0 <= i < self.active_vertices.size * self.hash_length:
@@ -370,21 +370,22 @@ cdef class SparseGraph(CGraph):
             30
 
         """
-        if total == 0:
+        if not total:
             raise RuntimeError('Sparse graphs must allocate space for vertices!')
         cdef bitset_t bits
-        if total < self.active_vertices.size:
+        cdef size_t s_total = <size_t>total
+        if s_total < self.active_vertices.size:
             bitset_init(bits, self.active_vertices.size)
-            bitset_set_first_n(bits, total)
+            bitset_set_first_n(bits, s_total)
             if not bitset_issubset(self.active_vertices, bits):
                 bitset_free(bits)
                 return -1
             bitset_free(bits)
 
         self.vertices = <SparseGraphBTNode **>check_reallocarray(
-                self.vertices, total * self.hash_length, sizeof(SparseGraphBTNode *))
-        self.in_degrees = <int *>check_reallocarray(self.in_degrees, total, sizeof(int))
-        self.out_degrees = <int *>check_reallocarray(self.out_degrees, total, sizeof(int))
+                self.vertices, s_total * self.hash_length, sizeof(SparseGraphBTNode *))
+        self.in_degrees = <int *>check_reallocarray(self.in_degrees, s_total, sizeof(int))
+        self.out_degrees = <int *>check_reallocarray(self.out_degrees, s_total, sizeof(int))
 
         cdef int new_vertices = total - self.active_vertices.size
 
@@ -404,7 +405,7 @@ cdef class SparseGraph(CGraph):
                     new_vertices * sizeof(int))
 
         # self.active_vertices
-        bitset_realloc(self.active_vertices, total)
+        bitset_realloc(self.active_vertices, s_total)
 
     ###################################
     # Unlabeled arc functions
@@ -508,9 +509,9 @@ cdef class SparseGraph(CGraph):
             True
 
         """
-        if u < 0 or u >= self.active_vertices.size or not bitset_in(self.active_vertices, u):
+        if u < 0 or u >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, u):
             return False
-        if v < 0 or v >= self.active_vertices.size or not bitset_in(self.active_vertices, v):
+        if v < 0 or v >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, v):
             return False
         return self.has_arc_unsafe(u,v)
 
@@ -853,7 +854,8 @@ cdef class SparseGraph(CGraph):
         expensive than out_neighbors_unsafe.
 
         """
-        cdef int i, num_nbrs = 0
+        cdef size_t i
+        cdef int num_nbrs = 0
         if self.in_degrees[v] == 0:
             return 0
         for i from 0 <= i < self.active_vertices.size:

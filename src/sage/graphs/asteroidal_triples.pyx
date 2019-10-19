@@ -129,7 +129,7 @@ def is_asteroidal_triple_free(G, certificate=False):
     if not isinstance(G, Graph):
         raise ValueError("The first parameter must be a Graph.")
 
-    cdef int n = G.order()
+    cdef uint32_t n = <uint32_t>G.order()
     cdef int i
 
     # ==> Trivial cases
@@ -180,7 +180,7 @@ def is_asteroidal_triple_free(G, certificate=False):
     return False if ret else True
 
 
-cdef list is_asteroidal_triple_free_C(int n,
+cdef list is_asteroidal_triple_free_C(uint32_t n,
                                       short_digraph sd,
                                       uint32_t** connected_structure,
                                       uint32_t*  waiting_list,

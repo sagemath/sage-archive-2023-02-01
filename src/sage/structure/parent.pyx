@@ -881,7 +881,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             raise NotImplementedError(f"cannot construct elements of {self}")
         cdef Py_ssize_t i
         cdef R = parent(x)
-        cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
+        cdef bint no_extra_args = (not args and not kwds)
         if R is self and no_extra_args:
             return x
 
@@ -1209,7 +1209,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     # Generators and Homomorphisms
     #################################################################################
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
        r"""
        Return True if ``im_gens`` defines a valid homomorphism
        from self to codomain; otherwise return False.
@@ -1263,90 +1263,101 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         return Hom(self, codomain, category)
 
-    def hom(self, im_gens, codomain=None, check=None):
-       r"""
-       Return the unique homomorphism from self to codomain that
-       sends ``self.gens()`` to the entries of ``im_gens``.
-       Raises a TypeError if there is no such homomorphism.
+    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None):
+        r"""
+        Return the unique homomorphism from self to codomain that
+        sends ``self.gens()`` to the entries of ``im_gens``.
+        Raises a TypeError if there is no such homomorphism.
 
-       INPUT:
+        INPUT:
 
-       - ``im_gens`` -- the images in the codomain of the generators
-         of this object under the homomorphism
+        - ``im_gens`` -- the images in the codomain of the generators
+          of this object under the homomorphism
 
-       - ``codomain`` -- the codomain of the homomorphism
+        - ``codomain`` -- the codomain of the homomorphism
 
-       - ``check`` -- whether to verify that the images of generators
-         extend to define a map (using only canonical coercions).
+        - ``base_map`` -- a map from the base ring to the codomain.
+          If not given, coercion is used.
 
-       OUTPUT:
+        - ``check`` -- whether to verify that the images of generators
+          extend to define a map (using only canonical coercions).
 
-       A homomorphism self --> codomain
+        OUTPUT:
 
-       .. NOTE::
+        A homomorphism self --> codomain
 
-          As a shortcut, one can also give an object X instead of
-          ``im_gens``, in which case return the (if it exists)
-          natural map to X.
+        .. NOTE::
 
-       EXAMPLES:
+            As a shortcut, one can also give an object X instead of
+            ``im_gens``, in which case return the (if it exists)
+            natural map to X.
 
-       Polynomial Ring: We first illustrate construction of a few
-       homomorphisms involving a polynomial ring::
+        EXAMPLES:
 
-           sage: R.<x> = PolynomialRing(ZZ)
-           sage: f = R.hom([5], QQ)
-           sage: f(x^2 - 19)
-           6
+        Polynomial Ring: We first illustrate construction of a few
+        homomorphisms involving a polynomial ring::
 
-           sage: R.<x> = PolynomialRing(QQ)
-           sage: f = R.hom([5], GF(7))
-           Traceback (most recent call last):
-           ...
-           ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: f = R.hom([5], QQ)
+            sage: f(x^2 - 19)
+            6
 
-           sage: R.<x> = PolynomialRing(GF(7))
-           sage: f = R.hom([3], GF(49,'a'))
-           sage: f
-           Ring morphism:
-             From: Univariate Polynomial Ring in x over Finite Field of size 7
-             To:   Finite Field in a of size 7^2
-             Defn: x |--> 3
-           sage: f(x+6)
-           2
-           sage: f(x^2+1)
-           3
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = R.hom([5], GF(7))
+            Traceback (most recent call last):
+            ...
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
-       Natural morphism::
+            sage: R.<x> = PolynomialRing(GF(7))
+            sage: f = R.hom([3], GF(49,'a'))
+            sage: f
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Finite Field of size 7
+              To:   Finite Field in a of size 7^2
+              Defn: x |--> 3
+            sage: f(x+6)
+            2
+            sage: f(x^2+1)
+            3
 
-           sage: f = ZZ.hom(GF(5))
-           sage: f(7)
-           2
-           sage: f
-           Natural morphism:
-             From: Integer Ring
-             To:   Finite Field of size 5
+        Natural morphism::
 
-       There might not be a natural morphism, in which case a
-       ``TypeError`` is raised::
+            sage: f = ZZ.hom(GF(5))
+            sage: f(7)
+            2
+            sage: f
+            Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
 
-           sage: QQ.hom(ZZ)
-           Traceback (most recent call last):
-           ...
-           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
-       """
-       if isinstance(im_gens, Parent):
-           return self.Hom(im_gens).natural_map()
-       from sage.structure.sequence import Sequence_generic, Sequence
-       if codomain is None:
-           im_gens = Sequence(im_gens)
-           codomain = im_gens.universe()
-       if isinstance(im_gens, Sequence_generic):
+        There might not be a natural morphism, in which case a
+        ``TypeError`` is raised::
+
+            sage: QQ.hom(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
+        """
+        if isinstance(im_gens, Parent):
+            return self.Hom(im_gens).natural_map()
+        from sage.structure.sequence import Sequence_generic, Sequence
+        if codomain is None:
+            im_gens = Sequence(im_gens)
+            codomain = im_gens.universe()
+        if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
-       if check is None:
-           return self.Hom(codomain)(im_gens)
-       else:
-           return self.Hom(codomain)(im_gens, check=check)
+        # Not all homsets accept catgory/check/base_map as arguments
+        kwds = {}
+        if check is not None:
+            kwds['check'] = check
+        if base_map is not None:
+            # Ideally we would have machinery here to determine
+            # how the base map affects the category of the resulting
+            # morphism.  But for now it's not clear how to do this,
+            # so we leave the category as the default for now.
+            kwds['base_map'] = base_map
+        Hom_kwds = {} if category is None else {'category': category}
+        return self.Hom(codomain, **Hom_kwds)(im_gens, **kwds)
 
     #################################################################################
     # New Coercion support functionality

@@ -2236,7 +2236,7 @@ class ClusterSeed(SageObject):
         - ``"vertices"``: interprets the input sequence as vertices
         - ``"indices"``: interprets the input sequence as indices
         - ``"cluster_vars"``: interprets the input sequence as cluster variables
-          this must be selected if inputing a sequence of cluster variables.
+          this must be selected if inputting a sequence of cluster variables.
 
         EXAMPLES::
 

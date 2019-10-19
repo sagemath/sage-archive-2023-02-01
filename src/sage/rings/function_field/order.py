@@ -996,7 +996,7 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
         beta = S([sigma(c) for c in q.list()]).roots()[0][0]
 
         # V is a vector space over the prime subfield of k of degree r*s
-        V = K.vector_space()
+        V = K.vector_space(map=False)
 
         w = K.one()
         beta_pow = []
@@ -1747,7 +1747,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
                 m =[]
                 for i in range(n):
                     m.append(sum(qgenb[j] * mtable[i][j] for j in range(n)))
-                beta  = [fr(c) for c in matrix(m).left_kernel().basis()[0]]
+                beta  = [fr(coeff) for coeff in matrix(m).left_kernel().basis()[0]]
 
                 prime.is_prime.set_cache(True)
                 prime._prime_below = ideal

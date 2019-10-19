@@ -1092,7 +1092,7 @@ cdef class Dist_vector(Dist):
             (1 + O(7^5), 2 + O(7^2), 3 + O(7))
         """
         if not self.parent().is_symk() and self._moments != 0:  # non-classical
-            if len(self._moments) == 0:
+            if not self._moments:
                 return self
             V = self._moments.parent()
             R = V.base_ring()

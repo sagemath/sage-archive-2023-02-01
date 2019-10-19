@@ -150,7 +150,7 @@ cdef class StaticSparseCGraph(CGraph):
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
         sig_free(self.number_of_loops)
-        if self.g_rev != NULL:
+        if self._directed:
             free_short_digraph(self.g_rev)
 
     cpdef bint has_vertex(self, int v) except -1:

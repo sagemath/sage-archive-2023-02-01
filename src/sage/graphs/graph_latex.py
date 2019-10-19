@@ -688,7 +688,7 @@ class GraphLatex(SageObject):
           ``'#2D87A7'``, or a single character from the choices ``'rgbcmykw'``.
           Additionally, a number between 0 and 1 will create a grayscale value.
           These color specifications are consistent throughout the options for
-          a ``tkzpicture``.
+          a ``tikzpicture``.
 
         - ``vertex_colors`` -- a dictionary whose keys are vertices of the graph
           and whose values are colors. These will be used to color the outline

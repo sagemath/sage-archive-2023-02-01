@@ -5761,7 +5761,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         """
         f = copy(self)
         g = copy(other)
-        if R == None:
+        if R is None:
             R = f.base_ring()
         else:
             f = self.change_ring(R)

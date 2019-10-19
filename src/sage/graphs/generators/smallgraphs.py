@@ -4688,7 +4688,7 @@ def _EllipticLinesProjectivePlaneScheme(k):
 
     The group `O(3,2^k)` acts naturally on the `q(q-1)/2` lines of `PG(2,2^k)`
     skew to the conic preserved by it, see Sect. 12.7.B of [BCN1989]_ and
-    Sect. 6.D in [BvL84]_. Compute the orbitals of this action and return them.
+    Sect. 6.D in [BL1984]_. Compute the orbitals of this action and return them.
 
     This is a helper for
     :func:`sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph`.
@@ -5132,7 +5132,7 @@ def U42Graph540():
     Hermitean form stabilised by `U_4(3)`, points of the 3-dimensional
     projective space over `GF(9)`. There are several possible mergings of
     orbitals, some leading to non-isomorphic graphs with the same parameters. We
-    found the merging here using [COCO]_.
+    found the merging here using [FK1991]_.
 
     EXAMPLES::
 

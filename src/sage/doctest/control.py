@@ -618,6 +618,12 @@ class DocTestController(SageObject):
         ``sage/tests/cmdline.py`` for a doctest that this works, see
         also :trac:`13579`.
 
+        .. NOTE::
+
+            This is only relevant with Python 2, because Sage's Python
+            2 is patched to give a warning when the current directory
+            is unsafe, but Python 3 is not.
+
         TESTS::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
@@ -627,7 +633,7 @@ class DocTestController(SageObject):
             sage: d = os.path.join(tmp_dir(), "test")
             sage: os.mkdir(d)
             sage: os.chmod(d, 0o777)
-            sage: DC.test_safe_directory(d)
+            sage: DC.test_safe_directory(d) # py2
             Traceback (most recent call last):
             ...
             RuntimeError: refusing to run doctests...

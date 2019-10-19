@@ -32,11 +32,12 @@ from copy import copy
 #                  /       \               /      |    \
 #           Inequality  Equation        Vertex   Ray   Line
 
+
 @richcmp_method
 class PolyhedronRepresentation(SageObject):
     """
     The internal base class for all representation objects of
-    ``Polyhedron`` (vertices/rays/lines and inequalites/equations)
+    ``Polyhedron`` (vertices/rays/lines and inequalities/equations)
 
     .. note::
 

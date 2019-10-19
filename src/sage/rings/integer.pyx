@@ -789,7 +789,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_get_pyintlong(self.value)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of self under the map that sends the generators of
         the parent to im_gens. Since ZZ maps canonically in the category
@@ -2039,7 +2039,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3 / QQbar.zero()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: rational division by zero
+            ZeroDivisionError: division by zero in algebraic field
         """
         cdef Rational x
         if type(left) is type(right):

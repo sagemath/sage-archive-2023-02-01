@@ -442,10 +442,10 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
     - ``parent._m`` contains the cardinality of the domain
     - ``parent._n`` contains the cardinality of the codomain
     - ``parent._unrank_domain`` and ``parent._rank_domain`` is a pair of
-      reciprocal rank and unrank functions beween the domain and
+      reciprocal rank and unrank functions between the domain and
       ``range(parent._m)``.
     - ``parent._unrank_codomain`` and ``parent._rank_codomain`` is a pair of
-      reciprocal rank and unrank functions beween the codomain and
+      reciprocal rank and unrank functions between the codomain and
       ``range(parent._n)``.
     """
 

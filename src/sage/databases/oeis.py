@@ -159,6 +159,7 @@ from six.moves.urllib.request import urlopen
 from six.moves.urllib.parse import urlencode
 
 from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.cpython.string import bytes_to_str
 from sage.rings.integer import Integer
 from sage.misc.misc import verbose
@@ -610,7 +611,7 @@ class OEIS:
         return OEISSequence(self._imaginary_entry(keywords))
 
 
-class OEISSequence(SageObject):
+class OEISSequence(SageObject, UniqueRepresentation):
     r"""
     The class of OEIS sequences.
 
@@ -671,7 +672,6 @@ class OEISSequence(SageObject):
             from warnings import warn
             warn('This sequence is dead: "{}: {}"'.format(self.id(), self.name()), RuntimeWarning)
 
-
     def id(self, format='A'):
         r"""
         The ID of the sequence ``self`` is the A-number that identifies
@@ -708,7 +708,41 @@ class OEISSequence(SageObject):
         if format == 'A':
             return self._id
         elif format == 'int':
-            return Integer(self._id[1:].lstrip("0"))
+            return int(self._id[1:].lstrip("0"))
+
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``, which is its numerical OEIS ID.
+
+        This method allows unique representation of OEIS sequences.
+
+        OUTPUT:
+
+        - Python `int`.
+
+        EXAMPLES::
+
+            sage: s = oeis([1,2,3,5,8,13])[0]           # optional -- internet
+            sage: hash(s)                               # optional -- internet
+            45
+
+        We have unique representation::
+
+            sage: t = oeis(45)                          # optional -- internet
+            sage: s is t                                # optional -- internet
+            True
+            sage: s == t                                # optional -- internet
+            True
+
+        TESTS::
+
+            sage: s = oeis._imaginary_sequence()
+            sage: s is oeis._imaginary_sequence()
+            True
+            sage: s == oeis._imaginary_sequence()
+            True
+        """
+        return self.id(format='int')
 
     def raw_entry(self):
         r"""
@@ -1315,60 +1349,6 @@ class OEISSequence(SageObject):
             yield x
         if not self.is_full():
             raise LookupError("Future values not provided by OEIS.")
-
-    def __eq__(self, other):
-        r"""
-        Returns ``True`` if ``self`` is equal to ``other`` and ``False``
-        otherwise.  Two integer sequences are considered equal if they have the
-        same OEIS ID.
-
-        INPUT:
-
-        - ``other`` - an oeis sequence.
-
-        OUTPUT:
-
-        - boolean.
-
-        EXAMPLES::
-
-            sage: oeis([1,2,3,5,8,13])[0] == oeis(45)   # optional -- internet
-            True
-
-        TESTS::
-
-            sage: s = oeis._imaginary_sequence()
-            sage: s == oeis._imaginary_sequence()
-            True
-
-        """
-        return self.id() == other.id()
-
-    def __ne__(self, other):
-        r"""
-        Returns ``True`` if ``self`` has a different OEIS ID than ``other`` and
-        ``False`` otherwise.
-
-        INPUT:
-
-        - ``other`` - an oeis sequence.
-
-        OUTPUT:
-
-        - boolean.
-
-        EXAMPLES::
-
-            sage: oeis([1,2,3,5,8,13])[0] != oeis(40)   # optional -- internet
-            True
-
-        TESTS::
-
-            sage: s = oeis._imaginary_sequence()
-            sage: s != oeis._imaginary_sequence()
-            False
-        """
-        return not self == other
 
     def references(self):
         r"""

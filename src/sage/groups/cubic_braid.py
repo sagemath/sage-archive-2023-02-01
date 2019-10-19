@@ -448,12 +448,13 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         """
         braid = self.braid()
 
+        from sage.misc.functional import cyclotomic_polynomial
+        min_pol_root_bur = cyclotomic_polynomial(6, var=var)
         unitary = False
-        min_pol_root_bur_cf  = [1 , -1 , 1] # minimal polynomial of sixth root of unity
         if type(reduced) == str:
             if reduced == 'unitary':
                 unitary = True
-                min_pol_root_bur_cf  = [1 , 0 , -1 , 0 , 1] # minimal polynomial of twelfth root of unity
+                min_pol_root_bur = cyclotomic_polynomial(12, var=var)
 
         burau_ori = braid.burau_matrix(reduced=reduced)
 
@@ -470,14 +471,14 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
 
         if root_bur is None:
             def find_root(domain):
-                min_pol_root_bur = domain[var](min_pol_root_bur_cf)
-                root_list = min_pol_root_bur.roots()
+                min_pol = min_pol_root_bur.change_ring(domain)
+                root_list = min_pol.roots()
                 if not(root_list):
-                    domain = min_pol_root_bur.splitting_field(min_pol_root_bur.variable_name())
-                    min_pol_root_bur = domain[var](min_pol_root_bur_cf)
+                    domain = min_pol.splitting_field(min_pol_root_bur.variable_name())
+                    min_pol = min_pol_root_bur.change_ring(domain)
                 else:
                     domain = domain
-                root_list = min_pol_root_bur.roots()
+                root_list = min_pol.roots()
                 for root in root_list:
                    if root[0] == 0:
                         continue
@@ -485,6 +486,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
                    if root[1]  == 1:
                         break
                 return root_bur
+
 
             if domain is None:
                 if (characteristic is None):
@@ -504,9 +506,9 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
                 except ValueError:
                     raise ValueError('characteristic must be in integer')
 
-                if  characteristic != 0  and not characteristic.is_prime():
+                if  not characteristic.is_zero()  and not characteristic.is_prime():
                     raise ValueError('characteristic must be a prime')
-                if characteristic == 0:
+                if characteristic.is_zero():
                     if unitary:
                         domain = CyclotomicField(12)
                     else:
@@ -523,6 +525,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
                     raise ValueError('characteristic of domain does not match given characteristic')
                 root_bur = find_root(domain)
 
+
         else:  # root_bur is not!= None
             if domain is None:
                 domain = root_bur.parent()
@@ -533,19 +536,16 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
 
             if 1 not in domain:
                 raise ValueError('root_bur must belong to a domain containing 1')
-            if unitary:
-                if domain(root_bur**4  -root_bur**2  +1) != 0:
-                    raise ValueError('root_bur must vanish on x**4-x**2+1')
-            else:
-                if domain(root_bur**2  -root_bur +1) != 0:
-                    raise ValueError('root_bur must vanish on x**2-x+1')
+
+            min_pol_root_bur = min_pol_root_bur.change_ring(domain)
+            if not min_pol_root_bur(root_bur).is_zero():
+                raise ValueError('root_bur must vanish on %s' %(min_pol_root_bur))
 
         def conv2domain (laur_pol):
             l1, l2 = laur_pol.polynomial_construction()
-            R = domain['tt']; (tt,) = R._first_ngens(1)
-            p1 = R(l1)
+            p1 = l1.change_ring(domain)
             p2 = root_bur**(l2)
-            res = p1.substitute(tt=root_bur) * p2
+            res = p1(root_bur)*p2
             return res
 
         from sage.matrix.constructor import matrix

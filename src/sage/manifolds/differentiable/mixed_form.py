@@ -323,8 +323,8 @@ class MixedForm(AlgebraElement):
 
         EXAMPLES:
 
-        Display a mixed form on a 2-dimensional non-parallelizable
-        differentiable manifold::
+        Display the expansion of a mixed form on a 2-dimensional
+        non-parallelizable differentiable manifold::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -357,7 +357,6 @@ class MixedForm(AlgebraElement):
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
-        from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
         ###
         # In case, no frame is given:
         if frame is None:
@@ -395,6 +394,22 @@ class MixedForm(AlgebraElement):
 
     def display(self):
         r"""
+        Display the homogeneous components of the mixed form.
+
+        The output is either text-formatted (console mode) or LaTeX-formatted
+        (notebook mode).
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: f = M.scalar_field(name='f')
+            sage: omega = M.diff_form(1, name='omega')
+            sage: eta = M.diff_form(2, name='eta')
+            sage: F = M.mixed_form(name='F', comp=[f, omega, eta]); F
+            Mixed differential form F on the 2-dimensional differentiable
+             manifold M
+            sage: F.display() # display names of homogeneous components
+            F = f + omega + eta
 
         """
         from sage.misc.latex import latex

@@ -478,8 +478,8 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
                 python_to_ecl( (<Rational>pyobj).denominator()))
     elif isinstance(pyobj,EclObject):
         return (<EclObject>pyobj).obj
-    elif isinstance(pyobj,list):
-        if len(pyobj) == 0:
+    elif isinstance(pyobj, list):
+        if not pyobj:
             return Cnil
         else:
             L=cl_cons(python_to_ecl(pyobj[0]),Cnil)
@@ -488,8 +488,8 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
                 cl_rplacd(ptr,cl_cons(python_to_ecl(a),Cnil))
                 ptr=cl_cdr(ptr)
             return L
-    elif isinstance(pyobj,tuple):
-        if len(pyobj) == 0:
+    elif isinstance(pyobj, tuple):
+        if not pyobj:
             return Cnil
         elif len(pyobj) == 1:
             return python_to_ecl(pyobj[0])

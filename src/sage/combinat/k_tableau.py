@@ -828,7 +828,7 @@ class WeakTableau_core(WeakTableau_abstract):
         r"""
         Return the bounded representation of the weak `k`-tableau ``self``.
 
-        Each restricted sutableaux of the output is a `k`-bounded partition.
+        Each restricted subtableau of the output is a `k`-bounded partition.
 
         EXAMPLES::
 

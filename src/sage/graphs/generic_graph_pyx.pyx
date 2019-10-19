@@ -620,7 +620,7 @@ cdef class SubgraphSearch:
 
     def __iter__(self):
         r"""
-        Returns an iterator over all the labeleld subgraphs of `G`
+        Return an iterator over all the labeled subgraphs of `G`
         isomorphic to `H`.
 
         EXAMPLES:

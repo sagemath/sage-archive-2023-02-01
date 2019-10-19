@@ -740,7 +740,7 @@ class Sudoku(SageObject):
 
         OUTPUT:
 
-        Returns a generator that that iterates over all the solutions.
+        A generator that iterates over all the solutions.
 
         This function is intended to be called from the
         :func:`~sage.games.sudoku.Sudoku.solve` method

@@ -47,12 +47,12 @@ Methods
 -------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #           Copyright (C) 2008 Tom Boothby <boothby@u.washington.edu>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
+#                         https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
 from six.moves import range
@@ -775,7 +775,7 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0):
     Let a b-vertex be a vertex with neighbors in all other colorings. Then, one
     can repeat the above procedure until a coloring is obtained where every
     color class contains a b-vertex, in which case none of the color classes can
-    be eliminated with the same ideia. So, one can define a b-coloring as a
+    be eliminated with the same idea. So, one can define a b-coloring as a
     proper coloring where each color class has a b-vertex.
 
     In the worst case, after successive applications of the above procedure, one

@@ -935,7 +935,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return v
 
 
-        # There is some overheard associated with coercing the PARI
+        # There is some overhead associated with coercing the PARI
         # list back to Python, but it's not bad.  It's better to do it
         # this way instead of trying to eval the whole list, since the
         # int conversion is done very sensibly.  NOTE: This would fail

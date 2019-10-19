@@ -281,7 +281,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
 
         - ``prec`` -- (integer) precision; default = 53
 
-          prec is the number of bits used to represent the matissa of
+          prec is the number of bits used to represent the mantissa of
           both the real and imaginary part of complex floating-point number.
 
         - ``rnd`` -- (string) the rounding mode; default = ``'RNDNN'``

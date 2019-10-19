@@ -293,7 +293,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
       class
       :class:`MixedIntegerLinearProgram<sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-    - ``verbose`` -- booleant (default: ``False``); whether to display
+    - ``verbose`` -- boolean (default: ``False``); whether to display
       information on the computations.
 
     OUTPUT:

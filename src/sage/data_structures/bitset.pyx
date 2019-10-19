@@ -385,7 +385,7 @@ cdef class FrozenBitset:
                 raise ValueError("Bitsets must not be empty")
             if capacity is None:
                 bitset_realloc(self._bitset, len(iter))
-            elif self._bitset.size != len(iter):
+            elif self._bitset.size != <mp_bitcnt_t>len(iter):
                 raise ValueError("bitset capacity does not match passed string")
             bitset_from_str(self._bitset, iter)
         else:  # an iterable
@@ -497,7 +497,7 @@ cdef class FrozenBitset:
             98
         """
         cdef FrozenBitset temp
-        if self._bitset.size >= capacity:
+        if self._bitset.size >= <mp_bitcnt_t>capacity:
             return self
         else:
             temp = self._new(self._bitset.size)

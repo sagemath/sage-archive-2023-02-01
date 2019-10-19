@@ -124,8 +124,8 @@ class SectionModule(UniqueRepresentation, Parent):
         sage: z.display(phi_V.frame())
         zero = 0
 
-    The module `C^k(M;E)` coerces to any module of sections defined
-    on a subdomain of `M`, for instance `C^k(U;E)`::
+    The module `C^0(M;E)` coerces to any module of sections defined
+    on a subdomain of `M`, for instance `C^0(U;E)`::
 
         sage: C0_U.has_coerce_map_from(C0)
         True

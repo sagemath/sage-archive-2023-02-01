@@ -71,7 +71,7 @@ class PieriFactors(UniqueRepresentation, Parent):
 
     - [FoSta1994]_
     - [BH1994]_
-    - |Lam1996]_
+    - [Lam1996]_
     - [Lam2008]_
     - [LSS2009]_
     - [Pon2010]_

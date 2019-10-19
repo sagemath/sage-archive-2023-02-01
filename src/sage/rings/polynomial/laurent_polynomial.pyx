@@ -2006,7 +2006,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         return result
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the morphism defined by
         ``im_gens`` in ``codomain``.
@@ -2019,7 +2019,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: phi(x^2*~y -5*y**3)            # indirect doctest
             -5*v^3 + u^2*v^-1
         """
-        return codomain(self(im_gens))
+        return codomain(self(im_gens, base_map=base_map))
 
     cdef _normalize(self, i=None):
         r"""

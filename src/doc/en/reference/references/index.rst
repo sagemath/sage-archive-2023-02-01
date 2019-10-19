@@ -2056,6 +2056,8 @@ REFERENCES:
               :doi:`10.1016/j.jalgebra.2015.04.024`,
               :arxiv:`1407.0476v2`.
 
+.. [FoSta1994] \S. Fomin, R. Stanley. *Schubert polynomials and the nilCoxeter algebra*. Advances in Math., 1994.
+
 .. [FOS2009] \G. Fourier, M. Okado, A. Schilling.
              *Kirillov-Reshetikhin crystals for nonexceptional types*.
              Advances in Mathematics. **222** (2009). Issue 3. 1080-1116.
@@ -3248,15 +3250,18 @@ REFERENCES:
 
 **L**
 
-.. [Lab2008] S. Labbé, Propriétés combinatoires des `f`-palindromes,
+.. [Lab2008] S. Labbé, *Propriétés combinatoires des `f`-palindromes*,
              Mémoire de maîtrise en Mathématiques, Montréal, UQAM,
              2008, 109 pages.
 
+.. [Lam1996] \T. K. Lam. *B and D analogues of stable Schubert polynomials and
+             related insertion algorithms*. PhD Thesis, MIT, 1996.
+             
 .. [Lam2004] Thomas Lam, *Growth diagrams, domino insertion and
              sign-imbalance*.  Journal of Combinatorial Theory,
              Series A Volume 107, Number 1 (2004), pp. 87-115.
 
-.. [Lam2005] \T. Lam, Affine Stanley symmetric functions,
+.. [Lam2005] \T. Lam, *Affine Stanley symmetric functions*,
              Amer. J. Math.  128 (2006), no. 6, 1553--1586.
 
 .. [Lam2008] \T. Lam. *Schubert polynomials for the affine

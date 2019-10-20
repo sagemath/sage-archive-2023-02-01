@@ -351,9 +351,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: TM._init_derived()
 
         """
-        ###
-        # Nothing to do here:
-        pass
+        self._def_frame = None
 
     def _repr_(self):
         r"""
@@ -1353,3 +1351,87 @@ class TensorBundle(DifferentiableVectorBundle):
 
         """
         return self._dest_map
+
+    def default_frame(self):
+        r"""
+        Return the default vector frame defined on ``self``.
+
+        By *vector frame*, it is meant a field on the manifold that provides,
+        at each point `p`, a vector basis of the pulled back tangent space at
+        `p`.
+
+        If the destination map is the identity map, the default frame is the
+        the first one defined on the manifold, usually the coordinate frame,
+        unless it is changed via :meth:`set_default_frame`.
+
+        If the destination map is non-trivial, the default frame usually must be
+        set via :meth:`set_default_frame`.
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+          representing the default vector frame
+
+        EXAMPLES:
+
+        The default vector frame is often the coordinate frame associated
+        with the first chart defined on the manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: TM = M.tangent_bundle()
+            sage: TM.default_frame()
+            Coordinate frame (M, (d/dx,d/dy))
+
+        """
+        def_bframe = self._base_space.default_frame()
+        if self._def_frame is None and def_bframe is not None:
+            if def_bframe._dest_map == self._dest_map:
+                self._def_frame = def_bframe
+        return self._def_frame
+
+    def set_default_frame(self, frame):
+        r"""
+        Changing the default vector frame on ``self``.
+
+        .. NOTE::
+
+            If the destination map is the identity, the default frame of the
+            base manifold gets changed here as well.
+
+        INPUT:
+
+        - ``frame`` --
+          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+          a vector frame defined on the base manifold
+
+        EXAMPLES:
+
+        Changing the default frame on the tangent bundle of a 2-dimensional
+        manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: TM = M.tangent_bundle()
+            sage: e = TM.vector_frame('e')
+            sage: TM.default_frame()
+            Coordinate frame (M, (d/dx,d/dy))
+            sage: TM.set_default_frame(e)
+            sage: TM.default_frame()
+            Vector frame (M, (e_0,e_1))
+            sage: M.default_frame()
+            Vector frame (M, (e_0,e_1))
+
+        """
+        from sage.manifolds.differentiable.vectorframe import VectorFrame
+        if not isinstance(frame, VectorFrame):
+            raise TypeError("{} is not a vector frame".format(frame))
+        if (not frame._domain.is_subset(self._base_space) or
+                frame._dest_map != self._dest_map):
+            raise ValueError("the frame must be defined on " +
+                             "the {}".format(self))
+        if self._dest_map.is_identity():
+            self._base_space.set_default_frame(frame)
+        else:
+            frame._fmodule.set_default_basis(frame)
+        self._def_frame = frame

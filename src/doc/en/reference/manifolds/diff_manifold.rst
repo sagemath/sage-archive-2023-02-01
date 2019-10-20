@@ -30,4 +30,4 @@ Differentiable Manifolds
 
    sage/manifolds/differentiable/differentiable_submanifold
 
-   sage/manifolds/differentiable/vector_bundle
+   diff_vector_bundle

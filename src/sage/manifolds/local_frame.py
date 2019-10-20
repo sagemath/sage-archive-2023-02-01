@@ -634,6 +634,8 @@ class LocalFrame(FreeModuleBasis):
                                  indices=indices, latex_indices=latex_indices,
                                  symbol_dual=symbol_dual,
                                  latex_symbol_dual=latex_symbol_dual)
+        if self._vbundle._def_frame is None:
+            self._vbundle._def_frame = self
         # The frame is added to the domain's modules of frames, as well as to
         # all the superdomain's modules of frames; moreover the first defined
         # frame is considered as the default one

@@ -273,6 +273,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._coframes = [] # list of local coframes for self
         self._trivial_parts = set() # subsets of base space on which self is
                                     # trivial
+        self._def_frame = None
 
     def base_space(self):
         r"""
@@ -1032,3 +1033,54 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         return list(self._coframes)
+
+    def default_frame(self):
+        r"""
+        Return the default frame of on ``self``.
+
+        OUTPUT:
+
+        - a local frame as an instance of
+          :class:`~sage.manifolds.local_frame.LocalFrame`
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: E.default_frame()
+            Local frame (E|_M, (e_0,e_1))
+
+        """
+        return self._def_frame
+
+    def set_default_frame(self, frame):
+        r"""
+        Set the default frame of ``self``.
+
+        INPUT:
+
+        - ``frame`` -- a local frame defined on ``self`` as an instance of
+          :class:`~sage.manifolds.local_frame.LocalFrame`
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: E.default_frame()
+            Local frame (E|_M, (e_0,e_1))
+            sage: f = E.local_frame('f')
+            sage: E.set_default_frame(f)
+            sage: E.default_frame()
+            Local frame (E|_M, (f_0,f_1))
+
+        """
+        from sage.manifolds.local_frame import LocalFrame
+        if not isinstance(frame, LocalFrame):
+            raise TypeError("{} is not a local frame".format(frame))
+        if not frame._domain.is_subset(self._base_space):
+            raise ValueError("the frame must be defined on " +
+                             "the {}".format(self))
+        frame._fmodule.set_default_basis(frame)
+        self._def_frame = frame

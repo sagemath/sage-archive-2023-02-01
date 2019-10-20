@@ -2019,9 +2019,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: phi(x^2*~y -5*y**3)            # indirect doctest
             -5*v^3 + u^2*v^-1
 
-        TESTS::
+        TESTS:
 
-        check compatibility with  :trac:`26105`:
+        check compatibility with  :trac:`26105`::
 
             sage: F.<t> = GF(4)
             sage: LF.<a,b> = LaurentPolynomialRing(F)

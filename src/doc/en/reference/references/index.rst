@@ -3250,7 +3250,7 @@ REFERENCES:
 
 **L**
 
-.. [Lab2008] S. Labbé, *Propriétés combinatoires des `f`-palindromes*,
+.. [Lab2008] \S. Labbé, *Propriétés combinatoires des* `f`-*palindromes*,
              Mémoire de maîtrise en Mathématiques, Montréal, UQAM,
              2008, 109 pages.
 
@@ -3270,15 +3270,15 @@ REFERENCES:
 .. [Lan2002] \S. Lang : *Algebra*, 3rd ed., Springer (New York) (2002);
              :doi:`10.1007/978-1-4613-0041-0`
 
-.. [Lan2008] \E. Lanneau "Connected components of the strata of the
-             moduli spaces of quadratic differentials", Annales
+.. [Lan2008] \E. Lanneau, *Connected components of the strata of the
+             moduli spaces of quadratic differentials*, Annales
              sci. de l'ENS, serie 4, fascicule 1, 41, 1-56 (2008)
 
 .. [Lasc] \A. Lascoux. *Chern and Yang through ice*.
           Preprint.
 
-.. [Lau2011] Alan G.B. Lauder, "Computations with classical and p-adic
-             modular forms", LMS J. of Comput. Math. 14 (2011),
+.. [Lau2011] Alan G.B. Lauder, *Computations with classical and p-adic
+             modular forms*, LMS J. of Comput. Math. 14 (2011),
              214-231.
 
 .. [Laz1992] Daniel Lazard, *Solving Zero-dimensional Algebraic

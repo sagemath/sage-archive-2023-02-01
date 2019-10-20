@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
 r"""
-Enumeration of minimal dominating sets
+Domination
 
-Implementation of the algorithm described in [BDHPR2019]_ to enumerate
-the minimal dominating sets of a graph.
+This module implements methods related to the notion of domination in graphs,
+and more precisely:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~minimal_dominating_sets` | Return an iterator over the minimal dominating sets of a graph.
+    :meth:`~is_dominating` | Check whether ``dom`` is a dominating set of ``G``.
+    :meth:`~is_redundant` | Check whether a ``dom`` has redundant vertices.
+    :meth:`~private_neighbors` | Return the private neighbors of a vertex with repect to other vertices.
+
 
 EXAMPLES:
 
@@ -32,6 +43,9 @@ We count the minimal dominating sets of the Petersen graph::
 AUTHORS:
 
 - Jean-Florent Raymond (2019-03-04): initial version
+
+
+Methods:
 """
 
 # ****************************************************************************
@@ -47,9 +61,158 @@ AUTHORS:
 from copy import copy
 
 
+def is_dominating(G, dom, focus=None):
+    r"""
+    Check whether ``dom`` is a dominating set of ``G``.
+
+    We say that a set `D` of vertices of a graph `G` dominates a set `S` if
+    every vertex of `S` either belongs to `D` or is adjacent to a vertex of `D`.
+    Also, `D` is a dominating set of `G` if it dominates `V(G)`.
+
+    INPUT:
+
+    - ``dom`` -- iterable of vertices of ``G``; the vertices of the supposed
+      dominating set.
+
+    - ``focus`` -- iterable of vertices of ``G`` (default: ``None``); if
+      specified, this method checks instead if ``dom`` dominates the vertices in
+      ``focus``.
+
+    EXAMPLES::
+
+        sage: g = graphs.CycleGraph(5)
+        sage: g.is_dominating([0,1], [4, 2])
+        True
+
+        sage: g.is_dominating([0,1])
+        False
+    """
+    to_dom = set(G) if focus is None else set(focus)
+
+    for v in dom:
+        if not to_dom:
+            return True
+        to_dom.difference_update(G.neighbor_iterator(v, closed=True))
+
+    return not to_dom
+
+def is_redundant(G, dom, focus=None):
+    r"""
+    Check whether a ``dom`` has redundant vertices.
+
+    For a graph `G` and sets `D` and `S` of vertices, we say that a vertex `v
+    \in D` is *redundant* in `S` if `v` has no private neighbor with repect to
+    `D` in `S`.  In other words, there is no vertex in `S` that is dominated by
+    `v` but not by `D \setminus \{v\}`.
+
+    INPUT:
+
+    - ``dom`` -- iterable of vertices of ``G``; where we look for redundant
+      vertices.
+
+    - ``focus`` -- iterable of vertices of ``G`` (default: ``None``); if
+      specified, this method checks instead whether ``dom`` has a redundant
+      vertex in ``focus``.
+
+    .. WARNING::
+
+        The assumption is made that ``focus`` (if provided) does not contain
+        repeated vertices.
+
+    EXAMPLES::
+
+        sage: G = graphs.CubeGraph(3)
+        sage: G.is_redundant(['000', '101'], ['011'])
+        True
+        sage: G.is_redundant(['000', '101'])
+        False
+    """
+    dom = list(dom)
+    focus = list(G) if focus is None else list(focus)
+
+    # dominator[v] (for v in focus) will be equal to:
+    #  - (0, None) if v has no neighbor in dom
+    #  - (1, u) if v has a unique neighbor in dom, u
+    #  - (2, None) if v has >= 2 neighbors in dom
+
+    # Initialization
+    dominator = {v: (0, None) for v in focus}
+
+    for x in dom:
+        for v in G.neighbor_iterator(x, closed=True):
+            if v in focus:
+                # remember about x only if we never encountered
+                # neighbors of v so far
+                if dominator[v][0] == 0:
+                    dominator[v] = (1, x)
+                elif dominator[v][0] == 1:
+                    dominator[v] = (2, None)
+
+    # We now compute the subset of vertices of dom that have a private neighbor
+    # in focus. A vertex v in dom has a private neighbor in focus if it is
+    # dominated by a unique vertex, that is if dominator[v][0] == 1
+    with_private = set()
+    for v in focus:
+        if dominator[v][0] == 1:
+            with_private.add(dominator[v][1])
+
+    # By construction with_private is a subset of dom and we assume the elements
+    # of dom to be unique, so the following is equivalent to checking
+    # with_private != set(dom)
+    return len(with_private) != len(dom)
+
+def private_neighbors(G, vertex, dom):
+    r"""
+    Return the private neighbors of a vertex with repect to other vertices.
+
+    A private neighbor of a vertex `v` with respect to a vertex subset `D`
+    is a closed neighbor of `v` that is not dominated by a vertex of `D
+    \setminus \{v\}`.
+
+    INPUT:
+
+    - ``vertex`` -- a vertex of ``G``.
+
+    - ``dom`` -- iterable of vertices of ``G``; the vertices possibly stealing
+      private neighbors from ``vertex``.
+
+    OUTPUT:
+
+    Return the closed neighbors of ``vertex`` that are not closed neighbors
+    of any other vertex of ``dom``.
+
+    EXAMPLES::
+
+        sage: g = graphs.PathGraph(5)
+        sage: list(g.private_neighbors(1, [1, 3, 4]))
+        [1, 0]
+
+        sage: list(g.private_neighbors(1, [3, 4]))
+        [1, 0]
+
+        sage: list(g.private_neighbors(1, [3, 4, 0]))
+        []
+    """
+    # The set of all vertices that are dominated by vertex_subset - vertex:
+    closed_neighborhood_vs = set()
+    for u in dom:
+        if u != vertex:
+            closed_neighborhood_vs.update(
+                G.neighbor_iterator(u, closed=True))
+
+    return (neighbor
+            for neighbor in G.neighbor_iterator(vertex, closed=True)
+            if neighbor not in closed_neighborhood_vs)
+
+
+
+# ==============================================================================
+# Enumeration of minimal dominating set as described in [BDHPR2019]_
+# ==============================================================================
+
 def _parent(G, dom, V_prev):
     r"""
-    Return an subset of dom that is irredundant in ``V_prev``.
+    Return a subset of dom that is irredundant in ``V_prev``.
 
     For internal use.
 
@@ -66,7 +229,7 @@ def _parent(G, dom, V_prev):
     Return the list obtained from ``dom`` by iteratively removing those
     vertices of mininum index that have no private neighbor in ``V_prev``.
 
-    EXAMPLES::
+    TESTS::
 
         sage: from sage.graphs.domination import _parent
         sage: G = graphs.PathGraph(4)
@@ -77,7 +240,6 @@ def _parent(G, dom, V_prev):
         sage: _parent(G, [0, 2, 4, 5], [1, 3])
         [2]
     """
-
     # The list where we search vertices
     D_start = sorted(dom, reverse=True)
 
@@ -93,8 +255,7 @@ def _parent(G, dom, V_prev):
                                  for u in D_start if u != v))
         priv.difference_update(*(G.neighbor_iterator(u, closed=True)
                                  for u in D_end if u != v))
-        # Now priv is the private neighborhood of v
-        # in G wrt D_start + D_end
+        # Now priv is the private neighborhood of v in G wrt D_start + D_end
         if priv.intersection(V_prev) != set():
             # if v has a private in V_prev, we keep it
             D_end.append(v)
@@ -107,23 +268,22 @@ def _peel(G, A):
     Return a peeling of a vertex iterable of a graph.
 
     For internal use.
-    Given a graph `G` and a subset `A` of its vertices, a peeling
-    of `(G,A)` is a list `[(u_0, V_0), \dots, (u_p, V_p)]` such
-    that `u_0` is ``None``, `V_0` is the empty set,
-    `V_p = A` and for every `i \in \{1, \dots, p\}`,
+    Given a graph `G` and a subset `A` of its vertices, a peeling of `(G,A)` is
+    a list `[(u_0, V_0), \dots, (u_p, V_p)]` such that `u_0` is ``None``,
+    `V_0` is the empty set, `V_p = A` and for every `i \in \{1, \dots, p\}`,
     `V_{i-1} = V_i \setminus N[v_i]`, for some vertex `u_i` of `V_i`.
 
     INPUT:
 
-    - `G` -- a graph
+    - ``G`` -- a graph
 
-    - `A` -- a set of vertices of `G`
+    - ``A`` -- a set of vertices of `G`
 
     OUTPUT:
 
-    A peeling of `(G,A)`.
+    A peeling of `(G, A)`.
 
-    EXAMPLES::
+    TESTS::
 
         sage: from sage.graphs.domination import _peel
         sage: G = Graph(10); _peel(G, {0, 1, 2, 3, 4})
@@ -182,7 +342,7 @@ def _cand_ext_enum(G, to_dom, u_next):
 
     An iterator over the minimal dominating sets of ``to_dom``.
 
-    TESTS:
+    TESTS::
 
         sage: from sage.graphs.domination import _cand_ext_enum
         sage: g = graphs.DiamondGraph()
@@ -192,16 +352,18 @@ def _cand_ext_enum(G, to_dom, u_next):
     """
 
     def _aux_with_rep(H, to_dom, u_next):
-        # Auxilliary routine.
-        # Return the minimal dominating sets of to_dom, with the
-        # assumption that u_next dominates to_som.
-        # WARNING: the same output may be output several times
-        # (up to |H| times).
-        #
-        # In order to later remove duplicates, we here output pairs
-        # (ext,i) where ext is the output candidate extension and i
-        # counts how many elements have already been output.
+        """
+        Return the minimal dominating sets of ``to_dom``, with the
+        assumption that ``u_next`` dominates ``to_som``.
 
+        .. WARNING::
+
+            The same output may be output several times (up to |H| times).
+
+        In order to later remove duplicates, we here output pairs ``(ext, i)``
+        where ``ext`` is the output candidate extension and ``i`` counts how
+        many elements have already been output.
+        """
         if u_next not in to_dom:
             # In this case, enumerating the minimal DSs of the subset
             # to_dom is a smaller instance as it excludes u_next:
@@ -273,20 +435,18 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     - ``to_dominate`` -- vertex iterable or ``None`` (default: ``None``);
       the set of vertices to be dominated.
 
-    - ``work_on_copy`` -- boolean (default: ``True``); whether or not to
-      work on a copy of the input graph; if set to ``False``, the input
-      graph will be modified (relabeled).
+    - ``work_on_copy`` -- boolean (default: ``True``); whether or not to work on
+      a copy of the input graph; if set to ``False``, the input graph will be
+      modified (relabeled).
     
     OUTPUT:
 
     An iterator over the inclusion-minimal sets of vertices of ``G``.
     If ``to_dominate`` is provided, return an iterator over the
-    inclusion-minimal sets of vertices that dominate the vertices
-    of ``to_dominate``.
+    inclusion-minimal sets of vertices that dominate the vertices of
+    ``to_dominate``.
 
-    ALGORITHM:
-
-    The algorithm described in [BDHPR2019]_.
+    ALGORITHM: The algorithm described in [BDHPR2019]_.
 
     EXAMPLES::
 
@@ -356,13 +516,15 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         ....:     for G in graphs(n):
         ....:         ll = list(G.minimal_dominating_sets())
         ....:         pp = list(minimal_dominating_sets_naive(G))
-        ....:         if len(pp) != len(pp) or any(x not in pp for x in ll) or any(x not in ll for x in pp):
+        ....:         if (len(pp) != len(pp)
+        ....:             or any(x not in pp for x in ll)
+        ....:             or any(x not in ll for x in pp)):
         ....:             return False
         ....:     return True
-        sage: big_check(6) # long time
+        sage: big_check(6)  # long time
         True
 
-    Outputs are unique:
+    Outputs are unique::
 
         sage: def check_uniqueness(g):
         ....:     counter_1 = 0
@@ -397,18 +559,16 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         OUTPUT:
 
         An iterator over those minimal dominating sets (in ``H``) of
-        ``plng[-1][1]`` that are children of ``dom`` (with
-        respect to the :func:`parent` function).
+        ``plng[-1][1]`` that are children of ``dom`` (with respect to the
+        :func:`parent` function).
 
         ALGORITHM:
 
-        We iterate over those minimal dominating sets of
-        ``plng[i + 1][1]`` that are children of dom and call
-        recursively on each. The fact that we iterate over children
-        (with respect to the `parent` function) ensures that we do not
-        have repeated outputs.
+        We iterate over those minimal dominating sets of ``plng[i + 1][1]`` that
+        are children of dom and call recursively on each. The fact that we
+        iterate over children (with respect to the `parent` function) ensures
+        that we do not have repeated outputs.
         """
-
         if i == len(plng) - 1:
             # we reached a leaf, i.e. dom is a minimal dominating set
             # of plng[i][1] = plng[-1][1]
@@ -424,8 +584,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
                 yield Di
             return
 
-        # Otherwise,
-        # V_next - <what dom dominates> is what we have to dominate
+        # Otherwise, V_next - <what dom dominates> is what we have to dominate
         to_dom = V_next - set().union(
             *(G.neighbor_iterator(vert, closed=True)
               for vert in dom))
@@ -437,9 +596,9 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
             if (not H.is_redundant(canD, V_next)) and set(dom) == set(_parent(H, canD, plng[i][1])):
                 # By construction, can_ext is a dominating set of
-                # `V_next - N[dom]`, so canD dominates V_next
-                # If canD is a legitimate child of dom and is not
-                # redundant, we recurse on it:
+                # `V_next - N[dom]`, so canD dominates V_next.
+                # If canD is a legitimate child of dom and is not redundant, we
+                # recurse on it:
                 for Di in tree_search(H, plng, canD, i + 1):
                     yield Di
     ##

@@ -86,6 +86,9 @@ AUTHORS:
 - Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
   most_common_neighbors and common_neighbors_matrix added.
 
+- Jean-Florent Raymond (2019-04): is_redundant, is_dominating,
+   private_neighbors
+
 Graph Format
 ------------
 
@@ -5518,6 +5521,182 @@ class Graph(GenericGraph):
         f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
         f.close()
 
+    ### Domination
+
+    @doc_index("Domination")
+    def is_dominating(self, dom, focus=None):
+        r"""
+        Check if a set is a dominating set.
+
+        We say that as set `D` of vertices of a graph `G` dominates a
+        set `S` if every vertex of `S` either belongs to `D` or is
+        adjacent to a vertex of `D`.  Also, `D` is a dominating set of
+        `G` if it dominates `V(G)`.
+
+        INPUT:
+
+        - ``dom`` -- an iterable of vertices of ``self``; the
+          vertices of the supposed dominating set.
+
+        - ``focus`` -- (default: ``None``) an iterable of
+          vertices of ``self``; the vertices that we want to dominate.
+
+        OUTPUT:
+
+        Check whether ``dom`` is a dominating set of ``self``.
+
+        When ``focus`` is specified, check instead if ``dominating``
+        dominates the vertices in ``focus``.
+
+        EXAMPLES::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.is_dominating([0,1], [4, 2])
+            True
+
+            sage: g.is_dominating([0,1])
+            False
+        """
+
+        if focus is None:
+            to_dom = set(self)
+        else:
+            to_dom = set(focus)
+
+        for v in dom:
+            if not to_dom:
+                return True
+            to_dom.difference_update(self.neighbor_iterator(v, closed=True))
+
+        return to_dom == set()
+
+    @doc_index("Domination")
+    def is_redundant(self, dom, focus=None):
+        r"""
+        Return whether a vertex iterable has redundant vertices.
+
+        For a graph `G` and sets `D` and `S` of vertices, we say
+        that a vertex `v` of `D` is redundant in `S` if `v`
+        has no private neighbor with repect to `D` in `S`.
+        In other words, there is no vertex in `S` that is dominated
+        by `v` but not by `D \setminus \{v\}`.
+
+        INPUT:
+
+        - ``dom`` -- an iterable of vertices of ``self``; where we
+          look for redundant vertices.
+
+        - ``focus`` -- (default: ``None``) an iterable of vertices of
+          ``self``; where we look for private neighbors.
+
+        OUTPUT:
+
+        Return whether ``dom`` has a redundant vertex in ``self``.
+
+        When ``focus`` is specified, check instead whether ``dom`` has
+        a redundant vertex in ``focus``.
+
+        .. WARNING::
+
+            The assumption is made that ``focus`` (if provided) does not
+            contain repeated vertices.
+
+        EXAMPLES::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: G.is_redundant(['000', '101'], ['011'])
+            True
+            sage: G.is_redundant(['000', '101'])
+            False
+        """
+
+        dom = list(dom)
+        if focus is None:
+            focus = list(self)
+        else:
+            focus = list(focus)
+
+        # dominator[v] (for v in focus) will be equal to:
+        #  - (0, None) if v has no neighbor in dom
+        #  - (1, u) if v has a unique neighbor in dom, u
+        #  - (2, None) if v has >= 2 neighbors in dom
+        dominator = dict()
+        for v in focus:
+            dominator[v] = (0, None)  # Initialization
+
+        for x in dom:
+            for v in self.neighbor_iterator(x, closed=True):
+                if v in focus:
+                    # remember about x only if we never encountered
+                    # neighbors of v so far
+                    if dominator[v][0] == 0:
+                        dominator[v] = (1, x)
+                    elif dominator[v][0] == 1:
+                        dominator[v] = (2, None)
+
+        # Now we can compute with_private, the set of vertices of dom
+        # that have a private neighbor in focus
+        with_private = set()
+        for v in focus:
+            # Here we do care neither about vertices dominated by more
+            # than one vertex of dom (they are not private neighbor of
+            # anybody) nor about vertices not dominated by dom (idem).
+            if dominator[v][0] == 1:
+                # If v is dominated only by one vertex x,
+                # then v is a private neighbor of x
+                with_private.add(dominator[v][1])
+
+        # By construction with_private is a subset of dom and we assume
+        # the elements of dom to be unique, so the following is
+        # equivalent to checking with_private != set(dom)
+        return len(with_private) != len(dom)
+
+    @doc_index("Domination")
+    def private_neighbors(self, vertex, dom):
+        r"""
+        Return the private neighbors of a vertex with repect to other vertices.
+
+        A private neighbor of a vertex `v` with respect to a vertex
+        subset `D` is a closed neighbor of `v` that is not dominated by
+        a vertex of `D \setminus \{v\}`.
+
+        INPUT:
+
+        - ``vertex`` -- a vertex of ``self``.
+
+        - ``dom`` -- an iterable of vertices of ``self``; the vertices
+          possibly stealing private neighbors from ``vertex``.
+
+        OUTPUT:
+
+        Return the closed neighbors of ``vertex`` that are not closed
+        neighbors of any other vertex of ``dom``.
+
+        EXAMPLES::
+
+            sage: g = graphs.PathGraph(5)
+            sage: list(g.private_neighbors(1, [1, 3, 4]))
+            [1, 0]
+
+            sage: list(g.private_neighbors(1, [3, 4]))
+            [1, 0]
+
+            sage: list(g.private_neighbors(1, [3, 4, 0]))
+            []
+        """
+
+        # The set of all vertices that are dominated by vertex_subset - vertex:
+        closed_neighborhood_vs = set()
+        for u in dom:
+            if u != vertex:
+                closed_neighborhood_vs.update(
+                    self.neighbor_iterator(u, closed=True))
+
+        return (neighbor
+                for neighbor in self.neighbor_iterator(vertex, closed=True)
+                if neighbor not in closed_neighborhood_vs)
+
+
     @doc_index("Algorithmically hard stuff")
     def topological_minor(self, H, vertices=False, paths=False, solver=None, verbose=0):
         r"""
@@ -8618,6 +8797,7 @@ class Graph(GenericGraph):
     from sage.graphs.connectivity import is_triconnected
     from sage.graphs.comparability import is_comparability
     from sage.graphs.comparability import is_permutation
+    from sage.graphs.domination import minimal_dominating_sets
 
 
 _additional_categories = {
@@ -8646,7 +8826,8 @@ _additional_categories = {
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
     "spqr_tree"                 : "Connectivity, orientations, trees",
-    "is_triconnected"           : "Connectivity, orientations, trees"
+    "is_triconnected"           : "Connectivity, orientations, trees",
+    "minimal_dominating_sets"   : "Domination"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

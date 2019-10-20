@@ -123,7 +123,7 @@ def FreeQuadraticModule(
         sage: M3 is M2
         True
 
-    TESTS::
+    TESTS:
 
     Check for :trac:`10577`::
 

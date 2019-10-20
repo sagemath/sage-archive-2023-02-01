@@ -4661,11 +4661,11 @@ class Polyhedron_base(Element):
 
         For more information, see Chapter 15 of [HoDaCG17]_.
 
-        TESTS::
+        TESTS:
 
         The backend should be preserved as long as the value of width permits.
         The base_ring will change to the field of fractions of the current
-        base_ring, unless width forces a different ring.
+        base_ring, unless width forces a different ring. ::
 
             sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='field')
             sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()
@@ -5938,7 +5938,7 @@ class Polyhedron_base(Element):
             sage: polytopes.cuboctahedron()._volume_latte() #optional - latte_int
             20/3
 
-        TESTS::
+        TESTS:
 
         Testing triangulate algorithm::
 
@@ -6303,7 +6303,7 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: the polytope must be full-dimensional
 
-        TESTS::
+        TESTS:
 
         Testing a three-dimensional integral::
 

@@ -1987,6 +1987,10 @@ REFERENCES:
                   Contemp. Math., **343** (2004), pp. 53-96.
                   :arxiv:`math/0212387`
 
+.. [Fel2001] Yves Felix, Stephen Halperin and J.-C. Thomas. *Rational homotopy
+             theory*, Graduate texts in mathematics 201, Springer, 2001.
+
+
 .. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
              Canonical Representatives of Their Semilinear Isometry
              Classes. Advances in Mathematics of Communications 3 (4),
@@ -3632,6 +3636,9 @@ REFERENCES:
 .. [Mac1915] Percy A. MacMahon, *Combinatory Analysis*,
              Cambridge University Press (1915--1916).
              (Reprinted: Chelsea, New York, 1960).
+
+.. [Man2019] V. Manero and M. Marco, *Effective computation of
+             degree bounded minimal models of GCDA's*, :arxiv:`1909.07761`
 
 .. [MAR2009] \H. Molina-Abril and P. Réal, *Homology computation using
              spanning trees* in Progress in Pattern Recognition, Image

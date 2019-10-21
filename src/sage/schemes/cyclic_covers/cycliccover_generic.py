@@ -43,7 +43,7 @@ from __future__ import absolute_import
 from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.category_object import normalize_names
 from sage.arith.misc import GCD
-import sage.schemes.curves.affine_curve import AffinePlaneCurve
+from sage.schemes.curves.affine_curve import AffinePlaneCurve
 
 
 

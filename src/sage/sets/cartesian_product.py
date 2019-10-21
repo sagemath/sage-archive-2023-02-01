@@ -373,4 +373,3 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 <... 'tuple'>
             """
             return self.value
-

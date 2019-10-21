@@ -7244,12 +7244,11 @@ class Polyhedron_base(Element):
             sage: quadrangle.restricted_automorphism_group()
             Permutation Group with generators [()]
 
-        Permutations can only exchange vertices with vertices, rays
-        with rays, and lines with lines::
+        Permutations of the vertex graph only exchange vertices with vertices::
 
-            sage: P = Polyhedron(vertices=[(1,0,0), (1,1,0)], rays=[(1,0,0)], lines=[(0,0,1)])
+            sage: P = Polyhedron(vertices=[(1,0), (1,1)], rays=[(1,0)])
             sage: P.combinatorial_automorphism_group(vertex_graph_only=True)
-            Permutation Group with generators [(A vertex at (1,0,0),A vertex at (1,1,0))]
+            Permutation Group with generators [(A vertex at (1,0),A vertex at (1,1))]
 
         This shows an example of two polytopes whose vertex-edge graphs are isomorphic,
         but their face_lattices are not isomorphic::

@@ -142,14 +142,16 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     cdef Integer z
     cdef long c_start, c_stop, p
     cdef byteptr pari_prime_ptr
-    DEF init_primes_max = 436273290 # hardcoded maximum in definition of pari.init_primes
-    DEF prime_gap_bound = 1500 # upper bound for gap between primes less than 2^63
+    # input to pari.init_primes cannot be greater than 436273290 (hardcoded bound)
+    DEF init_primes_max = 436273290
+    DEF small_prime_max = 436273009 # a prime < init_primes_max (preferably the largest)
+    DEF prime_gap_bound = 250 # upper bound for gap between primes <= small_prime_max
 
     start = Integer(start)
     if stop is not None:
         stop = Integer(stop)
 
-    if (algorithm == "pari_primes") and (max(start,stop) + prime_gap_bound <= init_primes_max):
+    if (algorithm == "pari_primes") and (max(start,stop) <= small_prime_max):
     
         if stop is None:
             # In this case, "start" is really stop
@@ -165,9 +167,8 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
         if maxprime() < c_stop:
             # Adding prime_gap_bound should be sufficient to guarantee an
-            # additional prime, given that c_stop < 2^63.
-            # Input to pari.init_primes cannot be greater than init_primes_max.
-            pari.init_primes(c_stop + prime_gap_bound)
+            # additional prime, given that c_stop <= small_prime_max.
+            pari.init_primes(min(c_stop + prime_gap_bound, init_primes_max))
             assert maxprime() >= c_stop
 
         pari_prime_ptr = diffptr
@@ -185,11 +186,6 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
             NEXT_PRIME_VIADIFF(p, pari_prime_ptr)
 
     elif (algorithm == "pari_isprime") or (algorithm == "pari_primes"):
-        if (algorithm == "pari_primes"):
-            print("""
-Warning: algorithm "pari_primes" cannot find primes greater than {}.
-Using "pari_isprime" instead (which may be slower).""".format(init_primes_max - prime_gap_bound - 1))
-
         from sage.arith.all import primes
         res = list(primes(start, stop))
     else:

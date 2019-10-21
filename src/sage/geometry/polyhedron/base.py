@@ -4475,7 +4475,7 @@ class Polyhedron_base(Element):
 
         - ``face`` -- a PolyhedronFace
 
-        - ``position`` -- a positive integer. Determines a relative distance
+        - ``position`` -- a positive number. Determines a relative distance
           from the barycenter of ``face``. A value close to 0 will place the
           new vertex close to the face and a large value further away. Default
           is `1`. If the given value is too large, an error is returned.
@@ -4520,6 +4520,21 @@ class Polyhedron_base(Element):
             ...
             ValueError: the chosen position is too large
 
+            sage: s = polytopes.simplex(7)
+            sage: f = s.faces(3)[0]
+            sage: sf = s.stack(f); sf
+            A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 9 vertices
+            sage: sf.vertices()
+            (A vertex at (-4, -4, -4, -4, 17/4, 17/4, 17/4, 17/4),
+             A vertex at (0, 0, 0, 0, 0, 0, 0, 1),
+             A vertex at (0, 0, 0, 0, 0, 0, 1, 0),
+             A vertex at (0, 0, 0, 0, 0, 1, 0, 0),
+             A vertex at (0, 0, 0, 0, 1, 0, 0, 0),
+             A vertex at (0, 0, 0, 1, 0, 0, 0, 0),
+             A vertex at (0, 0, 1, 0, 0, 0, 0, 0),
+             A vertex at (0, 1, 0, 0, 0, 0, 0, 0),
+             A vertex at (1, 0, 0, 0, 0, 0, 0, 0))
+
         It is possible to stack on unbounded faces::
 
             sage: Q = Polyhedron(vertices=[[0,1],[1,0]],rays=[[1,1]])
@@ -4540,18 +4555,41 @@ class Polyhedron_base(Element):
              A ray in the direction (1, 1),
              A vertex at (2, 0))
 
-        TESTS::
+        Stacking requires a proper face::
+
+            sage: Q.stack(Q.faces(2)[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: can only stack on proper face
+
+        TESTS:
+
+        Checking that the backend is preserved::
 
             sage: Cube = polytopes.cube(backend='field')
             sage: stack = Cube.stack(Cube.faces(2)[0])
             sage: stack.backend()
             'field'
+
+        Taking the stacking vertex too far with the parameter ``position``
+        may result in a failure to produce the desired
+        (combinatorial type of) polytope.
+        The interval of permitted values is always open.
+        This is the smallest unpermitted value::
+
+            sage: P = polytopes.octahedron()
+            sage: P.stack(P.faces(2)[0], position=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the chosen position is too large
         """
         from sage.geometry.polyhedron.face import PolyhedronFace
         if not isinstance(face, PolyhedronFace):
             raise TypeError("{} should be a PolyhedronFace of {}".format(face, self))
         elif face.dim() == 0:
             raise ValueError("can not stack onto a vertex")
+        elif face.dim() == -1 or face.dim() == self.dim():
+            raise ValueError("can only stack on proper face")
 
         if position is None:
             position = 1
@@ -4562,10 +4600,10 @@ class Polyhedron_base(Element):
 
         # Taking all facets that contain the face
         if face.dim() == self.dim() - 1:
-            face_star = set([face.ambient_Hrepresentation()[0]])
+            face_star = set([face.ambient_Hrepresentation()[-1]])
         else:
-            face_star = set(facet for facet in self.Hrepresentation()
-                            if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices))
+            face_star = set(facet for facet in self.Hrepresentation() if facet.is_inequality()
+                            if all(not facet.interior_contains(x) for x in face_vertices))
 
         neighboring_facets = set()
         for facet in face_star:
@@ -4584,7 +4622,7 @@ class Polyhedron_base(Element):
         repr_point = locus_polyhedron.representative_point()
         new_vertex = (1-position)*barycenter + position*repr_point
 
-        if not locus_polyhedron.contains(new_vertex):
+        if not locus_polyhedron.relative_interior_contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
         parent = self.parent().base_extend(new_vertex)
@@ -8092,7 +8130,7 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
-            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()], base_ring=A.base_ring())
+            return Polyhedron([A*vector(A.base_ring(), w) for w in Q.vertices()], base_ring=A.base_ring())
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()

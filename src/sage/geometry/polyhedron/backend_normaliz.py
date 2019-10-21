@@ -359,7 +359,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: p = Polyhedron(backend='normaliz', ambient_dim=2)                             # optional - pynormaliz
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_QQ_normaliz  # optional - pynormaliz
-            sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}   # optional - pynormaliz
+            sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}            # optional - pynormaliz
             sage: Polyhedron_QQ_normaliz._init_from_normaliz_data(p, data)                      # optional - pynormaliz
             sage: p.inequalities_list()                                                         # optional - pynormaliz
             [[0, -1, 2], [0, 2, -1]]
@@ -383,6 +383,18 @@ class Polyhedron_normaliz(Polyhedron_base):
         self._init_from_normaliz_cone(cone, normaliz_field)
 
     def _cone_from_normaliz_data(self, data, verbose=False):
+        """
+        Construct a normaliz cone from ``data`` (a dictionary).
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(backend='normaliz', ambient_dim=2)                             # optional - pynormaliz
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_QQ_normaliz  # optional - pynormaliz
+            sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}            # optional - pynormaliz
+            sage: cone = Polyhedron_QQ_normaliz._cone_from_normaliz_data(p, data)               # optional - pynormaliz
+            sage: p._nmz_result(cone,'SupportHyperplanes')                                      # optional - pynormaliz
+            [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]
+        """
         if verbose:
             import six
             if isinstance(verbose, six.string_types):
@@ -664,7 +676,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             A 6-dimensional polyhedron in ZZ^8 defined as the convex hull of 16 vertices, 1 ray, 1 line
 
             sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(P.vertices(),P.rays(),P.inequalities(),P.equations())   # optional - pynormaliz
-            sage: import PyNormaliz             # optional - pynormaliz
+            sage: import PyNormaliz                                             # optional - pynormaliz
             sage: PyNormaliz.NmzIsComputed(cone, "VerticesOfPolyhedron")        # optional - pynormaliz
             True
             sage: PyNormaliz.NmzIsComputed(cone, "ExtremeRays")                 # optional - pynormaliz

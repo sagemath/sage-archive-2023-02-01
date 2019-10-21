@@ -176,6 +176,8 @@ cdef class GenericBackend:
             Traceback (most recent call last):
             ...
             NotImplementedError
+            sage: sys.stdout.flush()
+            ...
         """
         p = cls()                         # fresh instance of the backend
         if tester is None:
@@ -641,6 +643,8 @@ cdef class GenericBackend:
             Traceback (most recent call last):
             ...
             NotImplementedError...
+            sage: sys.stdout.flush()
+            ...
         """
         p = cls()                         # fresh instance of the backend
         if tester is None:

@@ -1309,6 +1309,8 @@ cdef class SingularFunction(SageObject):
             RuntimeError: error in Singular function call 'triangL':
             The input is no groebner basis.
             leaving triang.lib::triangL
+            sage: sys.stdout.flush()
+            ...
 
             sage: G= Ideal(I.groebner_basis())
             sage: triangL(G,attributes={G:{'isSB':1}})

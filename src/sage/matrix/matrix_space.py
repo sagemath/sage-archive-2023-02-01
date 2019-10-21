@@ -1810,7 +1810,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
     def matrix_space(self, nrows=None, ncols=None, sparse=False):
         """
         Return the matrix space with given number of rows, columns and
-        sparcity over the same base ring as self, and defaults the same as
+        sparsity over the same base ring as self, and defaults the same as
         self.
 
         EXAMPLES::

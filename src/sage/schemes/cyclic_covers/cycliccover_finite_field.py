@@ -1,5 +1,12 @@
 r"""
+
 Cyclic covers over a finite field
+
+The most interesting feature is computation of Frobenius matrix on
+Monsky-Washnitzer cohomology and the Frobenius polynomial.
+
+REFERENCES::
+ - [ABCMT2019]_
 
 EXAMPLES::
 
@@ -52,7 +59,7 @@ from __future__ import absolute_import
 # *****************************************************************************
 #  Copyright (C) 2018   Vishal Arul <varul@mit.edu>,
 #                       Alex Best <alex.j.best@gmail.com>,
-#                       Edgar Costa <edgarcosta@math.dartmouth.edu>,
+#                       Edgar Costa <edgarc@mit.edu>,
 #                       Richard Magner <rmagner@bu.edu>,
 #                       Nicholas Triantafillou <ngtriant@mit.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -1054,6 +1061,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         self._init_frob(N)
         FrobP = _frobenius_matrix_p(self._N0)
+        assert N == self._N0 or N is None
         if self._n == 1:
             return FrobP
         else:
@@ -1064,6 +1072,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
                     [[entry.frobenius() for entry in row] for row in current]
                 )
                 total = total * current
+            total = matrix([[elt.add_bigoh(self._N0) for elt in row] for row in total])
             return total
 
     @cached_method
@@ -1072,7 +1081,6 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         Return the characteristic polynomial of Frobenius.
 
         EXAMPLES:
-
 
         Hyperelliptic curves::
 
@@ -1172,6 +1180,34 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             sage: CyclicCover(5, 2*x^5 + x).frobenius_polynomial() # long time
             x^12 + 299994*x^10 + 37498500015*x^8 + 2499850002999980*x^6 + 93742500224997000015*x^4 + 1874812507499850001499994*x^2 + 15623125093747500037499700001
 
+
+        TESTS::
+
+            sage: for _ in range(5): # long time
+            ....:     fail = False
+            ....:     p = random_prime(500, lbound=5)
+            ....:     for i in range(1, 4):
+            ....:         F = GF(p**i)
+            ....:         Fx = PolynomialRing(F, 'x')
+            ....:         b = F.random_element()
+            ....:         while b == 0:
+            ....:            b = F.random_element()
+            ....:         E = EllipticCurve(F, [0, b])
+            ....:         C1 = CyclicCover(3, Fx([-b, 0, 1]))
+            ....:         C2 = CyclicCover(2, Fx([b, 0, 0, 1]))
+            ....:         frob = [elt.frobenius_polynomial() for elt in [E, C1, C2]]
+            ....:         if len(set(frob)) != 1:
+            ....:             E
+            ....:             C1
+            ....:             C2
+            ....:             frob
+            ....:             fail = True
+            ....:             break
+            ....:     if fail:
+            ....:       break
+            ....: else:
+            ....:     True
+            True
 
 
         """

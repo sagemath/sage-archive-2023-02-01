@@ -1,3 +1,10 @@
+r"""
+
+Computation of the Frobenius polynomial using Newton's identities
+
+"""
+
+
 # *****************************************************************************
 #  Copyright (C) 2018 Edgar Costa <edgarc@mit.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -186,7 +193,11 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
 
     """
     assert known_factor[-1] == 1
-    cp = frob_matrix.change_ring(ZZ).charpoly().list()
+    try:
+        cp = frob_matrix.change_ring(ZZ).charpoly().list()
+    except ValueError:
+        # the given matrix wasn't integral
+        cp = frob_matrix.charpoly().change_ring(ZZ).list()
     assert len(charpoly_prec) == len(cp) - (len(known_factor) - 1)
     assert cp[-1] == 1
 

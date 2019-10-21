@@ -3476,7 +3476,7 @@ class Polyhedron_base(Element):
             except AssertionError:
                 # PointConfiguration is not adapted to inhomogeneous cones
                 # This is a hack. TODO: Implement the necessary things in
-                # PointConfiguration to accep such cases.
+                # PointConfiguration to accept such cases.
                 c = self.representative_point()
                 normed_v = ((1/(r.vector()*c))*r.vector() for r in self.ray_generator())
                 pc = PointConfiguration(normed_v, connected=connected, fine=fine, regular=regular, star=star)

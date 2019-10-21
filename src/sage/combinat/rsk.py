@@ -1887,7 +1887,7 @@ class RuleSuperRSK(RuleRSK):
 
     * The output still consists of two tableaux `(P, Q)` of equal
       shapes, but rather than both of them being semistandard, now
-      they are semistandard super tableax.
+      they are semistandard super tableaux.
 
     * The main difference is in the way bumping works. Instead of having 
       only row bumping super RSK uses `\epsilon`-insertion, a combination

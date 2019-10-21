@@ -6196,7 +6196,7 @@ class GenericGraph(GenericGraph_pyx):
         if root is None:
             root = next(self.vertex_iterator())
 
-        # r_edges is a relaxed variable grater than edges. It is used to
+        # r_edges is a relaxed variable greater than edges. It is used to
         # check the presence of cycles
         r_edges = p.new_variable(nonnegative=True)
 

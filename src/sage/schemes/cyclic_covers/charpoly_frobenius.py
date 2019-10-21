@@ -35,7 +35,7 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
 
     - ``a`` -- `q = q^a`
 
-    - ``known_factor`` -- If there is a known factor, these are its coefficients
+    - ``known_factor`` -- the list of coefficients of the known factor
 
     OUTPUT:
 

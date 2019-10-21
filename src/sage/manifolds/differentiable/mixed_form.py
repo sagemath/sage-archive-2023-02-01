@@ -813,8 +813,7 @@ class MixedForm(AlgebraElement):
         resu = self._new_instance()
         resu[:] = [0] * (self._max_deg + 1)
         for j in self.irange():
-            for k in range(0, j + 1):
-                resu[j] = resu[j] + self[k].wedge(other[j - k])
+            resu[j] += sum(self[k].wedge(other[j - k]) for k in range(j + 1))
         # Compose name:
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)

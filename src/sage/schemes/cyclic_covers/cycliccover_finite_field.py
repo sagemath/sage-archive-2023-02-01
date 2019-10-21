@@ -5,8 +5,9 @@ Cyclic covers over a finite field
 The most interesting feature is computation of Frobenius matrix on
 Monsky-Washnitzer cohomology and the Frobenius polynomial.
 
-REFERENCES::
- - [ABCMT2019]_
+REFERENCES:
+
+- [ABCMT2019]_
 
 EXAMPLES::
 

@@ -5353,6 +5353,14 @@ class Polyhedron_base(Element):
         Return a graph in which the vertices correspond to vertices
         of the polyhedron, and edges to edges.
 
+        ..NOTE::
+
+            The graph of a polyhedron with lines has no vertices,
+            as the polyhedron has no vertices (`0`-faces).
+
+            The method :meth:`Polyhedron_base:vertices` returns
+            the defining points in this case.
+
         EXAMPLES::
 
             sage: g3 = polytopes.hypercube(3).vertex_graph(); g3
@@ -5363,6 +5371,20 @@ class Polyhedron_base(Element):
             Graph on 5 vertices
             sage: s4.is_eulerian()
             True
+
+        The graph of an unbounded polyhedron
+        is the graph of the bounded complex::
+
+            sage: open_triangle = Polyhedron(vertices=[[1,0], [0,1]],
+            ....:                            rays    =[[1,1]])
+            sage: open_triangle.vertex_graph()
+            Graph on 2 vertices
+
+        The graph of a polyhedron with lines has no vertices::
+
+            sage: line = Polyhedron(lines=[[0,1]])
+            sage: line.vertex_graph()
+            Graph on 0 vertices
         """
         return self.combinatorial_polyhedron().vertex_graph()
 

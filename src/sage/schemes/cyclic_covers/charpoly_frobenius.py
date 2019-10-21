@@ -4,10 +4,10 @@
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from __future__ import division
 from sage.rings.integer_ring import ZZ
 from sage.functions.log import log
 from sage.functions.other import ceil
-from __future__ import division
 
 
 def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=[1]):

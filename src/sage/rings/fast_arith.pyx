@@ -52,9 +52,9 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     If the second argument is omitted, this returns the primes up to the
     first argument.
 
-    Algorithm "pari_primes" is faster but may use a lot of memory and cannot find
-    primes greater than 436271789. Algorithm "pari_isprime" is slower but will work 
-    for much larger input.
+    The sage command ``primes`` is an
+    alternative that uses less memory (but may be slower), because it returns an
+    iterator, rather than building a list of the primes.
 
     INPUT:
 
@@ -64,15 +64,13 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
     - ``algorithm`` -- optional string, one of:
 
-         - ``"pari_primes"``: Uses PARI's :pari:`primes` function.
-            Generates all primes up to stop.
-            Depends on PARI's :pari:`primepi` function.
+        - "pari_primes": Uses PARI's primes function to generate all primes from 2 to
+          stop if stop <= 436273009 (approximately 4.36E8). (Otherwise uses algorithm
+          "pari_isprime".) This is fast but may crash if there is insufficient memory
+          (and will not be used when stop > 436273009).
 
-         - "pari_isprime": Uses a mod 2 wheel and PARI's :pari:`isprime`
-           function by calling the primes iterator.
-
-    - ``py_ints`` -- optional boolean (default ``False``), return
-      Python ints rather than Sage Integers (faster)
+        - ``py_ints`` -- optional boolean (default ``False``), return Python ints rather
+          than Sage Integers (faster). Ignored unless algorithm "pari_primes" is being used.
 
     EXAMPLES::
 
@@ -115,13 +113,11 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
         sage: prime_range(4652360, 4652400)
         []
-    
+
     Confirm the fix for trac ticket 28467::
-    
-        sage: prime_range(436271790,436271791)
-        Warning: algorithm "pari_primes" cannot find primes greater than 436271789.
-        Using "pari_isprime" instead (which may be slower).
-        []
+
+        sage: prime_range(436273009,436273010)
+        [436273009]
         sage: prime_range("90","100")
         [97]
 
@@ -152,7 +148,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         stop = Integer(stop)
 
     if (algorithm == "pari_primes") and (max(start,stop) <= small_prime_max):
-    
+
         if stop is None:
             # In this case, "start" is really stop
             c_start = 1

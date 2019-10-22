@@ -192,7 +192,6 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 # *****************************************************************************
 from __future__ import absolute_import
 
-from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
@@ -2025,13 +2024,12 @@ class FreeModuleTensor(ModuleElement):
         """
         # No need for consistency check since self and other are guaranteed
         # to belong to the same tensor module
-        ###
+        #
         # Case zero:
         if self._is_zero:
             return other
         if other._is_zero:
             return self
-        ###
         # Generic case:
         basis = self.common_basis(other)
         if basis is None:
@@ -2088,6 +2086,13 @@ class FreeModuleTensor(ModuleElement):
         """
         # No need for consistency check since self and other are guaranted
         # to belong to the same tensor module
+        #
+        # Case zero:
+        if self._is_zero:
+            return -other
+        if other._is_zero:
+            return self
+        # Generic case:
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the subtraction")

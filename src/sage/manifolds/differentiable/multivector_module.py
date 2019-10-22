@@ -390,8 +390,6 @@ class MultivectorModule(UniqueRepresentation, Parent):
              manifold M
 
         """
-        zero = self.element_class(self._vmodule, self._degree,
-                                  name='zero', latex_name='0')
         zero = self._element_constructor_(name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:

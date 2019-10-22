@@ -529,7 +529,6 @@ class DiffForm(TensorField):
         dest_map = self._vmodule._dest_map
         dest_map_resu = dest_map.restrict(dom_resu,
                                           subcodomain=ambient_dom_resu)
-        ###
         # Facilitate computations involving zero:
         if resu_degree > ambient_dom_resu._dim:
             return dom_resu.diff_form_module(resu_degree,
@@ -540,7 +539,6 @@ class DiffForm(TensorField):
         if self is other and (self._tensor_rank % 2) == 1:
             return dom_resu.diff_form_module(resu_degree,
                                              dest_map=dest_map_resu).zero()
-        ###
         # Generic case:
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)

@@ -1673,23 +1673,23 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f._express # the (u,v) expression has been lost:
             {Chart (M, (x, y)): 3*y}
 
-        Since zero and one are special elements, their components cannot be
+        Since zero and one are special elements, their expressions cannot be
         changed::
 
             sage: z = M.zero_scalar_field()
             sage: z.set_expr(3*y)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the element zero cannot be changed
+            AssertionError: the expressions of the element zero cannot be changed
             sage: one = M.one_scalar_field()
             sage: one.set_expr(3*y)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the element 1 cannot be changed
+            AssertionError: the expressions of the element 1 cannot be changed
 
         """
         if self is self.parent().one() or self is self.parent().zero():
-            raise AssertionError("the components of the element "
+            raise AssertionError("the expressions of the element "
                                  "{} cannot be changed".format(self._name))
         if chart is None:
             chart = self._domain._def_chart
@@ -1735,23 +1735,23 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f._express # random (dict. output); f has now 2 expressions:
             {Chart (M, (x, y)): 3*y, Chart (M, (u, v)): cos(u) - sin(v)}
 
-        Since zero and one are special elements, their components cannot be
+        Since zero and one are special elements, their expressions cannot be
         changed::
 
             sage: z = M.zero_scalar_field()
             sage: z.add_expr(cos(u)-sin(v), c_uv)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the element zero cannot be changed
+            AssertionError: the expressions of the element zero cannot be changed
             sage: one = M.one_scalar_field()
             sage: one.add_expr(cos(u)-sin(v), c_uv)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the element 1 cannot be changed
+            AssertionError: the expressions of the element 1 cannot be changed
 
         """
         if self is self.parent().one() or self is self.parent().zero():
-            raise AssertionError("the components of the element "
+            raise AssertionError("the expressions of the element "
                                  "{} cannot be changed".format(self._name))
         if chart is None:
             chart = self._domain._def_chart

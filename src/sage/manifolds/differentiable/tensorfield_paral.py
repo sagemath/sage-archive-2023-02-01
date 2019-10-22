@@ -900,7 +900,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # deleted by _del_derived):
         self._restrictions[basis._domain] = rst
         # The set_comp operation is performed on the subdomain:
-        return rst.set_comp(basis)
+        return rst.set_comp(basis=basis)
 
     def _add_comp_unsafe(self, basis=None):
         r"""
@@ -1077,7 +1077,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # subdomains:
         self._del_derived(del_restrictions=False)
         # The add_comp operation is performed on the subdomain:
-        return rst.add_comp(basis)
+        return rst.add_comp(basis=basis)
 
     def comp(self, basis=None, from_basis=None):
         r"""

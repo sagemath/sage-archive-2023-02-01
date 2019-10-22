@@ -1447,7 +1447,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                  "to a vector field in {}".format(self))
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
-            resu.set_comp(basis)[:] = comp
+            resu.set_comp(basis=basis)[:] = comp
         return resu
 
     # Rem: _an_element_ is declared in the superclass FiniteRankFreeModule

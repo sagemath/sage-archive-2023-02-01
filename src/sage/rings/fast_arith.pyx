@@ -50,32 +50,31 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     List of all primes between start and stop-1, inclusive.  If the
     second argument is omitted, returns the primes up to the first
     argument.
-
-    This function is closely related to (and can use) the primes iterator.
-    Use algorithm "pari_primes" when both start and stop are not too large,
-    since in all cases this function makes a table of primes up to
-    stop. If both are large, use algorithm "pari_isprime" instead.
-
-    Algorithm "pari_primes" is faster but may use a lot of memory and cannot find
-    primes greater than 436271789. Algorithm "pari_isprime" is slower but will work 
-    for much larger input.
+    
+    This command is like the Python 2 ``range`` command, except it lists only the
+    prime numbers that are in the given range. The sage command ``primes`` is an
+    alternative that uses less memory (but may be slower), because it returns an
+    iterator, rather than building a list of the primes.
 
     INPUT:
 
-        - ``start`` -- lower bound
+        - ``start`` -- integer lower bound (default: 2)
 
-        - ``stop`` -- upper bound
+        - ``stop`` -- integer upper bound
 
-        - ``algorithm`` -- string, one of:
+        - ``algorithm`` -- string (default: "pari_primes"), one of:
 
-             - "pari_primes": Uses PARI's primes function.  Generates all primes up to stop.
-                              Depends on PARI's primepi function.
+             - "pari_primes": Uses PARI's primes function to generate all primes from 2 to
+               stop if stop <= 436273009 (approximately 4.36E8). (Otherwise uses algorithm
+               "pari_isprime".) This is fast but may crash if there is insufficient memory
+               (and will not be used when stop > 436273009).
 
-             - "pari_isprime": Uses a mod 2 wheel and PARI's isprime function by calling
-                             the primes iterator.
+             - "pari_isprime": Wrapper for ``list(primes(start, stop))``. Each (odd)
+               integer in the specified range is tested for primality by applying PARI's
+               isprime function. This is slower but will work for much larger input.
 
-        - ``py_ints`` -- boolean (default False), return Python ints rather than Sage Integers (faster)
-
+        - ``py_ints`` -- boolean (default: ``False``), return Python ints rather than Sage
+          Integers (faster). Ignored unless algorithm "pari_primes" is being used.
 
     EXAMPLES::
 
@@ -118,13 +117,11 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
         sage: prime_range(4652360, 4652400)
         []
-    
+
     Confirm the fix for trac ticket 28467::
-    
-        sage: prime_range(436271790,436271791)
-        Warning: algorithm "pari_primes" cannot find primes greater than 436271789.
-        Using "pari_isprime" instead (which may be slower).
-        []
+
+        sage: prime_range(436273009,436273010)
+        [436273009]
         sage: prime_range("90","100")
         [97]
 
@@ -148,7 +145,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         stop = Integer(stop)
 
     if (algorithm == "pari_primes") and (max(start,stop) <= small_prime_max):
-    
+
         if stop is None:
             # In this case, "start" is really stop
             c_start = 1

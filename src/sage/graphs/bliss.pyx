@@ -171,8 +171,7 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels,
     - ``partition`` -- an ordered partition of the vertex set
     """
     cdef Graph * g
-    cdef int i, j, x, y, lab, Pnr, Enr
-    cdef int logLnr = 1
+    cdef int i, j, x, y, lab, Pnr, Enr, logLnr = 1
 
     if Lnr <= 1:
         g = new Graph(Vnr)
@@ -186,9 +185,7 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels,
 
     if Lnr <= 1:
         for i in range(Enr):
-            x = Vout[i]
-            y = Vin[i]
-            g.add_edge(x, y)
+            g.add_edge(Vout[i], Vin[i])
 
     else:
         # arrows going up in layers
@@ -200,7 +197,6 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels,
             x = Vout[i]
             y = Vin[i]
             lab = labels[i] + 1
-
             j = 0
             while lab:
                 if lab & 1:
@@ -211,12 +207,11 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels,
     # vertex partition gives colors
     if partition:
         Pnr = len(partition)
-        for i in range(len(partition)):
+        for i in range(Pnr):
             for v in partition[i]:
                 for j in range(logLnr):
                     g.change_color(j * Vnr + v, j * Pnr + i)
     else:
-        Pnr = 1
         for j in range(logLnr):
             for v in range(Vnr):
                 g.change_color(j * Vnr + v, j)
@@ -252,53 +247,51 @@ cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, lab
 
     - ``partition`` -- a partition of the vertex set
     """
-    cdef Py_ssize_t i, j
-    cdef int logLnr = 0
-
     cdef Digraph *g
-    cdef int x, y, lab
+    cdef int i, j, x, y, lab, Pnr, Enr, logLnr = 1
 
-    if Lnr == 1:
+    if Lnr <= 1:
         g = new Digraph(Vnr)
-        if not g:
-            raise MemoryError("allocation failed")
     else:
         logLnr = encoding_numbits(Lnr)
         g = new Digraph(Vnr * logLnr)
-        if not g:
-            raise MemoryError("allocation failed")
-        for j in range(1, logLnr):
-            for i in range((j - 1) * Vnr, j * Vnr):
-                g.add_edge(i, i + Vnr)
+    if not g:
+        raise MemoryError("allocation failed")
 
-    cdef int Enr = len(Vout)
+    Enr = len(Vout)
 
-    for i in range(Enr):
-        x = Vout[i]
-        y = Vin[i]
-        if Lnr == 1:
-            lab = 0
-        else:
-            lab = labels[i]
+    if Lnr <= 1:
+        for i in range(Enr):
+            g.add_edge(Vout[i], Vin[i])
+    else:
+        # arrows going up in layers
+        for i in range(Vnr * (logLnr - 1)):
+            g.add_edge(i, i + Vnr)
 
-        if lab:
-            lab += 1
-            for j in range(logLnr - 1, -1, -1):
-                if lab & (1 << j):
+        # arrows inside layers shadowing the original graph
+        for i in range(Enr):
+            x = Vout[i]
+            y = Vin[i]
+            lab = labels[i] + 1
+            j = 0
+            while lab:
+                if lab & 1:
                     g.add_edge(j * Vnr + x, j * Vnr + y)
-        else:
-            g.add_edge(x, y)
+                j += 1
+                lab >>= 1
 
-    if not bool(partition):
-        partition = [list(range(Vnr))]
-    cdef Pnr = len(partition)
-    for i in range(Pnr):
-        for v in partition[i]:
-            if Lnr == 1:
-                g.change_color(v, i)
-            else:
+    # vertex partition gives color
+    if partition:
+        Pnr = len(partition)
+        for i in range(Pnr):
+            for v in partition[i]:
                 for j in range(logLnr):
                     g.change_color(j * Vnr + v, j * Pnr + i)
+    else:
+        for j in range(logLnr):
+            for v in range(Vnr):
+                g.change_color(j * Vnr + v, j)
+
     return g
 
 #####################################################
@@ -542,7 +535,7 @@ cpdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True
         Lnr = len(lab_to_index)
 
     else:
-        for x,y,lab in G.edge_iterator(labels=True):
+        for x,y in G.edge_iterator(labels=False):
             Vout.append(vert2int[x])
             Vin.append(vert2int[y])
 

@@ -2383,20 +2383,36 @@ class Polyhedron_base(Element):
             [1 0 1 1]
             [0 1 1 1]
 
-        The incidence matrix is not unique up to permutation
-        for unbounded polyhedra::
+        The incidence matrix does not uniquely determine
+        an unbounded polyhedra::
 
-            sage: triangle = polytopes.regular_polygon(3)
-            sage: triangle.incidence_matrix()
-            [0 1 1]
-            [1 0 1]
-            [1 1 0]
-
-            sage: open_triangle = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
-            sage: open_triangle.incidence_matrix()
+            sage: P = Polyhedron(vertices=[[0,1],[1,1],[1,0]])
+            sage: P.incidence_matrix()
             [1 1 0]
             [1 0 1]
             [0 1 1]
+
+            sage: Q = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
+            sage: Q.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
+
+
+        An example of two polyhedra with isomorphic face lattices
+        but different incidence matrices::
+
+            sage: Q.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
+
+            sage: R = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,3/2], [3/2,1]])
+            sage: R.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 0]
+            [0 0 1]
         """
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)

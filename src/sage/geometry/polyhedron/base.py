@@ -2368,10 +2368,28 @@ class Polyhedron_base(Element):
         """
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
-        for V in self.Vrep_generator():
-            for H in self.Hrep_generator():
-                if self._is_zero(H*V):
-                    incidence_matrix[V.index(), H.index()] = 1
+
+        Vvectors_vertices = tuple((v.vector(),v.index())
+                                  for v in self.Vrep_generator()
+                                  if v.is_vertex())
+        Vvectors_rays_lines = tuple((v.vector(),v.index())
+                                    for v in self.Vrep_generator()
+                                    if not v.is_vertex())
+
+        for H in self.Hrep_generator():
+            Hconst = H.b()
+            Hvec = H.A()
+            Hindex = H.index()
+            for Vvec, Vindex in Vvectors_vertices:
+                if self._is_zero(Hvec*Vvec + Hconst):
+                   incidence_matrix[Vindex, Hindex] = 1
+
+            # A ray or line is considered incident with a hyperplane,
+            # if it is orthogonal to the normal vector of the hyperplane.
+            for Vvec, Vindex in Vvectors_rays_lines:
+                if self._is_zero(Hvec*Vvec):
+                   incidence_matrix[Vindex, Hindex] = 1
+
         return incidence_matrix
 
     def base_ring(self):

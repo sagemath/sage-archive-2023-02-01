@@ -321,7 +321,6 @@ class AutomorphismField(TensorField):
 
     def add_comp(self, basis=None):
         r"""
-
         Return the components of ``self`` w.r.t. a given module basis for
         assignment, keeping the components w.r.t. other bases.
 

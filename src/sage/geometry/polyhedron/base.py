@@ -2365,6 +2365,38 @@ class Polyhedron_base(Element):
             True
             sage: p.incidence_matrix() [2,0]   # note: not symmetric
             0
+
+        The incidence matrix depends on the ambient dimension::
+
+            sage: simplex = polytopes.simplex(); simplex
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: simplex.incidence_matrix()
+            [1 1 1 1 0]
+            [1 1 1 0 1]
+            [1 1 0 1 1]
+            [1 0 1 1 1]
+            sage: simplex = simplex.affine_hull(); simplex
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: simplex.incidence_matrix()
+            [1 1 1 0]
+            [1 1 0 1]
+            [1 0 1 1]
+            [0 1 1 1]
+
+        The incidence matrix is not unique up to permutation
+        for unbounded polyhedra::
+
+            sage: triangle = polytopes.regular_polygon(3)
+            sage: triangle.incidence_matrix()
+            [0 1 1]
+            [1 0 1]
+            [1 1 0]
+
+            sage: open_triangle = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
+            sage: open_triangle.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
         """
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)

@@ -23020,6 +23020,36 @@ class GenericGraph(GenericGraph_pyx):
             Path graph: Graph on 1 vertex
             sage: g.canonical_label(algorithm='bliss')  # optional - bliss
             Path graph: Graph on 1 vertex
+
+        Check that :trac:`28531` is fixed::
+
+            sage: from itertools import product, permutations
+            sage: edges_list = [[(0,1), (2,3)],
+            ....:               [(0,1), (1,2), (2,3)],
+            ....:               [(0,1), (0,2), (1,2)],
+            ....:               [(0,1), (0,2), (0,3)]]
+            sage: algos = ['sage']
+            sage: algos.append('bliss')     # optional - bliss
+            sage: S = Set([0,1,2])
+            sage: for (algo, edges) in product(algos, edges_list):
+            ....:     L = cartesian_product([S] * len(edges))
+            ....:     O = OrderedSetPartitions([0,1,2,3])
+            ....:     P = Permutations([0,1,2,3])
+            ....:     for _ in range(10):
+            ....:         part = O.random_element()
+            ....:         labels = L.random_element()
+            ....:         g = Graph(4)
+            ....:         g.add_edges([(u,v,lab) for ((u,v),lab) in zip(edges, labels)])
+            ....:         gcan0 = g.canonical_label(partition=part, edge_labels=True, return_graph=True, algorithm=algo)
+            ....:         for _ in range(5):
+            ....:             perm = P.random_element()
+            ....:             gg = Graph(4)
+            ....:             gg.add_edges([(perm[u], perm[v], lab) for u,v,lab in g.edges()])
+            ....:             pp = [[perm[i] for i in s] for s in part]
+            ....:             gcan1 = gg.canonical_label(partition=pp, edge_labels=True, algorithm=algo)
+            ....:             gcan2, _ = gg.canonical_label(partition=pp, edge_labels=True, certificate=True, algorithm=algo)
+            ....:             assert gcan0 == gcan1, (edges, labels, part, pp)
+            ....:             assert gcan0 == gcan2, (edges, labels, part, pp)
         """
         # Deprecation
         if verbosity != 0:
@@ -23050,11 +23080,11 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm == 'bliss':
             if return_graph:
-                vert_dict = canonical_form(self, partition, certificate=True)[1]
+                vert_dict = canonical_form(self, partition, False, edge_labels, True)[1]
                 if not certificate:
                     return self.relabel(vert_dict, inplace=False)
                 return (self.relabel(vert_dict, inplace=False), vert_dict)
-            return canonical_form(self, partition, return_graph, certificate)
+            return canonical_form(self, partition, return_graph, edge_labels, certificate)
 
         # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree

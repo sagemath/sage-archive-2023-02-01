@@ -36,7 +36,6 @@ from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
 
 from .constructor import Polyhedron
-from .face import PolyhedronFace
 
 from sage.misc.superseded import deprecated_function_alias
 
@@ -5344,12 +5343,12 @@ class Polyhedron_base(Element):
 
         if face_dimension is None or face_dimension == self.dimension():
             # Yield the polyhedron.
-            yield PolyhedronFace(self, range(self.n_Vrepresentation()), [])
+            yield self._make_polyhedron_face(range(self.n_Vrepresentation()), [])
 
         if face_dimension is None or face_dimension == -1:
             if not self.dimension() == -1:
                 # Yield the empty face.
-                yield PolyhedronFace(self, [], range(self.n_Hrepresentation()))
+                yield self._make_polyhedron_face([], range(self.n_Hrepresentation()))
 
         if face_dimension is None or -1 < face_dimension < self.dimension():
             # Yield proper faces.

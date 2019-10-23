@@ -176,6 +176,9 @@ cdef class GenericBackend:
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        Flush any stray output -- see :trac:`28622`::
+
             sage: sys.stdout.flush()
             ...
         """
@@ -643,6 +646,9 @@ cdef class GenericBackend:
             Traceback (most recent call last):
             ...
             NotImplementedError...
+
+        Flush any stray output -- see :trac:`28622`::
+
             sage: sys.stdout.flush()
             ...
         """

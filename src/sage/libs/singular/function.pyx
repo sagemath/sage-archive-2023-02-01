@@ -1309,6 +1309,9 @@ cdef class SingularFunction(SageObject):
             RuntimeError: error in Singular function call 'triangL':
             The input is no groebner basis.
             leaving triang.lib::triangL
+
+        Flush any stray output -- see :trac:`28622`::
+
             sage: sys.stdout.flush()
             ...
 

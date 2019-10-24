@@ -898,6 +898,33 @@ class FriCASConverter(InterfaceInit):
         import sage.interfaces.fricas
         super(FriCASConverter, self).__init__(sage.interfaces.fricas.fricas)
 
+    def pyobject(self, ex, obj):
+        """
+        EXAMPLES::
+
+            sage: 2._fricas_().domainOf()                                       # optional - fricas
+            PositiveInteger()
+
+            sage: (-1/2)._fricas_().domainOf()                                  # optional - fricas
+            Fraction(Integer())
+
+            sage: SR(2)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Integer())
+
+            sage: (sqrt(2))._fricas_().domainOf()                               # optional - fricas
+            Expression(Integer())
+        """
+        return "((%s)::EXPR INT)" % ex
+
+    def symbol(self, ex):
+        """
+        EXAMPLES::
+
+            sage: x._fricas_().domainOf()                                       # optional - fricas
+            Expression(Integer())
+        """
+        return "(%s::EXPR INT)" % repr(ex)
+
     def derivative(self, ex, operator):
         """
         Convert the derivative of ``self`` in FriCAS.

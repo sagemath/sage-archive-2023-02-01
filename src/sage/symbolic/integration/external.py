@@ -371,16 +371,29 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
     Check that in case of failure one gets unevaluated integral::
 
-        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')   # optional - fricas
+        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')         # optional - fricas
         integrate(cos(log(cos(x))), x, 0, 1/8*pi)
-        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')   # optional - fricas
+
+        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')                  # optional - fricas
         integral(cos(log(cos(x))), x)
+
+    Check that :trac:`28641` is fixed::
+
+        sage: integrate(sqrt(2)*x^2 + 2*x, x, algorithm="fricas")               # optional - fricas
+        1/3*sqrt(2)*x^3 + x^2
+
+        sage: integrate(sqrt(2), x, algorithm="fricas")                         # optional - fricas
+        sqrt(2)*x
+
+        sage: integrate(1, x, algorithm="fricas")                               # optional - fricas
+        x
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
 
     from sage.interfaces.fricas import fricas
     ex = fricas(expression)
+    v = fricas("%s::Symbol" % v)
 
     if a is None:
         result = ex.integrate(v)

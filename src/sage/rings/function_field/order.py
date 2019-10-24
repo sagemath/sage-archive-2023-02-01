@@ -1416,6 +1416,18 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
             Ideal (x^2 + 3) of Maximal order of Function field in y defined by y^2 + 6*x^3 + 6
             sage: I2 == S.ideal(I)
             True
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x^2-4)
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: S = L.maximal_order()
+            sage: S.ideal(1/y)
+            Ideal ((1/(x^3 + 1))*y) of Maximal order of Function field in y defined by y^2 - x^3 - 1
+            sage: I2 = S.ideal(x^2-4); I2
+            Ideal (x^2 - 4) of Maximal order of Function field in y defined by y^2 - x^3 - 1
+            sage: I2 == S.ideal(I)
+            True
         """
         if len(gens) == 1:
             gens = gens[0]
@@ -1439,6 +1451,12 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
             sage: O = L.equation_order()
             sage: O.polynomial()
             y^4 + x*y + 4*x + 1
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
+            sage: O = L.equation_order()
+            sage: O.polynomial()
+            y^4 + x*y + 4*x + 1
         """
         return self._field.polynomial()
 
@@ -1454,6 +1472,13 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
             sage: O = L.equation_order()
             sage: O.basis()
             (1, y, y^2, y^3)
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18)
+            sage: O = F.maximal_order()
+            sage: O.basis()
+            (1, 1/x^4*y, 1/x^9*y^2, 1/x^13*y^3)
         """
         return self._basis
 
@@ -1530,6 +1555,13 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
             (0, 1, 0, 0)
             sage: O.coordinate_vector(x*y)
             (0, x, 0, 0)
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
+            sage: O = L.equation_order()
+            sage: f = (x + y)^3
+            sage: O.coordinate_vector(f)
+            (x^3, 3*x^2, 3*x, 1)
         """
         return self._module.coordinate_vector(self._to_module(e))
 
@@ -2548,6 +2580,22 @@ class FunctionFieldMaximalOrderInfinite_polymod(FunctionFieldMaximalOrderInfinit
              of Function field in y defined by y^3 + x^6 + x^4 + x^2, 2, 1)]
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: Oinf.decomposition()
+            [(Ideal (1/x*y) of Maximal infinite order of Function field in y
+            defined by y^2 + y + (x^2 + 1)/x, 1, 2)]
+
+            sage: K.<x> = FunctionField(QQ); _.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: Oinf = F.maximal_order_infinite()
+            sage: Oinf.decomposition()
+            [(Ideal (1/x^2*y - 1) of Maximal infinite order
+             of Function field in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2, 1, 1),
+             (Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1/x^2*y + 1) of Maximal infinite order
+             of Function field in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2, 2, 1)]
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: Oinf = L.maximal_order_infinite()
             sage: Oinf.decomposition()

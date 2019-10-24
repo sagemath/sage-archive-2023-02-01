@@ -977,6 +977,11 @@ class FunctionField(Field):
             sage: K.divisor_group()
             Divisor group of Rational function field in t over Rational Field
 
+            sage: _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 - (t^3 - 1)/(t^3 - 2))
+            sage: L.divisor_group()
+            Divisor group of Function field in y defined by y^3 + (-t^3 + 1)/(t^3 - 2)
+
             sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
             sage: L.divisor_group()
@@ -1887,7 +1892,8 @@ class FunctionField_polymod(FunctionField):
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-            sage: L.maximal_order()  # todo: not implemented
+            sage: L.maximal_order()
+            Maximal order of Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
         """
         from .order import FunctionFieldMaximalOrder_polymod
         return FunctionFieldMaximalOrder_polymod(self)
@@ -1900,7 +1906,8 @@ class FunctionField_polymod(FunctionField):
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-            sage: L.maximal_order_infinite()  # todo: not implemented
+            sage: L.maximal_order_infinite()
+            Maximal infinite order of Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
 
             sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
             sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)

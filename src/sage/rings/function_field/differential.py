@@ -404,22 +404,6 @@ class FunctionFieldDifferential(ModuleElement):
         return (self._f.valuation(place) + 2*min(F(x).valuation(place), 0)
                 + F.different().valuation(place))
 
-class FunctionFieldDifferential_global(FunctionFieldDifferential):
-    """
-    Differentials on global function fields.
-
-    EXAMPLES::
-
-        sage: F.<x>=FunctionField(GF(7))
-        sage: f = x/(x^2 + x + 1)
-        sage: f.differential()
-        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
-
-        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-        sage: y.differential()
-        (x*y^2 + 1/x*y) d(x)
-    """
     def residue(self, place):
         """
         Return the residue of the differential at the place.
@@ -458,6 +442,20 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             sage: s = d.support()
             sage: sum([w.residue(p).trace() for p in s])
             0
+
+        and in characteristic zero::
+
+            sage: R.<x> = FunctionField(QQ)
+            sage: L.<y> = R[]
+            sage: root = x^4+4*x^3+2*x^2+1
+            sage: F.<y> = R.extension(y^2 - root)
+            sage: num = 6*x^2 + 5*x + 7
+            sage: den = 2*x^6 + 8*x^5 + 3*x^4 + - 4*x^3 - 1
+            sage: integrand = y*num/den * x.differential();
+            sage: D = integrand.divisor()
+            sage: sum([QQ(integrand.residue(p)) for p in D.support()])
+            0
+
         """
         R,fr_R,to_R = place._residue_field()
 
@@ -476,6 +474,22 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             c = g_shifted.higher_derivative(-r-1, s)
             return to_R(c)
 
+class FunctionFieldDifferential_global(FunctionFieldDifferential):
+    """
+    Differentials on global function fields.
+
+    EXAMPLES::
+
+        sage: F.<x>=FunctionField(GF(7))
+        sage: f = x/(x^2 + x + 1)
+        sage: f.differential()
+        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
+
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: y.differential()
+        (x*y^2 + 1/x*y) d(x)
+    """
     def cartier(self):
         r"""
         Return the image of the differential by the Cartier operator.

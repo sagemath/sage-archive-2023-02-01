@@ -995,6 +995,10 @@ class FunctionField(Field):
             sage: K.place_set()
             Set of places of Rational function field in t over Finite Field of size 7
 
+            sage: K.<t> = FunctionField(QQ)
+            sage: K.place_set()
+            Set of places of Rational function field in t over Rational Field
+
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: L.place_set()
@@ -3569,6 +3573,13 @@ class RationalFunctionField(FunctionField):
         sage: 1/t + t^3 + 5
         (t^4 + 2*t + 1)/t
 
+        sage: K.<t> = FunctionField(QQ); K
+        Rational function field in t over Rational Field
+        sage: K.gen()
+        t
+        sage: 1/t + t^3 + 5
+        (t^4 + 5*t + 1)/t
+
     There are various ways to get at the underlying fields and rings
     associated to a rational function field::
 
@@ -3582,6 +3593,16 @@ class RationalFunctionField(FunctionField):
         sage: K.maximal_order()
         Maximal order of Rational function field in t over Finite Field of size 7
 
+        sage: K.<t> = FunctionField(QQ)
+        sage: K.base_field()
+        Rational function field in t over Rational Field
+        sage: K.field()
+        Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        sage: K.constant_field()
+        Rational Field
+        sage: K.maximal_order()
+        Maximal order of Rational function field in t over Rational Field
+
     We define a morphism::
 
         sage: K.<t> = FunctionField(QQ)
@@ -3591,6 +3612,35 @@ class RationalFunctionField(FunctionField):
           From: Rational function field in t over Rational Field
           To:   Rational function field in tbar over Rational Field
           Defn: t |--> tbar
+
+    Here are some calculations over a number field::
+
+        sage: R.<x> = FunctionField(QQ)
+        sage: L.<y> = R[]
+        sage: F.<y> = R.extension(y^2 - (x^2+1))
+        sage: (y/x).divisor()
+        - Place (x, y - 1)
+         - Place (x, y + 1)
+         + Place (x^2 + 1, y)
+
+        sage: A.<z> = QQ[]
+        sage: NF.<i> = NumberField(z^2+1)
+        sage: R.<x> = FunctionField(NF)
+        sage: L.<y> = R[]
+        sage: F.<y> = R.extension(y^2 - (x^2+1))
+
+        sage: (x/y*x.differential()).divisor()
+        -2*Place (1/x, 1/x*y - 1)
+         - 2*Place (1/x, 1/x*y + 1)
+         + Place (x, y - 1)
+         + Place (x, y + 1)
+
+        sage: (x/y).divisor()
+        - Place (x - i, y)
+         + Place (x, y - 1)
+         + Place (x, y + 1)
+         - Place (x + i, y)
+
     """
     Element = FunctionFieldElement_rational
 

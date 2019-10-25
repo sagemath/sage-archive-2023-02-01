@@ -7640,7 +7640,7 @@ class Polyhedron_base(Element):
         Return whether the polyhedron is combinatorially isomorphic to another polyhedron.
 
         We only consider bounded polyhedra. By definition, they are
-        combinatorially isomorphic if their faces lattices are isomorphic.
+        combinatorially isomorphic if their face lattices are isomorphic.
 
         INPUT:
 
@@ -7752,7 +7752,7 @@ class Polyhedron_base(Element):
         assert algorithm in ['bipartite_graph', 'face_lattice'], "`algorithm` must be 'bipartite graph' or 'face_lattice'"
 
         # For speed, we check if the polyhedra have the same number of facets and vertices.
-        # This is faster then building the bipartite graphs first and
+        # This is faster than building the bipartite graphs first and
         # then check that they won't be isomorphic.
         if self.n_vertices() != other.n_vertices() or self.n_facets() != other.n_facets():
             return False

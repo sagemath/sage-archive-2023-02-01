@@ -577,8 +577,9 @@ class PolyhedronFace(SageObject):
         if self.n_ambient_Vrepresentation() == 0:
             return -1
         else:
-            origin = vector(self.ambient_Vrepresentation(0))
-            v_list = [ vector(v)-origin for v in self.ambient_Vrepresentation() ]
+            origin = self.vertices()[0].vector()
+            v_list = [vector(v)-origin for v in self.ambient_Vrepresentation() if v.is_vertex()]
+            v_list += [vector(v) for v in self.ambient_Vrepresentation() if v.is_ray() or v.is_line()]
             return matrix(v_list).rank()
 
     def _repr_(self):

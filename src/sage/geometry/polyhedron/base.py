@@ -2383,8 +2383,8 @@ class Polyhedron_base(Element):
             [1 0 1 1]
             [0 1 1 1]
 
-        The incidence matrix does not uniquely determine
-        an unbounded polyhedra::
+        An incidence matrix does not determine a unique
+        polyhedron::
 
             sage: P = Polyhedron(vertices=[[0,1],[1,1],[1,0]])
             sage: P.incidence_matrix()

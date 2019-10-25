@@ -1478,7 +1478,7 @@ def isotopism(p):
     - a list of integers -- the function adds `1` to each member of the
       list, and returns the corresponding permutation.
 
-    - a :class:`PermutationConstructor` ``p`` -- returns a permutation
+    - a :class:`PermutationGroupElement` ``p`` -- returns a permutation
       describing ``p`` **without** any shift.
 
     EXAMPLES::

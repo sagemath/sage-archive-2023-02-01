@@ -672,13 +672,10 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
 
     INPUT:
 
-    - ``polyhedron`` -- an instance of :class:`~sage.geometry.polyhedron.base.Polyhedron_base`;
-      the polyhedron from which the combinatorial polyhedron was obtained.
-    - ``combinatorial_face`` -- a :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`;
-      obtained from the :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron` of
-      ``polyhedron``.
+    - ``polyhedron`` -- a polyhedron containing ``combinatorial_face``
+    - ``combinatorial_face`` -- a ``CombinatorialFace``
 
-    OUTPUT: a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`.
+    OUTPUT: a ``PolyhedronFace``.
 
     EXAMPLES::
 

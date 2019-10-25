@@ -230,7 +230,6 @@ class TateCurve(SageObject):
             pass
 
         qE = self.parameter(prec=prec)
-        n = qE.valuation()
         precp = prec + 2
         R = qE.parent()
 

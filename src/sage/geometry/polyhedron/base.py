@@ -1195,36 +1195,30 @@ class Polyhedron_base(Element):
 
         .. WARNING::
 
-            In case of a polyhedron with lines (unpointed polyhedron),
-            return the number of vertices of the ``Vrepresentation``.
-            Wheras the polyhedron has no vertices, this number corresponds
-            to the number of `k`-faces, where `k` is the number of lines.
+            If the polyhedron has lines, return the number of vertices in
+            the ``Vrepresentation``. As the represented polyhedron has
+            no 0-dimensional faces (i.e. vertices), ``n_vertices`` corresponds
+            to the number of `k`-faces, where `k` is the number of lines::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.n_vertices()
+                1
+                sage: P.faces(0)
+                ()
+                sage: P.f_vector()
+                (1, 0, 1, 1)
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0],[0,1,1]])
+                sage: P.n_vertices()
+                1
+                sage: P.f_vector()
+                (1, 0, 0, 1, 1)
 
         EXAMPLES::
 
             sage: p = Polyhedron(vertices = [[1,0],[0,1],[1,1]], rays=[[1,1]])
             sage: p.n_vertices()
             2
-
-        The case of a polyhedron with lines::
-
-            sage: P = Polyhedron(lines=[[0,1], [1,0]]); P
-            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 lines
-            sage: P.f_vector()
-            (1, 0, 0, 1)
-            sage: P.n_vertices()
-            1
-            sage: P.n_lines()
-            2
-
-            sage: Q = polytopes.cube() * P * P; Q
-            A 7-dimensional polyhedron in ZZ^7 defined as the convex hull of 8 vertices and 4 lines
-            sage: Q.f_vector()
-            (1, 0, 0, 0, 0, 8, 12, 6, 1)
-            sage: Q.n_vertices()
-            8
-            sage: Q.n_lines()
-            4
         """
         return len(self.vertices())
 
@@ -1793,9 +1787,15 @@ class Polyhedron_base(Element):
 
         .. WARNING::
 
-            In case of a polyhedron with lines (unpointed polyhedron),
-            return the vertices of the ``Vrepresentation``. Those are not
-            vertices of the polyhedron.
+            If the polyhedron has lines, return the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.vertices_list()
+                [[0, 0, 0]]
+                sage: P.faces(0)
+                ()
 
         EXAMPLES::
 
@@ -1809,12 +1809,6 @@ class Polyhedron_base(Element):
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
             sage: a_simplex.vertices_list() == [list(v) for v in a_simplex.vertex_generator()]
             True
-
-        The case of a polyhedron with lines:
-        Return the vertices of the ``Vrepresentation``::
-
-            sage: Polyhedron(lines=[[0,1]]).vertices_list()
-            [[0, 0]]
         """
         return [list(x) for x in self.vertex_generator()]
 
@@ -1824,9 +1818,15 @@ class Polyhedron_base(Element):
 
         .. WARNING::
 
-            In case of a polyhedron with lines (unpointed polyhedron),
-            generate the vertices of the ``Vrepresentation``. Those are not
-            vertices of the polyhedron.
+            If the polyhedron has lines, return a generator for the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: list(P.vertex_generator())
+                [A vertex at (0, 0, 0)]
+                sage: P.faces(0)
+                ()
 
         EXAMPLES::
 
@@ -1849,12 +1849,6 @@ class Polyhedron_base(Element):
             <... 'generator'>
             sage: [ v for v in triangle.vertex_generator() ]
             [A vertex at (0, 1), A vertex at (1, 0), A vertex at (1, 1)]
-
-        The case of a polyhedron with lines:
-        Generate the vertices of the ``Vrepresentation``::
-
-            sage: [v for v in Polyhedron(lines=[[0,1]]).vertex_generator() ]
-            [A vertex at (0, 0)]
         """
         for V in self.Vrepresentation():
             if V.is_vertex():
@@ -1871,9 +1865,15 @@ class Polyhedron_base(Element):
 
         .. WARNING::
 
-            In case of a polyhedron with lines (unpointed polyhedron),
-            return the vertices of the ``Vrepresentation``. Those are not
-            vertices of the polyhedron.
+            If the polyhedron has lines, return the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.vertices()
+                (A vertex at (0, 0, 0),)
+                sage: P.faces(0)
+                ()
 
         EXAMPLES::
 
@@ -1886,12 +1886,6 @@ class Polyhedron_base(Element):
             sage: a_simplex.vertices()
             (A vertex at (1, 0, 0, 0), A vertex at (0, 1, 0, 0),
              A vertex at (0, 0, 1, 0), A vertex at (0, 0, 0, 1))
-
-        The case of a polyhedron with lines:
-        Return the vertices of the ``Vrepresentation``::
-
-            sage: Polyhedron(lines=[[0,1]]).vertices()
-            (A vertex at (0, 0),)
         """
         return tuple(self.vertex_generator())
 
@@ -1914,9 +1908,17 @@ class Polyhedron_base(Element):
 
         .. WARNING::
 
-            In case of a polyhedron with lines (unpointed polyhedron),
-            the columns of the matrix correspond to vertices of the
-            ``Vrepresentation``, which are not vertices of the polyhedron.
+            If the polyhedron has lines, return the coordinates of the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.vertices_matrix()
+                [0]
+                [0]
+                [0]
+                sage: P.faces(0)
+                ()
 
         EXAMPLES::
 
@@ -1931,13 +1933,6 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: no conversion of this rational to integer
-
-        The case of a polyhedron with lines:
-        The columns correspond to vertices of the ``Vrepresentation``::
-
-            sage: Polyhedron(lines=[[0,1]]).vertices_matrix()
-            [0]
-            [0]
         """
         if base_ring is None:
             base_ring = self.base_ring()

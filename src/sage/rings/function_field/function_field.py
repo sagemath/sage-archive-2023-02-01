@@ -3496,6 +3496,11 @@ class FunctionField_integral(FunctionField_polymod):
             sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
             sage: F.equation_order()
             Order in Function field in y defined by y^3 + x^6 + x^4 + x^2
+
+            sage: K.<x> = FunctionField(QQ); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: F.equation_order()
+            Order in Function field in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2
         """
         from .order import FunctionFieldOrder_basis
         a = self.gen()
@@ -3544,6 +3549,11 @@ class FunctionField_integral(FunctionField_polymod):
             sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
             sage: F.equation_order_infinite()
             Infinite order in Function field in y defined by y^3 + x^6 + x^4 + x^2
+
+            sage: K.<x> = FunctionField(QQ); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: F.equation_order_infinite()
+            Infinite order in Function field in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2
         """
         from .order import FunctionFieldOrderInfinite_basis
         b = self.primitive_integal_element_infinite()

@@ -150,6 +150,7 @@ from sage.interfaces.gap import GapElement
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement as LibGapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
+from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap
@@ -1019,8 +1020,42 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G = PermutationGroup([('A','B'),('B','C')])
             sage: [g for g in G]
             [(), ('A','B','C'), ('A','C','B'), ('B','C'), ('A','B'), ('A','C')]
+
+            sage: G = SymmetricGroup(5).subgroup([])
+            sage: list(G)
+            [()]
+
+            sage: G = SymmetricGroup(5).subgroup(['(1,2,3)(4,5)'])
+            sage: list(G)
+            [(), (1,2,3)(4,5), (1,3,2), (4,5), (1,2,3), (1,3,2)(4,5)]
         """
-        return self.iteration(algorithm="SGS")
+        if len(self._gens) == 1:
+            return self._iteration_monogen()
+        else:
+            # TODO: this is too slow for moderatly small permutation groups
+            return self.iteration(algorithm="SGS")
+
+    def _iteration_monogen(self):
+        r"""
+        An iterator for cyclic group.
+
+        EXAMPLES::
+
+            sage: for g in PermutationGroup(['(1,2,4)(3,5)'])._iteration_monogen():
+            ....:     print(g)
+            ()
+            (1,2,4)(3,5)
+            (1,4,2)
+            (3,5)
+            (1,2,4)
+            (1,4,2)(3,5)
+        """
+        g = self._gens[0]
+        h = self.one()
+        yield h
+        for i in range(g.order() - 1):
+            h *= g
+            yield h
 
     def iteration(self, algorithm="SGS"):
         """
@@ -1067,9 +1102,12 @@ class PermutationGroup_generic(FiniteGroup):
             sage: A.cardinality()
             60000
 
-            sage: for x in A.iteration(): pass
-            sage: for x in A.iteration(algorithm="BFS"): pass
-            sage: for x in A.iteration(algorithm="DFS"): pass
+            sage: sum(1 for x in A.iteration()) == 60000
+            True
+            sage: sum(1 for x in A.iteration(algorithm="BFS")) == 60000
+            True
+            sage: sum(1 for x in A.iteration(algorithm="DFS")) == 60000
+            True
         """
         if algorithm == "SGS":
             def elements(SGS):
@@ -1219,7 +1257,8 @@ class PermutationGroup_generic(FiniteGroup):
         """
         return len(self.gens())
 
-    def identity(self):
+    @cached_method
+    def one(self):
         """
         Return the identity element of this group.
 
@@ -1239,7 +1278,9 @@ class PermutationGroup_generic(FiniteGroup):
             sage: S.identity()
             ()
         """
-        return self.element_class([], self, check=True)
+        return self.element_class([], self, check=False)
+
+    identity = one
 
     def exponent(self):
         r"""
@@ -2409,7 +2450,7 @@ class PermutationGroup_generic(FiniteGroup):
         """
 
         try:
-            g = PermutationGroupElement(g)
+            g = PermutationConstructor(g)
         except Exception:
             raise TypeError("{0} does not convert to a permutation group element".format(g))
         return PermutationGroup(gap_group=libgap.ConjugateGroup(self, g))

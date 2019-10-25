@@ -143,9 +143,6 @@ class MultiGraphics(WithEqualityById, SageObject):
             Multigraphics with 2 elements
 
         """
-        if not isinstance(graphics_list, (list, tuple)):
-            raise TypeError("graphics_list must be a list or a tuple, "
-                            "not {}".format(graphics_list))
         self._glist = []
         self._positions = []
         #
@@ -749,7 +746,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         Add a subplot to a given Matplotlib ``Figure``, the position of
         which is governed by a given element of ``self``.
 
-        This method encapsulates the Matplotlib method ``Figure.add_subplot``
+        This method encapsulates the Matplotlib method ``Figure.add_axes``
         and is intended to be called by :meth:`MultiGraphics.save`.
 
         INPUT:

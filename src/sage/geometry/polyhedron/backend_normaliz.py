@@ -981,9 +981,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
-            sage: P = polytopes.cube(backend='normaliz') # optional - pynormaliz
-            sage: Q = copy(P)
-            sage: P._normaliz_cone is Q._normaliz_cone
+            sage: P = polytopes.cube(backend='normaliz')    # optional - pynormaliz
+            sage: Q = copy(P)                               # optional - pynormaliz
+            sage: P._normaliz_cone is Q._normaliz_cone      # optional - pynormaliz
             False
         """
         other = super(Polyhedron_normaliz, self).__copy__()

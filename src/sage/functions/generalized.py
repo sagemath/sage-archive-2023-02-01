@@ -396,7 +396,7 @@ class FunctionSignum(BuiltinFunction):
         sage: sgn(x)._sympy_()
         sign(x)
         sage: sgn(x)._fricas_init_()
-        'sign(x)'
+        'sign((x::EXPR INT))'
         sage: sgn(x)._giac_()
         sign(x)
 

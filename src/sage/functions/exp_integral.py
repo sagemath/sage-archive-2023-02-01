@@ -437,7 +437,7 @@ class Function_log_integral(BuiltinFunction):
             sage: log_integral(x)._sympy_()
             li(x)
             sage: log_integral(x)._fricas_init_()
-            'li(x)'
+            'li((x::EXPR INT))'
         """
         BuiltinFunction.__init__(self, "log_integral", nargs=1,
                                  latex_name=r'log_integral',
@@ -795,7 +795,7 @@ class Function_sin_integral(BuiltinFunction):
             sage: sin_integral(x)._sympy_()
             Si(x)
             sage: sin_integral(x)._fricas_init_()
-            'Si(x)'
+            'Si((x::EXPR INT))'
             sage: sin_integral(x)._giac_()
             Si(x)
         """
@@ -971,7 +971,7 @@ class Function_cos_integral(BuiltinFunction):
             sage: cos_integral(x)._sympy_()
             Ci(x)
             sage: cos_integral(x)._fricas_init_()
-            'Ci(x)'
+            'Ci((x::EXPR INT))'
             sage: cos_integral(x)._giac_()
             Ci(x)
         """

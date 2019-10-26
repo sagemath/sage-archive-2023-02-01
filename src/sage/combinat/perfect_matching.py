@@ -621,7 +621,7 @@ class PerfectMatchings(SetPartitions_set):
             sage: PerfectMatchings([-1, -3, 1, 2])
             Perfect matchings of {1, 2, -3, -1}
         """
-        return "Perfect matchings of %s"%(Set(self._set))
+        return "Perfect matchings of %s" % Set(self._set)
 
     def __iter__(self):
         """
@@ -633,7 +633,7 @@ class PerfectMatchings(SetPartitions_set):
             [[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]]
         """
         s = list(self._set)
-        if len(s) % 2 != 0:
+        if len(s) % 2:
             return
         # The iterator from fixed-point-free involutions has the resulting
         #   list of pairs sorted by their minimal element.

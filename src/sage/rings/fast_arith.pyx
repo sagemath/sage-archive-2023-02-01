@@ -52,9 +52,8 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     If the second argument is omitted, this returns the primes up to the
     first argument.
 
-    The sage command ``primes`` is an
-    alternative that uses less memory (but may be slower), because it returns an
-    iterator, rather than building a list of the primes.
+    The sage command ``primes`` is an alternative that uses less memory (but may be
+    slower), because it returns an iterator, rather than building a list of the primes.
 
     INPUT:
 
@@ -143,9 +142,24 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     DEF small_prime_max = 436273009 # a prime < init_primes_max (preferably the largest)
     DEF prime_gap_bound = 250 # upper bound for gap between primes <= small_prime_max
 
-    start = Integer(start)
+    # make sure that start and stop are integers
+    try:
+        start = Integer(start)
+    except TypeError as integer_error:
+        try:
+            start = Integer(round(start))
+        except (ValueError, TypeError) as real_error:
+            raise TypeError(str(integer_error)
+                + "\nand argument is also not real: " + str(real_error))
     if stop is not None:
-        stop = Integer(stop)
+        try:
+            stop = Integer(stop)
+        except TypeError as integer_error:
+            try:
+                stop = Integer(round(stop))
+            except (ValueError, TypeError) as real_error:
+                raise ValueError(str(integer_error)
+                    + "\nand argument is also not real: " + str(real_error))
 
     if (algorithm == "pari_primes") and (max(start,stop) <= small_prime_max):
 

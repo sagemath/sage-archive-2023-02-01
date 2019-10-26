@@ -2365,13 +2365,79 @@ class Polyhedron_base(Element):
             True
             sage: p.incidence_matrix() [2,0]   # note: not symmetric
             0
+
+        The incidence matrix depends on the ambient dimension::
+
+            sage: simplex = polytopes.simplex(); simplex
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: simplex.incidence_matrix()
+            [1 1 1 1 0]
+            [1 1 1 0 1]
+            [1 1 0 1 1]
+            [1 0 1 1 1]
+            sage: simplex = simplex.affine_hull(); simplex
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: simplex.incidence_matrix()
+            [1 1 1 0]
+            [1 1 0 1]
+            [1 0 1 1]
+            [0 1 1 1]
+
+        An incidence matrix does not determine a unique
+        polyhedron::
+
+            sage: P = Polyhedron(vertices=[[0,1],[1,1],[1,0]])
+            sage: P.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
+
+            sage: Q = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
+            sage: Q.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
+
+
+        An example of two polyhedra with isomorphic face lattices
+        but different incidence matrices::
+
+            sage: Q.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
+
+            sage: R = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,3/2], [3/2,1]])
+            sage: R.incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 0]
+            [0 0 1]
         """
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
-        for V in self.Vrep_generator():
-            for H in self.Hrep_generator():
-                if self._is_zero(H*V):
-                    incidence_matrix[V.index(), H.index()] = 1
+
+        Vvectors_vertices = tuple((v.vector(),v.index())
+                                  for v in self.Vrep_generator()
+                                  if v.is_vertex())
+        Vvectors_rays_lines = tuple((v.vector(),v.index())
+                                    for v in self.Vrep_generator()
+                                    if not v.is_vertex())
+
+        for H in self.Hrep_generator():
+            Hconst = H.b()
+            Hvec = H.A()
+            Hindex = H.index()
+            for Vvec, Vindex in Vvectors_vertices:
+                if self._is_zero(Hvec*Vvec + Hconst):
+                   incidence_matrix[Vindex, Hindex] = 1
+
+            # A ray or line is considered incident with a hyperplane,
+            # if it is orthogonal to the normal vector of the hyperplane.
+            for Vvec, Vindex in Vvectors_rays_lines:
+                if self._is_zero(Hvec*Vvec):
+                   incidence_matrix[Vindex, Hindex] = 1
+
         return incidence_matrix
 
     def base_ring(self):

@@ -8,7 +8,13 @@
 
     body { margin: 0px; overflow: hidden; }
 
-    #download { position: absolute; bottom: 30px; right: 40px; }
+    #menu-container { position: absolute; bottom: 30px; right: 40px; }
+
+    #menu-content { position: absolute; bottom: 0px; right: 0px;
+                    display: none; background-color: #F5F5F5; border-bottom: 1px solid black;
+                    border-right: 1px solid black; border-left: 1px solid black; }
+
+    #menu-content div { border-top: 1px solid black; padding: 10px; white-space: nowrap; }
   
 </style>
 </head>
@@ -202,15 +208,6 @@ SAGE_SCRIPTS
         
     } );
 
-    function saveAsPNG() {
-
-        var a = document.body.appendChild( document.createElement( 'a' ) );
-        a.href = renderer.domElement.toDataURL( 'image/png' );
-        a.download = 'screenshot';
-        a.click();
-
-    }
-
     var texts = SAGE_TEXTS;
     for ( var i=0 ; i < texts.length ; i++ )
         addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z );
@@ -377,9 +374,56 @@ SAGE_SCRIPTS
     controls.update();
     if ( !animate ) render();
 
+
+    // menu functions
+
+    function toggleMenu() {
+
+        var m = document.getElementById( 'menu-content' );
+        if ( m.style.display === 'block' ) m.style.display = 'none'
+        else m.style.display = 'block';
+
+    }
+
+
+    function saveAsPNG() {
+
+        var a = document.body.appendChild( document.createElement( 'a' ) );
+        a.href = renderer.domElement.toDataURL( 'image/png' );
+        a.download = 'screenshot';
+        a.click();
+
+    }
+
+    function saveAsHTML() {
+
+        toggleMenu(); // otherwise visible in output
+        event.stopPropagation();
+
+        var blob = new Blob( [ '<!DOCTYPE html>\n' + document.documentElement.outerHTML ] );
+        var a = document.body.appendChild( document.createElement( 'a' ) );
+        a.href = window.URL.createObjectURL( blob );
+        a.download = 'graphic.html';
+        a.click();
+
+    }
+
+    function getViewpoint() {
+
+        var info = '<pre>' + JSON.stringify( camera, null, '\t' ) + '</pre>';
+        window.open().document.write( info );
+
+    }
+
 </script>
 
-<span id="download" onclick="saveAsPNG()">&#x2b07;</span>
+<div id="menu-container" onclick="toggleMenu()">&#x24D8;
+<div id="menu-content">
+<div onclick="saveAsPNG()">Save as PNG</div>
+<div onclick="saveAsHTML()">Save as HTML</div>
+<div onclick="getViewpoint()">Camera Info</div>
+<div>Close Menu</div>
+</div></div>
 
 </body>
 </html>

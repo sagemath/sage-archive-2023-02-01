@@ -60,9 +60,11 @@ def sphinx_plot(graphics, **kwds):
         if isinstance(graphics, (sage.plot.graphics.Graphics,
                                  sage.plot.multigraphics.MultiGraphics)):
             graphics.matplotlib(figure=figure, figsize=figsize, **options)
-            # tight_layout adjusts the *subplot* parameters so ticks aren't
-            # cut off, etc.
-            figure.tight_layout()
+            if isinstance(graphics, (sage.plot.graphics.Graphics,
+                                     sage.plot.multigraphics.GraphicsArray)):
+                # for Graphics and GraphicsArray, tight_layout adjusts the
+                # *subplot* parameters so ticks aren't cut off, etc.
+                figure.tight_layout()
         else:
             # 3d graphics via png
             import matplotlib as mpl

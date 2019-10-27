@@ -53,7 +53,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-from sage.arith.misc import (is_prime, is_square)
+from sage.arith.misc import is_prime
 from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
@@ -3917,8 +3917,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 res = res.univariate_polynomial()
                 #adjust multiplicities
                 L = res.factor()
-                for p,e in L:
-                    good_res *= p**(e/n)
+                for p,exp in L:
+                    good_res *= p**(exp/n)
             else:
                 #For each d-th dynatomic for d dividing n, take
                 #one multiplier per cycle; e.g., this treats a double 2
@@ -5937,11 +5937,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             Y = G.factor()
             R = G.parent()
             u = G
-            for p,e in Y:
+            for p,exp in Y:
                 if p.degree() == 1:
                     if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
                         return True
-                    G = R(G/(p**e)) # we already checked this root
+                    G = R(G/(p**exp)) # we already checked this root
                 else:
                     u = p #need to extend to get these roots
             if G.degree() != 0:
@@ -6055,7 +6055,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             raise NotImplementedError("must be over an absolute number field or finite field")
         if K in FiniteFields():
             q = K.characteristic()
-            var = K.variable_name()
         psi = K.hom([K.gen()]) #identity hom for return_embedding
         g = self
         G = self.dehomogenize(1).dynatomic_polynomial(1)
@@ -6084,7 +6083,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             Y = G.factor()
             R = G.parent()
             done = True
-            for p,e in Y:
+            for p,exp in Y:
                 if p.degree() == 1:
                     if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
                         T = self.domain()(-p[0], p[1])

@@ -1224,7 +1224,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         return self, ZZ(1)
 
     def charpoly(self, var='x', algorithm=None):
-        """
+        r"""
         .. NOTE::
 
             The characteristic polynomial is defined as `\det(xI-A)`.
@@ -1346,7 +1346,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         return g
 
     def minpoly(self, var='x', algorithm=None):
-        """
+        r"""
         INPUT:
 
 

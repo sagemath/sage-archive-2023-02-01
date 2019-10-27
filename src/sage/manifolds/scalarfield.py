@@ -1213,6 +1213,29 @@ class ScalarField(CommutativeAlgebraElement):
             return True
         return all(func.is_trivial_zero() for func in self._express.values())
 
+    # TODO: Remove this method as soon as ticket #28629 is solved?
+    def is_unit(self):
+        r"""
+        Return ``True`` iff ``self`` is not trivially zero in at least one of
+        the given expressions since most scalar fields are invertible and a
+        complete computation would take too much time.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: one = M.scalar_field_algebra().one()
+            sage: one.is_unit()
+            True
+            sage: zero = M.scalar_field_algebra().zero()
+            sage: zero.is_unit()
+            False
+
+        """
+        if self._is_zero:
+            return False
+        return not any(func.is_trivial_zero()
+                       for func in self._express.values())
+
     def __eq__(self, other):
         r"""
         Comparison (equality) operator.
@@ -1477,6 +1500,7 @@ class ScalarField(CommutativeAlgebraElement):
                             latex_name=self._latex_name)
         for chart, funct in self._express.items():
             result._express[chart] = funct.copy()
+        result._is_zero = self._is_zero
         return result
 
     def coord_function(self, chart=None, from_chart=None):
@@ -1684,12 +1708,29 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f._express # the (u,v) expression has been lost:
             {Chart (M, (x, y)): 3*y}
 
+        Since zero and one are special elements, their expressions cannot be
+        changed::
+
+            sage: z = M.zero_scalar_field()
+            sage: z.set_expr(3*y)
+            Traceback (most recent call last):
+            ...
+            AssertionError: the expressions of the element zero cannot be changed
+            sage: one = M.one_scalar_field()
+            sage: one.set_expr(3*y)
+            Traceback (most recent call last):
+            ...
+            AssertionError: the expressions of the element 1 cannot be changed
+
         """
+        if self is self.parent().one() or self is self.parent().zero():
+            raise AssertionError("the expressions of the element "
+                                 "{} cannot be changed".format(self._name))
         if chart is None:
             chart = self._domain._def_chart
-        self._is_zero = False # a priori
         self._express.clear()
         self._express[chart] = chart.function(coord_expression)
+        self._is_zero = False # a priori
         self._del_derived()
 
     def add_expr(self, coord_expression, chart=None):
@@ -1729,7 +1770,24 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f._express # random (dict. output); f has now 2 expressions:
             {Chart (M, (x, y)): 3*y, Chart (M, (u, v)): cos(u) - sin(v)}
 
+        Since zero and one are special elements, their expressions cannot be
+        changed::
+
+            sage: z = M.zero_scalar_field()
+            sage: z.add_expr(cos(u)-sin(v), c_uv)
+            Traceback (most recent call last):
+            ...
+            AssertionError: the expressions of the element zero cannot be changed
+            sage: one = M.one_scalar_field()
+            sage: one.add_expr(cos(u)-sin(v), c_uv)
+            Traceback (most recent call last):
+            ...
+            AssertionError: the expressions of the element 1 cannot be changed
+
         """
+        if self is self.parent().one() or self is self.parent().zero():
+            raise AssertionError("the expressions of the element "
+                                 "{} cannot be changed".format(self._name))
         if chart is None:
             chart = self._domain._def_chart
         self._express[chart] = chart.function(coord_expression)
@@ -2386,9 +2444,9 @@ class ScalarField(CommutativeAlgebraElement):
         """
         # Special cases:
         if self._is_zero:
-            return other.copy()
+            return other
         if other._is_zero:
-            return self.copy()
+            return self
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2437,7 +2495,7 @@ class ScalarField(CommutativeAlgebraElement):
         if self._is_zero:
             return -other
         if other._is_zero:
-            return self.copy()
+            return self
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:

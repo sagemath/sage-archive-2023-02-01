@@ -18,6 +18,8 @@ AUTHORS:
 - Marco Mancini (2017): SymPy as an optional symbolic engine, alternative to SR
 - Florentin Jaffredo (2018) : series expansion with respect to a given
   parameter
+- Michael Jung (2019) : improve restrictions; make ``display()`` show all
+  distinct expressions
 
 REFERENCES:
 
@@ -1423,24 +1425,6 @@ class ScalarField(CommutativeAlgebraElement):
         for rst in self._restrictions.values():
             rst.set_name(name=name, latex_name=latex_name)
 
-    def _new_instance(self):
-        r"""
-        Create an instance of the same class as ``self`` in the same parent.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M')
-            sage: f = M.scalar_field(name='f')
-            sage: f1 = f._new_instance(); f1
-            Scalar field on the 2-dimensional differentiable manifold M
-            sage: type(f1) == type(f)
-            True
-            sage: f1.parent() is f.parent()
-            True
-
-        """
-        return type(self)(self.parent())
-
     def domain(self):
         r"""
         Return the open subset on which the scalar field is defined.
@@ -1489,12 +1473,11 @@ class ScalarField(CommutativeAlgebraElement):
             False
 
         """
-        res = self._new_instance()
-        res._name = self._name
-        res._latex_name = self._latex_name
+        result = type(self)(self.parent(), name=self._name,
+                            latex_name=self._latex_name)
         for chart, funct in self._express.items():
-            res._express[chart] = funct.copy()
-        return res
+            result._express[chart] = funct.copy()
+        return result
 
     def coord_function(self, chart=None, from_chart=None):
         r"""
@@ -2328,7 +2311,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        result = self._new_instance()
+        result = type(self)(self.parent())
         for chart in self._express:
             result._express[chart] = + self._express[chart]
         if self._name is not None:
@@ -2359,7 +2342,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        result = self._new_instance()
+        result = type(self)(self.parent())
         for chart in self._express:
             result._express[chart] = - self._express[chart]
         if self._name is not None:
@@ -2410,7 +2393,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the addition")
-        result = self._new_instance()
+        result = type(self)(self.parent())
         for chart in com_charts:
             # ChartFunction addition:
             result._express[chart] = self._express[chart] + other._express[chart]
@@ -2459,7 +2442,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the subtraction")
-        result = self._new_instance()
+        result = type(self)(self.parent())
         for chart in com_charts:
             # ChartFunction subtraction:
             result._express[chart] = self._express[chart] - other._express[chart]
@@ -2511,7 +2494,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the multiplication")
-        result = self._new_instance()
+        result = type(self)(self.parent())
         for chart in com_charts:
             # ChartFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
@@ -2563,7 +2546,7 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the division")
-        result = self._new_instance()
+        result = type(self)(self.parent())
         for chart in com_charts:
             # ChartFunction division:
             result._express[chart] = self._express[chart] / other._express[chart]
@@ -2621,7 +2604,7 @@ class ScalarField(CommutativeAlgebraElement):
         """
         if number == 0:
             return self.parent().zero()
-        result = self._new_instance()
+        result = type(self)(self.parent())
         if isinstance(number, Expression):
             var = number.variables()  # possible symbolic variables in number
             if var:
@@ -2738,8 +2721,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("exp", r"\exp")
+        name, latex_name = self._function_name("exp", r"\exp")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.exp()
         return resu
@@ -2771,8 +2754,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("ln", r"\ln")
+        name, latex_name = self._function_name("ln", r"\ln")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.log()
         return resu
@@ -2831,9 +2814,7 @@ class ScalarField(CommutativeAlgebraElement):
         else:
             latex_name = r"{" + self._latex_name + r"}^{" + \
                          latex(exponent) + r"}"
-        resu = self._new_instance()
-        resu._name = name
-        resu._latex_name = latex_name
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.__pow__(exponent)
         return resu
@@ -2868,9 +2849,9 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("sqrt", r"\sqrt",
-                                                           parentheses=False)
+        name, latex_name = self._function_name("sqrt", r"\sqrt",
+                                               parentheses=False)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.sqrt()
         return resu
@@ -2904,8 +2885,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("cos", r"\cos")
+        name, latex_name = self._function_name("cos", r"\cos")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.cos()
         return resu
@@ -2939,8 +2920,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("sin", r"\sin")
+        name, latex_name = self._function_name("sin", r"\sin")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.sin()
         return resu
@@ -2976,8 +2957,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("tan", r"\tan")
+        name, latex_name = self._function_name("tan", r"\tan")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.tan()
         return resu
@@ -3020,8 +3001,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("arccos", r"\arccos")
+        name, latex_name = self._function_name("arccos", r"\arccos")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arccos()
         return resu
@@ -3064,8 +3045,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("arcsin", r"\arcsin")
+        name, latex_name = self._function_name("arcsin", r"\arcsin")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arcsin()
         return resu
@@ -3108,8 +3089,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("arctan", r"\arctan")
+        name, latex_name = self._function_name("arctan", r"\arctan")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arctan()
         return resu
@@ -3141,8 +3122,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("cosh", r"\cosh")
+        name, latex_name = self._function_name("cosh", r"\cosh")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.cosh()
         return resu
@@ -3174,8 +3155,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("sinh", r"\sinh")
+        name, latex_name = self._function_name("sinh", r"\sinh")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.sinh()
         return resu
@@ -3209,8 +3190,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("tanh", r"\tanh")
+        name, latex_name = self._function_name("tanh", r"\tanh")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.tanh()
         return resu
@@ -3252,9 +3233,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("arccosh",
-                                                           r"\,\mathrm{arccosh}")
+        name, latex_name = self._function_name("arccosh", r"\,\mathrm{arccosh}")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arccosh()
         return resu
@@ -3296,9 +3276,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("arcsinh",
-                                                           r"\,\mathrm{arcsinh}")
+        name, latex_name = self._function_name("arcsinh", r"\,\mathrm{arcsinh}")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arcsinh()
         return resu
@@ -3342,9 +3321,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        resu = self._new_instance()
-        resu._name, resu._latex_name = self._function_name("arctanh",
-                                                           r"\,\mathrm{arctanh}")
+        name, latex_name = self._function_name("arctanh", r"\,\mathrm{arctanh}")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arctanh()
         return resu

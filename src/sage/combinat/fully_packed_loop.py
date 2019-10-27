@@ -6,7 +6,7 @@ AUTHORS:
 - Vincent Knight, James Campbell, Kevin Dilks, Emily Gunawan (2015): Initial version
 - Vincent Delecroix (2017): cleaning and enhanced plotting function
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Vincent Knight <vincent.knight@gmail.com>
 #                          James Campbell <james.campbell@tanti.org.uk>
 #                          Kevin Dilks <kdilks@gmail.com>
@@ -22,9 +22,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-# python3
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import division, print_function
 from six import add_metaclass
 
@@ -870,7 +869,7 @@ class FullyPackedLoop(Element):
         sv = self._six_vertex_model
         n = len(sv)
 
-        # LR boudaries => odd sum
+        # LR boundaries => odd sum
         # UD boundaries => even sum
         rank = self.parent()._boundary_index
         unrank = self.parent()._boundary

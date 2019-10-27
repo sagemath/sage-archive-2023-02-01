@@ -22,8 +22,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from . import homset
 import weakref
 from sage.ext.stdsage cimport HAS_DICTIONARY
@@ -817,7 +815,7 @@ cdef class Map(Element):
             ...
             NotImplementedError: _call_with_args not overridden to accept arguments for <type 'sage.categories.map.Map'>
         """
-        if len(args) == 0 and len(kwds) == 0:
+        if not args and not kwds:
             return self(x)
         else:
             raise NotImplementedError("_call_with_args not overridden to accept arguments for %s" % type(self))

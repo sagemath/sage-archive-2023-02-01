@@ -3802,7 +3802,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.rings.all import prime_range
         if full_saturation:
             if lower_ht_bound is None:
-                # TODO (robertb): verify this for rank > 1
+                # TODO (robertwb): verify this for rank > 1
                 if verbose:
                     print("Computing lower height bound..")
                 lower_ht_bound = self.height_function().min(.1, 5) ** n

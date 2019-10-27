@@ -2950,11 +2950,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
               Defn: a -> 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
         """
         embedding = self.coerce_embedding()
-        if embedding is not None:
-            from sage.rings.real_mpfr import mpfr_prec_min
-            from sage.rings.complex_field import ComplexField
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                 return embedding
+        if embedding is not None and embedding.codomain()._is_numerical():
+            return embedding
 
     def gen_embedding(self):
         """
@@ -3723,7 +3720,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 split_primes.append(p)
         return split_primes
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Return whether or not there is a homomorphism defined by the given
         images of generators.
@@ -3748,12 +3745,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if len(im_gens) != 1:
             return False
-        # We need that elements of the base ring of the polynomial
-        # ring map canonically into codomain.
-        if not codomain.has_coerce_map_from(QQ):
+        if base_map is None and not codomain.has_coerce_map_from(QQ):
+            # We need that elements of the base ring of the polynomial
+            # ring map canonically into codomain.
             return False
         f = self.defining_polynomial()
         try:
+            # The current implementation won't productively use base_map
+            # since the coefficients of f are in QQ, if there is a hom
+            # from QQ to codomain it's probably unique and just the coercion
+            if base_map is not None:
+                f = f.map_coefficients(base_map)
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False

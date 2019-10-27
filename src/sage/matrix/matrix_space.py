@@ -921,7 +921,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
             Left scalar multiplication by Integer Ring on Full MatrixSpace of 2 by 3 dense matrices over Rational Field
         """
         try:
-            from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
             from sage.schemes.generic.homset import SchemeHomset_generic
             if op is operator.mul:
                 from . import action as matrix_action

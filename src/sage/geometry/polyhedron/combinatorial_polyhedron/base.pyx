@@ -184,7 +184,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     an integer::
 
         sage: CombinatorialPolyhedron(-1).f_vector()
-        (1,)
+        (1)
         sage: CombinatorialPolyhedron(0).f_vector()
         (1, 1)
         sage: CombinatorialPolyhedron(5).f_vector()
@@ -240,7 +240,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(P2).f_vector()
         (1, 3, 3, 1)
 
-    Some other tests regaring small polyhedra::
+    Some other tests regarding small polyhedra::
 
         sage: P = Polyhedron(rays=[[1,0],[0,1]])
         sage: C = CombinatorialPolyhedron(P)
@@ -351,7 +351,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             test = [1] * len(facets)  # 0 if that facet is an equality
             for i in range(len(facets)):
                 if hasattr(facets[i], "is_inequality"):
-                    # We remove equalites.
+                    # We remove equalities.
                     # At the moment only equalities with this attribute ``True``
                     # will be detected.
                     if not facets[i].is_inequality():
@@ -759,7 +759,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: C = CombinatorialPolyhedron(-1)
             sage: C.f_vector()
-            (1,)
+            (1)
             sage: C.n_facets()
             0
 
@@ -1117,12 +1117,19 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.f_vector()
             (1, 10, 45, 120, 185, 150, 50, 1)
+
+        TESTS::
+
+            sage: type(C.f_vector())
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         """
         if not self._f_vector:
             self._compute_f_vector()
         if not self._f_vector:
             raise ValueError("could not determine f_vector")
-        return self._f_vector
+        from sage.modules.free_module_element import vector
+        from sage.rings.all                   import ZZ
+        return vector(ZZ, self._f_vector)
 
     def face_iter(self, dimension=None, dual=None):
         r"""

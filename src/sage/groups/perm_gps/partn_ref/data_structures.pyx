@@ -744,7 +744,7 @@ cdef StabilizerChain *SC_alternating_group(int n):
             SC_invert_perm(SC.gen_inverses[i] + n*j, SC.generators[i] + n*j, n)
     return SC
 
-cdef int SC_realloc_bitsets(StabilizerChain *SC, long size):
+cdef int SC_realloc_bitsets(StabilizerChain *SC, unsigned long size):
     """
     If size is larger than current allocation, double the size of the bitsets
     until it is not.
@@ -1144,7 +1144,8 @@ cdef bint SC_is_giant(int n, int num_perms, int *perms, float p, bitset_t suppor
     Running time is roughly O(-ln(1-p)*n*ln(m)) where m <= n is the size of the
     support of the group.
     """
-    cdef int i, j, num_steps, m = 1, support_root
+    cdef int i, j, num_steps, support_root
+    cdef size_t m = 1
     cdef unsigned long q
     cdef int *gen
     cdef int *perm = <int *> sig_malloc(n*sizeof(int))

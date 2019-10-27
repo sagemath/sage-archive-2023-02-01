@@ -635,6 +635,7 @@ class DiffScalarField(ScalarField):
         ScalarField.__init__(self, parent, coord_expression=coord_expression,
                              chart=chart, name=name, latex_name=latex_name)
         self._tensor_type = (0,0)
+        self._tensor_rank = 0
 
     ####### Required methods for an algebra element (beside arithmetic) #######
 
@@ -1057,7 +1058,7 @@ class DiffScalarField(ScalarField):
             0
 
         """
-        return 0
+        return self._tensor_rank
 
     def gradient(self, metric=None):
         r"""

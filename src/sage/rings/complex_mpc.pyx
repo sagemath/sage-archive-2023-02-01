@@ -57,7 +57,6 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 import re
 from . import real_mpfr
@@ -281,7 +280,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
 
         - ``prec`` -- (integer) precision; default = 53
 
-          prec is the number of bits used to represent the matissa of
+          prec is the number of bits used to represent the mantissa of
           both the real and imaginary part of complex floating-point number.
 
         - ``rnd`` -- (string) the rounding mode; default = ``'RNDNN'``

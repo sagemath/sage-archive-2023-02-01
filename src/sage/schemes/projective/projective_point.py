@@ -48,7 +48,6 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import RealField,is_RealField
 from sage.arith.all import gcd, lcm, is_prime, binomial
-from sage.functions.other import ceil
 
 from copy import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,

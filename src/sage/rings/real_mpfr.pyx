@@ -117,8 +117,6 @@ Make sure we don't have a new field for every new literal::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import math # for log
 import sys
 import re
@@ -897,7 +895,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         return [self.gen()]
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Return ``True`` if the map from ``self`` to ``codomain`` sending
         ``self(1)`` to the unique element of ``im_gens`` is a valid field
@@ -1776,7 +1774,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return hash(float(self))
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.

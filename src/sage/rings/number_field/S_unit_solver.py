@@ -1257,7 +1257,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
 
     EXAMPLES:
 
-    This example indictes a case where we must increase precision::
+    This example indicates a case where we must increase precision::
 
         sage: from sage.rings.number_field.S_unit_solver import p_adic_LLL_bound_one_prime
         sage: prec = 50

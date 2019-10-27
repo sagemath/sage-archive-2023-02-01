@@ -13,7 +13,6 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
 from libc cimport math

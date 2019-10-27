@@ -582,8 +582,8 @@ class RibbonGraph(SageObject, UniqueRepresentation):
         for val in val_one:
             repr_sigma += [[val]]
 
-        # We find which is the highes value a dart has, in order to 
-        #   add new darts that do not conflict with previous ones.
+        # We find which is the highest value a dart has, in order to 
+        # add new darts that do not conflict with previous ones.
         k = max(darts_rho)
 
         # We create the new vertex and append it to sigma.

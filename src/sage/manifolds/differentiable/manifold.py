@@ -2770,7 +2770,7 @@ class DifferentiableManifold(TopologicalManifold):
              Coordinate frame (U, (d/dx,d/dy))]
 
         """
-        return self._frames
+        return list(self._frames)
 
     def coframes(self):
         r"""
@@ -2805,7 +2805,7 @@ class DifferentiableManifold(TopologicalManifold):
              Coframe (U, (e^0,e^1))]
 
         """
-        return self._coframes
+        return list(self._coframes)
 
     def changes_of_frame(self):
         r"""
@@ -2857,7 +2857,7 @@ class DifferentiableManifold(TopologicalManifold):
             True
 
         """
-        return self._frame_changes
+        return self._frame_changes.copy()
 
     def is_manifestly_parallelizable(self):
         r"""

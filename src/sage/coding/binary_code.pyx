@@ -40,8 +40,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from libc.string cimport memcpy
 from cpython.mem cimport *
 from cpython.object cimport PyObject_RichCompare
@@ -4028,7 +4026,7 @@ cdef class BinaryCodeClassifier:
             j += 1
 
         log_2_radix = 0
-        while ((<codeword>1) << log_2_radix) < self.radix:
+        while ((<codeword>1) << log_2_radix) < <codeword>self.radix:
             log_2_radix += 1
         # now we assume (<codeword>1 << log_2_radix) == self.radix
         if k < log_2_radix:

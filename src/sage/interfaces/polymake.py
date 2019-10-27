@@ -1511,8 +1511,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
                 T1 = Temp
         if T1 == 'QuadraticExtension':
             # We can't seem to access a, b, r by method calls, so let's parse.
-            from re import match
-            m = match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', repr(self))
+            m = re.match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', repr(self))
             if m is None:
                 raise NotImplementedError("Cannot parse QuadraticExtension element: {}".format(self))
             a, b, r = m.group(1), m.group(3), m.group(4)

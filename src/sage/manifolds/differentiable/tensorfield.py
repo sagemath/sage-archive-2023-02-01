@@ -29,6 +29,8 @@ AUTHORS:
   method :meth:`TensorField.along`
 - Florentin Jaffredo (2018) : series expansion with respect to a given
   parameter
+- Michael Jung (2019): improve treatment of the zero element; add method
+  ``copy_from``
 
 REFERENCES:
 
@@ -2036,7 +2038,7 @@ class TensorField(ModuleElement):
         for dom, rst in other._restrictions.items():
             self._restrictions[dom] = rst.copy()
         self.set_name(name=name, latex_name=latex_name)
-        # TODO: Apply _is_zero attribute in ticket #28519
+        self._is_zero = other._is_zero
 
     def copy(self):
         r"""

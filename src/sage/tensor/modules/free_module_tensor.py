@@ -54,6 +54,8 @@ class being:
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
+- Michael Jung (2019): improve treatment of the zero element; add method
+  ``copy_from``
 
 REFERENCES:
 
@@ -1674,7 +1676,7 @@ class FreeModuleTensor(ModuleElement):
         self._components.clear()
         for basis, comp in other._components.items():
             self._components[basis] = comp.copy()
-        # TODO: Apply _is_zero attribute in ticket #28519
+        self._is_zero = other._is_zero
 
     def copy(self):
         r"""

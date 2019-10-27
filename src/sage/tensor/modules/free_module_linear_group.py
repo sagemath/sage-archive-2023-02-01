@@ -13,6 +13,7 @@ The group `\mathrm{GL}(M)` is implemented via the class
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
+- Michael Jung (2019): improve treatment of the identity element
 
 REFERENCES:
 

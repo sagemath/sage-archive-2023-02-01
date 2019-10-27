@@ -40,6 +40,7 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 - Travis Scrimshaw (2016): category set to Modules(ring).FiniteDimensional()
   (:trac:`20770`)
+- Michael Jung (2019): improve treatment of the zero element
 
 REFERENCES:
 

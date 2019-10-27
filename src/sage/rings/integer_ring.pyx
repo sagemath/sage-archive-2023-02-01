@@ -43,8 +43,6 @@ other types will also coerce to the integers, when it makes sense.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cpython.int cimport *
 from cpython.list cimport *
 from cpython.object cimport Py_NE
@@ -784,7 +782,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             raise ValueError("Unknown distribution for the integers: %s" % distribution)
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         r"""
         Tests whether the map from `\ZZ` to codomain, which takes the
         generator of `\ZZ` to ``im_gens[0]``, is a ring homomorphism.
@@ -799,8 +797,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ._is_valid_homomorphism_(ZZ.quotient_ring(8),[ZZ.quotient_ring(8)(1)])
             True
         """
+        if base_map is None:
+            base_map = codomain.coerce_map_from(self)
+            if base_map is None:
+                return False
         try:
-            return im_gens[0] == codomain.coerce(self.gen(0))
+            return im_gens[0] == base_map(self.gen(0))
         except TypeError:
             return False
 
@@ -1448,7 +1450,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'IntegerRing()'
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         Return a macaulay2 representation of ``self``.
 

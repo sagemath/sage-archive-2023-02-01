@@ -25,8 +25,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cysignals.memory cimport check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 

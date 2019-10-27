@@ -109,7 +109,6 @@ This is a test from :trac:`20211`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -3484,6 +3483,41 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             True
         """
         return True
+
+    def _macaulay2_(self, macaulay2=None):
+        r"""
+        Convert this vector to a Macaulay2 vector.
+
+        EXAMPLES::
+
+            sage: vector(QQ, [1, 2, 3])._macaulay2_()  # optional - macaulay2
+            | 1 |
+            | 2 |
+            | 3 |
+            sage: _.ring()                             # optional - macaulay2
+            QQ
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: macaulay2(vector(R, [1, x+y]))  # optional - macaulay2
+            |  1  |
+            | x+y |
+
+        TESTS:
+
+        Entries of the vector get promoted to the base ring::
+
+            sage: R.<x,y> = QQ[]
+            sage: v = macaulay2(vector(R, [1, 2]))      # optional - macaulay2
+            sage: v.ring()._operator('===', R).sage()   # optional - macaulay2
+            True
+        """
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return (macaulay2(self.base_ring()).matrix([self.list()]).transpose()
+                .vector())
 
     def _mathematica_init_(self):
         """

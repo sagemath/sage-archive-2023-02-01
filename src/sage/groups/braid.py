@@ -1210,7 +1210,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
         INPUT:
 
-        - ``other`` -- the other breaid to check for conjugacy
+        - ``other`` -- the other braid to check for conjugacy
 
         EXAMPLES::
 

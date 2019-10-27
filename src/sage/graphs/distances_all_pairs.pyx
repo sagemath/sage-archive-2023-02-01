@@ -121,7 +121,6 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
@@ -672,7 +671,7 @@ def distances_and_predecessors_all_pairs(G):
     cdef dict t_distance = {}
     cdef dict t_predecessor = {}
 
-    cdef int i, j
+    cdef unsigned int i, j
 
     for j in range(n):
         t_distance = {}
@@ -1581,7 +1580,7 @@ def floyd_warshall(gg, paths=True, distances=False):
     cdef unsigned short* t_dist = <unsigned short*>  mem.allocarray(n * n, sizeof(unsigned short))
     cdef unsigned short**  dist = <unsigned short**> mem.allocarray(n, sizeof(unsigned short*))
     dist[0] = t_dist
-    cdef int i
+    cdef unsigned int i
     for i in range(1, n):
         dist[i] = dist[i - 1] + n
     memset(t_dist, -1, n * n * sizeof(short))

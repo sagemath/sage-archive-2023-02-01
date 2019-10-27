@@ -67,8 +67,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 from .infinity import infinity
 
 from sage.rings.integer_ring import ZZ
@@ -274,8 +272,30 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return bool(self.__u)
 
-    def _im_gens_(self, codomain, im_gens):
-        return codomain(self(im_gens[0]))
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of this series under the map that sends the generators of
+        the parent to im_gens.
+
+        EXAMPLES::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: R.<t> = LaurentSeriesRing(K)
+            sage: z = t^-1 + i*t
+            sage: z._im_gens_(R, [t^2])
+            t^-2 + i*t^2
+
+        The argument base_map is not yet supported, because it isn't over power series::
+
+            sage: cc = K.hom([i])
+            sage: z._im_gens_(R, [t^2], base_map=cc)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        x = im_gens[0]
+        return codomain(self.__u._im_gens_(codomain, im_gens, base_map=base_map) * x**self.__n)
 
     cdef __normalize(self):
         r"""
@@ -1467,12 +1487,23 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f = 2*t/x + (3*t^2 + 6*t)*x + O(x^2)
             sage: f._derivative(t)
             2*x^-1 + (6*t + 6)*x + O(x^2)
+
+        TESTS::
+
+            sage: y = var('y')
+            sage: f.derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            # call _derivative() recursively on coefficients
-            u = [coeff._derivative(var) for coeff in self.__u.list()]
-            u = self._parent._power_series_ring(u, self.__u.prec())
-            return type(self)(self._parent, u, self.__n)
+        if var is not None and var != self._parent.gen():
+            try:
+                # call _derivative() recursively on coefficients
+                u = [coeff._derivative(var) for coeff in self.__u.list()]
+                u = self._parent._power_series_ring(u, self.__u.prec())
+                return type(self)(self._parent, u, self.__n)
+            except AttributeError:
+                raise ValueError("cannot differentiate with respect to {}".format(var))
 
         # compute formal derivative with respect to generator
         if self.is_zero():

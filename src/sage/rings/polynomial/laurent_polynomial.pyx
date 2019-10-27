@@ -9,7 +9,6 @@ Elements of Laurent polynomial rings
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -377,10 +376,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         return not self.__u.is_zero()
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
-        Return the image of ``self`` under the morphism defined by
-        ``im_gens`` in ``codomain``.
+        Return the image of this element under the morphism defined by
+        ``im_gens`` in ``codomain``, where elements of the
+        base ring are mapped by ``base_map``.
 
         EXAMPLES::
 
@@ -391,8 +391,23 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             17/4
             sage: 4 + 1/4
             17/4
+
+        You can specify a map on the base ring::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<t> = LaurentPolynomialRing(K)
+            sage: H = Hom(R, R)
+            sage: phi = H([t^-2], base_map=cc)
+            sage: phi(i*t)
+            -i*t^-2
         """
-        return codomain(self(im_gens[0]))
+        x = im_gens[0]
+        u = self.__u
+        if base_map is not None:
+            u = u.map_coefficients(base_map)
+        return codomain(u(x) * x**self.__n)
 
     cpdef __normalize(self):
         r"""
@@ -1576,16 +1591,31 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f = 2*t/x + (3*t^2 + 6*t)*x
             sage: f._derivative(t)
             2*x^-1 + (6*t + 6)*x
+
+        Check that :trac:`28187` is fixed::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: p = 1/x + 1 + x
+            sage: x,y = var("x, y")
+            sage: p._derivative(x)
+            -x^-2 + 1
+            sage: p._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
         cdef LaurentPolynomial_univariate ret
-        if var is not None and var is not self._parent.gen():
-            # call _derivative() recursively on coefficients
-            u = [coeff._derivative(var) for coeff in self.__u.list(copy=False)]
-            ret = <LaurentPolynomial_univariate> self._new_c()
-            ret.__u = <ModuleElement> self._parent._R(u)
-            ret.__n = self.__n
-            ret.__normalize()
-            return ret
+        if var is not None and var != self._parent.gen():
+            try:
+                # call _derivative() recursively on coefficients
+                u = [coeff._derivative(var) for coeff in self.__u.list(copy=False)]
+                ret = <LaurentPolynomial_univariate> self._new_c()
+                ret.__u = <ModuleElement> self._parent._R(u)
+                ret.__n = self.__n
+                ret.__normalize()
+                return ret
+            except AttributeError:
+                raise ValueError('cannot differentiate with respect to {}'.format(var))
 
         # compute formal derivative with respect to generator
         if self.is_zero():

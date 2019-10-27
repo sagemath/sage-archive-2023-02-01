@@ -160,8 +160,6 @@ Check if :trac:`6160` is fixed::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 # The Singular API is as follows:
 #
 #   pXXX does assume the currRing to be set
@@ -1189,38 +1187,19 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             R._check_valid()
             return R
         except (AttributeError, ValueError):
-            self.__macaulay2 = self._macaulay2_set_ring(macaulay2)
+            self.__macaulay2 = macaulay2(self._macaulay2_init_(macaulay2))
         return self.__macaulay2
 
-    def _macaulay2_set_ring(self, macaulay2=macaulay2_default):
+    def _macaulay2_init_(self, macaulay2=None):
         """
-        Set the associated M2 ring.
-
-        INPUT:
-
-        - ``macaulay2`` - M2 instance
-
         EXAMPLES::
 
-            sage: P.<x,y> = PolynomialRing(QQ)
-            sage: M2 = P._macaulay2_set_ring() # optional - macaulay2
+            sage: PolynomialRing(QQ, 'x', 2, order='deglex')._macaulay2_init_()
+            'QQ[symbol x0,symbol x1, MonomialSize=>16, MonomialOrder=>GLex]'
         """
-        if not self.__m2_set_ring_cache is None:
-            base_str, gens, order = self.__m2_set_ring_cache
-        else:
-            if self.base_ring().is_prime_field():
-                if self.characteristic() == 0:
-                    base_str = "QQ"
-                else:
-                    base_str = "ZZ/" + str(self.characteristic())
-            elif is_IntegerRing(self.base_ring()):
-                base_str = "ZZ"
-            else:
-                raise TypeError("no conversion of to a Macaulay2 ring defined")
-            gens = str(self.gens())
-            order = self.term_order().macaulay2_str()
-            self.__m2_set_ring_cache = (base_str, gens, order)
-        return macaulay2.ring(base_str, gens, order)
+        from sage.interfaces.macaulay2 import _macaulay2_input_ring
+        return _macaulay2_input_ring(self.base_ring(), self.gens(),
+                                     self.term_order().macaulay2_str())
 
     def _singular_(self, singular=singular_default):
         """
@@ -5129,7 +5108,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         return unpickle_MPolynomial_libsingular, (self._parent, self.dict())
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         INPUT:
 
@@ -5148,14 +5127,27 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: h = R.hom([0,0,0,u], S) # indirect doctest
             sage: h((a+d)^3)
             u^3
+
+        You can specify a map on the base ring::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<x,y> = K[]
+            sage: phi = R.hom([y,x], base_map=cc)
+            sage: phi(x + i*y)
+            (-i)*x + y
         """
         #TODO: very slow
         n = self.parent().ngens()
         if n == 0:
             return codomain._coerce_(self)
         y = codomain(0)
+        if base_map is None:
+            # Just use conversion
+            base_map = codomain
         for (m,c) in self.dict().iteritems():
-            y += codomain(c)*mul([ im_gens[i]**m[i] for i in range(n) if m[i]])
+            y += base_map(c)*mul([ im_gens[i]**m[i] for i in range(n) if m[i]])
         return y
 
 

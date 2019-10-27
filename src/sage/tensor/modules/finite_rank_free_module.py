@@ -2220,7 +2220,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
              Basis (f_1,f_2,f_3) on the Rank-3 free module M_3 over the Integer Ring]
 
         """
-        return self._known_bases
+        return list(self._known_bases)
 
     def change_of_basis(self, basis1, basis2):
         r"""

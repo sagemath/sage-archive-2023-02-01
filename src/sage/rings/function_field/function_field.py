@@ -112,8 +112,7 @@ TESTS::
 Global function fields
 ----------------------
 
-Most of advanced computations are available only for global function fields as
-yet. A global function field in Sage is an extension field of a rational function field
+A global function field in Sage is an extension field of a rational function field
 over a *finite* constant field by an irreducible separable polynomial over the
 rational function field.
 

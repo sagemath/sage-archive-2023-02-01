@@ -39,8 +39,8 @@ orders such as equation orders::
     True
 
 Sage provides an extensive functionality for computations in maximal orders of
-global function fields. For example, you can decompose a prime ideal of a
-rational function field in an extension::
+function fields. For example, you can decompose a prime ideal of a rational
+function field in an extension::
 
     sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
     sage: o = K.maximal_order()

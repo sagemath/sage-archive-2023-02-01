@@ -511,7 +511,7 @@ class DiffForm(TensorField):
             sage: f.add_expr_by_continuation(c_uv, W)
             sage: t = a.wedge(f)
             sage: t.display()
-            x*y dx + x^2 dy
+            f*a = x*y dx + x^2 dy
 
         """
         if other._tensor_rank == 0:
@@ -1430,7 +1430,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: f = M.scalar_field(x, name='f')
             sage: t = a.wedge(f)
             sage: t.display()
-            2*x dx + (x^2 + x) dy + x*y*z dz
+            f*a = 2*x dx + (x^2 + x) dy + x*y*z dz
 
         """
         if other._tensor_rank == 0:

@@ -1817,10 +1817,10 @@ class TensorField(ModuleElement):
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = t.copy(); s
-            Tensor field t of type (1,1) on
-             the 2-dimensional differentiable manifold M
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
-            t = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s == t
             True
 
@@ -1830,7 +1830,7 @@ class TensorField(ModuleElement):
             sage: t.display(e_xy)
             t = -d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s.display(e_xy)
-            t = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s == t
             False
 

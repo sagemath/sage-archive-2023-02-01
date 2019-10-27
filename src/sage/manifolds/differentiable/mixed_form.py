@@ -943,13 +943,19 @@ class MixedForm(AlgebraElement):
 
         return resu
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
         .. NOTE::
 
             The name and names of the components are not copied.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -981,9 +987,9 @@ class MixedForm(AlgebraElement):
         different name, but has the very same values::
 
             sage: B = A.copy(); B.disp()
-            A = f + omega + zero
+            (unnamed scalar field)  + (unnamed 1-form) + (unnamed 2-form)
             sage: B.disp(e_uv)
-            A = [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
+            [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
             sage: A == B
             True
             sage: A is B
@@ -998,12 +1004,12 @@ class MixedForm(AlgebraElement):
             sage: A.disp(e_xy)
             A = [x] + [y dx] + [0]
             sage: B.disp(e_xy)
-            A = [x] + [x dx] + [0]
+            [x] + [x dx] + [0]
 
         """
         resu_comp = [form.copy() for form in self._comp]
         resu = type(self)(self.parent(), comp=resu_comp)
-        resu.set_name(name=self._name, latex_name=self._latex_name)
+        resu.set_name(name=name, latex_name=latex_name)
         return resu
 
     def __setitem__(self, index, values):

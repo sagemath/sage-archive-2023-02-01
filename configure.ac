@@ -392,7 +392,7 @@ AC_ARG_WITH([python],
 case "$with_python" in
     2*) SAGE_PYTHON_VERSION=2;;
     3*) SAGE_PYTHON_VERSION=3;;
-    "") SAGE_PYTHON_VERSION=2;;
+    "") SAGE_PYTHON_VERSION=3;;
     *)
         AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
 esac

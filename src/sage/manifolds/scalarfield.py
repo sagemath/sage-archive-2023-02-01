@@ -1439,9 +1439,15 @@ class ScalarField(CommutativeAlgebraElement):
         """
         return self._domain
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of the scalar field.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -1461,8 +1467,7 @@ class ScalarField(CommutativeAlgebraElement):
             False
 
         """
-        result = type(self)(self.parent(), name=self._name,
-                            latex_name=self._latex_name)
+        result = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, funct in self._express.items():
             result._express[chart] = funct.copy()
         return result

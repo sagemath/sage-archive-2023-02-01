@@ -1786,13 +1786,19 @@ class TensorField(ModuleElement):
                 frame = self._domain._def_frame
         self.set_comp(frame)[args] = value
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
+
         .. NOTE::
 
-            The name and the derived quantities are copied, too.
+            The name and the derived quantities are not copied.
 
         EXAMPLES:
 
@@ -1832,7 +1838,7 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
-        resu.set_name(name=self._name, latex_name=self._latex_name)
+        resu.set_name(name=name, latex_name=latex_name)
         return resu
 
     def _common_subdomains(self, other):
@@ -2033,7 +2039,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = + rst
-        ###
         # Compose names:
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
@@ -2081,7 +2086,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = - rst
-        ###
         # Compose names:
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
@@ -2280,7 +2284,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
-        ###
         # Compose names:
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)

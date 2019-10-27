@@ -67,6 +67,8 @@ REFERENCES:
                     "Lilliput-AE: a New Lightweight Tweakable BlockCipher for Authenticated Encryption with AssociatedData"
                     https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/LILLIPUT-AE-spec.pdf
 
+.. [ABCMT2019] \V. Arul, A. J. Best, E. Costa, R. Magner, and N. Triantafillou, *Computing zeta functions of cyclic covers in large characteristic,* The Open Book Series, vol. 2, no. 1, pp. 37–53, Jan. 2019.
+
 .. [ABZ2007] \R. Aharoni and E. Berger and R. Ziv.
              *Independent systems of representatives in weighted graphs*.
              Combinatorica vol 27, num 3, p253--267, 2007.
@@ -1227,6 +1229,10 @@ REFERENCES:
              Theory*. Morgan & Claypool Publishers, (2011). ISBN
              9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
 
+.. [CF2005] Raul Cordovil and David Forge.
+            *Gröbner and diagonal bases in Orlik-Solomon type algebras*
+            Cubo **7** (2), (2005). pp. 1-20.
+
 .. [CFHM2013] Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney,
               *On the Hyperbolicity of Small-World and Treelike Random Graphs*,
               Internet Mathematics 9:4 (2013), 434-491.
@@ -1983,6 +1989,10 @@ REFERENCES:
                   Contemp. Math., **343** (2004), pp. 53-96.
                   :arxiv:`math/0212387`
 
+.. [Fel2001] Yves Felix, Stephen Halperin and J.-C. Thomas. *Rational homotopy
+             theory*, Graduate texts in mathematics 201, Springer, 2001.
+
+
 .. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
              Canonical Representatives of Their Semilinear Isometry
              Classes. Advances in Mathematics of Communications 3 (4),
@@ -2000,8 +2010,8 @@ REFERENCES:
             Vol. 15, number 3, pages 835--855.
             :doi:`10.2140/pjm.1965.15.835`.
 
-.. [FH2015] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
-            Wehler K3 Surfaces over finite fields. New Zealand Journal
+.. [FH2015] \J. A. de Faria, B. Hutz. *Combinatorics of Cycle Lengths on
+            Wehler K3 Surfaces over finite fields*. New Zealand Journal
             of Mathematics 45 (2015), 19–31.
 
 .. [FIV2012] \H. Fournier, A. Ismail, and A. Vigneron. *Computing the Gromov
@@ -2010,14 +2020,18 @@ REFERENCES:
 
 .. [FK1991] \I. A. Faradjev and M. H. Klin,
             *Computer package for computations with coherent configurations*,
-            Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
+            Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219-223;
             code, by I.A.Faradjev (with contributions by A.E.Brouwer,
             D.V.Pasechnik). https://github.com/dimpase/coco
 
-.. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
+.. [FL2001] David Forge and Michel Las Vergnas.
+            *Orlik-Solomon type algebras*. European J. Combin.
+            **22** (5), (2001). pp. 699-704.
+
+.. [FM2014] Cameron Franc and Marc Masdeu, *Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
             automorphic forms, and the canonical embedding of Shimura
-            curves". LMS Journal of Computation and Mathematics
+            curves*. LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
 
 .. [FMSS1995] Fulton, MacPherson, Sottile, Sturmfels:
@@ -2047,6 +2061,8 @@ REFERENCES:
               Journal of Algebra, Volume 438, 15 September 2015, pp. 130--169,
               :doi:`10.1016/j.jalgebra.2015.04.024`,
               :arxiv:`1407.0476v2`.
+
+.. [FoSta1994] \S. Fomin, R. Stanley. *Schubert polynomials and the nilCoxeter algebra*. Advances in Math., 1994.
 
 .. [FOS2009] \G. Fourier, M. Okado, A. Schilling.
              *Kirillov-Reshetikhin crystals for nonexceptional types*.
@@ -3240,15 +3256,18 @@ REFERENCES:
 
 **L**
 
-.. [Lab2008] S. Labbé, Propriétés combinatoires des `f`-palindromes,
+.. [Lab2008] \S. Labbé, *Propriétés combinatoires des* `f`-*palindromes*,
              Mémoire de maîtrise en Mathématiques, Montréal, UQAM,
              2008, 109 pages.
 
+.. [Lam1996] \T. K. Lam. *B and D analogues of stable Schubert polynomials and
+             related insertion algorithms*. PhD Thesis, MIT, 1996.
+             
 .. [Lam2004] Thomas Lam, *Growth diagrams, domino insertion and
              sign-imbalance*.  Journal of Combinatorial Theory,
              Series A Volume 107, Number 1 (2004), pp. 87-115.
 
-.. [Lam2005] \T. Lam, Affine Stanley symmetric functions,
+.. [Lam2005] \T. Lam, *Affine Stanley symmetric functions*,
              Amer. J. Math.  128 (2006), no. 6, 1553--1586.
 
 .. [Lam2008] \T. Lam. *Schubert polynomials for the affine
@@ -3257,15 +3276,15 @@ REFERENCES:
 .. [Lan2002] \S. Lang : *Algebra*, 3rd ed., Springer (New York) (2002);
              :doi:`10.1007/978-1-4613-0041-0`
 
-.. [Lan2008] \E. Lanneau "Connected components of the strata of the
-             moduli spaces of quadratic differentials", Annales
+.. [Lan2008] \E. Lanneau, *Connected components of the strata of the
+             moduli spaces of quadratic differentials*, Annales
              sci. de l'ENS, serie 4, fascicule 1, 41, 1-56 (2008)
 
 .. [Lasc] \A. Lascoux. *Chern and Yang through ice*.
           Preprint.
 
-.. [Lau2011] Alan G.B. Lauder, "Computations with classical and p-adic
-             modular forms", LMS J. of Comput. Math. 14 (2011),
+.. [Lau2011] Alan G.B. Lauder, *Computations with classical and p-adic
+             modular forms*, LMS J. of Comput. Math. 14 (2011),
              214-231.
 
 .. [Laz1992] Daniel Lazard, *Solving Zero-dimensional Algebraic
@@ -3624,6 +3643,9 @@ REFERENCES:
 .. [Mac1915] Percy A. MacMahon, *Combinatory Analysis*,
              Cambridge University Press (1915--1916).
              (Reprinted: Chelsea, New York, 1960).
+
+.. [Man2019] V. Manero and M. Marco, *Effective computation of
+             degree bounded minimal models of GCDA's*, :arxiv:`1909.07761`
 
 .. [MAR2009] \H. Molina-Abril and P. Réal, *Homology computation using
              spanning trees* in Progress in Pattern Recognition, Image
@@ -4027,6 +4049,10 @@ REFERENCES:
          :arxiv:`math/0110077v1`.
          Possibly newer version at
          http://www.wisdom.weizmann.ac.il/~regev/papers/FrobeniusSchurFunctions.ps
+
+.. [OT1994] Peter Orlik and Hiroaki Terao.
+            *Commutative algebras for arrangements*. Nagoya Math. J. **134**
+            (1994), 65-73.
 
 .. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
             Langlands dual quantum affine algebras: Exceptional cases*.

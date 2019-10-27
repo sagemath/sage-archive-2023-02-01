@@ -5,14 +5,14 @@ AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
 #                          Mike Hansen <mhansen@gmail.com>,
 #                          Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import numbers
@@ -121,7 +121,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: R(-5)
             (-5, -5)
         """
-        # NOTE: should we more generlly allow diagonal embedding
+        # NOTE: should we more generally allow diagonal embedding
         # if we have a conversion?
         if self in _Rings and isinstance(x, numbers.Integral):
             return x * self.one()
@@ -373,4 +373,3 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 <... 'tuple'>
             """
             return self.value
-

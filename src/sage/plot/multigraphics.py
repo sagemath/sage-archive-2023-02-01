@@ -792,7 +792,7 @@ class GraphicsArray(MultiGraphics):
         INPUT:
 
         - ``figure`` -- a Matplotlib ``Figure`` object
-        - ``index `` -- integer specifiying the element of ``self``
+        - ``index `` -- integer specifying the element of ``self``
         - ``options`` -- extra options to be passed to ``Figure.add_subplot``
 
         OUTPUT:

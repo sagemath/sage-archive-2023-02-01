@@ -21,7 +21,6 @@ EXAMPLES::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython cimport *
 from cysignals.signals cimport sig_check
@@ -46,6 +45,7 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.integer_ring import is_IntegerRing
 
 import sage.modules.free_module
 
@@ -5431,7 +5431,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             else:
                 if not A[self._nrows-1, self._ncols-1]:
                     raise ZeroDivisionError("input matrix must be nonsingular")
-
             return A.matrix_from_columns(list(range(self._ncols, 2 * self._ncols)))
 
     cdef build_inverse_from_augmented_sparse(self, A):
@@ -5486,6 +5485,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: m * m.inverse_of_unit()
             [(1, 1) (0, 0)]
             [(0, 0) (1, 1)]
+
+        Tests for :trac:`28570`::
+
+            sage: P = posets.TamariLattice(7)
+            sage: M = P._hasse_diagram._leq_matrix
+            sage: M.inverse_of_unit()   # this was very slow, now 1s
+            429 x 429 sparse matrix over Integer Ring...
+
+            sage: m = matrix(Zmod(2**2), 1, 1, [1], sparse=True)
+            sage: mi = ~m; mi
+            [1]
+            sage: mi.parent()
+            Full MatrixSpace of 1 by 1 sparse matrices over Ring of integers modulo 4
         """
         n = self.nrows()
         if n != self.ncols():
@@ -5495,15 +5507,20 @@ cdef class Matrix(sage.structure.element.Matrix):
         if algorithm is None and R in _Fields:
             return ~self
         elif algorithm is None and is_IntegerModRing(R):
+            # Finite fields are handled above.
             # This is "easy" in that we either get an error or
             # the right answer. Note that of course there
             # could be a much faster algorithm, e.g., using
             # CRT or p-adic lifting.
-            N = R.characteristic()
-            m, D = self.lift_centered()._invert_flint()
-            if not D.gcd(N).is_one():
+            try:
+                return (~self.lift_centered()).change_ring(R)
+            except (TypeError, ZeroDivisionError):
                 raise ZeroDivisionError("input matrix must be nonsingular")
-            return D.inverse_mod(N) * m.change_ring(R)
+        elif algorithm is None and is_IntegerRing(R):
+            try:
+                return (~self).change_ring(R)
+            except (TypeError, ZeroDivisionError):
+                raise ZeroDivisionError("input matrix must be nonsingular")
         elif algorithm is None or algorithm == "df":
             d = self.det()
             if d.is_one():

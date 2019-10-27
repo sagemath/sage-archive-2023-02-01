@@ -1314,7 +1314,7 @@ class Polytopes():
             sage: td.f_vector()
             Traceback (most recent call last):
             ...
-            KeyError: ...
+            ValueError: not all vertices are intersections of facets
             sage: td.base_ring()
             Real Double Field
 

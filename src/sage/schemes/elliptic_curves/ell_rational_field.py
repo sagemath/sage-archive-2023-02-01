@@ -935,7 +935,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return v
 
 
-        # There is some overheard associated with coercing the PARI
+        # There is some overhead associated with coercing the PARI
         # list back to Python, but it's not bad.  It's better to do it
         # this way instead of trying to eval the whole list, since the
         # int conversion is done very sensibly.  NOTE: This would fail
@@ -3773,7 +3773,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         The case `M==1` corresponds to the classical definition of congruence number:
         Let `X` be the subspace of `S_2(\Gamma_0(N))` spanned by the newform
-        associated with this elliptic curve, and `Y` be orthogonal compliment
+        associated with this elliptic curve, and `Y` be orthogonal complement
         of `X` under the Petersson inner product. Let `S_X` and `S_Y` be the
         intersections of `X` and `Y` with `S_2(\Gamma_0(N), \ZZ)`. The congruence
         number is defined to be `[S_X \oplus S_Y : S_2(\Gamma_0(N),\ZZ)]`.

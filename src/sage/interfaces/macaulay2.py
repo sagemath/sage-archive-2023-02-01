@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Interface to Macaulay2
 
@@ -1387,11 +1386,11 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
             sage: R = ZZ['a,b,c']
             sage: C = macaulay2(ideal(R.gens())).resolution()  # optional - macaulay2
-            sage: unicode_art(C.sage())                        # optional - macaulay2
-                                   ⎛-b  0 -c⎞     ⎛ c⎞
-                                   ⎜ a -c  0⎟     ⎜ a⎟
-                       (a b c)     ⎝ 0  b  a⎠     ⎝-b⎠
-             0 ⟵── C_0 ⟵────── C_1 ⟵───────── C_2 ⟵─── C_3 ⟵── 0
+            sage: ascii_art(C.sage())                          # optional - macaulay2
+                                      [-b  0 -c]       [ c]
+                                      [ a -c  0]       [ a]
+                        [a b c]       [ 0  b  a]       [-b]
+             0 <-- C_0 <-------- C_1 <----------- C_2 <----- C_3 <-- 0
             sage: F = C.dot('dd')  # optional - macaulay2
             sage: G = F.sage()     # optional - macaulay2
             sage: G.in_degree(2)   # optional - macaulay2

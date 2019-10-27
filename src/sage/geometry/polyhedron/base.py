@@ -5193,7 +5193,7 @@ class Polyhedron_base(Element):
 
         def face_constructor(atoms, coatoms):
             from sage.geometry.polyhedron.face import PolyhedronFace
-            if len(atoms) == 0:
+            if not atoms:
                 Vindices = ()
             else:
                 Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))

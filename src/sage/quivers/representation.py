@@ -228,7 +228,7 @@ base ring and the path semigroup::
 
 To each vertex of a quiver there is associated a simple module, an
 indecomposable projective, and an indecomposable injective, and these can
-be created from the qQuiver::
+be created from the quiver::
 
     sage: S = PQ.S(GF(3), 1)
     sage: I = PQ.I(QQ, 2)

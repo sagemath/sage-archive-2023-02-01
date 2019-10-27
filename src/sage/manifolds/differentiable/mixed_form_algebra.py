@@ -309,6 +309,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         """
         res = self.element_class(self, name='zero', latex_name='0')
         res[:] = [0] * (self._max_deg + 1)
+        res._is_zero = True  # This element is certainly zero
         return res
 
     @cached_method

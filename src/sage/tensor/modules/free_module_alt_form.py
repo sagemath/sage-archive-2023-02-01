@@ -208,10 +208,10 @@ class FreeModuleAltForm(FreeModuleTensor):
     The exterior product is nilpotent on linear forms::
 
         sage: s = b.wedge(b) ; s
-        Alternating form b/\b of degree 2 on the Rank-3 free module M over the
+        Alternating form zero of degree 2 on the Rank-3 free module M over the
          Integer Ring
         sage: s.display(e)
-        b/\b = 0
+        zero = 0
 
     """
     def __init__(self, fmodule, degree, name=None, latex_name=None):
@@ -578,7 +578,6 @@ class FreeModuleAltForm(FreeModuleTensor):
 
     disp = display
 
-
     def wedge(self, other):
         r"""
         Exterior product of ``self`` with the alternating form ``other``.
@@ -654,10 +653,18 @@ class FreeModuleAltForm(FreeModuleTensor):
         if self._tensor_rank == 0:
             return self * other
         fmodule = self._fmodule
+        rank_r = self._tensor_rank + other._tensor_rank
+        # Facilitate computations involving zero:
+        if rank_r > fmodule._rank:
+            return fmodule.dual_exterior_power(rank_r).zero()
+        if self._is_zero or other._is_zero:
+            return fmodule.dual_exterior_power(rank_r).zero()
+        if self is other and (self._tensor_rank % 2) == 1:
+            return fmodule.dual_exterior_power(rank_r).zero()
+        # Generic case:
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the exterior product")
-        rank_r = self._tensor_rank + other._tensor_rank
         cmp_s = self._components[basis]
         cmp_o = other._components[basis]
         cmp_r = CompFullyAntiSym(fmodule._ring, basis, rank_r,

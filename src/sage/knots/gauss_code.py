@@ -73,7 +73,7 @@ def recover_orientations(gauss):
 
     - signed Gauss code
 
-    OUTPUT
+    OUTPUT:
 
     - word, a permutation of the (unsigned) Gauss code
     - list of positive (upwards) couplings in this word

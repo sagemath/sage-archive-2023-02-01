@@ -35,18 +35,18 @@ class MixedForm(AlgebraElement):
     `\varphi: M \to N` between two differentiable manifolds `M` and `N`. More
     precisely, a mixed form `a` along `\varphi: M \to N` can be considered as a
     differentiable map
-    
+
     .. MATH::
 
         a: M \longrightarrow \bigoplus^n_{k=0} T^{(0,k)}N,
-    
+
     where `T^{(0,k)}` denotes the tensor bundle of type `(0,k)`, `\bigoplus`
     the Whitney sum and `n` the dimension of `N`, such that
-    
+
     .. MATH::
 
         \forall x\in M, \quad a(x) \in \bigoplus^n_{k=0} \Lambda^k\left( T_{\varphi(x)}^* N \right),
-    
+
     where `\Lambda^k(T^*_{\varphi(x)} N)` is the `k`-th exterior power of the
     dual of the tangent space `T_{\varphi(x)} N`.
 
@@ -187,6 +187,20 @@ class MixedForm(AlgebraElement):
         sage: A.display_expansion(e_xy)
         A = [x] + [x*y dx] + [(-2*x^3 + 2*x^2*y + 2*x*y^2 - 2*y^3) dx/\dy]
 
+    Since zero and one are special elements, their components cannot be
+    changed::
+
+        sage: z = M.mixed_form_algebra().zero()
+        sage: z[0] = 1
+        Traceback (most recent call last):
+        ...
+        AssertionError: the components of the element zero cannot be changed
+        sage: one = M.mixed_form_algebra().one()
+        sage: one[0] = 0
+        Traceback (most recent call last):
+        ...
+        AssertionError: the components of the element one cannot be changed
+
     """
     def __init__(self, parent, name=None, latex_name=None):
         r"""
@@ -227,6 +241,8 @@ class MixedForm(AlgebraElement):
         self._domain = vmodule._domain
         self._ambient_domain = vmodule._ambient_domain
         self._max_deg = vmodule._ambient_domain.dim()
+        self._is_zero = False # a priori, may be changed below or via
+                              # method __bool__()
         # Set components:
         self._comp = [self._domain.diff_form(j) for j in self.irange()]
         # Set names:
@@ -516,7 +532,13 @@ class MixedForm(AlgebraElement):
             False
 
         """
-        return any(bool(form) for form in self)
+        if self._is_zero:
+            return False
+        if any(bool(form) for form in self._comp):
+            self._is_zero = False
+            return True
+        self._is_zero = True
+        return False
 
     __nonzero__ = __bool__  # For Python2 compatibility
 
@@ -630,6 +652,12 @@ class MixedForm(AlgebraElement):
             True
 
         """
+        # Case zero:
+        if self._is_zero:
+            return other
+        if other._is_zero:
+            return self
+        # Generic case:
         resu = self._new_instance()
         resu[:] = [self[j] + other[j] for j in self.irange()]
         # Compose name:
@@ -698,6 +726,12 @@ class MixedForm(AlgebraElement):
             True
 
         """
+        # Case zero:
+        if self._is_zero:
+            return -other
+        if other._is_zero:
+            return self
+        # Generic case:
         resu = self._new_instance()
         resu[:] = [self[j] - other[j] for j in self.irange()]
         # Compose name:
@@ -810,6 +844,15 @@ class MixedForm(AlgebraElement):
             A/\eta = [0] + [x*y dy] + [x*y dx/\dy] + [-y*z dx/\dy/\dz]
 
         """
+        # Case zero:
+        if self._is_zero or other._is_zero:
+            return self.parent().zero()
+        # Case one:
+        if self is self.parent().one():
+            return other
+        if other is self.parent().one():
+            return self
+        # Generic case:
         resu = self._new_instance()
         for j in self.irange():
             resu[j] = sum(self[k].wedge(other[j - k]) for k in range(j + 1))
@@ -882,7 +925,7 @@ class MixedForm(AlgebraElement):
         `\Omega^*(M,\varphi)`:
 
         .. MATH::
-        
+
             \mathrm{d}: \Omega^*(M,\varphi) \to \Omega^*(M,\varphi).
 
         OUTPUT:
@@ -994,6 +1037,7 @@ class MixedForm(AlgebraElement):
         """
         resu = self._new_instance()
         resu[:] = [form.copy() for form in self]
+        resu._is_zero = self._is_zero
         return resu
 
     def __setitem__(self, index, values):
@@ -1021,6 +1065,9 @@ class MixedForm(AlgebraElement):
             A = [x] + [y dx] + [x*y dx/\dy]
 
         """
+        if self is self.parent().one() or self is self.parent().zero():
+            raise AssertionError("the components of the element "
+                                 "{} cannot be changed".format(self._name))
         if isinstance(index, (int, Integer)):
             start = index
             stop = index + 1
@@ -1038,6 +1085,7 @@ class MixedForm(AlgebraElement):
         for deg, j in zip(range(start, stop, step), range(len(form_list))):
             self._comp[deg] = self._domain.diff_form_module(deg,
                                             self._dest_map)(form_list[j])
+        self._is_zero = False  # a priori
 
     def __getitem__(self, deg):
         r"""
@@ -1136,6 +1184,7 @@ class MixedForm(AlgebraElement):
             self[0]._express[chart] = expr # automatic continuation to chart dom
         for j in self.irange(1):
             self[j].set_restriction(rst[j])
+        self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):
         r"""

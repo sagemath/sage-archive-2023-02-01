@@ -68,8 +68,6 @@ This example illustrates generators for a free module over `\ZZ`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
 from . import gens_py

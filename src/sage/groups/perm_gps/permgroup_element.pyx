@@ -99,8 +99,6 @@ We create element of a permutation group of large degree::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import copy
 import random
 

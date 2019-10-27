@@ -15,7 +15,6 @@ This module is meant for all functions related to centrality in networks.
 Functions
 ---------
 """
-from __future__ import print_function, absolute_import
 
 from libc.string cimport memset
 from libc.stdint cimport uint32_t

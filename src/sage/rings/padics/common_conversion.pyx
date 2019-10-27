@@ -25,7 +25,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from cpython.int cimport *
 from sage.ext.stdsage cimport PY_NEW

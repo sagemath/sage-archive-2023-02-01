@@ -189,7 +189,7 @@ class ParentLibGAP(SageObject):
             sage: F.<a,b> = FreeGroup()
             sage: F.Hom(F)
             Set of Morphisms from Free Group on generators {a, b}
-             to Free Group on generators {a, b} in Category of groups
+             to Free Group on generators {a, b} in Category of infinite groups
         """
         from sage.groups.libgap_morphism import GroupHomset_libgap
         return GroupHomset_libgap(self, G, category=category, check=check)

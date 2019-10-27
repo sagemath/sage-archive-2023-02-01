@@ -697,7 +697,10 @@ class DifferentiableManifold(TopologicalManifold):
         self._frame_changes = {} # dictionary of changes of frames
         # Dictionary of vector field modules along self
         # (keys = diff. map from self to an open set (possibly the identity map))
-        self._vector_field_modules = {}
+        self._vector_field_modules = {} # dict of all established vector field
+                                        # modules
+        self._tensor_bundles = {} # dict of dict of all established tensor
+                                  # bundles
 
     def diff_degree(self):
         r"""
@@ -1045,6 +1048,158 @@ class DifferentiableManifold(TopologicalManifold):
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
 
+    def vector_bundle(self, rank, name, field='real', latex_name=None):
+        r"""
+        Return a differentiable vector bundle over the given field with given
+        rank over this differentiable manifold of the same differentiability
+        class as the manifold.
+
+        INPUT:
+
+        - ``rank`` -- rank of the vector bundle
+        - ``name`` -- name given to the total space
+        - ``field`` -- (default: ``'real'``) topological field giving the
+          vector space structure to the fibers
+        - ``latex_name`` -- optional LaTeX name for the total space
+
+        OUTPUT:
+
+        - a differentiable vector bundle as an instance of
+          :class:`~sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: M.vector_bundle(2, 'E')
+            Differentiable real vector bundle E -> M of rank 2 over the base
+             space 2-dimensional differentiable manifold M
+
+        """
+        from sage.manifolds.differentiable.vector_bundle \
+                                               import DifferentiableVectorBundle
+        return DifferentiableVectorBundle(rank, name, self, field=field,
+                                          latex_name=latex_name)
+
+    def tangent_bundle(self, dest_map=None):
+        r"""
+        Return the tangent bundle possibly along a destination map with base
+        space ``self``.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.vector_bundle.TensorBundle`
+            for complete documentation.
+
+        INPUT:
+
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ M \rightarrow N`
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`) from
+          which the tangent bundle is pulled back; if
+          ``None``, it is assumed that `N=M` and `\Phi` is the identity map of
+          `M` (case of the standard tangent bundle over `M`)
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: TM = M.tangent_bundle(); TM
+            Tangent bundle TM over the 2-dimensional differentiable manifold M
+
+        """
+        return self.tensor_bundle(1, 0, dest_map=dest_map)
+
+    def cotangent_bundle(self, dest_map=None):
+        r"""
+        Return the cotangent bundle possibly along a destination map with base
+        space ``self``.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.vector_bundle.TensorBundle`
+            for complete documentation.
+
+        INPUT:
+
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ M \rightarrow N`
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`) from
+          which the cotangent bundle is pulled back; if
+          ``None``, it is assumed that `N=M` and `\Phi` is the identity map of
+          `M` (case of the standard tangent bundle over `M`)
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: cTM = M.cotangent_bundle(); cTM
+            Cotangent bundle T*M over the 2-dimensional differentiable
+             manifold M
+
+        """
+        return self.tensor_bundle(0, 1, dest_map=dest_map)
+
+    def tensor_bundle(self, k, l, dest_map=None):
+        r"""
+        Return a tensor bundle of type `(k, l)` defined over ``self``, possibly
+        along a destination map.
+
+        INPUT:
+
+        - ``k`` -- the contravariant rank of the tensor bundle
+        - ``l`` -- the covariant rank of the tensor bundle
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ M \rightarrow N`
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`) from
+          which the tensor bundle is pulled back; if
+          ``None``, it is assumed that `N=M` and `\Phi` is the identity map of
+          `M` (case of the standard tangent bundle over `M`)
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.manifolds.differentiable.vector_bundle.TensorBundle`
+          representing a tensor bundle of type-`(k,l)` over ``self``
+
+        EXAMPLES:
+
+        A tensor bundle over a parallelizable 2-dimensional differentiable
+        manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: M.tensor_bundle(1, 2)
+            Tensor bundle T^(1,2)M over the 2-dimensional differentiable
+             manifold M
+
+        The special case of the tangent bundle as tensor bundle of type (1,0)::
+
+            sage: M.tensor_bundle(1,0)
+            Tangent bundle TM over the 2-dimensional differentiable manifold M
+
+        The result is cached::
+
+            sage: M.tensor_bundle(1, 2) is M.tensor_bundle(1, 2)
+            True
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.vector_bundle.TensorBundle`
+            for more examples and documentation.
+
+        """
+        if dest_map is None:
+            dest_map = self.identity_map()
+        if dest_map not in self._tensor_bundles:
+            from sage.manifolds.differentiable.vector_bundle import TensorBundle
+            self._tensor_bundles[dest_map] = {(k, l): TensorBundle(self, k, l,
+                                                             dest_map=dest_map)}
+        else:
+            if (k, l) not in self._tensor_bundles[dest_map]:
+                from sage.manifolds.differentiable.vector_bundle import \
+                    TensorBundle
+                self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k, l,
+                                                              dest_map=dest_map)
+        return self._tensor_bundles[dest_map][(k, l)]
+
     def vector_field_module(self, dest_map=None, force_free=False):
         r"""
         Return the set of vector fields defined on ``self``, possibly
@@ -1235,7 +1390,7 @@ class DifferentiableManifold(TopologicalManifold):
           (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`)
           representing the module `\mathcal{T}^{(k,l)}(M,\Phi)` of type-`(k,l)`
-          tensor fields on `M` taking values on `\Phi(M)\subset M`
+          tensor fields on `M` taking values on `\Phi(M)\subset N`
 
         EXAMPLES:
 

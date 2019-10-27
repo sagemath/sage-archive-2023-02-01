@@ -2139,8 +2139,8 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
 
         REFERENCES:
 
-        - Provençal, X., Combinatoires des mots, geometrie discrete et
-          pavages, These de doctorat en Mathematiques, Montreal, UQAM,
+        - Provençal, X., *Combinatoires des mots, géometrie discrète et
+          pavages*, Thèse de doctorat en Mathématiques, Montréal, UQAM,
           septembre 2008, 115 pages.
         """
         return super(FiniteWordPath_square_grid,self).is_simple()
@@ -2230,6 +2230,7 @@ class FiniteWordPath_triangle_grid(FiniteWordPath_2d):
             8.66025403784439
         """
         return max(RR(y) for (_,y) in self.points())
+
 
 #TODO: faire une verification du mot pour etre sur hexagonal grid
 class FiniteWordPath_hexagonal_grid(FiniteWordPath_triangle_grid):

@@ -32,7 +32,7 @@ For more information about active vertices, see the documentation for the
 method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -40,9 +40,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import print_function, absolute_import, division
+# ****************************************************************************
 
 include "sage/data_structures/bitset.pxi"
 
@@ -117,7 +115,7 @@ cdef class CGraph:
             False
         """
         return (n >= 0 and
-                n < self.active_vertices.size and
+                <mp_bitcnt_t>n < self.active_vertices.size and
                 bitset_in(self.active_vertices, n))
 
     cpdef check_vertex(self, int n):
@@ -207,7 +205,7 @@ cdef class CGraph:
         """
         if k == -1:
             k = bitset_first_in_complement(self.active_vertices)
-        elif self.active_vertices.size <= k:
+        elif self.active_vertices.size <= <mp_bitcnt_t>k:
             k = -1
         if k != -1:
             if not bitset_in(self.active_vertices, k):
@@ -323,7 +321,7 @@ cdef class CGraph:
                 "requested vertex is past twice the allocated range: "
                 "use realloc")
         if (k >= <int>self.active_vertices.size or
-            (k == -1 and self.active_vertices.size == self.num_verts)):
+            (k == -1 and self.active_vertices.size == <mp_bitcnt_t>self.num_verts)):
             self.realloc(2 * self.active_vertices.size)
         return self.add_vertex_unsafe(k)
 
@@ -607,7 +605,7 @@ cdef class CGraph:
             [1, 2]
         """
         cdef int i
-        return [i for i in range(self.active_vertices.size)
+        return [i for i in range(<int>self.active_vertices.size)
                 if bitset_in(self.active_vertices, i)]
 
     cpdef realloc(self, int total):
@@ -1113,7 +1111,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             u_long = pyobject_to_long(u)
         except Exception:
             return -1
-        if u_long < 0 or u_long >= G.active_vertices.size or u_long in vertex_labels:
+        if u_long < 0 or u_long >= <long>G.active_vertices.size or u_long in vertex_labels:
             return -1
         return u_long
 
@@ -1744,7 +1742,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_verts([1, 2, 10]))
             [1, 2]
         """
-        cdef long i
+        cdef size_t i
         if verts is None:
             for x in self.vertex_ints:
                 yield x
@@ -2792,7 +2790,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: g = graphs.PetersenGraph()
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all((len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v)) for v in g)
+            sage: all((not paths[v] or len(paths[v])-1 == g.distance(0,v)) for v in g)
             True
             sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
@@ -3055,7 +3053,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         if v_int == -1:
             return True
         v = self.vertex_label(v_int)
-        cdef int n = 0
+        cdef size_t n = 0
         for _ in self.depth_first_search(v, ignore_direction=True):
             n += 1
         return n == cg.num_verts
@@ -3089,7 +3087,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         v = self.vertex_label(v_int)
 
-        cdef int n = 0
+        cdef size_t n = 0
         for _ in self.depth_first_search(v):
             n += 1
         if cg.num_verts != n:
@@ -3215,6 +3213,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
             ....:      for i in range(50))                              # long time
             True
+
+        TESTS::
+
+            sage: m = Matrix(3,[0, 1, 1, 0, 0, 0, 0, 1, 0])
+            sage: g = DiGraph(m)
+            sage: g.is_directed_acyclic(certificate=True)
+            (True, [0, 2, 1])
         """
         if not self._directed:
             raise ValueError("Input must be a directed graph.")
@@ -3265,12 +3270,11 @@ cdef class CGraphBackend(GenericGraphBackend):
                 # out-neighbors have been de-activated already, for we put them
                 # *after* u in the stack.
                 if bitset_in(tried, u):
-                    ordering.insert(0, self.vertex_label(u))
+                    ordering.append(self.vertex_label(u))
                     bitset_discard(tried, u)
                     bitset_discard(activated, u)
                     stack.pop(-1)
                     continue
-
 
                 # If we never tried it, now is the time to do it. We also must
                 # remember it
@@ -3312,9 +3316,11 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(tried)
 
         if certificate:
+            ordering.reverse()
             return (True, ordering)
         else:
             return True
+
 
 cdef class Search_iterator:
     r"""

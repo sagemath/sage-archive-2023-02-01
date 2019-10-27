@@ -18,8 +18,6 @@ Quiver Paths
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function
-
 cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
@@ -608,7 +606,7 @@ cdef class QuiverPath(MonoidElement):
         sig_on()
         i = biseq_startswith_tail(P._path, self._path, 0)
         sig_off()
-        if i==-1:
+        if i == <size_t>-1:
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
 

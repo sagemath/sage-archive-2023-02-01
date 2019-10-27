@@ -1,7 +1,6 @@
 r"""
 Base class for multivariate polynomial rings
 """
-from __future__ import absolute_import, print_function
 
 import sage.misc.latex
 from sage.misc.cachefunc import cached_method
@@ -478,12 +477,26 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
     def _ideal_class_(self, n=0):
         return multi_polynomial_ideal.MPolynomialIdeal
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        # all that is needed is that elements of the base ring
-        # of the polynomial ring canonically coerce into codomain.
-        # Since poly rings are free, any image of the gen
-        # determines a homomorphism
-        return codomain.has_coerce_map_from(self._base)
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        """
+        EXAMPLES::
+
+            sage: T.<t> = ZZ[]
+            sage: K.<i> = NumberField(t^2 + 1)
+            sage: R.<x,y> = K[]
+            sage: Q5 = Qp(5); i5 = Q5(-1).sqrt()
+            sage: R._is_valid_homomorphism_(Q5, [Q5.teichmuller(2), Q5(6).log()]) # no coercion
+            False
+            sage: R._is_valid_homomorphism_(Q5, [Q5.teichmuller(2), Q5(6).log()], base_map=K.hom([i5]))
+            True
+        """
+        if base_map is None:
+            # all that is needed is that elements of the base ring
+            # of the polynomial ring canonically coerce into codomain.
+            # Since poly rings are free, any image of the gen
+            # determines a homomorphism
+            return codomain.has_coerce_map_from(self._base)
+        return True
 
     def _magma_init_(self, magma):
         """
@@ -558,6 +571,20 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         if gap is not None:
             return 'PolynomialRing(%s,[%s])'%(gap(self.base_ring()).name(),','.join(L))
         return 'PolynomialRing(%s,[%s])'%(self.base_ring()._gap_init_(),','.join(L))
+
+    cpdef bint is_exact(self) except -2:
+        """
+        Test whether this multivariate polynomial ring is defined over an exact
+        base ring.
+
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ, 2, 'x').is_exact()
+            True
+            sage: PolynomialRing(RDF, 2, 'x').is_exact()
+            False
+        """
+        return self.base_ring().is_exact()
 
     def is_field(self, proof = True):
         """

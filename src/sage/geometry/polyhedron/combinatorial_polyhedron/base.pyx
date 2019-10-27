@@ -48,11 +48,11 @@ Obtaining edges and ridges::
     sage: C.ridges(names=False)[:2]
     ((6, 7), (5, 7))
 
-Edge-graph and ridge-graph::
+Vertex-graph and facet-graph::
 
-    sage: C.edge_graph()
+    sage: C.vertex_graph()
     Graph on 16 vertices
-    sage: C.ridge_graph()
+    sage: C.facet_graph()
     Graph on 8 vertices
 
 Face lattice::
@@ -184,7 +184,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     an integer::
 
         sage: CombinatorialPolyhedron(-1).f_vector()
-        (1,)
+        (1)
         sage: CombinatorialPolyhedron(0).f_vector()
         (1, 1)
         sage: CombinatorialPolyhedron(5).f_vector()
@@ -206,7 +206,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: C
         A 2-dimensional combinatorial polyhedron with 2 facets
         sage: C.f_vector()
-        (1, 1, 2, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: not all vertices are intersections of facets
         sage: C.vertices()
         (A line in the direction (0, 1), A vertex at (1, 0), A vertex at (-1, 0))
 
@@ -240,7 +242,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(P2).f_vector()
         (1, 3, 3, 1)
 
-    Some other tests regaring small polyhedra::
+    Some other tests regarding small polyhedra::
 
         sage: P = Polyhedron(rays=[[1,0],[0,1]])
         sage: C = CombinatorialPolyhedron(P)
@@ -252,15 +254,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         (A vertex at (0, 0),)
         sage: data = P.incidence_matrix()
         sage: vert = P.Vrepresentation()
-        sage: C = CombinatorialPolyhedron(data, Vrepr=vert)
-        sage: C
-        A 2-dimensional combinatorial polyhedron with 2 facets
-        sage: C.f_vector()
-        (1, 1, 2, 1)
-        sage: C.vertices()
-        (A vertex at (0, 0),
-         A ray in the direction (0, 1),
-         A ray in the direction (1, 0))
         sage: far_face = [i for i in range(3) if not P.Vrepresentation()[i].is_vertex()]
         sage: C = CombinatorialPolyhedron(data, Vrepr=vert, unbounded=True, far_face=far_face)
         sage: C
@@ -272,7 +265,19 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(3r)
         A 3-dimensional combinatorial polyhedron with 0 facets
 
+    Check that on wrong input subsequent calls of ``f_vector`` fail::
 
+        sage: data = P.incidence_matrix()
+        sage: vert = P.Vrepresentation()
+        sage: C = CombinatorialPolyhedron(data, Vrepr=vert)
+        sage: C.f_vector()
+        Traceback (most recent call last):
+        ...
+        ValueError: not all vertices are intersections of facets
+        sage: C.f_vector()
+        Traceback (most recent call last):
+        ...
+        ValueError: not all vertices are intersections of facets
     """
     def __init__(self, data, Vrepr=None, facets=None, unbounded=False, far_face=None):
         r"""
@@ -351,7 +356,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             test = [1] * len(facets)  # 0 if that facet is an equality
             for i in range(len(facets)):
                 if hasattr(facets[i], "is_inequality"):
-                    # We remove equalites.
+                    # We remove equalities.
                     # At the moment only equalities with this attribute ``True``
                     # will be detected.
                     if not facets[i].is_inequality():
@@ -759,7 +764,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: C = CombinatorialPolyhedron(-1)
             sage: C.f_vector()
-            (1,)
+            (1)
             sage: C.n_facets()
             0
 
@@ -929,6 +934,39 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t j
         return tuple((vertex_one(j), vertex_two(j)) for j in range(self._n_edges))
 
+    def vertex_graph(self, names=True):
+        r"""
+        Return a graph in which the vertices correspond to vertices
+        of the polyhedron, and edges to bounded rank 1 faces.
+
+        If ``names`` is set to ``False``, the Vrepresentatives will
+        carry names according to the indexing of the Vrepresentation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(3,5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.vertex_graph()
+            Graph on 5 vertices
+            sage: G = C.vertex_graph()
+            sage: sorted(G.degree())
+            [3, 3, 4, 4, 4]
+
+            sage: P = Polyhedron(rays=[[1]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.graph()
+            Graph on 1 vertex
+        """
+        vertices = self.vertices(names=names)
+
+        # Getting the bounded edges.
+        edges = tuple(edge for edge in self.edges(names=names)
+                      if edge[0] in vertices and edge[1] in vertices)
+
+        return Graph([vertices, edges], format="vertices_and_edges")
+
+    graph = vertex_graph
+
     def edge_graph(self, names=True):
         r"""
         Return the edge graph.
@@ -941,11 +979,15 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.cyclic_polytope(3,5)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.edge_graph()
+            doctest:...: DeprecationWarning: the method edge_graph of CombinatorialPolyhedron is deprecated; use vertex_graph
+            See https://trac.sagemath.org/28603 for details.
             Graph on 5 vertices
             sage: G = C.edge_graph()
             sage: sorted(G.degree())
             [3, 3, 4, 4, 4]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(28603, "the method edge_graph of CombinatorialPolyhedron is deprecated; use vertex_graph", 3)
         return Graph(self.edges(names=names), format="list_of_edges")
 
     def ridges(self, add_equalities=False, names=True):
@@ -963,7 +1005,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         INPUT:
 
         - ``add_equalities`` -- if ``True``, then equalities of the polyhedron
-          will be added
+          will be added (only applicable when ``names`` is ``True``)
 
         - ``names`` -- if ``False``, then the facets are given by their indices
 
@@ -979,8 +1021,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.ridges()
             ((An inequality (0, -1) x + 2 >= 0, An inequality (0, 1) x - 1 >= 0),)
             sage: C.ridges(add_equalities=True)
-            (((An equation (1, 1) x - 3 == 0, An inequality (0, -1) x + 2 >= 0),
-              (An equation (1, 1) x - 3 == 0, An inequality (0, 1) x - 1 >= 0)),)
+            (((An inequality (0, -1) x + 2 >= 0, An equation (1, 1) x - 3 == 0),
+              (An inequality (0, 1) x - 1 >= 0, An equation (1, 1) x - 3 == 0)),)
 
             sage: P = polytopes.cyclic_polytope(4,5)
             sage: C = CombinatorialPolyhedron(P)
@@ -1026,6 +1068,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: it = C.face_iter(0)
             sage: for face in it: face.Hrepr()
             (An inequality (1, 0) x + 0 >= 0, An equation (0, 1) x + 0 == 0)
+
+        TESTS:
+
+        Testing that ``add_equalities`` is ignored if ``names`` is ``False``::
+
+            sage: C = CombinatorialPolyhedron(polytopes.simplex())
+            sage: C.ridges(names=False, add_equalities=True)
+            ((2, 3), (1, 3), (0, 3), (1, 2), (0, 2), (0, 1))
         """
         cdef size_t len_ridge_list = self._length_edges_list
         if self._ridges is NULL:
@@ -1065,15 +1115,59 @@ cdef class CombinatorialPolyhedron(SageObject):
             return f(self._ridges[i // len_ridge_list][2*(i % len_ridge_list)+1])
 
         cdef size_t j
-        if add_equalities:
+        if add_equalities and names:
             # Also getting the equalities for each facet.
             return tuple(
-                ((self._equalities + (facet_one(i),)),
-                 (self._equalities + (facet_two(i),)))
+                (((facet_one(i),) + self._equalities),
+                 ((facet_two(i),) + self._equalities))
                 for i in range(n_ridges))
         else:
             return tuple((facet_one(i), facet_two(i))
                          for i in range(n_ridges))
+
+    def facet_graph(self, names=True):
+        r"""
+        Return the facet graph.
+
+        The facet graph of a polyhedron consists of
+        ridges as edges and facets as vertices.
+
+        If ``names`` is ``False``, the ``vertices`` of the graph  will
+        be the incidences of the facets in the Hrepresentation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(4,6)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.facet_graph()
+            Graph on 9 vertices
+
+        TESTS::
+
+            sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
+            sage: CombinatorialPolyhedron(P).facet_graph()
+            Graph on 2 vertices
+
+        Checking that :trac:`28604` is fixed::
+
+            sage: C = CombinatorialPolyhedron(polytopes.cube()); C
+            A 3-dimensional combinatorial polyhedron with 6 facets
+            sage: C.facet_graph(names=False)
+            Graph on 6 vertices
+
+            sage: C = CombinatorialPolyhedron(polytopes.hypersimplex(5,2)); C
+            A 4-dimensional combinatorial polyhedron with 10 facets
+            sage: C.facet_graph()
+            Graph on 10 vertices
+        """
+        face_iter = self.face_iter(self.dimension() - 1, dual=False)
+        V = list(facet.Hrepr(names=names) for facet in face_iter)
+        E = self.ridges(names=names, add_equalities=True)
+        if not names:
+            # If names is false, the ridges are given as tuple of indices,
+            # i.e. (1,2) instead of (('f1',), ('f2',)).
+            V = list(v[0] for v in V)
+        return Graph([V, E], format="vertices_and_edges")
 
     def ridge_graph(self, names=True):
         r"""
@@ -1090,8 +1184,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.cyclic_polytope(4,6)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.ridge_graph()
+            doctest:...: DeprecationWarning: the method ridge_graph of CombinatorialPolyhedron is deprecated; use facet_graph
+            See https://trac.sagemath.org/28604 for details.
             Graph on 9 vertices
         """
+        from sage.misc.superseded import deprecation
+        deprecation(28604, "the method ridge_graph of CombinatorialPolyhedron is deprecated; use facet_graph", 3)
         return Graph(self.ridges(names=names), format="list_of_edges")
 
     def f_vector(self):
@@ -1117,12 +1215,19 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.f_vector()
             (1, 10, 45, 120, 185, 150, 50, 1)
+
+        TESTS::
+
+            sage: type(C.f_vector())
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         """
         if not self._f_vector:
             self._compute_f_vector()
         if not self._f_vector:
             raise ValueError("could not determine f_vector")
-        return self._f_vector
+        from sage.modules.free_module_element import vector
+        from sage.rings.all                   import ZZ
+        return vector(ZZ, self._f_vector)
 
     def face_iter(self, dimension=None, dual=None):
         r"""
@@ -1460,11 +1565,21 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Copy ``f_vector``.
         if dual:
+            if dim > 1 and f_vector[1] < self._n_facets:
+                # The input seemed to be wrong.
+                raise ValueError("not all facets are joins of vertices")
+
             # We have computed the ``f_vector`` of the dual.
             # Reverse it:
             self._f_vector = \
                 tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
+
         else:
+            if not self._unbounded and dim > 1 \
+                    and f_vector[1] < self._length_Vrepr - len(self.far_face_tuple):
+                # The input seemed to be wrong.
+                raise ValueError("not all vertices are intersections of facets")
+
             self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
 
     cdef int _compute_edges(self, dual) except -1:

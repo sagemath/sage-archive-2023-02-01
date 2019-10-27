@@ -12,7 +12,7 @@ save member functions and commands.
 
    It is impossible to save certain Sage objects to disk. For example,
    if `x` is a MAGMA object, i.e., a wrapper around an object
-   that is defined in MAGMA, there is no way to save `x` it to
+   that is defined in MAGMA, there is no way to save `x` to
    disk, since MAGMA doesn't support saving of individual objects to
    disk.
 
@@ -26,7 +26,6 @@ save member functions and commands.
 
 -  Objects are zlib compressed for space efficiency.
 """
-from __future__ import absolute_import
 
 import io
 import os
@@ -343,7 +342,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
             Upon unpickling, if the class also defines the method :meth:`__setstate__`, it is
             called with the unpickled state. If there is no :meth:`__setstate__` method,
             the pickled state must be a dictionary and its items are assigned to the new
-            instance's dictionary. If a class defines both :meth:`getstate__` and
+            instance's dictionary. If a class defines both :meth:`__getstate__` and
             :meth:`__setstate__`, the state object needn't be a dictionary and these methods
             can do what they want.
 
@@ -556,9 +555,9 @@ def unpickle_global(module, name):
 IF PY_MAJOR_VERSION == 2:
     class _BasePickler(object):
         """
-        Wrapper class for `cPickle.Pickler`.
+        Wrapper class for ``cPickle.Pickler``.
 
-        On Python 2, `cPickle.Pickler` is not actually a class, but a function
+        On Python 2, ``cPickle.Pickler`` is not actually a class, but a function
         that is effectively the ``__new__`` method for an old-fashioned type
         that otherwise cannot be imported or instantiated directly.
 
@@ -574,7 +573,7 @@ IF PY_MAJOR_VERSION == 2:
             1
 
         We can also subclass this, which is not immediately possible with the
-        original `cPickle.Pickler`::
+        original ``cPickle.Pickler``::
 
             sage: class MyPickler(_BasePickler):
             ....:     def dump(self, obj):
@@ -611,9 +610,9 @@ IF PY_MAJOR_VERSION == 2:
 
     class _BaseUnpickler(object):
         """
-        Wrapper class for `cPickle.Unpickler`.
+        Wrapper class for ``cPickle.Unpickler``.
 
-        On Python 2, `cPickle.Unpickler` is not actually a class, but a
+        On Python 2, ``cPickle.Unpickler`` is not actually a class, but a
         function that is effectively the ``__new__`` method for an
         old-fashioned type that otherwise cannot be imported or instantiated
         directly.
@@ -628,7 +627,7 @@ IF PY_MAJOR_VERSION == 2:
             1
 
         We can also subclass this, which is not immediately possible with
-        the original `cPickle.Unpickler`::
+        the original ``cPickle.Unpickler``::
 
             sage: class MyUnpickler(_BaseUnpickler):
             ....:     def load(self):
@@ -664,7 +663,7 @@ ELSE:
         Provides the Python 3 implementation for
         :class:`sage.misc.persist.SagePickler`.
 
-        This is simpler than the Python 2 case since `pickle.Pickler` is a
+        This is simpler than the Python 2 case since ``pickle.Pickler`` is a
         modern built-in type which can be easily subclassed to provide new
         functionality.
 
@@ -704,7 +703,7 @@ ELSE:
         Provides the Python 3 implementation for
         :class:`sage.misc.persist.SageUnpickler`.
 
-        This is simpler than the Python 2 case since `pickle.Unpickler` is
+        This is simpler than the Python 2 case since ``pickle.Unpickler`` is
         a modern built-in type which can be easily subclassed to provide new
         functionality.
 
@@ -720,7 +719,7 @@ ELSE:
             """
             Implement persistent loading with the ``persistent_load`` function
             given at instantiation, if any.  Otherwise raises a
-            `pickle.UnpicklingError` as in the base class.
+            ``pickle.UnpicklingError`` as in the base class.
 
             See the documentation for :class:`sage.misc.persist.SageUnpickler`
             for more details.
@@ -756,7 +755,7 @@ ELSE:
 
 class SagePickler(_BasePickler):
     r"""
-    Subclass `pickle.Pickler` with Sage-specific default options, and
+    Subclass ``pickle.Pickler`` with Sage-specific default options, and
     built-in support for external object persistence.
 
     INPUT:
@@ -800,7 +799,7 @@ class SagePickler(_BasePickler):
         1
         sage: del unpickle_override[('sage.rings.integer', 'make_integer')]
 
-    The `SagePickler` can also be passed a ``persistent_id`` function::
+    The ``SagePickler`` can also be passed a ``persistent_id`` function::
 
         sage: table = {1: 'a', 2: 'b'}
         sage: # in practice this might be a database or something...
@@ -864,7 +863,7 @@ class SagePickler(_BasePickler):
 
         OUTPUT:
 
-        - ``pickle`` - the pickled object as `bytes`.
+        - ``pickle`` - the pickled object as ``bytes``.
 
         EXAMPLES::
 
@@ -883,14 +882,14 @@ class SagePickler(_BasePickler):
 
 class SageUnpickler(_BaseUnpickler):
     """
-    Subclass `pickle.Unpickler` to control how certain objects get unpickled
+    Subclass ``pickle.Unpickler`` to control how certain objects get unpickled
     (registered overrides, specifically).
 
     This is only needed in Python 3 and up.  On Python 2 the behavior of the
     ``cPickle`` module is customized differently.
 
     This class simply overrides ``Unpickler.find_class`` to wrap
-    `sage.misc.persist.unpickle_global``.
+    ``sage.misc.persist.unpickle_global``.
 
     INPUT:
 
@@ -904,7 +903,7 @@ class SageUnpickler(_BaseUnpickler):
       for more details.
 
     - ``kwargs`` -- additional keyword arguments passed to the
-      `pickle.Unpickler` constructor.
+      ``pickle.Unpickler`` constructor.
 
     .. _pickling and unpickling external objects: https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-external-objects
 
@@ -925,7 +924,7 @@ class SageUnpickler(_BaseUnpickler):
         1
         sage: del unpickle_override[('sage.rings.integer', 'make_integer')]
 
-    The `SageUnpickler` can also be passed a ``persistent_load`` function::
+    The ``SageUnpickler`` can also be passed a ``persistent_load`` function::
 
         sage: table = {1: 'a', 2: 'b'}
         sage: # in practice this might be a database or something...
@@ -942,7 +941,7 @@ class SageUnpickler(_BaseUnpickler):
 
         INPUT:
 
-        - ``data`` - the pickle data as `bytes`.
+        - ``data`` - the pickle data as ``bytes``.
 
         - ``kwargs`` - keyword arguments passed to the
           :class:`sage.misc.persist.SageUnpickler` constructor.

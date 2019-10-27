@@ -37,7 +37,6 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 
@@ -1065,7 +1064,7 @@ cdef class BasisExchangeMatroid(Matroid):
                 if not bitset_are_disjoint(comp[i], comp[j]):
                     bitset_union(comp[i], comp[i], comp[j])
                     bitset_discard(active_rows, j)
-                j = bitset_next(active_rows, j+1) 
+                j = bitset_next(active_rows, j+1)
             i = bitset_next(active_rows, i+1)
 
         res = SetSystem(self._E)
@@ -1092,10 +1091,11 @@ cdef class BasisExchangeMatroid(Matroid):
             e = bitset_next(loops, e+1)
 
         bitset_free(loops)
-        bitset_free(loop)    
+        bitset_free(loop)
         bitset_free(active_rows)
         for i in xrange(self.full_rank()):
-            bitset_free(comp[i])           
+            bitset_free(comp[i])
+        sig_free(comp)
         return res
 
     cpdef _link(self, S, T):

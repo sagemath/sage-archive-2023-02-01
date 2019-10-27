@@ -64,8 +64,6 @@ Test hashing::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from libc.string cimport strcpy, strlen
 
 from sage.cpython.string cimport char_to_str, str_to_bytes

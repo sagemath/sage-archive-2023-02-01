@@ -12,8 +12,6 @@ Utility functions for GAP
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 from libc.signal cimport signal, SIGCHLD, SIG_DFL
 from posix.dlfcn cimport dlopen, dlclose, RTLD_NOW, RTLD_GLOBAL
 

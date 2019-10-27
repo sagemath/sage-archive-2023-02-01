@@ -2249,6 +2249,61 @@ class Polyhedron_base(Element):
 
     adjacency_matrix = vertex_adjacency_matrix
 
+    def boundary_complex(self):
+        """
+        Return the simplicial complex given by the boundary faces of ``self``,
+        if it is simplicial.
+
+        OUTPUT:
+
+        A (spherical) simplicial complex
+
+        EXAMPLES:
+
+        The boundary complex of the octahedron::
+
+            sage: oc = polytopes.octahedron()
+            sage: sc_oc = oc.boundary_complex()
+            sage: fl_oc = oc.face_lattice()
+            sage: fl_sc = sc_oc.face_poset()
+            sage: [len(x) for x in fl_oc.level_sets()]
+            [1, 6, 12, 8, 1]
+            sage: [len(x) for x in fl_sc.level_sets()]
+            [6, 12, 8]
+            sage: sc_oc.euler_characteristic()
+            2
+            sage: sc_oc.homology()
+            {0: 0, 1: 0, 2: Z}
+
+        The polyhedron should be simplicial::
+
+            sage: c = polytopes.cube()
+            sage: c.boundary_complex()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is only implemented for simplicial polytopes
+
+        TESTS::
+
+            sage: p = Polyhedron(rays=[[1,1]])
+            sage: p.boundary_complex()
+            Traceback (most recent call last):
+            ...
+            ValueError: self should be compact
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        if not self.is_compact():
+            raise ValueError("self should be compact")
+
+        if self.is_simplicial():
+            inc_mat_cols = self.incidence_matrix().columns()
+            ineq_indices = [inc_mat_cols[i].nonzero_positions()
+                            for i in range(self.n_Hrepresentation())
+                            if self.Hrepresentation()[i].is_inequality()]
+            return SimplicialComplex(ineq_indices,maximality_check=False)
+        else:
+            raise NotImplementedError("this function is only implemented for simplicial polytopes")
+
     @cached_method
     def facet_adjacency_matrix(self):
         """
@@ -2553,6 +2608,55 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             NotImplementedError: this function is not implemented for unbounded polyhedron
+
+        TESTS:
+
+        We check that :trac:`28464` is fixed::
+
+            sage: P = Polyhedron(vertices=[(-130658298093891402635075/416049251842505144482473,
+            ....: 177469511761879509172000/1248147755527515433447419,
+            ....: 485550543257132133136169/2496295511055030866894838,
+            ....: 2010744967797898733758669/2496295511055030866894838),
+            ....: (-146945725603929909850/706333405676769433081,
+            ....: -84939725782618445000/706333405676769433081,
+            ....: 560600045283000988081/1412666811353538866162,
+            ....: 969778382942371268081/1412666811353538866162),
+            ....: (-46275018824497300/140422338198040641,
+            ....: -5747688262110000/46807446066013547, 1939357556329/7033601552658,
+            ....: 1939357556329/7033601552658), (-17300/59929, -10000/59929, 39929/119858,
+            ....: 39929/119858), (-4700/32209, -10000/32209, 12209/64418, 12209/64418),
+            ....: (QQ(0), QQ(0), QQ(0), QQ(1)), (QQ(0), QQ(0), 1/2, 1/2), (300/10027,
+            ....: -10000/30081, 10081/60162, 10081/60162), (112393975400/1900567733649,
+            ....: 117311600000/633522577883, 43678681/95197362, 43678681/95197362),
+            ....: (6109749955400/133380598418321, 37106807920000/133380598418321,
+            ....: 2677964249/6680888498, 2677964249/6680888498),
+            ....: (29197890764005600/402876806828660641,
+            ....: -2150510776960000/402876806828660641,
+            ....: 398575785274740641/805753613657321282,
+            ....: 398575785274740641/805753613657321282),
+            ....: (5576946899441759759983005325/110078073300232813237456943251,
+            ....: -29071211718677797926570478000/110078073300232813237456943251,
+            ....: 59439312069347378584317232001/220156146600465626474913886502,
+            ....: 181346577228466312205473034501/220156146600465626474913886502),
+            ....: (150040732779124914266530235300/6774574358246204311268446913881,
+            ....: -2813827375989039189507000218000/6774574358246204311268446913881,
+            ....: 1260217414021285074925933133881/13549148716492408622536893827762,
+            ....: 3232518047094242684574253773881/13549148716492408622536893827762),
+            ....: (3816349407976279597850158016285000/88842127448735433741180809504357161,
+            ....: 27965821247423216557301387453968000/88842127448735433741180809504357161,
+            ....: 68546256000224819256028677086357161/177684254897470867482361619008714322,
+            ....: 86062257922545755787315412690197161/177684254897470867482361619008714322)])
+            sage: P.is_inscribed()
+            True
+
+            sage: P = Polyhedron(vertices=[[0, -1, 0, 0],
+            ....:                          [0, 0, -1, 0],
+            ....:                          [0, 0, 0, -1],
+            ....:                          [0, 0, +1, 0],
+            ....:                          [0, 0, 0, +1],
+            ....:                          [+1, 0, 0, 0]])
+            sage: P.is_inscribed()
+            True
         """
 
         if not self.is_compact():
@@ -2563,13 +2667,20 @@ class Polyhedron_base(Element):
 
         dimension = self.dimension()
         vertices = self.vertices()
-        vertex = vertices[0]
-        vertex_neighbors = vertex.neighbors()
 
-        # The following simplex is full-dimensional because `self` is assumed
-        # to be: every vertex has at least `dimension` neighbors and they form
-        # a full simplex with `vertex`.
-        simplex_vertices = [vertex] + [next(vertex_neighbors) for i in range(dimension)]
+        # We greedily construct a full-dimensional simplex made of vertices
+        # around some vertex of self.
+        vertex = vertices[0]
+        v0 = vertex.vector()
+        M = matrix(self.base_ring(), dimension, 0)
+        simplex_vertices = [vertex]
+        for v in vertex.neighbors():
+            MA = M.augment(v.vector()-v0)
+            if MA.rank() > M.rank():
+                simplex_vertices.append(v)
+                M = MA
+            if M.rank() == dimension:
+                break
 
         raw_data = []
         for vertex in simplex_vertices:
@@ -2619,6 +2730,27 @@ class Polyhedron_base(Element):
             False
         """
         return self.n_rays() == 0 and self.n_lines() == 0
+
+    @cached_method
+    def combinatorial_polyhedron(self):
+        r"""
+        Return the combinatorial type of ``self``.
+
+        See :class:`sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
+
+        EXAMPLES::
+
+            sage: polytopes.cube().combinatorial_polyhedron()
+            A 3-dimensional combinatorial polyhedron with 6 facets
+
+            sage: polytopes.cyclic_polytope(4,10).combinatorial_polyhedron()
+            A 4-dimensional combinatorial polyhedron with 35 facets
+
+            sage: Polyhedron(rays=[[0,1], [1,0]]).combinatorial_polyhedron()
+            A 2-dimensional combinatorial polyhedron with 2 facets
+        """
+        from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
+        return CombinatorialPolyhedron(self)
 
     def is_simple(self):
         """
@@ -3344,7 +3476,7 @@ class Polyhedron_base(Element):
             except AssertionError:
                 # PointConfiguration is not adapted to inhomogeneous cones
                 # This is a hack. TODO: Implement the necessary things in
-                # PointConfiguration to accep such cases.
+                # PointConfiguration to accept such cases.
                 c = self.representative_point()
                 normed_v = ((1/(r.vector()*c))*r.vector() for r in self.ray_generator())
                 pc = PointConfiguration(normed_v, connected=connected, fine=fine, regular=regular, star=star)
@@ -4343,7 +4475,7 @@ class Polyhedron_base(Element):
 
         - ``face`` -- a PolyhedronFace
 
-        - ``position`` -- a positive integer. Determines a relative distance
+        - ``position`` -- a positive number. Determines a relative distance
           from the barycenter of ``face``. A value close to 0 will place the
           new vertex close to the face and a large value further away. Default
           is `1`. If the given value is too large, an error is returned.
@@ -4388,6 +4520,21 @@ class Polyhedron_base(Element):
             ...
             ValueError: the chosen position is too large
 
+            sage: s = polytopes.simplex(7)
+            sage: f = s.faces(3)[0]
+            sage: sf = s.stack(f); sf
+            A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 9 vertices
+            sage: sf.vertices()
+            (A vertex at (-4, -4, -4, -4, 17/4, 17/4, 17/4, 17/4),
+             A vertex at (0, 0, 0, 0, 0, 0, 0, 1),
+             A vertex at (0, 0, 0, 0, 0, 0, 1, 0),
+             A vertex at (0, 0, 0, 0, 0, 1, 0, 0),
+             A vertex at (0, 0, 0, 0, 1, 0, 0, 0),
+             A vertex at (0, 0, 0, 1, 0, 0, 0, 0),
+             A vertex at (0, 0, 1, 0, 0, 0, 0, 0),
+             A vertex at (0, 1, 0, 0, 0, 0, 0, 0),
+             A vertex at (1, 0, 0, 0, 0, 0, 0, 0))
+
         It is possible to stack on unbounded faces::
 
             sage: Q = Polyhedron(vertices=[[0,1],[1,0]],rays=[[1,1]])
@@ -4408,18 +4555,41 @@ class Polyhedron_base(Element):
              A ray in the direction (1, 1),
              A vertex at (2, 0))
 
-        TESTS::
+        Stacking requires a proper face::
+
+            sage: Q.stack(Q.faces(2)[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: can only stack on proper face
+
+        TESTS:
+
+        Checking that the backend is preserved::
 
             sage: Cube = polytopes.cube(backend='field')
             sage: stack = Cube.stack(Cube.faces(2)[0])
             sage: stack.backend()
             'field'
+
+        Taking the stacking vertex too far with the parameter ``position``
+        may result in a failure to produce the desired
+        (combinatorial type of) polytope.
+        The interval of permitted values is always open.
+        This is the smallest unpermitted value::
+
+            sage: P = polytopes.octahedron()
+            sage: P.stack(P.faces(2)[0], position=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the chosen position is too large
         """
         from sage.geometry.polyhedron.face import PolyhedronFace
         if not isinstance(face, PolyhedronFace):
             raise TypeError("{} should be a PolyhedronFace of {}".format(face, self))
         elif face.dim() == 0:
             raise ValueError("can not stack onto a vertex")
+        elif face.dim() == -1 or face.dim() == self.dim():
+            raise ValueError("can only stack on proper face")
 
         if position is None:
             position = 1
@@ -4430,10 +4600,10 @@ class Polyhedron_base(Element):
 
         # Taking all facets that contain the face
         if face.dim() == self.dim() - 1:
-            face_star = set([face.ambient_Hrepresentation()[0]])
+            face_star = set([face.ambient_Hrepresentation()[-1]])
         else:
-            face_star = set(facet for facet in self.Hrepresentation()
-                            if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices))
+            face_star = set(facet for facet in self.Hrepresentation() if facet.is_inequality()
+                            if all(not facet.interior_contains(x) for x in face_vertices))
 
         neighboring_facets = set()
         for facet in face_star:
@@ -4452,7 +4622,7 @@ class Polyhedron_base(Element):
         repr_point = locus_polyhedron.representative_point()
         new_vertex = (1-position)*barycenter + position*repr_point
 
-        if not locus_polyhedron.contains(new_vertex):
+        if not locus_polyhedron.relative_interior_contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
         parent = self.parent().base_extend(new_vertex)
@@ -4529,11 +4699,11 @@ class Polyhedron_base(Element):
 
         For more information, see Chapter 15 of [HoDaCG17]_.
 
-        TESTS::
+        TESTS:
 
         The backend should be preserved as long as the value of width permits.
         The base_ring will change to the field of fractions of the current
-        base_ring, unless width forces a different ring.
+        base_ring, unless width forces a different ring. ::
 
             sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='field')
             sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()
@@ -5077,7 +5247,7 @@ class Polyhedron_base(Element):
         :mod:`~sage.geometry.polyhedron.face` for details. The order
         is random but fixed.
 
-        .. SEEALSO:: :meth:`faces`
+        .. SEEALSO:: :meth:`facets`
 
         EXAMPLES:
 
@@ -5214,7 +5384,7 @@ class Polyhedron_base(Element):
             sage: p.f_vector()
             (1, 7, 12, 7, 1)
         """
-        return vector(ZZ, [len(x) for x in self.face_lattice().level_sets()])
+        return self.combinatorial_polyhedron().f_vector()
 
     def vertex_graph(self):
         """
@@ -5806,7 +5976,7 @@ class Polyhedron_base(Element):
             sage: polytopes.cuboctahedron()._volume_latte() #optional - latte_int
             20/3
 
-        TESTS::
+        TESTS:
 
         Testing triangulate algorithm::
 
@@ -6171,7 +6341,7 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: the polytope must be full-dimensional
 
-        TESTS::
+        TESTS:
 
         Testing a three-dimensional integral::
 
@@ -6703,13 +6873,20 @@ class Polyhedron_base(Element):
             ((1, 1), (1, 1))
             sage: polytopes.buckyball(exact=False).bounding_box()
             ((-0.8090169944, -0.8090169944, -0.8090169944), (0.8090169944, 0.8090169944, 0.8090169944))
+
+        TESTS::
+
+            sage: Polyhedron().bounding_box()
+            Traceback (most recent call last):
+            ...
+            ValueError: empty polytope is not allowed
         """
         box_min = []
         box_max = []
-        if self.n_vertices == 0:
-            raise ValueError('empty polytope is not allowed')
         if not self.is_compact():
-            raise ValueError('only polytopes (compact polyhedra) are allowed')
+            raise ValueError("only polytopes (compact polyhedra) are allowed")
+        if self.n_vertices() == 0:
+            raise ValueError("empty polytope is not allowed")
         for i in range(self.ambient_dim()):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)
@@ -7953,7 +8130,7 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
-            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()], base_ring=A.base_ring())
+            return Polyhedron([A*vector(A.base_ring(), w) for w in Q.vertices()], base_ring=A.base_ring())
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()

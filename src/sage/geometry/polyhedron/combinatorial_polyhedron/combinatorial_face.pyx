@@ -1,7 +1,7 @@
 r"""
 Combinatorial face of a polyhedron
 
-This module provides the combinatorical type of a polyhedral face.
+This module provides the combinatorial type of a polyhedral face.
 
 ,, SEEALSO::
 
@@ -63,8 +63,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, division, print_function
 
 import numbers
 from sage.rings.integer         cimport smallInteger

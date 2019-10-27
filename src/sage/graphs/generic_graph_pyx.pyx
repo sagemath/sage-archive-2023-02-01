@@ -20,8 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -620,7 +618,7 @@ cdef class SubgraphSearch:
 
     def __iter__(self):
         r"""
-        Returns an iterator over all the labeleld subgraphs of `G`
+        Return an iterator over all the labeled subgraphs of `G`
         isomorphic to `H`.
 
         EXAMPLES:

@@ -4460,7 +4460,8 @@ def HigmanSimsDesign():
 
     The design is then obtained from the incidence structure produced by the
     blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
-    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
+    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of
+    [BL1984]_.
 
     EXAMPLES::
 

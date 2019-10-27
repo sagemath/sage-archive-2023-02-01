@@ -198,17 +198,14 @@ More Detailed Instructions to Build from Source
 
 1. To start the build, type `make`.
 
-   Note: to build a Python3-based Sage, instead of typing `make`, type
+   Note: to build a Python2-based Sage, instead of typing `make`, type
 
        make configure
-       ./configure --with-python=3
+       ./configure --with-python=2
        make
 
-   This will build Sage based on Python 3 rather than based on Python 2,
-   which is still the default at this point. The resulting Sage mostly
-   works well, though some features (less of them at each release!) are
-   not yet ready for Python 3. The progress on this is tracked at
-   [Sage Trac ticket 15530: Metaticket: Add support for python 3.6+](https://trac.sagemath.org/ticket/15530).
+   This will build Sage based on Python 2 rather than based on Python 3,
+   which is the default since sage 9.0.
 
 1. Wait about 20 minutes to 14 days, depending on your computer (it took
    about 2 weeks to build Sage on the T-Mobile G1 Android cell phone).

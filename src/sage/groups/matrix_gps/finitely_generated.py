@@ -787,7 +787,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         else:
             VarStr = 'x'
         VarNames = '(' + ','.join((VarStr+str(i) for i in range(1, n+1)))+')'
-        R = singular.ring(FieldStr, VarNames, 'dp') # this does have a side-effect
+        # The function call and affectation below have side-effects. Do not remove!
+        # (even if pyflakes say so)
+        R = singular.ring(FieldStr, VarNames, 'dp')
         if hasattr(F, 'polynomial') and F.gen() != 1:
             # we have to define minpoly
             singular.eval('minpoly = '+str(F.polynomial()).replace('x',str(F.gen())))

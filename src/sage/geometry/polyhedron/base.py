@@ -3599,7 +3599,7 @@ class Polyhedron_base(Element):
             sage: four_cube = polytopes.hypercube(4)
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: four_cube - four_simplex
-            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 16 vertices
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 16 vertices
             sage: four_cube.minkowski_difference(four_simplex) == four_cube - four_simplex
             True
 
@@ -3626,6 +3626,13 @@ class Polyhedron_base(Element):
             True
             sage: (X-Y)+Y == X
             True
+
+        Testing that :trac:`28506` is fixed::
+
+            sage: Q = Polyhedron([[1,0],[0,1]])
+            sage: S = Polyhedron([[0,0],[1,2]])
+            sage: S.minkowski_difference(Q)
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
         """
         if other.is_empty():
             return self.parent().universe()   # empty intersection = everything
@@ -3644,7 +3651,9 @@ class Polyhedron_base(Element):
             ieq = list(ieq)
             ieq[0] += min(values)   # shift constant term
             new_ieqs.append(ieq)
-        P = self.parent()
+
+        # Some vertices might need fractions.
+        P = self.parent().change_ring(self.base_ring().fraction_field())
         return P.element_class(P, None, [new_ieqs, new_eqns])
 
     def __sub__(self, other):
@@ -3989,7 +3998,9 @@ class Polyhedron_base(Element):
             :meth:`join`
             :meth:`subdirect_sum`
 
-        TESTS::
+        TESTS:
+
+        Check that the backend is preserved::
 
             sage: P = polytopes.simplex(backend='cdd')
             sage: Q = polytopes.simplex(backend='ppl')
@@ -3997,9 +4008,17 @@ class Polyhedron_base(Element):
             'cdd'
             sage: Q.direct_sum(P).backend()
             'ppl'
+
+        Check that :trac:`28506` is fixed::
+
+            sage: s2 = polytopes.simplex(2)
+            sage: s3 = polytopes.simplex(3)
+            sage: s2.direct_sum(s3)
+            A 5-dimensional polyhedron in QQ^7 defined as the convex hull of 7 vertices
         """
         try:
-            new_ring = self.parent()._coerce_base_ring(other)
+            # Some vertices might need fractions.
+            new_ring = self.parent()._coerce_base_ring(other).fraction_field()
         except TypeError:
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
                      + " and " + str(other.parent()))
@@ -4421,12 +4440,22 @@ class Polyhedron_base(Element):
              sage: face_trunc.face_lattice().is_isomorphic(Cube.face_lattice())
              True
 
-        TESTS::
+        TESTS:
+
+        Testing that the backend is preserved::
 
             sage: Cube = polytopes.cube(backend='field')
             sage: face_trunc = Cube.face_truncation(Cube.faces(2)[0])
             sage: face_trunc.backend()
             'field'
+
+        Testing that :trac:`28506` is fixed::
+
+            sage: P = polytopes.twenty_four_cell()
+            sage: P = P.dilation(6)
+            sage: P = P.change_ring(ZZ)
+            sage: P.face_truncation(P.faces(2)[0], cut_frac=1)
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 27 vertices
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
@@ -4463,7 +4492,8 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        parent = self.parent().base_extend(cut_frac)
+        # Some vertices might need fractions.
+        parent = self.parent().base_extend(cut_frac/1)
         return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     def stack(self, face, position=None):

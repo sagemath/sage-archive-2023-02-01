@@ -764,6 +764,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             if is_known_summand(X):
                 continue
             Y = self - X
+            Y = Y.change_ring(ZZ)  # Minkowski difference returns QQ-polyhedron
             if X+Y != self:
                 continue
             decompositions.append((X, Y))

@@ -49,8 +49,7 @@ from sage.categories.sets_cat import EmptySetError
 #  * you must implement _init_from_Vrepresentation and
 #    _init_from_Hrepresentation
 #
-#  * You might want to override _init_empty_polyhedron and
-#    _make_polyhedron_face.
+#  * You might want to override _init_empty_polyhedron
 #
 #  * You can of course also override any other method for which you
 #    have a faster implementation.
@@ -5173,33 +5172,6 @@ class Polyhedron_base(Element):
         else:
             return (polar.polar()) + barycenter
 
-    def _make_polyhedron_face(self, Vindices, Hindices):
-        """
-        Construct a face of the polyhedron.
-
-        INPUT:
-
-        - ``Vindices`` -- a tuple of integers. The indices of the
-          V-representation objects that span the face.
-
-        - ``Hindices`` -- a tuple of integers. The indices of the
-          H-representation objects that hold as equalities on the
-          face.
-
-        OUTPUT:
-
-        A new :class:`~sage.geometry.polyhedron.face.PolyhedronFace` instance. It is not checked
-        whether the input data actually defines a face.
-
-        EXAMPLES::
-
-            sage: square = polytopes.hypercube(2)
-            sage: square._make_polyhedron_face((0,2), (1,)).ambient_V_indices()
-            (0, 2)
-        """
-        from sage.geometry.polyhedron.face import PolyhedronFace
-        return PolyhedronFace(self, Vindices, Hindices)
-
     @cached_method
     def face_lattice(self):
         """
@@ -5357,12 +5329,13 @@ class Polyhedron_base(Element):
         lines     = [ l.index() for l in self.line_generator() ]
 
         def face_constructor(atoms, coatoms):
-            if len(atoms) == 0:
+            from sage.geometry.polyhedron.face import PolyhedronFace
+            if not atoms:
                 Vindices = ()
             else:
                 Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))
             Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
-            return self._make_polyhedron_face(Vindices, Hindices)
+            return PolyhedronFace(self,Vindices, Hindices)
 
         from sage.geometry.hasse_diagram import lattice_from_incidences
         return lattice_from_incidences(atoms_incidences, coatoms_incidences,

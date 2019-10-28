@@ -147,7 +147,7 @@ cdef class PolyhedronFaceLattice:
         if not C.is_bounded():
             self.dual = False
         cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
-        self.face_length = face_iter.face_length
+        self.face_length = face_iter.structure.face_length
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
         self._equalities = C.equalities()
@@ -217,14 +217,14 @@ cdef class PolyhedronFaceLattice:
 
         # Adding all faces, using the iterator.
         cdef int d
-        if face_iter.current_dimension != self.dimension:
+        if face_iter.structure.current_dimension != self.dimension:
             # If there are proper faces.
             d = face_iter.next_dimension()
             while (d == self.dimension - 1):
                 # We already have the coatoms.
                 d = face_iter.next_dimension()
             while (d < self.dimension):
-                self._add_face(d, face_iter.face)
+                self._add_face(d, face_iter.structure.face)
                 d = face_iter.next_dimension()
 
         # Sorting the faces, except for coatoms.
@@ -357,7 +357,7 @@ cdef class PolyhedronFaceLattice:
             ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
             ....:     if not (all_faces.dual == it.dual):
             ....:         raise ValueError("iterator and allfaces not in same mode")
-            ....:     return all_faces.find_face(face_iter.current_dimension, face_iter.face)
+            ....:     return all_faces.find_face(face_iter.structure.current_dimension, face_iter.structure.face)
             ....: ''')
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
@@ -439,12 +439,12 @@ cdef class PolyhedronFaceLattice:
             ....: def face_via_all_faces_from_iterator(it, C1):
             ....:     cdef FaceIterator face_iter = it
             ....:     cdef CombinatorialPolyhedron C = C1
-            ....:     cdef int dimension = face_iter.current_dimension
+            ....:     cdef int dimension = face_iter.structure.current_dimension
             ....:     C._record_all_faces()
             ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
             ....:     if not (all_faces.dual == it.dual):
             ....:         raise ValueError("iterator and allfaces not in same mode")
-            ....:     index = all_faces.find_face(dimension, face_iter.face)
+            ....:     index = all_faces.find_face(dimension, face_iter.structure.face)
             ....:     return all_faces.get_face(dimension, index)
             ....: ''')
             sage: P = polytopes.permutahedron(4)

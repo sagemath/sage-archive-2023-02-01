@@ -128,15 +128,15 @@ cdef class PolyhedronFaceLattice:
         self._mem = MemoryAllocator()
         self.dimension = C.dimension()
         self.dual = False
-        if C.bitrep_facets.n_faces > C.bitrep_Vrepr.n_faces:
+        if C.bitrep_facets().n_faces > C.bitrep_Vrepr().n_faces:
             self.dual = True
-        if C._unbounded:
+        if C.unbounded():
             self.dual = False
         cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
         self.face_length = face_iter.face_length
-        self._V = C._V
-        self._H = C._H
-        self._equalities = C._equalities
+        self._V = C.V()
+        self._H = C.H()
+        self._equalities = C.equalities()
 
         # copy f_vector for later use
         f_vector = C.f_vector()

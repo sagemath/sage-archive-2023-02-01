@@ -4521,7 +4521,7 @@ class Polyhedron_base(Element):
             ValueError: the chosen position is too large
 
             sage: s = polytopes.simplex(7)
-            sage: f = s.faces(3)[0]
+            sage: f = s.faces(3)[69]
             sage: sf = s.stack(f); sf
             A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 9 vertices
             sage: sf.vertices()

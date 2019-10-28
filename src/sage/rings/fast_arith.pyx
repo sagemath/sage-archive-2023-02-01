@@ -57,7 +57,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
     INPUT:
 
-    - ``start`` -- integer, lower bound
+    - ``start`` -- integer, lower bound (default: 1)
 
     - ``stop`` -- integer, upper bound
 
@@ -97,6 +97,13 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         <type 'sage.rings.integer.Integer'>
         sage: type(prime_range(8,algorithm="pari_isprime")[0])
         <type 'sage.rings.integer.Integer'>
+
+    .. NOTE::
+
+        ``start`` and ``stop`` should be integers, but real numbers will also be accepted
+        as input. In this case, they will be rounded to nearby integers start\* and
+        stop\*, so the output will be the primes between start\* and stop\* - 1, which may
+        not be exactly the same as the primes between ``start`` and ``stop - 1``.
 
     TESTS::
 

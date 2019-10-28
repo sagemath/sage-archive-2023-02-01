@@ -262,7 +262,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             if len(l) != 1:
                 raise ArithmeticError
             return l[0]
-        return self.element_class(x, parent=self, check=check)
+        return self.element_class(x, self, check=check)
 
     def is_galois(self):
         r"""

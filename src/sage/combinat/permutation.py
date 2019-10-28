@@ -254,6 +254,7 @@ from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
 from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
@@ -1132,12 +1133,8 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,2,3]).to_permutation_group_element()
             ()
         """
-        cycles = self.to_cycles(singletons=False)
         grp = SymmetricGroup(len(self))
-        if not cycles:
-            return PermutationGroupElement( '()', parent=grp )
-        else:
-            return PermutationGroupElement( cycles , parent=grp)
+        return grp.element_class(self.to_cycles(singletons=False), grp, check=False)
 
     def signature(self):
         r"""

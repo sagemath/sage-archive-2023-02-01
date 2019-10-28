@@ -7399,7 +7399,7 @@ cdef class Matrix(Matrix1):
             sage: j.automorphisms_of_rows_and_columns()
             [((), ()), ((1,3)(2,5), (1,3)(2,5))]
         """
-        from sage.groups.perm_gps.permgroup_element import \
+        from sage.groups.perm_gps.constructor import \
             PermutationGroupElement
         B = self.as_bipartite_graph()
         nrows = self.nrows()
@@ -7660,7 +7660,7 @@ cdef class Matrix(Matrix1):
         N_B = N.as_bipartite_graph()
         if check:
             truth, perm = N_B.is_isomorphic(M_B, certificate=True, edge_labels=True)
-            from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+            from sage.groups.perm_gps.constructor import PermutationGroupElement
             if perm:
                 s = sorted(perm.items(), key=lambda x:x[0])
                 row_perms = [value for k, value in s if k <= nrows]

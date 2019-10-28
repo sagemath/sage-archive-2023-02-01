@@ -116,7 +116,7 @@ from sage.geometry.point_collection import PointCollection,\
     is_PointCollection, read_palp_point_collection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.groups.perm_gps.constructor import PermutationGroupElement
 from ppl import (C_Polyhedron, Generator_System, Linear_Expression,
                            point as PPL_point)
 from sage.matrix.constructor import matrix

@@ -1193,6 +1193,27 @@ class Polyhedron_base(Element):
         Return the number of vertices. The representation will
         always be minimal.
 
+        .. WARNING::
+
+            If the polyhedron has lines, return the number of vertices in
+            the ``Vrepresentation``. As the represented polyhedron has
+            no 0-dimensional faces (i.e. vertices), ``n_vertices`` corresponds
+            to the number of `k`-faces, where `k` is the number of lines::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.n_vertices()
+                1
+                sage: P.faces(0)
+                ()
+                sage: P.f_vector()
+                (1, 0, 1, 1)
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0],[0,1,1]])
+                sage: P.n_vertices()
+                1
+                sage: P.f_vector()
+                (1, 0, 0, 1, 1)
+
         EXAMPLES::
 
             sage: p = Polyhedron(vertices = [[1,0],[0,1],[1,1]], rays=[[1,1]])
@@ -1764,6 +1785,18 @@ class Polyhedron_base(Element):
             It is recommended to use :meth:`vertex_generator` instead to
             iterate over the list of :class:`Vertex` objects.
 
+        .. WARNING::
+
+            If the polyhedron has lines, return the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.vertices_list()
+                [[0, 0, 0]]
+                sage: P.faces(0)
+                ()
+
         EXAMPLES::
 
             sage: triangle = Polyhedron(vertices=[[1,0],[0,1],[1,1]])
@@ -1782,6 +1815,18 @@ class Polyhedron_base(Element):
     def vertex_generator(self):
         """
         Return a generator for the vertices of the polyhedron.
+
+        .. WARNING::
+
+            If the polyhedron has lines, return a generator for the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: list(P.vertex_generator())
+                [A vertex at (0, 0, 0)]
+                sage: P.faces(0)
+                ()
 
         EXAMPLES::
 
@@ -1818,6 +1863,18 @@ class Polyhedron_base(Element):
 
         A tuple of vertices.
 
+        .. WARNING::
+
+            If the polyhedron has lines, return the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.vertices()
+                (A vertex at (0, 0, 0),)
+                sage: P.faces(0)
+                ()
+
         EXAMPLES::
 
             sage: triangle = Polyhedron(vertices=[[1,0],[0,1],[1,1]])
@@ -1848,6 +1905,20 @@ class Polyhedron_base(Element):
         A matrix over ``base_ring`` whose columns are the coordinates
         of the vertices. A ``TypeError`` is raised if the coordinates
         cannot be converted to ``base_ring``.
+
+        .. WARNING::
+
+            If the polyhedron has lines, return the coordinates of the vertices
+            of the ``Vrepresentation``. However, the represented polyhedron
+            has no 0-dimensional faces (i.e. vertices)::
+
+                sage: P = Polyhedron(rays=[[1,0,0]],lines=[[0,1,0]])
+                sage: P.vertices_matrix()
+                [0]
+                [0]
+                [0]
+                sage: P.faces(0)
+                ()
 
         EXAMPLES::
 
@@ -5440,8 +5511,15 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        Returns a vector whose ``i``-th entry is the number of
-        ``i``-dimensional faces of the polytope.
+        Returns a vector whose `i`-th entry is the number of
+        `i-2`-dimensional faces of the polytope.
+
+        .. NOTE::
+
+            The ``vertices`` as given by :meth:`Polyhedron_base.vertices`
+            do not need to correspond to `0`-dimensional faces. If a polyhedron
+            contains `k` lines they correspond to `k`-dimensional faces.
+            See example below
 
         EXAMPLES::
 
@@ -5449,6 +5527,26 @@ class Polyhedron_base(Element):
             ....:     [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [0, 0, 0]])
             sage: p.f_vector()
             (1, 7, 12, 7, 1)
+
+            sage: polytopes.cyclic_polytope(4,10).f_vector()
+            (1, 10, 45, 70, 35, 1)
+
+            sage: polytopes.hypercube(5).f_vector()
+            (1, 32, 80, 80, 40, 10, 1)
+
+        Polyhedra with lines do not have `0`-faces::
+
+            sage: Polyhedron(ieqs=[[1,-1,0,0],[1,1,0,0]]).f_vector()
+            (1, 0, 0, 2, 1)
+
+        However, the method :meth:`Polyhedron_base.vertices` returns
+        two points that belong to the ``Vrepresentation``::
+
+            sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
+            sage: P.vertices()
+            (A vertex at (1, 0), A vertex at (-1, 0))
+            sage: P.f_vector()
+            (1, 0, 2, 1)
         """
         return self.combinatorial_polyhedron().f_vector()
 

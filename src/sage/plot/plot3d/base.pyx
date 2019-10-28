@@ -1783,7 +1783,7 @@ end_scene""" % (render_params.antialiasing,
 
             sage: P = polytopes.dodecahedron()
             sage: Q = P.plot().all[-1]
-            sage: print('\n'.join(Q.stl_ascii_string().splitlines()[:7]))
+            sage: print('\n'.join(Q.stl_ascii_string().splitlines()[:8]))
             solid surface
             facet normal ...
                 outer loop
@@ -1791,6 +1791,7 @@ end_scene""" % (render_params.antialiasing,
                     vertex ...
                     vertex ...
                 endloop
+            endfacet
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)

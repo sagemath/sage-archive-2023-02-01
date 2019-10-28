@@ -556,11 +556,45 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                     raise TypeError('permutation %s not in %s' % (g, parent))
 
     cpdef _set_identity(self):
+        r"""
+        TESTS::
+
+            sage: p = PermutationGroupElement([3,1,4,2,5])
+            sage: p._set_identity()
+            sage: p
+            ()
+
+            sage: S = SymmetricGroup(["a", "b", "c"])
+            sage: p = S(["b", "a", "c"])
+            sage: p._set_identity()
+            sage: p
+            ()
+        """
         cdef int i
         for i in range(self.n):
             self.perm[i] = i
 
     cpdef _set_list_images(self, v, bint convert):
+        r"""
+        TESTS::
+
+            sage: p = PermutationGroupElement([3,1,4,2,5])
+            sage: p._set_list_images([1,4,2,3,5], True)
+            sage: p
+            (2,4,3)
+            sage: p._set_list_images([1,4,2,3,5], False)
+            sage: p
+            (2,4,3)
+
+            sage: S = SymmetricGroup(["a", "b", "c"])
+            sage: p = S(["b", "a", "c"])
+            sage: p._set_list_images(["a", "c", "b"], True)
+            sage: p
+            ('b','c')
+            sage: p._set_list_images([1, 3, 2], False)
+            sage: p
+            ('b','c')
+        """
         cdef int i, j, vn = len(v)
         assert(vn <= self.n)
         if convert:
@@ -575,6 +609,26 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self.perm[i] = i
 
     cpdef _set_list_cycles(self, c, bint convert):
+        r"""
+        TESTS::
+
+            sage: p = PermutationGroupElement([3,1,4,2,5])
+            sage: p._set_list_cycles([(1,4),(2,3,5)], True)
+            sage: p
+            (1,4)(2,3,5)
+            sage: p._set_list_cycles([(1,4),(2,3,5)], False)
+            sage: p
+            (1,4)(2,3,5)
+
+            sage: S = SymmetricGroup(["a", "b", "c"])
+            sage: p = S(["a", "b", "c"])
+            sage: p._set_list_cycles([("a", "c")], True)
+            sage: p
+            ('a','c')
+            sage: p._set_list_cycles([(1, 3)], False)
+            sage: p
+            ('a','c')
+        """
         cdef int i, j
         self._set_identity()
         if convert:

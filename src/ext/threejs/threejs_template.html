@@ -259,7 +259,7 @@ SAGE_SCRIPTS
     function addLine( json ) {
 
         var geometry = new THREE.Geometry();
-        for ( var i=0 ; i < json.points.length - 1 ; i++ ) {
+        for ( var i=0 ; i < json.points.length ; i++ ) {
             var v = json.points[i];
             geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
         }

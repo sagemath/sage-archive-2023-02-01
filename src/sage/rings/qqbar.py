@@ -702,9 +702,9 @@ class AlgebraicField_common(sage.rings.ring.Field):
 
         .. TODO::
 
-        Investigate whether performance can be improved by testing if
-        the multivariate polynomial is actually univariate, and using
-        the univariate code if so.
+            Investigate whether performance can be improved by testing
+            if the multivariate polynomial is actually univariate, and
+            using the univariate code if so.
 
         TESTS::
 
@@ -912,11 +912,9 @@ class AlgebraicField_common(sage.rings.ring.Field):
         factors = []
 
         for i in range(2, len(L[1])+1):
-
             factor = L[1][i].sage()
             #multiplicity = L[2][i].sage()
             minpoly = L[3][i].sage()
-
             factors.append((factor, minpoly))
 
         factorization = []

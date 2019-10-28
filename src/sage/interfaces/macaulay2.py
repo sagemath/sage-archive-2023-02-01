@@ -1351,9 +1351,12 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: macaulay2("QQ[x_0..x_25]").sage()    # optional - macaulay2
             Multivariate Polynomial Ring in x_0, x_1,..., x_25 over Rational Field
 
-            sage: X = R/I       # optional - macaulay2
-            sage: X.sage()      # optional - macaulay2
-            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y)
+            sage: S = ZZ['x,y'].quotient('x^2-y')
+            sage: macaulay2(S).sage() == S         # optional - macaulay2
+            True
+            sage: S = GF(101)['x,y'].quotient('x^2-y')
+            sage: macaulay2(S).sage() == S         # optional - macaulay2
+            True
 
             sage: R = macaulay2("QQ^2")  # optional - macaulay2
             sage: R.sage()               # optional - macaulay2
@@ -1403,6 +1406,25 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             Chain complex morphism:
               From: Chain complex with at most 4 nonzero terms over Multivariate Polynomial Ring in a, b, c over Integer Ring
               To:   Chain complex with at most 4 nonzero terms over Multivariate Polynomial Ring in a, b, c over Integer Ring
+
+        Quotient rings in Macaulay2 inherit variable names from the ambient
+        ring, so we mimic this behaviour in Sage::
+
+            sage: R = macaulay2("ZZ/7[x,y]")            # optional - macaulay2
+            sage: I = macaulay2("ideal (x^3 - y^2)")    # optional - macaulay2
+            sage: (R/I).gens()                          # optional - macaulay2
+            {x, y}
+            sage: (R/I).sage().gens()                   # optional - macaulay2
+            (x, y)
+
+        Elements of quotient rings::
+
+            sage: x, y = (R/I).gens()                   # optional - macaulay2
+            sage: f = ((x^3 + 2*y^2*x)^7).sage(); f     # optional - macaulay2
+            2*x*y^18 + y^14
+            sage: f.parent()                            # optional - macaulay2
+            Quotient of Multivariate Polynomial Ring in x, y over Finite Field of size 7 by the ideal (x^3 - y^2)
+
         """
         repr_str = str(self)
         cls_str = str(self.cls())
@@ -1429,7 +1451,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 return parent.ideal(*gens)
             elif cls_str == "QuotientRing":
                 #Handle the ZZ/n case
-                if "ZZ" in repr_str and "--" in repr_str:
+                ambient = self.ambient()
+                if ambient.external_string() == 'ZZ':
                     from sage.rings.all import ZZ, GF
                     external_string = self.external_string()
                     zz, n = external_string.split("/")
@@ -1437,10 +1460,10 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     #Note that n must be prime since it is
                     #coming from Macaulay 2
                     return GF(ZZ(n))
-
-                ambient = self.ambient()._sage_()
-                ideal = self.ideal()._sage_()
-                return ambient.quotient(ideal)
+                else:
+                    ambient_ring = ambient._sage_()
+                    ideal = self.ideal()._sage_()
+                    return ambient_ring.quotient(ideal, names=ambient_ring.variable_names())
             elif cls_str == "PolynomialRing":
                 from sage.rings.all import PolynomialRing
                 from sage.rings.polynomial.term_order import inv_macaulay2_name_mapping
@@ -1539,7 +1562,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             m2_parent = self.cls()
             parent = m2_parent._sage_()
 
-            if cls_cls_str == "PolynomialRing":
+            if cls_cls_str in ("PolynomialRing", "QuotientRing"):
                 from sage.misc.sage_eval import sage_eval
                 gens_dict = parent.gens_dict()
                 return sage_eval(self.external_string(), gens_dict)

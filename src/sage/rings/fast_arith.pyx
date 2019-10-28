@@ -124,7 +124,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
         sage: prime_range(436273009,436273010)
         [436273009]
-        sage: prime_range("90","100")
+        sage: prime_range(94.3,"100")
         [97]
 
     Test for non-existing algorithm::

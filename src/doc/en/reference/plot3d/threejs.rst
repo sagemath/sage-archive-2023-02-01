@@ -56,6 +56,10 @@ Options currently supported by the viewer:
 
 - ``thickness`` -- (default: 1) numeric value for thickness of lines
 
+Clicking on the information icon &#x24D8; in the lower right-hand corner of the viewer opens
+a menu of available actions. These include saving the three-dimensional scene as a static
+PNG image or as complete HTML source code.
+
 AUTHORS:
 
 - Paul Masson (2016): Initial version

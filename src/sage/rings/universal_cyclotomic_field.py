@@ -1629,9 +1629,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UCF = UniversalCyclotomicField()
             sage: x = polygen(UCF)
 
-            sage: p = (x - 2) * (x - 3)
+            sage: p = (x - 2/7) * (x - 3/5)
             sage: sorted(p.roots(multiplicities=False))
-            [2, 3]
+            [2/7, 3/5]
 
             sage: p = UCF.zeta(3) * x - 1 + UCF.zeta(5,2)
             sage: r = p.roots()
@@ -1640,7 +1640,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: p(r[0][0])
             0
         """
-        from sage.arith.all import gcd, lcm
+        from sage.arith.all import gcd
         from sage.structure.factorization import Factorization
 
         UCF = self
@@ -1654,15 +1654,13 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         if f.degree() == 1:
             return Factorization([(f, 1)], unit)
 
-        # find a common cyclotomic field for the coefficients and change base ring
-        k = lcm(ZZ(cf._obj.Conductor()) for cf in f)
-        if k != 1:
+        # From now on, we restrict to polynomial with rational cofficients. The
+        # factorization is provided only in the case it is a product of
+        # cyclotomic polynomials and quadratic polynomials. In this situation
+        # the roots belong to UCF and the polynomial factorizes as a product of
+        # degree one factors.
+        if any(ZZ(cf._obj.Conductor()) != 1 for cf in f):
             raise NotImplementedError('no known factorization for this polynomial')
-
-        # Now, our polynomial has rational cofficients. We provide a factorization
-        # only in the case it is a product of cyclotomic polynomials and
-        # quadratic polynomials. In this situation the roots belong to UCF and the
-        # polynomial factorizes as a product of degree one factors.
         f = f.change_ring(QQ)
 
         factors = []

@@ -5198,7 +5198,7 @@ class Polyhedron_base(Element):
             else:
                 Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))
             Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
-            return PolyhedronFace(Vindices, Hindices)
+            return PolyhedronFace(self,Vindices, Hindices)
 
         from sage.geometry.hasse_diagram import lattice_from_incidences
         return lattice_from_incidences(atoms_incidences, coatoms_incidences,

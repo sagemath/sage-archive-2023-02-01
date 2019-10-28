@@ -24,7 +24,6 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
 from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method

@@ -254,7 +254,6 @@ from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
 from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools

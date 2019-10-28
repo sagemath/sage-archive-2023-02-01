@@ -38,7 +38,6 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.tableau import StandardTableaux, Tableau
 from sage.combinat.yang_baxter_graph import YangBaxterGraph_partition
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method

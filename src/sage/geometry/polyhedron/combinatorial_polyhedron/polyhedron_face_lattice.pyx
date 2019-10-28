@@ -130,7 +130,7 @@ cdef class PolyhedronFaceLattice:
         self.dual = False
         if C.bitrep_facets().n_faces > C.bitrep_Vrepr().n_faces:
             self.dual = True
-        if C.unbounded():
+        if not C.is_bounded():
             self.dual = False
         cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
         self.face_length = face_iter.face_length

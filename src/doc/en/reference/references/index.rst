@@ -3265,7 +3265,7 @@ REFERENCES:
 
 .. [Lam1996] \T. K. Lam. *B and D analogues of stable Schubert polynomials and
              related insertion algorithms*. PhD Thesis, MIT, 1996.
-             
+
 .. [Lam2004] Thomas Lam, *Growth diagrams, domino insertion and
              sign-imbalance*.  Journal of Combinatorial Theory,
              Series A Volume 107, Number 1 (2004), pp. 87-115.
@@ -5096,6 +5096,9 @@ REFERENCES:
 
 .. [Ver] Helena Verrill, "Fundamental domain drawer", Java program,
          http://www.math.lsu.edu/~verrill/
+
+.. [Vie1979] Gérard Viennot. *Permutations ayant une forme
+             donnée*.  Discrete Mathematics 26.3 (1979): 279-284.
 
 .. [Vie1983] Xavier G. Viennot.  *Maximal chains of subwords and
              up-down sequences of permutations*.  Journal of

@@ -18,8 +18,6 @@ Quiver Paths
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function
-
 cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
 

@@ -160,6 +160,7 @@ AUTHORS:
 - Vincent Delecroix (2015): complete rewriting using libgap (see :trac:`18152`)
 
 - Sebastian Oehms (2018): deleting the method is_finite since it returned the wrong result (see :trac:`25686`)
+- Sebastian Oehms (2019): add :meth:`_factor_univariate_polynomial` (see :trac:`28631`)
 """
 from __future__ import absolute_import, print_function
 from six.moves import range
@@ -1572,6 +1573,65 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         from sage.rings.number_field.number_field import NumberField_cyclotomic
         if isinstance(other, NumberField_cyclotomic):
             return True
+
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over self
+
+        OUTPUT:
+
+        - A factorization of ``f`` over self into a unit
+          and monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        EXAMPLES::
+
+            sage: UCF = UniversalCyclotomicField()
+            sage: P.<x> = UCF[]
+            sage: p = x**2 +x +1
+            sage: p.factor()             # indirect doctest
+            (x - E(3)) * (x - E(3)^2)
+            sage: p.roots()              # indirect doctest
+            [(E(3), 1), (E(3)^2, 1)]
+            sage: all( len((x**i-1).factor()) == i for i in range(1,8))
+            True
+        """
+        from sage.structure.element import get_coercion_model
+        cycl_cf = [cf.to_cyclotomic_field() for cf in f.coefficients()]
+        cycl_field = get_coercion_model().common_parent(*cycl_cf)
+        cycl_pol   = f.change_ring(cycl_field)
+        cycl_order = cycl_pol.is_cyclotomic(certificate=True)
+
+        if cycl_order > 0:
+            from sage.rings.number_field.number_field import CyclotomicField
+            cycl_field = CyclotomicField(cycl_order)
+            cycl_pol   = f.change_ring(cycl_field)
+
+        F = cycl_pol.factor().base_change(f.parent())
+
+        if len(F) == 1:
+            return F
+      
+        # proceed by recursion
+        new_list = []
+        for p, e in list(F):
+            if p.degree() > 1:
+                Fp = p.factor()
+                new_list += [(q, d*e) for q, d in list(Fp)]
+            else:
+                new_list.append((p,e))
+          
+        from sage.structure.factorization import Factorization
+        return Factorization(new_list)
+
 
     def degree(self):
         r"""

@@ -412,7 +412,7 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
     TESTS:
 
-    Checks that :ticket:`24877` is fixed::
+    Checks that :trac:`24877` is fixed::
 
         sage: n1 = 1045602428815736513789288687833080060779
         sage: n2 = 76591188009721216624438400001815308369088648782156930777145

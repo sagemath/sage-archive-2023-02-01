@@ -31,7 +31,7 @@ optimized routine to compute the nodes.
 #want to we can optimize this further, probably to a point where
 #we don't have to bother with node computation routines that have a better order
 #than this naive approach (which is quadratic)
-from __future__ import absolute_import, division, print_function
+
 from sage.libs.mpfr cimport *
 import math
 from sage.rings.real_mpfr import RealField

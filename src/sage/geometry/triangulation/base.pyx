@@ -16,7 +16,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from __future__ import absolute_import
 
 from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.sage_object cimport SageObject

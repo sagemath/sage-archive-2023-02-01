@@ -2,7 +2,7 @@
 r"""
 Factory for Character-Based Art
 """
-#*******************************************************************************
+# ******************************************************************************
 #       Copyright (C) 2013 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -14,8 +14,8 @@ Factory for Character-Based Art
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#                  https://www.gnu.org/licenses/
+# ******************************************************************************
 from six import iteritems, string_types, text_type, binary_type
 from six.moves import range
 
@@ -364,7 +364,7 @@ class CharacterArtFactory(SageObject):
             sage: l.get_breakpoints()
             [9, 17, 25]
 
-        The parantheses only stretch as high as the content (:trac:`28527`)::
+        The parentheses only stretch as high as the content (:trac:`28527`)::
 
             sage: ascii_art([ascii_art('a', baseline=1)])
             [ a ]

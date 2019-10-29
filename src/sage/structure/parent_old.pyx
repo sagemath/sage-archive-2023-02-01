@@ -27,7 +27,6 @@ This came up in some subtle bug once.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, print_function
 
 cimport sage.structure.sage_object as sage_object
 import operator

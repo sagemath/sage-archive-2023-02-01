@@ -21,7 +21,6 @@ EXAMPLES::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython cimport *
 from cysignals.signals cimport sig_check
@@ -5432,7 +5431,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             else:
                 if not A[self._nrows-1, self._ncols-1]:
                     raise ZeroDivisionError("input matrix must be nonsingular")
-
             return A.matrix_from_columns(list(range(self._ncols, 2 * self._ncols)))
 
     cdef build_inverse_from_augmented_sparse(self, A):

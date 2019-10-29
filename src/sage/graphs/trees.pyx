@@ -9,7 +9,6 @@ AUTHORS:
 
 - Ryan Dingman (2009-04-16): initial version
 """
-from __future__ import print_function
 
 from libc.limits cimport INT_MAX
 from cysignals.memory cimport check_allocarray, sig_free

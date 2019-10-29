@@ -389,6 +389,16 @@ class IntegratedCurve(DifferentiableCurve):
             Integrated curve c in the 3-dimensional differentiable
              manifold M
             sage: TestSuite(c).run()
+
+        Check that :trac:`28669` is fixed::
+
+            sage: E.<r,phi> = EuclideanSpace(coordinates='polar')
+            sage: p = E((1, 0))  # the initial point
+            sage: v = E.tangent_space(p)((2, 1))  # the initial vector
+            sage: t = var('t')
+            sage: c = E.integrated_geodesic(E.metric(), (t, 0, 10), v); c
+            Integrated geodesic in the Euclidean plane E^2
+
         """
         from sage.symbolic.ring import SR
 

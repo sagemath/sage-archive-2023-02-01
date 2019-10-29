@@ -5717,7 +5717,7 @@ class Polyhedron_base(Element):
         new_lines = []
         new_lines.extend( [ l + [0] for l in self.line_generator() ] )
 
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        parent = self.parent().change_ring(self.base_ring().fraction_field(), ambient_dim=self.ambient_dim()+1)
         return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def projection(self):

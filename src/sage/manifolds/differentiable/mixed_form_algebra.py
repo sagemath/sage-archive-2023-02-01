@@ -308,7 +308,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         """
         res = self.element_class(self, name='zero', latex_name='0')
-        res[:] = [0] * (self._max_deg + 1)
+        res._comp[:] = [self._domain.diff_form_module(j,
+                        dest_map=self._dest_map).zero() for j in self.irange()]
         res._is_zero = True  # This element is certainly zero
         return res
 
@@ -327,8 +328,10 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         """
         res = self.element_class(self, name='one', latex_name='1')
-        res[0] = 1
-        res[1:] = [0] * self._max_deg
+        res._comp[0] = self._domain.one_scalar_field()
+        res._comp[1:] = [self._domain.diff_form_module(j,
+                         dest_map=self._dest_map).zero()
+                            for j in self.irange(1)]
         return res
 
     def vector_field_module(self):

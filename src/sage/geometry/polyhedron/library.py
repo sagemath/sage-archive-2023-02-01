@@ -2694,21 +2694,19 @@ class Polytopes():
                                  [[phi_inv,-phi_inv],[phi_inv,-phi_inv],[phi_inv,-phi_inv],[-(phi**2),phi**2]]]
             for vect in full_perm_vectors:
                 cp = cartesian_product(vect)
-                # The cartesian product creates duplicates, so we reduce it:
+                # The group action creates duplicates, so we reduce it:
                 verts += list(set([tuple(p) for c in cp for p in Permutations(list(c))]))
 
             # The 96 even permutations of [0,±1/phi^2,±1,±phi^2]
             # The 96 even permutations of [0,±1/phi,±phi,±sqrt(5)]
             # The 192 even permutations of [±1/phi,±1,±phi,±2]
-            from itertools import chain
             even_perm_vectors = [[[0],[phi_inv**2,-phi_inv**2],[1,-1],[-(phi**2),phi**2]],
                                  [[0],[phi_inv,-phi_inv],[phi,-phi],[-sqrt5,sqrt5]],
                                  [[phi_inv,-phi_inv],[1,-1],[phi,-phi],[-2,2]]]
             even_perm = AlternatingGroup(4)
             for vect in even_perm_vectors:
                 cp = cartesian_product(vect)
-                # The group action creates duplicates, so we reduce it:
-                verts += chain.from_iterable([p(tuple(c)) for p in even_perm] for c in cp)
+                verts += [p(tuple(c)) for p in even_perm for c in cp]
 
             return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 

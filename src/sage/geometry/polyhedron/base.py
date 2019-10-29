@@ -5696,6 +5696,14 @@ class Polyhedron_base(Element):
             sage: fsplit_pentagon.f_vector()
             (1, 7, 14, 9, 1)
 
+        TESTS::
+
+           Check that :trac:`28668` is fixed::
+
+            sage: P = polytopes.octahedron()
+            sage: P.face_split(P.faces(2)[0])
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 8 vertices
+
         .. SEEALSO::
 
             :meth:`one_point_suspension`

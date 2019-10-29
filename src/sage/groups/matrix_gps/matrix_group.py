@@ -51,9 +51,9 @@ AUTHORS:
 
 from __future__ import absolute_import
 
+from sage.categories.groups import Groups
+from sage.categories.rings import Rings
 from sage.rings.integer import is_Integer
-from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.latex import latex
 from sage.structure.richcmp import (richcmp_not_equal, rich_to_bool,
@@ -102,8 +102,14 @@ class MatrixGroup_base(Group):
     larger than the degree of the affine group. Makes no assumption
     about the group except that its elements have a ``matrix()``
     method.
-    """
 
+    TESTS::
+
+        sage: G = SO(3, GF(11)); G
+        Special Orthogonal Group of degree 3 over Finite Field of size 11
+        sage: G.category()
+        Category of finite groups
+    """
     _ambient = None  # internal attribute to register the ambient group in case this instance is a subgroup
 
     def _check_matrix(self, x, *args):
@@ -366,17 +372,19 @@ class MatrixGroup_generic(MatrixGroup_base):
             sage: isinstance(G, MatrixGroup_generic)
             True
         """
-        assert is_Ring(base_ring)
+        assert base_ring in Rings
         assert is_Integer(degree)
 
         self._deg = degree
         if self._deg <= 0:
             raise ValueError('the degree must be at least 1')
 
-        if (category is None) and is_FiniteField(base_ring):
-            from sage.categories.finite_groups import FiniteGroups
-            category = FiniteGroups()
-        super(MatrixGroup_generic, self).__init__(base=base_ring, category=category)
+        if category is None:
+            category = Groups()
+        if base_ring in Rings().Finite():
+            category = category.Finite()
+        super(MatrixGroup_generic, self).__init__(base=base_ring,
+                                                  category=category)
 
     def degree(self):
         """

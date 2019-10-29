@@ -573,6 +573,14 @@ class PolyhedronFace(SageObject):
             [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
+
+        TESTS::
+
+            Check that :trac:`28650` is fixed::
+
+            sage: P = Polyhedron(vertices=[[1,0]], rays=[[1,0],[0,1]])
+            sage: P.faces(2)
+            (A 2-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,)
         """
         if self.n_ambient_Vrepresentation() == 0:
             return -1

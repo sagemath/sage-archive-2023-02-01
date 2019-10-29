@@ -2676,13 +2676,12 @@ class Polytopes():
             if not exact:
                 raise ValueError("The 'cdd' backend produces numerical inconsistencies, use 'exact=True'.")
             from sage.rings.number_field.number_field import QuadraticField
-            K = QuadraticField(5, 'sqrt5')
-            base_ring = K
+            base_ring = QuadraticField(5, 'sqrt5')
             sqrt5 = base_ring.gen()
             phi = (1 + sqrt5) / 2
             phi_inv = base_ring.one() / phi
 
-            # The 64 permutations of [±2,±2,0,0] (the ± are independant)
+            # The 24 permutations of [0,0,±2,±2] (the ± are independant)
             verts = Permutations([0,0,2,2]).list() + Permutations([0,0,-2,-2]).list() + Permutations([0,0,2,-2]).list()
 
             # The 64 permutations of the following vectors:
@@ -2701,7 +2700,7 @@ class Polytopes():
             # The 96 even permutations of [0,±1/phi^2,±1,±phi^2]
             # The 96 even permutations of [0,±1/phi,±phi,±sqrt(5)]
             # The 192 even permutations of [±1/phi,±1,±phi,±2]
-            import itertools
+            import itertools import chain
             even_perm_vectors = [[[0],[phi_inv**2,-phi_inv**2],[1,-1],[-(phi**2),phi**2]],
                                  [[0],[phi_inv,-phi_inv],[phi,-phi],[-sqrt5,sqrt5]],
                                  [[phi_inv,-phi_inv],[1,-1],[phi,-phi],[-2,2]]]
@@ -2709,7 +2708,7 @@ class Polytopes():
             for vect in even_perm_vectors:
                 cp = cartesian_product(vect)
                 # The cartesian product creates duplicates, so we reduce it:
-                verts += itertools.chain.from_iterable([p(tuple(c)) for p in even_perm] for c in cp)
+                verts += chain.from_iterable([p(tuple(c)) for p in even_perm] for c in cp)
 
             return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 

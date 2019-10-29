@@ -7358,6 +7358,10 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
         """
         Return the cardinality of ``self``.
 
+        ALGORITHM:
+
+        The algorithm described in [Vie1979]_ is implemented naively.
+
         EXAMPLES::
 
             sage: P = Permutations(descents=([1,0,2], 5))
@@ -7381,8 +7385,8 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
             sage: D = [6, 8, 10, 11, 12, 13, 14, 15, 17, 19]
             sage: P(D, n).cardinality()
             125291047596
+
         """
-        # we use Viennot's 1979 method
         def m(l):
             s = 0
             partial_sums = [0]

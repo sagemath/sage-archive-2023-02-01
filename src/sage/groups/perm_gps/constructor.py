@@ -1,10 +1,49 @@
+"""
+Constructor for permutations
+
+This module contains the generic constructor to build element of the symmetric
+groups (or more general permutation groups) called
+:class:`~sage.groups.perm_gps.permgroup_element.PermutationGroupElement`. These
+objects have a more group theoretic flavor than the more combinatorial
+:class:`~sage.combinat.permutation.Permutation`.
+"""
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 David Joyner
+#       Copyright (C) 2019 Vincent Delecroix <20100.delecroix@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from __future__ import absolute_import
 
 from . import permgroup_element
 
 def PermutationGroupElement(g, parent=None, check=True):
     r"""
-    Build a permutation on {1, 2, ..., n}.
+    Builds a permutation from ``g``.
+
+    INPUT:
+
+    - ``g`` -- either
+
+      - a list of images
+
+      - a tuple describing a single cycle
+
+      - a list of tuples describing the cycle decomposition
+
+      - a string describing the cycle decomposition
+
+    - ``parent`` (optional, default ``None``) -- an ambient permutation
+      group for the result. It is mandatory if you want a permutation on
+      a domain different from {1, ..., n}.
+
+    - ``check`` (default ``True``) -- whether additional check are performed.
+      Setting it to ``False`` is likely to result in faster code.
 
     EXAMPLES:
 
@@ -31,6 +70,19 @@ def PermutationGroupElement(g, parent=None, check=True):
         (2,4)(3,5)
         sage: p.parent()
         Symmetric group of order 5! as a permutation group
+
+    By default the constructor assumes that the domain is {1, ..., n} but
+    it can be set to anything via its second ``parent`` argument::
+
+        sage: S = SymmetricGroup(['a', 'b', 'c', 'd', 'e'])
+        sage: PermutationGroupElement(['e', 'c', 'b', 'a', 'd'], S)
+        ('a','e','d')('b','c')
+        sage: PermutationGroupElement(('a', 'b', 'c'), S)
+        ('a','b','c')
+        sage: PermutationGroupElement([('a', 'c'), ('b', 'e')], S)
+        ('a','c')('b','e')
+        sage: PermutationGroupElement("('a','b','e')('c','d')", S)
+        ('a','b','e')('c','d')
     """
     if isinstance(g, permgroup_element.PermutationGroupElement):
         if parent is None or g.parent() is parent:
@@ -40,17 +92,12 @@ def PermutationGroupElement(g, parent=None, check=True):
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         from sage.combinat.permutation import from_cycles
 
-        convert_dict = parent._domain_to_gap if parent is not None else None
         try:
-            v = permgroup_element.standardize_generator(g, convert_dict)
+            v = permgroup_element.standardize_generator(g, None)
         except KeyError:
             raise ValueError("Invalid permutation vector: %s" % g)
         degree = max([1] + [max(cycle+(1,)) for cycle in v])
         v = from_cycles(degree, v)
-
-        if parent is None:
-            parent = SymmetricGroup(len(v))
+        parent = SymmetricGroup(len(v))
 
     return parent.element_class(g, parent, check)
-
-

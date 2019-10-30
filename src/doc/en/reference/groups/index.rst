@@ -54,6 +54,7 @@ Permutation Groups
    :maxdepth: 2
 
    sage/groups/perm_gps/permutation_groups_catalog
+   sage/groups/perm_gps/constructor
    sage/groups/perm_gps/permgroup
    sage/groups/perm_gps/permgroup_named
    sage/groups/perm_gps/permgroup_element

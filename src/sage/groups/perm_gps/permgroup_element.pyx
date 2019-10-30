@@ -91,6 +91,7 @@ We create element of a permutation group of large degree::
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Joyner
+#       Copyright (C) 2019 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -507,7 +508,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ValueError: invalid list of cycles to initialize a permutation
         """
         if parent is None:
-            raise ValueError("the parent must be provided to initialize a class PermutationGroupElement; use sage.groups.perm_groups.constructor.PermutationGroupElement if you need the more general constructor")
+            raise ValueError("the parent must be provided to initialize a class "
+                    "PermutationGroupElement; use sage.groups.perm_groups."
+                    "constructor.PermutationGroupElement if you need the more "
+                    "general constructor")
 
         cdef int degree = parent.degree()
         self._parent = parent
@@ -538,7 +542,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         # We do this check even if check=False because it's fast
         # (relative to other things in this function) and the
-        # rest of the code is assumes that self.perm specifies
+        # rest of the code assumes that self.perm specifies
         # a valid permutation (else segfaults, infinite loops may occur).
         if not is_valid_permutation(self.perm, self.n):
             raise ValueError("invalid data to initialize a permutation")

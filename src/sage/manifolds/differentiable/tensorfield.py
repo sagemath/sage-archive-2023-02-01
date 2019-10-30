@@ -185,7 +185,7 @@ class TensorField(ModuleElement):
         sage: t[eV,1,0] = t[eVW,1,0,c_uvW].expr()  # long time
         sage: t[eV,1,1] = t[eVW,1,1,c_uvW].expr()  # long time
 
-    Actually, the above operation can by performed in a single line by means
+    Actually, the above operation can be performed in a single line by means
     of the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.add_comp_by_continuation`::
 
@@ -411,6 +411,8 @@ class TensorField(ModuleElement):
         self._vmodule = vector_field_module
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
+        self._is_zero = False # a priori, may be changed below or via
+                              # method __bool__()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -504,7 +506,13 @@ class TensorField(ModuleElement):
             sage: t.is_zero()  # indirect doctest
             False
         """
-        return any(bool(rst) for rst in self._restrictions.values())
+        if self._is_zero:
+            return False
+        if any(bool(rst) for rst in self._restrictions.values()):
+            self._is_zero = False
+            return True
+        self._is_zero = True
+        return False
 
     __nonzero__ = __bool__  # For Python2 compatibility
 
@@ -710,6 +718,7 @@ class TensorField(ModuleElement):
 
         """
         comp0 = comp[0]
+        self._is_zero = False  # a priori
         if isinstance(comp0, dict):
             for frame, components in comp0.items():
                 chart = None
@@ -915,6 +924,7 @@ class TensorField(ModuleElement):
         self._restrictions[rst._domain] = rst.copy()
         self._restrictions[rst._domain].set_name(name=self._name,
                                                  latex_name=self._latex_name)
+        self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):
         r"""
@@ -1067,6 +1077,70 @@ class TensorField(ModuleElement):
 
         return self._restrictions[subdomain]
 
+    def _set_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are deleted, in order to avoid any
+        inconsistency. To keep them, use the method :meth:`_add_comp_unsafe`
+        instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 2, name='t')
+            sage: t._set_comp_unsafe(e_uv)
+            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: t._set_comp_unsafe(e_uv)[1,0,1] = u+v
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
+        Setting the components in a new frame (``e``)::
+
+            sage: e = V.vector_frame('e')
+            sage: t._set_comp_unsafe(e)
+            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: t._set_comp_unsafe(e)[0,1,1] = u*v
+            sage: t.display(e)
+            t = u*v e_0*e^1*e^1
+
+        Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
+        components w.r.t. ``e_uv`` have been erased::
+
+            sage: t.display(c_uv.frame())
+            Traceback (most recent call last):
+            ...
+            ValueError: no basis could be found for computing the components
+             in the Coordinate frame (V, (d/du,d/dv))
+
+        """
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst._set_comp_unsafe(basis)
+
     def set_comp(self, basis=None):
         r"""
         Return the components of ``self`` in a given vector frame
@@ -1122,12 +1196,83 @@ class TensorField(ModuleElement):
             ValueError: no basis could be found for computing the components
              in the Coordinate frame (V, (d/du,d/dv))
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.set_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
+        """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst.set_comp(basis=basis)
+
+    def _add_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are kept. To delete them, use the
+        method :meth:`_set_comp_unsafe` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if ``None``, the components are assumed
+          to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 2, name='t')
+            sage: t._add_comp_unsafe(e_uv)
+            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: t._add_comp_unsafe(e_uv)[1,0,1] = u+v
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
+        Setting the components in a new frame::
+
+            sage: e = V.vector_frame('e')
+            sage: t._add_comp_unsafe(e)
+            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: t._add_comp_unsafe(e)[0,1,1] = u*v
+            sage: t.display(e)
+            t = u*v e_0*e^1*e^1
+
+        The components with respect to ``e_uv`` are kept::
+
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
         """
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.set_comp(basis)
+        return rst._add_comp_unsafe(basis)
 
     def add_comp(self, basis=None):
         r"""
@@ -1180,12 +1325,24 @@ class TensorField(ModuleElement):
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.add_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.add_comp(basis)
+        return rst.add_comp(basis=basis)
 
     def add_comp_by_continuation(self, frame, subdomain, chart=None):
         r"""
@@ -1259,7 +1416,7 @@ class TensorField(ModuleElement):
         sframe = frame.restrict(subdomain)
         schart = chart.restrict(subdomain)
         scomp = self.comp(sframe)
-        resu = self.add_comp(frame) # _del_derived is performed here
+        resu = self._add_comp_unsafe(frame) # _del_derived is performed here
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
@@ -1353,7 +1510,7 @@ class TensorField(ModuleElement):
         if frame not in self.restrict(frame.domain())._components:
             raise ValueError("the tensor doesn't have an expression in "
                              "the frame"+frame._repr_())
-        comp = self.comp(frame)
+        comp = self._add_comp_unsafe(frame)
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
@@ -1832,6 +1989,7 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
+        resu._is_zero = self._is_zero
         return resu
 
     def _common_subdomains(self, other):
@@ -2136,6 +2294,12 @@ class TensorField(ModuleElement):
             True
 
         """
+        # Case zero:
+        if self._is_zero:
+            return other
+        if other._is_zero:
+            return self
+        # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
@@ -2199,6 +2363,12 @@ class TensorField(ModuleElement):
             True
 
         """
+        # Case zero:
+        if self._is_zero:
+            return -other
+        if other._is_zero:
+            return self
+        # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
@@ -2272,6 +2442,13 @@ class TensorField(ModuleElement):
             True
 
         """
+        # Case zero:
+        if scalar._is_zero:
+            return self.parent().zero()
+        # Case one:
+        if scalar is self._domain._one_scalar_field:
+            return self
+        # Generic case:
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
@@ -2848,15 +3025,15 @@ class TensorField(ModuleElement):
         Check 1: components with respect to the manifold's default
         frame (``eU``)::
 
-            sage: all([bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
-            ....:      for j in M.irange()] for i in M.irange())
+            sage: all(bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
+            ....:     for i in M.irange() for j in M.irange())
             True
 
         Check 2: components with respect to the frame ``eV``::
 
-            sage: all([bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
-            ....:                            for k in M.irange()))
-            ....:      for j in M.irange()] for i in M.irange())
+            sage: all(bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
+            ....:                           for k in M.irange()))
+            ....:      for i in M.irange() for j in M.irange())
             True
 
         Instead of the explicit call to the method :meth:`contract`, one

@@ -1294,11 +1294,17 @@ class SubMultiset_sk(SubMultiset_s):
             sage: S = Subsets([1,2,2,3],2, submultiset=True)
             sage: S.list()
             [[1, 2], [1, 3], [2, 2], [2, 3]]
+
+        Check that :trac:`28588` is fixed::
+
+            sage: Subsets([3,2,2], submultiset=True).list()
+            [[], [3], [2], [3, 2], [2, 2], [3, 2, 2]]
+
         """
         from sage.combinat.integer_vector import IntegerVectors
         elts = self._keys
         for iv in IntegerVectors(self._k, len(self._d),
-                                 outer=list(self._d.values())):
+                                 outer=[self._d[k] for k in elts]):
             yield sum([[elts[i]] * iv[i] for i in range(len(iv))], [])
 
 

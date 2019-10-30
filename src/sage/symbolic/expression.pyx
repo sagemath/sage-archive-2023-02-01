@@ -151,7 +151,6 @@ Test if :trac:`24883` is fixed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
@@ -1605,6 +1604,11 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(-oo) == hash((-x).subs(x=oo))
             True
             sage: hash(unsigned_infinity) == hash(SR(unsigned_infinity))
+            True
+
+        Check a corner case for rational numbers (:trac:`28219`)::
+
+            sage: hash(-1/3) == hash(SR(-1/3))
             True
         """
         sig_on()
@@ -9080,7 +9084,7 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_Order, self._gobj, hold))
 
-    def gamma(self, hold=False):
+    def gamma(self, *, hold=False):
         """
         Return the Gamma function evaluated at self.
 
@@ -9126,6 +9130,17 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = SR(1/2).gamma(hold=True); a.unhold()
             sqrt(pi)
+
+        TESTS:
+
+        Check that no confusion with the incomplete gamma function is
+        possible::
+
+            sage: x, y = SR.var('x,y')
+            sage: x.gamma(y)
+            Traceback (most recent call last):
+            ...
+            TypeError: gamma() takes exactly 0 positional arguments (1 given)
         """
         cdef GEx x
         sig_on()
@@ -11506,6 +11521,15 @@ cdef class Expression(CommutativeRingElement):
 
             sage: solve((z^3-1)^3, z, multiplicities=True)
             ([z == 1/2*I*sqrt(3) - 1/2, z == -1/2*I*sqrt(3) - 1/2, z == 1], [3, 3, 3])
+
+        TESTS:
+
+        Check that :trac:`20755` is indeed fixed::
+
+            sage: w = x^4 - (1+3*i)*x^3 - (2-4*i)*x^2 + (6-2*i)*x - 4 - 4*i
+            sage: w.solve(x,multiplicities=True)
+            ([x == -1/2*sqrt(2*I) + 3/2*I - 1/2, x == 1/2*sqrt(2*I) + 3/2*I - 1/2, x == (-I + 1), x == (I + 1)],
+             [1, 1, 1, 1])
 
         See :func:`sage.symbolic.relation.solve` or the output of ``solve?``
         for extensive documentation.

@@ -48,7 +48,6 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import RealField,is_RealField
 from sage.arith.all import gcd, lcm, is_prime, binomial
-from sage.functions.other import ceil
 
 from copy import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
@@ -193,17 +192,17 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def _richcmp_(self, right, op):
         """
-        Tests the projective equality of two points.
+        Test the projective equality of two points.
 
         INPUT:
 
-        - ``right`` -- a point on projective space.
+        - ``right`` -- a point on projective space
 
         OUTPUT:
 
-        - Boolean
+        Boolean
 
-        Examples::
+        EXAMPLES::
 
             sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])

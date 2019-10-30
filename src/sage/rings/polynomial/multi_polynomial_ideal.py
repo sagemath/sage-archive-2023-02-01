@@ -2644,11 +2644,13 @@ class MPolynomialIdeal_singular_repr(
 
         TESTS:
 
-        Check that :trac:`27483` is fixed::
+        Check that :trac:`27483` and :trac:`28110` are fixed::
 
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3, x*y^2, y^4, x^2*y*z, y^3*z, x^2*z^2, x*y*z^2, x*z^3])
             sage: I.hilbert_polynomial(algorithm='singular')
+            3
+            sage: I.hilbert_polynomial()
             3
 
         Check that this method works over QQbar (:trac:`25351`)::
@@ -2671,10 +2673,12 @@ class MPolynomialIdeal_singular_repr(
                 s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
             else:
                 return t.parent().zero()
+            # we assume the denominator of the Hilbert series is of the form (1-t)^s, scale if needed
+            if hilbert_poincare.denominator().leading_coefficient() == 1:
+                second_hilbert = second_hilbert*(-1)**s
             denom = ZZ(s-1).factorial()
             out = sum(c / denom * prod(s - 1 - n - nu + t for nu in range(s-1))
                       for n,c in enumerate(second_hilbert)) + t.parent().zero()
-            assert out.leading_coefficient() >= 0
             return out
         elif algorithm == 'singular':
             import sage.libs.singular.function_factory
@@ -2958,8 +2962,20 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: macaulay2(I) # optional - macaulay2
                           2   2    2
             ideal (x*y - z , y  - w )
+
+        TESTS:
+
+        Check that a cached base ring is used (:trac:`28074`)::
+
+            sage: R.<x,y> = QQ[]
+            sage: R1 = macaulay2(R)                        # optional - macaulay2
+            sage: _ = macaulay2('ZZ[x,y]')                 # optional - macaulay2
+            sage: R2 = macaulay2(R.ideal(y^2 - x)).ring()  # optional - macaulay2
+            sage: R1._operator('===', R2)                  # optional - macaulay2
+            true
         """
-        if macaulay2 is None: macaulay2 = macaulay2_default
+        if macaulay2 is None:
+            macaulay2 = macaulay2_default
         try:
             I = self.__macaulay2[macaulay2]
             I._check_valid()
@@ -2972,7 +2988,7 @@ class MPolynomialIdeal_macaulay2_repr:
             pass
 
         R = self.ring()
-        R._macaulay2_set_ring(macaulay2)
+        macaulay2.use(R._macaulay2_(macaulay2))
 
         gens = [repr(x) for x in self.gens()]
         if len(gens) == 0:
@@ -2981,16 +2997,25 @@ class MPolynomialIdeal_macaulay2_repr:
         self.__macaulay2[macaulay2] = z
         return z
 
-    def _groebner_basis_macaulay2(self):
+    def _groebner_basis_macaulay2(self, strategy=None):
         r"""
         Return the Groebner basis for this ideal, computed using
         Macaulay2.
 
         ALGORITHM:
 
-        Computed using Macaulay2. A big advantage of Macaulay2 is that
-        it can compute the Groebner basis of ideals in polynomial
-        rings over the integers.
+        Compute the Groebner basis using the specified strategy in Macaulay2.
+        With no strategy option, the Macaulay2 ``gb`` command is used; other
+        possible strategies are "f4" and "mgb", which correspond to the "F4"
+        and "MGB" strategies in Macaulay2.
+
+        A big advantage of Macaulay2 is that it can compute the Groebner basis
+        of ideals in polynomial rings over the integers.
+
+        INPUT:
+
+        - ``strategy`` -- (default: ``'gb'``) argument specifying the strategy
+          to be used by Macaulay2; possiblities: ``'f4'``, ``'gb'``, ``'mgb'``.
 
         EXAMPLES::
 
@@ -3011,11 +3036,41 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: I = ideal([y^2*z - x^3 - 19^2*x*z, y^2, 19^2])
             sage: I.groebner_basis('macaulay2')               # optional - macaulay2
             [x^3, y^2, 361]
+
+        Over finite fields, Macaulay2 supports different algorithms to compute
+        Gröbner bases::
+
+            sage: R = PolynomialRing(GF(101), 'x', 4)
+            sage: I = sage.rings.ideal.Cyclic(R)
+            sage: gb1 = I.groebner_basis('macaulay2:gb')  # optional - macaulay2
+            sage: I = sage.rings.ideal.Cyclic(R)
+            sage: gb2 = I.groebner_basis('macaulay2:mgb')  # optional - macaulay2
+            sage: I = sage.rings.ideal.Cyclic(R)
+            sage: gb3 = I.groebner_basis('macaulay2:f4')  # optional - macaulay2
+            sage: gb1 == gb2 == gb3  # optional - macaulay2
+            True
+
+        TESTS::
+
+            sage: R.<x,y,z> = ZZ[]
+            sage: I = ideal([y^2*z - x^3 - 19*x*z, y^2, 19^2])
+            sage: I.groebner_basis('macaulay2:gibberish')     # optional - macaulay2
+            Traceback (most recent call last):
+            ...
+            ValueError: unsupported Macaulay2 strategy
         """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
         I = self._macaulay2_()
-        G = str(I.gb().generators().external_string()).replace('\n','')
+        if strategy == "gb" or strategy is None:
+            m2G = I.gb().generators()
+        elif strategy == 'f4':
+            m2G = I.groebnerBasis('Strategy=>"F4"')
+        elif strategy == 'mgb':
+            m2G = I.groebnerBasis('Strategy=>"MGB"')
+        else:
+            raise ValueError("unsupported Macaulay2 strategy")
+        G = str(m2G.external_string()).replace('\n','')
         i = G.rfind('{{')
         j = G.rfind('}}')
         G = G[i+2:j].split(',')
@@ -3801,6 +3856,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         'macaulay2:gb'
             Macaulay2's ``gb`` command (if available)
 
+        'macaulay2:f4'
+            Macaulay2's ``GroebnerBasis`` command with the strategy "F4" (if available)
+
+        'macaulay2:mgb'
+            Macaulay2's ``GroebnerBasis`` command with the strategy "MGB" (if available)
+
         'magma:GroebnerBasis'
             Magma's ``Groebnerbasis`` command (if available)
 
@@ -3817,7 +3878,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             The Singular and libSingular versions of the respective
             algorithms are identical, but the former calls an external
-            Singular process while the later calls a C function,
+            Singular process while the latter calls a C function,
             i.e. the calling overhead is smaller. However, the
             libSingular interface does not support pretty printing of
             computation protocols.
@@ -3900,7 +3961,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: gb == gb.reduced()
             False
 
-        but that ``toy:buchberger2`` does.::
+        but that ``toy:buchberger2`` does. ::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: gb = I.groebner_basis('toy:buchberger2'); gb
@@ -3908,11 +3969,21 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: gb == gb.reduced()
             True
 
-        ::
+        Here we use Macaulay2 with three different strategies over a finite
+        field. ::
 
-            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
-            sage: I.groebner_basis('macaulay2:gb') # optional - macaulay2
-            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            sage: R.<a,b,c> = PolynomialRing(GF(101), 3)
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('macaulay2:gb')  # optional - macaulay2
+            [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
+
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('macaulay2:f4')  # optional - macaulay2
+            [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
+
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('macaulay2:mgb') # optional - macaulay2
+            [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
 
         ::
 
@@ -3921,7 +3992,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Singular and libSingular can compute Groebner basis with degree
-        restrictions.::
+        restrictions. ::
 
             sage: R.<x,y> = QQ[]
             sage: I = R*[x^3+y^2,x^2*y+1]
@@ -3964,7 +4035,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         The list of available options is provided at
         :class:`~sage.libs.singular.option.LibSingularOptions`.
 
-        Note that Groebner bases over `\ZZ` can also be computed.::
+        Note that Groebner bases over `\ZZ` can also be computed. ::
 
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
@@ -4053,7 +4124,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         Uses Singular, Magma (if available), Macaulay2 (if available),
         Giac (if available), or a toy implementation.
 
-        TESTS::
+        TESTS:
 
         Check :trac:`27445`::
 
@@ -4196,8 +4267,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             if prot == "sage":
                 warn("The libsingular interface does not support prot='sage', reverting to 'prot=True'.")
             gb = self._groebner_basis_libsingular(algorithm[len('libsingular:'):], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, *args, **kwds)
-        elif algorithm == 'macaulay2:gb':
-            gb = self._groebner_basis_macaulay2(*args, **kwds)
+        elif algorithm.startswith("macaulay2:"):
+            gb = self._groebner_basis_macaulay2(strategy=algorithm.split(":")[1], *args, **kwds)
         elif algorithm == 'magma:GroebnerBasis':
             gb = self._groebner_basis_magma(prot=prot, deg_bound=deg_bound, *args, **kwds)
         elif algorithm == 'toy:buchberger':
@@ -4729,7 +4800,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         EXAMPLES:
 
-        We compute a uniformly random element up to the provided degree.::
+        We compute a uniformly random element up to the provided degree. ::
 
             sage: P.<x,y,z> = GF(127)[]
             sage: I = sage.rings.ideal.Katsura(P)

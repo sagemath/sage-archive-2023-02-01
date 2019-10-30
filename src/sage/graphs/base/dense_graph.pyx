@@ -116,7 +116,6 @@ vertices. For more details about this, refer to the documentation for
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 
@@ -252,7 +251,7 @@ cdef class DenseGraph(CGraph):
 
         cdef bitset_t bits
         cdef int min_verts, min_longs, old_longs = self.num_longs
-        if total_verts < self.active_vertices.size:
+        if <size_t>total_verts < self.active_vertices.size:
             min_verts = total_verts
             min_longs = -1
             bitset_init(bits, self.active_vertices.size)
@@ -372,9 +371,9 @@ cdef class DenseGraph(CGraph):
             True
 
         """
-        if u < 0 or u >= self.active_vertices.size or not bitset_in(self.active_vertices, u):
+        if u < 0 or u >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, u):
             return False
-        if v < 0 or v >= self.active_vertices.size or not bitset_in(self.active_vertices, v):
+        if v < 0 or v >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, v):
             return False
         return self.has_arc_unsafe(u, v) == 1
 
@@ -451,7 +450,7 @@ cdef class DenseGraph(CGraph):
         cdef unsigned long * active_vertices_bitset
         active_vertices_bitset = <unsigned long *> self.active_vertices.bits
 
-        cdef int i, j
+        cdef size_t i, j
         for i in range(self.active_vertices.size):
             if bitset_in(self.active_vertices, i):
                 self.add_arc_unsafe(i, i)
@@ -494,7 +493,8 @@ cdef class DenseGraph(CGraph):
         """
         cdef int place = (u * self.num_longs)
         cdef int num_nbrs = 0
-        cdef int i, v = 0
+        cdef size_t i
+        cdef int v = 0
         cdef unsigned long word, data
         for i in range(self.num_longs):
             data = self.edges[place + i]
@@ -571,7 +571,8 @@ cdef class DenseGraph(CGraph):
         """
         cdef int place = v / radix
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
-        cdef int i, num_nbrs = 0
+        cdef size_t i
+        cdef int num_nbrs = 0
         for i in range(self.active_vertices.size):
             if self.edges[place + i * self.num_longs] & word:
                 if num_nbrs == size:

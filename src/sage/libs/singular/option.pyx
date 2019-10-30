@@ -99,7 +99,6 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.libs.singular.decl cimport singular_options, singular_verbose_options, Kstd1_deg, Kstd1_mu
 
@@ -346,7 +345,7 @@ cdef class LibSingularOptions(LibSingularOptions_abstract):
        ``res``, ``slimgb``, ``sres``, ``std``, ``stdfglm``,
        ``stdhilb``, ``syz``.
 
-     - `red_sb`` or ``redSB`` - computes a reduced standard basis in
+     - ``red_sb`` or ``redSB`` - computes a reduced standard basis in
        any standard basis computation.
 
      - ``red_tail`` or ``redTail`` - reduction of the tails of

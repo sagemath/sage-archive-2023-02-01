@@ -2,15 +2,15 @@
 """
 Root lattice realizations
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #                          2012 Nicolas Borie  <nicolas.borie at univ-mlv.fr>
 #
 #       (with contributions of many others)
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 
@@ -670,7 +670,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: PR = L.positive_roots(); PR
                 Disjoint union of Family (Positive real roots of type ['A', 3, 1],
                     Positive imaginary roots of type ['A', 3, 1])
-                sage: [PR.unrank(i) for i in range(10)]  # py2
+                sage: [PR.unrank(i) for i in range(10)]
                 [alpha[1],
                  alpha[2],
                  alpha[3],
@@ -681,17 +681,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                  alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
                  alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
                  alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
-                sage: [PR.unrank(i) for i in range(10)]  # py3
-                [alpha[1],
-                 alpha[2],
-                 alpha[3],
-                 alpha[2] + alpha[3],
-                 alpha[1] + alpha[2],
-                 alpha[1] + alpha[2] + alpha[3],
-                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
-                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
-                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
-                 alpha[0] + alpha[1] + 2*alpha[2] + 2*alpha[3]]
             """
             if self.cartan_type().is_affine():
                 from sage.sets.disjoint_union_enumerated_sets \
@@ -771,7 +760,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(['A',3,1]).root_lattice()
                 sage: PRR = L.positive_real_roots(); PRR
                 Positive real roots of type ['A', 3, 1]
-                sage: [PRR.unrank(i) for i in range(10)]  # py2
+                sage: [PRR.unrank(i) for i in range(10)]
                 [alpha[1],
                  alpha[2],
                  alpha[3],
@@ -782,27 +771,10 @@ class RootLatticeRealizations(Category_over_base_ring):
                  alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
                  alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
                  alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
-                sage: [PRR.unrank(i) for i in range(10)]  # py3
-                [alpha[1],
-                 alpha[2],
-                 alpha[3],
-                 alpha[2] + alpha[3],
-                 alpha[1] + alpha[2],
-                 alpha[1] + alpha[2] + alpha[3],
-                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
-                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
-                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
-                 alpha[0] + alpha[1] + 2*alpha[2] + 2*alpha[3]]
 
                 sage: Q = RootSystem(['A',4,2]).root_lattice()
                 sage: PR = Q.positive_roots()
-                sage: [PR.unrank(i) for i in range(5)]  # py2
-                [alpha[1],
-                 alpha[2],
-                 2*alpha[1] + alpha[2],
-                 alpha[1] + alpha[2],
-                 alpha[0] + alpha[1] + alpha[2]]
-                sage: [PR.unrank(i) for i in range(5)]  # py3
+                sage: [PR.unrank(i) for i in range(5)]
                 [alpha[1],
                  alpha[2],
                  alpha[1] + alpha[2],
@@ -2910,10 +2882,10 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             And another with some foldings::
 
-                sage: L.plot_alcoves(bounding_box=3) +\
-                ....: L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
+                sage: pic = L.plot_alcoves(bounding_box=3)   # long time
+                sage: pic += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],    # long time (3s)
                 ....:                      foldings = [False, False, True, False, False, False, True, False, True, False],
-                ....:                      color="green")            # long time (3s)
+                ....:                      color="green"); pic
                 Graphics object consisting of 155 graphics primitives
 
             TESTS::

@@ -17,10 +17,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -132,7 +130,7 @@ cdef class CoinBackend(GenericBackend):
             1.0
         """
 
-        # for some reason, Cython is not accepting the line below, which appeare
+        # for some reason, Cython is not accepting the line below, which appears
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
         if  vtype == 0:

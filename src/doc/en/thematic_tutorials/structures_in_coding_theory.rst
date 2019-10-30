@@ -429,7 +429,7 @@ We will implement a very naive channel which works only for words over
 :math:`\GF{2}` and flips as many bits as requested by the user.
 
 As channels are not directly related to code families, but more to
-vectors and words, we have a specific file, ``channel_constructions.py``
+vectors and words, we have a specific file, ``channel.py``
 to store them.
 
 So we will just add our new class in this file.
@@ -447,7 +447,7 @@ Plus, in our case, as this channel only works for vectors
 over :math:`\GF{2}`, the input and output spaces are the same.
 Let us write the constructor of our new channel class::
 
-    sage: from sage.coding.channel_constructions import Channel
+    sage: from sage.coding.channel import Channel
     sage: class BinaryStaticErrorRateChannel(Channel):
     ....:     def __init__(self, space, number_errors):
     ....:         if space.base_ring() is not GF(2):
@@ -457,7 +457,7 @@ Let us write the constructor of our new channel class::
     ....:         super(BinaryStaticErrorRateChannel, self).__init__(space, space)
     ....:         self._number_errors = number_errors
 
-Remember to inherit from :class:`sage.coding.channel_constructions.Channel`!
+Remember to inherit from :class:`sage.coding.channel.Channel`!
 
 We also want to override representation methods ``_repr_`` and ``_latex_``::
 
@@ -503,7 +503,7 @@ That is it, we now have our new channel class ready to use!
 Summary of the implementation for channels
 ------------------------------------------
 
-1. Inherit from :class:`sage.coding.channel_constructions.Channel`.
+1. Inherit from :class:`sage.coding.channel.Channel`.
 2. Add this line in the class' constructor:
 
    .. CODE-BLOCK:: python
@@ -557,7 +557,7 @@ Here it means the following:
 
    .. CODE-BLOCK:: python
 
-    from sage.coding.channel_constructions import BinaryStaticErrorRateChannel
+    from sage.coding.channel import BinaryStaticErrorRateChannel
 
 VII. Complete code of this tutorial
 ===================================
@@ -683,7 +683,7 @@ derive from the one that follows.
     BinaryRepetitionCode._registered_decoders["MajorityVoteDecoder"] = BinaryRepetitionCodeMajorityVoteDecoder
     BinaryRepetitionCodeMajorityVoteDecoder._decoder_type = {"hard-decision", "unique"}
 
-``channel_constructions.py`` (continued):
+``channel.py`` (continued):
 
 .. CODE-BLOCK:: python
 
@@ -741,4 +741,4 @@ derive from the one that follows.
 
 .. CODE-BLOCK:: python
 
-    from sage.coding.channel_constructions import (ErrorErasureChannel, StaticErrorRateChannel, BinaryStaticErrorRateChannel)
+    from sage.coding.channel import (ErrorErasureChannel, StaticErrorRateChannel, BinaryStaticErrorRateChannel)

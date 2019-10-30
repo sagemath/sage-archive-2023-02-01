@@ -20,7 +20,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -33,8 +33,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 import six
 from six import integer_types
@@ -226,7 +226,7 @@ class Set_object(Set_generic):
 
     TESTS:
 
-    See trac ticket :trac:`14486`::
+    See :trac:`14486`::
 
         sage: 0 == Set([1]), Set([1]) == 0
         (False, False)
@@ -1707,19 +1707,3 @@ class Set_object_symmetric_difference(Set_object_binary):
         """
         return (x in self._X and x not in self._Y) \
                or (x in self._Y and x not in self._X)
-
-def is_Set(x):
-    """
-    Deprecated. Use ``isinstance(x, Set_generic)`` instead.
-
-    TESTS::
-
-        sage: from sage.sets.set import is_Set
-        sage: is_Set(Primes())
-        doctest:...: DeprecationWarning: Please use isinstance(x, Set_generic)
-        See http://trac.sagemath.org/24443 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(24443, "Please use isinstance(x, Set_generic)")
-    return isinstance(x, Set_generic)

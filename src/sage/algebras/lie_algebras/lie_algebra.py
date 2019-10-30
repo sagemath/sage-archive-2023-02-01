@@ -534,9 +534,20 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             x*y - y*x
             sage: elt.parent() is L
             True
+
+        TESTS:
+
+        Check that `0` gives the zero element::
+
+            sage: L = lie_algebras.pwitt(GF(5), 5)
+            sage: L(0)
+            0
         """
         if isinstance(x, list) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))
+
+        if x == 0:
+            return self.zero()
 
         try:
             if x in self.module():
@@ -545,9 +556,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             pass
 
         if x in self.base_ring():
-            if x != 0:
-                raise ValueError("can only convert the scalar 0 into a Lie algebra element")
-            return self.zero()
+            # We have already handled the case when x == 0
+            raise ValueError("can only convert the scalar 0 into a Lie algebra element")
 
         return self.element_class(self, x)
 

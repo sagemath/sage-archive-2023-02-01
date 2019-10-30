@@ -7705,8 +7705,12 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: sts = [StandardTableaux(n) for n in ns]
             sage: all(st.cardinality() == len(st.list()) for st in sts)
             True
-            sage: StandardTableaux(50).cardinality()  # long time
-            27886995605342342839104615869259776
+
+        The cardinality can be computed without constructing all elements in
+        this set, so this computation is fast (see also :trac:`28273`)::
+
+            sage: StandardTableaux(500).cardinality()
+            423107565308608549951551753690...221285999236657443927937253376
 
         TESTS::
 

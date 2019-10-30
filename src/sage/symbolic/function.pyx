@@ -13,7 +13,6 @@ Classes for symbolic functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import division, absolute_import
 
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
@@ -894,6 +893,31 @@ cdef class BuiltinFunction(Function):
         Function.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first, alt_name = alt_name)
 
+    def _method_arguments(self, arg):
+        r"""
+        Rewrite the arguments before calling a specialized implementation.
+
+        Rewrite the list of arguments of this symbolic function in a form
+        suitable for calling dedicated implementations that come as methods of
+        a “main” argument.
+
+        The default implementation of this method handles the case of
+        univariate functions. Multivariate symbolic functions should override
+        it as appropriate.
+
+        EXAMPLES::
+
+            sage: zeta._method_arguments(1)
+            [1]
+            sage: zetaderiv._method_arguments(2, 3)
+            [3, 2]
+            sage: zeta._method_arguments(2, 3)
+            Traceback (most recent call last):
+            ...
+            TypeError: ...
+        """
+        return [arg]
+
     def __call__(self, *args, bint coerce=True, bint hold=False,
             bint dont_call_method_on_arg=False):
         r"""
@@ -978,19 +1002,24 @@ cdef class BuiltinFunction(Function):
             if custom is not None:
                 return custom(*args)
 
-        if len(args) == 1 and not hold and not dont_call_method_on_arg:
-            # then try to see whether there exists a method on the object with
-            # the given name
-            arg = py_scalar_to_element(args[0])
-            method = getattr(arg, self._name, None)
-            if method is None and self._alt_name is not None:
-                method = getattr(arg, self._alt_name, None)
+        if not hold and not dont_call_method_on_arg:
+            try:
+                method_args = self._method_arguments(*args)
+            except TypeError:
+                pass
+            else:
+                # then try to see whether there exists a method on the object
+                # with the given name
+                arg = py_scalar_to_element(method_args[0])
+                method = getattr(arg, self._name, None)
+                if method is None and self._alt_name is not None:
+                    method = getattr(arg, self._alt_name, None)
 
-            if callable(method):
-                try:
-                    res = method()
-                except (ValueError, ArithmeticError):
-                    pass
+                if callable(method):
+                    try:
+                        res = method(*method_args[1:])
+                    except (TypeError, ValueError, ArithmeticError):
+                        pass
 
         if res is None:
             res = self._evalf_try_(*args)

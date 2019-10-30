@@ -688,7 +688,7 @@ class GraphLatex(SageObject):
           ``'#2D87A7'``, or a single character from the choices ``'rgbcmykw'``.
           Additionally, a number between 0 and 1 will create a grayscale value.
           These color specifications are consistent throughout the options for
-          a ``tkzpicture``.
+          a ``tikzpicture``.
 
         - ``vertex_colors`` -- a dictionary whose keys are vertices of the graph
           and whose values are colors. These will be used to color the outline
@@ -1631,7 +1631,7 @@ class GraphLatex(SageObject):
         # Which is just a convenience for forming vertex names internal to
         # tkz-graph
         index_of_vertex = {}
-        vertex_list = self._graph.vertices()
+        vertex_list = self._graph.vertices(sort=False)
         for u in self._graph:
             index_of_vertex[u] = vertex_list.index(u)
 
@@ -1769,7 +1769,7 @@ class GraphLatex(SageObject):
                 el_slope = {}
                 el_placement = {}
 
-            for e in self._graph.edges():
+            for e in self._graph.edges(sort=False):
                 edge = (e[0], e[1])
                 reverse = (e[1], e[0])
                 #
@@ -1946,7 +1946,7 @@ class GraphLatex(SageObject):
         s += ['%\n']
 
         # Create each edge or loop
-        for e in self._graph.edges():
+        for e in self._graph.edges(sort=False):
             edge = (e[0], e[1])
             loop = e[0] == e[1]
             if loop:

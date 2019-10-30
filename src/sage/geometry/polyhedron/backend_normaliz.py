@@ -242,7 +242,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     def _nmz_result(self, normaliz_cone, property):
         """
-        Call PyNormaliz's NmzResult function.
+        Call PyNormaliz's NmzResult function with appropriate conversion between number format.
 
         TESTS::
 
@@ -252,32 +252,32 @@ class Polyhedron_normaliz(Polyhedron_base):
             Traceback (most recent call last):
             ...
             NormalizError: Some error in the normaliz input data detected: Unknown ConeProperty...
-        """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
 
+            sage: x = polygen(QQ, 'x')
+            sage: K.<a> = NumberField(x^3 - 3, embedding=AA(3)**(1/3))
+            sage: p = Polyhedron(vertices=[(0,0),(1,1),(a,3),(-1,a**2)], rays=[(-1,-a)], backend='normaliz') # optional - pynormaliz
+            sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz
+            [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
+            sage: sorted(p._nmz_result(p._normaliz_cone, 'Generators')) # optional - pynormaliz
+            [[-1, a^2, 1], [-1/3*a^2, -1, 0], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
+            sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz
+            True
+            sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') == 3 # optional - pynormaliz
+            True
+            sage: p._nmz_result(p._normaliz_cone, 'ExtremeRays') # optional - pynormaliz
+            [[-1/3*a^2, -1, 0]]
+            sage: p._nmz_result(p._normaliz_cone, 'MaximalSubspace') # optional - pynormaliz
+            []
+        """
         def rational_handler(list):
-            try:
-                return QQ(tuple(list))
-            except Exception as e:
-                print("Error in rational_handler: {}".format(e))
-                return None
+            return QQ(tuple(list))
 
         def nfelem_handler(coords):
-            # PyQNormaliz 1.1 does not always give us the full-length list of coordinates...
-            try:
-                v = [0] * self._normaliz_field.degree()
-                for i, x in enumerate(coords):
-                    if i < len(v): # PyNormaliz 2.0 sometimes gives us too long vectors
-                        if type(x) is list:
-                            v[i] = QQ(tuple(x))
-                        else: # assume it's already rational per rational_handler...
-                            v[i] = x
-                return self._normaliz_field(v)
-            except Exception as e:
-                print("Error in nfelem_handler: {}".format(e))
-                return None
+            # coords might be too short which is not accepted by Sage number field
+            v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
+            return self._normaliz_field(v)
 
+        import PyNormaliz
         return PyNormaliz.NmzResult(normaliz_cone, property,
                                     RationalHandler=rational_handler,
                                     NumberfieldElementHandler=nfelem_handler)
@@ -1017,90 +1017,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
                                                                normaliz_cone=cone)
 
-    def ehrhart_quasipolynomial(self, variable='t'):
-        r"""
-        Return the Ehrhart quasi-polynomial of a compact rational polyhedron
-        using Normaliz.
-
-        INPUT:
-
-        - ``variable`` -- string (default: ``'t'``)
-
-        OUTPUT:
-
-        If it is a polynomial, returns the polynomial. Otherwise, returns a
-        tuple of rational polynomials whose length is the quasi-period of the
-        quasi-polynomial and each rational polynomial describes a residue class.
-
-        EXAMPLES::
-
-            sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
-            sage: C.ehrhart_quasipolynomial()  # optional - pynormaliz
-            t^3 + 3*t^2 + 3*t + 1
-
-            sage: P = Polyhedron(vertices=[[0,0],[3/2,0],[0,3/2],[1,1]],backend='normaliz')  # optional - pynormaliz
-            sage: P.ehrhart_quasipolynomial()  # optional - pynormaliz
-            (3/2*t^2 + 2*t + 1, 3/2*t^2 + 2*t + 1/2)
-            sage: P.ehrhart_quasipolynomial('x')  # optional - pynormaliz
-            (3/2*x^2 + 2*x + 1, 3/2*x^2 + 2*x + 1/2)
-
-        The quasi-polynomial evaluated at ``i`` counts the integral points
-        in the ``i``-th dilate::
-
-            sage: Q = Polyhedron(vertices = [[-1/3],[2/3]],backend='normaliz')  # optional - pynormaliz
-            sage: p0,p1,p2 = Q.ehrhart_quasipolynomial()  # optional - pynormaliz
-            sage: r0 = [p0(i) for i in range(15)]         # optional - pynormaliz
-            sage: r1 = [p1(i) for i in range(15)]         # optional - pynormaliz
-            sage: r2 = [p2(i) for i in range(15)]         # optional - pynormaliz
-            sage: result = [None]*15                      # optional - pynormaliz
-            sage: result[::3] = r0[::3]                   # optional - pynormaliz
-            sage: result[1::3] = r1[1::3]                 # optional - pynormaliz
-            sage: result[2::3] = r2[2::3]                 # optional - pynormaliz
-            sage: result == [(i*Q).integral_points_count() for i in range(15)]  # optional - pynormaliz
-            True
-
-        The polyhedron should be compact::
-
-            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
-            sage: C.ehrhart_quasipolynomial()                            # optional - pynormaliz
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Ehrhart quasi-polynomial can only be computed for compact polyhedron
-
-        .. SEEALSO::
-
-            :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`,
-            :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
-        """
-        if self.is_empty():
-            return 0
-
-        if not self.is_compact():
-            raise NotImplementedError("Ehrhart quasi-polynomial can only be computed for compact polyhedron")
-
-        cone = self._normaliz_cone
-        # Normaliz needs to compute the EhrhartSeries first
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
-        assert PyNormaliz.NmzCompute(cone, ["EhrhartSeries"])
-        e = self._nmz_result(cone, "EhrhartQuasiPolynomial")
-
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        poly_ring = PolynomialRing(QQ, variable)
-        t = poly_ring.gens()[0]
-        if len(e) == 2:
-            # It is a polynomial
-            es = sum([e[0][i]*t**i for i in range(len(e[0]))])
-            return es / ZZ(e[1])
-        else:
-            # It is a quasi-polynomial
-            polynomials = []
-            for p in e[:-1]:
-                es = sum([p[i]*t**i for i in range(len(p))]) / ZZ(e[-1])
-                polynomials += [es]
-
-        return tuple(polynomials)
-
     def _volume_normaliz(self, measure='euclidean'):
         r"""
         Computes the volume of a polytope using normaliz.
@@ -1315,6 +1231,81 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         es = es * t**e[2]
 
         return es
+
+    def _ehrhart_quasipolynomial_normaliz(self, variable='t'):
+        r"""
+        Return the Ehrhart quasipolynomial of a compact rational polyhedron
+        using Normaliz.
+
+        If it is a polynomial, returns the polynomial. Otherwise, returns a
+        tuple of rational polynomials whose length is the quasi-period of the
+        quasipolynomial and each rational polynomial describes a residue class.
+
+        INPUT:
+
+        - ``variable`` -- string (default: ``'t'``)
+
+        OUTPUT:
+
+        A polynomial or tuple of polynomials.
+
+        EXAMPLES::
+
+            sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: C._ehrhart_quasipolynomial_normaliz()                                      # optional - pynormaliz
+            t^3 + 3*t^2 + 3*t + 1
+
+            sage: P = Polyhedron(vertices=[[0,0],[3/2,0],[0,3/2],[1,1]],backend='normaliz')  # optional - pynormaliz
+            sage: P._ehrhart_quasipolynomial_normaliz()                                      # optional - pynormaliz
+            (3/2*t^2 + 2*t + 1, 3/2*t^2 + 2*t + 1/2)
+            sage: P._ehrhart_quasipolynomial_normaliz('x')                                   # optional - pynormaliz
+            (3/2*x^2 + 2*x + 1, 3/2*x^2 + 2*x + 1/2)
+
+        The quasipolynomial evaluated at ``i`` counts the integral points
+        in the ``i``-th dilate::
+
+            sage: Q = Polyhedron(vertices = [[-1/3],[2/3]],backend='normaliz')  # optional - pynormaliz
+            sage: p0,p1,p2 = Q._ehrhart_quasipolynomial_normaliz()              # optional - pynormaliz
+            sage: r0 = [p0(i) for i in range(15)]                               # optional - pynormaliz
+            sage: r1 = [p1(i) for i in range(15)]                               # optional - pynormaliz
+            sage: r2 = [p2(i) for i in range(15)]                               # optional - pynormaliz
+            sage: result = [None]*15                                            # optional - pynormaliz
+            sage: result[::3] = r0[::3]                                         # optional - pynormaliz
+            sage: result[1::3] = r1[1::3]                                       # optional - pynormaliz
+            sage: result[2::3] = r2[2::3]                                       # optional - pynormaliz
+            sage: result == [(i*Q).integral_points_count() for i in range(15)]  # optional - pynormaliz
+            True
+
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`,
+            :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
+        """
+        cone = self._normaliz_cone
+        # Normaliz needs to compute the EhrhartSeries first
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
+        import PyNormaliz
+        assert PyNormaliz.NmzCompute(cone, ["EhrhartSeries"])
+        e = self._nmz_result(cone, "EhrhartQuasiPolynomial")
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        poly_ring = PolynomialRing(QQ, variable)
+        t = poly_ring.gens()[0]
+        if len(e) == 2:
+            # It is a polynomial
+            es = sum([e[0][i]*t**i for i in range(len(e[0]))])
+            return es / ZZ(e[1])
+        else:
+            # It is a quasipolynomial
+            polynomials = []
+            for p in e[:-1]:
+                es = sum([p[i]*t**i for i in range(len(p))]) / ZZ(e[-1])
+                polynomials += [es]
+
+        return tuple(polynomials)
+
+    _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 
     def hilbert_series(self, grading, variable='t'):
         r"""

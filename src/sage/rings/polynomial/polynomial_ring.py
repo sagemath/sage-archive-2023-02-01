@@ -913,35 +913,46 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
                                     gens_syntax=gens_syntax)
 
-    def _macaulay2_(self, m2=None):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 
             sage: R = QQ['x']
             sage: macaulay2(R).describe()  # optional - macaulay2
-            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32},
+            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
                                                                 {GRevLex => {1}    }
                                                                 {Position => Up    }
             --------------------------------------------------------------------------------
             DegreeRank => 1]
+
+        TESTS:
+
+        Check that results are cached (:trac:`28074`)::
+
+            sage: R = ZZ['t']
+            sage: macaulay2(R) is macaulay2(R)  # optional - macaulay2
+            True
         """
-        if m2 is None:
-            import sage.interfaces.macaulay2
-            m2 = sage.interfaces.macaulay2.macaulay2
-        base_ring = m2( self.base_ring() )
-        var = self.gen()
-        return m2("%s[symbol %s]"%(base_ring.name(), var))
+        from sage.interfaces.macaulay2 import _macaulay2_input_ring
+        return _macaulay2_input_ring(self.base_ring(), self.gens())
 
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        try:
-            # all that is needed is that elements of the base ring
-            # of the polynomial ring canonically coerce into codomain.
-            # Since poly rings are free, any image of the gen
-            # determines a homomorphism
-            codomain.coerce(self.base_ring().one())
-        except TypeError:
-            return False
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R._is_valid_homomorphism_(GF(7), [5])
+            False
+            sage: R._is_valid_homomorphism_(Qp(7), [5])
+            True
+        """
+        # Since poly rings are free, any image of the gen
+        # determines a homomorphism
+        if base_map is None:
+            # If no base map is given, the only requirement is that the
+            # base ring coerces into the codomain
+            return codomain.has_coerce_map_from(self.base_ring())
         return True
 
     #    Polynomial rings should be unique parents. Hence,
@@ -1741,10 +1752,21 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             [x^2 - 2*x + 1, x + 1]
             sage: p.roots(degree_bound=1)
             [(x + 1, 2)]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: foo = QQ['x']['y'].one()
+            sage: foo.roots(QQ)
+            []
         """
         if ring is not None and ring is not self:
             p = p.change_ring(ring)
-            return p.roots(multiplicities, algorithm, degree_bound)
+            if degree_bound is None:
+                return p.roots(multiplicities = multiplicities, algorithm = algorithm)
+            return p.roots(multiplicities = multiplicities, algorithm = algorithm, degree_bound = degree_bound)
+
         roots = p._roots_from_factorization(p.factor(), multiplicities)
         if degree_bound is not None:
             if multiplicities:
@@ -2604,12 +2626,28 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             [x + 1]
             sage: p.roots(multiplicities=False, algorithm="Roth-Ruckenstein")
             [x^2 + 11*x + 1, x + 1]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: R = GF(3)['x']['y']
+            sage: R.one().roots(multiplicities=False)
+            []
+            sage: R.zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: roots of 0 are not defined
         """
         if multiplicities:
             raise NotImplementedError("Use multiplicities=False")
 
         if degree_bound is None:
             l = p.degree()
+            if l < 0:
+                raise ArithmeticError("roots of 0 are not defined")
+            if l == 0:
+                return []
             dl = p[l].degree()
             degree_bound = max((p[i].degree() - dl)//(l - i) for i in range(l) if p[i])
 

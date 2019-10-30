@@ -875,7 +875,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         """
         return QQbar
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=False):
         r"""
         Attempt to construct a homomorphism from self to codomain sending the
         generators to ``im_gens``. Since this field is not finitely generated,
@@ -1467,9 +1467,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar(0) in z
             False
 
-         If you just want real algebraic numbers you can filter them out.
-         Using an odd degree for the polynomials will insure some degree of
-         success. ::
+        If you just want real algebraic numbers you can filter them out.
+        Using an odd degree for the polynomials will ensure some degree of
+        success. ::
 
             sage: r = []
             sage: while len(r) < 3:
@@ -3265,7 +3265,15 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: AA(sqrt(2)) / AA(sqrt(8)) # indirect doctest
             0.500000000000000?
+
+            sage: z = QQbar(I).real()
+            sage: 1 / z
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in algebraic field
         """
+        if not other:
+            raise ZeroDivisionError("division by zero in algebraic field")
         sk = type(self._descr)
         ok = type(other._descr)
         return type(self)(_binop_algo[sk, ok](self, other, operator.truediv))
@@ -3276,7 +3284,15 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: ~AA(sqrt(~2))
             1.414213562373095?
+
+            sage: z = QQbar(I).real()
+            sage: a = ~z
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in algebraic field
         """
+        if not self:
+            raise ZeroDivisionError("division by zero in algebraic field")
         return type(self)(self._descr.invert(self))
 
     def _add_(self, other):
@@ -5206,7 +5222,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: z.interval_exact(RIF)
             1.000000000000001?
 
-        TESTS::
+        TESTS:
 
         Check that :trac:`26898` is fixed.  This calculation triggers the 40 bits
         of extra precision below, and the point is not that the length of the list

@@ -1021,7 +1021,7 @@ class BipartiteGraph(Graph):
         r"""
         Compute the matching polynomial.
 
-        The *matching polynomial* is defined as in [Godsil93]_, where `p(G, k)`
+        The *matching polynomial* is defined as in [God1993]_, where `p(G, k)`
         denotes the number of `k`-matchings (matchings with `k` edges) in `G` :
 
         .. MATH::
@@ -1667,7 +1667,7 @@ class BipartiteGraph(Graph):
         # matching
         Z = left.difference(M.vertex_iterator())
 
-        # Alternate: extend Z with all vertices reacheable by alternate paths
+        # Alternate: extend Z with all vertices reachable by alternate paths
         # (match / non-match edges).
         X = set(Z)
         while X:

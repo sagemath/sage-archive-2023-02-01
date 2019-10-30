@@ -1,9 +1,13 @@
 r"""
-Base class for Encoders
+Encoders
 
 Representation of a bijection between a message space and a code.
-"""
 
+AUTHORS:
+
+- David Lucas (2015): initial version
+
+"""
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
 #
@@ -23,7 +27,8 @@ class Encoder(SageObject):
     r"""
     Abstract top-class for :class:`Encoder` objects.
 
-    Every encoder class should inherit from this abstract class.
+    Every encoder class for linear codes (of any metric) should inherit from
+    this abstract class.
 
     To implement an encoder, you need to:
 
@@ -239,7 +244,7 @@ class Encoder(SageObject):
             sage: C = LinearCode(G)
             Traceback (most recent call last):
             ...
-            ValueError: length must be a non-zero positive integer
+            ValueError: length must be a positive integer
         """
         if not nocheck and c not in self.code():
             raise EncodingError("Given word is not in the code")

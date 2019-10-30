@@ -5,8 +5,7 @@ Hasse diagrams of posets
 {INDEX_OF_FUNCTIONS}
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
@@ -14,8 +13,8 @@ Hasse diagrams of posets
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from six.moves import range
@@ -23,8 +22,10 @@ from six.moves import range
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
+from sage.misc.rest_index_of_methods import gen_rest_table_index
 
 
 class LatticeError(ValueError):
@@ -63,6 +64,7 @@ class LatticeError(ValueError):
         """
         return "no {} for {} and {}".format(self.fail, self.x, self.y)
 
+
 class HasseDiagram(DiGraph):
     """
     The Hasse diagram of a poset. This is just a transitively-reduced,
@@ -93,7 +95,7 @@ class HasseDiagram(DiGraph):
             sage: H._repr_()
             'Hasse diagram of a poset containing 4 elements'
         """
-        return "Hasse diagram of a poset containing %s elements"%self.order()
+        return "Hasse diagram of a poset containing %s elements" % self.order()
 
     def linear_extension(self):
         r"""
@@ -161,15 +163,16 @@ class HasseDiagram(DiGraph):
 
             S = []
             if linext:
-                S = [x for x in H.neighbors_out(linext[-1]) if all(low in linext for low in H.neighbors_in(x))]
+                S = [x for x in H.neighbors_out(linext[-1])
+                     if all(low in linext for low in H.neighbors_in(x))]
             if not S:
                 S_ = set(self).difference(set(linext))
-                S = [x for x in S_ if
-                not any(low in S_ for low in self.neighbors_in(x))]
+                S = [x for x in S_
+                     if not any(low in S_ for low in self.neighbors_in(x))]
 
             for e in S:
                 # Python3-todo: use yield from
-                for tmp in greedy_rec(H, linext+[e]):
+                for tmp in greedy_rec(H, linext + [e]):
                     yield tmp
 
         return greedy_rec(self, [])
@@ -226,12 +229,15 @@ class HasseDiagram(DiGraph):
                     if not k:  # Start from new minimal element
                         S = [x for x in self.sources() if x not in linext]
                     else:
-                        S = [x for x in self.neighbors_out(linext[k-1]) if x not in linext and all(low in linext for low in self.neighbors_in(x))]
+                        S = [x for x in self.neighbors_out(linext[k - 1])
+                             if x not in linext and
+                             all(low in linext
+                                 for low in self.neighbors_in(x))]
                         k -= 1
 
                 for e in S:
-                # Python3-todo: use yield from
-                    for tmp in supergreedy_rec(H, linext+[e]):
+                    # Python3-todo: use yield from
+                    for tmp in supergreedy_rec(H, linext + [e]):
                         yield tmp
 
         return supergreedy_rec(self, [])
@@ -271,8 +277,8 @@ class HasseDiagram(DiGraph):
             sage: list(H.cover_relations_iterator())
             [(0, 2), (0, 3), (1, 3), (1, 4), (2, 5), (3, 5), (4, 5)]
         """
-        for u,v,l in self.edge_iterator():
-            yield (u,v)
+        for u, v, l in self.edge_iterator():
+            yield (u, v)
 
     def cover_relations(self):
         r"""
@@ -295,7 +301,7 @@ class HasseDiagram(DiGraph):
         .. note::
 
             If the :meth:`lequal_matrix` has been computed, then this method is
-            redefined to use the cached matrix (see :meth:`_alternate_is_lequal`).
+            redefined to use the cached data (see :meth:`_alternate_is_lequal`).
 
         TESTS::
 
@@ -313,8 +319,7 @@ class HasseDiagram(DiGraph):
             sage: H.is_lequal(z,z)
             True
         """
-        return i == j or \
-                (i < j and j in self.breadth_first_search(i))
+        return i == j or (i < j and j in self.breadth_first_search(i))
 
     def is_less_than(self, x, y):
         r"""
@@ -340,7 +345,7 @@ class HasseDiagram(DiGraph):
         if x == y:
             return False
         else:
-            return self.is_lequal(x,y)
+            return self.is_lequal(x, y)
 
     def is_gequal(self, x, y):
         r"""
@@ -365,7 +370,7 @@ class HasseDiagram(DiGraph):
             sage: Q.is_gequal(z,z)
             True
         """
-        return self.is_lequal(y,x)
+        return self.is_lequal(y, x)
 
     def is_greater_than(self, x, y):
         """
@@ -390,7 +395,7 @@ class HasseDiagram(DiGraph):
             sage: Q.is_greater_than(z,z)
             False
         """
-        return self.is_less_than(y,x)
+        return self.is_less_than(y, x)
 
     def minimal_elements(self):
         """
@@ -526,9 +531,9 @@ class HasseDiagram(DiGraph):
         """
         if self.cardinality() == 0:
             return True
-        return (self.num_edges()+1 == self.num_verts() and # Hasse Diagram is a tree
-                all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
-                all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
+        return (self.num_edges() + 1 == self.num_verts() and  # tree
+                all(d <= 1 for d in self.out_degree()) and
+                all(d <= 1 for d in self.in_degree()))
 
     def is_antichain_of_poset(self, elms):
         """
@@ -570,7 +575,7 @@ class HasseDiagram(DiGraph):
             False
         """
         H = self.reverse()
-        H.relabel(perm=list(range(H.num_verts()-1, -1, -1)), inplace=True)
+        H.relabel(perm=list(range(H.num_verts() - 1, -1, -1)), inplace=True)
         return HasseDiagram(H)
 
     def _precompute_intervals(self):
@@ -647,7 +652,7 @@ class HasseDiagram(DiGraph):
             sage: I == set(H.interval(2,7))
             True
         """
-        return [z for z in range(x, y+1) if
+        return [z for z in range(x, y + 1) if
                 self.is_lequal(x, z) and self.is_lequal(z, y)]
 
     closed_interval = interval
@@ -669,7 +674,7 @@ class HasseDiagram(DiGraph):
             sage: H.open_interval(7,2)
             []
         """
-        ci = self.interval(x,y)
+        ci = self.interval(x, y)
         if len(ci) == 0:
             return []
         else:
@@ -735,7 +740,8 @@ class HasseDiagram(DiGraph):
         """
         if self._rank is None:
             return None
-        return self._rank.__getitem__ # the rank function is just the getitem of the list
+        # the rank function is just the getitem of the list
+        return self._rank.__getitem__
 
     @lazy_attribute
     def _rank(self):
@@ -765,15 +771,16 @@ class HasseDiagram(DiGraph):
         """
         # rank[i] is the rank of point i. It is equal to None until the rank of
         # i is computed
-        rank = [None]*self.order()
+        rank = [None] * self.order()
         not_found = set(self.vertex_iterator())
         while not_found:
             y = not_found.pop()
             rank[y] = 0  # We set some vertex to have rank 0
             component = set([y])
             queue = set([y])
-            while queue:  # look at the neighbors of y and set the ranks;
-                          # then look at the neighbors of the neighbors ...
+            while queue:
+                # look at the neighbors of y and set the ranks;
+                # then look at the neighbors of the neighbors ...
                 y = queue.pop()
                 for x in self.neighbors_out(y):
                     if rank[x] is None:
@@ -793,10 +800,10 @@ class HasseDiagram(DiGraph):
             for j in component:
                 rank[j] -= m
             not_found.difference_update(component)
-        #now, all ranks are set.
+        # now, all ranks are set.
         return rank
 
-    def rank(self,element=None):
+    def rank(self, element=None):
         r"""
         Return the rank of ``element``, or the rank of the poset if
         ``element`` is ``None``. (The rank of a poset is the length of
@@ -817,7 +824,7 @@ class HasseDiagram(DiGraph):
             1
         """
         if element is None:
-            return len(self.level_sets())-1
+            return len(self.level_sets()) - 1
         else:
             return self.rank_function()(element)
 
@@ -840,7 +847,7 @@ class HasseDiagram(DiGraph):
         """
         return bool(self.rank_function())
 
-    def covers(self,x,y):
+    def covers(self, x, y):
         """
         Return True if y covers x and False otherwise.
 
@@ -852,9 +859,9 @@ class HasseDiagram(DiGraph):
             sage: Q.covers(Q(1),Q(4))
             False
         """
-        return self.has_edge(x,y)
+        return self.has_edge(x, y)
 
-    def upper_covers_iterator(self,element):
+    def upper_covers_iterator(self, element):
         r"""
         Return the list of elements that cover ``element``.
 
@@ -870,7 +877,7 @@ class HasseDiagram(DiGraph):
         for x in self.neighbor_out_iterator(element):
             yield x
 
-    def lower_covers_iterator(self,element):
+    def lower_covers_iterator(self, element):
         r"""
         Return the list of elements that are covered by ``element``.
 
@@ -914,7 +921,7 @@ class HasseDiagram(DiGraph):
         """
         return self.order()
 
-    def moebius_function(self,i,j): # dumb algorithm
+    def moebius_function(self, i, j):  # dumb algorithm
         r"""
         Return the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
@@ -930,36 +937,50 @@ class HasseDiagram(DiGraph):
             ....:         print("Bug in moebius_function!")
         """
         try:
-            return self._moebius_function_values[(i,j)]
+            return self._moebius_function_values[(i, j)]
         except AttributeError:
             self._moebius_function_values = {}
-            return self.moebius_function(i,j)
+            return self.moebius_function(i, j)
         except KeyError:
             if i == j:
-                self._moebius_function_values[(i,j)] = 1
+                self._moebius_function_values[(i, j)] = 1
             elif i > j:
-                self._moebius_function_values[(i,j)] = 0
+                self._moebius_function_values[(i, j)] = 0
             else:
-                ci = self.closed_interval(i,j)
-                if len(ci) == 0:
-                    self._moebius_function_values[(i,j)] = 0
+                ci = self.interval(i, j)
+                if not ci:
+                    self._moebius_function_values[(i, j)] = 0
                 else:
-                    self._moebius_function_values[(i,j)] = \
-                     -sum([self.moebius_function(i,k) for k in ci[:-1]])
-        return self._moebius_function_values[(i,j)]
+                    self._moebius_function_values[(i, j)] = -sum(self.moebius_function(i, k) for k in ci[:-1])
+        return self._moebius_function_values[(i, j)]
 
-    def moebius_function_matrix(self):
+    def moebius_function_matrix(self, algorithm='recursive'):
         r"""
-        Return the matrix of the Möbius function of this poset
+        Return the matrix of the Möbius function of this poset.
 
         This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
         is the value of the Möbius function of ``self`` evaluated on
         ``x`` and ``y``, and redefines :meth:`moebius_function` to use
         it.
 
+        INPUT:
+
+        - ``algorithm`` -- optional, ``'recursive'`` (default) or ``'matrix'``
+
+        This uses either the recursive formula or one matrix inversion.
+
         .. NOTE::
 
             The result is cached in :meth:`_moebius_function_matrix`.
+
+        .. TODO::
+
+            Try to make a specific multimodular matrix inversion
+            algorithm for this kind of sparse triangular matrices
+            where the non-zero entries of the inverse are in known
+            positions.
+
+        .. SEEALSO:: :meth:`lequal_matrix`, :meth:`coxeter_transformation`
 
         EXAMPLES::
 
@@ -984,15 +1005,40 @@ class HasseDiagram(DiGraph):
 
             sage: H.moebius_function == H._moebius_function_from_matrix
             True
+
+            sage: H = posets.TamariLattice(3)._hasse_diagram
+            sage: H.moebius_function_matrix('matrix')
+            [ 1 -1 -1  0  1]
+            [ 0  1  0  0 -1]
+            [ 0  0  1 -1  0]
+            [ 0  0  0  1 -1]
+            [ 0  0  0  0  1]
         """
-        if not hasattr(self,'_moebius_function_matrix'):
-            self._moebius_function_matrix = self.lequal_matrix().inverse().change_ring(ZZ)
+        if not hasattr(self, '_moebius_function_matrix'):
+            if algorithm == 'recursive':
+                n = self.cardinality()
+                gt = self._leq_storage
+                greater_than = [sorted(gt[i]) for i in range(n)]
+                m = {}
+                for i in range(n - 1, -1, -1):
+                    m[(i, i)] = ZZ.one()
+                    available = []
+                    for k in greater_than[i]:
+                        if k != i:
+                            available.append(k)
+                            m[(i, k)] = -ZZ.sum(m[(j, k)]
+                                                for j in available
+                                                if k in greater_than[j])
+                M = matrix(ZZ, n, n, m, sparse=True)
+            else:
+                M = self.lequal_matrix().inverse_of_unit()
+            self._moebius_function_matrix = M
             self._moebius_function_matrix.set_immutable()
             self.moebius_function = self._moebius_function_from_matrix
         return self._moebius_function_matrix
 
     # Redefine self.moebius_function
-    def _moebius_function_from_matrix(self, i,j):
+    def _moebius_function_from_matrix(self, i, j):
         r"""
         Return the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
@@ -1010,7 +1056,7 @@ class HasseDiagram(DiGraph):
         This uses ``self._moebius_function_matrix``, as computed by
         :meth:`moebius_function_matrix`.
         """
-        return self._moebius_function_matrix[i,j]
+        return self._moebius_function_matrix[i, j]
 
     @cached_method
     def coxeter_transformation(self):
@@ -1018,6 +1064,8 @@ class HasseDiagram(DiGraph):
         Return the matrix of the Auslander-Reiten translation acting on
         the Grothendieck group of the derived category of modules on the
         poset, in the basis of simple modules.
+
+        .. SEEALSO:: :meth:`lequal_matrix`, :meth:`moebius_function_matrix`
 
         EXAMPLES::
 
@@ -1034,7 +1082,7 @@ class HasseDiagram(DiGraph):
             sage: M**8 == 1
             True
         """
-        return - self.lequal_matrix()*self.moebius_function_matrix().transpose()
+        return - self.lequal_matrix() * self.moebius_function_matrix().transpose()
 
     def order_filter(self, elements):
         r"""
@@ -1092,51 +1140,45 @@ class HasseDiagram(DiGraph):
         return self.order_ideal([i])
 
     @lazy_attribute
-    def _leq_matrix(self):
-        r"""
-        Computes a matrix whose ``(i,j)`` entry is 1 if ``i`` is less than
-        ``j`` in the poset, and 0 otherwise; and redefines ``__lt__`` to
-        use this matrix.
+    def _leq_storage(self):
+        """
+        Store the comparison relation as a list of Python sets.
+
+        The `i`-th item in the list is the set of elements greater than `i`.
 
         EXAMPLES::
 
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
-            sage: H = P._hasse_diagram
-            sage: H._leq_matrix
-            [1 1 1 1 1 1 1 1]
-            [0 1 0 1 0 0 0 1]
-            [0 0 1 1 1 0 1 1]
-            [0 0 0 1 0 0 0 1]
-            [0 0 0 0 1 0 0 1]
-            [0 0 0 0 0 1 1 1]
-            [0 0 0 0 0 0 1 1]
-            [0 0 0 0 0 0 0 1]
-
+            sage: H = posets.DiamondPoset(7)._hasse_diagram
+            sage: H._leq_storage
+            [{0, 1, 2, 3, 4, 5, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6}]
         """
-        # Create the matrix
         n = self.order()
-        D = {}
-        for i in range(n):
-            for v in self.breadth_first_search(i):
-                D[(i,v)] = 1
-        M = matrix(ZZ, n, n, D, sparse=True)
-        M.set_immutable()
+        greater_than = [set([i]) for i in range(n)]
+        for i in range(n - 1, -1, -1):
+            gt = greater_than[i]
+            for j in self.neighbors_out(i):
+                gt = gt.union(greater_than[j])
+            greater_than[i] = gt
+
         # Redefine self.is_lequal
         self.is_lequal = self._alternate_is_lequal
-        # Return the matrix
-        return M
 
-    def lequal_matrix(self):
-        """
-        Return the matrix whose ``(i,j)`` entry is 1 if ``i`` is less
-        than ``j`` in the poset, and 0 otherwise; and redefines
-        ``__lt__`` to use this matrix.
+        return greater_than
+
+    @lazy_attribute
+    def _leq_matrix_boolean(self):
+        r"""
+        Compute a boolean matrix whose ``(i,j)`` entry is 1 if ``i``
+        is less than ``j`` in the poset, and 0 otherwise; and
+        redefines ``__lt__`` to use this matrix.
+
+        .. SEEALSO:: :meth:`_leq_matrix`
 
         EXAMPLES::
 
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: H = P._hasse_diagram
-            sage: H.lequal_matrix()
+            sage: M = H._leq_matrix_boolean; M
             [1 1 1 1 1 1 1 1]
             [0 1 0 1 0 0 0 1]
             [0 0 1 1 1 0 1 1]
@@ -1145,15 +1187,98 @@ class HasseDiagram(DiGraph):
             [0 0 0 0 0 1 1 1]
             [0 0 0 0 0 0 1 1]
             [0 0 0 0 0 0 0 1]
+            sage: M.base_ring()
+            Finite Field of size 2
+        """
+        n = self.order()
+        R = GF(2)
+        one = R.one()
+        greater_than = self._leq_storage
+        D = {(i, j): one for i in range(n) for j in greater_than[i]}
+        M = matrix(R, n, n, D, sparse=True)
+        M.set_immutable()
+        return M
+
+    @lazy_attribute
+    def _leq_matrix(self):
+        r"""
+        Compute an integer matrix whose ``(i,j)`` entry is 1 if ``i``
+        is less than ``j`` in the poset, and 0 otherwise.
+
+        .. SEEALSO:: :meth:`_leq_matrix_boolean`
+
+        EXAMPLES::
+
+            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
+            sage: H = P._hasse_diagram
+            sage: M = H._leq_matrix; M
+            [1 1 1 1 1 1 1 1]
+            [0 1 0 1 0 0 0 1]
+            [0 0 1 1 1 0 1 1]
+            [0 0 0 1 0 0 0 1]
+            [0 0 0 0 1 0 0 1]
+            [0 0 0 0 0 1 1 1]
+            [0 0 0 0 0 0 1 1]
+            [0 0 0 0 0 0 0 1]
+            sage: M.base_ring()
+            Integer Ring
+        """
+        n = self.order()
+        one = ZZ.one()
+        greater_than = self._leq_storage
+        D = {(i, j): one for i in range(n) for j in greater_than[i]}
+        M = matrix(ZZ, n, n, D, sparse=True)
+        M.set_immutable()
+        return M
+
+    def lequal_matrix(self, boolean=False):
+        r"""
+        Return a matrix whose ``(i,j)`` entry is 1 if ``i`` is less
+        than ``j`` in the poset, and 0 otherwise; and redefines
+        ``__lt__`` to use the boolean version of this matrix.
+
+        INPUT:
+
+        - ``boolean`` -- optional flag (default ``False``) telling whether to
+          return a matrix with coefficients in `\GF(2)` or in `\ZZ`
+
+        .. SEEALSO::
+
+            :meth:`moebius_function_matrix`, :meth:`coxeter_transformation`
+
+        EXAMPLES::
+
+            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
+            sage: H = P._hasse_diagram
+            sage: M = H.lequal_matrix(); M
+            [1 1 1 1 1 1 1 1]
+            [0 1 0 1 0 0 0 1]
+            [0 0 1 1 1 0 1 1]
+            [0 0 0 1 0 0 0 1]
+            [0 0 0 0 1 0 0 1]
+            [0 0 0 0 0 1 1 1]
+            [0 0 0 0 0 0 1 1]
+            [0 0 0 0 0 0 0 1]
+            sage: M.base_ring()
+            Integer Ring
+
+            sage: P = posets.DiamondPoset(6)
+            sage: H = P._hasse_diagram
+            sage: M = H.lequal_matrix(boolean=True)
+            sage: M.base_ring()
+            Finite Field of size 2
 
         TESTS::
 
             sage: H.lequal_matrix().is_immutable()
             True
         """
-        return self._leq_matrix
+        if boolean:
+            return self._leq_matrix_boolean
+        else:
+            return self._leq_matrix
 
-    def _alternate_is_lequal(self,i,j):
+    def _alternate_is_lequal(self, i, j):
         r"""
         Return ``True`` if ``i`` is less than or equal to ``j`` in
         ``self``, and ``False`` otherwise.
@@ -1161,7 +1286,7 @@ class HasseDiagram(DiGraph):
         .. NOTE::
 
             If the :meth:`lequal_matrix` has been computed, then
-            :meth:`is_lequal` is redefined to use the cached matrix.
+            :meth:`is_lequal` is redefined to use the cached data.
 
         EXAMPLES::
 
@@ -1185,7 +1310,7 @@ class HasseDiagram(DiGraph):
             sage: H._alternate_is_lequal(z,z)
             True
         """
-        return bool(self._leq_matrix[i,j])
+        return j in self._leq_storage[i]
 
     def prime_elements(self):
         r"""
@@ -1431,9 +1556,9 @@ class HasseDiagram(DiGraph):
         join = [[n for x in range(n)] for x in range(n)]
         uc = [self.neighbors_out(x) for x in range(n)]  # uc = upper covers
 
-        for x in range(n-1, -1, -1):
+        for x in range(n - 1, -1, -1):
             join[x][x] = x
-            for y in range(n-1, x, -1):
+            for y in range(n - 1, x, -1):
                 T = [join[y][z] for z in uc[x]]
 
                 q = min(T)
@@ -1600,19 +1725,19 @@ class HasseDiagram(DiGraph):
                 return []
             else:
                 return None
-        result = [] # Never take the bottom element to list.
+        result = []  # Never take the bottom element to list.
         m = 0
-        for i in range(n-1):
+        for i in range(n - 1):
             for j in self.outgoing_edge_iterator(i):
                 m = max(m, j[1])
-            if m == i+1:
+            if m == i + 1:
                 if not return_list:
-                    if m < n-1:
+                    if m < n - 1:
                         return m
                     else:
                         return None
                 result.append(m)
-        result.pop() # Remove the top element.
+        result.pop()  # Remove the top element.
         return result
 
     def is_complemented(self):
@@ -1790,7 +1915,7 @@ class HasseDiagram(DiGraph):
         if n == 1:
             yield [0]
             return
-        if n % 2 == 1:
+        if n % 2:
             return
 
         dual_isomorphism = self.is_isomorphic(self.reverse(), certificate=True)[1]
@@ -1811,7 +1936,7 @@ class HasseDiagram(DiGraph):
         for e in range(n):
             # Fix following after ticket #20727
             comps[e] = [x for x in range(n) if
-                        self._meet[e, x] == 0 and self._join[e, x] == n-1 and
+                        self._meet[e, x] == 0 and self._join[e, x] == n - 1 and
                         x in orbits[orbit_number[dual_isomorphism[e]]]]
 
         # Fitting is done by this recursive function:
@@ -1820,7 +1945,8 @@ class HasseDiagram(DiGraph):
                 yield orthocomplements
             else:
                 next_to_fit = unbinded[0]
-                possible_values = [x for x in comps[next_to_fit] if not x in orthocomplements]
+                possible_values = [x for x in comps[next_to_fit]
+                                   if x not in orthocomplements]
                 for x in self.lower_covers_iterator(next_to_fit):
                     if orthocomplements[x] is not None:
                         possible_values = [y for y in possible_values if self.has_edge(y, orthocomplements[x])]
@@ -1956,7 +2082,7 @@ class HasseDiagram(DiGraph):
         # antichains_queues never grows longer than self.cardinality().
         # Indeed, if a appears before b in antichains_queues, then
         # the largest element of a is strictly smaller than that of b.
-        antichains_queues = [([], list(range(self.cardinality()-1, -1, -1)))]
+        antichains_queues = [([], list(range(self.cardinality() - 1, -1, -1)))]
         leq = self.lequal_matrix()
         while antichains_queues:
             (antichain, queue) = antichains_queues.pop()
@@ -1967,7 +2093,7 @@ class HasseDiagram(DiGraph):
             while queue:
                 x = queue.pop()
                 new_antichain = antichain + [x]
-                new_queue = [t for t in queue if not (leq[t,x] or leq[x,t])]
+                new_queue = [t for t in queue if not (leq[t, x] or leq[x, t])]
                 antichains_queues.append((new_antichain, new_queue))
 
     def are_incomparable(self, i, j):
@@ -1987,8 +2113,8 @@ class HasseDiagram(DiGraph):
             sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_incomparable(i,j)]
             [(1, 2), (1, 3), (2, 1), (3, 1)]
         """
-        mat = self._leq_matrix
-        return not mat[i,j] and not mat[j,i]
+        mat = self._leq_matrix_boolean
+        return not mat[i, j] and not mat[j, i]
 
     def are_comparable(self, i, j):
         """
@@ -2007,13 +2133,12 @@ class HasseDiagram(DiGraph):
             sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_comparable(i,j)]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1), (1, 4), (2, 0), (2, 2), (2, 3), (2, 4), (3, 0), (3, 2), (3, 3), (3, 4), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]
         """
-        mat = self._leq_matrix
-        return bool(mat[i,j]) or bool(mat[j,i])
+        mat = self._leq_matrix_boolean
+        return bool(mat[i, j]) or bool(mat[j, i])
 
-    def antichains(self, element_class = list):
+    def antichains(self, element_class=list):
         """
-        Return all antichains of ``self``, organized as a
-        prefix tree
+        Return all antichains of ``self``, organized as a prefix tree
 
         INPUT:
 
@@ -2035,10 +2160,7 @@ class HasseDiagram(DiGraph):
 
         TESTS::
 
-            sage: TestSuite(A).run(skip = "_test_pickling")
-
-        .. note:: It's actually the pickling of the cached method
-            :meth:`coxeter_transformation` that fails ...
+            sage: TestSuite(A).run()
 
         TESTS::
 
@@ -2050,7 +2172,7 @@ class HasseDiagram(DiGraph):
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
         return PairwiseCompatibleSubsets(self.vertices(),
                                          self.are_incomparable,
-                                         element_class = element_class)
+                                         element_class=element_class)
 
     def chains(self, element_class=list, exclude=None):
         """
@@ -2106,12 +2228,12 @@ class HasseDiagram(DiGraph):
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
         if not(exclude is None):
-            vertices = [u for u in self.vertex_iterator() if not u in exclude]
+            vertices = [u for u in self.vertex_iterator() if u not in exclude]
         else:
             vertices = self.vertices()
         return PairwiseCompatibleSubsets(vertices,
                                          self.are_comparable,
-                                         element_class = element_class)
+                                         element_class=element_class)
 
     def _trivial_nonregular_congruence(self):
         """
@@ -2153,9 +2275,9 @@ class HasseDiagram(DiGraph):
             return None
         if self.out_degree(0) == 1:
             return (0, 1)
-        if self.in_degree(n-1) == 1:
-            return (n-2, n-1)
-        for v in range(1, n-1):
+        if self.in_degree(n - 1) == 1:
+            return (n - 2, n - 1)
+        for v in range(1, n - 1):
             if self.in_degree(v) == 1 and self.out_degree(v) == 1:
                 v_ = next(self.neighbor_out_iterator(v))
                 if self.in_degree(v_) == 1 and self.out_degree(v_) == 1:
@@ -2204,7 +2326,7 @@ class HasseDiagram(DiGraph):
                     gens.add(self._join[x, g])
                 current_set.add(g)
             else:
-                for x in self.sublattices_iterator(current_set, e+1):
+                for x in self.sublattices_iterator(current_set, e + 1):
                     yield x
 
     def maximal_sublattices(self):
@@ -2323,8 +2445,10 @@ class HasseDiagram(DiGraph):
         """
         # Just a direct computation, no optimization at all.
         n = self.cardinality()
-        if n == 0 or n == 2: return []
-        if n == 1: return [0]
+        if n == 0 or n == 2:
+            return []
+        if n == 1:
+            return [0]
         max_sublats = self.maximal_sublattices()
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
@@ -2412,19 +2536,19 @@ class HasseDiagram(DiGraph):
         n = len(p_atoms)
         mt = self._meet
         pos = [0] * n
-        meets = [self.order()-1] * n
-        result = [self.order()-1]
+        meets = [self.order() - 1] * n
+        result = [self.order() - 1]
         i = 0
 
         while i >= 0:
-            new_meet = mt[meets[i-1], p_atoms[pos[i]]]
+            new_meet = mt[meets[i - 1], p_atoms[pos[i]]]
             result.append(new_meet)
-            if pos[i] == n-1:
+            if pos[i] == n - 1:
                 i -= 1
-                pos[i] = pos[i]+1
+                pos[i] += 1
             else:
                 meets[i] = new_meet
-                pos[i+1] = pos[i]+1
+                pos[i + 1] = pos[i] + 1
                 i += 1
 
         return result
@@ -2469,8 +2593,10 @@ class HasseDiagram(DiGraph):
                 if b >= s_max or b in S:
                     continue
                 # Now b not in S, b > a and a in S.
-                neighbors = lambda v_: [v for v in self.neighbor_out_iterator(v_)
-                                        if v <= s_max and v not in ok]
+
+                def neighbors(v_):
+                    return [v for v in self.neighbor_out_iterator(v_)
+                            if v <= s_max and v not in ok]
                 for c in self.depth_first_search(b, neighbors=neighbors):
                     if c in S:  # Now c in S, b not in S, a in S, a < b < c.
                         return False
@@ -2518,8 +2644,8 @@ class HasseDiagram(DiGraph):
         if n < 5:
             return set(range(n))
 
-        todo = set(range(1, n-1))
-        neutrals = set([0, n-1])
+        todo = set(range(1, n - 1))
+        neutrals = set([0, n - 1])
         notneutrals = set()
         all_elements = set(range(n))
 
@@ -2535,13 +2661,13 @@ class HasseDiagram(DiGraph):
                 join_ax = jn[a, x]
                 for y in todo:
                     if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
-                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                            jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
                         notneutrals.add(x)
                         notneutrals.add(y)
                         return False
                 for y in notneutrals:
                     if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
-                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                            jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
                         notneutrals.add(x)
                         return False
             for x in noncomp.difference(todo):
@@ -2549,12 +2675,12 @@ class HasseDiagram(DiGraph):
                 join_ax = jn[a, x]
                 for y in todo:
                     if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
-                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                            jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
                         notneutrals.add(y)
                         return False
                 for y in notneutrals:
                     if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
-                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                            jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
                         return False
             return True
 
@@ -2754,7 +2880,7 @@ class HasseDiagram(DiGraph):
             """
             Return the smallest interval containing elements in the set S.
             """
-            m = n-1
+            m = n - 1
             for e in S:
                 m = mt[m, e]
             j = 0
@@ -2830,15 +2956,14 @@ class HasseDiagram(DiGraph):
             # [a, b] block we just used.
             while c is not None:
                 newblock = cong.find(c)
-                I = self.interval(c, d)
-                for i in I:
+                for i in self.interval(c, d):
                     cong.union(newblock, i)
                 C = cong.root_to_elements_dict()[cong.find(newblock)]
                 mins = [i for i in C if all(i_ not in C for i_ in self.neighbor_in_iterator(i))]
                 maxs = [i for i in C if all(i_ not in C for i_ in self.neighbor_out_iterator(i))]
                 c = None  # To stop loop, if this is not changed below.
                 if len(mins) > 1 or len(maxs) > 1:
-                    c = n-1
+                    c = n - 1
                     for m in mins:
                         c = self._meet[c, m]
                     d = 0
@@ -2888,7 +3013,7 @@ class HasseDiagram(DiGraph):
             irr = [(v, self.neighbors_in(v)[0]) for v in join_irreducibles]
         else:
             irr = [(self.neighbors_out(v)[0], v) for v in meet_irreducibles]
-        irr.sort(key=lambda x: x[0]-x[1])
+        irr.sort(key=lambda x: x[0] - x[1])
         tried = []
         for pair in irr:
             cong = self.congruence([pair], stop_pairs=tried)
@@ -3046,5 +3171,5 @@ class HasseDiagram(DiGraph):
 
         return True
 
-from sage.misc.rest_index_of_methods import gen_rest_table_index
+
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

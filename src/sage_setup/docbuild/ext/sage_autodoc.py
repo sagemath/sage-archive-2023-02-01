@@ -26,31 +26,29 @@ AUTHORS:
 - Kwankyu Lee (2018-12-26): rebase on the latest sphinx.ext.autodoc
 
 """
+from six import PY2, itervalues, text_type, class_types, string_types
 
 import inspect
 import re
 import sys
-import warnings
 
 from docutils.statemachine import ViewList
-from six import PY2, iteritems, itervalues, text_type, class_types, string_types
 
 import sphinx
-from sphinx.errors import ExtensionError
 from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
-from sphinx.ext.autodoc.inspector import format_annotation, formatargspec
 from sphinx.locale import _, __
-from sphinx.pycode import ModuleAnalyzer, PycodeError
+from sphinx.pycode import ModuleAnalyzer
+from sphinx.errors import PycodeError
 from sphinx.util import logging
 from sphinx.util import rpartition, force_decode
 from sphinx.util.docstrings import prepare_docstring
-from sphinx.util.inspect import Signature, isdescriptor, safe_getmembers, \
+from sphinx.util.inspect import isdescriptor, safe_getmembers, \
     safe_getattr, object_description, is_builtin_class_method, \
     isenumattribute, isclassmethod, isstaticmethod, getdoc
-from sphinx.util.inspect import getargspec
 
 from sage.misc.sageinspect import (sage_getdoc_original,
-        sage_getargspec, isclassinstance)
+                                   sage_getargspec, isclassinstance,
+                                   sage_formatargspec)
 from sage.misc.lazy_import import LazyImport
 
 # This is used to filter objects of classes that inherit from
@@ -120,6 +118,16 @@ def bool_option(arg):
     directives.flag(), which returns None).
     """
     return True
+
+
+def formatargspec(function, args, varargs=None, varkw=None, defaults=None,
+                  kwonlyargs=(), kwonlydefaults={}, annotations={}):
+    """
+    Sphinx's version of formatargspec is deprecated, so use Sage's instead.
+    """
+    return sage_formatargspec(args, varargs=varargs, varkw=varkw, defaults=defaults,
+                              kwonlyargs=kwonlyargs, kwonlydefaults=kwonlydefaults,
+                              annotations=annotations)
 
 
 class AutodocReporter(object):
@@ -1100,56 +1108,85 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
     def import_object(self):
         # type: () -> Any
         ret = ModuleLevelDocumenter.import_object(self)
-        # if the class is documented under another name, document it
+        # Objective: if the class is documented under another name, document it
         # as data/attribute
         #
-        # Notes from Florent Hivert (2010-02-18) Sage trac #7448:
+        # Notes from trac #27692:
         #
-        #  - The original goal of this was that if some class is aliased, the
-        # alias is generated as a link rather than duplicated. For example in:
-        #     class A: pass
+        # For Python 3, we make use of self.object.__qualname__.
+        #
+        # Notes from trac #7448:
+        #
+        # The original goal of this was that if some class is aliased, the
+        # alias is generated as a link rather than duplicated. For example in
+        #
+        #     class A:
+        #         pass
         #     B = A
+        #
         # Then B is an alias of A, and should be generated as such.
         #
-        #  - the way it is solved is to compare the name under which the
-        # current class is found and the actual name if the class (stored in
+        # The way it was solved is to compare the name under which the
+        # current class is found and the actual name of the class (stored in
         # the attribute __name__):
+        #
         #   if hasattr(self.object, '__name__'):
         #       self.doc_as_attr = (self.objpath[-1] != self.object.__name__)
         #   else:
         #       self.doc_as_attr = True
         #
-        #  - The original implementation as well as the new one don't work if
-        # a class is aliased from a different place under the same name. For
-        # example, in the following
-        #     class A: pass
-        #     class Container:
-        #         A = A
-        # The nested copy Container.A is also documented. Actually, it seems
-        # that there is no way to solve this by introspection. I'll submbit
-        # this problem on sphinx trac.
-        #
-        #  - Now, to work around a pickling bug of nested class in Python,
+        # Now, to work around a pickling bug of nested class in Python,
         # by using the metaclass NestedMetaclass, we change the attribute
         # __name__ of the nested class. For example, in
-        #     class A(object): pass
+        #
+        #     class A:
         #        __metaclass__ = NestedClassMetaclass
-        #        class B(object): pass
+        #        class B(object):
+        #            pass
+        #
         # the class B get its name changed to 'A.B'. Such dots '.' in names
         # are not supposed to occur in normal python name. I use it to check
         # if the class is a nested one and to compare its __name__ with its
         # path.
         #
-        # References: Sage #5986, file sage/misc/nested_class.py
+        # The original implementation as well as the new one here doesn't work
+        # if a class is aliased from a different place under the same name. For
+        # example, in the following,
+        #
+        #     class A:
+        #         pass
+        #     class Container:
+        #         A = A
+        #
+        # The nested copy Container.A is also documented. Actually, it seems
+        # that there is no way to solve this by introspection. I'll submbit
+        # this problem on sphinx trac.
+        #
+        # References: trac #5986, file sage/misc/nested_class.py
         if ret:
-            name = getattr(self.object, '__name__', False)
             module = getattr(self.object, '__module__', False)
-            if name and module:
-                self.doc_as_attr = (self.objpath != name.split('.') and
-                                    self.object is getattr(sys.modules[module],
-                                                           name, None))
+            name = getattr(self.object, '__name__', False)
+            if PY2:
+                if name and module:
+                    cls = getattr(sys.modules[module], name, None)
+                    self.doc_as_attr = (self.objpath != name.split('.') and
+                                        self.object is cls)
+                else:
+                    self.doc_as_attr = True
             else:
-                self.doc_as_attr = True
+                qualname = getattr(self.object, '__qualname__', name)
+                if qualname and module:
+                    # walk the standard attribute lookup path for this object
+                    qualname_parts = qualname.split('.')
+                    cls = getattr(sys.modules[module], qualname_parts[0], None)
+                    for part in qualname_parts[1:]:
+                        if cls is None:
+                            break
+                        cls = getattr(cls, part, None)
+                    self.doc_as_attr = (self.objpath != qualname_parts and
+                                        self.object is cls)
+                else:
+                    self.doc_as_attr = True
         return ret
 
     def format_args(self):

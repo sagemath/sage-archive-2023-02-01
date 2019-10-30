@@ -4,6 +4,8 @@
     **This page was last updated in MONTH YEAR (Sage X.Y).**
     ***************************************************************************
 
+.. HIGHLIGHT:: shell-session
+
 .. _sec-installation-from-sources:
 
 Install from Source Code
@@ -90,9 +92,8 @@ computer:
 - A **C/C++ compiler**: Since SageMath builds its own GCC if needed,
   a wide variety of C/C++ compilers is supported.
   Many GCC versions work,
-  from as old as version 3.4.3 to the most recent release.
+  from as old as version 4.8 (but we recommend at least 5.1) to the most recent release.
   Clang also works.
-  On Solaris systems, the Sun compiler should also work.
   See also `Using alternative compilers`_.
 - **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
 - **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
@@ -108,7 +109,7 @@ Libraries
 Some Sage components (and among them, most notably, Python) *"use the
 OpenSSL library for added performance if made available by the
 operating system"* (literal quote from the Python license). Testing
-has proved that :
+has proved that:
 
    * Sage can be successfully built against other SSL libraries (at
      least GnuTLS).
@@ -131,10 +132,18 @@ development files.
 Fortran and compiler suites
 ###########################
 
-Sage also needs a Fortran compiler.
-The only configuration currently supported is matching versions of the
-C, C++ and Fortran compilers from the
-`GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_.
+Sage installation also needs a Fortran compiler. Officially we support
+gfortran from `GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_.
+If C and C++ compilers also come from there (i.e., gcc and g++), their versions
+should match.
+Alternatively, one may use C and C++ compilers from
+`Clang: a C language family frontend for LLVM <https://clang.llvm.org/>`_,
+and thus  matching versions of
+clang, clang++ , along with a recent gfortran. (Flang (or other LLVM-based
+Fortran compilers) are not officially supported, however it is possible to
+to build Sage using flang, with some extra efforts needed to set various flags;
+this is work in progress at the moment (May 2019)).
+
 Therefore, if you plan on using your own GCC compilers, then make sure that
 their versions match.
 
@@ -146,9 +155,9 @@ or simply a missing Fortran compiler.
 In any case, you always need at least a C/C++ compiler to build the GCC
 package and its prerequisites before the compilers it provides can be used.
 
-Note that you can always override this behavior through the environment
-variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
-:ref:`section_envvar`.
+Note that you can always override this behavior through the configure
+options ``--without-system-gcc`` and ``--with-system-gcc``, see
+:ref:`section_compilers`.
 
 Other notes
 ^^^^^^^^^^^
@@ -185,24 +194,27 @@ Installing prerequisites
 To check if you have the above prerequisites installed, for example ``perl``,
 type::
 
-    command -v perl
+    $ command -v perl
 
 or::
 
-    which perl
+    $ which perl
 
 on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <https://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
 
-Linux prerequisite installation
+Linux recommended installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
 `binutils <https://www.gnu.org/software/binutils/>`_ package.
 The other programs are usually located in packages with their respective names.
 Assuming you have sufficient privileges, you can install the ``binutils`` and
-other necessary components.
+other necessary/standard components. The lists provided below are longer than
+the minimal prerequisites, which are basically ``binutils``, ``gcc``/``clang``, ``make``,
+``tar``, but there is no real need to build compilers and other standard tools
+and libraries on a modern Linux system, in order to be able to build Sage.
 If you do not have the privileges to do this, ask your system administrator to
 do this, or build the components from source code.
 The method of installing additional software varies from distribution to
@@ -211,26 +223,36 @@ distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 you would use
 `apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
-     # debian
-     sudo apt-get install binutils gcc make m4 perl tar git openssl libssl-dev
+     # debian (Buster or newer) / ubuntu
+     $ sudo apt-get install binutils pixz gcc g++ gfortran make m4 perl tar \
+       git patch openssl libssl-dev libz-dev bc libbz2-dev liblzma-dev libgmp-dev \
+       libffi-dev libgf2x-dev libcurl4-openssl-dev libzmq3-dev curl yasm \
+       pkg-config libntl-dev libmpfr-dev libmpc-dev libflint-dev \
+       libpcre3-dev libgd-dev libflint-dev libflint-arb-dev \
+       libsymmetrica2-dev gmp-ecm libecm-dev libisl-dev libgivaro-dev \
+       libpari-dev pari-gp2c libec-dev liblrcalc-dev \
+       libm4ri-dev libm4rie-dev liblfunction-dev lcalc
 
-     # redhat
-     sudo yum install binutils gcc make m4 perl tar git \
-     perl-ExtUtils-MakeMaker openssl openssl-devel
-     
-to install all general requirements, or, if you don't want Sage to build its
-own GCC::
+     # redhat / fedora / centos
+     $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
+       tar git patch perl-ExtUtils-MakeMaker openssl openssl-devel zlib-devel \
+       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm \
+       pkg-config ntl-devel mpfr-devel libmpc-devel libsymmetrica-devel \
+       eclib-devel gmp-ecm-devel lrcalc-devel isl-devel givaro-devel \
+       pari-devel pari-elldata pari-seadata pari-galdata pari-galpol \
+       m4ri-devel m4rie-devel L-function-devel
 
-     # debian
-     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar \
-     git openssl libssl-dev
+(These examples suppose that you choose to use a systemwide OpenSSL library.)
+In addition, if you don't want Sage to build other packages that might be available from
+your OS, cf. the growing list of such packages on :trac:`27330`, install::
 
-     # redhat
-     sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl \
-     tar git perl-ExtUtils-MakeMaker openssl openssl-devel
-     
-(These examples suppose that you choose to use a systemwide OpenSSL
-library. This was tested on Ubuntu 12.04.2.)
+     # debian / ubuntu --  not for standard Sage spkgs
+     $ sudo apt-get install cmake libterm-readline-gnu-perl ninja-build \
+     librw-dev
+
+     # redhat / fedora / centos -- not for standard Sage spkgs
+     $ sudo yum install cmake perl-Term-ReadLine-Gnu ninja-build rw-devel
+
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
@@ -322,16 +344,29 @@ Using alternative compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, the Sage build process should succeed with any reasonable C/C++ compiler.
+Nonetheless, the Sage build process on Linux
+should succeed with any reasonable C/C++ compiler;
+(we do not recommend GCC older than version 5.1).
 This is because Sage will build GCC first (if needed) and then use that newly
 built GCC to compile Sage.
 
 If you don't want this and want to try building Sage with a different set of
 compilers,
-you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
-Make sure you have C, C++, and Fortran compilers installed!
+you need to pass Sage's ``./configure`` compiler names, via environment
+variables ``CC``, ``CXX``, and ``FC``, for C, C++, and Fortran compilers,
+respectively, e.g. if you C compiler is ``clang``, your C++ compiler is ``clang++``,
+and your Fortran compiler is ``flang`` then you would need to run::
 
-Building all of Sage with Clang is currently not supported, see :trac:`12426`.
+    $ CC=clang CXX=clang++ FC=flang ./configure
+
+before running ``make``. It is recommended that you inspect the output of ``./configure``
+in order to check that Sage will not try to build GCC. Namely, there should be lines like::
+
+       gcc-7.2.0 will not be installed (configure check)
+       ...
+       gfortran-7.2.0 will not be installed (configure check)
+
+indicating that Sage will no attempt to build ``gcc/g++/gfortran``.
 
 If you are interested in working on support for commercial compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
@@ -365,8 +400,8 @@ which can be installed following the directions on their web site.
 On Linux systems you can alternatively install your distribution's
 texlive packages::
 
-    sudo apt-get install texlive       # debian
-    sudo yum install texlive           # redhat
+    $ sudo apt-get install texlive       # debian
+    $ sudo yum install texlive           # redhat
 
 or similar commands. In addition to the base TeX Live install, you may
 need some optional TeX Live packages, for example
@@ -382,6 +417,8 @@ Sage notebook.
 
 Notebook additional features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**attention: Sage's notebook is deprecated. Use Jupyter notebook instead**
 
 By default, the Sage notebook uses the
 `HTTP <https://en.wikipedia.org/wiki/HTTP>`_
@@ -411,7 +448,7 @@ On Linux systems, the OpenSSH server, client and utilities are usually provided
 by the **openssh-server** and **openssh-client** packages and can be installed
 using::
 
-    sudo apt-get install openssh-server openssh-client
+    $ sudo apt-get install openssh-server openssh-client
 
 or similar commands.
 
@@ -427,15 +464,15 @@ Tcl/Tk.
 On Linux systems, these are usually provided by the **tk** and **tk-dev**
 (or **tk-devel**) packages which can be installed using::
 
-    sudo apt-get install tk tk-dev
+    $ sudo apt-get install tk tk-dev
 
 or similar commands.
 
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    sage -f python2  # rebuild Python
-    make             # rebuild components of Sage depending on Python
+    $ sage -f python2  # rebuild Python2
+    $ make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
 
@@ -443,7 +480,7 @@ If
 
 .. skip
 
-::
+.. CODE-BLOCK:: ipycon
 
    sage: import _tkinter
    sage: import Tkinter
@@ -484,13 +521,13 @@ Running Sage from a directory with spaces in its name will also fail.
 
 #. Extract the tarfile::
 
-       tar xvf sage-x.y.tar
+       $ tar xvf sage-x.y.tar
 
    This creates a directory :file:`sage-x.y`.
 
 #. Change into that directory::
 
-       cd sage-x.y
+       $ cd sage-x.y
 
    This is Sage's home directory.
    It is also referred to as :envvar:`SAGE_ROOT` or the top level Sage
@@ -516,7 +553,7 @@ Running Sage from a directory with spaces in its name will also fail.
    - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).
      The default is the ``local`` subdirectory of :envvar:`SAGE_ROOT`::
 
-       ./configure --prefix=SAGE_LOCAL
+       $ ./configure --prefix=SAGE_LOCAL
 
      Note that in Sage's build process, ``make`` builds **and**
      installs (``make install`` is a no-op).  Therefore the
@@ -524,16 +561,16 @@ Running Sage from a directory with spaces in its name will also fail.
 
    - Other options are available; see::
 
-       ./configure --help
+       $ ./configure --help
 
 #. Start the build process::
 
-       make
+       $ make
 
    or if your system supports multiprocessing and you want to use several
    processes to build Sage::
 
-       MAKE='make -jNUM' make
+       $ MAKE='make -jNUM' make
 
    to tell the ``make`` program to run ``NUM`` jobs in parallel when building
    Sage. This compiles Sage and all its dependencies.
@@ -584,16 +621,15 @@ Running Sage from a directory with spaces in its name will also fail.
 
 #. To start Sage, you can now simply type from Sage's home directory::
 
-       ./sage
+       $ ./sage
 
    You should see the Sage prompt, which will look something like this::
 
        $ sage
-       ----------------------------------------------------------------------
-       | Sage Version 5.8, Release Date: 2013-03-15                         |
-       | Type "notebook()" for the browser-based notebook interface.        |
-       | Type "help()" for help.                                            |
-       ----------------------------------------------------------------------
+       ┌────────────────────────────────────────────────────────────────────┐
+       │ SageMath version 8.8, Release Date: 2019-06-26                     │
+       │ Using Python 2.7.15. Type "help()" for help.                       │
+       └────────────────────────────────────────────────────────────────────┘
        sage:
 
    Note that Sage should take well under a minute when it starts for the first
@@ -608,12 +644,16 @@ Running Sage from a directory with spaces in its name will also fail.
    If the above is not displayed (e.g., if you get a massive traceback), please
    report the problem, e.g., at https://groups.google.com/group/sage-support.
 
-   After Sage has started, try a simple command::
+   After Sage has started, try a simple command:
+
+   .. CODE-BLOCK:: ipycon
 
        sage: 2 + 2
        4
 
-   Or something slightly more complicated::
+   Or something slightly more complicated:
+
+   .. CODE-BLOCK:: ipycon
 
        sage: factor(2005)
        5 * 401
@@ -648,7 +688,9 @@ Running Sage from a directory with spaces in its name will also fail.
    Sage inserts this directory at the front of your :envvar:`PATH`, so your
    script may need to use an absolute path to avoid calling itself; also, your
    script should pass along all of its arguments.
-   For example, a ``maple`` script might look like::
+   For example, a ``maple`` script might look like:
+
+   .. CODE-BLOCK:: bash
 
        #!/bin/sh
 
@@ -660,18 +702,22 @@ Running Sage from a directory with spaces in its name will also fail.
    - Make a symbolic link from :file:`/usr/local/bin/sage` (or another
      directory in your :envvar:`PATH`) to :file:`$SAGE_ROOT/sage`::
 
-         ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
+         $ ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
      Now simply typing ``sage`` from any directory should be sufficient to run
      Sage.
 
    - Copy :file:`$SAGE_ROOT/sage` to a location in your :envvar:`PATH`.
-     If you do this, make sure you edit the line::
+     If you do this, make sure you edit the line:
+
+     .. CODE-BLOCK:: bash
 
          #SAGE_ROOT=/path/to/sage-version
 
      at the beginning of the copied ``sage`` script according to the direction
-     given there to something like::
+     given there to something like:
+
+     .. CODE-BLOCK:: bash
 
          SAGE_ROOT=<SAGE_ROOT>
 
@@ -680,7 +726,9 @@ Running Sage from a directory with spaces in its name will also fail.
 
    - For `KDE <https://www.kde.org/>`_ users, create a bash script called
      ``sage`` containing the lines
-     (note that you have to change ``<SAGE_ROOT>`` below!)::
+     (note that you have to change ``<SAGE_ROOT>`` below!):
+
+     .. CODE-BLOCK:: bash
 
          #!/usr/bin/env bash
 
@@ -688,7 +736,7 @@ Running Sage from a directory with spaces in its name will also fail.
 
      make it executable::
 
-         chmod a+x sage
+         $ chmod a+x sage
 
      and put it somewhere in your :envvar:`PATH`.
 
@@ -699,7 +747,9 @@ Running Sage from a directory with spaces in its name will also fail.
    - On Linux and macOS systems, you can make an alias to
      :file:`$SAGE_ROOT/sage`.
      For example, put something similar to the following line in your
-     :file:`.bashrc` file::
+     :file:`.bashrc` file:
+
+     .. CODE-BLOCK:: bash
 
          alias sage=<SAGE_ROOT>/sage
 
@@ -739,7 +789,7 @@ and they both require OpenSSL.
 If you have OpenSSL and the OpenSSL development headers installed on your
 system, you can install pyOpenSSL by building Sage and then typing::
 
-    ./sage -i pyopenssl
+    $ ./sage -i pyopenssl
 
 Alternatively, ``make ssl`` builds Sage and installs pyOpenSSL at once.
 Note that these commands require Internet access.
@@ -752,14 +802,14 @@ The procedure is as follows (again, with a computer connected to the
 Internet).
 Starting from a fresh Sage tarball::
 
-    ./sage -i openssl
-    make ssl
+    $ ./sage -i openssl
+    $ make ssl
 
 And if you've already built Sage::
 
-    ./sage -i openssl
-    ./sage -f python2
-    make ssl
+    $ ./sage -i openssl
+    $ ./sage -f python2
+    $ make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
 this can take a while.
@@ -938,7 +988,7 @@ Here are some of the more commonly used variables affecting the build process:
   at the beginning and at the end of the installation of each Sage
   package.  To see even less output, use::
 
-    make -s V=0
+    $ make -s V=0
 
   (Note that the above uses the syntax of setting a Makefile variable.)
 
@@ -965,12 +1015,7 @@ Here are some of the more commonly used variables affecting the build process:
      So when this variable is empty or unset, Sage uses a default of
      ``!python2,!python3``.
 
-- :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically detect
-  whether to install the `GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_
-  package or not (depending on whether C, C++, and Fortran compilers are present
-  and the versions of those compilers).
-  Setting ``SAGE_INSTALL_GCC=yes`` will force Sage to install GCC.
-  Setting ``SAGE_INSTALL_GCC=no`` will prevent Sage from installing GCC.
+- :envvar:`SAGE_INSTALL_GCC` - **Obsolete, do not use, to be removed**
 
 - :envvar:`SAGE_INSTALL_CCACHE` - by default Sage doesn't install ccache,
   however by setting ``SAGE_INSTALL_CCACHE=yes`` Sage will install ccache.
@@ -1115,7 +1160,9 @@ an unsupported machine or an unusual compiler:
 - :envvar:`SAGE_PORT` - if you try to build Sage on a platform which is
   recognized as being unsupported (e.g. AIX, or HP-UX), or with a compiler
   which is unsupported (anything except GCC), you will see a message saying
-  something like::
+  something like:
+
+  .. CODE-BLOCK:: text
 
       You are attempting to build Sage on IBM's AIX operating system,
       which is not a supported platform for Sage yet. Things may or
@@ -1343,25 +1390,29 @@ the directory where you want to install Sage.
    to your normal user account (as opposed to ``root``). This is because
    Sage will refuse to compile as ``root``. ::
 
-       chown -R user:group /path/to/sage-x.y
+       $ chown -R user:group /path/to/sage-x.y
 
 #. Using your normal user account, build Sage.
    See the :ref:`build-from-source-step-by-step` above.
 
 #. Make a symbolic link to the ``sage`` script in :file:`/usr/local/bin`::
 
-       ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
+       $ ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
    Alternatively, copy the Sage script::
 
-       cp /path/to/sage-x.y/sage /usr/local/bin/sage
+       $ cp /path/to/sage-x.y/sage /usr/local/bin/sage
 
-   If you do this, make sure you edit the line::
+   If you do this, make sure you edit the line:
+
+   .. CODE-BLOCK:: bash
 
        #SAGE_ROOT=/path/to/sage-version
 
    at the beginning of the copied ``sage`` script according to the direction
-   given there to something like::
+   given there to something like:
+
+   .. CODE-BLOCK:: bash
 
        SAGE_ROOT=<SAGE_ROOT>
 
@@ -1371,7 +1422,7 @@ the directory where you want to install Sage.
 
 #. Optionally, you can test Sage by running::
 
-       make testlong
+       $ make testlong
 
    or ``make ptestlong`` which tests files in parallel using multiple
    processes.
@@ -1380,4 +1431,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in September 2017 (Sage 8.1).**
+**This page was last updated in August 2019 (Sage 8.8).**

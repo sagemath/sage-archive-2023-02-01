@@ -13,7 +13,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.cpython.string cimport str_to_bytes
 
@@ -194,7 +193,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             _wvhdl[idx] = wv
         elif s[0] == '(' and order[i].name() == 'degneglex':  # "(a(1:n),ls(n))"
             _order[idx] = ringorder_a
-            if len(order[i]) == 0:    # may be zero for arbitrary-length orders
+            if not order[i]:    # may be zero for arbitrary-length orders
                 nlen = n
             else:
                 nlen = len(order[i])
@@ -211,7 +210,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             _order[idx] = order_dict.get(s, ringorder_dp)
 
         _block0[idx] = offset + 1
-        if len(order[i]) == 0: # may be zero in some cases
+        if not order[i]: # may be zero in some cases
             _block1[idx] = offset + n
         else:
             _block1[idx] = offset + len(order[i])

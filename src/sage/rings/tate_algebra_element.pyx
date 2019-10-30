@@ -17,7 +17,7 @@ AUTHOR:
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
@@ -1531,7 +1531,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``modulus`` -- discarded
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R = Zp(3, prec=4, print_mode="digits")
             sage: A.<x,y> = TateAlgebra(R)
@@ -2066,7 +2066,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def is_zero(self, prec=None):
         r"""
-        Return ``True`` if this series is indistiguishable from zero.
+        Return ``True`` if this series is indistinguishable from zero.
 
         INPUT:
 

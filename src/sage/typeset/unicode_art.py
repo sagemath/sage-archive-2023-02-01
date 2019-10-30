@@ -132,11 +132,11 @@ def unicode_art(*obj, **kwds):
 
         sage: n = var('n')
         sage: unicode_art(sum(binomial(2 * n, n + 1) * x^n, n, 0, oo))
-             ⎛        __________    ⎞
-            -⎝2⋅x + ╲╱ -4⋅x + 1  - 1⎠
-            ──────────────────────────
-                       __________
-                 2⋅x⋅╲╱ -4⋅x + 1
+         ⎛        _________    ⎞
+        -⎝2⋅x + ╲╱ 1 - 4⋅x  - 1⎠
+        ─────────────────────────
+                   _________
+             2⋅x⋅╲╱ 1 - 4⋅x 
         sage: unicode_art(list(DyckWords(3)))
         ⎡                                   ╱╲   ⎤
         ⎢            ╱╲    ╱╲      ╱╲╱╲    ╱  ╲  ⎥
@@ -155,7 +155,5 @@ def unicode_art(*obj, **kwds):
         from copy import copy
         separator = copy(separator)
         separator._baseline = sep_baseline
-    obj = map(_unicode_art_factory.build, obj)
     return _unicode_art_factory.concatenate(obj, separator, empty_unicode_art,
                                             baseline=baseline)
-

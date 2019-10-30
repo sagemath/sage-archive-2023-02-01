@@ -60,7 +60,8 @@ AUTHORS:
 from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_import import lazy_import
+
+from sage.arith.all import lcm
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -71,8 +72,7 @@ from sage.categories.sets_cat import Sets
 
 from sage.modules.free_module_element import vector
 
-lazy_import('sage.matrix.constructor', 'matrix')
-lazy_import('sage.rings.function_field.divisor', 'prime_divisor')
+from sage.matrix.constructor import matrix
 
 class FunctionFieldPlace(Element):
     """
@@ -139,6 +139,20 @@ class FunctionFieldPlace(Element):
         gens_str = ', '.join(repr(g) for g in gens)
         return "Place ({})".format(gens_str)
 
+    def _latex_(self):
+        r"""
+        Return the LaTeX representation of the place.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: p = L.places_finite()[0]
+            sage: latex(p)
+            \left(y\right)
+        """
+        return self._prime._latex_()
+
     def _richcmp_(self, other, op):
         """
         Compare the place with ``other`` place.
@@ -155,11 +169,95 @@ class FunctionFieldPlace(Element):
             sage: p1 == p3
             False
         """
-        # First compare the rings. In effect, infinite
-        # places are compared less than finite places so that
-        # they are listed first.
-        return richcmp((self._prime.ring(), self._prime),
-                       (other._prime.ring(), other._prime), op)
+        from sage.rings.function_field.order import FunctionFieldOrderInfinite
+
+        # effect that places at infinity are ordered first
+        s = not isinstance(self._prime.ring(), FunctionFieldOrderInfinite)
+        o = not isinstance(other._prime.ring(), FunctionFieldOrderInfinite)
+        return richcmp((s, self._prime), (o, other._prime), op)
+
+    def _acted_upon_(self, other, self_on_left):
+        """
+        Define integer multiplication upon the prime divisor
+        of the place on the left.
+
+        The output is a divisor.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x+1,y)
+            sage: P = I.place()
+            sage: -3*P + 5*P
+            2*Place (x + 1, y)
+        """
+        if self_on_left:
+            raise TypeError("only left multiplication by integers is allowed")
+        return other * self.divisor()
+
+    def _neg_(self):
+        """
+        Return the negative of the prime divisor of this place.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: p1, p2, p3 = L.places()[:3]
+            sage: -p1 + p2
+            - Place (1/x, 1/x^3*y^2 + 1/x)
+             + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
+        """
+        from .divisor import divisor
+        return divisor(self.function_field(), {self: -1})
+
+    def _add_(self, other):
+        """
+        Return the divisor that is the sum of the place and ``other``.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: p1, p2, p3 = L.places()[:3]
+            sage: p1 + p2 + p3
+            Place (1/x, 1/x^3*y^2 + 1/x)
+             + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
+             + Place (x, y)
+        """
+        from .divisor import prime_divisor
+        return prime_divisor(self.function_field(), self) + other
+
+    def __radd__(self, other):
+        """
+        Return the prime divisor of the place if ``other`` is zero.
+
+        This is only to support the ``sum`` function, that adds
+        the argument to initial (int) zero.
+
+        EXAMPLES::
+
+            sage: k.<a>=GF(2)
+            sage: K.<x>=FunctionField(k)
+            sage: sum(K.places_finite())
+            Place (x) + Place (x + 1)
+
+        Note that this does not work, as wanted::
+
+            sage: 0 + K.place_infinite()
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for +: ...
+
+        The reason is that the ``0`` is a Sage integer, for which
+        the coercion system applies.
+        """
+        if other == 0:
+            from .divisor import prime_divisor
+            return prime_divisor(self.function_field(), self)
+        raise NotImplementedError
 
     def function_field(self):
         """
@@ -185,10 +283,27 @@ class FunctionFieldPlace(Element):
             sage: L.<y>=K.extension(Y^3+x+x^3*Y)
             sage: p = L.places()[0]
             sage: p.prime_ideal()
-            Ideal (1/x,1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
+            Ideal (1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
             in y defined by y^3 + x^3*y + x
         """
         return self._prime
+
+    def divisor(self, multiplicity=1):
+        """
+        Return the prime divisor corresponding to the place.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x+1,y)
+            sage: P = I.place()
+            sage: P.divisor()
+            Place (x + 1, y)
+        """
+        from .divisor import prime_divisor
+        return prime_divisor(self.function_field(), self, multiplicity)
 
 class FunctionFieldPlace_rational(FunctionFieldPlace):
     """
@@ -444,6 +559,210 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             if g.valuation(self) == 1:
                 return g
         assert False, "Internal error"
+
+    def gaps(self):
+        """
+        Return the gap sequence for the place.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: O = L.maximal_order()
+            sage: p = O.ideal(x,y).place()
+            sage: p.gaps() # a Weierstrass place
+            [1, 2, 4]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: [p.gaps() for p in L.places()]
+            [[1, 2, 4], [1, 2, 4], [1, 2, 4]]
+        """
+        if self.degree() == 1:
+            return self._gaps_rational() # faster for rational places
+        else:
+            return self._gaps_wronskian()
+
+    def _gaps_rational(self):
+        """
+        Return the gap sequence for the rational place.
+
+        This method computes the gap numbers using the definition of gap
+        numbers. The dimension of the multiple of the prime divisor
+        supported at the place is computed by Hess' algorithm.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: O = L.maximal_order()
+            sage: p = O.ideal(x,y).place()
+            sage: p.gaps()  # indirect doctest
+            [1, 2, 4]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: [p.gaps() for p in L.places()]  # indirect doctest
+            [[1, 2, 4], [1, 2, 4], [1, 2, 4]]
+        """
+        F = self.function_field()
+        n = F.degree()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        R = O._module_base_ring._ring
+        one = R.one()
+
+        # Hess' Riemann-Roch basis algorithm stripped down for gaps computation
+        def dim_RR(M):
+            den = lcm([e.denominator() for e in M.list()])
+            mat = matrix(R, M.nrows(), [(den*e).numerator() for e in M.list()])
+
+            # initialise pivot_row and conflicts list
+            pivot_row = [[] for i in range(n)]
+            conflicts = []
+            for i in range(n):
+                bestp = -1
+                best = -1
+                for c in range(n):
+                    d = mat[i,c].degree()
+                    if d >= best:
+                        bestp = c
+                        best = d
+
+                if best >= 0:
+                    pivot_row[bestp].append((i,best))
+                    if len(pivot_row[bestp]) > 1:
+                        conflicts.append(bestp)
+
+            # while there is a conflict, do a simple transformation
+            while conflicts:
+                c = conflicts.pop()
+                row = pivot_row[c]
+                i,ideg = row.pop()
+                j,jdeg = row.pop()
+
+                if jdeg > ideg:
+                    i,j = j,i
+                    ideg,jdeg = jdeg,ideg
+
+                coeff = - mat[i,c].lc() / mat[j,c].lc()
+                s = coeff * one.shift(ideg - jdeg)
+
+                mat.add_multiple_of_row(i, j, s)
+
+                row.append((j,jdeg))
+
+                bestp = -1
+                best = -1
+                for c in range(n):
+                    d = mat[i,c].degree()
+                    if d >= best:
+                        bestp = c
+                        best = d
+
+                if best >= 0:
+                    pivot_row[bestp].append((i,best))
+                    if len(pivot_row[bestp]) > 1:
+                        conflicts.append(bestp)
+
+            dim = 0
+            for j in range(n):
+                i,ideg = pivot_row[j][0]
+                k = den.degree() - ideg + 1
+                if k > 0:
+                    dim += k
+            return dim
+
+        V,fr,to = F.vector_space()
+
+        prime_inv = ~ self.prime_ideal()
+        I = O.ideal(1)
+        J = Oinf.ideal(1)
+
+        B = matrix([to(b) for b in J.gens_over_base()])
+        C = matrix([to(v) for v in I.gens_over_base()])
+
+        prev = dim_RR(C * B.inverse())
+        gaps = []
+        g = F.genus()
+        i = 1
+        if self.is_infinite_place():
+            while g:
+                J = J * prime_inv
+                B = matrix([to(b) for b in J.gens_over_base()])
+                dim = dim_RR(C * B.inverse())
+                if dim == prev:
+                    gaps.append(i)
+                    g -= 1
+                else:
+                    prev = dim
+                i += 1
+        else: # self is a finite place
+            Binv = B.inverse()
+            while g:
+                I = I * prime_inv
+                C = matrix([to(v) for v in I.gens_over_base()])
+                dim = dim_RR(C * Binv)
+                if dim == prev:
+                    gaps.append(i)
+                    g -= 1
+                else:
+                    prev = dim
+                i += 1
+
+        return gaps
+
+    def _gaps_wronskian(self):
+        """
+        Return the gap sequence for the place.
+
+        This method implements the local version of Hess' Algorithm 30 of [Hes2002b]_
+        based on the Wronskian determinant.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: O = L.maximal_order()
+            sage: p = O.ideal(x,y).place()
+            sage: p._gaps_wronskian() # a Weierstrass place
+            [1, 2, 4]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: [p._gaps_wronskian() for p in L.places()]
+            [[1, 2, 4], [1, 2, 4], [1, 2, 4]]
+        """
+        F = self.function_field()
+        R,fr_R,to_R = self._residue_field()
+        der = F.higher_derivation()
+
+        sep = self.local_uniformizer()
+
+        # a differential divisor satisfying
+        # v_p(W) = 0 for the place p
+        W = sep.differential().divisor()
+
+        # Step 3:
+        basis = W._basis()
+        d = len(basis)
+        M = matrix([to_R(b) for b in basis])
+        if M.rank() == 0:
+            return []
+
+        # Steps 4, 5, 6, 7:
+        e = 1
+        gaps = [1]
+        while M.nrows() < d:
+            row = vector([to_R(der._derive(basis[i], e, sep)) for i in range(d)])
+            if not row in M.row_space():
+                M = matrix(M.rows() + [row])
+                M.echelonize()
+                gaps.append(e + 1)
+            e += 1
+
+        return gaps
 
     def residue_field(self, name=None):
         """

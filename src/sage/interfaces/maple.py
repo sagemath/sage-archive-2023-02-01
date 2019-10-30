@@ -109,9 +109,7 @@ the command, you can press q to immediately get back to your
 original prompt.
 
 Incidentally you can always get into a maple console by the
-command
-
-::
+command ::
 
     sage: maple.console()          # not tested
     sage: !maple                   # not tested
@@ -1123,8 +1121,16 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: mm = maple(m)                     # optional - maple
             sage: mm.sage() == m                    # optional - maple
             True
+
+        Some vectors can be converted back::
+
+            sage: m = vector([1, x, 2, 3])          # optional - maple
+            sage: mm = maple(m)                     # optional - maple
+            sage: mm.sage() == m                    # optional - maple
+            True
         """
         from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
 
         result = repr(self)
@@ -1139,6 +1145,11 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             coeffs = [self[i + 1, j + 1].sage()
                       for i in range(m) for j in range(n)]
             return matrix(m, n, coeffs)
+        elif result[:6] == "Vector":
+            start = result.index('(')
+            content = result[start + 1:-1]
+            m = ZZ(content.split(',')[0].strip())
+            return vector([self[i + 1].sage() for i in range(m)])
 
         try:
             from sage.symbolic.all import SR

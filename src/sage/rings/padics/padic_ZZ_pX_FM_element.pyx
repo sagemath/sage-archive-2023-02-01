@@ -123,6 +123,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 include "sage/libs/ntl/decl.pxi"
 
+from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.element cimport Element
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -145,6 +146,7 @@ from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.all import IntegerModRing
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_FM_Eis
 from sage.misc.superseded import deprecated_function_alias, deprecation
+
 
 cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec=None, relprec=None, empty=False):
@@ -431,7 +433,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ans.prime_pow = self.prime_pow
         return ans
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         First compare valuations, then compare the values.
 
@@ -453,18 +455,18 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         cdef long x_ordp = _left.valuation_c()
         cdef long y_ordp = _right.valuation_c()
         if x_ordp < y_ordp:
-            return -1
+            return rich_to_bool(op, -1)
         elif x_ordp > y_ordp:
-            return 1
+            return rich_to_bool(op, 1)
         else:  # equal ordp
             _left.prime_pow.restore_top_context()
             if x_ordp == left.prime_pow.ram_prec_cap:
-                return 0 # since both are zero
+                return rich_to_bool(op, 0)  # since both are zero
             elif _left.value == _right.value:
-                return 0
+                return rich_to_bool(op, 0)
             else:
                 # for now just return 1
-                return 1
+                return rich_to_bool(op, 1)
 
     def __invert__(self):
         """
@@ -1135,9 +1137,37 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ans.x = self.value
         return ans
 
+    def _polynomial_list(self, pad=False):
+        """
+        Return the coefficient list for a polynomial over the base ring
+        yielding this element.
+
+        INPUT:
+
+        - ``pad`` -- whether to pad the result with zeros of the appropriate precision
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: W.<w> = ZpFM(5).extension(x^3-5)
+            sage: (1 + w)._polynomial_list()
+            [1, 1]
+            sage: (1 + w + O(w^11))._polynomial_list(pad=True)
+            [1, 1, 0]
+        """
+        R = self.base_ring()
+        if self.is_zero():
+            L = []
+        else:
+            L = [Integer(c) for c in self._ntl_rep().list()]
+        if pad:
+            n = self.parent().degree()
+            L.extend([R.zero()] * (n - len(L)))
+        return L
+
     def polynomial(self, var='x'):
         """
-        Returns a polynomial over the base ring that yields this element
+        Return a polynomial over the base ring that yields this element
         when evaluated at the generator of the parent.
 
         INPUT:
@@ -1153,9 +1183,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         R = self.base_ring()
         S = R[var]
-        if self.is_zero():
-            return S([])
-        return S([Integer(c) for c in self._ntl_rep().list()])
+        return S(self._polynomial_list())
 
     cdef ZZ_p_c _const_term(self):
         """
@@ -1357,7 +1385,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3, (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + (4*a^2 + a + 3)*5^3, (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + (3*a^3 + 2*a^2 + a + 1)*5^2 + (a^3 + a^2 + 2)*5^3, (a^3 + a^2 + a + 4) + (3*a^3 + 1)*5 + (3*a^3 + a + 2)*5^2 + (3*a^3 + 3*a^2 + 3*a + 1)*5^3]
             sage: sum([c * 5^i for i, c in enumerate(E)])
             a
-            sage: all([c^625 == c for c in E])
+            sage: all(c^625 == c for c in E)
             True
 
             sage: S.<x> = ZZ[]
@@ -1375,7 +1403,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
              6 + w^3 + 5*w^7]
             sage: sum([w^i*L[i] for i in range(len(L))]) == b
             True
-            sage: all([L[i]^(7^3) == L[i] for i in range(9)])
+            sage: all(L[i]^(7^3) == L[i] for i in range(9))
             True
 
             sage: L = W(3).teichmuller_expansion(); L

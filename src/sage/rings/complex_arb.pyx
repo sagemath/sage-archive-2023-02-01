@@ -127,7 +127,7 @@ Check that :trac:`19839` is fixed::
 :trac:`24621`::
 
     sage: CBF(NumberField(polygen(QQ, 'y')^3 + 20, 'a', embedding=CC(1.35,2.35)).gen())
-    [1.357208808297453 +/- ...e-16] + [2.350754612451197 +/- ...e-16]*I
+    [1.35720880829745...] + [2.35075461245119...]*I
 
 Classes and Methods
 ===================
@@ -141,7 +141,6 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import operator, sys, warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
@@ -325,6 +324,9 @@ class ComplexBallField(UniqueRepresentation, Field):
         Traceback (most recent call last):
         ...
         ValueError: precision must be at least 2
+
+        sage: ComplexBallField().is_finite()
+        False
     """
     Element = ComplexBall
 
@@ -537,12 +539,16 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.convert_map_from(QuadraticField(-2))
             Conversion via _acb_ method map:
             ...
+            sage: CBF.coerce_map_from(NumberField(x^7 + 2, 'a',
+            ....:                                 embedding=QQbar(-2)^(1/7)))
+            Conversion via _acb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
         elif isinstance(other, ComplexBallField):
             return other._prec >= self._prec
-        elif isinstance(other, number_field.NumberField_quadratic):
+        elif isinstance(other, number_field.NumberField_generic):
             emb = other.coerce_embedding()
             return emb is not None and self.has_coerce_map_from(emb.codomain())
 
@@ -669,21 +675,6 @@ class ComplexBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: ComplexBallField().is_exact()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Complex ball fields are infinite.
-
-        They already specify it via their category, but we currently need to
-        re-implement this method due to the legacy implementation in
-        :class:`sage.rings.ring.Ring`.
-
-        EXAMPLES::
-
-            sage: ComplexBallField().is_finite()
             False
         """
         return False
@@ -2033,6 +2024,25 @@ cdef class ComplexBall(RingElement):
 
     # Precision and accuracy
 
+    def nbits(self):
+        r"""
+        Return the minimum precision sufficient to represent this ball exactly.
+
+        More precisely, the output is the number of bits needed to represent
+        the absolute value of the mantissa of both the real and the imaginary
+        part of the midpoint.
+
+        EXAMPLES::
+
+            sage: CBF(17, 1023).nbits()
+            10
+            sage: CBF(1/3, NaN).nbits()
+            53
+            sage: CBF(NaN).nbits()
+            0
+        """
+        return acb_bits(self.value)
+
     def round(self):
         """
         Return a copy of this ball rounded to the precision of the parent.
@@ -3133,6 +3143,132 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def sec(self):
+        """
+        Return the secant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).sec()
+            [0.498337030555187 +/- ...e-16] + [0.591083841721045 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sec(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csc(self):
+        """
+        Return the cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).csc()
+            [0.621518017170428 +/- ...e-16] + [-0.303931001628426 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_csc(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sinh(self):
+        """
+        Return the hyperbolic sine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).sinh()
+            [0.634963914784736 +/- ...e-16] + [1.298457581415977 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sinh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def cosh(self):
+        """
+        Return the hyperbolic cosine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).cosh()
+            [0.833730025131149 +/- ...e-16] + [0.988897705762865 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_cosh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def tanh(self):
+        """
+        Return the hyperbolic tangent of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).tanh()
+            [1.083923327338694 +/- ...e-16] + [0.2717525853195117 +/- ...e-17]*I
+            sage: CBF(0, pi/2).tanh()
+            nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_tanh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def coth(self):
+        """
+        Return the hyperbolic cotangent of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).coth()
+            [0.868014142895925 +/- ...e-16] + [-0.2176215618544027 +/- ...e-17]*I
+            sage: CBF(0, pi).coth()
+            nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_coth(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sech(self):
+        """
+        Return the hyperbolic secant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(pi/2, 1/10).sech()
+            [0.397174529918189 +/- ...e-16] + [-0.0365488656274242 +/- ...e-17]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sech(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csch(self):
+        """
+        Return the hyperbolic cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).csch()
+            [0.303931001628426 +/- ...e-16] + [-0.621518017170428 +/- ...e-16]*I
+            sage: CBF(i*pi).csch()
+            nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_csch(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def arcsin(self, analytic=False):
         """
         Return the arcsine of this ball.
@@ -3342,6 +3478,8 @@ cdef class ComplexBall(RingElement):
             if _do_sig(prec(self)): sig_off()
         return res
 
+    gamma_inc = gamma
+
     def log_gamma(self, analytic=False):
         r"""
         Return the image of this ball by the logarithmic Gamma function.
@@ -3457,6 +3595,48 @@ cdef class ComplexBall(RingElement):
             if _do_sig(prec(self)): sig_on()
             acb_hurwitz_zeta(res.value, self.value, a_ball.value, prec(self))
             if _do_sig(prec(self)): sig_off()
+        return res
+
+    def zetaderiv(self, k):
+        r"""
+        Return the image of this ball by the k-th derivative of the Riemann
+        zeta function.
+
+        For a more flexible interface, see the low-level method
+        ``_zeta_series`` of polynomials with complex ball coefficients.
+
+        EXAMPLES::
+
+            sage: CBF(1/2, 3).zetaderiv(1)
+            [0.191759884092721...] + [-0.073135728865928...]*I
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        Pol = PolynomialRing(self._parent, 'x')
+        ser = Pol([self, 1])._zeta_series(k + 1)
+        return ser[k]
+
+    def lambert_w(self, branch=0):
+        r"""
+        Return the image of this ball by the specified branch of the Lambert W
+        function.
+
+        EXAMPLES::
+
+            sage: CBF(1 + I).lambert_w()
+            [0.6569660692304...] + [0.3254503394134...]*I
+            sage: CBF(1 + I).lambert_w(2)
+            [-2.1208839379437...] + [11.600137110774...]*I
+            sage: CBF(1 + I).lambert_w(2^100)
+            [-70.806021532123...] + [7.9648836259913...]*I
+        """
+        cdef fmpz_t _branch
+        fmpz_init(_branch)
+        fmpz_set_mpz(_branch, (<Integer> Integer(branch)).value)
+        cdef ComplexBall res = self._new()
+        sig_on()
+        acb_lambertw(res.value, self.value, _branch, 0, prec(self))
+        sig_off()
+        fmpz_clear(_branch)
         return res
 
     def polylog(self, s):

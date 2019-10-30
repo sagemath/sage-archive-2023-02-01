@@ -1,7 +1,7 @@
 """
 `k`-Schur Functions
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Jason Bandlow <jbandlow@gmail.com>,
 #                     2012 Anne Schilling <anne@math.ucdavis.edu>
 #
@@ -14,9 +14,9 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from sage.rings.all import Integer
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from sage.rings.all import Integer, ZZ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
@@ -24,7 +24,6 @@ from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.graded_coalgebras import GradedCoalgebras
 from sage.categories.graded_coalgebras_with_basis import GradedCoalgebrasWithBasis
-from sage.categories.magmas import Magmas
 from sage.categories.tensor import tensor
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -307,8 +306,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
             sage: KBB.super_categories()
             [Category of realizations of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field,
-             Join of Category of graded modules with basis over Univariate Polynomial Ring in t over Rational Field
-                 and Category of coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
+             Join of Category of graded coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
                  and Category of subobjects of sets]
         """
         R = self.base().base_ring()
@@ -371,7 +369,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 return self.retract * P._internal_coerce_map_from(Q)
             return None
 
-        def __getitem__(self, c, *rest):
+        def __getitem__(self, c):
             r"""
             Implements shorthand for accessing basis elements.
 
@@ -401,14 +399,11 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 ...
                 TypeError: do not know how to make [4, 1] an element of 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis
             """
-            if isinstance(c, Partition):
-                if rest:
-                    raise ValueError("Can only accept a partition")
-            else:
-                if rest or isinstance(c, (int, Integer)):
-                    c = Partition([c] + list(rest))
+            if not isinstance(c, Partition):
+                if c in ZZ:
+                    c = Partition([c])
                 else:
-                    c = Partition(list(c))
+                    c = Partition(c)
 
             if c not in self._indices:
                 raise TypeError("do not know how to make %s an element of %s" % (c, self))

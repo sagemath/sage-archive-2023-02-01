@@ -13,7 +13,6 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
 from libc cimport math
@@ -1727,7 +1726,7 @@ cdef py_log(x):
             return math.log(real)
         elif real < 0:
             res = gsl_complex_log(gsl_complex_rect(real, 0))
-            return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+            return PyComplex_FromDoubles(res.real, res.imag)
         else:
             return float('-inf')
     elif type(x) is complex:
@@ -1736,7 +1735,7 @@ cdef py_log(x):
         if real == 0 and imag == 0:
             return float('-inf')
         res = gsl_complex_log(gsl_complex_rect(real, imag))
-        return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+        return PyComplex_FromDoubles(res.real, res.imag)
     elif isinstance(x, Integer):
         return x.log().n()
     elif hasattr(x, 'log'):
@@ -2196,7 +2195,7 @@ cdef GConstant py_get_constant(const char* name):
     """
     from sage.symbolic.constants import constants_name_table
     cdef PynacConstant pc
-    c = constants_name_table.get(name, None)
+    c = constants_name_table.get(char_to_str(name), None)
     if c is None:
         raise RuntimeError
     else:

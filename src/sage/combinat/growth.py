@@ -1268,7 +1268,7 @@ class GrowthDiagram(SageObject):
         """
         half_perimeter = self.half_perimeter()
         if self.rule.has_multiple_edges:
-            if len(labels) % 2 != 1:
+            if not (len(labels) % 2):
                 raise ValueError("only a list of odd length can specify a path, but %s has even length" % len(labels))
             path_length = (len(labels) + 1) / 2
         else:
@@ -2155,8 +2155,8 @@ class RuleShiftedShapes(Rule):
             if content == 0:
                 g, z = 0, x
             elif content == 1:
-                if len(x) == 0:
-                    g, z = 1, _make_partition(x).add_cell(0) # black
+                if not x:
+                    g, z = 1, _Partitions(x).add_cell(0) # black
                 else:
                     g, z = 2, _make_partition(x).add_cell(0) # blue
             else:
@@ -3828,6 +3828,7 @@ class RuleRSK(RulePartitions):
             carry = z[i-1] - max(row1, row3)
             i = i-1
         return (_make_partition(t), carry)
+
 
 class RuleBurge(RulePartitions):
     r"""

@@ -79,15 +79,8 @@ is returned by generators::
     sage: P.get_autom_order_permutation() == GL(3, GF(3)).order()/(len(GF(3))-1)
     True
     sage: A = P.get_autom_gens()
-    sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
+    sage: all((a*mat).echelon_form() == mat.echelon_form() for a in A)
     True
-
-REFERENCES:
-
-.. [Feu2009] Thomas Feulner, The Automorphism Groups of Linear Codes and
-  Canonical Representatives of Their Semilinear Isometry Classes, Advances in
-  Mathematics of Communications 3 (4), pp. 363-383, 2009.
-
 """
 
 #*******************************************************************************
@@ -98,7 +91,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
-from __future__ import absolute_import
 
 from copy import copy
 from cysignals.memory cimport check_allocarray, sig_free
@@ -495,7 +487,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         sage: P.get_autom_order_permutation() == GL(3, GF(3)).order()/(len(GF(3))-1)
         True
         sage: A = P.get_autom_gens()
-        sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
+        sage: all((a*mat).echelon_form() == mat.echelon_form() for a in A)
         True
     """
     def __cinit__(self):
@@ -724,7 +716,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
             sage: A = P.get_autom_gens()
-            sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
+            sage: all((a*mat).echelon_form() == mat.echelon_form() for a in A)
             True
         """
         return self._autom_group_generators

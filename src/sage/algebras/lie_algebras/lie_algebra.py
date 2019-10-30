@@ -246,6 +246,21 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         [0 0 0], [0 0 0], [0 0 0], [0 1 0], [ 0  0  0], [ 0  0 -1]
         )
 
+    There is also the compact real form of matrix Lie algebras
+    implemented (the base ring must currently be a field)::
+
+        sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation="compact real")
+        sage: list(L.basis())
+        [
+        [ 0  1  0]  [ 0  0  1]  [ 0  0  0]  [ i  0  0]  [0 i 0]  [0 0 i]
+        [-1  0  0]  [ 0  0  0]  [ 0  0  1]  [ 0  0  0]  [i 0 0]  [0 0 0]
+        [ 0  0  0], [-1  0  0], [ 0 -1  0], [ 0  0 -i], [0 0 0], [i 0 0],
+        <BLANKLINE>
+        [ 0  0  0]  [0 0 0]
+        [ 0  i  0]  [0 0 i]
+        [ 0  0 -i], [0 i 0]
+        ]
+
     **5.** We construct a free Lie algebra in a few different ways. There are
     two primary representations, as brackets and as polynomials::
 
@@ -381,6 +396,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             if rep == 'matrix':
                 from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra
                 return ClassicalMatrixLieAlgebra(R, ct)
+            if rep == 'compact real':
+                from sage.algebras.lie_algebras.classical_lie_algebra import MatrixCompactRealForm
+                return MatrixCompactRealForm(R, ct)
             raise ValueError("invalid representation")
 
         # Parse the remaining arguments
@@ -516,9 +534,20 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             x*y - y*x
             sage: elt.parent() is L
             True
+
+        TESTS:
+
+        Check that `0` gives the zero element::
+
+            sage: L = lie_algebras.pwitt(GF(5), 5)
+            sage: L(0)
+            0
         """
         if isinstance(x, list) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))
+
+        if x == 0:
+            return self.zero()
 
         try:
             if x in self.module():
@@ -527,9 +556,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             pass
 
         if x in self.base_ring():
-            if x != 0:
-                raise ValueError("can only convert the scalar 0 into a Lie algebra element")
-            return self.zero()
+            # We have already handled the case when x == 0
+            raise ValueError("can only convert the scalar 0 into a Lie algebra element")
 
         return self.element_class(self, x)
 

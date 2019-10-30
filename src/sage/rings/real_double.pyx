@@ -40,8 +40,6 @@ Test NumPy conversions::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 cimport libc.math
 from libc.string cimport memcpy
 from cpython.object cimport *
@@ -72,8 +70,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
 from sage.arith.constants cimport *
 
-IF HAVE_GMPY2:
-    cimport gmpy2
+cimport gmpy2
 
 
 def is_RealDoubleField(x):
@@ -137,6 +134,10 @@ cdef class RealDoubleField_class(Field):
         sage: b == RR(a)
         True
 
+    TESTS::
+
+        sage: RDF.is_finite()
+        False
     """
     def __init__(self):
         """
@@ -148,7 +149,7 @@ cdef class RealDoubleField_class(Field):
             sage: TestSuite(R).run()
         """
         from sage.categories.fields import Fields
-        Field.__init__(self, self, category=Fields().Metric().Complete())
+        Field.__init__(self, self, category=Fields().Infinite().Metric().Complete())
         self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_real_double_')
 
@@ -470,20 +471,6 @@ cdef class RealDoubleField_class(Field):
         """
         return 1
 
-    def is_finite(self):
-        """
-        Return ``False``, since the field of real numbers is not finite.
-
-        Technical note: There exists an upper bound on the double
-        representation.
-
-        EXAMPLES::
-
-            sage: RDF.is_finite()
-            False
-        """
-        return False
-
     def characteristic(self):
         """
         Returns 0, since the field of real numbers has characteristic 0.
@@ -532,12 +519,16 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
+        This class is intended for use as a singleton so any instance
+        of it should be equivalent from a hashing perspective.
+
         TESTS::
 
-            sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
+            sage: from sage.rings.real_double import RealDoubleField_class
+            sage: hash(RDF) == hash(RealDoubleField_class())
             True
         """
-        return 1157042230 #return hash(str(self))
+        return 1157042230
 
     def pi(self):
         r"""
@@ -722,12 +713,12 @@ cdef class RealDoubleElement(FieldElement):
 
         TESTS::
 
-            sage: from gmpy2 import *  # optional - gmpy2
-            sage: RDF(mpz(42))         # optional - gmpy2
+            sage: from gmpy2 import *
+            sage: RDF(mpz(42))
             42.0
-            sage: RDF(mpq(3/4))        # optional - gmpy2
+            sage: RDF(mpq(3/4))
             0.75
-            sage: RDF(mpq('4.1'))      # optional - gmpy2
+            sage: RDF(mpq('4.1'))
             4.1
         """
         self._value = float(x)
@@ -951,10 +942,10 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: RDF(42.2).__mpfr__()    # optional - gmpy2
+            sage: RDF(42.2).__mpfr__()
             mpfr('42.200000000000003')
-            sage: from gmpy2 import mpfr  # optional - gmpy2
-            sage: mpfr(RDF(5.1))          # optional - gmpy2
+            sage: from gmpy2 import mpfr
+            sage: mpfr(RDF(5.1))
             mpfr('5.0999999999999996')
 
         TESTS::
@@ -964,10 +955,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             NotImplementedError: gmpy2 is not installed
         """
-        IF HAVE_GMPY2:
-            return gmpy2.mpfr(self._value)
-        ELSE:
-            raise NotImplementedError("gmpy2 is not installed")
+        return gmpy2.mpfr(self._value)
 
     def _interface_init_(self, I=None):
         """
@@ -1128,7 +1116,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return hash(self._value)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.
@@ -1250,6 +1238,24 @@ cdef class RealDoubleElement(FieldElement):
         from sage.rings.all import RR
         return RR(self._value).sign_mantissa_exponent()
 
+    def as_integer_ratio(self):
+        """
+        Return a coprime pair of integers ``(a, b)`` such that ``self``
+        equals ``a / b`` exactly.
+
+        EXAMPLES::
+
+            sage: RDF(0).as_integer_ratio()
+            (0, 1)
+            sage: RDF(1/3).as_integer_ratio()
+            (6004799503160661, 18014398509481984)
+            sage: RDF(37/16).as_integer_ratio()
+            (37, 16)
+            sage: RDF(3^60).as_integer_ratio()
+            (42391158275216203520420085760, 1)
+        """
+        nd = float.as_integer_ratio(self._value)
+        return (Integer(nd[0]), Integer(nd[1]))
 
     ########################
     #   Basic Arithmetic

@@ -5,7 +5,7 @@ This module provides helper class for wrapping GAP groups via
 :mod:`~sage.libs.gap.libgap`. See :mod:`~sage.groups.free_group` for an
 example how they are used.
 
-The parent class keeps track of the libGAP element object, to use it
+The parent class keeps track of the GAP element object, to use it
 in your Python parent you have to derive both from the suitable group
 parent and :class:`ParentLibGAP` ::
 
@@ -56,7 +56,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 
 from sage.libs.gap.element cimport GapElement
@@ -116,10 +116,21 @@ class ParentLibGAP(SageObject):
 
             sage: G = FreeGroup(3)
             sage: TestSuite(G).run()
+
+        We check that :trac:`19270` is fixed::
+
+            sage: G = GL(2,5)
+            sage: g = G( matrix([[1,0],[0,4]]))
+            sage: H = G.subgroup([g])
+            sage: g in H
+            True
         """
         assert isinstance(libgap_parent, GapElement)
         self._libgap = libgap_parent
         self._ambient = ambient
+        if ambient is not None:
+            phi = self.hom(lambda x: ambient(x.gap()), codomain=ambient)  # the .gap() avoids an infinite recursion
+            ambient.register_coercion(phi)
 
     def ambient(self):
         """
@@ -178,7 +189,7 @@ class ParentLibGAP(SageObject):
             sage: F.<a,b> = FreeGroup()
             sage: F.Hom(F)
             Set of Morphisms from Free Group on generators {a, b}
-             to Free Group on generators {a, b} in Category of groups
+             to Free Group on generators {a, b} in Category of infinite groups
         """
         from sage.groups.libgap_morphism import GroupHomset_libgap
         return GroupHomset_libgap(self, G, category=category, check=check)
@@ -226,6 +237,11 @@ class ParentLibGAP(SageObject):
             sage: G.gens()
             (a^2*b,)
 
+        We check that coercions between the subgroup and its ambient group work::
+
+            sage: F.0 * G.0
+            a^3*b
+
         Checking that :trac:`19270` is fixed::
 
             sage: gens = [w.matrix() for w in WeylGroup(['B', 3])]
@@ -234,7 +250,7 @@ class ParentLibGAP(SageObject):
             sage: diagonals = itertools.product((1,-1), repeat=3)
             sage: subgroup_gens = [diagonal_matrix(L) for L in diagonals]
             sage: G.subgroup(subgroup_gens)
-            Matrix group over Rational Field with 8 generators
+            Subgroup with 8 generators of Matrix group over Rational Field with 48 generators
 
         """
         generators = [ g if isinstance(g, GapElement) else self(g).gap()
@@ -432,6 +448,7 @@ class ParentLibGAP(SageObject):
             return prod(gens)
         else:
             return self.one()
+
 
 cdef class ElementLibGAP(MultiplicativeGroupElement):
     """

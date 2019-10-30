@@ -33,6 +33,7 @@ from sage.schemes.affine.affine_morphism import (SchemeMorphism_polynomial_affin
 from sage.schemes.affine.affine_point import (SchemeMorphism_point_affine,
                                               SchemeMorphism_point_affine_field,
                                               SchemeMorphism_point_affine_finite_field)
+from sage.matrix.constructor import matrix
 
 
 
@@ -52,7 +53,7 @@ def is_AffineSpace(x):
     """
     return isinstance(x, AffineSpace_generic)
 
-def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
+def AffineSpace(n, R=None, names=None, ambient_projective_space=None,
                 default_embedding_index=None):
     r"""
     Return affine space of dimension ``n`` over the ring ``R``.
@@ -87,21 +88,43 @@ def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
         Affine Space of dimension 3 over Finite Field of size 7
         sage: A.coordinate_ring() is R
         True
+
+    TESTS::
+
+            sage: R.<w> = QQ[]
+            sage: A.<w> = AffineSpace(R)
+            sage: A.gens() == R.gens()
+            True
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: A.<z> = AffineSpace(R)
+            Traceback (most recent call last):
+            ...
+            NameError: variable names passed to AffineSpace conflict with names in ring
     """
     if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
         R = n
+        if names is not None:
+            # Check for the case that the user provided a variable name
+            # That does not match what we wanted to use from R
+            names = normalize_names(R.ngens(), names)
+            if n.variable_names() != names:
+                # The provided name doesn't match the name of R's variables
+                raise NameError("variable names passed to AffineSpace conflict with names in ring")
         A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
         A._coordinate_ring = R
         return A
-    if isinstance(R, integer_types + (Integer,)):
-        n, R = R, n
-    if R is None:
-        R = ZZ  # default is the integers
     if names is None:
         if n == 0:
             names = ''
         else:
-            raise TypeError("you must specify the variables names of the coordinate ring")
+            names = 'x'
+    if isinstance(R, integer_types + (Integer,)):
+        n, R = R, n
+    if R is None:
+        R = ZZ  # default is the integers
     names = normalize_names(n, names)
     if default_embedding_index is not None and ambient_projective_space is None:
         from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -827,7 +850,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         R = self.base_ring()
         return self([(5 - i) * R.an_element() for i in range(n)])
 
-    def chebyshev_polynomial(self, n, kind='first'):
+    def chebyshev_polynomial(self, n, kind='first', monic=False):
         """
         Generates an endomorphism of this affine line by a Chebyshev polynomial.
 
@@ -843,6 +866,9 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
+
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+          should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_affine`
 
@@ -885,6 +911,23 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             Traceback (most recent call last):
             ...
             TypeError: affine space must be of dimension 1
+
+        ::
+
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: A.chebyshev_polynomial(7, monic=True)
+            Dynamical System of Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    (x^7 - 7*x^5 + 14*x^3 - 7*x)
+
+        ::
+
+            sage: F.<t> = FunctionField(QQ)
+            sage: A.<x> = AffineSpace(F,1)
+            sage: A.chebyshev_polynomial(4, monic=True)
+            Dynamical System of Affine Space of dimension 1 over Rational function field in t over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    (x^4 + (-4)*x^2 + 2)
         """
         if self.dimension_relative() != 1:
             raise TypeError("affine space must be of dimension 1")
@@ -893,8 +936,20 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise ValueError("first parameter 'n' must be a non-negative integer")
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
         if kind == 'first':
+            if monic and self.base().characteristic() != 2:
+                f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
+                f = f.homogenize(1)
+                f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
+                f = f.dehomogenize(1)
+                return f
             return DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
         elif kind == 'second':
+            if monic and self.base().characteristic() != 2:
+                f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
+                f = f.homogenize(1)
+                f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
+                f = f.dehomogenize(1)
+                return f
             return DynamicalSystem_affine([chebyshev_U(n, self.gen(0))], domain=self)
         else:
             raise ValueError("keyword 'kind' must have a value of either 'first' or 'second'")
@@ -939,7 +994,7 @@ class AffineSpace_field(AffineSpace_generic):
         Bound check  is strict for the rational field.
         Requires this space to be affine space over a number field. Uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        computing algebraic numbers up to a given height [DK2013]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.

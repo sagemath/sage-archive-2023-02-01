@@ -687,3 +687,74 @@ def linear_extension_iterator(D):
     for e in _linear_extension_gen(D, _le, _a, _b, _is_plus, _max_pair):
         yield e
 
+#####################################################################
+## Set partition composition
+
+def set_partition_composition(tuple sp1, tuple sp2):
+    r"""
+    Return a tuple consisting of the composition of the set partitions
+    ``sp1`` and ``sp2`` and the number of components removed from the middle
+    rows of the graph.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat_cython import set_partition_composition
+        sage: sp1 = ((1,-2),(2,-1))
+        sage: sp2 = ((1,-2),(2,-1))
+        sage: p, c = set_partition_composition(sp1, sp2)
+        sage: (SetPartition(p), c) == (SetPartition([[1,-1],[2,-2]]), 0)
+        True
+    """
+    cdef int num_loops = 0  # The number of loops removed
+    cdef list diagram = []  # The resulting composite diagram
+    # sp1 is on top of sp2
+    # positive values on top and negative on bottom
+    cdef set remaining_top = set(sp1)
+    cdef list remaining_bot = list(sp2)
+    cdef list cur = []
+    cdef tuple temp, top, to_remove
+    cdef list block = []
+    cdef Py_ssize_t i
+    while remaining_bot or cur:
+        if not cur:
+            cur = list(remaining_bot.pop())
+            block = []
+        while cur:
+            val = cur.pop()
+            if val > 0:
+                # Find what it is connected to in sp1
+                to_remove = ()
+                for top in remaining_top:
+                    if -val in top:
+                        to_remove = top
+                        for entry in top:
+                            if entry < 0:
+                                # Check to see if that makes a new connection with
+                                #   something in sp2.
+                                # We go through this in reverse order so that when we
+                                #   pop an element off, we do not need to update i.
+                                for i in reversed(range(len(remaining_bot))):
+                                    temp = <tuple> remaining_bot[i]
+                                    if -entry in temp:
+                                        remaining_bot.pop(i)
+                                        cur.extend(temp)
+                                        continue
+                            else:
+                                block.append(entry)
+                        break
+                if to_remove:
+                    remaining_top.remove(to_remove)
+            else:
+                block.append(val)
+        if not cur:
+            if not block:
+                num_loops += 1
+            else:
+                diagram.append(tuple(block))
+
+    # Everything else should be completely contained in the top block
+    assert all(all(val > 0 for val in top) for top in remaining_top)
+    diagram.extend(remaining_top)
+
+    return (tuple(diagram), num_loops)
+

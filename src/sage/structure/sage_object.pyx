@@ -2,7 +2,6 @@
 r"""
 Abstract base class for Sage objects
 """
-from __future__ import absolute_import, print_function
 
 from sage.misc.persist import (_base_dumps, _base_save,
                                register_unpickle_override, make_None)
@@ -28,6 +27,10 @@ register_unpickle_override('sage.structure.generators', 'make_list_gens',
 
 
 __all__ = ['SageObject']
+
+
+# The _interface_init_ for these interfaces takes the interface as argument
+_interface_init_with_interface = set(['magma', 'macaulay2'])
 
 
 cdef class SageObject:
@@ -638,7 +641,7 @@ cdef class SageObject:
         """
         Return coercion of self to an object of the interface I.
 
-        The result of coercion is cached, unless self is not a C
+        The result of coercion is cached, unless self is a C
         extension class or ``self._interface_is_cached_()`` returns
         False.
         """
@@ -660,7 +663,10 @@ cdef class SageObject:
         nm = I.name()
         init_func = getattr(self, '_%s_init_' % nm, None)
         if init_func is not None:
-            s = init_func()
+            if nm in _interface_init_with_interface:
+                s = init_func(I)
+            else:
+                s = init_func()
         else:
             try:
                 s = self._interface_init_(I)
@@ -696,6 +702,17 @@ cdef class SageObject:
         import sage.interfaces.gap
         I = sage.interfaces.gap.gap
         return self._interface_init_(I)
+
+    def _libgap_(self):
+        from sage.libs.gap.libgap import libgap
+        return libgap.eval(self._libgap_init_())
+
+    def _libgap_init_(self):
+        """
+        For consistency's sake we provide a ``_libgap_init_`` but in most cases
+        we can use the same as ``_gap_init_`` here.
+        """
+        return self._gap_init_()
 
     def _gp_(self, G=None):
         if G is None:
@@ -820,10 +837,11 @@ cdef class SageObject:
             G = sage.interfaces.macaulay2.macaulay2
         return self._interface_(G)
 
-    def _macaulay2_init_(self):
-        import sage.interfaces.macaulay2
-        I = sage.interfaces.macaulay2.macaulay2
-        return self._interface_init_(I)
+    def _macaulay2_init_(self, macaulay2=None):
+        if macaulay2 is None:
+            import sage.interfaces.macaulay2
+            macaulay2 = sage.interfaces.macaulay2.macaulay2
+        return self._interface_init_(macaulay2)
 
     def _maple_(self, G=None):
         if G is None:

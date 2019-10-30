@@ -196,7 +196,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
@@ -359,6 +358,9 @@ class RealBallField(UniqueRepresentation, Field):
         sage: a = (sqrt2 - 1)^1000
         sage: RBF(a)
         [1.676156872756536e-383 +/- ...e-399]
+
+        sage: RealBallField().is_finite()
+        False
     """
     Element = RealBall
 
@@ -507,6 +509,8 @@ class RealBallField(UniqueRepresentation, Field):
 
             sage: RBF(4*zeta(3))
             [4.808227612638377 +/- ...e-16]
+            sage: RBF(exp(1), 0.01)
+            [2.7 +/- ...]
         """
         try:
             return self.element_class(self, mid, rad)
@@ -517,7 +521,8 @@ class RealBallField(UniqueRepresentation, Field):
         except (AttributeError, TypeError):
             pass
         try:
-            return mid.operator()(*[self(operand) for operand in mid.operands()])
+            val = mid.operator()(*[self(operand) for operand in mid.operands()])
+            return self.element_class(self, val, rad)
         except (AttributeError, TypeError):
             pass
         try:
@@ -614,21 +619,6 @@ class RealBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: RealBallField().is_exact()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Real ball fields are infinite.
-
-        They already specify it via their category, but we currently need to
-        re-implement this method due to the legacy implementation in
-        :class:`sage.rings.ring.Ring`.
-
-        EXAMPLES::
-
-            sage: RealBallField().is_finite()
             False
         """
         return False
@@ -1949,7 +1939,52 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def real(self):
+        r"""
+        Return the real part of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).real()
+            [0.3333333333333333 +/- 7.04e-17]
+        """
+        return self
+
+    def imag(self):
+        r"""
+        Return the imaginary part of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).imag()
+            0
+        """
+        return self._parent.zero()
+
     # Precision and accuracy
+
+    def nbits(self):
+        r"""
+        Return the minimum precision sufficient to represent this ball exactly.
+
+        In other words, return the number of bits needed to represent the
+        absolute value of the mantissa of the midpoint of this ball. The result
+        is 0 if the midpoint is a special value.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).nbits()
+            53
+            sage: RBF(1023, .1).nbits()
+            10
+            sage: RBF(1024, .1).nbits()
+            1
+            sage: RBF(0).nbits()
+            0
+            sage: RBF(infinity).nbits()
+            0
+        """
+        return arb_bits(self.value)
 
     def round(self):
         """
@@ -2354,12 +2389,7 @@ cdef class RealBall(RingElement):
             sage: RBF(infinity).min(3, 1/3)
             [0.3333333333333333 +/- ...e-17]
 
-        Note that calls involving NaNs try to return a number when possible.
-        This is consistent with IEEE-754-2008 but may be surprising. ::
-
             sage: RBF('nan').min(0)
-            0
-            sage: RBF('nan').min(RBF('nan'))
             nan
 
         .. SEEALSO:: :meth:`max`
@@ -2371,9 +2401,14 @@ cdef class RealBall(RingElement):
             sage: RBF(infinity).min().rad()
             0.00000000
         """
-        iv = self._real_mpfi_(RealIntervalField(prec(self)))
-        my_others = [self._parent.coerce(x) for x in others]
-        return self._parent(iv.min(*my_others))
+        cdef RealBall res = self._new()
+        cdef long p = prec(self)
+        arb_set(res.value, self.value)
+        for b in others:
+            if not isinstance(b, RealBall):
+                b = self._parent.coerce(b)
+            arb_min(res.value, res.value, (<RealBall> b).value, p)
+        return res
 
     def max(self, *others):
         """
@@ -2391,12 +2426,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-infinity).max(-3, 1/3)
             [0.3333333333333333 +/- ...e-17]
 
-        Note that calls involving NaNs try to return a number when possible.
-        This is consistent with IEEE-754-2008 but may be surprising. ::
-
             sage: RBF('nan').max(0)
-            0
-            sage: RBF('nan').max(RBF('nan'))
             nan
 
         .. SEEALSO:: :meth:`min`
@@ -2406,9 +2436,14 @@ cdef class RealBall(RingElement):
             sage: RBF(0).max()
             0
         """
-        iv = self._real_mpfi_(RealIntervalField(prec(self)))
-        my_others = [self._parent.coerce(x) for x in others]
-        return self._parent(iv.max(*my_others))
+        cdef RealBall res = self._new()
+        cdef long p = prec(self)
+        arb_set(res.value, self.value)
+        for b in others:
+            if not isinstance(b, RealBall):
+                b = self._parent.coerce(b)
+            arb_max(res.value, res.value, (<RealBall> b).value, p)
+        return res
 
     def is_finite(self):
         """
@@ -3172,6 +3207,36 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def sec(self):
+        """
+        Return the secant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).sec()
+            [1.850815717680925 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sec(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csc(self):
+        """
+        Return the cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).csc()
+            [1.188395105778121 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_csc(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def arcsin(self):
         """
         Return the arcsine of this ball.
@@ -3280,6 +3345,36 @@ cdef class RealBall(RingElement):
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_coth(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sech(self):
+        """
+        Return the hyperbolic secant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).sech()
+            [0.648054273663885 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sech(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csch(self):
+        """
+        Return the hyperbolic cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1).csch()
+            [0.850918128239321 +/- ...e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_csch(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 
@@ -3464,6 +3559,39 @@ cdef class RealBall(RingElement):
             if _do_sig(prec(self)): sig_on()
             arb_hurwitz_zeta(res.value, self.value, a_ball.value, prec(self))
             if _do_sig(prec(self)): sig_off()
+        return res
+
+    def zetaderiv(self, k):
+        r"""
+        Return the image of this ball by the k-th derivative of the Riemann
+        zeta function.
+
+        For a more flexible interface, see the low-level method
+        ``_zeta_series`` of polynomials with complex ball coefficients.
+
+        EXAMPLES::
+
+            sage: RBF(1/2).zetaderiv(1)
+            [-3.92264613920915...]
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        Pol = PolynomialRing(self._parent.complex_field(), 'x')
+        ser = Pol([self, 1])._zeta_series(k + 1)
+        return ser[k].real()
+
+    def lambert_w(self):
+        r"""
+        Return the image of this ball by the Lambert W function.
+
+        EXAMPLES::
+
+            sage: RBF(1).lambert_w()
+            [0.5671432904097...]
+        """
+        cdef RealBall res = self._new()
+        sig_on()
+        arb_lambertw(res.value, self.value, 0, prec(self))
+        sig_off()
         return res
 
     def polylog(self, s):

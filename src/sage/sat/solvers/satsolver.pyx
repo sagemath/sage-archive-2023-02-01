@@ -14,7 +14,6 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
-from __future__ import absolute_import
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -328,6 +327,8 @@ def SAT(solver=None, *args, **kwds):
         - ``"picosat"`` -- note that the pycosat package must be installed.
 
         - ``"glucose"`` -- note that the glucose package must be installed.
+        
+        - ``"glucose-syrup"`` -- note that the glucose package must be installed.
 
         - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
           SAT instance.
@@ -361,6 +362,11 @@ def SAT(solver=None, *args, **kwds):
 
         sage: SAT(solver="glucose")
         DIMACS Solver: 'glucose -verb=2 {input} {output}'
+
+    Forcing Glucose Syrup::
+
+        sage: SAT(solver="glucose-syrup")
+        DIMACS Solver: 'glucose-syrup -model -verb=2 {input}'
     """
     if solver is None:
         import pkgutil
@@ -383,6 +389,9 @@ def SAT(solver=None, *args, **kwds):
     elif solver == 'glucose':
         from .dimacs import Glucose
         return Glucose(*args, **kwds)
+    elif solver == 'glucose-syrup':
+        from .dimacs import GlucoseSyrup
+        return GlucoseSyrup(*args, **kwds)
     else:
         raise ValueError("Solver '{}' is not available".format(solver))
 

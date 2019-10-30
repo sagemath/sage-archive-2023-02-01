@@ -17,22 +17,24 @@ sdh_install \
     crime-* \
     cryst \
     crystcat \
-    design \
+    design-* \
     gbnp \
+    genss-* \
     Hap* \
     HAPcryst \
     hecke-* \
     liealgdb-* \
     liepring-* \
-    liering \
-    loops \
+    liering-* \
+    loops-* \
     MapClass-* \
-    polymaking \
+    PackageManager-* \
+    polymaking-* \
     qpa-* \
-    quagroup \
+    quagroup-* \
     radiroot-* \
-    repsn \
-    sla \
+    repsn-* \
+    sla-* \
     sonata-* \
     Toric-* \
     utils-* \
@@ -43,7 +45,7 @@ install_compiled_pkg()
     local pkg="$1"
     # Install the bin/ dir (where compiled modules should end up)
     # under <prefix>/lib/gap; we then symlink to it later
-    sdh_install bin/ "$SAGE_LOCAL/lib/gap/pkg/$pkg"
+    sdh_install bin "$SAGE_LOCAL/lib/gap/pkg/$pkg"
 
     # Clean up any build artificts before installing the rest of the package
     # Also remove configure/Makefiles
@@ -63,7 +65,7 @@ install_compiled_pkg()
 #
 # These packages have an old ./configure that take the GAP_ROOT as a positional
 # argument
-for pkg in cohomolo-* grape-* guava-*
+for pkg in cohomolo-* crypting-* grape-* guava-* orb-*
 do
     echo "Building GAP package $pkg"
     cd "$PKG_SRC_DIR/$pkg"
@@ -73,12 +75,26 @@ do
     cd "$PKG_SRC_DIR"
 done
 
-# These packages (currently just one) have a new-style autoconf ./configure
+# These packages have a new-style autoconf ./configure
 # that takes --with-gaproot
-for pkg in nq-*
+
+#############################################################################
+########## add extra parameters for packages' configures here ###############
+#
+# ng         : none
+# io         : none
+# semigroups needs to use external libsemigroups
+# digraphs   needs to use external planarity
+pararr=( " " " " "--with-external-planarity" "--with-external-libsemigroups" )
+##############################################################################
+
+parind=0
+for pkg in nq-* io-* digraphs-* semigroups-*
 do
+    echo "Building GAP package $pkg"
     cd "$PKG_SRC_DIR/$pkg"
-    sdh_configure --with-gaproot="$GAP_ROOT"
+    sdh_configure --with-gaproot="$GAP_ROOT" ${pararr[$parind]}
+    ((parind+=1))
     sdh_make -j1
     install_compiled_pkg "$pkg"
     cd "$PKG_SRC_DIR"

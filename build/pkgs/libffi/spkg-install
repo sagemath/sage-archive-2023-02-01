@@ -1,3 +1,7 @@
+# Trac #27109: Don't append $(gcc -print-multi-os-directory) to the install
+# path for libraries
+LIBFFI_CONFIGURE="--disable-multi-os-directory $LIBFFI_CONFIGURE"
+
 if [ "$SAGE_FAT_BINARY" = "yes" ]; then
     LIBFFI_CONFIGURE="--enable-portable-binary $LIBFFI_CONFIGURE"
 fi

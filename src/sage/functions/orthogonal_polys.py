@@ -282,8 +282,7 @@ in the Maxima package "orthopoly" and was written by Barton
 Willis of the University of Nebraska at Kearney.
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 David Joyner <wdj@usna.edu>
 #                     2010 Stefan Reiterer <maldun.finsterschreck@gmail.com>
@@ -297,27 +296,24 @@ Willis of the University of Nebraska at Kearney.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
 import warnings
 
 from sage.misc.latex import latex
-from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR, CC
-from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
 
-
-from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
+from sage.symbolic.all import SR
 from sage.functions.other import factorial, binomial
 from sage.structure.all import parent
+
 
 class OrthogonalFunction(BuiltinFunction):
     """
@@ -1251,7 +1247,7 @@ class Func_legendre_Q(BuiltinFunction):
         if n in ZZ:
             if n < 0:
                 from sage.rings.infinity import unsigned_infinity
-                return SR(unsigned_infinity);
+                return SR(unsigned_infinity)
             return self.eval_formula(n, x)
 
     def _eval_special_values_(self, n, x):

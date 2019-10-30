@@ -488,7 +488,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         printing).
 
         EXAMPLES:
-    
+
         This base class inherits from :class:`~sage.rings.ring.CommutativeRing`.
         Since :trac:`11900`, it is also initialised as such, and since :trac:`14084`
         it is actually initialised as an integral domain::
@@ -497,11 +497,11 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             sage: R.category()
             Category of integral domains
             sage: TestSuite(R).run()
-    
+
         When the base ring `k` is a field, the ring `k[[x]]` is not only a
         commutative ring, but also a complete discrete valuation ring (CDVR).
         The appropriate (sub)category is automatically set in this case::
-    
+
             sage: k = GF(11)
             sage: R.<x> = k[[]]
             sage: R.category()
@@ -794,7 +794,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                 return self.element_class(self, f.list(),
                                       f.degree(f.default_variable()), check=check)
             else:
-                raise TypeError("Can only convert series into ring with same variable name.")            
+                raise TypeError("Can only convert series into ring with same variable name.")
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):
@@ -885,7 +885,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
 
 
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         r"""
         This gets called implicitly when one constructs a ring homomorphism
         from a power series ring.
@@ -910,9 +910,19 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         """
         if im_gens[0] == 0:
             return True   # this is allowed.
+        if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
+            return False
         from .laurent_series_ring import is_LaurentSeriesRing
+        v = im_gens[0]
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
-            return im_gens[0].valuation() > 0
+            try:
+                return v.valuation() > 0 or v.is_nilpotent()
+            except NotImplementedError:
+                return v.valuation() > 0
+        try:
+            return v.is_nilpotent()
+        except NotImplementedError:
+            pass
         return False
 
     def _poly_ring(self):
@@ -965,7 +975,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             ...
             TypeError: no base extension defined
             sage: R.base_extend(QuadraticField(3,'a'))
-            Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3
+            Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
         """
         return PowerSeriesRing(R, name = self.variable_name(), default_prec = self.default_prec())
 
@@ -986,7 +996,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         """
         Return False since the ring of power series over any ring is not
         exact.
-        
+
         EXAMPLES::
 
             sage: R.<t> = PowerSeriesRing(ZZ)
@@ -1141,7 +1151,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         """
         Return False since the ring of power series over any ring is never
         a field.
-        
+
         EXAMPLES::
 
             sage: R.<t> = PowerSeriesRing(ZZ)

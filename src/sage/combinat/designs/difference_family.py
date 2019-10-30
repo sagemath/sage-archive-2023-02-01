@@ -45,7 +45,7 @@ Functions
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
@@ -881,7 +881,7 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
         ....:              if radical_difference_family(K, k, existence=True):
         ....:                  list_q.append(q)
         ....:                  _ = radical_difference_family(K,k)
-        ....:     print(" ".join([str(p) for p in list_q]))
+        ....:     print(" ".join(str(p) for p in list_q))
         k = 5
         41 61 81 241 281 401 421 601 641 661 701 761 821 881 1181 1201 1301 1321
         1361 1381 1481 1601 1681 1801 1901
@@ -1518,8 +1518,8 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         ...
         NotImplementedError: No construction available for (9,3,1)-difference family
 
-    Check that when ``existence=True`` we always obtain ``True``, ``False`` or ``Unknown``
-    and when ``explain_construction=True``it is a string (see :trac:`24513`)::
+    Check that when ``existence=True`` we always obtain ``True``, ``False`` or ``Unknown``,
+    and when ``explain_construction=True``, it is a string (see :trac:`24513`)::
 
         sage: designs.difference_family(3, 2, 1, existence=True)
         True

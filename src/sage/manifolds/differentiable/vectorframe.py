@@ -666,6 +666,11 @@ class VectorFrame(FreeModuleBasis):
 
         """
         from sage.manifolds.differentiable.manifold import DifferentiableManifold
+        # Some sanity check:
+        if not isinstance(vector_field_module, FiniteRankFreeModule):
+            raise ValueError("the {} has already been constructed as a "
+                             "non-free module and therefore cannot have "
+                             "a basis".format(vector_field_module))
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
         self._dest_map = vector_field_module._dest_map
@@ -705,7 +710,7 @@ class VectorFrame(FreeModuleBasis):
                     xsd = sd._vector_field_modules[dest_map]
                     if not isinstance(xsd, FiniteRankFreeModule):
                         for t in xsd._tensor_modules.values():
-                            t(0).add_comp(self)
+                            t.zero()._add_comp_unsafe(self)
                             # (since new components are initialized to zero)
         if dest_map is self._domain.identity_map():
             # The frame is added to the list of the domain's covering frames:
@@ -1101,10 +1106,6 @@ class VectorFrame(FreeModuleBasis):
                     for sframe2 in self._superframes:
                         sframe2._subframes.add(res)
                     return self._restrictions[subdomain]
-            for dom, rst in self._restrictions.items():
-                if subdomain.is_subset(dom):
-                    self._restrictions[subdomain] = rst.restrict(subdomain)
-                    return self._restrictions[subdomain]
             # Secondly one tries to get the restriction from one previously
             # defined on a larger domain:
             for sframe in self._superframes:
@@ -1146,8 +1147,10 @@ class VectorFrame(FreeModuleBasis):
                 new_vectors.append(vrest)
             res._vec = tuple(new_vectors)
             # Update of superframes and subframes:
-            res._superframes.update(self._superframes)
-            for sframe in self._superframes:
+            for sframe in self._subframes:
+                if subdomain.is_subset(sframe.domain()):
+                    res._superframes.update(sframe._superframes)
+            for sframe in res._superframes:
                 sframe._subframes.add(res)
                 sframe._restrictions[subdomain] = res # includes sframe = self
             for dom, rst in self._restrictions.items():
@@ -1546,7 +1549,6 @@ class VectorFrame(FreeModuleBasis):
             self._latex_name = r"\left({}, {}\right)".format(
                                     self._domain._latex_name, self._latex_name)
 
-
 #******************************************************************************
 
 class CoordCoFrame(CoFrame):
@@ -1717,6 +1719,15 @@ class CoordFrame(VectorFrame):
         from sage.manifolds.differentiable.chart import DiffChart
         if not isinstance(chart, DiffChart):
             raise TypeError("the first argument must be a chart")
+        dom = chart.domain()
+        # Some sanity check:
+        vmodule = dom._vector_field_modules.get(dom.identity_map())
+        if vmodule and not isinstance(vmodule, FiniteRankFreeModule):
+            raise ValueError("the {} has already been constructed as a "
+                             "non-free module, which implies that the {} is "
+                             "not parallelizable and hence cannot be the "
+                             "domain of a coordinate chart".format(vmodule,
+                             dom))
         self._chart = chart
         coords = chart[:] # list of all coordinates
         symbol = tuple("d/d" + str(x) for x in coords)
@@ -1725,13 +1736,13 @@ class CoordFrame(VectorFrame):
         symbol_dual = tuple("d" + str(x) for x in coords)
         latex_symbol_dual = tuple(r"\mathrm{d}" + latex(x) for x in coords)
         VectorFrame.__init__(self,
-                             chart._domain.vector_field_module(force_free=True),
+                             dom.vector_field_module(force_free=True),
                              symbol=symbol, latex_symbol=latex_symbol,
                              symbol_dual=symbol_dual,
                              latex_symbol_dual=latex_symbol_dual)
         # In the above:
         # - force_free=True ensures that a free module is constructed in case
-        #   it is the first call to the vector field module on chart._domain
+        #   it is the first call to the vector field module on chart.domain()
 
 
     ###### Methods that must be redefined by derived classes of ######

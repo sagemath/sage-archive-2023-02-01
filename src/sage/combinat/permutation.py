@@ -725,10 +725,10 @@ class Permutation(CombinatorialElement):
             '(1,2)(3)'
         """
         cycles = self.to_cycles(singletons=singletons)
-        if cycles == []:
+        if not cycles:
             return "()"
         else:
-            return "".join(["("+",".join([str(l) for l in x])+")" for x in cycles])
+            return "".join("("+",".join(str(l) for l in x)+")" for x in cycles)
 
     def __next__(self):
         r"""
@@ -995,7 +995,7 @@ class Permutation(CombinatorialElement):
 
         #Go through until we've considered every number between
         #1 and len(p)
-        while len(l) > 0:
+        while l:
             #If we are at the end of a cycle
             #then we want to add it to the cycles list
             if toConsider == -1:
@@ -1061,7 +1061,7 @@ class Permutation(CombinatorialElement):
             L = set(range(1,len(p)+1))
 
         #Go through until we've considered every remaining number
-        while len(L) > 0:
+        while L:
             # take the first remaining element
             cycleFirst = L.pop()
             next = p[cycleFirst-1]
@@ -1104,7 +1104,7 @@ class Permutation(CombinatorialElement):
         from bisect import bisect_left
 
         #Go through until we've considered every remaining number
-        while len(L) > 0:
+        while L:
             # take the first remaining element
             cycleFirst = L.pop(0)
             next = p[cycleFirst-1]
@@ -1134,7 +1134,7 @@ class Permutation(CombinatorialElement):
         """
         cycles = self.to_cycles(singletons=False)
         grp = SymmetricGroup(len(self))
-        if cycles == []:
+        if not cycles:
             return PermutationGroupElement( '()', parent=grp )
         else:
             return PermutationGroupElement( cycles , parent=grp)
@@ -2237,7 +2237,7 @@ class Permutation(CombinatorialElement):
             sage: sum(q^B.rank_function()(x) for x in B)
             q^5 + 2*q^4 + 3*q^3 + 3*q^2 + 2*q + 1
 
-        We check the statement in [CC13]_ that the posets
+        We check the statement in [CC2013]_ that the posets
         `C_{[1,3,1,1]}` and `C_{[1,3,2]}` are isomorphic::
 
             sage: l2 = [p for p in P if [len(t) for t in p.to_cycles()] == [1,3,1,1]]
@@ -2245,12 +2245,6 @@ class Permutation(CombinatorialElement):
             sage: B2 = Poset([l2, lambda x,y: x.bruhat_lequal(y)])
             sage: B.is_isomorphic(B2)
             True
-
-        REFERENCES:
-
-        .. [CC13] Mahir Bilen Can and Yonah Cherniavsky.
-           *Omitting parentheses from the cyclic notation*. (2013).
-           :arxiv:`1308.0936v2`.
 
         .. SEEALSO::
 
@@ -3012,7 +3006,7 @@ class Permutation(CombinatorialElement):
         Check that the original error of :trac:`23891` is fixed::
 
             sage: Permutations(4)([1,4,3,2]).weak_covers()
-            [[1, 4, 2, 3], [1, 3, 4, 2]]
+            [[1, 3, 4, 2], [1, 4, 2, 3]]
         """
         if index_set is None:
             index_set = range(1, len(self))
@@ -3172,10 +3166,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [GarStan1984] \A. M. Garsia, Dennis Stanton.
-           *Group actions on Stanley-Reisner rings and invariants of
-           permutation groups*. Adv. in Math. **51** (1984), 107-201.
-           http://www.sciencedirect.com/science/article/pii/0001870884900057
+        - [GS1984]_
 
         EXAMPLES::
 
@@ -3188,7 +3179,7 @@ class Permutation(CombinatorialElement):
 
             This docstring needs to be fixed. First, the definition
             does not match the implementation (or the examples).
-            Second, this doesn't seem to be defined in [GarStan1984]_
+            Second, this doesn't seem to be defined in [GS1984]_
             (the descent monomial in their (7.23) is different).
         """
         p = self
@@ -4011,13 +4002,7 @@ class Permutation(CombinatorialElement):
         After all numbers are inserted, we are left with a list
         which is precisely the join of `\pi` and `\psi` (in
         one-line notation). This algorithm is due to Markowsky,
-        [Mark94]_ (Theorem 1 (a)).
-
-        REFERENCES:
-
-        .. [Mark94] George Markowsky.
-           *Permutation lattices revisited*.
-           Mathematical Social Sciences, 27 (1994), 59--72.
+        [Mar1994]_ (Theorem 1 (a)).
 
         AUTHORS:
 
@@ -4864,24 +4849,12 @@ class Permutation(CombinatorialElement):
 
         When `m = n-1`, the Okounkov-Vershik retract (as a map
         `S_n \to S_{n-1}`) is the map `\widetilde{p}_n` introduced in
-        Section 7 of [OkounkovVershik2]_, and appears as (3.20) in
-        [CST10]_. In the general case, the Okounkov-Vershik retract
+        Section 7 of [VO2005]_, and appears as (3.20) in
+        [CST2010]_. In the general case, the Okounkov-Vershik retract
         of a permutation in `S_n` to `S_m` can be obtained by first
         taking its Okounkov-Vershik retract to `S_{n-1}`, then that
         of the resulting permutation to `S_{n-2}`, etc. until arriving
         in `S_m`.
-
-        REFERENCES:
-
-        .. [OkounkovVershik2] \A. M. Vershik, A. Yu. Okounkov.
-           *A New Approach to the Representation Theory of the Symmetric
-           Groups. 2*. :arxiv:`math/0503040v3`.
-
-        .. [CST10] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
-           Filippo Tolli.
-           *Representation Theory of the Symmetric Groups: The
-           Okounkov-Vershik Approach, Character Formulas, and Partition
-           Algebras*. CUP 2010.
 
         EXAMPLES::
 
@@ -4945,7 +4918,7 @@ class Permutation(CombinatorialElement):
         `\{\{1,2\},\{3,4\},\dots,\{2n-1,2n\}\}` and its image by ``self``, and
         draw them simultaneously as edges of a graph whose vertices are labeled
         by `1,2,\dots,2n`. The coset-type is the ordered sequence of the
-        semi-lengths of the cycles of this graph (see Chapter VII of [Mcd]_ for
+        semi-lengths of the cycles of this graph (see Chapter VII of [Mac1995]_ for
         more details, particularly Section VII.2).
 
         EXAMPLES::
@@ -4962,11 +4935,6 @@ class Permutation(CombinatorialElement):
             Traceback (most recent call last):
             ...
             ValueError: [3, 1, 2] is a permutation of odd size and has no coset-type
-
-        REFERENCES:
-
-        .. [Mcd] \I. G. Macdonald. Symmetric functions and Hall
-           polynomials. Oxford University Press, second edition, 1995.
         """
         from sage.combinat.perfect_matching import PerfectMatchings
         n = len(self)
@@ -6200,11 +6168,11 @@ class StandardPermutations_n_abstract(Permutations):
         """
         TESTS:
 
-        We skip the reduced word method because it does not respect the
-        ordering for multiplication::
+        We skip the descent and reduced word methods because they do
+        not respect the ordering for multiplication::
 
             sage: SP = Permutations(3)
-            sage: TestSuite(SP).run(skip='_test_reduced_word')
+            sage: TestSuite(SP).run(skip=['_test_reduced_word', '_test_has_descent'])
 
             sage: SP.options.mult='r2l'
             sage: TestSuite(SP).run()
@@ -6710,27 +6678,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             A *left descent* of a permutation `\pi \in S_n` means an index
             `i \in \{ 1, 2, \ldots, n-1 \}` such that
-            `s_i \circ \pi` has smaller length than `\pi`. Here, `\circ`
-            denotes the multiplication of `S_n`. How it is defined depends
-            on the ``mult`` variable in
-            :meth:`Permutations.options`. If this variable is set
-            to ``'l2r'``, then the multiplication is defined by the rule
-            `(\alpha \beta) (x) = \beta( \alpha (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a left
-            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
-            satisfying `\pi(i) > \pi(i+1)`. If this variable is set
-            to ``'r2l'``, then the multiplication is defined by the rule
-            `(\alpha \beta) (x) = \alpha( \beta (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a left
+            `s_i \circ \pi` has smaller length than `\pi`. Thus, a left
             descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
             satisfying `\pi^{-1}(i) > \pi^{-1}(i+1)`.
 
-            The optional parameter ``mult`` can be set to ``'l2r'`` or
-            ``'r2l'``; if so done, it is used instead of the ``mult``
-            variable in :meth:`Permutations.options`. Anyone using
-            this method in a non-interactive environment is encouraged to
-            do so in order to have code behave reliably.
-
             .. WARNING::
 
                 The methods :meth:`descents` and :meth:`idescents` behave
@@ -6740,66 +6691,9 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             .. WARNING::
 
-                The optional input ``mult`` might disappear once :trac:`14881`
-                is fixed.
-
-            EXAMPLES::
-
-                sage: P = Permutations(4)
-                sage: x = P([3, 2, 4, 1])
-                sage: x.descents()
-                [1, 3]
-                sage: [i for i in P.index_set() if x.has_left_descent(i)]
-                [1, 3]
-                sage: [i for i in P.index_set() if x.has_left_descent(i, mult="l2r")]
-                [1, 3]
-                sage: [i for i in P.index_set() if x.has_left_descent(i, mult="r2l")]
-                [1, 2]
-            """
-            if mult is None:
-                mult = self.parent().options.mult
-            if mult != 'l2r':
-                self = self.inverse()
-            return self[i-1] > self[i]
-
-        def has_right_descent(self, i, mult=None):
-            r"""
-            Check if ``i`` is a right descent of ``self``.
-
-            A *right descent* of a permutation `\pi \in S_n` means an index
-            `i \in \{ 1, 2, \ldots, n-1 \}` such that
-            `\pi \circ s_i` has smaller length than `\pi`. Here, `\circ`
-            denotes the multiplication of `S_n`. How it is defined depends
-            on the ``mult`` variable in
-            :meth:`Permutations.options`. If this variable is set
-            to ``'l2r'``, then the multiplication is defined by the rule
-            `(\alpha \beta) (x) = \beta( \alpha (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a right
-            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
-            satisfying `\pi^{-1}(i) > \pi^{-1}(i+1)`. If this variable is
-            set to ``'r2l'``, then the multiplication is defined by the
-            rule `(\alpha \beta) (x) = \alpha( \beta (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a right
-            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
-            satisfying `\pi(i) > \pi(i+1)`.
-
-            The optional parameter ``mult`` can be set to ``'l2r'`` or
-            ``'r2l'``; if so done, it is used instead of the ``mult``
-            variable in :meth:`Permutations.options`. Anyone using
-            this method in a non-interactive environment is encouraged to
-            do so in order to have code behave reliably.
-
-            .. WARNING::
-
-                The methods :meth:`descents` and :meth:`idescents` behave
-                differently than their Weyl group counterparts. In
-                particular, the indexing is 0-based. This could lead to
-                errors. Instead, construct the descent set as in the example.
-
-            .. WARNING::
-
-                The optional input ``mult`` might disappear once :trac:`14881`
-                is fixed.
+                This ignores the multiplication convention in order
+                to be consistent with other Coxeter operations in
+                permutations (e.g., computing :meth:`reduced_word`).
 
             EXAMPLES::
 
@@ -6807,17 +6701,79 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 sage: x = P([3, 2, 4, 1])
                 sage: (~x).descents()
                 [1, 2]
-                sage: [i for i in P.index_set() if x.has_right_descent(i)]
+                sage: [i for i in P.index_set() if x.has_left_descent(i)]
                 [1, 2]
-                sage: [i for i in P.index_set() if x.has_right_descent(i, mult="l2r")]
-                [1, 2]
-                sage: [i for i in P.index_set() if x.has_right_descent(i, mult="r2l")]
-                [1, 3]
+
+            TESTS::
+
+                sage: P = Permutations(4)
+                sage: x = P([3, 2, 4, 1])
+                sage: x.has_left_descent(2, mult='l2r')
+                doctest:warning
+                ...
+                DeprecationWarning: The mult option is deprecated and ignored.
+                See https://trac.sagemath.org/27467 for details.
+                True
+                sage: x.has_left_descent(2, mult='r2l')
+                True
             """
-            if mult is None:
-                mult = self.parent().options.mult
-            if mult != 'r2l':
-                self = self.inverse()
+            if mult is not None:
+                from sage.misc.superseded import deprecation
+                deprecation(27467, "The mult option is deprecated and ignored.")
+            for val in self._list:
+                if val == i:
+                    return False
+                if val == i + 1:
+                    return True
+
+        def has_right_descent(self, i, mult=None):
+            r"""
+            Check if ``i`` is a right descent of ``self``.
+
+            A *right descent* of a permutation `\pi \in S_n` means an index
+            `i \in \{ 1, 2, \ldots, n-1 \}` such that
+            `\pi \circ s_i` has smaller length than `\pi`. Thus, a right
+            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
+            satisfying `\pi(i) > \pi(i+1)`.
+
+            .. WARNING::
+
+                The methods :meth:`descents` and :meth:`idescents` behave
+                differently than their Weyl group counterparts. In
+                particular, the indexing is 0-based. This could lead to
+                errors. Instead, construct the descent set as in the example.
+
+            .. WARNING::
+
+                This ignores the multiplication convention in order
+                to be consistent with other Coxeter operations in
+                permutations (e.g., computing :meth:`reduced_word`).
+
+            EXAMPLES::
+
+                sage: P = Permutations(4)
+                sage: x = P([3, 2, 4, 1])
+                sage: x.descents()
+                [1, 3]
+                sage: [i for i in P.index_set() if x.has_right_descent(i)]
+                [1, 3]
+
+            TESTS::
+
+                sage: P = Permutations(4)
+                sage: x = P([3, 2, 4, 1])
+                sage: x.has_right_descent(3, mult='l2r')
+                doctest:warning
+                ...
+                DeprecationWarning: The mult option is deprecated and ignored.
+                See https://trac.sagemath.org/27467 for details.
+                True
+                sage: x.has_right_descent(3, mult='r2l')
+                True
+            """
+            if mult is not None:
+                from sage.misc.superseded import deprecation
+                deprecation(27467, "The mult option is deprecated and ignored.")
             return self[i-1] > self[i]
 
         def __mul__(self, other):
@@ -6886,6 +6842,58 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             return self.__class__(self.parent(), w)
 
         __invert__ = inverse
+
+        def apply_simple_reflection_left(self, i):
+            r"""
+            Return ``self`` multiplied by the simple reflection ``s[i]``
+            on the left.
+
+            This acts by switching the entries in positions `i` and `i+1`.
+
+            .. WARNING::
+
+                This ignores the multiplication convention in order
+                to be consistent with other Coxeter operations in
+                permutations (e.g., computing :meth:`reduced_word`).
+
+            EXAMPLES::
+
+                sage: W = Permutations(3)
+                sage: w = W([2,3,1])
+                sage: w.apply_simple_reflection_left(1)
+                [1, 3, 2]
+                sage: w.apply_simple_reflection_left(2)
+                [3, 2, 1]
+            """
+            s = self.parent().simple_reflections()[i]
+            p = right_action_same_n(self._list, s._list)
+            return self.__class__(self.parent(), p)
+
+        def apply_simple_reflection_right(self, i):
+            r"""
+            Return ``self`` multiplied by the simple reflection ``s[i]``
+            on the right.
+
+            This acts by switching the entries `i` and `i+1`.
+
+            .. WARNING::
+
+                This ignores the multiplication convention in order
+                to be consistent with other Coxeter operations in
+                permutations (e.g., computing :meth:`reduced_word`).
+
+            EXAMPLES::
+
+                sage: W = Permutations(3)
+                sage: w = W([2,3,1])
+                sage: w.apply_simple_reflection_right(1)
+                [3, 2, 1]
+                sage: w.apply_simple_reflection_right(2)
+                [2, 1, 3]
+            """
+            s = self.parent().simple_reflections()[i]
+            p = left_action_same_n(self._list, s._list)
+            return self.__class__(self.parent(), p)
 
 #############################
 # Constructing Permutations #
@@ -8911,8 +8919,3 @@ register_unpickle_override("sage.combinat.permutation", "Permutation_class", Per
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)
 register_unpickle_override('sage.combinat.permutation_nk', 'PermutationsNK', PermutationsNK)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Permutations.global_options=deprecated_function_alias(18555, Permutations.options)
-PermutationOptions = deprecated_function_alias(18555, Permutations.options)

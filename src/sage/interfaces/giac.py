@@ -136,9 +136,7 @@ the command, you can press q to immediately get back to your
 original prompt.
 
 Incidentally you can always get into a giac console by the
-command.
-
-::
+command ::
 
     sage: giac.console()                       # not tested
     sage: !giac                                # not tested
@@ -226,7 +224,6 @@ from __future__ import print_function
 import os
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
-from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
@@ -248,7 +245,7 @@ class Giac(Expect):
     Type ``giac.[tab]?`` for Giac's help about a given function.
     Type ``giac(...)`` to create a new Giac object.
 
-    Full html documentation for giac is avaible from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
+    Full html documentation for giac is available from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 
     EXAMPLES:
 
@@ -294,15 +291,18 @@ class Giac(Expect):
       a^2+2*a*b+4*a+b^2+4*b+4
       a^2 + 2*a*b + b^2 + 4*a + 4*b + 4
 
-    Variable names in python and giac are independant.
+    Variable names in python and giac are independent::
 
-    ::
+        sage: a=sqrt(2);giac('Digits:=30;a:=5');a,giac('a'),giac(a),giac(a).evalf()
+        30
+        (sqrt(2), 5, sqrt(2), 1.41421356237309504880168872421)
 
-      sage: a=sqrt(2);giac('Digits:=30;a:=5');a,giac('a'),giac(a),giac(a).evalf()
-      30
-      (sqrt(2), 5, sqrt(2), 1.41421356237309504880168872421)
+    TESTS::
 
-
+        sage: g = giac('euler_gamma').sage();g
+        euler_gamma
+        sage: g.n()
+        0.577215664901533
     """
     def __init__(self, maxread=None, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
@@ -317,6 +317,7 @@ class Giac(Expect):
                         name = 'giac',
                         prompt = '[0-9]*>> ',
                         command = "giac --sage",
+                        env = {"LANG": "C"},
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,
@@ -426,7 +427,7 @@ or a spkg ( for the spkg follow the sources link) from the homepage:
 Homepage http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
 
 
-Full html documentation for giac is avaible from your giac installation at:
+Full html documentation for giac is available from your giac installation at:
 
     ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 
@@ -617,10 +618,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             '4\n3'
             sage: s='g(x):={\nx+1;\nx+2;\n}'
             sage: giac(s)
-            (x)->{
-            x+1;
-            x+2;
-            }
+            (x)->[x+1,x+2]
             sage: giac.g(5)
             7
         """
@@ -998,7 +996,6 @@ class GiacElement(ExpectElement):
         """
         return self.parent().eval('latex(%s)'%self.name())
 
-
     def _matrix_(self, R):
         r"""
         Return matrix over the (Sage) ring R determined by self, where self
@@ -1041,7 +1038,7 @@ class GiacElement(ExpectElement):
             - numbers, i.e. integers, floats, complex numbers;
             - functions and named constants also present in Sage, where:
                 - Sage knows how to translate the function or constant's name
-                from Giac's naming scheme through the symbols_table, or
+                from Giac's naming scheme through the ``symbol_table``, or
                 - you provide a translation dictionary ``locals``.
 
         New conversions can be added using Pynac's ``register_symbol``.
@@ -1067,7 +1064,7 @@ class GiacElement(ExpectElement):
             sage: ex._sage_({'myFun': sin})
             sin(x)
 
-        Same but by adding a new entry to the ``symbols_table``::
+        Same but by adding a new entry to the ``symbol_table``::
 
             sage: ex = giac('myFun(x)')
             sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})
@@ -1079,7 +1076,7 @@ class GiacElement(ExpectElement):
             sage: L = giac('solve((2/3)^x-2, x)'); L
             list[ln(2)/(ln(2)-ln(3))]
             sage: L.sage()
-            [-ln(2)/(ln(3) - ln(2))]
+            [-log(2)/(log(3) - log(2))]
         """
         from sage.libs.pynac.pynac import symbol_table
         from sage.calculus.calculus import symbolic_expression_from_string
@@ -1134,14 +1131,14 @@ class GiacElement(ExpectElement):
             -2*sin(y)
         """
         if min is None:
-            return giac('int(%s,%s)'%(self.name(),var))
+            return giac('int(%s,%s)' % (self.name(), var))
         else:
             if max is None:
                 raise ValueError("neither or both of min/max must be specified.")
-        return giac('int(%s,%s,%s,%s)'%(self.name(),var,giac(min),giac(max)))
+        return giac('int(%s,%s,%s,%s)' % (self.name(), var,
+                                          giac(min), giac(max)))
 
-    integrate=integral
-
+    integrate = integral
 
     def sum(self, var, min=None, max=None):
         r"""
@@ -1164,11 +1161,12 @@ class GiacElement(ExpectElement):
             (pi*exp(pi)^2+pi)/(exp(pi)^2-1)
         """
         if min is None:
-            return giac('sum(%s,%s)'%(self.name(),var))
+            return giac('sum(%s,%s)' % (self.name(), var))
         else:
             if max is None:
                 raise ValueError("neither or both of min/max must be specified.")
-            return giac('sum(%s,%s,%s,%s)'%(self.name(),var,giac(min),giac(max)))
+            return giac('sum(%s,%s,%s,%s)' % (self.name(), var,
+                                              giac(min), giac(max)))
 
 
 # An instance

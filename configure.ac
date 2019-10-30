@@ -216,6 +216,18 @@ then
     AC_MSG_ERROR([Exiting, as the macro processor 'm4' can not be found.])
 fi
 
+m4_ifndef([PKG_PROG_PKG_CONFIG], [m4_errprint(
+[Error: could not locate the pkg-config autoconf macros. These are
+usually located in /usr/share/aclocal/pkg.m4. If your macros are
+in a different location, try setting the environment variable
+ACLOCAL="aclocal -I/other/macro/dir" before running ./bootstrap
+])
+dnl Exit autoconf with exit code 16 in this case. This will be
+dnl caught by the bootstrap script.
+m4_exit(16)])
+
+PKG_PROG_PKG_CONFIG
+
 AC_CHECK_PROG(found_ranlib, ranlib, yes, no)
 if test x$found_ranlib != xyes
 then
@@ -311,7 +323,6 @@ AC_PROG_CXX()
 AC_PROG_FC()
 
 AC_SUBST(CC)
-AC_SUBST(CXX)
 AC_SUBST(FC)
 
 # On darwin, also set the objective C/C++ compilers
@@ -388,31 +399,6 @@ esac
 
 AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
 AC_SUBST(SAGE_PYTHON_VERSION)
-
-
-# Sage MP library
-AC_MSG_CHECKING([multiprecision library])
-AC_ARG_WITH([mp],
-[AS_HELP_STRING([--with-mp=mpir],
-    [use MPIR as multiprecision library (default)])]
-[AS_HELP_STRING([--with-mp=gmp],
-    [use GMP as multiprecision library])])
-
-case "$with_mp" in
-    MPIR|mpir) with_mp=MPIR;;
-    GMP|gmp) with_mp=GMP;;
-    "") with_mp=${SAGE_MP_LIBRARY:-MPIR};;
-    *)
-        AC_MSG_ERROR([allowed values for --with-mp are MPIR and GMP]) ;;
-esac
-
-AC_MSG_RESULT([$with_mp])
-
-if test $with_mp = MPIR; then
-    AC_SUBST([SAGE_MP_LIBRARY], [mpir])
-else
-    AC_SUBST([SAGE_MP_LIBRARY], [gmp])
-fi
 
 # BLAS library
 AC_MSG_CHECKING([BLAS library])

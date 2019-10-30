@@ -20,7 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from copy import copy
@@ -266,7 +265,7 @@ cpdef convert_to_pixels(point_list, double x_0, double y_0, double width,
 
     - ``y_0`` -- double, y-coordinate of the center of the image.
 
-    - ``width`` -- double, width of visible window in caresian coordinates.
+    - ``width`` -- double, width of visible window in cartesian coordinates.
 
     - ``number_of_pixels`` -- long, width of image in pixels.
 

@@ -51,6 +51,17 @@ class LocalGeneric(CommutativeRing):
             sage: R = Zp(5, 5, 'fixed-mod')
             sage: R._repr_option('element_is_atomic')
             False
+
+            sage: R = Zp(3, 10,'fixed-mod')
+            sage: R.is_finite()
+            False
+            sage: R.cardinality()
+            +Infinity
+
+            sage: Qp(11).is_finite()
+            False
+            sage: Qp(11).cardinality()
+            +Infinity
         """
         self._prec = prec
         self.Element = element_class
@@ -59,7 +70,7 @@ class LocalGeneric(CommutativeRing):
             category = CompleteDiscreteValuationFields()
         else:
             category = CompleteDiscreteValuationRings()
-        category = category.Metric().Complete()
+        category = category.Metric().Complete().Infinite()
         if default_category is not None:
             category = check_default_category(default_category, category)
         Parent.__init__(self, base, names=(names,), normalize=False, category=category)
@@ -1026,25 +1037,6 @@ class LocalGeneric(CommutativeRing):
         """
         return self.uniformizer_pow(n)
 
-    def is_finite(self):
-        r"""
-        Returns whether this ring is finite, i.e. ``False``.
-
-        INPUT:
-
-        - ``self`` -- a `p`-adic ring
-
-        OUTPUT:
-
-        - boolean -- whether self is finite, i.e., ``False``
-
-        EXAMPLES::
-
-            sage: R = Zp(3, 10,'fixed-mod'); R.is_finite()
-            False
-        """
-        return False
-
     def ext(self, *args, **kwds):
         """
         Constructs an extension of self.  See ``extension`` for more details.
@@ -1577,8 +1569,9 @@ class LocalGeneric(CommutativeRing):
         shift = sum(shift_rows) + sum(shift_cols)
         det = R(1)
 
-        sign = 1;
-        valdet = 0; val = -Infinity
+        sign = 1
+        valdet = 0
+        val = -Infinity
         for piv in range(n):
             curval = Infinity
             for i in range(piv,n):
@@ -1587,8 +1580,10 @@ class LocalGeneric(CommutativeRing):
                     if v < curval:
                         pivi = i; pivj = j
                         curval = v
-                        if v == val: break
-                else: continue
+                        if v == val:
+                            break
+                else:
+                    continue
                 break
             val = curval
             if S[pivi,pivj] == 0:

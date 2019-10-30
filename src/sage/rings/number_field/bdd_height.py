@@ -16,8 +16,8 @@ AUTHORS:
 
 REFERENCES:
 
-..  [Doyle-Krumm] John R. Doyle and David Krumm, *Computing algebraic numbers
-    of bounded height*, :arxiv:`1111.4963v4` (2013).
+- [DK2013]
+
 """
 # ****************************************************************************
 #       Copyright (C) 2013 John Doyle and David Krumm
@@ -27,7 +27,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 from six.moves import range
 
 from copy import copy
@@ -115,7 +115,7 @@ def bdd_height_iq(K, height_bound):
 
     ALGORITHM:
 
-    This is an implementation of Algorithm 5 in [Doyle-Krumm]_.
+    This is an implementation of Algorithm 5 in [DK2013]_.
 
     INPUT:
 
@@ -365,7 +365,7 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     ALGORITHM:
 
     This is an implementation of the revised algorithm (Algorithm 4) in
-    [Doyle-Krumm]_.
+    [DK2013]_.
 
     INPUT:
 
@@ -643,10 +643,10 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
             for u in U:
                 if unit_height_dict[u] < u_height_bound:
                     candidate_height = packet_height(n, pair, u)
-                    if candidate_height <= b - (7/12)*t:
+                    if candidate_height <= b - 7*t/12:
                         L0.append([n, pair, u])
                         relevant_tuples.add(u)
-                    if candidate_height > b - (7/12)*t and candidate_height < b + t/4:
+                    elif candidate_height < b + t/4:
                         L0_tilde.append([n, pair, u])
                         relevant_tuples.add(u)
 
@@ -654,7 +654,7 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     # forms a dictionary of all_unit_tuples and their value
     tuple_to_unit_dict = {}
     for u in relevant_tuples:
-        unit = K(1)
+        unit = K.one()
         for k in range(r):
             unit *= fund_units[k]**u[k]
         tuple_to_unit_dict[u] = unit

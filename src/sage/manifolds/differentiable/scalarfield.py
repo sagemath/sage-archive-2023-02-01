@@ -631,6 +631,7 @@ class DiffScalarField(ScalarField):
         ScalarField.__init__(self, parent, coord_expression=coord_expression,
                              chart=chart, name=name, latex_name=latex_name)
         self._tensor_type = (0,0)
+        self._tensor_rank = 0
 
     ####### Required methods for an algebra element (beside arithmetic) #######
 
@@ -765,7 +766,7 @@ class DiffScalarField(ScalarField):
              Coordinate frame (M, (d/du,d/dv,d/dw))}
             sage: dg.comp(c_uvw.frame())[:, c_uvw]
             [v^2*w^3, 2*u*v*w^3, 3*u*v^2*w^2]
-            sage: dg.display(c_uvw.frame(), c_uvw)
+            sage: dg.display(c_uvw)
             dg = v^2*w^3 du + 2*u*v*w^3 dv + 3*u*v^2*w^2 dw
 
         The exterior derivative is nilpotent::
@@ -1053,7 +1054,7 @@ class DiffScalarField(ScalarField):
             0
 
         """
-        return 0
+        return self._tensor_rank
 
     def gradient(self, metric=None):
         r"""

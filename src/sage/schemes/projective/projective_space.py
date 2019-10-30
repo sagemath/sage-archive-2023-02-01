@@ -142,7 +142,7 @@ def is_ProjectiveSpace(x):
     """
     return isinstance(x, ProjectiveSpace_ring)
 
-def ProjectiveSpace(n, R=None, names='x'):
+def ProjectiveSpace(n, R=None, names=None):
     r"""
     Return projective space of dimension ``n`` over the ring ``R``.
 
@@ -216,11 +216,35 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: R.<x> = QQ[]
         sage: ProjectiveSpace(R)
         Projective Space of dimension 0 over Rational Field
+
+    TESTS::
+
+        sage: R.<x,y>=QQ[]
+        sage: P.<z,w> = ProjectiveSpace(R)
+        Traceback (most recent call last):
+        ...
+        NameError: variable names passed to ProjectiveSpace conflict with names in ring
+
+    ::
+
+        sage: R.<x,y>=QQ[]
+        sage: P.<x,y> = ProjectiveSpace(R)
+        sage: P.gens() == R.gens()
+        True
     """
     if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
+        if names is not None:
+            # Check for the case that the user provided a variable name
+            # That does not match what we wanted to use from R
+            names = normalize_names(n.ngens(), names)
+            if n.variable_names() != names:
+                # The provided name doesn't match the name of R's variables
+                raise NameError("variable names passed to ProjectiveSpace conflict with names in ring")
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n
         return A
+    if names is None:
+        names = 'x'
     if isinstance(R, integer_types + (Integer,)):
         n, R = R, n
     if R is None:
@@ -1048,7 +1072,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         OUTPUT: a dynamical system on this projective space.
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: E = EllipticCurve(QQ,[-1, 0])
@@ -1056,9 +1080,20 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (1/4*x^4 + 1/2*x^2*y^2 + 1/4*y^4 : x^3*y - x*y^3)
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(37), 1)
+            sage: E = EllipticCurve([1, 1])
+            sage: f = P.Lattes_map(E, 2); f
+            Dynamical System of Projective Space of dimension 1 over Finite Field of size 37
+              Defn: Defined on coordinates by sending (x : y) to
+                    (-9*x^4 + 18*x^2*y^2 - 2*x*y^3 - 9*y^4 : x^3*y + x*y^3 + y^4)
         """
         if self.dimension_relative() != 1:
             raise TypeError("must be dimension 1")
+        if self.base_ring() != E.base_ring():
+            E = E.change_ring(self.base_ring())
 
         L = E.multiplication_by_m(m, x_only = True)
         F = [L.numerator(), L.denominator()]
@@ -1094,7 +1129,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         from sage.schemes.product_projective.space import ProductProjectiveSpaces
         return ProductProjectiveSpaces([self, other])
 
-    def chebyshev_polynomial(self, n, kind='first'):
+    def chebyshev_polynomial(self, n, kind='first', monic=False):
         """
         Generates an endomorphism of this projective line by a Chebyshev polynomial.
 
@@ -1110,6 +1145,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
+
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+          should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_projective`
 
@@ -1152,6 +1190,23 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             Traceback (most recent call last):
             ...
             TypeError: projective space must be of dimension 1
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.chebyshev_polynomial(3, monic=True)
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 - 3*x*y^2 : y^3)
+
+        ::
+
+            sage: F.<t> = FunctionField(QQ)
+            sage: P.<y,z> = ProjectiveSpace(F,1)
+            sage: P.chebyshev_polynomial(4,monic=True)
+            Dynamical System of Projective Space of dimension 1 over Rational function field in t over Rational Field
+              Defn: Defined on coordinates by sending (y : z) to
+                    (y^4 + (-4)*y^2*z^2 + 2*z^4 : z^4)
         """
         if self.dimension_relative() != 1:
             raise TypeError("projective space must be of dimension 1")
@@ -1161,6 +1216,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         #use the affine version and then homogenize.
         A = self.affine_patch(1)
         f = A.chebyshev_polynomial(n, kind)
+        if monic and self.base().characteristic() != 2:
+            f = f.homogenize(1)
+            return f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
         return f.homogenize(1)
 
     def veronese_embedding(self, d, CS=None, order='lex'):
@@ -1285,7 +1343,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         Bound check is strict for the rational field. Requires self to be projective space
         over a number field. Uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        computing algebraic numbers up to a given height [DK2013]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.

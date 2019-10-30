@@ -43,8 +43,6 @@ other types will also coerce to the integers, when it makes sense.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cpython.int cimport *
 from cpython.list cimport *
 from cpython.object cimport Py_NE
@@ -294,6 +292,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Traceback (most recent call last):
         ...
         NotImplementedError: len() of an infinite set
+
+        sage: ZZ.is_finite()
+        False
+        sage: ZZ.cardinality()
+        +Infinity
     """
 
     def __init__(self):
@@ -401,11 +404,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ['x,y']
             Multivariate Polynomial Ring in x, y over Integer Ring
             sage: R = ZZ[sqrt(5) + 1]; R
-            Order in Number Field in a with defining polynomial x^2 - 2*x - 4
+            Order in Number Field in a with defining polynomial x^2 - 2*x - 4 with a = 3.236067977499790?
             sage: R.is_maximal()
             False
             sage: R = ZZ[(1+sqrt(5))/2]; R
-            Order in Number Field in a with defining polynomial x^2 - x - 1
+            Order in Number Field in a with defining polynomial x^2 - x - 1 with a = 1.618033988749895?
             sage: R.is_maximal()
             True
         """
@@ -779,7 +782,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             raise ValueError("Unknown distribution for the integers: %s" % distribution)
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         r"""
         Tests whether the map from `\ZZ` to codomain, which takes the
         generator of `\ZZ` to ``im_gens[0]``, is a ring homomorphism.
@@ -794,8 +797,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ._is_valid_homomorphism_(ZZ.quotient_ring(8),[ZZ.quotient_ring(8)(1)])
             True
         """
+        if base_map is None:
+            base_map = codomain.coerce_map_from(self)
+            if base_map is None:
+                return False
         try:
-            return im_gens[0] == codomain.coerce(self.gen(0))
+            return im_gens[0] == base_map(self.gen(0))
         except TypeError:
             return False
 
@@ -832,17 +839,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: ZZ.is_field()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Return ``False`` since the integers are an infinite ring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_finite()
             False
         """
         return False
@@ -1454,7 +1450,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'IntegerRing()'
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         Return a macaulay2 representation of ``self``.
 

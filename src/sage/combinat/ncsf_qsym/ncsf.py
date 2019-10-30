@@ -70,6 +70,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         Join of Category of hopf algebras over Rational Field
             and Category of graded algebras over Rational Field
             and Category of monoids with realizations
+            and Category of graded coalgebras over Rational Field
             and Category of coalgebras over Rational Field with realizations
 
         sage: [S[i].degree() for i in range(10)]
@@ -2372,7 +2373,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     -S[1]
                     sage: S[2].antipode() # indirect doctest
                     S[1, 1] - S[2]
-                    sage: S[3].antipode() # indirect docttest
+                    sage: S[3].antipode() # indirect doctest
                     -S[1, 1, 1] + S[1, 2] + S[2, 1] - S[3]
                     sage: S[2,3].coproduct().apply_multilinear_morphism(lambda be,ga: S(be)*S(ga).antipode())
                     0

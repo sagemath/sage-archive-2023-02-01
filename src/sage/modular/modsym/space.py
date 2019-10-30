@@ -967,7 +967,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Basis matrix:
             [0 1 0 1]
             sage: ModularSymbols(11, 2, base_ring=QuadraticField(-7,'b'), sign=1).cuspidal_submodule()._q_expansion_module(prec=4, algorithm="eigen")
-            Vector space of degree 4 and dimension 1 over Number Field in b with defining polynomial x^2 + 7
+            Vector space of degree 4 and dimension 1 over Number Field in b with defining polynomial x^2 + 7 with b = 2.645751311064591?*I
             Basis matrix:
             [ 0  1 -2 -1]
 
@@ -987,19 +987,18 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         if algorithm != 'eigen':
             raise ValueError("unknown algorithm '%s'"%algorithm)
 
-        def q_eigen_gens(A, f):
+        def q_eigen_gens(d, f):
             r""" Temporary function for internal use.
 
             EXAMPLES::
 
                 sage: ModularSymbols(11, 4, base_ring=QuadraticField(-7,'b'),sign=1).cuspidal_submodule()._q_expansion_module(prec=5, algorithm="eigen") # indirect doctest
-                Vector space of degree 5 and dimension 2 over Number Field in b with defining polynomial x^2 + 7
+                Vector space of degree 5 and dimension 2 over Number Field in b with defining polynomial x^2 + 7 with b = 2.645751311064591?*I
                 Basis matrix:
                 [ 0  1  0  3 -6]
                 [ 0  0  1 -4  2]
             """
             X = f.padded_list(prec)
-            d = A.dimension()
             if d == 1:
                 # X is just a list of elements of R
                 return [X]
@@ -1012,7 +1011,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         else:
             X = self
 
-        B = [sum([q_eigen_gens(A, f) for f in self._q_eigenform_images(A, prec, 'zeta')], []) for A, _ in X.factorization()]
+        B = [sum([q_eigen_gens(A.dimension(), f)
+                  for f in self._q_eigenform_images(A, prec, 'zeta')], [])
+             for A, _ in X.factorization()]
 
         return V.span(sum(B, []))
 
@@ -1050,7 +1051,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         # Construct the vector space over QQ of dimension equal to
         # the degree of the base field times the dimension over C
         # of the space of cusp forms corresponding to self.
-        def q_eigen_gens(f):
+        def q_eigen_gens(d, f):
             r"""
             Temporary function for internal use.
 
@@ -1066,7 +1067,6 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             # Return restricted down to QQ gens for cusp space corresponding
             # to the simple factor A.
             X = f.padded_list(prec)
-            d = A.dimension()
             if d == 1:
                 return [[X[i][j] for i in range(prec)] for j in range(n)]
             else:
@@ -1079,11 +1079,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         else:
             X = self
 
-        B = [sum([q_eigen_gens(f) for f in self._q_eigenform_images(A, prec, 'alpha')], []) for A, _ in X.factorization()]
+        B = [sum([q_eigen_gens(A.dimension(), f)
+                  for f in self._q_eigenform_images(A, prec, 'alpha')], [])
+             for A, _ in X.factorization()]
         A = QQ**prec
-        W = A.span(sum(B, []))
-        return W
-
+        return A.span(sum(B, []))
 
     def _q_expansion_module_integral(self, prec):
         r"""

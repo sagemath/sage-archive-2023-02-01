@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Constellations
 
@@ -39,7 +40,7 @@ EXAMPLES::
 
 # ****************************************************************************
 #       Copyright (C) 2015-2016 Vincent Delecroix <20100.delecroix@gmail.com>
-#                               Frederic Chapoton <fchapoton2@gmail.com>
+#                               Frédéric Chapoton <fchapoton2@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

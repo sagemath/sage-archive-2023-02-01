@@ -26,7 +26,7 @@ AUTHORS:
 Methods
 -------
 """
-#***************************************************************************
+# **************************************************************************
 #                              Copyright (C) 2007                          #
 #                                                                          #
 #                Peter Dobcsanyi       and         David Joyner            #
@@ -36,8 +36,8 @@ Methods
 #    Distributed under the terms of the GNU General Public License (GPL)   #
 #    as published by the Free Software Foundation; either version 2 of     #
 #    the License, or (at your option) any later version.                   #
-#                    http://www.gnu.org/licenses/                          #
-#***************************************************************************
+#                    https://www.gnu.org/licenses/                          #
+# **************************************************************************
 from __future__ import print_function
 
 import six
@@ -788,7 +788,7 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        return [len(_) for _ in self._blocks]
+        return [len(b) for b in self._blocks]
 
     def degree(self, p=None, subset=False):
         r"""
@@ -813,10 +813,6 @@ class IncidenceStructure(object):
 
         TESTS::
 
-            sage: designs.steiner_triple_system(9).degree()
-            doctest:...: DeprecationWarning: Please use degrees() instead of degree(None)
-            See http://trac.sagemath.org/17108 for details.
-            {0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4}
             sage: designs.steiner_triple_system(9).degree(subset=True)
             Traceback (most recent call last):
             ...
@@ -825,9 +821,6 @@ class IncidenceStructure(object):
         if p is None:
             if subset is True:
                 raise ValueError("subset must be False when p is None")
-            from sage.misc.superseded import deprecation
-            deprecation(17108, "Please use degrees() instead of degree(None)")
-            return self.degrees()
 
         # degree of a point
         if not subset:
@@ -1053,7 +1046,7 @@ class IncidenceStructure(object):
             False
         """
         B = self._blocks
-        return all(B[i] != B[i+1] for i in range(len(B)-1))
+        return all(B[i] != B[i + 1] for i in range(len(B) - 1))
 
     def _gap_(self):
         """
@@ -1065,12 +1058,11 @@ class IncidenceStructure(object):
             sage: BD._gap_()
             'BlockDesign(7,[[1, 2, 3], [1, 4, 5], [1, 6, 7], [2, 4, 6], [2, 5, 7], [3, 4, 7], [3, 5, 6]])'
         """
-        B = self.blocks()
         v = self.num_points()
-        gB = [[x+1 for x in b] for b in self._blocks]
-        return "BlockDesign("+str(v)+","+str(gB)+")"
+        gB = [[x + 1 for x in b] for b in self._blocks]
+        return "BlockDesign({},{})".format(v, gB)
 
-    def intersection_graph(self,sizes=None):
+    def intersection_graph(self, sizes=None):
         r"""
         Return the intersection graph of the incidence structure.
 
@@ -1355,21 +1347,8 @@ class IncidenceStructure(object):
         else:
             self._point_to_index = {v:i for i,v in enumerate(self._points)}
 
-    def __hash__(self):
-        r"""
-        Not Implemented
-
-        This object is mutable because of .relabel()
-
-        EXAMPLES::
-
-            sage: TD=designs.transversal_design(5,5)
-            sage: hash(TD)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: This object is mutable !
-        """
-        raise RuntimeError("This object is mutable !")
+    __hash__ = None
+    # This object is mutable because of .relabel()
 
     #####################
     # real computations #
@@ -1646,7 +1625,8 @@ class IncidenceStructure(object):
 
         .. NOTE::
 
-            Some references (e.g. [PT09]_ or [GQwiki]_) only allow *regular*
+            Some references (e.g. [PT2009]_ or
+            :wikipedia:`Generalized_quadrangle`) only allow *regular*
             generalized quadrangles. To use such a definition, see the
             ``parameters`` optional argument described below, or the methods
             :meth:`is_regular` and :meth:`is_uniform`.
@@ -1948,7 +1928,7 @@ class IncidenceStructure(object):
                 else:
                     # each class is stored as the list of indices of its blocks
                     self._classes = [[] for _ in range(n_classes)]
-                    for (t,i),v in six.iteritems(p.get_values(b)):
+                    for (t, i), v in six.iteritems(p.get_values(b)):
                         if v:
                             self._classes[t].append(self._blocks[i])
 
@@ -2091,8 +2071,10 @@ class IncidenceStructure(object):
         """
         from sage.graphs.graph import Graph
         blocks = self.blocks()
-        blocks_sets = [frozenset(_) for _ in blocks]
-        g = Graph([list(range(self.num_blocks())), lambda x,y: len(blocks_sets[x]&blocks_sets[y])], loops = False)
+        blocks_sets = [frozenset(b) for b in blocks]
+        g = Graph([list(range(self.num_blocks())),
+                   lambda x, y: len(blocks_sets[x]&blocks_sets[y])],
+                  loops=False)
         return [[blocks[i] for i in C] for C in g.coloring(algorithm="MILP")]
 
     def _spring_layout(self):
@@ -2219,6 +2201,7 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
+
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(METHODS_OF_IncidenceStructure=gen_rest_table_index(IncidenceStructure))

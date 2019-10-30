@@ -17,10 +17,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -132,7 +130,7 @@ cdef class CoinBackend(GenericBackend):
             1.0
         """
 
-        # for some reason, Cython is not accepting the line below, which appeare
+        # for some reason, Cython is not accepting the line below, which appears
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
         if  vtype == 0:
@@ -666,7 +664,7 @@ cdef class CoinBackend(GenericBackend):
         return (lb[i] if lb[i] != - self.si.getInfinity() else None,
                 ub[i] if ub[i] != + self.si.getInfinity() else None)
 
-    cpdef add_col(self, list indices, list coeffs):
+    cpdef add_col(self, indices, coeffs):
         r"""
         Adds a column.
 
@@ -701,14 +699,27 @@ cdef class CoinBackend(GenericBackend):
             5
         """
 
-        cdef int n = len(indices)
+        cdef list list_indices
+        cdef list list_coeffs
+
+        if type(indices) is not list:
+            list_indices = list(indices)
+        else:
+            list_indices = <list>indices
+
+        if type(coeffs) is not list:
+            list_coeffs = list(coeffs)
+        else:
+            list_coeffs = <list>coeffs
+
+        cdef int n = len(list_indices)
         cdef int * c_indices = <int*>check_malloc(n*sizeof(int))
         cdef double * c_values  = <double*>check_malloc(n*sizeof(double))
         cdef int i
 
         for 0<= i< n:
-            c_indices[i] = indices[i]
-            c_values[i] = coeffs[i]
+            c_indices[i] = list_indices[i]
+            c_values[i] = list_coeffs[i]
 
         self.si.addCol (n, c_indices, c_values, 0, self.si.getInfinity(), 0)
 

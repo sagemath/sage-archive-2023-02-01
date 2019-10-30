@@ -18,7 +18,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -563,12 +562,12 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variables(5)
             4
-            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 2.0, 2.0)
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2.0, 2.0)
             sage: p.row(0)
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
-            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 1.0, 1.0, name='foo')
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 1.0, 1.0, name='foo')
             sage: p.row_name(1)
             'foo'
 
@@ -594,8 +593,10 @@ cdef class GLPKBackend(GenericBackend):
         cdef int * row_i
         cdef double * row_values
 
-        row_i = <int*>mem.allocarray(len(coefficients)+1, sizeof(int))
-        row_values = <double*>mem.allocarray(len(coefficients)+1, sizeof(double))
+        coefficients = list(coefficients)
+        cdef int n_coeff = len(coefficients)
+        row_i = <int*>mem.allocarray(n_coeff + 1, sizeof(int))
+        row_values = <double*>mem.allocarray(n_coeff + 1, sizeof(double))
 
         cdef Py_ssize_t i = 1
         for c,v in coefficients:
@@ -604,7 +605,7 @@ cdef class GLPKBackend(GenericBackend):
             i += 1
 
         sig_on()
-        glp_set_mat_row(self.lp, n, len(coefficients), row_i, row_values)
+        glp_set_mat_row(self.lp, n, n_coeff, row_i, row_values)
         sig_off()
 
         if upper_bound is not None and lower_bound is None:
@@ -785,7 +786,7 @@ cdef class GLPKBackend(GenericBackend):
             (ub if ub != +DBL_MAX else None)
             )
 
-    cpdef add_col(self, list indices, list coeffs):
+    cpdef add_col(self, indices, coeffs):
         """
         Add a column.
 
@@ -1466,10 +1467,14 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p.add_variable()
             0
-            sage: p.variable_upper_bound(0, 'hey!')
+            sage: p.variable_upper_bound(0, 'hey!')  # py2
             Traceback (most recent call last):
             ...
             TypeError: a float is required
+            sage: p.variable_upper_bound(0, 'hey!')  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: must be real number, not str
         """
         cdef double x
         cdef double min
@@ -1557,10 +1562,14 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p.add_variable()
             0
-            sage: p.variable_lower_bound(0, 'hey!')
+            sage: p.variable_lower_bound(0, 'hey!')  # py2
             Traceback (most recent call last):
             ...
             TypeError: a float is required
+            sage: p.variable_lower_bound(0, 'hey!')  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: must be real number, not str
         """
         cdef double x
         cdef double max
@@ -1615,9 +1624,11 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
-            Writing problem data to ...
-            9 lines were written
+            sage: fnam = os.path.join(SAGE_TMP, "lp_problem.lp")
+            sage: p.write_lp(fnam)
+            ...
+            sage: len([(x,y) for x,y in enumerate(open(fnam,"r"))])
+            9
         """
         filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
         glp_write_lp(self.lp, NULL, filename)
@@ -1638,9 +1649,11 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)
-            Writing problem data to ...
-            17 records were written
+            sage: fnam = os.path.join(SAGE_TMP, "lp_problem.mps")
+            sage: p.write_mps(fnam, 2)
+            ...
+            sage: len([(x,y) for x,y in enumerate(open(fnam,"r"))])
+            17
         """
         filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
         glp_write_mps(self.lp, modern, NULL, filename)
@@ -2276,36 +2289,30 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: p.solve()
             0
-            sage: p.print_ranges()
-            Write sensitivity analysis report to ...
+            sage: p.print_ranges() # this writes out "ranges.tmp"
+            ...
+            sage: fnam = os.path.join(SAGE_TMP, "ranges.tmp")
+            sage: for ll in open(fnam, "r"):
+            ....:     if ll != '': print(ll)
             GLPK ... - SENSITIVITY ANALYSIS REPORT                                                                         Page   1
-            <BLANKLINE>
             Problem:
             Objective:  7.5 (MAXimum)
-            <BLANKLINE>
                No. Row name     St      Activity         Slack   Lower bound       Activity      Obj coef  Obj value at Limiting
                                                       Marginal   Upper bound          range         range   break point variable
             ------ ------------ -- ------------- ------------- -------------  ------------- ------------- ------------- ------------
                  1              NU       3.00000        .               -Inf         .           -2.50000        .
                                                        2.50000       3.00000           +Inf          +Inf          +Inf
-            <BLANKLINE>
             GLPK ... - SENSITIVITY ANALYSIS REPORT                                                                         Page   2
-            <BLANKLINE>
             Problem:
             Objective:  7.5 (MAXimum)
-            <BLANKLINE>
                No. Column name  St      Activity      Obj coef   Lower bound       Activity      Obj coef  Obj value at Limiting
                                                       Marginal   Upper bound          range         range   break point variable
             ------ ------------ -- ------------- ------------- -------------  ------------- ------------- ------------- ------------
                  1              NL        .            2.00000        .                -Inf          -Inf          +Inf
                                                        -.50000          +Inf        3.00000       2.50000       6.00000
-            <BLANKLINE>
                  2              BS       1.50000       5.00000        .                -Inf       4.00000       6.00000
                                                         .               +Inf        1.50000          +Inf          +Inf
-            <BLANKLINE>
             End of report
-            <BLANKLINE>
-            0
         """
 
         from sage.misc.all import SAGE_TMP

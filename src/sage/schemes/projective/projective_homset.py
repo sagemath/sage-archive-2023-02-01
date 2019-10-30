@@ -241,7 +241,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                                 if len(points[i]) == N + 1:
                                     S = PS([points[i][R.gen(j)] for j in range(N + 1)])
                                     S.normalize_coordinates()
-                                    if all([g(list(S)) < zero_tol for g in X.defining_polynomials()]):
+                                    if all(g(list(S)) < zero_tol for g in X.defining_polynomials()):
                                         rat_points.add(S)
                             else:
                                 if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
@@ -256,7 +256,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                         u = dupl_points[i]
                         for j in range(i+1, len(dupl_points)):
                             v = dupl_points[j]
-                            if all([(u[k]-v[k]).abs() < pt_tol for k in range(len(u))]):
+                            if all((u[k] - v[k]).abs() < pt_tol
+                                   for k in range(len(u))):
                                 rat_points.remove(u)
                                 break
 
@@ -438,7 +439,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                             if len(points[i]) == N + 1:
                                 S = PP([points[i][RF.gen(j)] for j in range(N + 1)])
                                 S.normalize_coordinates()
-                                if all([g(list(S)) < zero_tol for g in polys]):
+                                if all(g(list(S)) < zero_tol for g in polys):
                                     rat_points.add(S)
                         # remove duplicate element using tolerance
                         #since they are normalized we can just compare coefficients
@@ -447,7 +448,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                             u = dupl_points[i]
                             for j in range(i+1, len(dupl_points)):
                                 v = dupl_points[j]
-                                if all([(u[k]-v[k]).abs() < pt_tol for k in range(len(u))]):
+                                if all((u[k] - v[k]).abs() < pt_tol
+                                       for k in range(len(u))):
                                     rat_points.remove(u)
                                     break
 

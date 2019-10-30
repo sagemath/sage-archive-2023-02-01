@@ -1149,7 +1149,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
         'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(1)'
         sage: QQ[2^(1/3)]
-        Number Field in a with defining polynomial x^3 - 2
+        Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
 
         sage: preparse("a^b")
         'a**b'
@@ -1345,9 +1345,10 @@ def preparse_file(contents, globals=None, numeric_literals=True):
 
     return '\n'.join(F)
 
+
 def implicit_mul(code, level=5):
     r"""
-    Inserts \*'s to make implicit multiplication explicit.
+    Insert \*'s to make implicit multiplication explicit.
 
     INPUT:
 

@@ -298,7 +298,7 @@ cdef class SparseGraph(CGraph):
         """
         cdef SparseGraphBTNode **temp
         cdef SparseGraphLLNode *label_temp
-        cdef int i
+        cdef size_t i
 
         # Freeing the list of arcs attached to each vertex
         for i from 0 <= i < self.active_vertices.size * self.hash_length:
@@ -370,21 +370,22 @@ cdef class SparseGraph(CGraph):
             30
 
         """
-        if total == 0:
+        if not total:
             raise RuntimeError('Sparse graphs must allocate space for vertices!')
         cdef bitset_t bits
-        if total < self.active_vertices.size:
+        cdef size_t s_total = <size_t>total
+        if s_total < self.active_vertices.size:
             bitset_init(bits, self.active_vertices.size)
-            bitset_set_first_n(bits, total)
+            bitset_set_first_n(bits, s_total)
             if not bitset_issubset(self.active_vertices, bits):
                 bitset_free(bits)
                 return -1
             bitset_free(bits)
 
         self.vertices = <SparseGraphBTNode **>check_reallocarray(
-                self.vertices, total * self.hash_length, sizeof(SparseGraphBTNode *))
-        self.in_degrees = <int *>check_reallocarray(self.in_degrees, total, sizeof(int))
-        self.out_degrees = <int *>check_reallocarray(self.out_degrees, total, sizeof(int))
+                self.vertices, s_total * self.hash_length, sizeof(SparseGraphBTNode *))
+        self.in_degrees = <int *>check_reallocarray(self.in_degrees, s_total, sizeof(int))
+        self.out_degrees = <int *>check_reallocarray(self.out_degrees, s_total, sizeof(int))
 
         cdef int new_vertices = total - self.active_vertices.size
 
@@ -404,7 +405,7 @@ cdef class SparseGraph(CGraph):
                     new_vertices * sizeof(int))
 
         # self.active_vertices
-        bitset_realloc(self.active_vertices, total)
+        bitset_realloc(self.active_vertices, s_total)
 
     ###################################
     # Unlabeled arc functions
@@ -508,9 +509,9 @@ cdef class SparseGraph(CGraph):
             True
 
         """
-        if u < 0 or u >= self.active_vertices.size or not bitset_in(self.active_vertices, u):
+        if u < 0 or u >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, u):
             return False
-        if v < 0 or v >= self.active_vertices.size or not bitset_in(self.active_vertices, v):
+        if v < 0 or v >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, v):
             return False
         return self.has_arc_unsafe(u,v)
 
@@ -853,7 +854,8 @@ cdef class SparseGraph(CGraph):
         expensive than out_neighbors_unsafe.
 
         """
-        cdef int i, num_nbrs = 0
+        cdef size_t i
+        cdef int num_nbrs = 0
         if self.in_degrees[v] == 0:
             return 0
         for i from 0 <= i < self.active_vertices.size:
@@ -1374,7 +1376,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     something like the following example, which creates a Sage Graph instance
     which wraps a SparseGraph object::
 
-        sage: G = Graph(30, implementation="c_graph", sparse=True)
+        sage: G = Graph(30, sparse=True)
         sage: G.add_edges([(0,1), (0,3), (4,5), (9, 23)])
         sage: G.edges(labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
@@ -1384,7 +1386,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0,1,2))
-        sage: sorted(G.vertices(),
+        sage: sorted(list(G),
         ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...
@@ -1456,7 +1458,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: D = DiGraph(implementation='c_graph', sparse=True)
+            sage: D = DiGraph(sparse=True)
             sage: D.add_edge(0,1,2)
             sage: D.add_edge(0,1,3)
             sage: D.edges()
@@ -1472,6 +1474,17 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: G = Graph(3, sparse=True, loops=True)
             sage: G.add_edge(0,0); G.edges()
             [(0, 0, None)]
+            
+        Remove edges correctly when multiedges are not allowed (:trac:`28077`)::
+        
+            sage: D = DiGraph(multiedges=False)
+            sage: D.add_edge(1, 2, 'A')
+            sage: D.add_edge(1, 2, 'B')
+            sage: D.delete_edge(1, 2)
+            sage: D.incoming_edges(2)
+            []
+            sage: D.shortest_path(1, 2)
+            []
         """
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
@@ -1493,7 +1506,9 @@ cdef class SparseGraphBackend(CGraphBackend):
                 return
             else:
                 self._cg.del_all_arcs(u_int, v_int)
-                if not directed:
+                if directed:
+                    self._cg_rev.del_all_arcs(v_int, u_int)
+                else:
                     self._cg.del_all_arcs(v_int, u_int)
         if directed:
             self._cg.add_arc_label(u_int, v_int, l_int)
@@ -1565,13 +1580,13 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: G = Graph(implementation='c_graph', sparse=True)
+            sage: G = Graph(sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.delete_edge(0,1)
             sage: G.edges()
             []
 
-            sage: G = Graph(multiedges=True, implementation='c_graph', sparse=True)
+            sage: G = Graph(multiedges=True, sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.add_edge(0,1,None)
             sage: G.delete_edge(0,1)
@@ -1580,7 +1595,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         Do we remove loops correctly? (:trac:`12135`)::
 
-            sage: g=Graph({0:[0,0,0]}, implementation='c_graph', sparse=True)
+            sage: g=Graph({0:[0,0,0]}, sparse=True)
             sage: g.edges(labels=False)
             [(0, 0), (0, 0), (0, 0)]
             sage: g.delete_edge(0,0); g.edges(labels=False)

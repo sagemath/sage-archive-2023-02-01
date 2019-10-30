@@ -5696,9 +5696,9 @@ class Polyhedron_base(Element):
             sage: fsplit_pentagon.f_vector()
             (1, 7, 14, 9, 1)
 
-        TESTS::
+        TESTS:
 
-           Check that :trac:`28668` is fixed::
+        Check that :trac:`28668` is fixed::
 
             sage: P = polytopes.octahedron()
             sage: P.face_split(P.faces(2)[0])

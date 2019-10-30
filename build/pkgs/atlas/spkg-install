@@ -1,1 +1,1 @@
-exec sage-python spkg-install.py
+exec sage-system-python spkg-install.py

@@ -1,4 +1,4 @@
-#!/usr/bin/env sage-python23
+#!/usr/bin/env sage-system-python
 
 import sys, errno, os, platform, time, glob, subprocess, signal, argparse
 

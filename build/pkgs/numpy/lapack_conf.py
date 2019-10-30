@@ -1,4 +1,4 @@
-#!/usr/bin/env sage-python
+#!/usr/bin/env sage-system-python
 
 import pkgconfig, os
 

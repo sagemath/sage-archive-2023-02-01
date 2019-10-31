@@ -3316,3 +3316,27 @@ class Graphics(WithEqualityById, SageObject):
             data.append([g_zorder, g_str, g])
         data.sort()
         return '\n'.join(g[1] for g in data)
+
+# Deprecation notice for GraphicsArray import
+def GraphicsArray(*args, **kwargs):
+    r"""
+    This is deprecated (see :trac:`28675`).
+    Use :class:`sage.plot.multigraphics.GraphicsArray` instead.
+
+    TESTS::
+
+        sage: from sage.plot.graphics import GraphicsArray
+        sage: c = circle((0,0), 1)
+        sage: G = GraphicsArray([c, c])
+        doctest:...: DeprecationWarning: GraphicsArray must be imported from sage.plot.multigraphics and no longer from sage.plot.graphics.
+        See https://trac.sagemath.org/28675 for details.
+        sage: G
+        Graphics Array of size 1 x 2
+
+    """
+    from .multigraphics import GraphicsArray as NewGraphicsArray
+    from sage.misc.superseded import deprecation
+    deprecation(28675, "GraphicsArray must be imported from "
+                "sage.plot.multigraphics and no longer from "
+                "sage.plot.graphics.")
+    return NewGraphicsArray(*args, **kwargs)

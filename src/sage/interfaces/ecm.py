@@ -255,7 +255,7 @@ class ECM(SageObject):
             sage: ecm.interact()    # not tested
         """
         print("Enter numbers to run ECM on them.")
-        print("Press control-C to exit.")
+        print("Press control-D to exit.")
         subprocess.call(self._cmd)
 
     # Recommended settings from

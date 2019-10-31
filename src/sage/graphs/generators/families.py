@@ -632,7 +632,7 @@ def BarbellGraph(n1, n2):
         sage: P_n2.is_isomorphic(s_P)
         True
 
-    TESTS:
+    TESTS::
 
         sage: n1, n2 = randint(3, 10), randint(0, 10)
         sage: g = graphs.BarbellGraph(n1, n2)
@@ -709,7 +709,7 @@ def LollipopGraph(n1, n2):
         Lollipop graph: Graph on 17 vertices
         sage: g.show() # long time
 
-    TESTS:
+    TESTS::
 
         sage: n1, n2 = randint(3, 10), randint(0, 10)
         sage: g = graphs.LollipopGraph(n1, n2)
@@ -782,7 +782,7 @@ def TadpoleGraph(n1, n2):
         Tadpole graph: Graph on 17 vertices
         sage: g.show() # long time
 
-    TESTS:
+    TESTS::
 
         sage: n1, n2 = randint(3, 10), randint(0, 10)
         sage: g = graphs.TadpoleGraph(n1, n2)
@@ -875,7 +875,7 @@ def DipoleGraph(n):
         Dipole graph: Multi-graph on 2 vertices
         sage: g.show() # long time
 
-    TESTS:
+    TESTS::
 
         sage: n = randint(0, 10)
         sage: g = graphs.DipoleGraph(n)

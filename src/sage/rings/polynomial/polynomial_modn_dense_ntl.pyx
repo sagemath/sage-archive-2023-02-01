@@ -26,7 +26,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -1005,10 +1004,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def _derivative(self, var=None):
         r"""
-        Returns the formal derivative of self with respect to var.
+        Return the formal derivative of self with respect to ``var``.
 
-        var must be either the generator of the polynomial ring to which
-        this polynomial belongs, or None (either way the behaviour is the
+        ``var`` must be either the generator of the polynomial ring to which
+        this polynomial belongs, or ``None`` (either way the behaviour is the
         same).
 
         .. SEEALSO:: :meth:`.derivative`
@@ -1027,14 +1026,16 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             ...
             ValueError: cannot differentiate with respect to 2*x
 
+        TESTS::
+
             sage: y = var("y")
             sage: f._derivative(y)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            raise ValueError("cannot differentiate with respect to %s" % var)
+        if var is not None and var != self._parent.gen():
+            raise ValueError('cannot differentiate with respect to {}'.format(var))
 
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_diff(r.x, self.x)
@@ -1539,9 +1540,9 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def _derivative(self, var=None):
         r"""
-        Returns the formal derivative of self with respect to var.
+        Return the formal derivative of self with respect to ``var``.
 
-        var must be either the generator of the polynomial ring to which
+        ``var`` must be either the generator of the polynomial ring to which
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
@@ -1561,14 +1562,16 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             ...
             ValueError: cannot differentiate with respect to 2*x
 
+        TESTS::
+
             sage: y = var("y")
             sage: f._derivative(y)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            raise ValueError("cannot differentiate with respect to %s" % var)
+        if var is not None and var != self._parent.gen():
+            raise ValueError("cannot differentiate with respect to {}".format(var))
 
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         ZZ_pX_diff(r.x, self.x)

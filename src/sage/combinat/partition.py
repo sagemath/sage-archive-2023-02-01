@@ -1302,8 +1302,8 @@ class Partition(CombinatorialElement):
             sage: Partition([1]).boundary()
             [(1, 0), (1, 1), (0, 1)]
 
-        The partition (3, 1) can be visualized as three squares on a cartisian
-        plane.  The coordinates of the appropriate vertices form the boundary::
+        The partition (3, 1) can be visualized as three squares on a cartesian
+        plane. The coordinates of the appropriate vertices form the boundary::
 
             sage: Partition([3, 1]).boundary()
             [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]
@@ -2657,7 +2657,7 @@ class Partition(CombinatorialElement):
         r"""
         Return the initial column tableau of shape ``self``.
 
-        The initial column taleau of shape self is the standard tableau
+        The initial column tableau of shape self is the standard tableau
         that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
         entered in order from top to bottom and then left to right down the
         columns of ``self``.

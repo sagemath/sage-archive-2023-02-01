@@ -751,7 +751,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: C.plot(patch=1)
             Graphics object consisting of 1 graphics primitive
         """
-        # if user hasn't specified a favourite affine patch, take the
+        # if user has not specified a favorite affine patch, take the
         # one avoiding "infinity", i.e. the one corresponding to the
         # last projective coordinate being nonzero
         patch = kwds.pop('patch', self.ngens() - 1)

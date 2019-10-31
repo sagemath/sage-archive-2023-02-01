@@ -33,7 +33,7 @@ Options currently supported by the viewer:
 - ``axes_labels`` -- (default: ['x','y','z']) list or tuple of three strings;
   set to False to remove all labels
 
-- ``color`` -- (default: 'blue') color of the 3d object
+- ``color`` -- (default: 'blue') color of the 3D object
 
 - ``decimals`` -- (default: 2) integer determining decimals displayed in labels
 
@@ -50,6 +50,9 @@ Options currently supported by the viewer:
 - ``radius`` -- (default: None) numeric value for radius of lines; use to render
   lines thicker than available using ``thickness`` or on Windows platforms where
   ``thickness`` is ignored
+
+- ``render_order`` -- (default: 0) numeric value for rendering order of transparent surfaces;
+  objects render from lowest to highest value ensuring that lower-valued objects render completely
 
 - ``thickness`` -- (default: 1) numeric value for thickness of lines
 

@@ -1,7 +1,6 @@
 """
 Dense Matrices over a general ring
 """
-from __future__ import absolute_import
 
 cimport cython
 from cpython.list cimport *

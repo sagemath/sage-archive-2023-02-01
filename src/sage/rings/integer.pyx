@@ -138,7 +138,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
 # creation and deletion are setup by the call to hook_fast_tp_functions
@@ -789,7 +788,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_get_pyintlong(self.value)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of self under the map that sends the generators of
         the parent to im_gens. Since ZZ maps canonically in the category

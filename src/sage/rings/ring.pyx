@@ -65,7 +65,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method
 
@@ -179,7 +178,7 @@ cdef class Ring(ParentWithGens):
         sage: QQ.cardinality()
         +Infinity
      """
-    def __init__(self, base, names=None, normalize=True, category = None):
+    def __init__(self, base, names=None, normalize=True, category=None):
         """
         Initialize ``self``.
 
@@ -996,17 +995,6 @@ cdef class Ring(ParentWithGens):
             raise NotImplementedError
         else:
             return False
-
-    def is_ring(self):
-        """
-        Return ``True`` since ``self`` is a ring.
-
-        EXAMPLES::
-
-            sage: QQ.is_ring()
-            True
-        """
-        return True
 
     def is_noetherian(self):
         """
@@ -2549,6 +2537,4 @@ def is_Ring(x):
         sage: is_Ring(MS)
         True
     """
-    # TODO: use the idiom `x in _Rings` as soon as all rings will be
-    # in the category Rings()
-    return isinstance(x, Ring) or x in _Rings
+    return x in _Rings

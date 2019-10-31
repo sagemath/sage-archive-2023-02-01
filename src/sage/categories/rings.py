@@ -266,7 +266,6 @@ class Rings(CategoryWithAxiom):
 
                 sage: Parent(QQ,category=Rings()).is_ring()
                 True
-
             """
             return True
 

@@ -505,7 +505,17 @@ class DiffForm(TensorField):
             sage: c1.display(e_xy)
             c = (-x^3 - (x - 1)*y^2) dx/\dy
 
+        Wedging with scalar fields yields the multiplication from right::
+
+            sage: f = M.scalar_field(x, name='f')
+            sage: f.add_expr_by_continuation(c_uv, W)
+            sage: t = a.wedge(f)
+            sage: t.display()
+            x*y dx + x^2 dy
+
         """
+        if other._tensor_rank == 0:
+            return self * other
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
@@ -1415,7 +1425,16 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: s[1,2,3] == a[1]*b[2,3] + a[2]*b[3,1] + a[3]*b[1,2]
             True
 
+        Wedging with scalar fields yields the multiplication from right::
+
+            sage: f = M.scalar_field(x, name='f')
+            sage: t = a.wedge(f)
+            sage: t.display()
+            2*x dx + (x^2 + x) dy + x*y*z dz
+
         """
+        if other._tensor_rank == 0:
+            return self * other
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
                 raise ValueError("incompatible ambient domains for exterior " +

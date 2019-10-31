@@ -6526,8 +6526,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                     pm = choice([-1,1])
 
                     # rays has immutable elements
-                    from copy import copy
-                    rays = [copy(ray) for ray in rays]
+                    rays = [copy.copy(ray) for ray in rays]
 
                     for i, ray in enumerate(rays):
                         rays[i][0] = pm * (ray[0].abs() + 1)

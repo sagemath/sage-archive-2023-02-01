@@ -21,7 +21,6 @@ Check that operations with numpy elements work well (see :trac:`18076` and
     sage: numpy.float32('1.5') * x
     1.50000000000000*x
 """
-from __future__ import absolute_import
 
 from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -517,9 +516,20 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1])
             sage: f.derivative()
             3.00000000000000*x^2 + 4.00000000000000*x
+
+        TESTS::
+
+            sage: x, y = var('x,y')
+            sage: f.derivative(x)
+            3.00000000000000*x^2 + 4.00000000000000*x
+            sage: f.derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
         if var is not None and var != self._parent.gen():
-            return self._new(-1)
+            raise ValueError("cannot differentiate with respect to {}".format(var))
+
         cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree-1)
         for i from 0 <= i < self._degree:

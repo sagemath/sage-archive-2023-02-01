@@ -254,7 +254,7 @@ class TateCurve(SageObject):
             4 + 2*5^2 + 2*5^4 + O(5^5)
         """
 
-        Csq = getattr(self, "__Csquare", None)
+        Csq = getattr(self, "__csquare", None)
         if Csq and Csq.precision_relative() >= prec:
             return Csq
 
@@ -308,7 +308,7 @@ class TateCurve(SageObject):
         """
         return self._Csquare().is_square()
 
-    def parametrisation_onto_tate_curve(self, u, prec=20):
+    def parametrisation_onto_tate_curve(self, u, prec=None):
         r"""
         Given an element `u` in `\QQ_p^{\times}`, this computes its image on the Tate curve
         under the `p`-adic uniformisation of `E`.
@@ -323,9 +323,19 @@ class TateCurve(SageObject):
         EXAMPLES::
 
             sage: eq = EllipticCurve('130a1').tate_curve(5)
+            sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10), prec=10)
+            (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) : 4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^10))
             sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10))
             (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) : 4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^10))
+            sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10), prec=20)
+            Traceback (most recent call last):
+            ...
+            ValueError: Requested more precision than the precision of u
+
         """
+
+        if prec is None:
+            prec = getattr(u, "precision_relative", lambda : 20)()
         u = Qp(self._p, prec)(u)
         if prec > u.precision_relative():
             raise ValueError("Requested more precision than the precision of u")
@@ -471,7 +481,7 @@ class TateCurve(SageObject):
         Now we map the lift l back and check that it is indeed right.::
 
             sage: eq.parametrisation_onto_original_curve(l)
-            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^20))
+            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^10))
             sage: e5 = e.change_ring(Qp(5,9))
             sage: e5(12*P)
             (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^9))
@@ -508,7 +518,7 @@ class TateCurve(SageObject):
             u += z ** i / fac
         return u
 
-    def parametrisation_onto_original_curve(self, u, prec=20):
+    def parametrisation_onto_original_curve(self, u, prec=None):
         r"""
         Given an element `u` in `\QQ_p^{\times}`, this computes its image on the original curve
         under the `p`-adic uniformisation of `E`.
@@ -525,7 +535,11 @@ class TateCurve(SageObject):
             sage: eq.parametrisation_onto_original_curve(1+5+5^2+O(5^10))
             (4*5^-2 + 4*5^-1 + 4 + 2*5^3 + 3*5^4 + 2*5^6 + O(5^7) :
             3*5^-3 + 5^-2 + 4*5^-1 + 1 + 4*5 + 5^2 + 3*5^5 + O(5^6) :
-            1 + O(5^20))
+            1 + O(5^10))
+            sage: eq.parametrisation_onto_original_curve(1+5+5^2+O(5^10), prec=20)
+            Traceback (most recent call last):
+            ...
+            ValueError: Requested more precision than the precision of u
 
         Here is how one gets a 4-torsion point on `E` over `\QQ_5`::
 
@@ -539,6 +553,9 @@ class TateCurve(SageObject):
         if not self.is_split():
             raise ValueError("The curve must have split multiplicative "
                              "reduction.")
+        if prec is None:
+            prec = getattr(u, "precision_relative", lambda : 20)()
+
         P = self.parametrisation_onto_tate_curve(u, prec=prec)
         C, r, s, t = self._inverse_isomorphism(prec=prec)
         xx = r + C ** 2 * P[0]

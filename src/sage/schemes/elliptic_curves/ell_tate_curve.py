@@ -326,11 +326,11 @@ class TateCurve(SageObject):
             sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10))
             (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) : 4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^10))
         """
-        if u == 1:
-            return self.curve(prec=prec)(0)
         u = Qp(self._p, prec)(u)
         if prec > u.precision_relative():
             raise ValueError("Requested more precision than the precision of u")
+        if u == 1:
+            return self.curve(prec=prec)(0)
 
         q = self.parameter(prec=prec)
         un = u * q ** (-(u.valuation() / q.valuation()).floor())

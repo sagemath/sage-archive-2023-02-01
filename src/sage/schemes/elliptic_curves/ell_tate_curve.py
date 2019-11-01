@@ -174,12 +174,9 @@ class TateCurve(SageObject):
             sage: eq.parameter(prec=5)
             3*5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
         """
-        try:
-            qE = self._q
-            if qE.absolute_precision() >= prec:
-                return qE
-        except AttributeError:
-            pass
+        qE = getattr(self, "_q", None)
+        if qE and qE.precision_relative() >= prec:
+            return Qp(self._p, prec=prec)(qE)
 
         E4 = EisensteinForms(weight=4).basis()[0]
         Delta = CuspForms(weight=12).basis()[0]
@@ -222,19 +219,16 @@ class TateCurve(SageObject):
             (2*5^3+5^4+2*5^5+5^7+O(5^8)) over 5-adic
             Field with capped relative precision 5
         """
-        try:
-            Eq = self.__curve
-            if Eq.a6().absolute_precision() >= prec:
-                return Eq
-        except AttributeError:
-            pass
+
+        Eq = getattr(self, "__curve", None)
+        if Eq and Eq.a6().precision_relative() >= prec:
+            return Eq.change_ring(Qp(self._p, prec))
 
         qE = self.parameter(prec=prec)
         precp = prec + 2
-        R = qE.parent()
-
         tate_a4 = -5 * self.__sk(3, precp)
         tate_a6 = (tate_a4 - 7 * self.__sk(5, precp)) / 12
+        R = qE.parent()
         Eq = EllipticCurve([R.one(), R.zero(), R.zero(), R(tate_a4), R(tate_a6)])
         self.__curve = Eq
         return Eq
@@ -259,12 +253,10 @@ class TateCurve(SageObject):
             sage: eq._Csquare(prec=5)
             4 + 2*5^2 + 2*5^4 + O(5^5)
         """
-        try:
-            Csq = self.__Csquare
-            if Csq.absolute_precision() >= prec:
-                return Csq
-        except AttributeError:
-            pass
+
+        Csq = getattr(self, "__Csquare", None)
+        if Csq and Csq.precision_relative() >= prec:
+            return Csq
 
         Eq = self.curve(prec=prec)
         tateCsquare = Eq.c6() * self._E.c4() / Eq.c4() / self._E.c6()
@@ -316,7 +308,7 @@ class TateCurve(SageObject):
         """
         return self._Csquare().is_square()
 
-    def parametrisation_onto_tate_curve(self, u, prec=20):
+    def parametrisation_onto_tate_curve(self, u, prec=None):
         r"""
         Given an element `u` in `\QQ_p^{\times}`, this computes its image on the Tate curve
         under the `p`-adic uniformisation of `E`.
@@ -332,9 +324,12 @@ class TateCurve(SageObject):
 
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10))
-            (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) :
-            4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^20))
+            (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) : 4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^10))
         """
+        if prec is None:
+            prec = u.precision_relative()
+        if prec > u.precision_relative():
+            raise ValueError("Requested more precision than the precision of u")
         if u == 1:
             return self.curve(prec=prec)(0)
 

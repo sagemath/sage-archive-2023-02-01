@@ -680,9 +680,8 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
 
         INPUT:
 
-        - ``max_depth`` -- (Default: ``None``) specifies the maximal depth
-          to which elements are computed; if ``None``, the value of
-          ``self._max_depth`` is used
+        - ``max_depth`` -- (default: ``self._max_depth``) specifies the
+          maximal depth to which elements are computed
 
         EXAMPLES::
 
@@ -807,9 +806,8 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
 
         INPUT:
 
-        - ``max_depth`` -- (default: ``None``) specifies the maximal depth
-          for which outgoing edges of elements are computed; if ``None``, the
-          value of ``self._max_depth`` is used
+        - ``max_depth`` -- (default: ``self._max_depth``) specifies the
+          maximal depth for which outgoing edges of elements are computed
         - ``loops`` -- (default: ``True``) option for the digraph
         - ``multiedges`` -- (default: ``True``) option of the digraph
 
@@ -913,9 +911,8 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
 
         INPUT:
 
-        - ``max_depth`` -- (Default: ``None``) Specifies the maximal depth
-          to which elements are computed. If None, the value of
-          ``self._max_depth`` is used.
+        - ``max_depth`` -- (default: ``self._max_depth``) specifies the
+          maximal depth to which elements are computed
 
         EXAMPLES::
 
@@ -1181,9 +1178,8 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
 
         INPUT:
 
-        - ``max_depth`` -- (Default: ``None``) Specifies the maximal depth
-          to which elements are computed. If None, the value of
-          ``self._max_depth`` is used.
+        - ``max_depth`` -- (default: ``self._max_depth``) specifies the
+          maximal depth to which elements are computed
 
         EXAMPLES::
 

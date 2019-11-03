@@ -10,7 +10,8 @@ the algebraic closure `\bar{\QQ}_p` are in bijection with
 `\bar{\QQ}_p^{\times}\,/\, q^{\ZZ}`. More precisely there exists
 the series `s_4(q)` and `s_6(q)` such that the
 `y^2+x y = x^3 + s_4(q) x+s_6(q)` curve is isomorphic to `E` over
-`\bar{\QQ}_p` (or over `\QQ_p` if the reduction is *split* multiplicative). There is `p`-adic analytic map from
+`\bar{\QQ}_p` (or over `\QQ_p` if the reduction is *split* multiplicative).
+There is `p`-adic analytic map from
 `\bar{\QQ}^{\times}_p` to this curve with kernel `q^{\ZZ}`.
 Points of good reduction correspond to points of valuation
 `0` in `\bar{\QQ}^{\times}_p`.
@@ -317,7 +318,8 @@ class TateCurve(SageObject):
 
         - ``u`` - a non-zero `p`-adic number.
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` - the `p`-adic precision, default is the relative precision of ``u``
+          otherwise 20.
 
 
         EXAMPLES::
@@ -527,7 +529,8 @@ class TateCurve(SageObject):
 
         - ``u`` - a non-zero `p`-adic number.
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` - the `p`-adic precision, default is the relative precision of ``u``
+          otherwise 20.
 
         EXAMPLES::
 

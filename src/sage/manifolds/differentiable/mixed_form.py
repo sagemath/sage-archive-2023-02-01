@@ -114,7 +114,7 @@ class MixedForm(AlgebraElement):
 
     Alternatively, the components can be determined from scratch::
 
-        sage: B = M.mixed_form(name='B', comp=[f, omega, eta])
+        sage: B = M.mixed_form([f, omega, eta], name='B')
         sage: A == B
         True
 
@@ -360,7 +360,7 @@ class MixedForm(AlgebraElement):
             sage: eta[e_uv,0,1] = u*v; eta.display(e_uv)
             eta = u*v du/\dv
             sage: eta.add_comp_by_continuation(e_xy, W, c_xy) # continuation onto M
-            sage: F = M.mixed_form(name='F', comp=[0, omega, eta]); F
+            sage: F = M.mixed_form([0, omega, eta], name='F'); F
             Mixed differential form F on the 2-dimensional differentiable
              manifold M
             sage: F.display() # display names of homogeneous components
@@ -421,7 +421,7 @@ class MixedForm(AlgebraElement):
             sage: f = M.scalar_field(name='f')
             sage: omega = M.diff_form(1, name='omega')
             sage: eta = M.diff_form(2, name='eta')
-            sage: F = M.mixed_form(name='F', comp=[f, omega, eta]); F
+            sage: F = M.mixed_form([f, omega, eta], name='F'); F
             Mixed differential form F on the 2-dimensional differentiable
              manifold M
             sage: F.display() # display names of homogeneous components
@@ -569,7 +569,7 @@ class MixedForm(AlgebraElement):
             sage: eta = M.diff_form(1, name='eta')
             sage: eta[e_xy,0] = x+y
             sage: eta.add_comp_by_continuation(e_uv, W, c_uv)
-            sage: F = M.mixed_form(comp=[f, eta, 0])
+            sage: F = M.mixed_form([f, eta, 0])
             sage: F == F
             True
             sage: F == F.copy()
@@ -621,13 +621,13 @@ class MixedForm(AlgebraElement):
             sage: a = M.diff_form(1, name='a')
             sage: a[e_xy,0] = x
             sage: a.add_comp_by_continuation(e_uv, W, c_uv) # continuation onto M
-            sage: A = M.mixed_form(name='A', comp=[f, a, 0])
+            sage: A = M.mixed_form([f, a, 0], name='A')
             sage: g = M.scalar_field(u, name='g', chart=c_uv)
             sage: g.add_expr_by_continuation(c_xy, W) # continuation onto M
             sage: b = M.diff_form(1, name='b')
             sage: b[e_uv,1] = v
             sage: b.add_comp_by_continuation(e_xy, W, c_xy) # continuation onto M
-            sage: B = M.mixed_form(name='B', comp=[g, b, 0])
+            sage: B = M.mixed_form([g, b, 0], name='B')
             sage: C = A._add_(B); C
             Mixed differential form A+B on the 2-dimensional differentiable
              manifold M
@@ -697,13 +697,13 @@ class MixedForm(AlgebraElement):
             sage: a = M.diff_form(1, name='a')
             sage: a[e_xy,0] = x
             sage: a.add_comp_by_continuation(e_uv, W, c_uv) # continuation onto M
-            sage: A = M.mixed_form(name='A', comp=[f, a, 0])
+            sage: A = M.mixed_form([f, a, 0], name='A')
             sage: g = M.scalar_field(u, name='g', chart=c_uv)
             sage: g.add_expr_by_continuation(c_xy, W) # continuation onto M
             sage: b = M.diff_form(1, name='b')
             sage: b[e_uv,1] = v
             sage: b.add_comp_by_continuation(e_xy, W, c_xy) # continuation onto M
-            sage: B = M.mixed_form(name='B', comp=[g, b, 0])
+            sage: B = M.mixed_form([g, b, 0], name='B')
             sage: C = A._sub_(B); C
             Mixed differential form A-B on the 2-dimensional differentiable
              manifold M
@@ -806,10 +806,10 @@ class MixedForm(AlgebraElement):
             sage: mu[0,2] = z
             sage: mu.display()
             mu = z dx/\dz
-            sage: A = M.mixed_form(name='A', comp=[f, omega, mu, 0])
+            sage: A = M.mixed_form([f, omega, mu, 0], name='A')
             sage: A.display_expansion()
             A = [x] + [x dx] + [z dx/\dz] + [0]
-            sage: B = M.mixed_form(name='B', comp=[g, eta, mu, 0])
+            sage: B = M.mixed_form([g, eta, mu, 0], name='B')
             sage: B.display_expansion()
             B = [y] + [y dy] + [z dx/\dz] + [0]
 
@@ -887,7 +887,7 @@ class MixedForm(AlgebraElement):
             sage: omega = M.diff_form(1, name='omega')
             sage: omega[0] = y*x; omega.display()
             omega = x*y dx
-            sage: F = M.mixed_form(name='F', comp=[0, omega, 0])
+            sage: F = M.mixed_form([0, omega, 0], name='F')
             sage: A = x*F*y; A
             Mixed differential form y/\(x/\F) on the 2-dimensional
              differentiable manifold M
@@ -947,7 +947,7 @@ class MixedForm(AlgebraElement):
             sage: a[1,2], a[1,3], a[2,3] = z+y^2, z+x, x^2
             sage: a.disp()
             a = (y^2 + z) dx/\dy + (x + z) dx/\dz + x^2 dy/\dz
-            sage: F = M.mixed_form(name='F', comp=[f, 0, a, 0]); F.display()
+            sage: F = M.mixed_form([f, 0, a, 0], name='F'); F.display()
             F = f + zero + a + zero
             sage: dF = F.exterior_derivative()
             sage: dF.display()
@@ -1006,7 +1006,7 @@ class MixedForm(AlgebraElement):
             sage: omega.add_comp_by_continuation(e_uv, W, c_uv)
             sage: omega.display()
             omega = x dx
-            sage: A = M.mixed_form(name='A', comp=[f, omega, 0]); A.display()
+            sage: A = M.mixed_form([f, omega, 0], name='A'); A.display()
             A = f + omega + zero
             sage: A.display_expansion(e_uv)
             A = [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
@@ -1057,7 +1057,7 @@ class MixedForm(AlgebraElement):
             sage: a[0] = y
             sage: b = M.diff_form(2, name='b')
             sage: b[0,1] = x*y
-            sage: A = M.mixed_form(name='A', comp=[f, 0, 0]); A.display()
+            sage: A = M.mixed_form([f, 0, 0], name='A'); A.display()
             A = f + zero + zero
             sage: A[1:3] = [a, b]; A.display()
             A = f + a + b
@@ -1102,7 +1102,7 @@ class MixedForm(AlgebraElement):
             sage: f = M.scalar_field(name='f')
             sage: a = M.diff_form(1, name='a')
             sage: b = M.diff_form(2, name='b')
-            sage: A = M.mixed_form(name='A', comp=[f, a, b]); A.display()
+            sage: A = M.mixed_form([f, a, b], name='A'); A.display()
             A = f + a + b
             sage: A.__getitem__(0)
             Scalar field f on the 2-dimensional differentiable manifold M
@@ -1149,7 +1149,7 @@ class MixedForm(AlgebraElement):
             sage: f = U.scalar_field(x, name='f', chart=c_xy)
             sage: omega = U.diff_form(1, name='omega')
             sage: omega[e_xy,0] = y
-            sage: AU = U.mixed_form(name='A', comp=[f, omega, 0]); AU
+            sage: AU = U.mixed_form([f, omega, 0], name='A'); AU
             Mixed differential form A on the Open subset U of the 2-dimensional
              differentiable manifold M
             sage: AU.display_expansion(e_xy)
@@ -1237,7 +1237,7 @@ class MixedForm(AlgebraElement):
 
         Now, a mixed form can be restricted to some subdomain::
 
-            sage: F = M.mixed_form(name='F', comp=[f, omega, eta])
+            sage: F = M.mixed_form([f, omega, eta], name='F')
             sage: FV = F.restrict(V); FV
             Mixed differential form F on the Open subset V of the 2-dimensional
              differentiable manifold M

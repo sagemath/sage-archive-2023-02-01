@@ -421,7 +421,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.solve()                                    # optional - cbc
             10.0
             sage: p.get_values([x,y])                          # optional - cbc
-            [0.0, 3.0]
+            [0, 3]
 
         TESTS:
 
@@ -459,14 +459,14 @@ cdef class CoinBackend(GenericBackend):
             sage: p.solve()                                    # optional - cbc
             9.0
             sage: p.get_values(x)                              # optional - cbc
-            2.0...
+            2
             sage: p.get_values(y)                              # optional - cbc
-            0.0...
+            0
             sage: p.remove_constraints([0])                    # optional - cbc
             sage: p.solve()                                    # optional - cbc
             10.0
             sage: p.get_values([x,y])                          # optional - cbc
-            [0.0, 3.0]
+            [0, 3]
 
         TESTS:
 
@@ -868,7 +868,7 @@ cdef class CoinBackend(GenericBackend):
         if self.is_variable_continuous(variable):
             return v
         else:
-            return round(v)
+            return int(round(v))
 
     cpdef int ncols(self):
         r"""

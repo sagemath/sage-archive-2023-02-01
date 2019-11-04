@@ -36,7 +36,7 @@ character-by-character::
     sage: try:
     ....:     attach(src)
     ....: except Exception:
-    ....:     traceback.print_exc()
+    ....:     traceback.print_exc(file=sys.stdout)
     Traceback (most recent call last):
     ...
         exec(preparse_file(f.read()) + "\n", globals)
@@ -48,7 +48,7 @@ character-by-character::
     sage: try:
     ....:     attach(src)
     ....: except Exception:
-    ....:     traceback.print_exc()
+    ....:     traceback.print_exc(file=sys.stdout)
     Traceback (most recent call last):
     ...
         exec(code, globals)

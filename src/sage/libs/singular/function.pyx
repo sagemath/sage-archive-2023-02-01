@@ -1310,6 +1310,11 @@ cdef class SingularFunction(SageObject):
             The input is no groebner basis.
             leaving triang.lib::triangL
 
+        Flush any stray output -- see :trac:`28622`::
+
+            sage: sys.stdout.flush()
+            ...
+
             sage: G= Ideal(I.groebner_basis())
             sage: triangL(G,attributes={G:{'isSB':1}})
             [[e + d + c + b + a, ...]]

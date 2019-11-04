@@ -825,7 +825,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.get_variable_value(1)                          # optional - cbc
             1.5
         """
-        return self.model.solver().getObjValue() + self.obj_constant_term
+        return self.model.solver().getObjValue() + <double>self.obj_constant_term
 
     cpdef get_variable_value(self, int variable):
         r"""

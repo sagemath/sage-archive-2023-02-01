@@ -173,6 +173,7 @@ class MixedForm(AlgebraElement):
         sage: A[0].display()
         f: M --> R
         on U: (x, y) |--> x
+        on W: (u, v) |--> 1/2*u + 1/2*v
         sage: A[1].set_name('omega')
         sage: A[1][0] = y*x; A[1].display(e_xy)
         omega = x*y dx

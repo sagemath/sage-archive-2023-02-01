@@ -629,7 +629,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
     def _coerce_base_ring(self, other):
         r"""
-        Return the common base rincg for both ``self`` and ``other``.
+        Return the common base ring for both ``self`` and ``other``.
 
         This method is not part of the coercion framework, but only a
         convenience function for :class:`Polyhedra_base`.

@@ -971,6 +971,7 @@ class Section(ModuleElement):
             sage: sorted(s._components.values())[0]._comp[(1,)].display()
             S^2 --> R
             on U: (x, y) |--> x
+            on W: (u, v) |--> u/(u^2 + v^2)
 
         To fix that, we extend the components from ``W`` to ``V`` first, using
         :meth:`add_comp_by_continuation`::

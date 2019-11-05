@@ -54,6 +54,8 @@ class being:
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
+- Michael Jung (2019): improve treatment of the zero element; add method
+  ``copy_from``
 
 REFERENCES:
 
@@ -1628,6 +1630,53 @@ class FreeModuleTensor(ModuleElement):
                 basis = self._fmodule._def_basis
         self.set_comp(basis)[args] = value
 
+    def copy_from(self, other):
+        r"""
+        Make ``self`` to a copy from ``other``.
+
+        INPUT:
+
+        - ``other`` -- other tensor in the very same module from which
+          ``self`` should be a copy of
+
+        .. WARNING::
+
+            All previous defined components will be deleted!
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
+            sage: e = M.basis('e')
+            sage: t = M.tensor((1,1), name='t')
+            sage: t[1,2] = -3 ; t[3,3] = 2
+            sage: s = M.tensor((1,1), name='s')
+            sage: s.copy_from(t)
+            sage: s[:]
+            [ 0 -3  0]
+            [ 0  0  0]
+            [ 0  0  2]
+            sage: s == t
+            True
+
+        If the original tensor is modified, the copy is not::
+
+            sage: t[2,2] = 4
+            sage: s[:]
+            [ 0 -3  0]
+            [ 0  0  0]
+            [ 0  0  2]
+            sage: s == t
+            False
+
+        """
+        if other not in self.parent():
+            raise TypeError("the original must be an element "
+                            + "of {}".format(self.parent()))
+        self._del_derived()
+        self._components.clear()
+        for basis, comp in other._components.items():
+            self._components[basis] = comp.copy()
+        self._is_zero = other._is_zero
 
     def copy(self, name=None, latex_name=None):
         r"""

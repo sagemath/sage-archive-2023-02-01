@@ -718,9 +718,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         FreeModuleTensor._del_derived(self)
         TensorField._del_derived(self)
         if del_restrictions:
-            self._restrictions.clear()
-            self._extensions_graph = {self._domain: self}
-            self._restrictions_graph = {self._domain: self}
+            self._del_restrictions()
 
     def _set_comp_unsafe(self, basis=None):
         r"""
@@ -1131,7 +1129,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # components on a subdomain:
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.comp(basis=basis, from_basis=from_basis)
-
 
     def _common_coord_frame(self, other):
         r"""

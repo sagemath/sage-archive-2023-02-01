@@ -686,7 +686,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: macaulay2.ring('QQ', '[a_0..a_2,b..<d,f]').vars()     # optional - macaulay2
             | a_0 a_1 a_2 b c f |
         """
-        return self.new(_macaulay2_input_ring(base_ring, vars, order))
+        return self.new(self._macaulay2_input_ring(base_ring, vars, order))
 
     def help(self, s):
         """
@@ -792,39 +792,25 @@ class Macaulay2(ExtraTabCompletion, Expect):
         value = self(value)
         return self.new("new %s from %s"%(type.name(), value.name()))
 
+    def _macaulay2_input_ring(self, base_ring, vars, order='GRevLex'):
+        """
+        Build a string representation of a polynomial ring which can be used as
+        Macaulay2 input.
 
-def _macaulay2_input_ring(base_ring, vars, order='GRevLex'):
-    """
-    Build a string representation of a polynomial ring which can be used as
-    Macaulay2 input.
+        TESTS::
 
-    TESTS::
+            sage: R = GF(101)['x']
+            sage: macaulay2._macaulay2_input_ring(R.base_ring(), R.gens(), 'Lex')   # optional - macaulay2
+            'sage...[symbol x, MonomialSize=>16, MonomialOrder=>Lex]'
+        """
+        if not isinstance(base_ring, string_types):
+            base_ring = self(base_ring).name()
 
-        sage: R = GF(101)['x']
-        sage: from sage.interfaces.macaulay2 import _macaulay2_input_ring
-        sage: _macaulay2_input_ring(R.base_ring(), R.gens(), 'Lex')
-        'ZZ/101[symbol x, MonomialSize=>16, MonomialOrder=>Lex]'
-    """
-    if not isinstance(base_ring, string_types):
-        from sage.rings.integer_ring import is_IntegerRing
-        if base_ring.is_prime_field():
-            if base_ring.characteristic() == 0:
-                base_ring = "QQ"
-            else:
-                # Note that we explicitly use ZZ/p, since computations are
-                # faster than with GF p in Macaulay2 (2019).
-                base_ring = "ZZ/" + str(base_ring.characteristic())
-        elif is_IntegerRing(base_ring):
-            base_ring = "ZZ"
-        else:
-            raise TypeError("no conversion of %s to a Macaulay2 ring defined"
-                            % base_ring)
-
-    varstr = str(vars)[1:-1].rstrip(',')
-    r = re.compile(r"(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
-    varstr = "symbol " + r.sub("symbol ", varstr)
-    return '%s[%s, MonomialSize=>16, MonomialOrder=>%s]' % (base_ring, varstr,
-                                                            order)
+        varstr = str(vars)[1:-1].rstrip(',')
+        r = re.compile(r"(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
+        varstr = "symbol " + r.sub("symbol ", varstr)
+        return '%s[%s, MonomialSize=>16, MonomialOrder=>%s]' % (base_ring, varstr,
+                                                                order)
 
 
 @instancedoc
@@ -1358,6 +1344,14 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: macaulay2(S).sage() == S         # optional - macaulay2
             True
 
+            sage: R = GF(13)['a,b']['c,d']
+            sage: macaulay2(R).sage() == R  # optional - macaulay2
+            True
+            sage: macaulay2('a^2 + c').sage() == R('a^2 + c')  # optional - macaulay2
+            True
+            sage: macaulay2.substitute('a', R).sage().parent() is R  # optional - macaulay2
+            True
+
             sage: R = macaulay2("QQ^2")  # optional - macaulay2
             sage: R.sage()               # optional - macaulay2
             Vector space of dimension 2 over Rational Field
@@ -1475,7 +1469,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 gens = str(self.gens().toString())[1:-1]
 
                 # Check that we are dealing with default degrees, i.e. 1's.
-                if self.degrees().any("x -> x != {1}")._sage_():
+                if self.options().sharp("Degrees").any("x -> x != {1}")._sage_():
                     raise ValueError("cannot convert Macaulay2 polynomial ring with non-default degrees to Sage")
                 #Handle the term order
                 external_string = self.external_string()
@@ -1563,9 +1557,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             parent = m2_parent._sage_()
 
             if cls_cls_str in ("PolynomialRing", "QuotientRing"):
-                from sage.misc.sage_eval import sage_eval
-                gens_dict = parent.gens_dict()
-                return sage_eval(self.external_string(), gens_dict)
+                return parent(self.external_string())
             elif cls_cls_str == "Module":
                 entries = self.entries()._sage_()
                 return parent._element_constructor_(entries)

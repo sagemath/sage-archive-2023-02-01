@@ -219,43 +219,61 @@ def string_to_tuples(g):
     return sage_eval(g, preparse=False)
 
 
-def standardize_generator(g, convert_dict=None):
-    """
-    Standardizes the input for permutation group elements to a list of
-    tuples.  This was factored out of the
-    PermutationGroupElement.__init__ since
-    PermutationGroup_generic.__init__ needs to do the same computation
+def standardize_generator(g, convert_dict=None, as_cycles=False):
+    r"""
+    Standardize the input for permutation group elements to a list
+    or a list of tuples.
+
+    This was factored out of the
+    ``PermutationGroupElement.__init__`` since
+    ``PermutationGroup_generic.__init__`` needs to do the same computation
     in order to compute the domain of a group when it's not explicitly
     specified.
 
     INPUT:
 
-    - ``g`` - a list, tuple, string, GapElement,
+    - ``g`` -- a list, tuple, string, GapElement,
       PermutationGroupElement, Permutation
 
-    - ``convert_dict`` - (optional) a dictionary used to convert the
-      points to a number compatible with GAP.
+    - ``convert_dict`` -- (optional) a dictionary used to convert the
+      points to a number compatible with GAP
+
+    - ``as_cycles`` -- (default: ``False``) whether the output should be
+      as cycles or in one-line notation
 
     OUTPUT:
 
-    The permutation in as a list of cycles.
+    The permutation in as a list in one-line notation or a list of cycles
+    as tuples.
 
     EXAMPLES::
 
         sage: from sage.groups.perm_gps.permgroup_element import standardize_generator
         sage: standardize_generator('(1,2)')
-        [(1, 2)]
+        [2, 1]
 
         sage: p = PermutationGroupElement([(1,2)])
         sage: standardize_generator(p)
-        [(1, 2)]
+        [2, 1]
         sage: standardize_generator(p._gap_())
-        [(1, 2)]
+        [2, 1]
         sage: standardize_generator((1,2))
-        [(1, 2)]
+        [2, 1]
         sage: standardize_generator([(1,2)])
+        [2, 1]
+
+        sage: standardize_generator(p, as_cycles=True)
         [(1, 2)]
+        sage: standardize_generator(p._gap_(), as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator((1,2), as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator([(1,2)], as_cycles=True)
+        [(1, 2)]
+
         sage: standardize_generator(Permutation([2,1,3]))
+        [2, 1, 3]
+        sage: standardize_generator(Permutation([2,1,3]), as_cycles=True)
         [(1, 2), (3,)]
 
     ::
@@ -264,17 +282,25 @@ def standardize_generator(g, convert_dict=None):
         sage: p = SymmetricGroup(['a', 'b']).gen(0); p
         ('a','b')
         sage: standardize_generator(p, convert_dict=d)
-        [(1, 2)]
+        [2, 1]
         sage: standardize_generator(p._gap_(), convert_dict=d)
-        [(1, 2)]
+        [2, 1]
         sage: standardize_generator(('a','b'), convert_dict=d)
-        [(1, 2)]
+        [2, 1]
         sage: standardize_generator([('a','b')], convert_dict=d)
-        [(1, 2)]
+        [2, 1]
 
+        sage: standardize_generator(p, convert_dict=d, as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator(p._gap_(), convert_dict=d, as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator(('a','b'), convert_dict=d, as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator([('a','b')], convert_dict=d, as_cycles=True)
+        [(1, 2)]
     """
     from sage.interfaces.gap import GapElement
-    from sage.combinat.permutation import Permutation
+    from sage.combinat.permutation import Permutation, from_cycles
     from sage.libs.pari.all import pari_gen
     from sage.libs.gap.element import GapElement_Permutation
 
@@ -294,23 +320,33 @@ def standardize_generator(g, convert_dict=None):
         g = str(g)
         needs_conversion = False
     if isinstance(g, Permutation):
-        return g.cycle_tuples()
-    if isinstance(g, PermutationGroupElement):
+        if as_cycles:
+            return g.cycle_tuples()
+        return g._list
+    elif isinstance(g, PermutationGroupElement):
+        if not as_cycles:
+            return [(<PermutationGroupElement>g).perm[i] + 1 for i in range((<PermutationGroupElement>g).n)]
         g = g.cycle_tuples()
-    if isinstance(g, str):
+    elif isinstance(g, str):
         g = string_to_tuples(g)
-    if isinstance(g, tuple) and (len(g) == 0 or not isinstance(g[0], tuple)):
+    elif isinstance(g, tuple) and (len(g) == 0 or not isinstance(g[0], tuple)):
         g = [g]
 
-    #Get the permutation in list notation
-    if isinstance(g, list) and (len(g) == 0 or not isinstance(g[0], tuple)):
+    # Get the permutation in list notation
+    if isinstance(g, list) and not (g and isinstance(g[0], tuple)):
         if convert_dict is not None and needs_conversion:
-            g = [convert_dict[x] for x in g]
-        return Permutation(g).cycle_tuples()
-    else:
-        if convert_dict is not None and needs_conversion:
-            g = [tuple([convert_dict[x] for x in cycle])for cycle in g]
+            for i, x in enumerate(g):
+                g[i] = convert_dict[x]
+        if as_cycles:
+            return Permutation(g).cycle_tuples()
+        return g
 
+    # Otherwise it is in cycle notation
+    if convert_dict is not None and needs_conversion:
+        g = [tuple([convert_dict[x] for x in cycle]) for cycle in g]
+    if not as_cycles:
+        degree = max([1] + [max(cycle+(1,)) for cycle in g])
+        g = from_cycles(degree, g)
     return g
 
 cdef class PermutationGroupElement(MultiplicativeGroupElement):
@@ -505,7 +541,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ...
             ValueError: invalid list of cycles to initialize a permutation
         """
-        cdef int degree = parent.degree()
+        cdef int i, degree = parent.degree()
+        cdef PermutationGroupElement g_pge
         self._parent = parent
         self._alloc(degree)
 
@@ -524,13 +561,27 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             else:
                 self._set_list_images(g, convert)
         else:
-            from sage.combinat.permutation import from_cycles
-            try:
-                v = standardize_generator(g, parent._domain_to_gap)
-                v = from_cycles(degree, v)
-            except KeyError:
-                raise ValueError("invalid data to initialize a permutation")
-            self._set_list_images(v, False)
+            if isinstance(g, PermutationGroupElement):
+                g_pge = <PermutationGroupElement> g
+                if g_pge._parent._domain != self._parent._domain:
+                    # If it is a different domain, then go via cycles
+                    self_map = parent._domain_to_gap
+                    try:
+                        cycles = [tuple([self_map[x] for x in cycle])
+                                  for cycle in g_pge.cycle_tuples()]
+                    except KeyError:
+                        raise ValueError("invalid data to initialize a permutation")
+                    self._set_list_cycles(cycles, False)
+                else:
+                    # Same domain, so safe to map things directly
+                    for i in range(self.n):
+                        self.perm[i] = g_pge.perm[i]
+            else:
+                try:
+                    v = standardize_generator(g, parent._domain_to_gap)
+                except KeyError:
+                    raise ValueError("invalid data to initialize a permutation")
+                self._set_list_images(v, False)
 
         # We do this check even if check=False because it's fast
         # (relative to other things in this function) and the

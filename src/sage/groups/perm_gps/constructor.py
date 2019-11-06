@@ -101,14 +101,11 @@ def PermutationGroupElement(g, parent=None, check=True):
 
     if parent is None:
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        from sage.combinat.permutation import from_cycles
 
         try:
             v = permgroup_element.standardize_generator(g, None)
         except KeyError:
             raise ValueError("invalid permutation vector: %s" % g)
-        degree = max([1] + [max(cycle+(1,)) for cycle in v])
-        v = from_cycles(degree, v)
         parent = SymmetricGroup(len(v))
         # We have constructed the parent from the element and already checked
         #   that it is a valid permutation

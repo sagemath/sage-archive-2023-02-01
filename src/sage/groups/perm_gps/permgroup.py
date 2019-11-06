@@ -435,7 +435,7 @@ class PermutationGroup_generic(FiniteGroup):
             gens = [gen for gen in gap_group.GeneratorsOfGroup()]
 
         if domain is None:
-            gens = [standardize_generator(x) for x in gens]
+            gens = [standardize_generator(x, as_cycles=True) for x in gens]
             domain = set()
             for x in gens:
                 for cycle in x:
@@ -784,14 +784,14 @@ class PermutationGroup_generic(FiniteGroup):
             #   so we can pass check=False for speed.
             if (isinstance(x_parent, PermutationGroup_subgroup)
                 and x_parent._ambient_group is self):
-                return self.element_class(x.cycle_tuples(), self, check=False)
+                return self.element_class(x, self, check=False)
 
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             compatible_domains = all(point in self._domain_to_gap
                                      for point in x_parent.domain())
             if compatible_domains and (isinstance(self, SymmetricGroup)
                                        or x.gap() in self.gap()):
-                return self.element_class(x.cycle_tuples(), self, check=False)
+                return self.element_class(x, self, check=False)
 
         return self.element_class(x, self, check=check)
 

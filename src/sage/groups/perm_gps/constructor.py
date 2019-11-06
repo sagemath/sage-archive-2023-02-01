@@ -38,12 +38,12 @@ def PermutationGroupElement(g, parent=None, check=True):
 
       - a string describing the cycle decomposition
 
-    - ``parent`` (optional, default ``None``) -- an ambient permutation
-      group for the result. It is mandatory if you want a permutation on
-      a domain different from {1, ..., n}.
+    - ``parent`` -- (optional) an ambient permutation group for the result;
+      it is mandatory if you want a permutation on a domain different
+      from `\{1, \ldots, n\}`
 
-    - ``check`` (default ``True``) -- whether additional check are performed.
-      Setting it to ``False`` is likely to result in faster code.
+    - ``check`` -- (default: ``True``) whether additional check are performed;
+      setting it to ``False`` is likely to result in faster code
 
     EXAMPLES:
 
@@ -71,8 +71,8 @@ def PermutationGroupElement(g, parent=None, check=True):
         sage: p.parent()
         Symmetric group of order 5! as a permutation group
 
-    By default the constructor assumes that the domain is {1, ..., n} but
-    it can be set to anything via its second ``parent`` argument::
+    By default the constructor assumes that the domain is `\{1, \dots, n\}`
+    but it can be set to anything via its second ``parent`` argument::
 
         sage: S = SymmetricGroup(['a', 'b', 'c', 'd', 'e'])
         sage: PermutationGroupElement(['e', 'c', 'b', 'a', 'd'], S)
@@ -106,9 +106,13 @@ def PermutationGroupElement(g, parent=None, check=True):
         try:
             v = permgroup_element.standardize_generator(g, None)
         except KeyError:
-            raise ValueError("Invalid permutation vector: %s" % g)
+            raise ValueError("invalid permutation vector: %s" % g)
         degree = max([1] + [max(cycle+(1,)) for cycle in v])
         v = from_cycles(degree, v)
         parent = SymmetricGroup(len(v))
+        # We have constructed the parent from the element and already checked
+        #   that it is a valid permutation
+        check = False
 
     return parent.element_class(g, parent, check)
+

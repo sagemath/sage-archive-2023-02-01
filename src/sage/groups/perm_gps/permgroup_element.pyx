@@ -358,40 +358,38 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if self.perm != NULL and self.perm != self.perm_buf:
             sig_free(self.perm)
 
-    def __init__(self, g, parent=None, check=True):
+    def __init__(self, g, parent, check=True):
         r"""
         Create element of a permutation group.
 
         There are several ways to define a permutation group element:
 
-
         -  Define a permutation group `G`, then use
            ``G.gens()`` and multiplication \* to construct
            elements.
 
-        -  Define a permutation group `G`, then use e.g.,
+        -  Define a permutation group `G`, then use, e.g.,
            ``G([(1,2),(3,4,5)])`` to construct an element of the
            group. You could also use ``G('(1,2)(3,4,5)')``
 
-        -  Use e.g.,
-           ``PermutationGroupElement([(1,2),(3,4,5)])`` or
+        -  Use, e.g., ``PermutationGroupElement([(1,2),(3,4,5)])`` or
            ``PermutationGroupElement('(1,2)(3,4,5)')`` to make a
            permutation group element with parent `S_5`.
 
-
         INPUT:
 
+        -  ``g`` -- defines element
 
-        -  ``g`` - defines element
+        -  ``parent`` -- defines parent group (``g`` must be in
+           parent if specified, or a ``TypeError`` is raised)
 
-        -  ``parent (optional)`` - defines parent group (g must
-           be in parent if specified, or a TypeError is raised).
-
-        -  ``check`` - bool (default: True), if False assumes g
-           is a gap element in parent (if specified).
+        -  ``check`` - bool (default: ``True``); if ``False`` assumes ``g``
+           is a gap element in parent (if specified)
 
 
-        EXAMPLES: We illustrate construction of permutation using several
+        EXAMPLES:
+
+        We illustrate construction of permutation using several
         different methods.
 
         First we construct elements by multiplying together generators for
@@ -507,12 +505,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ...
             ValueError: invalid list of cycles to initialize a permutation
         """
-        if parent is None:
-            raise ValueError("the parent must be provided to initialize a class "
-                    "PermutationGroupElement; use sage.groups.perm_groups."
-                    "constructor.PermutationGroupElement if you need the more "
-                    "general constructor")
-
         cdef int degree = parent.degree()
         self._parent = parent
         self._alloc(degree)

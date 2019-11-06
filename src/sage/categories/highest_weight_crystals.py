@@ -753,28 +753,65 @@ class HighestWeightCrystals(Category_singleton):
                     ([[[1]], [[1, 1], [2, 2]]],
                      [[[3]], [[1, 1], [2, 2]]],
                      [[[-2]], [[1, 1], [2, 2]]])
+
+                This currently is not implemented for infinite crystals::
+
+                    sage: P = RootSystem(['A',3,1]).weight_lattice(extended=True)
+                    sage: M = crystals.NakajimaMonomials(P.fundamental_weight(0))
+                    sage: T = tensor([M, M])
+                    sage: list(T.highest_weight_vectors_iterator())
+                    Traceback (most recent call last):
+                    ...
+                    NotImplementedError: not implemented for infinite crystals
                 """
                 I = self.index_set()
-                T_data = list(self.crystals[:-1]) + [self.crystals[-1].highest_weight_vectors()]
-                T_data = [[0, len(elts), list(elts)] for elts, C in zip(T_data, self.crystals)]
-                n = len(self.crystals)
-                path = [None]*n
-                T_phi = [None]*(n-1) + [{i: 0 for i in I}]
-                T_pos = n-1
-                while T_pos < n:
-                    C_data = T_data[T_pos]
-                    if C_data[0] == C_data[1]:
-                        T_pos += 1
-                        C_data[0] = 0
-                    else:
-                        b2 = C_data[2][C_data[0]]
-                        C_data[0] += 1
+                try:
+                    T_elts = [C.list() for C in self.crystals[:-1]]
+                except (TypeError, NotImplementedError, AttributeError):
+                    raise NotImplementedError("not implemented for infinite crystals")
+                from sage.categories.regular_crystals import RegularCrystals
+                if self in RegularCrystals:
+                    def hw_test(b2, i, d):
+                        return d < 0
+                else:
+                    def hw_test(b2, i, d):
+                        return d < 0 and b2.e(i) is not None
+                T_len = [len(elts) for elts in T_elts]
+                m = len(self.crystals) - 1
+                for b in self.crystals[-1].highest_weight_vectors():
+                    T_pos = m - 1  # current tensor position
+                    T_cur = [0]*m  # index of current element for each tensor position
+                    path = [None]*m + [b]
+                    # cache phi for path up to current tensor position
+                    T_phi = [None]*(m-1) + [{i: b.phi(i) for i in I}]
+                    while T_pos < m:
+                        if T_cur[T_pos] == T_len[T_pos]:
+                            T_cur[T_pos] = 0
+                            T_pos += 1
+                            continue
+
+                        b2 = T_elts[T_pos][T_cur[T_pos]]
+                        T_cur[T_pos] += 1
                         b1_phi = T_phi[T_pos]
-                        if all(b2.e(i) is None or b2.epsilon(i) <= b1_phi[i] for i in I):
+                        b1_phi_minus_b2_epsilon = {}
+                        # break if (b2, b1) is not highest weight
+                        for i in I:
+                            d = b1_phi[i] - b2.epsilon(i)
+                            # In the non-regular case, d may be nan.
+                            # In this case b2.e(i) is None,
+                            # and we may rely on max(0, nan) == 0.
+                            # In the regular case, the next line is simply
+                            #   if d < 0:
+                            if hw_test(b2, i, d):
+                                break
+                            b1_phi_minus_b2_epsilon[i] = d
+                        else:
                             path[T_pos] = b2
                             if T_pos:
                                 T_pos -= 1
-                                T_phi[T_pos] = {i: b2.phi(i) + max(0, b1_phi[i] - b2.epsilon(i))
+                                # In the regular case, the next line is simply
+                                #   T_phi[T_pos] = {i: b2.phi(i) + b1_phi_minus_b2_epsilon[i] for i in I}
+                                T_phi[T_pos] = {i: b2.phi(i) + max(0, b1_phi_minus_b2_epsilon[i])
                                                 for i in I}
                             else:
                                 yield self.element_class(self, path)

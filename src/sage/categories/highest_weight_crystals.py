@@ -712,29 +712,72 @@ class HighestWeightCrystals(Category_singleton):
                      [[[3]], [[1, 1], [2, 2]]],
                      [[[-2]], [[1, 1], [2, 2]]])
                 """
-                n = len(self.crystals)
-                it = [ iter(self.crystals[-1].highest_weight_vectors()) ]
-                path = []
-                ret = []
-                while it:
-                    try:
-                        x = next(it[-1])
-                    except StopIteration:
-                        it.pop()
-                        if path:
-                            path.pop(0)
-                        continue
+                return tuple(self.highest_weight_vectors_iterator())
 
-                    b = self.element_class(self, [x] + path)
-                    if not b.is_highest_weight():
-                        continue
-                    path.insert(0, x)
-                    if len(path) == n:
-                        ret.append(b)
-                        path.pop(0)
+            def highest_weight_vectors_iterator(self):
+                r"""
+                Iterate over the highest weight vectors of ``self``.
+
+                This works by using a backtracing algorithm since if
+                `b_2 \otimes b_1` is highest weight then `b_1` is
+                highest weight.
+
+                EXAMPLES::
+
+                    sage: C = crystals.Tableaux(['D',4], shape=[2,2])
+                    sage: D = crystals.Tableaux(['D',4], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: tuple(T.highest_weight_vectors_iterator())
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                    sage: L = filter(lambda x: x.is_highest_weight(), T)
+                    sage: tuple(L) == tuple(T.highest_weight_vectors_iterator())
+                    True
+
+                TESTS:
+
+                We check this works with Kashiwara's convention for
+                tensor products::
+
+                    sage: C = crystals.Tableaux(['B',3], shape=[2,2])
+                    sage: D = crystals.Tableaux(['B',3], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: T.options(convention='Kashiwara')
+                    sage: tuple(T.highest_weight_vectors_iterator())
+                    ([[[1, 1], [2, 2]], [[1]]],
+                     [[[1, 1], [2, 2]], [[3]]],
+                     [[[1, 1], [2, 2]], [[-2]]])
+                    sage: T.options._reset()
+                    sage: tuple(T.highest_weight_vectors_iterator())
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                """
+                I = self.index_set()
+                T_data = list(self.crystals[:-1]) + [self.crystals[-1].highest_weight_vectors()]
+                T_data = [[0, len(elts), list(elts)] for elts, C in zip(T_data, self.crystals)]
+                n = len(self.crystals)
+                path = [None]*n
+                T_phi = [None]*(n-1) + [{i: 0 for i in I}]
+                T_pos = n-1
+                while T_pos < n:
+                    C_data = T_data[T_pos]
+                    if C_data[0] == C_data[1]:
+                        T_pos += 1
+                        C_data[0] = 0
                     else:
-                        it.append( iter(self.crystals[-len(path)-1]) )
-                return tuple(ret)
+                        b2 = C_data[2][C_data[0]]
+                        C_data[0] += 1
+                        b1_phi = T_phi[T_pos]
+                        if all(b2.e(i) is None or b2.epsilon(i) <= b1_phi[i] for i in I):
+                            path[T_pos] = b2
+                            if T_pos:
+                                T_pos -= 1
+                                T_phi[T_pos] = {i: b2.phi(i) + max(0, b1_phi[i] - b2.epsilon(i))
+                                                for i in I}
+                            else:
+                                yield self.element_class(self, path)
 
 ###############################################################################
 ## Morphisms
@@ -810,7 +853,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi(b)
             1
             sage: c = psi(b.f_string([1,1,1,2,2,1,2,2])); c
-            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4 
+            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4
             sage: c == C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
             True
 
@@ -881,4 +924,3 @@ class HighestWeightCrystalHomset(CrystalHomset):
         CrystalHomset.__init__(self, X, Y, category)
 
     Element = HighestWeightCrystalMorphism
-

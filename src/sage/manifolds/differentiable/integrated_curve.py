@@ -913,7 +913,7 @@ class IntegratedCurve(DifferentiableCurve):
         return tuple(coords_sol_expr)
 
     def solve(self, step=None, method='rk4_maxima', solution_key=None,
-              parameters_values=None, verbose=False):
+              parameters_values=None, verbose=False, **control_param):
         r"""
         Integrate the curve numerically over the domain of integration.
 
@@ -927,12 +927,18 @@ class IntegratedCurve(DifferentiableCurve):
 
           * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
             makes use of Maxima's dynamics package via Sage solver
-            ``desolve_system_rk4``
-          * ``'ode_int'`` - makes use of ``odeint`` from ``scipy.integrate``
-            module via Sage solver ``desolve_odeint``
+            :func:`~sage.calculus.desolvers.desolve_system_rk4`
+          * ``'odeint'`` - makes use of
+            `scipy.integrate.odeint <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html>`_
+            via Sage solver
+            :func:`~sage.calculus.desolvers.desolve_odeint`; ``odeint`` invokes
+            the LSODA algorithm of the
+            `ODEPACK suite <https://www.netlib.org/odepack/opkd-sum>`_, which
+            automatically selects between nonstiff (Adams) and stiff (Backward
+            Differentiation Formula) methods
 
-        and those provided by ``GSL`` via Sage class
-        :class:`~sage.calculus.ode.ode_solver`:
+          and those provided by ``GSL`` via Sage class
+          :class:`~sage.calculus.ode.ode_solver`:
 
           * ``'rk2'`` - embedded Runge-Kutta (2,3)
           * ``'rk4'`` - 4th order classical Runge-Kutta
@@ -953,6 +959,8 @@ class IntegratedCurve(DifferentiableCurve):
           curve, to be substituted in the equations before integration
         - ``verbose`` -- (default: ``False``) prints information about
           the computation in progress
+        - ``**control_param`` -- extra control parameters to be passed to the
+          chosen solver, see examples below.
 
         OUTPUT:
 
@@ -1164,7 +1172,7 @@ class IntegratedCurve(DifferentiableCurve):
             if len(sol) > 1 and abs(sol[-1][0] - sol[-2][0]) < 0.9 * step:
                 del sol[-1]
 
-        elif method == "ode_int":
+        elif method in ["odeint", "ode_int"]:  # "ode_int" for backward compatibility
             des = [fast_callable(eq, vars=tuple(
                 list(self._chart[:]) + self._velocities + [
                     self._curve_parameter]),
@@ -1175,7 +1183,7 @@ class IntegratedCurve(DifferentiableCurve):
             dvars = list(chart[:]) + self._velocities
 
             sol0 = desolve_odeint(des, ics, times, dvars,
-                                             ivar=self._curve_parameter)
+                                  ivar=self._curve_parameter, **control_param)
 
             # rewrite the solution to prepare for the extraction (which
             # removes information about the velocities), and convert
@@ -1226,7 +1234,7 @@ class IntegratedCurve(DifferentiableCurve):
                             syst[dim+i] = syst[dim+i].substitute({veloc:y[dim+j]})
                     return syst
                 from sage.calculus.ode import ode_solver
-                T = ode_solver(function=system)
+                T = ode_solver(function=system, **control_param)
 
             T.algorithm = method
             y_0 = initial_pt_coords + initial_tgt_vec_comps
@@ -1353,16 +1361,17 @@ class IntegratedCurve(DifferentiableCurve):
             return self._solutions[solution_key]
 
     def solve_across_charts(self, charts=None, step=None, solution_key=None,
-                            parameters_values=None, verbose=False):
+                            parameters_values=None, verbose=False,
+                            **control_param):
         r"""
         Integrate the curve numerically over the domain of integration, with
         the ability to switch chart mid-integration.
 
-        The only supported solver is ``scipy.integrate.ode``, because it
-        supports basic event handling, needed to detect when the curve is
-        reaching the frontier of the chart. This is an adaptive step solver.
-        So the ``step`` is not the step of integration but instead the step
-        used to peak at the current chart, and switch if needed.
+        The only supported solver is
+        `scipy.integrate.ode <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html>`_, because it supports basic event handling, needed to detect when the
+        curve is reaching the frontier of the chart. This is an adaptive step
+        solver. So the ``step`` is not the step of integration but instead the
+        step used to peak at the current chart, and switch if needed.
 
         INPUT:
 
@@ -1381,6 +1390,8 @@ class IntegratedCurve(DifferentiableCurve):
           curve, to be substituted in the equations before integration
         - ``verbose`` -- (default: ``False``) prints information about
           the computation in progress
+        - ``**control_param`` -- extra control parameters to be passed to the
+          solver, see examples below.
 
         OUTPUT:
 
@@ -1664,7 +1675,8 @@ class IntegratedCurve(DifferentiableCurve):
         sol_chart[0, :] = np.array(ics)  # starting with initial condition
 
         # Current equation to integrate, with initial and stop conditions
-        r = ode(lambda t, y: [de(*y) for de in des[chart]]).set_integrator('dopri5')
+        r = ode(lambda t, y: [de(*y) for de in des[chart]]).set_integrator('dopri5',
+                                                               **control_param)
         r.set_initial_value(ics, t_min)
         r.set_solout(lambda t, y: 0 if chart.valid_coordinates_numerical(*y[0:dim]) else -1)
 

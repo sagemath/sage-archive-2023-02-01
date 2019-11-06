@@ -923,7 +923,7 @@ class IntegratedCurve(DifferentiableCurve):
           value is a hundredth of the domain of integration if none is
           provided
         - ``method`` -- (default: ``'rk4_maxima'``) numerical scheme to
-          use for the integration of the curve; algorithms available are:
+          use for the integration of the curve; available algorithms are:
 
           * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
             makes use of Maxima's dynamics package via Sage solver
@@ -934,8 +934,15 @@ class IntegratedCurve(DifferentiableCurve):
             :func:`~sage.calculus.desolvers.desolve_odeint`; ``odeint`` invokes
             the LSODA algorithm of the
             `ODEPACK suite <https://www.netlib.org/odepack/opkd-sum>`_, which
-            automatically selects between nonstiff (Adams) and stiff (Backward
-            Differentiation Formula) methods
+            automatically selects between implicit Adams method (for non-stiff
+            problems) and a method based on backward differentiation formulas
+            (BDF) (for stiff problems).
+
+          two provided by
+          `scipy.integrate.ode <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html>`_:
+
+          * ``'dopri5'`` - Dormand-Prince Runge-Kutta of order (4)5
+          * ``'dop853'`` - Dormand-Prince Runge-Kutta of order 8(5,3)
 
           and those provided by ``GSL`` via Sage class
           :class:`~sage.calculus.ode.ode_solver`:
@@ -944,7 +951,7 @@ class IntegratedCurve(DifferentiableCurve):
           * ``'rk4'`` - 4th order classical Runge-Kutta
           * ``'rkf45'`` - Runge-Kutta-Felhberg (4,5)
           * ``'rkck'`` - embedded Runge-Kutta-Cash-Karp (4,5)
-          * ``'rk8pd'`` - Runge-Kutta prince-dormand (8,9)
+          * ``'rk8pd'`` - Runge-Kutta Prince-Dormand (8,9)
           * ``'rk2imp'`` - implicit 2nd order Runge-Kutta at Gaussian points
           * ``'rk4imp'`` - implicit 4th order Runge-Kutta at Gaussian points
           * ``'gear1'`` - `M=1` implicit Gear
@@ -1192,18 +1199,20 @@ class IntegratedCurve(DifferentiableCurve):
             import numpy as np
             sol = np.column_stack((times, sol0)) # tolist() done later
 
-        elif method == "ode":
+        elif method in ["dopri5", "dop853"]:
             import numpy as np
-            des = [fast_callable(eq, vars=tuple(list(self._chart[:]) + self._velocities), domain=float)
+            des = [fast_callable(eq, vars=tuple(list(self._chart[:])
+                                                + self._velocities), domain=float)
                    for eq in (self._velocities + eqns_num)]
             ics = initial_pt_coords + initial_tgt_vec_comps
-            times = np.linspace(t_min, t_max, int((t_max-t_min)//step)+1, endpoint=True)
-
+            times = np.linspace(t_min, t_max, int((t_max-t_min)/step) + 1,
+                                endpoint=True)
             # ode accepts a function returning a list, and not a list of functions
-            r = ode(lambda t, y: [de(*y) for de in des]).set_integrator('dopri5')
+            r = ode(lambda t, y: [de(*y) for de in des]).set_integrator(method,
+                                                               **control_param)
             r.set_initial_value(ics, t_min)
-
-            r.set_solout(lambda t, y: chart.valid_coordinates_numerical(*y))
+            r.set_solout(lambda t, y: 0 if chart.valid_coordinates_numerical(*y[0:dim])
+                                      else -1)
 
             nt = len(times)
             sol0 = np.zeros((nt, 2*dim))

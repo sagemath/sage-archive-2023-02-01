@@ -3368,29 +3368,55 @@ class FunctionField_global(FunctionField_polymod):
 
 @handle_AA_and_QQbar
 def _singular_normal(ideal):
-        from sage.libs.singular.function import singular_function, lib
-        lib('normal.lib')
-        normal = singular_function('normal')
-        execute = singular_function('execute')
+    """Use Singular to compute the normalization of `R/ideal`, which is
+    the integral closure of `R/ideal` in its fraction field.
 
-        try:
-            get_printlevel = singular_function('get_printlevel')
-        except NameError:
-            execute('proc get_printlevel {return (printlevel);}')
-            get_printlevel = singular_function('get_printlevel')
+    INPUT:
 
-        # Call Singular.  Singular's "normal" function returns an
-        # integral basis as the generators of a k[x,y]-subalgebra of
-        # k(x,y)/(g).  The last polynomial in the returned list is a
-        # common denominator to divide all of them by.  It's fairly
-        # verbose unless printlevel is -1.
+    - ``ideal`` -- a radical ideal in a polynomial ring
 
-        saved_printlevel = get_printlevel()
-        execute('printlevel=-1')
-        retval = normal(ideal)
-        execute('printlevel={}'.format(saved_printlevel))
+    OUTPUT:
 
-        return retval
+    - a list of lists, one list for each ideal in the equidimensional
+      decomposition of `ideal`, each list a set of generators of the
+      normalization as an R-module, except that the final element in
+      each list is a denominator to divide all of the generators by.
+      Thus, the list `[x, y]` means that `\{x/y, 1\}` is an integral
+      basis.
+
+    EXAMPLES::
+
+        sage: from sage.rings.function_field.function_field import _singular_normal
+        sage: R.<x,y> = QQ[]
+
+        sage: f = (x^2-y^3) * x
+        sage: _singular_normal(ideal(f))
+        [[x, y], [1]]
+
+        sage: f = (y^2-x)
+        sage: _singular_normal(ideal(f))
+        [[1]]
+    """
+
+    from sage.libs.singular.function import singular_function, lib
+    lib('normal.lib')
+    normal = singular_function('normal')
+    execute = singular_function('execute')
+
+    try:
+        get_printlevel = singular_function('get_printlevel')
+    except NameError:
+        execute('proc get_printlevel {return (printlevel);}')
+        get_printlevel = singular_function('get_printlevel')
+
+    # It's fairly verbose unless printlevel is -1.
+
+    saved_printlevel = get_printlevel()
+    execute('printlevel=-1')
+    retval = normal(ideal)
+    execute('printlevel={}'.format(saved_printlevel))
+
+    return retval[1]
 
 class FunctionField_integral(FunctionField_polymod):
     """
@@ -3433,10 +3459,9 @@ class FunctionField_integral(FunctionField_polymod):
         # Call Singular.  Singular's "normal" function returns an
         # integral basis as the generators of a k[x,y]-subalgebra of
         # k(x,y)/(g).  The last polynomial in the returned list is a
-        # common denominator to divide all of them by.  It's fairly
-        # verbose unless printlevel is -1.
+        # common denominator to divide all of them by.
 
-        pols_in_S = _singular_normal(S.ideal(g))[1][0]
+        pols_in_S = _singular_normal(S.ideal(g))[0]
 
         # reconstruct polynomials in the function field
         x = K.gen()

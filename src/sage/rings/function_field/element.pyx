@@ -409,7 +409,7 @@ cdef class FunctionFieldElement(FieldElement):
         - ``i`` -- nonnegative integer
 
         - ``separating_element`` -- separating element of the function field;
-            the default is the generator of the rational function field
+          the default is the generator of the rational function field
 
         EXAMPLES::
 

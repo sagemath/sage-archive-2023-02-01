@@ -1028,42 +1028,38 @@ class FunctionFieldHigherDerivation_charzero(FunctionFieldHigherDerivation):
 
         if separating_element is None:
             x = self._separating_element
-            derivative = lambda f: f.derivative()
+            xderinv = 1
         else:
             x = separating_element
             xderinv = ~(x.derivative())
-            derivative = lambda f: xderinv * f.derivative()
 
         try:
             cache = self._cache[separating_element]
         except KeyError:
             cache = self._cache[separating_element] = {}
 
-        def derive(f, i):
-            # Step 1: zero-th derivative
-            if i == 0:
-                return f
+        # Step 1: zero-th derivative
+        if i == 0:
+            return f
 
-            # Step 1.5: use cached result if available
-            try:
-                return cache[f,i]
-            except KeyError:
-                pass
+        # Step 1.5: use cached result if available
+        try:
+            return cache[f,i]
+        except KeyError:
+            pass
 
-            # Step 2:
-            # Step 3:
-            s = i
-            e = f
-            while s > 0:
-                e = derivative(e) / F(s)
-                s -= 1
+        # Step 2:
+        # Step 3:
+        s = i
+        e = f
+        while s > 0:
+            e = xderinv * e.derivative() / F(s)
+            s -= 1
 
-            der = e
+        der = e
 
-            cache[f,i] = der
-            return der
-
-        return derive(f, i)
+        cache[f,i] = der
+        return der
 
 class FunctionFieldVectorSpaceIsomorphism(Morphism):
     r"""

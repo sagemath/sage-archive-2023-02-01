@@ -1684,9 +1684,9 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
 
         .. TODO::
 
-        Use Kummer's theorem to shortcut this code if possible, like
-        is done in `FunctionFieldMaximalOrder_global`'s `decomposition`
-        method.
+            Use Kummer's theorem to shortcut this code if possible,
+            like is done in
+            :meth:`FunctionFieldMaximalOrder_global.decomposition()`
 
         """
 

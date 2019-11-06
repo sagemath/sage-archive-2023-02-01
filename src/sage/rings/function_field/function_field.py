@@ -63,7 +63,7 @@ and inseparable extension function fields::
     sage: O.<v> = J.extension(v^5 - x); O
     Function field in v defined by v^5 + 4*x
 
-Function fields over the rational field are supported:
+Function fields over the rational field are supported::
 
     sage: F.<x> = FunctionField(QQ)
     sage: R.<Y> = F[]
@@ -3441,7 +3441,7 @@ class FunctionField_integral(FunctionField_polymod):
         ALGORITHM:
 
         Uses Singular's implementation of the normalization algorithm described in
-        G.-M.Greuel, S.Laplagne, F.Seelisch: Normalization of Rings (2009).
+        G.-M. Greuel, S. Laplagne, F. Seelisch: Normalization of Rings (2009).
         """
         from sage.matrix.constructor import matrix
 

@@ -126,6 +126,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     FunctionElement)
 from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
+from sage.misc.superseded import deprecated_function_alias
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 from sage.structure.global_options import GlobalOptions
@@ -335,6 +336,28 @@ class Macaulay2(ExtraTabCompletion, Expect):
         return seed
 
     class options(GlobalOptions):
+        r"""
+        Global options for Macaulay2 elements.
+
+        @OPTIONS@
+
+        EXAMPLES::
+
+            sage: macaulay2.options.after_print = 'yes'  # optional - macaulay2
+            sage: A = macaulay2(matrix([[1, 2], [3, 6]])); A  # optional - macaulay2
+            | 1 2 |
+            | 3 6 |
+            <BLANKLINE>
+                     2        2
+            Matrix ZZ  <--- ZZ
+            sage: A.kernel()  # optional - macaulay2
+            image | 2  |
+                  | -1 |
+            <BLANKLINE>
+                                      2
+            ZZ-module, submodule of ZZ
+            sage: macaulay2.options.after_print = 'no'  # optional - macaulay2
+        """
         NAME = 'Macaulay2'
         module = 'sage.interfaces.macaulay2'
         # GlobalOptions currently only supports strings, so we use yes/no
@@ -1262,8 +1285,14 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
     def after_print_text(self):
         r"""
-        Obtain the type information about this Macaulay2 element that is
-        displayed using ``AfterPrint`` in the Macaulay2 interpreter.
+        Obtain type information for this Macaulay2 element.
+
+        This is the text that is displayed using ``AfterPrint`` in a Macaulay2
+        interpreter.
+
+        Macaulay2 by default includes this information in the output.
+        In Sage, this behavior can optionally be enabled by setting the option
+        ``after_print`` in :class:`Macaulay2.options`.
 
         EXAMPLES::
 
@@ -1273,25 +1302,6 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: B.after_print_text()  # optional - macaulay2
                                       2
             ZZ-module, submodule of ZZ
-
-        Note that Macaulay2 by default includes this information in the output.
-        In Sage, this behaviour can optionally be enabled by setting
-        :attr:`Macaulay2.options.after_print`. ::
-
-            sage: macaulay2.options.after_print = 'yes'  # optional - macaulay2
-            sage: A = macaulay2(matrix([[1, 2], [3, 6]])); A  # optional - macaulay2
-            | 1 2 |
-            | 3 6 |
-            <BLANKLINE>
-                     2        2
-            Matrix ZZ  <--- ZZ
-            sage: A.kernel()  # optional - macaulay2
-            image | 2  |
-                  | -1 |
-            <BLANKLINE>
-                                      2
-            ZZ-module, submodule of ZZ
-            sage: macaulay2.options.after_print = 'no'  # optional - macaulay2
         """
         return self.parent().eval('(lookup({topLevelMode,AfterPrint},' +
                                   'class {0}))({0})'.format(self._name))
@@ -1648,7 +1658,6 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         except Exception:
             raise NotImplementedError("cannot convert %s to a Sage object"%repr_str)
 
-    from sage.misc.superseded import deprecated_function_alias
     to_sage = deprecated_function_alias(27848, ExpectElement.sage)
 
     def _matrix_(self, R):

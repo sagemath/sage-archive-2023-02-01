@@ -300,8 +300,9 @@ SAGE_SCRIPTS
 
         var transparent = json.opacity < 1 ? true : false;
         var flatShading = 'useFlatShading' in json ? true : false;
+        var side = 'singleSide' in json ? THREE.FrontSide : THREE.DoubleSide;
 
-        var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide,
+        var material = new THREE.MeshPhongMaterial( { side: side,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,

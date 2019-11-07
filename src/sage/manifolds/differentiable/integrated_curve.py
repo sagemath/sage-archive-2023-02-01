@@ -210,7 +210,7 @@ class IntegratedCurve(DifferentiableCurve):
         sage: sol = c.solve(step=0.2,
         ....:         parameters_values={B_0:1, m:1, q:1, L:10, T:1},
         ....:         solution_key='carac time 1', verbose=True)
-        Performing numerical integration with method 'rk4_maxima'...
+        Performing numerical integration with method 'odeint'...
         Numerical integration completed.
         <BLANKLINE>
         Checking all points are in the chart domain...
@@ -235,7 +235,7 @@ class IntegratedCurve(DifferentiableCurve):
         sage: p
         Point on the 3-dimensional differentiable manifold M
         sage: p.coordinates()     # abs tol 1e-12
-        (1.3776707219621374, -0.9000776970132945, 1.9)
+        (1.377689074756845, -0.900114533011232, 1.9)
         sage: v2 = c.tangent_vector_eval_at(4.3, verbose=True)
         Evaluating tangent vector components from the interpolation
          associated with the key 'interp 1' by default...
@@ -243,7 +243,7 @@ class IntegratedCurve(DifferentiableCurve):
         Tangent vector at Point on the 3-dimensional differentiable
          manifold M
         sage: v2[:]     # abs tol 1e-12
-        [-0.9303968397216424, -0.3408080563014475, 1.0000000000000004]
+        [-0.9425156073651124, -0.33724314284285434, 1.0]
 
     Plotting a numerical solution (with or without its tangent vector
     field) also requires the solution to be interpolated at least once::
@@ -912,7 +912,8 @@ class IntegratedCurve(DifferentiableCurve):
 
         return tuple(coords_sol_expr)
 
-    def solve(self, step=None, method='rk4_maxima', solution_key=None,
+#    def solve(self, step=None, method='rk4_maxima', solution_key=None,
+    def solve(self, step=None, method='odeint', solution_key=None,
               parameters_values=None, verbose=False, **control_param):
         r"""
         Integrate the curve numerically over the domain of integration.
@@ -922,7 +923,7 @@ class IntegratedCurve(DifferentiableCurve):
         - ``step`` -- (default: ``None``) step of integration; default
           value is a hundredth of the domain of integration if none is
           provided
-        - ``method`` -- (default: ``'rk4_maxima'``) numerical scheme to
+        - ``method`` -- (default: ``'odeint'``) numerical scheme to
           use for the integration of the curve; available algorithms are:
 
           * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
@@ -933,7 +934,7 @@ class IntegratedCurve(DifferentiableCurve):
             via Sage solver
             :func:`~sage.calculus.desolvers.desolve_odeint`; ``odeint`` invokes
             the LSODA algorithm of the
-            `ODEPACK suite <https://www.netlib.org/odepack/opkd-sum>`_, which
+            `ODEPACK suite <https://www.netlib.org/odepack/>`_, which
             automatically selects between implicit Adams method (for non-stiff
             problems) and a method based on backward differentiation formulas
             (BDF) (for stiff problems).
@@ -971,7 +972,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         OUTPUT:
 
-        - list of the numerical points of the solution computed
+        - list of the numerical points of the computed solution
 
         EXAMPLES:
 
@@ -1001,16 +1002,16 @@ class IntegratedCurve(DifferentiableCurve):
             sage: sol = c.solve(
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1},
             ....:        verbose=True)
-            Performing numerical integration with method 'rk4_maxima'...
+            Performing numerical integration with method 'odeint'...
             Resulting list of points will be associated with the key
-             'rk4_maxima' by default.
+             'odeint' by default.
             Numerical integration completed.
             <BLANKLINE>
             Checking all points are in the chart domain...
             All points are in the chart domain.
             <BLANKLINE>
             The resulting list of points was associated with the key
-             'rk4_maxima' (if this key already referred to a former
+             'odeint' (if this key already referred to a former
              numerical solution, such a solution was erased).
             sage: sol_mute = c.solve(
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
@@ -1179,7 +1180,8 @@ class IntegratedCurve(DifferentiableCurve):
             if len(sol) > 1 and abs(sol[-1][0] - sol[-2][0]) < 0.9 * step:
                 del sol[-1]
 
-        elif method in ["odeint", "ode_int"]:  # "ode_int" for backward compatibility
+        elif method in ["odeint", "ode_int"]:
+            # "ode_int" is here only for backward compatibility
             des = [fast_callable(eq, vars=tuple(
                 list(self._chart[:]) + self._velocities + [
                     self._curve_parameter]),
@@ -1188,7 +1190,12 @@ class IntegratedCurve(DifferentiableCurve):
             ics = initial_pt_coords + initial_tgt_vec_comps
             times = srange(t_min, t_max, step, include_endpoint=True)
             dvars = list(chart[:]) + self._velocities
-
+            # Setting 1.e-10 as default value for the error control
+            # parameters rtol and atol:
+            if 'rtol' not in control_param:
+                control_param['rtol'] = 1.e-10
+            if 'atol' not in control_param:
+                control_param['atol'] = 1.e-10
             sol0 = desolve_odeint(des, ics, times, dvars,
                                   ivar=self._curve_parameter, **control_param)
 
@@ -1316,7 +1323,7 @@ class IntegratedCurve(DifferentiableCurve):
                 sol += [[point[0]] + point[1]]
             # above loop rewrites the solution in the same form than
             # that provided by other methods ('rk4_maxima' and
-            # 'ode_int'), in order to extract the time and corresponding
+            # 'odeint'), in order to extract the time and corresponding
             # coordinate values a few lines below, in the same way for
             # all methods
 
@@ -1404,7 +1411,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         OUTPUT:
 
-        - list of the numerical points of the solution computed
+        - list of the numerical points of the computed solution
 
         EXAMPLES:
 
@@ -1894,7 +1901,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((1,0,1))
             sage: c = M.integrated_curve(eqns, D, (t,0,5), v, name='c')
-            sage: sol = c.solve(method='rk4_maxima',
+            sage: sol = c.solve(method='odeint',
             ....:        solution_key='sol_T1',
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
             sage: interp = c.interpolate(solution_key='my solution')
@@ -2020,7 +2027,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((1,0,1))
             sage: c = M.integrated_curve(eqns, D, (t,0,5), v, name='c')
-            sage: sol = c.solve(method='rk4_maxima',
+            sage: sol = c.solve(method='odeint',
             ....:        solution_key='sol_T1',
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
             sage: interp = c.interpolate(method='cubic spline',
@@ -2091,7 +2098,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((1,0,1))
             sage: c = M.integrated_curve(eqns, D, (t,0,5), v, name='c')
-            sage: sol = c.solve(method='rk4_maxima',
+            sage: sol = c.solve(method='odeint',
             ....:        solution_key='sol_T1',
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
             sage: interp = c.interpolate(method='cubic spline',
@@ -2106,7 +2113,7 @@ class IntegratedCurve(DifferentiableCurve):
             Evaluating point coordinates from the interpolation
              associated with the key 'interp_T1' by default...
             sage: p.coordinates()     # abs tol 1e-12
-            (1.060743343394347, -0.2153835404373033, 1.1)
+            (1.060743337877276, -0.21538352256822146, 1.1)
 
         """
 
@@ -2173,7 +2180,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((1,0,1))
             sage: c = M.integrated_curve(eqns, D, (t,0,5), v, name='c')
-            sage: sol = c.solve(method='rk4_maxima',
+            sage: sol = c.solve(method='odeint',
             ....:        solution_key='sol_T1',
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
             sage: interp = c.interpolate(method='cubic spline',
@@ -2192,7 +2199,7 @@ class IntegratedCurve(DifferentiableCurve):
             Tangent vector at Point on the 3-dimensional differentiable
              manifold M
             sage: tg_vec[:]     # abs tol 1e-12
-            [0.7392639473853356, -0.6734182305341726, 1.0000000000000007]
+            [0.7392640422917979, -0.6734182509826023, 1.0]
             sage: tg_vec_mute = c.tangent_vector_eval_at(1.22,
             ....:                         interpolation_key='interp_T1')
             sage: tg_vec_mute == tg_vec
@@ -2294,7 +2301,7 @@ class IntegratedCurve(DifferentiableCurve):
             ....:                 color='blue', color_tangent='red',
             ....:                 verbose=True)
             Plotting from the interpolation associated with the key
-             'cubic spline-interp-rk4_maxima' by default...
+             'cubic spline-interp-odeint' by default...
             A tiny final offset equal to 0.000301507537688442 was
              introduced for the last point in order to safely compute it
              from the interpolation.

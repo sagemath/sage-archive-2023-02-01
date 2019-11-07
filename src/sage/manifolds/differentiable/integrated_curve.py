@@ -6,11 +6,11 @@ Given a differentiable manifold `M`, an *integrated curve* in `M`
 is a differentiable curve constructed as a solution to a system of
 second order differential equations.
 
-Integrated curves are implemented by :class:`IntegratedCurve`, which the
+Integrated curves are implemented by :class:`IntegratedCurve`, from which the
 classes :class:`IntegratedAutoparallelCurve` and
 :class:`IntegratedGeodesic` inherit.
 
-.. RUBRIC:: Examples: A geodesic in hyperbolic Poincaré half-plane
+.. RUBRIC:: Example: a geodesic in hyperbolic Poincaré half-plane
 
 First declare a chart over the Poincaré half-plane::
 
@@ -31,18 +31,19 @@ Pick an initial point and an initial tangent vector::
     sage: v.display()
     v = d/dx + 3/2 d/dy
 
-Declare a geodesic with such initial conditions, denoting ``t`` the
+Declare a geodesic with such initial conditions, denoting by `t` the
 corresponding affine parameter::
 
     sage: t = var('t')
     sage: c = M.integrated_geodesic(g, (t, 0, 10), v, name='c')
 
-Numerically integrate the geodesic::
+Numerically integrate the geodesic (see :meth:`~IntegratedCurve.solve` for
+all possible parameters that can by used, including the choice of the
+numerical algorithm)::
 
     sage: sol = c.solve()
 
-Plot the geodesic after interpolating the solution ``sol``, since it is
-required to plot::
+Plot the geodesic after interpolating the solution ``sol``::
 
     sage: interp = c.interpolate()
     sage: graph = c.plot_integrated()
@@ -67,6 +68,26 @@ required to plot::
     p_plot = p.plot(size=30, label_offset=0.07, fontsize=20)
     v_plot = v.plot(label_offset=0.05, fontsize=20)
     sphinx_plot(graph + p_plot + v_plot)
+
+`c` is a differentiable curve in `M` and inherits from the properties of
+:class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`::
+
+    sage: c.domain()
+    Real interval (0, 10)
+    sage: c.codomain()
+    2-dimensional differentiable manifold M
+    sage: c.display()
+    c: (0, 10) --> M
+
+In particular, its value at `t=1` is::
+
+    sage: c(1)
+    Point on the 2-dimensional differentiable manifold M
+
+which corresponds to the following `(x, y)` coordinates::
+
+    sage: X(c(1))  # abs tol 1e-12
+    (2.4784140715580136, 1.5141683866138937)
 
 AUTHORS:
 
@@ -912,11 +933,10 @@ class IntegratedCurve(DifferentiableCurve):
 
         return tuple(coords_sol_expr)
 
-#    def solve(self, step=None, method='rk4_maxima', solution_key=None,
     def solve(self, step=None, method='odeint', solution_key=None,
               parameters_values=None, verbose=False, **control_param):
         r"""
-        Integrate the curve numerically over the domain of integration.
+        Integrate the curve numerically over the domain of definition.
 
         INPUT:
 
@@ -926,9 +946,6 @@ class IntegratedCurve(DifferentiableCurve):
         - ``method`` -- (default: ``'odeint'``) numerical scheme to
           use for the integration of the curve; available algorithms are:
 
-          * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
-            makes use of Maxima's dynamics package via Sage solver
-            :func:`~sage.calculus.desolvers.desolve_system_rk4`
           * ``'odeint'`` - makes use of
             `scipy.integrate.odeint <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html>`_
             via Sage solver
@@ -938,12 +955,13 @@ class IntegratedCurve(DifferentiableCurve):
             automatically selects between implicit Adams method (for non-stiff
             problems) and a method based on backward differentiation formulas
             (BDF) (for stiff problems).
-
-          two provided by
-          `scipy.integrate.ode <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html>`_:
-
-          * ``'dopri5'`` - Dormand-Prince Runge-Kutta of order (4)5
-          * ``'dop853'`` - Dormand-Prince Runge-Kutta of order 8(5,3)
+          * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
+            makes use of Maxima's dynamics package via Sage solver
+            :func:`~sage.calculus.desolvers.desolve_system_rk4` (quite slow)
+          * ``'dopri5'`` - Dormand-Prince Runge-Kutta of order (4)5 provided by
+            `scipy.integrate.ode <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html>`_
+          * ``'dop853'`` - Dormand-Prince Runge-Kutta of order 8(5,3) provided by
+            `scipy.integrate.ode <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html>`_
 
           and those provided by ``GSL`` via Sage class
           :class:`~sage.calculus.ode.ode_solver`:
@@ -968,7 +986,7 @@ class IntegratedCurve(DifferentiableCurve):
         - ``verbose`` -- (default: ``False``) prints information about
           the computation in progress
         - ``**control_param`` -- extra control parameters to be passed to the
-          chosen solver, see examples below.
+          chosen solver; see the example with ``rtol`` and ``atol`` below
 
         OUTPUT:
 
@@ -988,20 +1006,8 @@ class IntegratedCurve(DifferentiableCurve):
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((1,0,1))
             sage: c = M.integrated_curve(eqns, D, (t,0,5), v, name='c')
-            sage: sol = c.solve(parameters_values={m:1, q:1, L:10, T:1})
-            Traceback (most recent call last):
-            ...
-            ValueError: numerical values should be provided for each of
-             the parameters [B_0, L, T, m, q]
-            sage: sol = c.solve(method='my method',
-            ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
-            Traceback (most recent call last):
-            ...
-            ValueError: no available method of integration referred to
-             as 'my method'
-            sage: sol = c.solve(
-            ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1},
-            ....:        verbose=True)
+            sage: sol = c.solve(parameters_values={B_0:1, m:1, q:1, L:10, T:1},
+            ....:               verbose=True)
             Performing numerical integration with method 'odeint'...
             Resulting list of points will be associated with the key
              'odeint' by default.
@@ -1013,10 +1019,46 @@ class IntegratedCurve(DifferentiableCurve):
             The resulting list of points was associated with the key
              'odeint' (if this key already referred to a former
              numerical solution, such a solution was erased).
-            sage: sol_mute = c.solve(
-            ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
+
+        The first 3 points of the solution, in the form ``[t, x1, x2, x3]``::
+
+            sage: sol[:3]  # abs tol 1e-12
+            [[0.0, 0.0, 0.0, 0.0],
+             [0.05, 0.04999999218759271, -2.083327338392213e-05, 0.05],
+             [0.1, 0.09999975001847655, -0.00016666146190783666, 0.1]]
+
+        The default is ``verbose=False``::
+
+            sage: sol_mute = c.solve(parameters_values={B_0:1, m:1, q:1,
+            ....:                                       L:10, T:1})
             sage: sol_mute == sol
             True
+
+        Specifying the relative and absolute error tolerance parameters to
+        be used in :func:`~sage.calculus.desolvers.desolve_odeint`::
+
+            sage: sol = c.solve(parameters_values={B_0:1, m:1, q:1, L:10, T:1},
+            ....:               rtol=1e-12, atol=1e-12)
+
+        Using a numerical method different from the default one::
+
+            sage: sol = c.solve(parameters_values={B_0:1, m:1, q:1, L:10, T:1},
+            ....:               method='rk8pd')
+
+
+        TESTS::
+
+            sage: sol = c.solve(parameters_values={m:1, q:1, L:10, T:1})
+            Traceback (most recent call last):
+            ...
+            ValueError: numerical values should be provided for each of
+             the parameters [B_0, L, T, m, q]
+            sage: sol = c.solve(method='my method',
+            ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
+            Traceback (most recent call last):
+            ...
+            ValueError: no available method of integration referred to
+             as 'my method'
 
         """
         from sage.symbolic.ring import SR
@@ -1182,11 +1224,11 @@ class IntegratedCurve(DifferentiableCurve):
 
         elif method in ["odeint", "ode_int"]:
             # "ode_int" is here only for backward compatibility
-            des = [fast_callable(eq, vars=tuple(
-                list(self._chart[:]) + self._velocities + [
-                    self._curve_parameter]),
-                                 domain=float) for eq in
-                   (self._velocities + eqns_num)]
+            des = [fast_callable(eq, vars=tuple(list(self._chart[:])
+                                                + self._velocities
+                                                + [self._curve_parameter]),
+                                 domain=float)
+                   for eq in (self._velocities + eqns_num)]
             ics = initial_pt_coords + initial_tgt_vec_comps
             times = srange(t_min, t_max, step, include_endpoint=True)
             dvars = list(chart[:]) + self._velocities
@@ -1407,7 +1449,7 @@ class IntegratedCurve(DifferentiableCurve):
         - ``verbose`` -- (default: ``False``) prints information about
           the computation in progress
         - ``**control_param`` -- extra control parameters to be passed to the
-          solver, see examples below.
+          solver
 
         OUTPUT:
 
@@ -1415,8 +1457,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         EXAMPLES:
 
-        This example illustrates the use of the function
-        :meth:`solve_across_charts` to integrate a geodesic of the
+        Let us use :meth:`solve_across_charts` to integrate a geodesic of the
         Euclidean plane (a straight line) in polar coordinates.
 
         In pure polar coordinates `(r, \theta)`, artefacts can appear near
@@ -1844,8 +1885,8 @@ class IntegratedCurve(DifferentiableCurve):
             True
         """
         if solution_key is None:
-            if 'rk4_maxima' in self._solutions:
-                solution_key = 'rk4_maxima'
+            if 'odeint' in self._solutions:
+                solution_key = 'odeint'
             else:
                 solution_key = next(iter(self._solutions))
                 # will raise an error if self._solutions is empty
@@ -1904,17 +1945,6 @@ class IntegratedCurve(DifferentiableCurve):
             sage: sol = c.solve(method='odeint',
             ....:        solution_key='sol_T1',
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1})
-            sage: interp = c.interpolate(solution_key='my solution')
-            Traceback (most recent call last):
-            ...
-            ValueError: no existing key 'my solution' referring to any
-             numerical solution
-            sage: interp = c.interpolate(solution_key='sol_T1',
-            ....:                        method='my method')
-            Traceback (most recent call last):
-            ...
-            ValueError: no available method of interpolation referred to
-             as 'my method'
             sage: interp = c.interpolate(method='cubic spline',
             ....:                        solution_key='sol_T1',
             ....:                        interpolation_key='interp_T1',
@@ -1933,10 +1963,24 @@ class IntegratedCurve(DifferentiableCurve):
              to a former interpolation, such an interpolation was
              erased).
 
+        TESTS::
+
+            sage: interp = c.interpolate(solution_key='my solution')
+            Traceback (most recent call last):
+            ...
+            ValueError: no existing key 'my solution' referring to any
+             numerical solution
+            sage: interp = c.interpolate(solution_key='sol_T1',
+            ....:                        method='my method')
+            Traceback (most recent call last):
+            ...
+            ValueError: no available method of interpolation referred to
+             as 'my method'
+
         """
         if solution_key is None:
-            if 'rk4_maxima' in self._solutions:
-                solution_key = 'rk4_maxima'
+            if 'odeint' in self._solutions:
+                solution_key = 'odeint'
             else:
                 solution_key = next(iter(self._solutions)) # will raise
                 # error if self._solutions empty
@@ -2033,11 +2077,6 @@ class IntegratedCurve(DifferentiableCurve):
             sage: interp = c.interpolate(method='cubic spline',
             ....:                         solution_key='sol_T1',
             ....:                         interpolation_key='interp_T1')
-            sage: c.interpolation(interpolation_key='my interp')
-            Traceback (most recent call last):
-            ...
-            ValueError: no existing key 'my interp' referring to any
-             interpolation
             sage: default_interp = c.interpolation(verbose=True)
             Returning the interpolation associated with the key
              'interp_T1' by default...
@@ -2046,6 +2085,14 @@ class IntegratedCurve(DifferentiableCurve):
             sage: interp_mute = c.interpolation()
             sage: interp_mute == interp
             True
+
+        TESTS::
+
+            sage: c.interpolation(interpolation_key='my interp')
+            Traceback (most recent call last):
+            ...
+            ValueError: no existing key 'my interp' referring to any
+             interpolation
 
         """
 
@@ -2186,12 +2233,6 @@ class IntegratedCurve(DifferentiableCurve):
             sage: interp = c.interpolate(method='cubic spline',
             ....:                         solution_key='sol_T1',
             ....:                         interpolation_key='interp_T1')
-            sage: tg_vec = c.tangent_vector_eval_at(1.22,
-            ....:                         interpolation_key='my interp')
-            Traceback (most recent call last):
-            ...
-            ValueError: no existing key 'my interp' referring to any
-             interpolation
             sage: tg_vec = c.tangent_vector_eval_at(1.22, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'interp_T1' by default...
@@ -2205,8 +2246,16 @@ class IntegratedCurve(DifferentiableCurve):
             sage: tg_vec_mute == tg_vec
             True
 
-        """
+        TESTS::
 
+            sage: tg_vec = c.tangent_vector_eval_at(1.22,
+            ....:                         interpolation_key='my interp')
+            Traceback (most recent call last):
+            ...
+            ValueError: no existing key 'my interp' referring to any
+             interpolation
+
+        """
         if interpolation_key is None:
             if 'cubic spline' in self._interpolations:
                 interpolation_key = 'cubic spline'

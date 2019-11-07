@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env sage-system-python
 #
 # Determine the number of threads to be used by Sage.
 #

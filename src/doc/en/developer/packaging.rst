@@ -216,8 +216,25 @@ install it:
 
     .. CODE-BLOCK:: text
 
+        exec sage-system-python spkg-install.py
+
+    or
+
+    .. CODE-BLOCK:: text
+
         exec sage-python23 spkg-install.py
 
+   In more detail: ``sage-system-python`` runs the version of Python
+   pre-installed on the machine. Use this if the package may be
+   installed before Sage has built its own Python. ``sage-python23``
+   runs the version of Python built by Sage, either Python 2 or 3,
+   depending on how the build was configured; you should use this
+   script if you are installing a Python package, to make sure that
+   the libraries are installed in the right place.
+
+   By the way, there is also a script ``sage-python``. This should be
+   used at runtime, for example in scripts in ``SAGE_LOCAL/bin`` which
+   expect Sage's Python to already be built.
 
 Many packages currently do not separate the build and install steps and only
 provide a ``spkg-install`` file that does both.  The separation is useful in

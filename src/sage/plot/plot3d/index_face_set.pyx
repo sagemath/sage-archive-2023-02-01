@@ -1234,6 +1234,9 @@ cdef class IndexFaceSet(PrimitiveObject):
             renderOrder = self._extra_kwds.get('render_order')
             json[0] = json[0][:-1] + ', "renderOrder": {}}}'.format(renderOrder)
 
+        if self._extra_kwds.get('single_side'):
+            json[0] = json[0][:-1] + ', "singleSide": true}'
+
         if self._extra_kwds.get('threejs_flat_shading'):
             json[0] = json[0][:-1] + ', "useFlatShading": true}'
 

@@ -213,8 +213,8 @@ cdef extern from "cplex.h":
      # sets the value of a string parameter
      int CPXsetstrparam(c_cpxenv * env, int paramid, char * value)
 
-     # sets the log stream file
-     int CPXsetlogfile(c_cpxenv * env, FILE * f)
+     # Set the log file
+     int CPXsetlogfilename(c_cpxenv * env, char * filename, char * mode)
 
      # CONSTANTS
      int CPX_ON = 1

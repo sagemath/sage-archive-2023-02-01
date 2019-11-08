@@ -6,20 +6,21 @@ Given a differentiable manifold `M`, an *integrated curve* in `M`
 is a differentiable curve constructed as a solution to a system of
 second order differential equations.
 
-Integrated curves are implemented by :class:`IntegratedCurve`, from which the
-classes :class:`IntegratedAutoparallelCurve` and
+Integrated curves are implemented by the class :class:`IntegratedCurve`, from
+which the classes :class:`IntegratedAutoparallelCurve` and
 :class:`IntegratedGeodesic` inherit.
 
-.. RUBRIC:: Example: a geodesic in hyperbolic Poincaré half-plane
+.. RUBRIC:: Example: a geodesic in the hyperbolic plane
 
-First declare a chart over the Poincaré half-plane::
+First declare the hyperbolic plane as a 2-dimensional Riemannian manifold ``M``
+and introduce the chart ``X`` corresponding to the Poincaré half-plane model::
 
-    sage: M = Manifold(2, 'M')
+    sage: M = Manifold(2, 'M', structure='Riemannian')
     sage: X.<x,y> = M.chart('x y:(0,+oo)')
 
-Then declare the hyperbolic Poincaré metric::
+Then set the metric to be the hyperbolic one::
 
-    sage: g = M.metric('g')
+    sage: g = M.metric()
     sage: g[0,0], g[1,1] = 1/y^2, 1/y^2
     sage: g.display()
     g = y^(-2) dx*dx + y^(-2) dy*dy
@@ -38,8 +39,7 @@ corresponding affine parameter::
     sage: c = M.integrated_geodesic(g, (t, 0, 10), v, name='c')
 
 Numerically integrate the geodesic (see :meth:`~IntegratedCurve.solve` for
-all possible parameters that can by used, including the choice of the
-numerical algorithm)::
+all possible options, including the choice of the numerical algorithm)::
 
     sage: sol = c.solve()
 
@@ -47,16 +47,16 @@ Plot the geodesic after interpolating the solution ``sol``::
 
     sage: interp = c.interpolate()
     sage: graph = c.plot_integrated()
-    sage: p_plot = p.plot(size=30, label_offset=0.07, fontsize=20)
+    sage: p_plot = p.plot(size=30, label_offset=-0.07, fontsize=20)
     sage: v_plot = v.plot(label_offset=0.05, fontsize=20)
     sage: graph + p_plot + v_plot
     Graphics object consisting of 5 graphics primitives
 
 .. PLOT::
 
-    M = Manifold(2, 'M')
+    M = Manifold(2, 'M', structure='Riemannian')
     X = M.chart('x y'); x, y = X[:]
-    g = M.metric('g')
+    g = M.metric()
     g[0,0], g[1,1] = 1/y**2, 1/y**2
     p = M((0,1), name='p')
     v = M.tangent_space(p)((1,3/2), name='v')
@@ -65,7 +65,7 @@ Plot the geodesic after interpolating the solution ``sol``::
     sol = c.solve()
     interp = c.interpolate()
     graph = c.plot_integrated()
-    p_plot = p.plot(size=30, label_offset=0.07, fontsize=20)
+    p_plot = p.plot(size=30, label_offset=-0.07, fontsize=20)
     v_plot = v.plot(label_offset=0.05, fontsize=20)
     sphinx_plot(graph + p_plot + v_plot)
 
@@ -75,14 +75,14 @@ Plot the geodesic after interpolating the solution ``sol``::
     sage: c.domain()
     Real interval (0, 10)
     sage: c.codomain()
-    2-dimensional differentiable manifold M
+    2-dimensional Riemannian manifold M
     sage: c.display()
     c: (0, 10) --> M
 
 In particular, its value at `t=1` is::
 
     sage: c(1)
-    Point on the 2-dimensional differentiable manifold M
+    Point on the 2-dimensional Riemannian manifold M
 
 which corresponds to the following `(x, y)` coordinates::
 
@@ -3715,13 +3715,13 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
     `(\theta, \phi)` on `\mathbb{S}^{2}` and the
     corresponding coordinate frame `(e_{\theta}, e_{\phi})`::
 
-        sage: S2 = Manifold(2, 'S^2', start_index=1)
+        sage: S2 = Manifold(2, 'S^2', structure='Riemannian', start_index=1)
         sage: polar.<th,ph>=S2.chart('th ph')
         sage: epolar = polar.frame()
 
-    Set the Euclidean metric tensor `g` induced on `\mathbb{S}^{2}`::
+    Set the standard round metric::
 
-        sage: g = S2.metric('g')
+        sage: g = S2.metric()
         sage: g[1,1], g[2,2] = 1, (sin(th))^2
 
     Set generic initial conditions for the geodesics to compute::
@@ -3738,17 +3738,17 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
         sage: c = S2.integrated_geodesic(g, (t, tmin, tmax), v,
         ....:                            chart=polar, name='c')
         sage: sys = c.system(verbose=True)
-        Geodesic c in the 2-dimensional differentiable manifold S^2
+        Geodesic c in the 2-dimensional Riemannian manifold S^2
          equipped with Riemannian metric g on the 2-dimensional
-         differentiable manifold S^2, and integrated over the Real
+         Riemannian manifold S^2, and integrated over the Real
          interval (tmin, tmax) as a solution to the following geodesic
          equations, written with respect to Chart (S^2, (th, ph)):
         <BLANKLINE>
-        Initial point: Point p on the 2-dimensional differentiable
+        Initial point: Point p on the 2-dimensional Riemannian
         manifold S^2 with coordinates [th0, ph0] with respect to
         Chart (S^2, (th, ph))
         Initial tangent vector: Tangent vector at Point p on the
-        2-dimensional differentiable manifold S^2 with
+        2-dimensional Riemannian manifold S^2 with
         components [v_th0, v_ph0] with respect to Chart (S^2, (th, ph))
         <BLANKLINE>
         d(th)/dt = Dth
@@ -3798,10 +3798,10 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
 
     .. PLOT::
 
-        S2 = Manifold(2, 'S^2', start_index=1)
+        S2 = Manifold(2, 'S^2', structure='Riemannian', start_index=1)
         polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
-        g = S2.metric('g')
+        g = S2.metric()
         g[1,1], g[2,2] = 1, (sin(th))**2
         t,tmin,tmax,th0,ph0,v_th0,v_ph0 = var('t tmin tmax th0 ph0 v_th0 v_ph0')
         p = S2.point((th0, ph0), name='p')
@@ -3844,18 +3844,17 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
 
         TESTS::
 
-            sage: S2 = Manifold(2, 'S^2')
+            sage: S2 = Manifold(2, 'S^2', structure='Riemannian')
             sage: X.<theta,phi> = S2.chart()
-            sage: [t, A] = var('t A')
-            sage: g = S2.metric('g')
+            sage: t, A = var('t A')
+            sage: g = S2.metric()
             sage: g[0,0] = A
-            sage: g[1,0] = 0
             sage: g[1,1] = A*sin(theta)^2
             sage: p = S2.point((pi/2,0), name='p')
             sage: Tp = S2.tangent_space(p)
             sage: v = Tp((1/sqrt(2),1/sqrt(2)))
             sage: c = S2.integrated_geodesic(g, (t,0,pi), v, name='c'); c
-            Integrated geodesic c in the 2-dimensional differentiable
+            Integrated geodesic c in the 2-dimensional Riemannian
              manifold S^2
             sage: TestSuite(c).run()
 
@@ -3878,21 +3877,20 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
 
         TESTS::
 
-            sage: S2 = Manifold(2, 'S^2')
+            sage: S2 = Manifold(2, 'S^2', structure='Riemannian')
             sage: X.<theta,phi> = S2.chart()
-            sage: [t, A] = var('t A')
-            sage: g = S2.metric('g')
+            sage: t, A = var('t A')
+            sage: g = S2.metric()
             sage: g[0,0] = A
-            sage: g[1,0] = 0
             sage: g[1,1] = A*sin(theta)^2
             sage: p = S2.point((pi/2,0), name='p')
             sage: Tp = S2.tangent_space(p)
             sage: v = Tp((1/sqrt(2),1/sqrt(2)))
             sage: c = S2.integrated_geodesic(g, (t, 0, pi), v) ; c
-            Integrated geodesic in the 2-dimensional differentiable
+            Integrated geodesic in the 2-dimensional Riemannian
              manifold S^2
             sage: c = S2.integrated_geodesic(g, (t,0,pi), v, name='c'); c
-            Integrated geodesic c in the 2-dimensional differentiable
+            Integrated geodesic c in the 2-dimensional Riemannian
              manifold S^2
 
         """
@@ -3909,12 +3907,11 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
 
         TESTS::
 
-            sage: S2 = Manifold(2, 'S^2')
+            sage: S2 = Manifold(2, 'S^2', structure='Riemannian')
             sage: X.<theta,phi> = S2.chart()
-            sage: [t, A] = var('t A')
-            sage: g = S2.metric('g')
+            sage: t, A = var('t A')
+            sage: g = S2.metric()
             sage: g[0,0] = A
-            sage: g[1,0] = 0
             sage: g[1,1] = A*sin(theta)^2
             sage: p = S2.point((pi/2,0), name='p')
             sage: Tp = S2.tangent_space(p)
@@ -3923,15 +3920,15 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
             sage: c.__reduce__()
             (<...IntegratedGeodesicSet_with_category.element_class'>,
              (Set of Morphisms from Real interval (0, pi) to
-              2-dimensional differentiable manifold S^2 in Category of
+              2-dimensional Riemannian manifold S^2 in Category of
               homsets of subobjects of sets and topological spaces which
               actually are integrated geodesics with respect to a certain
               metric,
-              Riemannian metric g on the 2-dimensional differentiable
+              Riemannian metric g on the 2-dimensional Riemannian
               manifold S^2,
               t,
               Tangent vector at Point p on the 2-dimensional
-               differentiable manifold S^2,
+               Riemannian manifold S^2,
               Chart (S^2, (theta, phi)),
               'c',
               'c',
@@ -3941,7 +3938,7 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
         Test of pickling::
 
             sage: loads(dumps(c))
-            Integrated geodesic c in the 2-dimensional differentiable manifold S^2
+            Integrated geodesic c in the 2-dimensional Riemannian manifold S^2
 
         """
 
@@ -3972,29 +3969,28 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
 
         System defining a geodesic::
 
-            sage: S2 = Manifold(2, 'S^2')
+            sage: S2 = Manifold(2, 'S^2',structure='Riemannian')
             sage: X.<theta,phi> = S2.chart()
-            sage: [t, A] = var('t A')
-            sage: g = S2.metric('g')
+            sage: t, A = var('t A')
+            sage: g = S2.metric()
             sage: g[0,0] = A
-            sage: g[1,0] = 0
             sage: g[1,1] = A*sin(theta)^2
             sage: p = S2.point((pi/2,0), name='p')
             sage: Tp = S2.tangent_space(p)
             sage: v = Tp((1/sqrt(2),1/sqrt(2)))
             sage: c = S2.integrated_geodesic(g, (t, 0, pi), v, name='c')
             sage: sys = c.system(verbose=True)
-            Geodesic c in the 2-dimensional differentiable manifold S^2
+            Geodesic c in the 2-dimensional Riemannian manifold S^2
              equipped with Riemannian metric g on the 2-dimensional
-             differentiable manifold S^2, and integrated over the Real
+             Riemannian manifold S^2, and integrated over the Real
              interval (0, pi) as a solution to the following geodesic
              equations, written with respect to Chart (S^2, (theta, phi)):
             <BLANKLINE>
-            Initial point: Point p on the 2-dimensional differentiable
+            Initial point: Point p on the 2-dimensional Riemannian
              manifold S^2 with coordinates [1/2*pi, 0] with respect to
              Chart (S^2, (theta, phi))
             Initial tangent vector: Tangent vector at Point p on the
-             2-dimensional differentiable manifold S^2 with
+             2-dimensional Riemannian manifold S^2 with
              components [1/2*sqrt(2), 1/2*sqrt(2)] with respect to
              Chart (S^2, (theta, phi))
             <BLANKLINE>
@@ -4062,4 +4058,3 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
             print(description)
 
         return [self._equations_rhs, v0, chart]
-

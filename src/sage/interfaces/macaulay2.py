@@ -343,7 +343,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: macaulay2.options.after_print = 'yes'  # optional - macaulay2
+            sage: macaulay2.options.after_print = True  # optional - macaulay2
             sage: A = macaulay2(matrix([[1, 2], [3, 6]])); A  # optional - macaulay2
             | 1 2 |
             | 3 6 |
@@ -356,17 +356,14 @@ class Macaulay2(ExtraTabCompletion, Expect):
             <BLANKLINE>
                                       2
             ZZ-module, submodule of ZZ
-            sage: macaulay2.options.after_print = 'no'  # optional - macaulay2
+            sage: macaulay2.options.after_print = False  # optional - macaulay2
         """
         NAME = 'Macaulay2'
         module = 'sage.interfaces.macaulay2'
-        # GlobalOptions currently only supports strings, so we use yes/no
-        # rather than True/False to avoid confusion with booleans
-        after_print = dict(default='no',
-                           values=dict(
-                               yes='append AfterPrint type information to '
-                                   'textual representations',
-                               no='do not append AfterPrint text'))
+        after_print = dict(default=False,
+                           description='append AfterPrint type information to '
+                                       'textual representations',
+                           checker=lambda val: isinstance(val, bool))
 
     def get(self, var):
         """
@@ -931,7 +928,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         If ``AfterPrint`` is enabled, the ``repr`` contains type information,
         but the string representation does not::
 
-            sage: macaulay2.options.after_print = 'yes'  # optional - macaulay2
+            sage: macaulay2.options.after_print = True  # optional - macaulay2
             sage: repr(macaulay2('1..25'))  # optional - macaulay2
             (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
             --------------------------------------------------------------------------------
@@ -940,11 +937,11 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             Sequence
             sage: str(macaulay2('1..25'))  # optional - macaulay2
             (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
-            sage: macaulay2.options.after_print = 'no'  # optional - macaulay2
+            sage: macaulay2.options.after_print = False  # optional - macaulay2
         """
         from sage.typeset.ascii_art import empty_ascii_art
         P = self.parent()
-        if P.options.after_print == 'yes':
+        if P.options.after_print:
             # In M2, the wrapped output is indented by the width of the prompt,
             # which we strip in Sage. We hardcode the width of the prompt to
             # 14=len('o1000000001 = '), which is tested in the doctests by the

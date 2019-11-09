@@ -100,11 +100,10 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
 
     .. NOTE::
 
-        ``start`` and ``stop`` should be integers. Other input may produce unexpected
-        results. For example, ``prime_range(7, "10", "pari_isprime")`` returns
-        ``[7]``, but causes an error if the algorithm is changed to "pari_primes",
-        whereas ``prime_range(7.9, 10, "pari_primes")`` returns ``[7]``, but causes an
-        error if the algorithm is changed to "pari_isprime".
+        ``start`` and ``stop`` should be integers, but real numbers will also be accepted
+        as input. In this case, they will be rounded to nearby integers start\* and
+        stop\*, so the output will be the primes between start\* and stop\* - 1, which may
+        not be exactly the same as the primes between ``start`` and ``stop - 1``.
 
     TESTS::
 
@@ -126,9 +125,11 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         sage: prime_range(436273009, 436273010)
         [436273009]
 
-    To avoid a doctest error in functions/prime_pi.pyx, prime_range must allow real input::
+    Confirm the fix in trac ticket 28712::
 
-        sage: prime_range(9.5, 14.3)
+        sage: prime_range(9.5, "14", "pari_primes")
+        [11, 13]
+        sage: prime_range(9.5, "14", "pari_isprime")
         [11, 13]
 
     Test for non-existing algorithm::
@@ -153,8 +154,27 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     DEF small_prime_max = 436273009 # a prime < init_primes_max (preferably the largest)
     DEF prime_gap_bound = 250 # upper bound for gap between primes <= small_prime_max
 
-    # if 'stop' is 'None', need to change it to an integer before comparing with 'start'
-    if (algorithm == "pari_primes") and (max(start, stop or 0) <= small_prime_max):
+    # make sure that start and stop are integers
+    # First try coercing them. If that does not work, then try rounding them.
+    try:
+        start = Integer(start)
+    except TypeError as integer_error:
+        try:
+            start = Integer(round(start))
+        except (ValueError, TypeError) as real_error:
+            raise TypeError(str(integer_error)
+                + "\nand argument is also not real: " + str(real_error))
+    if stop is not None:
+        try:
+            stop = Integer(stop)
+        except TypeError as integer_error:
+            try:
+                stop = Integer(round(stop))
+            except (ValueError, TypeError) as real_error:
+                raise ValueError(str(integer_error)
+                    + "\nand argument is also not real: " + str(real_error))
+
+    if (algorithm == "pari_primes") and (max(start,stop) <= small_prime_max):
 
         if stop is None:
             # In this case, "start" is really stop

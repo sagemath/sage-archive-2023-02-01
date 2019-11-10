@@ -5,7 +5,7 @@ AUTHORS:
 
 - Jon Hanke (2007-06-19)
 - Anna Haensch (2010-07-01): Formatting and ReSTification
-- Simon Brandhorst (2019-10-15): :meth:``QuadraticFormFromInvariants``
+- Simon Brandhorst (2019-10-15): :meth:``quadratic_form_from_invariants``
 """
 
 #*****************************************************************************
@@ -76,7 +76,7 @@ def is_QuadraticForm(Q):
     return isinstance(Q, QuadraticForm)
 
 
-def QuadraticFormFromInvariants(F, rk, det, P, sminus):
+def quadratic_form_from_invariants(F, rk, det, P, sminus):
     r"""
     Return a rational quadratic form with given invariants.
 
@@ -88,25 +88,29 @@ def QuadraticFormFromInvariants(F, rk, det, P, sminus):
     - ``P`` -- a list of primes where Cassel's Hasse invariant
       is negative
     - ``sminus`` -- integer; the number of negative eigenvalues
-      of any gram matrix
+      of any Gram matrix
 
     OUTPUT:
 
     - a quadratic form with the specified invariants
 
-    Let `(a_1,...,a_n)` be the gram marix of a regular quadratic space.
+    Let `(a_1, \ldots, a_n)` be the gram marix of a regular quadratic space.
     Then Cassel's Hasse invariant is defined as
 
     .. MATH::
 
-        \prod_{i<j} (a_i,a_j)
+        \prod_{i<j} (a_i,a_j),
 
     where `(a_i,a_j)` denotes the Hilbert symbol.
+
+    ALGORITHM::
+
+        We follow [Kir2016]_.
 
     EXAMPLES::
 
         sage: P = [3,5]
-        sage: q = QuadraticFormFromInvariants(QQ,2,-15,P,1)
+        sage: q = quadratic_form_from_invariants(QQ,2,-15,P,1)
         sage: q
         Quadratic form in 2 variables over Rational Field with coefficients:
         [ 5 0 ]
@@ -117,22 +121,22 @@ def QuadraticFormFromInvariants(F, rk, det, P, sminus):
     from sage.arith.misc import hilbert_symbol
     # normalize input
     if F!=QQ:
-        raise NotImplementedError('Base field must be QQ. If you want this over any field, implement weak approximation.')
+        raise NotImplementedError('base field must be QQ. If you want this over any field, implement weak approximation.')
     P = [ZZ(p) for p in P]
     rk = ZZ(rk)
     d = QQ(det).squarefree_part()
     sminus = ZZ(sminus)
     # check if the invariants define a global quadratic form
     if d.sign() != (-1)**sminus:
-        raise ValueError("Invariants do not define a rational quadratic form")
+        raise ValueError("invariants do not define a rational quadratic form")
     if rk == 1 and len(P) != 0:
-        raise ValueError("Invariants do not define a rational quadratic form")
+        raise ValueError("invariants do not define a rational quadratic form")
     if rk == 2:
         for p in P:
             if QQ(-d).is_padic_square(p):
-                raise ValueError("Invariants do not define a rational quadratic form")
+                raise ValueError("invariants do not define a rational quadratic form")
     if sminus % 4 in (2, 3) and len(P) % 2 == 0:
-        raise ValueError("Invariants do not define a rational quadratic form")
+        raise ValueError("invariants do not define a rational quadratic form")
     D = []
     while rk >= 2:
         if rk >= 4:
@@ -151,7 +155,7 @@ def QuadraticFormFromInvariants(F, rk, det, P, sminus):
             for p in Pprime:
                 if d.valuation(p) % 2 == 0:
                     a *= p
-            assert all([(a*d).valuation(p)%2==1 for p in Pprime])
+            assert all((a*d).valuation(p)%2==1 for p in Pprime)
         elif rk == 2:
             S = P
             if sminus == 2:

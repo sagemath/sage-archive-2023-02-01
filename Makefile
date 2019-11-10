@@ -53,7 +53,7 @@ build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs
 		fi; )
 
 # This is used to monitor progress towards Python 3 and prevent
-# regressions.
+# regressions. Should be removed after the full switch to python3
 buildbot-python3: configure
 	./configure --with-python=3
 	$(MAKE)

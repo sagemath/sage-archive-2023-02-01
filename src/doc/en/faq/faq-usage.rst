@@ -98,7 +98,7 @@ or something along that line. Next, reinstall Sage's Python:
 
 .. CODE-BLOCK:: shell-session
 
-    $ sage -f python2
+    $ sage -f python3
 
 This will pick up the tcl/tk library automatically. After successfully
 reinstalling Sage's Python, from within the Sage command line interface,

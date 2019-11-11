@@ -155,7 +155,8 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             sage: S.cardinality()
             6
         """
-        return binomial(self._w1.length()+self._w2.length(), self._w1.length())
+        return binomial(self._w1.length() + self._w2.length(),
+                        self._w1.length())
 
     def _proc(self, vect):
         """
@@ -234,7 +235,7 @@ class ShuffleProduct_w1w2(CombinatorialClass):
         """
         n1 = len(self._w1)
         n2 = len(self._w2)
-        for iv in IntegerVectors(n1, n1+n2, max_part=1):
+        for iv in IntegerVectors(n1, n1 + n2, max_part=1):
             yield self._proc(iv)
 
 
@@ -272,6 +273,3 @@ class ShuffleProduct_shifted(ShuffleProduct_w1w2):
             'Shuffle product of word: 01 and word: 45'
         """
         return "Shuffle product of %s and %s" % (repr(self._w1), repr(self._w2))
-
-lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping_r', deprecation=15597)
-lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping', deprecation=15597)

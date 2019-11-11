@@ -83,6 +83,17 @@ def PermutationGroupElement(g, parent=None, check=True):
         ('a','c')('b','e')
         sage: PermutationGroupElement("('a','b','e')('c','d')", S)
         ('a','b','e')('c','d')
+
+    But in this situation, you might want to use the more direct::
+
+        sage: S(['e', 'c', 'b', 'a', 'd'])
+        ('a','e','d')('b','c')
+        sage: S(('a', 'b', 'c'))
+        ('a','b','c')
+        sage: S([('a', 'c'), ('b', 'e')])
+        ('a','c')('b','e')
+        sage: S("('a','b','e')('c','d')")
+        ('a','b','e')('c','d')
     """
     if isinstance(g, permgroup_element.PermutationGroupElement):
         if parent is None or g.parent() is parent:

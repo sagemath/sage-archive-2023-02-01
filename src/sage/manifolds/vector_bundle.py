@@ -760,6 +760,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             For more options, in particular for the choice of symbols and
             indices, see :class:`~sage.manifolds.local_frame.LocalFrame`.
 
+        .. TODO::
+
+            Allow construction of a local frame from a family of local
+            sections, in a way similar to
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.vector_frame`
+
         """
         from sage.manifolds.local_frame import LocalFrame
         sec_module = self.section_module(domain=domain, force_free=True)

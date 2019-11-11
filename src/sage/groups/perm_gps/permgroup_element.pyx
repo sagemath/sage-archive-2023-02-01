@@ -560,28 +560,16 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 self._set_list_cycles(g, convert)
             else:
                 self._set_list_images(g, convert)
+        elif isinstance(g, str):
+            self._set_string(g)
+        elif isinstance(g, PermutationGroupElement):
+            self._set_permutation_group_element(g, convert or not g.parent()._has_natural_domain())
         else:
-            if isinstance(g, PermutationGroupElement):
-                g_pge = <PermutationGroupElement> g
-                if g_pge._parent._domain != self._parent._domain:
-                    # If it is a different domain, then go via cycles
-                    self_map = parent._domain_to_gap
-                    try:
-                        cycles = [tuple([self_map[x] for x in cycle])
-                                  for cycle in g_pge.cycle_tuples()]
-                    except KeyError:
-                        raise ValueError("invalid data to initialize a permutation")
-                    self._set_list_cycles(cycles, False)
-                else:
-                    # Same domain, so safe to map things directly
-                    for i in range(self.n):
-                        self.perm[i] = g_pge.perm[i]
-            else:
-                try:
-                    v = standardize_generator(g, parent._domain_to_gap)
-                except KeyError:
-                    raise ValueError("invalid data to initialize a permutation")
-                self._set_list_images(v, False)
+            try:
+                v = standardize_generator(g, parent._domain_to_gap)
+            except KeyError:
+                raise ValueError("invalid data to initialize a permutation")
+            self._set_list_images(v, False)
 
         # We do this check even if check=False because it's fast
         # (relative to other things in this function) and the
@@ -655,6 +643,42 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         for i in range(vn, self.n):
             self.perm[i] = i
 
+    cpdef _set_permutation_group_element(self, PermutationGroupElement p, bint convert):
+        r"""
+        TESTS::
+
+            sage: S1 = SymmetricGroup(5)
+            sage: S2 = SymmetricGroup(6)
+            sage: S3 = SymmetricGroup([1,3,5])
+            sage: for U in [S1,S2,S3]:
+            ....:     for V in [S1,S2,S3]:
+            ....:         assert U(V((1,3))) == U((1,3))
+        """
+        cdef i, j
+        if convert:
+            self._set_identity()
+            convert_dict = self._parent._domain_to_gap
+            p_domain = p._parent._domain
+            for i in range(p.n):
+                if p.perm[i] == i:
+                    continue
+                j = p.perm[i]
+                i = convert_dict[p_domain[i]] - 1
+                j = convert_dict[p_domain[j]] - 1
+                self.perm[i] = j
+        else:
+            if p.n > self.n:
+                for i in range(p.n, self.n):
+                    if p[i] != i:
+                        raise ValueError("invalid permutation to initialize a permutation")
+                for i in range(self.n):
+                    self.perm[i] = p.perm[i]
+            else:
+                for i in range(p.n):
+                    self.perm[i] = p.perm[i]
+                for i in range(p.n, self.n):
+                    self.perm[i] = i
+
     cpdef _set_list_cycles(self, c, bint convert):
         r"""
         TESTS::
@@ -701,6 +725,74 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 if j < 0 or j >= self.n:
                     raise ValueError("invalid list of cycles to initialize a permutation")
                 self.perm[j] = t[0] - 1
+
+    cpdef _set_string(self, str s):
+        r"""
+        TESTS::
+
+            sage: s = SymmetricGroup(8)()
+            sage: s._set_string('(4,2,1,6)(3,5)')
+            sage: s
+            (1,6,4,2)(3,5)
+
+            sage: S = SymmetricGroup(['a', 'b', 'c', 'd', 'e', 'f'])
+            sage: S("('a','c')('b','e','d')")
+            ('a','c')('b','e','d')
+
+            sage: S = SymmetricGroup(8)
+            sage: S("()")
+            ()
+            sage: S("()(1,3)()()")
+            (1,3)
+            sage: S("(1,3")
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid string to initialize a permutation
+            sage: S("1,3)")
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid string to initialize a permutation
+            sage: S("1,3")
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid string to initialize a permutation
+        """
+        cdef Py_ssize_t i=0, j
+        cdef int k, m
+        cdef str c
+        cdef list cycle
+        cdef dict convert_dict = self._parent._domain_to_gap
+        cdef bint convert = self._parent._has_natural_domain()
+
+        self._set_identity()
+
+        while i < len(s):
+            j = s.find(')', i + 1)
+            if s[i] != '(' or j == -1:
+                raise ValueError("invalid string to initialize a permutation")
+            i += 1
+            if i == j:
+                i = j + 1
+                continue
+
+            cycle = []
+            for c in s[i:j].split(','):
+                c = c.strip()
+                if convert:
+                    cycle.append(int(c) - 1)
+                else:
+                    cycle.append(convert_dict[eval(c)] - 1)
+            for k in range(len(cycle) - 1):
+                m = cycle[k]
+                if m < 0 or m >= self.n:
+                    raise ValueError("invalid list of cycles to initialize a permutation")
+                self.perm[m] = cycle[k+1]
+            m = cycle[-1]
+            if m < 0 or m >= self.n:
+                raise ValueError("invalid list of cycles to initialize a permutation")
+            self.perm[m] = cycle[0]
+
+            i = j + 1
 
     def __reduce__(self):
         """

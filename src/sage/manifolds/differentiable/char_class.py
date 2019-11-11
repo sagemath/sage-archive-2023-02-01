@@ -2,7 +2,7 @@ r"""
 Characteristic Classes
 
 Let `E \to M` be some complex vector bundle over a differentiable manifold `M`.
-A *characteristic class* `c(E)` is an element of the the cohomology ring
+A *characteristic class* `c(E)` is an element of the cohomology ring
 `H^{*}_{\mathrm{dR}}(M, \CC)` such that for any differentiable map `f: M \to N`
 we have the *naturality condition*:
 
@@ -29,7 +29,7 @@ Namely, if `P: \mathfrak{g} \to \CC` is an invariant polynomial, the object
     \left[ P \left( \Omega \right) \right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
 
 is well-defined and independent of the choice of `\nabla` (the proof can be
-found in [Roe1988]_ pp. 31). This is the foundation of Chern-Weil theory and
+found in [Roe1988]_ pp. 31). This is the foundation of the Chern-Weil theory and
 therefore the following definitions.
 
 .. NOTE::
@@ -60,7 +60,7 @@ We consider the following three types of classes:
 Additive Classes
 ----------------
 
-In the **complex** case, let `f` be a holomorphic function around zero. Then,
+In the **complex** case, let `f` be a holomorphic function around zero. Then
 we call
 
 .. MATH::
@@ -74,7 +74,7 @@ Important and predefined additive Chern genera are:
 
 - *Chern Character* with `f(x) = \exp(x)`
 
-In the **real** case, let `g` be a holomorphic function around zero. Then, we
+In the **real** case, let `g` be a holomorphic function around zero. Then we
 call
 
 .. MATH::
@@ -121,7 +121,7 @@ Multiplicative Classes
 ----------------------
 
 In the **complex** case, let `f` be a holomorphic function around zero.
-Then, we call
+Then we call
 
 .. MATH::
 
@@ -136,13 +136,13 @@ Important and predefined multiplicative Chern genera are:
 - *Todd class* with `f(x) = \frac{x}{1-\exp(-x)}`
 
 In the **real** case, let `g` be a holomorphic function around zero with
-`g(0)=1`. Then, we call
+`g(0)=1`. Then we call
 
 .. MATH::
 
     \left[\det\left( \sqrt{ g \left( -\frac{\Omega^2}{4 \pi^2} \right) } \right) \right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
 
-the *multiplicative Pontryagin g-genus*
+the *multiplicative Pontryagin g-genus*.
 
 Important and predefined multiplicative Pontryagin genera are:
 
@@ -165,9 +165,9 @@ We consider the **Chern class** of the tautological line bundle `\gamma^1` over
     sage: e = E.local_frame('e', domain=U)
 
 To apply the Chern-Weil approach, we need a bundle connection in terms of a
-connection one form. For this, we take the connection induced from the
+connection one form. To achieve this, we take the connection induced from the
 hermitian metric on the trivial bundle
-`\CC^2 \times \CC\mathbf{P}^1 \supset \gamma^1` in which the frame `e` above
+`\CC^2 \times \CC\mathbf{P}^1 \supset \gamma^1`. In this the frame `e`
 corresponds to the section `[z:1] \mapsto (z,1)` and its magnitude-squared
 is given by `1+|z|^2`::
 
@@ -187,7 +187,7 @@ Now, the Chern class can be constructed::
     c(gamma^1, nabla) = [1] + [0] + [1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz/\dzbar]
 
 Since `U` and `\CC\mathbf{P}^1` differ only by a point and therefore a null
-set, the integral over the top form is independent of that choice::
+set, it is enough to integrate the top form over the domain `U`::
 
     sage: integrate(integrate(c_form[2][[1,2]].expr(c_cart), x, -infinity, infinity).full_simplify(),
     ....:           y, -infinity, infinity)
@@ -201,13 +201,14 @@ cohomology of `\CC\mathbf{P}^1`.
 Pfaffian Classes
 ----------------
 
-Usually, in the literature, there are no such things defined as "Pfaffian
-classes". However, using the Pfaffian of a matrix and inspired by the
-aforementioned definitions, such classes can be defined as follows.
+Usually, there is no such thing as "Pfaffian classes" in literature. However,
+using the matrix' Pfaffian and inspired by the aforementioned definitions,
+such classes can be defined as follows.
 
-Let `E` be a real vector bundle of rank `2n` and `f` be an odd real function
-being analytic at zero. Furthermore, let `\Omega` be skew-symmetric, which is
-certainly true when `\nabla` is metric and `e` is orthonormal. Then, we call
+Let `E` be a real vector bundle of rank `2n` and `f` an odd real function
+being analytic at zero. Furthermore, let `\Omega` be skew-symmetric, which
+certainly will be true if `\nabla` is metric and `e` is orthonormal. Then
+we call
 
 .. MATH::
 
@@ -239,8 +240,8 @@ We consider the **Euler class** of `S^2`::
     Characteristic class e of Pfaffian type associated to x on the Tangent
      bundle TS2 over the 2-dimensional differentiable manifold S2
 
-To compute a particular representative of the Euler class, we need a
-connection first::
+To compute a particular representative of the Euler class, we need to determine
+a connection ::
 
     sage: g = M.metric('g') # standard metric on S2
     sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
@@ -256,7 +257,7 @@ hand::
     sage: cmatrix_V = [[nab.curvature_form(i,j,eV) for j in TM.irange()]
     ....:               for i in TM.irange()]
 
-Fortunately, both curvature matrices are skew-symmetric already::
+Fortunately, both curvature matrices are already skew-symmetric::
 
     sage: for i in range(TM.rank()):
     ....:    for j in range(TM.rank()):
@@ -281,8 +282,8 @@ Fortunately, both curvature matrices are skew-symmetric already::
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
      (V, (d/du,d/dv)) = 0
 
-Now, the representative of the Euler class with respect to the connection
-`\nabla` induced by the standard metric can be computed::
+Now the representative of the Euler class with respect to the connection
+`\nabla_g` induced by the standard metric can be computed::
 
     sage: cmatrices = {eU: cmatrix_U, eV: cmatrix_V}
     sage: e_class_form = e_class.get_form(nab, cmatrices)
@@ -290,12 +291,14 @@ Now, the representative of the Euler class with respect to the connection
     e(TS2, nabla_g) = [0] + [0] + [2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 +
      2*(pi + pi*x^2)*y^2) dx/\dy]
 
-Indeed, this form represents the Euler class since integrating yields the
-Euler characteristic of `S^2`::
+Let us check whether this form represents the Euler class correctly::
 
     sage: integrate(integrate(e_class_form[2][[1,2]].expr(), x, -infinity, infinity).simplify_full(),
     ....:           y, -infinity, infinity)
     2
+
+As we can see, the integral coincides with the Euler characteristic of `S^2` so
+that our form actually represents the Euler class appropriately.
 
 .. _documentation:
 

@@ -116,7 +116,7 @@ from sage.geometry.point_collection import PointCollection,\
     is_PointCollection, read_palp_point_collection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
-from sage.groups.perm_gps.constructor import PermutationGroupElement
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from ppl import (C_Polyhedron, Generator_System, Linear_Expression,
                            point as PPL_point)
 from sage.matrix.constructor import matrix
@@ -3068,14 +3068,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ....:     for j, i in PMs) # long time
             True
         """
-        def PGE(t):
-            if len(t) == 2 and t[0] == t[1]:
-                t = tuple()
-            return PermutationGroupElement(t)
+        def PGE(S, u, v):
+            if u == v: return S.one()
+            return S((u, v), check=False)
 
         PM = self.vertex_facet_pairing_matrix()
         n_v = PM.ncols()
         n_f = PM.nrows()
+        S_v = SymmetricGroup(n_v)
+        S_f = SymmetricGroup(n_f)
 
         # and find all the ways of making the first row of PM_max
         def index_of_max(iterable):
@@ -3087,23 +3088,22 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return m
 
         n_s = 1
-        permutations = {0 : [PGE(range(1, n_f + 1)),
-                             PGE(range(1, n_v + 1))]}
+        permutations = {0 : [S_f.one(), S_v.one()]}
         for j in range(n_v):
             m = index_of_max(
                 [(PM.with_permuted_columns(permutations[0][1]))[0][i]
                  for i in range(j, n_v)])
             if m > 0:
-                permutations[0][1] = PGE((j + 1,m + j + 1))*permutations[0][1]
+                permutations[0][1] = PGE(S_v, j + 1, m + j + 1) * permutations[0][1]
         first_row = list(PM[0])
         
         # Arrange other rows one by one and compare with first row
         for k in range(1, n_f):
             # Error for k == 1 already!
-            permutations[n_s] = [PGE(range(1, n_f+1)),PGE(range(1, n_v+1))]
+            permutations[n_s] = [S_f.one(), S_v.one()]
             m = index_of_max(PM.with_permuted_columns(permutations[n_s][1])[k])
             if m > 0:
-                permutations[n_s][1] = PGE((1,m+1))*permutations[n_s][1]
+                permutations[n_s][1] = PGE(S_v, 1, m+1) * permutations[n_s][1]
             d = ((PM.with_permuted_columns(permutations[n_s][1]))[k][0]
                 - permutations[0][1](first_row)[0])
             if d < 0:
@@ -3116,7 +3116,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                     [PM.with_permuted_columns(permutations[n_s][1])[k][j]
                      for j in range(i, n_v)])
                 if m > 0:
-                    permutations[n_s][1] = PGE((i + 1, m + i + 1)) \
+                    permutations[n_s][1] = PGE(S_v, i + 1, m + i + 1) \
                                            * permutations[n_s][1]
                 if d == 0:
                     d = (PM.with_permuted_columns(permutations[n_s][1])[k][i]
@@ -3127,7 +3127,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 # This row is smaller than 1st row, so nothing to do
                 del permutations[n_s]
                 continue
-            permutations[n_s][0] = PGE((1, k + 1))*permutations[n_s][0]
+            permutations[n_s][0] =  PGE(S_f, 1, k + 1) * permutations[n_s][0]
             if d == 0:
                 # This row is the same, so we have a symmetry!
                 n_s += 1
@@ -3167,7 +3167,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 # number of local permutations associated with current global
                 n_p = 0
                 ccf = cf
-                permutations_bar = {0:copy(permutations[k])}
+                permutations_bar = {0: copy(permutations[k])}
                 # We look for the line with the maximal entry in the first
                 # subsymmetry block, i.e. we are allowed to swap elements
                 # between 0 and S(0)
@@ -3176,11 +3176,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                         v = PM.with_permuted_rows_and_columns(
                             *permutations_bar[n_p])[s]
                         if v[0] < v[j]:
-                            permutations_bar[n_p][1] = PGE((1,j + 1))*permutations_bar[n_p][1]
+                            permutations_bar[n_p][1] = PGE(S_v, 1, j + 1) * permutations_bar[n_p][1]
                     if ccf == 0:
                         l_r[0] = PM.with_permuted_rows_and_columns(
                                  *permutations_bar[n_p])[s][0]
-                        permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                        permutations_bar[n_p][0] = PGE(S_f, l + 1, s + 1) * permutations_bar[n_p][0]
                         n_p += 1
                         ccf = 1
                         permutations_bar[n_p] = copy(permutations[k])
@@ -3193,14 +3193,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                             continue
                         elif d==0:
                             # Maximal values agree, so possible symmetry
-                            permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                            permutations_bar[n_p][0] = PGE(S_f, l + 1, s + 1) * permutations_bar[n_p][0]
                             n_p += 1
                             permutations_bar[n_p] = copy(permutations[k])
                         else:
                             # We found a greater maximal value for first entry.
                             # It becomes our new reference:
                             l_r[0] = d1
-                            permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                            permutations_bar[n_p][0] = PGE(S_f, l + 1, s + 1) * permutations_bar[n_p][0]
                             # Forget previous work done
                             cf = 0
                             permutations_bar = {0:copy(permutations_bar[n_p])}
@@ -3225,7 +3225,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                             v = PM.with_permuted_rows_and_columns(
                                 *permutations_bar[s])[l]
                             if (v[c] < v[j]):
-                                permutations_bar[s][1] = PGE((c + 1, j + 1))*permutations_bar[s][1]
+                                permutations_bar[s][1] = PGE(S_v, c + 1, j + 1) * permutations_bar[s][1]
                         if ccf == 0:
                             # Set reference and carry on to next permutation
                             l_r[c] = PM.with_permuted_rows_and_columns(
@@ -5022,7 +5022,8 @@ def _palp_canonical_order(V, PM_max, permutations):
     """
     n_v = PM_max.ncols()
     n_f = PM_max.nrows()
-    p_c = PermutationGroupElement(range(1, n_v))
+    S_v = SymmetricGroup(n_v)
+    p_c = S_v.one()
     M_max = [max([PM_max[i][j] for i in range(n_f)]) for j in range(n_v)]
     S_max = [sum([PM_max[i][j] for i in range(n_f)]) for j in range(n_v)]
     for i in range(n_v):
@@ -5034,7 +5035,7 @@ def _palp_canonical_order(V, PM_max, permutations):
         if not k == i:
             M_max[i], M_max[k] = M_max[k], M_max[i]
             S_max[i], S_max[k] = S_max[k], S_max[i]
-            p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
+            p_c = S_v((1 + i, 1 + k), check=False) * p_c
     # Create array of possible NFs.
     permutations = [p_c * l[1] for l in permutations.values()]
     Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig)
@@ -5048,7 +5049,7 @@ def _palp_canonical_order(V, PM_max, permutations):
 
 def _palp_convert_permutation(permutation):
     r"""
-    Convert a permutation from PALPs notation to a PermutationGroupElement.
+    Convert a permutation from PALPs notation to a Sage permutation.
 
     PALP specifies a permutation group element by its domain. Furthermore,
     it only supports permutations of up to 62 objects and labels these by

@@ -21,6 +21,12 @@ objects have a more group theoretic flavor than the more combinatorial
 from __future__ import absolute_import
 
 from . import permgroup_element
+from sage.misc.sage_eval import sage_eval
+from sage.misc.lazy_import import lazy_import
+from sage.interfaces.gap import GapElement
+lazy_import('sage.combinat.permutation', ['Permutation', 'from_cycles'])
+from sage.libs.pari.all import pari_gen
+from sage.libs.gap.element import GapElement_Permutation
 
 def PermutationGroupElement(g, parent=None, check=True):
     r"""
@@ -127,8 +133,6 @@ def string_to_tuples(g):
         sage: string_to_tuples('(1,2)(3)')
         [(1, 2), (3,)]
     """
-    from sage.misc.all import sage_eval
-
     if not isinstance(g, str):
         raise ValueError("g (= %s) must be a string" % g)
     elif g == '()':
@@ -217,13 +221,7 @@ def standardize_generator(g, convert_dict=None, as_cycles=False):
         sage: standardize_generator([('a','b')], convert_dict=d, as_cycles=True)
         [(1, 2)]
     """
-    from past.builtins import xrange
-    from sage.interfaces.gap import GapElement
-    from sage.combinat.permutation import Permutation, from_cycles
-    from sage.libs.pari.all import pari_gen
-    from sage.libs.gap.element import GapElement_Permutation
-
-    if isinstance(g, (pari_gen, range, xrange)):
+    if isinstance(g, pari_gen):
         g = list(g)
 
     needs_conversion = True

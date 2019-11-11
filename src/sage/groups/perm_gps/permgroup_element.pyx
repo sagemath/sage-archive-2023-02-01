@@ -431,6 +431,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ...
             ValueError: invalid list of cycles to initialize a permutation
 
+            sage: P = PermutationGroup(['(1,2,3)'])
+            sage: P('(1,2)')
+            Traceback (most recent call last):
+            ...
+            ValueError: permutation (1,2) not in Permutation Group with generators [(1,2,3)]
         """
         cdef int i, degree = parent.degree()
         cdef PermutationGroupElement g_pge
@@ -491,16 +496,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             raise ValueError("invalid data to initialize a permutation")
 
         # This is more expensive
-        if check:
-            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-            if parent.__class__ != SymmetricGroup:
-                if not isinstance(parent, PermutationGroup_generic):
-                    raise TypeError('parent must be a permutation group')
-                P = parent._libgap_()
-                gap = 'PermList([{}])'.format(','.join('%d' % (self.perm[i]+1) for i in range(self.n)))
-                if not P.parent().eval(gap) in P:
-                    raise TypeError('permutation %s not in %s' % (g, parent))
+        if check and not isinstance(self, SymmetricGroupElement):
+            P = parent._libgap_()
+            p = libgap.PermList([self.perm[i] + 1 for i in range(self.n)])
+            if p not in P:
+                raise ValueError('permutation %s not in %s' % (g, parent))
 
     cpdef _set_identity(self):
         r"""

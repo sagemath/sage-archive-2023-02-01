@@ -220,8 +220,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         Let us introduce the corresponding Levi-Civita connection::
 
             sage: nab = g.connection(); nab
-            Levi-Civita connection nab associated with the Lorentzian metric g
-             on the 4-dimensional Lorentzian manifold M
+            Levi-Civita connection nabla_g associated with the Lorentzian metric
+             g on the 4-dimensional Lorentzian manifold M
 
         Of course, `\nabla_g` is flat::
 
@@ -231,13 +231,14 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         element in the corresponding cohomology ring in this case::
 
             sage: TM = M.tangent_bundle(); TM
+            Tangent bundle TM over the 4-dimensional Lorentzian manifold M
             sage: p = TM.char_class('Pontryagin'); p
             Characteristic class p of multiplicative type associated to x + 1 on
              the Tangent bundle TM over the 4-dimensional Lorentzian manifold M
             sage: p.function()
             x + 1
             sage: p_form = p.get_form(nab); p_form.display_expansion()
-            p(TM, nab) = [1] + [0] + [0] + [0] + [0]
+            p(TM, nabla_g) = [1] + [0] + [0] + [0] + [0]
 
         .. SEEALSO::
 

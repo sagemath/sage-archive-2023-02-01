@@ -103,9 +103,9 @@ def quadratic_form_from_invariants(F, rk, det, P, sminus):
 
     where `(a_i,a_j)` denotes the Hilbert symbol.
 
-    ALGORITHM::
+    ALGORITHM:
 
-        We follow [Kir2016]_.
+    We follow [Kir2016]_.
 
     EXAMPLES::
 

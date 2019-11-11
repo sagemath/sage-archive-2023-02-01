@@ -2786,15 +2786,20 @@ class DifferentiableManifold(TopologicalManifold):
                 for sdom in self._supersets:
                     sdom._frame_changes[(frame2, frame1)] = change_of_frame.inverse()
 
-    def vector_frame(self, symbol=None, latex_symbol=None, dest_map=None,
-                     from_frame=None, indices=None, latex_indices=None,
-                     symbol_dual=None, latex_symbol_dual=None):
+    def vector_frame(self, symbol=None, latex_symbol=None, from_family=None,
+                     dest_map=None, from_frame=None, indices=None,
+                     latex_indices=None, symbol_dual=None,
+                     latex_symbol_dual=None):
         r"""
         Define a vector frame on ``self``.
 
         A *vector frame* is a field on the manifold that provides, at each
         point `p` of the manifold, a vector basis of the tangent space at `p`
         (or at `\Phi(p)` when ``dest_map`` is not ``None``, see below).
+
+        The vector frame can be defined from a set of `n` linearly independent
+        vector fields by means of the argument ``from_family``, `n` being the
+        dimension of ``self``.
 
         .. SEEALSO::
 
@@ -2813,6 +2818,9 @@ class DifferentiableManifold(TopologicalManifold):
           constituting the vector frame, or a list/tuple of strings,
           representing the individual LaTeX symbols of the vector fields;
           if ``None``, ``symbol`` is used in place of ``latex_symbol``
+        - ``from_family`` -- (default: ``None``) tuple or list of `n` linearly
+          independent vector fields on the manifold ``self`` (`n` being the
+          dimension of ``self``)
         - ``dest_map`` -- (default: ``None``)
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`;
           destination map `\Phi:\ U \rightarrow M`, where `U` is ``self`` and
@@ -2845,14 +2853,45 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        Setting a vector frame on a 3-dimensional manifold::
+        Introducing a vector frame on a 2-dimensional manifold::
 
-            sage: M = Manifold(3, 'M')
-            sage: X.<x,y,z> = M.chart()
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
             sage: e = M.vector_frame('e'); e
-            Vector frame (M, (e_0,e_1,e_2))
+            Vector frame (M, (e_0,e_1))
             sage: e[0]
-            Vector field e_0 on the 3-dimensional differentiable manifold M
+            Vector field e_0 on the 2-dimensional differentiable manifold M
+
+        Defining a vector frame from a family of vector fields::
+
+            sage: f0 = (1+y^2)*e[0] + (1+x^2)*e[1]
+            sage: f1 = 2*e[0] - e[1]
+            sage: f = M.vector_frame('f', from_family=[f0, f1]); f
+            Vector frame (M, (f_0,f_1))
+            sage: f[0].display(e)
+            f_0 = (y^2 + 1) e_0 + (x^2 + 1) e_1
+            sage: f[1].display(e)
+            f_1 = 2 e_0 - e_1
+            sage: (f[0], f[1]) == (f0, f1)
+            True
+
+        Another example, with a family of vector fields along a curve::
+
+            sage: R.<t> = RealLine()
+            sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
+            sage: I = c.domain(); I
+            Real interval (0, 2*pi)
+            sage: v = c.tangent_vector_field()
+            sage: v.display()
+            c' = cos(t) d/dx + (2*cos(t)^2 - 1) d/dy
+            sage: w = I.vector_field(1-2*cos(t)^2, cos(t), dest_map=c)
+            sage: u = I.vector_frame('u', from_family=(v, w))
+            sage: u[0].display()
+            u_0 = cos(t) d/dx + (2*cos(t)^2 - 1) d/dy
+            sage: u[1].display()
+            u_1 = (-2*cos(t)^2 + 1) d/dx + cos(t) d/dy
+            sage: (u[0], u[1]) == (v, w)
+            True
 
         .. SEEALSO::
 
@@ -2862,12 +2901,26 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from sage.manifolds.differentiable.vectorframe import VectorFrame
-        return VectorFrame(self.vector_field_module(dest_map=dest_map,
+        if from_family:
+            dest_map0 = from_family[0].parent().destination_map()
+            if dest_map and dest_map is not dest_map0:
+                raise ValueError("incompatible values of destination maps")
+            dest_map = dest_map0
+        resu = VectorFrame(self.vector_field_module(dest_map=dest_map,
                                                     force_free=True),
                            symbol=symbol, latex_symbol=latex_symbol,
                            from_frame=from_frame, indices=indices,
                            latex_indices=latex_indices, symbol_dual=symbol_dual,
                            latex_symbol_dual=latex_symbol_dual)
+        if from_family:
+            resu._init_from_family(from_family)
+            # Adding the newly generated changes of frame to the
+            # dictionary _frame_changes of self and its supersets:
+            for frame_pair, chge in resu._fmodule._basis_changes.items():
+                if resu in frame_pair:
+                    for sdom in self._supersets:
+                        sdom._frame_changes[frame_pair] = chge
+        return resu
 
     def _set_covering_frame(self, frame):
         r"""

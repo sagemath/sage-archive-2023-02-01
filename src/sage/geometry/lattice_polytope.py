@@ -122,7 +122,6 @@ from ppl import (C_Polyhedron, Generator_System, Linear_Expression,
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.misc.all import cached_method, flatten, tmp_filename
-from sage.misc.superseded import deprecated_function_alias
 from sage.modules.all import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -391,7 +390,7 @@ def ReflexivePolytope(dim, n):
         raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
 
 # Sequences of reflexive polytopes
-_rp = [None]*4
+_rp = [None] * 4
 
 def ReflexivePolytopes(dim):
     r"""
@@ -1847,8 +1846,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             12
         """
         return self.faces(dim=1)
-        
-    edges_lp = deprecated_function_alias(22122, edges)
 
     @cached_method
     def face_lattice(self):
@@ -2107,8 +2104,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return self._faces
         else:
             return self._faces[dim + 1] if -1 <= dim <= self.dim() else ()
-            
-    faces_lp = deprecated_function_alias(22122, faces)
 
     def facet_constant(self, i):
         r"""
@@ -2351,10 +2346,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         return self.faces(codim=1)
 
-    facets_lp = deprecated_function_alias(22122, facets)
-
     # Dictionaries of normal forms
-    _rp_dict = [None]*4
+    _rp_dict = [None] * 4
 
     @cached_method
     def index(self):

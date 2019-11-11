@@ -143,7 +143,6 @@ from . import structure
 from . import number_field_morphisms
 from itertools import count
 from builtins import zip
-from sage.misc.superseded import deprecated_function_alias
 
 
 _NumberFields = NumberFields()
@@ -8538,13 +8537,6 @@ class NumberField_absolute(NumberField_generic):
             [0.740078950105127]
             [ 3.7193258428...]
             [ 1.54308184421...]
-
-        TESTS::
-
-            sage: emb = F.Minkowski_embedding()
-            doctest:warning...:
-            DeprecationWarning: Minkowski_embedding is deprecated. Please use minkowski_embedding instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         n = self.degree()
         if prec is None:
@@ -8573,12 +8565,7 @@ class NumberField_absolute(NumberField_generic):
                 d[(r+2*i,col)] = z.real()*sqrt2
                 d[(r+2*i+1,col)] = z.imag()*sqrt2
 
-
-        M = sage.matrix.all.matrix(d)
-
-        return M
-
-    Minkowski_embedding = deprecated_function_alias(23685, minkowski_embedding)
+        return sage.matrix.all.matrix(d)
 
     def places(self, all_complex=False, prec=None):
         r"""

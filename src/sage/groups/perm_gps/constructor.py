@@ -103,7 +103,7 @@ def PermutationGroupElement(g, parent=None, check=True):
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
         try:
-            v = permgroup_element.standardize_generator(g, None)
+            v = standardize_generator(g, None)
         except KeyError:
             raise ValueError("invalid permutation vector: %s" % g)
         parent = SymmetricGroup(len(v))
@@ -113,3 +113,154 @@ def PermutationGroupElement(g, parent=None, check=True):
 
     return parent.element_class(g, parent, check)
 
+def string_to_tuples(g):
+    """
+    EXAMPLES::
+
+        sage: from sage.groups.perm_gps.constructor import string_to_tuples
+        sage: string_to_tuples('(1,2,3)')
+        [(1, 2, 3)]
+        sage: string_to_tuples('(1,2,3)(4,5)')
+        [(1, 2, 3), (4, 5)]
+        sage: string_to_tuples(' (1,2, 3) (4,5)')
+        [(1, 2, 3), (4, 5)]
+        sage: string_to_tuples('(1,2)(3)')
+        [(1, 2), (3,)]
+    """
+    from sage.misc.all import sage_eval
+
+    if not isinstance(g, str):
+        raise ValueError("g (= %s) must be a string" % g)
+    elif g == '()':
+        return []
+    g = g.replace('\n','').replace(' ', '').replace(')(', '),(').replace(')', ',)')
+    g = '[' + g + ']'
+    return sage_eval(g, preparse=False)
+
+def standardize_generator(g, convert_dict=None, as_cycles=False):
+    r"""
+    Standardize the input for permutation group elements to a list
+    or a list of tuples.
+
+    This was factored out of the
+    ``PermutationGroupElement.__init__`` since
+    ``PermutationGroup_generic.__init__`` needs to do the same computation
+    in order to compute the domain of a group when it's not explicitly
+    specified.
+
+    INPUT:
+
+    - ``g`` -- a list, tuple, string, GapElement,
+      PermutationGroupElement, Permutation
+
+    - ``convert_dict`` -- (optional) a dictionary used to convert the
+      points to a number compatible with GAP
+
+    - ``as_cycles`` -- (default: ``False``) whether the output should be
+      as cycles or in one-line notation
+
+    OUTPUT:
+
+    The permutation in as a list in one-line notation or a list of cycles
+    as tuples.
+
+    EXAMPLES::
+
+        sage: from sage.groups.perm_gps.constructor import standardize_generator
+        sage: standardize_generator('(1,2)')
+        [2, 1]
+
+        sage: p = PermutationGroupElement([(1,2)])
+        sage: standardize_generator(p)
+        [2, 1]
+        sage: standardize_generator(p._gap_())
+        [2, 1]
+        sage: standardize_generator((1,2))
+        [2, 1]
+        sage: standardize_generator([(1,2)])
+        [2, 1]
+
+        sage: standardize_generator(p, as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator(p._gap_(), as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator((1,2), as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator([(1,2)], as_cycles=True)
+        [(1, 2)]
+
+        sage: standardize_generator(Permutation([2,1,3]))
+        [2, 1, 3]
+        sage: standardize_generator(Permutation([2,1,3]), as_cycles=True)
+        [(1, 2), (3,)]
+
+    ::
+
+        sage: d = {'a': 1, 'b': 2}
+        sage: p = SymmetricGroup(['a', 'b']).gen(0); p
+        ('a','b')
+        sage: standardize_generator(p, convert_dict=d)
+        [2, 1]
+        sage: standardize_generator(p._gap_(), convert_dict=d)
+        [2, 1]
+        sage: standardize_generator(('a','b'), convert_dict=d)
+        [2, 1]
+        sage: standardize_generator([('a','b')], convert_dict=d)
+        [2, 1]
+
+        sage: standardize_generator(p, convert_dict=d, as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator(p._gap_(), convert_dict=d, as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator(('a','b'), convert_dict=d, as_cycles=True)
+        [(1, 2)]
+        sage: standardize_generator([('a','b')], convert_dict=d, as_cycles=True)
+        [(1, 2)]
+    """
+    from past.builtins import xrange
+    from sage.interfaces.gap import GapElement
+    from sage.combinat.permutation import Permutation, from_cycles
+    from sage.libs.pari.all import pari_gen
+    from sage.libs.gap.element import GapElement_Permutation
+
+    if isinstance(g, (pari_gen, range, xrange)):
+        g = list(g)
+
+    needs_conversion = True
+
+    if isinstance(g, GapElement_Permutation):
+        g = g.sage()
+        needs_conversion = False
+    if isinstance(g, GapElement):
+        g = str(g)
+        needs_conversion = False
+    if isinstance(g, Permutation):
+        if as_cycles:
+            return g.cycle_tuples()
+        return g._list
+    elif isinstance(g, permgroup_element.PermutationGroupElement):
+        if not as_cycles:
+            l = list(range(1, g.parent().degree() + 1))
+            return g._act_on_list_on_position(l)
+        g = g.cycle_tuples()
+    elif isinstance(g, str):
+        g = string_to_tuples(g)
+    elif isinstance(g, tuple) and (len(g) == 0 or not isinstance(g[0], tuple)):
+        g = [g]
+
+    # Get the permutation in list notation
+    if isinstance(g, list) and not (g and isinstance(g[0], tuple)):
+        if convert_dict is not None and needs_conversion:
+            for i, x in enumerate(g):
+                g[i] = convert_dict[x]
+        if as_cycles:
+            return Permutation(g).cycle_tuples()
+        return g
+
+    # Otherwise it is in cycle notation
+    if convert_dict is not None and needs_conversion:
+        g = [tuple([convert_dict[x] for x in cycle]) for cycle in g]
+    if not as_cycles:
+        degree = max([1] + [max(cycle+(1,)) for cycle in g])
+        g = from_cycles(degree, g)
+    return g

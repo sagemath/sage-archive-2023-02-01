@@ -149,8 +149,8 @@ from sage.interfaces.expect import is_ExpectElement
 from sage.interfaces.gap import GapElement
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement as LibGapElement
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
-from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap

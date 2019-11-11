@@ -13,7 +13,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     cpdef _set_list_cycles(self, c, bint convert)
     cpdef _set_string(self, str s)
     cpdef _set_permutation_group_element(self, PermutationGroupElement p, bint convert)
-    cpdef _set_other(self, g, bint convert)
 
     cpdef _mul_(self, other)
     cpdef PermutationGroupElement _generate_new(self, list new_list)

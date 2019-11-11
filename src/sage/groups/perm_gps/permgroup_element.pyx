@@ -108,20 +108,23 @@ import sage.groups.old as group
 from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 from cpython.list cimport *
 
+from cypari2.gen cimport Gen
+
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.rings.all      import ZZ, Integer
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.structure.element import is_Matrix
 from sage.matrix.all     import MatrixSpace
-from sage.libs.gap.libgap import libgap
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.structure.coerce cimport coercion_model
+from sage.interfaces.gap import GapElement as PExpectGapElement
+from sage.interfaces.gp import GpElement
 
-
-from sage.libs.gap.element cimport GapElement_List
+from sage.libs.gap.libgap import libgap
+from sage.libs.gap.element cimport GapElement, GapElement_List, GapElement_String, GapElement_Permutation
 from sage.libs.gap.gap_includes cimport Obj, INT_INTOBJ, ELM_LIST
 
 
@@ -347,6 +350,48 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: loads(dumps(G.0)) == G.0
             True
 
+        Initialization from gap or pari objects::
+
+            sage: S = SymmetricGroup(5)
+            sage: S(Permutation([5,1,4,3,2]))
+            (1,5,2)(3,4)
+            sage: S(gp.Vecsmall([5,1,4,3,2]))
+            (1,5,2)(3,4)
+            sage: S(gap.PermList([5,1,4,3,2]))
+            (1,5,2)(3,4)
+            sage: S(pari.Vecsmall([5,1,4,3,2]))
+            (1,5,2)(3,4)
+            sage: S(libgap.PermList([5,1,4,3,2]))
+            (1,5,2)(3,4)
+            sage: S(libgap([3,1,4,2,5]))
+            (1,3,4,2)
+            sage: S(libgap("(1,2,4)(3,5)"))
+            (1,2,4)(3,5)
+
+        Note that the conversion from gap permutations is agnostic to domains::
+
+            sage: S = SymmetricGroup(['a', 'b', 'c'])
+            sage: S(libgap.eval("(1,3)"))
+            ('a','c')
+            sage: S(gap("(1,3)"))
+            ('a','c')
+
+        Though not for gap list or string::
+
+            sage: S(libgap([1, 3, 2]))
+            Traceback (most recent call last):
+            ...
+            KeyError: 1
+            sage: S(libgap(['a', 'c', 'b']))
+            ('b','c')
+
+            sage: S(libgap("(1,2)"))
+            Traceback (most recent call last):
+            ...
+            KeyError: 1
+            sage: S(libgap("('a','c')"))
+            ('a','c')
+
         EXAMPLES::
 
             sage: k = PermutationGroupElement('(1,2)(3,5,6)')
@@ -385,6 +430,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             ValueError: invalid list of cycles to initialize a permutation
+
         """
         cdef int i, degree = parent.degree()
         cdef PermutationGroupElement g_pge
@@ -409,9 +455,33 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self._set_string(g)
         elif isinstance(g, PermutationGroupElement):
             self._set_permutation_group_element(g, convert or not g.parent()._has_natural_domain())
+        elif isinstance(g, Gen):
+            self._set_list_images(g, convert)
+        elif isinstance(g, GapElement):
+            if isinstance(g, GapElement_Permutation):
+                self._set_list_images(g.ListPerm(), False)
+            elif isinstance(g, GapElement_String):
+                self._set_string(g.sage())
+            elif isinstance(g, GapElement_List):
+                self._set_list_images(g.sage(), convert)
+            else:
+                raise ValueError("invalid {!r} data to initialize a permutation".format(g))
+        elif isinstance(g, PExpectGapElement):
+            if g.IsPerm():
+                self._set_list_images(g.ListPerm(), False)
+            else:
+                raise ValueError("invalid {!r} data to initialize a permutation".format(g))
+        elif isinstance(g, GpElement):
+            self._set_list_images(list(g), convert)
+            return
         else:
-            # some more conversion that needs import
-            self._set_other(g, convert)
+            # one more conversion that needs an extra import
+            # (with circular dependencies)
+            from sage.combinat.permutation import Permutation
+            if isinstance(g, Permutation):
+                self._set_list_images(g._list, convert)
+            else:
+                raise ValueError("invalid {!r} data to initialize a permutation".format(g))
 
         # We do this check even if check=False because it's fast
         # (relative to other things in this function) and the
@@ -636,51 +706,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             i = j + 1
 
-    cpdef _set_other(self, g, bint convert):
-        r"""
-        Various setters that need further imports.
-
-        TESTS::
-
-            sage: S = SymmetricGroup(5)
-            sage: S(Permutation([5,1,4,3,2]))
-            (1,5,2)(3,4)
-            sage: S(pari.Vecsmall([5,1,4,3,2]))
-            (1,5,2)(3,4)
-            sage: S(gp.Vecsmall([5,1,4,3,2]))
-            (1,5,2)(3,4)
-            sage: S(gap.PermList([5,1,4,3,2]))
-            (1,5,2)(3,4)
-            sage: S(libgap.PermList([5,1,4,3,2]))
-            (1,5,2)(3,4)
-        """
-        from sage.libs.pari.all import pari_gen
-        if isinstance(g, pari_gen):
-            self._set_list_images(g, convert)
-            return
-
-        from sage.libs.gap.element import GapElement_Permutation
-        if isinstance(g, GapElement_Permutation):
-            libgap = g.parent()
-            self._set_list_images(libgap.ListPerm(g), convert)
-            return
-
-        from sage.interfaces.gap import GapElement
-        if isinstance(g, GapElement):
-            self._set_string(str(g))
-            return
-
-        from sage.interfaces.gp import GpElement
-        if isinstance(g, GpElement):
-            self._set_list_images(list(g), convert)
-            return
-
-        from sage.combinat.permutation import Permutation
-        if isinstance(g, Permutation):
-            self._set_list_images(g._list, convert)
-            return
-
-        raise ValueError("invalid {!r} data to initialize a permutation".format(g))
 
     def __reduce__(self):
         """

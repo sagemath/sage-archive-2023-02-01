@@ -2786,10 +2786,7 @@ class DifferentiableManifold(TopologicalManifold):
                 for sdom in self._supersets:
                     sdom._frame_changes[(frame2, frame1)] = change_of_frame.inverse()
 
-    def vector_frame(self, symbol=None, latex_symbol=None, from_family=None,
-                     dest_map=None, from_frame=None, indices=None,
-                     latex_indices=None, symbol_dual=None,
-                     latex_symbol_dual=None):
+    def vector_frame(self, *args, **kwargs):
         r"""
         Define a vector frame on ``self``.
 
@@ -2798,8 +2795,7 @@ class DifferentiableManifold(TopologicalManifold):
         (or at `\Phi(p)` when ``dest_map`` is not ``None``, see below).
 
         The vector frame can be defined from a set of `n` linearly independent
-        vector fields by means of the argument ``from_family``, `n` being the
-        dimension of ``self``.
+        vector fields, `n` being the dimension of ``self``.
 
         .. SEEALSO::
 
@@ -2808,26 +2804,27 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
-        - ``symbol`` -- (default: ``None``) either a string, to be used as a
+        - ``symbol`` -- either a string, to be used as a
           common base for the symbols of the vector fields constituting the
           vector frame, or a list/tuple of strings, representing the individual
-          symbols of the vector fields; can be ``None`` only if ``from_frame``
+          symbols of the vector fields; can be omitted only if ``from_frame``
           is not ``None`` (see below)
+        - ``vector_fields`` -- tuple or list of `n` linearly independent vector
+          fields on the manifold ``self`` (`n` being the dimension of ``self``)
+          defining the vector frame; can be omitted if the vector frame is
+          created from scratch or if ``from_frame`` is not ``None``
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the vector fields
           constituting the vector frame, or a list/tuple of strings,
           representing the individual LaTeX symbols of the vector fields;
           if ``None``, ``symbol`` is used in place of ``latex_symbol``
-        - ``from_family`` -- (default: ``None``) tuple or list of `n` linearly
-          independent vector fields on the manifold ``self`` (`n` being the
-          dimension of ``self``)
         - ``dest_map`` -- (default: ``None``)
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`;
           destination map `\Phi:\ U \rightarrow M`, where `U` is ``self`` and
           `M` is a differentiable manifold; for each `p\in U`, the vector
           frame evaluated at `p` is a basis of the tangent space
-          `T_{\Phi(p)}M`; if ``dest_map`` is ``None``, the identity is assumed
-          (case of a vector frame *on* `U`)
+          `T_{\Phi(p)}M`; if ``dest_map`` is ``None``, the identity map is
+          assumed (case of a vector frame *on* `U`)
         - ``from_frame`` -- (default: ``None``) vector frame `\tilde{e}`
           on the codomain `M` of the destination map `\Phi`; the returned
           frame `e` is then such that for all `p \in U`,
@@ -2853,29 +2850,32 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        Introducing a vector frame on a 2-dimensional manifold::
+        Defining a vector frame from two linearly independent vector
+        fields on a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: e = M.vector_frame('e'); e
+            sage: e0 = M.vector_field(1+x^2, 1+y^2)
+            sage: e1 = M.vector_field(2, -x*y)
+            sage: e = M.vector_frame('e', (e0, e1)); e
             Vector frame (M, (e_0,e_1))
-            sage: e[0]
-            Vector field e_0 on the 2-dimensional differentiable manifold M
-
-        Defining a vector frame from a family of vector fields::
-
-            sage: f0 = (1+y^2)*e[0] + (1+x^2)*e[1]
-            sage: f1 = 2*e[0] - e[1]
-            sage: f = M.vector_frame('f', from_family=[f0, f1]); f
-            Vector frame (M, (f_0,f_1))
-            sage: f[0].display(e)
-            f_0 = (y^2 + 1) e_0 + (x^2 + 1) e_1
-            sage: f[1].display(e)
-            f_1 = 2 e_0 - e_1
-            sage: (f[0], f[1]) == (f0, f1)
+            sage: e[0].display()
+            e_0 = (x^2 + 1) d/dx + (y^2 + 1) d/dy
+            sage: e[1].display()
+            e_1 = 2 d/dx - x*y d/dy
+            sage: (e[0], e[1]) == (e0, e1)
             True
 
-        Another example, with a family of vector fields along a curve::
+        If the vector fields are not linearly independent, an error is
+        raised::
+
+            sage: z = M.vector_frame('z', (e0, -e0))
+            Traceback (most recent call last):
+            ...
+            ValueError: the provided vector fields are not linearly
+             independent
+
+        Another example, involving a pair vector fields along a curve::
 
             sage: R.<t> = RealLine()
             sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
@@ -2885,13 +2885,37 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v.display()
             c' = cos(t) d/dx + (2*cos(t)^2 - 1) d/dy
             sage: w = I.vector_field(1-2*cos(t)^2, cos(t), dest_map=c)
-            sage: u = I.vector_frame('u', from_family=(v, w))
+            sage: u = I.vector_frame('u', (v, w))
             sage: u[0].display()
             u_0 = cos(t) d/dx + (2*cos(t)^2 - 1) d/dy
             sage: u[1].display()
             u_1 = (-2*cos(t)^2 + 1) d/dx + cos(t) d/dy
             sage: (u[0], u[1]) == (v, w)
             True
+
+        It is also possible to create a vector frame from scratch, without
+        any connection with previously defined vector frames or vector fields
+        (the connection can be performed later via the method
+        :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.set_change_of_frame`)::
+
+            sage: f = M.vector_frame('f'); f
+            Vector frame (M, (f_0,f_1))
+            sage: f[0]
+            Vector field f_0 on the 2-dimensional differentiable manifold M
+
+        Thanks to the keywords ``dest_map`` and ``from_frame``, one can also
+        define a vector frame from one prexisting on another manifold, via a
+        differentiable map (here provided by the curve ``c``)::
+
+            sage: fc = I.vector_frame(dest_map=c, from_frame=f); fc
+            Vector frame ((0, 2*pi), (f_0,f_1)) with values on the
+             2-dimensional differentiable manifold M
+            sage: fc[0]
+            Vector field f_0 along the Real interval (0, 2*pi) with values on
+             the 2-dimensional differentiable manifold M
+
+        Note that the symbol for ``fc``, namely `f`, is inherited from ``f``,
+        the original vector frame.
 
         .. SEEALSO::
 
@@ -2901,8 +2925,27 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from sage.manifolds.differentiable.vectorframe import VectorFrame
-        if from_family:
-            dest_map0 = from_family[0].parent().destination_map()
+        # Input processing
+        symbol = None
+        vector_fields = None
+        n_args = len(args)
+        if n_args >= 1:
+            symbol = args[0]
+        if n_args == 2:
+            vector_fields = args[1]
+        elif n_args > 2:
+            raise TypeError("vector_frame() takes at most two positional "
+                            "arguments")
+        latex_symbol = kwargs.pop('latex_symbol', None)
+        dest_map = kwargs.pop('dest_map', None)
+        from_frame = kwargs.pop('from_frame', None)
+        indices = kwargs.pop('indices', None)
+        latex_indices = kwargs.pop('latex_indices', None)
+        symbol_dual = kwargs.pop('symbol_dual', None)
+        latex_symbol_dual = kwargs.pop('latex_symbol_dual', None)
+        #
+        if vector_fields:
+            dest_map0 = vector_fields[0].parent().destination_map()
             if dest_map and dest_map is not dest_map0:
                 raise ValueError("incompatible values of destination maps")
             dest_map = dest_map0
@@ -2912,8 +2955,12 @@ class DifferentiableManifold(TopologicalManifold):
                            from_frame=from_frame, indices=indices,
                            latex_indices=latex_indices, symbol_dual=symbol_dual,
                            latex_symbol_dual=latex_symbol_dual)
-        if from_family:
-            resu._init_from_family(from_family)
+        if vector_fields:
+            try:
+                resu._init_from_family(vector_fields)
+            except ZeroDivisionError:
+                raise ValueError("the provided vector fields are not "
+                                 "linearly independent")
             # Adding the newly generated changes of frame to the
             # dictionary _frame_changes of self and its supersets:
             for frame_pair, chge in resu._fmodule._basis_changes.items():

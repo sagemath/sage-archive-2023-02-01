@@ -1302,6 +1302,15 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: all( f[i] == a(e[i]) for i in M.irange() )
             True
 
+        Providing a family of module elements that are not linearly independent
+        raise an error::
+
+            sage: g = M.basis('g', from_family=(f1, f2, f1+f2))
+            Traceback (most recent call last):
+            ...
+            ValueError: the provided module elements are not linearly
+             independent
+
         For more documentation on bases see
         :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`.
 
@@ -1315,7 +1324,11 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                                symbol_dual=symbol_dual,
                                latex_symbol_dual=latex_symbol_dual)
         if from_family:
-            resu._init_from_family(from_family)
+            try:
+                resu._init_from_family(from_family)
+            except ZeroDivisionError:
+                raise ValueError("the provided module elements are not "
+                                 "linearly independent")
         return resu
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,

@@ -76,6 +76,8 @@ def produce_latex_macro(name, *sample_args):
          sage: produce_latex_macro('sage.rings.finite_rings.finite_field_constructor.FiniteField', 3)
          '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
+    from sage.misc.latex import LatexCall  # type: ignore
+    # this import is used inside a string below
     names_split = name.rsplit('.', 1)
     if len(names_split) == 1:
         module = 'sage.all'

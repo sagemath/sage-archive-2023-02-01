@@ -465,12 +465,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             elif isinstance(g, GapElement_List):
                 self._set_list_images(g.sage(), convert)
             else:
-                raise ValueError("invalid {!r} data to initialize a permutation".format(g))
+                raise ValueError("invalid data to initialize a permutation")
         elif isinstance(g, PExpectGapElement):
             if g.IsPerm():
                 self._set_list_images(g.ListPerm(), False)
             else:
-                raise ValueError("invalid {!r} data to initialize a permutation".format(g))
+                raise ValueError("invalid data to initialize a permutation")
         elif isinstance(g, GpElement):
             self._set_list_images(list(g), convert)
             return
@@ -481,7 +481,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if isinstance(g, Permutation):
                 self._set_list_images(g._list, convert)
             else:
-                raise ValueError("invalid {!r} data to initialize a permutation".format(g))
+                raise ValueError("invalid data to initialize a permutation")
 
         # We do this check even if check=False because it's fast
         # (relative to other things in this function) and the

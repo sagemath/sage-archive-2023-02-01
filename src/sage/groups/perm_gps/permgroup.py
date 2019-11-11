@@ -852,7 +852,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G(2)
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.rings.integer.Integer' object is not iterable
+            ValueError: invalid data to initialize a permutation
 
         We check consistency of coercion maps::
 

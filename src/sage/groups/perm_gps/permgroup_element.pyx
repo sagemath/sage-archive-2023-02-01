@@ -646,6 +646,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: s._set_string('(4,2,1,6)(3,5)')
             sage: s
             (1,6,4,2)(3,5)
+            sage: s._set_string('(4,2) (1,6)\n \n(3,5)')
+            sage: s
+            (1,6)(2,4)(3,5)
 
             sage: S = SymmetricGroup(['a', 'b', 'c', 'd', 'e', 'f'])
             sage: S("('a','c')('b','e','d')")
@@ -679,6 +682,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         self._set_identity()
 
         while i < len(s):
+            while i < len(s) and s[i].isspace():
+                i += 1
+            if i == len(s):
+                return
             j = s.find(')', i + 1)
             if s[i] != '(' or j == -1:
                 raise ValueError("invalid string to initialize a permutation")

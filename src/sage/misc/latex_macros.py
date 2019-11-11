@@ -76,7 +76,6 @@ def produce_latex_macro(name, *sample_args):
          sage: produce_latex_macro('sage.rings.finite_rings.finite_field_constructor.FiniteField', 3)
          '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
-    from sage.misc.latex import LatexCall
     names_split = name.rsplit('.', 1)
     if len(names_split) == 1:
         module = 'sage.all'
@@ -91,7 +90,7 @@ def produce_latex_macro(name, *sample_args):
         args += str(x) + ','
     args += ')'
     exec('from ' + module + ' import ' + real_name)
-    if count > 0:
+    if count:
         defn = '[' + str(count) + ']{'
         defn += eval('str(LatexCall()(' + real_name + args + '))') + '}'
     else:
@@ -101,6 +100,7 @@ def produce_latex_macro(name, *sample_args):
         count += 1
         defn = defn.replace(str(x), "#" + str(count))
     return newcommand + defn
+
 
 def convert_latex_macro_to_mathjax(macro):
     r"""

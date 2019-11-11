@@ -249,10 +249,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         else:
             self._latex_name = latex_name
         ###
-        # Initialize derived quantities like frames and trivializations:
-        self._init_derived()
+        # Initialize quantities like frames and trivializations:
+        self._init_attributes()
 
-    def _init_derived(self):
+    def _init_attributes(self):
         r"""
         Initialize the derived quantities.
 
@@ -260,7 +260,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: E = M.vector_bundle(2, 'E')
-            sage: E._init_derived()
+            sage: E._init_attributes()
 
         """
         self._section_modules = {} # dict of section modules with domains as
@@ -1084,3 +1084,56 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                              "the {}".format(self))
         frame._fmodule.set_default_basis(frame)
         self._def_frame = frame
+
+    def irange(self, start=None):
+        r"""
+        Single index generator.
+
+        INPUT:
+
+        - ``start`` -- (default: ``None``) initial value `i_0` of the index;
+          if none are provided, the value returned by
+          :meth:`sage.manifolds.manifold.Manifold.start_index()` is assumed
+
+        OUTPUT:
+
+        - an iterable index, starting from `i_0` and ending at
+          `i_0 + n - 1`, where `n` is the vector bundle's dimension
+
+        EXAMPLES:
+
+        Index range on a 4-dimensional vector bundle over a 5-dimensional
+        manifold::
+
+            sage: M = Manifold(5, 'M', structure='topological')
+            sage: E = M.vector_bundle(4, 'E')
+            sage: list(E.irange())
+            [0, 1, 2, 3]
+            sage: list(E.irange(2))
+            [2, 3]
+
+        Index range on a 4-dimensional vector bundle over a 5-dimensional
+        manifold with starting index=1::
+
+            sage: M = Manifold(5, 'M', structure='topological', start_index=1)
+            sage: E = M.vector_bundle(4, 'E')
+            sage: list(E.irange())
+            [1, 2, 3, 4]
+            sage: list(E.irange(2))
+            [2, 3, 4]
+
+        In general, one has always::
+
+            sage: next(E.irange()) == M.start_index()
+            True
+
+        """
+        si = self._base_space._sindex
+        imax = self._rank + si
+        if start is None:
+            i = si
+        else:
+            i = start
+        while i < imax:
+            yield i
+            i += 1

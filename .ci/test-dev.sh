@@ -42,4 +42,5 @@ timed_run 120 true # runs make build
 # The parser in Sphinx fails to parse some .py files and adds the (more
 # recently modified) .pyc files as dependencies instead. (Have a look the
 # changeset that introduced this comment for more details.)
-timed_run $(( 1200/$SAGE_NUM_THREADS_DOCBUILD )) make # runs make build and then make
+# Parts of the docbuild do not seem to be run in parallel at the moment.
+timed_run $(( 180 + 1200/$SAGE_NUM_THREADS_DOCBUILD )) make # runs make build and then make

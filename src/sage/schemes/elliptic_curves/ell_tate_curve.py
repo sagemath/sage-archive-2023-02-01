@@ -191,13 +191,15 @@ class TateCurve(SageObject):
         self._q = qE
         return qE
 
-    def __sk(e, k, prec):
-        return sum([n ** k * e._q ** n / (1 - e._q ** n)
+    def __sk(self, k, prec):
+        q = self.parameter(prec=prec)
+        return sum([n ** k * q ** n / (1 - q ** n)
                     for n in range(1, prec + 1)])
 
-    def __delta(e, prec):
-        return e._q * prod([(1 - e._q ** n) ** 24
-                            for n in range(1, prec + 1)])
+    def __delta(self, prec):
+        q = self.parameter(prec=prec)
+        return q * prod([(1 - q ** n) ** 24
+                        for n in range(1, prec + 1)])
 
     def curve(self, prec=20):
         r"""
@@ -228,13 +230,12 @@ class TateCurve(SageObject):
             pass
 
         qE = self.parameter(prec=prec)
-        n = qE.valuation()
-        precp = (prec / n).floor() + 2
+        precp = prec + 2
         R = qE.parent()
 
         tate_a4 = -5 * self.__sk(3, precp)
         tate_a6 = (tate_a4 - 7 * self.__sk(5, precp)) / 12
-        Eq = EllipticCurve([R.one(), R.zero(), R.zero(), tate_a4, tate_a6])
+        Eq = EllipticCurve([R.one(), R.zero(), R.zero(), R(tate_a4), R(tate_a6)])
         self.__curve = Eq
         return Eq
 
@@ -292,7 +293,7 @@ class TateCurve(SageObject):
         """
         p = self._p
         Csq = self._Csquare(prec=prec)
-        qE = self._q
+        qE = self.parameter(prec=prec)
         n = qE.valuation()
         R = Qp(p, prec)
         e2 = Csq*(1 - 24 * sum([qE**i/(1-qE**i)**2
@@ -337,7 +338,7 @@ class TateCurve(SageObject):
         if u == 1:
             return self.curve(prec=prec)(0)
 
-        q = self._q
+        q = self.parameter(prec=prec)
         un = u * q ** (-(u.valuation() / q.valuation()).floor())
 
         precn = (prec / q.valuation()).floor() + 4
@@ -534,18 +535,17 @@ class TateCurve(SageObject):
 
         Here is how one gets a 4-torsion point on `E` over `\QQ_5`::
 
-            sage: R = Qp(5,10)
+            sage: R = Qp(5,30)
             sage: i = R(-1).sqrt()
-            sage: T = eq.parametrisation_onto_original_curve(i); T
-            (2 + 3*5 + 4*5^2 + 2*5^3 + 5^4 + 4*5^5 + 2*5^7 + 5^8 + 5^9 + O(5^10) :
-            3*5 + 5^2 + 5^4 + 3*5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10) : 1 + O(5^20))
+            sage: T = eq.parametrisation_onto_original_curve(i, prec=30); T
+            (2 + 3*5 + 4*5^2 + 2*5^3 + 5^4 + 4*5^5 + 2*5^7 + 5^8 + 5^9 + 5^12 + 3*5^13 + 3*5^14 + 5^15 + 4*5^17 + 5^18 + 3*5^19 + 2*5^20 + 4*5^21 + 5^22 + 3*5^23 + 3*5^24 + 4*5^25 + 3*5^26 + 3*5^27 + 3*5^28 + 3*5^29 + O(5^30) : 3*5 + 5^2 + 5^4 + 3*5^5 + 3*5^7 + 2*5^8 + 4*5^9 + 5^10 + 2*5^11 + 4*5^13 + 2*5^14 + 4*5^15 + 4*5^16 + 3*5^17 + 2*5^18 + 4*5^20 + 2*5^21 + 2*5^22 + 4*5^23 + 4*5^24 + 4*5^25 + 5^26 + 3*5^27 + 2*5^28 + O(5^30) : 1 + O(5^30))
             sage: 4*T
-            (0 : 1 + O(5^20) : 0)
+            (0 : 1 + O(5^30) : 0)
         """
         if not self.is_split():
             raise ValueError("The curve must have split multiplicative "
                              "reduction.")
-        P = self.parametrisation_onto_tate_curve(u, prec=20)
+        P = self.parametrisation_onto_tate_curve(u, prec=prec)
         C, r, s, t = self._inverse_isomorphism(prec=prec)
         xx = r + C ** 2 * P[0]
         yy = t + s * C ** 2 * P[0] + C ** 3 * P[1]
@@ -553,9 +553,10 @@ class TateCurve(SageObject):
         E_over_Qp = self._E.base_extend(R)
         return E_over_Qp([xx, yy])
 
-    def __padic_sigma_square(e, u, prec):
-        return (u - 1) ** 2 / u * prod([((1-e._q**n*u)*(1-e._q**n/u) /
-                                         (1 - e._q ** n) ** 2) ** 2
+    def __padic_sigma_square(self, u, prec):
+        q = self.parameter(prec=prec)
+        return (u - 1) ** 2 / u * prod([((1-q**n*u)*(1-q**n/u) /
+                                         (1 - q ** n) ** 2) ** 2
                                         for n in range(1, prec + 1)])
 
     # the following functions are rather functions of the global curve
@@ -579,14 +580,14 @@ class TateCurve(SageObject):
             sage: e = EllipticCurve('130a1')
             sage: eq = e.tate_curve(5)
             sage: h = eq.padic_height(prec=10)
-            sage: P=e.gens()[0]
+            sage: P = e.gens()[0]
             sage: h(P)
-            2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + O(5^8)
+            2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + O(5^9)
 
         Check that it is a quadratic function::
 
             sage: h(3*P)-3^2*h(P)
-            O(5^8)
+            O(5^9)
         """
         if not self.is_split():
             raise NotImplementedError("The p-adic height is not implemented for non-split multiplicative reduction.")
@@ -602,11 +603,17 @@ class TateCurve(SageObject):
                 assert P.curve() == self._E, "the point P must lie on the curve from which the height function was created"
             Q = n * P
             cQ = denominator(Q[0])
-            uQ = self.lift(Q, prec=prec)
-            si = self.__padic_sigma_square(uQ, prec=prec)
-            nn = self._q.valuation()
-            qEu = self._q / p ** nn
-            return -(log(si*self._Csquare()/cQ) + log(uQ)**2/log(qEu)) / n**2
+            q = self.parameter(prec=prec)
+            nn = q.valuation()
+            precp = prec + nn + 2
+            uQ = self.lift(Q, prec=precp)
+            si = self.__padic_sigma_square(uQ, prec=precp)
+            q = self.parameter(prec=precp)
+            nn = q.valuation()
+            qEu = q / p ** nn
+            res =  -(log(si*self._Csquare(prec=precp)/cQ) + log(uQ)**2/log(qEu)) / n**2
+            R = Qp(self._p, prec)
+            return R(res)
 
         return _height
 
@@ -627,7 +634,7 @@ class TateCurve(SageObject):
 
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.padic_regulator()
-            2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + 3*5^9 + 3*5^10 + 3*5^12 + 4*5^13 + 3*5^15 + 2*5^16 + 3*5^18 + 4*5^19 + O(5^20)
+            2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + 3*5^9 + 3*5^10 + 3*5^12 + 4*5^13 + 3*5^15 + 2*5^16 + 3*5^18 + 4*5^19 +  4*5^20 + 3*5^21 + 4*5^22 + O(5^23)
 
         """
         prec = prec + 4

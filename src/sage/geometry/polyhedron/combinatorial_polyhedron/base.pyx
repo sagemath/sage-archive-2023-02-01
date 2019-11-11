@@ -278,6 +278,13 @@ cdef class CombinatorialPolyhedron(SageObject):
         Traceback (most recent call last):
         ...
         ValueError: not all vertices are intersections of facets
+
+    Check that :trac:`28678` is fixed::
+
+        sage: CombinatorialPolyhedron([])
+        A -1-dimensional combinatorial polyhedron with 0 facets
+        sage: CombinatorialPolyhedron(LatticePolytope([], lattice=ToricLattice(3)))
+        A -1-dimensional combinatorial polyhedron with 0 facets
     """
     def __init__(self, data, Vrepr=None, facets=None, unbounded=False, far_face=None):
         r"""
@@ -366,6 +373,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._equalities = tuple(facets[i] for i in range(len(facets)) if not test[i])
         else:
             self._H = None
+
+        if data == [] or data == ():
+            # Handling the empty polyhedron.
+            data = -1
 
         if isinstance(data, Matrix):
             # Input is incidence-matrix or was converted to it.

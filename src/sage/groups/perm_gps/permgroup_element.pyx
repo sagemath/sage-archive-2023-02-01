@@ -574,7 +574,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: S1(S2('(1,6)'))
             Traceback (most recent call last):
             ...
-            ValueError: invalid permutation to initialize a permutation
+            ValueError: invalid data to initialize a permutation
 
             sage: S0 = SymmetricGroup(0)
             sage: S0(S1.one())
@@ -582,7 +582,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: S0(S1('(1,5)'))
             Traceback (most recent call last):
             ...
-            ValueError: invalid permutation to initialize a permutation
+            ValueError: invalid data to initialize a permutation
         """
         cdef i, j
         if convert:
@@ -600,7 +600,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if p.n > self.n:
                 for i in range(self.n, p.n):
                     if p.perm[i] != i:
-                        raise ValueError("invalid permutation to initialize a permutation")
+                        raise ValueError("invalid data to initialize a permutation")
                 for i in range(self.n):
                     self.perm[i] = p.perm[i]
             else:

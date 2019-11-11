@@ -762,7 +762,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G([(1,2)])
             Traceback (most recent call last):
             ...
-            TypeError: permutation [(1, 2)] not in Permutation Group with generators [(1,2,3,4)]
+            ValueError: permutation [(1, 2)] not in Permutation Group with generators [(1,2,3,4)]
 
         TESTS:
 

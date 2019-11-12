@@ -1,24 +1,25 @@
 r"""
 Characteristic Classes
 
-Let `E \to M` be some complex vector bundle over a differentiable manifold `M`.
+Let `E \to M` be some topological vector bundle over a topological manifold `M`
+and `R` be some ring.
 A *characteristic class* `c(E)` is an element of the cohomology ring
-`H^{*}_{\mathrm{dR}}(M, \CC)` such that for any differentiable map `f: M \to N`
-we have the *naturality condition*:
+`H^{*}(M, R)` such that for any continuous map `f: M \to N` the *naturality
+condition* is satisfied:
 
 .. MATH::
 
     c(f^*E) = f^*c(E) .
 
 Roughly speaking, characteristic classes measure the non-triviality of the
-vector bundle `E`. Notice, that this definition can be generalized to more
-general cohomologies.
+vector bundle `E`.
 
-One way to obtain and compute characteristic classes is via the so-called
-*Chern-Weil theory* using the curvature of the vector bundle. This approach is
-used for computation in SAGE.
+One way to obtain and compute characteristic classes in the de Rham cohomology
+with coefficients in the ring `\CC` is via the so-called *Chern-Weil theory*
+using the curvature of a differentiable vector bundle. This approach is used for
+computation in SAGE.
 
-In the following, let `\nabla` be a connection on `E`, `e` a local frame on
+For that let `\nabla` be a connection on `E`, `e` a local frame on
 `E` and `\Omega` be the corresponding curvature matrix
 (see: :meth:`~sage.manifolds.differentiable.bundle_connection.BundleConnection.curvature_form`).
 
@@ -28,9 +29,10 @@ Namely, if `P: \mathfrak{g} \to \CC` is an invariant polynomial, the object
 
     \left[ P \left( \Omega \right) \right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
 
-is well-defined and independent of the choice of `\nabla` (the proof can be
-found in [Roe1988]_ pp. 31). This is the foundation of the Chern-Weil theory and
-therefore the following definitions.
+is well-defined, independent of the choice of `\nabla` (the proof can be
+found in [Roe1988]_ pp. 31) and fulfills the naturality condition.
+This is the foundation of the Chern-Weil theory and therefore the following
+definitions.
 
 .. NOTE::
 

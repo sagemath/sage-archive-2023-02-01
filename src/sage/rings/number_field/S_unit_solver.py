@@ -772,7 +772,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
         sage: G = [g for g in K.S_unit_group(S=SK).gens_values() if g.multiplicative_order()==Infinity]
         sage: p1 = K.places(prec=100)[1]
         sage: reduction_step_complex_case(p1, 10^5, G, -1, 2)
-        (17, False)
+        (18, False)
     """
     prec = place.codomain().precision()
     R = RealField(prec)
@@ -843,7 +843,8 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
         #the case when the real part is not 0 for all log(a_i)
         C = R(1)
         S = (n-1) * B0**2
-        T = ((n+1)*B0+1) / R(2).sqrt()
+        w = place.domain().number_of_roots_of_unity()
+        T = (1+(n+w+n*w)*B0)/R(2).sqrt()
         finish = False
 
         #we are relabeling the Glog_real and Glog_imag s.t. the condition Real(a_n)*Im(a_(n-1))-Real(a_(n-1))*Im(a_n)!=0 to be satisfied. See page 84 of the reference.

@@ -39,8 +39,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 from sage.manifolds.differentiable.vector_bundle\
                                                import DifferentiableVectorBundle

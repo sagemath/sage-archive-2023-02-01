@@ -345,7 +345,6 @@ def _get_predefined_class(arg):
         raise TypeError("argument 'arg' must be string")
 
     from sage.symbolic.ring import SR
-    from sage.libs.pynac.pynac import I
     # Define variable:
     x = SR.symbol('x')
     # Define dictionary. The syntax is as follows:
@@ -448,7 +447,7 @@ class CharClass(SageObject, UniqueRepresentation):
 
         """
         if vbundle._field_type == 'neither_real_nor_complex':
-            raise ValueEror("the vector bundle must either be real or complex")
+            raise ValueError("the vector bundle must either be real or complex")
         if class_type not in ['additive', 'multiplicative', 'Pfaffian']:
             raise ValueError("the argument 'class_type' must either be "
                              "'additive', 'multiplicative' or 'Pfaffian'")

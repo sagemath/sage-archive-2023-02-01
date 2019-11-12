@@ -247,7 +247,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
         """
         if self._field_type == 'neither_real_nor_complex':
-            raise ValueEror("the vector bundle must be real or complex")
+            raise ValueError("the vector bundle must be real or complex")
         from .char_class import CharClass, _get_predefined_class
         # Is func a predefined class?
         if isinstance(func, str):

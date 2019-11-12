@@ -267,6 +267,12 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
       Reason given.
       _EOF_
 
+  .. NOTE::
+
+      The other helper functions call ``sdh_die``, so do not use (for
+      example) ``sdh_make || sdh_die``: the part of this after
+      ``||`` will never be reached.
+
 - ``sdh_check_vars [VARIABLE ...]``: Check that one or more variables
   are defined and non-empty, and exit with an error if any are
   undefined or empty. Variable names should be given without the '$'

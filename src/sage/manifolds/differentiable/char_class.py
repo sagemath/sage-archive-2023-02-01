@@ -740,7 +740,8 @@ class CharClass(SageObject, UniqueRepresentation):
                 deg_dist = 1
             # Now, define the name for each form:
             for k in res.irange():
-                if k % deg_dist != 0:
+                if k % deg_dist != 0 or (self._class_type == 'Pfaffian' and
+                                         k == 0):
                     res[k].set_name(name="zero", latex_name="0")
                     res[k]._is_zero = True
                 else:

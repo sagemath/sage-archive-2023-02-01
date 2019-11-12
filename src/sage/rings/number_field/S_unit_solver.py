@@ -555,10 +555,10 @@ def K1_func(SUK, v, A, prec=106):
         sage: A = K.roots_of_unity()
 
         sage: K1_func(SUK, phi_real, A)
-        4.396386097852707394927181864635e16
+        4.483038368145048508970350163578e16
 
         sage: K1_func(SUK, phi_complex, A)
-        2.034870098399844430207420286581e17
+        2.073346189067285101984136298965e17
 
     REFERENCES:
 
@@ -592,7 +592,9 @@ def K1_func(SUK, v, A, prec=106):
     c14 = Baker_C * prod([hprime(SUK, alpha, v) for alpha in SUK.gens_values()])
 
     #[Sma1995]_ p. 825
-    c15 = 2 * (c12.log()+c14*((SUK.rank()+1)*c14/c13_func(SUK, v, prec)).log()) / c13_func(SUK, v, prec)
+    c13 = c13_func(SUK,v,prec)
+    w = len(SUK.roots_of_unity())
+    c15 = (2/c13)*(c12.log()+c14*(((t+1)*w*c14/c13).log()))
 
     return max([c11, c15])
 

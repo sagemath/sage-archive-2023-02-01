@@ -241,7 +241,7 @@ We consider the **Euler class** of `S^2`::
      bundle TS2 over the 2-dimensional differentiable manifold S2
 
 To compute a particular representative of the Euler class, we need to determine
-a connection ::
+a connection::
 
     sage: g = M.metric('g') # standard metric on S2
     sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2

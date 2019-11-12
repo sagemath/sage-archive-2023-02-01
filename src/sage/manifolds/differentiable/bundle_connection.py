@@ -97,7 +97,7 @@ class BundleConnection(SageObject):
         curvature (2,2) of bundle connection nabla w.r.t. Local frame
          (E|_M, (e_1,e_2)) = 0
 
-    They certainly obey Cartan's second structure equation::
+    They certainly obey the structure equation::
 
             sage: omega = nab.connection_form
             sage: check = []

@@ -4960,6 +4960,11 @@ class Polyhedron_base(Element):
             sage: P = polytopes.simplex(2, backend='ppl')
             sage: P.lawrence_extension(P.vertices()[0]).backend()
             'ppl'
+
+        Check that :trac:`28725` is fixed::
+
+            sage: P = polytopes.regular_polygon(3)
+            sage: Q = P.lawrence_extension(P.vertices()[0])
         """
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
@@ -4972,7 +4977,7 @@ class Polyhedron_base(Element):
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
         parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
-        return parent.element_class(parent, [lambda_V, None, None], None)
+        return parent.element_class(parent, [lambda_V, [], []], None)
 
     def lawrence_polytope(self):
         r"""
@@ -5018,6 +5023,11 @@ class Polyhedron_base(Element):
             sage: P = polytopes.simplex(2, backend='ppl')
             sage: P.lawrence_polytope().backend()
             'ppl'
+
+        Check that :trac:`28725` is fixed::
+
+            sage: P = polytopes.regular_polygon(3)
+            sage: Q = P.lawrence_polytope()
         """
         from sage.matrix.constructor import block_matrix
 
@@ -5029,7 +5039,7 @@ class Polyhedron_base(Element):
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
         parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
-        return parent.element_class(parent, [lambda_V, None, None], None)
+        return parent.element_class(parent, [lambda_V, [], []], None)
 
     def is_lawrence_polytope(self):
         """

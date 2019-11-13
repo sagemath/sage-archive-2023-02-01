@@ -18,7 +18,7 @@ from __future__ import division, print_function, absolute_import
 
 import itertools
 import six
-from sage.structure.element import Element, coerce_binop, is_Vector
+from sage.structure.element import Element, coerce_binop, is_Vector, is_Matrix
 from sage.structure.richcmp import rich_to_bool, op_NE
 from sage.cpython.string import bytes_to_str
 
@@ -4270,6 +4270,61 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(scalar)
         return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
+    def linear_transformation(self, linear_transf):
+        """
+        Return the linear transformation of ``self``.
+
+        INPUT:
+
+        - ``linear_transf`` -- a matrix, not necessarily in :meth:`base_ring`
+
+        OUTPUT:
+
+        The polyhedron transformed by that matrix, possibly coerced to a
+        bigger base ring.
+
+        EXAMPLES::
+
+            sage: b3 = polytopes.Birkhoff_polytope(3)
+            sage: proj_mat=matrix([[0,1,0,0,0,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,0,0,0,0,0,0,1,0]])
+            sage: b3_proj = proj_mat * b3; b3_proj
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
+
+            sage: square = polytopes.regular_polygon(4)
+            sage: square.vertices_list()
+            [[0, -1], [1, 0], [-1, 0], [0, 1]]
+            sage: transf = matrix([[1,1],[0,1]])
+            sage: sheared = transf * square
+            sage: sheared.vertices_list()
+            [[-1, 0], [-1, -1], [1, 1], [1, 0]]
+            sage: sheared == square.linear_transformation(transf)
+            True
+
+        TESTS:
+
+        Linear transformation respects backend::
+
+            sage: P = polytopes.simplex(backend='field')
+            sage: t = matrix([[1,1,1,1],[0,1,1,1],[0,0,1,1],[0,0,0,1]])
+            sage: P.linear_transformation(t).backend()
+            'field'
+        """
+        if not linear_transf.is_zero():
+            new_vertices = [ list(linear_transf*v.vector()) for v in self.vertex_generator() ]
+            new_rays = [ list(linear_transf*r.vector()) for r in self.ray_generator() ]
+            new_lines = [ list(linear_transf*l.vector()) for l in self.line_generator() ]
+        else:
+            new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
+            new_rays = []
+            new_lines = []
+
+        par = self.parent()
+        new_dim = linear_transf.nrows()
+        new_br = par.base_extend(linear_transf.base_ring()).base_ring()
+        new_parent = par.parent()(new_br,new_dim,self.backend())
+
+        return new_parent.element_class(new_parent, [new_vertices, new_rays, new_lines], None)
+
     def _acted_upon_(self, actor, self_on_left):
         """
         Implement the multiplicative action by scalars or other polyhedra.
@@ -4296,11 +4351,15 @@ class Polyhedron_base(Element):
              True
              sage: p + vector(ZZ,[1,2,3]) == p.translation([1,2,3])
              True
+             sage: matrix(ZZ,[[1,2,3]]) * p
+             A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
         """
         if is_Polyhedron(actor):
             return self.product(actor)
-        if is_Vector(actor):
+        elif is_Vector(actor):
             return self.translation(actor)
+        elif is_Matrix(actor):
+            return self.linear_transformation(actor)
         else:
             return self.dilation(actor)
 

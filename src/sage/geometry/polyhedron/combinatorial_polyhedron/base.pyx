@@ -1129,8 +1129,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         if add_equalities and names:
             # Also getting the equalities for each facet.
             return tuple(
-                (((facet_one(i),) + self._equalities()),
-                 ((facet_two(i),) + self._equalities()))
+                (((facet_one(i),) + self.equalities()),
+                 ((facet_two(i),) + self.equalities()))
                 for i in range(n_ridges))
         else:
             return tuple((facet_one(i), facet_two(i))

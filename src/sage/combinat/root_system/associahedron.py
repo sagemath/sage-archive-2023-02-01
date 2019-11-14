@@ -29,7 +29,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.modules.free_module_element import vector
 from sage.rings.all import QQ, ZZ
 
-ancestors_of_associahedron = [Polyhedron_QQ_ppl, Polyhedron_QQ_normaliz, Polyhedron_QQ_cdd, Polyhedron_field, Polyhedron_polymake]
+ancestors_of_associahedron = set([Polyhedron_QQ_ppl, Polyhedron_QQ_normaliz, Polyhedron_QQ_cdd, Polyhedron_field, Polyhedron_polymake])
 
 
 def Associahedron(cartan_type, backend='ppl'):
@@ -194,8 +194,8 @@ class Associahedron_class_base(object):
             # Return a polyhedron with proper backend (not an associahedron).
             # Thus e.g. a face of an Associahedron can be initialized as a polyhedron.
             mro = typ.mro()
-            for typ1 in ancestors_of_associahedron:
-                if typ1 in mro:
+            for typ1 in mro:
+                if typ1 in ancestors_of_associahedron:
                     return typ1(parent, Vrep, Hrep, **kwds)
             raise ValueError("could not determine a parent class")
 

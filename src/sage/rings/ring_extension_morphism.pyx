@@ -104,7 +104,7 @@ cdef class RingExtensionHomomorphism(RingMap):
 
         INPUT:
 
-        - ``defn`` -- the definition of the morphism
+        - ``defn`` -- the definition of the morphism (either a map or images of generators)
 
         - ``base_map`` -- a ring homomorphism or ``None`` (default: ``None``);
           the action of this morphism on one of the bases of the domain;
@@ -162,8 +162,8 @@ cdef class RingExtensionHomomorphism(RingMap):
                 base = domain
                 gens = tuple([])
                 while True:
-                    if len(gens) == len(defn): 
-                        break  
+                    if len(gens) == len(defn):
+                        break
                     if len(gens) > len(defn) or base is base.base_ring():
                         raise ValueError("the number of images does not match the number of generators")
                     gens += base.gens()
@@ -206,9 +206,9 @@ cdef class RingExtensionHomomorphism(RingMap):
             if base is domain.base_ring():
                 self._base_map_construction = base_map
             else:
-                self._base_map_construction = { 
-                    'im_gens': defn[domain.ngens():], 
-                    'base_map': base_map, 
+                self._base_map_construction = {
+                    'im_gens': defn[domain.ngens():],
+                    'base_map': base_map,
                     'check': False
                 }
         else:
@@ -288,7 +288,7 @@ cdef class RingExtensionHomomorphism(RingMap):
               To:   Field in b with defining polynomial x^3 + (2 + 2*a)*x - a over its base
               Defn: a |--> 1 - a
 
-        The square of ``FrobL`` acts trivially on K; in other words, it has 
+        The square of ``FrobL`` acts trivially on K; in other words, it has
         a trivial base map::
 
             sage: phi = FrobL^2
@@ -313,8 +313,9 @@ cdef class RingExtensionHomomorphism(RingMap):
             base_map = base.hom(**self._base_map_construction)
         if base_map is None:
             return None
-        if (codomain.has_coerce_map_from(base) 
-        and are_equal_morphisms(backend_morphism(base_map), backend_morphism(codomain.coerce_map_from(base)))):
+        if (codomain.has_coerce_map_from(base) and
+            are_equal_morphisms(backend_morphism(base_map),
+                                backend_morphism(codomain.coerce_map_from(base)))):
             return None
         if base_map.codomain() is not self.codomain():
             base_map = base_map.extend_codomain(self.codomain())
@@ -340,16 +341,16 @@ cdef class RingExtensionHomomorphism(RingMap):
             sage: FrobL = L.hom([b^5], base_map=FrobK)
 
             sage: FrobK^2 == End(K).identity()
-            True        
+            True
             sage: FrobL^6 == End(L).identity()
-            True        
+            True
         """
         eq = are_equal_morphisms(self._backend, backend_morphism(other))
         if op == op_EQ:
             return eq
         if op == op_NE:
             return not eq
-        raise NotImplemented
+        return NotImplemented
 
     def is_identity(self):
         r"""
@@ -362,7 +363,7 @@ cdef class RingExtensionHomomorphism(RingMap):
             sage: FrobK.is_identity()
             False
             sage: (FrobK^2).is_identity()
-            True        
+            True
 
         Coercion maps are not considered as identity morphisms::
 
@@ -906,7 +907,7 @@ cdef class MapRelativeRingToFreeModule(Map):
 
     cdef list backend_coefficients(self, RingExtensionElement x):
         r"""
-        Return the coordinates of the image of ``x`` 
+        Return the coordinates of the image of ``x``
         as elements of the backend ring.
 
         INPUT:

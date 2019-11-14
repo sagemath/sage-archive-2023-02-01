@@ -453,12 +453,12 @@ class RingExtensionFactory(UniqueFactory):
         if constructors is None:
             constructors = [ ]
             if gens is not None and len(gens) == 1:
-                constructors.append((RingExtensionWithGen, 
-                                     {'gen': gens[0], 'names': names, 
+                constructors.append((RingExtensionWithGen,
+                                     {'gen': gens[0], 'names': names,
                                       'is_backend_exposed': is_backend_exposed}))
             if use_generic_constructor:
-                constructors.append((RingExtension_generic, 
-                                     {'print_options': {'print_parent_as': print_as, 
+                constructors.append((RingExtension_generic,
+                                     {'print_options': {'print_parent_as': print_as,
                                                        'print_elements_as': print_as},
                                       'is_backend_exposed': is_backend_exposed}))
 
@@ -785,16 +785,16 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
             sage: D.print_options(over=2)
             sage: D
-            Field in d with defining polynomial x^2 + ((1 - a) + ((1 + 2*a) - b)*c + ((2 + a) + (1 - a)*b)*c^2)*x + c over 
-            Field in c with defining polynomial x^3 + (1 + (2 - a)*b)*x^2 + (2 + 2*b)*x - b over 
+            Field in d with defining polynomial x^2 + ((1 - a) + ((1 + 2*a) - b)*c + ((2 + a) + (1 - a)*b)*c^2)*x + c over
+            Field in c with defining polynomial x^3 + (1 + (2 - a)*b)*x^2 + (2 + 2*b)*x - b over
             Field in b with defining polynomial x^2 + (3 - a)*x + a over its base
 
             sage: D.print_options(over=Infinity)
             sage: D
-            Field in d with defining polynomial x^2 + ((1 - a) + ((1 + 2*a) - b)*c + ((2 + a) + (1 - a)*b)*c^2)*x + c over 
-            Field in c with defining polynomial x^3 + (1 + (2 - a)*b)*x^2 + (2 + 2*b)*x - b over 
+            Field in d with defining polynomial x^2 + ((1 - a) + ((1 + 2*a) - b)*c + ((2 + a) + (1 - a)*b)*c^2)*x + c over
+            Field in c with defining polynomial x^3 + (1 + (2 - a)*b)*x^2 + (2 + 2*b)*x - b over
             Field in b with defining polynomial x^2 + (3 - a)*x + a over
-            Field in a with defining polynomial x^2 + 4*x + 2 over 
+            Field in a with defining polynomial x^2 + 4*x + 2 over
             Finite Field of size 5
 
         Now the option ``base``::
@@ -859,8 +859,8 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         INPUT:
 
-        - ``over`` -- an integer, ``Infinity`` or ``None``; the maximum 
-          number of bases included in the print representation of 
+        - ``over`` -- an integer, ``Infinity`` or ``None``; the maximum
+          number of bases included in the print representation of
           this extension;
           if ``None``, use the print options of this extension.
 

@@ -308,9 +308,8 @@ class Texture_class(WithEqualityById, SageObject):
         else:
             if len(color) == 4:
                 opacity = color[3]
-            color = (float(color[0]) % 1,
-                     float(color[1]) % 1,
-                     float(color[2]) % 1)
+            color = tuple(float(1) if c == 1 else float(c) % 1
+                          for c in color[0: 3])
 
         self.color = color
         self.opacity = float(opacity)

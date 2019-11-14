@@ -510,18 +510,6 @@ class HeckeModule_free_module(HeckeModule_generic):
         HeckeModule_generic.__init__(self, base_ring, level, category=category)
         self.__weight = weight
 
-#    def __contains__(self, x):
-#        r"""
-#        Return True if x is an element of self.
-#
-#        This shouldn't be getting called, ever (?)
-#        """
-#        if not element.is_HeckeModuleElement(x):
-#            return False
-#        if x.parent() == self:  # easy case
-#            return True
-#        return x.element() in self.free_module()
-
     def _repr_(self):
         r"""
 
@@ -1087,7 +1075,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         This eigenvector will have entries in an extension of the base
         ring of degree equal to the dimension of this space.
 
-        .. warning::
+        .. WARNING::
 
            The input space must be simple.
 
@@ -1109,7 +1097,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         the Hecke operators on the dual space. I.e., this is an eigenvector
         for the restrictions of Hecke operators to the dual space.
 
-        .. note::
+        .. NOTE::
 
            #. The answer is cached so subsequent calls always return
               the same vector. However, the algorithm is randomized,
@@ -1266,7 +1254,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: M.eigenvalue(4,'a')
             4/3*a^3 + 17/3*a^2 + 28/3*a + 8/3
 
-        .. note::
+        .. NOTE::
 
            #. In fact there are `d` systems of eigenvalues
               associated to self, where `d` is the rank of

@@ -36,9 +36,6 @@ from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
 
 from .constructor import Polyhedron
-
-from sage.misc.superseded import deprecated_function_alias
-
 from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
@@ -1482,17 +1479,6 @@ class Polyhedron_base(Element):
             sage: c = polytopes.cube()
             sage: c.Hrepresentation_str(separator=', ', style='positive')
             '1 >= x2, 1 >= x1, 1 >= x0, x0 + 1 >= 0, x2 + 1 >= 0, x1 + 1 >= 0'
-
-        TESTS::
-
-            sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
-            sage: P1.repr_pretty_Hrepresentation()
-            doctest:warning
-            ...
-            :
-            DeprecationWarning: repr_pretty_Hrepresentation is deprecated. Please use Hrepresentation_str instead.
-            See https://trac.sagemath.org/24837 for details.
-            ' x0 >=  0 \n-x0 >= -1 '
         """
         pretty_hs = [h.repr_pretty(split=True, latex=latex, style=style, **kwds) for h in self.Hrepresentation()]
         shift = any(pretty_h[2].startswith('-') for pretty_h in pretty_hs)
@@ -1534,8 +1520,6 @@ class Polyhedron_base(Element):
         else:
             # below we remove the 2 unnecessary backslashes at the end of pretty_print
             return "\\begin{array}{rcl}\n" + pretty_print[:-2] + "\n\\end{array}"
-
-    repr_pretty_Hrepresentation = deprecated_function_alias(24837, Hrepresentation_str)
 
     def Hrep_generator(self):
         """

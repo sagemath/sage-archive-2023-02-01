@@ -215,7 +215,8 @@ class Rings(CategoryWithAxiom):
                 sage: g(1/x)
                 1/(x + 1)
 
-            If this morphism, it does not to the fraction field and an error is raised::
+            If this morphism is not injective, it does not extend to the fraction
+            field and an error is raised::
 
                 sage: f = GF(5).coerce_map_from(ZZ)
                 sage: f.extend_to_fraction_field()

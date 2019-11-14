@@ -119,7 +119,7 @@ class CommutativeRings(CategoryWithAxiom):
                 Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
 
             If not explicitely given, the default generator of the top ring
-            (here L) is used and the same name is kept::
+            (here k) is used and the same name is kept::
 
                 sage: K.gen()
                 z4
@@ -167,7 +167,7 @@ class CommutativeRings(CategoryWithAxiom):
                  Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base,
                  Finite Field in z2 of size 5^2]
 
-            When ``base`` is omitted, the canonical base of this ring is used::
+            When ``base`` is omitted, the canonical base of the ring is used::
 
                 sage: S.<x> = QQ[]
                 sage: E = S.over()

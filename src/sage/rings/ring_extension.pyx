@@ -31,7 +31,7 @@ equivalently :meth:`base_ring`)::
     sage: K.base()
     Finite Field in z2 of size 5^2
 
-It also possible to building an extension on top of another extension,
+It is also possible to build an extension on top of another extension,
 obtaining this way a tower of extensions::
 
     sage: L.<b> = GF(5^8).over(K)
@@ -459,7 +459,7 @@ class RingExtensionFactory(UniqueFactory):
             if use_generic_constructor:
                 constructors.append((RingExtension_generic,
                                      {'print_options': {'print_parent_as': print_as,
-                                                       'print_elements_as': print_as},
+                                                        'print_elements_as': print_as},
                                       'is_backend_exposed': is_backend_exposed}))
 
         # We build the key and return it

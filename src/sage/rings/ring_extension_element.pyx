@@ -181,7 +181,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def _repr_(self, **options):
         r"""
-        Return a string representation of this element
+        Return a string representation of this element.
 
         Do not override this method in subclasses;
         instead override the method :meth:`_repr_extension`.
@@ -212,7 +212,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def _repr_extension(self, **options):
         r"""
-        Return a string representation of this element
+        Return a string representation of this element.
 
         TESTS::
 
@@ -225,7 +225,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def _latex_(self, **options):
         r"""
-        Return a LaTeX representation of this element
+        Return a LaTeX representation of this element.
 
         Do not override this method in subclasses;
         instead override the method :meth:`_latex_extension`.
@@ -256,7 +256,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def _latex_extension(self, **options):
         r"""
-        Return a LaTeX representation of this element
+        Return a LaTeX representation of this element.
 
         TESTS::
 
@@ -404,7 +404,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def additive_order(self):
         r"""
-        Return the additive order of this element
+        Return the additive order of this element.
 
         EXAMPLES::
 
@@ -416,7 +416,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     def multiplicative_order(self):
         r"""
-        Return the multiplicite order of this element
+        Return the multiplicite order of this element.
 
         EXAMPLES::
 
@@ -930,7 +930,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: x.vector(GF(5^3))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z3 of size 5^3
+            ValueError: not (explicitly) defined over Finite Field in z3 of size 5^3
         """
         base = (<RingExtension_generic>self._parent)._check_base(base)
         return self._vector(base)
@@ -1021,7 +1021,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: u.polynomial(GF(5^3))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z3 of size 5^3
+            ValueError: not (explicitly) defined over Finite Field in z3 of size 5^3
         """
         base = self._parent._check_base(base)
         degrees = [ ]
@@ -1092,7 +1092,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: u.matrix(GF(5^2))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z2 of size 5^2
+            ValueError: not (explicitly) defined over Finite Field in z2 of size 5^2
         """
         cdef RingExtension_generic parent = self._parent
         base = parent._check_base(base)
@@ -1180,7 +1180,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: u.trace(GF(5^2))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z2 of size 5^2
+            ValueError: not (explicitly) defined over Finite Field in z2 of size 5^2
         """
         cdef RingExtension_generic parent = self._parent
         base = parent._check_base(base)
@@ -1274,7 +1274,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: u.norm(GF(5^2))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z2 of size 5^2
+            ValueError: not (explicitly) defined over Finite Field in z2 of size 5^2
         """
         cdef RingExtension_generic parent = self._parent
         base = parent._check_base(base)
@@ -1373,9 +1373,9 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: u.charpoly(GF(5^2))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z2 of size 5^2
+            ValueError: not (explicitly) defined over Finite Field in z2 of size 5^2
 
-        TESTS::
+        TESTS:
 
         We check that the characteristic polynomial of an element in the base
         ring is a power of a polynomial of degree 1::
@@ -1440,9 +1440,9 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             sage: u.minpoly(GF(5^2))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z2 of size 5^2
+            ValueError: not (explicitly) defined over Finite Field in z2 of size 5^2
 
-        TESTS::
+        TESTS:
 
         We check that the minimal polynomial of an element in the base
         ring has degree 1::

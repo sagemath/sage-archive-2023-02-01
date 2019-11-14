@@ -1014,31 +1014,31 @@ class Polytopes():
             sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
             sage: sc_exact.f_vector()               # long time
             (1, 24, 60, 38, 1)
-            sage: sc_exact.vertices()               # long time
-            (A vertex at (-1, -z, -z^2),
-             A vertex at (-z^2, -1, -z),
-             A vertex at (-z, -z^2, -1),
-             A vertex at (-1, z^2, -z),
-             A vertex at (-z, -1, z^2),
-             A vertex at (z^2, -z, -1),
-             A vertex at (z, -1, -z^2),
-             A vertex at (-z^2, z, -1),
+            sage: sorted(sc_exact.vertices())       # long time
+            [A vertex at (-1, -z, -z^2),
              A vertex at (-1, -z^2, z),
-             A vertex at (z, z^2, -1),
+             A vertex at (-1, z^2, -z),
              A vertex at (-1, z, z^2),
-             A vertex at (z^2, -1, z),
-             A vertex at (-z, 1, -z^2),
-             A vertex at (z^2, 1, -z),
-             A vertex at (-z^2, -z, 1),
+             A vertex at (-z, -1, z^2),
+             A vertex at (-z, -z^2, -1),
              A vertex at (-z, z^2, 1),
+             A vertex at (-z, 1, -z^2),
+             A vertex at (-z^2, -1, -z),
+             A vertex at (-z^2, -z, 1),
+             A vertex at (-z^2, z, -1),
              A vertex at (-z^2, 1, z),
-             A vertex at (1, -z^2, -z),
-             A vertex at (1, -z, z^2),
-             A vertex at (1, z, -z^2),
-             A vertex at (z, -z^2, 1),
-             A vertex at (z, 1, z^2),
+             A vertex at (z^2, -1, z),
+             A vertex at (z^2, -z, -1),
              A vertex at (z^2, z, 1),
-             A vertex at (1, z^2, z))
+             A vertex at (z^2, 1, -z),
+             A vertex at (z, -1, -z^2),
+             A vertex at (z, -z^2, 1),
+             A vertex at (z, z^2, -1),
+             A vertex at (z, 1, z^2),
+             A vertex at (1, -z, z^2),
+             A vertex at (1, -z^2, -z),
+             A vertex at (1, z^2, z),
+             A vertex at (1, z, -z^2)]
             sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
             True
 

@@ -159,7 +159,7 @@ class Polyhedron_base(Element):
 
         .. TODO::
 
-            Add the option `preparse` to the method.
+            Add the option ``preparse`` to the method.
 
         EXAMPLES::
 
@@ -8032,11 +8032,11 @@ class Polyhedron_base(Element):
         A full-dimensional polyhedron or a linear transformation,
         depending on the parameter ``as_affine_map``.
 
+        .. TODO::
 
-        .. TODO:
-
-         - make the parameters ``orthogonal`` and ``orthonormal`` work with unbounded polyhedra.
-         - allow to return ``as_affine_map=True`` for default setting
+            - make the parameters ``orthogonal`` and ``orthonormal`` work
+              with unbounded polyhedra.
+            - allow to return ``as_affine_map=True`` for default setting
 
         EXAMPLES::
 

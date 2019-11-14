@@ -6,16 +6,16 @@ actual parents and perform meaningful operations on them and their
 elements.
 
 The simplest way to build an extension is to use the method
-:meth:`sage.rings.ring.CommutativeRing.over` on the top ring,
+:meth:`sage.categories.commutative_rings.CommutativeRings.ParentMethods.over` on the top ring,
 that is `L`.
 For example, the following line constructs the extension of
 finite fields `\mathbf{F}_{5^4}/\mathbf{F}_{5^2}`::
 
     sage: GF(5^4).over(GF(5^2))
-    Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base    
+    Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
 
 By default, Sage reuses the canonical generator of the top ring
-(here `z_4 \in \mathbf{F}_{5^4}`), together with its name. However, 
+(here `z_4 \in \mathbf{F}_{5^4}`), together with its name. However,
 the user can customize them by passing in appropriate arguments::
 
     sage: F = GF(5^2)
@@ -128,16 +128,13 @@ from sage.rings.ring cimport CommutativeRing, CommutativeAlgebra
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
 
-from sage.rings.ring_extension_element cimport RingExtensionElement
-from sage.rings.ring_extension_element cimport RingExtensionFractionFieldElement
-from sage.rings.ring_extension_element cimport RingExtensionWithBasisElement
-from sage.rings.ring_extension_morphism cimport RingExtensionHomomorphism
-from sage.rings.ring_extension_morphism cimport RingExtensionBackendIsomorphism
-from sage.rings.ring_extension_morphism cimport RingExtensionBackendReverseIsomorphism
-from sage.rings.ring_extension_morphism cimport are_equal_morphisms
-from sage.rings.ring_extension_morphism cimport MapFreeModuleToRelativeRing, MapRelativeRingToFreeModule
-from sage.rings.ring_extension_conversion cimport backend_parent, backend_morphism
-from sage.rings.ring_extension_conversion import to_backend, from_backend
+from sage.rings.ring_extension_element cimport (
+    RingExtensionElement, RingExtensionFractionFieldElement, RingExtensionWithBasisElement)
+from sage.rings.ring_extension_morphism cimport (
+    RingExtensionHomomorphism, RingExtensionBackendIsomorphism, RingExtensionBackendReverseIsomorphism,
+    are_equal_morphisms, MapFreeModuleToRelativeRing, MapRelativeRingToFreeModule)
+from sage.rings.ring_extension_conversion cimport (
+    backend_parent, backend_morphism, to_backend, from_backend)
 
 
 # Helper functions
@@ -227,7 +224,7 @@ def common_base(K, L, degree):
         ...
         NotImplementedError: unable to find a common base
 
-    When ``degree`` is set to ``True``, we only look up for bases on 
+    When ``degree`` is set to ``True``, we only look up for bases on
     which both ``K`` and ``L`` are finite::
 
         sage: S.<x> = QQ[]
@@ -319,9 +316,9 @@ def variable_names(ring, base):
         if base is None:
             names += tuple(vars)
         else:
-            for i in range(len(gens)):
-                if gens[i] not in base:
-                    names += (vars[i],)
+            for gen, var in zip(gens, vars):
+                if gen not in base:
+                    names += (var,)
         ring = ring.base_ring()
     return names
 
@@ -357,19 +354,19 @@ class RingExtensionFactory(UniqueFactory):
 
         - ``ring`` -- a commutative ring
 
-        - ``defining_morphism`` -- a ring homomorphism or a commutative 
-          ring or ``None`` (default: ``None``); the defining morphism of 
+        - ``defining_morphism`` -- a ring homomorphism or a commutative
+          ring or ``None`` (default: ``None``); the defining morphism of
           this extension or its base (if it coerces to ``ring``)
 
         - ``gens`` -- a list of generators of this extension (over its base)
           or ``None`` (default: ``None``);
 
-        - ``names`` -- a list or a tuple of variable names or ``None`` 
+        - ``names`` -- a list or a tuple of variable names or ``None``
           (default: ``None``)
 
-        - ``constructors`` -- a list of constructors; each constructor 
-          is a pair `(class, arguments)` where `class` is the class 
-          implementing the extension and `arguments` is the dictionary 
+        - ``constructors`` -- a list of constructors; each constructor
+          is a pair `(class, arguments)` where `class` is the class
+          implementing the extension and `arguments` is the dictionary
           of arguments to pass in to init function
 
         TESTS::
@@ -436,7 +433,7 @@ class RingExtensionFactory(UniqueFactory):
         if gens is not None:
             if not isinstance(gens, (list, tuple)):
                 raise TypeError("gens must be a list or a tuple")
-            gens = tuple([ring(g) for g in gens ])
+            gens = tuple(ring(g) for g in gens )
             if names is None:
                 raise TypeError("you must specify the names of the generators")
             names = normalize_names(len(gens), names)
@@ -526,19 +523,21 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         - ``print_options`` -- a dictionary
 
-        - ``import_method`` -- a boolean (default: ``True``); whether this 
-          parent (resp. its elements) import the methods of the backend 
+        - ``import_methods`` -- a boolean (default: ``True``); whether this
+          parent (resp. its elements) import the methods of the backend
           parent class (resp. element class)
 
         - ``is_backend_exposed`` -- a boolean (default: ``False``); whether
           the backend ring can be exposed to the user
 
+        - ``category`` -- the category for the resulting parent
+          (default: ``CommutativeRings()``)
+
         .. NOTE:
 
             The attribute `is_backend_exposed` is only used for printing;
             when it is ``False``, printing an element like its backend is
-            disabled (and a ``RuntimeError`` is raised when it is going to
-            occur).
+            disabled (and a ``RuntimeError`` is raised when it would occur).
 
         OUTPUT:
 
@@ -576,7 +575,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         if category is None:
             # Another option would be to set category = CommutativeAlgebras(base)
             # but CommutativeRings() seems safer, especially when dealing with
-            # morphisms which does not need to preserve the base
+            # morphisms which do not need to preserve the base
             category = CommutativeRings()
         CommutativeAlgebra.__init__(self, ZZ, category=category)
         self._base = base
@@ -592,7 +591,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         if self._backend in Fields():
             self._type = "Field"
 
-        # Some checkings
+        # Some checks
         if (base not in CommutativeRings()
          or ring not in CommutativeRings()
          or not defining_morphism.category_for().is_subcategory(CommutativeRings())):
@@ -655,7 +654,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         """
         Return the list of all the attributes of this extension;
         if the extension was created with ``import_methods = True``,
-        concanete this list with the list of all the methods of
+        concatenate this list with the list of all the methods of
         the backend parent.
 
         EXAMPLES::
@@ -685,7 +684,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                 attribute = getattr(self._backend, name)
                 if callable(attribute):
                     d.append(name)
-            except:
+            except Exception:
                 pass
         return sorted(set(d))
 
@@ -728,7 +727,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
              sage: E.construction()
 
         """
-        # construction for generic ring extensions does not make sense
+        # One could define a construction functor K' -> K' otimes_K L, but we leave this to another ticket
         pass
 
     def from_base_ring(self, r):
@@ -765,7 +764,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         INPUT:
 
-        - ``over`` -- an integer or ``Infinity`` (default: ``0``); the maximum 
+        - ``over`` -- an integer or ``Infinity`` (default: ``0``); the maximum
           number of bases included in the printing of this extension
 
         - ``base`` -- a base over which this extension is finite free;
@@ -924,8 +923,8 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         r"""
         Return a LaTeX representation of this extension.
 
-        - ``over`` -- an integer, ``Infinity`` or ``None``; the maximum 
-          number of bases included in the LaTeX representation of 
+        - ``over`` -- an integer, ``Infinity`` or ``None``; the maximum
+          number of bases included in the LaTeX representation of
           this extension;
           if ``None``, use the print options of this extension.
 
@@ -988,16 +987,16 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         COERCION MODEL
 
-        If `L/K` is an extension, a coercion map `K \to (L/K)` 
+        If `L/K` is an extension, a coercion map `K \to (L/K)`
         (acting through the defining morphism of `L/K`) is set.
 
         If ``L_1/K_1` and `L_2/K_2` are two extensions, a coercion
-        map `(L_1/K_1) \to (L_2/K_2)`` is set when `L_1` coerces to 
-        `L_2` and `K_1` coerces to `K_2` in such a way that the 
+        map `(L_1/K_1) \to (L_2/K_2)`` is set when `L_1` coerces to
+        `L_2` and `K_1` coerces to `K_2` in such a way that the
         appropriate diagram commutes.
 
         These rules have the following consequence regarding iterated
-        extensions. 
+        extensions.
         Given two iterated extensions `A = (A_n/\cdots/A_2/A_1)` and
         `B = (B_m/\cdots/B_2/B_1)`, there is a coercion map `A \to B`
         if and only if there exists an increasing function
@@ -1179,7 +1178,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
     cpdef CommutativeRing _check_base(self, CommutativeRing base):
         r"""
-        Check if ``base`` is one of the successive bases of this 
+        Check if ``base`` is one of the successive bases of this
         extension and, if it is, normalize it.
 
         INPUT:
@@ -1189,7 +1188,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         OUTPUT:
 
-        The base ``base`` normalized as a parent appearing in the 
+        The base ``base`` normalized as a parent appearing in the
         list of bases of this extension as returned by :meth:`bases`.
 
         EXAMPLES::
@@ -1226,7 +1225,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             b = (<RingExtension_generic>b)._base
         if b is base:
             return b
-        raise ValueError("not (explicitely) defined over %s" % base)
+        raise ValueError("not (explicitly) defined over %s" % base)
 
     def defining_morphism(self, base=None):
         r"""
@@ -1255,7 +1254,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
               To:   Field in z12 with defining polynomial x^3 + (1 + (4*z2 + 2)*z4)*x^2 + (2 + 2*z4)*x - z4 over its base
               Defn: z4 |--> z4
 
-        One can also pass in a base over which the extension is explicitely
+        One can also pass in a base over which the extension is explicitly
         defined (see also :meth:`is_defined_over`)::
 
             sage: L.defining_morphism(F)
@@ -1267,7 +1266,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: L.defining_morphism(GF(5))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field of size 5
+            ValueError: not (explicitly) defined over Finite Field of size 5
         """
         base = self._check_base(base)
         return self.coerce_map_from(base)
@@ -1418,7 +1417,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: K.degree_over(GF(5))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field of size 5
+            ValueError: not (explicitly) defined over Finite Field of size 5
         """
         base = self._check_base(base)
         return self._degree_over(base)
@@ -1474,7 +1473,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: A.degree(GF(5))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field of size 5
+            ValueError: not (explicitly) defined over Finite Field of size 5
         """
         return self.degree_over(base)
 
@@ -1504,7 +1503,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
     def is_finite_over(self, base=None):
         r"""
-        Return whether or not this extension is finite over ``base``.
+        Return whether or not this extension is finite over ``base`` (as a module).
 
         INPUT:
 
@@ -1542,7 +1541,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                     return True
             except NotImplementedError:
                 pass
-            b = (<RingExtension_generic>b)._base
+            b = (<RingExtension_generic?>b)._base
         raise NotImplementedError
 
     cpdef _is_finite_over(self, CommutativeRing base):
@@ -1605,7 +1604,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                     return True
             except NotImplementedError:
                 pass
-            b = (<RingExtension_generic>b)._base
+            b = (<RingExtension_generic?>b)._base
         raise NotImplementedError
 
     cpdef _is_free_over(self, CommutativeRing base):
@@ -1627,7 +1626,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         """
         raise NotImplementedError
 
-    def is_field(self, proof=False):
+    def is_field(self, proof=True):
         r"""
         Return whether or not this extension is a field.
 
@@ -1661,12 +1660,12 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         - ``extend_base`` -- a boolean (default: ``False``);
 
-        If ``extend_base`` is ``False``, the fraction field of the 
+        If ``extend_base`` is ``False``, the fraction field of the
         extension `L/K` is defined as `\textrm{Frac}(L)/L/K`, except
-        is `L` is already a field in which base the fraction field 
+        is `L` is already a field in which base the fraction field
         of `L/K` is `L/K` itself.
 
-        If ``extend_base`` is ``True``, the fraction field of the 
+        If ``extend_base`` is ``True``, the fraction field of the
         extension `L/K` is defined as `\textrm{Frac}(L)/\textrm{Frac}(K)`
         (provided that the defining morphism extends to the fraction
         fields, i.e. is injective).
@@ -1791,9 +1790,9 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
     def hom(self, im_gens, codomain=None, base_map=None, category=None, check=True):
         r"""
-        Return the unique homomorphism from this extension to 
-        ``codomain`` that sends ``self.gens()`` to the entries 
-        of ``im_gens`` and induces the map ``base_map`` on the 
+        Return the unique homomorphism from this extension to
+        ``codomain`` that sends ``self.gens()`` to the entries
+        of ``im_gens`` and induces the map ``base_map`` on the
         base ring.
 
         INPUT:
@@ -1801,16 +1800,16 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         - ``im_gens`` -- the images in the codomain of the generators of
           this object under the homomorphism
 
-        - ``codomain`` -- the codomain of the homomorphism; if omitted, it 
+        - ``codomain`` -- the codomain of the homomorphism; if omitted, it
           is set to the smallest parent containing all the entries of ``im_gens``
 
-        - ``base_map`` -- a map from one of the bases of this extension into 
+        - ``base_map`` -- a map from one of the bases of this extension into
           something that coerces into the codomain; if omitted, coercion maps
           are used
 
         - ``category`` -- the category of the resulting morphism
 
-        - ``check`` -- a boolean (default: ``True``); whether to verify that the 
+        - ``check`` -- a boolean (default: ``True``); whether to verify that the
           images of generators extend to define a map (using only canonical coercions)
 
         EXAMPLES::
@@ -1975,7 +1974,7 @@ cdef class RingExtensionFractionField(RingExtension_generic):
 
 cdef class RingExtensionWithBasis(RingExtension_generic):
     """
-    A class for finite free ring extensions equipped 
+    A class for finite free ring extensions equipped
     with a basis.
 
     TESTS::
@@ -1985,7 +1984,6 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
         Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
 
         sage: TestSuite(E).run()
-
     """
     Element = RingExtensionWithBasisElement
 
@@ -2074,7 +2072,7 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
             sage: K._print_option_base(L)
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Field in z4 with defining polynomial x^2 + (3 - z2)*x + z2 over its base
+            ValueError: not (explicitly) defined over Field in z4 with defining polynomial x^2 + (3 - z2)*x + z2 over its base
 
         """
         if 'print_elements_as' in self._print_options:
@@ -2172,7 +2170,7 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
 
             sage: L.basis_over(F)
             [1, b, c, b*c, c^2, b*c^2]
-        
+
             sage: L.basis_over(GF(5))
             [1, a, b, a*b, c, a*c, b*c, a*b*c, c^2, a*c^2, b*c^2, a*b*c^2]
 
@@ -2191,7 +2189,7 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
             sage: L.degree_over(GF(5^6))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z6 of size 5^6
+            ValueError: not (explicitly) defined over Finite Field in z6 of size 5^6
         """
         base = self._check_base(base)
         return self._basis_over(base)
@@ -2296,7 +2294,7 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
             sage: L.degree(GF(11^3))
             Traceback (most recent call last):
             ...
-            ValueError: not (explicitely) defined over Finite Field in z3 of size 11^3
+            ValueError: not (explicitly) defined over Finite Field in z3 of size 11^3
 
         """
         base = self._check_base(base)
@@ -2353,12 +2351,12 @@ cdef class RingExtensionWithBasis(RingExtension_generic):
 
         - ``extend_base`` -- a boolean (default: ``False``);
 
-        If ``extend_base`` is ``False``, the fraction field of the 
+        If ``extend_base`` is ``False``, the fraction field of the
         extension `L/K` is defined as `\textrm{Frac}(L)/L/K`, except
-        is `L` is already a field in which base the fraction field 
+        is `L` is already a field in which base the fraction field
         of `L/K` is `L/K` itself.
 
-        If ``extend_base`` is ``True``, the fraction field of the 
+        If ``extend_base`` is ``True``, the fraction field of the
         extension `L/K` is defined as `\textrm{Frac}(L)/\textrm{Frac}(K)`
         (provided that the defining morphism extends to the fraction
         fields, i.e. is injective).
@@ -2595,12 +2593,12 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
 
         - ``extend_base`` -- a boolean (default: ``False``);
 
-        If ``extend_base`` is ``False``, the fraction field of the 
+        If ``extend_base`` is ``False``, the fraction field of the
         extension `L/K` is defined as `\textrm{Frac}(L)/L/K`, except
-        is `L` is already a field in which base the fraction field 
+        is `L` is already a field in which base the fraction field
         of `L/K` is `L/K` itself.
 
-        If ``extend_base`` is ``True``, the fraction field of the 
+        If ``extend_base`` is ``True``, the fraction field of the
         extension `L/K` is defined as `\textrm{Frac}(L)/\textrm{Frac}(K)`
         (provided that the defining morphism extends to the fraction
         fields, i.e. is injective).

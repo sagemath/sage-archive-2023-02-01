@@ -132,7 +132,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         """
         Return the list of all the attributes of this element;
         if the parent of this element was created with ``import_methods = True``,
-        concanete this list with the list of all the methods of the backend
+        concatenate this list with the list of all the methods of the backend
         element.
 
         EXAMPLES::
@@ -376,7 +376,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
     cpdef _div_(self,other):
         r"""
-        Return the quotient of this element by ``other``, 
+        Return the quotient of this element by ``other``,
         considered as an element of the fraction field.
 
         TESTS::
@@ -509,20 +509,20 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``extend`` -- a boolean (default: ``True``); if "True", 
+        - ``extend`` -- a boolean (default: ``True``); if "True",
           return a square root in an extension ring, if necessary.
-          Otherwise, raise a ``ValueError`` if the root is not in 
+          Otherwise, raise a ``ValueError`` if the root is not in
           the ring
 
-        - ``all`` -- a boolean (default: ``False``); if ``True``, 
+        - ``all`` -- a boolean (default: ``False``); if ``True``,
           return all square roots of this element, instead of just one.
 
-        - ``name`` -- a boolean (default: ``False``); if ``True``, 
-          return all square roots of this element, instead of just one.
+        - ``name`` -- Required when ``extend=True`` and ``self`` is not a
+          square. This will be the name of the generator extension.
 
         .. NOTE::
 
-            The option `extend=True` is usually not implemented.
+            The option `extend=True` is often not implemented.
 
         EXAMPLES::
 
@@ -593,6 +593,15 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
             sage: x = Q(1/2)
             sage: x._repr_extension()
             '1/2'
+            sage: R = QQ['x'].over()
+            sage: K = R.fraction_field()
+            sage: x = R.gen()
+            sage: (x^2 + 1) / (x^2 - 1)
+            (x^2 + 1)/(x^2 - 1)
+            sage: x / (x + 1)
+            x/(x + 1)
+            sage: (x + 1)/(-x)
+            (-x - 1)/x
         """
         num = self.numerator()
         denom = self.denominator()
@@ -606,6 +615,8 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
         elif (-denom)._is_atomic():
             sd = "/%s" % (-denom)
             num = -num
+        else:
+            sd = "/(%s)" % denom
         if num._is_atomic():
             return "%s%s" % (num, sd)
         else:
@@ -680,6 +691,7 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
 
         EXAMPLES::
 
+            sage: R.<x> = ZZ[]
             sage: A.<a> = ZZ.extension(x^2 - 2)
             sage: OK = A.over()  # over ZZ
             sage: K = OK.fraction_field()
@@ -719,12 +731,11 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
 
     TESTS::
 
-        sage: Z = ZZ.over()
-        sage: Q = Z.fraction_field()
-        sage: x = Q.random_element()
-        sage: type(x)
-        <class 'sage.rings.ring_extension_element.RingExtensionFractionFieldElement'>
-        sage: TestSuite(x).run()
+        sage: K.<a> = GF(5^3).over()
+        sage: L.<b> = GF(5^9).over(K)
+        sage: type(b)
+        <type 'sage.rings.ring_extension_element.RingExtensionWithBasisElement'>
+        sage: TestSuite(b).run()
     """
     def __hash__(self):
         """
@@ -768,22 +779,24 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             new_names = [ ]
             for y in names:
                 for x in (<RingExtensionWithBasis>b)._basis_names:
-                    if x == "": new_names.append(y)
-                    elif y == "": new_names.append(x)
-                    else: new_names.append(x + "*" + y)
+                    if x == "":
+                        new_names.append(y)
+                    elif y == "":
+                        new_names.append(x)
+                    else:
+                        new_names.append(x + "*" + y)
             names = new_names
             b = (<RingExtensionWithBasis>b)._base
         s = ""
         for i in range(len(names)):
-            if coeffs[i].is_zero(): continue
             c = coeffs[i]
+            if c.is_zero():
+                continue
             sign = 1
             ss = ""
-            if c == 1:
-                pass
-            elif c == -1:
+            if c == -1:
                 sign = -1
-            else:
+            elif c != 1:
                 atomic = c._is_atomic()
                 if not atomic and (-c)._is_atomic():
                     c = -c
@@ -794,18 +807,22 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
                     ss += sc
                 else:
                     ss += "(" + sc + ")"
-                if names[i] != "": ss += "*"
-            if ss != "" and ss[0] == "-":
+                if names[i] != "":
+                    ss += "*"
+            if ss and ss[0] == "-":
                 ss = ss[1:]
                 sign *= -1
             if s == "":
-                if sign == -1: s = "-"
+                if sign == -1:
+                    s = "-"
             else:
                 s += " + " if sign == 1 else " - "
             ss += names[i]
-            if ss == "": ss += "1"
+            if ss == "":
+                ss += "1"
             s += ss
-        if s == "": return "0"
+        if s == "":
+            return "0"
         if s[0] == "(" and s[-1] == ")":
             s = s[1:-1]
         return s
@@ -841,15 +858,14 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             b = (<RingExtensionWithBasis>b)._base
         s = ""
         for i in range(len(names)):
-            if coeffs[i].is_zero(): continue
             c = coeffs[i]
+            if c.is_zero():
+                continue
             sign = 1
             ss = ""
-            if c == 1:
-                pass
-            elif c == -1:
+            if c == -1:
                 sign = -1
-            else:
+            elif c != 1:
                 atomic = c._is_atomic()
                 if not atomic and (-c)._is_atomic():
                     c = -c
@@ -859,20 +875,23 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
                 if atomic:
                     ss += sc
                 else:
-                    ss += "\\left(" + sc + "\\right)"
+                    ss += r"\left(" + sc + r"\right)"
             if ss != "" and ss[0] == "-":
                 ss = ss[1:]
                 sign *= -1
             if s == "":
-                if sign == -1: s = "-"
+                if sign == -1:
+                    s = "-"
             else:
                 s += " + " if sign == 1 else " - "
             ss += names[i]
-            if ss == "": ss += "1"
+            if ss == "":
+                ss += "1"
             s += ss
-        if s == "": return "0"
-        if s[:5] == "\\left(" and s[-6] == "\\right)":
-            s = s[5:-6]
+        if s == "":
+            return "0"
+        if s[:6] == r"\left(" and s[-7] == r"\right)":
+            s = s[6:-7]
         return s
 
     def vector(self, base=None):
@@ -940,8 +959,8 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
 
     def polynomial(self, base=None, var='x'):
         r"""
-        Return a polynomial (in one or more variables) over ``base`` 
-        whose evaluation at the generators of the parent equals this 
+        Return a polynomial (in one or more variables) over ``base``
+        whose evaluation at the generators of the parent equals this
         element.
 
         INPUT:
@@ -1022,16 +1041,15 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         for i in range(degree):
             ii = ZZ(i)
             exponents = [ ]
-            for j in range(len(degrees)):
-                ii, exponent = ii.quo_rem(degrees[j])
+            for d in degrees:
+                ii, exponent = ii.quo_rem(d)
                 exponents.append(exponent)
-            exponents.reverse()
-            coeffs[tuple(exponents)] = v[i]
+            coeffs[tuple(reversed(exponents))] = v[i]
         return S(coeffs)
 
     def matrix(self, base=None):
         r"""
-        Return the matrix of the multiplication by this element (in 
+        Return the matrix of the multiplication by this element (in
         the basis output by :meth:`basis_over`).
 
         INPUT:
@@ -1084,7 +1102,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
 
     cdef _matrix(self, CommutativeRing base):
         r"""
-        Return the matrix of the multiplication by this element (in 
+        Return the matrix of the multiplication by this element (in
         the basis output by :meth:`basis_over`).
 
         This method does not check its input.

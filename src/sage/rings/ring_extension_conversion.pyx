@@ -56,7 +56,7 @@ cpdef from_backend_parent(R, RingExtension_generic E):
 
     - ``R`` -- a parent
 
-    - ``E`` -- a ring extension 
+    - ``E`` -- a ring extension
 
     EXAMPLES::
 
@@ -130,14 +130,14 @@ cpdef backend_element(x):
 
 cpdef from_backend_element(x, RingExtension_generic E):
     r"""
-    Try to reconstruct an element in a ring extension (somehow 
+    Try to reconstruct an element in a ring extension (somehow
     related to ``E``) whose backend is ``x``.
 
     INPUT:
 
     - ``x`` -- an element
 
-    - ``E`` -- a ring extension 
+    - ``E`` -- a ring extension
 
     EXAMPLES::
 

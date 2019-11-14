@@ -390,7 +390,6 @@ from cpython.object cimport Py_EQ, Py_NE
 
 from . import ideal
 import sage.structure.all
-from sage.structure.element cimport RingElement
 from sage.structure.richcmp cimport (richcmp, rich_to_bool,
         richcmp_not_equal)
 
@@ -482,7 +481,6 @@ cdef class RingMap_lift(RingMap):
         [0 1]
         [0 0]
     """
-    
     def __init__(self, R, S):
         """
         Create a lifting ring map.
@@ -1730,9 +1728,7 @@ cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
             sage: f(1/(x-1))
             1/x
         """
-        cdef RingElement num = x.numerator()
-        cdef RingElement denom = x.denominator()
-        return self._morphism(num) / self._morphism(denom)
+        return self._morphism(x.numerator()) / self._morphism(x.denominator())
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1749,7 +1745,7 @@ cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
             sage: f is g
             False
         """
-        self._morphism = _slots['__morphism']
+        self._morphism = _slots['_morphism']
         RingHomomorphism._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):
@@ -1764,9 +1760,8 @@ cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
             True
         """
         slots = RingHomomorphism._extra_slots(self)
-        slots['__morphism'] = self._morphism
+        slots['_morphism'] = self._morphism
         return slots
-    
 
 
 cdef class RingHomomorphism_cover(RingHomomorphism):

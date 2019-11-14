@@ -410,7 +410,7 @@ cdef class FaceIterator(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator).run()
         """
-        if dual and C._unbounded:
+        if dual and not C.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded Polyedron")
         cdef int i
         cdef ListOfFaces some_list  # make Cython aware of type
@@ -475,7 +475,7 @@ cdef class FaceIterator(SageObject):
         self.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
         self.n_visited_all = <size_t *> self._mem.allocarray(self.dimension, sizeof(size_t))
         self.n_visited_all[self.dimension -1] = 0
-        if C.unbounded():
+        if not C.is_bounded():
             # Treating the far face as if we had visited all its elements.
             # Hence we will visit all intersections of facets unless contained in the far face.
 

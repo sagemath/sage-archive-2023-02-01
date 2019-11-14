@@ -7,19 +7,12 @@ AUTHORS:
 
 - William Stein: initial version
 
-- Jaap Spies (2006-02-18): added ``prod_of_row_sums`` method
-
-- Jaap Spies (2006-02-16): added ``permanent`` method
-
-- Jaap Spies (2006-02-19): added ``permanental_minor`` method
-
-- Jaap Spies (2006-02-24): added ``rook_vector`` method
+- Jaap Spies (2006-02-24): added ``prod_of_row_sums``, ``permanent``,
+  ``permanental_minor``, ``rook_vector`` methods
 
 - Robert Bradshaw (2007-06-14): added ``subdivide`` method
 
-- Jaap Spies (2007-10-26): implemented ``_binomial`` auxiliary function
-
-- Jaap Spies (2007-11-14): implemented ``_choose`` auxiliary function
+- Jaap Spies (2007-11-14): implemented ``_binomial``, ``_choose`` auxiliary functions
 
 - William Stein (2007-11-18): added ``_gram_schmidt_noscale`` method
 
@@ -27,55 +20,34 @@ AUTHORS:
 
 - David Loeffler (2009-06-01): added ``_echelon_form_PID`` method
 
-- Sebastian Pancratz (2009-06-12): implemented ``adjoint`` and ``charpoly`` methods
+- Sebastian Pancratz (2009-06-25): implemented ``adjoint`` and ``charpoly``
+  methods; fixed ``adjoint`` reflecting the change that ``_adjoint`` is now
+  implemented in :class:`Matrix`; used the division-free algorithm for
+  ``charpoly``
 
-- Sebastian Pancratz (2009-06-25): fixed ``adjoint`` reflecting the change that
-  ``_adjoint`` is now implemented in :class:`Matrix`
-
-- Sebastian Pancratz (2009-06-25): use the division-free algorithm for ``charpoly``
-
-- Rob Beezer (2009-07-13) added ``elementwise_product`` method
+- Rob Beezer (2009-07-13): added ``elementwise_product`` method
 
 - Miguel Marco (2010-06-19): modified eigenvalues and eigenvectors functions to
   allow the option ``extend=False``
 
-- Thierry Monteil (2010-10-05): Bugfix for :trac:`10063`, so that the
+- Thierry Monteil (2010-10-05): bugfix for :trac:`10063`, so that the
   determinant is computed even for rings for which the ``is_field`` method is not
   implemented.
 
 - Rob Beezer (2010-12-13): added ``conjugate_transpose`` method
 
-- Rob Beezer (2011-02-02): added ``extended_echelon_form`` method
-
-- Rob Beezer (2011-02-05): refactored all of the matrix kernel routines
-
-- Rob Beezer (2011-02-05): added ``right_kernel_matrix`` method
-
-- Rob Beezer (2011-02-17): added ``QR`` method
-
-- Rob Beezer (2011-02-25): modified ``_gram_schmidt_noscale`` method
-
-- Rob Beezer (2011-03-15): added ``is_similar`` method
+- Rob Beezer (2011-02-05): refactored all of the matrix kernel routines; added
+  ``extended_echelon_form``, ``right_kernel_matrix``, ``QR``,
+  ``_gram_schmidt_noscale``, ``is_similar`` methods
 
 - Moritz Minzlaff (2011-03-17): corrected ``_echelon_form_PID`` method for
   matrices of one row, fixed in :trac:`9053`
 
-- Rob Beezer (2011-03-31): added ``is_normal`` method
+- Rob Beezer (2011-06-09): added ``is_normal``, ``is_diagonalizable``, ``LU``,
+  ``cyclic_subspace``, ``zigzag_form``, ``rational_form`` methods
 
-- Rob Beezer (2011-04-01): added ``is_diagonalizable`` method
-
-- Rob Beezer (2011-04-26): added ``LU`` method
-
-- Rob Beezer (2011-05-20): added ``cyclic_subspace`` method
-
-- Rob Beezer (2011-06-09): added ``zigzag_form`` method
-
-- Rob Beezer (2011-06-09): added ``rational_form`` method
-
-- Rob Beezer (2012-05-24): added ``indefinite_factorization`` and
-  ``is_positive_definite`` methods
-
-- Rob Beezer (2012-05-27): added ``cholesky`` method
+- Rob Beezer (2012-05-27): added ``indefinite_factorization``,
+  ``is_positive_definite``, ``cholesky`` methods
 
 - Darij Grinberg (2013-10-01): added first (slow) pfaffian implementation
 
@@ -1536,6 +1508,18 @@ cdef class Matrix(Matrix1):
                 m.append(self.matrix_from_rows_and_columns(rows,cols).determinant())
         return m
 
+    def det(self, *args, **kwds):
+        """
+        Synonym for self.determinant(...).
+
+        EXAMPLES::
+
+            sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
+            sage: A.det()
+            6
+        """
+        return self.determinant(*args, **kwds)
+
     def determinant(self, algorithm=None):
         r"""
         Returns the determinant of self.
@@ -1937,19 +1921,6 @@ cdef class Matrix(Matrix1):
             res += sgn * prod([self.get_unsafe(edge[0], edge[1]) for edge in edges2])
 
         return res
-
-    # shortcuts
-    def det(self, *args, **kwds):
-        """
-        Synonym for self.determinant(...).
-
-        EXAMPLES::
-
-            sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
-            sage: A.det()
-            6
-        """
-        return self.determinant(*args, **kwds)
 
     def apply_morphism(self, phi):
         """
@@ -2692,48 +2663,48 @@ cdef class Matrix(Matrix1):
         return d
 
     def diagonal(self):
-      r"""
-      Return the diagonal entries of ``self``.
+        r"""
+        Return the diagonal entries of ``self``.
 
-      OUTPUT:
+        OUTPUT:
 
-      A list containing the entries of the matrix that
-      have equal row and column indices, in order of the
-      indices.  Behavior is not limited to square matrices.
+        A list containing the entries of the matrix that
+        have equal row and column indices, in order of the
+        indices.  Behavior is not limited to square matrices.
 
-      EXAMPLES::
+        EXAMPLES::
 
-          sage: A = matrix([[2,5],[3,7]]); A
-          [2 5]
-          [3 7]
-          sage: A.diagonal()
-          [2, 7]
+            sage: A = matrix([[2,5],[3,7]]); A
+            [2 5]
+            [3 7]
+            sage: A.diagonal()
+            [2, 7]
 
-      Two rectangular matrices.  ::
+        Two rectangular matrices. ::
 
-          sage: B = matrix(3, 7, range(21)); B
-          [ 0  1  2  3  4  5  6]
-          [ 7  8  9 10 11 12 13]
-          [14 15 16 17 18 19 20]
-          sage: B.diagonal()
-          [0, 8, 16]
+            sage: B = matrix(3, 7, range(21)); B
+            [ 0  1  2  3  4  5  6]
+            [ 7  8  9 10 11 12 13]
+            [14 15 16 17 18 19 20]
+            sage: B.diagonal()
+            [0, 8, 16]
 
-          sage: C = matrix(3, 2, range(6)); C
-          [0 1]
-          [2 3]
-          [4 5]
-          sage: C.diagonal()
-          [0, 3]
+            sage: C = matrix(3, 2, range(6)); C
+            [0 1]
+            [2 3]
+            [4 5]
+            sage: C.diagonal()
+            [0, 3]
 
-      Empty matrices behave properly. ::
+        Empty matrices behave properly. ::
 
-          sage: E = matrix(0, 5, []); E
-          []
-          sage: E.diagonal()
-          []
-      """
-      n = min(self.nrows(), self.ncols())
-      return [self[i,i] for i in range(n)]
+            sage: E = matrix(0, 5, []); E
+            []
+            sage: E.diagonal()
+            []
+        """
+        n = min(self.nrows(), self.ncols())
+        return [self[i,i] for i in range(n)]
 
     def trace(self):
         """
@@ -3062,9 +3033,9 @@ cdef class Matrix(Matrix1):
         """
         return self.ncols() - self.rank()
 
-    ######################################
+    #####################################################################################
     # Kernel Helper Functions
-    ######################################
+    #####################################################################################
 
     def _right_kernel_matrix_over_number_field(self):
         r"""
@@ -4406,7 +4377,6 @@ cdef class Matrix(Matrix1):
         verbose("done computing left kernel for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
         return K
 
-    # .kernel() is a an alias for .left_kernel()
     kernel = left_kernel
 
     def kernel_on(self, V, poly=None, check=True):
@@ -6423,7 +6393,7 @@ cdef class Matrix(Matrix1):
 
     #####################################################################################
     # Generic Echelon Form
-    ###################################################################################
+    #####################################################################################
 
     def rref(self, *args, **kwds):
         """
@@ -6943,7 +6913,7 @@ cdef class Matrix(Matrix1):
         self.cache('echelon_' + algorithm, E)
         return E
 
-    # This is for backward compatibility
+    # for backward compatibility
 
     def _echelon_classical(self):
         """
@@ -7332,9 +7302,9 @@ cdef class Matrix(Matrix1):
             extended.set_immutable()
         return extended
 
-    ##########################################################################
-    # Functions for symmetries of a matrix under row and column permutations #
-    ##########################################################################
+    #####################################################################################
+    # Functions for symmetries of a matrix under row and column permutations
+    #####################################################################################
     def as_bipartite_graph(self):
         r"""
         Construct a bipartite graph ``B`` representing
@@ -8196,7 +8166,7 @@ cdef class Matrix(Matrix1):
         else:
             return (self._subdivisions[0][1:-1], self._subdivisions[1][1:-1])
 
-    # 'get_subdivisions' is kept for backwards compatibility: see #4983.
+    # for backwards compatibility: see #4983.
     get_subdivisions = subdivisions
 
     def tensor_product(self, A, subdivide=True):
@@ -10400,6 +10370,56 @@ cdef class Matrix(Matrix1):
             sage: D, P = A.diagonalization(QQbar)
             sage: P^-1*A*P == D
             True
+
+        Matrices may fail to be diagonalizable for various reasons::
+
+            sage: A = matrix(QQ, 2, [1,2,3,4,5,6])
+            sage: A
+            [1 2 3]
+            [4 5 6]
+            sage: A.diagonalization()
+            Traceback (most recent call last):
+            ...
+            TypeError: not a square matrix
+
+            sage: B = matrix(ZZ, 2, [1, 2, 3, 4])
+            sage: B
+            [1 2]
+            [3 4]
+            sage: B.diagonalization()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix entries must be from a field
+
+            sage: C = matrix(RR, 2, [1., 2., 3., 4.])
+            sage: C
+            [1.00000000000000 2.00000000000000]
+            [3.00000000000000 4.00000000000000]
+            sage: C.diagonalization()
+            Traceback (most recent call last):
+            ...
+            ValueError: base field must be exact, but Real Field with 53 bits of precision is not
+
+            sage: D = matrix(QQ, 2, [0, 2, 1, 0])
+            sage: D
+            [0 2]
+            [1 0]
+            sage: D.diagonalization()
+            Traceback (most recent call last):
+            ...
+            ValueError: not diagonalizable over Rational Field
+
+            sage: E = matrix(QQ, 2, [3, 1, 0, 3])
+            sage: E
+            [3 1]
+            [0 3]
+            sage: E.diagonalization()
+            Traceback (most recent call last):
+            ...
+            ValueError: not diagonalizable
+            sage: E.jordan_form()
+            [3 1]
+            [0 3]
         """
         if not self.is_square():
             raise TypeError('not a square matrix')
@@ -15478,7 +15498,7 @@ cdef class Matrix(Matrix1):
         return all(s * (self * x) == 0
                    for (x, s) in K.discrete_complementarity_set())
 
-    # A limited number of access-only properties are provided for matrices
+    # a limited number of access-only properties are provided for matrices
     @property
     def T(self):
         r"""
@@ -15720,7 +15740,6 @@ def _generic_clear_column(m):
 
     return left_mat, a
 
-
 def _smith_onestep(m):
     r"""
     Carry out one step of Smith normal form for matrix m. Returns three matrices a,b,c over
@@ -15777,7 +15796,6 @@ def _smith_onestep(m):
 
     return left_mat, a, right_mat
 
-
 def decomp_seq(v):
     """
     This function is used internally be the decomposition matrix
@@ -15796,7 +15814,6 @@ def decomp_seq(v):
     """
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
-
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
@@ -15857,7 +15874,6 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
 
     return x
 
-
 def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     Fast and unchecked implementation of binomial(n,k) This is only for
@@ -15885,7 +15901,6 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         result = (result * n) // i
         i, n, k = i + 1, n - 1, k - 1
     return result
-
 
 def _jordan_form_vector_in_difference(V, W):
     r"""
@@ -15915,7 +15930,6 @@ def _jordan_form_vector_in_difference(V, W):
         if v not in W_space:
             return v
     return None
-
 
 def _matrix_power_symbolic(A, n):
     r"""

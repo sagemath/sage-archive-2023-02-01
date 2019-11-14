@@ -440,15 +440,15 @@ cdef class FaceIterator(SageObject):
             self.output_dimension = -2
 
         if dual:
-            self.atoms = C.bitrep_facets
-            self.coatoms = C.bitrep_Vrepr
+            self.atoms = C.bitrep_facets()
+            self.coatoms = C.bitrep_Vrepr()
         else:
-            self.coatoms = C.bitrep_facets
-            self.atoms = C.bitrep_Vrepr
+            self.coatoms = C.bitrep_facets()
+            self.atoms = C.bitrep_Vrepr()
         self.face_length = self.coatoms.face_length
-        self._V = C._V
-        self._H = C._H
-        self._equalities = C._equalities
+        self._V = C.V()
+        self._H = C.H()
+        self._equalities = C.equalities()
 
         self.atom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
         self.coatom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
@@ -475,7 +475,7 @@ cdef class FaceIterator(SageObject):
         self.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
         self.n_visited_all = <size_t *> self._mem.allocarray(self.dimension, sizeof(size_t))
         self.n_visited_all[self.dimension -1] = 0
-        if C._unbounded:
+        if C.unbounded():
             # Treating the far face as if we had visited all its elements.
             # Hence we will visit all intersections of facets unless contained in the far face.
 
@@ -484,7 +484,7 @@ cdef class FaceIterator(SageObject):
             # needs to be at most ``n_facets - 1``.
             # Hence it is fine to use the first entry already for the far face,
             # as ``self.visited_all`` holds ``n_facets`` pointers.
-            some_list = C.far_face
+            some_list = C.far_face()
             self.visited_all[0] = some_list.data[0]
             self.n_visited_all[self.dimension -1] = 1
 

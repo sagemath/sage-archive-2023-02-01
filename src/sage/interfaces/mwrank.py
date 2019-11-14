@@ -45,7 +45,7 @@ def Mwrank(options="", server=None, server_tmpdir=None):
        -d       skip_2nd_descent        if set, skips the second descent for curves with 2-torsion (default: not set)
        -S n     sat_bd          upper bound on saturation primes (default=100, -1 for automatic)
 
-    .. warning:
+    .. warning::
 
        Do not use the option "-q" which turns off the prompt.
 
@@ -167,10 +167,9 @@ class Mwrank_class(Expect):
            -d       skip_2nd_descent        if set, skips the second descent for curves with 2-torsion (default: not set)
            -S n     sat_bd          upper bound on saturation primes (default=100, -1 for automatic)
 
-    .. warning:
+        .. warning::
 
-       Do not use the option "-q" which turns off the prompt.
-
+            Do not use the option "-q" which turns off the prompt.
 
         .. note::
 
@@ -190,7 +189,7 @@ class Mwrank_class(Expect):
         Expect.__init__(self,
                         name = 'mwrank',
                         prompt = 'Enter curve: ',
-                        command = "mwrank %s"%options,
+                        command = "mwrank %s" % options,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         restart_on_ctrlc = True,

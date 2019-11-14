@@ -193,7 +193,7 @@ FriCAS does some limits right::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
 
@@ -756,7 +756,7 @@ http://fricas.sourceforge.net.
             sage: a = fricas(x==6); a                                           # optional - fricas, indirect doctest
             x = 6
 
-        A warning:
+        A warning::
 
             sage: fricas.set("x", 2);                                           # optional - fricas
             sage: a = fricas(x==6); a                                           # optional - fricas
@@ -768,7 +768,7 @@ http://fricas.sourceforge.net.
 
     def _true_symbol(self):
         """
-        Return the string used for True in FriCAS.
+        Return the string used for ``True`` in FriCAS.
 
         EXAMPLES::
 
@@ -779,7 +779,7 @@ http://fricas.sourceforge.net.
 
     def _false_symbol(self):
         """
-        Return the string used for False in FriCAS.
+        Return the string used for ``False`` in FriCAS.
 
         EXAMPLES::
 

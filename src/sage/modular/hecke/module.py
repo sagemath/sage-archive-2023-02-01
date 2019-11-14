@@ -209,7 +209,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         n = int(n)
         if n < 1:
-            raise ValueError("Hecke operator T_%s is not defined."%n)
+            raise ValueError("Hecke operator T_%s is not defined." % n)
         if n == 1:
             Mat = matrix_space.MatrixSpace(self.base_ring(),self.rank())
             return Mat(1)
@@ -552,7 +552,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = int(n)
         D = self.decomposition()
         if n < 0 or n >= len(D):
-            raise IndexError("index (=%s) must be between 0 and %s"%(n, len(D)-1))
+            raise IndexError("index (=%s) must be between 0 and %s" % (n, len(D)-1))
         return D[n]
 
     def __hash__(self):
@@ -853,7 +853,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             d = self.level()
         d = int(d)
         if self.level() % d:
-            raise ArithmeticError("d (=%s) must be a divisor of the level (=%s)"%(d,self.level()))
+            raise ArithmeticError("d (=%s) must be a divisor of the level (=%s)" % (d, self.level()))
 
         N = self.level()
         for p, e in arith.factor(d):
@@ -869,7 +869,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             pass
         Wmat = self._compute_atkin_lehner_matrix(d)
         H = self.endomorphism_ring()
-        W = H(Wmat, "Atkin-Lehner operator W_%s"%d)
+        W = H(Wmat, "Atkin-Lehner operator W_%s" % d)
         self.__atkin_lehner_operator[d] = W
         return W
 
@@ -1014,12 +1014,12 @@ class HeckeModule_free_module(HeckeModule_generic):
         D = Sequence([], cr=True)
         U = [self.free_module()]
         p = 2
-        while len(U) > 0 and p <= bound:
-            misc.verbose(mesg="p=%s"%p,t=time)
+        while U and p <= bound:
+            misc.verbose(mesg="p=%s" % p,t=time)
             if anemic:
                 while arith.GCD(p, self.level()) != 1:
                     p = arith.next_prime(p)
-            misc.verbose("Decomposition using p=%s"%p)
+            misc.verbose("Decomposition using p=%s" % p)
             t = T.hecke_operator(p).matrix()
             Uprime = []
             for i in range(len(U)):
@@ -1087,18 +1087,18 @@ class HeckeModule_free_module(HeckeModule_generic):
         This eigenvector will have entries in an extension of the base
         ring of degree equal to the dimension of this space.
 
-        .. warning:
+        .. warning::
 
            The input space must be simple.
 
         INPUT:
 
-        -  ``name`` - print name of generator for eigenvalue
+        -  ``name`` -- print name of generator for eigenvalue
            field.
 
-        -  ``lift`` - bool (default: True)
+        -  ``lift`` -- bool (default: ``True``)
 
-        -  ``nz`` - if not None, then normalize vector so dot
+        -  ``nz`` -- if not ``None``, then normalize vector so dot
            product with this basis vector of ambient space is 1.
 
         OUTPUT: A vector with entries possibly in an extension of the base
@@ -1670,7 +1670,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             B = A.decomposition_matrix_inverse()
             i = (A.decomposition()).index(self)
             n = sum([A[j].rank() for j in range(i)])
-            C = B.matrix_from_columns(range(n,n+self.rank()))
+            C = B.matrix_from_columns(range(n, n + self.rank()))
             H = A.Hom(self)
             pi = H(C, "Projection"%self)
             self.__projection = pi

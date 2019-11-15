@@ -141,7 +141,8 @@ In the **real** case, let `g` be a holomorphic function around zero with
 
 .. MATH::
 
-    \left[\det\left( \sqrt{ g \left( -\frac{\Omega^2}{4 \pi^2} \right) } \right) \right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
+    \left[\det\left( \sqrt{ g \left( -\frac{\Omega^2}{4 \pi^2} \right) } \right)
+        \right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
 
 the *multiplicative Pontryagin g-genus*.
 
@@ -571,8 +572,8 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: ch = TM.characteristic_class(exp(x), class_type='additive',  name='ch',
-            ....:                              latex_name=r'\mathrm{ch}')
+            sage: ch = TM.characteristic_class(exp(x), class_type='additive',
+            ....:                              name='ch', latex_name=r'\mathrm{ch}')
             sage: ch._latex_()
             '\\mathrm{ch}(TM)'
 
@@ -587,8 +588,8 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: ch = TM.characteristic_class(exp(x), class_type='additive',  name='ch',
-            ....:                              latex_name=r'\mathrm{ch}')
+            sage: ch = TM.characteristic_class(exp(x), class_type='additive',
+            ....:                              name='ch', latex_name=r'\mathrm{ch}')
             sage: ch.class_type()
             'additive'
 
@@ -623,8 +624,8 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``connection`` -- connection to which the form should be associated to; this
-          can be either a bundle connection as an instance of
+        - ``connection`` -- connection to which the form should be associated to;
+          this can be either a bundle connection as an instance of
           :class:`~sage.manifolds.differentiable.bundle_connection.BundleConnection`
           or, in case of the tensor bundle, an affine connection as an instance
           of :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
@@ -653,8 +654,8 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', structure='Lorentzian')
             sage: X.<t,x> = M.chart()
             sage: E = M.vector_bundle(1, 'E', field='complex'); E
-            Differentiable complex vector bundle E -> M of rank 1 over the base space
-             2-dimensional Lorentzian manifold M
+            Differentiable complex vector bundle E -> M of rank 1 over the base
+             space 2-dimensional Lorentzian manifold M
             sage: e = E.local_frame('e')
 
         And again, we define the connection `\nabla^E` in terms of an
@@ -672,8 +673,8 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
 
             sage: ch = E.characteristic_class('ChernChar'); ch
             Characteristic class ch of additive type associated to e^x on the
-             Differentiable complex vector bundle E -> M of rank 1 over the base space
-             2-dimensional Lorentzian manifold M
+             Differentiable complex vector bundle E -> M of rank 1 over the base
+             space 2-dimensional Lorentzian manifold M
 
         Inserting the connection, the result is a mixed differential form with
         a priori non-zero components in even degrees::

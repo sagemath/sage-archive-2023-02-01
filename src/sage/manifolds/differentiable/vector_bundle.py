@@ -209,7 +209,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
             sage: M = Manifold(4, 'M', structure='Lorentzian', start_index=1)
             sage: X.<t,x,y,z> = M.chart()
-            sage: g = M.metric('g')
+            sage: g = M.metric()
             sage: g[1,1] = -1
             sage: g[2,2] = 1
             sage: g[3,3] = 1

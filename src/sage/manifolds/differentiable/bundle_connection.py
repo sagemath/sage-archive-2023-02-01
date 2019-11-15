@@ -492,7 +492,7 @@ class BundleConnection(SageObject):
 
         OUTPUT:
 
-        - connection 1-form `\omega^i_j in the given frame, as an instance of
+        - connection 1-form `\omega^i_j` in the given frame, as an instance of
           the class :class:`~sage.manifolds.differentiable.diff_form.DiffForm`;
           if such connection 1-form did not exist previously, it is created. See
           method :meth:`connection_forms` for the storage convention of the
@@ -671,7 +671,8 @@ class BundleConnection(SageObject):
 
         .. MATH::
 
-            \Omega^j_i = \mathrm{d} \omega^j_i + \sum^n_{k=1} \omega^j_k \wedge \omega^k_i
+            \Omega^j_i = \mathrm{d} \omega^j_i + \sum^n_{k=1} \omega^j_k
+                \wedge \omega^k_i
 
         INPUT:
 

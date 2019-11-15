@@ -4,8 +4,8 @@ Characteristic Classes
 Let `E \to M` be some topological vector bundle over a topological manifold `M`
 and `R` be any ring.
 A *characteristic class* `c(E)` is an element of the cohomology ring
-`H^{*}(M, R)` such that for any continuous map `f: M \to N` the *naturality
-condition* is satisfied:
+`H^{*}(M, R)` such that for any continuous map `f: M \to N`, where `N` is
+another topological manifold, the *naturality condition* is satisfied:
 
 .. MATH::
 
@@ -721,43 +721,6 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                 latex_name += "(" + self._vbundle._latex_name + ", " + \
                               connection._latex_name + ")"
             res = self._base_space.mixed_form(name=name, latex_name=latex_name)
-            # Set name of homogeneous components:
-            #
-            # Only even (or in the real case, by four divisible) degrees are
-            # non-zero:
-            if self._class_type == 'Pfaffian':
-                deg_dist = self._rank
-            elif self._vbundle._field_type == 'real':
-                deg_dist = 4
-            elif self._vbundle._field_type == 'complex':
-                deg_dist = 2
-            else:
-            # You never know...
-                deg_dist = 1
-            # Now, define the name for each form:
-            for k in res.irange():
-                if k % deg_dist != 0 or (self._class_type == 'Pfaffian' and
-                                         k == 0):
-                    res[k].set_name(name="zero", latex_name="0")
-                    res[k]._is_zero = True
-                else:
-                    if self._name is not None:
-                        name = self._name + "_" + str(k / deg_dist) + \
-                               "(" + self._vbundle._name
-                        if connection._name is not None:
-                            name += ", " + connection._name
-                        name += ")"
-                    # LaTeX name:
-                    if self._latex_name is not None:
-                        latex_name = self._latex_name + \
-                                     r"_{" + str(k / deg_dist) + r"}" + \
-                                     r"(" + self._vbundle._latex_name
-                        if connection._latex_name is not None:
-                            latex_name += r", " + connection._latex_name
-                        latex_name += r")"
-                    # Set name:
-                    res[k].set_name(name=name, latex_name=latex_name)
-                    res[k]._is_zero = False # a priori
             # Begin computation:
             from sage.matrix.matrix_space import MatrixSpace
             for frame, cmatrix in cmatrices.items():
@@ -776,6 +739,40 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                     rst = rmatrix.det()  # mixed form
                 elif self._class_type == 'Pfaffian':
                     rst = rmatrix.pfaffian()  # mixed form
+            # Only even (or in the real case, by four divisible) degrees are
+            # non-zero:
+            if self._class_type == 'Pfaffian':
+                deg_dist = self._rank
+            elif self._vbundle._field_type == 'real':
+                deg_dist = 4
+            elif self._vbundle._field_type == 'complex':
+                deg_dist = 2
+            else:
+                # You never know...
+                deg_dist = 1
+            # Now, define the name for each form:
+            for k in res.irange():
+                if k % deg_dist != 0 or (self._class_type == 'Pfaffian' and
+                                         k == 0):
+                    res[k] = 0  # this form is zero anyway
+                else:
+                    # String representation:
+                    if self._name is not None:
+                        name = self._name + "_" + str(k // deg_dist) + \
+                               "(" + self._vbundle._name
+                        if connection._name is not None:
+                            name += ", " + connection._name
+                        name += ")"
+                    # LaTeX name:
+                    if self._latex_name is not None:
+                        latex_name = self._latex_name + \
+                                     r"_{" + str(k // deg_dist) + r"}" + \
+                                     r"(" + self._vbundle._latex_name
+                        if connection._latex_name is not None:
+                            latex_name += r", " + connection._latex_name
+                        latex_name += r")"
+                    # Set name:
+                    res[k].set_name(name=name, latex_name=latex_name)
                 # Set restriction:
                 res.set_restriction(rst)
 

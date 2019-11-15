@@ -2563,7 +2563,7 @@ class TensorField(ModuleElement):
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
         resu_name = format_mul_txt(scalar._name, '*', self._name)
-        resu_latex = format_mul_latex(scalar._latex_name, ' \cdot ',
+        resu_latex = format_mul_latex(scalar._latex_name, r' \cdot ',
                                       self._latex_name)
         resu.set_name(name=resu_name, latex_name=resu_latex)
         return resu

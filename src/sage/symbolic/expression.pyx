@@ -12211,7 +12211,7 @@ cdef class Expression(CommutativeRingElement):
 
            #. Sage can currently only understand a subset of the output of Maxima, Maple and
               Mathematica, so even if the chosen backend can perform the summation the
-              result might not be convertable into a usable Sage expression.
+              result might not be convertible into a usable Sage expression.
 
         TESTS:
 

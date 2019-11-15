@@ -12595,7 +12595,7 @@ cdef class Matrix(Matrix1):
         The base ring for the elements of the matrix needs to
         have a fraction field implemented and the computations
         that result from the indefinite factorization must be
-        convertable to real numbers that are comparable to zero.
+        convertible to real numbers that are comparable to zero.
 
         EXAMPLES:
 

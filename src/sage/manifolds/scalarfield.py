@@ -2562,7 +2562,7 @@ class ScalarField(CommutativeAlgebraElement):
             # ChartFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
         result._name = format_mul_txt(self._name, '*', other._name)
-        result._latex_name = format_mul_latex(self._latex_name, ' \cdot ',
+        result._latex_name = format_mul_latex(self._latex_name, r' \cdot ',
                                              other._latex_name)
         return result
 

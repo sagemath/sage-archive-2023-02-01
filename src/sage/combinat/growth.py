@@ -502,7 +502,7 @@ class GrowthDiagram(SageObject):
     a pair of digraphs `P, Q` (multiple edges being allowed) on the
     same set of vertices `V`, that satisfy the following conditions:
 
-    * the graphs are graded, that is, there is a function `\rho :
+    * the graphs are graded, that is, there is a function `\rho:
       V \to \NN`, such that for any edge `(v, w)` of `P` and also
       of `Q` we have `\rho(w) = \rho(v) + 1`,
 

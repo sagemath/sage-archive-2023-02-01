@@ -9,7 +9,6 @@
 #****************************************************************************
 
 from sage.rings.homset import RingHomset_generic
-from sage.rings.ring_extension import RingExtension_generic
 from sage.rings.ring_extension_morphism import RingExtensionHomomorphism
 
 class RingExtensionHomset(RingHomset_generic):

@@ -267,7 +267,7 @@ class TensorField(ModuleElement):
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
         True
         sage: s = f*t.restrict(U); s
-        Tensor field of type (0,2) on the Open subset U of the 2-dimensional
+        Tensor field f*t of type (0,2) on the Open subset U of the 2-dimensional
          differentiable manifold S^2
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True

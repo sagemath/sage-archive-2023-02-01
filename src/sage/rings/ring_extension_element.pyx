@@ -143,7 +143,6 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: dir(a)
             ['__abs__',
              '__add__',
-             '__bool__',
              ...
              'complex_embeddings',
              'conjugate',

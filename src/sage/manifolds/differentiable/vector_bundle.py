@@ -163,7 +163,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         from .bundle_connection import BundleConnection
         return BundleConnection(self, name, latex_name)
 
-    def char_class(self, func, **kwargs):
+    def characteristic_class(self, func, **kwargs):
         r"""
         Return a characteristic class of the given type with respect to the
         given function.
@@ -232,7 +232,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
             sage: TM = M.tangent_bundle(); TM
             Tangent bundle TM over the 4-dimensional Lorentzian manifold M
-            sage: p = TM.char_class('Pontryagin'); p
+            sage: p = TM.characteristic_class('Pontryagin'); p
             Characteristic class p of multiplicative type associated to x + 1 on
              the Tangent bundle TM over the 4-dimensional Lorentzian manifold M
             sage: p.function()
@@ -243,12 +243,12 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         .. SEEALSO::
 
             More examples can be found in
-            :class:`~sage.manifolds.differentiable.char_class.CharClass`.
+            :class:`~sage.manifolds.differentiable.char_class.CharacteristicClass`.
 
         """
         if self._field_type == 'neither_real_nor_complex':
             raise ValueError("the vector bundle must be real or complex")
-        from .char_class import CharClass, _get_predefined_class
+        from .char_class import CharacteristicClass, _get_predefined_class
         # Is func a predefined class?
         if isinstance(func, str):
             func_str = func
@@ -265,8 +265,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             name = kwargs.pop('name', None)
             latex_name = kwargs.pop('latex_name', None)
 
-        return CharClass(self, func, class_type=class_type, name=name,
-                         latex_name=latex_name)
+        return CharacteristicClass(self, func, class_type=class_type, name=name,
+                                   latex_name=latex_name)
 
     def diff_degree(self):
         r"""

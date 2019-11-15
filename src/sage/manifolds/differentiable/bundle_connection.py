@@ -40,18 +40,12 @@ AUTHORS:
 #******************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.manifolds.differentiable.vector_bundle\
-                                               import DifferentiableVectorBundle
+from sage.manifolds.differentiable.vector_bundle import DifferentiableVectorBundle
 
 class BundleConnection(SageObject):
     r"""
     An instance of this class represents a bundle connection `\nabla` on a
     smooth vector bundle `E \to M`.
-
-    .. NOTE::
-
-        Notice that this is a *very* rudimentary form of bundle connections.
-        A more detailed implementation is devoted to :trac:`28640`.
 
     INPUT:
 
@@ -60,7 +54,7 @@ class BundleConnection(SageObject):
       :class:`~sage.manifolds.differentiable.vector_bundle.DifferentiableVectorBundle`)
     - ``name`` -- name given to the bundle connection
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the bundle
-      connection; if ``None``, it is set to ``name``.
+      connection; if ``None``, it is set to ``name``
 
     EXAMPLES:
 
@@ -99,15 +93,15 @@ class BundleConnection(SageObject):
 
     They certainly obey the structure equation::
 
-            sage: omega = nab.connection_form
-            sage: check = []
-            sage: for i in E.irange():  # long time
-            ....:     for j in E.irange():
-            ....:         check.append(nab.curvature_form(i,j,e) == \
-            ....:                       omega(i,j,e).exterior_derivative() + \
-            ....:         sum(omega(k,j,e).wedge(omega(i,k,e)) for k in E.irange()))
-            sage: check  # long time
-            [True, True, True, True]
+        sage: omega = nab.connection_form
+        sage: check = []
+        sage: for i in E.irange():  # long time
+        ....:     for j in E.irange():
+        ....:         check.append(nab.curvature_form(i,j,e) == \
+        ....:                       omega(i,j,e).exterior_derivative() + \
+        ....:         sum(omega(k,j,e).wedge(omega(i,k,e)) for k in E.irange()))
+        sage: check  # long time
+        [True, True, True, True]
 
     """
     def __init__(self, vbundle, name, latex_name=None):
@@ -118,8 +112,7 @@ class BundleConnection(SageObject):
 
             sage: M = Manifold(3, 'M')
             sage: E = M.vector_bundle(2, 'E')
-            sage: from sage.manifolds.differentiable.bundle_connection import \
-                                                                BundleConnection
+            sage: from sage.manifolds.differentiable.bundle_connection import BundleConnection
             sage: nab = BundleConnection(E, 'nabla', latex_name=r'\nabla')
             sage: nab
             Bundle connection nabla on the Differentiable real vector bundle
@@ -209,7 +202,7 @@ class BundleConnection(SageObject):
         """
         self._curvature_forms = {}  # dict. of dict. of curvature forms
                                     # (key: local frame)
-        self._hash_value = -1
+        self._hash = -1
 
     def _del_derived(self):
         r"""
@@ -417,7 +410,7 @@ class BundleConnection(SageObject):
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("A frame must be provided!")
+                raise ValueError("a frame must be provided!")
         if frame not in self._connection_forms:
             # the connection forms must be computed
             #
@@ -431,8 +424,8 @@ class BundleConnection(SageObject):
                     for ind, value in ocomp_store.items():
                         comp_store[ind] = value.restrict(frame._domain)
                     break
-                # TODO: Compute transformations
             else:
+                # TODO: Compute coefficients out of known ones
                 self._connection_forms[frame] = self._new_forms(frame)
 
         return self._connection_forms[frame]
@@ -544,7 +537,7 @@ class BundleConnection(SageObject):
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("A frame must be provided!")
+                raise ValueError("a frame must be provided!")
         ###
         # Certainly, the form must be a differential form, otherwise try to
         # convert:
@@ -657,7 +650,7 @@ class BundleConnection(SageObject):
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("A frame must be provided!")
+                raise ValueError("a frame must be provided!")
         if frame not in self._connection_forms:
             raise ValueError("the coefficients w.r.t. {}".format(frame) +
                              " have not been defined")
@@ -713,7 +706,7 @@ class BundleConnection(SageObject):
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("A frame must be provided!")
+                raise ValueError("a frame must be provided!")
         if frame not in self._curvature_forms:
             self._curvature_forms[frame] = {}
         if (i, j) not in self._curvature_forms[frame]:
@@ -748,6 +741,6 @@ class BundleConnection(SageObject):
             1
 
         """
-        if self._hash_value == -1:
-            self._hash_value = hash(repr(self))
-        return self._hash_value
+        if self._hash == -1:
+            self._hash = hash(repr(self))
+        return self._hash

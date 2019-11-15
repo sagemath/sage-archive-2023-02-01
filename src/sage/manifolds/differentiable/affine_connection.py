@@ -428,7 +428,7 @@ class AffineConnection(SageObject):
                                   # (key: vector frame)
         self._curvature_forms = {}  # dict. of dict. of curvature 2-forms
                                     # (key: vector frame)
-        self._hash_value = -1
+        self._hash = -1
 
     def _del_derived(self):
         r"""
@@ -2341,6 +2341,6 @@ class AffineConnection(SageObject):
             1
 
         """
-        if self._hash_value == -1:
-            self._hash_value = hash(repr(self))
-        return self._hash_value
+        if self._hash == -1:
+            self._hash = hash(repr(self))
+        return self._hash

@@ -2,7 +2,7 @@ r"""
 Characteristic Classes
 
 Let `E \to M` be some topological vector bundle over a topological manifold `M`
-and `R` be some ring.
+and `R` be any ring.
 A *characteristic class* `c(E)` is an element of the cohomology ring
 `H^{*}(M, R)` such that for any continuous map `f: M \to N` the *naturality
 condition* is satisfied:
@@ -16,8 +16,7 @@ vector bundle `E`.
 
 One way to obtain and compute characteristic classes in the de Rham cohomology
 with coefficients in the ring `\CC` is via the so-called *Chern-Weil theory*
-using the curvature of a differentiable vector bundle. This approach is used for
-computation in SAGE.
+using the curvature of a differentiable vector bundle.
 
 For that let `\nabla` be a connection on `E`, `e` a local frame on
 `E` and `\Omega` be the corresponding curvature matrix
@@ -110,7 +109,7 @@ potential `A(t)`::
 
 The Chern character is then given by::
 
-    sage: ch = E.char_class('ChernChar'); ch
+    sage: ch = E.characteristic_class('ChernChar'); ch
     Characteristic class ch of additive type associated to e^x on the
      Differentiable complex vector bundle E -> M of rank 1 over the base space
      2-dimensional Lorentzian manifold M
@@ -180,7 +179,7 @@ is given by `1+|z|^2`::
 
 Now, the Chern class can be constructed::
 
-    sage: c = E.char_class('Chern'); c
+    sage: c = E.characteristic_class('Chern'); c
     Characteristic class c of multiplicative type associated to x + 1 on the
      Differentiable complex vector bundle gamma^1 -> CP^1 of rank 1 over the
      base space 2-dimensional differentiable manifold CP^1
@@ -238,7 +237,7 @@ We consider the **Euler class** of `S^2`::
     sage: uv_to_xy = xy_to_uv.inverse()
     sage: eU = c_xy.frame() ; eV = c_uv.frame()
     sage: TM = M.tangent_bundle()
-    sage: e_class = TM.char_class('Euler'); e_class
+    sage: e_class = TM.characteristic_class('Euler'); e_class
     Characteristic class e of Pfaffian type associated to x on the Tangent
      bundle TS2 over the 2-dimensional differentiable manifold S2
 
@@ -302,10 +301,6 @@ Let us check whether this form represents the Euler class correctly::
 As we can see, the integral coincides with the Euler characteristic of `S^2` so
 that our form actually represents the Euler class appropriately.
 
-.. _documentation:
-
-Class Documentation
--------------------
 """
 
 #******************************************************************************
@@ -319,13 +314,14 @@ Class Documentation
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
+from sage.symbolic.ring import SR
 
 ################################################################################
-## Static methods
+## Separate functions
 
 def _get_predefined_class(arg):
     r"""
-    Return the signature of the predefined class given by the string `arg`.
+    Return the signature of the predefined class given by the string ``arg``.
 
     The signature is given by a tuple following the syntax
     (base field, class type, name, LaTeX name, function).
@@ -345,35 +341,35 @@ def _get_predefined_class(arg):
     """
     if not isinstance(arg, str):
         raise TypeError("argument 'arg' must be string")
-
-    from sage.symbolic.ring import SR
     # Define variable:
     x = SR.symbol('x')
     # Define dictionary. The syntax is as follows:
     # (field_type, class_type, name, latex_name, func)
-    c_dict = {}
-    c_dict['ChernChar'] = ('complex', 'additive', 'ch', r'\mathrm{ch}', x.exp())
-    c_dict['Todd'] = ('complex', 'additive', 'Td', r'\mathrm{Td}',
-                      x / (1 - (-x).exp()))
-    c_dict['Chern'] = ('complex', 'multiplicative', 'c', 'c', 1 + x)
-    c_dict['Pontryagin'] = ('real', 'multiplicative', 'p', 'p', 1 + x)
-    c_dict['AHat'] = ('real', 'multiplicative', 'A^', r'\hat{A}',
-                      x.sqrt() / (2 * (x.sqrt() / 2).sinh()))
-    c_dict['Hirzebruch'] = ('real', 'multiplicative', 'L', 'L',
-                            (x.sqrt() / x.sqrt().tanh()))
-    c_dict['Euler'] = ('real', 'Pfaffian', 'e', 'e', x)
-    # Get class from arg
-    try:
-        res = c_dict[arg]
-    except KeyError:
+    if arg == 'ChernChar':
+        return ('complex', 'additive', 'ch', r'\mathrm{ch}', x.exp())
+    elif arg == 'Todd':
+        return ('complex', 'additive', 'Td', r'\mathrm{Td}',
+                x / (1 - (-x).exp()))
+    elif arg == 'Chern':
+        return ('complex', 'multiplicative', 'c', 'c', 1 + x)
+    elif arg == 'Pontryagin':
+        return ('real', 'multiplicative', 'p', 'p', 1 + x)
+    elif arg == 'AHat':
+        return ('real', 'multiplicative', 'A^', r'\hat{A}',
+                x.sqrt() / (2 * (x.sqrt() / 2).sinh()))
+    elif arg == 'Hirzebruch':
+        return ('real', 'multiplicative', 'L', 'L',
+                x.sqrt() / x.sqrt().tanh())
+    elif arg == 'Euler':
+        return ('real', 'Pfaffian', 'e', 'e', x)
+    else:
         raise ValueError("the characteristic class '{}' is ".format(arg) +
                          "not predefined yet.")
-    return res
 
 ################################################################################
 ## Classes
 
-class CharClass(SageObject, UniqueRepresentation):
+class CharacteristicClass(UniqueRepresentation, SageObject):
     r"""
     An instance of this class represents a characteristic class on some
     differentiable vector bundle over the field `\RR` or `\CC`.
@@ -403,14 +399,14 @@ class CharClass(SageObject, UniqueRepresentation):
 
         sage: M = Manifold(4, 'M')
         sage: TM = M.tangent_bundle()
-        sage: TM.char_class('Pontryagin')
+        sage: TM.characteristic_class('Pontryagin')
         Characteristic class p of multiplicative type associated to x + 1 on the
          Tangent bundle TM over the 4-dimensional differentiable manifold M
-        sage: TM.char_class('Hirzebruch')
+        sage: TM.characteristic_class('Hirzebruch')
         Characteristic class L of multiplicative type associated to
          sqrt(x)/tanh(sqrt(x)) on the Tangent bundle TM over the 4-dimensional
          differentiable manifold M
-        sage: TM.char_class('AHat')
+        sage: TM.characteristic_class('AHat')
         Characteristic class A^ of multiplicative type associated to
          1/2*sqrt(x)/sinh(1/2*sqrt(x)) on the Tangent bundle TM over the
          4-dimensional differentiable manifold M
@@ -418,7 +414,7 @@ class CharClass(SageObject, UniqueRepresentation):
     The vector bundle's base field and definition domain of the characteristic
     class must fit together, otherwise an error message occurs::
 
-        sage: TM.char_class('Chern')
+        sage: TM.characteristic_class('Chern')
         Traceback (most recent call last):
         ...
         ValueError: base field must be complex for class 'Chern'
@@ -426,7 +422,7 @@ class CharClass(SageObject, UniqueRepresentation):
     If your favourite class is not predefined yet, the associated function can
     be put manually::
 
-        sage: cl = TM.char_class(1+x^2, name='cl'); cl
+        sage: cl = TM.characteristic_class(1+x^2, name='cl'); cl
         Characteristic class cl of multiplicative type associated to x^2 + 1 on
          the Tangent bundle TM over the 4-dimensional differentiable manifold M
 
@@ -440,8 +436,8 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(3, 'M')
             sage: TM = M.tangent_bundle()
-            sage: from sage.manifolds.differentiable.char_class import CharClass
-            sage: c = CharClass(TM, 1+x, name='c'); c
+            sage: from sage.manifolds.differentiable.char_class import CharacteristicClass
+            sage: c = CharacteristicClass(TM, 1+x, name='c'); c
             Characteristic class c of multiplicative type associated to x + 1 on
              the Tangent bundle TM over the 3-dimensional differentiable
              manifold M
@@ -479,13 +475,12 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: E = M.vector_bundle(1, 'E', field='complex')
-            sage: c = E.char_class(1+x)
+            sage: c = E.characteristic_class(1+x)
             sage: c._get_coeff_list()
             [1, 1]
 
         """
-        pow_range = (self._base_space._dim / 2).floor()
-        from sage.symbolic.ring import SR
+        pow_range = self._base_space._dim // 2
         def_var = self._func.default_variable()
         # Use a complex variable without affecting the old one:
         new_var = SR.symbol('x_char_class_', domain='complex')
@@ -505,9 +500,8 @@ class CharClass(SageObject, UniqueRepresentation):
                         self._func.subs({def_var: -new_var})) / 2
         else:
             func = self._func.subs({def_var: new_var})
-        coef = func.taylor(new_var, 0, pow_range).coefficients(sparse=False)
 
-        return coef
+        return func.taylor(new_var, 0, pow_range).coefficients(sparse=False)
 
     def _init_derived(self):
         r"""
@@ -517,7 +511,7 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: c = TM.char_class(1+x)
+            sage: c = TM.characteristic_class(1+x)
             sage: c._init_derived()
 
         """
@@ -533,7 +527,7 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: c = TM.char_class(1+x)
+            sage: c = TM.characteristic_class(1+x)
             sage: c._del_derived()
 
         """
@@ -547,7 +541,7 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: c = TM.char_class(1+x, name='c')
+            sage: c = TM.characteristic_class(1+x, name='c')
             sage: c # indirect doctest
             Characteristic class c of multiplicative type associated to x + 1 on
              the Tangent bundle TM over the 2-dimensional differentiable
@@ -577,8 +571,8 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: ch = TM.char_class(exp(x), class_type='additive',  name='ch',
-            ....:                    latex_name=r'\mathrm{ch}')
+            sage: ch = TM.characteristic_class(exp(x), class_type='additive',  name='ch',
+            ....:                              latex_name=r'\mathrm{ch}')
             sage: ch._latex_()
             '\\mathrm{ch}(TM)'
 
@@ -593,8 +587,8 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: ch = TM.char_class(exp(x), class_type='additive',  name='ch',
-            ....:                    latex_name=r'\mathrm{ch}')
+            sage: ch = TM.characteristic_class(exp(x), class_type='additive',  name='ch',
+            ....:                              latex_name=r'\mathrm{ch}')
             sage: ch.class_type()
             'additive'
 
@@ -609,34 +603,34 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: e_class = TM.char_class('Euler')
+            sage: e_class = TM.characteristic_class('Euler')
             sage: e_class.function()
             x
-            sage: AHat = TM.char_class('AHat')
+            sage: AHat = TM.characteristic_class('AHat')
             sage: AHat.function()
             1/2*sqrt(x)/sinh(1/2*sqrt(x))
-            sage: c = TM.char_class(1+x, name='c')
+            sage: c = TM.characteristic_class(1+x, name='c')
             sage: c.function()
             x + 1
 
         """
         return self._func
 
-    def get_form(self, con, cmatrices=None):
+    def get_form(self, connection, cmatrices=None):
         r"""
         Return the form representing ``self`` with respect to the given
-        connection ``con``.
+        connection ``connection``.
 
         INPUT:
 
-        - ``con`` -- connection to which the form should be associated to; this
+        - ``connection`` -- connection to which the form should be associated to; this
           can be either a bundle connection as an instance of
           :class:`~sage.manifolds.differentiable.bundle_connection.BundleConnection`
           or, in case of the tensor bundle, an affine connection as an instance
           of :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
         - ``cmatrices`` -- (default: ``None``) a dictionary of curvature
           matrices with local frames as keys and curvature matrices as items; if
-          ``None``, SAGE tries to get the curvature matrices from the connection
+          ``None``, Sage tries to get the curvature matrices from the connection
 
         OUTPUT:
 
@@ -676,7 +670,7 @@ class CharClass(SageObject, UniqueRepresentation):
 
         The Chern character is then given by::
 
-            sage: ch = E.char_class('ChernChar'); ch
+            sage: ch = E.characteristic_class('ChernChar'); ch
             Characteristic class ch of additive type associated to e^x on the
              Differentiable complex vector bundle E -> M of rank 1 over the base space
              2-dimensional Lorentzian manifold M
@@ -700,11 +694,11 @@ class CharClass(SageObject, UniqueRepresentation):
         """
         from .bundle_connection import BundleConnection
         from .affine_connection import AffineConnection
-        if not isinstance(con, (AffineConnection, BundleConnection)):
+        if not isinstance(connection, (AffineConnection, BundleConnection)):
             raise TypeError("argument must be an affine connection on the "
                             "manifold or bundle connection on the vector "
                             "bundle")
-        if con not in self._mixed_forms:
+        if connection not in self._mixed_forms:
             if cmatrices is None:
                 if self._class_type == 'Pfaffian':
                     raise NotImplementedError(
@@ -713,18 +707,18 @@ class CharClass(SageObject, UniqueRepresentation):
                         "'cmatrices' to insert a dictionary of skew-symmetric "
                         "curvature matrices by hand, instead.")
                 cmatrices = {}
-                for frame in self._get_min_frames(con._coefficients.keys()):
-                    cmatrix = [[con.curvature_form(i, j, frame)
+                for frame in self._get_min_frames(connection._coefficients.keys()):
+                    cmatrix = [[connection.curvature_form(i, j, frame)
                                     for j in self._vbundle.irange()]
                                         for i in self._vbundle.irange()]
                     cmatrices[frame] = cmatrix
             # Prepare mixed form:
             name, latex_name = self._name, self._latex_name
-            if name is not None and con._name is not None:
-                name += "(" + self._vbundle._name + ", " + con._name + ")"
-            if latex_name is not None and con._latex_name is not None:
+            if name is not None and connection._name is not None:
+                name += "(" + self._vbundle._name + ", " + connection._name + ")"
+            if latex_name is not None and connection._latex_name is not None:
                 latex_name += "(" + self._vbundle._latex_name + ", " + \
-                              con._latex_name + ")"
+                              connection._latex_name + ")"
             res = self._base_space.mixed_form(name=name, latex_name=latex_name)
             # Set name of homogeneous components:
             #
@@ -749,16 +743,16 @@ class CharClass(SageObject, UniqueRepresentation):
                     if self._name is not None:
                         name = self._name + "_" + str(k / deg_dist) + \
                                "(" + self._vbundle._name
-                        if con._name is not None:
-                            name += ", " + con._name
+                        if connection._name is not None:
+                            name += ", " + connection._name
                         name += ")"
                     # LaTeX name:
                     if self._latex_name is not None:
                         latex_name = self._latex_name + \
                                      r"_{" + str(k / deg_dist) + r"}" + \
                                      r"(" + self._vbundle._latex_name
-                        if con._latex_name is not None:
-                            latex_name += r", " + con._latex_name
+                        if connection._latex_name is not None:
+                            latex_name += r", " + connection._latex_name
                         latex_name += r")"
                     # Set name:
                     res[k].set_name(name=name, latex_name=latex_name)
@@ -784,9 +778,9 @@ class CharClass(SageObject, UniqueRepresentation):
                 # Set restriction:
                 res.set_restriction(rst)
 
-            self._mixed_forms[con] = res
+            self._mixed_forms[connection] = res
 
-        return self._mixed_forms[con]
+        return self._mixed_forms[connection]
 
     def _insert_in_polynomial(self, cmatrix):
         r"""
@@ -796,7 +790,7 @@ class CharClass(SageObject, UniqueRepresentation):
         TESTS::
 
             sage: M = Manifold(4, 'M')
-            sage: c = M.tangent_bundle().char_class('Pontryagin')
+            sage: c = M.tangent_bundle().characteristic_class('Pontryagin')
             sage: c._insert_in_polynomial(x)
             1/2*x^2 + 1
 
@@ -819,7 +813,7 @@ class CharClass(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``cmatrix`` curvature matrix
+        - ``cmatrix`` -- curvature matrix
 
         OUTPUT:
 
@@ -829,7 +823,7 @@ class CharClass(SageObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M')
             sage: TM = M.tangent_bundle()
-            sage: c = TM.char_class(1+x)
+            sage: c = TM.characteristic_class(1+x)
             sage: c._normalize_matrix(x)
             -1/2*I*x/pi
 
@@ -860,7 +854,7 @@ class CharClass(SageObject, UniqueRepresentation):
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: e = U.vector_frame('e'); f = V.vector_frame('f')
             sage: g = M.vector_frame('g')
-            sage: c = M.tangent_bundle().char_class('Pontryagin')
+            sage: c = M.tangent_bundle().characteristic_class('Pontryagin')
             sage: c._get_min_frames([e, f, g])
             {Vector frame (M, (g_0,g_1))}
 

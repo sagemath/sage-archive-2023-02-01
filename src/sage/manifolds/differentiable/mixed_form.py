@@ -1021,8 +1021,8 @@ class MixedForm(AlgebraElement):
         An exact copy is made. The copy is an entirely new instance and has a
         different name, but has the very same values::
 
-            sage: B = A.copy(); B.disp()
-            (unnamed scalar field)  + (unnamed 1-form) + (unnamed 2-form)
+            sage: B = A.copy(); B.display()
+            (unnamed scalar field) + (unnamed 1-form) + (unnamed 2-form)
             sage: B.display_expansion(e_uv)
             [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
             sage: A == B

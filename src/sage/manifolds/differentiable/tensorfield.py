@@ -260,7 +260,7 @@ class TensorField(ModuleElement):
         sage: t.parent().base_ring() is f.parent()
         True
         sage: s = f*t; s  # long time
-        Tensor field of type (0,2) on the 2-dimensional differentiable
+        Tensor field f*t of type (0,2) on the 2-dimensional differentiable
          manifold S^2
         sage: s[[0,0]] == f*t[[0,0]]  # long time
         True

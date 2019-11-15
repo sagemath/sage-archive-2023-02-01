@@ -721,7 +721,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                 latex_name += "(" + self._vbundle._latex_name + ", " + \
                               connection._latex_name + ")"
             res = self._base_space.mixed_form(name=name, latex_name=latex_name)
-            # Begin computation:
+            # BEGIN computation:
             from sage.matrix.matrix_space import MatrixSpace
             for frame, cmatrix in cmatrices.items():
                 # Define matrix space:
@@ -739,8 +739,12 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                     rst = rmatrix.det()  # mixed form
                 elif self._class_type == 'Pfaffian':
                     rst = rmatrix.pfaffian()  # mixed form
-            # Only even (or in the real case, by four divisible) degrees are
-            # non-zero:
+                # Set restriction:
+                res.set_restriction(rst)
+            # END of computation
+            #
+            # Preparation to name each homogeneous component; only even (or in
+            # the real case, by four divisible) degrees are non-zero:
             if self._class_type == 'Pfaffian':
                 deg_dist = self._rank
             elif self._vbundle._field_type == 'real':
@@ -773,9 +777,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                         latex_name += r")"
                     # Set name:
                     res[k].set_name(name=name, latex_name=latex_name)
-                # Set restriction:
-                res.set_restriction(rst)
-
+            # Add the result to the dictionary:
             self._mixed_forms[connection] = res
 
         return self._mixed_forms[connection]

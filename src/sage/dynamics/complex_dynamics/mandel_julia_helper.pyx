@@ -20,7 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from copy import copy

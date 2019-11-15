@@ -33,7 +33,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 from cpython cimport *
 from cysignals.signals cimport sig_check
@@ -1626,7 +1625,7 @@ cdef class Matrix(Matrix1):
         f = self.fetch('charpoly')
         if f is not None:
             c = f[0]
-            if self._nrows % 2 != 0:
+            if self._nrows % 2:
                 c = -c
             d = self._coerce_element(c)
             self.cache('det', d)

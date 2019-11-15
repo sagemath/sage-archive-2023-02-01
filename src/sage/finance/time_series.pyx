@@ -46,8 +46,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 cimport cython
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from libc.math cimport exp, floor, log, pow, sqrt

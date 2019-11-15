@@ -102,7 +102,6 @@ This came up in some subtle bug once::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
 from cpython.bool cimport *
@@ -117,6 +116,7 @@ cimport sage.categories.map as map
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sage_object cimport SageObject
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
@@ -2703,6 +2703,44 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return True
 
+    @cached_method
+    def _is_numerical(self):
+        r"""
+        Test if elements of this parent can be numerically evaluated as complex
+        numbers (in a canonical way).
+
+        EXAMPLES::
+
+            sage: [R._is_numerical() for R in [RR, CC, QQ, QuadraticField(-1)]]
+            [True, True, True, True]
+            sage: [R._is_numerical() for R in [SR, QQ['x'], QQ[['x']]]]
+            [False, False, False]
+            sage: [R._is_numerical() for R in [RIF, RBF, CIF, CBF]]
+            [False, False, False, False]
+        """
+        from sage.rings.complex_field import ComplexField
+        from sage.rings.real_mpfr import mpfr_prec_min
+        return ComplexField(mpfr_prec_min()).has_coerce_map_from(self)
+
+    @cached_method
+    def _is_real_numerical(self):
+        r"""
+        Test if elements of this parent can be numerically evaluated as real
+        numbers (in a canonical way).
+
+        EXAMPLES::
+
+            sage: [R._is_real_numerical() for R in [RR, QQ, ZZ, RLF, QuadraticField(2)]]
+            [True, True, True, True, True]
+            sage: [R._is_real_numerical() for R in [CC, QuadraticField(-1)]]
+            [False, False]
+            sage: [R._is_real_numerical() for R in [SR, QQ['x'], QQ[['x']]]]
+            [False, False, False]
+            sage: [R._is_real_numerical() for R in [RIF, RBF, CIF, CBF]]
+            [False, False, False, False]
+        """
+        from sage.rings.real_mpfr import RealField, mpfr_prec_min
+        return RealField(mpfr_prec_min()).has_coerce_map_from(self)
 
 ############################################################################
 # Set base class --

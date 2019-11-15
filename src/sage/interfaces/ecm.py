@@ -39,7 +39,7 @@ from __future__ import print_function
 
 from six import iteritems, PY2
 
-import os
+import subprocess
 import re
 
 from sage.structure.sage_object import SageObject
@@ -255,8 +255,8 @@ class ECM(SageObject):
             sage: ecm.interact()    # not tested
         """
         print("Enter numbers to run ECM on them.")
-        print("Press control-C to exit.")
-        os.system(self._cmd)
+        print("Press control-D to exit.")
+        subprocess.call(self._cmd)
 
     # Recommended settings from
     # http://www.mersennewiki.org/index.php/Elliptic_Curve_Method

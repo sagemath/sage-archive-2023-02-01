@@ -30,7 +30,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from textwrap import dedent
 from sage.misc.superseded import deprecation
@@ -1231,10 +1230,17 @@ cdef class IndexFaceSet(PrimitiveObject):
             json = ['{{"vertices":{}, "faces":{}, "faceColors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
 
-        if self._extra_kwds.get('threejs_flat_shading', False):
+        if 'render_order' in self._extra_kwds:
+            renderOrder = self._extra_kwds.get('render_order')
+            json[0] = json[0][:-1] + ', "renderOrder": {}}}'.format(renderOrder)
+
+        if self._extra_kwds.get('single_side'):
+            json[0] = json[0][:-1] + ', "singleSide": true}'
+
+        if self._extra_kwds.get('threejs_flat_shading'):
             json[0] = json[0][:-1] + ', "useFlatShading": true}'
 
-        if self._extra_kwds.get('mesh', False):
+        if self._extra_kwds.get('mesh'):
             json[0] = json[0][:-1] + ', "showMeshGrid": true}'
 
         return json

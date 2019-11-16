@@ -1137,7 +1137,7 @@ class FreeModuleTensor(ModuleElement):
             # loop on the new components:
             nproc = Parallelism().get('tensor')
 
-            if nproc != 1 :
+            if nproc != 1:
                 # Parallel computation
                 lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
                 ind_list = [ind for ind in new_comp.non_redundant_index_generator()]

@@ -213,11 +213,11 @@ The RPy2 library allows the creation of an R cell in the Jupyter
 notebook analogous to the %r escape in command line or %r cell in a
 Sage notebook.
 
-The interface is loaded by a cell containing the sole code :
+The interface is loaded by a cell containing the sole code:
 
 "%load_ext rpy2.ipython"
 
-After execution of this code, the %R and %%R magics are available :
+After execution of this code, the %R and %%R magics are available:
 
 - %R allows the execution of a single line of R code. Data exchange is
    possible via the -i and -o options. Do "%R?" in a standalone cell
@@ -227,7 +227,7 @@ After execution of this code, the %R and %%R magics are available :
     similar options (do "%%R?" in a standalone cell for
     documentation).
 
-A few important points must be noted :
+A few important points must be noted:
 
 - The R interpreter launched by this interface IS (currently)
   DIFFERENT from the R interpreter used br other r... functions.

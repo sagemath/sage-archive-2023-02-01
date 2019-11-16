@@ -24,7 +24,7 @@ class RingExtensionHomset(RingHomset_generic):
         Set of Homomorphisms from Field in z2 with defining polynomial x^2 + 4*x + 2 over its base to Field in z8 with defining polynomial x^4 + (3 - z2)*x + z2 over its base
 
         sage: type(H)
-        <type 'sage.rings.ring_extension_homset.RingExtensionHomset_with_category'>
+        <... 'sage.rings.ring_extension_homset.RingExtensionHomset_with_category'>
     """
     def __call__(self, *args, **kwargs):
         r"""

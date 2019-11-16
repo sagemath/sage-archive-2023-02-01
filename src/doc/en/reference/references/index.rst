@@ -4398,7 +4398,7 @@ REFERENCES:
              University Press, Princeton, 1970.
 
 .. [Roe1988] John Roe, *Elliptic operators, topology and asymptotic methods*.
-	     2nd edition. CRC Press, 1988.
+             2nd edition. CRC Press, 1988.
 
 .. [Rog2018] Baptiste Rognerud,
              *Exceptional and modern intervals of the Tamari lattice*.

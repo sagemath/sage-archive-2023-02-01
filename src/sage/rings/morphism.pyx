@@ -1675,7 +1675,7 @@ cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
         sage: f = S.hom([x^2])
         sage: g = f.extend_to_fraction_field()
         sage: type(g)
-        <class 'sage.rings.morphism.RingHomomorphism_from_fraction_field'>
+        <type 'sage.rings.morphism.RingHomomorphism_from_fraction_field'>
     """
     def __init__(self, parent, morphism):
         r"""

@@ -91,7 +91,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
             sage: K = GF(5^3).over()
             sage: x = K.random_element()
             sage: type(x)
-            <class 'sage.rings.ring_extension_element.RingExtensionWithBasisElement'>
+            <type 'sage.rings.ring_extension_element.RingExtensionWithBasisElement'>
             sage: loads(dumps(x)) == x
             True
         """
@@ -566,7 +566,7 @@ cdef class RingExtensionFractionFieldElement(RingExtensionElement):
         sage: Q = Z.fraction_field()
         sage: x = Q.random_element()
         sage: type(x)
-        <class 'sage.rings.ring_extension_element.RingExtensionFractionFieldElement'>
+        <type 'sage.rings.ring_extension_element.RingExtensionFractionFieldElement'>
         sage: TestSuite(x).run()
     """
     def __hash__(self):

@@ -392,25 +392,25 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         expression = SR(expression)
 
     from sage.interfaces.fricas import fricas
-    ex = fricas(expression)
-    v = fricas("%s::Symbol" % v)
+    e_fricas = fricas(expression)
+    v_fricas = fricas("%s::Symbol" % v)
 
     if a is None:
-        result = ex.integrate(v)
+        result = e_fricas.integrate(v_fricas)
     else:
-        seg = fricas.equation(v, fricas.segment(a, b))
+        seg = fricas.equation(v_fricas, fricas.segment(a, b))
 
         if noPole:
-            result = ex.integrate(seg, '"noPole"')
+            result = e_fricas.integrate(seg, '"noPole"')
         else:
-            result = ex.integrate(seg)
+            result = e_fricas.integrate(seg)
 
     result = result.sage()
 
     if result == "failed":
-        return expression.integrate(v, a, b, hold=True)
+        result = expression.integrate(v, a, b, hold=True)
 
-    if result == "potentialPole":
+    elif result == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
 

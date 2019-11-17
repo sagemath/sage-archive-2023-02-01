@@ -803,7 +803,7 @@ class FindStatStatistic(SageObject):
 
             sage: from sage.databases.findstat import FindStatStatistic
             sage: FindStatStatistic(1)._find_by_id()                            # optional -- internet
-            St000001: The number of ways to write a permutation as a minimal length product of simple transpositions.
+            St000001: The number of reduced words for a permutation.
         """
         self._depth = depth
         self._query = None
@@ -1493,14 +1493,12 @@ class FindStatStatistic(SageObject):
             sage: st = findstat(18)                                             # optional -- internet
 
             sage: st.oeis_search()                                              # optional -- internet
-            Searching the OEIS for "1  1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  1,5,14,29,49,71,90,101"
+            Searching the OEIS for "1  1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  ..."
             0: A008302: Triangle of Mahonian numbers T(n,k)...
 
             sage: st.oeis_search(search_size=13)                                # optional -- internet
-            Searching the OEIS for "1  1,1  1,2,2,1  1,3,5,6,5,3,1"
+            Searching the OEIS for "1  1,1  1,2,2,1  ..."
             0: A008302: Triangle of Mahonian numbers T(n,k)...
-            1: A115570: Array read by rows: row n (n>= 1) gives the Betti numbers...
-            2: A187447: Array for all multiset choices...
         """
         from sage.databases.oeis import oeis
 
@@ -1542,9 +1540,9 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: print(findstat(1).description())                              # optional -- internet
-            The number of ways to write a permutation as a minimal length product of simple transpositions.
+            The number of reduced words for a permutation.
             <BLANKLINE>
-            That is, the number of reduced words for the permutation.  E.g., there are two reduced words for $[3,2,1] = (1,2)(2,3)(1,2) = (2,3)(1,2)(2,3)$.
+            This is...
         """
         return self._description
 
@@ -1596,7 +1594,7 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: findstat(1).name()                                            # optional -- internet
-            'The number of ways to write a permutation as a minimal length product of simple transpositions.'
+            'The number of reduced words for a permutation.'
         """
         # this needs to be decided how to do properly
         if hasattr(self,"_name"):

@@ -419,7 +419,7 @@ lazy_import('sage.interfaces.maxima_lib','maxima')
 ########################################################
 def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
-    Returns the symbolic sum `\sum_{v = a}^b expression` with respect
+    Return the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
 
     INPUT:

@@ -145,15 +145,16 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
                 # Assign the pixel a color based on it's level. If we run out
                 # of colors, assign it the last color in the list.
                 if level < color_num:
-                    pixel[col,row] = color_list[level]
+                    pixel[col, row] = color_list[level]
                 else:
-                    pixel[col,row] = color_list[-1]
+                    pixel[col, row] = color_list[-1]
     return M
+
 
 cpdef fast_external_ray(double theta, long D=30, long S=10, long R=100,
  long pixel_count=500, double image_width=4, long prec=300):
     r"""
-    Returns a list of points that approximate the external ray for a given angle.
+    Return a list of points that approximate the external ray for a given angle.
 
     INPUT:
 

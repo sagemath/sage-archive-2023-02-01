@@ -484,7 +484,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _number_field_from_algebraics(self):
         r"""
-        Returns a dynamical system defined over the number field of its coefficients.
+        Return a dynamical system defined over the number field of its coefficients.
 
         OTUPUT: dynamical system.
 
@@ -6513,7 +6513,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
     def all_periodic_points(self, **kwds):
         r"""
-        Returns a list of all periodic points over a finite field.
+        Return a list of all periodic points over a finite field.
 
         INPUT:
 

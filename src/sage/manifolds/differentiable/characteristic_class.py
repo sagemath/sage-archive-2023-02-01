@@ -22,7 +22,8 @@ For that let `\nabla` be a connection on `E`, `e` a local frame on
 `E` and `\Omega` be the corresponding curvature matrix
 (see: :meth:`~sage.manifolds.differentiable.bundle_connection.BundleConnection.curvature_form`).
 
-Namely, if `P: \mathfrak{g} \to \CC` is an invariant polynomial, the object
+Namely, if `P: \mathrm{Mat}_{n \times n}(\CC) \to \CC` is an invariant
+polynomial, the object
 
 .. MATH::
 
@@ -331,7 +332,7 @@ def _get_predefined_class(arg):
 
     TESTS::
 
-        sage: from sage.manifolds.differentiable.char_class import _get_predefined_class
+        sage: from sage.manifolds.differentiable.characteristic_class import _get_predefined_class
         sage: _get_predefined_class('Chern')
         ('complex', 'multiplicative', 'c', 'c', x + 1)
         sage: _get_predefined_class('Pontryagin')
@@ -437,7 +438,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
 
             sage: M = Manifold(3, 'M')
             sage: TM = M.tangent_bundle()
-            sage: from sage.manifolds.differentiable.char_class import CharacteristicClass
+            sage: from sage.manifolds.differentiable.characteristic_class import CharacteristicClass
             sage: c = CharacteristicClass(TM, 1+x, name='c'); c
             Characteristic class c of multiplicative type associated to x + 1 on
              the Tangent bundle TM over the 3-dimensional differentiable

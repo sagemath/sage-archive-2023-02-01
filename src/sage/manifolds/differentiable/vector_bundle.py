@@ -243,12 +243,12 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         .. SEEALSO::
 
             More examples can be found in
-            :class:`~sage.manifolds.differentiable.char_class.CharacteristicClass`.
+            :class:`~sage.manifolds.differentiable.characteristic_class.CharacteristicClass`.
 
         """
         if self._field_type == 'neither_real_nor_complex':
             raise ValueError("the vector bundle must be real or complex")
-        from .char_class import CharacteristicClass, _get_predefined_class
+        from .characteristic_class import CharacteristicClass, _get_predefined_class
         # Is func a predefined class?
         if isinstance(func, str):
             func_str = func

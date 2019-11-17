@@ -8,4 +8,4 @@ Differentiable Vector Bundles
 
    sage/manifolds/differentiable/bundle_connection
 
-   sage/manifolds/differentiable/char_class
+   sage/manifolds/differentiable/characteristic_class

@@ -3367,8 +3367,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: w = QQ['w'].0
-            sage: K = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1,'s')
+            sage: R.<w> = QQ[]
+            sage: K.<s> = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
             sage: f.preperiodic_points(0,1)
@@ -3379,15 +3379,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
             (1 : 1 : 1),
             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1)]
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: f = DynamicalSystem_projective([x^2, x*y, z^2])
-            sage: f.preperiodic_points(2,1)
-            Traceback (most recent call last):
-            ...
-            TypeError: use return_scheme=True
 
         ::
 
@@ -3405,7 +3396,74 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2-y^2, 2*(x^2-y^2), y^2-z^2], domain=X)
             sage: f.preperiodic_points(1,1)
             [(-1/4 : -1/2 : 1), (1 : 2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
+            sage: sorted(f.preperiodic_points(2,1))
+            [(0 : 2 : 1),
+             (0 : 3 : 1),
+             (1 : 2 : 1),
+             (1 : 3 : 1),
+             (2 : 0 : 1),
+             (2 : 1 : 0),
+             (2 : 1 : 1),
+             (2 : 2 : 1),
+             (2 : 3 : 1),
+             (2 : 4 : 1),
+             (3 : 0 : 1),
+             (3 : 1 : 0),
+             (3 : 1 : 1),
+             (3 : 2 : 1),
+             (3 : 3 : 1),
+             (3 : 4 : 1),
+             (4 : 2 : 1),
+             (4 : 3 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: f = DynamicalSystem_projective([x^2, x*y, z^2])
+            sage: f.preperiodic_points(2,1, return_scheme=True)
+            Closed subscheme of Projective Space of dimension 2 over Finite Field of size 5 defined by:
+              0,
+              x^8*z^4 - x^4*z^8,
+              x^7*y*z^4 - x^3*y*z^8
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: R.<z> = QQ[]
+            sage: K.<v> = NumberField(z^4 - z^2 - 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.preperiodic_points(2, 1, R=K)
+            [(v : 1), (-v : 1)]
+
+        TESTS::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, x*y, z^2])
+            sage: f.preperiodic_points(2,1)
+            Traceback (most recent call last):
+            ...
+            TypeError: use return_scheme=True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2])
+            sage: f.preperiodic_points(1.2,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to coerce non-integral RealNumber to Integer
+            sage: f.preperiodic_points(1,3.1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to coerce non-integral RealNumber to Integer
         """
+        n = ZZ(n)
+        m = ZZ(m)
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
         if m < 0:
@@ -3437,9 +3495,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 points = [dom(Q) for Q in X.rational_points()]
                 good_points = []
                 for Q in points:
-                    try:
-                        Z(list(Q))
-                    except TypeError:
+                    #check if point is in indeterminacy
+                    if not all([F(list(Q)) == 0 for F in f]):
                         good_points.append(Q)
                 points = good_points
                 if not minimal:
@@ -3450,8 +3507,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     #that only includes the points with minimal period
                     minimal_points = []
                     for P in points:
-                        orbit = [dom(P)]
-                        Q = f(dom(P))
+                        orbit = [P]
+                        Q = f(P)
                         n_plus_m = 1
                         while not Q in orbit:
                             orbit.append(Q)
@@ -4878,9 +4935,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (3/2 : -1/2 : 3/2 : 1),
              (3/2 : 3/2 : -1/2 : 1),
              (3/2 : 3/2 : 3/2 : 1)]
-             
+
         ::
-             
+
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
             sage: f = DynamicalSystem_projective([x^2 - (3/4)*w^2, y^2 - 3/4*w^2, z^2 - 3/4*w^2, w^2])
             sage: sorted(f.all_periodic_points(period_degree_bounds=[10,10]))
@@ -4899,7 +4956,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (3/2 : -1/2 : 3/2 : 1),
              (3/2 : 3/2 : -1/2 : 1),
              (3/2 : 3/2 : 3/2 : 1)]
-             
+
         TESTS::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)

@@ -1161,7 +1161,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         k = 0
         Q = self
         pts = Q.division_points(p)
-        while len(pts) > 0:
+        while pts:
             Q = pts[0]
             k += 1
             pts = Q.division_points(p)

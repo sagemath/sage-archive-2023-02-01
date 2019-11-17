@@ -875,7 +875,7 @@ class ChainComplex_class(Parent):
         if start is None:
             result = []
             degrees = set(self._diff)
-            while len(degrees) > 0:
+            while degrees:
                 ordered = self.ordered_degrees(degrees.pop())
                 degrees.difference_update(ordered)
                 if exclude_first:

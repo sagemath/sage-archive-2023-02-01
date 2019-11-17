@@ -3165,52 +3165,52 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         
         Input: Dynamical system
         
-        Output: Return Boolean
+        Output: Boolean
         
         EXAMPLES::
         
-        sage: P.<x,y>=ProjectiveSpace(QQ,1)
-        sage: f=DynamicalSystem_projective([-2*x^3+3*x^2*y,y^3])
-        sage: f.is_dynamical_belyi_map()
-        True
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: f=DynamicalSystem_projective([-2*x^3+3*x^2*y,y^3])
+            sage: f.is_dynamical_belyi_map()
+            True
         
         ::
         
-        sage: P.<x,y>=ProjectiveSpace(QQ,1)
-        sage: f=DynamicalSystem_projective([5*x^7-7*x^6*y,-7*x*y^6+5*y^7])
-        sage: f.is_dynamical_belyi_map()
-        True
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: f=DynamicalSystem_projective([5*x^7-7*x^6*y,-7*x*y^6+5*y^7])
+            sage: f.is_dynamical_belyi_map()
+            True
         
         ::
         
-        sage: P.<x,y>=ProjectiveSpace(QQ,1)
-        sage: f=DynamicalSystem_projective([x^2+y^2,y^2])
-        sage: f.is_dynamical_belyi_map()
-        False
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: f=DynamicalSystem_projective([x^2+y^2,y^2])
+            sage: f.is_dynamical_belyi_map()
+            False
         
         ::
         
-        sage: F=QuadraticField(-7)
-        sage: P.<x,y>=ProjectiveSpace(F,1)
-        sage: f=DynamicalSystem_projective([5*x^7-7*x^6*y,-7*x*y^6+5*y^7])
-        sage: f.is_dynamical_belyi_map()
-        True
+            sage: F=QuadraticField(-7)
+            sage: P.<x,y>=ProjectiveSpace(F,1)
+            sage: f=DynamicalSystem_projective([5*x^7-7*x^6*y,-7*x*y^6+5*y^7])
+            sage: f.is_dynamical_belyi_map()
+            True
 
         ::
 
-        sage: P.<x,y>=ProjectiveSpace(QQ,1)
-        sage: f=DynamicalSystem_projective([2*x^3+3*x^2*y-3*x*y^2+2*y^3,x^3+y^3])
-        sage: f.is_dynamical_belyi_map()
-        False
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: f=DynamicalSystem_projective([2*x^3+3*x^2*y-3*x*y^2+2*y^3,x^3+y^3])
+            sage: f.is_dynamical_belyi_map()
+            False
 
         ::
 
-        sage: R.<t>=PolynomialRing(QQ)
-        sage: N.<c>=NumberField(t^3-2)
-        sage: P.<x,y>=ProjectiveSpace(N,1)
-        sage: f=DynamicalSystem_projective([x^2+c*y^2,x*y])
-        sage: f.is_dynamical_belyi_map()
-        False
+            sage: R.<t>=PolynomialRing(QQ)
+            sage: N.<c>=NumberField(t^3-2)
+            sage: P.<x,y>=ProjectiveSpace(N,1)
+            sage: f=DynamicalSystem_projective([x^2+c*y^2,x*y])
+            sage: f.is_dynamical_belyi_map()
+            False
         """
         K=self.base_ring() 
         L=QQbar #Update this piece when we have min field defn for crit points.

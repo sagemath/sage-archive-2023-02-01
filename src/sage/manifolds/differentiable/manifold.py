@@ -2894,8 +2894,8 @@ class DifferentiableManifold(TopologicalManifold):
             True
 
         It is also possible to create a vector frame from scratch, without
-        any connection with previously defined vector frames or vector fields
-        (the connection can be performed later via the method
+        connecting it to previously defined vector frames or vector fields
+        (this can still be performed later via the method
         :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.set_change_of_frame`)::
 
             sage: f = M.vector_frame('f'); f
@@ -2956,9 +2956,13 @@ class DifferentiableManifold(TopologicalManifold):
                            latex_indices=latex_indices, symbol_dual=symbol_dual,
                            latex_symbol_dual=latex_symbol_dual)
         if vector_fields:
+            linked = False
             try:
                 resu._init_from_family(vector_fields)
-            except ZeroDivisionError:
+            except ArithmeticError as err:
+                linked = str(err) in ["non-invertible matrix",
+                                      "input matrix must be nonsingular"]
+            if linked:
                 raise ValueError("the provided vector fields are not "
                                  "linearly independent")
             # Adding the newly generated changes of frame to the

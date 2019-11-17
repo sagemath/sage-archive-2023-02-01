@@ -3298,6 +3298,175 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ch += F.canonical_height(P, **kwds)
         return ch
 
+    def preperiodic_points(self, m, n, **kwds):
+        r"""
+        Computes the preperiodic points of period ``m, n`` of this dynamical system
+        defined over the ring ``R`` or the base ring of the map.
+
+        This is done by finding the rational points on the variety
+        defining the points of period ``m, n``.
+
+        For rational maps, where there are potentially infinitely many periodic
+        points of a given period, you must use the ``return_scheme`` option.
+        Note that this scheme will include the indeterminacy locus.
+
+        INPUT:
+
+        - ``n`` - a positive integer, the period
+
+        - ``m`` - a non negative integer, the preperiod
+
+        kwds:
+
+        - ``minimal`` -- (default: ``True``) boolean; ``True`` specifies to
+          find only the preperiodic points of minimal period ``m``,``n`` and 
+          ``False`` specifies to find all preperiodic points of period
+          ``m``, ``n``
+
+        - ``R`` -- (default: the base ring of the dynamical system) a 
+          commutative ring over which to find the preperiodic points
+
+        - ``return_scheme`` -- (default: ``False``) boolean; return a 
+          subscheme of the ambient space that defines the ``m``,``n`` th 
+          preperiodic points
+
+        OUTPUT:
+
+        A list of preperiodic points of this map or the subscheme defining
+        the preperiodic points.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: f = DynamicalSystem_projective([x^2-y^2, y^2])
+            sage: f.preperiodic_points(0,1)
+            [(-0.618033988749895? : 1), (1 : 0), (1.618033988749895? : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2])
+            sage: f.preperiodic_points(1,3)
+            [(-5/4 : 1), (1/4 : 1), (7/4 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: f = DynamicalSystem_projective([x^2-x*y+2*y^2, x^2-y^2])
+            sage: f.preperiodic_points(1,2,minimal=False)
+            [(-3.133185666641252? : 1),
+            (-1 : 1),
+            (-0.3478103847799310? - 1.028852254136693?*I : 1),
+            (-0.3478103847799310? + 1.028852254136693?*I : 1),
+            (0.8165928333206258? - 0.6710067557437100?*I : 1),
+            (0.8165928333206258? + 0.6710067557437100?*I : 1),
+            (1 : 0),
+            (1 : 1),
+            (1.695620769559862? : 1),
+            (3 : 1)]
+
+        ::
+
+            sage: w = QQ['w'].0
+            sage: K = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1,'s')
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
+            sage: f.preperiodic_points(0,1)
+            [(-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
+            (-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
+            (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
+            (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1),
+            (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+            (1 : 1 : 1),
+            (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, x*y, z^2])
+            sage: f.preperiodic_points(2,1)
+            Traceback (most recent call last):
+            ...
+            TypeError: use return_scheme=True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: K.<v> = QuadraticField(5)
+            sage: phi = QQ.embeddings(K)[0]
+            sage: f = DynamicalSystem_projective([x^2-y^2,y^2])
+            sage: f.preperiodic_points(1,1,R=phi)
+            [(-1/2*v - 1/2 : 1), (1/2*v - 1/2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme(2*x-y)
+            sage: f = DynamicalSystem_projective([x^2-y^2, 2*(x^2-y^2), y^2-z^2], domain=X)
+            sage: f.preperiodic_points(1,1)
+            [(-1/4 : -1/2 : 1), (1 : 2 : 1)]
+        """
+        if n <= 0:
+            raise ValueError("a positive integer period must be specified")
+        if m < 0:
+            raise ValueError("a non negative preperiod must be specified")
+        R = kwds.pop('R', None)
+        if R is None:
+            f = self
+            R = self.base_ring()
+        else:
+            f = self.change_ring(R)
+            R = f.base_ring() #in the case when R is an embedding
+        dom = f.domain()
+        PS = f.codomain().ambient_space()
+        N = PS.dimension_relative() + 1
+        F_1 = f.nth_iterate_map(n+m)
+        F_2 = f.nth_iterate_map(m)
+        L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(0,N)
+                for j in range(i+1, N)]
+        X = PS.subscheme(L + list(dom.defining_polynomials()))
+        minimal = kwds.pop('minimal',True)
+        return_scheme = kwds.pop('return_scheme',False)
+        if return_scheme:  # this includes the indeterminacy locus points!
+            if minimal and n != 1:
+                raise NotImplementedError("return_subscheme only implemented for minimal=False")
+            return X
+        if X.dimension() == 0:
+            if R in NumberFields() or R is QQbar or R in FiniteFields():
+                Z = f.indeterminacy_locus()
+                points = [dom(Q) for Q in X.rational_points()]
+                good_points = []
+                for Q in points:
+                    try:
+                        Z(list(Q))
+                    except TypeError:
+                        good_points.append(Q)
+                points = good_points
+                if not minimal:
+                    return points
+                else:
+                    #we want only the points with minimal period m,n
+                    #so we go through the list and create a new list
+                    #that only includes the points with minimal period
+                    minimal_points = []
+                    for P in points:
+                        orbit = [dom(P)]
+                        Q = f(dom(P))
+                        n_plus_m = 1
+                        while not Q in orbit:
+                            orbit.append(Q)
+                            Q = f(Q)
+                            n_plus_m += 1
+                        preperiod = orbit.index(Q)
+                        period = n_plus_m - preperiod
+                        if period == n and preperiod == m:
+                            minimal_points.append(P)
+                    return minimal_points
+            else:
+                raise NotImplementedError("ring must a number field or finite field")
+        else: #a higher dimensional scheme
+            raise TypeError("use return_scheme=True")
+
     def periodic_points(self, n, minimal=True, R=None, algorithm='variety',
                         return_scheme=False):
         r"""
@@ -3313,7 +3482,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         but is slow as the defining equations of the variety get more
         complicated.
 
-        For rational map, where there are potentially infinitely many periodic
+        For rational maps, where there are potentially infinitely many periodic
         points of a given period, you must use the ``return_scheme`` option.
         Note that this scheme will include the indeterminacy locus.
 
@@ -5055,6 +5224,69 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: PS.<x,y> = ProjectiveSpace(1,QQ)
             sage: f = DynamicalSystem_projective([x^2 -y^2, 3*x*y])
             sage: sorted(f.rational_preperiodic_points())
+            doctest:warning
+            ...
+            [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1/2 : 1), (1 : 0), (1 : 1),
+            (2 : 1)]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(28213, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_preperiodic_points instead")
+        return self.all_preperiodic_points(**kwds)
+
+    def all_preperiodic_points(self, **kwds):
+        r"""
+        Determine the set of rational preperiodic points for
+        this dynamical system.
+
+        The map must be defined over `\QQ` and be an endomorphism of
+        projective space. If the map is a polynomial endomorphism of
+        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
+        the base ring can be an absolute number field.
+        This is done by passing to the Weil restriction.
+
+        The default parameter values are typically good choices for
+        `\mathbb{P}^1`. If you are having trouble getting a particular
+        map to finish, try first computing the possible periods, then
+        try various different values for ``lifting_prime``.
+
+        ALGORITHM:
+
+        - Determines the list of possible periods.
+
+        - Determines the rational periodic points from the possible periods.
+
+        - Determines the rational preperiodic points from the rational
+          periodic points by determining rational preimages.
+
+        INPUT:
+
+        kwds:
+
+        - ``R`` -- (default: domain of dynamical system) the base ring
+          over which the periodic points of the dynamical system are found
+
+        - ``prime_bound`` -- (default: ``[1, 20]``) a pair (list or tuple)
+          of positive integers that represent the limits of primes to use
+          in the reduction step or an integer that represents the upper bound
+
+        - ``lifting_prime`` -- (default: 23) a prime integer; specifies
+          modulo which prime to try and perform the lifting
+
+        - ``periods`` -- (optional) a list of positive integers that is
+          the list of possible periods
+
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
+          the primes of bad reduction
+
+        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
+
+        OUTPUT: a list of rational points in projective space
+
+        EXAMPLES::
+
+            sage: PS.<x,y> = ProjectiveSpace(1,QQ)
+            sage: f = DynamicalSystem_projective([x^2 -y^2, 3*x*y])
+            sage: sorted(f.all_preperiodic_points())
             [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1/2 : 1), (1 : 0), (1 : 1),
             (2 : 1)]
 
@@ -5062,14 +5294,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: PS.<x,y> = ProjectiveSpace(1,QQ)
             sage: f = DynamicalSystem_projective([5*x^3 - 53*x*y^2 + 24*y^3, 24*y^3])
-            sage: sorted(f.rational_preperiodic_points(prime_bound=10))
+            sage: sorted(f.all_preperiodic_points(prime_bound=10))
             [(-1 : 1), (0 : 1), (1 : 0), (1 : 1), (3 : 1)]
 
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(2,QQ)
             sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
-            sage: sorted(f.rational_preperiodic_points(prime_bound=[1,8], lifting_prime=7, periods=[2])) # long time
+            sage: sorted(f.all_preperiodic_points(prime_bound=[1,8], lifting_prime=7, periods=[2])) # long time
             [(-5/4 : -2 : 1), (-5/4 : -1 : 1), (-5/4 : 0 : 1), (-5/4 : 1 : 1), (-5/4
             : 2 : 1), (-1/4 : -2 : 1), (-1/4 : -1 : 1), (-1/4 : 0 : 1), (-1/4 : 1 :
             1), (-1/4 : 2 : 1), (1/4 : -2 : 1), (1/4 : -1 : 1), (1/4 : 0 : 1), (1/4
@@ -5081,7 +5313,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<w> = QuadraticField(33)
             sage: PS.<x,y> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([x^2-71/48*y^2, y^2])
-            sage: sorted(f.rational_preperiodic_points()) # long time
+            sage: sorted(f.all_preperiodic_points()) # long time
             [(-1/12*w - 1 : 1),
              (-1/6*w - 1/4 : 1),
              (-1/12*w - 1/2 : 1),
@@ -5096,7 +5328,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (1/6*w + 1/4 : 1),
              (1/12*w + 1 : 1)]
         """
-        PS = self.domain()
+        ring = kwds.pop("R",None)
+        if not ring is None:
+            DS = self.change_ring(ring)
+        else:
+            DS = self
+        PS = DS.domain()
         K = PS.base_ring()
         if K not in NumberFields() or not K.is_absolute():
             raise TypeError("base field must be an absolute field")
@@ -5110,11 +5347,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             #separately. We also check here that we are working with a polynomial. If the map
             #is not a polynomial, the Weil restriction will not be a morphism and we cannot
             #apply this algorithm.
-            g = self.dehomogenize(1)
+            g = DS.dehomogenize(1)
             inf = PS([1,0])
             k = 1
             if isinstance(g[0], FractionFieldElement):
-                g = self.dehomogenize(0)
+                g = DS.dehomogenize(0)
                 inf = PS([0,1])
                 k = 0
                 if isinstance(g[0], FractionFieldElement):
@@ -5126,7 +5363,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             G = g.weil_restriction()
             F = G.homogenize(d)
             #find the QQ rational preperiodic points for the weil restriction
-            Fpre = F.rational_preperiodic_points(**kwds)
+            Fpre = F.all_preperiodic_points(**kwds)
             for P in Fpre:
                 #take the 'good' points in the weil restriction and find the
                 #associated number field points.
@@ -5136,7 +5373,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     Q = PS(pt)
                     #for each preperiodic point get the entire connected component
                     if not Q in preper:
-                        for t in self.connected_rational_component(Q):
+                        for t in DS.connected_rational_component(Q):
                             preper.add(t)
             preper = list(preper)
         else:
@@ -5146,20 +5383,20 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             primebound = kwds.pop("prime_bound", [1, 20])
             num_cpus = kwds.pop("ncpus", ncpus())
             if badprimes is None:
-                badprimes = self.primes_of_bad_reduction()
+                badprimes = DS.primes_of_bad_reduction()
             if periods is None:
                 #determine the set of possible periods
-                periods = self.possible_periods(prime_bound=primebound,
+                periods = DS.possible_periods(prime_bound=primebound,
                                                 bad_primes=badprimes, ncpus=num_cpus)
             if periods == []:
                 return([]) #no rational preperiodic points
             else:
                 p = kwds.pop("lifting_prime", 23)
                 #find the rational preperiodic points
-                T = self.all_periodic_points(prime_bound=primebound, lifting_prime=p,
+                T = DS.all_periodic_points(prime_bound=primebound, lifting_prime=p,
                                                   periods=periods, bad_primes=badprimes,
                                                   ncpus=num_cpus)
-                preper = self.all_rational_preimages(T) #find the preperiodic points
+                preper = DS.all_rational_preimages(T) #find the preperiodic points
                 preper = list(preper)
         return preper
 
@@ -5238,7 +5475,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             Looped digraph on 5 vertices
         """
         #input checking done in .rational_preperiodic_points()
-        preper = self.rational_preperiodic_points(**kwds)
+        preper = self.all_preperiodic_points(**kwds)
         g = self._preperiodic_points_to_cyclegraph(preper)
         return g
 

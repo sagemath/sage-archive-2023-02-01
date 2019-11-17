@@ -3158,7 +3158,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def is_dynamical_belyi_map(self):
         r"""
-        We define a dynamical Belyi map to be a dynamical system f:P^1->P1 where the
+        We define a dynamical Belyi map to be a dynamical system f:P^1->P^1 where the
         branch points are contained in {0,1,infinity} and the post critical set is contained
         in {0,1,infinity}. This checks if a dynamical system is conjugate to a dynamical Belyi map.
         
@@ -3194,25 +3194,25 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         sage: f=DynamicalSystem_projective([5*x^7-7*x^6*y,-7*x*y^6+5*y^7])
         sage: f.is_dynamical_belyi_map()
         True
+
+        ::
+
+        sage: P.<x,y>=ProjectiveSpace(QQ,1)
+        sage: f=DynamicalSystem_projective([2*x^3+3*x^2*y-3*x*y^2+2*y^3,x^3+y^3])
+        sage: f.is_dynamical_belyi_map()
+        False
         """
-        Crit_List=self.critical_points()
-        Crit_Value=[]
-        for i in Crit_List:
-            Crit_Value.append(self(i))
-        Crit_Value=set(Crit_Value)
-        if len(Crit_Value)>3:
-            return False
-        Crit_Value2=Crit_Value
-        for i in Crit_Value2:
-            Crit_Value.add(self(i))
-        if len(Crit_Value)>3:
-            return False
-        Crit_Value2=Crit_Value
-        for i in Crit_Value2:
-            Crit_Value.add(self(i))
-        if len(Crit_Value)>3:
-            return False
-        return True
+        K=QQbar #Update this piece when we have min field defn for crit points.
+        Crit_List=self.critical_points(R=K) 
+        self=self.change_ring(K)
+        Crit_Value=set([])
+        for n in range(1,5):
+            for i in Crit_List:
+                Crit_Value.add(self.nth_iterate(i,n))
+                if len(Crit_Value)>3:
+                    return False
+        return True            
+
 
     def critical_point_portrait(self, check=True, embedding=None):
         r"""

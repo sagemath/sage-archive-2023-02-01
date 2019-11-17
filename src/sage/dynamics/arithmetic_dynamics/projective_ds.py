@@ -79,6 +79,7 @@ from sage.rings.fraction_field_element import is_FractionFieldElement, FractionF
 from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
+from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.padics.all import Qp
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -3201,17 +3202,31 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         sage: f=DynamicalSystem_projective([2*x^3+3*x^2*y-3*x*y^2+2*y^3,x^3+y^3])
         sage: f.is_dynamical_belyi_map()
         False
+
+        ::
+
+        sage: R.<t>=PolynomialRing(QQ)
+        sage: N.<c>=NumberField(t^3-2)
+        sage: P.<x,y>=ProjectiveSpace(N,1)
+        sage: f=DynamicalSystem_projective([x^2+c*y^2,x*y])
+        sage: f.is_dynamical_belyi_map()
+        False
         """
-        K=QQbar #Update this piece when we have min field defn for crit points.
-        Crit_List=self.critical_points(R=K) 
-        self=self.change_ring(K)
-        Crit_Value=set([])
-        for n in range(1,5):
-            for i in Crit_List:
-                Crit_Value.add(self.nth_iterate(i,n))
-                if len(Crit_Value)>3:
-                    return False
-        return True            
+        K=self.base_ring() 
+        L=QQbar #Update this piece when we have min field defn for crit points.
+        if not is_NumberField(K):
+            raise NotImplementedError("only implemented for number fields")
+        else:   
+            sigma=K.embeddings(L)[0] 
+            self=self.change_ring(sigma)
+            Crit_List=self.critical_points()  
+            Crit_Value=set([])
+            for n in range(1,5):
+                for i in Crit_List:
+                    Crit_Value.add(self.nth_iterate(i,n))
+                    if len(Crit_Value)>3:
+                        return False
+            return True            
 
 
     def critical_point_portrait(self, check=True, embedding=None):

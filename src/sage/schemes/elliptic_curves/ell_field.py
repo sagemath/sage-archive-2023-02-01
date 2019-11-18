@@ -136,13 +136,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E.change_ring(k2).is_isomorphic(Et.change_ring(k2))
             True
         """
-        K=self.base_ring()
-        char=K.characteristic()
+        K = self.base_ring()
+        char = K.characteristic()
 
         if D is None:
             if K.is_finite():
                 x = rings.polygen(K)
-                if char==2:
+                if char == 2:
                     # We find D such that x^2+x+D is irreducible. If the
                     # degree is odd we can take D=1; otherwise it suffices to
                     # consider odd powers of a generator.
@@ -150,14 +150,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     if K.degree()%2==0:
                         D = K.gen()
                         a = D**2
-                        while len((x**2+x+D).roots())>0:
+                        while (x**2 + x + D).roots():
                             D *= a
                 else:
                     # We could take a multiplicative generator but
                     # that might be expensive to compute; otherwise
                     # half the elements will do
                     D = K.random_element()
-                    while len((x**2-D).roots())>0:
+                    while (x**2 - D).roots():
                         D = K.random_element()
             else:
                 raise ValueError("twisting parameter D must be specified over infinite fields.")

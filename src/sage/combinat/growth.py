@@ -489,6 +489,19 @@ from copy import copy
 from sage.graphs.digraph import DiGraph
 
 def _make_partition(l):
+    """
+    Return the list as a partition.
+
+    This is intended to be fast, so checks are bypassed.
+
+    TESTS::
+
+        sage: p = _make_partition([3,2,1,0]); p
+        [3, 2, 1]
+
+        sage: p.parent()
+        Partitions
+    """
     return _Partitions.element_class(_Partitions, l)
 
 class GrowthDiagram(SageObject):

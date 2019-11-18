@@ -455,7 +455,7 @@ The labels are now alternating between vertices and edge-colors::
     1  0
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Martin Rubey <martin.rubey at tuwien.ac.at>
 #                     2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
@@ -468,8 +468,8 @@ The labels are now alternating between vertices and edge-colors::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from six.moves import zip_longest
 from sage.structure.sage_object import SageObject
@@ -695,8 +695,9 @@ class GrowthDiagram(SageObject):
 
     def conjugate(self):
         r"""
-        Return the conjugate growth diagram of ``self``. This is
-        the growth diagram with the filling reflected over the
+        Return the conjugate growth diagram of ``self``.
+
+        This is the growth diagram with the filling reflected over the
         main diagonal.
 
         The sequence of labels along the boundary on the side of the
@@ -4332,135 +4333,3 @@ class Rules(object):
     Domino = RuleDomino
 
 GrowthDiagram.rules = Rules
-
-#####################################################################
-## Provide the old entry points
-#####################################################################
-
-def GrowthDiagramRSK(filling=None, shape=None, labels=None):
-    r"""
-    ``GrowthDiagramRSK`` is deprecated; use
-    :class:`GrowthDiagram.rules.RSK <RuleRSK>` instead.
-
-    EXAMPLES::
-
-        sage: GrowthDiagram.rules.RSK()([4,1,3,1,2]).P_symbol()
-        [[1, 1, 2], [3], [4]]
-
-    TESTS::
-
-        sage: GrowthDiagramRSK([4,1,3,1,2]).P_symbol()
-        doctest:...: DeprecationWarning: GrowthDiagramRSK is deprecated; use GrowthDiagram with the RSK rule instead
-        See http://trac.sagemath.org/23319 for details.
-        [[1, 1, 2], [3], [4]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(23319, "GrowthDiagramRSK is deprecated; use GrowthDiagram with the RSK rule instead")
-    return GrowthDiagram(RuleRSK(), filling, shape, labels)
-
-def GrowthDiagramBurge(filling=None, shape=None, labels=None):
-    r"""
-    ``GrowthDiagramBurge`` is deprecated; use
-    :class:`GrowthDiagram.rules.Burge <RuleBurge>` instead.
-
-    EXAMPLES::
-
-        sage: GrowthDiagram.rules.Burge()([4,1,3,1,2]).P_symbol()
-        [[1, 2], [1, 3], [4]]
-
-    TESTS::
-
-        sage: GrowthDiagramBurge([4,1,3,1,2]).P_symbol()
-        doctest:...: DeprecationWarning: GrowthDiagramBurge is deprecated; use GrowthDiagram with the Burge rule instead
-        See http://trac.sagemath.org/23319 for details.
-        [[1, 2], [1, 3], [4]]
-
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(23319, "GrowthDiagramBurge is deprecated; use GrowthDiagram with the Burge rule instead")
-    return GrowthDiagram(RuleBurge(), filling, shape, labels)
-
-def GrowthDiagramBinWord(filling=None, shape=None, labels=None):
-    r"""
-    ``GrowthDiagramBinWord`` is deprecated; use
-    :class:`GrowthDiagram.rules.BinaryWord <RuleBinaryWord>` instead.
-
-    EXAMPLES::
-
-        sage: GrowthDiagram.rules.BinaryWord()([4,1,3,2]).P_chain()
-        [word: , word: 1, word: 11, word: 110, word: 1010]
-
-    TESTS::
-
-        sage: GrowthDiagramBinWord([4,1,3,2]).P_chain()
-        doctest:...: DeprecationWarning: GrowthDiagramBinWord is deprecated; use GrowthDiagram with the BinaryWord rule instead
-        See http://trac.sagemath.org/23319 for details.
-        [word: , word: 1, word: 11, word: 110, word: 1010]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(23319, "GrowthDiagramBinWord is deprecated; use GrowthDiagram with the BinaryWord rule instead")
-    return GrowthDiagram(RuleBinaryWord(), filling, shape, labels)
-
-def GrowthDiagramDomino(filling=None, shape=None, labels=None):
-    r"""
-    ``GrowthDiagramDomino`` is deprecated; use
-    :class:`GrowthDiagram.rules.Domino <RuleDomino>` instead.
-
-    EXAMPLES::
-
-        sage: GrowthDiagram.rules.Domino()([4,1,3,2]).P_symbol()
-        [[1, 1, 2, 2], [3, 3], [4, 4]]
-
-    TESTS::
-
-        sage: GrowthDiagramDomino([4,1,3,2]).P_symbol()
-        doctest:...: DeprecationWarning: GrowthDiagramDomino is deprecated; use GrowthDiagram with the Domino rule instead
-        See http://trac.sagemath.org/23319 for details.
-        [[1, 1, 2, 2], [3, 3], [4, 4]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(23319, "GrowthDiagramDomino is deprecated; use GrowthDiagram with the Domino rule instead")
-    return GrowthDiagram(RuleDomino(), filling, shape, labels)
-
-def GrowthDiagramYoungFibonacci(filling=None, shape=None, labels=None):
-    r"""
-    ``GrowthDiagramYoungFibonacci`` is deprecated; use
-    :class:`GrowthDiagram.rules.YoungFibonacci <RuleYoungFibonacci>`
-    instead.
-
-    EXAMPLES::
-
-        sage: GrowthDiagram.rules.YoungFibonacci()([4,1,3,2]).P_chain()
-        [word: , word: 1, word: 11, word: 21, word: 211]
-
-    TESTS::
-
-        sage: GrowthDiagramYoungFibonacci([4,1,3,2]).P_chain()
-        doctest:...: DeprecationWarning: GrowthDiagramYoungFibonacci is deprecated; use GrowthDiagram with the YoungFibonacci rule instead
-        See http://trac.sagemath.org/23319 for details.
-        [word: , word: 1, word: 11, word: 21, word: 211]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(23319, "GrowthDiagramYoungFibonacci is deprecated; use GrowthDiagram with the YoungFibonacci rule instead")
-    return GrowthDiagram(RuleYoungFibonacci(), filling, shape, labels)
-
-def GrowthDiagramSylvester(filling=None, shape=None, labels=None):
-    r"""
-    ``GrowthDiagramSylvester`` is deprecated; use
-    :class:`GrowthDiagram.rules.Sylvester <RuleSylvester>` instead.
-
-    EXAMPLES::
-
-        sage: GrowthDiagram.rules.Sylvester()([4,1,3,2]).P_chain()
-        [., [., .], [., [., .]], [., [[., .], .]], [[., [[., .], .]], .]]
-
-    TESTS::
-
-        sage: GrowthDiagramSylvester([4,1,3,2]).P_chain()
-        doctest:...: DeprecationWarning: GrowthDiagramSylvester is deprecated; use GrowthDiagram with the Sylvester rule instead
-        See http://trac.sagemath.org/23319 for details.
-        [., [., .], [., [., .]], [., [[., .], .]], [[., [[., .], .]], .]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(23319, "GrowthDiagramSylvester is deprecated; use GrowthDiagram with the Sylvester rule instead")
-    return GrowthDiagram(RuleSylvester(), filling, shape, labels)

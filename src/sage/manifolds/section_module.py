@@ -28,6 +28,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.rings.infinity import infinity
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
@@ -175,10 +176,16 @@ class SectionModule(UniqueRepresentation, Parent):
         base_space = vbundle.base_space()
         if not domain.is_subset(base_space):
             raise ValueError("domain must be a subset of base space")
-        self._name = "C^{}({};{})".format(vbundle._diff_degree, domain._name,
-                                          vbundle._name)
-        self._latex_name = r'C^{}({};{})'.format(vbundle._diff_degree,
-                                        domain._latex_name, vbundle._latex_name)
+        if vbundle._diff_degree == infinity:
+            repr_deg = "infinity" # to skip the "+" in repr(infinity)
+            latex_deg = r"\infty" # to skip the "+" in latex(infinity)
+        else:
+            repr_deg = r"{}".format(vbundle._diff_degree)
+            latex_deg = r"{}".format(vbundle._diff_degree)
+        self._name = "C^{}({};{})".format(repr_deg, domain._name, vbundle._name)
+        self._latex_name = r"C^{" + latex_deg + r"}" + \
+                           r"({};{})".format(domain._latex_name,
+                                             vbundle._latex_name)
         self._vbundle = vbundle
         self._domain = domain
         self._base_space = vbundle.base_space()
@@ -312,13 +319,13 @@ class SectionModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M', structure='top')
+            sage: M = Manifold(2, 'M')
             sage: E = M.vector_bundle(2, 'E')
-            sage: C0 = E.section_module()
-            sage: C0._latex_()
-            'C^0(M;E)'
-            sage: latex(C0) # indirect doctest
-            C^0(M;E)
+            sage: C = E.section_module()
+            sage: C._latex_()
+            'C^{\\infty}(M;E)'
+            sage: latex(C) # indirect doctest
+            C^{\infty}(M;E)
 
         """
         return self._latex_name

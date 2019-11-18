@@ -2341,7 +2341,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(*comp, **kwargs)
         return resu
 
-    def mixed_form(self, name=None, latex_name=None, dest_map=None, comp=None):
+    def mixed_form(self, comp=None, name=None, latex_name=None, dest_map=None):
         r"""
         Define a mixed form on ``self``.
 
@@ -2375,6 +2375,9 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
+        - ``comp`` -- (default: ``None``) homogeneous components of the mixed
+          form as a list; if none is provided, the components are set to
+          innocent unnamed differential forms
         - ``name`` -- (default: ``None``) name given to the differential form
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
           the differential form; if none is provided, the LaTeX symbol
@@ -2384,9 +2387,6 @@ class DifferentiableManifold(TopologicalManifold):
           `N = M` and that `\Phi` is the identity map (case of a
           differential form *on* `M`), otherwise ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-        - ``comp`` -- (default: ``None``) homogeneous components of the mixed
-          form as a list; if none is provided, the components are set to
-          innocent unnamed differential forms
 
         OUTPUT:
 
@@ -3272,18 +3272,18 @@ class DifferentiableManifold(TopologicalManifold):
             sage: interp = c.interpolate()
             sage: p = c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
-             associated with the key 'cubic spline-interp-rk4_maxima'
+             associated with the key 'cubic spline-interp-odeint'
              by default...
             sage: p
             Point on the 3-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.9635581155730744, -0.7325010457963622, 1.3)
+            (0.9635581599167499, -0.7325011788437327, 1.3)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
-             associated with the key 'cubic spline-interp-rk4_maxima'
+             associated with the key 'cubic spline-interp-odeint'
              by default...
-            sage: tgt_vec[:]     # abs tol 1e-12
-            [-0.8481008455360024, 0.5298346120470748, 1.0000000000000007]
+            sage: tgt_vec[:]    # abs tol 1e-12
+            [-0.8481007454066425, 0.5298350137284363, 1.0]
 
         """
 
@@ -3380,13 +3380,13 @@ class DifferentiableManifold(TopologicalManifold):
             sage: Tp = S2.tangent_space(p)
             sage: v = Tp((1,1), basis=epolar_ON.at(p))
             sage: t = var('t')
-            sage: c = S2.integrated_autoparallel_curve(nab, (t, 0, 6),
+            sage: c = S2.integrated_autoparallel_curve(nab, (t, 0, 2.3),
             ....:                              v, chart=polar, name='c')
             sage: sys = c.system(verbose=True)
             Autoparallel curve c in the 2-dimensional differentiable
              manifold S^2 equipped with Affine connection nab on the
              2-dimensional differentiable manifold S^2, and integrated
-             over the Real interval (0, 6) as a solution to the
+             over the Real interval (0, 2.30000000000000) as a solution to the
              following equations, written with respect to
              Chart (S^2, (th, ph)):
             <BLANKLINE>
@@ -3407,18 +3407,18 @@ class DifferentiableManifold(TopologicalManifold):
             sage: interp = c.interpolate()
             sage: p = c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
-             associated with the key 'cubic spline-interp-rk4_maxima'
+             associated with the key 'cubic spline-interp-odeint'
              by default...
             sage: p
             Point on the 2-dimensional differentiable manifold S^2
-            sage: p.coordinates()     # abs tol 1e-12
-            (2.085398163397449, 1.4203172015958863)
-            sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
+            sage: polar(p)     # abs tol 1e-12
+            (2.0853981633974477, 1.4203177070475606)
+            sage: tgt_vec = c.tangent_vector_eval_at(1.3, verbose=True)
             Evaluating tangent vector components from the interpolation
-             associated with the key 'cubic spline-interp-rk4_maxima'
+             associated with the key 'cubic spline-interp-odeint'
              by default...
-            sage: tgt_vec[:]     # abs tol 1e-12
-            [0.9999999999999732, -1.016513736236512]
+            sage: tgt_vec[:]    # abs tol 1e-12
+            [1.000000000000011, 1.148779968412235]
 
         """
 
@@ -3529,18 +3529,18 @@ class DifferentiableManifold(TopologicalManifold):
             sage: interp = c.interpolate()
             sage: p = c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
-             associated with the key 'cubic spline-interp-rk4_maxima'
+             associated with the key 'cubic spline-interp-odeint'
              by default...
             sage: p
             Point on the 2-dimensional differentiable manifold S^2
             sage: p.coordinates()     # abs tol 1e-12
-            (2.2047444794514663, 0.7986609561213334)
+            (2.2047435672397526, 0.7986602654406825)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
-             associated with the key 'cubic spline-interp-rk4_maxima'
+             associated with the key 'cubic spline-interp-odeint'
              by default...
-            sage: tgt_vec[:]     # abs tol 1e-12
-            [-1.090742147346732, 0.620568327518154]
+            sage: tgt_vec[:]    # abs tol 1e-12
+            [-1.0907409234671228, 0.6205670379855032]
 
         """
         from sage.manifolds.differentiable.real_line import RealLine

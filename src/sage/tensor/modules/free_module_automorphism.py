@@ -16,6 +16,7 @@ Automorphisms of a free module of finite rank are implemented via the class
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
+- Michael Jung (2019): improve treatment of the identity element
 
 REFERENCES:
 

@@ -3125,7 +3125,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: F = DynamicalSystem_projective([x^3-2*x*y^2 + 2*y^3, y^3])
             sage: F.ramification_type()
             [[2], [3]]
-            sage: F.ramification_type(f.field_of_definition_critical())
+            sage: F.ramification_type(F.field_of_definition_critical())
             [[2], [2], [3]]
 
         """
@@ -3138,7 +3138,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         C = F.critical_subscheme()
         ram_type = dict()
         fc=C.defining_ideal().gens()[0]
-        for f,e in factor(fc):
+        for f,e in fc.factor():
             c = F(F.domain().subscheme(f)) # critical value
             if ram_type.has_key(c):
                 ram_type[c].append(e+1)

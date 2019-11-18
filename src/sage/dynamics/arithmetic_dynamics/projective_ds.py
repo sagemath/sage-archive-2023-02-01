@@ -2332,6 +2332,198 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Q = R
         return(l)
 
+    def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
+        r"""
+        A recusive method to fill in ``n``-th preimage tree.
+
+        This helper function is used by ``nth_preimage_tree`` below to actually compute the
+        points of the tree and populate the dictionary used to create a ``DiGraph``
+        object. Note the addition of an ``m`` parameter, which counts upwards as n counts
+        downwards to keep track of what level we are at in the tree for the purposes of
+        returning points and displaying the point's level in the tree.
+        """
+        return_points = kwds.get("return_points", False)
+        numerical = kwds.get("numerical", False)
+        prec = kwds.get("prec", 100)
+        display_labels = kwds.get("display_labels", True)
+        display_complex = kwds.get("display_complex", False)
+        digits = kwds.get("digits", 5)
+        embed = kwds.get("embed", None)
+        D = {}
+        if numerical:
+            # Solve for preimages numerically
+            CR = self.domain().ambient_space().coordinate_ring()
+            fn = self.dehomogenize(1)
+            poly = (fn[0].numerator()*CR(Q[1]) - fn[0].denominator()*CR(Q[0])).univariate_polynomial()
+            K = ComplexField(prec=prec)
+            pre = [ProjectiveSpace(K,1)(r) for r in poly.roots(ring=K)]
+        else:
+            # Solve for preimages algebraically
+            pre = self.rational_preimages(Q,1)
+        for pt in pre:
+            # Fill in dictionary entries of preimage points to Q
+            if display_complex:
+                pt1 = "(" + str(embed(pt[0]).n(digits=digits)) + ": 1)"
+                Q1 = "(" + str(embed(Q[0]).n(digits=digits)) + ": 1)"
+                key = pt1 + ", " + str(m)
+                D[key] = [Q1 + ", " + str(m-1)]
+            else:
+                key = str(pt) + ", " + str(m)
+                D[key] = [str(Q) + ", " + str(m-1)]
+            if return_points:
+                # Fill in m-th level preimage points in points list
+                kwds["points"][m].append(pt)
+
+        if return_points:
+            points = kwds["points"]
+            if n==1:
+                # Base case of recursion
+                return D, points
+            else:
+                # For each preimage point of Q, use recursion to find that point's preimages
+                # and update the dictionary
+                for pt in pre:
+                    D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds)[0])
+            return D, points
+        else:
+            if n==1:
+                # Base case of recursion
+                return D
+            else:
+                # For each preimage point of Q, use recursion to find that point's preimages
+                # and update the dictionary
+                for pt in pre:
+                    D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds))
+            return D
+
+    def nth_preimage_tree(self, Q, n, **kwds):
+        r"""
+        Return the ``n``-th pre-image tree rooted at ``Q``.
+
+        This map must be an endomorphism of the projective line defined
+        over a number field, algebraic field, or finite field.
+
+        INPUT:
+
+        - ``Q`` -- a point in the domain of this map
+
+        - ``n`` -- a positive integer, the depth of the pre-image tree
+
+        kwds:
+
+        - ``return_points`` -- (default: ``False``) boolean; if ``True``, return a list of lists
+          where the index ``i`` is the level of the tree and the elements of the list at that
+          index are the ``i``-th preimage points as an algebraic element of the splitting field
+          of the polynomial ``f^n - Q = 0``
+
+        - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically. Note if this
+          is set to ``True``, preimage points are displayed as complex numbers
+
+        - ``prec`` -- (default: 100) postive integer; the precision of the ``ComplexField`` if
+          we compute the preimage points numerically
+
+        - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels. Since labels
+          can be very cluttered, can set ``display_labels`` to ``False`` and use ``return_points`` to get a
+          hold of the points themselves, either as algebraic or complex numbers
+
+        - ``display_complex`` -- (default: ``False``) boolean; display vertex labels as
+          complex numbers. Note if this option is chosen that we must choose an embedding
+          from the splitting field ``field_def`` of the nth-preimage equation into C. We make
+          the choice of the first embedding returned by ``field_def.embeddings(ComplexField())``
+
+        - ``digits`` -- a positive integer, the number of decimal digits to display for complex
+          numbers. This only applies if ``display_complex`` is set to ``True``
+
+        OUTPUT:
+
+        If ``return_points`` is ``False``, a ``GraphPlot`` object representing the ``n``-th pre-image tree.
+        If ``return_points`` is ``True``, a tuple ``(GP, points)``, where ``GP`` is a ``GraphPlot`` object,
+        and ``points`` is  a list of lists as described above under ``return_points``.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])
+            sage: Q = P(0,1)
+            sage: f.nth_preimage_tree(Q, 2)
+            GraphPlot object for Digraph on 7 vertices
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(3),1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y + y^2, y^2])
+            sage: Q = P(0,1)
+            sage: f.nth_preimage_tree(Q, 2, return_points=True)
+            (GraphPlot object for Digraph on 4 vertices,
+             [[(0 : 1)], [(1 : 1)], [(0 : 1), (2 : 1)]])
+        """
+        return_points = kwds.get("return_points", False)
+        numerical = kwds.get("numerical", False)
+        prec = kwds.get("prec", 100)
+        display_labels = kwds.get("display_labels", True)
+        display_complex = kwds.get("display_complex", False)
+        digits = kwds.get("digits", 5)
+
+        if self.domain().dimension_relative() > 1:
+            raise NotImplementedError("only implemented for dimension 1")
+        base_ring = self.base_ring()
+        if base_ring is QQbar:
+            if numerical:
+                raise ValueError("can't solve numerically over QQbar, no embedding into CC")
+            fbar = self
+            # No embedding from QQbar into C
+            kwds["display_complex"] = False
+            display_complex = False
+        elif base_ring in NumberFields():
+            if numerical:
+                field_def = ComplexField(prec=prec)
+                embed = base_ring.embeddings(field_def)[0]
+                fbar = self.change_ring(embed)
+                embed = End(field_def).identity()
+                kwds["display_complex"] = True
+                display_complex = True
+                kwds["embed"] = embed
+            else:
+                field_def = self.field_of_definition_preimage(Q,n)
+                fbar = self.change_ring(field_def)
+                if display_complex:
+                    embed = field_def.embeddings(ComplexField())[0]
+                    kwds["embed"] = embed
+        elif base_ring in FiniteFields():
+            if numerical:
+                raise ValueError("can't solve numerically over a finite field, no embedding into CC")
+            field_def = self.field_of_definition_preimage(Q,n)
+            fbar = self.change_ring(field_def)
+            # No embedding from finite field into C
+            kwds["display_complex"] = False
+            display_complex = False
+        else:
+            raise NotImplementedError("only implemented for number fields, algebraic fields, and finite fields")
+
+        Q = fbar.codomain()(Q)
+        if return_points:
+            # n+1 since we have n levels with root as 0th level
+            points = [[] for i in range(n+1)]
+            points[0].append(Q)
+            kwds["points"] = points
+            V, points = fbar._nth_preimage_tree_helper(Q, n, 1, **kwds)
+        else:
+            V = fbar._nth_preimage_tree_helper(Q, n, 1, **kwds)
+        from sage.graphs.digraph import DiGraph
+        from sage.graphs.graph_plot import GraphPlot
+        G = DiGraph(V)
+        if display_complex:
+            Q = "(" + str(embed(Q[0]).n(digits=digits)) + ": 1)"
+            root = Q + ", " + str(0)
+        else:
+            root = str(Q) + ", " + str(0)
+        options = {'layout':'tree', 'tree_orientation':'up', 'tree_root':root, 'vertex_labels':display_labels}
+
+        if return_points:
+            return GraphPlot(G, options), points
+        else:
+            return GraphPlot(G, options)
+
     def possible_periods(self, **kwds):
         r"""
         Return the set of possible periods for rational periodic points of

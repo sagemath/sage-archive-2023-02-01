@@ -34,6 +34,7 @@ if ! (sdh_make libs netlib shared $OPENBLAS_CONFIGURE); then
         OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=ATOM"
         echo "Error building OpenBLAS"
         echo "Retrying building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
+        sdh_make clean
         sdh_make libs netlib shared $OPENBLAS_CONFIGURE
     fi
 fi

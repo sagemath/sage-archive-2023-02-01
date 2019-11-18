@@ -562,7 +562,7 @@ AUTHORS:
 
 - Eric Gourgoulhon (2019-04-24): add :func:`multi_graphics` and insets
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>
 #       Copyright (C) 2006-2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Jason Grout
@@ -570,8 +570,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import iteritems
@@ -600,8 +600,9 @@ from .multigraphics import GraphicsArray, MultiGraphics
 from sage.plot.polygon import polygon
 
 # import of line2d below is only for redirection of imports
-from sage.plot.line import line, line2d
-
+from sage.plot.line import line
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.plot.line', 'line2d', deprecation=28717)
 
 #Currently not used - see comment immediately above about
 #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)

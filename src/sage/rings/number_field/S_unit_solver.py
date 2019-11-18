@@ -2472,7 +2472,7 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
         sage: solutions, bound = solve_S_unit_equation(K, S, 100, include_bound=True)
         sage: bound
-        2
+        6
 
     You can omit the exponent vectors::
 
@@ -2507,7 +2507,9 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
     # Gather the roots of unity of the number field
     A = K.roots_of_unity()
+    w = len(A)
     if SUK.rank() == 0:
+        final_LLL_bound = w
         # Since the rank is 0, K is imaginary quadratic and S is empty
         # Only possibilities are combinations of roots of unity
         # and this can only occur when there are 6 roots of unity, when
@@ -2518,7 +2520,7 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
             S_unit_solutions = []
     else:
         # First find a bound using the LLL reduction method
-        all_LLL_bounds = [cx_LLL_bound(SUK, A, prec)]
+        all_LLL_bounds = [w,cx_LLL_bound(SUK, A, prec)]
         if S:
             # only need p-adic bound when S nonempty
             all_LLL_bounds.append(p_adic_LLL_bound(SUK, A, prec))

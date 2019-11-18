@@ -1653,7 +1653,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         else:
             if self.is_bounded() and dim > 1 \
-                    and f_vector[1] < self.length_Vrepr() - len(self.far_face_tuple()):
+                    and f_vector[1] < self.n_Vrepresentation() - len(self.far_face_tuple()):
                 # The input seemed to be wrong.
                 raise ValueError("not all vertices are intersections of facets")
 

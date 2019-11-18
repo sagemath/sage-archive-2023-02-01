@@ -64,6 +64,9 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__                  import absolute_import, division, print_function
+from sage.misc.superseded        import deprecated_function_alias
+
 import numbers
 from sage.rings.integer         cimport smallInteger
 from .conversions               cimport bit_repr_to_Vrepr_list
@@ -394,17 +397,6 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter()
             sage: all(face.n_ambient_Vrepresentation() == len(face.Vrepr()) for face in it)
             True
-        """
-        if self._dual:
-            return smallInteger(self.set_coatom_repr())
-        else:
-            return smallInteger(self.n_atom_rep())
-
-    def n_Vrepr(self):
-        r"""
-        .. SEEALSO::
-
-            :meth:`CombinatorialFace.n_ambient_Vrepresentation`
 
         TESTS::
 
@@ -413,12 +405,15 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter()
             sage: face = next(it)
             sage: _ = face.n_Vrepr()
-            doctest:...: DeprecationWarning: the method n_Vrepr of CombinatorialFace is deprecated
+            doctest:...: DeprecationWarning: n_Vrepr is deprecated. Please use n_ambient_Vrepresentation instead.
             See https://trac.sagemath.org/28614 for details.
         """
-        from sage.misc.superseded import deprecation
-        deprecation(28614, "the method n_Vrepr of CombinatorialFace is deprecated")
-        return self.n_ambient_Vrepresentation()
+        if self._dual:
+            return smallInteger(self.set_coatom_repr())
+        else:
+            return smallInteger(self.n_atom_rep())
+
+    n_Vrepr = deprecated_function_alias(28614, n_ambient_Vrepresentation)
 
     def Hrepr(self, names=True):
         r"""
@@ -521,11 +516,23 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter()
             sage: all(face.n_ambient_Hrepresentation() == len(face.Hrepr()) for face in it)
             True
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: _ = face.n_Hrepr()
+            doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
+            See https://trac.sagemath.org/28614 for details.
         """
         if not self._dual:
             return smallInteger(self.set_coatom_repr())
         else:
             return smallInteger(self.n_atom_rep())
+
+    n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 
     def n_Hrepr(self):
         r"""
@@ -540,7 +547,7 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter()
             sage: face = next(it)
             sage: _ = face.n_Hrepr()
-            doctest:...: DeprecationWarning: the method n_Hrepr of CombinatorialFace is deprecated
+            doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
             See https://trac.sagemath.org/28614 for details.
         """
         from sage.misc.superseded import deprecation

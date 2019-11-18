@@ -3085,7 +3085,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         crit_points = [P(Q) for Q in X.rational_points()]
         return crit_points
 
-    def ramification_type(self,R=None):
+    def ramification_type(self,R=None,stable=True):
         r"""
         Return the ramification type of endomorphisms of
         `\mathbb{P}^1`. Only branch points defined over ``R``
@@ -3093,11 +3093,18 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         otherwise ``R`` is the ring of definition for self.
 
         Note that branch points defined over ``R`` may not
-        be geometric points.
+        be geometric points if stable not set to True.
+
+        If ``R`` is specified, ``stable`` is ignored.
+
+        If ``stable``, then this will return the ramification
+        type over an extension which splits the Galois orbits
+        of critical points.
 
         INPUT:
 
             - ``R`` -- ring or morphism (optional)
+            - ``split`` -- boolean (optional)
 
         OUTPUT:
 
@@ -3118,7 +3125,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem_projective([(x + y)^4, 16*x*y*(x-y)^2])
             sage: F.ramification_type()
-            [[2], [2], [4]]
+            [[2], [2, 2], [4]]
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem_projective([(x + y)*(x - y)^3, y*(2*x+y)^3])
@@ -3127,15 +3134,18 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: F = DynamicalSystem_projective([x^3-2*x*y^2 + 2*y^3, y^3])
             sage: F.ramification_type()
-            [[2], [3]]
-            sage: L,phi = F.field_of_definition_critical(return_embedding=True)
-            sage: F.ramification_type(phi)
             [[2], [2], [3]]
+            sage: F.ramification_type(R=F.base_ring())
+            [[2], [3]]
 
         """
         # Change base ring if specified.
         if R is None:
-            F = self
+            if stable:
+                L,phi = self.field_of_definition_critical(return_embedding=True)
+                F = self.change_ring(phi)
+            else:
+                F = self
         else:
             F = self.change_ring(R)
 

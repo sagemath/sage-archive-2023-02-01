@@ -711,7 +711,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
           symbols of the sections constituting the local frame, or a list/tuple
           of strings, representing the individual symbols of the sections
         - ``sections`` -- tuple or list of `n` linearly independent sections on
-          ``self`` (`n` being the dimension of ``self``) defining the local
+          ``self`` (`n` being the rank of ``self``) defining the local
           frame; can be omitted if the local frame is created from scratch
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the sections

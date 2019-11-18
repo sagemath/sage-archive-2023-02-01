@@ -3087,14 +3087,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def ramification_type(self,R=None):
         r"""
-        Return the ramification type of a self-map of the
-        projective line. Only branch points defined over ``R``
+        Return the ramification type of endomorphisms of
+        `\mathbb{P}^1`. Only branch points defined over ``R``
         contribute to the ramification type if specified,
         otherwise ``R`` is the ring of definition for self.
 
+        Note that branch points defined over ``R`` may not
+        be geometric points.
+
         INPUT:
 
-            - ``R`` -- (optional)
+            - ``R`` -- ring or morphism (optional)
 
         OUTPUT:
 
@@ -3125,7 +3128,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: F = DynamicalSystem_projective([x^3-2*x*y^2 + 2*y^3, y^3])
             sage: F.ramification_type()
             [[2], [3]]
-            sage: F.ramification_type(F.field_of_definition_critical())
+            sage: L,phi = F.field_of_definition_critical(return_embedding=True)
+            sage: F.ramification_type(phi)
             [[2], [2], [3]]
 
         """

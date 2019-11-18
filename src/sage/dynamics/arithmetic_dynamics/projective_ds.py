@@ -4832,20 +4832,21 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         INPUT:
 
         kwds:
-        
+
         - ``R`` -- (default: domain of dynamical system) the base ring
           over which the periodic points of the dynamical system are found
-        
+
         - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
           of positive integers that represent the limits of primes to use
           in the reduction step or an integer that represents the upper bound
 
         - ``lifting_prime`` -- (default: 23) a prime integer; argument that
           specifies modulo which prime to try and perform the lifting
-          
+
         - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
-          (max period, max degree) for which the dynatomic polynomial should be solved for
-          
+          (max period, max degree) for which the dynatomic polynomial should be solved
+          for when in dimension 1
+
         - ``algorithm`` -- (optional) specifies which algorithm to use;
           current options are `dynatomic` and `lifting`; defaults to solving the
           dynatomic for low periods and degrees and lifts for everything else
@@ -4938,24 +4939,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: f = DynamicalSystem_projective([x^2 - (3/4)*w^2, y^2 - 3/4*w^2, z^2 - 3/4*w^2, w^2])
-            sage: sorted(f.all_periodic_points(period_degree_bounds=[10,10]))
-            [(-1/2 : -1/2 : -1/2 : 1),
-             (-1/2 : -1/2 : 3/2 : 1),
-             (-1/2 : 3/2 : -1/2 : 1),
-             (-1/2 : 3/2 : 3/2 : 1),
-             (0 : 0 : 1 : 0),
-             (0 : 1 : 0 : 0),
-             (0 : 1 : 1 : 0),
-             (1 : 0 : 0 : 0),
-             (1 : 0 : 1 : 0),
-             (1 : 1 : 0 : 0),
-             (1 : 1 : 1 : 0),
-             (3/2 : -1/2 : -1/2 : 1),
-             (3/2 : -1/2 : 3/2 : 1),
-             (3/2 : 3/2 : -1/2 : 1),
-             (3/2 : 3/2 : 3/2 : 1)]
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2])
+            sage: sorted(f.all_periodic_points(period_degree_bounds=[2,2]))
+            [(-1/2 : 1), (1 : 0), (3/2 : 1)]
 
         TESTS::
 
@@ -5053,10 +5040,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
                 PS = DS.domain()
                 periodic = set()
+                N = PS.ambient_space().dimension_relative()
 
                 if alg != 'lifting':
                     for i in periods[:]:
-                        if (alg == 'dynatomic') or (i <= pd_bounds[0] and DS.degree() <= pd_bounds[1]):
+                        if (alg == 'dynatomic') or ((N == 1) \
+                                and i <= pd_bounds[0] and DS.degree() <= pd_bounds[1]):
                             periodic.update(DS.periodic_points(i))
                             periods.remove(i)
                     if not periods:
@@ -5274,6 +5263,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
+        - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
+          (max period, max degree) for which the dynatomic polynomial should be solved
+          for when in dimension 1
+
+        - ``algorithm`` -- (optional) specifies which algorithm to use;
+          current options are `dynatomic` and `lifting`; defaults to solving the
+          dynatomic for low periods and degrees and lifts for everything else
+
         OUTPUT: a list of rational points in projective space
 
         EXAMPLES::
@@ -5336,6 +5333,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
           the primes of bad reduction
 
         - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
+
+        - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
+          (max period, max degree) for which the dynatomic polynomial should be solved
+          for when in dimension 1
+
+        - ``algorithm`` -- (optional) specifies which algorithm to use;
+          current options are `dynatomic` and `lifting`; defaults to solving the
+          dynatomic for low periods and degrees and lifts for everything else
 
         OUTPUT: a list of rational points in projective space
 
@@ -5452,7 +5457,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 #find the rational preperiodic points
                 T = DS.all_periodic_points(prime_bound=primebound, lifting_prime=p,
                                                   periods=periods, bad_primes=badprimes,
-                                                  ncpus=num_cpus)
+                                                  ncpus=num_cpus, **kwds)
                 preper = DS.all_rational_preimages(T) #find the preperiodic points
                 preper = list(preper)
         return preper

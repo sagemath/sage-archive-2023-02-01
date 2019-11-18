@@ -817,7 +817,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     
     def degree(self):
         r"""
-        Returns the degree of the affine morphism.
+        Return the degree of the affine morphism.
             
         EXAMPLES::
         

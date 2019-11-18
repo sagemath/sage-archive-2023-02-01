@@ -854,7 +854,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
     def degree(self):
         r"""
-        Returns the degree of the affine dynamical system.
+        Return the degree of the affine dynamical system.
         
         EXAMPLES::
         
@@ -872,11 +872,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: f.degree()
             4
         """
-        polys = self._polys
-        max_degree = 0
-        for poly in polys:
-            if poly.degree() > max_degree:
-                max_degree = poly.degree()
         return self.as_scheme_morphism().degree()
 
 class DynamicalSystem_affine_field(DynamicalSystem_affine,

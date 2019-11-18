@@ -3159,9 +3159,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def is_dynamical_belyi_map(self):
         r"""
-        We define a dynamical Belyi map to be a dynamical system f:P^1->P^1 where the
+        We define a dynamical Belyi map to be a map conjugate to a dynamical system f:P^1->P^1 where the
         branch points are contained in {0,1,infinity} and the post critical set is contained
-        in {0,1,infinity}. This checks if a dynamical system is conjugate to a dynamical Belyi map.
+        in {0,1,infinity}. This checks if a dynamical system is a dynamical Belyi map.
         
         Input: Dynamical system
         
@@ -3169,9 +3169,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         
         EXAMPLES::
         
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: f=DynamicalSystem_projective([-2*x^3+3*x^2*y,y^3])
-            sage: f.is_dynamical_belyi_map()
+	    sage: P.<x,y>=ProjectiveSpace(QQ,1)
+	    sage: f=DynamicalSystem_projective([-2*x^3 - 9*x^2*y - 12*x*y^2 - 6*y^3, y^3])
+	    sage: f.is_dynamical_belyi_map()
             True
         
         ::

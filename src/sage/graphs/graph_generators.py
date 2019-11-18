@@ -2557,7 +2557,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     perm = list(range(n))
     seen_perms = [perm]
     unchecked_perms = [perm]
-    while unchecked_perms):
+    while unchecked_perms:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)

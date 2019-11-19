@@ -109,7 +109,6 @@ This is a test from :trac:`20211`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -393,10 +392,10 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
         sage: vector(u).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
         sage: v = vector(K, (0, 1) )
         sage: vector(v).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
 
     Constructing a vector from a numpy array behaves as expected::
 
@@ -821,6 +820,7 @@ def random_vector(ring, degree=None, *args, **kwds):
     sparse = kwds.pop('sparse', False)
     entries = [ring.random_element(*args, **kwds) for _ in range(degree)]
     return vector(ring, degree, entries, sparse)
+
 
 cdef class FreeModuleElement(Vector):   # abstract base class
     """
@@ -2562,8 +2562,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.dot_product(w)
             0
 
-        The cross product is defined for degree seven vectors as well.
-        [Crossproduct]_
+        The cross product is defined for degree seven vectors as well: 
+        see :wikipedia:`Cross_product`.
         The 3-D cross product is achieved using the quaternions,
         whereas the 7-D cross product is achieved using the octonions. ::
 
@@ -3272,7 +3272,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             Full MatrixSpace of 3 by 4 dense matrices over Rational Field
 
         The more general :meth:`sage.matrix.matrix2.tensor_product` is an
-        operation on a pair of matrices.  If we construe a pair of vectors
+        operation on a pair of matrices.  If we construct a pair of vectors
         as a column vector and a row vector, then an outer product and a
         tensor product are identical.  Thus `tensor_product` is a synonym
         for this method.  ::
@@ -3483,6 +3483,41 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             True
         """
         return True
+
+    def _macaulay2_(self, macaulay2=None):
+        r"""
+        Convert this vector to a Macaulay2 vector.
+
+        EXAMPLES::
+
+            sage: vector(QQ, [1, 2, 3])._macaulay2_()  # optional - macaulay2
+            | 1 |
+            | 2 |
+            | 3 |
+            sage: _.ring()                             # optional - macaulay2
+            QQ
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: macaulay2(vector(R, [1, x+y]))  # optional - macaulay2
+            |  1  |
+            | x+y |
+
+        TESTS:
+
+        Entries of the vector get promoted to the base ring::
+
+            sage: R.<x,y> = QQ[]
+            sage: v = macaulay2(vector(R, [1, 2]))      # optional - macaulay2
+            sage: v.ring()._operator('===', R).sage()   # optional - macaulay2
+            True
+        """
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return (macaulay2(self.base_ring()).matrix([self.list()]).transpose()
+                .vector())
 
     def _mathematica_init_(self):
         """
@@ -4562,7 +4597,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 e = entries_dict
                 entries_dict = {}
                 try:
-                    for k, x in e.iteritems():
+                    for k, x in (<dict> e).iteritems():
                         x = coefficient_ring(x)
                         if x:
                             entries_dict[k] = x
@@ -4752,8 +4787,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.items()
-            <dictionary-itemiterator object at ...>
+            sage: next(v.items())
+            (0, 1)
             sage: list(v.items())
             [(0, 1), (1, 2/3), (2, pi)]
 
@@ -4764,7 +4799,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
-        return self._entries.iteritems()
+        return iter(self._entries.iteritems())
 
     iteritems = items
 
@@ -4881,7 +4916,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert sqrt(2) to an integer
+            TypeError: self must be a numeric expression
 
         ::
 

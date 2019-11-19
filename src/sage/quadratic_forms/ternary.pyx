@@ -11,8 +11,6 @@ Helper code for ternary quadratic forms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, identity_matrix, diagonal_matrix
@@ -967,7 +965,7 @@ def _find_p_neighbor_from_vec(a, b, c, r, s, t, p, v, mat = False):
 
     Reference:  Gonzalo Tornaria's Thesis, Thrm 3.5, p34.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.quadratic_forms.ternary import _find_p_neighbor_from_vec
         sage: Q = TernaryQF([1, 3, 3, -2, 0, -1])

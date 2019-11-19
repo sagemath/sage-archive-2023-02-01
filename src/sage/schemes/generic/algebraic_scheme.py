@@ -79,23 +79,23 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
     sage: patch
     Closed subscheme of Affine Space of dimension 3
     over Rational Field defined by:
-      -x0^2 + x1,
-      -x0*x1 + x2,
-      -x1^2 + x0*x2
+      -x1^2 + x2,
+      -x1*x2 + x3,
+      -x2^2 + x1*x3
     sage: patch.embedding_morphism()
     Scheme morphism:
       From: Closed subscheme of Affine Space of dimension 3
       over Rational Field defined by:
-      -x0^2 + x1,
-      -x0*x1 + x2,
-      -x1^2 + x0*x2
+      -x1^2 + x2,
+      -x1*x2 + x3,
+      -x2^2 + x1*x3
       To:   Closed subscheme of Projective Space of dimension 3
       over Rational Field defined by:
       x1^2 - x0*x2,
       x1*x2 - x0*x3,
       x2^2 - x1*x3
-      Defn: Defined on coordinates by sending (x0, x1, x2) to
-            (1 : x0 : x1 : x2)
+      Defn: Defined on coordinates by sending (x1, x2, x3) to
+            (1 : x1 : x2 : x3)
 
 
 AUTHORS:
@@ -110,7 +110,7 @@ AUTHORS:
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
@@ -119,8 +119,8 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 #*** A quick overview over the class hierarchy:
@@ -133,11 +133,7 @@ from __future__ import absolute_import
 #    class AlgebraicScheme_quasi
 
 
-from sage.combinat.tuple import UnorderedTuples
-
 from sage.categories.number_fields import NumberFields
-from sage.categories.morphism import Morphism
-
 from sage.rings.all import ZZ, QQbar
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
@@ -401,7 +397,7 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd = X.neighborhood(p)
             sage: nbhd
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -x0^2*x1 - 2*x0*x1
+              -y^2*z - 2*y*z
 
         Note that `p=(1,1,0)` is a singular point of `X`. So the
         neighborhood of `p` is not just affine space. The
@@ -418,11 +414,11 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -x0^2*x1 - 2*x0*x1
+              -y^2*z - 2*y*z
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x^2*z - y^2*z
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0 + 1 : x1)
+              Defn: Defined on coordinates by sending (y, z) to
+                    (1 : y + 1 : z)
 
         A couple more examples::
 
@@ -480,8 +476,8 @@ class AlgebraicScheme(scheme.Scheme):
             sage: p = [1,-1,3,4]
             sage: nbhd = X.neighborhood(p); nbhd
             Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
-              x0^2*x2^2 - x1^2*x2^2 + 6*x0^2*x2 - 6*x1^2*x2 + 2*x0*x2^2 +
-              2*x1*x2^2 - 7*x0^2 + 7*x1^2 + 12*x0*x2 + 12*x1*x2 - 14*x0 - 14*x1
+              w^2*y^2 - x^2*y^2 + 6*w^2*y - 6*x^2*y + 2*w*y^2 +
+              2*x*y^2 - 7*w^2 + 7*x^2 + 12*w*y + 12*x*y - 14*w - 14*x
             sage: nbhd.embedding_center()
             (0, 0, 0)
             sage: nbhd.embedding_morphism()(nbhd.embedding_center())
@@ -489,12 +485,12 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
-              x0^2*x2^2 - x1^2*x2^2 + 6*x0^2*x2 - 6*x1^2*x2 + 2*x0*x2^2 +
-              2*x1*x2^2 - 7*x0^2 + 7*x1^2 + 12*x0*x2 + 12*x1*x2 - 14*x0 - 14*x1
+              w^2*y^2 - x^2*y^2 + 6*w^2*y - 6*x^2*y + 2*w*y^2 +
+              2*x*y^2 - 7*w^2 + 7*x^2 + 12*w*y + 12*x*y - 14*w - 14*x
               To:   Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
               w^2*y^2 - x^2*y^2 - w^2*z^2 + x^2*z^2
-              Defn: Defined on coordinates by sending (x0, x1, x2) to
-                    (x0 + 1 : x1 - 1 : x2 + 3 : 4)
+              Defn: Defined on coordinates by sending (w, x, y) to
+                    (w + 1 : x - 1 : y + 3 : 4)
         """
         if '_embedding_center' in self.__dict__:
             return self._embedding_center
@@ -1343,19 +1339,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         * the defining polynomials of the algebraic scheme. Note that
           some authors do not include these in the definition of the
           Jacobian ideal. An example of a reference that does include
-          the defining equations is [LazarsfeldJacobian]_.
+          the defining equations is [Laz2004]_, p. 181.
 
         OUTPUT:
 
         An ideal in the coordinate ring of the ambient space.
-
-        REFERENCES:
-
-        ..  [LazarsfeldJacobian]
-            Robert Lazarsfeld:
-            Positivity in algebraic geometry II;
-            Positivity for Vector Bundles, and Multiplier Ideals,
-            page 181.
 
         EXAMPLES::
 
@@ -1722,11 +1710,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         For a dimension 0 subscheme, if the base ring is a numerical field
         such as the ComplexField the results returned could be very far from correct.
         If the polynomials defining the subscheme are defined over a number field, you
-        will get better results calling rational points with `F` defined as the numberical
+        will get better results calling rational points with `F` defined as the number
         field and the base ring as the field of definition. If the base ring
         is a number field, the embedding into ``F`` must be known.
 
-        In the case of numerically aproximated points, the points are returned over as
+        In the case of numerically approximated points, the points are returned over as
         points of the ambient space.
 
         INPUT:

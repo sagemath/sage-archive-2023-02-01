@@ -4,7 +4,7 @@ Basic objects such as Sphere, Box, Cone, etc.
 AUTHORS:
 
 - Robert Bradshaw 2007-02: initial version
-- Robert Bradshaw 2007-08: obj/tachon rendering, much updating
+- Robert Bradshaw 2007-08: obj/tachyon rendering, much updating
 - Robert Bradshaw 2007-08: cythonization
 
 EXAMPLES::
@@ -40,16 +40,15 @@ EXAMPLES::
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from libc.math cimport sqrt, sin, cos, tan, asin, acos, atan, M_PI
 from sage.rings.real_double import RDF
@@ -598,6 +597,7 @@ draw %s width %s {%s %s %s} {%s %s %s}\n%s
         else: # u == 2:
             res.x, res.y, res.z = 0, 0, self.height
 
+
 @rename_keyword(alpha='opacity')
 def LineSegment(start, end, thickness=1, radius=None, **kwds):
     """
@@ -663,7 +663,7 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-@rename_keyword(deprecation=7154, deprecated_option='thickness', thickness='width')
+
 def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, **kwds):
     """
     Create a 3d arrow.
@@ -945,7 +945,7 @@ cdef class Sphere(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(1).get_grid(100)
-            ([-10.0, ..., 0.0, ..., 10.0],
+            ([-10.0, ..., 10.0],
              [0.0, ..., 3.141592653589793, ..., 0.0])
         """
         cdef int K, u_res, v_res

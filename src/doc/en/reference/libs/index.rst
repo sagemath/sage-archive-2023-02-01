@@ -46,6 +46,13 @@ FLINT
    sage/libs/flint/fmpz_poly
    sage/libs/flint/arith
 
+Giac
+----
+.. toctree::
+   :maxdepth: 2
+
+   sage/libs/giac
+
 GMP-ECM
 -------
 .. toctree::
@@ -80,8 +87,8 @@ libSingular
    sage/libs/singular/ring
    sage/libs/singular/groebner_strategy
 
-libGAP
-------
+GAP
+---
 .. toctree::
    :maxdepth: 2
 

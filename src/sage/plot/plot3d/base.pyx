@@ -30,7 +30,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython.list cimport *
 from cpython.object cimport PyObject
@@ -122,8 +121,9 @@ cdef class Graphics3d(SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: g = sphere()
-            sage: g._rich_repr_(dm)
+            sage: g._rich_repr_(dm)  # OutputSceneThreejs container outside doctest mode
             OutputSceneJmol container
+
         """
         ### First, figure out the best graphics format
         types = display_manager.types
@@ -140,14 +140,16 @@ cdef class Graphics3d(SageObject):
             viewer = None
         # select suitable default
         if viewer is None:
-            viewer = 'jmol'
+            viewer = SHOW_DEFAULTS['viewer']
         # fall back to 2d image if necessary
         if viewer == 'canvas3d' and not can_view_canvas3d:   viewer = 'jmol'
         if viewer == 'wavefront' and not can_view_wavefront: viewer = 'jmol'
         if viewer == 'threejs' and not can_view_threejs:     viewer = 'jmol'
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
-        if viewer == 'jmol':
+        if viewer == 'threejs':
+            return self._rich_repr_threejs(**opts)
+        elif viewer == 'jmol':
             return self._rich_repr_jmol(**opts)
         elif viewer == 'tachyon':
             preferred = (
@@ -162,8 +164,6 @@ cdef class Graphics3d(SageObject):
             return self._rich_repr_canvas3d(**opts)
         elif viewer == 'wavefront':
             return self._rich_repr_wavefront(**opts)
-        elif viewer == 'threejs':
-            return self._rich_repr_threejs(**opts)
         else:
             assert False   # unreachable
 
@@ -367,6 +367,11 @@ cdef class Graphics3d(SageObject):
         options.setdefault('axes_labels', ['x','y','z'])
         options.setdefault('decimals', 2)
         options.setdefault('online', False)
+        options.setdefault('projection', 'perspective')
+        if options['projection'] not in ['perspective', 'orthographic']:
+            import warnings
+            warnings.warn('projection={} is not supported; using perspective'.format(options['projection']))
+            options['projection'] = 'perspective'
         # Normalization of options values for proper JSONing
         options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
         options['decimals'] = int(options['decimals'])
@@ -387,7 +392,9 @@ cdef class Graphics3d(SageObject):
         ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
         import json
+        from sage.plot.plot3d.shapes import arrow3d
         points, lines, texts = [], [], []
+
         if not hasattr(self, 'all'):
             self += Graphics3d()
         for p in self.flatten().all:
@@ -403,10 +410,17 @@ cdef class Graphics3d(SageObject):
                 lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
             if hasattr(p, '_trans'):
+                m = p.get_transformation().get_matrix()
+                t = (m[0,3], m[1,3], m[2,3])
+                if hasattr(p.all[0], 'points'):
+                    translated = [[sum(x) for x in zip(t,u)] for u in p.all[0].points]
+                    width = .5 * p.all[0].thickness
+                    color = p.all[0].texture.color
+                    opacity = p.all[0].texture.opacity
+                    self += arrow3d(translated[0], translated[1], width=width, color=color, opacity=opacity)
                 if hasattr(p.all[0], 'string'):
-                    m = p.get_transformation().get_matrix()
                     texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                                 p.all[0].string, t[0], t[1], t[2]))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -423,7 +437,7 @@ cdef class Graphics3d(SageObject):
 
         html = html.replace('SAGE_SCRIPTS', scripts)
         js_options = dict((key, options[key]) for key in
-            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame'])
+            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame', 'projection'])
         html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
@@ -1387,18 +1401,18 @@ end_scene""" % (render_params.antialiasing,
 
         INPUT:
 
-        -  ``viewer`` -- string (default: 'jmol'), how to view
-           the plot
+        -  ``viewer`` -- string (default: ``'threejs'``), how to view the plot;
+           admissible values are
 
-           * 'jmol': Interactive 3D viewer using Java
-
-           * 'tachyon': Ray tracer generates a static PNG image
-
-           * 'canvas3d': Web-based 3D viewer using JavaScript
-             and a canvas renderer (Sage notebook only)
-
-           * 'threejs': Web-based 3D viewer using JavaScript
+           * ``'threejs'``: interactive web-based 3D viewer using JavaScript
              and a WebGL renderer
+
+           * ``'jmol'``: interactive 3D viewer using Java
+
+           * ``'tachyon'``: ray tracer generating a static PNG image
+
+           * ``'canvas3d'``: web-based 3D viewer using JavaScript
+             and a canvas renderer (Sage notebook only)
 
         -  ``verbosity`` -- display information about rendering
            the figure
@@ -1408,11 +1422,11 @@ end_scene""" % (render_params.antialiasing,
            with Tachyon the number of pixels in each direction is 100 times
            figsize[0]. This is ignored for the jmol embedded renderer.
 
-        -  ``aspect_ratio`` -- (default: "automatic") -- aspect
+        -  ``aspect_ratio`` -- (default: ``'automatic'``) -- aspect
            ratio of the coordinate system itself. Give [1,1,1] to make spheres
            look round.
 
-        -  ``frame_aspect_ratio`` -- (default: "automatic")
+        -  ``frame_aspect_ratio`` -- (default: ``'automatic'``)
            aspect ratio of frame that contains the 3d scene.
 
         -  ``zoom`` -- (default: 1) how zoomed in
@@ -1504,6 +1518,8 @@ end_scene""" % (render_params.antialiasing,
         assert filename.endswith('.png')
         opts = self._process_viewing_options(kwds)
         viewer = opts['viewer']
+        if viewer == 'threejs':
+            viewer = 'jmol'  # since threejs has no png dump
         if viewer == 'tachyon':
             from sage.repl.rich_output.output_catalog import OutputImagePng
             render = self._rich_repr_tachyon(OutputImagePng, **opts)
@@ -1767,13 +1783,14 @@ end_scene""" % (render_params.antialiasing,
 
             sage: P = polytopes.dodecahedron()
             sage: Q = P.plot().all[-1]
-            sage: Q.stl_ascii_string().splitlines()[:6]
+            sage: print(Q.stl_ascii_string().splitlines()[:7])
             ['solid surface',
-             'facet normal 0.5257311121191338 0.8506508083520398 -0.0',
+             'facet normal 0.8506508083520398 -0.0 0.5257311121191338',
              '    outer loop',
-             '        vertex 0.0 1.2360679774997898 -0.4721359549995796',
-             '        vertex 0.0 1.2360679774997898 0.4721359549995796',
-             '        vertex 0.7639320225002102 0.7639320225002102 0.7639320225002102']
+             '        vertex 1.2360679774997898 -0.4721359549995796 0.0',
+             '        vertex 1.2360679774997898 0.4721359549995796 0.0',
+             '        vertex 0.7639320225002102 0.7639320225002102 0.7639320225002102',
+             '    endloop']
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)
@@ -1956,7 +1973,7 @@ end_scene""" % (render_params.antialiasing,
         return self
 
 # if you add any default parameters you must update some code below
-SHOW_DEFAULTS = {'viewer': 'jmol',
+SHOW_DEFAULTS = {'viewer': 'threejs',
                  'verbosity': 0,
                  'figsize': 5,
                  'aspect_ratio': "automatic",

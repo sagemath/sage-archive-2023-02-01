@@ -116,7 +116,6 @@ vertices. For more details about this, refer to the documentation for
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 
@@ -230,7 +229,7 @@ cdef class DenseGraph(CGraph):
             sage: D.add_vertex(40)
             Traceback (most recent call last):
             ...
-            RuntimeError: Requested vertex is past twice the allocated range: use realloc.
+            RuntimeError: requested vertex is past twice the allocated range: use realloc
             sage: D.realloc(50)
             sage: D.add_vertex(40)
             40
@@ -252,7 +251,7 @@ cdef class DenseGraph(CGraph):
 
         cdef bitset_t bits
         cdef int min_verts, min_longs, old_longs = self.num_longs
-        if total_verts < self.active_vertices.size:
+        if <size_t>total_verts < self.active_vertices.size:
             min_verts = total_verts
             min_longs = -1
             bitset_init(bits, self.active_vertices.size)
@@ -325,7 +324,7 @@ cdef class DenseGraph(CGraph):
             sage: G.add_arc(4, 7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1, 0)
             False
             sage: G.has_arc(0, 1)
@@ -372,9 +371,9 @@ cdef class DenseGraph(CGraph):
             True
 
         """
-        if u < 0 or u >= self.active_vertices.size or not bitset_in(self.active_vertices, u):
+        if u < 0 or u >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, u):
             return False
-        if v < 0 or v >= self.active_vertices.size or not bitset_in(self.active_vertices, v):
+        if v < 0 or v >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, v):
             return False
         return self.has_arc_unsafe(u, v) == 1
 
@@ -451,7 +450,7 @@ cdef class DenseGraph(CGraph):
         cdef unsigned long * active_vertices_bitset
         active_vertices_bitset = <unsigned long *> self.active_vertices.bits
 
-        cdef int i, j
+        cdef size_t i, j
         for i in range(self.active_vertices.size):
             if bitset_in(self.active_vertices, i):
                 self.add_arc_unsafe(i, i)
@@ -494,7 +493,8 @@ cdef class DenseGraph(CGraph):
         """
         cdef int place = (u * self.num_longs)
         cdef int num_nbrs = 0
-        cdef int i, v = 0
+        cdef size_t i
+        cdef int v = 0
         cdef unsigned long word, data
         for i in range(self.num_longs):
             data = self.edges[place + i]
@@ -571,7 +571,8 @@ cdef class DenseGraph(CGraph):
         """
         cdef int place = v / radix
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
-        cdef int i, num_nbrs = 0
+        cdef size_t i
+        cdef int num_nbrs = 0
         for i in range(self.active_vertices.size):
             if self.edges[place + i * self.num_longs] & word:
                 if num_nbrs == size:
@@ -681,7 +682,7 @@ cdef class DenseGraphBackend(CGraphBackend):
     something like the following example, which creates a Sage Graph instance
     which wraps a ``DenseGraph`` object::
 
-        sage: G = Graph(30, implementation="c_graph", sparse=False)
+        sage: G = Graph(30, sparse=False)
         sage: G.add_edges([(0, 1), (0, 3), (4, 5), (9, 23)])
         sage: G.edges(labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
@@ -691,7 +692,8 @@ cdef class DenseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0, 1, 2))
-        sage: G.vertices()
+        sage: sorted(list(G),
+        ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...
          29,

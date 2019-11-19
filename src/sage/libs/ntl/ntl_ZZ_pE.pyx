@@ -13,8 +13,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
@@ -70,7 +68,8 @@ cdef class ntl_ZZ_pE(object):
         r"""
         Initializes an ntl ZZ_pE.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
             sage: c.ZZ_pE([13,4,1])
             [1 3]
@@ -203,7 +202,8 @@ cdef class ntl_ZZ_pE(object):
 
     def __invert__(ntl_ZZ_pE self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([2,7,1],11))
             sage: ~ntl.ZZ_pE([1,1],modulus=c)
             [7 3]
@@ -337,11 +337,12 @@ def make_ZZ_pE(x, c):
     """
     Here for unpickling.
 
-    EXAMPLES:
-    sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
-    sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
-    [4 3]
-    sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
-    <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
+    EXAMPLES::
+
+        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
+        sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
+        [4 3]
+        sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
+        <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
     """
     return ntl_ZZ_pE(x, c)

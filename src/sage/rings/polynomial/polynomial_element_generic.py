@@ -47,6 +47,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.factorization import Factorization
 
+from sage.rings.padics.precision_error import PrecisionError
 
 class Polynomial_generic_sparse(Polynomial):
     """
@@ -204,7 +205,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def _derivative(self, var=None):
         """
-        Computes formal derivative of this polynomial with respect to
+        Return the formal derivative of this polynomial with respect to
         the given variable.
 
         If ``var`` is ``None`` or is the generator of this ring, the
@@ -233,12 +234,27 @@ class Polynomial_generic_sparse(Polynomial):
             4*x^3*y^3
             sage: f._derivative(x)
             3*x^2*y^4
+
+        Check that :trac:`28187` is fixed::
+
+            sage: R = PolynomialRing(ZZ, 't', sparse=True)
+            sage: t, u = var('t, u')
+            sage: R.gen()._derivative(t)
+            1
+            sage: R.gen()._derivative(u)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to u
         """
         P = self.parent()
-        if var is not None and var is not P.gen():
-            # call _derivative() recursively on coefficients
-            return P(dict([(n, c._derivative(var)) \
-                                     for (n, c) in six.iteritems(self.__coeffs)]))
+        if var is not None and var != P.gen():
+            try:
+                # call _derivative() recursively on coefficients
+                return P({n:self.__coeffs[n]._derivative(var)
+                            for n in self.__coeffs})
+            except AttributeError:
+                raise ValueError('cannot differentiate with respect to {}'.format(var))
+
 
         # compute formal derivative with respect to generator
         d = {}
@@ -878,7 +894,6 @@ class Polynomial_generic_sparse(Polynomial):
         """
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.arith.all import lcm
 
         if algorithm is None:
             if self.base_ring() == ZZ:
@@ -1178,7 +1193,6 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
         - Xavier Caruso (2013-03-23)
         """
-        base = self.base_ring()
         selfa = self(a)
         der = self.derivative()
         dera = der(a)
@@ -1392,6 +1406,103 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             factors.append((P, 1))
         factors.reverse()
         return Factorization(factors, sort=False, unit=unit)
+
+    def _roots(self, secure, minval, hint):
+        """
+        Return the roots of this polynomial whose valuation is
+        at least ``minval``.
+
+        This is a helper method for :meth:`roots`.
+        It is not meant to be called directly.
+
+        INPUT:
+
+        - ``secure`` -- a boolean; whether we raise an error or
+          not in case of multiple roots
+
+        - ``minval`` -- an integer
+
+        - ``hint`` -- a list or ``None``; if given, it must be the
+          list of roots of the residual polynomial of slope ``minval``
+
+        OUTPUT:
+
+        A list of pairs ``(root, multiplicity)``
+
+        TESTS::
+
+            sage: R = Zp(2)
+            sage: S.<x> = R[]
+            sage: P = (x-1) * (x-2) * (x-4) * (x-8) * (x-16)
+            sage: Q = P^2
+            sage: Q.roots(algorithm="sage")  # indirect doctest
+            [(2^4 + O(2^14), 2),
+             (2^3 + O(2^13), 2),
+             (2^2 + O(2^12), 2),
+             (2 + O(2^11), 2),
+             (1 + O(2^10), 2)]
+
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        K = self.base_ring()
+        Pk = PolynomialRing(K.residue_field(), names='xbar')
+        x = self.parent().gen()
+
+        # Trivial cases
+        if self.degree() == 0:
+            return [ ]
+        if self.degree() == 1:
+            return [ (-self[0]/self[1], 1) ]
+
+        # We consider the case where zero is a (possibly multiple) root
+        i = 0
+        while self[i] == 0:
+            i += 1
+        if secure and i > 1:
+            raise PrecisionError("not enough precision to determine the number of roots")
+        if i == 0:
+            roots = [ ]
+            P = self
+        else:
+            vali = self[i].valuation()
+            prec = min((self[j].precision_absolute()-vali) / (i-j) for j in range(i))
+            if prec is not Infinity:
+                prec = prec.ceil()
+            roots = [ (K(0,prec), i) ]
+            P = self // self[:i+1]  # we do not shift because we need to track precision here
+
+        # We use Newton polygon and slope factorisation to find roots
+        vertices = P.newton_polygon().vertices(copy=False)
+        deg = 0
+        for i in range(1, len(vertices)):
+            deg_left, val_left = vertices[i-1]
+            deg_right, val_right = vertices[i]
+            slope = (val_right - val_left) / (deg_left - deg_right)
+            if slope not in ZZ or slope < minval:
+                continue
+            if hint is not None and slope == minval:
+                rootsbar = hint
+                if not rootsbar: continue
+            if i < len(vertices) - 1:
+                F = P._factor_of_degree(deg_right - deg)
+                P = P // F
+            else:
+                F = P
+            if deg < deg_left:
+                G = F._factor_of_degree(deg_left - deg)
+                F //= G
+            deg = deg_right
+            val = F[0].valuation()
+            if hint is None or slope != minval:
+                Fbar = Pk([ F[j] >> (val - j*slope) for j in range(F.degree()+1) ])
+                rootsbar = [ r for (r, _) in Fbar.roots() ]
+                if not rootsbar: continue
+            rbar = rootsbar.pop()
+            shift = K(rbar).lift_to_precision() << slope  # probably we should choose a better lift
+            roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, [r-rbar for r in rootsbar])]  # recursive call
+        return roots
+
+
 
 class Polynomial_generic_dense_cdv(Polynomial_generic_dense_inexact, Polynomial_generic_cdv):
     pass

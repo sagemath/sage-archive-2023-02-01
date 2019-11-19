@@ -1,12 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env sage-python
 
 # Cleverly run Mathematica with the benefit of readline, which
 # is something the usual commercial mathematica doesn't provide!
 # See
 #    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/363500
 
-import sys, signal, subprocess
-import readline
+import sys
+import signal
+import subprocess
 from six.moves import input
 
 def child_exited(*args):

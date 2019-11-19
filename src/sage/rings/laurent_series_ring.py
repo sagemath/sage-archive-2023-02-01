@@ -17,7 +17,7 @@ EXAMPLES::
 
     * :func:`sage.misc.defaults.set_series_precision`
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2007 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2012 David Roe <roed.math@gmail.com>
@@ -28,8 +28,8 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import
 
@@ -424,10 +424,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
 
         Various conversions from PARI (see also :trac:`2508`)::
 
-            sage: L.<q> = LaurentSeriesRing(QQ)
-            sage: L.set_default_prec(10)
-            doctest:...: DeprecationWarning: This method is deprecated.
-            See http://trac.sagemath.org/16201 for details.
+            sage: L.<q> = LaurentSeriesRing(QQ, default_prec=10)
             sage: L(pari('1/x'))
             q^-1
             sage: L(pari('polchebyshev(5)'))
@@ -590,7 +587,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             and A.has_coerce_map_from(P.base_ring())):
             return True
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         EXAMPLES::
 
@@ -603,15 +600,25 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             sage: f = R.hom(x+x^3,R)
             sage: f(x^2)
             x^2 + 2*x^4 + x^6
+
+        The image of the generator needs to be a unit::
+
+            sage: R.<x> = LaurentSeriesRing(ZZ)
+            sage: R._is_valid_homomorphism_(R, [2*x])
+            False
         """
         ## NOTE: There are no ring homomorphisms from the ring of
         ## all formal power series to most rings, e.g, the p-adic
         ## field, since you can always (mathematically!) construct
         ## some power series that doesn't converge.
-        ## Note that 0 is not a *ring* homomorphism.
-        from .power_series_ring import is_PowerSeriesRing
-        if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
-            return im_gens[0].valuation() > 0 and codomain.has_coerce_map_from(self.base_ring())
+        ## NOTE: The above claim is wrong when the base ring is Z.
+        ## See trac 28486.
+
+        if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
+            return False
+        ## Note that 0 is not a *ring* homomorphism, and you cannot map to a power series ring
+        if is_LaurentSeriesRing(codomain):
+            return im_gens[0].valuation() > 0 and im_gens[0].is_unit()
         return False
 
     def characteristic(self):
@@ -646,25 +653,6 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         if not self.base_ring().is_field():
             raise TypeError("the base ring is not a field")
         return self.base_ring()
-
-    def set_default_prec(self, n):
-        """
-        Set the default precision.
-
-        This method is deprecated.
-
-        TESTS::
-
-            sage: R.<x> = LaurentSeriesRing(QQ)
-            sage: R.set_default_prec(3)
-            doctest:...: DeprecationWarning: This method is deprecated.
-            See http://trac.sagemath.org/16201 for details.
-            sage: 1/(x^5-x^7)
-            x^-5 + x^-3 + O(x^-2)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16201, "This method is deprecated.")
-        self._power_series_ring.set_default_prec(n)
 
     def default_prec(self):
         """
@@ -780,4 +768,3 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             Power Series Ring in x over Rational Field
         """
         return self._power_series_ring
-

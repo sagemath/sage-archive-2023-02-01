@@ -5,7 +5,6 @@ Function pickling
 
 REFERENCE: The python cookbook.
 """
-from __future__ import absolute_import
 
 import types
 import six
@@ -86,7 +85,7 @@ def unpickle_function(pickled):
     """
     Unpickle a pickled function.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: def f(N,M): return N*M
         ...

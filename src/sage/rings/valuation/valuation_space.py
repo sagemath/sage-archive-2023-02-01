@@ -45,14 +45,14 @@ EXAMPLES::
         sage: v._test_category()
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.categories.homset import Homset
@@ -60,6 +60,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.categories.action import Action
+
 
 class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
     r"""
@@ -732,7 +734,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if other.parent() is not self.parent():
                     raise ValueError("all valuations must be valuations on %r but %r is a valuation on %r"%(self.domain(), other, other.domain()))
                 if not other.is_discrete_valuation():
-                    raise ValueError("all valuationss must be discrete valuations but %r is not"%(other,))
+                    raise ValueError("all valuations must be discrete valuations but %r is not" % (other,))
                 if other.is_trivial():
                     raise ValueError("all valuations must be non-trivial but %r is not"%(other,))
 
@@ -767,7 +769,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         # terminate in reasonable time.
                         factor = (ret**r)/(1+ret**r)
                         ret = factor * delta
-                        if all([other(ret) < 0 for other in others[:i+1]]):
+                        if all(other(ret) < 0 for other in others[:i+1]):
                             break
             return ret
 
@@ -810,8 +812,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             assert(dd > 0)
             assert(d is not infinity)
             if d < 0:
-                # The following may fail if denominator is not inverible in the domain,
-                # but we don't have a better option this generically.
+                # The following may fail if denominator is not
+                # invertible in the domain, but we don't have a better
+                # option this generically.
                 return self.domain()(~denominator)
 
             # We need non-negative integers a and b such that
@@ -1029,10 +1032,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 1/2
 
             """
-            try:
-                return x.inverse_of_unit()
-            except:
-                raise NotImplementedError("can not compute approximate inverse with respect to this valuation")
+            return x.inverse_of_unit()
 
         def _relative_size(self, x):
             r"""
@@ -1564,7 +1564,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             except Exception:
                 # If the residue ring can not be constructed for some reason
                 # then we do not check its relation to the residue field.
-                # _test_residue_ring() is responible for checking whether the
+                # _test_residue_ring() is responsible for checking whether the
                 # residue ring should be constructible or not.
                 pass
             else:
@@ -1634,7 +1634,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 for prec in (0, 1, 42, infinity):
                     try:
                         y = self.inverse(x, prec)
-                    except NotImplementedError:
+                    except ArithmeticError:  # Inverse does not exist
                         continue
                     except ValueError:
                         if prec is not infinity:
@@ -1647,7 +1647,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         tester.assertGreaterEqual(self(x*y - 1), prec)
 
 
-from sage.categories.action import Action
 class ScaleAction(Action):
     r"""
     Action of integers, rationals and the infinity ring on valuations by
@@ -1659,20 +1658,15 @@ class ScaleAction(Action):
         sage: from operator import mul
         sage: v.parent().get_action(ZZ, mul, self_on_left=False)
         Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
-
     """
-    def _call_(self, s, v):
+    def _act_(self, s, v):
         r"""
         Let ``s`` act on ``v``.
 
         EXAMPLES::
 
             sage: v = QQ.valuation(5)
-            sage: 3*v # indirect doctest
+            sage: 3 * v  # indirect doctest
             3 * 5-adic valuation
-            
         """
-        if not self.is_left():
-            # for a right action, the parameters are swapped
-            s,v = v,s
         return v.scale(s)

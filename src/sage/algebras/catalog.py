@@ -40,12 +40,15 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.MalvenutoReutenauer <sage.combinat.fqsym.FreeQuasisymmetricFunctions>`
 - :class:`algebras.NilCoxeter
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
+- :class:`algebras.OrlikTerao
+  <sage.algebras.orlik_terao.OrlikTeraoAlgebra>`
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
 - :class:`algebras.QuantumMatrixCoordinate
   <sage.algebras.quantum_matrix_coordinate_algebra.QuantumMatrixCoordinateAlgebra>`
 - :class:`algebras.QuantumGL
   <sage.algebras.quantum_matrix_coordinate_algebra.QuantumGL>`
+- :class:`algebras.QSym <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions>`
 - :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
 - :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
 - :class:`algebras.QuantumGroup
@@ -84,6 +87,7 @@ lazy_import('sage.algebras.askey_wilson', 'AskeyWilsonAlgebra', 'AskeyWilson')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra', 'Jordan')
 lazy_import('sage.algebras.orlik_solomon', 'OrlikSolomonAlgebra', 'OrlikSolomon')
+lazy_import('sage.algebras.orlik_terao', 'OrlikTeraoAlgebra', 'OrlikTerao')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
@@ -102,6 +106,7 @@ lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'FQSym')
 lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'MalvenutoReutenauer')
 lazy_import('sage.combinat.chas.wqsym', 'WordQuasiSymmetricFunctions', 'WQSym')
 lazy_import('sage.combinat.chas.fsym', 'FreeSymmetricFunctions', 'FSym')
+lazy_import('sage.combinat.ncsf_qsym.qsym', 'QuasiSymmetricFunctions', 'QSym')
 lazy_import('sage.combinat.grossman_larson_algebras', 'GrossmanLarsonAlgebra', 'GrossmanLarson')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')

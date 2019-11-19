@@ -79,6 +79,7 @@ from sage.rings.all import QQ
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix_space import MatrixSpace
 
+
 def random_inequalities(d, n):
     """
     Random collections of inequalities for testing purposes.
@@ -91,7 +92,7 @@ def random_inequalities(d, n):
 
     OUTPUT:
 
-    A random set of inequalites as a :class:`StandardAlgorithm` instance.
+    A random set of inequalities as a :class:`StandardAlgorithm` instance.
 
     EXAMPLES::
 
@@ -415,8 +416,7 @@ class DoubleDescriptionPair:
             sage: A = matrix([[1,sqrt2],[2,0]])
             sage: DD, _  = Problem(A).initial_pair()
             sage: DD.matrix_space(1,2)
-            Full MatrixSpace of 1 by 2 dense matrices over Number Field in sqrt2
-            with defining polynomial x^2 - 2
+            Full MatrixSpace of 1 by 2 dense matrices over Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
         """
         return MatrixSpace(self.problem.base_ring(), nrows, ncols)
 

@@ -207,13 +207,13 @@ class SageMagics(Magics):
           for allowed values. If the mode is ``ascii_art``, it can
           optionally be followed by a width.
 
-        How to use: if you want activate the ASCII art mod::
+        How to use: if you want to activate the ASCII art mode::
 
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('%display ascii_art')
 
-        That means you don't have to use :func:`ascii_art` to get an ASCII art
+        That means you do not have to use :func:`ascii_art` to get an ASCII art
         output::
 
             sage: shell.run_cell("i = var('i')")
@@ -221,7 +221,7 @@ class SageMagics(Magics):
                  10       9       8       7       6       5       4      3      2
             100*x   + 81*x  + 64*x  + 49*x  + 36*x  + 25*x  + 16*x  + 9*x  + 4*x  + x
 
-        Then when you want return in 'textual mode'::
+        Then when you want to return to 'textual mode'::
 
             sage: shell.run_cell('%display text plain')
             sage: shell.run_cell('%display plain')        # shortcut for "text plain"
@@ -234,14 +234,14 @@ class SageMagics(Magics):
             sage: shell.run_cell('%display ascii_art')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [
-            [                                                                  1  4
-            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2
-            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,
+            [                                                                  1  4    1  3
+            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
+            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4   ,
             <BLANKLINE>
-                               1 ]
-               1  3    1  2    2 ]
-               2       3       3 ]
-               4   ,   4   ,   4 ]
+                       1 ]
+               1  2    2 ]
+               3       3 ]
+               4   ,   4 ]
             sage: shell.run_cell('%display ascii_art 50')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [

@@ -17,7 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
 from sage.structure.element import Element
 from functools import reduce
-from sage.misc.cachefunc import cached_method
+
 
 class Rings(CategoryWithAxiom):
     """
@@ -266,7 +266,6 @@ class Rings(CategoryWithAxiom):
 
                 sage: Parent(QQ,category=Rings()).is_ring()
                 True
-
             """
             return True
 
@@ -907,22 +906,22 @@ class Rings(CategoryWithAxiom):
             Note that the same syntax can be used to create number fields::
 
                 sage: QQ[I]
-                Number Field in I with defining polynomial x^2 + 1
+                Number Field in I with defining polynomial x^2 + 1 with I = 1*I
                 sage: QQ[I].coerce_embedding()
                 Generic morphism:
-                 From: Number Field in I with defining polynomial x^2 + 1
-                 To:   Complex Lazy Field
-                 Defn: I -> 1*I
+                  From: Number Field in I with defining polynomial x^2 + 1 with I = 1*I
+                  To:   Complex Lazy Field
+                  Defn: I -> 1*I
 
             ::
 
                 sage: QQ[sqrt(2)]
-                Number Field in sqrt2 with defining polynomial x^2 - 2
+                Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
                 sage: QQ[sqrt(2)].coerce_embedding()
                 Generic morphism:
-                 From: Number Field in sqrt2 with defining polynomial x^2 - 2
-                 To:   Real Lazy Field
-                 Defn: sqrt2 -> 1.414213562373095?
+                  From: Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
+                  To:   Real Lazy Field
+                  Defn: sqrt2 -> 1.414213562373095?
 
             ::
 
@@ -932,18 +931,18 @@ class Rings(CategoryWithAxiom):
             and orders in number fields::
 
                 sage: ZZ[I]
-                Order in Number Field in I with defining polynomial x^2 + 1
+                Order in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
                 sage: ZZ[sqrt(5)]
-                Order in Number Field in sqrt5 with defining polynomial x^2 - 5
+                Order in Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
                 sage: ZZ[sqrt(2)+sqrt(3)]
-                Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
+                Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1 with a = 3.146264369941973?
 
             Embeddings are found for simple extensions (when that makes sense)::
 
                 sage: QQi.<i> = QuadraticField(-1, 'i')
                 sage: QQ[i].coerce_embedding()
                 Generic morphism:
-                  From: Number Field in i with defining polynomial x^2 + 1
+                  From: Number Field in i with defining polynomial x^2 + 1 with i = 1*I
                   To:   Complex Lazy Field
                   Defn: i -> 1*I
 
@@ -997,7 +996,7 @@ class Rings(CategoryWithAxiom):
                 sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)
                 sage: QQ[expr].coerce_embedding()
                 Generic morphism:
-                  From: Number Field in a with defining polynomial x^2 - 2
+                  From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
                   To:   Real Lazy Field
                   Defn: a -> 1.414213562373095?
             """
@@ -1046,7 +1045,7 @@ class Rings(CategoryWithAxiom):
                 # how to pass in names?
                 names = tuple(_gen_names(elts))
                 if len(elts) == 1:
-                    from sage.rings.all import CIF, CLF, RIF, RLF
+                    from sage.rings.all import CIF, CLF, RLF
                     elt = elts[0]
                     try:
                         iv = CIF(elt)
@@ -1085,6 +1084,73 @@ class Rings(CategoryWithAxiom):
 
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(self, elts)
+
+        def free_module(self, base=None, basis=None, map=True):
+            """
+            Return a free module `V` over the specified subring together with maps to and from `V`.
+
+            The default implementation only supports the case that the base ring is the ring itself.
+
+            INPUT:
+
+            - ``base`` -- a subring `R` so that this ring is isomorphic
+              to a finite-rank free `R`-module `V`
+
+            - ``basis`` -- (optional) a basis for this ring over the base
+
+            - ``map`` -- boolean (default ``True``), whether to return
+              `R`-linear maps to and from `V`
+
+            OUTPUT:
+
+            - A finite-rank free `R`-module `V`
+
+            - An `R`-module isomorphism from `V` to this ring
+              (only included if ``map`` is ``True``)
+
+            - An `R`-module isomorphism from this ring to `V`
+              (only included if ``map`` is ``True``)
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[[]]
+                sage: V, from_V, to_V = R.free_module(R)
+                sage: v = to_V(1+x); v
+                (1 + x)
+                sage: from_V(v)
+                1 + x
+                sage: W, from_W, to_W = R.free_module(R, basis=(1-x))
+                sage: W is V
+                True
+                sage: w = to_W(1+x); w
+                (1 - x^2)
+                sage: from_W(w)
+                1 + x + O(x^20)
+            """
+            if base is None:
+                base = self.base_ring()
+            if base is self:
+                V = self**1
+                if not map:
+                    return V
+                if basis is not None:
+                    if isinstance(basis, (list, tuple)):
+                        if len(basis) != 1:
+                            raise ValueError("Basis must have length 1")
+                        basis = basis[0]
+                    basis = self(basis)
+                    if not basis.is_unit():
+                        raise ValueError("Basis element must be a unit")
+                from sage.modules.free_module_morphism import BaseIsomorphism1D_from_FM, BaseIsomorphism1D_to_FM
+                Hfrom = V.Hom(self)
+                Hto = self.Hom(V)
+                from_V = Hfrom.__make_element_class__(BaseIsomorphism1D_from_FM)(Hfrom, basis=basis)
+                to_V = Hto.__make_element_class__(BaseIsomorphism1D_to_FM)(Hto, basis=basis)
+                return V, from_V, to_V
+            else:
+                if not self.has_coerce_map_from(base):
+                    raise ValueError("base must be a subring of this ring")
+                raise NotImplementedError
 
     class ElementMethods:
         def is_unit(self):

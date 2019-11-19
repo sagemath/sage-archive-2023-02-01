@@ -642,6 +642,7 @@ from sage.matrix.constructor import vector
 from sage.misc.temporary_file import tmp_filename
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.misc.package import PackageNotFoundError
+from sage.cpython.string import bytes_to_str
 
 try:
     from gambit import Game
@@ -1767,7 +1768,7 @@ class NormalFormGame(SageObject, MutableMapping):
             from sage.misc.package import PackageNotFoundError
             raise PackageNotFoundError("lrslib")
 
-        lrs_output = [row for row in process.stdout]
+        lrs_output = [bytes_to_str(row) for row in process.stdout]
         process.terminate()
 
         nasheq = Parser(lrs_output).format_lrs()
@@ -2071,7 +2072,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_indifference(self, support1, support2, M):
         r"""
-        For support1, retrns the strategy with support: support2 that makes the
+        For support1, returns the strategy with support: support2 that makes the
         column player indifferent for the utilities given by M.
 
         This is done by building the corresponding linear system.
@@ -2213,12 +2214,12 @@ class NormalFormGame(SageObject, MutableMapping):
             False
         """
         # Check that supports are obeyed
-        if not(all([a[i] > 0 for i in p1_support]) and
-               all([b[j] > 0 for j in p2_support]) and
-               all([a[i] == 0 for i in range(len(a))
-                    if i not in p1_support]) and
-               all([b[j] == 0 for j in range(len(b))
-                    if j not in p2_support])):
+        if not(all(a[i] > 0 for i in p1_support) and
+               all(b[j] > 0 for j in p2_support) and
+               all(a[i] == 0 for i in range(len(a))
+                    if i not in p1_support) and
+               all(b[j] == 0 for j in range(len(b))
+                    if j not in p2_support)):
             return False
 
         # Check that have pair of best responses
@@ -2611,13 +2612,13 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.best_responses((1/2, 1/2), player='Player1')
             Traceback (most recent call last):
             ...
-            ValueError: Player1 is not an index of the oponent, must be 0 or 1
+            ValueError: Player1 is not an index of the opponent, must be 0 or 1
         """
         if len(self.players) != 2:
             raise ValueError('Only available for 2 player games')
 
         if player != 0 and player != 1:
-            raise ValueError('%s is not an index of the oponent, must be 0 or 1' % player)
+            raise ValueError('%s is not an index of the opponent, must be 0 or 1' % player)
 
         strategy = vector(strategy)
 

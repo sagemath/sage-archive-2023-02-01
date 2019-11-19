@@ -211,13 +211,14 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: FooBar.mro()  # py3
         [<class '__main__.FooBar'>, <class '__main__.Bar'>, <class 'object'>]
 
-    If all the base classes are extension types, the dynamic class is
-    also considered to be an extension type (see :trac:`23435`)::
+    If all the base classes have a zero ``__dictoffset__``, the dynamic
+    class also has a zero ``__dictoffset__``. This means that the
+    instances of the class don't have a ``__dict__``
+    (see :trac:`23435`)::
 
         sage: dyn = dynamic_class("dyn", (Integer,))
-        sage: from sage.structure.misc import is_extension_type
-        sage: is_extension_type(dyn)
-        True
+        sage: dyn.__dictoffset__
+        0
 
     .. RUBRIC:: Pickling
 
@@ -395,14 +396,25 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         sage: C2 = sage.structure.dynamic_class.dynamic_class_internal("C2", (UniqueRepresentation, Morphism))
         sage: type(C2)
         <class 'sage.structure.dynamic_class.DynamicInheritComparisonClasscallMetaclass'>
+
+    We check that :trac:`28392` has been resolved::
+
+        sage: class A:
+        ....:     pass
+        sage: Foo1 = sage.structure.dynamic_class.dynamic_class("Foo", (), A)
+        sage: "__weakref__" in Foo1.__dict__
+        False
+        sage: "__dict__" in Foo1.__dict__
+        False
     """
     if reduction is None:
         reduction = (dynamic_class, (name, bases, cls, reduction, doccls))
     if cls is not None:
         methods = dict(cls.__dict__)
         # Anything else that should not be kept?
-        if "__dict__" in methods:
-            methods.__delitem__("__dict__")
+        for key in ["__dict__", "__weakref__"]:
+            if key in methods:
+                del methods[key]
         if prepend_cls_bases:
             cls_bases = cls.__bases__
             all_bases = set()
@@ -431,7 +443,7 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     # NOTE: we need the isinstance(b, type) check to exclude old-style
     # classes.
     if all(isinstance(b, type) and not b.__dictoffset__ for b in bases):
-        methods['__slots__'] = []
+        methods['__slots__'] = ()
 
     metaclass = DynamicMetaclass
     # The metaclass of a class must derive from the metaclasses of its

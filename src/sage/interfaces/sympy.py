@@ -226,7 +226,13 @@ def _sympysage_symbol(self):
         sage: assert x == Symbol('x')._sage_()
     """
     from sage.symbolic.ring import SR
-    return SR.var(self.name)
+    try:
+        return SR.var(self.name)
+    except ValueError:
+        # sympy sometimes returns dummy variables
+        # with name = 'None', str rep = '_None'
+        # in particular in inverse Laplace and inverse Mellin transforms
+        return SR.var(str(self))
 
 def _sympysage_Subs(self):
      """
@@ -815,7 +821,6 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
         sage: from sage.interfaces.sympy import check_expression
         sage: check_expression("1.123*x", "x")
     """
-    from sage import __dict__ as sagedict
     from sage.symbolic.ring import SR
     from sympy import (__dict__ as sympydict, Basic, S, var as svar)
     # evaluate the expression in the context of Sage:
@@ -827,7 +832,6 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
         assert not isinstance(e_sage, Basic)
     except (NameError, TypeError):
         is_different = True
-        pass
 
     # evaluate the expression in the context of SymPy:
     if var_symbols:
@@ -968,10 +972,12 @@ def test_all():
     #test_integral_failing()
     test_undefined_function()
 
+
 def sympy_set_to_list(set, vars):
     """
     Convert all set objects that can be returned by SymPy's solvers.
     """
+    from sage.rings.infinity import UnsignedInfinity
     from sympy import (FiniteSet, And, Or, Union, Interval, oo, S)
     from sympy.core.relational import Relational
     if set == S.Reals:

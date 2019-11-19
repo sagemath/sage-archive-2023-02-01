@@ -5,6 +5,7 @@ AUTHORS:
 
 - Jon Hanke (2007-06-19)
 - Anna Haensch (2010-07-01): Formatting and ReSTification
+- Simon Brandhorst (2019-10-15): :meth:``quadratic_form_from_invariants``
 """
 
 #*****************************************************************************
@@ -28,13 +29,13 @@ from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
 from sage.misc.functional import denominator, is_even, is_field
 from sage.arith.all import GCD, LCM
-from sage.rings.all import Ideal
+from sage.rings.all import Ideal, QQ
 from sage.rings.ring import is_Ring, PrincipalIdealDomain
 from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.modules.free_module_element import vector
-
+from sage.quadratic_forms.genera.genus import genera
 from sage.quadratic_forms.quadratic_form__evaluate import QFEvaluateVector, QFEvaluateMatrix
 
 
@@ -74,6 +75,103 @@ def is_QuadraticForm(Q):
     """
     return isinstance(Q, QuadraticForm)
 
+
+def quadratic_form_from_invariants(F, rk, det, P, sminus):
+    r"""
+    Return a rational quadratic form with given invariants.
+
+    INPUT:
+
+    - ``F`` -- the base field; currently only ``QQ`` is allowed
+    - ``rk`` -- integer; the rank
+    - ``det`` -- rational; the determinant
+    - ``P`` -- a list of primes where Cassel's Hasse invariant
+      is negative
+    - ``sminus`` -- integer; the number of negative eigenvalues
+      of any Gram matrix
+
+    OUTPUT:
+
+    - a quadratic form with the specified invariants
+
+    Let `(a_1, \ldots, a_n)` be the gram marix of a regular quadratic space.
+    Then Cassel's Hasse invariant is defined as
+
+    .. MATH::
+
+        \prod_{i<j} (a_i,a_j),
+
+    where `(a_i,a_j)` denotes the Hilbert symbol.
+
+    ALGORITHM:
+
+    We follow [Kir2016]_.
+
+    EXAMPLES::
+
+        sage: P = [3,5]
+        sage: q = quadratic_form_from_invariants(QQ,2,-15,P,1)
+        sage: q
+        Quadratic form in 2 variables over Rational Field with coefficients:
+        [ 5 0 ]
+        [ * -3 ]
+        sage: all(q.hasse_invariant(p)==-1 for p in P)
+        True
+    """
+    from sage.arith.misc import hilbert_symbol
+    # normalize input
+    if F!=QQ:
+        raise NotImplementedError('base field must be QQ. If you want this over any field, implement weak approximation.')
+    P = [ZZ(p) for p in P]
+    rk = ZZ(rk)
+    d = QQ(det).squarefree_part()
+    sminus = ZZ(sminus)
+    # check if the invariants define a global quadratic form
+    if d.sign() != (-1)**sminus:
+        raise ValueError("invariants do not define a rational quadratic form")
+    if rk == 1 and len(P) != 0:
+        raise ValueError("invariants do not define a rational quadratic form")
+    if rk == 2:
+        for p in P:
+            if QQ(-d).is_padic_square(p):
+                raise ValueError("invariants do not define a rational quadratic form")
+    if sminus % 4 in (2, 3) and len(P) % 2 == 0:
+        raise ValueError("invariants do not define a rational quadratic form")
+    D = []
+    while rk >= 2:
+        if rk >= 4:
+            if sminus > 0:
+                a = ZZ(-1)
+            else:
+                a = ZZ(1)
+        elif rk == 3:
+            Pprime = [p for p in P if hilbert_symbol(-1, -d, p)==1]
+            Pprime += [p for p in (2*d).prime_divisors()
+                       if hilbert_symbol(-1, -d, p)==-1 and p not in P]
+            if sminus > 0:
+                a = ZZ(-1)
+            else:
+                a = ZZ(1)
+            for p in Pprime:
+                if d.valuation(p) % 2 == 0:
+                    a *= p
+            assert all((a*d).valuation(p)%2==1 for p in Pprime)
+        elif rk == 2:
+            S = P
+            if sminus == 2:
+                S += [-1]
+            a = QQ.hilbert_symbol_negative_at_S(S,-d)
+            a = ZZ(a)
+        P = [p for p in P if hilbert_symbol(a, -d, p) == 1]
+        P += [p for p in (2*a*d).prime_divisors()
+              if hilbert_symbol(a, -d, p)==-1 and p not in P]
+        sminus = max(0, sminus-1)
+        rk = rk - 1
+        d = a*d
+        D.append(a.squarefree_part())
+    d = d.squarefree_part()
+    D.append(d)
+    return DiagonalQuadraticForm(QQ,D)
 
 
 class QuadraticForm(SageObject):
@@ -373,7 +471,7 @@ class QuadraticForm(SageObject):
 
     ## Routines for solving equations of the form Q(x) = c.
     from sage.quadratic_forms.qfsolve import solve
-        
+
 
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
         """
@@ -891,7 +989,7 @@ class QuadraticForm(SageObject):
         if is_Matrix(v):
             ## Check that v has the correct number of rows
             if v.nrows() != n:
-                raise TypeError("Oops!  The matrix must have " + str(n) + " rows. =(")
+                raise TypeError("the matrix must have {} rows".format(n))
 
             ## Create the new quadratic form
             m = v.ncols()
@@ -901,14 +999,14 @@ class QuadraticForm(SageObject):
         elif (is_Vector(v) or isinstance(v, (list, tuple))):
             ## Check the vector/tuple/list has the correct length
             if not (len(v) == n):
-                raise TypeError("Oops!  Your vector needs to have length " + str(n) + " .")
+                raise TypeError("your vector needs to have length {}".format(n))
 
             ## TO DO:  Check that the elements can be coerced into the base ring of Q -- on first elt.
             if len(v) > 0:
                 try:
-                    x = self.base_ring()(v[0])
+                    self.base_ring()(v[0])
                 except Exception:
-                    raise TypeError("Oops!  Your vector is not coercible to the base ring of the quadratic form... =(")
+                    raise TypeError("your vector is not coercible to the base ring of the quadratic form")
 
             ## Attempt to evaluate Q[v]
             return QFEvaluateVector(self, v)
@@ -970,7 +1068,7 @@ class QuadraticForm(SageObject):
             try:
                 for i in range(n):
                     for j in range(i, n):
-                        x = R(A[i,j])
+                        R(A[i,j])
             except Exception:
                 return False
 
@@ -1267,7 +1365,7 @@ class QuadraticForm(SageObject):
             [ *  1 ]
 
         """
-        return QuadraticForm(self.Hessian_matrix().adjoint()).primitive()
+        return QuadraticForm(self.Hessian_matrix().adjoint_classical()).primitive()
 
     def dim(self):
         """
@@ -1582,6 +1680,7 @@ class QuadraticForm(SageObject):
             raise TypeError("not defined for rings of characteristic 2")
         return (self(v+w) - self(v) - self(w))/2
 
+    genera = staticmethod(genera)
 
 ## =====================================================================================================
 

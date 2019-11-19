@@ -259,6 +259,8 @@ def skip_TESTS_block(docstring):
       anything, followed by a line consisting only of a string of
       hyphens, equal signs, or other characters which are valid
       markers for reST headers: ``- = ` : ' " ~ _ ^ * + # < >``.
+      However, lines only containing double colons `::` do not
+      end "TESTS" blocks.
 
     Return the string obtained from ``docstring`` by removing these
     blocks.
@@ -313,6 +315,12 @@ def skip_TESTS_block(docstring):
         sage: another_fake = '\n    blah\n    ----'
         sage: skip_TESTS_block(start + test + another_fake).rstrip() == start.rstrip()
         True
+
+    Double colons ``::`` are also not considered as headers (:trac:`27896`)::
+
+        sage: colons = ' ::\n\n     sage: 2+2\n     4\n\n'
+        sage: skip_TESTS_block(start + test2 + colons).rstrip() == start.rstrip()
+        True
     """
     # tests_block: match a line starting with whitespace, then
     # "TEST" or "TESTS" followed by ":" or "::", then possibly
@@ -327,7 +335,8 @@ def skip_TESTS_block(docstring):
     end_of_block = re.compile(r'[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
     # header: match a string of hyphens, or other characters which are
     # valid markers for reST headers: - = ` : ' " ~ _ ^ * + # < >
-    header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
+    # except for double colons ::
+    header = re.compile(r'^[ ]*(?:([-=`\'"~_^*+#><])\1+|:|:::+)[ ]*$')
     s = ''
     skip = False
     previous = ''
@@ -468,7 +477,7 @@ extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
+    'arxiv': ('https://arxiv.org/abs/%s', 'arXiv '),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
     'doi': ('https://doi.org/%s', 'doi:'),
     'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
@@ -482,7 +491,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``https://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
+    the dictionary ``extlinks`` in ``sage.docs.conf``.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -1018,18 +1027,23 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     The following produces an error because the string 'fetch(' is a
     malformed regular expression::
 
-        sage: print(search_src(" fetch(", "def", interact=False))
+        sage: print(search_src(" fetch(", "def", interact=False)) # py2
         Traceback (most recent call last):
         ...
         error: unbalanced parenthesis
 
+        sage: print(search_src(" fetch(", "def", interact=False)) # py3
+        Traceback (most recent call last):
+        ...
+        re.error: missing ), unterminated subpattern at position 6
+
     To fix this, *escape* the parenthesis with a backslash::
 
-        sage: print(search_src(" fetch\(", "def", interact=False)) # random # long time
+        sage: print(search_src(r" fetch\(", "def", interact=False)) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
         matrix/matrix0.pxd:    cdef fetch(self, key)
 
-        sage: print(search_src(" fetch\(", "def", "pyx", interact=False)) # random # long time
+        sage: print(search_src(r" fetch\(", "def", "pyx", interact=False)) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
 
     As noted above, the search is case-insensitive, but you can make it
@@ -1063,28 +1077,28 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
 
     ::
 
-        sage: print(search_src('^ *sage[:] .*search_src\(', interact=False)) # long time
+        sage: print(search_src(r'^ *sage[:] .*search_src\(', interact=False)) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) # random # long time
         misc/sagedoc.py:... len(search_src("matrix", module="sage.calculus", interact=False).splitlines()) # random
         misc/sagedoc.py:... len(search_src("matrix", path_re="calc", interact=False).splitlines()) > 15
-        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False))
-        misc/sagedoc.py:... print(search_src(" fetch\(", "def", interact=False)) # random # long time
-        misc/sagedoc.py:... print(search_src(" fetch\(", "def", "pyx", interact=False)) # random # long time
+        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False)) # py2
+        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False)) # py3
+        misc/sagedoc.py:... print(search_src(r" fetch\(", "def", interact=False)) # random # long time
+        misc/sagedoc.py:... print(search_src(r" fetch\(", "def", "pyx", interact=False)) # random # long time
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=False); s.find('x') > 0
         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 40
         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 70
-        misc/sagedoc.py:... print(search_src('^ *sage[:] .*search_src\(', interact=False)) # long time
+        misc/sagedoc.py:... print(search_src(r'^ *sage[:] .*search_src\(', interact=False)) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print(search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False)) # random # long time
         misc/sagedoc.py:... sage: results = search_src('format_search_as_html', # long time
 
-
     TESTS:
 
     As of this writing, there are about 9500 lines in the Sage library that
-    contain "matrix"; it seems safe to assume we'll continue to have
+    contain "matrix"; it seems safe to assume we will continue to have
     over 9000 such lines::
 
         sage: len(search_src("matrix", interact=False).splitlines()) > 9000 # long time

@@ -59,8 +59,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from __future__ import print_function, absolute_import, division
-
 import re
 from copy import copy
 from sage.rings.infinity import infinity
@@ -2251,7 +2249,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         Return the generic dense skew polynomial corresponding to the
         current parameters provided ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])

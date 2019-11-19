@@ -52,7 +52,6 @@ EXAMPLES::
     sage: c.is_sparse()
     True
 """
-from __future__ import absolute_import
 
 cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix_sparse as matrix_sparse

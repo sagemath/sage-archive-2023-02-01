@@ -19,7 +19,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from libc.string cimport strchr
 from cpython.bytes cimport PyBytes_FromStringAndSize
@@ -690,7 +689,7 @@ cdef class Parser:
 
 # eqn ::= expr op expr | expr
     cpdef p_eqn(self, Tokenizer tokens):
-        """
+        r"""
         Parse an equation or expression.
 
         This is the top-level node called by the \code{parse} function.

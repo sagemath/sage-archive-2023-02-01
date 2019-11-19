@@ -767,7 +767,7 @@ class TermOrder(SageObject):
 
             self._length = len(weights)
             self._name = name
-            self._singular_str = singular_name_mapping.get(name,name) + '(' + ','.join([str(w) for w in weights]) + ')'
+            self._singular_str = singular_name_mapping.get(name,name) + '(' + ','.join(str(w) for w in weights) + ')'
             self._macaulay2_str = ""
             self._magma_str = ""
             self._weights = weights # defined only for weighted degree orders
@@ -778,11 +778,11 @@ class TermOrder(SageObject):
             if n*n != len(name):
                 raise ValueError("{} does not specify a square matrix".format(name))
 
-            int_str = ','.join([str(int(e)) for e in name])
+            int_str = ','.join(str(int(e)) for e in name)
 
             self._length = n
             self._name = "matrix"
-            self._singular_str = "M(%s)"%(int_str,)
+            self._singular_str = "M(%s)" % (int_str,)
             self._macaulay2_str = "" # Macaulay2 does not support matrix term order directly
             self._magma_str = '"weight",[%s]'%(int_str,)
 
@@ -954,7 +954,8 @@ class TermOrder(SageObject):
 
         """
         return (sum(f.nonzero_values(sort=False)),
-                tuple(-v for v in f.reversed()))
+                f.reversed().emul(-1))
+                # tuple(-v for v in f.reversed()))
 
     def sortkey_neglex(self, f):
         """
@@ -1679,12 +1680,11 @@ class TermOrder(SageObject):
             sage: T = P.term_order()
             sage: T.macaulay2_str()
             '{GRevLex => 3,Lex => 5}'
-            sage: P._macaulay2_() # optional - macaulay2
-             ZZ
-            ---[x0, x1, x2, x3, x4, x5, x6, x7, Degrees => {8:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
-            127                                                                                 {GRevLex => {3:1}  }
-                                                                                                {Lex => 5          }
-                                                                                                {Position => Up    }
+            sage: P._macaulay2_().options()['MonomialOrder']  # optional - macaulay2
+            {MonomialSize => 16  }
+            {GRevLex => {1, 1, 1}}
+            {Lex => 5            }
+            {Position => Up      }
         """
         return self._macaulay2_str
 
@@ -1776,13 +1776,27 @@ class TermOrder(SageObject):
             sage: T1 = TermOrder('lex',2)+TermOrder('lex',3)
             sage: T2 = TermOrder('lex',3)+TermOrder('lex',2)
             sage: T1 == T2
-            True
+            False
 
         ::
 
             sage: T1 = TermOrder('lex',2)+TermOrder('neglex',3)
             sage: T2 = TermOrder('lex',2)+TermOrder('neglex',3)
             sage: T1 == T2
+            True
+
+        TESTS::
+
+        We assert that comparisons take into account the block size of
+        orderings (cf. :trac:`24981`)::
+
+            sage: R = PolynomialRing(QQ, 6, 'x', order="lex(1),degrevlex(5)")
+            sage: S = R.change_ring(order="lex(2),degrevlex(4)")
+            sage: R == S
+            False
+            sage: S.term_order() == R.term_order()
+            False
+            sage: S.term_order() == TermOrder('lex', 2) + TermOrder('degrevlex', 4)
             True
         """
         if not isinstance(other, TermOrder):
@@ -1791,8 +1805,10 @@ class TermOrder(SageObject):
             except Exception:
                 return False
 
-        return (self._name == other._name       # note that length is not considered.
+        return (self._name == other._name
             and self._blocks == other._blocks
+            and (not self.is_block_order()
+                or all(len(t1) == len(t2) for (t1, t2) in zip(self._blocks, other._blocks)))
             and self._weights == other._weights
             and self._matrix == other._matrix)
 
@@ -1805,7 +1821,7 @@ class TermOrder(SageObject):
             sage: T1 = TermOrder('lex',2)+TermOrder('lex',3)
             sage: T2 = TermOrder('lex',3)+TermOrder('lex',2)
             sage: T1 != T2
-            False
+            True
         """
         return not self == other
 

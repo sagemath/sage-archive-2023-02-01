@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Fields
 """
@@ -303,13 +304,7 @@ class Fields(CategoryWithAxiom):
             ALGORITHM:
 
             This uses the extended Euclidean algorithm; see for example
-            [Cohen1996]_, Algorithm 3.2.2.
-
-            REFERENCES:
-
-            .. [Cohen1996] \H. Cohen, A Course in Computational Algebraic
-               Number Theory.  Graduate Texts in Mathematics 138.
-               Springer-Verlag, 1996.
+            [Coh1993]_, Algorithm 3.2.2.
 
             EXAMPLES::
 
@@ -516,6 +511,37 @@ class Fields(CategoryWithAxiom):
             """
             from sage.modules.all import FreeModule
             return FreeModule(self, n)
+
+        def vector_space(self, *args, **kwds):
+            r"""
+            Gives an isomorphism of this field with a vector space over a subfield.
+
+            This method is an alias for ``free_module``, which may have more documentation.
+
+            INPUT:
+
+            - ``base`` -- a subfield or morphism into this field (defaults to the base field)
+
+            - ``basis`` -- a basis of the field as a vector space
+              over the subfield; if not given, one is chosen automatically
+
+            - ``map`` -- whether to return maps from and to the vector space
+
+            OUTPUT:
+
+            - ``V`` -- a vector space over ``base``
+            - ``from_V`` -- an isomorphism from ``V`` to this field
+            - ``to_V`` -- the inverse isomorphism from this field to ``V``
+
+            EXAMPLES::
+
+                sage: K.<a> = Qq(125)
+                sage: V, fr, to = K.vector_space()
+                sage: v = V([1,2,3])
+                sage: fr(v, 7)
+                (3*a^2 + 2*a + 1) + O(5^7)
+            """
+            return self.free_module(*args, **kwds)
 
     class ElementMethods:
         def euclidean_degree(self):
@@ -768,3 +794,35 @@ class Fields(CategoryWithAxiom):
                 raise ArithmeticError("factorization of {!r} is not defined".format(self))
             from sage.structure.factorization import Factorization
             return Factorization([], self)  # No factor; "self" as unit
+
+        def inverse_of_unit(self):
+            r"""
+            Return the inverse of this element.
+
+            EXAMPLES::
+
+                sage: NumberField(x^7+2,'a')(2).inverse_of_unit()
+                1/2
+
+            Trying to invert the zero element typically raises a
+            ``ZeroDivisionError``::
+
+                sage: QQ(0).inverse_of_unit()
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError: rational division by zero
+
+            To catch that exception in a way that also works for non-units
+            in more general rings, use something like::
+
+                sage: try:
+                ....:    QQ(0).inverse_of_unit()
+                ....: except ArithmeticError:
+                ....:    pass
+
+            Also note that some “fields” allow one to invert the zero element::
+
+                sage: RR(0).inverse_of_unit()
+                +infinity
+            """
+            return ~self

@@ -2,14 +2,13 @@ r"""
 Elements of Laurent polynomial rings
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -377,10 +376,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         return not self.__u.is_zero()
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
-        Return the image of ``self`` under the morphism defined by
-        ``im_gens`` in ``codomain``.
+        Return the image of this element under the morphism defined by
+        ``im_gens`` in ``codomain``, where elements of the
+        base ring are mapped by ``base_map``.
 
         EXAMPLES::
 
@@ -391,8 +391,23 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             17/4
             sage: 4 + 1/4
             17/4
+
+        You can specify a map on the base ring::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<t> = LaurentPolynomialRing(K)
+            sage: H = Hom(R, R)
+            sage: phi = H([t^-2], base_map=cc)
+            sage: phi(i*t)
+            -i*t^-2
         """
-        return codomain(self(im_gens[0]))
+        x = im_gens[0]
+        u = self.__u
+        if base_map is not None:
+            u = u.map_coefficients(base_map)
+        return codomain(u(x) * x**self.__n)
 
     cpdef __normalize(self):
         r"""
@@ -560,9 +575,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: hash(R.zero()) == hash(t - t)
             True
         """
-        if self.__n == 0:
-            return hash(self.__u)
-
         # we reimplement below the hash of polynomials to handle negative
         # degrees
         cdef long result = 0
@@ -573,10 +585,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             result_mon = hash(self.__u[i])
             if result_mon:
                 j = i + self.__n
-                result_mon = (1000003 * result_mon) ^ var_hash_name
                 if j > 0:
+                    result_mon = (1000003 * result_mon) ^ var_hash_name
                     result_mon = (1000003 * result_mon) ^ j
                 elif j < 0:
+                    result_mon = (1000003 * result_mon) ^ var_hash_name
                     result_mon = (700005 * result_mon) ^ j
                 result += result_mon
         return result
@@ -992,7 +1005,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             x^-40 - 4*x^-29 + 6*x^-18 - 4*x^-7 + x^4
         """
         cdef LaurentPolynomial_univariate self = _self
-        cdef long right = long(r)
+        cdef long right = r
         if right != r:
             raise ValueError("exponent must be an integer")
         return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
@@ -1578,16 +1591,31 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f = 2*t/x + (3*t^2 + 6*t)*x
             sage: f._derivative(t)
             2*x^-1 + (6*t + 6)*x
+
+        Check that :trac:`28187` is fixed::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: p = 1/x + 1 + x
+            sage: x,y = var("x, y")
+            sage: p._derivative(x)
+            -x^-2 + 1
+            sage: p._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
         cdef LaurentPolynomial_univariate ret
-        if var is not None and var is not self._parent.gen():
-            # call _derivative() recursively on coefficients
-            u = [coeff._derivative(var) for coeff in self.__u.list(copy=False)]
-            ret = <LaurentPolynomial_univariate> self._new_c()
-            ret.__u = <ModuleElement> self._parent._R(u)
-            ret.__n = self.__n
-            ret.__normalize()
-            return ret
+        if var is not None and var != self._parent.gen():
+            try:
+                # call _derivative() recursively on coefficients
+                u = [coeff._derivative(var) for coeff in self.__u.list(copy=False)]
+                ret = <LaurentPolynomial_univariate> self._new_c()
+                ret.__u = <ModuleElement> self._parent._R(u)
+                ret.__n = self.__n
+                ret.__normalize()
+                return ret
+            except AttributeError:
+                raise ValueError('cannot differentiate with respect to {}'.format(var))
 
         # compute formal derivative with respect to generator
         if self.is_zero():
@@ -1905,7 +1933,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         r"""
         TESTS:
 
-        Test that the hash is non-constant::
+        Test that the hash is non-constant (see also :trac:`27914`)::
 
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: len({hash(w^i*z^j) for i in [-2..2] for j in [-2..2]})
@@ -1941,6 +1969,18 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             True
             sage: hash(1 - 7*x0 + x1*x2) == hash(L(1 - 7*x0 + x1*x2))
             True
+
+        Check that :trac:`27914` is fixed::
+
+            sage: L.<w,z> = LaurentPolynomialRing(QQ)
+            sage: Lw = LaurentPolynomialRing(QQ, 'w')
+            sage: Lz = LaurentPolynomialRing(QQ, 'z')
+            sage: all(hash(w^k) == hash(Lw(w^k))
+            ....:     and hash(z^k) == hash(Lz(z^k)) for k in (-5..5))
+            True
+            sage: p = w^-1 + 2 + w
+            sage: hash(p) == hash(Lw(p))
+            True
         """
         # we reimplement the hash from multipolynomial to handle negative exponents
         # (see multi_polynomial.pyx)
@@ -1955,13 +1995,47 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             if c_hash != 0:
                 for p in range(n):
                     exponent = m[p] + self._mon[p]
-                    if not exponent:
-                        continue
-                    c_hash = (1000003 * c_hash) ^ var_name_hash[p]
-                    c_hash = (1000003 * c_hash) ^ exponent
+                    if exponent > 0:
+                        c_hash = (1000003 * c_hash) ^ var_name_hash[p]
+                        c_hash = (1000003 * c_hash) ^ exponent
+                    elif exponent < 0:
+                        c_hash = (1000003 * c_hash) ^ var_name_hash[p]
+                        c_hash = (700005 * c_hash) ^ exponent
                 result += c_hash
 
         return result
+
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of ``self`` under the morphism defined by
+        ``im_gens`` in ``codomain``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: M.<u,v> = LaurentPolynomialRing(ZZ)
+            sage: phi = L.hom([u,v])
+            sage: phi(x^2*~y -5*y**3)            # indirect doctest
+            -5*v^3 + u^2*v^-1
+
+        TESTS:
+
+        check compatibility with  :trac:`26105`::
+
+            sage: F.<t> = GF(4)
+            sage: LF.<a,b> = LaurentPolynomialRing(F)
+            sage: rho = LF.hom([b,a], base_map=F.frobenius_endomorphism())
+            sage: s = t*~a + b +~t*(b**-3)*a**2; rs = rho(s); rs
+            -a + (t + 1)*b^-1 + t*a^-3*b^2
+            sage: s == rho(rs)
+            True
+        """
+        p = self._poly
+        m = self._mon
+        if base_map is not None:
+            p = p.map_coefficients(base_map)
+        from sage.misc.misc_c import prod
+        return codomain(p(im_gens) * prod(ig**m[im_gens.index(ig)] for ig in im_gens))
 
     cdef _normalize(self, i=None):
         r"""
@@ -2253,8 +2327,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: list(f) # indirect doctest
-            [(-1, x^6), (1, x^-3*y^2), (5, x^-2*y), (-7, x^-2*y^3)]
+            sage: sorted(f) # indirect doctest
+            [(-7, x^-2*y^3), (-1, x^6), (1, x^-3*y^2), (5, x^-2*y)]
         """
         if self._prod is None:
             self._compute_polydict()
@@ -2276,8 +2350,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: f.monomials()
-            [x^6, x^-3*y^2, x^-2*y, x^-2*y^3]
+            sage: sorted(f.monomials())
+            [x^-3*y^2, x^-2*y, x^-2*y^3, x^6]
         """
         cdef list L = []
         if self._prod is None:
@@ -2754,6 +2828,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _richcmp_(self, right, int op):
         """
+        Compare two polynomials in a `LaurentPolynomialRing` based on the term
+        order from the parent ring.  If the parent ring does not specify a term
+        order then only comparison by equality is supported.
+
         EXAMPLES::
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
@@ -2770,7 +2848,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             self._compute_polydict()
         if (<LaurentPolynomial_mpair> right)._prod is None:
             (<LaurentPolynomial_mpair> right)._compute_polydict()
-        return richcmp(self._prod, (<LaurentPolynomial_mpair>right)._prod, op)
+
+        try:
+            sortkey = self.parent().term_order().sortkey
+        except AttributeError:
+            sortkey = None
+
+        return self._prod.rich_compare((<LaurentPolynomial_mpair>right)._prod,
+                                       op, sortkey)
 
     def exponents(self):
         """

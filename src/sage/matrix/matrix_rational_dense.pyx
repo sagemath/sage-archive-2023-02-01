@@ -64,8 +64,6 @@ Test hashing::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from libc.string cimport strcpy, strlen
 
 from sage.cpython.string cimport char_to_str, str_to_bytes
@@ -1277,11 +1275,11 @@ cdef class Matrix_rational_dense(Matrix_dense):
         sig_off()
         return 0
 
-    def _adjoint(self):
+    def _adjugate(self):
         """
-        Return the adjoint of this matrix.
+        Return the adjugate of this matrix.
 
-        Assumes self is a square matrix (checked in adjoint).
+        Assumes self is a square matrix (checked in adjugate).
 
         EXAMPLES::
 
@@ -1289,7 +1287,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [1/9 2/9 1/3]
             [4/9 5/9 2/3]
             [7/9 8/9   1]
-            sage: m.adjoint()
+            sage: m.adjugate()
             [-1/27  2/27 -1/27]
             [ 2/27 -4/27  2/27]
             [-1/27  2/27 -1/27]

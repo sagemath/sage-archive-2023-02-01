@@ -16,6 +16,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   - :class:`groups.permutation.KleinFour <sage.groups.perm_gps.permgroup_named.KleinFourGroup>`
   - :class:`groups.permutation.Quaternion <sage.groups.perm_gps.permgroup_named.QuaternionGroup>`
   - :class:`groups.permutation.Cyclic <sage.groups.perm_gps.permgroup_named.CyclicPermutationGroup>`
+  - :class:`groups.permutation.ComplexReflection <sage.groups.perm_gps.permgroup_named.ComplexReflectionGroup>`
   - :class:`groups.permutation.Dihedral <sage.groups.perm_gps.permgroup_named.DihedralGroup>`
   - :class:`groups.permutation.DiCyclic <sage.groups.perm_gps.permgroup_named.DiCyclicGroup>`
   - :class:`groups.permutation.Mathieu <sage.groups.perm_gps.permgroup_named.MathieuGroup>`
@@ -69,7 +70,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
     - :class:`groups.misc.RightAngledArtin <sage.groups.raag.RightAngledArtinGroup>`
     - :func:`groups.misc.WeylGroup <sage.combinat.root_system.weyl_group.WeylGroup>`
 
-  - other miscellanous groups
+  - other miscellaneous groups
 
     - :func:`groups.misc.AdditiveAbelian <sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup>`
     - :class:`groups.misc.AdditiveCyclic <sage.rings.finite_rings.integer_mod_ring.IntegerModFactory>`

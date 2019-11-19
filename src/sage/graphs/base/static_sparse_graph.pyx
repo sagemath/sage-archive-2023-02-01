@@ -180,7 +180,6 @@ with C arguments).
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 include "sage/data_structures/bitset.pxi"
 cimport cpython
@@ -292,11 +291,12 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list
             qsort(g.neighbors[i], g.neighbors[i+1] - g.neighbors[i], sizeof(int), compare_uint32_p)
 
     else:
+        from operator import itemgetter
         edge_labels = [None] * n_edges
         for v in G:
             neighbor_label = [(v_to_id[uu], l) if uu != v else (v_to_id[u], l)
                               for u,uu,l in G.edges_incident(v)]
-            neighbor_label.sort()
+            neighbor_label.sort(key=itemgetter(0))
             v_id = v_to_id[v]
 
             for i, (j, label) in enumerate(neighbor_label):
@@ -699,8 +699,8 @@ def tarjan_strongly_connected_components(G):
         sage: D.strongly_connected_components()
         [[3], [0, 1, 2], [6], [5], [4]]
         sage: D = DiGraph([('a','b'), ('b','c'), ('c', 'd'), ('d', 'b'), ('c', 'e')])
-        sage: D.strongly_connected_components()
-        [['e'], ['c', 'b', 'd'], ['a']]
+        sage: [sorted(scc) for scc in D.strongly_connected_components()]
+        [['e'], ['b', 'c', 'd'], ['a']]
 
     TESTS:
 
@@ -767,7 +767,8 @@ cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int
     which should be empty at the beginning.
     """
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int v, w, i
+    cdef size_t v, w, i
+    cdef size_t s_nscc = <size_t>nscc
     cdef int tmp = nscc + 1
     cdef vector[vector[int]] scc_list = vector[vector[int]](nscc, vector[int]())
     cdef vector[vector[int]] sons = vector[vector[int]](nscc + 1, vector[int]())
@@ -777,15 +778,15 @@ cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int
     cdef uint32_t degv
     cdef uint32_t *p_tmp
 
-    for v in range(nscc):
+    for v in range(s_nscc):
         scc_list[v] = vector[int]()
         sons[v] = vector[int]()
     sons[nscc] = vector[int]()
 
-    for i in range(g.n):
+    for i in range(<size_t>g.n):
         scc_list[scc[i]].push_back(i)
 
-    for v in range(nscc):
+    for v in range(s_nscc):
         for i in range(scc_list[v].size()):
             p_tmp = g.neighbors[scc_list[v][i]]
             while p_tmp<g.neighbors[scc_list[v][i]+1]:
@@ -805,13 +806,13 @@ cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int
 
     if not m:
         output.edges = NULL
-        for v in range(1, nscc + 1):
+        for v in range(1, s_nscc + 1):
             output.neighbors[v] = NULL
 
     output.edges = <uint32_t *> check_allocarray(m, sizeof(uint32_t))
     output.neighbors[0] = output.edges
 
-    for v in range(1, nscc + 1):
+    for v in range(1, s_nscc + 1):
         degv = sons[v].size()
         output.neighbors[v] = output.neighbors[v-1] + sons[v-1].size()
         for i in range(sons[v].size()):
@@ -928,8 +929,8 @@ def triangles_count(G):
     cdef uint32_t * p1
     cdef uint32_t * p2
 
-    for u in range(g.n):
-        for i in range(out_degree(g, u)):
+    for u in range(<uint32_t>g.n):
+        for i in range(<uint32_t>out_degree(g, u)):
             v = g.neighbors[u][i]
             if v <= u:
                 continue
@@ -1087,6 +1088,12 @@ def spectral_radius(G, prec=1e-10):
         Traceback (most recent call last):
         ...
         ValueError: empty graph
+
+        sage: G = DiGraph([(0,1),(1,2),(2,0),(2,0)], multiedges=True)
+        sage: G.spectral_radius()
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph must be aperiodic        
     """
     if not G:
         raise ValueError("empty graph")
@@ -1127,6 +1134,11 @@ def spectral_radius(G, prec=1e-10):
     if 1+c_prec/2 == 1:
         raise ValueError("precision (={!r}) is too small".format(prec))
 
+    # test if the graph is aperiodic
+    from sage.graphs.digraph import DiGraph
+    if not DiGraph(G).is_aperiodic():
+        raise ValueError("the graph must be aperiodic")
+
     # make a copy of G if needed to obtain a static sparse graph
     # NOTE: the following potentially copies the labels of the graph which is
     # completely useless for the computation!
@@ -1134,8 +1146,8 @@ def spectral_radius(G, prec=1e-10):
     G = G.copy(immutable=True)
     g[0] = (<StaticSparseCGraph> (<StaticSparseBackend> G._backend)._cg).g[0]
 
-    cdef long n = g.n
-    cdef long m = g.m
+    cdef size_t n = <size_t>g.n
+    cdef size_t m = <size_t>g.m
     cdef uint32_t ** neighbors = g.neighbors
 
     # v1 and v2 are two arrays of length n, allocated as one array

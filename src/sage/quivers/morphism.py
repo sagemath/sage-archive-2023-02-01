@@ -2,7 +2,7 @@
 Quiver Morphisms
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2012 Jim Stark <jstarx@gmail.com>
 #                2013 Simon King <simon.king@uni-jena.de>
 #
@@ -15,11 +15,12 @@ Quiver Morphisms
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.morphism import CallMorphism
 from sage.matrix.constructor import Matrix
+
 
 class QuiverRepHom(CallMorphism):
     r"""
@@ -281,7 +282,7 @@ class QuiverRepHom(CallMorphism):
                     m = Matrix(self._base_ring, domain_dims[v], codomain_dims[v], maps_dict[v])
             else:
                 m = Matrix(self._base_ring, domain_dims[v], codomain_dims[v])
-            for i in range(0, domain_dims[v]):
+            for i in range(domain_dims[v]):
                 vector += list(m[i])
 
         # Wrap as a vector, check it, and return
@@ -506,7 +507,6 @@ class QuiverRepHom(CallMorphism):
             sage: g == h
             True
         """
-        from sage.quivers.morphism import QuiverRepHom
         # A homomorphism can only be equal to another homomorphism between the
         # same domain and codomain
         if not isinstance(other, QuiverRepHom) or self._domain != other._domain or self._codomain != other._codomain:
@@ -554,7 +554,6 @@ class QuiverRepHom(CallMorphism):
             sage: g != h
             True
         """
-        from sage.quivers.morphism import QuiverRepHom
         # A homomorphism can only be equal to another homomorphism between the
         # same domain and codomain
         if not isinstance(other, QuiverRepHom) or self._domain != other._domain or self._codomain != other._codomain:
@@ -1137,7 +1136,7 @@ class QuiverRepHom(CallMorphism):
         # Find the images in the domain and create the module
         # H = QuiverHomSpace(self._domain, self._quiver.free_module(self._base_ring))
         im_gens = [codomain({v: (g*self)._vector})
-                    for v in self._quiver for g in domain_gens[v]]
+                   for v in self._quiver for g in domain_gens[v]]
         return domain.hom(im_gens, codomain)
 
     def direct_sum(self, maps, return_maps=False, pinch=None):
@@ -1201,7 +1200,6 @@ class QuiverRepHom(CallMorphism):
             sage: g.is_surjective()
             False
         """
-        from sage.quivers.morphism import QuiverRepHom
         # Get the list of maps to be summed
         if isinstance(maps, QuiverRepHom):
             maplist = [self, maps]
@@ -1236,7 +1234,7 @@ class QuiverRepHom(CallMorphism):
         result = domain.hom(codomain)
 
         # Add each factor
-        for i in range(0, len(maplist)):
+        for i in range(len(maplist)):
             if pinch == 'domain':
                 result += c_incl[i]*maplist[i]
             elif pinch == 'codomain':
@@ -1329,4 +1327,3 @@ class QuiverRepHom(CallMorphism):
             True
         """
         self._vector *= scalar
-

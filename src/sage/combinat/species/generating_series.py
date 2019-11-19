@@ -129,7 +129,7 @@ class OrdinaryGeneratingSeriesRing_class(LazyPowerSeriesRing):
             sage: R == loads(dumps(R))
             True
         """
-        LazyPowerSeriesRing.__init__(self, R, OrdinaryGeneratingSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=OrdinaryGeneratingSeries)
 
 
 class OrdinaryGeneratingSeries(LazyPowerSeries):
@@ -204,7 +204,7 @@ class ExponentialGeneratingSeriesRing_class(LazyPowerSeriesRing):
             sage: R == loads(dumps(R))
             True
         """
-        LazyPowerSeriesRing.__init__(self, R, ExponentialGeneratingSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=ExponentialGeneratingSeries)
 
 class ExponentialGeneratingSeries(LazyPowerSeries):
     def count(self, n):
@@ -374,7 +374,7 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
             True
         """
         R = SymmetricFunctions(R).power()
-        LazyPowerSeriesRing.__init__(self, R, CycleIndexSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=CycleIndexSeries)
 
     def __repr__(self):
         """
@@ -755,7 +755,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
            Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
-           :arXiv:`math/0503436v2`.
+           :arxiv:`math/0503436v2`.
 
         """
         from itertools import product, repeat, chain
@@ -1069,8 +1069,8 @@ class CycleIndexSeries(LazyPowerSeries):
 
             The compositional inverse `\Omega` of the species `E_{+}`
             of nonempty sets can be handled much more efficiently
-            using specialized methods. These are implemented in
-            :class:`~sage.combinat.species.combinatorial_logarithm.CombinatorialLogarithmSeries`.
+            using specialized methods. See
+            :func:`~sage.combinat.species.generating_series.LogarithmCycleIndexSeries`
 
         AUTHORS:
 

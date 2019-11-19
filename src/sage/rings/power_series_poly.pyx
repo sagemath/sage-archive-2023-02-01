@@ -4,7 +4,6 @@ Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
-from __future__ import absolute_import, print_function
 
 from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -812,11 +811,24 @@ cdef class PowerSeries_poly(PowerSeries):
             4*x^3*y^3 + O(y^4)
             sage: f._derivative(x)
             3*x^2*y^4 + O(y^5)
+
+        TESTS::
+
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: x = var('x')
+            sage: t.derivative(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to x
         """
-        if var is not None and var is not self._parent.gen():
-            # call _derivative() recursively on coefficients
-            return PowerSeries_poly(self._parent, self.__f._derivative(var),
+        if var is not None and var != self._parent.gen():
+            try:
+                # call _derivative() recursively on coefficients
+                return PowerSeries_poly(self._parent, self.__f._derivative(var),
                                     self.prec(), check=False)
+            except AttributeError:
+                raise ValueError('cannot differentiate with respect to {}'.format(var))
+
 
         # compute formal derivative with respect to generator
         return PowerSeries_poly(self._parent, self.__f._derivative(),

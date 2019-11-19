@@ -691,8 +691,8 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
             sage: latex(LaurentPolynomialRing(QQ,2,'x'))
             \Bold{Q}[x_{0}^{\pm 1}, x_{1}^{\pm 1}]
         """
-        vars = ', '.join([a + r'^{\pm 1}' for a in self.latex_variable_names()])
-        return "%s[%s]"%(latex(self.base_ring()), vars)
+        vars = ', '.join(a + r'^{\pm 1}' for a in self.latex_variable_names())
+        return "%s[%s]" % (latex(self.base_ring()), vars)
 
     def _ideal_class_(self, n=0):
         """
@@ -717,15 +717,22 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
         """
         raise NotImplementedError
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         EXAMPLES::
 
-            sage: L.<x,y> = LaurentPolynomialRing(QQ)
-            sage: L._is_valid_homomorphism_(QQ, (1/2, 3/2))
+            sage: T.<t> = ZZ[]
+            sage: K.<i> = NumberField(t^2 + 1)
+            sage: L.<x,y> = LaurentPolynomialRing(K)
+            sage: L._is_valid_homomorphism_(K, (K(1/2), K(3/2)))
+            True
+            sage: Q5 = Qp(5); i5 = Q5(-1).sqrt()
+            sage: L._is_valid_homomorphism_(Q5, (Q5(1/2), Q5(3/2))) # no coercion
+            False
+            sage: L._is_valid_homomorphism_(Q5, (Q5(1/2), Q5(3/2)), base_map=K.hom([i5]))
             True
         """
-        if not codomain.has_coerce_map_from(self.base_ring()):
+        if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
             # we need that elements of the base ring
             # canonically coerce into codomain.
             return False
@@ -948,8 +955,22 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             sage: D.<d, e> = LaurentPolynomialRing(B)
             sage: B(D(b))
             b
+
+        TESTS:
+
+        Check that conversion back from fraction field does work (:trac:`26425`)::
+
+            sage: R.<t> = LaurentPolynomialRing(ZZ)
+            sage: F = FractionField(R)
+            sage: R(F(25/(5*t**2)))
+            5*t^-2
+            sage: R(F(1/(1+t**2)))
+            Traceback (most recent call last):
+            ...
+            TypeError: fraction must have unit denominator
         """
         from sage.symbolic.expression import Expression
+        from sage.rings.fraction_field_element import FractionFieldElement
         if isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
 
@@ -968,6 +989,15 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
                 return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
+
+        elif isinstance(x, FractionFieldElement):
+            # since the field of fraction of self is defined corresponding to the polynomial ring of self
+            # the conversion of its elements back must be treated separately (:trac:`26425`).
+            P = x.parent()
+            d = self(x.denominator())
+            if not d.is_unit():
+                raise TypeError("fraction must have unit denominator")
+            return self(x.numerator()) * d.inverse_of_unit()
 
         return self.element_class(self, x)
 

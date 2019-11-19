@@ -3,7 +3,7 @@
 # distutils: library_dirs = GIVARO_LIBDIR
 # distutils: language = c++
 
-from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libc.stdint cimport uint32_t, uint64_t
 
 from sage.libs.gmp.types cimport (mpz_t, mpz_srcptr, mpz_ptr,
                                   mpq_t, mpq_srcptr, mpq_ptr)
@@ -40,10 +40,10 @@ cdef extern from "givaro/zring.h":
         Element one
         Element mone
 
-cdef extern from "givaro/modular.h":
-    cdef cppclass Modular_int64 "Givaro::Modular<int64_t>":
-        ctypedef int64_t Element
-        Modular_int64(int modulus)
+cdef extern from "givaro/modular-integral.h":
+    cdef cppclass Modular_uint64 "Givaro::Modular<uint64_t>":
+        ctypedef uint64_t Element
+        Modular_uint64(int modulus)
 
         Element init(Element res, int v)
         Element inv(Element x, Element y)
@@ -58,6 +58,7 @@ cdef extern from "givaro/modular.h":
 
         ostream& write(ostream&)
 
+cdef extern from "givaro/modular-floating.h":
     cdef cppclass Modular_double "Givaro::Modular<double>":
         ctypedef double Element
         Modular_double(int modulus)

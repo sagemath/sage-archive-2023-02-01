@@ -601,15 +601,23 @@ class FreeModuleBasis(Basis_abstract):
         # base module itself, since it is considered as a type-(1,0) tensor
         # module):
         for t in fmodule._tensor_modules.values():
-            t._zero_element._components[self] = t._zero_element._new_comp(self)
-                               # (since new components are initialized to zero)
+            t.zero()._add_comp_unsafe(self)
+            # (since new components are initialized to zero)
         # Initialization of the components w.r.t the current basis of the zero
         # elements of all exterior powers of the module and its dual
         # constructed up to now:
         for t in fmodule._exterior_powers.values():
-            t._zero_element._components[self] = t._zero_element._new_comp(self)
+            t.zero()._add_comp_unsafe(self)
         for t in fmodule._dual_exterior_powers.values():
-            t._zero_element._components[self] = t._zero_element._new_comp(self)
+            t.zero()._add_comp_unsafe(self)
+        # Initialization of the components w.r.t. the current basis of the
+        # identity map of the general linear group:
+        if fmodule._general_linear_group is not None:
+            from .comp import KroneckerDelta
+            gl = fmodule._general_linear_group
+            gl.one()._components[self] = KroneckerDelta(fmodule._ring, self,
+                                    start_index=fmodule._sindex,
+                                    output_formatter=fmodule._output_formatter)
         # The dual basis:
         self._symbol_dual = symbol_dual
         self._latex_symbol_dual = latex_symbol_dual

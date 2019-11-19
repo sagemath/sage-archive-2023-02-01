@@ -100,7 +100,6 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import absolute_import
 
 from sage.rings.integer cimport Integer
 
@@ -186,7 +185,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
     """
     A class implementing embeddings between finite fields.
     """
-    def __init__(self, parent, im_gens=None, check=True, section_class=None):
+    def __init__(self, parent, im_gens=None, base_map=None, check=True, section_class=None):
         """
         TESTS::
 
@@ -228,12 +227,44 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         if im_gens is None:
             im_gens = domain.modulus().any_root(codomain)
             check=False
-        RingHomomorphism_im_gens.__init__(self, parent, im_gens, check)
+        RingHomomorphism_im_gens.__init__(self, parent, im_gens, base_map=base_map, check=check)
         if section_class is None:
             self._section_class = SectionFiniteFieldHomomorphism_generic
         else:
             self._section_class = section_class
 
+    def __copy__(self):
+        """
+        Return a copy of this map.
+
+        TESTS::
+
+            sage: from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
+            sage: k.<t> = GF(3^7)
+            sage: K.<T> = GF(3^21)
+            sage: f = FiniteFieldHomomorphism_generic(Hom(k, K))
+            sage: g = copy(f)
+            sage: g.section()(g(t)) == f.section()(f(t))
+            True
+
+        ::
+
+            sage: F = GF(2)
+            sage: E = GF(4)
+            sage: phi = E.coerce_map_from(F); phi
+            Ring morphism:
+              From: Finite Field of size 2
+              To:   Finite Field in z2 of size 2^2
+              Defn: 1 |--> 1
+            sage: phi.section()
+            Section of Ring morphism:
+              From: Finite Field of size 2
+              To:   Finite Field in z2 of size 2^2
+              Defn: 1 |--> 1
+        """
+        cdef FiniteFieldHomomorphism_generic out = super(FiniteFieldHomomorphism_generic, self).__copy__()
+        out._section_class = self._section_class
+        return out
 
     def _latex_(self):
         r"""
@@ -249,7 +280,6 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             '\\Bold{F}_{3^{7}} \\hookrightarrow \\Bold{F}_{3^{21}}'
         """
         return self.domain()._latex_() + " \\hookrightarrow " + self.codomain()._latex_()
-
 
     cpdef Element _call_(self, x):
         """
@@ -269,7 +299,11 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: f(a*b) == f(a) * f(b)
             True
         """
-        return x.polynomial()(self.im_gens()[0])
+        f = x.polynomial()
+        bm = self.base_map()
+        if bm is not None:
+            f = f.map_coefficients(bm)
+        return f(self.im_gens()[0])
 
 
     def is_injective(self):
@@ -339,7 +373,34 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
               To:   Finite Field in T of size 3^21
               Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
         """
+        if self.base_map() is not None:
+            raise NotImplementedError
         return self._section_class(self)
+
+    def inverse_image(self, b):
+        """
+        Return the unique ``a`` such that ``self(a) = b`` if one such exists.
+
+        This method is simply a shorthand for calling the map returned by
+        ``self.section()`` on ``b``.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(3^7)
+            sage: K.<T>, f = k.extension(3, map=True)
+            sage: b = f(t^2); b
+            2*T^20 + 2*T^19 + T^18 + T^15 + 2*T^14 + 2*T^13 + 2*T^12 + T^8 + 2*T^6 + T^5 + 2*T^4 + T^3 + 2*T^2 + T
+            sage: f.inverse_image(b)
+            t^2
+            sage: f.inverse_image(T)
+            Traceback (most recent call last):
+            ...
+            ValueError: T is not in the image of Ring morphism:
+            From: Finite Field in t of size 3^7
+            To:   Finite Field in T of size 3^21
+            Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
+        """
+        return self.section()(b)
 
     def __hash__(self):
         return Morphism.__hash__(self)

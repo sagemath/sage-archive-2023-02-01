@@ -27,7 +27,6 @@ This came up in some subtle bug once.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, print_function
 
 cimport sage.structure.sage_object as sage_object
 import operator
@@ -69,32 +68,10 @@ cdef class Parent(parent.Parent):
     def __cinit__(self):
         self._has_coerce_map_from = MonoDict()
 
-    def __init__(self, coerce_from=None, actions=None, embeddings=None, *, category=None):
+    def __init__(self, *, category=None):
         self.init_coerce(False)
-        if coerce_from is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24614, "the 'coerce_from' keyword is deprecated")
-            self._coerce_from_list = list(coerce_from)
         self._coerce_from_hash = MonoDict()
-        if actions is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24614, "the 'actions' keyword is deprecated")
-            self._action_list = list(actions)
-        self._action_hash = TripleDict()
-
-        cdef parent.Parent other
-        if embeddings is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24614, "the 'embeddings' keyword is deprecated")
-            for mor in embeddings:
-                other = mor.domain()
-                print("embedding", self, " --> ", other)
-                print(mor)
-                other.init_coerce() # TODO remove when we can
-                other._coerce_from_list.append(mor)
-
         self._set_element_constructor()
-
         if category is not None:
             self._init_category_(category)
 

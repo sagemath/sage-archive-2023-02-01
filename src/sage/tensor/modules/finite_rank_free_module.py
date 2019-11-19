@@ -40,6 +40,7 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 - Travis Scrimshaw (2016): category set to Modules(ring).FiniteDimensional()
   (:trac:`20770`)
+- Michael Jung (2019): improve treatment of the zero element
 
 REFERENCES:
 
@@ -530,6 +531,7 @@ The components on the basis are returned by the square bracket operator for
 from __future__ import print_function
 from __future__ import absolute_import
 
+from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
@@ -792,10 +794,6 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         self._known_bases = []
         self._def_basis = None # default basis
         self._basis_changes = {} # Dictionary of the changes of bases
-        # Zero element:
-        if not hasattr(self, '_zero_element'):
-            self._zero_element = self._element_constructor_(name='zero',
-                                                            latex_name='0')
         # Identity automorphism:
         self._identity_map = None # to be set by self.identity_map()
         # General linear group:
@@ -827,7 +825,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
         """
         if isinstance(comp, (int, Integer)) and comp == 0:
-            return self._zero_element
+            return self.zero()
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp:
             resu.set_comp(basis)[:] = comp
@@ -1948,6 +1946,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         """
         return self._rank
 
+    @cached_method
     def zero(self):
         r"""
         Return the zero element of ``self``.
@@ -1988,7 +1987,12 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
              [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
 
         """
-        return self._zero_element
+        resu = self._element_constructor_(name='zero', latex_name='0')
+        for basis in self._known_bases:
+            resu._add_comp_unsafe(basis)
+            # (since new components are initialized to zero)
+        resu._is_zero = True # This element is certainly zero
+        return resu
 
     def dual(self):
         r"""
@@ -2220,7 +2224,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
              Basis (f_1,f_2,f_3) on the Rank-3 free module M_3 over the Integer Ring]
 
         """
-        return self._known_bases
+        return list(self._known_bases)
 
     def change_of_basis(self, basis1, basis2):
         r"""

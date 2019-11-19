@@ -496,6 +496,7 @@ def _make_partition(l):
 
     TESTS::
 
+        sage: from sage.combinat.growth import _make_partition
         sage: p = _make_partition([3,2,1,0]); p
         [3, 2, 1]
 

@@ -683,6 +683,11 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Number Field in s with defining polynomial z^2 - 2
             sage: triangle_QQ._coerce_base_ring(K.gen())
             Number Field in s with defining polynomial z^2 - 2
+
+            sage: z = QQ['z'].0
+            sage: K = NumberField(z^2 - 2,'s')
+            sage: K.gen()*polytopes.simplex(backend='field')
+            A 3-dimensional polyhedron in (Number Field in s with defining polynomial z^2 - 2)^4 defined as the convex hull of 4 vertices
         """
         from sage.structure.element import Element
         if isinstance(other, Element):

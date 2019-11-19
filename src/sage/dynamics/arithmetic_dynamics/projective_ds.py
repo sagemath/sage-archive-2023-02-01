@@ -3086,7 +3086,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         crit_points = [P(Q) for Q in X.rational_points()]
         return crit_points
 
-    def is_postcritically_finite(self, err=0.01, embedding=None):
+    def is_postcritically_finite(self, err=0.01, use_algebraic_closure=True):
         r"""
         Determine if this dynamical system is post-critically finite.
 
@@ -3094,14 +3094,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         point is preperiodic. The optional parameter ``err`` is passed into
         ``is_preperiodic()`` as part of the preperiodic check.
 
-        If ``embedding`` is ``None`` the function will use the minimal extension
-        containing all the critical points, as found by ``field_of_definition_critical``.
+        The computations can be done either over the algebraic closure of the
+        base field or over the minimal extension of the base field that
+        contains the critical points.
 
         INPUT:
 
         - ``err`` -- (default: 0.01) positive real number
 
-        - ``embedding`` -- (default: None) embedding of base ring into `\QQbar`
+        - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
+          algebraic closure. If False, uses the smalest extension of the base field
+          containing all the critical points.
 
         OUTPUT: boolean
 
@@ -3125,7 +3128,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<v> = NumberField(z^8 + 3*z^6 + 3*z^4 + z^2 + 1)
             sage: PS.<x,y> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([x^3+v*y^3, y^3])
-            sage: f.is_postcritically_finite(embedding=K.embeddings(QQbar)[0]) # long time
+            sage: f.is_postcritically_finite() # long time
             True
 
         ::
@@ -3142,22 +3145,47 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: F = DynamicalSystem_projective([x^2 - y^2, y^2], domain=P)
             sage: F.is_postcritically_finite()
             True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([8*x^4 - 8*x^2*y^2 + y^4, y^4])
+            sage: f.is_postcritically_finite(use_algebraic_closure=False) #long time
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^4 - x^2*y^2 + y^4, y^4])
+            sage: f.is_postcritically_finite(use_algebraic_closure=False)
+            False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: f = DynamicalSystem_projective([x^4 - x^2*y^2, y^4])
+            sage: f.is_postcritically_finite()
+            False
         """
         #iteration of subschemes not yet implemented
         if self.domain().dimension_relative() > 1:
             raise NotImplementedError("only implemented in dimension 1")
 
-        #Since is_preperiodic uses heights we need to be over a numberfield
         K = FractionField(self.codomain().base_ring())
-        if not K in NumberFields() and not K is QQbar:
-            raise NotImplementedError("must be over a number field or a number field order or QQbar")
-
-        if not isinstance(K,AlgebraicClosureFiniteField_generic) and not isinstance(K,AlgebraicField_common):
-            if embedding is None:
-                embedding = self.field_of_definition_critical(return_embedding=True)[1]
-            F = self.change_ring(embedding)
+        if use_algebraic_closure:
+            Kbar = K.algebraic_closure()
+            if Kbar.has_coerce_map_from(K):
+                F = self.change_ring(Kbar)
+            else:
+                embeds = K.embeddings(Kbar)
+                if len(embeds) != 0:
+                    F = self.change_ring(embeds[0])
+                else:
+                    raise ValueError("no embeddings of base field to algebraic closure")
         else:
-            F = self
+            embedding = self.field_of_definition_critical(return_embedding=True)[1]
+            F = self.change_ring(embedding)
+
         crit_points = F.critical_points()
         pcf = True
         i = 0
@@ -3167,7 +3195,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             i += 1
         return(pcf)
 
-    def critical_point_portrait(self, check=True, embedding=None):
+    def critical_point_portrait(self, check=True, use_algebraic_closure=True):
         r"""
         If this dynamical system  is post-critically finite, return its
         critical point portrait.
@@ -3176,11 +3204,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         points. Must be dimension 1. If ``check`` is ``True``, then the
         map is first checked to see if it is postcritically finite.
 
+        The computations can be done either over the algebraic closure of the
+        base field or over the minimal extension of the base field that
+        contains the critical points.
+
         INPUT:
 
         - ``check`` -- boolean (default: True)
 
-        - ``embedding`` -- embedding of base ring into `\QQbar` (default: None)
+        - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
+          algebraic closure. If False, uses the smalest extension of the base field
+          containing all the critical points.
 
         OUTPUT: a digraph
 
@@ -3190,7 +3224,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<v> = NumberField(z^6 + 2*z^5 + 2*z^4 + 2*z^3 + z^2 + 1)
             sage: PS.<x,y> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([x^2+v*y^2, y^2])
-            sage: f.critical_point_portrait(check=False, embedding=K.embeddings(QQbar)[0]) # long time
+            sage: f.critical_point_portrait(check=False) # long time
             Looped digraph on 6 vertices
 
         ::
@@ -3216,16 +3250,51 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: phi = K.embeddings(QQbar)[0]
             sage: P.<x, y> = ProjectiveSpace(K, 1)
             sage: f = DynamicalSystem_projective([x^2 + v*y^2, y^2])
-            sage: f.critical_point_portrait(embedding=phi)
+            sage: f.change_ring(phi).critical_point_portrait()
             Looped digraph on 4 vertices
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([8*x^4 - 8*x^2*y^2 + y^4, y^4])
+            sage: f.critical_point_portrait(use_algebraic_closure=False) #long time
+            Looped digraph on 6 vertices
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: f = DynamicalSystem_projective([8*x^4 - 8*x^2*y^2 + y^4, y^4])
+            sage: f.critical_point_portrait() #long time
+            Looped digraph on 6 vertices
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(3),1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y - y^2, x*y])
+            sage: f.critical_point_portrait(use_algebraic_closure=False)
+            Looped digraph on 6 vertices
+            sage: f.critical_point_portrait() #long time
+            Looped digraph on 6 vertices
+
         """
         #input checking done in is_postcritically_finite
         if check:
-            if not self.is_postcritically_finite(embedding=embedding):
+            if not self.is_postcritically_finite():
                 raise TypeError("map must be post-critically finite")
-        if embedding is None:
+        K = FractionField(self.base_ring())
+        if use_algebraic_closure:
+            Kbar = K.algebraic_closure()
+            if Kbar.has_coerce_map_from(K):
+                F = self.change_ring(Kbar)
+            else:
+                embeds = K.embeddings(Kbar)
+                if len(embeds) != 0:
+                    F = self.change_ring(embeds[0])
+                else:
+                    raise ValueError("no embeddings of base field to algebraic closure")
+        else:
             embedding = self.field_of_definition_critical(return_embedding=True)[1]
-        F = self.change_ring(embedding)
+            F = self.change_ring(embedding)
         crit_points = F.critical_points()
         N = len(crit_points)
         for i in range(N):
@@ -3248,6 +3317,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         This must be dimension 1 and defined over a number field
         or number field order.
 
+        The computations can be done either over the algebraic closure of the
+        base field or over the minimal extension of the base field that
+        contains the critical points.
+
         INPUT:
 
         kwds:
@@ -3262,7 +3335,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``error_bound`` -- (optional) a positive real number
 
-        - ``embedding`` -- (optional) the embedding of the base field to `\QQbar`
+        - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
+          algebraic closure. If False, uses the smalest extension of the base field
+          containing all the critical points.
 
         OUTPUT: real number
 
@@ -3287,17 +3362,35 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^3-3/4*x*y^2 + 3/4*y^3, y^3])
             sage: f.critical_height(error_bound=0.0001)
             0.00000000000000000000000000000
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^3+3*x*y^2, y^3])
+            sage: f.critical_height(use_algebraic_closure=False)
+            0.000023477016733897112886491967991
+            sage: f.critical_height()
+            0.000023477016733897112886491967991
         """
         PS = self.codomain()
         if PS.dimension_relative() > 1:
             raise NotImplementedError("only implemented in dimension 1")
 
         K = FractionField(PS.base_ring())
-        if not K in NumberFields() and not K is QQbar:
-            raise NotImplementedError("must be over a number field or a number field order or QQbar")
-        #doesn't really matter which we choose as Galois conjugates have the same height
-        emb = kwds.get("embedding", K.embeddings(QQbar)[0])
-        F = self.change_ring(K).change_ring(emb)
+        use_algebraic_closure = kwds.get("use_algebraic_closure", True)
+        if use_algebraic_closure:
+            Kbar = K.algebraic_closure()
+            if Kbar.has_coerce_map_from(K):
+                F = self.change_ring(Kbar)
+            else:
+                embeds = K.embeddings(Kbar)
+                if len(embeds) != 0:
+                    F = self.change_ring(embeds[0])
+                else:
+                    raise ValueError("no embeddings of base field to algebraic closure")
+        else:
+            embedding = self.field_of_definition_critical(return_embedding=True)[1]
+            F = self.change_ring(embedding)
         crit_points = F.critical_points()
         n = len(crit_points)
         err_bound = kwds.get("error_bound", None)
@@ -3558,7 +3651,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
-    def multiplier_spectra(self, n, formal=False, embedding=None, type='point'):
+    def multiplier_spectra(self, n, formal=False, type='point', use_algebraic_closure=True):
         r"""
         Computes the ``n`` multiplier spectra of this dynamical system.
 
@@ -3569,6 +3662,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         of period ``n``. The map must be defined over
         projective space of dimension 1 over a number field or finite field.
 
+        The computations can be done either over the algebraic closure of the
+        base field or over the minimal extension of the base field that
+        contains the critical points.
+
         INPUT:
 
         - ``n`` -- a positive integer, the period
@@ -3577,13 +3674,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           to find the formal ``n`` multiplier spectra of this map and
           ``False`` specifies to find the ``n`` multiplier spectra
 
-        - ``embedding`` -- embedding of the base field into `\QQbar`
-
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute one multiplier
           per point or one per cycle
 
-        OUTPUT: a list of `\QQbar` elements
+       - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
+          algebraic closure. If False, uses the smalest extension of the base field
+          containing all the critical points.
+
+        OUTPUT: a list of field elements
 
         EXAMPLES::
 
@@ -3611,7 +3710,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<w> = NumberField(z^4 - 4*z^2 + 1,'z')
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([x^2 - w/4*y^2, y^2])
-            sage: sorted(f.multiplier_spectra(2, formal=False, embedding=K.embeddings(QQbar)[0], type='cycle'))
+            sage: sorted(f.multiplier_spectra(2, formal=False, type='cycle'))
             [0,
              0.0681483474218635? - 1.930649271699173?*I,
              0.0681483474218635? + 1.930649271699173?*I,
@@ -3634,6 +3733,52 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [1, 1]
             sage: f.multiplier_spectra(3, formal=True, type='point')
             [1, 1, 1, 1, 1, 1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^4 + 3*y^4, 4*x^2*y^2])
+            sage: f.multiplier_spectra(1, use_algebraic_closure=False)
+            [0,
+             -1,
+             1/128*a^5 - 13/384*a^4 + 5/96*a^3 + 1/16*a^2 + 43/128*a + 303/128,
+             -1/288*a^5 + 1/96*a^4 + 1/24*a^3 - 1/3*a^2 + 5/32*a - 115/32,
+             -5/1152*a^5 + 3/128*a^4 - 3/32*a^3 + 13/48*a^2 - 63/128*a - 227/128]
+            sage: f.multiplier_spectra(1)
+            [0,
+             -1,
+             1.951373035591442?,
+             -2.475686517795721? - 0.730035681602057?*I,
+             -2.475686517795721? + 0.730035681602057?*I]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(5),1)
+            sage: f = DynamicalSystem_projective([x^4 + 2*y^4, 4*x^2*y^2])
+            sage: f.multiplier_spectra(1, use_algebraic_closure=False)
+            [0, 3*a + 3, 2*a + 1, 1, 1]
+            sage: f.multiplier_spectra(1)
+            [0, 2*z2 + 1, 3*z2 + 3, 1, 1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: f = DynamicalSystem_projective([x^5 + 3*y^5, 4*x^3*y^2])
+            sage: f.multiplier_spectra(1)
+            [0,
+             -4.106544657178796?,
+             -7/4,
+             1.985176555073911?,
+             -3.064315948947558? - 1.150478041113253?*I,
+             -3.064315948947558? + 1.150478041113253?*I]
+
+        ::
+
+            sage: K = GF(3).algebraic_closure()
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([x^5 + 2*y^5, 4*x^3*y^2])
+            sage: f.multiplier_spectra(1)
+            [0, z3 + 2, z3 + 1, z3, 1, 1]
 
         TESTS::
 
@@ -3660,12 +3805,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if (PS.dimension_relative() > 1):
             raise NotImplementedError("only implemented for dimension 1")
 
-        if embedding is None:
-            embedding = self.field_of_definition_periodic(n, return_embedding=True)[1]
-        f = self.change_ring(embedding)
+        K = FractionField(self.codomain().base_ring())
+        if use_algebraic_closure:
+            Kbar = K.algebraic_closure()
+            if Kbar.has_coerce_map_from(K):
+                f = self.change_ring(Kbar)
+            else:
+                embeds = K.embeddings(Kbar)
+                if len(embeds) != 0:
+                    f = self.change_ring(embeds[0])
+                else:
+                    raise ValueError("no embeddings of base field to algebraic closure")
+        else:
+            embedding = self.field_of_definition_periodic(n, formal=formal, return_embedding=True)[1]
+            f = self.change_ring(embedding)
 
         PS = f.domain()
-
         if not formal:
             G = f.nth_iterate_map(n)
             F = G[0]*PS.gens()[1] - G[1]*PS.gens()[0]
@@ -6240,7 +6395,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):
 
-    def is_postcritically_finite(self, embedding=None):
+    def is_postcritically_finite(self):
         r"""
         Every point is postcritically finite in a finite field.
 

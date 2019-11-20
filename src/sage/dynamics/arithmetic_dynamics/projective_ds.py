@@ -6395,9 +6395,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):
 
-    def is_postcritically_finite(self):
+    def is_postcritically_finite(self, **kwds):
         r"""
         Every point is postcritically finite in a finite field.
+
+        INPUT: None. ``kwds`` is to parallel the overridden function
 
         OUTPUT: the boolean ``True``
 
@@ -6406,6 +6408,13 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
             sage: f = DynamicalSystem_projective([x^2 + y^2,y^2, z^2 + y*z], domain=P)
             sage: f.is_postcritically_finite()
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(13),1)
+            sage: f = DynamicalSystem_projective([x^4 - x^2*y^2 + y^4, y^4])
+            sage: f.is_postcritically_finite(use_algebraic_closure=False)
             True
         """
         return True

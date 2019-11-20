@@ -21,8 +21,10 @@ AUTHORS:
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.misc.mrange import xmrange
+from sage.misc.misc_c import prod
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.rational_field import is_RationalField
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.schemes.generic.homset import SchemeHomset_points
 
 class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
@@ -76,7 +78,9 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         For number fields, this uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [DK2013]_.
+        computing algebraic numbers up to a given height [DK2013]_ or
+        uses the chinese remainder theorem and points modulo primes
+        for larger bounds.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.
@@ -117,7 +121,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             sage: u = QQ['u'].0
             sage: K = NumberField(u^2 + 1, 'v')
             sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], K)
-            sage: P(K).points(bound=1)        
+            sage: P(K).points(bound=1)
             [(-1 : 1 , -1 : 1), (-1 : 1 , -v : 1), (-1 : 1 , 0 : 1), (-1 : 1 , v : 1),
             (-1 : 1 , 1 : 0), (-1 : 1 , 1 : 1), (-v : 1 , -1 : 1), (-v : 1 , -v : 1),
             (-v : 1 , 0 : 1), (-v : 1 , v : 1), (-v : 1 , 1 : 0), (-v : 1 , 1 : 1),
@@ -131,7 +135,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         ::
 
             sage: P.<x,y,z,u,v> = ProductProjectiveSpaces([2, 1], GF(3))
-            sage: P(P.base_ring()).points()          
+            sage: P(P.base_ring()).points()
             [(0 : 0 : 1 , 0 : 1), (0 : 0 : 1 , 1 : 0), (0 : 0 : 1 , 1 : 1), (0 : 0 : 1 , 2 : 1),
             (0 : 1 : 0 , 0 : 1), (0 : 1 : 0 , 1 : 0), (0 : 1 : 0 , 1 : 1), (0 : 1 : 0 , 2 : 1),
             (0 : 1 : 1 , 0 : 1), (0 : 1 : 1 , 1 : 0), (0 : 1 : 1 , 1 : 1), (0 : 1 : 1 , 2 : 1),
@@ -145,8 +149,30 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             (2 : 1 : 0 , 0 : 1), (2 : 1 : 0 , 1 : 0), (2 : 1 : 0 , 1 : 1), (2 : 1 : 0 , 2 : 1),
             (2 : 1 : 1 , 0 : 1), (2 : 1 : 1 , 1 : 0), (2 : 1 : 1 , 1 : 1), (2 : 1 : 1 , 2 : 1),
             (2 : 2 : 1 , 0 : 1), (2 : 2 : 1 , 1 : 0), (2 : 2 : 1 , 1 : 1), (2 : 2 : 1 , 2 : 1)]
-        """
-        B = kwds.pop('bound', 0)        
+
+        ::
+
+            sage: PP.<x,y,z,u,v> = ProductProjectiveSpaces([2,1], QQ)
+            sage: X = PP.subscheme([x + y, u*u-v*u])
+            sage: X.rational_points(bound=2)
+            [(-2 : 2 : 1 , 0 : 1),
+             (-2 : 2 : 1 , 1 : 1),
+             (-1 : 1 : 0 , 0 : 1),
+             (-1 : 1 : 0 , 1 : 1),
+             (-1 : 1 : 1 , 0 : 1),
+             (-1 : 1 : 1 , 1 : 1),
+             (-1/2 : 1/2 : 1 , 0 : 1),
+             (-1/2 : 1/2 : 1 , 1 : 1),
+             (0 : 0 : 1 , 0 : 1),
+             (0 : 0 : 1 , 1 : 1),
+             (1/2 : -1/2 : 1 , 0 : 1),
+             (1/2 : -1/2 : 1 , 1 : 1),
+             (1 : -1 : 1 , 0 : 1),
+             (1 : -1 : 1 , 1 : 1),
+             (2 : -2 : 1 , 0 : 1),
+             (2 : -2 : 1 , 1 : 1)]
+         """
+        B = kwds.pop('bound', 0)
         X = self.codomain()
 
         from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
@@ -169,8 +195,14 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            from sage.schemes.product_projective.rational_point import enum_product_projective_rational_field
-            return enum_product_projective_rational_field(self, B)
+            # sieve should only be called for subschemes and if the bound is not very small
+            N = prod([k+1 for k in X.ambient_space().dimension_relative_components()])
+            if isinstance(X, AlgebraicScheme_subscheme) and B**N > 5000:
+                from sage.schemes.product_projective.rational_point import sieve
+                return sieve(X, B)
+            else:
+                from sage.schemes.product_projective.rational_point import enum_product_projective_rational_field
+                return enum_product_projective_rational_field(self, B)
         elif R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)

@@ -301,36 +301,31 @@ def enum_product_projective_finite_field(X):
 
 def sieve(X, bound):
     r"""
-    Returns the list of all product projective, rational points on scheme ``X`` of
-    height up to ``bound``.
-
-    Height of a product projective point X = (x_1, x_2,..., x_n) is given by
-    H_X = max(y_1, y_2,..., y_n), where H_X is height of point X and y_i's
-    are the normalized coordinates such that all y_i are integers and
-    gcd(y_1, y_2,..., y_n) = 1.
+    Returns the list of all rational points on scheme
+    ``X`` of height up to ``bound``.
 
     ALGORITHM:
 
     Main idea behind the algorithm is to find points modulo primes
     and then reconstruct them using chinese remainder theorem.
-    We find modulo primes parallely and then lift them and apply
-    LLL in parallel. LLL reduction is applied for each component
-    projective space, and finally result is merged and converted
-    to product projective point.
+    We compute the points modulo primes parallely and then lift
+    them via chinese remainder theorem in parallel. The LLL reduction
+    algorithm is applied to each component of the points, and finally
+    the result is merged and converted to a point on the subscheme.
 
     For the algorithm to work correctly, sufficient primes need
-    to be present, these are calculated using the bound given in
-    this([Hutz2015]_) paper.
+    to be chosen, these are determined using the bounds dependent
+    on the bound given in [Hutz2015]_.
 
     INPUT:
 
-    - ``X`` - a scheme with ambient space defined over projective space
+    - ``X`` - a scheme with ambient space defined over a product of projective spaces
 
     - ``bound`` - a positive integer bound
 
     OUTPUT:
 
-    - a list containing the projective rational points of ``X`` of height
+    - a list containing the rational points of ``X`` of height
       up to ``bound``, sorted
 
     EXAMPLES::
@@ -342,7 +337,6 @@ def sieve(X, bound):
         [(0 : 0 : 1 , 0 : 1), (0 : 0 : 1 , 1 : 1), (1/2 : -1/2 : 1 , 0 : 1),
          (1/2 : -1/2 : 1 , 1 : 1), (1/2 : 1/2 : 1 , 0 : 1), (1/2 : 1/2 : 1 , 1 : 1),
          (1 : 0 : 1 , 0 : 1), (1 : 0 : 1 , 1 : 1)]
-
     """
 
     if bound < 1:
@@ -382,15 +376,15 @@ def sieve(X, bound):
 
     def good_primes(B):
         r"""
-        Given the bound returns the prime whose product is greater than ``B``
-        and which would take least amount of time to run main sieve algorithm
+        Given the bound, returns the primes whose product is greater than ``B``
+        and which would take the least amount of time to run the main sieve algorithm
 
         Complexity of finding points modulo primes is assumed to be N^2 * P_max^{N}.
-        Complexity of lifting points and LLL() function is assumed to
+        Complexity of lifting points and the LLL() function is assumed to
         be close to (dim_max^5) * (alpha / P_max)^dim_scheme.
-        where alpha is product of all primes, P_max is largest prime in list,
-        dim_max is the max of dimension of all components, and N is dimension
-        of ambient space.
+        where alpha is the product of all primes, P_max is the largest prime in
+        the list, dim_max is the max dimension of all components, and N is the dimension
+        of the ambient space.
         """
 
         M = dict() # stores optimal list of primes, corresponding to list size
@@ -409,7 +403,7 @@ def sieve(X, bound):
             for i in range(current_count):
                 current_list.append(next_prime(least))
                 least = current_list[-1]
-            # improving list of primes by taking prime less than least
+            # improving list of primes by taking primes less than least
             # this part of algorithm is used to centralize primes around `least`
             prod_prime = prod(current_list)
             least = current_list[0]
@@ -437,7 +431,7 @@ def sieve(X, bound):
     def parallel_function(X, p):
         r"""
         Function used in parallel computation, computes a list of
-        all rational points in modulo ring.
+        all rational points in modulo p.
         """
         Xp = X.change_ring(GF(p))
         L = Xp.rational_points()
@@ -544,4 +538,3 @@ def sieve(X, bound):
     rat_points = lift_all_points()
     
     return sorted(rat_points)
-

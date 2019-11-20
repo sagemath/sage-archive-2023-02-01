@@ -667,8 +667,8 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
     ::
 
         sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import polynomial_mandelbrot
-        sage: B.<z> = CC[]
-        sage: R.<c> = B[]
+        sage: B.<c> = CC[]
+        sage: R.<z> = B[]
         sage: f = z^4 - z + c
         sage: polynomial_mandelbrot(f, pixel_count=100)
         100x100px 24-bit RGB image

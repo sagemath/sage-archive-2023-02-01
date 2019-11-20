@@ -97,6 +97,9 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
+        - ``algorithm`` - either 'sieve' or 'enumerate' algorithms can be used over `QQ`. If
+          not specified, enumerate is used only for small height bounds.
+
         OUTPUT:
 
         - a list of rational points of a projective scheme
@@ -171,6 +174,13 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
              (1 : -1 : 1 , 1 : 1),
              (2 : -2 : 1 , 0 : 1),
              (2 : -2 : 1 , 1 : 1)]
+
+        better to enumerate with low codimension::
+
+            sage: PP.<x,y,z,u,v,a,b,c> = ProductProjectiveSpaces([2,1,2], QQ)
+            sage: X = PP.subscheme([x*u^2*a, b*z*u*v,z*v^2*c ])
+            sage: len(X.rational_points(bound=1, algorithm='enumerate'))
+            232
          """
         B = kwds.pop('bound', 0)
         X = self.codomain()
@@ -195,14 +205,24 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            # sieve should only be called for subschemes and if the bound is not very small
-            N = prod([k+1 for k in X.ambient_space().dimension_relative_components()])
-            if isinstance(X, AlgebraicScheme_subscheme) and B**N > 5000:
+            alg = kwds.pop('algorithm', None)
+            if alg is None:
+                # sieve should only be called for subschemes and if the bound is not very small
+                N = prod([k+1 for k in X.ambient_space().dimension_relative_components()])
+                if isinstance(X, AlgebraicScheme_subscheme) and B**N > 5000:
+                    from sage.schemes.product_projective.rational_point import sieve
+                    return sieve(X, B)
+                else:
+                    from sage.schemes.product_projective.rational_point import enum_product_projective_rational_field
+                    return enum_product_projective_rational_field(self, B)
+            elif alg == 'sieve':
                 from sage.schemes.product_projective.rational_point import sieve
                 return sieve(X, B)
-            else:
+            elif alg == 'enumerate':
                 from sage.schemes.product_projective.rational_point import enum_product_projective_rational_field
                 return enum_product_projective_rational_field(self, B)
+            else:
+                raise ValueError("algorithm must be 'sieve' or 'enumerate'")
         elif R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)

@@ -1,8 +1,8 @@
 r"""
 Characteristic Classes
 
-Let `E \to M` be some topological vector bundle over a topological manifold `M`
-and `R` be any ring.
+Let `E \to M` be a topological vector bundle of rank `n` over a topological
+manifold `M` and `R` be any ring.
 A *characteristic class* `c(E)` is an element of the cohomology ring
 `H^{*}(M, R)` such that for any continuous map `f: M \to N`, where `N` is
 another topological manifold, the *naturality condition* is satisfied:

@@ -654,77 +654,19 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input]
-        sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
-        sage: print(out)                           # optional - rst2ipynb
-        {
-         "nbformat_minor": ...,
-         "nbformat": ...,
-         "cells": [
-          {
-           "source": [
-            "$$\n",
-            "\\def\\CC{\\bf C}\n",
-            "\\def\\QQ{\\bf Q}\n",
-            "\\def\\RR{\\bf R}\n",
-            "\\def\\ZZ{\\bf Z}\n",
-            "\\def\\NN{\\bf N}\n",
-            "$$"
-           ],
-           "cell_type": "markdown",
-           "metadata": {}
-          },
-          {
-           "execution_count": null,
-           "cell_type": "code",
-           "source": [
-            "2^10"
-           ],
-           "outputs": [
-            {
-             "execution_count": 1,
-             "output_type": "execute_result",
-             "data": {
-              "text/plain": [
-               "1024"
-              ]
-             },
-             "metadata": {}
-            }
-           ],
-           "metadata": {}
-          },
-          {
-           "execution_count": null,
-           "cell_type": "code",
-           "source": [
-            "2 + 2"
-           ],
-           "outputs": [
-            {
-             "execution_count": 1,
-             "output_type": "execute_result",
-             "data": {
-              "text/plain": [
-               "4"
-              ]
-             },
-             "metadata": {}
-            }
-           ],
-           "metadata": {}
-          }
-         ],
-         "metadata": {
-          "kernelspec": {
-           "display_name": "sagemath",
-           "name": "sagemath"
-          }
-         }
-        }
-        sage: err                   # optional - rst2ipynb
+        sage: (out, err, ret) = test_executable(L)           # optional - rst2ipynb
+        sage: err                                            # optional - rst2ipynb
         ''
-        sage: ret                   # optional - rst2ipynb
+        sage: ret                                            # optional - rst2ipynb
         0
+        sage: from json import loads                         # optional - rst2ipynb
+        sage: d = loads(out)                                 # optional - rst2ipynb
+        sage: sorted(d.keys())                               # optional - rst2ipynb
+        ['cells', 'metadata', 'nbformat', 'nbformat_minor']
+        sage: d['cells'][1]['source']                        # optional - rst2ipynb
+        ['2^10']
+        sage: d['cells'][2]['source']                        # optional - rst2ipynb
+        ['2 + 2']
 
     Test ``sage --rst2ipynb file.rst file.ipynb`` on a ReST file::
 
@@ -734,26 +676,18 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input, output]
-        sage: test_executable(L)              # optional - rst2ipynb
+        sage: test_executable(L)                              # optional - rst2ipynb
         ('', '', 0)
-        sage: print(open(output, 'r').read()) # optional - rst2ipynb
-        {
-         "nbformat_minor": ...,
-         "nbformat": ...,
-         "cells": [
-          {
-           "source": [
-            "$$\n",
-            "\\def\\CC{\\bf C}\n",
-            "\\def\\QQ{\\bf Q}\n",
-        ...
-         "metadata": {
-          "kernelspec": {
-           "display_name": "sagemath",
-           "name": "sagemath"
-          }
-         }
-        }
+        sage: import json                                     # optional - rst2ipynb
+        sage: d = json.load(open(output,'r'))                 # optional - rst2ipynb
+        sage: type(d)                                         # optional - rst2ipynb
+        <class 'dict'>
+        sage: sorted(d.keys())                                # optional - rst2ipynb
+        ['cells', 'metadata', 'nbformat', 'nbformat_minor']
+        sage: d['metadata']                                   # optional - rst2ipynb
+        {'kernelspec': {'display_name': 'sagemath', 'name': 'sagemath'}}
+        sage: d['cells'][1]['cell_type']                      # optional - rst2ipynb
+        'code'
 
     Test ``sage --ipynb2rst file.ipynb file.rst`` on a ipynb file::
 

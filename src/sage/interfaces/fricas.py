@@ -1524,7 +1524,7 @@ class FriCASElement(ExpectElement):
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
         from sage.misc.functional import symbolic_sum, symbolic_prod
         from sage.rings.infinity import infinity
-        register_symbol(I, {'fricas': '%i'})
+        register_symbol(I, {'fricas': '(%i::EXPR Complex INT)'})
         register_symbol(e, {'fricas': '%e'})
         register_symbol(pi, {'fricas': 'pi'})  # fricas uses both pi and %pi
         register_symbol(lambda: infinity, {'fricas': 'infinity'})

@@ -913,8 +913,34 @@ class FriCASConverter(InterfaceInit):
 
             sage: (sqrt(2))._fricas_().domainOf()                               # optional - fricas
             Expression(Integer())
+
+            sage: pi._fricas_().domainOf()                                      # optional - fricas
+            Pi()
+
+            sage: asin(pi)._fricas_()                                           # optional - fricas
+            asin(%pi)
+
+            sage: ex = (I+sqrt(2)+2)
+            sage: ex._fricas_().domainOf()                                      # optional - fricas
+            Expression(Complex(Integer()))
+
+            sage: ex._fricas_()^2                                               # optional - fricas
+                       +-+
+            (4 + 2 %i)\|2  + 5 + 4 %i
+
+            sage: (ex^2)._fricas_()                                             # optional - fricas
+                       +-+
+            (4 + 2 %i)\|2  + 5 + 4 %i
+
         """
-        return "((%s)::EXPR INT)" % ex
+        try:
+            result = getattr(obj, self.name_init)()
+            if (isinstance(obj, NumberFieldElement_quadratic) and
+                obj.parent() == GaussianField):
+                return "((%s)::EXPR COMPLEX INT)" % result
+        except AttributeError:
+            result = repr(obj)
+        return "((%s)::EXPR INT)" % result
 
     def symbol(self, ex):
         """
@@ -966,7 +992,7 @@ class FriCASConverter(InterfaceInit):
             f = operator.function()(*args)
             params = operator.parameter_set()
             params_set = set(params)
-            vars = "[" + ",".join(args[i]._fricas_init_() for i in params_set) + "]"
+            vars = "[" + ",".join("%s::Symbol"%repr(args[i]) for i in params_set) + "]"
             mult = "[" + ",".join(str(params.count(i)) for i in params_set) + "]"
             outstr = "D(%s, %s, %s)"%(f._fricas_init_(), vars, mult)
 

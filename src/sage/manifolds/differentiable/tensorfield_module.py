@@ -572,13 +572,12 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             Tensor field zero of type (2,0) on the
              2-dimensional differentiable manifold M
         """
-        resu = self.element_class(self._vmodule, self._tensor_type,
-                                  name='zero', latex_name='0',
-                                  sym=None, antisym=None)
+        resu = self._element_constructor_(name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                resu.add_comp(frame)
+                resu._add_comp_unsafe(frame)
                 # (since new components are initialized to zero)
+        resu._is_zero = True  # This element is certainly zero
         return resu
 
 #***********************************************************************

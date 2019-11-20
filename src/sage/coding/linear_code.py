@@ -349,7 +349,7 @@ class AbstractLinearCode(AbstractCode, Module):
         It is thus strongly recommended to set an encoder with a generator matrix implemented
         as a default encoder.
 
-        TESTS::
+        TESTS:
 
         This class uses the following experimental feature:
         :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.

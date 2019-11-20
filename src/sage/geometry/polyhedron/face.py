@@ -573,12 +573,23 @@ class PolyhedronFace(SageObject):
             [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
+
+        TESTS:
+
+        Check that :trac:`28650` is fixed::
+
+            sage: P = Polyhedron(vertices=[[1,0]], rays=[[1,0],[0,1]])
+            sage: P.faces(2)
+            (A 2-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,)
         """
         if self.n_ambient_Vrepresentation() == 0:
             return -1
         else:
-            origin = vector(self.ambient_Vrepresentation(0))
-            v_list = [ vector(v)-origin for v in self.ambient_Vrepresentation() ]
+            origin = self.vertices()[0].vector()
+            v_list = [vector(v) - origin for v in
+                     self.ambient_Vrepresentation() if v.is_vertex()]
+            v_list += [vector(v) for v in self.ambient_Vrepresentation()
+                      if v.is_ray() or v.is_line()]
             return matrix(v_list).rank()
 
     def _repr_(self):

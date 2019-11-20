@@ -4089,7 +4089,8 @@ cdef class BinaryCodeClassifier:
                         temp_basis[j] = permute_word_by_wp(can_lab_inv, temp_basis[j])
                     from sage.matrix.constructor import matrix
                     from sage.rings.all import ZZ
-                    from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroupElement
+                    from sage.groups.perm_gps.permgroup import PermutationGroup
+                    from sage.groups.perm_gps.constructor import PermutationGroupElement
                     from sage.interfaces.gap import gap
                     rs = []
                     for i from 0 <= i < B.nrows:

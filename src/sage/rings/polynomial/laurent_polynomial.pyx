@@ -2005,6 +2005,38 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         return result
 
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of ``self`` under the morphism defined by
+        ``im_gens`` in ``codomain``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: M.<u,v> = LaurentPolynomialRing(ZZ)
+            sage: phi = L.hom([u,v])
+            sage: phi(x^2*~y -5*y**3)            # indirect doctest
+            -5*v^3 + u^2*v^-1
+
+        TESTS:
+
+        check compatibility with  :trac:`26105`::
+
+            sage: F.<t> = GF(4)
+            sage: LF.<a,b> = LaurentPolynomialRing(F)
+            sage: rho = LF.hom([b,a], base_map=F.frobenius_endomorphism())
+            sage: s = t*~a + b +~t*(b**-3)*a**2; rs = rho(s); rs
+            -a + (t + 1)*b^-1 + t*a^-3*b^2
+            sage: s == rho(rs)
+            True
+        """
+        p = self._poly
+        m = self._mon
+        if base_map is not None:
+            p = p.map_coefficients(base_map)
+        from sage.misc.misc_c import prod
+        return codomain(p(im_gens) * prod(ig**m[im_gens.index(ig)] for ig in im_gens))
+
     cdef _normalize(self, i=None):
         r"""
         Remove the common monomials from ``self._poly`` and store

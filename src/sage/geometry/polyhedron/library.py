@@ -1014,31 +1014,31 @@ class Polytopes():
             sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
             sage: sc_exact.f_vector()               # long time
             (1, 24, 60, 38, 1)
-            sage: sc_exact.vertices()               # long time
-            (A vertex at (-1, -z, -z^2),
-             A vertex at (-z^2, -1, -z),
-             A vertex at (-z, -z^2, -1),
-             A vertex at (-1, z^2, -z),
-             A vertex at (-z, -1, z^2),
-             A vertex at (z^2, -z, -1),
-             A vertex at (z, -1, -z^2),
-             A vertex at (-z^2, z, -1),
+            sage: sorted(sc_exact.vertices())       # long time
+            [A vertex at (-1, -z, -z^2),
              A vertex at (-1, -z^2, z),
-             A vertex at (z, z^2, -1),
+             A vertex at (-1, z^2, -z),
              A vertex at (-1, z, z^2),
-             A vertex at (z^2, -1, z),
-             A vertex at (-z, 1, -z^2),
-             A vertex at (z^2, 1, -z),
-             A vertex at (-z^2, -z, 1),
+             A vertex at (-z, -1, z^2),
+             A vertex at (-z, -z^2, -1),
              A vertex at (-z, z^2, 1),
+             A vertex at (-z, 1, -z^2),
+             A vertex at (-z^2, -1, -z),
+             A vertex at (-z^2, -z, 1),
+             A vertex at (-z^2, z, -1),
              A vertex at (-z^2, 1, z),
-             A vertex at (1, -z^2, -z),
-             A vertex at (1, -z, z^2),
-             A vertex at (1, z, -z^2),
-             A vertex at (z, -z^2, 1),
-             A vertex at (z, 1, z^2),
+             A vertex at (z^2, -1, z),
+             A vertex at (z^2, -z, -1),
              A vertex at (z^2, z, 1),
-             A vertex at (1, z^2, z))
+             A vertex at (z^2, 1, -z),
+             A vertex at (z, -1, -z^2),
+             A vertex at (z, -z^2, 1),
+             A vertex at (z, z^2, -1),
+             A vertex at (z, 1, z^2),
+             A vertex at (1, -z, z^2),
+             A vertex at (1, -z^2, -z),
+             A vertex at (1, z^2, z),
+             A vertex at (1, z, -z^2)]
             sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
             True
 
@@ -1314,7 +1314,7 @@ class Polytopes():
             sage: td.f_vector()
             Traceback (most recent call last):
             ...
-            KeyError: ...
+            ValueError: not all vertices are intersections of facets
             sage: td.base_ring()
             Real Double Field
 
@@ -2627,7 +2627,7 @@ class Polytopes():
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 0, 1, 0], exact=exact, backend=backend, regular=True)
 
-    def one_hundred_twenty_cell(self, exact=True, backend=None):
+    def one_hundred_twenty_cell(self, exact=True, backend=None, construction='coxeter'):
         """
         Return the 120-cell.
 
@@ -2643,17 +2643,77 @@ class Polytopes():
 
         INPUT:
 
-        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+        - ``exact`` -- (boolean, default ``True``) if ``True`` use exact
           coordinates instead of floating point approximations.
 
         - ``backend`` -- the backend to use to create the polytope.
 
-        EXAMPLES::
+        - ``construction`` -- the construction to use (string, default 'coxeter');
+          the other possibility is 'as_permutahedron'.
 
-            sage: polytopes.one_hundred_twenty_cell(backend='normaliz') # not tested - long time
+`       EXAMPLES:
+
+        The classical construction given by Coxeter in [Cox1969]_ is given by::
+
+            sage: polytopes.one_hundred_twenty_cell()                    # not tested - long time ~15 sec.
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
+            polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as
+            the convex hull of 600 vertices
+
+        The ``'normaliz'`` is faster::
+
+            sage: polytopes.one_hundred_twenty_cell(backend='normaliz')  # optional - pynormaliz
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining 
+            polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 600 vertices
+
+        It is also possible to realize it using the generalized permutahedron
+        of type `H_4`::
+
+            sage: polytopes.one_hundred_twenty_cell(backend='normaliz',construction='as_permutahedron') # not tested - long time
             A 4-dimensional polyhedron in AA^4 defined as the convex hull of 600 vertices
         """
-        return self.generalized_permutahedron(['H', 4], point=[0, 0, 0, 1], exact=exact, backend=backend, regular=True)
+        if construction == 'coxeter':
+            if not exact:
+                raise ValueError("The 'cdd' backend produces numerical inconsistencies, use 'exact=True'.")
+            from sage.rings.number_field.number_field import QuadraticField
+            base_ring = QuadraticField(5, 'sqrt5')
+            sqrt5 = base_ring.gen()
+            phi = (1 + sqrt5) / 2
+            phi_inv = base_ring.one() / phi
+
+            # The 24 permutations of [0,0,±2,±2] (the ± are independant)
+            verts = Permutations([0,0,2,2]).list() + Permutations([0,0,-2,-2]).list() + Permutations([0,0,2,-2]).list()
+
+            # The 64 permutations of the following vectors:
+            # [±1,±1,±1,±sqrt(5)]
+            # [±1/phi^2,±phi,±phi,±phi]
+            # [±1/phi,±1/phi,±1/phi,±phi^2]
+            from sage.categories.cartesian_product import cartesian_product
+            full_perm_vectors = [[[1,-1],[1,-1],[1,-1],[-sqrt5,sqrt5]],
+                                 [[phi_inv**2,-phi_inv**2],[phi,-phi],[phi,-phi],[-phi,phi]],
+                                 [[phi_inv,-phi_inv],[phi_inv,-phi_inv],[phi_inv,-phi_inv],[-(phi**2),phi**2]]]
+            for vect in full_perm_vectors:
+                cp = cartesian_product(vect)
+                # The group action creates duplicates, so we reduce it:
+                verts += list(set([tuple(p) for c in cp for p in Permutations(list(c))]))
+
+            # The 96 even permutations of [0,±1/phi^2,±1,±phi^2]
+            # The 96 even permutations of [0,±1/phi,±phi,±sqrt(5)]
+            # The 192 even permutations of [±1/phi,±1,±phi,±2]
+            even_perm_vectors = [[[0],[phi_inv**2,-phi_inv**2],[1,-1],[-(phi**2),phi**2]],
+                                 [[0],[phi_inv,-phi_inv],[phi,-phi],[-sqrt5,sqrt5]],
+                                 [[phi_inv,-phi_inv],[1,-1],[phi,-phi],[-2,2]]]
+            even_perm = AlternatingGroup(4)
+            for vect in even_perm_vectors:
+                cp = cartesian_product(vect)
+                verts += [p(tuple(c)) for p in even_perm for c in cp]
+
+            return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
+
+        elif construction == 'as_permutahedron':
+            return self.generalized_permutahedron(['H', 4], point=[0, 0, 0, 1], exact=exact, backend=backend, regular=True)
+        else:
+            raise ValueError("construction (={}) must be either 'coxeter' or 'as_permutahedron' ".format(construction))
 
     def hypercube(self, dim, backend=None):
         r"""

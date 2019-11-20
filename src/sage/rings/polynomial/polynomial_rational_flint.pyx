@@ -1176,6 +1176,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             ...
             RuntimeError: FLINT exception
 
+        Flush the output buffer to get rid of stray output -- see
+        :trac:`28649`::
+
+            sage: from sage.misc.misc_c import cyflush
+            sage: cyflush()
+            ...
+
         Test fractional powers (:trac:`20086`)::
 
             sage: P.<R> = QQ[]

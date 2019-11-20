@@ -78,7 +78,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
         ...
         ValueError: unknown algorithm!
     """
-    if d < 1 or d%2 != 0:
+    if d < 1 or d % 2:
         raise ValueError("d must be even and greater than 2")
 
     if algorithm == "gap":     # faster for larger (q>3)  fields
@@ -690,7 +690,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     F=libgap.GF(q**2)  # F_{q^2}
     W=libgap.FullRowSpace(F, m)  # F_{q^2}^m
     B=libgap.Elements(libgap.Basis(W))      # the standard basis of W
-    if m % 2 != 0:
+    if m % 2:
         point = B[(m-1)/2]
     else:
         if p==2:

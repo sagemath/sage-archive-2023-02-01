@@ -358,7 +358,7 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         sage: fricas_integrator(cos(x), x)                                      # optional - fricas
         sin(x)
         sage: fricas_integrator(1/(x^2-2), x, 0, 1)                             # optional - fricas
-        1/4*sqrt(2)*(log(3*sqrt(2) - 4) - log(sqrt(2)))
+        -1/8*sqrt(2)*(log(2) - log(-24*sqrt(2) + 34))
         sage: fricas_integrator(1/(x^2+6), x, -oo, oo)                          # optional - fricas
         1/6*sqrt(6)*pi
 
@@ -393,7 +393,7 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
     from sage.interfaces.fricas import fricas
     e_fricas = fricas(expression)
-    v_fricas = fricas("%s::Symbol" % v)
+    v_fricas = fricas(v)
 
     if a is None:
         result = e_fricas.integrate(v_fricas)

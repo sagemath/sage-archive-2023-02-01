@@ -943,13 +943,29 @@ class FriCASConverter(InterfaceInit):
         return "((%s)::EXPR INT)" % result
 
     def symbol(self, ex):
-        """
+        """Convert the argument, which is a symbol, to FriCAS.
+
+        In this case, we do not return an `Expression Integer`,
+        because FriCAS frequently requires elements of domain
+        `Symbol` or `Variable` as arguments, for example to
+        `integrate`.  Moreover, FriCAS is able to do the conversion
+        itself, whenever the argument should be interpreted as a
+        symbolic expression.
+
         EXAMPLES::
 
             sage: x._fricas_().domainOf()                                       # optional - fricas
+            Variable(x)
+
+            sage: (x^2)._fricas_().domainOf()                                   # optional - fricas
             Expression(Integer())
+
+            sage: (2*x)._fricas_().integrate(x)                                 # optional - fricas
+             2
+            x
+
         """
-        return "(%s::EXPR INT)" % repr(ex)
+        return repr(ex)
 
     def derivative(self, ex, operator):
         """
@@ -992,7 +1008,7 @@ class FriCASConverter(InterfaceInit):
             f = operator.function()(*args)
             params = operator.parameter_set()
             params_set = set(params)
-            vars = "[" + ",".join("%s::Symbol"%repr(args[i]) for i in params_set) + "]"
+            vars = "[" + ",".join(repr(args[i]) for i in params_set) + "]"
             mult = "[" + ",".join(str(params.count(i)) for i in params_set) + "]"
             outstr = "D(%s, %s, %s)"%(f._fricas_init_(), vars, mult)
 

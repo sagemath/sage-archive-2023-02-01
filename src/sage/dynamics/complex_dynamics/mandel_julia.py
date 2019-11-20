@@ -96,7 +96,7 @@ def mandelbrot_plot(f=None, **kwds):
     - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``) color
      used to determine the coloring of set.
 
-    - ``iteration_level`` -- long (optional - default: 1) number of iterations
+    - ``level_sep`` -- long (optional - default: 1) number of iterations
      between each color level.
 
     - ``number_of_colors`` -- long (optional - default: 30) number of colors
@@ -104,20 +104,6 @@ def mandelbrot_plot(f=None, **kwds):
 
     - ``interact`` -- boolean (optional - default: ``False``), controls whether
      plot will have interactive functionality.
-=======
-      image in number of pixels.
-
-    - ``base_color`` -- Hex color (optional - default: ``tomato``) color
-      used to determine the coloring of set.
-
-    - ``level_sep`` -- long (optional - default: 1) number of iterations
-      between each color level.
-
-    - ``number_of_colors`` -- long (optional - default: 30) number of colors
-      used to plot image.
-
-    - ``interact`` -- boolean (optional - default: ``False``), controls whether
-      plot will have interactive functionality.
 
     OUTPUT:
 
@@ -337,7 +323,7 @@ def external_ray(theta, **kwds):
       points on the external ray.
 
     - ``ray_color`` -- RGB color (optional - default: ``[255, 255, 255]``) color
-     of the external ray(s).
+      of the external ray(s).
 
     OUTPUT:
 
@@ -556,7 +542,7 @@ def julia_plot(c=-1, **kwds):
     max_iteration = kwds.pop("max_iteration", 500)
     pixel_count = kwds.pop("pixel_count", 500)
     base_color = kwds.pop("base_color", 'steelblue')
-    iteration_level = kwds.pop("iteration_level", 1)
+    level_sep= kwds.pop("level_sep", 1)
     number_of_colors = kwds.pop("number_of_colors", 30)
     interact = kwds.pop("interact", False)
 

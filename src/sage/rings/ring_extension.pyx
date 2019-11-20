@@ -664,10 +664,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             ['CartesianProduct',
              'Element',
              'Hom',
-             'Minkowski_embedding',
              ...
-             'zero',
-             'zero_ideal',
              'zeta',
              'zeta_coefficients',
              'zeta_function',

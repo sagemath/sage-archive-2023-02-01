@@ -79,12 +79,12 @@ cpdef fast_mandelbrot_plot(double x_center, double y_center,
     - ``x_center`` -- double, real part of the center point in the complex plane.
 
     - ``y_center`` -- double, imaginary part of the center point in the complex
-     plane.
+      plane.
 
     - ``image_width`` -- double, width of the image in the complex plane.
 
     - ``max_iteration`` -- long, maximum number of iterations the map `Q_c(z)`
-     considered.
+      considered.
 
     - ``pixel_count`` -- long, side length of image in number of pixels.
 
@@ -624,11 +624,11 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
  double y_center=0, image_width=4, int max_iteration=50, int pixel_count=500,
  int level_sep=1, int color_num=30, base_color=Color('red')):
     r"""
-    Plots the Mandelbrot set in the complex plane for a general polynomial map.
+    Plots the Mandelbrot set in the complex plane for a family of polynomial maps.
 
     INPUT:
 
-    - ``f`` -- polynomial map defined over the multivariate polynomial ring in
+    - ``f`` -- a one parameter family of polynomial maps defined over the multivariate polynomial ring in
       z, c over the Complex field.
 
     - ``parameter`` -- designates which variable is used as the parameter.
@@ -701,6 +701,8 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
     elif P.base_ring().base_ring() is CC:
         if is_FractionField(P.base_ring()):
             raise NotImplementedError("coefficients must be polynomials in the parameter")
+        phi = P.flattening_morphism()
+        f = phi(f)
         parameter = P.base_ring().gen()
         variable = P.gen()
 
@@ -736,7 +738,7 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
     if len(R.gens()) > 2:
         return NotImplementedError("Base ring must have only 2 variables")
     z, c = R.gens()
-    f = R(f)
+    f = R(str(f))
     S = PolynomialRing(f.base_ring(), 'x,y,J,cr,ci')
     x,y,J,cr,ci = S.gens()
     S2 = S.quotient_ring(J**2+1)

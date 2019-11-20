@@ -684,7 +684,6 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
         I = CDF.gen()
         constant_c = True
 
-    # Is this needed in cython file also? This parsing is done in python file.
     if parameter is None:
         c = var('c')
         parameter = c
@@ -754,7 +753,7 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
     try:
         df = f.derivative(z).univariate_polynomial()
         critical_pts = df.roots(multiplicities=False)
-
+        constant_c = True
     except:
         constant_c = False
 

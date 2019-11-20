@@ -1120,7 +1120,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         Return the absolute base of this extension.
 
         By definition, the absolute base of an iterated extension
-        `K_n/\cots\K_2/K_1` is the ring `K_1`.
+        `K_n/\cdots\K_2/K_1` is the ring `K_1`.
 
         EXAMPLES::
 

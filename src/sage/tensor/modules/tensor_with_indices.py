@@ -17,6 +17,7 @@ AUTHORS:
 #******************************************************************************
 
 from sage.structure.sage_object import SageObject
+import re
 
 class TensorWithIndices(SageObject):
     r"""
@@ -183,83 +184,84 @@ class TensorWithIndices(SageObject):
                               # version of the original tensor (True if
                               # symmetries or contractions are indicated in the
                               # indices)
+                              
+        # Check wether the usual convention for indices, symetries and 
+        # contractions are respected. This includes restrictions on the 
+        # indices symbols used, non nested (anti)symmetries, 
+        # (co/contra)variant  identification of repeated indices, as well  
+        # as checking the number of covariant and contravariant indices.
+        # Latex notations '{' and '}' are totally ignored.
+        # "^{ijkl}_{ib(cd)}"
+        # For now authorized symbol list only includes a-z and A-Z
+        
         # Suppress all '{' and '}' coming from LaTeX notations:
         indices = indices.replace('{','').replace('}','')
-        # Suppress the first '^':
-        if indices[0] == '^':
-            indices = indices[1:]
-        if '^' in indices:
-            raise IndexError("the contravariant indices must be placed first")
-        con_cov = indices.split('_')
-        con = con_cov[0]
-
-        # Contravariant indices
-        # ---------------------
-        #  Search for (anti)symmetries:
-        if '(' in con:
-            sym1 = con.index('(')
-            sym2 = con.index(')')-2
-            if con.find('(', sym1+1) != -1 or '[' in con:
-                raise NotImplementedError("Multiple symmetries are not " +
-                                          "treated yet.")
-            self._tensor = self._tensor.symmetrize(*range(sym1, sym2+1))
-            self._changed = True # self does no longer contain the original tensor
-            con = con.replace('(','').replace(')','')
-        if '[' in con:
-            sym1 = con.index('[')
-            sym2 = con.index(']')-2
-            if con.find('[', sym1+1) != -1 or '(' in con:
-                raise NotImplementedError("multiple symmetries are not " +
-                                          "treated yet")
-            self._tensor = self._tensor.antisymmetrize(*range(sym1, sym2+1))
-            self._changed = True # self does no longer contain the original tensor
-            con = con.replace('[','').replace(']','')
-        if len(con) != self._tensor._tensor_type[0]:
+        
+        # Check index notation conventions and parse indices
+        allowed_pattern = r"(\([a-zA-Z.]{2,}\)|\[[a-zA-Z.]{2,}\]|[a-zA-Z.]+)*"
+        con_then_cov = r"^\^"+ allowed_pattern +r"(\_"+allowed_pattern+r"|)$"
+        cov_then_con = r"^\_"+ allowed_pattern +r"(\^"+allowed_pattern+r"|)$"
+        if re.match(con_then_cov,indices) is None and re.match(cov_then_con,indices) is None:
+            raise ValueError("Index conventions not satisfied")
+        elif re.match(con_then_cov,indices):
+            try:
+                con,cov = indices[1:].split("_")
+            except ValueError:
+                con = indices[1:]
+                cov=""
+        else:
+            try:
+                cov,con = indices[1:].split("^")
+            except ValueError:
+                cov = indices[1:]
+                con=""
+        
+        # Check number of (co/contra)variant indices
+        if len(con.replace("(","").replace(")","").replace("[","").replace("]",""))!=tensor._tensor_type[0]:
             raise IndexError("number of contravariant indices not compatible " +
                              "with the tensor type")
+        if len(cov.replace("(","").replace(")","").replace("[","").replace("]",""))!=tensor._tensor_type[1]:
+            raise IndexError("number of covavariant indices not compatible " +
+                             "with the tensor type")
+         
+        #Apply (anti)symmetrizations on contravariant indices
+        first_sym_regex = r"(\(|\[)[a-zA-Z]*[)\]]"
+        while re.search(first_sym_regex,con):
+            first_sym = re.search(first_sym_regex,con)
+            sym1 = first_sym.span()[0]
+            sym2 = first_sym.span()[1]-1
+            if first_sym.groups()[0] == "(":
+                self._tensor = self._tensor.symmetrize(*range(
+                    sym1,
+                    sym2-1
+                ))
+            else:
+                self._tensor = self._tensor.antisymmetrize(*range(
+                    sym1,
+                    sym2-1
+                ))
+            self._changed = True # self does no longer contain the original tensor
+            con = con[:sym1]+con[sym1+1:sym2]+con[sym2+1:]     
         self._con = con
-
-        # Covariant indices
-        # -----------------
-        if len(con_cov) == 1:
-            if tensor._tensor_type[1] != 0:
-                raise IndexError("number of covariant indices not compatible " +
-                                 "with the tensor type")
-            self._cov = ''
-        elif len(con_cov) == 2:
-            cov = con_cov[1]
-            #  Search for (anti)symmetries:
-            if '(' in cov:
-                sym1 = cov.index('(')
-                sym2 = cov.index(')')-2
-                if cov.find('(', sym1+1) != -1 or '[' in cov:
-                    raise NotImplementedError("multiple symmetries are not " +
-                                              "treated yet")
-                csym1 = sym1 + self._tensor._tensor_type[0]
-                csym2 = sym2 + self._tensor._tensor_type[0]
-                self._tensor = self._tensor.symmetrize(*range(csym1, csym2+1))
-                self._changed = True # self does no longer contain the original
-                                     # tensor
-                cov = cov.replace('(','').replace(')','')
-            if '[' in cov:
-                sym1 = cov.index('[')
-                sym2 = cov.index(']')-2
-                if cov.find('[', sym1+1) != -1 or '(' in cov:
-                    raise NotImplementedError("multiple symmetries are not " +
-                                              "treated yet")
-                csym1 = sym1 + self._tensor._tensor_type[0]
-                csym2 = sym2 + self._tensor._tensor_type[0]
-                self._tensor = self._tensor.antisymmetrize(
-                                                        *range(csym1, csym2+1))
-                self._changed = True # self does no longer contain the original
-                                     # tensor
-                cov = cov.replace('[','').replace(']','')
-            if len(cov) != tensor._tensor_type[1]:
-                raise IndexError("number of covariant indices not " +
-                                 "compatible with the tensor type")
-            self._cov = cov
-        else:
-            raise IndexError("too many '_' in the list of indices")
+        
+        #Apply (anti)symmetrizations on contravariant indices
+        while re.search(first_sym_regex,cov):
+            first_sym = re.search(first_sym_regex,cov)
+            sym1 = first_sym.span()[0]
+            sym2 = first_sym.span()[1]-1
+            if first_sym.groups()[0] == "(":
+                self._tensor = self._tensor.symmetrize(*range(
+                    self._tensor._tensor_type[0] + sym1,
+                    self._tensor._tensor_type[0] + sym2-1
+                ))
+            else:
+                self._tensor = self._tensor.antisymmetrize(*range(
+                    self._tensor._tensor_type[0] + sym1,
+                    self._tensor._tensor_type[0] + sym2-1
+                ))
+            self._changed = True # self does no longer contain the original tensor
+            cov = cov[:sym1]+cov[sym1+1:sym2]+cov[sym2+1:]     
+        self._cov = cov
 
         # Treatment of possible self-contractions:
         # ---------------------------------------

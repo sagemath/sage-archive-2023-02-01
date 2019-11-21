@@ -1009,6 +1009,18 @@ cdef class IndexFaceSet(PrimitiveObject):
                 return x*x+y*y < 1
             sphinx_plot(P.add_condition(cut))
 
+        TESTS:
+
+        One test for preservation of transparency :trac:`28783`::
+
+            sage: x,y,z = var('x,y,z')
+            sage: P = plot3d(cos(x*y),(x,-2,2),(y,-2,2),color='red',opacity=0.1)
+            sage: def condi(x,y,z):
+            ....:     return not(x*x+y*y <= 1)
+            sage: Q = P.add_condition(condi, 8)
+            sage: 'd 0.1' in Q.mtl_str()
+            True
+
         .. TODO::
 
             - Use a dichotomy to search for the place where to cut,

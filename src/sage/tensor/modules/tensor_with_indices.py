@@ -215,15 +215,18 @@ class TensorWithIndices(SageObject):
             except ValueError:
                 cov = indices[1:]
                 con=""
-        
+        con_without_sym = (con.replace("(","").replace(")","").replace("[","").replace("]",""))
+        cov_without_sym = (cov.replace("(","").replace(")","").replace("[","").replace("]",""))
+        if len(con_without_sym)!=len(set(con_without_sym)) or len(cov_without_sym)!=len(set(cov_without_sym)):
+            raise ValueError("Index conventions not satisfied : repeated indices of same type")
         # Check number of (co/contra)variant indices
-        if len(con.replace("(","").replace(")","").replace("[","").replace("]",""))!=tensor._tensor_type[0]:
+        if len(con_without_sym)!=tensor._tensor_type[0]:
             raise IndexError("number of contravariant indices not compatible " +
                              "with the tensor type")
-        if len(cov.replace("(","").replace(")","").replace("[","").replace("]",""))!=tensor._tensor_type[1]:
+        if len(cov_without_sym)!=tensor._tensor_type[1]:
             raise IndexError("number of covavariant indices not compatible " +
                              "with the tensor type")
-         
+        
         #Apply (anti)symmetrizations on contravariant indices
         first_sym_regex = r"(\(|\[)[a-zA-Z]*[)\]]"
         while re.search(first_sym_regex,con):
@@ -265,19 +268,21 @@ class TensorWithIndices(SageObject):
 
         # Treatment of possible self-contractions:
         # ---------------------------------------
-        contraction_pairs = []
+        contraction_pair_list = []
         for ind in self._con:
             if ind != '.' and ind in self._cov:
                 pos1 = self._con.index(ind)
                 pos2 = self._tensor._tensor_type[0] + self._cov.index(ind)
-                contraction_pairs.append((pos1, pos2))
-        if len(contraction_pairs) > 1:
-            raise NotImplementedError("multiple self-contractions are not " +
-                                      "implemented yet")
-        if len(contraction_pairs) == 1:
-            pos1 = contraction_pairs[0][0]
-            pos2 = contraction_pairs[0][1]
+                contraction_pair_list.append([pos1, pos2])
+        while contraction_pair_list:
+            pos1, pos2 = contraction_pair_list.pop()
             self._tensor = self._tensor.trace(pos1, pos2)
+            for contraction_pair in contraction_pair_list:
+                if contraction_pair[0]> pos1:
+                    contraction_pair[0]=contraction_pair[0]-1
+                if contraction_pair[1]> pos2:
+                    contraction_pair[1]=contraction_pair[1]-1
+                contraction_pair[1]=contraction_pair[1]-1
             self._changed = True # self does no longer contain the original
                                  # tensor
             ind = self._con[pos1]

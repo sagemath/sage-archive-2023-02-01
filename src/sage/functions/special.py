@@ -341,12 +341,12 @@ def elliptic_j(z, prec=53):
     This example shows the need for higher precision than the default one of
     the `ComplexField`, see :trac:`28355`::
 
-        sage: -elliptic_j(tau)
-        2.62537412640767e17 - 732.558854258998*I # rel tol 1e-2
-        sage: -elliptic_j(tau,75)
-        2.625374126407680000000e17 - 0.0001309913593909879441262*I # rel tol 1e-2
-        sage: -elliptic_j(tau,100)
-        2.6253741264076799999999999999e17 - 1.3012822400356887122945119790e-12*I # rel tol 1e-2
+        sage: -elliptic_j(tau) # rel tol 1e-2
+        2.62537412640767e17 - 732.558854258998*I
+        sage: -elliptic_j(tau,75) # rel tol 1e-2
+        2.625374126407680000000e17 - 0.0001309913593909879441262*I
+        sage: -elliptic_j(tau,100) # rel tol 1e-2
+        2.6253741264076799999999999999e17 - 1.3012822400356887122945119790e-12*I
         sage: (-elliptic_j(tau, 100).real().round())^(1/3)
         640320
     """

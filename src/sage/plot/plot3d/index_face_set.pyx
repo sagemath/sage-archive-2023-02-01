@@ -1018,7 +1018,8 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: def condi(x,y,z):
             ....:     return not(x*x+y*y <= 1)
             sage: Q = P.add_condition(condi, 8)
-            sage: 'd 0.1' in Q.mtl_str()
+            sage: L = Q.json_repr(Q.default_render_params())
+            sage: '"opacity":0.1' in L[-1]
             True
 
         .. TODO::

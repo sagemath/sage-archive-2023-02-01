@@ -1107,9 +1107,12 @@ cdef class IndexFaceSet(PrimitiveObject):
                 index += 2
 
         if local_colored:
-            return IndexFaceSet(face_list, point_list, texture_list=texture_list)
+            return IndexFaceSet(face_list, point_list,
+                                texture_list=texture_list)
         else:
-            return IndexFaceSet(face_list, point_list, texture=texture)
+            opacity = texture.opacity
+            return IndexFaceSet(face_list, point_list, texture=texture,
+                                opacity=opacity)
 
     def tachyon_repr(self, render_params):
         """
@@ -1393,15 +1396,15 @@ cdef class IndexFaceSet(PrimitiveObject):
             point_c_mul(&dual.vs[i], dual.vs[i], 1.0/face.n)
 
             # Now compute the new face
-            for j from 0 <= j < face.n:
+            for j in range(face.n):
                 if j == 0:
-                    incoming = face.vertices[face.n-1]
+                    incoming = face.vertices[face.n - 1]
                 else:
-                    incoming = face.vertices[j-1]
-                if j == face.n-1:
+                    incoming = face.vertices[j - 1]
+                if j == face.n - 1:
                     outgoing = face.vertices[0]
                 else:
-                    outgoing = face.vertices[j+1]
+                    outgoing = face.vertices[j + 1]
                 dd = dual_faces[face.vertices[j]]
                 dd[incoming] = i, outgoing
 
@@ -1544,9 +1547,9 @@ cdef class EdgeIter:
                     face = self.set._faces[self.i]
             else:
                 if self.j == 0:
-                    P = self.set.vs[face.vertices[face.n-1]]
+                    P = self.set.vs[face.vertices[face.n - 1]]
                 else:
-                    P = self.set.vs[face.vertices[self.j-1]]
+                    P = self.set.vs[face.vertices[self.j - 1]]
                 Q = self.set.vs[face.vertices[self.j]]
                 self.j += 1
                 if self.set.enclosed:  # Every edge appears exactly twice, once in each orientation.
@@ -1613,10 +1616,10 @@ def sticker(face, width, hover):
     """
     n = len(face)
     edges = []
-    for i from 0 <= i < n:
-        edges.append(vector(RDF, [face[i-1][0] - face[i][0],
-                                  face[i-1][1] - face[i][1],
-                                  face[i-1][2] - face[i][2]]))
+    for i in range(n):
+        edges.append(vector(RDF, [face[i - 1][0] - face[i][0],
+                                  face[i - 1][1] - face[i][1],
+                                  face[i - 1][2] - face[i][2]]))
     sticker = []
     for i in range(n):
         v = -edges[i]

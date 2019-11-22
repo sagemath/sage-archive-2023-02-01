@@ -156,25 +156,17 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         # "./sage -i SPKG_NAME" will still install the package.
         AS_VAR_IF([sage_spkg_install], [no], [
             SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AS_VAR_IF([sage_require], [yes], [
-                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (using system package; will not be installed)])
-            ], [
-                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (not required; will not be installed)])
+            AS_VAR_IF([sage_require], [yes], [ AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (using system package; will not be installed)])
+            ],                               [ AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (not required; will not be installed)])
             ])
         ], [
             SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
-                [yes], [
-                    AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (no suitable system package)])
-                ],
-                [installed], [
-                    AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (SPKG already installed)])
-                ],
-                [
-                    AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (installing, $reason)])
-                ])
+                [yes],                       [AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (no suitable system package)])],
+                [installed],                 [AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (SPKG already installed)])],
+                                             [AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (installing, $reason)])])
             ], [
                 # Package does not use spkg-configure.m4 yet
                 AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION])

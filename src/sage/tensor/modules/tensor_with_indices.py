@@ -102,7 +102,15 @@ class TensorWithIndices(SageObject):
         no symmetry;  antisymmetry: (2, 3)
         sage: s == t.antisymmetrize(2,3)
         True
-
+        
+    On can also perform multiple symetrization-antisymetrizations 
+    
+        sage: aa = a*a
+        sage: aa["(..)(..)"] == aa.symmetrize(0,1).symmetrize(2,3)
+        True
+        sage: aa == aa["(..)(..)"]+aa["[..][..]"]+aa["(..)[..]"]+aa["[..](..)"]
+        True
+        
     Another example of an operation indicated by indices is a contraction::
 
         sage: s = t['^ki_kj'] ; s  # contraction on the repeated index k
@@ -136,6 +144,10 @@ class TensorWithIndices(SageObject):
 
         sage: s = a['^kl'] * b['_kl'] ; s
         105
+        sage: s == (a*b)['^kl_kl']
+        True
+        sage: s == (a*b)['_kl^kl']
+        True
         sage: s == a.contract(0,1, b, 0,1)
         True
 
@@ -155,7 +167,40 @@ class TensorWithIndices(SageObject):
         -a^ij
         sage: -t['ij_kl']
         -t^ij_kl
+        
+        Conventions are checked and non acceptable indices raise 
+        ValueError, for instance :
 
+        sage: try: 
+        ....:     a["([..])"] # Nested symmetries  
+        ....: except ValueError as e:
+        ....:     print(e)
+        Index conventions not satisfied
+        
+        sage: try: 
+        ....:     a["(.."] # Unbalanced parenthis 
+        ....: except ValueError as e:
+        ....:     print(e)
+        Index conventions not satisfied
+
+        sage: try: 
+        ....:     a["ii"] # Repeated indices of the same type
+        ....: except ValueError as e:
+        ....:     print(e)
+        Index conventions not satisfied : repeated indices of same type
+
+        sage: try: 
+        ....:     (a*a)["^(ij)^(kl)"] # Multiple indices group of the same type
+        ....: except ValueError as e:
+        ....:     print(e)
+        Index conventions not satisfied
+        
+        sage: try: 
+        ....:     a["^éa"] # accentuated index name
+        ....: except ValueError as e:
+        ....:     print(e)
+        Index conventions not satisfied
+        
     """
     def __init__(self, tensor, indices):
         r"""
@@ -199,26 +244,30 @@ class TensorWithIndices(SageObject):
         
         # Check index notation conventions and parse indices
         allowed_pattern = r"(\([a-zA-Z.]{2,}\)|\[[a-zA-Z.]{2,}\]|[a-zA-Z.]+)*"
-        con_then_cov = r"^\^"+ allowed_pattern +r"(\_"+allowed_pattern+r"|)$"
-        cov_then_con = r"^\_"+ allowed_pattern +r"(\^"+allowed_pattern+r"|)$"
+        con_then_cov = r"^(\^|)" + allowed_pattern + r"(\_"+allowed_pattern + r"|)$"
+        cov_then_con = r"^\_" + allowed_pattern + r"(\^"+allowed_pattern + r"|)$"
         if re.match(con_then_cov,indices) is None and re.match(cov_then_con,indices) is None:
             raise ValueError("Index conventions not satisfied")
         elif re.match(con_then_cov,indices):
             try:
-                con,cov = indices[1:].split("_")
+                con,cov = indices.replace("^","").split("_")
             except ValueError:
-                con = indices[1:]
-                cov=""
+                con = indices.replace("^","")
+                cov = ""
         else:
             try:
                 cov,con = indices[1:].split("^")
             except ValueError:
                 cov = indices[1:]
-                con=""
+                con = ""
+                
         con_without_sym = (con.replace("(","").replace(")","").replace("[","").replace("]",""))
         cov_without_sym = (cov.replace("(","").replace(")","").replace("[","").replace("]",""))
-        if len(con_without_sym)!=len(set(con_without_sym)) or len(cov_without_sym)!=len(set(cov_without_sym)):
+        if len(con_without_sym) != len(set(con_without_sym))+max(con_without_sym.count(".")-1,0):
             raise ValueError("Index conventions not satisfied : repeated indices of same type")
+        if len(cov_without_sym) != len(set(cov_without_sym))+max(cov_without_sym.count(".")-1,0):
+            raise ValueError("Index conventions not satisfied : repeated indices of same type")
+        
         # Check number of (co/contra)variant indices
         if len(con_without_sym)!=tensor._tensor_type[0]:
             raise IndexError("number of contravariant indices not compatible " +
@@ -228,7 +277,7 @@ class TensorWithIndices(SageObject):
                              "with the tensor type")
         
         #Apply (anti)symmetrizations on contravariant indices
-        first_sym_regex = r"(\(|\[)[a-zA-Z]*[)\]]"
+        first_sym_regex = r"(\(|\[)[a-zA-Z.]*[)\]]"
         while re.search(first_sym_regex,con):
             first_sym = re.search(first_sym_regex,con)
             sym1 = first_sym.span()[0]

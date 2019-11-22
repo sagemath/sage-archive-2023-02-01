@@ -66,8 +66,7 @@ else
 fi
 AC_SUBST([SAGE_GCC_DEP])
 
-AC_MSG_CHECKING([SPKGs to install])
-AC_MSG_RESULT([])
+AC_MSG_NOTICE([will install the following SPKGs...])
 
 # Usage: newest_version $pkg
 # Print version number of latest package $pkg
@@ -151,15 +150,33 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     # some dummy file to skip the installation. Note that an explicit
     # "./sage -i SPKG_NAME" will still install the package.
     if test "$SPKG_NAME" != "$SPKG_VERSION"; then
-        sage_spkg_install="sage_spkg_install_${SPKG_NAME}"
+        AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
+        AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
+        AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
 
-        if test "${!sage_spkg_install}" != no ; then
-            SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION])
-        else
+        AS_VAR_IF([sage_spkg_install], [no], [
             SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION will not be installed (configure check)])
-        fi
+            AS_VAR_IF([sage_require], [yes], [
+                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (using system package; will not be installed)])
+            ], [
+                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (not required; will not be installed)])
+            ])
+        ], [
+            SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
+            AS_VAR_SET_IF([sage_use_system], [
+                AS_VAR_IF([sage_use_system], [yes], [
+                    AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (no suitable system package)])
+                ], [
+                    AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (cannot use system package)])
+                ])
+            ], [
+                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION])
+            ])
+        ])
+
+        AS_VAR_POPDEF([sage_use_system])dnl
+        AS_VAR_POPDEF([sage_require])dnl
+        AS_VAR_POPDEF([sage_spkg_install])dnl
     fi
 
     # Packages that should be included in the source distribution

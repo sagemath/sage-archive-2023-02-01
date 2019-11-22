@@ -133,7 +133,7 @@ class TateAlgebraIdeal(Ideal_generic):
             return _groebner_basis_buchberger(self, prec, False)
         elif algorithm == "buchberger-integral":
             return _groebner_basis_buchberger(self, prec, True)
-        elif algorithm == "F5"
+        elif algorithm == "F5":
             return _groebner_basis_F5(self, prec)
         else:
             raise NotImplementedError("only Buchberger algorithm is implemented so far")
@@ -561,14 +561,16 @@ def Jpair(p1, p2):
 
 
 def _groebner_basis_F5(I, prec):
-    term_one = I[0].parent().monoid_of_terms().one()
+    term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
 
-    for f in I:
+    for f in I.gens():
+        print("---")
+        print("new generator: %s" % f)
         # Initial strong Grobner basis:
         # we add signatures
-        sgb = [ (term_one, f) ]
-        sgb += [ (None, g) for g in gb ]
+        sgb = [ (None, g) for g in gb ]
+        sgb.append((term_one, f))
         # For the syzygy criterium
         gb0 = [ g.leading_term() for g in gb ]
 
@@ -581,25 +583,38 @@ def _groebner_basis_F5(I, prec):
                 if J is not None:
                     heappush(Jpairs, J)
 
+        print("initial J-pairs:")
+        for s,v in Jpairs:
+            print("| sign = %s; series = %s" % (s,v))
+
         while Jpairs:
             s, v = heappop(Jpairs)
             sv = v.leading_term()
 
+            print("current J-pair: (sign = %s, series = %s)" % (s,v))
+
             # The syzygy criterium
+            syzygy = None
             for S in gb0:
                 if S.divides(s):
+                    syzygy = S
                     continue
+            if syzygy is not None:
+                print("| skip: sygyzy criterium; signature = %s" % syzygy)
+                continue
 
-            # We check if (u,v) is covered by 
+            # We check if (s,v) is covered by 
             # the current strong Grobner basis
-            cover = False
+            cover = None
             for S, V in sgb:
-                if S.divides(s):
+                if S is not None and S.divides(s):
                     sV = V.leading_term()
                     if (s // S)*sV < sv:
-                        cover = True
+                        cover = (S,V)
                         break
-            if cover: continue
+            if cover is not None:
+                print("| skip: cover by (sign = %s, series = %s)" % cover)
+                continue
 
             # We perform regular top-reduction
             while True:
@@ -612,26 +627,34 @@ def _groebner_basis_F5(I, prec):
                         t = sv // sV
                         if S is None or t*S < s:
                             v -= t*V
+                            print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
+                            print("| new series is: %s" % v)
                             break
                 else:
                     break
 
             if v == 0:
                 # We have a new element in (I0:f) whose signature
-                # could be useful to apply the syzygy criterium
+                # could be useful to strengthen the syzygy criterium
+                print ("| add signature for syzygy criterium: %s" % s)
                 gb0.append(s)
             else:
                 # We update the current strong Grobner basis
                 # and the J-pairs accordingly
+                print("| update strong Grobner basis")
                 p = (s,v)
                 for P in sgb:
                     J = Jpair(p, P)
                     if J is not None:
+                        print("| add J-pair: (sign = %s, series = %s)" % J)
                         heappush(Jpairs, J)
                 sgb.append(p)
 
         # We forget signatures
         gb = [ v for (s,v) in sgb ]
         # probably we should reduce the Grobner basis here
+        print("no more J-pairs; current Grobner basis is:")
+        for g in gb:
+            print("| %s" % g)
 
     return gb

@@ -164,7 +164,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         ], [
             SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
             AS_VAR_SET_IF([sage_use_system], [
-                AS_CASE([$sage_use_system],
+                AS_VAR_COPY([reason], [sage_use_system])
+                AS_CASE([$reason],
                 [yes], [
                     AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (no suitable system package)])
                 ],
@@ -172,7 +173,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                     AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (SPKG already installed)])
                 ],
                 [
-                    AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (cannot use system package)])
+                    AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION (installing, $reason)])
                 ])
             ], [
                 # Package does not use spkg-configure.m4 yet

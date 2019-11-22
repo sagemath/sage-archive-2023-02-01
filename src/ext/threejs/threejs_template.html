@@ -410,8 +410,17 @@ SAGE_SCRIPTS
 
     function getViewpoint() {
 
-        var info = '<pre>' + JSON.stringify( camera, null, '\t' ) + '</pre>';
-        window.open().document.write( info );
+        var v = camera.quaternion.inverse();
+        var r = Math.sqrt( v.x*v.x + v.y*v.y + v.z*v.z );
+        var axis = [ v.x / r, v.y / r, v.z / r ];
+        var angle = 2 * Math.atan2( r, v.w ) * 180 / Math.PI;
+
+        var textArea = document.createElement( 'textarea' );
+        textArea.textContent = JSON.stringify( axis ) + ', ' + angle;
+        textArea.style.csstext = 'position: absolute; top: -100%';
+        document.body.append( textArea );
+        textArea.select();
+        document.execCommand( 'copy' );
 
     }
 
@@ -421,7 +430,7 @@ SAGE_SCRIPTS
 <div id="menu-content">
 <div onclick="saveAsPNG()">Save as PNG</div>
 <div onclick="saveAsHTML()">Save as HTML</div>
-<div onclick="getViewpoint()">Camera Info</div>
+<div onclick="getViewpoint()">Get Viewpoint</div>
 <div>Close Menu</div>
 </div></div>
 

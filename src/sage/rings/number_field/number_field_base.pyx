@@ -51,6 +51,12 @@ cdef class NumberField(Field):
     # is rather confusing.
     def _pushout_(self, other):
         r"""
+        If ``self`` and/or ``other`` are embedded, use this embedding to
+        discover a common parent.
+
+        Currently equal embeddings and embeddings into ``AA`` and ``QQbar`
+        are supported.
+
         TESTS:
 
         Pushout is implemented for number field embedded in ``AA``::
@@ -87,12 +93,49 @@ cdef class NumberField(Field):
             sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
             sage: (cbrt2 + a) * b
             4.231287179063857?
+            sage: sqrt2 + QQbar(-3).sqrt()
+            1.414213562373095? + 1.732050807568878?*I
+
+        Pushout is implemented for number field embedded in ``QQbar``::
+
+            sage: Km2.<sqrtm2> = NumberField(x^2 + 2, embedding=QQbar(-2).sqrt())
+            sage: b + sqrtm2
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + b
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + AA(3).sqrt()
+            1.732050807568878? + 1.414213562373095?*I
+
+        Pushout is implemented for number fields embedded into the same field::
+
+            sage: K.<sqrt2_plus_sqrt3> = NumberField(x^4 - 10*x^2 + 1)
+            sage: K2.<sqrt2> = NumberField(x^2-2, embedding=(sqrt2_plus_sqrt3^3 - 9*sqrt2_plus_sqrt3)/2)
+            sage: K3.<sqrt3> = NumberField(x^2-3, embedding=-(sqrt2_plus_sqrt3^3 - 11*sqrt2_plus_sqrt3)/2)
+            sage: sqrt2 + sqrt3
+            sqrt2_plus_sqrt3
         """
-        if isinstance(other, NumberField) and \
-            self._embedded_real and \
-            (<NumberField>other)._embedded_real:
-            from sage.rings.qqbar import AA
-            return AA
+        # Use the embedding of ``self``, if it exists.
+        if self._embedding:
+            codomain_self = self._embedding.codomain()
+        else:
+            codomain_self = self
+
+        # Use the embedding of ``other``, if it exists.
+        if isinstance(other, NumberField):
+            embedding = (<NumberField>other)._embedding
+            if embedding:
+                codomain_other = embedding.codomain()
+            else:
+                codomain_other = other
+        else:
+            codomain_other = other
+
+        if codomain_self is codomain_other:
+            return codomain_self
+
+        from sage.rings.qqbar import AA, QQbar
+        if codomain_self in (AA, QQbar) and codomain_other in (AA, QQbar):
+            return QQbar
 
     def ring_of_integers(self, *args, **kwds):
         r"""

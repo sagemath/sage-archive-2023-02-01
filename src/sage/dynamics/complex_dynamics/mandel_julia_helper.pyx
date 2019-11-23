@@ -27,8 +27,6 @@ from cysignals.signals cimport sig_check
 from sage.rings.complex_field import ComplexField
 from sage.functions.log import exp, log
 from sage.symbolic.constants import pi
-
-# Imports from commit 70f3b587a494c72ee062a559ea853367496ed553
 from sage.symbolic.relation import solve
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import CC
@@ -38,7 +36,8 @@ from sage.functions.other import sqrt
 from sage.ext.fast_callable import fast_callable
 from sage.calculus.all import symbolic_expression
 from sage.calculus.var import var
-# End
+from sage.rings.fraction_field import is_FractionField
+from sage.categories.function_fields import FunctionFields
 
 def _color_to_RGB(color):
     """
@@ -80,12 +79,12 @@ cpdef fast_mandelbrot_plot(double x_center, double y_center,
     - ``x_center`` -- double, real part of the center point in the complex plane.
 
     - ``y_center`` -- double, imaginary part of the center point in the complex
-     plane.
+      plane.
 
     - ``image_width`` -- double, width of the image in the complex plane.
 
     - ``max_iteration`` -- long, maximum number of iterations the map `Q_c(z)`
-     considered.
+      considered.
 
     - ``pixel_count`` -- long, side length of image in number of pixels.
 
@@ -410,11 +409,16 @@ cpdef get_line(start, end):
         points.reverse()
     return points
 
+# Commented out temporarily for safekeeping, but probably should be deleted
+#def fast_julia_plot(double c_real, double c_imag,
+#                    double x_center, double y_center, double image_width,
+#                    long max_iteration, long pixel_count, long level_sep,
+#                    long color_num, base_color):
 
-def fast_julia_plot(double c_real, double c_imag,
-                    double x_center, double y_center, double image_width,
-                    long max_iteration, long pixel_count, long level_sep,
-                    long color_num, base_color):
+cpdef fast_julia_plot(double c_real, double c_imag,
+  double x_center=0, double y_center=0, double image_width=4,
+  long max_iteration=500, long pixel_count=500, long level_sep=2,
+  long color_num=40, base_color=[50, 50, 50]):
     r"""
     Plots the Julia set for a given `c` value in the complex plane for the map `Q_c(z) = z^2 + c`.
 
@@ -423,31 +427,31 @@ def fast_julia_plot(double c_real, double c_imag,
     - ``c_real`` -- double, Real part of `c` value that determines Julia set.
 
     - ``c_imag`` -- double, Imaginary part of `c` value that determines Julia
-     set.
+      set.
 
     - ``x_center`` -- double (optional - default: ``0.0``), Real part of center
-     point.
+      point.
 
     - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of
-     center point.
+      center point.
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image
-     in the complex plane.
+      in the complex plane.
 
     - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
-     iterations the map ``Q_c(z)``.
+      iterations the map ``Q_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
-     image in number of pixels.
+      image in number of pixels.
 
     - ``level_sep`` -- long (optional - default: ``2``), number of iterations
-     between each color level.
+      between each color level.
 
     - ``color_num`` -- long (optional - default: ``40``), number of colors used
-     to plot image.
+      to plot image.
 
     - ``base_color`` -- RGB color (optional - default: ``[50, 50, 50]``), color
-     used to determine the coloring of set.
+      used to determine the coloring of set.
 
     OUTPUT:
 
@@ -539,34 +543,34 @@ cpdef julia_helper(double c_real, double c_imag, double x_center=0,
     - ``c_real`` -- double, Real part of `c` value that determines Julia set.
 
     - ``c_imag`` -- double, Imaginary part of `c` value that determines Julia
-     set.
+      set.
 
     - ``x_center`` -- double (optional - default: ``0.0``), Real part of center
-     point.
+      point.
 
     - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of
-     center point.
+      center point.
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image in
-     the complex plane.
+      the complex plane.
 
     - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
-     iterations the map ``Q_c(z)``.
+      iterations the map ``Q_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
-     image in number of pixels.
+      image in number of pixels.
 
     - ``level_sep`` -- long (optional - default: ``2``), number of iterations
-     between each color level.
+      between each color level.
 
     - ``color_num`` -- long (optional - default: ``40``), number of colors used
-     to plot image.
+      to plot image.
 
     - ``base_color`` -- RGB color (optional - default: ``[50, 50, 50]``), color
-     used to determine the coloring of set.
+      used to determine the coloring of set.
 
     - ``point_color`` -- RGB color (optional - default: ``[255, 0, 0]``), color
-     of the point `c` in the Mandelbrot set.
+      of the point `c` in the Mandelbrot set.
 
     OUTPUT:
 
@@ -619,27 +623,27 @@ cpdef julia_helper(double c_real, double c_imag, double x_center=0,
 
 cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
  double y_center=0, image_width=4, int max_iteration=50, int pixel_count=500,
- int level_sep=1, int color_num=30, base_color=[50,50,50]):
+ int level_sep=1, int color_num=30, base_color=Color('red')):
     r"""
-    Plots the Mandelbrot set in the complex plane for a general polynomial map.
+    Plots the Mandelbrot set in the complex plane for a family of polynomial maps.
 
     INPUT:
 
-    - ``f`` -- polynomial map defined over the multivariate polynomial ring in
-     z, c over the Complex field.
+    - ``f`` -- a one parameter family of polynomial maps defined over the multivariate polynomial ring in
+      z, c over the Complex field.
 
     - ``parameter`` -- designates which variable is used as the parameter.
-     If no parameter is provided, ``c`` will be used as the parameter.
+      If no parameter is provided, ``c`` will be used as the parameter.
 
     - ``x_center`` -- double, real part of the center point in the complex plane.
 
     - ``y_center`` -- double, imaginary part of the center point in the complex
-     plane.
+      plane.
 
     - ``image_width`` -- double, width of the image in the complex plane.
 
     - ``max_iteration`` -- long, maximum number of iterations the map `f(z)`
-     considered.
+      considered.
 
     - ``pixel_count`` -- long, side length of image in number of pixels.
 
@@ -664,8 +668,8 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
     ::
 
         sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import polynomial_mandelbrot
-        sage: B.<z> = CC[]
-        sage: R.<c> = B[]
+        sage: B.<c> = CC[]
+        sage: R.<z> = B[]
         sage: f = z^4 - z + c
         sage: polynomial_mandelbrot(f, pixel_count=100)
         100x100px 24-bit RGB image
@@ -687,18 +691,26 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
 
     P = f.parent()
 
-    if P.base() is CC:
+    if P.base_ring() is CC:
+        if is_FractionField(P):
+            raise NotImplementedError("coefficients must be polynomials in the parameter")
         gen_list = list(P.gens())
         parameter = gen_list.pop(gen_list.index(parameter))
         variable = gen_list.pop()
 
-    elif P.base().base() is CC:
-        parameter = P.gen()
-        variable = P.base().gen()
+    elif P.base_ring().base_ring() is CC:
+        if is_FractionField(P.base_ring()):
+            raise NotImplementedError("coefficients must be polynomials in the parameter")
+        phi = P.flattening_morphism()
+        f = phi(f)
+        parameter = P.base_ring().gen()
+        variable = P.gen()
+
+    elif P.base_ring() in FunctionFields():
+        raise NotImplementedError("coefficients must be polynomials in the parameter")
 
     else:
-        return ValueError
-
+        return ValueError("base ring must be a complex field")
 
     # Make sure image_width is positive
     image_width = abs(image_width)
@@ -723,8 +735,10 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
 
     # Split function into real and imaginary parts
     R = PolynomialRing(CC, [variable,parameter])
+    if len(R.gens()) > 2:
+        return NotImplementedError("Base ring must have only 2 variables")
     z, c = R.gens()
-    f = R(f)
+    f = R(str(f))
     S = PolynomialRing(f.base_ring(), 'x,y,J,cr,ci')
     x,y,J,cr,ci = S.gens()
     S2 = S.quotient_ring(J**2+1)
@@ -740,7 +754,7 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
     try:
         df = f.derivative(z).univariate_polynomial()
         critical_pts = df.roots(multiplicities=False)
-
+        constant_c = True
     except:
         constant_c = False
 

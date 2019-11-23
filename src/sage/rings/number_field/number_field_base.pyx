@@ -93,7 +93,7 @@ cdef class NumberField(Field):
             sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
             sage: (cbrt2 + a) * b
             4.231287179063857?
-            sage: sqrt2 + QQbar(-3).sqrt()
+            sage: b + QQbar(-3).sqrt()
             1.414213562373095? + 1.732050807568878?*I
 
         Pushout is implemented for number field embedded in ``QQbar``::

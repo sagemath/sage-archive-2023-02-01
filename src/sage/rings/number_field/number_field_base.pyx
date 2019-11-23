@@ -105,14 +105,6 @@ cdef class NumberField(Field):
             1.414213562373095? + 1.414213562373095?*I
             sage: sqrtm2 + AA(3).sqrt()
             1.732050807568878? + 1.414213562373095?*I
-
-        Pushout is implemented for number fields embedded into the same field::
-
-            sage: K.<sqrt2_plus_sqrt3> = NumberField(x^4 - 10*x^2 + 1)
-            sage: K2.<sqrt2> = NumberField(x^2-2, embedding=(sqrt2_plus_sqrt3^3 - 9*sqrt2_plus_sqrt3)/2)
-            sage: K3.<sqrt3> = NumberField(x^2-3, embedding=-(sqrt2_plus_sqrt3^3 - 11*sqrt2_plus_sqrt3)/2)
-            sage: sqrt2 + sqrt3
-            sqrt2_plus_sqrt3
         """
         # Use the embedding of ``self``, if it exists.
         if self._embedding:

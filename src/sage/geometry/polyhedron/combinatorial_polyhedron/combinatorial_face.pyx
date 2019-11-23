@@ -64,7 +64,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__                  import absolute_import, division, print_function
 from sage.misc.superseded        import deprecated_function_alias
 
 import numbers

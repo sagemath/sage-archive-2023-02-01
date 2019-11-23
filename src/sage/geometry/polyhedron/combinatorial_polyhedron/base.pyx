@@ -83,7 +83,6 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__                     import absolute_import, division, print_function
 import numbers
 from sage.rings.integer             import Integer
 from sage.graphs.graph              import Graph

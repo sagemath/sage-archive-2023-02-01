@@ -80,9 +80,8 @@ EOF
             cat >&2 <<EOF
 
 * package: $base_f
-  log file: $f
-  build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
 EOF
+            ls -lf $f ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f >&2
         fi
     done
 
@@ -94,8 +93,8 @@ EOF
             cat >&2 <<EOF
 
 * documentation: $base_f
-  log file: $f
 EOF
+            ls -lf $f >&2
         fi
     done
     cat >&2 <<EOF

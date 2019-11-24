@@ -2341,7 +2341,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(*comp, **kwargs)
         return resu
 
-    def mixed_form(self, name=None, latex_name=None, dest_map=None, comp=None):
+    def mixed_form(self, comp=None, name=None, latex_name=None, dest_map=None):
         r"""
         Define a mixed form on ``self``.
 
@@ -2375,6 +2375,9 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
+        - ``comp`` -- (default: ``None``) homogeneous components of the mixed
+          form as a list; if none is provided, the components are set to
+          innocent unnamed differential forms
         - ``name`` -- (default: ``None``) name given to the differential form
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
           the differential form; if none is provided, the LaTeX symbol
@@ -2384,9 +2387,6 @@ class DifferentiableManifold(TopologicalManifold):
           `N = M` and that `\Phi` is the identity map (case of a
           differential form *on* `M`), otherwise ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-        - ``comp`` -- (default: ``None``) homogeneous components of the mixed
-          form as a list; if none is provided, the components are set to
-          innocent unnamed differential forms
 
         OUTPUT:
 

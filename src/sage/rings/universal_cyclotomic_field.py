@@ -1584,8 +1584,8 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
         OUTPUT:
 
-        - A factorization of ``f`` over self into a unit
-          and monic irreducible factors
+        - A factorization of ``f`` over self into a unit and monic irreducible
+          factors
 
         .. NOTE::
 
@@ -1595,42 +1595,98 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: UCF = UniversalCyclotomicField()
-            sage: P.<x> = UCF[]
-            sage: p = x**2 +x +1
+            sage: x = polygen(UCF)
+            sage: p = x^2 +x +1
             sage: p.factor()             # indirect doctest
             (x - E(3)) * (x - E(3)^2)
             sage: p.roots()              # indirect doctest
             [(E(3), 1), (E(3)^2, 1)]
-            sage: all( len((x**i-1).factor()) == i for i in range(1,8))
+
+            sage: (p^2).factor()
+            (x - E(3))^2 * (x - E(3)^2)^2
+
+            sage: cyclotomic_polynomial(12).change_ring(UCF).factor()
+            (x + E(12)^7) * (x - E(12)^11) * (x + E(12)^11) * (x - E(12)^7)
+
+            sage: p = (UCF.zeta(5) + 1) * (x^2 - 2)^2 * (x^2 - 3) * (x - 5)**2 * (x^2 - x + 1)
+            sage: p.factor()
+            (-E(5)^2 - E(5)^3 - E(5)^4) * (x + E(12)^7 - E(12)^11) * (x + E(3)^2) * (x + E(3)) * (x - E(12)^7 + E(12)^11) * (x - 5)^2 * (x - E(8) + E(8)^3)^2 * (x + E(8) - E(8)^3)^2
+            sage: p.factor().value() == p
             True
+
+            sage: (x^3 - 8).factor()
+            (x - 2) * (x - 2*E(3)) * (x - 2*E(3)^2)
+
+        In most situations, the factorization will fail with a ``NotImplementedError``::
+
+            sage: (x^3 - 2).factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: no known factorization for this polynomial
+
+        TESTS::
+
+            sage: UCF = UniversalCyclotomicField()
+            sage: x = polygen(UCF)
+
+            sage: p = (x - 2/7) * (x - 3/5)
+            sage: sorted(p.roots(multiplicities=False))
+            [2/7, 3/5]
+
+            sage: p = UCF.zeta(3) * x - 1 + UCF.zeta(5,2)
+            sage: r = p.roots()
+            sage: r
+            [(-2*E(15) - E(15)^4 - E(15)^7 - E(15)^13, 1)]
+            sage: p(r[0][0])
+            0
         """
-        from sage.structure.element import get_coercion_model
-        cycl_cf = [cf.to_cyclotomic_field() for cf in f.coefficients()]
-        cycl_field = get_coercion_model().common_parent(*cycl_cf)
-        cycl_pol   = f.change_ring(cycl_field)
-        cycl_order = cycl_pol.is_cyclotomic(certificate=True)
-
-        if cycl_order > 0:
-            from sage.rings.number_field.number_field import CyclotomicField
-            cycl_field = CyclotomicField(cycl_order)
-            cycl_pol   = f.change_ring(cycl_field)
-
-        F = cycl_pol.factor().base_change(f.parent())
-
-        if len(F) == 1:
-            return F
-      
-        # proceed by recursion
-        new_list = []
-        for p, e in list(F):
-            if p.degree() > 1:
-                Fp = p.factor()
-                new_list += [(q, d*e) for q, d in list(Fp)]
-            else:
-                new_list.append((p,e))
-          
+        from sage.arith.all import gcd
         from sage.structure.factorization import Factorization
-        return Factorization(new_list)
+
+        UCF = self
+        x = f.parent().gen()
+
+        # make the polynomial monic
+        unit = f.leading_coefficient()
+        f /= unit
+
+        # trivial degree one case
+        if f.degree() == 1:
+            return Factorization([(f, 1)], unit)
+
+        # From now on, we restrict to polynomial with rational cofficients. The
+        # factorization is provided only in the case it is a product of
+        # cyclotomic polynomials and quadratic polynomials. In this situation
+        # the roots belong to UCF and the polynomial factorizes as a product of
+        # degree one factors.
+        if any(ZZ(cf._obj.Conductor()) != 1 for cf in f):
+            raise NotImplementedError('no known factorization for this polynomial')
+        f = f.change_ring(QQ)
+
+        factors = []
+        for p,e in f.factor():
+            if p.degree() == 1:
+                factors.append((x + p[0], e))
+
+            elif p.degree() == 2:
+                c = p[0]
+                b = p[1]
+                a = p[2]
+                D = UCF(b**2 - 4*a*c).sqrt()
+                r1 = (-b - D) / (2*a)
+                r2 = (-b + D) / (2*a)
+                factors.append((x - r1, e))
+                factors.append((x - r2, e))
+
+            else:
+                m = p.is_cyclotomic(certificate=True)
+                if not m:
+                    raise NotImplementedError('no known factorization for this polynomial')
+                for i in range(1, m):
+                    if gcd(m, i) == 1:
+                        factors.append((x - UCF.zeta(m, i), e))
+
+        return Factorization(factors, unit)
 
 
     def degree(self):

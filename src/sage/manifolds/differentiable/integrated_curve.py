@@ -6,7 +6,7 @@ Given a differentiable manifold `M`, an *integrated curve* in `M`
 is a differentiable curve constructed as a solution to a system of
 second order differential equations.
 
-Integrated curves are implemented by :class:`IntegratedCurve`, which the
+Integrated curves are implemented by :class:`IntegratedCurve`, from which the
 classes :class:`IntegratedAutoparallelCurve` and
 :class:`IntegratedGeodesic` inherit.
 
@@ -389,6 +389,16 @@ class IntegratedCurve(DifferentiableCurve):
             Integrated curve c in the 3-dimensional differentiable
              manifold M
             sage: TestSuite(c).run()
+
+        Check that :trac:`28669` is fixed::
+
+            sage: E.<r,phi> = EuclideanSpace(coordinates='polar')
+            sage: p = E((1, 0))  # the initial point
+            sage: v = E.tangent_space(p)((2, 1))  # the initial vector
+            sage: t = var('t')
+            sage: c = E.integrated_geodesic(E.metric(), (t, 0, 10), v); c
+            Integrated geodesic in the Euclidean plane E^2
+
         """
         from sage.symbolic.ring import SR
 
@@ -462,22 +472,10 @@ class IntegratedCurve(DifferentiableCurve):
         if not isinstance(initial_tangent_vector, TangentVector):
             raise TypeError("{} ".format(initial_tangent_vector) +
                             "should be a tangent vector")
-        # in particular, check that its base point sits in the domain
-        # of the chart (if its coordinates are explicitly given):
         initial_pt = initial_tangent_vector.parent().base_point()
         # line above retrieves the initial point as the base point of
         # the tangent space to which the initial tangent vector belongs
         initial_pt_coords = initial_pt.coordinates(chart)
-        i0 = chart.manifold().start_index()
-        for i in range(dim):
-            if not isinstance(initial_pt_coords[i], Expression):
-                coord_value = initial_pt_coords[i]
-                coord_min = chart.coord_bounds(i+i0)[0][0]
-                coord_max = chart.coord_bounds(i+i0)[1][0]
-                if coord_value <= coord_min or coord_value >= coord_max:
-                    raise ValueError("initial point should be in the " +
-                                     "domain of the chart")
-
         # prepare attribute '_parameters':
         announced_variables = set(coords_vels + [curve_parameter])
         parameters = set()

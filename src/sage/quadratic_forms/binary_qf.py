@@ -1478,7 +1478,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
         else:
             sqrt_d = D.sqrt(prec=53)
             for b in xsrange(1, sqrt_d.floor() + 1):
-                if (D - b) % 2 != 0:
+                if (D - b) % 2:
                     continue
                 A = (D - b**2) / 4
                 Low_a = ((sqrt_d - b) / 2).ceil()

@@ -1132,12 +1132,8 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,2,3]).to_permutation_group_element()
             ()
         """
-        cycles = self.to_cycles(singletons=False)
         grp = SymmetricGroup(len(self))
-        if not cycles:
-            return PermutationGroupElement( '()', parent=grp )
-        else:
-            return PermutationGroupElement( cycles , parent=grp)
+        return grp.element_class(self.to_cycles(singletons=False), grp, check=False)
 
     def signature(self):
         r"""

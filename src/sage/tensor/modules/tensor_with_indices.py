@@ -105,7 +105,7 @@ class TensorWithIndices(SageObject):
         sage: s == t.antisymmetrize(2,3)
         True
 
-    On can also perform multiple symmetrization-antisymmetrizations::
+    One can also perform multiple symmetrization-antisymmetrizations::
 
         sage: aa = a*a
         sage: aa['(..)(..)'] == aa.symmetrize(0,1).symmetrize(2,3)
@@ -250,9 +250,9 @@ class TensorWithIndices(SageObject):
                 cov = ""
         else:
             try:
-                cov,con = indices[1:].split("^")
+                cov,con = indices.replace("_","").split("^")
             except ValueError:
-                cov = indices[1:]
+                cov = indices.replace("_","")
                 con = ""
 
         con_without_sym = (con.replace("(","").replace(")","").replace("[","").replace("]",""))

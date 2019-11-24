@@ -253,8 +253,11 @@ def mandelbrot_plot(f=None, **kwds):
         elif P.base_ring().base_ring() is CC or P.base_ring().base_ring() is CDF:
             if is_FractionField(P.base_ring()):
                 raise NotImplementedError("coefficients must be polynomials in the parameter")
-            variable = P.gen()
-            parameter = P.base_ring().gen()
+            phi = P.flattening_morphism()
+            f = phi(f)
+            gen_list = list(f.parent().gens())
+            parameter = gen_list.pop(gen_list.index(parameter))
+            variable = gen_list.pop()
 
         elif P.base_ring() in FunctionFields():
             raise NotImplementedError("coefficients must be polynomials in the parameter")

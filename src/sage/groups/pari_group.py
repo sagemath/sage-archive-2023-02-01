@@ -76,7 +76,7 @@ class PariGroup(object):
 
     def degree(self):
         """
-        Return the degree of ``self``.
+        Return the degree of this group.
 
         EXAMPLES::
 
@@ -87,6 +87,23 @@ class PariGroup(object):
             4
         """
         return self.__degree
+
+    def signature(self):
+        """
+        Return 1 if contained in the alternating group, -1 otherwise
+        """
+        return Integer(self.__x[1])
+
+    def transitive_number(self):
+        """
+        If the transitive label is nTk, return `k`.
+        """
+        return Integer(self.__x[2])
+
+    def label(self):
+        """
+        """
+        return str(self.__x[3])
 
     def order(self):
         """

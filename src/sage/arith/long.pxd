@@ -2,7 +2,7 @@ r"""
 Fast conversion of Python objects to C long
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Vincent Delecroix <20100.delecroix@gmail.com>
 #       Copyright (C) 2017 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
@@ -10,8 +10,8 @@ Fast conversion of Python objects to C long
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from libc.limits cimport LONG_MIN, LONG_MAX
 
@@ -265,11 +265,12 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
 
 cdef inline bint is_small_python_int(obj):
     """
-    Test whether Python object is a small Python integer
+    Test whether Python object is a small Python integer.
 
-    Meaning that that it can be converted to a C long. In Python 2, this is equvialent to it being
-    the ``int`` Python type. In Python 3, the ``int`` Python type has unlimited precision so we need
-    to check its range.
+    Meaning that that it can be converted to a C long. In Python 2,
+    this is equivalent to it being the ``int`` Python type. In Python
+    3, the ``int`` Python type has unlimited precision so we need to
+    check its range.
 
     EXAMPLES::
 

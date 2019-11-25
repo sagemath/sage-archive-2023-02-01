@@ -920,7 +920,9 @@ cpdef general_julia(f, double x_center=0, double y_center=0, image_width=4,
     r"""
     Plots Julia sets for general polynomials. 
 
-    EXAMPLES::
+    EXAMPLES:
+    
+    ::
 
     sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import general_julia
     sage: from sage.plot.colors import Color

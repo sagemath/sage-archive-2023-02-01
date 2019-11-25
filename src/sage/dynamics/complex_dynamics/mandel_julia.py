@@ -41,6 +41,7 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
                                                                 general_julia,
                                                                 polynomial_mandelbrot,
                                                                 julia_helper)
+
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sagenb.notebook.interact import (interact,
                                       slider,
@@ -504,9 +505,9 @@ def julia_plot(f=None, **kwds):
         Implement the interactive mode for general one-parameter families
         of polynomials `f_c(z)`.
 
-    EXAMPLES::
+    EXAMPLES:
 
-    The default ``f`` is `z^2 - 1`.
+    The default ``f`` is `z^2 - 1`::
 
         sage: julia_plot()
         1001x500px 24-bit RGB image

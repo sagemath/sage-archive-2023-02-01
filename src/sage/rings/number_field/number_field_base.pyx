@@ -54,8 +54,7 @@ cdef class NumberField(Field):
         If ``self`` and/or ``other`` are embedded, use this embedding to
         discover a common parent.
 
-        Currently equal embeddings and embeddings into ``AA`` and ``QQbar`
-        are supported.
+        Currently embeddings into ``AA`` and ``QQbar` are supported.
 
         TESTS:
 
@@ -122,10 +121,11 @@ cdef class NumberField(Field):
         else:
             codomain_other = other
 
-        if codomain_self is codomain_other:
-            return codomain_self
+        from sage.rings.qqbar import AA
+        if codomain_self is AA and codomain_other is AA:
+            return AA
 
-        from sage.rings.qqbar import AA, QQbar
+        from sage.rings.qqbar import QQbar
         if codomain_self in (AA, QQbar) and codomain_other in (AA, QQbar):
             return QQbar
 

@@ -1183,10 +1183,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2+4*y^2, y^2])
             sage: g = DynamicalSystem_projective([x^2,y^2])
             sage: pairingval = f.arakelov_zhang_pairing(g, n=6, noise_multiplier=0)
-            sage: print pairingval
+            sage: pairingval
             0.650660018921632
             sage: dynheight = f.canonical_height(P(0,1)); dynheight
-            sage: print pairingval - dynheight
+            0.75017839144364417318023000563
+            sage: pairingval - dynheight
             -0.0995183725220122
 
         We compute the example of Prop. 18(d) from Petsche, Szpiro and Tucker::
@@ -1214,7 +1215,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.arakelov_zhang_pairing(g, n=6)
             1.93846423207664
             sage: _ - a.global_height()
-            -0.00744591697867270
+            -0.00744591697867292
 
         """
         PS = self.domain()
@@ -1277,12 +1278,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         res = Fpoly.resultant(Gpoly)
 
         oldprec = prec
-        if prec < 512:
+        if prec is None:
+            R = RealField(512)
+        else:
+            if prec < 512:
             # Want temporarily higher precision here since resultants are usually very, very large.
             # This isn't to say the computation is so accurate, merely that we want to keep track
             # of potentially very large height integers/rationals.
-            prec = 512
-        R = RealField(prec)
+                prec = 512
+                R = RealField(prec)
         AZpairing = R(0)
         # The code below actually computes -( mu_f - mu_g, mu_f - mu_g ), so flip the sign at the end.
         if PS.base_ring() is QQ:

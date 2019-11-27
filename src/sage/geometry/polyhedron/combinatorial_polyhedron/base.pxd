@@ -13,8 +13,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _H                       # the names of HRep, if they exist
     cdef tuple _equalities              # stores equalities, given on input (might belong to Hrep)
     cdef int _dimension                 # stores dimension, -2 on init
-    cdef unsigned int _length_Hrepr     # Hrepr might include equalities
-    cdef unsigned int _length_Vrepr     # Vrepr might include rays/lines
+    cdef unsigned int _n_Hrepresentation   # Hrepr might include equalities
+    cdef unsigned int _n_Vrepresentation   # Vrepr might include rays/lines
     cdef size_t _n_facets               # length Hrep without equalities
     cdef bint _bounded                  # ``True`` iff Polyhedron is bounded
     cdef ListOfFaces _bitrep_facets     # facets in bit representation
@@ -43,8 +43,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple V(self)
     cdef tuple H(self)
     cdef tuple equalities(self)
-    cdef unsigned int length_Vrepr(self)
-    cdef unsigned int length_Hrepr(self)
+    cdef unsigned int n_Vrepresentation(self)
+    cdef unsigned int n_Hrepresentation(self)
     cdef bint is_bounded(self)
     cdef ListOfFaces bitrep_facets(self)
     cdef ListOfFaces bitrep_Vrepr(self)

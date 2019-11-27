@@ -83,7 +83,6 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__                     import absolute_import, division, print_function
 import numbers
 from sage.rings.integer             import Integer
 from sage.graphs.graph              import Graph
@@ -333,9 +332,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             # input is ``LatticePolytope``
             self._bounded = True
             Vrepr = data.vertices()
-            self._length_Vrepr = len(Vrepr)
+            self._n_Vrepresentation = len(Vrepr)
             facets = data.facets()
-            self._length_Hrepr = len(facets)
+            self._n_Hrepresentation = len(facets)
             data = tuple(tuple(vert for vert in facet.vertices())
                          for facet in facets)
         else:
@@ -380,8 +379,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if isinstance(data, Matrix):
             # Input is incidence-matrix or was converted to it.
-            self._length_Hrepr = data.ncols()
-            self._length_Vrepr = data.nrows()
+            self._n_Hrepresentation = data.ncols()
+            self._n_Vrepresentation = data.nrows()
 
             # Initializing the facets in their Bit-representation.
             self._bitrep_facets = incidence_matrix_to_bit_repr_of_facets(data)
@@ -393,7 +392,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), self._length_Vrepr)
+                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), self._n_Vrepresentation)
             else:
                 self._far_face = None
 
@@ -423,16 +422,16 @@ cdef class CombinatorialPolyhedron(SageObject):
             if self._V is None:
                 # Get the names of the Vrepr.
                 Vrepr = sorted(set.union(*map(set, data)))
-                length_Vrepr = len(Vrepr)
+                n_Vrepresentation = len(Vrepr)
                 if Vrepr != range(len(Vrepr)):
                     self._V = tuple(Vrepr)
                     Vinv = {v: i for i,v in enumerate(self._V)}
             else:
                 # Assuming the user gave as correct names for the vertices
                 # and labeled them instead by `0,...,n`.
-                length_Vrepr = len(self._V)
+                n_Vrepresentation = len(self._V)
 
-            self._length_Vrepr = length_Vrepr
+            self._n_Vrepresentation = n_Vrepresentation
 
             # Relabel the Vrepr to be `0,...,n`.
             if self._V is not None:
@@ -442,17 +441,17 @@ cdef class CombinatorialPolyhedron(SageObject):
             facets = tuple(tuple(f(i) for i in j) for j in data)
 
             self._n_facets = len(facets)
-            self._length_Hrepr = len(facets)
+            self._n_Hrepresentation = len(facets)
 
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = facets_tuple_to_bit_repr_of_facets(facets, length_Vrepr)
+            self._bitrep_facets = facets_tuple_to_bit_repr_of_facets(facets, n_Vrepresentation)
 
             # Initializing the Vrepr as their Bit-representation.
-            self._bitrep_Vrepr = facets_tuple_to_bit_repr_of_Vrepr(facets, length_Vrepr)
+            self._bitrep_Vrepr = facets_tuple_to_bit_repr_of_Vrepr(facets, n_Vrepresentation)
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), length_Vrepr)
+                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), n_Vrepresentation)
             else:
                 self._far_face = None
 
@@ -572,7 +571,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self.V() is not None:
             return self.V()
         else:
-            return tuple(smallInteger(i) for i in range(self.length_Vrepr()))
+            return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()))
 
     def Hrepresentation(self):
         r"""
@@ -594,7 +593,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self.H() is not None:
             return self.equalities() + self.H()
         else:
-            return tuple(smallInteger(i) for i in range(self.length_Hrepr()))
+            return tuple(smallInteger(i) for i in range(self.n_Hrepresentation()))
 
     def dimension(self):
         r"""
@@ -617,8 +616,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The dimension of a trivial polyhedron is assumed to contain
                 # exactly one "vertex" and for each dimension one "line" as in
                 # :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
-                self._dimension = self.length_Vrepr() - 1
-            elif not self.is_bounded() or self.n_facets() <= self.length_Vrepr():
+                self._dimension = self.n_Vrepresentation() - 1
+            elif not self.is_bounded() or self.n_facets() <= self.n_Vrepresentation():
                 self._dimension = self.bitrep_facets().compute_dimension()
             else:
                 # If the polyhedron has many facets,
@@ -674,7 +673,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Some elements in the ``Vrepr`` might not correspond to actual combinatorial vertices.
             return len(self.vertices())
         else:
-            return smallInteger(self.length_Vrepr())
+            return smallInteger(self.n_Vrepresentation())
 
     def vertices(self, names=True):
         r"""
@@ -741,9 +740,9 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The Polyhedron has no vertex.
                 return ()
         if names and self.V():
-            return tuple(self.V()[i]     for i in range(self.length_Vrepr()) if not i in self.far_face_tuple())
+            return tuple(self.V()[i]     for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
         else:
-            return tuple(smallInteger(i) for i in range(self.length_Vrepr()) if not i in self.far_face_tuple())
+            return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
 
     def n_facets(self):
         r"""
@@ -911,7 +910,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             # compute the edges.
             if not self.is_bounded():
                 self._compute_edges(dual=False)
-            elif self.length_Vrepr() > self.n_facets()*self.n_facets():
+            elif self.n_Vrepresentation() > self.n_facets()*self.n_facets():
                 # This is a wild estimate
                 # that in this case it is better not to use the dual.
                 self._compute_edges(dual=False)
@@ -1093,7 +1092,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             # compute the ridges.
             if not self.is_bounded():
                 self._compute_ridges(dual=False)
-            elif self.length_Vrepr()*self.length_Vrepr() < self.n_facets():
+            elif self.n_Vrepresentation()*self.n_Vrepresentation() < self.n_facets():
                 # This is a wild estimate
                 # that in this case it is better to use the dual.
                 self._compute_edges(dual=True)
@@ -1326,7 +1325,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef FaceIterator face_iter
         if dual is None:
             # Determine the faster way, to iterate through all faces.
-            if not self.is_bounded() or self.n_facets() <= self.length_Vrepr():
+            if not self.is_bounded() or self.n_facets() <= self.n_Vrepresentation():
                 dual = False
             else:
                 dual = True
@@ -1560,17 +1559,17 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self._equalities
 
-    cdef unsigned int length_Vrepr(self):
+    cdef unsigned int n_Vrepresentation(self):
         r"""
         Return the number of elements in the Vrepresentation.
         """
-        return self._length_Vrepr
+        return self._n_Vrepresentation
 
-    cdef unsigned int length_Hrepr(self):
+    cdef unsigned int n_Hrepresentation(self):
         r"""
         Return the number of elements in the Hrepresentation.
         """
-        return self._length_Hrepr
+        return self._n_Hrepresentation
 
     cdef bint is_bounded(self):
         r"""
@@ -1614,7 +1613,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             return 0  # There is no need to recompute the f_vector.
 
         cdef bint dual
-        if not self.is_bounded() or self.n_facets() <= self.length_Vrepr():
+        if not self.is_bounded() or self.n_facets() <= self.n_Vrepresentation():
             # In this case the non-dual approach is faster..
             dual = False
         else:
@@ -1653,7 +1652,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         else:
             if self.is_bounded() and dim > 1 \
-                    and f_vector[1] < self.length_Vrepr() - len(self.far_face_tuple()):
+                    and f_vector[1] < self.n_Vrepresentation() - len(self.far_face_tuple()):
                 # The input seemed to be wrong.
                 raise ValueError("not all vertices are intersections of facets")
 

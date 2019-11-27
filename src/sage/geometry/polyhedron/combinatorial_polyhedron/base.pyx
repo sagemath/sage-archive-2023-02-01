@@ -1365,7 +1365,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         .. WARNING::
 
-            The labeling of the face lattice might depend on archicture
+            The labeling of the face lattice might depend on architecture
             and implementation.
             Relabeling the face lattice with
             :meth:`CombinatorialPolyhedron.face_by_face_lattice_index` or

@@ -293,10 +293,10 @@ cdef subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& 
           <class 'sage.symbolic.expression.Expression'>]
         x
         sage: tfunc(x).subs(x=1)   # py2
-        len(args): 3, types: [<class 'sage.symbolic.substitution_map.SubstitutionMap'>,
-          <class 'int'>,        # 64-bit
-          <class 'long'>,       # 32-bit
-          <class 'sage.symbolic.expression.Expression'>]
+        len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
+          <type 'int'>,        # 64-bit
+          <type 'long'>,       # 32-bit
+          <type 'sage.symbolic.expression.Expression'>]
         x
     """
     from sage.symbolic.ring import SR

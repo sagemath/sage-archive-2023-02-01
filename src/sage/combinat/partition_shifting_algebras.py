@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 r"""
 Partition Shifting Algebras
@@ -13,26 +12,20 @@ AUTHORS:
 
 - Matthew Lancellotti, George H. Seelinger (2018): Initial version
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2018 Matthew Lancellotti <mvlancellotti@gmail.com>
 #                     George H. Seelinger <ghseeli@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from functools import reduce
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.categories.groups import Groups
 from sage.categories.sets_cat import Sets
 from sage.categories.algebras import Algebras
 from sage.structure.parent import Parent
 from sage.combinat.composition import Composition
 from sage.combinat.partition import _Partitions, Partition
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc_c import prod
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import QQ, NonNegativeIntegerSemiring
@@ -179,7 +172,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         sage: elm([5, 4])
         [([6, 3, 2], 1)]
 
-    The shifting operator monomials can act on a complete homogeneous symmetric 
+    The shifting operator monomials can act on a complete homogeneous symmetric
     function or a Schur function::
 
         sage: s = SymmetricFunctions(QQ['t']).s()
@@ -220,7 +213,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         sage: s(elm)
         0
 
-    However, not all homomorphisms are equivalent, so the action is basis 
+    However, not all homomorphisms are equivalent, so the action is basis
     dependent::
 
         sage: elm = S([3,2,1]); elm
@@ -312,7 +305,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         index = len(seq) - 1
         while index >= 0 and seq[index] == 0:
             index -= 1
-        seq = seq[:index+1]
+        seq = seq[:index + 1]
         self._indices.check(seq)
         return seq
 
@@ -350,7 +343,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         """
         # Make x have the longer length
         if len(x) < len(y):
-            x,y = y,x
+            x, y = y, x
         x = list(x)  # Make a mutable copy
         for i, val in enumerate(y):
             x[i] += val
@@ -358,7 +351,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         index = len(x) - 1
         while index >= 0 and x[index] == 0:
             index -= 1
-        return self.monomial(tuple(x[:index+1]))
+        return self.monomial(tuple(x[:index + 1]))
 
     @cached_method
     def one_basis(self):
@@ -375,7 +368,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
 
     def _supp_to_h(self, supp):
         r"""
-        This is a helper funciton that is not meant to be called directly.
+        This is a helper function that is not meant to be called directly.
 
         Given the support of an element
         `x_1^{\gamma_1} x_2^{\gamma_2} \cdots x_\ell^{\gamma_\ell}` in the
@@ -428,7 +421,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
             s[3, 2]
         """
         def number_of_noninversions(lis):
-            return sum(1 for i,val in enumerate(lis) for j in range(i + 1, len(lis))
+            return sum(1 for i, val in enumerate(lis)
+                       for j in range(i + 1, len(lis))
                        if val < lis[j])  # i < j is already enforced
 
         rho = list(range(len(gamma) - 1, -1, -1))
@@ -497,8 +491,11 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
             sage: op(2*m[4,3] + 5*m[2,2] + 7*m[2]) == 2*m[5, 2] + 5*m[3, 1]
             True
         """
-        precompose_map = lambda supp: support_map(supp)
-        module_morphism = self.module_morphism(precompose_map, codomain=codomain)
+
+        def precompose_map(supp):
+            return support_map(supp)
+        module_morphism = self.module_morphism(precompose_map,
+                                               codomain=codomain)
         codomain.register_conversion(module_morphism)
 
     def ij(self, i, j):
@@ -562,7 +559,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
                 def add_lists(x, y):
                     # Make x have the longer length
                     if len(x) < len(y):
-                        x,y = y,x
+                        x, y = y, x
                     x = list(x)  # Make a mutable copy
                     for i, val in enumerate(y):
                         x[i] += val
@@ -570,11 +567,11 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
                 return [(add_lists(index, operand), coeff) for index, coeff in self]
 
             R = self.base_ring()
-            lift_operand = P._from_dict({P._prepare_seq(p): R(c) for p,c in operand}, coerce=False)
+            lift_operand = P._from_dict({P._prepare_seq(p): R(c)
+                                         for p, c in operand}, coerce=False)
             result = self * lift_operand
             operand_parent = operand.parent()
             try:
                 return operand_parent(result)
             except TypeError:
                 return [(list(index), coeff) for index, coeff in result]
-

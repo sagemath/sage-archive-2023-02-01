@@ -43,11 +43,6 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
                                                                 julia_helper)
 
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
-from sagenb.notebook.interact import (interact,
-                                      slider,
-                                      input_box,
-                                      color_selector,
-                                      checkbox)
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import logb

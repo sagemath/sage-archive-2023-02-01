@@ -918,11 +918,9 @@ cpdef general_julia(f, double x_center=0, double y_center=0, image_width=4,
  int max_iteration=50, int pixel_count=500, int level_sep=1, int color_num=30,
  base_color=[50,50,50]):
     r"""
-    Plots Julia sets for general polynomials. 
+    Plots Julia sets for general polynomials.
 
-    EXAMPLES:
-    
-    ::
+    EXAMPLES::
 
     sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import general_julia
     sage: from sage.plot.colors import Color
@@ -939,7 +937,6 @@ cpdef general_julia(f, double x_center=0, double y_center=0, image_width=4,
     sage: f = z^5 - 1 
     sage: general_julia(f)
     500x500px 24-bit RGB image
-
     """
 
     cdef:

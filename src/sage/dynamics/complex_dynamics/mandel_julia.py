@@ -93,19 +93,19 @@ def mandelbrot_plot(f=None, **kwds):
       iterations the map ``f_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
-     image in number of pixels.
+      image in number of pixels.
 
     - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``) color
-     used to determine the coloring of set.
+      used to determine the coloring of set.
 
     - ``level_sep`` -- long (optional - default: 1) number of iterations
-     between each color level.
+      between each color level.
 
     - ``number_of_colors`` -- long (optional - default: 30) number of colors
-     used to plot image.
+      used to plot image.
 
     - ``interact`` -- boolean (optional - default: ``False``), controls whether
-     plot will have interactive functionality.
+      plot will have interactive functionality.
 
     OUTPUT:
 
@@ -502,8 +502,8 @@ def julia_plot(f=None, **kwds):
 
     .. TODO::
 
-        Implement the interactive mode for general one-parameter families
-        of polynomials `f_c(z)`.
+        Implement the side-by-side Mandelbrot-Julia plots for general one-parameter families
+        of polynomials.
 
     EXAMPLES:
 

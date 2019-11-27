@@ -1077,6 +1077,13 @@ class GiacElement(ExpectElement):
             list[ln(2)/(ln(2)-ln(3))]
             sage: L.sage()
             [-log(2)/(log(3) - log(2))]
+
+        TESTS:
+
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: giac('true')._sage_(), giac('false')._sage_()
+            (True, False)
         """
         from sage.libs.pynac.pynac import symbol_table
         from sage.calculus.calculus import symbolic_expression_from_string

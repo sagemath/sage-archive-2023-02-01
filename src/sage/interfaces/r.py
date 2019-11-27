@@ -537,7 +537,21 @@ class R(ExtraTabCompletion, Interface):
             self._r_to_sage_converter = _setup_r_to_sage_converter()
             self._start()
 
+    def _coerce_impl(self, x, use_special=True):
+        """
+        TESTS:
 
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: repr(r(True)) == r._true_symbol()  # indirect doctest
+            True
+        """
+        # We overwrite _coerce_impl here because r._true_symbol() and
+        # r._false_symbol() are output strings that start with "[1] " and thus
+        # cannot be used as input
+        if isinstance(x, bool):
+            return self('TRUE' if x else 'FALSE')
+        return super(R, self)._coerce_impl(x, use_special=use_special)
 
     def set_seed(self, seed=None):
         """

@@ -774,8 +774,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         Return a polynomial with the coefficients of this polynomial reversed.
 
         If an optional degree argument is given the coefficient list will be
-        truncated or zero padded as necessary and the reverse polynomial will
-        have the specified degree.
+        truncated or zero padded as necessary before computing the reverse.
 
         EXAMPLES::
 
@@ -824,10 +823,17 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             Traceback (most recent call last):
             ...
             ValueError: degree argument must be a non-negative integer, got 1.5
+
+        Check that this implementation is compatible with the generic one::
+
+            sage: p = R([0,1,0,2])
+            sage: all(p.reverse(d) == Polynomial.reverse(p, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4])
+            True
         """
         cdef Polynomial_zmod_flint res = self._new()
         cdef unsigned long d
-        if degree:
+        if degree is not None:
             d = degree
             if d != degree:
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))

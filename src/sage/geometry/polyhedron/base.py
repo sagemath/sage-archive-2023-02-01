@@ -5473,16 +5473,16 @@ class Polyhedron_base(Element):
             sage: list(Polyhedron().face_generator())
             [A -1-dimensional face of a Polyhedron in ZZ^0]
         """
-        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face
+        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 
         if face_dimension is None or face_dimension == self.dimension():
             # Yield the polyhedron.
-            yield self._make_polyhedron_face(range(self.n_Vrepresentation()), [])
+            yield PolyhedronFace(self, range(self.n_Vrepresentation()), [])
 
         if face_dimension is None or face_dimension == -1:
             if not self.dimension() == -1:
                 # Yield the empty face.
-                yield self._make_polyhedron_face([], range(self.n_Hrepresentation()))
+                yield PolyhedronFace(self, [], range(self.n_Hrepresentation()))
 
         if face_dimension is None or -1 < face_dimension < self.dimension():
             # Yield proper faces.
@@ -6446,7 +6446,7 @@ class Polyhedron_base(Element):
             1.53406271079044
 
             sage: Dinexact = polytopes.dodecahedron(exact=False)
-            sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
+            sage: w = Dinexact.faces(2)[2].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
             1.534062710738235
 
             sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]

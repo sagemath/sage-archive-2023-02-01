@@ -201,8 +201,12 @@ class TensorWithIndices(SageObject):
     
         
     @staticmethod
-    def _parse_indices(indices, tensor_type=None, allow_contraction=True, allow_symmetries=True):
-    
+    def _parse_indices(
+        indices,
+        tensor_type=None,
+        allow_contraction=True,
+        allow_symmetries=True
+    ):
     
         # Suppress all '{' and '}' coming from LaTeX notations:
         indices = indices.replace('{','').replace('}','')
@@ -279,6 +283,7 @@ class TensorWithIndices(SageObject):
             sage: TestSuite(ti).run()
 
         """
+        
         self._tensor = tensor # may be changed below
         self._changed = False # indicates whether self contains an altered
                               # version of the original tensor (True if
@@ -571,7 +576,7 @@ class TensorWithIndices(SageObject):
             sage: b[:] = [[-1,2,-3], [-4,5,6], [7,-8,9]]
             sage: a["^(..)"]["ij"] == 1/2*(a["^ij"]+a["^ji"])
             True
-            sage: (a*a)["^..(ij)"]["abij"] == 1/2*((a*a)["^abij"]+(a*a)["^abji"])
+            sage: (a*a)["^..(ij)"]["abij"] == 1/2*((a*a)["^abij"] + (a*a)["^abji"])
             True
             
         TESTS::
@@ -584,7 +589,8 @@ class TensorWithIndices(SageObject):
             sage: b = M.tensor((0,2), name='b')
             sage: b[:] = [[-1,2,-3], [-4,5,6], [7,-8,9]]
             sage: T = a*a*b*b
-            sage: 1/4*(T["ijkl_abcd"] + T["jikl_abcd"] + T["ijkl_abdc"] + T["jikl_abdc"]) == T["(..).._..(..)"]["ijkl_abcd"]
+            sage: 1/4*(T["ijkl_abcd"] + T["jikl_abcd"] + T["ijkl_abdc"]\
+             + T["jikl_abdc"]) == T["(..).._..(..)"]["ijkl_abcd"]
             True
         """
         
@@ -666,7 +672,8 @@ class TensorWithIndices(SageObject):
             sage: b = M.tensor((0,2), name='b')
             sage: b[:] = [[-1,2,-3], [-4,5,6], [7,-8,9]]
             sage: T = a*a*b*b
-            sage: 1/4*(T["ijkl_abcd"]-T["jikl_abcd"] - T["ijkl_abdc"] + T["jikl_abdc"] ) == T["[..].._..[..]"]["ijkl_abcd"]
+            sage: 1/4*(T["ijkl_abcd"]-T["jikl_abcd"] - T["ijkl_abdc"]\
+                + T["jikl_abdc"] ) == T["[..].._..[..]"]["ijkl_abcd"]
             True
         
         """
@@ -777,7 +784,6 @@ class TensorWithIndices(SageObject):
                 else:
                     permutation[value._tensor.tensor_type()[0] + value_index]\
                         = value._tensor.tensor_type()[0] + self._cov.index(value._cov[value_index]) 
-            #print(value.permute_indices(permutation)[:])
             self._tensor[:] = value.permute_indices(permutation)[:]
             
         else:
@@ -865,17 +871,21 @@ class TensorWithIndices(SageObject):
         # Swap of components
         
         swaped_components = self._tensor.comp(basis)
-        for swap_param, exponent in decomposition:
+        for swap_param,exponent in decomposition:
             if exponent > 0 :
                 for i in range(exponent):
-                    swaped_components = swaped_components.swap_adjacent_indices(*swap_param)
+                    # Apply the swap given by swap_param
+                    swaped_components = swaped_components\
+                        .swap_adjacent_indices(*swap_param)
             elif exponent < 0:
                 for i in range(-exponent):
-                    swaped_components = swaped_components.swap_adjacent_indices(
-                        swap_param[0],
-                        swap_param[0] + swap_param[2] - swap_param[1],
-                        swap_param[2]
-                    )
+                    # Apply the opposite of the swap given by swap_param
+                    swaped_components = swaped_components\
+                        .swap_adjacent_indices(
+                            swap_param[0],
+                            swap_param[0] + swap_param[2] - swap_param[1],
+                            swap_param[2]
+                        )
             else:
                 pass
         result = self.__pos__()

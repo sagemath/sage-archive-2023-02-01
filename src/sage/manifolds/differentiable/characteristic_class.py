@@ -76,8 +76,8 @@ Important and predefined additive Chern genera are:
 
 - *Chern Character* with `f(x) = \exp(x)`
 
-In the **real** case, let `g` be a holomorphic function around zero. Then we
-call
+In the **real** case, let `g` be a holomorphic function around zero with
+`g(0)=0`. Then we call
 
 .. MATH::
 

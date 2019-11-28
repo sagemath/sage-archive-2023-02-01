@@ -20,7 +20,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from re import finditer
+import re
 from itertools import combinations
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
@@ -198,13 +198,10 @@ class TensorWithIndices(SageObject):
         ValueError: index conventions not satisfied
 
     """
+    
+        
     @staticmethod
-    def _parse_indices(
-        indices,
-        tensor_type=None
-        allow_contraction=True,
-        allow_symmetries=True
-    )
+    def _parse_indices(indices, tensor_type=None, allow_contraction=True, allow_symmetries=True):
     
     
         # Suppress all '{' and '}' coming from LaTeX notations:
@@ -233,9 +230,9 @@ class TensorWithIndices(SageObject):
             for ind in con:
                 if ind != '.' and ind in cov:
                     raise ValueError("No contraction allowed")
+        con_without_sym = (con.replace("(","").replace(")","").replace("[","").replace("]",""))
+        cov_without_sym = (cov.replace("(","").replace(")","").replace("[","").replace("]",""))
         if allow_symmetries:
-            con_without_sym = (con.replace("(","").replace(")","").replace("[","").replace("]",""))
-            cov_without_sym = (cov.replace("(","").replace(")","").replace("[","").replace("]",""))
             if len(con_without_sym) != len(set(con_without_sym)) \
                                        + max(con_without_sym.count(".")-1, 0):
                 raise ValueError("index conventions not satisfied: "
@@ -297,7 +294,10 @@ class TensorWithIndices(SageObject):
         # "^{ijkl}_{ib(cd)}"
         # For now authorized symbol list only includes a-z and A-Z
 
-        con,cov = self._parse_indices(indices)
+        con,cov = self._parse_indices(
+            indices,
+            tensor_type = self._tensor.tensor_type()
+        )
 
         # Apply (anti)symmetrizations on contravariant indices
         first_sym_regex = r"(\(|\[)[a-zA-Z.]*[)\]]"
@@ -588,10 +588,7 @@ class TensorWithIndices(SageObject):
             True
         """
         
-        from re import finditer
-        from itertools import combinations
-        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        
+
         # Check tensor types are compatible
         if self._tensor.tensor_type() != other._tensor.tensor_type():
             raise ValueError("Tensors are not of the same type")
@@ -600,8 +597,8 @@ class TensorWithIndices(SageObject):
             raise ValueError("The covariant Indices sets are not identical")
         if set(self._con) != set(other._con):
             raise ValueError("The contravariant Indices sets are not identical")
-        self_wild_card_indices = [match.span()[0] for match in finditer(r"\.", self._con)]
-        other_wild_card_indices = [match.span()[0] for match in finditer(r"\.", self._cov)]
+        self_wild_card_indices = [match.span()[0] for match in re.finditer(r"\.", self._con)]
+        other_wild_card_indices = [match.span()[0] for match in re.finditer(r"\.", self._cov)]
         if self_wild_card_indices != other_wild_card_indices:
             raise ValueError("Ambiguous wildcard notation")
         
@@ -623,7 +620,7 @@ class TensorWithIndices(SageObject):
                     = other._tensor.tensor_type()[0] + self._cov.index(other._cov[other_index]) 
         
         result = self.__pos__()
-        result._tensor = result._tensor + other.permute_indices(permutation)
+        result._tensor = result._tensor + other.permute_indices(permutation)._tensor
         return result
         
     
@@ -651,6 +648,13 @@ class TensorWithIndices(SageObject):
             True
             sage: (a*a)["^..[ij]"]["abij"] == 1/2*((a*a)["^abij"]-(a*a)["^abji"])
             True
+            sage: Riem = a*a
+            sage: Riem = Riem["[ij][kl]"]
+            sage: Riem = 1/2*(Riem["ijkl"]+Riem["klij"])
+            sage: O = M.tensor((4,0), name='O')
+            sage: O[0,0,0,0] = 0
+            sage: (Riem["ijkl"]+Riem["iklj"]+Riem["iljk"]) == O["ijkl"]
+            True
             
         TESTS::
         
@@ -664,8 +668,9 @@ class TensorWithIndices(SageObject):
             sage: T = a*a*b*b
             sage: 1/4*(T["ijkl_abcd"]-T["jikl_abcd"] - T["ijkl_abdc"] + T["jikl_abdc"] ) == T["[..].._..[..]"]["ijkl_abcd"]
             True
-        """
         
+        """
+                
         return self+(-other)
     
     def __getitem__(self, args):
@@ -686,11 +691,35 @@ class TensorWithIndices(SageObject):
           if ``args`` is a string, this method acts as a shortcut for
           tensor contractions and symmetrizations, the string containing
           abstract indices.
+          
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
+            sage: b = a["ij"]
+            sage: b
+            a^ij
+            sage: b[:]
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
+            sage: b[0,0] == 1
+            True
+            sage: b["ji"]
+            a^ji
+            sage: b["(ij)"][:]
+            [1 3 5]
+            [3 5 7]
+            [5 7 9]
+                        
         """
 
         
         if isinstance(args,str):
-            result = self.__init__(self._tensor, indices)
+            result = +self
+            result.__init__(self._tensor, args)
             return result
         else:    
             return self._tensor[args]
@@ -716,13 +745,11 @@ class TensorWithIndices(SageObject):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')["ij"]
-            sage: b = M.tensor((2,0), name='a')["ij"]
+            sage: b = M.tensor((2,0), name='b')["ij"]
             sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
             sage: b["ij"] = a["ji"]
-            sage: a[:] == 
-            [ 1 -2  3]
-            [-4  5 -6]
-            [ 7 -8  9]
+            sage: b[:] == a[:].transpose()
+            True
         """
         if isinstance(args, str):  
             if not isinstance(value,TensorWithIndices):
@@ -732,7 +759,8 @@ class TensorWithIndices(SageObject):
             else:                
                 con,cov = self._parse_indices(
                     args,
-                    allow_symmetry=False,
+                    tensor_type=self._tensor.tensor_type(),
+                    allow_symmetries=False,
                     allow_contraction=False
                 )
             
@@ -749,73 +777,115 @@ class TensorWithIndices(SageObject):
                 else:
                     permutation[value._tensor.tensor_type()[0] + value_index]\
                         = value._tensor.tensor_type()[0] + self._cov.index(value._cov[value_index]) 
-                result = value.permute_indices(permutation)
-                return result
+            #print(value.permute_indices(permutation)[:])
+            self._tensor[:] = value.permute_indices(permutation)[:]
+            
         else:
             self._tensor.__setitem__(args,value)
+            
     def permute_indices(self, permutation):
-                
-                # Decompostion of the permutation of the components of self
-                # into product of swaps given by the method 
-                # sage.tensor.modules.comp.Components.swap_adjacent_indices
+        r"""
+        Return a tensor with indices with permuted indices
+        
+
+        INPUT:
+
+        - ``permutation`` -- permutation that has to be applied to the indices
+
+        OUTPUT:
+
+        - an instance of TensorWithIndices whose indices names and place are 
+        those of self but whose components have been permuted with permutation.
+
+          EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
+            sage: identity = [0,1]
+            sage: transposition = [1,0]
+            sage: a["ij"].permute_indices(identity) == a["ij"]
+            True
+            sage: a["ij"].permute_indices(transposition)[:] == a[:].transpose()
+            True
             
-                # A swap is determined by 3 distinct integers
-                swap_params = list(combinations(range(self._tensor.tensor_rank()+1), 3))
+        TESTS::
             
-                # The associated permutation is as follows
-                def swap(i,j,k,N):
-                    L = list(range(1,N+1))
-                    L = L[:i] + L[j:k] + L[i:j] + L[k:]
-                    return L
-                
-                # Construction of the permutation group generated by swaps
-                perm_group = PermutationGroup(
-                    [swap(*param, self._tensor.tensor_rank()) for param in swap_params],
-                    canonicalize = False
-                )
-                # Compute a decomposition of the permutation as a product of swaps
-                decomposition_as_string = perm_group([x+1 for x in  permutation]).word_problem(
-                    perm_group.gens(),
-                    display=False
-                )[0]
-                
-                if decomposition_as_string != "<identity ...>":
-                    decomposition_as_string = [
-                        # Two cases wether the term appear with an exponent or not
-                        ("^" in term)*term.split("^") + ("^" not in term)*(term.split("^")+['1'])
-                        for term in decomposition_as_string.replace("x","").split("*")
-                    ]
-                    decomposition = [(swap_params[int(x)-1], int(y)) for x,y in decomposition_as_string]
-                    decomposition.reverse() # /!\ The symetric group acts on the right by default /!\.
-                else:
-                    decomposition = []
-                # Choice of a basis
-                basis = self._tensor._fmodule._def_basis
-                
-                # Swap of components
-                
-                swaped_components = self._tensor.comp(basis)
-                for swap_param, exponent in decomposition:
-                    if exponent > 0 :
-                        for i in range(exponent):
-                            swaped_components = swaped_components.swap_adjacent_indices(*swap_param)
-                    elif exponent < 0:
-                        for i in range(-exponent):
-                            swaped_components = swaped_components.swap_adjacent_indices(
-                                swap_param[0],
-                                swap_param[0] + swap_param[2] - swap_param[1],
-                                swap_param[2]
-                            )
-                    else:
-                        pass
-                result = self.__pos__()
-                result._tensor = self._tensor._fmodule.tensor_from_comp(
-                    self._tensor.tensor_type(),
-                    swaped_components
-                )
-                
-                return result
-  
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
+            sage: identity = [0,1]
+            sage: transposition = [1,0]
+            sage: a["ij"].permute_indices(identity) == a["ij"]
+            True
+            sage: a["ij"].permute_indices(transposition)[:] == a[:].transpose()
+            True     
+        
+        
+        """
+        # Decompostion of the permutation of the components of self
+        # into product of swaps given by the method 
+        # sage.tensor.modules.comp.Components.swap_adjacent_indices
+    
+        # A swap is determined by 3 distinct integers
+        swap_params = list(combinations(range(self._tensor.tensor_rank()+1), 3))
+    
+        # The associated permutation is as follows
+        def swap(i,j,k,N):
+            L = list(range(1,N+1))
+            L = L[:i] + L[j:k] + L[i:j] + L[k:]
+            return L
+        
+        # Construction of the permutation group generated by swaps
+        perm_group = PermutationGroup(
+            [swap(*param, self._tensor.tensor_rank()) for param in swap_params],
+            canonicalize = False
+        )
+        # Compute a decomposition of the permutation as a product of swaps
+        decomposition_as_string = perm_group([x+1 for x in  permutation]).word_problem(
+            perm_group.gens(),
+            display=False
+        )[0]
+        
+        if decomposition_as_string != "<identity ...>":
+            decomposition_as_string = [
+                # Two cases wether the term appear with an exponent or not
+                ("^" in term)*term.split("^") + ("^" not in term)*(term.split("^")+['1'])
+                for term in decomposition_as_string.replace("x","").split("*")
+            ]
+            decomposition = [(swap_params[int(x)-1], int(y)) for x,y in decomposition_as_string]
+            decomposition.reverse() # /!\ The symetric group acts on the right by default /!\.
+        else:
+            decomposition = []
+        # Choice of a basis
+        basis = self._tensor._fmodule._def_basis
+        
+        # Swap of components
+        
+        swaped_components = self._tensor.comp(basis)
+        for swap_param, exponent in decomposition:
+            if exponent > 0 :
+                for i in range(exponent):
+                    swaped_components = swaped_components.swap_adjacent_indices(*swap_param)
+            elif exponent < 0:
+                for i in range(-exponent):
+                    swaped_components = swaped_components.swap_adjacent_indices(
+                        swap_param[0],
+                        swap_param[0] + swap_param[2] - swap_param[1],
+                        swap_param[2]
+                    )
+            else:
+                pass
+        result = self.__pos__()
+        result._tensor = self._tensor._fmodule.tensor_from_comp(
+            self._tensor.tensor_type(),
+            swaped_components
+        )
+        
+        return result
+
     def __pos__(self):
         r"""
         Unary plus operator.

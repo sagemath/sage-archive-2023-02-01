@@ -1309,9 +1309,7 @@ class TensorBundle(DifferentiableVectorBundle):
                     return True
             return False
 
-    def local_frame(self, symbol=None, latex_symbol=None, from_frame=None,
-                    indices=None, latex_indices=None, symbol_dual=None,
-                    latex_symbol_dual=None, domain=None):
+    def local_frame(self, *args, **kwargs):
         r"""
         Define a vector frame on ``domain``, possibly with values in the
         tangent bundle of the ambient domain.
@@ -1354,6 +1352,10 @@ class TensorBundle(DifferentiableVectorBundle):
           vector frame, or a list/tuple of strings, representing the individual
           symbols of the vector fields; can be ``None`` only if ``from_frame``
           is not ``None`` (see below)
+        - ``vector_fields`` -- tuple or list of `n` linearly independent vector
+          fields on ``domain`` (`n` being the dimension of  ``domain``)
+          defining the vector frame; can be omitted if the vector frame is
+          created from scratch or if ``from_frame`` is not ``None``
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the vector fields
           constituting the vector frame, or a list/tuple of strings,
@@ -1414,16 +1416,17 @@ class TensorBundle(DifferentiableVectorBundle):
             :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`.
 
         """
+        domain = kwargs.pop('domain', None)
         if domain is None:
             domain = self._base_space
-        vmodule = domain.vector_field_module(
-                                       dest_map=self._dest_map.restrict(domain),
-                                       force_free=True)
-        return vmodule.basis(symbol=symbol, latex_symbol=latex_symbol,
-                             from_frame=from_frame,
-                             indices=indices, latex_indices=latex_indices,
-                             symbol_dual=symbol_dual,
-                             latex_symbol_dual=latex_symbol_dual)
+        dest_map = self._dest_map.restrict(domain)
+        if not args and not kwargs:
+            # if no argument is provided, the default basis of the
+            # base vector field module is returned:
+            return domain.vector_field_module(dest_map=dest_map,
+                                              force_free=True).basis()
+        kwargs['dest_map'] = dest_map
+        return domain.vector_frame(*args, **kwargs)
 
     vector_frame = local_frame
 

@@ -539,20 +539,18 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
 # F5 algorithm
 
 def Jpair(p1, p2):
-    s1, v1 = p1
+    s1, v1 = p1  # we assume that s1 is not None
     s2, v2 = p2
-    if (v1 == 0 or v2 == 0) or (s1 is None and s2 is None):
+    if v1 == 0 or v2 == 0:
         return
     sv1 = v1.leading_term()
     sv2 = v2.leading_term()
     t = sv1.lcm(sv2)
     t1 = t // sv1
     t2 = t // sv2
-    if s1 is None:
-        return t2*s2, t2*v2
-    if s2 is None:
-        return t1*s1, t1*v1 
     su1 = t1*s1
+    if s2 is None:
+        return su1, t1*v1 
     su2 = t2*s2
     if su1 > su2:
         return su1, t1*v1
@@ -561,6 +559,9 @@ def Jpair(p1, p2):
 
 
 def _groebner_basis_F5(I, prec):
+    cdef TateAlgebraElement g
+    cdef TateAlgebraTerm ti, tj
+
     term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
 
@@ -569,36 +570,37 @@ def _groebner_basis_F5(I, prec):
         print("new generator: %s" % f)
         # Initial strong Grobner basis:
         # we add signatures
-        sgb = [ (None, g) for g in gb ]
-        sgb.append((term_one, f))
+        sgb = [ (None, g) for g in gb if g != 0 ]
+        # We compute initial J-pairs
+        l = len(sgb)
+        p = (term_one, f.add_bigoh(prec))
+        Jpairs = [ ]
+        for P in sgb:
+            J = Jpair(p, P)
+            if J is not None:
+                heappush(Jpairs, J)
+        sgb.append(p)
+
         # For the syzygy criterium
         gb0 = [ g.leading_term() for g in gb ]
 
-        # We compute initial J-pairs
-        l = len(sgb)
-        Jpairs = [ ]
-        for i in range(l):
-            for j in range(i):
-                J = Jpair(sgb[i], sgb[j])
-                if J is not None:
-                    heappush(Jpairs, J)
-
-        print("initial J-pairs:")
-        for s,v in Jpairs:
-            print("| sign = %s; series = %s" % (s,v))
+        #print("initial J-pairs:")
+        #for s,v in Jpairs:
+        #    print("| sign = %s; series = %s" % (s,v))
 
         while Jpairs:
             s, v = heappop(Jpairs)
             sv = v.leading_term()
 
-            print("current J-pair: (sign = %s, series = %s)" % (s,v))
+            #print("current J-pair: (sign = %s, series = %s)" % (s,v))
+            print("%s remaining J-pairs" % len(Jpairs))
 
             # The syzygy criterium
             syzygy = None
             for S in gb0:
                 if S.divides(s):
                     syzygy = S
-                    continue
+                    break
             if syzygy is not None:
                 print("| skip: sygyzy criterium; signature = %s" % syzygy)
                 continue
@@ -617,6 +619,7 @@ def _groebner_basis_F5(I, prec):
                 continue
 
             # We perform regular top-reduction
+            count = 0
             while True:
                 if v == 0: break
                 sv = v.leading_term()
@@ -626,12 +629,15 @@ def _groebner_basis_F5(I, prec):
                     if sV.divides(sv):
                         t = sv // sV
                         if S is None or t*S < s:
+                            count += 1
                             v -= t*V
-                            print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
-                            print("| new series is: %s" % v)
+                            # print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
+                            # print("| new series is: %s" % v)
                             break
+                    # TODO: implement regular tail-reduction
                 else:
                     break
+            print("| %s top-reductions" % count)
 
             if v == 0:
                 # We have a new element in (I0:f) whose signature
@@ -641,18 +647,41 @@ def _groebner_basis_F5(I, prec):
             else:
                 # We update the current strong Grobner basis
                 # and the J-pairs accordingly
-                print("| update strong Grobner basis")
                 p = (s,v)
+                # print("| new element is SGB: (sign = %s, series = %s)" % p)
+                count = 0
                 for P in sgb:
                     J = Jpair(p, P)
                     if J is not None:
-                        print("| add J-pair: (sign = %s, series = %s)" % J)
+                        count += 1
+                        # print("| add J-pair: (sign = %s, series = %s)" % J)
                         heappush(Jpairs, J)
+                print("| add %s J-pairs" % count)
                 sgb.append(p)
 
         # We forget signatures
-        gb = [ v for (s,v) in sgb ]
-        # probably we should reduce the Grobner basis here
+        gb = [ v.monic() for (s,v) in sgb ]
+        print("| %s elements in GB before minimization" % len(gb))
+        # we minimize the Grobner basis
+        i = 0
+        while i < len(gb):
+            ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
+            for j in range(len(gb)):
+                tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
+                if j != i and tj._divides_c(ti, False):
+                    del gb[i]
+                    break
+            else:
+                gb[i] = gb[i].monic()
+                i += 1
+        print("| %s elements in GB after minimization" % len(gb))
+        # and reduce it
+        for i in range(len(gb)-1, -1, -1):
+            g = gb[i]
+            gb[i] = g._positive_lshift_c(1)
+            _, gb[i] = g._quo_rem_c(gb, False, True, True)
+        print("| reduction done")
+
         print("no more J-pairs; current Grobner basis is:")
         for g in gb:
             print("| %s" % g)

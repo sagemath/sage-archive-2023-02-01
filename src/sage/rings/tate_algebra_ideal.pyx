@@ -559,6 +559,31 @@ def Jpair(p1, p2):
     elif su2 > su1:
         return su2, t2*v2
 
+def _regular_reduce(sgb,(u,v),prec,tail=True):
+    if v == 0:
+        return (u,0)
+    vv = v
+    res = 0
+    while vv != 0:
+        sv = vv.leading_term()
+        for S,V in sgb:
+            if V == 0: continue
+            sV = V.leading_term()
+            if sV.divides(sv):
+                t = sv // sV
+                if S is None or t*S < s:
+                    v -= t*V
+                    print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
+                    print("| new series is: %s" % v)
+                    break # Not sure...
+        if tail:
+            res += vv.leading_term()
+            vv -= vv.leading_term()
+        else:
+            res = vv
+            break
+    return res
+
 
 def _groebner_basis_F5(I, prec):
     term_one = I.ring().monoid_of_terms().one()
@@ -658,3 +683,34 @@ def _groebner_basis_F5(I, prec):
             print("| %s" % g)
 
     return gb
+
+
+def _regular_reduce(sgb,(u,v),prec,tail=True):
+    if v == 0:
+        return (u,0)
+    vv = v
+    res = 0
+    while vv != 0:
+        sv = vv.leading_term()
+        for S,V in sgb:
+            if V == 0: continue
+            sV = V.leading_term()
+            if sV.divides(sv):
+                t = sv // sV
+                if S is None or t*S < s:
+                    v -= t*V
+                    print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
+                    print("| new series is: %s" % v)
+                    break # Not sure...
+        if tail:
+            res += vv.leading_term()
+            vv -= vv.leading_term()
+        else:
+            res = vv
+            break
+    return res
+
+
+
+def _groebner_basis_F5_vopot(I,prec):
+    pass

@@ -681,7 +681,7 @@ def HallJankoGraph(from_string=True):
     TESTS::
 
         sage: gg = graphs.HallJankoGraph(from_string=False) # long time
-        sage: g == gg  # long time
+        sage: g.is_isomorphic(gg)                           # long time
         True
     """
 
@@ -734,29 +734,15 @@ def HallJankoGraph(from_string=True):
 
         # The following construction is due to version 3 of the ATLAS of
         # Finite Group Representations, specifically the page at
-        # http://brauer.maths.qmul.ac.uk/Atlas/v3/permrep/J2G1-p100B0 .
+        # http://brauer.maths.qmul.ac.uk/Atlas/v5/permrep/J2G1-p100B0 .
 
-        from sage.interfaces.gap import gap
-        gap.eval("g1 := (1,84)(2,20)(3,48)(4,56)(5,82)(6,67)(7,55)(8,41)"
-                 "(9,35)(10,40)(11,78)(12,100)(13,49)(14,37)(15,94)(16,76)"
-                 "(17,19)(18,44)(21,34)(22,85)(23,92)(24,57)(25,75)(26,28)"
-                 "(27,64)(29,90)(30,97)(31,38)(32,68)(33,69)(36,53)(39,61)"
-                 "(42,73)(43,91)(45,86)(46,81)(47,89)(50,93)(51,96)(52,72)"
-                 "(54,74)(58,99)(59,95)(60,63)(62,83)(65,70)(66,88)(71,87)"
-                 "(77,98)(79,80);")
-
-        gap.eval("g2 := (1,80,22)(2,9,11)(3,53,87)(4,23,78)(5,51,18)"
-                 "(6,37,24)(8,27,60)(10,62,47)(12,65,31)(13,64,19)"
-                 "(14,61,52)(15,98,25)(16,73,32)(17,39,33)(20,97,58)"
-                 "(21,96,67)(26,93,99)(28,57,35)(29,71,55)(30,69,45)"
-                 "(34,86,82)(38,59,94)(40,43,91)(42,68,44)(46,85,89)"
-                 "(48,76,90)(49,92,77)(50,66,88)(54,95,56)(63,74,72)"
-                 "(70,81,75)(79,100,83);")
-
-        gap.eval("G := Group([g1,g2]);")
-        edges = gap('Orbit(G,[1,5],OnSets)').sage()
-        g = Graph([(int(u), int(v)) for u,v in edges])
-        g.relabel(range(100))
+        from sage.libs.gap.libgap import libgap
+        libgap.load_package("AtlasRep") # representation of HJ on 100 points
+        G = libgap.AtlasGroup("HJ", libgap.NrMovedPoints, 100)
+        edges = G.Orbit([1,5], libgap.OnSets)
+        g = Graph()
+        g.add_edges(edges)
+        g.relabel()
 
     g._circle_embedding(list(range(100)))
     g.name("Hall-Janko graph")

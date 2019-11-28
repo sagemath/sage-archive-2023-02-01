@@ -2239,19 +2239,17 @@ def SRG_280_135_70_60():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_280_135_70_60
-        sage: g=SRG_280_135_70_60()                  # long time # optional - gap_packages
-        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
+        sage: g=SRG_280_135_70_60()                  # long time
+        sage: g.is_strongly_regular(parameters=True) # long time
         (280, 135, 70, 60)
     """
-    from sage.interfaces.gap import gap
-    from sage.groups.perm_gps.permgroup import PermutationGroup
+    from sage.libs.gap.libgap import libgap
     from sage.graphs.graph import Graph
 
-    gap.load_package("AtlasRep")
-
+    libgap.load_package("AtlasRep")
     # A representation of J2 acting on a 3.PGL(2,9) it contains.
-    J2    = PermutationGroup(gap('AtlasGenerators("J2",2).generators'))
-    edges = J2.orbit((1,2),"OnSets")
+    J2    = libgap.AtlasGroup("J2", libgap.NrMovedPoints, 280)
+    edges = J2.Orbit([1,2], libgap.OnSets)
     g     = Graph()
     g.add_edges(edges)
     g.relabel()
@@ -2346,15 +2344,13 @@ def SRG_416_100_36_20():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_416_100_36_20
-        sage: g = SRG_416_100_36_20()                # optional - gap_packages # long time
-        sage: g.is_strongly_regular(parameters=True) # optional - gap_packages # long time
+        sage: g = SRG_416_100_36_20()                # long time
+        sage: g.is_strongly_regular(parameters=True) # long time
         (416, 100, 36, 20)
     """
     from sage.libs.gap.libgap import libgap
-    libgap.eval("SetInfoLevel(InfoWarning,0)") # silence #I warnings from GAP (without IO pkg)
-    libgap.LoadPackage("AtlasRep")
+    libgap.load_package("AtlasRep")
     g=libgap.AtlasGroup("G2(4)",libgap.NrMovedPoints,416)
-    libgap.eval("SetInfoLevel(InfoWarning,1)") # restore #I warnings
     h = Graph()
     h.add_edges(g.Orbit([1,5],libgap.OnSets))
     h.relabel()
@@ -2376,7 +2372,7 @@ def SRG_560_208_72_80():
         (560, 208, 72, 80)
     """
     from sage.libs.gap.libgap import libgap
-    libgap.LoadPackage("AtlasRep")
+    libgap.load_package("AtlasRep")
     g=libgap.AtlasGroup("Sz8",libgap.NrMovedPoints,560)
 
     h = Graph()

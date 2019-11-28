@@ -826,8 +826,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: input = tmp_filename(ext='.rst')
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
-        sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
-        sage: print(out)
+        sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input]) # py2
+        sage: print(out) # py2
         {{{id=0|
         2^10
         ///
@@ -841,7 +841,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         }}}
         sage: err # py2
         ''
-        sage: ret
+        sage: ret # py2
         0
 
     Test ``sage --rst2txt file.rst file.txt`` on a ReST file::
@@ -851,9 +851,9 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: output = tmp_filename(ext='.txt')
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
-        sage: test_executable(["sage", "--rst2txt", input, output])
+        sage: test_executable(["sage", "--rst2txt", input, output]) # py2
         ('', ..., 0)
-        sage: print(open(output, 'r').read())
+        sage: print(open(output, 'r').read()) # py2
         {{{id=0|
         2^10
         ///

@@ -2198,6 +2198,47 @@ class FunctionField_polymod(FunctionField):
         else:
             return FunctionFieldDerivation_inseparable(self)
 
+    def places_above(self, p):
+        """
+        Return places lying above ``p``.
+
+        INPUT:
+
+        - ``p`` -- place of the base rational function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: all(q.place_below() == p for p in K.places() for q in F.places_above(p))
+            True
+
+            sage: K.<x> = FunctionField(QQ); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: O = K.maximal_order()
+            sage: pls = [O.ideal(x-c).place() for c in [-2, -1, 0, 1, 2]]
+            sage: all(q.place_below() == p for p in pls for q in F.places_above(p))
+            True
+
+            sage: K.<x> = FunctionField(QQbar); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: O = K.maximal_order()
+            sage: pls = [O.ideal(x-QQbar(sqrt(c))).place() for c in [-2, -1, 0, 1, 2]]
+            sage: all(q.place_below() == p for p in pls for q in F.places_above(p))
+            True
+        """
+        R = self.base_field()
+
+        if not p in R.place_set():
+            raise TypeError("not a place of the base rational function field")
+
+        if p.is_infinite_place():
+            dec = self.maximal_order_infinite().decomposition()
+        else:
+            dec = self.maximal_order().decomposition(p.prime_ideal())
+
+        return tuple([q.place() for q, deg, exp in dec])
+
     def _simple_model(self, name='v'):
         r"""
         Return a finite extension `N/K(x)` isomorphic to the tower of
@@ -3105,33 +3146,6 @@ class FunctionField_global(FunctionField_polymod):
             place = prime.place()
             if place.degree() == degree:
                 yield place
-
-    def places_above(self, p):
-        """
-        Return places lying above ``p``.
-
-        INPUT:
-
-        - ``p`` -- place of the base rational function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: all(q.place_below() == p for p in K.places() for q in F.places_above(p))
-            True
-        """
-        R = self.base_field()
-
-        if not p in R.place_set():
-            raise TypeError("not a place of the base rational function field")
-
-        if p.is_infinite_place():
-            dec = self.maximal_order_infinite().decomposition()
-        else:
-            dec = self.maximal_order().decomposition(p.prime_ideal())
-
-        return tuple([q.place() for q, deg, exp in dec])
 
     def constant_field(self):
         """

@@ -849,6 +849,15 @@ class FunctionFieldPlace_polymod(FunctionFieldPlace):
             to_K = lambda f: _to_K(to_F(f))
             return K, from_K, to_K
 
+        O = F.maximal_order()
+        Obasis = O.basis()
+
+        # notation is from Section 4.8.3 of [Coh1993]_
+        p = prime.prime_below().gen().numerator()
+        beta = prime._beta
+        alpha = ~p * sum(c1*c2 for c1,c2 in zip(beta, Obasis))
+        alpha_powered_by_ramification_index = alpha ** prime._ramification_index
+
         if is_NumberField(F.constant_base_field()) or F.constant_base_field() == QQbar:
             R = F.base_field()
             ideal_gens = map(lambda e: R._to_bivariate_polynomial(e)[0], prime.gens() + (F.polynomial(),))
@@ -860,12 +869,22 @@ class FunctionFieldPlace_polymod(FunctionFieldPlace):
             def from_K(e):
                 return F(e)
             def to_K(f):
-                (n,d) = R._to_bivariate_polynomial(f)
-                return K(I.reduce(I.ring()(n))) / K(I.reduce(I.ring()(d)))
-            return K, from_K, to_K
+                den = O.coordinate_vector(f).denominator()
+                num = den * f
 
-        O = F.maximal_order()
-        Obasis = O.basis()
+                # s powered by the valuation of den at the prime
+                alpha_power = alpha_powered_by_ramification_index ** den.valuation(p)
+                rn = num * alpha_power # in O
+                rd = den * alpha_power # in O but not in prime
+
+                # (n,d) = R._to_bivariate_polynomial(f)
+                # return K(I.reduce(rn)) / K(I.reduce(rd))
+                V = I.variety()
+                (rnn, rnd) = R._to_bivariate_polynomial(rn)
+                (rdn, rdd) = R._to_bivariate_polynomial(rd)
+                point = V[0]
+                return K(rnn.subs(point)) / K(rdd.subs(point)) * K(rdd.subs(point)) / K(rdn.subs(point))
+            return K, from_K, to_K
 
         M = prime.hnf()
         R = M.base_ring() # univariate polynomial ring
@@ -986,11 +1005,6 @@ class FunctionFieldPlace_polymod(FunctionFieldPlace):
             # Step 6: construct an isomorphism
             def from_K(e):
                 return fr_V(vector([e]) * mat)
-
-        p = prime.prime_below().gen().numerator()
-        beta = prime._beta
-        alpha = ~p * sum(c1*c2 for c1,c2 in zip(beta, O.basis()))
-        alpha_powered_by_ramification_index = alpha ** prime._ramification_index
 
         def to_K(f):
             if not f in O:

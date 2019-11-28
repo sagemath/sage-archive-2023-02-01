@@ -28,7 +28,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
 from six.moves import range
@@ -2077,7 +2077,7 @@ class TamariIntervalPoset(Element):
         size = self._size
         yield self
         r"""
-        we try to add links recursively in this order :
+        we try to add links recursively in this order:
         1 -> 2
         2 -> 3
         1 -> 3

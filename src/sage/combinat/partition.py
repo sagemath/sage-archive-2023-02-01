@@ -1146,7 +1146,7 @@ class Partition(CombinatorialElement):
             t = m - h + 1
             next_p[h-1] = r
 
-            while t >= r :
+            while t >= r:
                 h += 1
                 next_p[h-1] = r
                 t -= r

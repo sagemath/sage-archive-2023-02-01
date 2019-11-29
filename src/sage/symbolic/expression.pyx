@@ -141,7 +141,7 @@ Test if :trac:`24883` is fixed::
     1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #
@@ -149,8 +149,8 @@ Test if :trac:`24883` is fixed::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
@@ -10960,7 +10960,7 @@ cdef class Expression(CommutativeRingElement):
         Distribute some indexed operators over similar operators in
         order to allow further groupings or simplifications.
 
-        Implemented cases (so far) :
+        Implemented cases (so far):
 
         - Symbolic sum of a sum ==> sum of symbolic sums
 

@@ -5,7 +5,7 @@ It's almost a copy of the bitset datatype, but allows a differentiation of the
 rows of the matrix. That's the only advantage compared to storing all the rows
 of a matrix in a loooooonng bitset.
 
-A ``binary_matrix_t`` structure contains :
+A ``binary_matrix_t`` structure contains:
 
 - ``Py_ssize_t n_cols`` -- number of columns
 

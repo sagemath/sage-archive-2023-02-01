@@ -97,6 +97,25 @@ Function fields over the rational field are supported::
     - Place (x, x*y)
      + Place (x^2 + 1, x*y)
 
+Function fields over the algebraic field are supported::
+
+    sage: K.<x> = FunctionField(QQbar); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^2+Y+x+1/x)
+    sage: O = L.maximal_order()
+    sage: I = O.ideal(y)
+    sage: I.divisor()
+    Place (x - I, x*y)
+     - Place (x, x*y)
+     + Place (x + I, x*y)
+    sage: pl = I.divisor().support()[0]
+    sage: m = L.completion(pl, prec=5)
+    sage: m(x)
+    I + s + O(s^5)
+    sage: m(y)
+    -2*s + (-4 - I)*s^2 + (-15 - 4*I)*s^3 + (-75 - 23*I)*s^4 + (-413 - 154*I)*s^5 + O(s^6)
+    sage: m(y)^2 + m(y) + m(x) + 1/m(x)
+    O(s^5)
+
 TESTS::
 
     sage: TestSuite(J).run()

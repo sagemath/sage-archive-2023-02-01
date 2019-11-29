@@ -913,6 +913,18 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
             [True, True, True, True]
             sage: to_R(x*(x+1)) == to_R(x) * to_R(x+1)
             True
+
+            sage: from itertools import islice, starmap, repeat
+            sage: F.<x> = FunctionField(QQ)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x^2+x+1)
+            sage: R, fr_R, to_R = O._residue_field(I)
+            sage: R
+            Number Field in a with defining polynomial x^2 + x + 1
+            sage: all([to_R(fr_R(e)) == e for e in islice(starmap(R.random_element, repeat(())), 10)])
+            True
+            sage: to_R(x*(x+1)) == to_R(x) * to_R(x+1)
+            True
         """
         F = self.function_field()
 
@@ -925,8 +937,10 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
         elif F.is_global():
             R, _from_R, _to_R = self._residue_field_global(q, name=name)
         elif is_NumberField(F.constant_base_field()):
-            R = F.constant_base_field().extension(q)
-            _from_R = lambda e: e
+            if name is None:
+                name = 'a'
+            R = F.constant_base_field().extension(q, names=name)
+            _from_R = lambda e: self._ring(list(R(e)))
             _to_R = lambda e: (e % q)(R.gen(0))
         else:
             raise NotImplementedError

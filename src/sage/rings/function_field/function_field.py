@@ -1091,8 +1091,7 @@ class FunctionField(Field):
             sage: m = L.completion(pls[0]); m
             Completion map:
               From: Function field in y defined by y^2 - x
-              To:   Laurent Series Ring in s over Quotient of Multivariate Polynomial Ring in y, x
-                    over Rational Field by the ideal (x - 1, y - 1, y^2 - x)
+              To:   Laurent Series Ring in s over Rational Field
             sage: xe = m(x)
             sage: ye = m(y)
             sage: ye^2 - xe == 0
@@ -1103,8 +1102,7 @@ class FunctionField(Field):
             sage: m = L.completion(pls2); m
             Completion map:
               From: Function field in y defined by y^2 - x
-              To:   Laurent Series Ring in s over Quotient of Multivariate Polynomial Ring in y, x
-                    over Rational Field by the ideal (x^2 + 1, y*x^2 + y, y^2 - x)
+              To:   Laurent Series Ring in s over Number Field in a with defining polynomial x^4 + 2*x^2 + 4*x + 2
             sage: xe = m(x)
             sage: ye = m(y)
             sage: ye^2 - xe == 0

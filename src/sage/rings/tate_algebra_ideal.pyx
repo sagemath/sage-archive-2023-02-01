@@ -683,9 +683,15 @@ def _groebner_basis_F5(I, prec):
     return gb
 
 
+    
+def _vopot_key(u,i,v):
+    # This doesn't really need v
+    return (u.valuation(),i,u)
+
 def _regular_reduce_vopot(sgb,p,tail=True):
     s,i,v = p
     res = 0
+    key = _vopot_key(s,i,v) # independent of v
     while v != 0:
         sv = v.leading_term()
         for S,I,V in sgb:
@@ -693,14 +699,11 @@ def _regular_reduce_vopot(sgb,p,tail=True):
             sV = V.leading_term()
             if sV.divides(sv):
                 t = sv // sV
-                if(S is None
-                   or t.valuation()+S.valuation() < s.valuation()
-                   or I < i
-                   or t*S < s):
+                if _vopot_key(t*S,I,V) < key
                     v -= t*V
                     print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
                     print("| new series is: %s" % v)
-                    break # Not sure...
+                    break # Or maybe not?
         if tail:
             res += v.leading_term()
             vv -= v.leading_term()
@@ -722,31 +725,16 @@ def _Jpair_vopot(p1,p2):
     su1 = t1*u1
     su2 = t2*u2
     # We can probably save half the computations above in a lot of cases
-    
-    if su1.valuation() < su2.valuation():
-        winner = 1
-    elif su1.valuation() < su2.valuation():
-        winner = 2
-    elif i1 > i2:
-        winner = 1
-    elif i1 < i2:
-        winner = 2
-    elif su1 > su2:
-        winner = 1
-    elif su1 < su2:
-        winner = 2
-    else:
-        # Not a Jpair
-        return
 
-    if winner == 1:
+    vu1 = _vopot_key(u1,i1,v1)
+    vu2 = _vopot_key(u2,i2,v2)
+    if vu1 < vu2:
         return su1,t1*v1
-    else: # winner == 2
+    elif vu2 > vu1:
         return su2,t2*v2
+    else:
+        return
     
-def _vopot_key(u,i,v):
-    return (u.valuation(),i,u)
-
 def _groebner_basis_F5_vopot(I,prec):
     term_one = I.ring().monoid_of_terms().one()
     gb0 = []

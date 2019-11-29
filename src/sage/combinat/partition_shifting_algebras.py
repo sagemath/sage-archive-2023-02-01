@@ -59,7 +59,8 @@ class ShiftingSequenceSpace(Singleton, Parent):
             sage: from sage.combinat.partition_shifting_algebras import ShiftingSequenceSpace
             sage: S = ShiftingSequenceSpace()
         """
-        Parent.__init__(self, facade=(tuple,), category=Sets().Infinite().Facade())
+        Parent.__init__(self, facade=(tuple,),
+                        category=Sets().Infinite().Facade())
 
     def __contains__(self, seq):
         r"""
@@ -83,7 +84,7 @@ class ShiftingSequenceSpace(Singleton, Parent):
             False
         """
         return (isinstance(seq, tuple) and all(i in ZZ for i in seq)
-                and (not seq or seq[-1] != 0))
+                and (not seq or seq[-1]))
 
     def check(self, seq):
         r"""
@@ -242,7 +243,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
         """
         indices = ShiftingSequenceSpace()
         cat = Algebras(base_ring).WithBasis()
-        CombinatorialFreeModule.__init__(self, base_ring, indices, prefix=prefix,
+        CombinatorialFreeModule.__init__(self, base_ring, indices,
+                                         prefix=prefix,
                                          bracket=False, category=cat)
 
         # Setup default conversions
@@ -260,7 +262,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
 
             sage: S = ShiftingOperatorAlgebra()
             sage: S
-            Shifting Operator Algebra over Univariate Polynomial Ring in t over Rational Field
+            Shifting Operator Algebra over Univariate Polynomial Ring in t
+            over Rational Field
         """
         return "Shifting Operator Algebra over {}".format(self.base_ring())
 
@@ -427,7 +430,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
 
         rho = list(range(len(gamma) - 1, -1, -1))
         combined = [g + r for g, r in zip(gamma, rho)]
-        if len(set(combined)) == len(combined) and all(e >= 0 for e in combined):
+        if len(set(combined)) == len(combined) and all(e >= 0
+                                                       for e in combined):
             sign = (-1) ** number_of_noninversions(combined)
             sort_combined = sorted(combined, reverse=True)
             new_gamma = [sc - r for sc, r in zip(sort_combined, rho)]
@@ -491,10 +495,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
             sage: op(2*m[4,3] + 5*m[2,2] + 7*m[2]) == 2*m[5, 2] + 5*m[3, 1]
             True
         """
-
-        def precompose_map(supp):
-            return support_map(supp)
-        module_morphism = self.module_morphism(precompose_map,
+        module_morphism = self.module_morphism(support_map,
                                                codomain=codomain)
         codomain.register_conversion(module_morphism)
 
@@ -564,7 +565,8 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
                     for i, val in enumerate(y):
                         x[i] += val
                     return x
-                return [(add_lists(index, operand), coeff) for index, coeff in self]
+                return [(add_lists(index, operand), coeff)
+                        for index, coeff in self]
 
             R = self.base_ring()
             lift_operand = P._from_dict({P._prepare_seq(p): R(c)

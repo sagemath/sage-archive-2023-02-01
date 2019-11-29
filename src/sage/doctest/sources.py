@@ -342,12 +342,13 @@ class DocTestSource(object):
             # we want to randomize even when self.randorder = 0
             random.seed(self.options.randorder)
             randomized = []
-            while len(doctests) > 0:
-                i = random.randint(0, len(doctests)-1)
+            while doctests:
+                i = random.randint(0, len(doctests) - 1)
                 randomized.append(doctests.pop(i))
             return randomized, extras
         else:
             return doctests, extras
+
 
 class StringDocTestSource(DocTestSource):
     r"""

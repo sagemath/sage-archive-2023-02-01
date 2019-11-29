@@ -163,9 +163,9 @@ class p_iter_fork(object):
 
         workers = {}
         try:
-            while len(v) > 0 or len(workers) > 0:
+            while v or workers:
                 # Spawn up to n subprocesses
-                while len(v) > 0 and len(workers) < n:
+                while v and len(workers) < n:
                     v0 = v.pop(0)  # Input value for the next subprocess
                     with ContainChildren():
                         pid = os.fork()

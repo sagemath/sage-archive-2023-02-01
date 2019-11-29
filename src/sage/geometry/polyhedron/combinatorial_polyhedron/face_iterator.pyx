@@ -340,7 +340,7 @@ cdef class FaceIterator(SageObject):
             # Assumes ``visited_all`` to be some list of faces of
             # a polyhedron `P_2`, which contains `P` as one of its faces.
 
-            while len(facets) > 0:
+            while facets:
                 one_face = faces.pop()
                 maybe_newfaces = [one_face.intersection(face) for face in faces]
 

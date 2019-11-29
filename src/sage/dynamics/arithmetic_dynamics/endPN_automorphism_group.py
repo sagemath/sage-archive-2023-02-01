@@ -1653,7 +1653,7 @@ def automorphism_group_FF_alg3(rational_function):
 
     # case of a pair of F-rational period 2 points
     linear_period_2_pairs = []
-    while len(linear_period_2_pts) > 0:
+    while linear_period_2_pts:
         x = linear_period_2_pts.pop(-1)
         if x[1] == 1 and g(x[0]) != 0:
             y = [phi(x[0]), F(1)]

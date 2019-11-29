@@ -1217,7 +1217,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if line == "":
             raise ValueError("more data expected!")
         partitions = Sequence([], cr=True)
-        while len(line) > 0 and line.find("np=") == -1:
+        while line and line.find("np=") == -1:
             if line.find("V:") == -1:
                 line = data.readline()
                 continue

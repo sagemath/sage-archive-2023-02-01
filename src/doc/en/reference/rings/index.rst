@@ -55,7 +55,6 @@ Ring Extensions
    sage/rings/ring_extension
    sage/rings/ring_extension_element
    sage/rings/ring_extension_morphism
-   sage/rings/ring_extension_homset
 
 Utilities
 ---------

@@ -1,5 +1,5 @@
 r"""
-Extension of rings.
+Extension of rings
 
 Sage offers the possibility to work with ring extensions `L/K` as
 actual parents and perform meaningful operations on them and their

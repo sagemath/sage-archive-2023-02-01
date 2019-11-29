@@ -3083,7 +3083,7 @@ class Graph(GenericGraph):
             sage: P.is_edge_transitive()
             False
         """
-        from sage.interfaces.gap import gap
+        from sage.libs.gap.libgap import libgap
 
         if not self.size():
             return True
@@ -3092,7 +3092,7 @@ class Graph(GenericGraph):
         e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
-        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnSets);") == self.size()
+        return libgap(A).OrbitLength(e, libgap.OnSets) == self.size()
 
     @doc_index("Graph properties")
     def is_arc_transitive(self):
@@ -3123,7 +3123,7 @@ class Graph(GenericGraph):
             sage: G.is_arc_transitive()
             False
         """
-        from sage.interfaces.gap import gap
+        from sage.libs.gap.libgap import libgap
 
         if not self.size():
             return True
@@ -3132,7 +3132,7 @@ class Graph(GenericGraph):
         e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
-        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnTuples);") == 2*self.size()
+        return libgap(A).OrbitLength(e,libgap.OnTuples) == 2*self.size()
 
     @doc_index("Graph properties")
     def is_half_transitive(self):

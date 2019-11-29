@@ -403,7 +403,7 @@ def spanning_forest(M):
 
 def spanning_stars(M):
     r"""
-    Returns the edges of a connected subgraph that is a union of
+    Return the edges of a connected subgraph that is a union of
     all edges incident some subset of vertices.
 
     INPUT:

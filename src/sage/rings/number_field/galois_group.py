@@ -678,10 +678,17 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
                To:   Number Field in a with defining polynomial x^4 + 1
                Defn: a0 |--> a^3 + a)
 
-        """
-        if self.order() == 1:
-            return self._galois_closure  # work around a silly error
+        An embedding is returned also if the subgroup is trivial
+        (:trac:`26817`)::
 
+            sage: H = G.subgroup([G.identity()])
+            sage: H.fixed_field()
+            (Number Field in a0 with defining polynomial x^4 + 1 with a0 = a,
+             Ring morphism:
+               From: Number Field in a0 with defining polynomial x^4 + 1 with a0 = a
+               To:   Number Field in a with defining polynomial x^4 + 1
+               Defn: a0 |--> a)
+        """
         vecs = [pari(g.domain()).Vecsmall() for g in self._elts]
         v = self._ambient._pari_data.galoisfixedfield(vecs)
         x = self._galois_closure(v[1])

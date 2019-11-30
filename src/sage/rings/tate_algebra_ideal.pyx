@@ -48,8 +48,8 @@ class TateAlgebraIdeal(Ideal_generic):
 
     """
 
-    @cached_method
-    def groebner_basis(self, prec=None, algorithm='buchberger-integral'):
+    #@cached_method
+    def groebner_basis(self, prec=None, algorithm='buchberger-integral', verbose=0):
         r"""
         Compute a Groebner basis of the ideal
 
@@ -134,7 +134,7 @@ class TateAlgebraIdeal(Ideal_generic):
         elif algorithm == "buchberger-integral":
             return _groebner_basis_buchberger(self, prec, True)
         elif algorithm == "F5":
-            return _groebner_basis_F5(self, prec)
+            return _groebner_basis_F5(self, prec, verbose=verbose)
         else:
             raise NotImplementedError("only Buchberger algorithm is implemented so far")
 
@@ -557,11 +557,12 @@ def Jpair(p1, p2):
     elif su2 > su1:
         return su2, t2*v2
 
-def _regular_reduce(sgb,p,tail=True):
-    s,v = p
-    res = 0
+def regular_reduce(sgb, s, v, tail, verbose):
+    res = v.parent()(0, v.precision_absolute())
+    count = 0
     while v != 0:
         sv = v.leading_term()
+        # We first check for top reduction
         for S,V in sgb:
             if V == 0: continue
             sV = V.leading_term()
@@ -569,19 +570,31 @@ def _regular_reduce(sgb,p,tail=True):
                 t = sv // sV
                 if S is None or t*S < s:
                     v -= t*V
-                    print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
-                    print("| new series is: %s" % v)
-                    break # Not sure...
-        if tail:
-            res += v.leading_term()
-            vv -= v.leading_term()
-        else:
-            res = v
-            break
+                    count += 1
+                    if verbose > 3:
+                        print("| regular reduction by (sign = %s, series = %s)" % (S,V))
+                        print("| new series is: %s" % (res+v))
+                    break
+        else:  
+            # no possible top-reduction
+            if not tail:
+                res = v
+                break
+            res += sv
+            v -= sv
+    if verbose > 1:
+        print("| %s regular reductions done" % count)
     return res
 
 
-def _groebner_basis_F5(I, prec):
+def print_pair(p, verbose):
+    if verbose > 3:
+        return "(sign = %s, series = %s)" % p
+    else:
+        s, v = p
+        return "(sign = %s, series = %s + ...)" % (s, v.leading_term())
+
+def _groebner_basis_F5(I, prec, verbose):
     cdef TateAlgebraElement g
     cdef TateAlgebraTerm ti, tj
 
@@ -589,8 +602,9 @@ def _groebner_basis_F5(I, prec):
     gb = [ ]
 
     for f in I.gens():
-        print("---")
-        print("new generator: %s" % f)
+        if verbose > 0:
+            print("---")
+            print("new generator: %s" % f)
         # Initial strong Grobner basis:
         # we add signatures
         sgb = [ (None, g) for g in gb if g != 0 ]
@@ -607,16 +621,21 @@ def _groebner_basis_F5(I, prec):
         # For the syzygy criterium
         gb0 = [ g.leading_term() for g in gb ]
 
-        #print("initial J-pairs:")
-        #for s,v in Jpairs:
-        #    print("| sign = %s; series = %s" % (s,v))
+        if verbose > 1:
+            print("%s initial J-pairs" % len(Jpairs))
+        if verbose > 2:
+            for s,v in Jpairs:
+                print("| sign = %s; series = %s" % (s,v))
 
         while Jpairs:
             s, v = heappop(Jpairs)
             sv = v.leading_term()
 
-            #print("current J-pair: (sign = %s, series = %s)" % (s,v))
-            print("%s remaining J-pairs" % len(Jpairs))
+            if verbose == 2:
+                print("pop one J-pair; %s remaining J-pairs" % len(Jpairs))
+            if verbose > 2:
+                print("current J-pair: " + print_pair((s,v), verbose))
+                print("%s remaining J-pairs" % len(Jpairs))
 
             # The syzygy criterium
             syzygy = None
@@ -625,7 +644,8 @@ def _groebner_basis_F5(I, prec):
                     syzygy = S
                     break
             if syzygy is not None:
-                print("| skip: sygyzy criterium; signature = %s" % syzygy)
+                if verbose > 1:
+                    print("| skip: sygyzy criterium; signature = %s" % syzygy)
                 continue
 
             # We check if (s,v) is covered by 
@@ -638,53 +658,43 @@ def _groebner_basis_F5(I, prec):
                         cover = (S,V)
                         break
             if cover is not None:
-                print("| skip: cover by (sign = %s, series = %s)" % cover)
+                if verbose > 1:
+                    print("| skip: cover by " + print_pair(cover, verbose))
                 continue
 
             # We perform regular top-reduction
-            count = 0
-            while True:
-                if v == 0: break
-                sv = v.leading_term()
-                for S, V in sgb:
-                    if V == 0: continue
-                    sV = V.leading_term()
-                    if sV.divides(sv):
-                        t = sv // sV
-                        if S is None or t*S < s:
-                            count += 1
-                            v -= t*V
-                            # print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
-                            # print("| new series is: %s" % v)
-                            break
-                    # TODO: implement regular tail-reduction
-                else:
-                    break
-            print("| %s top-reductions" % count)
+            v = regular_reduce(sgb, s, v, True, verbose)
 
             if v == 0:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
-                print ("| add signature for syzygy criterium: %s" % s)
+                #print ("| add signature for syzygy criterium: %s" % s)
                 gb0.append(s)
             else:
                 # We update the current strong Grobner basis
                 # and the J-pairs accordingly
                 p = (s,v)
-                # print("| new element is SGB: (sign = %s, series = %s)" % p)
+                if verbose > 1:
+                    print("| new element is SGB: " + print_pair(p, verbose))
                 count = 0
                 for P in sgb:
                     J = Jpair(p, P)
                     if J is not None:
                         count += 1
-                        # print("| add J-pair: (sign = %s, series = %s)" % J)
+                        if verbose > 2:
+                            print("| add J-pair: " + print_pair(J, verbose))
                         heappush(Jpairs, J)
-                print("| add %s J-pairs" % count)
+                if verbose > 1:
+                    print("| add %s J-pairs" % count)
                 sgb.append(p)
 
         # We forget signatures
         gb = [ v.monic() for (s,v) in sgb ]
-        print("| %s elements in GB before minimization" % len(gb))
+        if verbose > 1:
+            print("%s elements in GB before minimization" % len(gb))
+        if verbose > 3:
+            for g in gb:
+                print("| %s" % g)
         # we minimize the Grobner basis
         i = 0
         while i < len(gb):
@@ -695,19 +705,26 @@ def _groebner_basis_F5(I, prec):
                     del gb[i]
                     break
             else:
-                gb[i] = gb[i].monic()
                 i += 1
-        print("| %s elements in GB after minimization" % len(gb))
+        if verbose > 0:
+             if verbose > 1:
+                 s = " after minimization"
+             else:
+                 s = ""
+             print("%s elements in GB%s" % (len(gb), s))
+        if verbose > 3:
+            for g in gb:
+                print("| %s" % g)
         # and reduce it
         for i in range(len(gb)-1, -1, -1):
             g = gb[i]
             gb[i] = g._positive_lshift_c(1)
             _, gb[i] = g._quo_rem_c(gb, False, True, True)
-        print("| reduction done")
-
-        print("no more J-pairs; current Grobner basis is:")
-        for g in gb:
-            print("| %s" % g)
+        if verbose > 1:
+            print("grobner basis reduced")
+        if verbose > 0:
+            for g in gb:
+                print("| %s" % g)
 
     return gb
 
@@ -728,7 +745,7 @@ def _regular_reduce_vopot(sgb,p,tail=True):
             sV = V.leading_term()
             if sV.divides(sv):
                 t = sv // sV
-                if _vopot_key(t*S,I,V) < key
+                if _vopot_key(t*S,I,V) < key:
                     v -= t*V
                     print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
                     print("| new series is: %s" % v)

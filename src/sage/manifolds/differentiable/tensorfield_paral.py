@@ -1811,11 +1811,11 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: f = M.scalar_field({X: x+y}, name='f')
             sage: s = a.__mul__(f); s
-            Tensor field of type (0,2) on the 2-dimensional differentiable
+            Tensor field f*a of type (0,2) on the 2-dimensional differentiable
              manifold M
             sage: s.display()
-            (x^2 + (x + 1)*y + x) dx*dx + (2*x + 2*y) dx*dy + (x*y + y^2) dy*dx
-             + (-x^3 - x^2*y) dy*dy
+            f*a = (x^2 + (x + 1)*y + x) dx*dx + (2*x + 2*y) dx*dy
+             + (x*y + y^2) dy*dx + (-x^3 - x^2*y) dy*dy
             sage: s == f*a
             True
 

@@ -456,11 +456,18 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                 # restriction of the scalar field to self._domain:
                 return coord_expression.restrict(self._domain)
         else:
-            # generic constructor:
-            resu = self.element_class(self,
-                                      coord_expression=coord_expression,
-                                      name=name, latex_name=latex_name,
-                                      chart=chart)
+            ###
+            # Anything going wrong here should produce a readable error:
+            try:
+                # generic constructor:
+                resu = self.element_class(self,
+                                          coord_expression=coord_expression,
+                                          name=name, latex_name=latex_name,
+                                          chart=chart)
+            except TypeError:
+                raise TypeError("cannot convert " +
+                                "{} to a scalar ".format(coord_expression) +
+                                "field on {}".format(self._domain))
         return resu
 
     def _an_element_(self):

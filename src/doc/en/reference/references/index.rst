@@ -248,6 +248,8 @@ REFERENCES:
 .. [Arn2002] \P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
              N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
              Notes in Mathematics, Vol. 1794), 2002.
+.. [Ass1978] \J. Assion: *Einige endliche Faktorgruppen der Zopfgruppen*, Math. Z., 163
+             (1978), 291-302.
 
 .. [ARVT2005] Michael Artin, Fernando Rodriguez-Villegas, John Tate,
               On the Jacobians of plane cubics,
@@ -1489,6 +1491,9 @@ REFERENCES:
 
 .. [Cox] David Cox, "What is a Toric Variety",
          https://dacox.people.amherst.edu/lectures/tutorial.ps
+
+.. [Cox1957] \H. S. M. Coxeter: *Factor groups of the braid groups*, Proceedings of the Fourth Candian
+             Mathematical Congress (Vancouver 1957), pp. 95-122.
 
 .. [Cox1969] Harold S. M. Coxeter, *Introduction to Geometry*, 2nd ed. New York:Wiley, 1969. 
 
@@ -2975,6 +2980,10 @@ REFERENCES:
 .. [Ked2001] Kedlaya, K., *Counting points on hyperelliptic curves using
              Monsky-Washnitzer cohomology*, J. Ramanujan Math. Soc. 16 (2001) no
              4, 323-338
+
+.. [KeSm1998] \S. Keller and M. Smid, *Modes of Operation Validation System
+              (MOVS): Requirements and Procedures* NIST Special Publication
+              800-17, 1998 :doi:`10.6028/NIST.SP.800-17`
 
 .. [KG2016] \P. Karpmann and Benjamin Gregoire, *The LITTLUN S-box and the FLY
             block cipher*, Lightweight Cryptography Workshop, 2016.
@@ -5071,6 +5080,7 @@ REFERENCES:
 
 .. [U.S1999] \U.S. Department Of Commerce/National Institute of Standards and Technology,
              *Data Encryption Standard*, (1999).
+             https://csrc.nist.gov/CSRC/media/Publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf
 
 .. _ref-V:
 

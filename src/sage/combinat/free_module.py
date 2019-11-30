@@ -258,6 +258,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         False
         sage: XQ == XQ
         True
+
+    We check that ticket :trac:`28681` is fixed::
+
+        sage: F = CombinatorialFreeModule(ZZ, ZZ); F.rename("F")
+        sage: FF = tensor((F,F))
+        sage: cartesian_product((FF,FF))
+        F # F (+) F # F
     """
 
     @staticmethod

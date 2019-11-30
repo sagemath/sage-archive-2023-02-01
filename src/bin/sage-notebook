@@ -1,4 +1,4 @@
-#!/usr/bin/env sage-python23
+#!/usr/bin/env sage-python
 # -*- coding: utf-8 -*-
 
 import os
@@ -78,7 +78,7 @@ class NotebookJupyter(object):
     PREREQUISITE_ERROR = textwrap.dedent("""
     The Jupyter notebook requires ssl, even if you do not use
     https. Install the openssl development packages in your system and
-    then rebuild Python (sage -f python2).
+    then rebuild Python (sage -f python3).
     """)
 
     def print_banner(self):

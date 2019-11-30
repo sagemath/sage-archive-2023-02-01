@@ -1444,6 +1444,21 @@ class CombinatorialClass(Parent):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Create a hash value. This is based on the string representation.
+
+        Note that in Python 3 objects that define __eq__ do not inherit their __hash__
+        function. Without an explicit __hash__ they are no longer hashable.
+
+        TESTS::
+
+            sage: C = CombinatorialClass()
+            sage: hash(C) == hash(repr(C))
+            True
+        """
+        return hash(repr(self))
+
     def __cardinality_from_iterator(self):
         """
         Default implementation of cardinality which just goes through the iterator

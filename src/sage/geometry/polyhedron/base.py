@@ -36,9 +36,6 @@ from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
 
 from .constructor import Polyhedron
-
-from sage.misc.superseded import deprecated_function_alias
-
 from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
@@ -162,7 +159,7 @@ class Polyhedron_base(Element):
 
         .. TODO::
 
-            Add the option `preparse` to the method.
+            Add the option ``preparse`` to the method.
 
         EXAMPLES::
 
@@ -1482,17 +1479,6 @@ class Polyhedron_base(Element):
             sage: c = polytopes.cube()
             sage: c.Hrepresentation_str(separator=', ', style='positive')
             '1 >= x2, 1 >= x1, 1 >= x0, x0 + 1 >= 0, x2 + 1 >= 0, x1 + 1 >= 0'
-
-        TESTS::
-
-            sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
-            sage: P1.repr_pretty_Hrepresentation()
-            doctest:warning
-            ...
-            :
-            DeprecationWarning: repr_pretty_Hrepresentation is deprecated. Please use Hrepresentation_str instead.
-            See https://trac.sagemath.org/24837 for details.
-            ' x0 >=  0 \n-x0 >= -1 '
         """
         pretty_hs = [h.repr_pretty(split=True, latex=latex, style=style, **kwds) for h in self.Hrepresentation()]
         shift = any(pretty_h[2].startswith('-') for pretty_h in pretty_hs)
@@ -1534,8 +1520,6 @@ class Polyhedron_base(Element):
         else:
             # below we remove the 2 unnecessary backslashes at the end of pretty_print
             return "\\begin{array}{rcl}\n" + pretty_print[:-2] + "\n\\end{array}"
-
-    repr_pretty_Hrepresentation = deprecated_function_alias(24837, Hrepresentation_str)
 
     def Hrep_generator(self):
         """
@@ -3735,7 +3719,7 @@ class Polyhedron_base(Element):
             sage: four_cube = polytopes.hypercube(4)
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: four_cube - four_simplex
-            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 16 vertices
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 16 vertices
             sage: four_cube.minkowski_difference(four_simplex) == four_cube - four_simplex
             True
 
@@ -3762,6 +3746,13 @@ class Polyhedron_base(Element):
             True
             sage: (X-Y)+Y == X
             True
+
+        Testing that :trac:`28506` is fixed::
+
+            sage: Q = Polyhedron([[1,0],[0,1]])
+            sage: S = Polyhedron([[0,0],[1,2]])
+            sage: S.minkowski_difference(Q)
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
         """
         if other.is_empty():
             return self.parent().universe()   # empty intersection = everything
@@ -3780,7 +3771,9 @@ class Polyhedron_base(Element):
             ieq = list(ieq)
             ieq[0] += min(values)   # shift constant term
             new_ieqs.append(ieq)
-        P = self.parent()
+
+        # Some vertices might need fractions.
+        P = self.parent().change_ring(self.base_ring().fraction_field())
         return P.element_class(P, None, [new_ieqs, new_eqns])
 
     def __sub__(self, other):
@@ -4125,7 +4118,9 @@ class Polyhedron_base(Element):
             :meth:`join`
             :meth:`subdirect_sum`
 
-        TESTS::
+        TESTS:
+
+        Check that the backend is preserved::
 
             sage: P = polytopes.simplex(backend='cdd')
             sage: Q = polytopes.simplex(backend='ppl')
@@ -4133,9 +4128,17 @@ class Polyhedron_base(Element):
             'cdd'
             sage: Q.direct_sum(P).backend()
             'ppl'
+
+        Check that :trac:`28506` is fixed::
+
+            sage: s2 = polytopes.simplex(2)
+            sage: s3 = polytopes.simplex(3)
+            sage: s2.direct_sum(s3)
+            A 5-dimensional polyhedron in QQ^7 defined as the convex hull of 7 vertices
         """
         try:
-            new_ring = self.parent()._coerce_base_ring(other)
+            # Some vertices might need fractions.
+            new_ring = self.parent()._coerce_base_ring(other).fraction_field()
         except TypeError:
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
                      + " and " + str(other.parent()))
@@ -4557,12 +4560,22 @@ class Polyhedron_base(Element):
              sage: face_trunc.face_lattice().is_isomorphic(Cube.face_lattice())
              True
 
-        TESTS::
+        TESTS:
+
+        Testing that the backend is preserved::
 
             sage: Cube = polytopes.cube(backend='field')
             sage: face_trunc = Cube.face_truncation(Cube.faces(2)[0])
             sage: face_trunc.backend()
             'field'
+
+        Testing that :trac:`28506` is fixed::
+
+            sage: P = polytopes.twenty_four_cell()
+            sage: P = P.dilation(6)
+            sage: P = P.change_ring(ZZ)
+            sage: P.face_truncation(P.faces(2)[0], cut_frac=1)
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 27 vertices
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
@@ -4599,7 +4612,8 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        parent = self.parent().base_extend(cut_frac)
+        # Some vertices might need fractions.
+        parent = self.parent().base_extend(cut_frac/1)
         return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     def stack(self, face, position=None):
@@ -4930,6 +4944,11 @@ class Polyhedron_base(Element):
             sage: P = polytopes.simplex(2, backend='ppl')
             sage: P.lawrence_extension(P.vertices()[0]).backend()
             'ppl'
+
+        Check that :trac:`28725` is fixed::
+
+            sage: P = polytopes.regular_polygon(3)
+            sage: Q = P.lawrence_extension(P.vertices()[0])
         """
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
@@ -4942,7 +4961,7 @@ class Polyhedron_base(Element):
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
         parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
-        return parent.element_class(parent, [lambda_V, None, None], None)
+        return parent.element_class(parent, [lambda_V, [], []], None)
 
     def lawrence_polytope(self):
         r"""
@@ -4988,6 +5007,11 @@ class Polyhedron_base(Element):
             sage: P = polytopes.simplex(2, backend='ppl')
             sage: P.lawrence_polytope().backend()
             'ppl'
+
+        Check that :trac:`28725` is fixed::
+
+            sage: P = polytopes.regular_polygon(3)
+            sage: Q = P.lawrence_polytope()
         """
         from sage.matrix.constructor import block_matrix
 
@@ -4999,7 +5023,7 @@ class Polyhedron_base(Element):
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
         parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
-        return parent.element_class(parent, [lambda_V, None, None], None)
+        return parent.element_class(parent, [lambda_V, [], []], None)
 
     def is_lawrence_polytope(self):
         """
@@ -8008,11 +8032,11 @@ class Polyhedron_base(Element):
         A full-dimensional polyhedron or a linear transformation,
         depending on the parameter ``as_affine_map``.
 
+        .. TODO::
 
-        .. TODO:
-
-         - make the parameters ``orthogonal`` and ``orthonormal`` work with unbounded polyhedra.
-         - allow to return ``as_affine_map=True`` for default setting
+            - make the parameters ``orthogonal`` and ``orthonormal`` work
+              with unbounded polyhedra.
+            - allow to return ``as_affine_map=True`` for default setting
 
         EXAMPLES::
 

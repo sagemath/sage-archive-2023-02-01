@@ -298,14 +298,14 @@ SAGE_SCRIPTS
         }
         geometry.computeVertexNormals();
 
+        var side = json.singleSide ? THREE.FrontSide : THREE.DoubleSide;
         var transparent = json.opacity < 1 ? true : false;
-        var flatShading = 'useFlatShading' in json ? true : false;
 
-        var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide,
+        var material = new THREE.MeshPhongMaterial( { side: side,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
-                                     shininess: 20, flatShading: flatShading } );
+                                     shininess: 20, flatShading: json.useFlatShading } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();
@@ -317,7 +317,7 @@ SAGE_SCRIPTS
         if ( transparent && json.renderOrder ) mesh.renderOrder = json.renderOrder
         scene.add( mesh );
 
-        if ( 'showMeshGrid' in json ) {
+        if ( json.showMeshGrid ) {
 
             var geometry = new THREE.Geometry();
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env sage-python23
+#!/usr/bin/env sage-python
 
 ########################################################################
 # Originally based on a script by Andrew Dalke:

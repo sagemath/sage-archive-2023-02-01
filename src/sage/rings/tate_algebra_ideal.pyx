@@ -557,6 +557,29 @@ def Jpair(p1, p2):
     elif su2 > su1:
         return su2, t2*v2
 
+def _regular_reduce(sgb,p,tail=True):
+    s,v = p
+    res = 0
+    while v != 0:
+        sv = v.leading_term()
+        for S,V in sgb:
+            if V == 0: continue
+            sV = V.leading_term()
+            if sV.divides(sv):
+                t = sv // sV
+                if S is None or t*S < s:
+                    v -= t*V
+                    print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
+                    print("| new series is: %s" % v)
+                    break # Not sure...
+        if tail:
+            res += v.leading_term()
+            vv -= v.leading_term()
+        else:
+            res = v
+            break
+    return res
+
 
 def _groebner_basis_F5(I, prec):
     cdef TateAlgebraElement g
@@ -685,5 +708,121 @@ def _groebner_basis_F5(I, prec):
         print("no more J-pairs; current Grobner basis is:")
         for g in gb:
             print("| %s" % g)
+
+    return gb
+
+
+    
+def _vopot_key(u,i,v):
+    # This doesn't really need v
+    return (u.valuation(),i,u)
+
+def _regular_reduce_vopot(sgb,p,tail=True):
+    s,i,v = p
+    res = 0
+    key = _vopot_key(s,i,v) # independent of v
+    while v != 0:
+        sv = v.leading_term()
+        for S,I,V in sgb:
+            if V == 0: continue
+            sV = V.leading_term()
+            if sV.divides(sv):
+                t = sv // sV
+                if _vopot_key(t*S,I,V) < key
+                    v -= t*V
+                    print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
+                    print("| new series is: %s" % v)
+                    break # Or maybe not?
+        if tail:
+            res += v.leading_term()
+            vv -= v.leading_term()
+        else:
+            res = v
+            break
+    return res
+
+def _Jpair_vopot(p1,p2):
+    u1,i1,v1 = p1
+    u2,i2,v2 = p2
+    if (v1 == 0 or v2 == 0) :
+        return
+    sv1 = v1.leading_term()
+    sv2 = v2.leading_term()
+    t = sv1.lcm()
+    t1 = t//sv1
+    t2 = t//sv2
+    su1 = t1*u1
+    su2 = t2*u2
+    # We can probably save half the computations above in a lot of cases
+
+    vu1 = _vopot_key(u1,i1,v1)
+    vu2 = _vopot_key(u2,i2,v2)
+    if vu1 < vu2:
+        return su1,t1*v1
+    elif vu2 > vu1:
+        return su2,t2*v2
+    else:
+        return
+    
+def _groebner_basis_F5_vopot(I,prec):
+    term_one = I.ring().monoid_of_terms().one()
+    gb0 = []
+    sgb = []
+
+    F = I.gens()
+    l = len(F)
+    for i in range(l):
+        sgb.append((term_one,i,F[i]))
+
+    Jpairs = []
+    for i in range(l):
+        for j in range(l):
+            J = _Jpair_vopot(sgb[i],sgb[j])
+            if J is not None:
+                Jpairs.append(J)
+
+    while Jpairs:
+        # This all can probably be made more efficient, for example by sorting
+        # the list every time we add a pair, or by inserting the pairs at the
+        # right position
+        idx = min(range(len(Jpairs)), key=lambda i: _vopot_key(Jpairs[i]))
+        s,i,v = Jpairs.pop(idx) 
+                
+        sv = v.leading_term()
+
+        # TODO: syzygy criterion
+
+        # TODO: F5 criterion maybe
+
+        # TODO: cover criterion
+
+        # Regular top and tail reduction
+        v = _regular_reduce_vopot(sgb,(s,i,v))
+        
+        if v == 0:
+            # New syzygy
+            gb0.append(s)
+        else:
+            p = (s,i,v)
+            
+            # New J-pairs
+            for P in sgb:
+                J = _Jpair_vopot(p,P)
+                if J is not None:
+                    Jpairs.append(J)
+            
+            # New element in the basis
+            sgb.append(p)
+
+            # TODO New F5 syzygy
+            ## Here we need to assign a signature which is known to be smaller
+            ## than all the (*,i) but larger than all the (*,i-1). A good choice
+            ## would be (1/p,i).
+            ##
+            ## Another possibility is to do nothing here and use the F5
+            ## criterion as it was originally described, by looking up in the
+            ## basis.
+
+    gb = [v for (s,i,v) in sgb]
 
     return gb

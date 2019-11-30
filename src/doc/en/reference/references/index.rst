@@ -3759,6 +3759,9 @@ REFERENCES:
 .. [Mil1958] \J. W. Milnor, *The Steenrod algebra and its dual*,
              Ann. of Math. (2) 67 (1958), 150-171.
 
+.. [Mil1974] \J. W. Milnor and J. D. Stasheff, *Characteristic Classes*,
+             University Press, Princeton and Tokyo, 1974.
+
 .. [Mil1978] \S. Milne, *A q-analog of restricted growth functions,
              Dobinsky’s equality and Charlier
              polynomials*. Trans. Amer. Math. Soc., 245 (1978),
@@ -4402,6 +4405,9 @@ REFERENCES:
 
 .. [Roc1970] \R.T. Rockafellar, *Convex Analysis*. Princeton
              University Press, Princeton, 1970.
+
+.. [Roe1988] John Roe, *Elliptic operators, topology and asymptotic methods*.
+             2nd edition. CRC Press, 1988.
 
 .. [Rog2018] Baptiste Rognerud,
              *Exceptional and modern intervals of the Tamari lattice*.

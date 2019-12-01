@@ -3503,23 +3503,24 @@ def LivingstoneGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.LivingstoneGraph() # optional - gap_packages internet
-        sage: g.order()                     # optional - gap_packages internet
+        sage: g = graphs.LivingstoneGraph() # optional - internet
+        sage: g.order()                     # optional - internet
         266
-        sage: g.size()                      # optional - gap_packages internet
+        sage: g.size()                      # optional - internet
         1463
-        sage: g.girth()                     # optional - gap_packages internet
+        sage: g.girth()                     # optional - internet
         5
-        sage: g.is_vertex_transitive()      # optional - gap_packages internet
+        sage: g.is_vertex_transitive()      # optional - internet
         True
-        sage: g.is_distance_regular()       # optional - gap_packages internet
+        sage: g.is_distance_regular()       # optional - internet
         True
     """
     from sage.groups.perm_gps.permgroup_named import JankoGroup
     from sage.graphs.graph import Graph
     G = JankoGroup(1)
-    edges = map(tuple, G.orbit((1, 24), action="OnSets"))
-    return Graph(edges, name="Livingstone Graph")
+    g = Graph(name="Livingstone Graph")
+    g.add_edges(map(tuple, G.orbit((1, 24), action="OnSets")))
+    return g
 
 def M22Graph():
     r"""

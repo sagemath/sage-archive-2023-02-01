@@ -28,6 +28,7 @@ Built-in Functions
    sage/functions/min_max
 
 Please find extensive developer documentation for creating new functions
-in the symbolic calculus module.
+in the :doc:`Symbolic Calculus module<calculus/index>`, in particular in
+:doc:`sage/symbolic/function`.
 
 .. include:: ../footer.txt

@@ -24,7 +24,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 
-def Tuples(S, k):
+class Tuples(Parent, UniqueRepresentation):
     """
     Return the enumerated set of ordered tuples of S of length k.
 
@@ -54,16 +54,17 @@ def Tuples(S, k):
         [[a, a], [a + 1, a], [1, a], [a, a + 1], [a + 1, a + 1], [1, a + 1],
          [a, 1], [a + 1, 1], [1, 1]]
     """
-    return Tuples_sk(S, k)
-
-
-class Tuples_sk(Parent, UniqueRepresentation):
     @staticmethod
     def __classcall_private__(cls, S, k):
         """
         Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: T = Tuples(['l','i','t'],2); T
+            Tuples of ('l', 'i', 't') of length 2
         """
-        return super(Tuples_sk, cls).__classcall__(cls, tuple(S), k)
+        return super(Tuples, cls).__classcall__(cls, tuple(S), k)
 
     def __init__(self, S, k):
         """
@@ -117,7 +118,7 @@ class Tuples_sk(Parent, UniqueRepresentation):
             return
 
         for s in S:
-            for x in Tuples_sk(S, k - 1):
+            for x in Tuples(S, k - 1):
                 y = copy.copy(x)
                 y.append(s)
                 yield y
@@ -136,7 +137,10 @@ class Tuples_sk(Parent, UniqueRepresentation):
         return ZZ(libgap.NrTuples(self._index_list, ZZ(self.k)))
 
 
-def UnorderedTuples(S, k):
+Tuples_sk = Tuples
+
+
+class UnorderedTuples(Parent, UniqueRepresentation):
     """
     Return the enumerated set of unordered tuples of S of length k.
 
@@ -153,16 +157,17 @@ def UnorderedTuples(S, k):
         [['a', 'a'], ['a', 'b'], ['a', 'c'], ['b', 'b'], ['b', 'c'],
          ['c', 'c']]
     """
-    return UnorderedTuples_sk(S, k)
-
-
-class UnorderedTuples_sk(Parent, UniqueRepresentation):
     @staticmethod
     def __classcall_private__(cls, S, k):
         """
         Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: T = UnorderedTuples(['l','i','t'],2); T
+            Unordered tuples of ('l', 'i', 't') of length 2
         """
-        return super(UnorderedTuples_sk, cls).__classcall__(cls, tuple(S), k)
+        return super(UnorderedTuples, cls).__classcall__(cls, tuple(S), k)
 
     def __init__(self, S, k):
         """
@@ -210,3 +215,6 @@ class UnorderedTuples_sk(Parent, UniqueRepresentation):
             15
         """
         return ZZ(libgap.NrUnorderedTuples(self._index_list, ZZ(self.k)))
+
+
+UnorderedTuples_sk = UnorderedTuples

@@ -1730,7 +1730,7 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
         # `prime`.
 
         field = o.quo(prime)
-        algebra_matrices_reduced = map(lambda M: M.mod(prime), algebra_matrices)
+        algebra_matrices_reduced = list(map(lambda M: M.mod(prime), algebra_matrices))
         A = FiniteDimensionalAlgebra(field, algebra_matrices_reduced)
 
         # Each prime ideal of the algebra corresponds to a prime ideal

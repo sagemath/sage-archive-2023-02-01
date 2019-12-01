@@ -1,5 +1,86 @@
 r"""
 Classes for symbolic functions
+
+To enable their usage as part of symbolic expressions, symbolic function
+classes are derived from one of the subclasses of :class:`Function`:
+
+ * :class:`BuiltinFunction`: the code of these functions is written in Python; many special functions are of this type, see :doc
+ * :class:`GinacFunction`: the code of these functions is written in C++ and part of the Pynac support library; most elementary functions are of this type
+ * :class:`SymbolicFunction`: symbolic functions defined on the Sage command line are of this type
+
+Sage uses ``BuiltinFunction`` and ``GinacFunction`` for its symbolic builtin functions. Users can define any other additional ``SymbolicFunction`` through the ``function()`` factory, see :doc:`function_factory`
+
+Several parameters are supported by the superclass' ``__init__()`` method. Examples follow below.
+
+ * ``nargs``: the number of arguments
+ * ``name``: the string that is printed on the CLI; the name of the member functions that are attempted for evaluation of Sage element arguments; also the name of the Pynac function that is associated with a ``GinacFunction``
+ * ``alt_name``: the second name of the member functions that are attempted for evaluation of Sage element arguments
+ * ``latex_name``: what is printed when ``latex(f(...))`` is called
+ * ``conversions``: a dict containing the function's name in other CAS
+ * ``evalf_params_first``: if ``False``, when floating-point evaluating the expression do not evaluate function arguments before calling the ``_evalf_()`` member of the function
+ * ``preserved_arg``: if nonzero, the index (starting with ``1``) of the function argument that determines the return type. Note that, e.g, ``atan2()`` uses both arguments to determine return type, through a different mechanism
+
+Function classes can define the following Python member functions:
+
+ * ``_eval_(*args)``: the only mandatory member function, evaluating the argument and returning the result; if ``None`` is returned the expression stays unevaluated
+ * ``_eval_numpy_(*args)``: evaluation of ``f(args)`` with arguments of numpy type
+ * ``_evalf_(*args, **kwds)``: called when the expression is floating-point evaluated; may receive a ``parent`` keyword specifying the expected parent of the result. If not defined an attempt is made to convert the result of ``_eval_()``.
+ * ``_conjugate_(*args)``, ``_real_part_(*args)``, ``_imag_part_(*args)``: return conjugate, real part, imaginary part of the expression ``f(args)``
+ * ``_derivative_(*args, index)``: return derivative with respect to the parameter indexed by ``index`` (starting with 0) of ``f(args)``
+ * ``_tderivative_()``: same as ``_derivative_()`` but don't apply chain rule; only one of the two functions may be defined
+ * ``_power_(*args, expo)``: return f(args)^expo
+ * ``_series_(*args, **kwds)``: return the power series at ``at`` up to ``order`` with respect to ``var`` of ``f(args)``; these three values are received in ``kwds``. If not defined the series is attempted to be computed by differentiation.
+ * ``print(*args)``: return what should be printed on the CLI with ``f(args)``
+ * ``print_latex(*args)``: return what should be output with ``latex(f(args))``
+
+The following examples are intended for Sage developers. Users can define functions interactively through the ``function()`` factory, see :doc:`function_factory`
+
+EXAMPLES:
+
+The simplest example is a function returning nothing, it practically behaves
+like a symbol. Setting ``nargs=0`` allows any number of arguments::
+
+    sage: from sage.symbolic.function import BuiltinFunction
+    sage: class Test1(BuiltinFunction):
+    ....:     def __init__(self):
+    ....:         BuiltinFunction.__init__(self, 'test', nargs=0)
+    ....:     def _eval_(self, *args):
+    ....:         pass
+    sage: f = Test1()
+    sage: f()
+    test()
+    sage: f(1,2,3)*f(1,2,3)
+    test(1, 2, 3)^2
+
+In the following the ``sin`` function of ``CBF(0)`` is called because with
+floating point arguments the ``CBF`` element's ``my_sin()`` member function
+is attempted, and after that ``sin()`` which succeeds::
+
+    sage: class Test2(BuiltinFunction):
+    ....:     def __init__(self):
+    ....:         BuiltinFunction.__init__(self, 'my_sin', alt_name='sin',
+    ....:                                  latex_name=r'\SIN', nargs=1)
+    ....:     def _eval_(self, x):
+    ....:         return 5
+    ....:     def _evalf_(self, x, **kwds):
+    ....:         return 3.5
+    sage: f = Test2()
+    sage: f(0)
+    5
+    sage: f(0, hold=True)
+    my_sin(0)
+    sage: f(0, hold=True).n()
+    3.50000000000000
+    sage: f(CBF(0))
+    0
+
+    sage: latex(f(0, hold=True))
+    \SIN\left(0\right)
+    sage: f(1,2)
+    Traceback (most recent call last):
+    ...
+    TypeError: Symbolic function my_sin takes exactly 1 arguments (2 given)
+
 """
 
 #*****************************************************************************

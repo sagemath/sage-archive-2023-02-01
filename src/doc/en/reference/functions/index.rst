@@ -1,6 +1,9 @@
 Functions
 =========
 
+Built-in Functions
+==================
+
 .. toctree::
    :maxdepth: 2
 
@@ -23,5 +26,8 @@ Functions
    sage/functions/generalized
    sage/functions/prime_pi
    sage/functions/min_max
+
+Please find extensive developer documentation for creating new functions
+in the symbolic calculus module.
 
 .. include:: ../footer.txt

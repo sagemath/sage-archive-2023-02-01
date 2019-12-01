@@ -423,7 +423,7 @@ def fast_julia_plot(double c_real, double c_imag,
 
     # Make sure image_width is positive
     image_width = abs(image_width)
-    
+
     # Calculate the escape radius. (Actually, we store the square of this radius.) If any
     # iterate is farther from the origin than this distance, then the orbit goes to infinity.
     escape_radius_squared = ((1.0 + sqrt(1.0 + 4.0*sqrt(c_real**2 + c_imag**2))))**2/4.0

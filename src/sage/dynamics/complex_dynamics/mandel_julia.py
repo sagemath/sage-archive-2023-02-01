@@ -346,14 +346,14 @@ def julia_plot(c=-1,
 
     ALGORITHM:
 
-    Define the map `Q_c(z) = z^2 + c` for some `c \in \mathbb{C}`. Let `R_c = 
-    \bigl(1 + \sqrt{1 + 4|c|}\bigr)^2/4`. For every `p \in \mathbb{C}`, if 
-    `|Q_{c}^{k}(p)| > R_c` for some `k \geq 0`, then `Q_{c}^{n}(p) \to \infty`. 
-    Let `N` be the maximum number of iterations. Compute the first `N` points on 
-    the orbit of `p` under `Q_c`. If for any `k < N`, `|Q_{c}^{k}(p)| > R_c`, we 
-    stop the iteration and assign a color to the point `p` based on how quickly 
-    `p` escaped to infinity under iteration of `Q_c`. If `|Q_{c}^{i}(p)| \leq R_c` 
-    for all `i \leq N`, we assume `p` is in the Julia set and assign the point `p` 
+    Define the map `Q_c(z) = z^2 + c` for some `c \in \mathbb{C}`. Let `R_c =
+    \bigl(1 + \sqrt{1 + 4|c|}\bigr)/2`. For every `p \in \mathbb{C}`, if
+    `|Q_{c}^{k}(p)| > R_c` for some `k \geq 0`, then `Q_{c}^{n}(p) \to \infty`.
+    Let `N` be the maximum number of iterations. Compute the first `N` points on
+    the orbit of `p` under `Q_c`. If for any `k < N`, `|Q_{c}^{k}(p)| > R_c`, we
+    stop the iteration and assign a color to the point `p` based on how quickly
+    `p` escaped to infinity under iteration of `Q_c`. If `|Q_{c}^{i}(p)| \leq R_c`
+    for all `i \leq N`, we assume `p` is in the Julia set and assign the point `p`
     the color black.
 
     INPUT:

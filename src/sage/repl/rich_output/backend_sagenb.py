@@ -220,8 +220,8 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
             sage: j = SageNbOutputSceneJmol.example()
             sage: os.path.exists('sage0-size32.jmol')
             False
-            sage: j.save_launch_script()  # py2: requires sagenb
-            sage: os.path.exists('sage0-size32.jmol')  # py2
+            sage: j.save_launch_script()  # py2 # optional -- sagenb
+            sage: os.path.exists('sage0-size32.jmol')  # py2 # optional -- sagenb
             True
         """
         from sagenb.notebook.interact import SAGE_CELL_ID
@@ -246,7 +246,7 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
             sage: import shutil
             sage: shutil.rmtree('.jmol_images', ignore_errors=True)
             sage: j.save_preview()
-            sage: os.listdir('.jmol_images')  # py2
+            sage: os.listdir('.jmol_images')  # py2 # optional -- sagenb
             ['sage1-size32.jmol.png']
         """
         from sage.misc.misc import sage_makedirs
@@ -266,10 +266,10 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
 
             sage: from sage.repl.rich_output.backend_sagenb import SageNbOutputSceneJmol
             sage: j = SageNbOutputSceneJmol.example()
-            sage: j.embed()  # py2 - requires sagenb
-            sage: sorted(os.listdir('.'))  # py2
+            sage: j.embed()  # py2 # optional -- sagenb
+            sage: sorted(os.listdir('.'))  # py2 # optional -- sagenb
             ['.jmol_images', 'sage0-size32-....jmol.zip', 'sage0-size32.jmol']
-            sage: sorted(os.listdir('.jmol_images'))  # py2
+            sage: sorted(os.listdir('.jmol_images'))  # py2 # optional -- sagenb
             ['sage0-size32.jmol.png']
         """
         self.save_preview()

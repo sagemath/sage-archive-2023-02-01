@@ -1215,10 +1215,16 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P2 == P                                                               # optional - pynormaliz
             True
 
-            sage: P = polytopes.permutahedron(4, backend='normaliz') * Polyhedron(lines=[[1]], backend='normaliz')
-            sage: P1 = loads(dumps(P))
-            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)
-            sage: P2 == P
+            sage: P = polytopes.permutahedron(4, backend='normaliz') * Polyhedron(lines=[[1]], backend='normaliz')  # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                  # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)  # optional - pynormaliz
+            sage: P2 == P                                                               # optional - pynormaliz
+            True
+
+            sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                            # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone, normaliz_field=P1._normaliz_field)  # optional - pynormaliz
+            sage: P == P2                                         # optional - pynormaliz
             True
         """
         super(Polyhedron_normaliz, self).__setstate__(state)

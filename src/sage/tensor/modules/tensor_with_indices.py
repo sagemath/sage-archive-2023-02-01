@@ -227,11 +227,13 @@ class TensorWithIndices(SageObject):
                 symmetries ()/[] are allowed in the index notation.          
             
             OUTPUT:
-           - A couple of string corresponding to the contravariant and the 
-           covariant part    
+            
+            - A couple of string corresponding to the contravariant and the 
+                covariant part    
            
            
-           TEST::
+            TEST::
+           
             sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
             sage: TensorWithIndices._parse_indices('([..])')  # nested symmetries
             Traceback (most recent call last):
@@ -272,6 +274,7 @@ class TensorWithIndices(SageObject):
             ...
             IndexError: no symmetry allowed
         """
+        
         # Suppress all '{' and '}' coming from LaTeX notations:
         indices = indices.replace('{','').replace('}','')
 

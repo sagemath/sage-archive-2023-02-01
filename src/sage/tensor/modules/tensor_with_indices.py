@@ -868,7 +868,7 @@ class TensorWithIndices(SageObject):
         OUTPUT:
 
         - an instance of TensorWithIndices whose indices names and place are 
-        those of self but whose components have been permuted with permutation.
+            those of self but whose components have been permuted with permutation.
 
         EXAMPLES::
         

@@ -256,7 +256,7 @@ class IndexedFreeGroup(IndexedGroup, Group):
 
             ret = list(self._monomial)
             rhs = list(other._monomial)
-            while len(ret) > 0 and len(rhs) > 0 and ret[-1][0] == rhs[0][0]:
+            while ret and rhs and ret[-1][0] == rhs[0][0]:
                 rhs[0] = (rhs[0][0], rhs[0][1] + ret.pop()[1])
                 if rhs[0][1] == 0:
                     rhs.pop(0)

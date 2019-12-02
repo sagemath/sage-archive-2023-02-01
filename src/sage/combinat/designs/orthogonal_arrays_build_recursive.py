@@ -50,7 +50,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
 
     INPUT:
 
-    - ``k,n,m,i`` (integers) such that the following designs are available :
+    - ``k,n,m,i`` (integers) such that the following designs are available:
       `OA(k,n)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,r)`.
 
     - ``explain_construction`` (boolean) -- return a string describing

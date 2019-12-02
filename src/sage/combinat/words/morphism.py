@@ -1582,7 +1582,7 @@ class WordMorphism(SageObject):
 
         ALGORITHM:
 
-            Exercices 8.7.8, p.281 in [1] :
+            Exercices 8.7.8, p.281 in [1]:
             (c) Let `y(M)` be the least integer `e` such that `M^e` has all
             positive entries. Prove that, for all primitive matrices `M`,
             we have `y(M) \leq (d-1)^2 + 1`.
@@ -2785,7 +2785,7 @@ class WordMorphism(SageObject):
           of the points of the fractal.
 
         - ``colormap`` - color map or dictionary (default: ``'hsv'``).
-          It can be one of the following :
+          It can be one of the following:
 
            - ``string`` - a coloring map. For available coloring map names type:
              ``sorted(colormaps)``

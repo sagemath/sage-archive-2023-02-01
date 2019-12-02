@@ -559,6 +559,7 @@ def Jpair(p1, p2):
 
 def regular_reduce(sgb, s, v, tail, verbose):
     res = v.parent()(0, v.precision_absolute())
+    sgb.append((None, v << 1))
     count = 0
     while v != 0:
         sv = v.leading_term()
@@ -584,6 +585,7 @@ def regular_reduce(sgb, s, v, tail, verbose):
             v -= sv
     if verbose > 1:
         print("| %s regular reductions done" % count)
+    del sgb[-1]
     return res
 
 

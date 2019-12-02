@@ -22,7 +22,6 @@ from sage.structure.sage_object import SageObject
 from sage.groups.perm_gps.permgroup import PermutationGroup
 import re
 from itertools import combinations
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
 class TensorWithIndices(SageObject):
     r"""
@@ -207,7 +206,72 @@ class TensorWithIndices(SageObject):
         allow_contraction=True,
         allow_symmetries=True
     ):
-    
+        r"""
+            Parses index notation for tensors, enforces conventions and returns indices.        
+        
+        
+            Parse ``indices`` checking usual conventions on
+            repeating indices, wildcard, balanced parentheses/brackets and 
+            raises a ValueError if not. Returns a couple contravariant/covariant
+            indices.
+            
+            INPUT:
+
+            - ``indices`` -- a string of index notation
+            - ``tensor_type`` -- (default : ``None``) A valid tensor type  
+                (a couple of non-negative integers). If not ``None``, the indices 
+                are checked to have the correct type.  
+            - ``allow_contraction`` -- (default : ``True``) Determines if 
+                repeated indices are allowed in the index notation. 
+            - ``allow_symmetries`` -- (default : ``True``) Determines if 
+                symmetries ()/[] are allowed in the index notation.          
+            
+            OUTPUT:
+           - A couple of string corresponding to the contravariant and the 
+           covariant part    
+           
+           
+           TEST::
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: TensorWithIndices._parse_indices('([..])')  # nested symmetries
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices('(..')  # unbalanced parenthis
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices('ii')  # repeated indices of the same type
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied: repeated indices of same type
+            sage: TensorWithIndices._parse_indices('^(ij)^(kl)')  # multiple indices group of the same type
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices("^éa")  # accentuated index name
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices('^ij_kl')
+            ('ij', 'kl')
+            sage: TensorWithIndices._parse_indices('_kl^ij')
+            ('ij', 'kl')
+            sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,2))
+            ('(ij)', 'ik')
+            sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,0))
+            Traceback (most recent call last):
+            ...
+            IndexError: number of covavariant indices not compatible with the tensor type
+            sage: TensorWithIndices._parse_indices("(ij)_ik", allow_contraction=False)
+            Traceback (most recent call last):
+            ...
+            IndexError: no contraction allowed
+            sage: TensorWithIndices._parse_indices("(ij)_ik", allow_symmetries=False)
+            Traceback (most recent call last):
+            ...
+            IndexError: no symmetry allowed
+        """
         # Suppress all '{' and '}' coming from LaTeX notations:
         indices = indices.replace('{','').replace('}','')
 
@@ -233,7 +297,7 @@ class TensorWithIndices(SageObject):
         if not allow_contraction:        
             for ind in con:
                 if ind != '.' and ind in cov:
-                    raise ValueError("No contraction allowed")
+                    raise IndexError("no contraction allowed")
         con_without_sym = (con.replace("(","").replace(")","").replace("[","").replace("]",""))
         cov_without_sym = (cov.replace("(","").replace(")","").replace("[","").replace("]",""))
         if allow_symmetries:
@@ -246,10 +310,10 @@ class TensorWithIndices(SageObject):
                 raise ValueError("index conventions not satisfied: "
                                  "repeated indices of same type")
         else:
-            if re.search("[()\[\]]",con) is not None:
-                raise ValueError("No symmetry allowed")
-            if re.search("[()\[\]]",cov) is not None:
-                raise ValueError("No symmetry allowed")
+            if re.search(r"[()\[\]]",con) is not None:
+                raise IndexError("no symmetry allowed")
+            if re.search(r"[()\[\]]",cov) is not None:
+                raise IndexError("no symmetry allowed")
         if tensor_type is not None:
             # Check number of (co/contra)variant indices
             if len(con_without_sym) != tensor_type[0]:
@@ -803,7 +867,7 @@ class TensorWithIndices(SageObject):
         - an instance of TensorWithIndices whose indices names and place are 
         those of self but whose components have been permuted with permutation.
 
-          EXAMPLES::
+        EXAMPLES::
         
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')

@@ -104,7 +104,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)],   # optional - pynormaliz
         ....:                lines=[], backend='normaliz')
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+        sage: TestSuite(p).run()                                           # optional - pynormaliz
 
     Two ways to get the full space::
 
@@ -211,19 +211,16 @@ class Polyhedron_normaliz(Polyhedron_base):
         See :class:`Polyhedron_normaliz` for a description of the input
         data.
 
-        TESTS:
+        TESTS::
 
-        We skip the pickling test because pickling is currently
-        not implemented::
-
-            sage: p = Polyhedron(backend='normaliz')                 # optional - pynormaliz
-            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
-            sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)],   # optional - pynormaliz
+            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: TestSuite(p).run()                                       # optional - pynormaliz
+            sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)],         # optional - pynormaliz
             ....:                backend='normaliz')
-            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
+            sage: TestSuite(p).run()                                       # optional - pynormaliz
             sage: p = Polyhedron(vertices=[(-1,-1), (1,0), (1,1), (0,1)],  # optional - pynormaliz
             ....:                backend='normaliz')
-            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
+            s()                                                            # optional - pynormaliz
         """
         if normaliz_cone:
             if Hrep is not None or Vrep is not None or normaliz_data is not None:
@@ -1340,7 +1337,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
         ....:                rays=[(1,1)], lines=[],
         ....:                backend='normaliz', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+        sage: TestSuite(p).run()                                           # optional - pynormaliz
     """
 
     def ehrhart_series(self, variable='t'):
@@ -1880,6 +1877,6 @@ class Polyhedron_ZZ_normaliz(Polyhedron_QQ_normaliz, Polyhedron_ZZ):
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
         ....:                rays=[(1,1)], lines=[],
         ....:                backend='normaliz', base_ring=ZZ)
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+        sage: TestSuite(p).run()                                           # optional - pynormaliz
     """
     pass

@@ -1,0 +1,44 @@
+Inspired by, but not identical to the following patch from debian:
+https://sources.debian.org/patches/suitesparse/1:5.6.0+dfsg-2/buildflags.patch/
+
+This prepends $(DESTDIR) directly to all of $(INSTALL_LIB), $(INSTALL_INCLUDE),
+and $(INSTALL_DOC), as these variables only affect where built files are copied
+to, and do not affect the contents of the files.
+
+However, we also remove additional LDFLAGS added by this Makefile (for
+ -L$SAGE_LOCAL and -Wl,-rpath=$SAGE_LOCAL/lib) since we already add those
+in the standard SPKG built environment.
+
+For https://trac.sagemath.org/ticket/28832
+--- a/SuiteSparse_config/SuiteSparse_config.mk	2019-12-02 14:21:18.956000000 +0000
++++ b/SuiteSparse_config/SuiteSparse_config.mk	2019-12-02 14:33:49.204000000 +0000
+@@ -55,9 +55,9 @@
+     # which puts the libraries in /yada/mylibs, include files in /yoda/myinc,
+     # and documentation in /solo/mydox.
+     INSTALL ?= $(SUITESPARSE)
+-    INSTALL_LIB ?= $(INSTALL)/lib
+-    INSTALL_INCLUDE ?= $(INSTALL)/include
+-    INSTALL_DOC ?= $(INSTALL)/share/doc/suitesparse-$(SUITESPARSE_VERSION)
++    INSTALL_LIB ?= $(DESTDIR)$(INSTALL)/lib
++    INSTALL_INCLUDE ?= $(DESTDIR)$(INSTALL)/include
++    INSTALL_DOC ?= $(DESTDIR)$(INSTALL)/share/doc/suitesparse-$(SUITESPARSE_VERSION)
+ 
+     #---------------------------------------------------------------------------
+     # parallel make
+@@ -153,7 +153,6 @@
+     # It places its shared *.so libraries in SuiteSparse/lib.
+     # Linux also requires the -lrt library (see below)
+     LDLIBS ?= -lm
+-    LDFLAGS += -L$(INSTALL_LIB)
+ 
+     # NOTE: Use of the Intel MKL BLAS is strongly recommended.  The OpenBLAS can
+     # result in severe performance degradation, in CHOLMOD in particular.
+@@ -358,7 +357,7 @@
+ 
+     ifeq ($(UNAME),Linux)
+         # add the realtime library, librt, and SuiteSparse/lib
+-        LDLIBS += -lrt -Wl,-rpath=$(INSTALL_LIB)
++        LDLIBS += -lrt
+     endif
+ 
+     #---------------------------------------------------------------------------

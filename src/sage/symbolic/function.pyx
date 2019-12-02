@@ -1,11 +1,13 @@
 r"""
 Classes for symbolic functions
 
+.. _symbolic-function-classes:
+
 To enable their usage as part of symbolic expressions, symbolic function
 classes are derived from one of the subclasses of :class:`Function`:
 
  * :class:`BuiltinFunction`: the code of these functions is written in Python;
-   many special functions are of this type, see this :doc:`list <functions/index>`
+   many :ref:`special functions<special-functions>` are of this type
  * :class:`GinacFunction`: the code of these functions is written in C++ and
    part of the Pynac support library; most elementary functions are of this type
  * :class:`SymbolicFunction`: symbolic functions defined on the Sage command

@@ -1,3 +1,6 @@
+.. _special-functions:
+
+
 Functions
 =========
 
@@ -28,7 +31,7 @@ Built-in Functions
    sage/functions/min_max
 
 Please find extensive developer documentation for creating new functions
-in the :doc:`Symbolic Calculus module<calculus/index>`, in particular in
-:doc:`sage/symbolic/function`.
+in :ref:`symbolic-calculus`, in particular in the section
+:ref:`Classes for symbolic functions <symbolic-function-classes>`.
 
 .. include:: ../footer.txt

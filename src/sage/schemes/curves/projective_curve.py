@@ -1,6 +1,8 @@
 """
 Projective curves
 
+Projective curves in Sage are curves in a projective space or a projective plane.
+
 EXAMPLES:
 
 We can construct curves in either a projective plane::
@@ -15,6 +17,24 @@ or in higher dimensional projective spaces::
     sage: C = Curve([y*w^3 - x^4, z*w^3 - x^4], P); C
     Projective Curve over Rational Field defined by -x^4 + y*w^3, -x^4 + z*w^3
 
+Integral projective curves over finite fields
+---------------------------------------------
+
+If the curve is defined over a finite field and integral, that is reduced and
+irreducible, its function field is tightly coupled with the curve so that
+advanced computations based on Sage's global function field machinery are
+available.
+
+EXAMPLES::
+
+    sage: k = GF(2)
+    sage: P.<x,y,z> = ProjectiveSpace(k, 2)
+    sage: C = Curve(x^2*z - y^3, P)
+    sage: C.genus()
+    0
+    sage: C.function_field()
+    Function field in z defined by z + y^3
+
 AUTHORS:
 
 - William Stein (2005-11-13)
@@ -25,10 +45,11 @@ AUTHORS:
 
 - Moritz Minzlaff (2010-11)
 
-- Grayson Jorgenson (2016-8)
+- Grayson Jorgenson (2016-08)
+
+- Kwankyu Lee (2019-05): added integral projecive curves
 
 """
-
 # ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -40,12 +61,17 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import division, absolute_import
 
+from sage.misc.lazy_attribute import lazy_attribute
+
+from sage.categories.all import hom
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom, End
+
 from sage.interfaces.all import singular
-from sage.matrix.constructor import matrix
+from sage.matrix.all import matrix
 from sage.misc.all import add, sage_eval
+
 from sage.rings.all import degree_lowest_rational_function
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -55,16 +81,59 @@ from sage.rings.rational_field import is_RationalField
 from sage.rings.integer import Integer
 from sage.schemes.projective.projective_space import ProjectiveSpace, is_ProjectiveSpace
 
-from . import point
-
 from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 
 from .curve import Curve_generic
 
+from .point import (ProjectiveCurvePoint_field,
+                    ProjectivePlaneCurvePoint_field,
+                    ProjectivePlaneCurvePoint_finite_field,
+                    IntegralProjectiveCurvePoint_finite_field,
+                    IntegralProjectivePlaneCurvePoint_finite_field)
+
 
 class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
+    """
+    Curves in projective spaces.
 
-    _point = point.ProjectiveCurvePoint_field
+    INPUT:
+
+    - ``A`` -- ambient projective space
+
+    - ``X`` -- list of multivariate polynomials; defining equations of the curve
+
+    EXAMPLES::
+
+        sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
+        sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
+        Projective Curve over Finite Field of size 7 defined by -x^3 + y*u^2,
+        -x^3 + z*u^2, -x^3 + w*u^2, -x^3 + y^3
+
+    ::
+
+        sage: K.<u> = CyclotomicField(11)
+        sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
+        sage: C = Curve([y*w - u*z^2 - x^2, x*w - 3*u^2*z*w], P); C
+        Projective Curve over Cyclotomic Field of order 11 and degree 10 defined
+        by -x^2 + (-u)*z^2 + y*w, x*w + (-3*u^2)*z*w
+    """
+    _point = ProjectiveCurvePoint_field
+
+    def __init__(self, A, X):
+        """
+        Initialize.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(x*y^2*z^7 - x^10 - x^2*z^8)
+            sage: loads(dumps(C)) == C
+            True
+        """
+        if not is_ProjectiveSpace(A):
+            raise TypeError("A (=%s) must be a projective space"%A)
+
+        Curve_generic.__init__(self, A, X)
 
     def _repr_type(self):
         r"""
@@ -79,46 +148,19 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         """
         return "Projective"
 
-    def __init__(self, A, X):
+    def affine_patch(self, i, A=None):
         r"""
-        Initialization function.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
-            sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
-            Projective Curve over Finite Field of size 7 defined by -x^3 + y*u^2,
-            -x^3 + z*u^2, -x^3 + w*u^2, -x^3 + y^3
-
-        ::
-
-            sage: K.<u> = CyclotomicField(11)
-            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
-            sage: C = Curve([y*w - u*z^2 - x^2, x*w - 3*u^2*z*w], P); C
-            Projective Curve over Cyclotomic Field of order 11 and degree 10 defined
-            by -x^2 + (-u)*z^2 + y*w, x*w + (-3*u^2)*z*w
-        """
-        if not is_ProjectiveSpace(A):
-            raise TypeError("A (=%s) must be a projective space" % A)
-        Curve_generic.__init__(self, A, X)
-        d = self.dimension()
-        if d != 1:
-            raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1" % (X, d))
-
-    def affine_patch(self, i, AA=None):
-        r"""
-        Return the i-th affine patch of this projective curve.
+        Return the `i`-th affine patch of this projective curve.
 
         INPUT:
 
-        - ``i`` -- affine coordinate chart of the projective ambient space of this curve to compute affine patch
-          with respect to.
+        - ``i`` -- affine coordinate chart of the projective ambient space of
+          this curve to compute affine patch with respect to.
 
-        - ``AA`` -- (default: ``None``) ambient affine space, this is constructed if it is not given.
+        - ``A`` -- (default: None) ambient affine space, this is constructed
+          if it is not given.
 
-        OUTPUT:
-
-        - a curve in affine space.
+        OUTPUT: a curve in affine space.
 
         EXAMPLES::
 
@@ -144,30 +186,34 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             True
         """
         from .constructor import Curve
-        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
+        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, A))
 
     def projection(self, P=None, PS=None):
         r"""
-        Return a projection of this curve into projective space of dimension one less than the dimension of
-        the ambient space of this curve.
+        Return a projection of this curve into projective space of dimension
+        one less than the dimension of the ambient space of this curve.
 
-        This curve must not already be a plane curve. Over finite fields, if this curve contains all points
-        in its ambient space, then an error will be returned.
+        This curve must not already be a plane curve. Over finite fields, if
+        this curve contains all points in its ambient space, then an error will
+        be returned.
 
         INPUT:
 
-        - ``P`` -- (default: ``None``) a point not on this curve that will be used to define the projection map;
-          this is constructed if not specified.
+        - ``P`` -- (default: None) a point not on this curve that will be used
+          to define the projection map; this is constructed if not specified.
 
-        - ``PS`` -- (default: ``None``) the projective space the projected curve will be defined in. This space must
-          be defined over the same base ring as this curve, and must have dimension one less than that of the
-          ambient space of this curve. This space will be constructed if not specified.
+        - ``PS`` -- (default: None) the projective space the projected curve
+          will be defined in. This space must be defined over the same base ring
+          as this curve, and must have dimension one less than that of the
+          ambient space of this curve. This space will be constructed if not
+          specified.
 
-        OUTPUT:
+        OUTPUT: a tuple of
 
-        - a tuple consisting of two elements: a scheme morphism from this curve into a projective space of
-          dimension one less than that of the ambient space of this curve, and the projective curve that
-          is the image of that morphism.
+        - a scheme morphism from this curve into a projective space of
+          dimension one less than that of the ambient space of this curve
+
+        - the projective curve that is the image of that morphism.
 
         EXAMPLES::
 
@@ -247,14 +293,13 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: Q = PP([1,0,1,1])
             sage: C.projection(P=Q)
             (Scheme morphism:
-               From: Projective Curve over Rational Field defined by x^3 - y*z^2,
-            -x*z + w^2
+               From: Projective Curve over Rational Field defined by x^3 - y*z^2, -x*z + w^2
                To:   Projective Space of dimension 2 over Rational Field
                Defn: Defined on coordinates by sending (x : y : z : w) to
                      (y : -x + z : -x + w),
              Projective Plane Curve over Rational Field defined by x0*x1^5 -
-            6*x0*x1^4*x2 + 14*x0*x1^3*x2^2 - 16*x0*x1^2*x2^3 + 9*x0*x1*x2^4 -
-            2*x0*x2^5 - x2^6)
+             6*x0*x1^4*x2 + 14*x0*x1^3*x2^2 - 16*x0*x1^2*x2^3 + 9*x0*x1*x2^4 -
+             2*x0*x2^5 - x2^6)
             sage: LL.<a,b,c> = ProjectiveSpace(QQ, 2)
             sage: Q = PP([0,0,0,1])
             sage: C.projection(PS=LL, P=Q)
@@ -371,14 +416,16 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
         INPUT:
 
-        - ``PP`` -- (default: None) the projective plane the projected curve will be defined in. This space must
-          be defined over the same base field as this curve, and must have dimension two. This space is constructed
+        - ``PP`` -- (default: None) the projective plane the projected curve
+          will be defined in. This space must be defined over the same base field
+          as this curve, and must have dimension two. This space is constructed
           if not specified.
 
-        OUTPUT:
+        OUTPUT: a tuple of
 
-        - a tuple consisting of two elements: a scheme morphism from this curve into a projective plane,
-          and the projective curve that is the image of that morphism.
+        - a scheme morphism from this curve into a projective plane
+
+        - the projective curve that is the image of that morphism
 
         EXAMPLES::
 
@@ -453,7 +500,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         Hilbert polynomial of the defining ideal of this curve, then the arithmetic genus
         of this curve is `1 - P(0)`. This curve must be irreducible.
 
-        OUTPUT: Integer.
+        OUTPUT: integer
 
         EXAMPLES::
 
@@ -476,8 +523,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
     def is_complete_intersection(self):
         r"""
         Return whether this projective curve is a complete intersection.
-
-        OUTPUT: Boolean.
 
         EXAMPLES::
 
@@ -505,29 +550,48 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
 
 class ProjectivePlaneCurve(ProjectiveCurve):
+    r"""
+    Curves in projective planes.
 
-    _point = point.ProjectivePlaneCurvePoint_field
+    INPUT:
+
+    - ``A`` -- projective plane
+
+    - ``f`` -- homogeneous polynomial in the homogeneous coordinate ring of the plane
+
+    EXAMPLES:
+
+    A projective plane curve defined over an algebraic closure of `\QQ`::
+
+        sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
+        sage: set_verbose(-1)  # suppress warnings for slow computation
+        sage: C = Curve([y*z - x^2 - QQbar.gen()*z^2], P); C
+        Projective Plane Curve over Algebraic Field defined by
+        -x^2 + y*z + (-I)*z^2
+
+    A projective plane curve defined over a finite field::
+
+        sage: P.<x,y,z> = ProjectiveSpace(GF(5^2, 'v'), 2)
+        sage: C = Curve([y^2*z - x*z^2 - z^3], P); C
+        Projective Plane Curve over Finite Field in v of size 5^2 defined by y^2*z - x*z^2 - z^3
+    """
+    _point = ProjectivePlaneCurvePoint_field
 
     def __init__(self, A, f):
-        r"""
-        Initialization function.
+        """
+        Initialize.
 
         EXAMPLES::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
-            sage: C = Curve([y*z - x^2 - QQbar.gen()*z^2], P); C
-            Projective Plane Curve over Algebraic Field defined by
-            -x^2 + y*z + (-I)*z^2
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(GF(5^2, 'v'), 2)
-            sage: C = Curve([y^2*z - x*z^2 - z^3], P); C
-            Projective Plane Curve over Finite Field in v of size 5^2 defined by y^2*z - x*z^2 - z^3
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+            sage: loads(dumps(C)) == C
+            True
         """
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
-            raise TypeError("Argument A (= %s) must be a projective plane."%A)
-        Curve_generic.__init__(self, A, [f])
+            raise TypeError("the ambient space is not a projective plane")
+
+        super(ProjectivePlaneCurve, self).__init__(A, [f])
 
     def _repr_type(self):
         r"""
@@ -1595,8 +1659,10 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
-
-    _point = point.ProjectivePlaneCurvePoint_finite_field
+    """
+    Projective plane curves over finite fields
+    """
+    _point = ProjectivePlaneCurvePoint_finite_field
 
     def rational_points_iterator(self):
         r"""
@@ -1707,71 +1773,6 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
                 for x in gy1.roots(multiplicities=False):
                     yield(self.point([x,y,one]))
 
-    def rational_points(self, algorithm="enum", sort=True):
-        r"""
-        Return the rational points on this curve computed via enumeration.
-
-
-        INPUT:
-
-        - ``algorithm`` (string, default: 'enum') -- the algorithm to
-          use.  Currently this is ignored.
-
-        - ``sort`` (boolean, default ``True``) -- whether the output
-          points should be sorted.  If ``False``, the order of the output
-          is non-deterministic.
-
-        OUTPUT:
-
-        A list of all the rational points on the curve defined over
-        its base field, possibly sorted.
-
-        .. note::
-
-           This is a slow Python-level implementation.
-
-
-        EXAMPLES::
-
-            sage: F = GF(7)
-            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
-            sage: C = Curve(X^3+Y^3-Z^3)
-            sage: C.rational_points()
-            [(0 : 1 : 1), (0 : 2 : 1), (0 : 4 : 1), (1 : 0 : 1), (2 : 0 : 1), (3 : 1 : 0), (4 : 0 : 1), (5 : 1 : 0), (6 : 1 : 0)]
-
-
-        ::
-
-            sage: F = GF(1237)
-            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
-            sage: C = Curve(X^7+7*Y^6*Z+Z^4*X^2*Y*89)
-            sage: len(C.rational_points())
-            1237
-
-        ::
-
-            sage: F = GF(2^6,'a')
-            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
-            sage: C = Curve(X^5+11*X*Y*Z^3 + X^2*Y^3 - 13*Y^2*Z^3)
-            sage: len(C.rational_points())
-            104
-
-        ::
-
-            sage: R.<x,y,z> = GF(2)[]
-            sage: f = x^3*y + y^3*z + x*z^3
-            sage: C = Curve(f); pts = C.rational_points()
-            sage: pts
-            [(0 : 0 : 1), (0 : 1 : 0), (1 : 0 : 0)]
-
-        """
-        points = list(self.rational_points_iterator())
-        if sort:
-            points.sort()
-        return points
-
-
-class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field):
     def _points_via_singular(self, sort=True):
         r"""
         Return all rational points on this curve, computed using Singular's
@@ -1844,8 +1845,7 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
 
     def riemann_roch_basis(self, D):
         r"""
-        Return a basis for the Riemann-Roch space corresponding to
-        `D`.
+        Return a basis for the Riemann-Roch space corresponding to `D`.
 
         This uses Singular's Brill-Noether implementation.
 
@@ -1853,9 +1853,8 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
 
         -  ``D`` - a divisor
 
-        OUTPUT:
-
-        A list of function field elements that form a basis of the Riemann-Roch space
+        OUTPUT: a list of function field elements that form a basis of the
+        Riemann-Roch space
 
         EXAMPLES::
 
@@ -1875,12 +1874,15 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
             sage: C.riemann_roch_basis(D)
             [(-x - 2*y)/(-2*x - 2*y), (-x + z)/(x + y)]
 
-
         .. NOTE::
 
             Currently this only works over prime field and divisors
             supported on rational points.
         """
+        F = self.base_ring()
+        if not F.is_prime_field():
+            raise TypeError("only works for curves over prime finite fields")
+
         f = self.defining_polynomial()._singular_()
         singular = f.parent()
         singular.lib('brnoeth')
@@ -1922,15 +1924,26 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
 
     def rational_points(self, algorithm="enum", sort=True):
         r"""
+        Return the rational points on this curve.
+
         INPUT:
 
+        -  ``algorithm`` -- one of
 
-        -  ``algorithm`` - string:
+           -  ``'enum'`` -- straightforward enumeration
 
-        -  ``'enum'`` - straightforward enumeration
+           -  ``'bn'`` -- via Singular's brnoeth package.
 
-        -  ``'bn'`` - via Singular's brnoeth package.
+        - ``sort`` --  boolean (default: ``True``); whether the output
+          points should be sorted.  If False, the order of the output
+          is non-deterministic.
 
+        OUTPUT: a list of all the rational points on the curve, possibly sorted.
+
+        .. NOTE::
+
+           The Brill-Noether package does not always work (i.e., the 'bn'
+           algorithm. When it fails a RuntimeError exception is raised.
 
         EXAMPLES::
 
@@ -1952,24 +1965,53 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
              (3 : 1 : 0), (4 : 0 : 1), (4 : 1 : 0), (4 : 1 : 1),
              (4 : 2 : 1), (4 : 3 : 1), (4 : 4 : 1)]
 
-        .. note::
+        ::
 
-            The Brill-Noether package does not always work (i.e., the
-            'bn' algorithm. When it fails a RuntimeError exception is
-            raised.
+            sage: F = GF(7)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^3+Y^3-Z^3)
+            sage: C.rational_points()
+            [(0 : 1 : 1), (0 : 2 : 1), (0 : 4 : 1), (1 : 0 : 1), (2 : 0 : 1),
+            (3 : 1 : 0), (4 : 0 : 1), (5 : 1 : 0), (6 : 1 : 0)]
+
+        ::
+
+            sage: F = GF(1237)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^7+7*Y^6*Z+Z^4*X^2*Y*89)
+            sage: len(C.rational_points())
+            1237
+
+        ::
+
+            sage: F = GF(2^6,'a')
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^5+11*X*Y*Z^3 + X^2*Y^3 - 13*Y^2*Z^3)
+            sage: len(C.rational_points())
+            104
+
+        ::
+
+            sage: R.<x,y,z> = GF(2)[]
+            sage: f = x^3*y + y^3*z + x*z^3
+            sage: C = Curve(f); pts = C.rational_points()
+            sage: pts
+            [(0 : 0 : 1), (0 : 1 : 0), (1 : 0 : 0)]
+
         """
         if algorithm == "enum":
+            points = list(self.rational_points_iterator())
+            if sort:
+                points.sort()
+            return points
 
-            return ProjectivePlaneCurve_finite_field.rational_points(self,
-                                                                algorithm="enum",
-                                                                sort=sort)
+        F = self.base_ring()
+        if not F.is_prime_field():
+            raise TypeError("other algorithms only works for curves over prime finite fields")
 
-        elif algorithm == "bn":
-
+        if algorithm == "bn":
             return self._points_via_singular(sort=sort)
-
         elif algorithm == "all":
-
             S_enum = self.rational_points(algorithm = "enum")
             S_bn = self.rational_points(algorithm = "bn")
             if S_enum != S_bn:
@@ -1977,11 +2019,262 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
                                      algorithms give different answers for\
                                      curve %s!"%self)
             return S_enum
-
         else:
+            raise ValueError("No algorithm '{}' known".format(algorithm))
 
-            raise ValueError("No algorithm '%s' known" % algorithm)
 
+class IntegralProjectiveCurve(ProjectiveCurve):
+    """
+    Integral projective curve.
+    """
+    def function_field(self):
+        """
+        Return the function field of this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4), 2)
+            sage: C = Curve(x^5 + y^5 + x*y*z^3 + z^5)
+            sage: C.function_field()
+            Function field in z defined by z^5 + y*z^3 + y^5 + 1
+        """
+        return self._function_field
+
+    @lazy_attribute
+    def _genus(self):
+        """
+        The geometric genus of the curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4), 2)
+            sage: C = Curve(x^5 + y^5 + x*y*z^3 + z^5)
+            sage: C.genus()  # indirect doctest
+            1
+        """
+        return self._function_field.genus()
+
+    def __call__(self, *args):
+        """
+        Return a rational point, a pointset or a function depending on ``args``.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4), 2)
+            sage: C = Curve(x^5 + y^5 + x*y*z^3 + z^5)
+            sage: C(1,1,1)
+            (1 : 1 : 1)
+            sage: C(y/z)
+            (y/(y^5 + 1))*z^4 + (y^2/(y^5 + 1))*z^2
+            sage: C(GF(4^2))
+            Set of rational points of Closed subscheme of Projective Space of
+            dimension 2 over Finite Field in z4 of size 2^4 defined by: x^5 +
+            y^5 + x*y*z^3 + z^5
+        """
+        try:
+            return super(IntegralProjectiveCurve, self).__call__(*args)
+        except TypeError as e:
+            try:
+                return self.function(*args)
+            except AttributeError:
+                raise e
+
+    def function(self, f):
+        """
+        Return the function field element coerced from ``x``.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4), 2)
+            sage: C = Curve(x^5 + y^5 + x*y*z^3 + z^5)
+            sage: f = C.function(x/y); f
+            1/y
+            sage: f.divisor()
+            Place (1/y, 1/y^2*z^2 + z2/y*z + 1)
+             + Place (1/y, 1/y^2*z^2 + ((z2 + 1)/y)*z + 1)
+             + Place (1/y, 1/y*z + 1)
+             - Place (y, z^2 + z2*z + 1)
+             - Place (y, z^2 + (z2 + 1)*z + 1)
+             - Place (y, z + 1)
+        """
+        S = self.ambient_space().coordinate_ring()
+        phi = self._lift_to_function_field
+        num = S(f.numerator())
+        den = S(f.denominator())
+        if num.degree() != den.degree():
+            raise ValueError("not define a function on the curve")
+
+        return phi(num)/phi(den)
+
+    def coordinate_functions(self, i=None):
+        """
+        Return the coordinate functions for the ``i``-th affine patch.
+
+        If ``i`` is ``None``, return the homogeneous coordinate functions.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4), 2)
+            sage: C = Curve(x^5 + y^5 + x*y*z^3 + z^5)
+            sage: C.coordinate_functions(0)
+            (y, z)
+            sage: C.coordinate_functions(1)
+            (1/y, 1/y*z)
+        """
+        coords = self._coordinate_functions
+        if i is None:
+            return coords
+        inv = ~coords[i]
+        return tuple([coords[j]*inv for j in range(len(coords)) if j != i])
+
+
+class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
+    """
+    Integral projective curve over a finite field.
+
+    INPUT:
+
+    - ``A`` -- an ambient projective space
+
+    - ``f`` -- homogeneous polynomials defining the curve
+
+    EXAMPLES::
+
+        sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+        sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+        sage: C.function_field()
+        Function field in z defined by z^8 + 4*y^2*z^7 + 1
+    """
+    _point = IntegralProjectiveCurvePoint_finite_field
+
+    def __init__(self, A, f):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+            sage: loads(dumps(C)) == C
+            True
+        """
+        super(IntegralProjectiveCurve_finite_field, self).__init__(A, f)
+
+        ideal = self.defining_ideal()
+        gs = self.ambient_space().gens()
+        for i in range(self.ngens()):
+            if not gs[i] in ideal:
+                break
+
+        self._open_affine = self.affine_patch(i)
+        self._open_affine_index = i
+
+    @lazy_attribute
+    def _function_field(self):
+        """
+        Return the abstract function field of the curve.
+
+        TESTS::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+            sage: C._function_field
+            Function field in z defined by z^8 + 4*y^2*z^7 + 1
+        """
+        return self._open_affine._function_field
+
+    @lazy_attribute
+    def _lift_to_function_field(self):
+        """
+        Return the map to function field of the curve.
+
+        TESTS::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+            sage: C._lift_to_function_field
+            Ring morphism:
+              From: Multivariate Polynomial Ring in x, y, z over Finite Field of size 5
+              To:   Function field in z defined by z^8 + 4*y^2*z^7 + 1
+              Defn: x |--> 1
+                    y |--> y
+                    z |--> z
+        """
+        F = self._function_field
+        S = self.ambient_space().coordinate_ring()
+        return hom(S, F, self._coordinate_functions)
+
+    @lazy_attribute
+    def _coordinate_functions(self):
+        """
+        Return the homogeneous coordinate functions of the curve.
+
+        TESTS::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+            sage: C._coordinate_functions
+            (1, y, z)
+        """
+        # homogeneous cooridinate functions
+        coords = list(self._open_affine._coordinate_functions)
+        coords.insert(self._open_affine_index, self._function_field.one())
+        return tuple(coords)
+
+    def places(self, degree=1):
+        """
+        Return all places on the curve of the ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- positive integer
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve(x^2*z - y^3)
+            sage: C.places()
+            [Place (1/y),
+             Place (y),
+             Place (y + 1),
+             Place (y + 2),
+             Place (y + 3),
+             Place (y + 4)]
+            sage: C.places(2)
+            [Place (y^2 + 2),
+             Place (y^2 + 3),
+             Place (y^2 + y + 1),
+             Place (y^2 + y + 2),
+             Place (y^2 + 2*y + 3),
+             Place (y^2 + 2*y + 4),
+             Place (y^2 + 3*y + 3),
+             Place (y^2 + 3*y + 4),
+             Place (y^2 + 4*y + 1),
+             Place (y^2 + 4*y + 2)]
+        """
+        F = self.function_field()
+        return F.places(degree)
+
+
+class IntegralProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_finite_field, IntegralProjectiveCurve_finite_field):
+    """
+    Integral projective plane curve over a finite field.
+
+    INPUT:
+
+    - ``A`` -- ambient projective plane
+
+    - ``f`` -- a homogeneous equation that defines the curve
+
+    EXAMPLES::
+
+        sage: A.<x,y> = AffineSpace(GF(9),2)
+        sage: C = Curve(y^2-x^5-x^4-2*x^3-2*x-2)
+        sage: Cb = C.projective_closure()
+        sage: Cb.function_field()
+        Function field in y defined by y^2 + 2*x^5 + 2*x^4 + x^3 + x + 1
+    """
+    _point = IntegralProjectivePlaneCurvePoint_finite_field
 
 def Hasse_bounds(q, genus=1):
     r"""

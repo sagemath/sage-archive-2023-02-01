@@ -38,22 +38,23 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_f
         sage: Conic(X^2 + Y^2 - a*Z^2)
         Projective Conic Curve over Finite Field in a of size 3^2 defined by X^2 + Y^2 + (-a)*Z^2
 
-    TESTS::
+    ::
 
-        sage: K.<a> = FiniteField(4, 'a')
-        sage: Conic([a, 1, -1])._test_pickling()
+        sage: P.<X, Y, Z> = FiniteField(5)[]
+        sage: Conic(X^2 + Y^2 - 2*Z^2)
+        Projective Conic Curve over Finite Field of size 5 defined by X^2 + Y^2 - 2*Z^2
     """
     def __init__(self, A, f):
         r"""
         See ``Conic`` for full documentation.
 
-        EXAMPLES ::
+        TESTS::
 
-            sage: Conic([GF(3)(1), 1, 1])
-            Projective Conic Curve over Finite Field of size 3 defined by x^2 + y^2 + z^2
+            sage: conic = Conic([GF(7)(1), 1, -1]); conic
+            Projective Conic Curve over Finite Field of size 7 defined by x^2 + y^2 - z^2
+            sage: conic._test_pickling()
         """
         ProjectiveConic_field.__init__(self, A, f)
-
 
     def count_points(self, n):
         r"""
@@ -71,7 +72,6 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_f
         F = self.base_ring()
         q = F.cardinality()
         return [q**i+1 for i in range(1, n+1)]
-
 
     def has_rational_point(self, point = False, read_cache = True, \
                            algorithm = 'default'):
@@ -139,6 +139,3 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_f
             r = self.defining_polynomial()([x,Y,1]).roots()
             if len(r) > 0:
                 return True, self.point([x,r[0][0],B(1)])
-
-
-

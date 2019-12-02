@@ -48,12 +48,12 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
     INPUT:
 
-    - ``X`` -- a subscheme of an ambient affine space over a ring `R`.
+    - ``X`` -- a subscheme of an ambient affine space over a ring `R`
 
-    - ``v`` -- a list/tuple/iterable of coordinates in `R`.
+    - ``v`` -- a list/tuple/iterable of coordinates in `R`
 
-    - ``check`` -- boolean (optional, default:``True``). Whether to
-      check the input for consistency.
+    - ``check`` -- boolean (optional, default:``True``); whether to
+      check the input for consistency
 
     EXAMPLES::
 
@@ -154,7 +154,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
             sage: hash(A([1, 1]))
             1300952125                      # 32-bit
             3713081631935493181             # 64-bit
-        
+
         ::
 
             sage: A.<x,y,z> = AffineSpace(CC, 3)
@@ -259,7 +259,7 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
            sage: hash(X([1, 1]))
            1300952125                      # 32-bit
            3713081631935493181             # 64-bit
-       
+
        ::
 
            sage: A.<x,y> = AffineSpace(QQ, 2)
@@ -269,7 +269,7 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
            True
 
        """
-       return hash(tuple(self)) 
+       return hash(tuple(self))
 
     def weil_restriction(self):
         r"""

@@ -1193,8 +1193,46 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P1 = loads(dumps(P))                 # indirect doctest  # optional - pynormaliz
             sage: P1.volume(measure='induced_lattice', engine='normaliz')  # optional - pynormaliz
             96
+
+        Test that the obtained cone is valid::
+
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz  # optional - pynormaliz
+            sage: P = polytopes.permutahedron(4, backend='normaliz')                         # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                       # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)       # optional - pynormaliz
+            sage: P2 == P # optional - pynormaliz
+            True
+
+            sage: P = Polyhedron(lines=[[1,0], [0,1]], backend='normaliz')              # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                  # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)  # optional - pynormaliz
+            sage: P2 == P                                                               # optional - pynormaliz
+            True
+
+            sage: P = Polyhedron(backend='normaliz')                                    # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                  # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)  # optional - pynormaliz
+            sage: P2 == P                                                               # optional - pynormaliz
+            True
+
+            sage: P = polytopes.permutahedron(4, backend='normaliz') * Polyhedron(lines=[[1]], backend='normaliz')
+            sage: P1 = loads(dumps(P))
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)
+            sage: P2 == P
+            True
         """
         super(Polyhedron_normaliz, self).__setstate__(state)
+
+        if not self.inequalities():
+            # If there are no inequalites, we must initialize the cone from scratch.
+            P = Polyhedron_normaliz(self.parent(), [self.vertices(), self.rays(), self.lines()], None)
+            self._normaliz_cone = P._normaliz_cone
+            return
+
+        if self.is_empty():
+            # Special case to avoid.
+            self._normaliz_cone = None
+
         self._normaliz_cone = \
             self._cone_from_Vrepresentation_and_Hrepresentation(
                     self.vertices(), self.rays(), self.inequalities(), self.equations())

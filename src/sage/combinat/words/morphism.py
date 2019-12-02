@@ -93,7 +93,6 @@ from __future__ import print_function
 import six
 from six.moves import range
 import itertools
-from six.moves import filterfalse
 
 from sage.misc.callable_dict import CallableDict
 from sage.structure.sage_object import SageObject
@@ -2210,7 +2209,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->abbab,b->abb,c->').has_left_conjugate()
             True
         """
-        I = filterfalse(FiniteWord_class.is_empty, self.images())
+        I = (w for w in self.images() if not FiniteWord_class.is_empty(w))
 
         try:
             letter = next(I)[0]

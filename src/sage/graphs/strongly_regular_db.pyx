@@ -1972,13 +1972,14 @@ def SRG_144_39_6_12():
         sage: G.is_strongly_regular(parameters=True)
         (144, 39, 6, 12)
     """
-
     from sage.libs.gap.libgap import libgap
-    g=libgap.ProjectiveGeneralLinearGroup(3,3)
-    ns=g.Normalizer(g.SylowSubgroup(13))
-    G=g.Action(g.RightCosets(ns),libgap.OnRight)
-    H=G.Stabilizer(1)
-    for o in filter(lambda x: len(x)==39, H.Orbits()):
+    g = libgap.ProjectiveGeneralLinearGroup(3, 3)
+    ns = g.Normalizer(g.SylowSubgroup(13))
+    G = g.Action(g.RightCosets(ns), libgap.OnRight)
+    H = G.Stabilizer(1)
+    for o in H.Orbits():
+        if len(o) != 39:
+            continue
         h = Graph()
         h.add_edges(G.Orbit([1,o[0]],libgap.OnSets))
         if h.is_strongly_regular():

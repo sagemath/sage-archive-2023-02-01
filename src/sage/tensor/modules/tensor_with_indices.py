@@ -37,7 +37,7 @@ class TensorWithIndices(SageObject):
       contravariant indices must be stated first and separated from the
       covariant indices by the character ``_``
 
-    EXAMPLES:
+    EXAMPLES::
 
     Index representation of tensors on a rank-3 free module::
 
@@ -232,7 +232,7 @@ class TensorWithIndices(SageObject):
                 covariant part    
            
            
-            TEST::
+            TESTS::
            
             sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
             sage: TensorWithIndices._parse_indices('([..])')  # nested symmetries

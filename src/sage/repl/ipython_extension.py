@@ -47,7 +47,7 @@ preparsed when calling ``%runfile`` ::
     True
     sage: tmp = os.path.join(TMP, 'run_cell.py')
     sage: with open(tmp, 'w') as f:
-    ....:     f.write('a = 2\n')
+    ....:     _ = f.write('a = 2\n')
     sage: shell.run_cell('%runfile '+tmp)
     sage: shell.run_cell('a')
     2
@@ -111,7 +111,7 @@ class SageMagics(Magics):
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
             sage: with open(tmp, 'w') as f:
-            ....:     f.write('a = 2\n')
+            ....:     _ = f.write('a = 2\n')
             sage: shell.run_cell('%runfile '+tmp)
             sage: shell.run_cell('a')
             2
@@ -135,12 +135,12 @@ class SageMagics(Magics):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: tmp = os.path.normpath(os.path.join(SAGE_TMP, 'run_cell.py'))
-            sage: with open(tmp, 'w') as f: f.write('a = 2\n')
+            sage: with open(tmp, 'w') as f: _ = f.write('a = 2\n')
             sage: shell.run_cell('%attach ' + tmp)
             sage: shell.run_cell('a')
             2
             sage: sleep(1)  # filesystem timestamp granularity
-            sage: with open(tmp, 'w') as f: f.write('a = 3\n')
+            sage: with open(tmp, 'w') as f: _ = f.write('a = 3\n')
 
         Note that the doctests are never really at the command prompt, so
         we call the input hook manually::

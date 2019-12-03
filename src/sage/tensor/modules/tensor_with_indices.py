@@ -939,7 +939,7 @@ class TensorWithIndices(SageObject):
         
         swaped_components = self._tensor.comp(basis)
         for swap_param,exponent in decomposition:
-            if exponent > 0 :
+            if exponent > 0:
                 for i in range(exponent):
                     # Apply the swap given by swap_param
                     swaped_components = swaped_components\

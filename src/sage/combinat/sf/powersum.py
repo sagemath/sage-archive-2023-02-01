@@ -756,7 +756,12 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             """
             if q is None:
-                q = self.base_ring()["q"].fraction_field().gen()
+                try:
+                    self.base_ring()('q')
+                except TypeError:
+                    q = self.base_ring()["q"].gen()
+                else:
+                    raise ValueError("the variable q is in the base ring, pass it explicitely")
             if q == 1:
                 f = lambda partition: n**len(partition)
             elif n == infinity:
@@ -825,7 +830,12 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             """
             if q == 1:
                 if t is None:
-                    t = self.base_ring()["t"].gen()
+                    try:
+                        self.base_ring()('t')
+                    except TypeError:
+                        t = self.base_ring()["t"].gen()
+                    else:
+                        raise ValueError("the variable t is in the base ring, pass it explicitely")
                 def f(partition):
                     n = 0
                     for part in partition:

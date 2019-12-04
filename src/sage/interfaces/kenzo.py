@@ -102,6 +102,7 @@ join = EclObject("join")
 kmorphismchaincomplex_aux1 = EclObject("kmorphismchaincomplex_aux1")
 bicomplex_spectral_sequence = EclObject("bicomplex-spectral-sequence")
 nreverse = EclObject("nreverse")
+smash_product = EclObject("smash-product")
 
 def Sphere(n):
     r"""
@@ -762,6 +763,32 @@ class KenzoSimplicialSet(KenzoChainComplex):
         """
         join_kenzo = join(self._kenzo, other._kenzo)
         return KenzoSimplicialSet(join_kenzo)
+
+    def smash_product(self, other):
+        r"""
+        Return the smash product of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- the Kenzo simplicial set with which the smash product is made
+
+        OUTPUT:
+
+        - A :class:`KenzoSimplicialSet`
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import Sphere    # optional - kenzo
+            sage: s2 = Sphere(2)                              # optional - kenzo
+            sage: s3 = Sphere(3)                              # optional - kenzo
+            sage: s = s2.smash_product(s3)                    # optional - kenzo
+            sage: type(s)                                     # optional - kenzo
+            <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
+            sage: [s.homology(i) for i in range(6)]           # optional - kenzo
+            [Z, 0, 0, 0, 0, Z]
+        """
+        smash_kenzo = smash_product(self._kenzo, other._kenzo)
+        return KenzoSimplicialSet(smash_kenzo)
 
 
 class KenzoSimplicialGroup(KenzoSimplicialSet):

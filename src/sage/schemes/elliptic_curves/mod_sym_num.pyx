@@ -122,7 +122,7 @@ Finally a word of warning. The algorithm is fast when the cusps involved
 are unitary. If the curve is semistable, all cusps are unitary. But
 rational numbers with a prime `p` dividing the denominator once, but the
 conductor more than once, are very difficult. For instance for the above
-example, a seeminlgy harmless command like ``M(1/2)`` would take a very
+example, a seemingly harmless command like ``M(1/2)`` would take a very
 very long time to return a value. However it is possible to compute them
 for smaller conductors::
 
@@ -1836,14 +1836,6 @@ cdef class ModularSymbolNumerical:
             double y, epsi
             RealNumber yr
 
-        # if called with a previous (m,z,eps) but a larger eps,
-        # return the cached value
-        cac = self.__cached_methods['_kappa'].cache
-        for ke in cac.keys():
-            mm,zz,eeps = ke[0]
-            if mm == m and zz == z and eeps <= eps:
-                return cac[ke]
-
         y = <double>(z)
         y = sqrt(y)
         y = 1/y
@@ -1853,6 +1845,19 @@ cdef class ModularSymbolNumerical:
                 epsi = self._eps_unitary_minus
         else:
             epsi = eps
+
+        # if called with a previous (m,z,eps) but a larger eps,
+        # return the cached value
+        cac = self.__cached_methods['_kappa'].cache
+        for ke in cac:
+            mm, zz, eeps = ke[0]
+            if mm == m and zz == z:
+                if eps == None:
+                    if eeps == None or eeps <= epsi:
+                        return cac[ke]
+                else:
+                    if eeps != None and eeps <= eps:
+                        return cac[ke]
 
         T, prec = self._get_truncation_and_prec(y, epsi)
         if T == -1:
@@ -2917,7 +2922,7 @@ cdef class ModularSymbolNumerical:
 
         # is it already in the cache ?
         c = self.__cached_methods
-        if c.has_key("_manin_symbol_with_cache"):
+        if "_manin_symbol_with_cache" in c:
             c = c["_manin_symbol_with_cache"]
             if c.is_in_cache(un,vn,sign):
                 res = self._manin_symbol_with_cache(un,vn,sign)

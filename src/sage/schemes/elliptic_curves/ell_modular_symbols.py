@@ -303,6 +303,7 @@ class ModularSymbolECLIB(ModularSymbol):
             raise TypeError('sign must -1 or 1')
         self._sign = ZZ(sign)
         self._E = E
+        self._scaling = 1 if E.discriminant()>0 else ZZ(1)/2
         self._implementation="eclib"
         self._base_ring = QQ
         # The ECModularSymbol class must be initialized with sign=0 to compute minus symbols

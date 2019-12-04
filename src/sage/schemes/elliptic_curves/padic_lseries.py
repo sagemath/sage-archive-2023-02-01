@@ -82,7 +82,7 @@ import sage.matrix.all as matrix
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 from sage.functions.log import log
 from sage.functions.other import floor
-
+from sage.misc.cachefunc import cached_method
 
 @richcmp_method
 class pAdicLseries(SageObject):

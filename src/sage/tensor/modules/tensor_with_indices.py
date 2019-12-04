@@ -155,7 +155,7 @@ class TensorWithIndices(SageObject):
         sage: s == a.contract(0,1, b, 0,1)
         True
 
-     Arithmetics::
+    Arithmetics::
 
         sage: 2*a['^ij']
         X^ij
@@ -171,9 +171,9 @@ class TensorWithIndices(SageObject):
         -a^ij
         sage: -t['ij_kl']
         -t^ij_kl
-        sage: a["^(..)"]["ij"] == 1/2*(a["^ij"]+a["^ji"])
+        sage: a["^(..)"]["ij"] == 1/2*(a["^ij"] + a["^ji"])
         True
-        sage: a["^(..)"]["ji"] == 1/2*(a["^ij"]+a["^ji"])
+        sage: a["^(..)"]["ji"] == 1/2*(a["^ij"] + a["^ji"]) # The output indices are the one of the left term of the addition
         False
         sage: (a*a)["^..(ij)"]["abij"] == 1/2*((a*a)["^abij"] + (a*a)["^abji"])
         True
@@ -242,45 +242,45 @@ class TensorWithIndices(SageObject):
 
         TESTS::
 
-        sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
-        sage: TensorWithIndices._parse_indices('([..])')  # nested symmetries
-        Traceback (most recent call last):
-        ...
-        ValueError: index conventions not satisfied
-        sage: TensorWithIndices._parse_indices('(..')  # unbalanced parenthis
-        Traceback (most recent call last):
-        ...
-        ValueError: index conventions not satisfied
-        sage: TensorWithIndices._parse_indices('ii')  # repeated indices of the same type
-        Traceback (most recent call last):
-        ...
-        ValueError: index conventions not satisfied: repeated indices of same type
-        sage: TensorWithIndices._parse_indices('^(ij)^(kl)')  # multiple indices group of the same type
-        Traceback (most recent call last):
-        ...
-        ValueError: index conventions not satisfied
-        sage: TensorWithIndices._parse_indices("^éa")  # accentuated index name
-        Traceback (most recent call last):
-        ...
-        ValueError: index conventions not satisfied
-        sage: TensorWithIndices._parse_indices('^ij_kl')
-        ('ij', 'kl')
-        sage: TensorWithIndices._parse_indices('_kl^ij')
-        ('ij', 'kl')
-        sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,2))
-        ('(ij)', 'ik')
-        sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,0))
-        Traceback (most recent call last):
-        ...
-        IndexError: number of covavariant indices not compatible with the tensor type
-        sage: TensorWithIndices._parse_indices("(ij)_ik", allow_contraction=False)
-        Traceback (most recent call last):
-        ...
-        IndexError: no contraction allowed
-        sage: TensorWithIndices._parse_indices("(ij)_ik", allow_symmetries=False)
-        Traceback (most recent call last):
-        ...
-        IndexError: no symmetry allowed
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: TensorWithIndices._parse_indices('([..])')  # nested symmetries
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices('(..')  # unbalanced parenthis
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices('ii')  # repeated indices of the same type
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied: repeated indices of same type
+            sage: TensorWithIndices._parse_indices('^(ij)^(kl)')  # multiple indices group of the same type
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices("^éa")  # accentuated index name
+            Traceback (most recent call last):
+            ...
+            ValueError: index conventions not satisfied
+            sage: TensorWithIndices._parse_indices('^ij_kl')
+            ('ij', 'kl')
+            sage: TensorWithIndices._parse_indices('_kl^ij')
+            ('ij', 'kl')
+            sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,2))
+            ('(ij)', 'ik')
+            sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,0))
+            Traceback (most recent call last):
+            ...
+            IndexError: number of covavariant indices not compatible with the tensor type
+            sage: TensorWithIndices._parse_indices("(ij)_ik", allow_contraction=False)
+            Traceback (most recent call last):
+            ...
+            IndexError: no contraction allowed
+            sage: TensorWithIndices._parse_indices("(ij)_ik", allow_symmetries=False)
+            Traceback (most recent call last):
+            ...
+            IndexError: no symmetry allowed
         """
 
         # Suppress all '{' and '}' coming from LaTeX notations:

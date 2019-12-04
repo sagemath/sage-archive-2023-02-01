@@ -742,7 +742,7 @@ class Polyhedron_QQ(Polyhedron_base):
             Unknown command/option --bim-bam-boum=19
         """
 
-        # note: the options below are explicitely written in the function
+        # note: the options below are explicitly written in the function
         # declaration in order to keep tab completion (see #18211).
         kwds.update({
             'dual'                    : dual,

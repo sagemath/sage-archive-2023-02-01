@@ -246,7 +246,7 @@ class WordMorphism(SageObject):
 
     .. NOTE::
 
-        When the domain or the codomain are not explicitely given, it is
+        When the domain or the codomain are not explicitly given, it is
         expected that the letters are comparable because the alphabets of
         the domain and of the codomain are sorted.
 
@@ -277,7 +277,7 @@ class WordMorphism(SageObject):
         Finite words over {0, 1, 2}
 
     When the alphabet is non-sortable, the domain and/or codomain must be
-    explicitely given::
+    explicitly given::
 
         sage: W = FiniteWords(['a',6])
         sage: d = {'a':['a',6,'a'],6:[6,6,6,'a']}

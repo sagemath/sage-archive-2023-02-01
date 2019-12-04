@@ -250,7 +250,7 @@ def WordPaths(alphabet, steps=None):
 
     EXAMPLES:
 
-    The steps can be given explicitely::
+    The steps can be given explicitly::
 
         sage: WordPaths('abc', steps=[(1,2), (-1,4), (0,-3)])
         Word Paths over 3 steps

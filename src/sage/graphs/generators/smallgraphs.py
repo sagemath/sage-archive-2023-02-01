@@ -680,8 +680,8 @@ def HallJankoGraph(from_string=True):
 
     TESTS::
 
-        sage: gg = graphs.HallJankoGraph(from_string=False) # long time
-        sage: g.is_isomorphic(gg)                           # long time
+        sage: gg = graphs.HallJankoGraph(from_string=False) # long time # optional - internet
+        sage: g.is_isomorphic(gg)                           # long time # optional - internet
         True
     """
 

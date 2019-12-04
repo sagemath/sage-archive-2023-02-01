@@ -2239,8 +2239,8 @@ def SRG_280_135_70_60():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_280_135_70_60
-        sage: g=SRG_280_135_70_60()                  # long time
-        sage: g.is_strongly_regular(parameters=True) # long time
+        sage: g=SRG_280_135_70_60()                  # long time # optional - internet
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - internet
         (280, 135, 70, 60)
     """
     from sage.libs.gap.libgap import libgap
@@ -2344,8 +2344,8 @@ def SRG_416_100_36_20():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_416_100_36_20
-        sage: g = SRG_416_100_36_20()                # long time
-        sage: g.is_strongly_regular(parameters=True) # long time
+        sage: g = SRG_416_100_36_20()                # long time # optional - internet
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - internet
         (416, 100, 36, 20)
     """
     from sage.libs.gap.libgap import libgap

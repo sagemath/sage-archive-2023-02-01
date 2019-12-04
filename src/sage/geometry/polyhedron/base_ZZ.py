@@ -234,7 +234,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd '--bim-bam-boum=19' /dev/stdin
             Unknown command/option --bim-bam-boum=19
         """
-        # note: the options below are explicitely written in the function
+        # note: the options below are explicitly written in the function
         # declaration in order to keep tab completion (see #18211).
         kwds.update({
             'dual'                    : dual,

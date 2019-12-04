@@ -483,7 +483,7 @@ class FreeModuleBasis(Basis_abstract):
          Element e_1 of the Rank-3 free module M over the Integer Ring,
          Element e_2 of the Rank-3 free module M over the Integer Ring)
 
-    The LaTeX symbol can be set explicitely::
+    The LaTeX symbol can be set explicitly::
 
         sage: latex(e)
         \left(e_{0},e_{1},e_{2}\right)

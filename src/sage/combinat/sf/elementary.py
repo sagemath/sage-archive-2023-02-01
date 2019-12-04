@@ -360,7 +360,7 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
                 except TypeError:
                     q = self.base_ring()["q"].gen()
                 else:
-                    raise ValueError("the variable q is in the base ring, pass it explicitely")
+                    raise ValueError("the variable q is in the base ring, pass it explicitly")
             if q == 1:
                 f = lambda partition: prod(binomial(n, part) for part in partition)
             elif n == infinity:
@@ -433,7 +433,7 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
                     except TypeError:
                         t = self.base_ring()["t"].gen()
                     else:
-                        raise ValueError("the variable t is in the base ring, pass it explicitely")
+                        raise ValueError("the variable t is in the base ring, pass it explicitly")
                 def f(partition):
                     n = 0
                     m = 1

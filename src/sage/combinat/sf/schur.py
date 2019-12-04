@@ -623,7 +623,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 except TypeError:
                     q = self.base_ring()["q"].gen()
                 else:
-                    raise ValueError("the variable q is in the base ring, pass it explicitely")
+                    raise ValueError("the variable q is in the base ring, pass it explicitly")
             if q == 1:
                 f = lambda partition: (prod(n+partition.content(*c) for c in partition.cells())
                                        / prod(h for h in partition.hooks()))
@@ -704,7 +704,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                     except TypeError:
                         t = self.base_ring()["t"].gen()
                     else:
-                        raise ValueError("the variable t is in the base ring, pass it explicitely")
+                        raise ValueError("the variable t is in the base ring, pass it explicitly")
                 def f(partition):
                     n = partition.size()
                     return (StandardTableaux(partition).cardinality()

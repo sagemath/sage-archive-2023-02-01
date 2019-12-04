@@ -427,7 +427,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                     except TypeError:
                         t = self.base_ring()["t"].gen()
                     else:
-                        raise ValueError("the variable t is in the base ring, pass it explicitely")
+                        raise ValueError("the variable t is in the base ring, pass it explicitly")
                 def f(partition):
                     n = 0
                     for part in partition:

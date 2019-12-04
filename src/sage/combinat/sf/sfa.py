@@ -5476,14 +5476,14 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: (h[3]+h[2]).principal_specialization(q=var("q"))
             1/((q^2 - 1)*(q - 1)) - 1/((q^3 - 1)*(q^2 - 1)*(q - 1))
 
-        In case ``q`` is in the base ring, it must be passed explicitely::
+        In case ``q`` is in the base ring, it must be passed explicitly::
 
             sage: R = QQ['q,t']
             sage: Ht = SymmetricFunctions(R).macdonald().Ht()
             sage: Ht[2].principal_specialization()
             Traceback (most recent call last):
             ...
-            ValueError: the variable q is in the base ring, pass it explicitely
+            ValueError: the variable q is in the base ring, pass it explicitly
 
             sage: Ht[2].principal_specialization(q=R("q"))
             (-q^2 - 1)/(-q^3 + q^2 + q - 1)

@@ -30,14 +30,14 @@ Dirichlet characters and for the computation of `p`-adic L-functions.
 ALGORITHM:
 
 The implementation of modular symbols in eclib and directly in sage
-uses the algorithm described in Cremona's book [Crem]_ and Stein's
-book [Ste]_. First the space of all
+uses the algorithm described in Cremona's book [Cre1997]_ and Stein's
+book [St2007]_. First the space of all
 modular symbols of the given level is computed, then the space
 corresponding to the given newform is determined. Even if these initial
 steps may take a while, the evaluation afterwards is instantaneous. All
 computations are done with rational numbers and hence are exact.
 
-Instead the method used here (see [Wut]_ for details)
+Instead the method used here (see [Wu2018]_ for details)
 is by evaluating the above integrals
 `\lambda(r\to r')` by numerical approximation. Since we know precise
 bounds on the denominator, we can make rigorous estimates on the
@@ -139,18 +139,6 @@ can twist to a semistable curve, like in this example::
     sage: M = E.modular_symbol(implementation="num")
     sage: M(1/101)
     41
-
-
-REFERENCES:
-
-.. [Crem] John Cremona, Algorithms for modular elliptic curves,
-   Cambridge University Press, 1997.
-
-.. [Ste] William Stein, Modular forms, a computational approach,
-   Graduate Studies in Mathematics 79, 2007.
-
-.. [Wut] Christian Wuthrich, Modular symbols via numerical
-   integration, preprint 2016.
 
 
 AUTHOR:
@@ -3194,7 +3182,7 @@ cdef class ModularSymbolNumerical:
         N = self._N
         Q = N / llgcd(m,N)
         if llgcd(m,Q) > 1 :
-            raise NotImplementedError("Only implemented for cusps that are"
+            raise NotImplementedError("Only implemented for cusps that are "
                                       "in the Atkin-Lehner orbit of oo")
         #verbose("   compute all partial sums with denominator m=%s"%m,
         #        level=3)

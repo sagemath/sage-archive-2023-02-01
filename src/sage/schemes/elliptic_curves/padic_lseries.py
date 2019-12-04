@@ -178,7 +178,7 @@ class pAdicLseries(SageObject):
             raise NotImplementedError("p (=%s) must be a prime of semi-stable reduction" % p)
 
         try :
-            crla = E.label()
+            E.label()
         except LookupError :
             if implementation != 'num':
                 print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")

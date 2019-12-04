@@ -155,7 +155,7 @@ class TensorWithIndices(SageObject):
         sage: s == a.contract(0,1, b, 0,1)
         True
 
-    Some minimal arithmetics::
+     Arithmetics::
 
         sage: 2*a['^ij']
         X^ij
@@ -171,6 +171,16 @@ class TensorWithIndices(SageObject):
         -a^ij
         sage: -t['ij_kl']
         -t^ij_kl
+        sage: a["^(..)"]["ij"] == 1/2*(a["^ij"]+a["^ji"])
+        True
+        sage: a["^(..)"]["ji"] == 1/2*(a["^ij"]+a["^ji"])
+        False
+        sage: (a*a)["^..(ij)"]["abij"] == 1/2*((a*a)["^abij"] + (a*a)["^abji"])
+        True
+        sage: c = 1/2*((a*a)["^abij"] + (a*a)["^ijab"])
+        sage: from itertools import product
+        sage: all(c[i,j,k,l]==c[k,l,i,j] for i,j,k,l in product(range(3),repeat=4))
+        True
 
     Conventions are checked and non acceptable indices raise ``ValueError``,
     for instance::
@@ -629,19 +639,6 @@ class TensorWithIndices(SageObject):
         be permuted to respect Einstein summation usual conventions. The
         indices names of the output are those of self.
 
-        EXAMPLES::
-
-            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
-            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: a = M.tensor((2,0), name='a')
-            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: b = M.tensor((0,2), name='b')
-            sage: b[:] = [[-1,2,-3], [-4,5,6], [7,-8,9]]
-            sage: a["^(..)"]["ij"] == 1/2*(a["^ij"]+a["^ji"])
-            True
-            sage: (a*a)["^..(ij)"]["abij"] == 1/2*((a*a)["^abij"] + (a*a)["^abji"])
-            True
 
         TESTS::
 

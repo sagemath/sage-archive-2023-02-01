@@ -3204,6 +3204,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if rem:
             return r
 
+    def quo_rem_no_check(self, divisors, integral):
+        return self._quo_rem_c(divisors, True, True, integral)
+
     def quo_rem(self, divisors):
         """
         Return the quotient(s) and the remainder of the division of

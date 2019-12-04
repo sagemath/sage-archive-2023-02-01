@@ -670,7 +670,8 @@ def _groebner_basis_F5(I, prec, verbose):
             if v == 0:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
-                #print ("| add signature for syzygy criterium: %s" % s)
+                if verbose > 1:
+                    print ("| add signature for syzygy criterium: %s" % s)
                 gb0.append(s)
             else:
                 # We update the current strong Grobner basis
@@ -691,7 +692,8 @@ def _groebner_basis_F5(I, prec, verbose):
                 sgb.append(p)
 
         # We forget signatures
-        gb = [ v.monic() for (s,v) in sgb ]
+        # gb = [ v.monic() for (s,v) in sgb ]
+        gb = [ v for (s,v) in sgb ]
         if verbose > 1:
             print("%s elements in GB before minimization" % len(gb))
         if verbose > 3:
@@ -703,7 +705,7 @@ def _groebner_basis_F5(I, prec, verbose):
             ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
             for j in range(len(gb)):
                 tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
-                if j != i and tj._divides_c(ti, False):
+                if j != i and tj._divides_c(ti, True):   # False):
                     del gb[i]
                     break
             else:
@@ -728,6 +730,7 @@ def _groebner_basis_F5(I, prec, verbose):
             for g in gb:
                 print("| %s" % g)
 
+    gb.sort(reverse=True)
     return gb
 
 

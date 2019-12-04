@@ -314,7 +314,7 @@ SAGE_SCRIPTS
 
         var mesh = new THREE.Mesh( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
-        if ( transparent && json.renderOrder ) mesh.renderOrder = json.renderOrder
+        if ( transparent && json.renderOrder ) mesh.renderOrder = json.renderOrder;
         scene.add( mesh );
 
         if ( json.showMeshGrid ) {

@@ -155,6 +155,35 @@ class TensorWithIndices(SageObject):
         sage: s == a.contract(0,1, b, 0,1)
         True
 
+    The square bracket operator acts in a similar way on :class:`TensorWithIndices`::
+
+        sage: b = +a["ij"] ; b._tensor.set_name("b") # create a copy of a["ij"]
+        sage: b
+        b^ij
+        sage: b[:]
+        [1 2 3]
+        [4 5 6]
+        [7 8 9]
+        sage: b[0,0] == 1
+        True
+        sage: b["ji"]
+        b^ji
+        sage: b["(ij)"][:]
+        [1 3 5]
+        [3 5 7]
+        [5 7 9]
+        sage: b["(ij)"] == b["(ij)"]["ij"]
+        True
+
+    However, it keeps track of indices::
+
+        sage: b["ij"] = a["ji"]
+        sage: b[:] == a[:]
+        False
+        sage: b[:] == a[:].transpose()
+        True
+
+
     Arithmetics::
 
         sage: 2*a['^ij']
@@ -181,6 +210,8 @@ class TensorWithIndices(SageObject):
         sage: from itertools import product
         sage: all(c[i,j,k,l]==c[k,l,i,j] for i,j,k,l in product(range(3),repeat=4))
         True
+
+
 
     Conventions are checked and non acceptable indices raise ``ValueError``,
     for instance::
@@ -756,28 +787,6 @@ class TensorWithIndices(SageObject):
           tensor contractions and symmetrizations, the string containing
           abstract indices.
 
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: a = M.tensor((2,0), name='a')
-            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: b = a["ij"]
-            sage: b
-            a^ij
-            sage: b[:]
-            [1 2 3]
-            [4 5 6]
-            [7 8 9]
-            sage: b[0,0] == 1
-            True
-            sage: b["ji"]
-            a^ji
-            sage: b["(ij)"][:]
-            [1 3 5]
-            [3 5 7]
-            [5 7 9]
-
         """
 
 
@@ -804,16 +813,6 @@ class TensorWithIndices(SageObject):
         - ``value`` -- the value to be set or a list of values if
           ``args = [:]`` or a tensor with indices
 
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: a = M.tensor((2,0), name='a')["ij"]
-            sage: b = M.tensor((2,0), name='b')["ij"]
-            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: b["ij"] = a["ji"]
-            sage: b[:] == a[:].transpose()
-            True
         """
         if isinstance(args, str):
             if not isinstance(value,TensorWithIndices):

@@ -37,7 +37,7 @@ class TensorWithIndices(SageObject):
       contravariant indices must be stated first and separated from the
       covariant indices by the character ``_``
 
-    EXAMPLES::
+    EXAMPLES:
 
     Index representation of tensors on a rank-3 free module::
 
@@ -197,8 +197,8 @@ class TensorWithIndices(SageObject):
         ValueError: index conventions not satisfied
 
     """
-    
-        
+
+
     @staticmethod
     def _parse_indices(
         indices,
@@ -207,74 +207,72 @@ class TensorWithIndices(SageObject):
         allow_symmetries=True
     ):
         r"""
-            Parses index notation for tensors, enforces conventions and returns indices.        
-        
-        
-            Parse ``indices`` checking usual conventions on
-            repeating indices, wildcard, balanced parentheses/brackets and 
-            raises a ValueError if not. Returns a couple contravariant/covariant
-            indices.
-            
-            INPUT:
+        Parses index notation for tensors, enforces conventions and returns
+        indices.
 
-            - ``indices`` -- a string of index notation
-            - ``tensor_type`` -- (default : ``None``) A valid tensor type  
-                (a couple of non-negative integers). If not ``None``, the indices 
-                are checked to have the correct type.  
-            - ``allow_contraction`` -- (default : ``True``) Determines if 
-                repeated indices are allowed in the index notation. 
-            - ``allow_symmetries`` -- (default : ``True``) Determines if 
-                symmetries ()/[] are allowed in the index notation.          
-            
-            OUTPUT:
-            
-            - A couple of string corresponding to the contravariant and the 
-                covariant part    
-           
-           
-            TESTS::
-           
-            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
-            sage: TensorWithIndices._parse_indices('([..])')  # nested symmetries
-            Traceback (most recent call last):
-            ...
-            ValueError: index conventions not satisfied
-            sage: TensorWithIndices._parse_indices('(..')  # unbalanced parenthis
-            Traceback (most recent call last):
-            ...
-            ValueError: index conventions not satisfied
-            sage: TensorWithIndices._parse_indices('ii')  # repeated indices of the same type
-            Traceback (most recent call last):
-            ...
-            ValueError: index conventions not satisfied: repeated indices of same type
-            sage: TensorWithIndices._parse_indices('^(ij)^(kl)')  # multiple indices group of the same type
-            Traceback (most recent call last):
-            ...
-            ValueError: index conventions not satisfied
-            sage: TensorWithIndices._parse_indices("^éa")  # accentuated index name
-            Traceback (most recent call last):
-            ...
-            ValueError: index conventions not satisfied
-            sage: TensorWithIndices._parse_indices('^ij_kl')
-            ('ij', 'kl')
-            sage: TensorWithIndices._parse_indices('_kl^ij')
-            ('ij', 'kl')
-            sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,2))
-            ('(ij)', 'ik')
-            sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,0))
-            Traceback (most recent call last):
-            ...
-            IndexError: number of covavariant indices not compatible with the tensor type
-            sage: TensorWithIndices._parse_indices("(ij)_ik", allow_contraction=False)
-            Traceback (most recent call last):
-            ...
-            IndexError: no contraction allowed
-            sage: TensorWithIndices._parse_indices("(ij)_ik", allow_symmetries=False)
-            Traceback (most recent call last):
-            ...
-            IndexError: no symmetry allowed
+        Parse ``indices`` checking usual conventions on repeating indices,
+        wildcard, balanced parentheses/brackets and raises a ValueError if not.
+        Returns a couple contravariant/covariant indices.
+
+        INPUT:
+
+        - ``indices`` -- a string of index notation
+        - ``tensor_type`` -- (default : ``None``) A valid tensor type
+            (a couple of non-negative integers). If not ``None``, the indices
+            are checked to have the correct type.
+        - ``allow_contraction`` -- (default : ``True``) Determines if
+            repeated indices are allowed in the index notation.
+        - ``allow_symmetries`` -- (default : ``True``) Determines if
+            symmetries ()/[] are allowed in the index notation.
+
+        OUTPUT:
+
+        - A couple of string corresponding to the contravariant and the
+          covariant part
+
+        TESTS::
+
+        sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+        sage: TensorWithIndices._parse_indices('([..])')  # nested symmetries
+        Traceback (most recent call last):
+        ...
+        ValueError: index conventions not satisfied
+        sage: TensorWithIndices._parse_indices('(..')  # unbalanced parenthis
+        Traceback (most recent call last):
+        ...
+        ValueError: index conventions not satisfied
+        sage: TensorWithIndices._parse_indices('ii')  # repeated indices of the same type
+        Traceback (most recent call last):
+        ...
+        ValueError: index conventions not satisfied: repeated indices of same type
+        sage: TensorWithIndices._parse_indices('^(ij)^(kl)')  # multiple indices group of the same type
+        Traceback (most recent call last):
+        ...
+        ValueError: index conventions not satisfied
+        sage: TensorWithIndices._parse_indices("^éa")  # accentuated index name
+        Traceback (most recent call last):
+        ...
+        ValueError: index conventions not satisfied
+        sage: TensorWithIndices._parse_indices('^ij_kl')
+        ('ij', 'kl')
+        sage: TensorWithIndices._parse_indices('_kl^ij')
+        ('ij', 'kl')
+        sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,2))
+        ('(ij)', 'ik')
+        sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,0))
+        Traceback (most recent call last):
+        ...
+        IndexError: number of covavariant indices not compatible with the tensor type
+        sage: TensorWithIndices._parse_indices("(ij)_ik", allow_contraction=False)
+        Traceback (most recent call last):
+        ...
+        IndexError: no contraction allowed
+        sage: TensorWithIndices._parse_indices("(ij)_ik", allow_symmetries=False)
+        Traceback (most recent call last):
+        ...
+        IndexError: no symmetry allowed
         """
-        
+
         # Suppress all '{' and '}' coming from LaTeX notations:
         indices = indices.replace('{','').replace('}','')
 
@@ -297,7 +295,7 @@ class TensorWithIndices(SageObject):
             except ValueError:
                 cov = indices.replace("_","")
                 con = ""
-        if not allow_contraction:        
+        if not allow_contraction:
             for ind in con:
                 if ind != '.' and ind in cov:
                     raise IndexError("no contraction allowed")
@@ -350,7 +348,7 @@ class TensorWithIndices(SageObject):
             sage: TestSuite(ti).run()
 
         """
-        
+
         self._tensor = tensor # may be changed below
         self._changed = False # indicates whether self contains an altered
                               # version of the original tensor (True if
@@ -495,7 +493,7 @@ class TensorWithIndices(SageObject):
             return self
 
     def __eq__(self, other):
-        """
+        r"""
         Check equality.
 
         TESTS::
@@ -521,7 +519,7 @@ class TensorWithIndices(SageObject):
                 and self._cov == other._cov)
 
     def __ne__(self, other):
-        """
+        r"""
         Check not equals.
 
         TESTS::
@@ -624,16 +622,15 @@ class TensorWithIndices(SageObject):
 
     def __add__(self, other):
         r"""
-        Tensor with indices addition 
-        
-        Addition between tensors with indices. The underlying tensor of the
-        ouput is the sum of the underlying tensor of `self` with the underlying
-        tensor of `other` whose entries have be permuted to respect Einstein summation 
-        usual conventions. The indices names of the output are those of 
-        self. 
-        
+        Addition between tensors with indices.
+
+        The underlying tensor of the ouput is the sum of the underlying tensor
+        of ``self`` with the underlying tensor of ``other`` whose entries have
+        be permuted to respect Einstein summation usual conventions. The
+        indices names of the output are those of self.
+
         EXAMPLES::
-        
+
             sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
@@ -645,9 +642,9 @@ class TensorWithIndices(SageObject):
             True
             sage: (a*a)["^..(ij)"]["abij"] == 1/2*((a*a)["^abij"] + (a*a)["^abji"])
             True
-            
+
         TESTS::
-        
+
             sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
@@ -660,7 +657,6 @@ class TensorWithIndices(SageObject):
              + T["jikl_abdc"]) == T["(..).._..(..)"]["ijkl_abcd"]
             True
         """
-        
 
         # Check tensor types are compatible
         if self._tensor.tensor_type() != other._tensor.tensor_type():
@@ -674,42 +670,40 @@ class TensorWithIndices(SageObject):
         other_wild_card_indices = [match.span()[0] for match in re.finditer(r"\.", self._cov)]
         if self_wild_card_indices != other_wild_card_indices:
             raise ValueError("Ambiguous wildcard notation")
-        
+
         # Permutation of the components of self
         # -------------------------------------
-        
+
         permutation = list(range(other._tensor.tensor_rank()))
         for other_index in range(other._tensor.tensor_type()[0]):
             if other._con[other_index] == self._con[other_index]:
                 permutation[other_index] = other_index
             else:
-                permutation[other_index] = self._con.index(other._con[other_index]) 
+                permutation[other_index] = self._con.index(other._con[other_index])
         for other_index in range(other._tensor.tensor_type()[1]):
             if other._cov[other_index] == self._cov[other_index]:
                 permutation[other._tensor.tensor_type()[0] + other_index]\
                     = other._tensor.tensor_type()[0] + other_index
             else:
                 permutation[other._tensor.tensor_type()[0] + other_index]\
-                    = other._tensor.tensor_type()[0] + self._cov.index(other._cov[other_index]) 
-        
+                    = other._tensor.tensor_type()[0] + self._cov.index(other._cov[other_index])
+
         result = self.__pos__()
         result._tensor = result._tensor + other.permute_indices(permutation)._tensor
         return result
-        
-    
+
+
     def __sub__(self, other):
         r"""
-        Tensor with indices substraction
-        
-        Substraction between tensors with indices. The underlying tensor of the
-        ouput is  the underlying tensor of `self` minus the underlying
-        tensor of `other` whose entries have be permuted to respect Einstein summation 
-        usual conventions. The indices names of the output are those of 
-        self. 
-        
-        
+        Substraction between tensors with indices.
+
+        The underlying tensor of the ouput is  the underlying tensor of
+        ``self`` minus the underlying tensor of ``other`` whose entries have
+        be permuted to respect Einstein summation usual conventions. The
+        indices names of the output are those of self.
+
         EXAMPLES::
-        
+
             sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
@@ -728,9 +722,9 @@ class TensorWithIndices(SageObject):
             sage: O[0,0,0,0] = 0
             sage: (Riem["ijkl"]+Riem["iklj"]+Riem["iljk"]) == O["ijkl"]
             True
-            
+
         TESTS::
-        
+
             sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
@@ -742,32 +736,31 @@ class TensorWithIndices(SageObject):
             sage: 1/4*(T["ijkl_abcd"]-T["jikl_abcd"] - T["ijkl_abdc"]\
                 + T["jikl_abdc"] ) == T["[..].._..[..]"]["ijkl_abcd"]
             True
-        
+
         """
-                
+
         return self+(-other)
-    
+
     def __getitem__(self, args):
         r"""
         Return a component of the underlying tensor w.r.t. some basis.
-        
+
         NB: if ``args`` is a string, this method acts as a shortcut for
         tensor contractions and symmetrizations, the string containing
         abstract indices.
-        
-        
+
         INPUT:
 
         - ``args`` -- list of indices defining the component; if ``[:]`` is
           provided, all the components are returned. The basis can be passed
           as the first item of ``args``; if not, the free module's default
-          basis is assumed. 
+          basis is assumed.
           if ``args`` is a string, this method acts as a shortcut for
           tensor contractions and symmetrizations, the string containing
           abstract indices.
-          
+
         EXAMPLES::
-        
+
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')
@@ -787,17 +780,17 @@ class TensorWithIndices(SageObject):
             [1 3 5]
             [3 5 7]
             [5 7 9]
-                        
+
         """
 
-        
+
         if isinstance(args,str):
             result = +self
             result.__init__(self._tensor, args)
             return result
-        else:    
+        else:
             return self._tensor[args]
-    
+
     def __setitem__(self, args, value):
         r"""
          Set a component w.r.t. some basis.
@@ -807,15 +800,15 @@ class TensorWithIndices(SageObject):
         - ``args`` -- list of indices defining the component; if ``[:]`` is
           provided, all the components are set. The basis can be passed
           as the first item of ``args``; if not, the free module's default
-          basis is assumed  if ``args`` is a string and value is a tensor 
+          basis is assumed  if ``args`` is a string and value is a tensor
           with indices, this method permutes the coefficients of ``value``
           before assigning the underlying tensor of ``value`` to ``self``.
-          
+
         - ``value`` -- the value to be set or a list of values if
           ``args = [:]`` or a tensor with indices
-        
+
         EXAMPLES::
-        
+
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')["ij"]
@@ -825,41 +818,40 @@ class TensorWithIndices(SageObject):
             sage: b[:] == a[:].transpose()
             True
         """
-        if isinstance(args, str):  
+        if isinstance(args, str):
             if not isinstance(value,TensorWithIndices):
                 raise ValueError("The tensor provided should be with indices")
             elif self._tensor.tensor_type() != value._tensor.tensor_type():
                 raise ValueError("The tensors are not of the same type")
-            else:                
+            else:
                 con,cov = self._parse_indices(
                     args,
                     tensor_type=self._tensor.tensor_type(),
                     allow_symmetries=False,
                     allow_contraction=False
                 )
-            
+
             permutation = list(range(value._tensor.tensor_rank()))
             for value_index in range(value._tensor.tensor_type()[0]):
                 if value._con[value_index] == self._con[value_index]:
                     permutation[value_index] = value_index
                 else:
-                    permutation[value_index] = self._con.index(value._con[value_index]) 
+                    permutation[value_index] = self._con.index(value._con[value_index])
             for value_index in range(value._tensor.tensor_type()[1]):
                 if value._cov[value_index] == self._cov[value_index]:
                     permutation[value._tensor.tensor_type()[0] + value_index]\
                         = value._tensor.tensor_type()[0] + value_index
                 else:
                     permutation[value._tensor.tensor_type()[0] + value_index]\
-                        = value._tensor.tensor_type()[0] + self._cov.index(value._cov[value_index]) 
+                        = value._tensor.tensor_type()[0] + self._cov.index(value._cov[value_index])
             self._tensor[:] = value.permute_indices(permutation)[:]
-            
+
         else:
             self._tensor.__setitem__(args,value)
-            
+
     def permute_indices(self, permutation):
         r"""
-        Return a tensor with indices with permuted indices
-        
+        Return a tensor with indices with permuted indices.
 
         INPUT:
 
@@ -867,11 +859,12 @@ class TensorWithIndices(SageObject):
 
         OUTPUT:
 
-        - an instance of TensorWithIndices whose indices names and place are 
-            those of self but whose components have been permuted with permutation.
+        - an instance of ``TensorWithIndices`` whose indices names and place
+          are those of ``self`` but whose components have been permuted with
+          ``permutation``.
 
         EXAMPLES::
-        
+
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')
@@ -882,9 +875,9 @@ class TensorWithIndices(SageObject):
             True
             sage: a["ij"].permute_indices(transposition)[:] == a[:].transpose()
             True
-            
+
         TESTS::
-            
+
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')
@@ -894,23 +887,22 @@ class TensorWithIndices(SageObject):
             sage: a["ij"].permute_indices(identity) == a["ij"]
             True
             sage: a["ij"].permute_indices(transposition)[:] == a[:].transpose()
-            True     
-        
-        
+            True
+
         """
         # Decompostion of the permutation of the components of self
-        # into product of swaps given by the method 
+        # into product of swaps given by the method
         # sage.tensor.modules.comp.Components.swap_adjacent_indices
-    
+
         # A swap is determined by 3 distinct integers
         swap_params = list(combinations(range(self._tensor.tensor_rank()+1), 3))
-    
+
         # The associated permutation is as follows
         def swap(i,j,k,N):
             L = list(range(1,N+1))
             L = L[:i] + L[j:k] + L[i:j] + L[k:]
             return L
-        
+
         # Construction of the permutation group generated by swaps
         perm_group = PermutationGroup(
             [swap(*param, self._tensor.tensor_rank()) for param in swap_params],
@@ -921,7 +913,7 @@ class TensorWithIndices(SageObject):
             perm_group.gens(),
             display=False
         )[0]
-        
+
         if decomposition_as_string != "<identity ...>":
             decomposition_as_string = [
                 # Two cases wether the term appear with an exponent or not
@@ -934,9 +926,9 @@ class TensorWithIndices(SageObject):
             decomposition = []
         # Choice of a basis
         basis = self._tensor._fmodule._def_basis
-        
+
         # Swap of components
-        
+
         swaped_components = self._tensor.comp(basis)
         for swap_param,exponent in decomposition:
             if exponent > 0:
@@ -960,7 +952,7 @@ class TensorWithIndices(SageObject):
             self._tensor.tensor_type(),
             swaped_components
         )
-        
+
         return result
 
     def __pos__(self):

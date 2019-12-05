@@ -156,7 +156,7 @@ class TensorWithIndices(SageObject):
         True
 
     The square bracket operator acts in a similar way on :class:`TensorWithIndices`::
-
+    
         sage: b = +a["ij"] ; b._tensor.set_name("b") # create a copy of a["ij"]
         sage: b
         b^ij
@@ -174,9 +174,9 @@ class TensorWithIndices(SageObject):
         [5 7 9]
         sage: b["(ij)"] == b["(ij)"]["ij"]
         True
-
+    
     However, it keeps track of indices::
-
+    
         sage: b["ij"] = a["ji"]
         sage: b[:] == a[:]
         False
@@ -787,6 +787,28 @@ class TensorWithIndices(SageObject):
           tensor contractions and symmetrizations, the string containing
           abstract indices.
 
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
+            sage: b = a["ij"]
+            sage: b
+            a^ij
+            sage: b[:]
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
+            sage: b[0,0] == 1
+            True
+            sage: b["ji"]
+            a^ji
+            sage: b["(ij)"][:]
+            [1 3 5]
+            [3 5 7]
+            [5 7 9]
+        
         """
 
 
@@ -812,6 +834,17 @@ class TensorWithIndices(SageObject):
 
         - ``value`` -- the value to be set or a list of values if
           ``args = [:]`` or a tensor with indices
+
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')["ij"]
+            sage: b = M.tensor((2,0), name='b')["ij"]
+            sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
+            sage: b["ij"] = a["ji"]
+            sage: b[:] == a[:].transpose()
+            True
 
         """
         if isinstance(args, str):

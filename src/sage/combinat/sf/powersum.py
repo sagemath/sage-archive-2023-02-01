@@ -725,7 +725,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
               specialization.
 
             - ``q`` (default: ``None``) -- the value to use for `q`,
-              the default is to create the fraction field of
+              the default is to create a ring (or fraction field) of
               polynomials in ``q`` over the coefficient ring.
 
             EXAMPLES::
@@ -805,13 +805,12 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             INPUT:
 
-            - ``t`` (default: None) -- the value to use for `t`, the default
-              is to create the fraction field of polynomials in ``t``
-              over the coefficient ring.
+            - ``t`` (default: None) -- the value to use for `t`, the
+              default is to create a ring of polynomials in ``t``.
 
-            - ``q`` (default: 1) -- the value to use for `q`.  If
-              ``q`` is ``None`` create the fraction field of
-              polynomials in ``q`` over the coefficient ring.
+            - ``q`` (default: 1) -- the value to use for `q`.  If ``q``
+              is ``None`` create a ring (or fraction field) of
+              polynomials in ``q``.
 
             EXAMPLES::
 

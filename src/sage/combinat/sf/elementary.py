@@ -403,9 +403,9 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
 
                 ex_q(f) = (1-q)^n t^n ps(f),
 
-            where `ps(f)` is the stable principal specialisation of `f`.
+            where `ps(f)` is the stable principal specialization of `f`.
             Note that setting `q = 1` in the stable principal
-            specialisation is an invalid operation.
+            specialization is an invalid operation.
 
             INPUT:
 

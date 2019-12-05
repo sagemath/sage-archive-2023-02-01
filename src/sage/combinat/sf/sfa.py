@@ -5488,7 +5488,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: Ht[2].principal_specialization(q=R("q"))
             (-q^2 - 1)/(-q^3 + q^2 + q - 1)
 
-        Note that the stable principal specialization can be obtained as a plethysm::
+        Note that the principal specialization can be obtained as a plethysm::
 
             sage: R = QQ['q'].fraction_field()
             sage: s = SymmetricFunctions(R).s()
@@ -5497,7 +5497,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: f = s[3,2,2]
             sage: f.principal_specialization(q=q) == f(one/(1-q)).coefficient([])
             True
-            sage: f.principal_specialization(n=4,q=q) == f(one*(1-q^4)/(1-q)).coefficient([])
+            sage: f.principal_specialization(n=4, q=q) == f(one*(1-q^4)/(1-q)).coefficient([])
             True
 
         TESTS::
@@ -5554,9 +5554,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             ex_q(f) = (1-q)^n t^n ps(f),
 
-        where `ps(f)` is the stable principal specialisation of `f`.
+        where `ps(f)` is the stable principal specialization of `f`.
         Note that setting `q = 1` in the stable principal
-        specialisation is an invalid operation.
+        specialization is an invalid operation.
 
         INPUT:
 

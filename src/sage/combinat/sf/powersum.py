@@ -744,7 +744,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 sage: x.principal_specialization(3)
                 8*q^6 + 18*q^5 + 36*q^4 + 38*q^3 + 36*q^2 + 18*q + 9
 
-            If ``n`` is not given we return the stable principal specialisation::
+            If ``n`` is not given we return the stable principal specialization::
 
                 sage: x.principal_specialization(q=var("q"))
                 3/((q^2 - 1)*(q - 1)) - 5/(q - 1)^3 + 1
@@ -799,9 +799,9 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
                 ex_q(f) = (1-q)^n t^n ps(f),
 
-            where `ps(f)` is the stable principal specialisation of `f`.
+            where `ps(f)` is the stable principal specialization of `f`.
             Note that setting `q = 1` in the stable principal
-            specialisation is an invalid operation.
+            specialization is an invalid operation.
 
             INPUT:
 

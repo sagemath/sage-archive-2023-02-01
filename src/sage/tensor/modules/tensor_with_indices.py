@@ -156,7 +156,7 @@ class TensorWithIndices(SageObject):
         True
 
     The square bracket operator acts in a similar way on :class:`TensorWithIndices`::
-    
+
         sage: b = +a["ij"] ; b._tensor.set_name("b") # create a copy of a["ij"]
         sage: b
         b^ij
@@ -174,9 +174,9 @@ class TensorWithIndices(SageObject):
         [5 7 9]
         sage: b["(ij)"] == b["(ij)"]["ij"]
         True
-    
+
     However, it keeps track of indices::
-    
+
         sage: b["ij"] = a["ji"]
         sage: b[:] == a[:]
         False
@@ -808,7 +808,7 @@ class TensorWithIndices(SageObject):
             [1 3 5]
             [3 5 7]
             [5 7 9]
-        
+
         """
 
 

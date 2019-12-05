@@ -919,7 +919,7 @@ class TensorWithIndices(SageObject):
             True
 
         """
-        # Decompostion of the permutation of the components of self
+        # Decomposition of the permutation of the components of self
         # into product of swaps given by the method
         # sage.tensor.modules.comp.Components.swap_adjacent_indices
 

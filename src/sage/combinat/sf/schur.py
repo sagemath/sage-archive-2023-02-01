@@ -722,7 +722,10 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
                 return self.parent()._apply_module_morphism(self, f, t.parent())
 
-            return self.parent().realization_of().powersum()(self).exponential_specialization(t=t, q=q)
+            # if self is nice in the schur basis, the homogeneous
+            # symmetric functions seem to be a faster fallback than
+            # the powersum symmetric functions
+            return self.parent().realization_of().homogeneous()(self).exponential_specialization(t=t, q=q)
 
 
 # Backward compatibility for unpickling

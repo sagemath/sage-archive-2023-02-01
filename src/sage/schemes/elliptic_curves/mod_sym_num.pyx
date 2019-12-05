@@ -220,7 +220,7 @@ DEF PARTIAL_LIMIT = 82
 
 cdef llong llabs(llong x) except -1:
     r"""
-    Returns the absolute value of a long long.
+    Return the absolute value of a long long.
     """
     if x < 0:
         return -x
@@ -228,7 +228,7 @@ cdef llong llabs(llong x) except -1:
 
 cdef llong llsign(llong n) except -2:
     r"""
-    Returns the sign of a long long
+    Return the sign of a long long
     """
     if n < 0:
         return -1
@@ -236,7 +236,7 @@ cdef llong llsign(llong n) except -2:
 
 cdef llong llxgcd(llong a, llong b, llong *ss, llong *tt) except -1:
     r"""
-    Computes the greatest common divisor `g` of `a` and `b`,
+    Compute the greatest common divisor `g` of `a` and `b`,
     which is returned as the value. The integers `s` and `t` such
     that `g=s a + t b` are returned via pointers.
     """
@@ -311,7 +311,7 @@ def _test_llfunctions(a,b):
 cdef int proj_normalise(llong N, llong u, llong  v,
                         llong* uu, llong* vv) except -1:
     r"""
-    Computes the canonical representative of
+    Compute the canonical representative of
     `\mathbb{P}^1(\ZZ/N\ZZ)` equivalent to `(u,v)`.
 
     INPUT:
@@ -452,7 +452,7 @@ cdef int best_proj_point(llong u, llong v, llong N,
         y1 = <llong>0
         x0 = w
         x1 = <llong>1
-    else : # cases like (p:q) mod p*q drop here
+    else: # cases like (p:q) mod p*q drop here
         p = llgcd(u, N)
         q = llgcd(v, N)
         Nnew = N / p / q
@@ -463,7 +463,7 @@ cdef int best_proj_point(llong u, llong v, llong N,
         x1 = q
 
     # y will always be the longer and x the shorter
-    while llabs(x0) + llabs(x1) < llabs(y0)+llabs(y1) :
+    while llabs(x0) + llabs(x1) < llabs(y0)+llabs(y1):
         if llsign(x0) == llsign(x1):
             r = (y0+y1) / (x0+x1)
         else:
@@ -738,7 +738,8 @@ cdef class ModularSymbolNumerical:
 
     def __cinit__(self):
         r"""
-        Initialisation function. Allocates memory to store the
+        Initialisation function. 
+        Allocate memory to store the
         Fourier coefficients of the newform.
 
         EXAMPLES::
@@ -1042,7 +1043,7 @@ cdef class ModularSymbolNumerical:
         # if the curve is in the database,
         # we can compare to the X_0-optimal curve
         isog =  E.isogeny_class()
-        if N <= CremonaDatabase().largest_conductor() :
+        if N <= CremonaDatabase().largest_conductor():
             E0 = E.optimal_curve()
         # otherwise, we take a "maximal" curve
         # that the worst that can happen and is sort of the
@@ -1073,13 +1074,13 @@ cdef class ModularSymbolNumerical:
             if p.is_prime() and N % p != 0:
                 t0 = t0.gcd( p + 1 - self._ans[p] )
                 co += 1
-            if (p-2).is_prime() and N % (p-2) != 0 :
+            if (p-2).is_prime() and N % (p-2) != 0:
                 t0 = t0.gcd( (p-1)**2 - self._ans[p-2]**2 )
                 co += 1
         if E0.real_components() == 1:
             t0 *= Integer(2) # slanted lattice
 
-        # This is a not strictly necessary precaution :
+        # This is a not strictly necessary precaution:
         # Cremona is not always certain to have the optimal
         # curve correctly determined. If not, the index
         # is just 2.
@@ -1140,7 +1141,7 @@ cdef class ModularSymbolNumerical:
         #     M = ModularSymbolNumerical(E)
         #     print(E.label(), (d_plus, d_minus), (M._t_plus, M._t_minus),
         #           (M._t_unitary_plus, M._t_unitary_plus))
-        #     if M._t_plus % d_plus != 0 or M._t_minus % d_minus :
+        #     if M._t_plus % d_plus != 0 or M._t_minus % d_minus:
         #         print("**** b u g *** ")
 
     def _set_up_twist(self):
@@ -1202,7 +1203,7 @@ cdef class ModularSymbolNumerical:
 
     def _round(self, RealNumber val, int sign, int unitary):
         r"""
-        Rounds the numerical approximation to the rational.
+        Round the numerical approximation to the rational.
         A warning is printed if the rounding is off by more
         than 0.1.
 
@@ -1262,7 +1263,7 @@ cdef class ModularSymbolNumerical:
 
     def _initialise_an_coefficients(self):
         r"""
-        Computes the Fourier coefficients `a_n` for all `n` up to 1000.
+        Compute the Fourier coefficients `a_n` for all `n` up to 1000.
         Doctest in _test_init
 
         EXAMPLES::
@@ -1287,7 +1288,7 @@ cdef class ModularSymbolNumerical:
 
     def _add_an_coefficients(self, int T):
         r"""
-        Computes the Fourier coefficients `a_n` for all `n`
+        Compute the Fourier coefficients `a_n` for all `n`
         up to and including `T`.
         Further doctests in _test_init
 
@@ -1428,7 +1429,7 @@ cdef class ModularSymbolNumerical:
         s = CC(0)
         n = number_of_terms
         # using Horner's rule
-        while n > 0 :
+        while n > 0:
             sig_check()
             s *= q
             s +=  CC(self._ans[n])/n
@@ -1486,7 +1487,7 @@ cdef class ModularSymbolNumerical:
         s = 0
         n = number_of_terms
         # using Horner's rule
-        while n > 0 :
+        while n > 0:
             sig_check()
             s *= q
             s += self._ans_num[n]
@@ -1516,7 +1517,7 @@ cdef class ModularSymbolNumerical:
 
         OUTPUT: a list of real numbers (in a pointer)
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.mod_sym_num \
             ....: import ModularSymbolNumerical
@@ -1549,7 +1550,7 @@ cdef class ModularSymbolNumerical:
             i += 1
         n = number_of_terms
         i = n % m
-        while n > 0 :
+        while n > 0:
             sig_check()
             res[i] *= qq
             res[i] +=  self._ans_num[n]
@@ -1589,7 +1590,7 @@ cdef class ModularSymbolNumerical:
 
         OUTPUT: a list of real numbers
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: from  sage.schemes.elliptic_curves.mod_sym_num \
             ....: import ModularSymbolNumerical
@@ -1631,7 +1632,7 @@ cdef class ModularSymbolNumerical:
             i += 1
         n = number_of_terms
         i = n % m
-        while n > 0 :
+        while n > 0:
             sig_check()
             res[i] *= qq
             res[i] += RR(self._ans[n])/n
@@ -1653,7 +1654,7 @@ cdef class ModularSymbolNumerical:
 
     def _get_truncation_and_prec(self, double y, double eps):
         r"""
-        Computes the numbers of terms needed in the sum approximating
+        Compute the numbers of terms needed in the sum approximating
         the integral, and the precision of each term needed.
 
         INPUT:
@@ -2321,7 +2322,7 @@ cdef class ModularSymbolNumerical:
             if method != "both":
                 return ans2
 
-        if method == "both" :
+        if method == "both":
             if not use_partials:
                 assert (ans - ans2).abs() < eps, ("Bug in modular symbols. "
                      + "The indirect and direct computation of the modular "
@@ -2348,7 +2349,7 @@ cdef class ModularSymbolNumerical:
 
         - ``eps`` - a postive real number
 
-        OUTPUT : a complex number
+        OUTPUT: a complex number
 
         EXAMPLES::
 
@@ -2384,7 +2385,7 @@ cdef class ModularSymbolNumerical:
             sage: M._from_r_to_rr_approx( 0/1, -35/144, 0.001) # abs tol 1e-5
             -6.22753204310913 - 1.31710951034592e-8*I
 
-        While this one goes via 0 ::
+        While this one goes via 0::
 
             sage: M._transportable_approx( 0/1, -7/31798, 0.001) #abs tol 1e-5
             -7.01577418382726e-9 - 7.40274138232394*I
@@ -2416,7 +2417,7 @@ cdef class ModularSymbolNumerical:
         rc0 = Cusp(r0)
         _, ga0 = rc0.is_gamma0_equiv(0, self._N, "matrix")
 
-        if c.abs() > ga0[1][0].abs() : # better at 0
+        if c.abs() > ga0[1][0].abs(): # better at 0
             ga = ga0
             c = ga[1][0]
             eN = -self._epsQs[self._N]
@@ -2427,7 +2428,7 @@ cdef class ModularSymbolNumerical:
         b = ga[0][1]
         d = ga[1][1]
 
-        if (a + d).abs() <= 2 :
+        if (a + d).abs() <= 2:
             # parabolic matrix has a fixed point among the cusps
             # and so we can simply give back 0
             # because ga has then finite order
@@ -2476,7 +2477,7 @@ cdef class ModularSymbolNumerical:
     def _value_ioo_to_r(self, Rational r, int sign = 0,
                         int use_partials=2):
         r"""
-        This function returns `[r]^+` or `[r]^-` for a rational `r`.
+        Return `[r]^+` or `[r]^-` for a rational `r`.
 
         INPUT:
 
@@ -2534,7 +2535,7 @@ cdef class ModularSymbolNumerical:
     def _value_r_to_rr(self, Rational r, Rational rr, int sign = 0,
                        int use_partials=2):
         r"""
-        This returns the rational number `[r']^+ - [r]^+`. However the
+        Return the rational number `[r']^+ - [r]^+`. However the
         computation may choose to work directly along the path from
         `r` to `r'` rather than going via `i\infty`, depending on what is
         faster.
@@ -2604,7 +2605,7 @@ cdef class ModularSymbolNumerical:
     @cached_method
     def transportable_symbol(self, Rational r, Rational rr, int sign = 0):
         r"""
-        Returns the symbol `[r']^+ - [r]^+` where `r'=\gamma(r)` for some
+        Return the symbol `[r']^+ - [r]^+` where `r'=\gamma(r)` for some
         `\gamma\in\Gamma_0(N)`. These symbols can be computed by transporting
         the path into the upper half plane close to one of the unitary cusps.
         Here we have implemented it only to move close to `i\infty` and `0`.
@@ -2666,7 +2667,7 @@ cdef class ModularSymbolNumerical:
     #@cached_method
     def _symbol_non_unitary(self, Rational r, int sign=0):
         r"""
-        Given a rational number `r` this computes the modular symbol
+        Given a rational number `r`, this computes the modular symbol
         `[r]^+` or `[r]^-`. There is no assumption here on the cusp `r`,
         so a rather slow method via transportable paths is chosen. This
         should only be used for small denominators that are non unitary
@@ -2790,7 +2791,7 @@ cdef class ModularSymbolNumerical:
             verbose("   integrating from i*oo to 0", level=3)
             r = Rational(0)
             return - self._value_ioo_to_r(r, sign, use_partials=0)
-        else :
+        else:
             # (c:d) = (u:v) but c and d are fairly small
             # in absolute value
             Mu = llgcd(u,N)
@@ -2813,7 +2814,7 @@ cdef class ModularSymbolNumerical:
                         d += N/Mu
                     d = d % N
                     # now (u:v) = (c:d) with c as small as possible.
-                else :
+                else:
                     d = Mv
                     c = llinvmod(v/Mv, NMM)
                     c *= u
@@ -3038,7 +3039,7 @@ cdef class ModularSymbolNumerical:
             sage: M._evaluate(3/11)
             1/2
 
-        This takes a bit longer ::
+        This takes a bit longer::
 
             sage: M = ModularSymbolNumerical(EllipticCurve("78a1"))
             sage: M._evaluate(1/38)
@@ -3120,7 +3121,7 @@ cdef class ModularSymbolNumerical:
     @cached_method
     def all_values_for_one_denominator(self, llong m, int sign=0):
         r"""
-        Given an integer ``m`` and a ``sign``, this return the
+        Given an integer ``m`` and a ``sign``, this returns the
         modular symbols `[a/m]` for all `a` coprime to `m`
         using partial sums.
         This is much quicker than computing them one by one.
@@ -3181,7 +3182,7 @@ cdef class ModularSymbolNumerical:
         RR = RealField(53)
         N = self._N
         Q = N / llgcd(m,N)
-        if llgcd(m,Q) > 1 :
+        if llgcd(m,Q) > 1:
             raise NotImplementedError("Only implemented for cusps that are "
                                       "in the Atkin-Lehner orbit of oo")
         #verbose("   compute all partial sums with denominator m=%s"%m,
@@ -3226,7 +3227,7 @@ cdef class ModularSymbolNumerical:
 
     def _twisted_symbol(self, Rational ra, int sign=0):
         r"""
-        Computes the value of the modular symbol by
+        Compute the value of the modular symbol by
         using the symbols of the quadratic twist.
 
         INPUT:
@@ -3444,7 +3445,7 @@ cdef class ModularSymbolNumerical:
 
     def _twisted_approx(self, Rational ra, int sign=0, int prec=20):
         r"""
-        Computes the approximative value of the modular
+        Compute the approximative value of the modular
         symbol by using the symbols of the quadratic twist.
 
         Note that _set_up_twist needs to be called first
@@ -3757,7 +3758,7 @@ def _test_against_table(range_of_conductors, list_of_cusps=[], verb=False):
 # the following code in sage gives n_0 such that
 # sigma0(n) < B * sqrt(n) for all n> n0 for a given B
 #
-#y = lambda n : number_of_divisors(n)/sqrt(n*1.)
+#y = lambda n: number_of_divisors(n)/sqrt(n*1.)
 #
 #def hidef(B):
 #    """finds all n with y(n) > B for some bound B"""

@@ -80,7 +80,7 @@ class IndefiniteIntegral(BuiltinFunction):
 
         TESTS:
 
-        Check that trac:`28842` is fixed::
+        Check that :trac:`28842` is fixed::
 
             sage: integrate(1/(x^4 + x^3 + 1), x)
             integrate(1/(x^4 + x^3 + 1), x)

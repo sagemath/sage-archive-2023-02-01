@@ -135,6 +135,8 @@ class TateAlgebraIdeal(Ideal_generic):
             return _groebner_basis_buchberger(self, prec, True)
         elif algorithm == "F5":
             return _groebner_basis_F5(self, prec, verbose=verbose)
+        # elif algorithm == "F5_vopot":
+        #     return _groebner_basis_F5_vopot(self, prec, verbose=verbose)
         else:
             raise NotImplementedError("only Buchberger algorithm is implemented so far")
 
@@ -730,116 +732,133 @@ def _groebner_basis_F5(I, prec, verbose):
 
 
     
-def _vopot_key(u,i,v):
-    # This doesn't really need v
-    return (u.valuation(),i,u)
+# def _vopot_key(u,i,v):
+#     # This doesn't really need v
+#     return (v.valuation(),i,u)
 
-def _regular_reduce_vopot(sgb,p,tail=True):
-    s,i,v = p
-    res = 0
-    key = _vopot_key(s,i,v) # independent of v
-    while v != 0:
-        sv = v.leading_term()
-        for S,I,V in sgb:
-            if V == 0: continue
-            sV = V.leading_term()
-            if sV.divides(sv):
-                t = sv // sV
-                if _vopot_key(t*S,I,V) < key:
-                    v -= t*V
-                    print("| regular top-reduction by (sign = %s, series = %s)" % (S,V))
-                    print("| new series is: %s" % v)
-                    break # Or maybe not?
-        if tail:
-            res += v.leading_term()
-            vv -= v.leading_term()
-        else:
-            res = v
-            break
-    return res
+# def _regular_reduce_vopot(sgb,p,tail=True,verbose=0):
+#     s,i,v = p
+#     res = v.parent()(0, v.precision_absolute())
+#     while v != 0:
+#         key = _vopot_key(s,i,v) 
+#         sv = v.leading_term()
+#         for S,I,V in sgb:
+#             if V == 0: continue
+#             sV = V.leading_term()
+#             if sV.divides(sv):
+#                 t = sv // sV
+#                 if _vopot_key(t*S,I,V) < key:
+#                     if verbose >= 3:
+#                         print("| reduction by lt={} sig=({},{})".format(V.leading_term(),S,I))
+#                     v -= t*V
+#                     if verbose >= 3 and v != 0:
+#                         print("| new lt={}".format(v.leading_term()))
+#                     break 
+#         else:
+#             if not tail:
+#                 res = v
+#                 break
+#             else:
+#                 res += sv
+#                 v -= sv
+#     return res
 
-def _Jpair_vopot(p1,p2):
-    u1,i1,v1 = p1
-    u2,i2,v2 = p2
-    if (v1 == 0 or v2 == 0) :
-        return
-    sv1 = v1.leading_term()
-    sv2 = v2.leading_term()
-    t = sv1.lcm()
-    t1 = t//sv1
-    t2 = t//sv2
-    su1 = t1*u1
-    su2 = t2*u2
-    # We can probably save half the computations above in a lot of cases
+# def _Jpair_vopot(p1,p2):
+#     u1,i1,v1 = p1
+#     u2,i2,v2 = p2
+#     if (v1 == 0 or v2 == 0) :
+#         return
+#     sv1 = v1.leading_term()
+#     sv2 = v2.leading_term()
+#     t = sv1.lcm(sv2)
+#     t1 = t//sv1
+#     t2 = t//sv2
+#     su1 = t1*u1
+#     su2 = t2*u2
+#     # We can probably save half the computations above in a lot of cases
 
-    vu1 = _vopot_key(u1,i1,v1)
-    vu2 = _vopot_key(u2,i2,v2)
-    if vu1 < vu2:
-        return su1,t1*v1
-    elif vu2 > vu1:
-        return su2,t2*v2
-    else:
-        return
+#     vu1 = _vopot_key(u1,i1,v1)
+#     vu2 = _vopot_key(u2,i2,v2)
+#     if vu1 > vu2:
+#         return su1,i1,t1*v1
+#     elif vu2 > vu1:
+#         return su2,i2,t2*v2
+#     else:
+#         return
     
-def _groebner_basis_F5_vopot(I,prec):
-    term_one = I.ring().monoid_of_terms().one()
-    gb0 = []
-    sgb = []
+# def _groebner_basis_F5_vopot(I,prec,verbose=0):
+#     term_one = I.ring().monoid_of_terms().one()
+#     gb0 = []
+#     sgb = []
 
-    F = I.gens()
-    l = len(F)
-    for i in range(l):
-        sgb.append((term_one,i,F[i]))
+#     F = I.gens()
+#     l = len(F)
+#     for i in range(l):
+#         sgb.append((term_one,i,F[i].add_bigoh(prec)))
 
-    Jpairs = []
-    for i in range(l):
-        for j in range(l):
-            J = _Jpair_vopot(sgb[i],sgb[j])
-            if J is not None:
-                Jpairs.append(J)
+#     Jpairs = []
+#     for i in range(l):
+#         for j in range(l):
+#             J = _Jpair_vopot(sgb[i],sgb[j])
+#             if J is not None:
+#                 Jpairs.append(J)
 
-    while Jpairs:
-        # This all can probably be made more efficient, for example by sorting
-        # the list every time we add a pair, or by inserting the pairs at the
-        # right position
-        idx = min(range(len(Jpairs)), key=lambda i: _vopot_key(Jpairs[i]))
-        s,i,v = Jpairs.pop(idx) 
-                
-        sv = v.leading_term()
-
-        # TODO: syzygy criterion
-
-        # TODO: F5 criterion maybe
-
-        # TODO: cover criterion
-
-        # Regular top and tail reduction
-        v = _regular_reduce_vopot(sgb,(s,i,v))
+#     while Jpairs:
+#         if verbose >= 1:
+#             print("#Jpairs={} #GB={} #syz={}".format(len(Jpairs),len(sgb),len(gb0)))
         
-        if v == 0:
-            # New syzygy
-            gb0.append(s)
-        else:
-            p = (s,i,v)
+#         # This all can probably be made more efficient, for example by sorting
+#         # the list every time we add a pair, or by inserting the pairs at the
+#         # right position
+#         idx = min(range(len(Jpairs)), key=lambda i: _vopot_key(*Jpairs[i]))
+#         s,i,v = Jpairs.pop(idx)
+                        
+#         sv = v.leading_term()
+
+#         if verbose >= 1:
+#             print("Processing signature ({},{}), lt={}".format(s,i,sv))
+
+#         # TODO: syzygy criterion
+
+#         # TODO: F5 criterion maybe
+
+#         # TODO: cover criterion
+
+#         # Regular top and tail reduction
+#         v = _regular_reduce_vopot(sgb,(s,i,v),verbose=verbose)
+        
+#         if v == 0:
+#             # New syzygy
+
+#             if verbose >= 1:
+#                 print("-> Reduction to 0")
             
-            # New J-pairs
-            for P in sgb:
-                J = _Jpair_vopot(p,P)
-                if J is not None:
-                    Jpairs.append(J)
+#             gb0.append(s)
+#         else:
+#             if verbose >= 1:
+#                 print("-> lt after reduction={}".format(v.leading_term()))
+                
+#             p = (s,i,v)
             
-            # New element in the basis
-            sgb.append(p)
+#             # New J-pairs
+#             for P in sgb:
+#                 J = _Jpair_vopot(p,P)
+#                 if J is not None:
+#                     Jpairs.append(J)
+            
+#             # New element in the basis
+#             sgb.append(p)
 
-            # TODO New F5 syzygy
-            ## Here we need to assign a signature which is known to be smaller
-            ## than all the (*,i) but larger than all the (*,i-1). A good choice
-            ## would be (1/p,i).
-            ##
-            ## Another possibility is to do nothing here and use the F5
-            ## criterion as it was originally described, by looking up in the
-            ## basis.
+            
+#             # TODO New F5 syzygy
+#             ## Here we need to assign a signature which is known to be smaller
+#             ## than all the (*,i) but larger than all the (*,i-1). A good choice
+#             ## would be (1/p,i).
+#             ##
+#             ## Another possibility is to do nothing here and use the F5
+#             ## criterion as it was originally described, by looking up in the
+#             ## basis.
 
-    gb = [v for (s,i,v) in sgb]
+#     gb = [v for (s,i,v) in sgb]
 
-    return gb
+#     return gb

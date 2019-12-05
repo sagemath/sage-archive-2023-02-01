@@ -31,7 +31,6 @@ from sage.combinat.partition import Partition
 from sage.rings.all import infinity
 from sage.misc.all import prod
 from sage.functions.other import factorial, binomial
-from sage.combinat.q_analogues import q_binomial, q_factorial
 
 class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, Sym):
@@ -267,13 +266,19 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
                 0
 
             """
-            if q is None:
+            from sage.combinat.q_analogues import q_binomial
+
+            def get_variable(ring, name):
                 try:
-                    self.base_ring()('q')
+                    ring(name)
                 except TypeError:
-                    q = self.base_ring()["q"].gen()
+                    return ring[name].gen()
                 else:
-                    raise ValueError("the variable q is in the base ring, pass it explicitly")
+                    raise ValueError("the variable %s is in the base ring, pass it explicitly" % name)
+
+            if q is None:
+                q = get_variable(self.base_ring(), 'q')
+
             if q == 1:
                 f = lambda partition: prod(binomial(n+part-1, part) for part in partition)
             elif n == infinity:
@@ -318,7 +323,9 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
               is to create the fraction field of polynomials in ``t``
               over the coefficient ring.
 
-            - ``q`` (default: 1) -- the value to use for `q`.
+            - ``q`` (default: 1) -- the value to use for `q`.  If
+              ``q`` is ``None`` create the fraction field of
+              polynomials in ``q`` over the coefficient ring.
 
             EXAMPLES::
 
@@ -345,14 +352,20 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
                 0
 
             """
+            from sage.combinat.q_analogues import q_factorial
+
+            def get_variable(ring, name):
+                try:
+                    ring(name)
+                except TypeError:
+                    return ring[name].gen()
+                else:
+                    raise ValueError("the variable %s is in the base ring, pass it explicitly" % name)
+
             if q == 1:
                 if t is None:
-                    try:
-                        self.base_ring()('t')
-                    except TypeError:
-                        t = self.base_ring()["t"].gen()
-                    else:
-                        raise ValueError("the variable t is in the base ring, pass it explicitly")
+                    t = get_variable(self.base_ring(), 't')
+
                 def f(partition):
                     n = 0
                     m = 1
@@ -364,13 +377,12 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
                 return self.parent()._apply_module_morphism(self, f, t.parent())
 
             if q is None and t is None:
-                Rq = self.base_ring()["q"].fraction_field()
-                q = Rq.gen()
-                t = Rq["t"].gen()
+                q = get_variable(self.base_ring(), 'q')
+                t = get_variable(q.parent(), 't')
             elif q is None:
-                q = t.parent()["q"].fraction_field().gen()
+                q = get_variable(t.parent(), 'q')
             elif t is None:
-                t = q.parent()["t"].gen()
+                t = get_variable(q.parent(), 't')
 
             def f(partition):
                 n = 0

@@ -5564,7 +5564,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
           is to create the fraction field of polynomials in ``t``
           over the coefficient ring.
 
-        - ``q`` (default: 1) -- the value to use for `q`.
+        - ``q`` (default: 1) -- the value to use for `q`.  If ``q``
+          is ``None`` create the fraction field of polynomials in
+          ``q`` over the coefficient ring.
 
         EXAMPLES::
 

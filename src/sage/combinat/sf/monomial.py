@@ -397,7 +397,9 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
               is to create the fraction field of polynomials in ``t``
               over the coefficient ring.
 
-            - ``q`` (default: 1) -- the value to use for `q`.
+            - ``q`` (default: 1) -- the value to use for `q`.  If
+              ``q`` is ``None`` create the fraction field of
+              polynomials in ``q`` over the coefficient ring.
 
             EXAMPLES::
 
@@ -420,14 +422,17 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 0
 
             """
+            def get_variable(ring, name):
+                try:
+                    ring(name)
+                except TypeError:
+                    return ring[name].gen()
+                else:
+                    raise ValueError("the variable %s is in the base ring, pass it explicitly" % name)
+
             if q == 1:
                 if t is None:
-                    try:
-                        self.base_ring()('t')
-                    except TypeError:
-                        t = self.base_ring()["t"].gen()
-                    else:
-                        raise ValueError("the variable t is in the base ring, pass it explicitly")
+                    t = get_variable(self.base_ring(), 't')
                 def f(partition):
                     n = 0
                     for part in partition:

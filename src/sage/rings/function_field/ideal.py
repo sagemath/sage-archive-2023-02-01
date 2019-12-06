@@ -2227,7 +2227,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
             _g1, _g2 = self._kummer_form
             g1 = F(_g1)
             g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
-            return (g1,g2)
+            if g2:
+                return (g1,g2)
+            else:
+                return (g1,)
 
         ### start to search for two generators
 

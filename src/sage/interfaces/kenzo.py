@@ -268,12 +268,12 @@ class KenzoSpectralSequence(KenzoObject):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere # optional -- kenzo
-            sage: S2 = Sphere(2)                           # optional -- kenzo
-            sage: EMS = S2.em_spectral_sequence()          # optional -- kenzo
-            sage: EMS.group(0, -1, 2)                      # optional -- kenzo
+            sage: from sage.interfaces.kenzo import Sphere # optional - kenzo
+            sage: S2 = Sphere(2)                           # optional - kenzo
+            sage: EMS = S2.em_spectral_sequence()          # optional - kenzo
+            sage: EMS.group(0, -1, 2)                      # optional - kenzo
             Additive abelian group isomorphic to Z
-            sage: EMS.group(0, -1, 3)                      # optional -- kenzo
+            sage: EMS.group(0, -1, 3)                      # optional - kenzo
             Trivial group
         """
         invs = spectral_sequence_group(self._kenzo, p, i, j).python()
@@ -296,16 +296,16 @@ class KenzoSpectralSequence(KenzoObject):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere   # optional -- kenzo
-            sage: S3 = Sphere(3)                             # optional -- kenzo
-            sage: L = S3.loop_space()                        # optional -- kenzo
-            sage: EMS = L.em_spectral_sequence()             # optional -- kenzo
-            sage: EMS.table(1, -5, -2, 5, 8)                 # optional -- kenzo
+            sage: from sage.interfaces.kenzo import Sphere   # optional - kenzo
+            sage: S3 = Sphere(3)                             # optional - kenzo
+            sage: L = S3.loop_space()                        # optional - kenzo
+            sage: EMS = L.em_spectral_sequence()             # optional - kenzo
+            sage: EMS.table(1, -5, -2, 5, 8)                 # optional - kenzo
               0   Z   Z + Z + Z   Z + Z + Z
               0   0   0           0
               0   0   Z           Z + Z
               0   0   0           0
-            sage: EMS.matrix(1, -2 ,8)                       # optional -- kenzo
+            sage: EMS.matrix(1, -2 ,8)                       # optional - kenzo
             [ 3  3  0]
             [-2  0  2]
             [ 0 -3 -3]
@@ -332,20 +332,20 @@ class KenzoSpectralSequence(KenzoObject):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere   # optional -- kenzo
-            sage: S3 = Sphere(3)                             # optional -- kenzo
-            sage: L = S3.loop_space()                        # optional -- kenzo
-            sage: EMS = L.em_spectral_sequence()             # optional -- kenzo
-            sage: EMS.table(1,-5,-2,5,8)                     # optional -- kenzo
+            sage: from sage.interfaces.kenzo import Sphere   # optional - kenzo
+            sage: S3 = Sphere(3)                             # optional - kenzo
+            sage: L = S3.loop_space()                        # optional - kenzo
+            sage: EMS = L.em_spectral_sequence()             # optional - kenzo
+            sage: EMS.table(1,-5,-2,5,8)                     # optional - kenzo
               0   Z   Z + Z + Z   Z + Z + Z
               0   0   0           0
               0   0   Z           Z + Z
               0   0   0           0
-            sage: EMS.matrix(1, -3, 8)                       # optional -- kenzo
+            sage: EMS.matrix(1, -3, 8)                       # optional - kenzo
             [ 2]
             [-2]
             [ 2]
-            sage: EMS.differential(1, -3, 8)                 # optional -- kenzo
+            sage: EMS.differential(1, -3, 8)                 # optional - kenzo
             Morphism from module over Integer Ring with invariants (0, 0, 0) to module with invariants (0,) that sends the generators to [(2), (-2), (2)]
         """
         domain = self.group(p, i, j)
@@ -372,10 +372,10 @@ class KenzoSpectralSequence(KenzoObject):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere # optional -- kenzo
-            sage: S2 = Sphere(2)                           # optional -- kenzo
-            sage: EMS = S2.em_spectral_sequence()          # optional -- kenzo
-            sage: EMS.table(0, -2, 2, -2, 2)               # optional -- kenzo
+            sage: from sage.interfaces.kenzo import Sphere # optional - kenzo
+            sage: S2 = Sphere(2)                           # optional - kenzo
+            sage: EMS = S2.em_spectral_sequence()          # optional - kenzo
+            sage: EMS.table(0, -2, 2, -2, 2)               # optional - kenzo
               0   Z   0   0   0
               0   0   0   0   0
               0   0   Z   0   0
@@ -659,10 +659,10 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere # optional -- kenzo
-            sage: S2 = Sphere(2)                           # optional -- kenzo
-            sage: EMS = S2.em_spectral_sequence()          # optional -- kenzo
-            sage: EMS.table(0, -2, 2, -2, 2)               # optional -- kenzo
+            sage: from sage.interfaces.kenzo import Sphere # optional - kenzo
+            sage: S2 = Sphere(2)                           # optional - kenzo
+            sage: EMS = S2.em_spectral_sequence()          # optional - kenzo
+            sage: EMS.table(0, -2, 2, -2, 2)               # optional - kenzo
               0   Z   0   0   0
               0   0   0   0   0
               0   0   Z   0   0
@@ -681,10 +681,10 @@ class KenzoSimplicialSet(KenzoChainComplex):
         EXAMPLES::
 
             sage: from sage.interfaces.kenzo import Sphere
-            sage: S3 = Sphere(3)                            # optional -- kenzo
-            sage: E = S3.sw_spectral_sequence()             # optional -- kenzo
-            sage: T = E.table(0, 0, 4, 0, 4)                # optional -- kenzo
-            sage: T                                         # optional -- kenzo
+            sage: S3 = Sphere(3)                            # optional - kenzo
+            sage: E = S3.sw_spectral_sequence()             # optional - kenzo
+            sage: T = E.table(0, 0, 4, 0, 4)                # optional - kenzo
+            sage: T                                         # optional - kenzo
               Z   0   0   Z   0
               0   0   0   0   0
               Z   0   0   Z   0
@@ -702,11 +702,11 @@ class KenzoSimplicialSet(KenzoChainComplex):
         EXAMPLES::
 
             sage: from sage.interfaces.kenzo import Sphere
-            sage: S2 = Sphere(2)                            # optional -- kenzo
-            sage: S3 = Sphere(3)                            # optional -- kenzo
-            sage: P = S2.cartesian_product(S3)              # optional -- kenzo
-            sage: E = P.serre_spectral_sequence()           # optional -- kenzo
-            sage: E.table(0, 0, 2, 0, 3)                    # optional -- kenzo
+            sage: S2 = Sphere(2)                            # optional - kenzo
+            sage: S3 = Sphere(3)                            # optional - kenzo
+            sage: P = S2.cartesian_product(S3)              # optional - kenzo
+            sage: E = P.serre_spectral_sequence()           # optional - kenzo
+            sage: E.table(0, 0, 2, 0, 3)                    # optional - kenzo
               Z   0   Z
               0   0   0
               0   0   0
@@ -832,6 +832,21 @@ def k2s_matrix(kmatrix):
 def s2k_matrix(smatrix):
     r"""
     Convert a matrix of Sage to an array of ECL.
+
+    INPUT:
+
+    - ``smatrix`` -- A matrix in Sage
+
+    OUTPUT:
+
+    - A :class:`EclObject`
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.kenzo import s2k_matrix      # optional - kenzo
+        sage: A = Matrix([[1,2,3],[3,2,1],[1,1,1]])
+        sage: s2k_matrix(A)                                     # optional - kenzo
+        <ECL: #2A((1 2 3) (3 2 1) (1 1 1))>
     """
     initcontents = []
     dimensions = smatrix.dimensions()
@@ -844,6 +859,23 @@ def s2k_dictmat(sdictmat):
     r"""
     Convert a dictionary in Sage, whose values are matrices, to an assoc list
     in ECL.
+
+    INPUT:
+
+    - ``sdictmat`` -- A dictionary in Sage
+
+    OUTPUT:
+
+    - A :class:`EclObject`
+
+    EXAMPLES::
+        sage: from sage.interfaces.kenzo import s2k_dictmat   # optional - kenzo
+        sage: A = Matrix([[1,2,3],[3,2,1],[1,1,1]])
+        sage: B = Matrix([[1,2],[2,1],[1,1]])
+        sage: d = {1 : A, 2 : B}
+        sage: s2k_dictmat(d)                                  # optional - kenzo
+        <ECL: ((2 . #2A((1 2) (2 1) (1 1))) (1 . #2A((1 2 3) (3 2 1) (1 1 1))))>
+
     """
     rslt = EclObject([])
     for k in sdictmat.keys():
@@ -854,6 +886,20 @@ def s2k_dictmat(sdictmat):
 def pairing(slist):
     r"""
     Convert a list of Sage (which has an even length) to an assoc list in ECL.
+
+    INPUT:
+
+    - ``slist`` -- A list in Sage
+
+    OUTPUT:
+
+    - A :class:`EclObject`
+
+    EXAMPLES::
+        sage: from sage.interfaces.kenzo import pairing   # optional - kenzo
+        sage: l = [1,2,3]
+        sage: pairing(l)                                  # optional - kenzo
+        <ECL: ((2 . 3))>
     """
     rslt = EclObject([])
     for k in range(len(slist) - 1, 0, -2):
@@ -1363,8 +1409,8 @@ class KenzoChainComplexMorphism(KenzoObject):
           composite of ``self`` and ``object`` is returned; if ``object`` is a KenzoChainComplex,
           the composite of ``self`` and the differential morphism of ``object`` is returned; if
           ``object`` is a tuple, the composite of ``self`` and the morphisms or the differential
-          morphisms of the given chain complexes in ``object`` is returned (if ``object``==None,
-          ``self`` morphism is returned).
+          morphisms of the given chain complexes in ``object`` is returned (if ``object`` is
+          None, ``self`` morphism is returned).
 
         EXAMPLES::
 

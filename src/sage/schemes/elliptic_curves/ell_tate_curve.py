@@ -11,7 +11,7 @@ the algebraic closure `\bar{\QQ}_p` are in bijection with
 the series `s_4(q)` and `s_6(q)` such that the
 `y^2+x y = x^3 + s_4(q) x+s_6(q)` curve is isomorphic to `E` over
 `\bar{\QQ}_p` (or over `\QQ_p` if the reduction is *split* multiplicative).
-There is `p`-adic analytic map from
+There is a `p`-adic analytic map from
 `\bar{\QQ}^{\times}_p` to this curve with kernel `q^{\ZZ}`.
 Points of good reduction correspond to points of valuation
 `0` in `\bar{\QQ}^{\times}_p`.
@@ -61,7 +61,7 @@ class TateCurve(SageObject):
     Tate's `p`-adic uniformisation of an elliptic curve with
     multiplicative reduction.
 
-    .. note::
+    .. NOTE::
 
        Some of the methods of this Tate curve only work when the
        reduction is split multiplicative over `\QQ_p`.
@@ -80,9 +80,9 @@ class TateCurve(SageObject):
         r"""
         INPUT:
 
-        - ``E`` - an elliptic curve over the rational numbers
+        - ``E`` -- an elliptic curve over the rational numbers
 
-        - ``p`` - a prime where `E` has multiplicative reduction,
+        - ``p`` -- a prime where `E` has multiplicative reduction,
                  i.e., such that `j(E)` has negative valuation.
 
         EXAMPLES::
@@ -167,7 +167,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -209,7 +209,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -246,7 +246,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -272,7 +272,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -295,7 +295,7 @@ class TateCurve(SageObject):
 
     def is_split(self):
         r"""
-        Returns True if the given elliptic curve has split multiplicative reduction.
+        Return True if the given elliptic curve has split multiplicative reduction.
 
         EXAMPLES::
 
@@ -316,9 +316,9 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``u`` - a non-zero `p`-adic number.
+        - ``u`` -- a non-zero `p`-adic number.
 
-        - ``prec`` - the `p`-adic precision, default is the relative precision of ``u``
+        - ``prec`` -- the `p`-adic precision, default is the relative precision of ``u``
           otherwise 20.
 
 
@@ -370,14 +370,13 @@ class TateCurve(SageObject):
         Returns the *mysterious* `\mathcal{L}`-invariant associated
         to an elliptic curve with split multiplicative reduction.
 
-        One
-        instance where this constant appears is in the exceptional
+        One instance where this constant appears is in the exceptional
         case of the `p`-adic Birch and Swinnerton-Dyer conjecture as
         formulated in [MTT1986]_. See [Col2004]_ for a detailed discussion.
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -408,7 +407,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -445,7 +444,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -468,9 +467,9 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``P`` - a point on the elliptic curve.
+        - ``P`` -- a point on the elliptic curve.
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -527,9 +526,9 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``u`` - a non-zero `p`-adic number.
+        - ``u`` -- a non-zero `p`-adic number.
 
-        - ``prec`` - the `p`-adic precision, default is the relative precision of ``u``
+        - ``prec`` -- the `p`-adic precision, default is the relative precision of ``u``
           otherwise 20.
 
         EXAMPLES::
@@ -583,7 +582,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         OUTPUT:
 

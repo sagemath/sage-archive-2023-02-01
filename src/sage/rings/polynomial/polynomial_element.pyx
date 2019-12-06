@@ -5908,7 +5908,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for i in range(2, len(e)):
             v = c[i].valuation(p)
             s = -(v-points[-1][1])/(e[i]-points[-1][0])
-            while len(slopes) > 0 and s >= slopes[-1][0]:
+            while slopes and s >= slopes[-1][0]:
                 slopes = slopes[:-1]
                 points = points[:-1]
                 s = -(v-points[-1][1])/(e[i]-points[-1][0])
@@ -7000,7 +7000,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))
             if len(v) < degree+1:
                 v.reverse()
-                v = [0]*(degree+1-len(v)) + v
+                v = [self.base_ring().zero()]*(degree+1-len(v)) + v
             elif len(v) > degree+1:
                 v = v[:degree+1]
                 v.reverse()

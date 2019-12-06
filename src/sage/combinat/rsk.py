@@ -58,7 +58,7 @@ available:
 - CoRSK insertion (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in
   [GR2018v5sol]_.
 - Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a
-  combiantion of row and column insertions defined in [Muth2019]_.
+  combination of row and column insertions defined in [Muth2019]_.
 
 Implementing your own insertion rule
 ------------------------------------

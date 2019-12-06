@@ -9,15 +9,15 @@ AUTHORS:
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 import os
@@ -342,12 +342,13 @@ class DocTestSource(object):
             # we want to randomize even when self.randorder = 0
             random.seed(self.options.randorder)
             randomized = []
-            while len(doctests) > 0:
-                i = random.randint(0, len(doctests)-1)
+            while doctests:
+                i = random.randint(0, len(doctests) - 1)
                 randomized.append(doctests.pop(i))
             return randomized, extras
         else:
             return doctests, extras
+
 
 class StringDocTestSource(DocTestSource):
     r"""
@@ -670,7 +671,7 @@ class FileDocTestSource(DocTestSource):
 
     def create_doctests(self, namespace):
         r"""
-        Returns a list of doctests for this file.
+        Return a list of doctests for this file.
 
         INPUT:
 
@@ -1131,8 +1132,8 @@ class PythonSource(SourceLanguage):
 
     def _neutralize_doctests(self, reindent):
         r"""
-        Returns a string containing the source of self, but with
-        doctests modified so they aren't tested.
+        Return a string containing the source of ``self``, but with
+        doctests modified so they are not tested.
 
         This function is used in creating doctests for ReST files,
         since docstrings of Python functions defined inside verbatim

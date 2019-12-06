@@ -2951,51 +2951,6 @@ class MPolynomialIdeal_macaulay2_repr:
         sage: I
         Ideal (x*y - z^2, y^2 - w^2) of Multivariate Polynomial Ring in x, y, z, w over Integer Ring
     """
-    def _macaulay2_(self, macaulay2=None):
-        """
-        Return Macaulay2 ideal corresponding to this ideal.
-
-        EXAMPLES::
-
-            sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
-            sage: I = ideal(x*y-z^2, y^2-w^2)  #indirect doctest
-            sage: macaulay2(I) # optional - macaulay2
-                          2   2    2
-            ideal (x*y - z , y  - w )
-
-        TESTS:
-
-        Check that a cached base ring is used (:trac:`28074`)::
-
-            sage: R.<x,y> = QQ[]
-            sage: R1 = macaulay2(R)                        # optional - macaulay2
-            sage: _ = macaulay2('ZZ[x,y]')                 # optional - macaulay2
-            sage: R2 = macaulay2(R.ideal(y^2 - x)).ring()  # optional - macaulay2
-            sage: R1._operator('===', R2)                  # optional - macaulay2
-            true
-        """
-        if macaulay2 is None:
-            macaulay2 = macaulay2_default
-        try:
-            I = self.__macaulay2[macaulay2]
-            I._check_valid()
-            return I
-        except KeyError:
-            pass
-        except AttributeError:
-            self.__macaulay2 = {}
-        except ValueError:
-            pass
-
-        R = self.ring()
-        macaulay2.use(R._macaulay2_(macaulay2))
-
-        gens = [repr(x) for x in self.gens()]
-        if len(gens) == 0:
-            gens = ['0']
-        z = macaulay2.ideal(gens)
-        self.__macaulay2[macaulay2] = z
-        return z
 
     def _groebner_basis_macaulay2(self, strategy=None):
         r"""
@@ -3946,7 +3901,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: A9=PolynomialRing(QQ,9,'x') # optional - giacpy_sage
             sage: I9=sage.rings.ideal.Katsura(A9) # optional - giacpy_sage
             sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy_sage, long time (3s)
-            Running a probabilistic check for the reconstructed Groebner basis...
+            ...Running a probabilistic check for the reconstructed Groebner basis...
             Polynomial Sequence with 143 Polynomials in 9 Variables
 
         The list of available Giac options is provided at :func:`sage.libs.giac.groebner_basis`.

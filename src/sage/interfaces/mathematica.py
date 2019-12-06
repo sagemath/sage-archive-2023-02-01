@@ -609,10 +609,10 @@ remote connection to a server running Mathematica -- for hints, type
         self.eval('SetDirectory["%s"]'%dir)
 
     def _true_symbol(self):
-        return '         True'
+        return 'True'
 
     def _false_symbol(self):
-        return '         False'
+        return 'False'
 
     def _equality_symbol(self):
         return '=='
@@ -976,6 +976,28 @@ class MathematicaElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
+    def __bool__(self):
+        """
+        Return whether this Mathematica element is not identical to ``False``.
+
+        EXAMPLES::
+
+            sage: bool(mathematica(True))  # optional - mathematica
+            True
+            sage: bool(mathematica(False))  # optional - mathematica
+            False
+
+        In Mathematica, `0` cannot be used to express falsity::
+
+            sage: bool(mathematica(0))  # optional - mathematica
+            True
+        """
+        P = self._check_valid()
+        cmd = '%s===%s' % (self._name, P._false_symbol())
+        return P.eval(cmd).strip() != P._true_symbol()
+
+    __nonzero__ = __bool__
 
     def N(self, precision=None):
         r"""

@@ -87,12 +87,14 @@ class MPolynomialRing_macaulay2_repr:
         """
         EXAMPLES::
 
-            sage: PolynomialRing(QQ, 'x', 2, implementation='generic')._macaulay2_init_()
-            'QQ[symbol x0,symbol  x1, MonomialSize=>16, MonomialOrder=>GRevLex]'
+            sage: PolynomialRing(QQ, 'x', 2, implementation='generic')._macaulay2_init_()   # optional - macaulay2
+            'sage...[symbol x0,symbol  x1, MonomialSize=>16, MonomialOrder=>GRevLex]'
         """
-        from sage.interfaces.macaulay2 import _macaulay2_input_ring
-        return _macaulay2_input_ring(self.base_ring(), self.gens(),
-                                     self.term_order().macaulay2_str())
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens(),
+                                               self.term_order().macaulay2_str())
 
 
 class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_singular_repr, MPolynomialRing_base):

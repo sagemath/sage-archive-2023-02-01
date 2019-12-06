@@ -1030,8 +1030,10 @@ cdef class BooleanFunction(SageObject):
 
     def algebraic_immunity(self, annihilator = False):
         """
-        Returns the algebraic immunity of the Boolean function. This is the smallest
-        integer `i` such that there exists a non trivial annihilator for `self` or `~self`.
+        Return the algebraic immunity of the Boolean function.
+
+        This is the smallest integer `i` such that there exists a non
+        trivial annihilator for `self` or `~self`.
 
         INPUT:
 
@@ -1420,9 +1422,10 @@ cdef class BooleanFunctionIterator:
 # cryptographic Boolean function.        #
 ##########################################
 
+
 def random_boolean_function(n):
     """
-    Returns a random Boolean function with `n` variables.
+    Return a random Boolean function with `n` variables.
 
     EXAMPLES::
 

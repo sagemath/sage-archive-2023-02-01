@@ -718,9 +718,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         FreeModuleTensor._del_derived(self)
         TensorField._del_derived(self)
         if del_restrictions:
-            self._restrictions.clear()
-            self._extensions_graph = {self._domain: self}
-            self._restrictions_graph = {self._domain: self}
+            self._del_restrictions()
 
     def _set_comp_unsafe(self, basis=None):
         r"""
@@ -1131,7 +1129,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # components on a subdomain:
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.comp(basis=basis, from_basis=from_basis)
-
 
     def _common_coord_frame(self, other):
         r"""
@@ -1814,11 +1811,11 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: f = M.scalar_field({X: x+y}, name='f')
             sage: s = a.__mul__(f); s
-            Tensor field of type (0,2) on the 2-dimensional differentiable
+            Tensor field f*a of type (0,2) on the 2-dimensional differentiable
              manifold M
             sage: s.display()
-            (x^2 + (x + 1)*y + x) dx*dx + (2*x + 2*y) dx*dy + (x*y + y^2) dy*dx
-             + (-x^3 - x^2*y) dy*dy
+            f*a = (x^2 + (x + 1)*y + x) dx*dx + (2*x + 2*y) dx*dy
+             + (x*y + y^2) dy*dx + (-x^3 - x^2*y) dy*dy
             sage: s == f*a
             True
 

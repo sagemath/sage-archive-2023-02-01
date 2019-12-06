@@ -100,7 +100,7 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python >= 2.6.
+- **python**: Python >= 3.6.
 
 
 Libraries
@@ -471,7 +471,7 @@ or similar commands.
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    $ sage -f python2  # rebuild Python2
+    $ sage -f python3  # rebuild Python3
     $ make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
@@ -628,7 +628,7 @@ Running Sage from a directory with spaces in its name will also fail.
        $ sage
        ┌────────────────────────────────────────────────────────────────────┐
        │ SageMath version 8.8, Release Date: 2019-06-26                     │
-       │ Using Python 2.7.15. Type "help()" for help.                       │
+       │ Using Python 3.7.3. Type "help()" for help.                        │
        └────────────────────────────────────────────────────────────────────┘
        sage:
 
@@ -808,7 +808,7 @@ Starting from a fresh Sage tarball::
 And if you've already built Sage::
 
     $ ./sage -i openssl
-    $ ./sage -f python2
+    $ ./sage -f python3
     $ make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
@@ -1005,8 +1005,8 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python2``, then always run the test suite for
-  MPIR, but always skip the test suite for Python 2.
+  So if this is set to ``mpir,!python3``, then always run the test suite for
+  MPIR, but always skip the test suite for Python 3.
 
   .. note::
 
@@ -1431,4 +1431,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in August 2019 (Sage 8.8).**
+**This page was last updated in August 2019 (Sage 9.0).**

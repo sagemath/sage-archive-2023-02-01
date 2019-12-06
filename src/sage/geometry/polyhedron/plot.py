@@ -391,8 +391,14 @@ class Projection(SageObject):
             sage: pproj = Projection(p)
             sage: from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
             sage: pproj_stereo = pproj.__call__(proj = ProjectionFuncStereographic([1,2,3]))
-            sage: pproj_stereo.polygons[0]
-            [6, 1, 8]
+            sage: sorted(pproj_stereo.polygons)
+            [[2, 0, 9],
+             [3, 1, 10],
+             [4, 0, 8],
+             ...
+             [11, 1, 3],
+             [11, 3, 7],
+             [11, 7, 9]]
         """
         self.transformed_coords = Sequence([proj(p) for p in self.coords])
         self._init_dimension()

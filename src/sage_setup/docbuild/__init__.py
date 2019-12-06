@@ -509,21 +509,47 @@ class ReferenceBuilder(AllBuilder):
         sage_makedirs(d)
         return d
 
+    def _refdir(self, lang):
+        return os.path.join(SAGE_DOC_SRC, lang, self.name)
+
+    def _build_bibliography(self, lang, format, *args, **kwds):
+        """
+        Build the bibliography only
+
+        The bibliography references.aux is referenced by the other
+        manuals and needs to be built first.
+        """
+        refdir = self._refdir(lang)
+        references = [
+            (doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)
+            if doc == 'reference/references'
+        ]
+        build_many(build_ref_doc, references)
+
+    def _build_everything_except_bibliography(self, lang, format, *args, **kwds):
+        """
+        Build the entire reference manual except the bibliography
+        """
+        refdir = self._refdir(lang)
+        non_references = [
+            (doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)
+            if doc != 'reference/references'
+        ]
+        build_many(build_ref_doc, non_references)
+
     def _wrapper(self, format, *args, **kwds):
         """
         Builds reference manuals.  For each language, it builds the
         top-level document and its components.
         """
         for lang in LANGUAGES:
-            refdir = os.path.join(SAGE_DOC_SRC, lang, self.name)
+            refdir = self._refdir(lang)
             if not os.path.exists(refdir):
                 continue
-            output_dir = self._output_dir(format, lang)
-            L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            if format == 'pdf' and lang == 'en':
-                logger.warning('Building bibliography')
-                getattr(ReferenceSubBuilder('reference/references', 'en'), 'pdf')(*args, **kwds)
-            build_many(build_ref_doc, L)
+            logger.info('Building bibliography')
+            self._build_bibliography(lang, format, *args, **kwds)
+            logger.info('Bibliography finished, building dependent manuals')
+            self._build_everything_except_bibliography(lang, format, *args, **kwds)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -553,6 +579,7 @@ class ReferenceBuilder(AllBuilder):
                          'sage.css', 'sageicon.png',
                          'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
+                output_dir = self._output_dir(format, lang)
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
                     try:

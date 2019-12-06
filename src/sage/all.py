@@ -302,7 +302,10 @@ def _write_started_file():
 
 
 import warnings
-warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+try:
+    warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+except ValueError:
+    pass   # SAGE_DEBUG=yes builds do not install default warning filters, ignore
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
@@ -312,8 +315,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
     message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
-    message=r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
-
+    message=r'[\s\S]*See https\?://trac\.sagemath\.org/[0-9]* for details.')
 
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed

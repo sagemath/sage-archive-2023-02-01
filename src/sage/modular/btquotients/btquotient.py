@@ -233,7 +233,7 @@ class DoubleCosetReduction(SageObject):
 
     def sign(self):
         r"""
-        The direction of the edge.
+        Return the direction of the edge.
 
         The Bruhat-Tits quotients are directed graphs but we only store
         half the edges (we treat them more like unordered graphs).
@@ -241,9 +241,9 @@ class DoubleCosetReduction(SageObject):
         representative in the quotient (sign = +1), or to the
         opposite of one of the representatives (sign = -1).
 
-        OUTPUT :
+        OUTPUT:
 
-        an int that is +1 or -1 according to the sign of self
+        an int that is +1 or -1 according to the sign of ``self``
 
         EXAMPLES::
 
@@ -3385,7 +3385,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if twom is None:
             twom = v1.determinant().valuation(p) + v2.determinant().valuation(p)
         if check_parity:
-            if twom % 2 != 0:
+            if twom % 2:
                 self._cached_equivalent[(v1, v2, as_edges)] = None
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)

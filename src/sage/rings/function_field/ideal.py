@@ -2219,6 +2219,12 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
             sage: I = O.ideal(x^2,x*y,x+y)
             sage: I._gens_two()
             (x, y)
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: _.<Y> = K[]
+            sage: L.<y> = K.extension(Y-x)
+            sage: y.zeros()[0].prime_ideal()._gens_two()
+            (x,)
         """
         O = self.ring()
         F = O.fraction_field()

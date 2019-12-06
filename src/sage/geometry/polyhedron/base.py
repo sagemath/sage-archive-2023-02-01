@@ -5147,14 +5147,8 @@ class Polyhedron_base(Element):
         ambient_dim = self.ambient_dim()
         polytope_dim = self.dimension()
 
-        if ambient_dim != polytope_dim:
-            start_polar = parent.element_class(
-                    parent, [((self - barycenter).polar().vertices()), [], []], None)
-            polar = parent.element_class(
-                    parent, [((self - barycenter).polar().vertices()), [], []], None)
-        else:
-            start_polar = (self - barycenter).polar()
-            polar = (self - barycenter).polar()
+        start_polar = (self - barycenter).polar(in_affine_span=True)
+        polar = (self - barycenter).polar(in_affine_span=True)
 
         for i in range(self.dimension() - 1):
 
@@ -5191,10 +5185,7 @@ class Polyhedron_base(Element):
 
             polar = parent.element_class(parent, None, [new_ieqs, new_eqns])
 
-        if ambient_dim != polytope_dim:
-            return (parent.element_class(parent, [polar.polar().vertices(), [], []], None)) + barycenter
-        else:
-            return (polar.polar()) + barycenter
+        return (polar.polar(in_affine_span=True)) + barycenter
 
     @cached_method
     def face_lattice(self):
@@ -5666,13 +5657,17 @@ class Polyhedron_base(Element):
                     dg.add_edge(vi, vj)
         return dg
 
-    def polar(self):
+    def polar(self, in_affine_span=False):
         """
         Return the polar (dual) polytope.
 
         The original vertices are translated so that their barycenter
         is at the origin, and then the vertices are used as the
         coefficients in the polar inequalities.
+
+        The polytope must be full-dimensional, unless ``in_affine_span`` is ``True``.
+        If ``in_affine_span`` is ``True``, then the operation will be performed in the
+        linear/affine span of the polyhedron (after translation).
 
         EXAMPLES::
 
@@ -5688,6 +5683,20 @@ class Polyhedron_base(Element):
             sage: octahedron == cube_dual
             True
 
+        ``in_affine_span`` somewhat ignores equations, performing the polar in the
+        spanned subspace (after translating barycenter to origin)::
+
+            sage: P = polytopes.simplex(3, base_ring=QQ)
+            sage: P.polar(in_affine_span=True)
+            A 3-dimensional polyhedron in QQ^4 defined as the convex hull of 4 vertices
+
+        Embedding the polytope in a higher dimension, commutes with polar in this case::
+
+            sage: point = Polyhedron([[0]])
+            sage: P = polytopes.cube().change_ring(QQ)
+            sage: (P*point).polar(in_affine_span=True) == P.polar()*point
+            True
+
         TESTS::
 
             Check that :trac:`25081` is fixed::
@@ -5695,12 +5704,23 @@ class Polyhedron_base(Element):
             sage: C = polytopes.hypercube(4,backend='cdd')
             sage: C.polar().backend()
             'cdd'
+
+            Check that :trac:`28850` is fixed::
+
+            sage: P = polytopes.simplex(3, base_ring=QQ)
+            sage: P.polar()
+            Traceback (most recent call last):
+            ...
+            AssertionError: must be full-dimensional
         """
-        assert self.is_compact(), "Not a polytope."
+        assert self.is_compact(), "not a polytope"
+        if not in_affine_span:
+            assert self.dim() == self.ambient_dim(), "must be full-dimensional"
+
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
         parent = self.parent().base_extend(self.center().parent())
-        return parent.element_class(parent, None, [[[1] + list(v) for v in verts], []])
+        return parent.element_class(parent, None, [[[1] + list(v) for v in verts], self.equations()])
 
     def is_self_dual(self):
         r"""

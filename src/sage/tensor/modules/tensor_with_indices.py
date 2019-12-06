@@ -202,16 +202,17 @@ class TensorWithIndices(SageObject):
         -t^ij_kl
         sage: a["^(..)"]["ij"] == 1/2*(a["^ij"] + a["^ji"])
         True
-        sage: a["^(..)"]["ji"] == 1/2*(a["^ij"] + a["^ji"]) # The output indices are the one of the left term of the addition
+
+    The output indices are the ones of the left term of the addition::
+
+        sage: a["^(..)"]["ji"] == 1/2*(a["^ij"] + a["^ji"])
         False
         sage: (a*a)["^..(ij)"]["abij"] == 1/2*((a*a)["^abij"] + (a*a)["^abji"])
         True
         sage: c = 1/2*((a*a)["^abij"] + (a*a)["^ijab"])
         sage: from itertools import product
-        sage: all(c[i,j,k,l]==c[k,l,i,j] for i,j,k,l in product(range(3),repeat=4))
+        sage: all(c[i,j,k,l] == c[k,l,i,j] for i,j,k,l in product(range(3),repeat=4))
         True
-
-
 
     Conventions are checked and non acceptable indices raise ``ValueError``,
     for instance::
@@ -239,14 +240,9 @@ class TensorWithIndices(SageObject):
 
     """
 
-
     @staticmethod
-    def _parse_indices(
-        indices,
-        tensor_type=None,
-        allow_contraction=True,
-        allow_symmetries=True
-    ):
+    def _parse_indices(indices, tensor_type=None, allow_contraction=True,
+                       allow_symmetries=True):
         r"""
         Parses index notation for tensors, enforces conventions and returns
         indices.
@@ -258,13 +254,13 @@ class TensorWithIndices(SageObject):
         INPUT:
 
         - ``indices`` -- a string of index notation
-        - ``tensor_type`` -- (default : ``None``) A valid tensor type
-            (a couple of non-negative integers). If not ``None``, the indices
-            are checked to have the correct type.
+        - ``tensor_type`` -- (default : ``None``) a valid tensor type
+          (a couple of non-negative integers). If not ``None``, the indices
+          are checked to have the correct type.
         - ``allow_contraction`` -- (default : ``True``) Determines if
-            repeated indices are allowed in the index notation.
+          repeated indices are allowed in the index notation.
         - ``allow_symmetries`` -- (default : ``True``) Determines if
-            symmetries ()/[] are allowed in the index notation.
+          symmetries ()/[] are allowed in the index notation.
 
         OUTPUT:
 
@@ -312,8 +308,8 @@ class TensorWithIndices(SageObject):
             Traceback (most recent call last):
             ...
             IndexError: no symmetry allowed
-        """
 
+        """
         # Suppress all '{' and '}' coming from LaTeX notations:
         indices = indices.replace('{','').replace('}','')
 
@@ -381,6 +377,8 @@ class TensorWithIndices(SageObject):
 
             sage: TestSuite(ti).run(skip="_test_pickling")
 
+        ::
+
             sage: e = M.basis('e')
             sage: t[:] = [[[1,2,3], [-4,5,6], [7,8,-9]],
             ....:         [[10,-11,12], [13,14,-15], [16,17,18]],
@@ -389,7 +387,6 @@ class TensorWithIndices(SageObject):
             sage: TestSuite(ti).run()
 
         """
-
         self._tensor = tensor # may be changed below
         self._changed = False # indicates whether self contains an altered
                               # version of the original tensor (True if
@@ -552,6 +549,7 @@ class TensorWithIndices(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: no common basis for the comparison
+
         """
         if not isinstance(other, TensorWithIndices):
             return False
@@ -573,6 +571,7 @@ class TensorWithIndices(SageObject):
             False
             sage: ti != TensorWithIndices(t, 'ac_b')
             True
+
         """
         return not self == other
 
@@ -684,8 +683,8 @@ class TensorWithIndices(SageObject):
             sage: 1/4*(T["ijkl_abcd"] + T["jikl_abcd"] + T["ijkl_abdc"]\
              + T["jikl_abdc"]) == T["(..).._..(..)"]["ijkl_abcd"]
             True
-        """
 
+        """
         # Check tensor types are compatible
         if self._tensor.tensor_type() != other._tensor.tensor_type():
             raise ValueError("Tensors are not of the same type")
@@ -766,8 +765,7 @@ class TensorWithIndices(SageObject):
             True
 
         """
-
-        return self+(-other)
+        return self + (-other)
 
     def __getitem__(self, args):
         r"""
@@ -810,9 +808,7 @@ class TensorWithIndices(SageObject):
             [5 7 9]
 
         """
-
-
-        if isinstance(args,str):
+        if isinstance(args, str):
             result = +self
             result.__init__(self._tensor, args)
             return result
@@ -938,7 +934,7 @@ class TensorWithIndices(SageObject):
             canonicalize = False
         )
         # Compute a decomposition of the permutation as a product of swaps
-        decomposition_as_string = perm_group([x+1 for x in  permutation]).word_problem(
+        decomposition_as_string = perm_group([x+1 for x in permutation]).word_problem(
             perm_group.gens(),
             display=False
         )[0]

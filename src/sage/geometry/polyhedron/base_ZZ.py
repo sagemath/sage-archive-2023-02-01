@@ -56,7 +56,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         r"""
         TESTS:
 
-        Removes the Ehrhart quasipolynomial from the list of methods for the 
+        Removes the Ehrhart quasipolynomial from the list of methods for the
         lattice polyhedron::
 
             sage: P = polytopes.cube()
@@ -491,16 +491,24 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
             sage: p.polar().base_ring()
             Integer Ring
+
+        TESTS:
+
+        Test that :trac:`28551` is fixed::
+
+            sage: polytopes.cube(backend='normaliz').polar().backend()  # optional - pynormaliz
+            'normaliz'
         """
         if not self.has_IP_property():
             raise ValueError('The polytope must have the IP property.')
 
         vertices = [ ieq.A()/ieq.b() for
                      ieq in self.inequality_generator() ]
+
         if all( all(v_i in ZZ for v_i in v) for v in vertices):
-            return Polyhedron(vertices=vertices, base_ring=ZZ)
+            return Polyhedron(vertices=vertices, base_ring=ZZ, backend=self.backend())
         else:
-            return Polyhedron(vertices=vertices, base_ring=QQ)
+            return Polyhedron(vertices=vertices, base_ring=QQ, backend=self.backend())
 
     @cached_method
     def is_reflexive(self):

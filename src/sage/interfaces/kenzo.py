@@ -670,7 +670,8 @@ class KenzoSimplicialSet(KenzoChainComplex):
               0   0   0   0   0
         """
         if self.homology(1).invariants():
-            raise ValueError("Eilenberg-Moore spectral sequence implemented only for 1-reduced simplicial sets")
+            raise ValueError("""Eilenberg-Moore spectral sequence implemented 
+                only for 1-reduced simplicial sets""")
         return KenzoSpectralSequence(eilenberg_moore_spectral_sequence(self._kenzo))
 
     def sw_spectral_sequence(self):
@@ -1395,7 +1396,8 @@ class KenzoChainComplexMorphism(KenzoObject):
 
     def sum(self, object=None):
         r"""
-        Return a morphism, sum of the morphism ``self`` and the morphism(s) given by the parameter ``object``.
+        Return a morphism, sum of the morphism ``self`` and the morphism(s) given 
+        by the parameter ``object``.
 
         INPUT:
 
@@ -1469,7 +1471,8 @@ class KenzoChainComplexMorphism(KenzoObject):
 
         - A :class:`KenzoChainComplexMorphism`, difference of the morphism ``self`` and the
           morphism(s) given by ``object`` (if ``object`` is None, ``self`` morphism is returned).
-          For example, if ``object`` = (mrph1, mrph2, mrph3) the result is ``self`` - mrph1 - mrph2 - mrph3.
+          For example, if ``object`` = (mrph1, mrph2, mrph3) the result is 
+          ``self`` - mrph1 - mrph2 - mrph3.
 
         EXAMPLES::
 
@@ -1603,16 +1606,36 @@ class KenzoChainComplexMorphism(KenzoObject):
         """
         source = source or self.source_complex()
         target = target or self.target_complex()
-        return KenzoChainComplexMorphism(dstr_change_sorc_trgt_aux(self._kenzo, source._kenzo, target._kenzo))
+        return KenzoChainComplexMorphism(
+            dstr_change_sorc_trgt_aux(self._kenzo, source._kenzo, target._kenzo))
 
 
 def build_morphism(source_complex, target_complex, degree, algorithm, strategy, orgn):
-    return KenzoChainComplexMorphism(build_mrph_aux(source_complex._kenzo, target_complex._kenzo, degree, algorithm, ":"+strategy, orgn))
+    return KenzoChainComplexMorphism(
+        build_mrph_aux(source_complex._kenzo, target_complex._kenzo,
+                       degree, algorithm, ":"+strategy, orgn))
 
 
 def morphism_dictmat(morphism):
     r"""
     Computes a list of matrices in ECL associated to a morphism in Sage.
+
+    INPUT:
+
+    - ``morphism`` -- A morphism of chain complexes
+
+    OUTPUT:
+
+    - A :class:`EclObject`
+
+    EXAMPLES::
+
+        sage: X = simplicial_complexes.Simplex(1)
+        sage: Y = simplicial_complexes.Simplex(0)
+        sage: g = Hom(X,Y)({0:0, 1:0})
+        sage: f = g.associated_chain_complex_morphism()
+        sage: morphism_dictmat(f)                           # optional - kenzo
+        <ECL: ((2 . #2A()) (1 . #2A()) (0 . #2A((1 1))))>
     """
     rslt = EclObject([])
     source = morphism.domain()
@@ -1650,12 +1673,32 @@ def KChainComplexMorphism(morphism):
     source = KChainComplex(morphism.domain())
     target = KChainComplex(morphism.codomain())
     matrix_list = morphism_dictmat(morphism)
-    return KenzoChainComplexMorphism(kmorphismchaincomplex_aux1(matrix_list, source._kenzo, target._kenzo))
+    return KenzoChainComplexMorphism(
+        kmorphismchaincomplex_aux1(matrix_list, source._kenzo, target._kenzo))
 
 
 def s2k_listofmorphisms(l):
     r"""
     Computes a list of morphisms of chain complexes in Kenzo from a list of morphisms in Sage.
+
+    INPUT:
+
+    - ``l`` -- A list of morphisms of chain complexes
+
+    OUTPUT:
+
+    - A :class:`EclObject`
+
+    EXAMPLES::
+
+        sage: C1 = ChainComplex({1: matrix(ZZ, 0, 2, [])}, degree_of_differential=-1)
+        sage: C2 = ChainComplex({1: matrix(ZZ, 1, 2, [1, 0])},degree_of_differential=-1)
+        sage: C3 = ChainComplex({0: matrix(ZZ, 0,2 , [])},degree_of_differential=-1)
+        sage: M1 = Hom(C2,C1)({1: matrix(ZZ, 2, 2, [2, 0, 0, 2])})
+        sage: M2 = Hom(C3,C2)({0: matrix(ZZ, 1, 2, [2, 0])})
+        sage: l = [M1, M2]
+        sage: s2k_listofmorphisms(l)                                 # optional - kenzo
+        <ECL: ([K16 Morphism (degree 0): K1 -> K3] [K17 Morphism (degree 0): K6 -> K1])>
     """
     rslt = EclObject([])
     for m in l:
@@ -1673,7 +1716,7 @@ def BicomplexSpectralSequence(l):
 
     OUTPUT:
 
-    - A :class:`KenzoChainComplexMorphism`
+    - A :class:`KenzoSpectralSequence`
 
     EXAMPLES::
 
@@ -1683,14 +1726,14 @@ def BicomplexSpectralSequence(l):
         sage: M1 = Hom(C2,C1)({1: matrix(ZZ, 2, 2, [2, 0, 0, 2])})
         sage: M2 = Hom(C3,C2)({0: matrix(ZZ, 1, 2, [2, 0])})
         sage: l = [M1, M2]
-        sage: E = BicomplexSpectralSequence(l)
-        sage: E.group(2,0,1)
+        sage: E = BicomplexSpectralSequence(l)                        # optional - kenzo
+        sage: E.group(2,0,1)                                          # optional - kenzo
         Additive abelian group isomorphic to Z/2 + Z
-        sage: E.table(3,0,2,0,2)
+        sage: E.table(3,0,2,0,2)                                      # optional - kenzo
         0           0   0
         Z/2 + Z/4   0   0
         0           0   Z
-        sage: E.matrix(2,2,0)
+        sage: E.matrix(2,2,0)                                         # optional - kenzo
         [ 0 -4]
         [ 0  0]
     """

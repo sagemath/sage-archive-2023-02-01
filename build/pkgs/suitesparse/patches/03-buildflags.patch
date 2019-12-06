@@ -48,7 +48,7 @@ index 0a09188..fd1c0b0 100644
                      -current_version $(VERSION) \
 -                    -shared -undefined dynamic_lookup
 +                    -shared -undefined dynamic_lookup \
-+                    -install_name $(INSTALL_LIB)/$(SO_MAIN)
++                    -install_name $(INSTALL)/lib/$(SO_MAIN)
          # When a Mac *.dylib file is moved, this command is required
          # to change its internal name to match its location in the filesystem:
          SO_INSTALL_NAME = install_name_tool -id

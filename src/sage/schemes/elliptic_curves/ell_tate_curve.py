@@ -367,7 +367,7 @@ class TateCurve(SageObject):
 
     def L_invariant(self, prec=20):
         r"""
-        Returns the *mysterious* `\mathcal{L}`-invariant associated
+        Return the *mysterious* `\mathcal{L}`-invariant associated
         to an elliptic curve with split multiplicative reduction.
 
         One instance where this constant appears is in the exceptional
@@ -632,7 +632,8 @@ class TateCurve(SageObject):
 
     def padic_regulator(self, prec=20):
         r"""
-        Compute the canonical `p`-adic regulator on the extended Mordell-Weil group as in [MTT1986]_
+        Compute the canonical `p`-adic regulator on the extended 
+        Mordell-Weil group as in [MTT1986]_
         (with the correction of [Wer1998]_ and sign convention in [SW2013]_.)
 
         The `p`-adic Birch and Swinnerton-Dyer conjecture predicts

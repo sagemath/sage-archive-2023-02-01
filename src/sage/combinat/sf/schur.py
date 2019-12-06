@@ -597,6 +597,27 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
               the default is to create a ring (or fraction field) of
               polynomials in ``q`` over the coefficient ring.
 
+            For `q=1` we use the formula from Corollary 7.21.4 of [EnumComb2]_
+
+            .. MATH::
+
+                ps_{n,1}(s_\lambda) = \prod_{u\in\lambda} (n+c(u)) / h(u),
+
+            where `h(u)` is the hook length of a cell `u` in `\lambda`.
+
+            For `n=infinity` we use the formula from Corollary 7.21.3 of [EnumComb2]_
+
+            .. MATH::
+
+                ps_q(s_\lambda) = q^{\sum_i i\lambda_i} / \prod_{u\in\lambda} (1-q^{h(u)})
+
+            Otherwise, we use the formula  from Corollary 7.21.2 of [EnumComb2]_
+
+            .. MATH::
+
+                ps_{n,q}(s_\lambda) = q^{\sum_i i\lambda_i}
+                                      \prod_{u\in\lambda} (1-q^{n+c(u)}/(1-q^{h(u)})
+
             EXAMPLES::
 
                 sage: s = SymmetricFunctions(QQ).s()
@@ -681,6 +702,25 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
               is ``None`` create a ring (or fraction field) of
               polynomials in ``q``.
 
+            We use the formula in the proof of Corollary 7.21.6 of
+            [EnumComb2]_
+
+            .. MATH::
+
+                ex_{n,q}(s_\lambda) = t^n q^{\sum_i i\lambda_i}
+                                      / \prod_{u\in\lambda} (1 + \dots + q^{h(u)-1})
+
+            where `h(u)` is the hook length of a cell `u` in `\lambda`.
+
+            As a limit case, we obtain a formula for `q=1`
+
+            .. MATH::
+
+                ex_{n,1}(s_\lambda) = f^\lambda t^n / n!
+
+            where `f^\lambda` is the number of standard Young
+            tableaux of shape `\lambda`.
+
             EXAMPLES::
 
                 sage: s = SymmetricFunctions(QQ).s()
@@ -722,10 +762,19 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
                 return self.parent()._apply_module_morphism(self, f, t.parent())
 
-            # if self is nice in the schur basis, the homogeneous
-            # symmetric functions seem to be a faster fallback than
-            # the powersum symmetric functions
-            return self.parent().realization_of().homogeneous()(self).exponential_specialization(t=t, q=q)
+            if q is None and t is None:
+                q = get_variable(self.base_ring(), 'q')
+                t = get_variable(q.parent(), 't')
+            elif q is None:
+                q = get_variable(t.parent(), 'q')
+            elif t is None:
+                t = get_variable(q.parent(), 't')
+
+            f = lambda partition: (t**partition.size()
+                                   * q**sum(i*part for i, part in enumerate(partition))
+                                   / prod(sum(q**i for i in range(h)) for h in partition.hooks()))
+
+            return self.parent()._apply_module_morphism(self, f, t.parent())
 
 
 # Backward compatibility for unpickling

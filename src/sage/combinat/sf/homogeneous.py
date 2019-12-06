@@ -249,6 +249,16 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
               the default is to create a ring (or fraction field) of
               polynomials in ``q`` over the coefficient ring.
 
+            We use the formulas from Proposition 7.8.3 of [EnumComb2]_
+
+            .. MATH::
+
+                ps_{n,q}(h_\lambda) = \prod_i \binom{n+\lambda_i-1}{\lambda_i}_q
+
+                ps_{n,1}(h_\lambda) = \prod_i \binom{n+\lambda_i-1}{\lambda_i}
+
+                ps_q(h_\lambda) = 1 / \prod_i \prod_{j=1}^{\lambda_i} (1-q^j)
+
             EXAMPLES::
 
                 sage: h = SymmetricFunctions(QQ).h()

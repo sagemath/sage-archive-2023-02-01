@@ -340,6 +340,15 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
               the default is to create a ring (or fraction field) of
               polynomials in ``q`` over the coefficient ring.
 
+            For ``q=1`` we use the formula from Proposition 7.8.3 of [EnumComb2]_
+
+            .. MATH::
+
+                ps_{n,1}(m_\lambda) = \binom{n}{len(\lambda)}
+                                      \binom{len(\lambda)}{m_1(\lambda), m_2(\lambda),\dots}
+
+            In all other cases, we convert to powersum symmetric functions.
+
             EXAMPLES::
 
                 sage: m = SymmetricFunctions(QQ).m()

@@ -728,6 +728,16 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
               the default is to create a ring (or fraction field) of
               polynomials in ``q`` over the coefficient ring.
 
+            We use the formulas from Proposition 7.8.3 of [EnumComb2]_
+
+            .. MATH::
+
+                ps_{n,q}(p_\lambda) = \prod_i (1-q^{n\lambda_i}) / (1-q^{\lambda_i})
+
+                ps_{n,1}(p_\lambda) = n^{len(\lambda)}
+
+                ps_q(p_\lambda) = 1 / \prod_i (1-q^{\lambda_i})
+
             EXAMPLES::
 
                 sage: p = SymmetricFunctions(QQ).p()

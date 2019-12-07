@@ -554,11 +554,23 @@ def euler_number(n, algorithm='flint'):
 
 
 @cached_function
-def eulerian_number(n, k):
+def eulerian_number(n, k, algorithm='recursive'):
     """
     Return the Eulerian number of index ``(n, k)``.
 
     This is the coefficient of `t^k` in the Eulerian polynomial `A_n(t)`.
+
+    INPUT:
+
+    - ``n`` -- integer
+
+    - ``k`` -- integer between ``0`` and ``n - 1``
+
+    - ``algorithm`` -- ``"recursive"`` (default) or ``"formula"``
+
+    OUTPUT:
+
+    an integer
 
     .. SEEALSO:: :func:`eulerian_polynomial`
 
@@ -567,13 +579,21 @@ def eulerian_number(n, k):
         sage: from sage.combinat.combinat import eulerian_number
         sage: [eulerian_number(5,i) for i in range(5)]
         [1, 26, 66, 26, 1]
+
+    TESTS::
+
+        sage: [eulerian_number(5,i,"formula") for i in range(5)]
+        [1, 26, 66, 26, 1]
     """
     n = ZZ(n)
     if k == 0 or k == n - 1:
         return ZZ.one()
-    s = (n - k) * eulerian_number(n - 1, k - 1)
-    s += (k + 1) * eulerian_number(n - 1, k)
-    return s
+    if algorithm == "recursive":
+        s = (n - k) * eulerian_number(n - 1, k - 1, algorithm=algorithm)
+        s += (k + 1) * eulerian_number(n - 1, k, algorithm=algorithm)
+        return s
+    return sum((-1)**m * (n + 1).binomial(m) * (k + 1 - m)**n
+               for m in range(k + 1))
 
 
 @cached_function
@@ -588,7 +608,7 @@ def eulerian_polynomial(n, algorithm='derivative'):
 
     - ``n`` -- an integer
 
-    - ``algorithm`` -- ``derivative`` (default) or ``coeffs``
+    - ``algorithm`` -- ``"derivative"`` (default) or ``"coeffs"``
 
     OUTPUT:
 

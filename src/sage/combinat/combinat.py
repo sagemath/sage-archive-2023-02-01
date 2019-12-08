@@ -449,8 +449,9 @@ def catalan_number(n):
 
         sage: [catalan_number(i) for i in range(7)]
         [1, 1, 2, 5, 14, 42, 132]
-        sage: taylor((-1/2)*sqrt(1 - 4*x^2), x, 0, 15)
-        132*x^14 + 42*x^12 + 14*x^10 + 5*x^8 + 2*x^6 + x^4 + x^2 - 1/2
+        sage: x = (QQ[['x']].0).O(8)
+        sage: (-1/2)*sqrt(1 - 4*x)
+        -1/2 + x + x^2 + 2*x^3 + 5*x^4 + 14*x^5 + 42*x^6 + 132*x^7 + O(x^8)
         sage: [catalan_number(i) for i in range(-7,7)]
         [0, 0, 0, 0, 0, 0, -1/2, 1, 1, 2, 5, 14, 42, 132]
         sage: [catalan_number(n).mod(2) for n in range(16)]

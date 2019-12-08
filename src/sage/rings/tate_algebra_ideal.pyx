@@ -557,11 +557,12 @@ def Jpair(p1, p2):
     elif su2 > su1:
         return su2, t2*v2
 
-def regular_reduce(sgb, s, v, tail, verbose):
+def regular_reduce(sgb, s, v, verbose):
     res = v.parent()(0, v.precision_absolute())
-    sgb.append((None, v << 1))
+    #sgb.append((None, v << 1))
     count = 0
-    while v != 0:
+    val = v.valuation()
+    while v.valuation() == val:
         sv = v.leading_term()
         # We first check for top reduction
         for S,V in sgb:
@@ -578,15 +579,40 @@ def regular_reduce(sgb, s, v, tail, verbose):
                     break
         else:  
             # no possible top-reduction
-            if not tail:
-                res = v
-                break
             res += sv
             v -= sv
     if verbose > 1:
         print("| %s regular reductions done" % count)
-    del sgb[-1]
-    return res
+    #del sgb[-1]
+    return v + res
+
+def reduce(gb, v, verbose):
+    res = v.parent()(0, v.precision_absolute())
+    gb.append(v << 1)
+    count = 0
+    val = v.valuation()
+    while v.valuation() == val:
+        sv = v.leading_term()
+        # We first check for top reduction
+        for V in gb:
+            if V == 0: continue
+            sV = V.leading_term()
+            if sV.divides(sv):
+                t = sv // sV
+                v -= t*V
+                count += 1
+                if verbose > 3:
+                    print("| reduction by %s" % V)
+                    print("| new series is: %s" % (res+v))
+                break
+        else:  
+            # no possible top-reduction
+            res += sv
+            v -= sv
+    if verbose > 1:
+        print("| %s regular reductions done" % count)
+    del gb[-1]
+    return v + res
 
 
 def print_pair(p, verbose):
@@ -603,10 +629,35 @@ def _groebner_basis_F5(I, prec, verbose):
     term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
 
+    gens = [ ]
     for f in I.gens():
+        val = f.valuation()
+        if val < prec:
+            heappush(gens, (val, f.add_bigoh(prec)))
+
+    while gens:
+        val, f = heappop(gens)
+        if val > prec:
+            break
+
         if verbose > 0:
             print("---")
             print("new generator: %s" % f)
+
+        f = reduce(gb, f, verbose)
+        if verbose > 1:
+            print("generator reduced")
+
+        if f == 0:
+            if verbose > 0:
+                print("reduction to zero")
+            continue
+        if f.valuation() > val:
+            if verbose > 0:
+                print("reduction increases the valuation")
+            heappush(gens, (f.valuation(), f))
+            continue
+
         # Initial strong Grobner basis:
         # we add signatures
         sgb = [ (None, g) for g in gb if g != 0 ]
@@ -665,14 +716,17 @@ def _groebner_basis_F5(I, prec, verbose):
                 continue
 
             # We perform regular top-reduction
-            v = regular_reduce(sgb, s, v, True, verbose)
+            v = regular_reduce(sgb, s, v, verbose)
 
-            if v == 0:
+            # if v == 0:
+            if v.valuation() > val:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
                 if verbose > 1:
                     print ("| add signature for syzygy criterium: %s" % s)
                 gb0.append(s)
+                if v != 0:
+                    heappush(gens, (v.valuation(), v))
             else:
                 # We update the current strong Grobner basis
                 # and the J-pairs accordingly
@@ -705,7 +759,7 @@ def _groebner_basis_F5(I, prec, verbose):
             ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
             for j in range(len(gb)):
                 tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
-                if j != i and tj._divides_c(ti, True):   # False):
+                if j != i and tj._divides_c(ti, False):
                     del gb[i]
                     break
             else:

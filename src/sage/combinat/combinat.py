@@ -553,7 +553,7 @@ def euler_number(n, algorithm='flint'):
         raise ValueError("algorithm must be 'flint' or 'maxima'")
 
 
-@cached_function
+@cached_function(key=lambda n, k, a: (n, k))
 def eulerian_number(n, k, algorithm='recursive'):
     """
     Return the Eulerian number of index ``(n, k)``.
@@ -582,8 +582,8 @@ def eulerian_number(n, k, algorithm='recursive'):
 
     TESTS::
 
-        sage: [eulerian_number(5,i,"formula") for i in range(5)]
-        [1, 26, 66, 26, 1]
+        sage: [eulerian_number(6,i,"formula") for i in range(6)]
+        [1, 57, 302, 302, 57, 1]
     """
     n = ZZ(n)
     if k == 0 or k == n - 1:
@@ -596,7 +596,7 @@ def eulerian_number(n, k, algorithm='recursive'):
                for m in range(k + 1))
 
 
-@cached_function
+@cached_function(key=lambda n, a: n)
 def eulerian_polynomial(n, algorithm='derivative'):
     """
     Return the Eulerian polynomial of index ``n``.
@@ -627,8 +627,8 @@ def eulerian_polynomial(n, algorithm='derivative'):
         sage: eulerian_polynomial(7)(1) == factorial(7)
         True 
 
-        sage: eulerian_polynomial(5, algorithm='coeffs')
-        t^4 + 26*t^3 + 66*t^2 + 26*t + 1
+        sage: eulerian_polynomial(6, algorithm='coeffs')
+        t^5 + 57*t^4 + 302*t^3 + 302*t^2 + 57*t + 1
 
     REFERENCES:
 
@@ -645,7 +645,7 @@ def eulerian_polynomial(n, algorithm='derivative'):
         A = eulerian_polynomial(n - 1, algorithm=algorithm)
         return t * (1 - t) * A.derivative() + (1 + (n - 1) * t) * A
     elif algorithm == 'coeffs':
-        return R([eulerian_number(n, k) for k in range(n)])
+        return R([eulerian_number(n, k, "formula") for k in range(n)])
 
 
 def fibonacci(n, algorithm="pari"):

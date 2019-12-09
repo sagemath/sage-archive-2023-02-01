@@ -935,6 +935,18 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             sage: P.random_element(degree=2, terms=1000)
             5*x^2 - 10*x*y + 10*y^2 - 44*x*z + 31*y*z + 19*z^2 - 42*x - 50*y - 49*z - 60
 
+        TESTS:
+
+        Random ring elements should live in the ring. We check the degree-
+        zero case for :trac:`28855`, but the same should hold generally::
+
+            sage: set_random_seed()
+            sage: R = PolynomialRing(QQ, 'X,Y')
+            sage: R.random_element(degree=0).parent() == R
+            True
+            sage: R.random_element().parent() == R
+            True
+
         """
         k = self.base_ring()
         n = self.ngens()
@@ -958,7 +970,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         elif terms == 0:
             return self._zero_element
         if degree == 0:
-            return k.random_element(**kwargs)
+            return self(k.random_element(**kwargs))
 
 
         from sage.combinat.integer_vector import IntegerVectors

@@ -1222,7 +1222,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: latex(e)
             \left(e_{0},e_{1},e_{2}\right)
 
-        The LaTeX symbol can be set explicitely::
+        The LaTeX symbol can be set explicitly::
 
             sage: eps = M.basis('eps', latex_symbol=r'\epsilon') ; eps
             Basis (eps_0,eps_1,eps_2) on the Rank-3 free module M

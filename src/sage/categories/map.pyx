@@ -1242,7 +1242,7 @@ cdef class Map(Element):
         """
         Return a section of self.
 
-        NOTE:
+        .. NOTE::
 
             By default, it returns ``None``. You may override it in subclasses.
 
@@ -1295,7 +1295,7 @@ cdef class Section(Map):
     """
     A formal section of a map.
 
-    NOTE:
+    .. NOTE::
 
         Call methods are not implemented for the base class ``Section``.
 
@@ -1464,7 +1464,7 @@ cdef class FormalCompositeMap(Map):
         - ``first``: a map or a list of maps
         - ``second``: a map or None
 
-        ..  NOTE::
+        .. NOTE::
 
             The intended use is of course that the codomain of the
             first map is contained in the domain of the second map,

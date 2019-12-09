@@ -1420,7 +1420,7 @@ class ChainComplex_class(Parent):
 
     def betti(self, deg=None, base_ring=None):
         """
-        The Betti number the chain complex.
+        The Betti number of the chain complex.
 
         That is, write the homology in this degree as a direct sum
         of a free module and a torsion module; the Betti number is the

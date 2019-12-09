@@ -269,7 +269,7 @@ cdef class PolyhedronFaceLattice:
 
         Sorts ``inp`` and returns it in ``output1``.
 
-        ..WARNING::
+        .. WARNING::
 
             Input is the same as output1 or output2
 

@@ -2847,7 +2847,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             plot_options = self.plot_parse_options(**options)
             return plot_options.bounding_box.plot(color="gray", alpha=0.5, wireframe=False)
 
-        def plot_alcove_walk(self, word, start=None, foldings=None, color ="orange", **options):
+        def plot_alcove_walk(self, word, start=None, foldings=None, color="orange", **options):
             r"""
             Plot an alcove walk.
 

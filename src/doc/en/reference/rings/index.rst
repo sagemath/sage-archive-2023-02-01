@@ -46,6 +46,14 @@ Fraction Fields
    sage/rings/fraction_field
    sage/rings/fraction_field_element
 
+Localization
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/rings/localization
+
 Utilities
 ---------
 

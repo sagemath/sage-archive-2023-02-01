@@ -1142,7 +1142,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``normalize`` - (default: None); either 'L_ratio', 'period',
            or 'none' when ``implementation`` is 'sage'; ignored if
-           ``implementation`` is ``eclib`` or ``num``.  
+           ``implementation`` is ``eclib`` or ``num``.
            For 'L_ratio', the modular symbol tries to normalize
            correctly as explained below by comparing it to
            ``L_ratio`` for the curve and some small twists.
@@ -1161,13 +1161,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``implementation`` - either 'eclib' (default), 'sage' or
            'num'. Here 'eclib' uses John Cremona's implementation in
            his eclib library. Instead 'sage' uses an implementation
-           within Sage which is often quite a bit slower. 
+           within Sage which is often quite a bit slower.
            Finally 'num' uses an implementation of numerical
            modular symbols.
 
         ALGORITHM:
 
-           For the implementations 'sage' and 'eclib', the used 
+           For the implementations 'sage' and 'eclib', the used
            algorithm starts by finding the space of modular symbols
            within the full space of all modular symbols of that
            level. This initial step will take a very long time if
@@ -1311,7 +1311,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def modular_symbol_numerical(self, sign=1, prec=20):
         """
-        Returns the modular symbol as a numerical function.
+        Return the modular symbol as a numerical function.
 
         Just as in :meth:`modular_symbol` this returns a function
         that maps any rational `r` to a real number that should be
@@ -1334,7 +1334,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             This method does not compute spaces of modular symbols,
             so it is suitable for curves of larger conductor than
-            can be handled by :meth:`modular_symbol`. 
+            can be handled by :meth:`modular_symbol`.
             It is essentially the same implementation as
             ``modular_symbol`` with implementation set to 'num'.
             However the precision is not automatically chosen to

@@ -177,9 +177,9 @@ class pAdicLseries(SageObject):
         if E.conductor() % (self._p)**2 == 0:
             raise NotImplementedError("p (=%s) must be a prime of semi-stable reduction" % p)
 
-        try :
+        try:
             E.label()
-        except LookupError :
+        except LookupError:
             if implementation != 'num':
                 print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 

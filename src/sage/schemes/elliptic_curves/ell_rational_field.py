@@ -2298,7 +2298,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                         misc.verbose("Trying direct search up to height %s"%h)
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
-                        if len(G) > 0:
+                        if G:
                             misc.verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
                             misc.verbose("Computed saturation.")
@@ -2566,8 +2566,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         """
         if not isinstance(points, list):
-            raise TypeError("points (=%s) must be a list."%points)
-        if len(points) == 0:
+            raise TypeError("points (=%s) must be a list." % points)
+        if not points:
             return [], None, R(1)
 
         v = []
@@ -6962,7 +6962,7 @@ def elliptic_curve_congruence_graph(curves):
                 n = a_E[l] - a_F[l]
                 if n != 0:
                     p_edges = [p for p in p_edges if p.divides(n)]
-            if len(p_edges):
+            if p_edges:
                 G.add_edge(E.cremona_label(), F.cremona_label(),
                            p_edges)
     return G

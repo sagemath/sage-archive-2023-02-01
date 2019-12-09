@@ -47,24 +47,30 @@ def merge_environment(app, env):
     - domaindata['py']['modules'] # list of python modules
     """
     logger.info(bold('Merging environment/index files...'))
+    if not hasattr(env, "todo_all_todos"):
+        env.todo_all_todos = []
+    if not hasattr(env.domaindata["std"], "citations"):
+        env.domaindata["std"]["citations"] = dict()
     for curdoc in app.env.config.multidocs_subdoc_list:
         logger.info("    %s:"%curdoc, nonl=1)
         docenv = get_env(app, curdoc)
         if docenv is not None:
             fixpath = lambda path: os.path.join(curdoc, path)
+            todos = docenv.todo_all_todos if hasattr(docenv, "todo_all_todos") else []
+            citations = docenv.domaindata["std"].get("citations", dict())
             logger.info(" %s todos, %s index, %s citations"%(
-                    len(docenv.todo_all_todos),
+                    len(todos),
                     len(docenv.indexentries),
-                    len(docenv.domaindata["std"]["citations"])
+                    len(citations)
                     ), nonl=1)
 
             # merge titles
             for t in docenv.titles:
                 env.titles[fixpath(t)] = docenv.titles[t]
             # merge the todo links
-            for dct in docenv.todo_all_todos:
+            for dct in todos:
                 dct['docname'] = fixpath(dct['docname'])
-            env.todo_all_todos += docenv.todo_all_todos
+            env.todo_all_todos += todos
             # merge the html index links
             newindex = {}
             for ind in docenv.indexentries:
@@ -86,8 +92,7 @@ def merge_environment(app, env):
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            citations = docenv.domaindata["std"]["citations"]
-            for ind, (path, tag, lineno) in six.iteritems(docenv.domaindata["std"]["citations"]):
+            for ind, (path, tag, lineno) in six.iteritems(citations):
                 # TODO: Warn on conflicts
                 newcite[ind] = (fixpath(path), tag, lineno)
             env.domaindata["std"]["citations"].update(newcite)
@@ -253,7 +258,7 @@ def fetch_citation(app, env):
     with open(filename, 'rb') as f:
         cache = cPickle.load(f)
     logger.info("done (%s citations)."%len(cache))
-    cite = env.domaindata["std"]["citations"]
+    cite = env.domaindata["std"].get("citations", dict())
     for ind, (path, tag, lineno) in six.iteritems(cache):
         if ind not in cite: # don't override local citation
             cite[ind] = (os.path.join("..", path), tag, lineno)

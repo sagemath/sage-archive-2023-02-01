@@ -17,6 +17,8 @@ docstrings.
 
 -  Euler numbers, :func:`euler_number` (Maxima)
 
+-  Eulerian numbers, :func:`eulerian_number`
+
 -  Eulerian polynomial, :func:`eulerian_polynomial`
 
 -  Fibonacci numbers, :func:`fibonacci` (PARI) and

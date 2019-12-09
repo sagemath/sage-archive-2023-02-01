@@ -78,7 +78,13 @@ class Frobby:
             print("Frobby input:\n", input)
 
         process = Popen(command, stdin = PIPE, stdout = PIPE, stderr = PIPE)
-        output, err = process.communicate(input = input)
+        if input:
+            frinput = bytes(input,'ascii')
+        else:
+            frinput = None
+        output, err = process.communicate(input = frinput)
+        output = output.decode('ascii')
+        err = err.decode('ascii')
 
         if verbose:
             print("Frobby output:\n", output)

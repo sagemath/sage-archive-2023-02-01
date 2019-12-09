@@ -528,15 +528,15 @@ class KenzoChainComplex(KenzoObject):
         of degree ``degree``.
 
         INPUT:
-        
+
         - ``target`` -- A KenzoChainComplex or None (default).
         - ``degree`` -- An integer number or None (default).
 
         OUTPUT:
 
         - A :class:`KenzoChainComplexMorphism` representing the null morphism between
-        ``self`` and ``target`` of degree ``degree``. If ``target`` takes None value, 
-        ``self`` is assumed as the target chain complex; if ``degree`` takes None value, 
+        ``self`` and ``target`` of degree ``degree``. If ``target`` takes None value,
+        ``self`` is assumed as the target chain complex; if ``degree`` takes None value,
         0 is assumed as the degree of the null morphism.
 
         EXAMPLES::
@@ -621,7 +621,7 @@ class KenzoChainComplex(KenzoObject):
             ------------------------------------------------------------------------------
             <BLANKLINE>
         """
-        if dim!=None and comb!=None:
+        if dim is not None and comb is not None:
             cmbn_list = pairing(comb)
             return KenzoObject(dffr_aux1(self._kenzo, dim, cmbn_list))
         else:
@@ -750,7 +750,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
               0   0   0   0   0
         """
         if self.homology(1).invariants():
-            raise ValueError("""Eilenberg-Moore spectral sequence implemented 
+            raise ValueError("""Eilenberg-Moore spectral sequence implemented
                 only for 1-reduced simplicial sets""")
         return KenzoSpectralSequence(eilenberg_moore_spectral_sequence(self._kenzo))
 
@@ -1522,7 +1522,7 @@ class KenzoChainComplexMorphism(KenzoObject):
 
     def sum(self, object=None):
         r"""
-        Return a morphism, sum of the morphism ``self`` and the morphism(s) given 
+        Return a morphism, sum of the morphism ``self`` and the morphism(s) given
         by the parameter ``object``.
 
         INPUT:
@@ -1597,7 +1597,7 @@ class KenzoChainComplexMorphism(KenzoObject):
 
         - A :class:`KenzoChainComplexMorphism`, difference of the morphism ``self`` and the
           morphism(s) given by ``object`` (if ``object`` is None, ``self`` morphism is returned).
-          For example, if ``object`` = (mrph1, mrph2, mrph3) the result is 
+          For example, if ``object`` = (mrph1, mrph2, mrph3) the result is
           ``self`` - mrph1 - mrph2 - mrph3.
 
         EXAMPLES::

@@ -1,20 +1,24 @@
 """
 Places of function fields
 
-Places are defined for arbitrary function fields, but presently Sage can find
-and compute with places only of rational function fields and global function
-fields.
-
 The places of a function field correspond, one-to-one, to valuation rings
-of the function field, each of which defines discrete valuation of the
-elements of the function field. "Finite" places are in one-to-one
+of the function field, each of which defines a discrete valuation of the
+elements of the function field.  "Finite" places are in one-to-one
 correspondence with the prime ideals of the finite maximal order while
 places "at infinity" are in one-to-one correspondence with the prime ideals
 of the infinite maximal order.
 
+Each non-singular point of the function field has a unique place associated
+with it, the corresponding valuation ring consists of all function field
+elements with finite value at that point, the residue field is isomorphic
+to the constant base field, and the associated homomorphism is the
+evaluation map.  Singular points will have multiple places associated
+with them, and function fields over non-algebraically closed constant
+base fields will have additional places associated with no single point.
+
 EXAMPLES:
 
-All rational places of the function field can be computed::
+All rational places of a finite function field can be computed::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
     sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
@@ -33,7 +37,7 @@ constant field::
     sage: k
     Finite Field in z2 of size 2^2
 
-The isomorphisms are between the valuation ring and the residue field::
+The homomorphisms are between the valuation ring and the residue field::
 
     sage: fr_k
     Ring morphism:

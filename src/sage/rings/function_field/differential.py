@@ -1,8 +1,7 @@
 """
 Differentials of function fields
 
-Sage provides basic arithmetic with differentials of function fields. Advanced
-computations with differentials are available for global function fields.
+Sage provides arithmetic with differentials of function fields.
 
 EXAMPLES:
 

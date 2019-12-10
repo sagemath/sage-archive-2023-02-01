@@ -1,7 +1,7 @@
 """
 Divisors of function fields
 
-Sage allows extensive computations with divisors on global function fields.
+Sage allows extensive computations with divisors on function fields.
 
 EXAMPLES:
 

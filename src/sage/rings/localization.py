@@ -255,7 +255,7 @@ class LocalizationElement(IntegralDomainElement):
         """
         Python constructor for the element class for localizations of integral domains
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.localization import LocalizationElement
             sage: P.<x> = RR[]
@@ -271,7 +271,7 @@ class LocalizationElement(IntegralDomainElement):
         """
         How to print self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.localization import LocalizationElement
             sage: P.<x> = CC[]
@@ -697,7 +697,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         """
         Return a factor of x not diveded by any additional unit of self
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- an element of the base ring of self.
 
@@ -730,7 +730,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         Checks if the given element of the fraction field is contained in self
         and construct it as an element of self in case the answer is true.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- an element of the fraction field of the base ring
 

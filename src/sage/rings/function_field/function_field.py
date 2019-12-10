@@ -2140,8 +2140,8 @@ class FunctionField_polymod(FunctionField):
             return int(curveIdeal._singular_().genus())
 
         else:
-            raise NotImplementedError("computation of genus over the rational "
-                                      "function field not implemented yet")
+            raise NotImplementedError("computation of genus over non-prime "
+                                      "constant fields not implemented yet")
 
     @cached_method
     def derivation(self):

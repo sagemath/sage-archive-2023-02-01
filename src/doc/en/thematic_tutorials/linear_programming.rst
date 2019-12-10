@@ -284,7 +284,7 @@ Should we take a flashlight?
 
 ::
 
-    sage: taken["flashlight"]
+    sage: taken["flashlight"] # abs tol 1e-6
     1.0
 
 Wise advice. Based on purely random considerations.

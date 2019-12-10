@@ -208,6 +208,8 @@ AUTHORS:
 
 - Kwankyu Lee (2017-04-30): added global function fields
 
+- Brent Baccala (2019): added function fields over QQ and QQbar
+
 """
 from __future__ import absolute_import
 # ****************************************************************************

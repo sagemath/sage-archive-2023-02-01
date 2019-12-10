@@ -48,6 +48,8 @@ AUTHORS:
 
 - Kwankyu Lee (2017-04-30): initial version
 
+- Brent Baccala (2019): support places in characteristic zero
+
 """
 #*****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>

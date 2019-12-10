@@ -75,6 +75,8 @@ AUTHORS:
 
 - Kwankyu Lee (2017-04-30): added maximal orders of global function fields
 
+- Brent Baccala (2019): support orders in characteristic zero
+
 """
 from __future__ import absolute_import
 #*****************************************************************************

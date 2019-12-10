@@ -26,6 +26,8 @@ from __future__ import print_function
 from subprocess import Popen, PIPE
 from sage.misc.misc_c import prod
 
+from sage.cpython.string import bytes_to_str, str_to_bytes
+
 
 class Frobby:
     def __call__(self, action, input=None, options=[], verbose=False):
@@ -78,7 +80,13 @@ class Frobby:
             print("Frobby input:\n", input)
 
         process = Popen(command, stdin = PIPE, stdout = PIPE, stderr = PIPE)
-        output, err = process.communicate(input = input)
+        if input:
+            frinput = str_to_bytes(input)
+        else:
+            frinput = None
+        output, err = process.communicate(input = frinput)
+        output = bytes_to_str(output)
+        err = bytes_to_str(err)
 
         if verbose:
             print("Frobby output:\n", output)

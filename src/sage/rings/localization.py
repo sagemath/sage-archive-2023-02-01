@@ -164,8 +164,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.integral_domains import IntegralDomains
 from sage.rings.ring import IntegralDomain
 from sage.structure.element import IntegralDomainElement
-from sage.rings.fraction_field import FractionField
-from sage.rings.fraction_field_element import FractionFieldElement
 
 
 def normalize_additional_units(base_ring, add_units, warning=True):
@@ -208,8 +206,6 @@ def normalize_additional_units(base_ring, add_units, warning=True):
         sage: normalize_additional_units(Q, [p], warning=False)
         [b^2 - 5]
     """
-    from sage.sets.set import Set
-    from sage.misc.misc_c import prod
     # convert to base ring
     add_units = [base_ring(n) for n in add_units]
 
@@ -613,13 +609,28 @@ class Localization(IntegralDomain, UniqueRepresentation):
               From: Univariate Polynomial Ring in x over Integer Ring localized at (x^2 + 1,)
               To:   Integer Ring localized at (2, 13)
               Defn: x |--> 5
+
+        TESTS::
+
+            sage: phi=R.hom([5])
+            sage: L._is_valid_homomorphism_(ZZ, [3], base_map=phi)
+            Traceback (most recent call last):
+            ...
+            ValueError: Given base_map is not compatible with im_gens
+            sage: L._is_valid_homomorphism_(ZZ, [5], base_map=phi)
+            Traceback (most recent call last):
+            ...
+            ValueError: Images of some localized elements fail to be units
+            sage: phi=R.hom([5], codomain=QQ)
+            sage: L._is_valid_homomorphism_(ZZ, [5], base_map=phi)
+            True
         """
         B = self.base_ring()
         if base_map is not None and base_map.domain() is B:
             bas_gens = B.gens()
-            if im_gens and not all(bas_map(g) == im_gens[bas_gens.index(g)] for g in bas_gens):
+            if im_gens and not all(base_map(g) == im_gens[bas_gens.index(g)] for g in bas_gens):
                 raise ValueError('Given base_map is not compatible with im_gens')
-            im_gens = [bas_map(g) for g in bas_gens]
+            im_gens = [base_map(g) for g in bas_gens]
             if not all(base_map(au).is_unit() for au in self._additional_units):
                 raise ValueError('Images of some localized elements fail to be units')
             return B._is_valid_homomorphism_(codomain, im_gens, base_map=None)

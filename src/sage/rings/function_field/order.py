@@ -65,6 +65,24 @@ function field in an extension::
     sage: ramification_index
     1
 
+When the constant base field is the algebraic field, the only prime ideals
+of the maximal order of the rational function field are linear polynomials.
+Decomposing such a prime ideal resolves all singularities that lie over
+the corresponding coordinate::
+
+    sage: K.<x> = FunctionField(QQbar)
+    sage: R.<y> = K[]
+    sage: L.<y> = K.extension(y^2 - (x^3-x^2))
+    sage: p = K.maximal_order().ideal(x)
+    sage: L.maximal_order().decomposition(p)
+    [(Ideal (1/x*y - I) of Maximal order of Function field in y defined by y^2 - x^3 + x^2,
+      1,
+      1),
+     (Ideal (1/x*y + I) of Maximal order of Function field in y defined by y^2 - x^3 + x^2,
+      1,
+      1)]
+
+
 AUTHORS:
 
 - William Stein (2010): initial version

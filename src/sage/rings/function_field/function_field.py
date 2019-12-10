@@ -383,6 +383,9 @@ class FunctionField(Field):
             sage: K.<x> = FunctionField(QQ)
             sage: K.characteristic()
             0
+            sage: K.<x> = FunctionField(QQbar)
+            sage: K.characteristic()
+            0
             sage: K.<x> = FunctionField(GF(7))
             sage: K.characteristic()
             7
@@ -416,6 +419,9 @@ class FunctionField(Field):
         EXAMPLES::
 
             sage: R.<t> = FunctionField(QQ)
+            sage: R.is_global()
+            False
+            sage: R.<t> = FunctionField(QQbar)
             sage: R.is_global()
             False
             sage: R.<t> = FunctionField(GF(7))

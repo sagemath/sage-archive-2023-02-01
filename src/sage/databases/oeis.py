@@ -149,14 +149,14 @@ Classes and methods
 -------------------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Thierry Monteil <sage!lma.metelu.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.parse import urlencode
@@ -1397,7 +1397,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def __iter__(self):
         r"""
-        Iterate over the first terms of ``self``, and raises an error if
+        Iterate over the first terms of ``self``, and raise an error if
         those first terms are exhausted and the real associated sequence
         still have terms to produce.
 

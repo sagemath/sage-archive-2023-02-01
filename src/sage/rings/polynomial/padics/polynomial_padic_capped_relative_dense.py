@@ -217,9 +217,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             self._list = []
         polylist = self._poly.list()
         polylen = len(polylist)
-        self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
-                     + [self.base_ring()(0, absprec = self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
-        while len(self._list) > 0 and self._list[-1]._is_exact_zero():
+        self._list = [self.base_ring()(polylist[i], absprec=self._relprecs[i]) << self._valbase for i in range(polylen)] \
+                     + [self.base_ring()(0, absprec=self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
+        while self._list and self._list[-1]._is_exact_zero():
             self._list.pop()
 
     def _comp_valaddeds(self):

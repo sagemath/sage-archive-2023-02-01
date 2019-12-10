@@ -134,6 +134,140 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         desc = "Differentiable "
         return desc + TopologicalVectorBundle._repr_object_name(self)
 
+    def bundle_connection(self, name, latex_name=None):
+        r"""
+        Return a bundle connection on ``self``.
+
+        OUTPUT:
+
+        - a bundle connection on ``self`` as an instance of
+          :class:`~sage.manifolds.differentiable.bundle_connection.BundleConnection`
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # standard frame for E
+            sage: nab = E.bundle_connection('nabla', latex_name=r'\nabla'); nab
+            Bundle connection nabla on the Differentiable real vector bundle
+             E -> M of rank 2 over the base space 3-dimensional differentiable
+             manifold M
+
+        .. SEEALSO::
+
+            Further examples can be found in
+            :class:`~sage.manifolds.differentiable.bundle_connection.BundleConnection`.
+
+        """
+        from .bundle_connection import BundleConnection
+        return BundleConnection(self, name, latex_name)
+
+    def characteristic_class(self, func, **kwargs):
+        r"""
+        Return a characteristic class of the given type with respect to the
+        given function.
+
+        INPUT:
+
+        - ``func`` -- the function corresponding to the characteristic class
+          using the Chern-Weil homomorphism; this argument can be either one of
+          the predefined classes, in the following specified by
+          (field type, class type, name, LaTeX name, function):
+
+          - ``'Chern'`` -- (complex, multiplicative, ``c``, `c`, `1+x`),
+          - ``'ChernChar'`` -- (complex, additive, ``ch``, `\mathrm{ch}`,
+            `\exp(x)`),
+          - ``'Todd'`` -- (complex, additive, ``Td``, `\mathrm{Td}`,
+            `\frac{x}{1-\exp(-x)}`),
+          - ``'Pontryagin'`` -- (real, multiplicative, ``p``, `p`, `1+x`),
+          - ``'Hirzebruch'`` -- (real, multiplicative, ``L``, `L`,
+            `\frac{\sqrt{x}}{\tanh(\sqrt{x})}`),
+          - ``'AHat'`` -- (real, multiplicative, ``A^``, `\hat{A}`,
+            `\frac{\sqrt{x}/2}{\sinh(\sqrt{x}/2)}`),
+          - ``'Euler'`` -- (real, Pfaffian, ``e``, `e`, `x`),
+
+        or a symbolic expression. If ``func`` is one of the predefined classes,
+        the following arguments are obsolete.
+
+        - ``class_type`` -- (default: ``'multiplicative'``) the type of the
+          characteristic class; possible values are:
+
+          - ``'multiplicative'`` -- returns a class of multiplicative type,
+            using the determinant
+          - ``'additive'`` -- returns a class of additive type, using the trace
+          - ``'Pfaffian'`` -- returns a class of Pfaffian type, using the
+            Pfaffian
+
+        - ``name`` -- string representation given to the characteristic class
+        - ``latex_name`` -- (default: ``None``) LaTeX name given to the
+          characteristic class
+
+        EXAMPLES:
+
+        Pontryagin class on the Minkowski space::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian', start_index=1)
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[1,1] = -1
+            sage: g[2,2] = 1
+            sage: g[3,3] = 1
+            sage: g[4,4] = 1
+            sage: g.display()
+            g = -dt*dt + dx*dx + dy*dy + dz*dz
+
+        Let us introduce the corresponding Levi-Civita connection::
+
+            sage: nab = g.connection(); nab
+            Levi-Civita connection nabla_g associated with the Lorentzian metric
+             g on the 4-dimensional Lorentzian manifold M
+
+        Of course, `\nabla_g` is flat::
+
+            sage: nab.display()
+
+        Let us check the total Pontryagin class which must be the one
+        element in the corresponding cohomology ring in this case::
+
+            sage: TM = M.tangent_bundle(); TM
+            Tangent bundle TM over the 4-dimensional Lorentzian manifold M
+            sage: p = TM.characteristic_class('Pontryagin'); p
+            Characteristic class p of multiplicative type associated to x + 1 on
+             the Tangent bundle TM over the 4-dimensional Lorentzian manifold M
+            sage: p.function()
+            x + 1
+            sage: p_form = p.get_form(nab); p_form.display_expansion()
+            p(TM, nabla_g) = [1] + [0] + [0] + [0] + [0]
+
+        .. SEEALSO::
+
+            More examples can be found in
+            :class:`~sage.manifolds.differentiable.characteristic_class.CharacteristicClass`.
+
+        """
+        if self._field_type == 'neither_real_nor_complex':
+            raise ValueError("the vector bundle must be real or complex")
+        from .characteristic_class import CharacteristicClass, _get_predefined_class
+        # Is func a predefined class?
+        if isinstance(func, str):
+            func_str = func
+            # Get predefined class:
+            (field_type, class_type, name,
+                         latex_name, func) = _get_predefined_class(func_str)
+            # The fields must be equal:
+            if field_type != self._field_type:
+                raise ValueError("base field must be {} ".format(field_type) +
+                                 "for class '{}'".format(func_str))
+        else:
+            # Get arguments:
+            class_type = kwargs.pop('class_type', 'multiplicative')
+            name = kwargs.pop('name', None)
+            latex_name = kwargs.pop('latex_name', None)
+
+        return CharacteristicClass(self, func, class_type=class_type, name=name,
+                                   latex_name=latex_name)
+
     def diff_degree(self):
         r"""
         Return the vector bundle's degree of differentiability.
@@ -1175,9 +1309,7 @@ class TensorBundle(DifferentiableVectorBundle):
                     return True
             return False
 
-    def local_frame(self, symbol=None, latex_symbol=None, from_frame=None,
-                    indices=None, latex_indices=None, symbol_dual=None,
-                    latex_symbol_dual=None, domain=None):
+    def local_frame(self, *args, **kwargs):
         r"""
         Define a vector frame on ``domain``, possibly with values in the
         tangent bundle of the ambient domain.
@@ -1220,6 +1352,10 @@ class TensorBundle(DifferentiableVectorBundle):
           vector frame, or a list/tuple of strings, representing the individual
           symbols of the vector fields; can be ``None`` only if ``from_frame``
           is not ``None`` (see below)
+        - ``vector_fields`` -- tuple or list of `n` linearly independent vector
+          fields on ``domain`` (`n` being the dimension of  ``domain``)
+          defining the vector frame; can be omitted if the vector frame is
+          created from scratch or if ``from_frame`` is not ``None``
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the vector fields
           constituting the vector frame, or a list/tuple of strings,
@@ -1280,16 +1416,17 @@ class TensorBundle(DifferentiableVectorBundle):
             :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`.
 
         """
+        domain = kwargs.pop('domain', None)
         if domain is None:
             domain = self._base_space
-        vmodule = domain.vector_field_module(
-                                       dest_map=self._dest_map.restrict(domain),
-                                       force_free=True)
-        return vmodule.basis(symbol=symbol, latex_symbol=latex_symbol,
-                             from_frame=from_frame,
-                             indices=indices, latex_indices=latex_indices,
-                             symbol_dual=symbol_dual,
-                             latex_symbol_dual=latex_symbol_dual)
+        dest_map = self._dest_map.restrict(domain)
+        if not args and not kwargs:
+            # if no argument is provided, the default basis of the
+            # base vector field module is returned:
+            return domain.vector_field_module(dest_map=dest_map,
+                                              force_free=True).basis()
+        kwargs['dest_map'] = dest_map
+        return domain.vector_frame(*args, **kwargs)
 
     vector_frame = local_frame
 

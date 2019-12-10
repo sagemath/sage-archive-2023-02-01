@@ -147,7 +147,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
     #   * cdef _add_
     #   * cdef _sub_
     #   * cdef _mul_
-    #   * cpdef _cmp_
+    #   * cpdef _richcmp_
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -255,7 +255,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
     # def _unpickle(self, data, int version):   # use version >= 0
     # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
-    # cpdef int _cmp_(self, Matrix right) except -2:
+    # cpdef _richcmp_(self, Matrix right, int op):
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):

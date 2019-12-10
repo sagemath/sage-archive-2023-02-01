@@ -1132,6 +1132,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
     def __bool__(self):
         """
+        Return whether this Macaulay2 element is not ``False`` or not ``0``.
+
         EXAMPLES::
 
             sage: a = macaulay2(0)  # optional - macaulay2
@@ -1139,9 +1141,22 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             True
             sage: bool(a)           # optional - macaulay2
             False
+
+        TESTS:
+
+        Check that :trac:`28705` is fixed::
+
+            sage: t = macaulay2(True); t     # optional - macaulay2
+            true
+            sage: bool(t)                    # optional - macaulay2
+            True
+            sage: bool(macaulay2('false'))   # optional - macaulay2
+            False
+            sage: bool(macaulay2('"a"'))     # optional - macaulay2
+            True
         """
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == 'false'
+        return P.eval('{0}===false or {0}==0'.format(self._name)) != 'true'
 
     __nonzero__ = __bool__
 

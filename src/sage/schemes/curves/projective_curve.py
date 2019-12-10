@@ -1373,7 +1373,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         pts = C.singular_points()
         H = End(C)
         phi = H(list(C.ambient_space().gens()))
-        while len(pts) > 0:
+        while pts:
             for i in range(len(pts) - 1, -1, -1):
                 try:
                     if C.is_ordinary_singularity(pts[i]):

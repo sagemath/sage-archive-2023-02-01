@@ -1242,23 +1242,21 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS:
 
-        Check that :trac:`28872` is fixed an sage doesn't crash::
+        Check that :trac:`28872` is fixed::
 
             sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: P.volume(measure='induced_lattice')             # optional - pynormaliz
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: pynormaliz can only handle euclidean measure for algebraic polyhedra
+            -1056*sqrt5 + 2400
         """
-        if measure != 'euclidean' and not self._normaliz_field in (ZZ, QQ):
-            raise NotImplementedError("pynormaliz can only handle euclidean measure for algebraic polyhedra")
-
         cone = self._normaliz_cone
         assert cone
         if measure == 'euclidean':
             return self._nmz_result(cone, 'EuclideanVolume')
         elif measure == 'induced_lattice':
-            return self._nmz_result(cone, 'Volume')
+            if self._normaliz_field in (ZZ, QQ):
+                return self._nmz_result(cone, 'Volume')
+            else:
+                return self._nmz_result(cone, 'RenfVolume')
 
     def _triangulate_normaliz(self):
         r"""

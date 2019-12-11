@@ -63,6 +63,6 @@ cdef class FaceIterator(SageObject):
     cdef inline CombinatorialFace next_face(self)
     cdef inline int next_dimension(self) except -1
     cdef inline int next_face_loop(self) except -1
-    cdef size_t length_atom_repr(self) except -1
+    cdef size_t n_atom_rep(self) except -1
     cdef size_t set_coatom_repr(self) except -1
     cdef size_t set_atom_repr(self) except -1

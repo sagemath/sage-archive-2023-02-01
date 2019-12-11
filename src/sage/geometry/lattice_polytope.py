@@ -727,6 +727,21 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             N(-1, -1, 0),
             N(-1,  1, 0)
             in 3-d lattice N
+
+        Check that :trac:`28741` is fixed::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: a = p.faces()[0][0]
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: a = p.faces()[0][0]; a
+            -1-d lattice polytope in 3-d lattice M
+            sage: a.facet_normals()
+            Empty collection
+            in 3-d lattice N
+            sage: a
+            -1-d lattice polytope in 3-d lattice M
         """
         assert not hasattr(self, "_facet_normals")
         N = self.dual_lattice()
@@ -747,7 +762,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         # vector(ZZ, constants) is slow
         self._facet_constants = (ZZ**len(constants))(constants)
         self._facet_constants.set_immutable()
-        self.is_reflexive.set_cache(all(c == 1 for c in constants))
+        self.is_reflexive.set_cache(self.dim() == self.lattice_dim() and
+                                    all(c == 1 for c in constants))
         if self.is_reflexive():
             polar = LatticePolytope(
                 self._facet_normals, compute_vertices=False)
@@ -1201,7 +1217,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if line == "":
             raise ValueError("more data expected!")
         partitions = Sequence([], cr=True)
-        while len(line) > 0 and line.find("np=") == -1:
+        while line and line.find("np=") == -1:
             if line.find("V:") == -1:
                 line = data.readline()
                 continue

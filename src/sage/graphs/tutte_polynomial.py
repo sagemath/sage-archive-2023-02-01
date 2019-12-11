@@ -441,10 +441,9 @@ class MinimizeDegree(EdgeSelection):
             (0, 1, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=True)
-        edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
-        for e in edges:
-            return e
+        edges = graph.edges(labels=True, sort=False)
+        if edges:
+            return min(edges, key=lambda x: degrees[x[0]] + degrees[x[1]])
         raise RuntimeError("no edges left to select")
 
 
@@ -456,14 +455,14 @@ class MaximizeDegree(EdgeSelection):
             sage: from sage.graphs.tutte_polynomial import MaximizeDegree
             sage: G = graphs.PathGraph(6)
             sage: MaximizeDegree()(G)
-            (3, 4, None)
+            (1, 2, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=True)
-        edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
-        for e in reversed(edges):
-            return e
+        edges = graph.edges(labels=True, sort=False)
+        if edges:
+            return max(edges, key=lambda x: degrees[x[0]] + degrees[x[1]])
         raise RuntimeError("no edges left to select")
+
 
 ###########
 # Caching #

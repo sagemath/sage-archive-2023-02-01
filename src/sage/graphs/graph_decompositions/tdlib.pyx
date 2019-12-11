@@ -112,7 +112,7 @@ def treedecomposition_exact(G, lb=-1):
     A tree decomposition of ``G`` of ``tw(G)``, if the lower bound was not
     greater than ``tw(G)``, otherwise a tree decomposition of ``width = lb``.
 
-    ..  WARNING::
+    .. WARNING::
 
         The computation can take a lot of time for a graph `G` on more than
         about 30 vertices and `tw(G) > 3`.

@@ -3,7 +3,7 @@ r"""
 Localization
 
 
-The implememtation of this class is basesd on an example given in the reference pages on coercion:
+The implementation of this class is based on an example given in the reference pages on coercion:
 
 `coercion example <http://doc.sagemath.org/html/en/reference/coercion/index.html?highlight=localization#example>`_
 
@@ -29,7 +29,7 @@ EXAMPLES::
     sage: mi == ~m
     True
 
-The next example is taken from comment #9 of :trac:`27371` defining the most general Ring containing the coefficients of the irreducible representations of the Ariki-Koike algebra corresponding to the three coloured permutations on three elements::
+The next example is taken from comment #9 of :trac:`27371` defining the most general Ring containing the coefficients of the irreducible representations of the Ariki-Koike algebra corresponding to the three colored permutations on three elements::
 
     sage: R.<u0, u1, u2, q> = ZZ[]
     sage: u = [u0, u1, u2]
@@ -39,7 +39,7 @@ The next example is taken from comment #9 of :trac:`27371` defining the most gen
     sage: L = R.localization(tuple(add_units)); L
     Multivariate Polynomial Ring in u0, u1, u2, q over Integer Ring localized at (q, q + 1, u2, u1, u1 - u2, u0, u0 - u2, u0 - u1, u2*q - u1, u2*q - u0, u1*q - u2, u1*q - u0, u0*q - u2, u0*q - u1)
 
-Define the representation matrices (of one of the three dimensional irreducible respresentations)::
+Define the representation matrices (of one of the three dimensional irreducible representations)::
 
     sage: m1 = matrix(L, [[u1, 0, 0],[0, u0, 0],[0, 0, u0]])
     sage: m2 = matrix(L, [[(u0*q - u0)/(u0 - u1), (u0*q - u1)/(u0 - u1), 0], [(-u1*q + u0)/(u0 - u1), (-u1*q + u1)/(u0 - u1), 0], [0, 0, -1]])
@@ -297,7 +297,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _sub_(left, right):
         """
-        Realizes substraction with another instance of self (via `-` operator)
+        Realizes subtraction with another instance of self (via `-` operator)
 
         EXAMPLES::
 
@@ -460,7 +460,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
     a commutative ring and `f` an element in `R`, then the localization consists of elements of the form
     `r/f, r\in R, n \geq 0` (to be precise, `R[f^{-1}] = R[t]/(ft-1)`.
 
-    The above text is taken from `wikiedia`. The construction here used for this class relies on the construction
+    The above text is taken from `Wikipedia`. The construction here used for this class relies on the construction
     of the field of fraction and is therefore restricted to integral domains.
 
     INPUT (to the constructor):
@@ -623,10 +623,18 @@ class Localization(IntegralDomain, UniqueRepresentation):
             ValueError: Images of some localized elements fail to be units
             sage: phi=R.hom([5], codomain=QQ)
             sage: L._is_valid_homomorphism_(ZZ, [5], base_map=phi)
+            Traceback (most recent call last):
+            ...
+            ValueError: Codomain of base_map must be Integer Ring
+            sage: L._is_valid_homomorphism_(QQ, [5], base_map=phi)
             True
         """
         B = self.base_ring()
-        if base_map is not None and base_map.domain() is B:
+        if base_map is not None:
+            if base_map.domain() is not B:
+                raise ValueError('Domain of base_map must be %s' %B)
+            if base_map.codomain() is not codomain.base_ring():
+                raise ValueError('Codomain of base_map must be %s' %codomain.base_ring())
             bas_gens = B.gens()
             if im_gens and not all(base_map(g) == im_gens[bas_gens.index(g)] for g in bas_gens):
                 raise ValueError('Given base_map is not compatible with im_gens')
@@ -635,8 +643,6 @@ class Localization(IntegralDomain, UniqueRepresentation):
                 raise ValueError('Images of some localized elements fail to be units')
             return B._is_valid_homomorphism_(codomain, im_gens, base_map=None)
         else:
-            if base_map is not None and base_map.domain() is not B.base_ring():
-                raise ValueError('Domain of base_map must be %s or %s' %(B, B.base_ring()))
             if B._is_valid_homomorphism_(codomain, im_gens, base_map=base_map):
                 phi = B.hom(im_gens, base_map=base_map)
                 if not all(phi(au).is_unit() for au in self._additional_units):
@@ -695,7 +701,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     def _cut_off_additional_units_from_base_ring_element(self, x):
         """
-        Return a factor of x not diveded by any additional unit of self
+        Return a factor of x not divided by any additional unit of self
 
         INPUT:
 
@@ -703,7 +709,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
         OUTPUT:
 
-        a factor of x not diveded by any additional unit of self as element
+        a factor of x not divided by any additional unit of self as element
         of the base ring of self
 
         EXAMPLES::
@@ -809,7 +815,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     def characteristic(self):
         """
-        Return the charcteristic of ``self``.
+        Return the characteristic of ``self``.
 
         EXAMPLES::
 

@@ -1240,7 +1240,19 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
             6
 
+        TESTS:
+
+        Check that :trac:`28872` is fixed an sage doesn't crash::
+
+            sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: P.volume(measure='induced_lattice')             # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: pynormaliz can only handle euclidean measure for algebraic polyhedra
         """
+        if measure != 'euclidean' and not self._normaliz_field in (ZZ, QQ):
+            raise NotImplementedError("pynormaliz can only handle euclidean measure for algebraic polyhedra")
+
         cone = self._normaliz_cone
         assert cone
         if measure == 'euclidean':

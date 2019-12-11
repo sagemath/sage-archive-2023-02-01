@@ -5705,18 +5705,18 @@ class Polyhedron_base(Element):
             sage: C.polar().backend()
             'cdd'
 
-            Check that :trac:`28850` is fixed::
+        Check that :trac:`28850` is fixed::
 
             sage: P = polytopes.simplex(3, base_ring=QQ)
             sage: P.polar()
             Traceback (most recent call last):
             ...
-            AssertionError: must be full-dimensional
+            ValueError: must be full-dimensional
         """
-        assert self.is_compact(), "not a polytope"
-        if not in_affine_span:
-            assert self.dim() == self.ambient_dim(), "must be full-dimensional"
-
+        if not self.is_compact():
+            raise ValueError("not a polytope")
+        if not in_affine_span and not self.dim() == self.ambient_dim():
+            raise ValueError("must be full-dimensional")
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
         parent = self.parent().base_extend(self.center().parent())

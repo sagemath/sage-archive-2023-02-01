@@ -3180,7 +3180,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         if emb is None:
             emb = K.embeddings(RealField(precision))
-            if len(emb) > 0:
+            if emb:
                 emb = emb[0]
             else:
                 emb = K.embeddings(ComplexField(precision))[0]

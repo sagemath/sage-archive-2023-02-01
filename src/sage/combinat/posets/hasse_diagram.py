@@ -2615,8 +2615,8 @@ class HasseDiagram(DiGraph):
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H= HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3: [4, 5],
-            ....:                  4: [6], 5:[6]})
+            sage: H = HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3: [4, 5],
+            ....:                   4: [6], 5:[6]})
             sage: sorted(H.neutral_elements())
             [0, 4, 6]
 

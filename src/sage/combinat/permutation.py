@@ -4253,11 +4253,11 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: P=Permutations(6)
-            sage: p=P([4,5,1,6,3,2])
-            sage: pl= [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
+            sage: P = Permutations(6)
+            sage: p = P([4,5,1,6,3,2])
+            sage: pl = [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
             sage: for q in pl:
-            ....:     s=p.simion_schmidt(q)
+            ....:     s = p.simion_schmidt(q)
             ....:     print("{} {}".format(s, s.has_pattern(q)))
             [4, 6, 1, 5, 3, 2] False
             [4, 2, 1, 3, 5, 6] False

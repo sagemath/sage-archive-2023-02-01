@@ -531,21 +531,27 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     Check that :trac:`17339` is fixed::
 
-        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ); P
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ)
         The empty polyhedron in QQ^0
         sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[], base_ring=QQ); P
         A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
         sage: P.Vrepresentation()
         (A vertex at (),)
-        sage: P = Polyhedron(ambient_dim=2, ieqs=[], eqns=[], base_ring=QQ); P
+        sage: Polyhedron(ambient_dim=2, ieqs=[], eqns=[], base_ring=QQ)
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull
          of 1 vertex and 2 lines
-        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="cdd"); P
+        sage: Polyhedron(ambient_dim=2, ieqs=[], eqns=[], base_ring=QQ, backend='field')
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull
+         of 1 vertex and 2 lines
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="cdd")
         The empty polyhedron in QQ^0
-        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="ppl"); P
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="ppl")
         The empty polyhedron in QQ^0
-        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="field"); P
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="field")
         The empty polyhedron in QQ^0
+
+        sage: Polyhedron(ambient_dim=2, vertices=[], rays=[], lines=[], base_ring=QQ)
+        The empty polyhedron in QQ^2
 
     .. SEEALSO::
 

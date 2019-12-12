@@ -1313,19 +1313,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         else:
             raise TypeError("the measure should be `ambient`, `euclidean`, or `induced_lattice`")
 
-    def _sublattice_simplex(self):
-        import PyNormaliz_cpp
-        cone = self._normaliz_cone
-        assert cone
-        sublattice_coords = PyNormaliz_cpp.NmzResult(cone, 'Sublattice')[0]
-        data = {'extreme_rays': sublattice_coords}
-        ambient_dim = len(data["extreme_rays"][0])
-        data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
-        number_field_triple = self._number_field_triple(self._normaliz_field)
-        if number_field_triple:
-            data['number_field'] = number_field_triple
-        return Polyhedron_normaliz(self.parent(), None, None, normaliz_data=data, normaliz_field=self._normaliz_field)
-
     def _triangulate_normaliz(self):
         r"""
         Gives a triangulation of the polyhedron using normaliz

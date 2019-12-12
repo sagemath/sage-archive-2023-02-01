@@ -247,7 +247,7 @@ class Polytopes():
             sage: octagon.n_vertices()                                        # optional - pynormaliz
             8
             sage: octagon.volume()                                            # optional - pynormaliz
-            2.828427124746190?
+            2*a
         """
         n = ZZ(n)
         if n <= 2:
@@ -2663,7 +2663,7 @@ class Polytopes():
         The ``'normaliz'`` is faster::
 
             sage: polytopes.one_hundred_twenty_cell(backend='normaliz')  # optional - pynormaliz
-            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining 
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
             polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 600 vertices
 
         It is also possible to realize it using the generalized permutahedron

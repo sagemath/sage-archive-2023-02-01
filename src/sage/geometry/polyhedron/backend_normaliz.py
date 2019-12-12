@@ -274,13 +274,22 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         def nfelem_handler(coords):
             # coords might be too short which is not accepted by Sage number field
-            v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
-            return self._normaliz_field(v)
+            list_coords = list(coords)
+            if len(coords) > 0 and isinstance(coords[0], list):
+                return list(nfelem_handler(y) for y in coords)
+            else:
+                v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
+                return self._normaliz_field(v)
+
+        # There is a bug in pynormaliz when applying a NumberField handler to
+        if property == 'Sublattice' and not self._normaliz_field in (ZZ, QQ):
+            # Handling a bug in PyNormaliz.
+            rational_handler = nfelem_handler
 
         import PyNormaliz
         return PyNormaliz.NmzResult(normaliz_cone, property,
-                                    RationalHandler=rational_handler,
-                                    NumberfieldElementHandler=nfelem_handler)
+                                       RationalHandler=rational_handler,
+                                       NumberfieldElementHandler=nfelem_handler)
 
     def _init_from_normaliz_cone(self, normaliz_cone, normaliz_field):
         """
@@ -1205,14 +1214,17 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``measure`` -- (default: 'euclidean') the measure to take. 'euclidean'
-          correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
-          correspond to ``Volume`` in normaliz.
+        - ``measure`` -- string. The measure to use. Allowed values are:
+
+          * ``'euclidean'`` (default): corresponds to ``'EuclideanVolume`` in normaliz
+          * ``'induced_lattice'``: corresponds to ``'Volume'`` in normaliz
+          * ``'ambient'``: Lebesgue measure of ambient space (volume)
 
         OUTPUT:
 
-        A float value (when ``measure`` is 'euclidean') or a rational number
-        (when ``measure`` is 'induced_lattice').
+        A float value (when ``measure`` is 'euclidean'),
+        a rational number (when ``measure`` is 'induced_lattice'),
+        a rational number or symbolic number otherwise (dependent on base ring).
 
         .. NOTE::
 
@@ -1228,7 +1240,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: s._volume_normaliz()                         # optional - pynormaliz
             0.3333333333333333
 
-        The other possibility is to compute the scaled volume where a unimodual
+        One other possibility is to compute the scaled volume where a unimodual
         simplex has volume 1::
 
             sage: s._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
@@ -1240,6 +1252,14 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
             6
 
+        Or one can can calculate the ambient volume, which is the above multiplied by the
+        volume of the unimodal simplex (or zero if not full-dimensional)::
+
+            sage: cube._volume_normaliz(measure='ambient')  # optional - pynormaliz
+            1
+            sage: s._volume_normaliz(measure='ambient')     # optional - pynormaliz
+            0
+
         TESTS:
 
         Check that :trac:`28872` is fixed::
@@ -1247,6 +1267,23 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: P.volume(measure='induced_lattice')             # optional - pynormaliz
             -1056*sqrt5 + 2400
+
+        Some sanity checks that the ambient volume works correctly::
+
+            sage: (2*cube)._volume_normaliz(measure='ambient')    # optional - pynormaliz
+            8
+            sage: (1/2*cube)._volume_normaliz(measure='ambient')  # optional - pynormaliz
+            1/8
+            sage: s._volume_normaliz(measure='ambient')           # optional - pynormaliz
+            0
+
+            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            True
+
+            sage: P = polytopes.dodecahedron(backend='normaliz')
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            True
         """
         cone = self._normaliz_cone
         assert cone
@@ -1257,6 +1294,30 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return self._nmz_result(cone, 'Volume')
             else:
                 return self._nmz_result(cone, 'RenfVolume')
+        elif measure == 'ambient':
+            if self.dim() < self.ambient_dim():
+                return self.base_ring().zero()
+
+            from sage.functions.other import factorial
+            volume = self._volume_normaliz('induced_lattice')/factorial(self.dim())
+
+            return volume
+
+        else:
+            raise TypeError("the measure should be `ambient`, `euclidean`, or `induced_lattice`")
+
+    def _sublattice_simplex(self):
+        import PyNormaliz_cpp
+        cone = self._normaliz_cone
+        assert cone
+        sublattice_coords = PyNormaliz_cpp.NmzResult(cone, 'Sublattice')[0]
+        data = {'extreme_rays': sublattice_coords}
+        ambient_dim = len(data["extreme_rays"][0])
+        data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
+        number_field_triple = self._number_field_triple(self._normaliz_field)
+        if number_field_triple:
+            data['number_field'] = number_field_triple
+        return Polyhedron_normaliz(self.parent(), None, None, normaliz_data=data, normaliz_field=self._normaliz_field)
 
     def _triangulate_normaliz(self):
         r"""

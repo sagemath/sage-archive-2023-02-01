@@ -1284,6 +1284,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P = polytopes.dodecahedron(backend='normaliz')
             sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
             True
+
+            sage: P = Polyhedron(rays=[[1]], backend='normaliz')  # optional - pynormaliz
+            sage: P.volume()                                      # optional - pynormaliz
+            +Infinity
         """
         cone = self._normaliz_cone
         assert cone
@@ -1297,6 +1301,9 @@ class Polyhedron_normaliz(Polyhedron_base):
         elif measure == 'ambient':
             if self.dim() < self.ambient_dim():
                 return self.base_ring().zero()
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
 
             from sage.functions.other import factorial
             volume = self._volume_normaliz('induced_lattice')/factorial(self.dim())

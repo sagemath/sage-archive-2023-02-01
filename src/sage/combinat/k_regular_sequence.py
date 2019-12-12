@@ -381,7 +381,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return W(n.digits(self.k))
 
 
-    def _parse_recursions_(self, equations, function, var, n_start=0):
+    def _parse_recursions_(self, equations, function, var, n0=0):
         r"""Parse recursion equations as admissible in :meth:`~.recursions`.
 
         INPUT:
@@ -409,11 +409,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(4*n + 1) == 4*f(2*n) + 5*f(2*n + 1) + 6*f(2*n - 2),
             ....:     f(4*n + 2) == 7*f(2*n) + 8*f(2*n + 1) + 9*f(2*n - 2),
             ....:     f(4*n + 3) == 10*f(2*n) + 11*f(2*n + 1) + 12*f(2*n - 2),
-            ....:     f(0) == 1, f(1) == 2, f(2) == 1], f, n)
+            ....:     f(0) == 1, f(1) == 2, f(2) == 1], f, n, 42)
             recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=11,
             coeffs={(0, 1): 2, (0, 0): 1, (3, 1): 11, (3, 0): 10, (2, -2): 9,
             (2, 1): 8, (2, 0): 7, (3, -2): 12, (0, -2): 3, (1, 0): 4, (1, -2): 6,
-            (1, 1): 5}, start_values={0: 1, 1: 2, 2: 1})
+            (1, 1): 5}, start_values={0: 1, 1: 2, 2: 1}, n0=42)
 
         Stern--Brocot Sequence::
 
@@ -422,7 +422,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:    f(1) == 1, f(2) == 1], f, n)
             recursion_rules(M=1, m=0, l=0, u=1, ll=0, uu=2, dim=3,
             coeffs={(1, 0): 1, (0, 0): 1, (1, 1): 1},
-            start_values={0: 0, 1: 1, 2: 1})
+            start_values={0: 0, 1: 1, 2: 1}, n0=0)
 
         TESTS:
 
@@ -612,7 +612,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
                 sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
                 recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={}, start_values={})
+                coeffs={}, start_values={}, n0=0)
         """
         from collections import namedtuple
 
@@ -758,11 +758,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         recursion_rules = namedtuple('recursion_rules',
                                      ['M', 'm', 'l', 'u',
-                                      'll', 'uu', 'n_start', 'dim',
-                                      'coeffs', 'start_values'])
+                                      'll', 'uu', 'dim',
+                                      'coeffs', 'start_values', 'n0'])
 
-        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, n_start=n_start,
-                               dim=dim, coeffs=coeffs, start_values=start_values)
+        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
+                               coeffs=coeffs, start_values=start_values, n0=n0)
 
 
     def _get_matrix_from_recursions_(self, recursion_rules, rem):

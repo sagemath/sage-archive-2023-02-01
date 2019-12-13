@@ -1298,7 +1298,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         d = face_iter.next_dimension()
         while (d < dim):
             sig_check()
-            if face_iter.length_atom_repr() == d + 1:
+            if face_iter.n_atom_rep() == d + 1:
                 # The current face is a simplex.
                 face_iter.ignore_subfaces()
             else:
@@ -1369,7 +1369,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         d = face_iter.next_dimension()
         while (d < dim):
             sig_check()
-            if face_iter.length_atom_repr() == d + 1:
+            if face_iter.n_atom_rep() == d + 1:
                 # The current face is a simplex.
                 face_iter.ignore_supfaces()
             else:

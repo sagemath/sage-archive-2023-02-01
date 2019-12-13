@@ -1285,7 +1285,8 @@ class GroebnerFan(SageObject):
             cmd += ' -L'
         s = self.gfan(cmd, I=self._gfan_reduced_groebner_bases().replace(' ',','), format=False)
         if file is not None:
-            open(file, 'w').write(s)
+            with open(file, 'w') as f:
+                f.write(s)
         sp = s.split('\n')
         sp2 = []
         for x in sp[9:]:

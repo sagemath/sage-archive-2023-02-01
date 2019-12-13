@@ -1003,7 +1003,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         U = [self.free_module()]
         p = 2
         while U and p <= bound:
-            misc.verbose(mesg="p=%s" % p,t=time)
+            misc.verbose(mesg="p=%s" % p, t=time)
             if anemic:
                 while arith.GCD(p, self.level()) != 1:
                     p = arith.next_prime(p)
@@ -1011,10 +1011,8 @@ class HeckeModule_free_module(HeckeModule_generic):
             t = T.hecke_operator(p).matrix()
             Uprime = []
             for i in range(len(U)):
-                if self.base_ring().characteristic() == 0 and self.level()%p != 0:
-                    is_diagonalizable = True
-                else:
-                    is_diagonalizable = False
+                is_diagonalizable = (not self.base_ring().characteristic() and
+                                     self.level() % p)
                 if is_rational:
                     X = t.decomposition_of_subspace(U[i], check_restrict = False,
                                                     algorithm='multimodular',

@@ -258,7 +258,7 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
 
 cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
     """
-    Returns the position in ``S`` of an item in ``S[start:]``, or -1 if
+    Return the position in ``S`` of an item in ``S[start:]``, or -1 if
     ``S[start:]`` does not contain the item.
 
     """
@@ -1239,9 +1239,9 @@ cdef class BoundedIntegerSequence:
 
     cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other):
         """
-        Returns ``self``'s maximal trailing sub-sequence that ``other`` starts with.
+        Return ``self``'s maximal trailing sub-sequence that ``other`` starts with.
 
-        Returns ``None`` if there is no overlap
+        Return ``None`` if there is no overlap.
 
         EXAMPLES::
 

@@ -1584,7 +1584,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError):
                 break
 
-            if f is None or f is False :
+            if f is None or f is False:
                 break
             else:
                 yield f

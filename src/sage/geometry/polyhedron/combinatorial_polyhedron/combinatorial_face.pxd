@@ -24,6 +24,6 @@ cdef class CombinatorialFace(SageObject):
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.
     cdef ListOfFaces atoms, coatoms
 
-    cdef size_t length_atom_repr(self) except -1
+    cdef size_t n_atom_rep(self) except -1
     cdef size_t set_coatom_repr(self) except -1
     cdef size_t set_atom_repr(self) except -1

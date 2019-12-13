@@ -141,7 +141,7 @@ Test if :trac:`24883` is fixed::
     1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #
@@ -149,8 +149,8 @@ Test if :trac:`24883` is fixed::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
@@ -7118,9 +7118,9 @@ cdef class Expression(CommutativeRingElement):
             sage: gcd(I + I*x, x^2 - 1)
             x + 1
             sage: alg = SR(QQbar(sqrt(2) + I*sqrt(3)))
-            sage: gcd(alg + alg*x, x^2 - 1)
+            sage: gcd(alg + alg*x, x^2 - 1)  # known bug (trac #28489)
             x + 1
-            sage: gcd(alg - alg*x, x^2 - 1)
+            sage: gcd(alg - alg*x, x^2 - 1)  # known bug (trac #28489)
             x - 1
             sage: sqrt2 = SR(QQbar(sqrt(2)))
             sage: gcd(sqrt2 + x, x^2 - 2)    # known bug
@@ -10960,7 +10960,7 @@ cdef class Expression(CommutativeRingElement):
         Distribute some indexed operators over similar operators in
         order to allow further groupings or simplifications.
 
-        Implemented cases (so far) :
+        Implemented cases (so far):
 
         - Symbolic sum of a sum ==> sum of symbolic sums
 
@@ -12211,7 +12211,7 @@ cdef class Expression(CommutativeRingElement):
 
            #. Sage can currently only understand a subset of the output of Maxima, Maple and
               Mathematica, so even if the chosen backend can perform the summation the
-              result might not be convertable into a usable Sage expression.
+              result might not be convertible into a usable Sage expression.
 
         TESTS:
 

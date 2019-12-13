@@ -1182,7 +1182,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
         self._mul_vecs = mul_vecs
 
         # We prepare for using Kummer's theorem to decompose primes. Note
-        # that Kummer's theorem applies to the most of places. Here we find
+        # that Kummer's theorem applies to most places. Here we find
         # places for which the theorem does not apply.
 
         # this element is integral over k[x] and a generator of the field.
@@ -1191,28 +1191,29 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
             if phi.degree() == n:
                 break
 
-        if phi.degree() == n:
-            gen_vec = self._coordinate_vector(gen)
-            g = gen_vec.parent().gen(0) # x
-            gen_vec_pow = [g]
-            for i in range(n):
-                g = mul_vecs(g, gen_vec)
-                gen_vec_pow.append(g)
+        assert phi.degree() == n
 
-            # find places where {1,gen,...,gen^(n-1)} is not integral basis
-            W = V.span_of_basis([to(gen ** i) for i in range(phi.degree())])
+        gen_vec = self._coordinate_vector(gen)
+        g = gen_vec.parent().gen(0) # x
+        gen_vec_pow = [g]
+        for i in range(n):
+            g = mul_vecs(g, gen_vec)
+            gen_vec_pow.append(g)
 
-            supp = []
-            for g in basis:
-                for c in W.coordinate_vector(to(g), check=False):
-                    if not c.is_zero():
-                        supp += [f for f,_ in c.denominator().factor()]
-            supp = set(supp)
+        # find places where {1,gen,...,gen^(n-1)} is not integral basis
+        W = V.span_of_basis([to(gen ** i) for i in range(phi.degree())])
 
-            self._kummer_gen = gen
-            self._kummer_gen_vec_pow = gen_vec_pow
-            self._kummer_polynomial = phi
-            self._kummer_places = supp
+        supp = []
+        for g in basis:
+            for c in W.coordinate_vector(to(g), check=False):
+                if not c.is_zero():
+                    supp += [f for f,_ in c.denominator().factor()]
+        supp = set(supp)
+
+        self._kummer_gen = gen
+        self._kummer_gen_vec_pow = gen_vec_pow
+        self._kummer_polynomial = phi
+        self._kummer_places = supp
 
     def _element_constructor_(self, f):
         """

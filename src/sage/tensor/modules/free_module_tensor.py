@@ -1137,7 +1137,7 @@ class FreeModuleTensor(ModuleElement):
             # loop on the new components:
             nproc = Parallelism().get('tensor')
 
-            if nproc != 1 :
+            if nproc != 1:
                 # Parallel computation
                 lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
                 ind_list = [ind for ind in new_comp.non_redundant_index_generator()]
@@ -2644,7 +2644,7 @@ class FreeModuleTensor(ModuleElement):
             sage: s == a[0]*b[0] + a[1]*b[1] + a[2]*b[2]  # check of the computation
             True
 
-        The positions of the contraction indices can be set explicitely::
+        The positions of the contraction indices can be set explicitly::
 
             sage: s == a.contract(0, b, 0)
             True

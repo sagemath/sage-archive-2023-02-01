@@ -8,14 +8,13 @@ AUTHORS:
 - Matthieu Deneufchatel (2013-07): Implemented dual PBW basis
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Frédéric Chapoton <chapoton-math-univ-lyon1-fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-import six
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.commutative_algebras import CommutativeAlgebras
@@ -51,9 +50,9 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
     INPUT:
 
-    -  ``R`` -- ring
+    - ``R`` -- ring
 
-    -  ``names`` -- generator names (string or an alphabet)
+    - ``names`` -- generator names (string or an alphabet)
 
     EXAMPLES::
 
@@ -107,6 +106,15 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         B[word: bbca] + B[word: bcab] + B[word: bcba] + B[word: cabb] + B[word: cbab] + B[word: cbba]
         sage: 1 - B[Word('bb')] * B[Word('ca')] / 2
         B[word: ] - 1/2*B[word: bbca] - 1/2*B[word: bcab] - 1/2*B[word: bcba] - 1/2*B[word: cabb] - 1/2*B[word: cbab] - 1/2*B[word: cbba]
+
+    TESTS::
+
+        sage: R = ShuffleAlgebra(QQ,'x')
+        sage: R.is_commutative()
+        True
+        sage: R = ShuffleAlgebra(QQ,'xy')
+        sage: R.is_commutative()
+        True
     """
     @staticmethod
     def __classcall_private__(cls, R, names):
@@ -145,8 +153,10 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         self._alphabet = names
         self.__ngens = self._alphabet.cardinality()
         CombinatorialFreeModule.__init__(self, R, Words(names, infinite=False),
-            latex_prefix="",
-            category=(AlgebrasWithBasis(R), CommutativeAlgebras(R), CoalgebrasWithBasis(R)))
+                                         latex_prefix="",
+                                         category=(AlgebrasWithBasis(R),
+                                                   CommutativeAlgebras(R),
+                                                   CoalgebrasWithBasis(R)))
 
     def variable_names(self):
         r"""
@@ -159,21 +169,6 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             {'x', 'y'}
         """
         return self._alphabet
-
-    def is_commutative(self):
-        r"""
-        Return ``True`` as the shuffle algebra is commutative.
-
-        EXAMPLES::
-
-            sage: R = ShuffleAlgebra(QQ,'x')
-            sage: R.is_commutative()
-            True
-            sage: R = ShuffleAlgebra(QQ,'xy')
-            sage: R.is_commutative()
-            True
-        """
-        return True
 
     def _repr_(self):
         r"""
@@ -191,8 +186,8 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         if self.__ngens == 1:
             gen = "one generator"
         else:
-            gen = "%s generators" %self.__ngens
-        return "Shuffle Algebra on "+ gen +" %s over %s"%(
+            gen = "%s generators" % self.__ngens
+        return "Shuffle Algebra on " + gen + " %s over %s" % (
             self._alphabet.list(), self.base_ring())
 
     @cached_method
@@ -233,9 +228,9 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         """
         return sum(self.basis()[u] for u in w1.shuffle(w2))
 
-    def gen(self,i):
+    def gen(self, i):
         r"""
-        The ``i``-th generator of the algebra.
+        Return the ``i``-th generator of the algebra.
 
         INPUT:
 
@@ -254,7 +249,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         """
         n = self.__ngens
         if i < 0 or not i < n:
-            raise IndexError("argument i (= %s) must be between 0 and %s"%(i, n-1))
+            raise IndexError("argument i (= %s) must be between 0 and %s" % (i, n - 1))
         return self.algebra_generators()[i]
 
     def coproduct_on_basis(self, w):
@@ -278,18 +273,18 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: F.coproduct_on_basis(Word())
             B[word: ] # B[word: ]
         """
-        if len(w) == 0:
+        if not w:
             return self.tensor_square().monomial((self.one_basis(), self.one_basis()))
+        TS = self.tensor_square()
         if len(w) == 1:
-            return self.tensor_square().sum_of_terms([
-                        ((w, self.one_basis()), 1),
-                        ((self.one_basis(), w), 1) ], distinct=True)
+            return TS.sum_of_terms([((w, self.one_basis()), 1),
+                                    ((self.one_basis(), w), 1)], distinct=True)
 
         result = self.coproduct_on_basis(Word([w[0]]))
         for i in w[1:]:
-            result = self.tensor_square().sum_of_terms([
-                    ((Word(v1) * Word(u1), Word(v2) * Word(u2)),
-                     coeff1 * coeff2)
+            result = TS.sum_of_terms([((Word(v1) * Word(u1),
+                                        Word(v2) * Word(u2)),
+                                       coeff1 * coeff2)
                     for ((u1, u2), coeff1) in self.coproduct_on_basis(Word([i]))
                     for ((v1, v2), coeff2) in result])
         return result
@@ -315,9 +310,9 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             B[word: ] # B[word: ]
         """
         return sum([c * self.coproduct_on_basis(i)
-                    for i,c in S.monomial_coefficients().items()])
+                    for i, c in S.monomial_coefficients().items()])
 
-    def counit(self,S):
+    def counit(self, S):
         """
         Return the counit of ``S``.
 
@@ -348,10 +343,10 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             Family (B[word: x1], B[word: x2])
         """
         Words = self.basis().keys()
-        return Family( [self.monomial(Words([a])) for a in self._alphabet] )
+        return Family([self.monomial(Words([a])) for a in self._alphabet])
         # FIXME: use this once the keys argument of FiniteFamily will be honoured
         # for the specifying the order of the elements in the family
-        #return Family(self._alphabet, lambda a: self.term(self.basis().keys()(a)))
+        # return Family(self._alphabet, lambda a: self.term(self.basis().keys()(a)))
 
     gens = algebra_generators
 
@@ -385,14 +380,14 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         if isinstance(P, DualPBWBasis):
             return self(P.expansion(x))
         # ok, not a shuffle algebra element (or should not be viewed as one).
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             from sage.misc.sage_eval import sage_eval
-            return sage_eval(x,locals=self.gens_dict())
+            return sage_eval(x, locals=self.gens_dict())
         R = self.base_ring()
         # coercion via base ring
         x = R(x)
         if x == 0:
-            return self.element_class(self,{})
+            return self.element_class(self, {})
         else:
             return self.from_base_ring_from_one_basis(x)
 
@@ -536,14 +531,15 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             support = [W(i[0]) for i in list(w)]
             min_elt = W(support[0])
             if len(support) > 1:
-                for word in support[1:len(support)-1]:
+                for word in support[1:len(support) - 1]:
                     if min_elt.lex_less(word):
                         min_elt = W(word)
             coeff = list(w)[support.index(min_elt)][1]
             l[min_elt] = l.get(min_elt, 0) + coeff
             w = w - coeff * D.expansion_on_basis(W(min_elt))
 
-        return D.sum_of_terms([(m, c) for m,c in l.items() if c != 0])
+        return D.sum_of_terms((m, c) for m, c in l.items() if c != 0)
+
 
 class DualPBWBasis(CombinatorialFreeModule):
     r"""
@@ -627,7 +623,9 @@ class DualPBWBasis(CombinatorialFreeModule):
         self._alphabet = names
         self._alg = ShuffleAlgebra(R, names)
         CombinatorialFreeModule.__init__(self, R, Words(names), prefix='S',
-            category=(AlgebrasWithBasis(R), CommutativeAlgebras(R), CoalgebrasWithBasis(R)))
+                                         category=(AlgebrasWithBasis(R),
+                                                   CommutativeAlgebras(R),
+                                                   CoalgebrasWithBasis(R)))
 
     def _repr_(self):
         """
@@ -816,16 +814,16 @@ class DualPBWBasis(CombinatorialFreeModule):
             2*B[word: aabb] + B[word: abab]
         """
         from sage.functions.other import factorial
-        if len(w) == 0:
+        if not w:
             return self._alg.one()
         if len(w) == 1:
-           return self._alg.monomial(w)
-
+            return self._alg.monomial(w)
         if w.is_lyndon():
             W = self.basis().keys()
             letter = W(w[0])
             expansion = self.expansion_on_basis(W(w[1:]))
-            return self._alg.sum_of_terms([(letter * i, c) for i,c in expansion])
+            return self._alg.sum_of_terms((letter * i, c)
+                                          for i, c in expansion)
 
         lf = w.lyndon_factorization()
         powers = {}
@@ -851,4 +849,3 @@ class DualPBWBasis(CombinatorialFreeModule):
                 B[word: ab] + 2*B[word: abb] + B[word: bab]
             """
             return self.parent().expansion(self)
-

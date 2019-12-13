@@ -33,7 +33,6 @@ from __future__ import absolute_import
 
 
 from .base import Polyhedron_base
-from sage.structure.element import Element
 
 
 class Polyhedron_field(Polyhedron_base):

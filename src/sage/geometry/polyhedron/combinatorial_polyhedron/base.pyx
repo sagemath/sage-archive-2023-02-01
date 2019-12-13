@@ -1237,7 +1237,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             raise ValueError("could not determine f_vector")
         from sage.modules.free_module_element import vector
         from sage.rings.all                   import ZZ
-        return vector(ZZ, self._f_vector)
+        f_vector = vector(ZZ, self._f_vector)
+        f_vector.set_immutable()
+        return f_vector
 
     def face_iter(self, dimension=None, dual=None):
         r"""

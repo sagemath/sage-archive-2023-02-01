@@ -310,6 +310,7 @@ class Polyhedron_base(Element):
             Hrep = face.ambient_Hrepresentation()
             assert(len(Hrep) == codim+2)
             set_adjacent(Hrep[-2], Hrep[-1])
+        M.set_immutable()
         return M
 
     def _vertex_adjacency_matrix(self):
@@ -342,6 +343,7 @@ class Polyhedron_base(Element):
             Vrep = face.ambient_Vrepresentation()
             if len(Vrep) == 2:
                 set_adjacent(Vrep[0], Vrep[1])
+        M.set_immutable()
         return M
 
     def _delete(self):
@@ -634,10 +636,17 @@ class Polyhedron_base(Element):
             sage: H = O.vertex_facet_graph()
             sage: G.is_isomorphic(H)
             False
-            sage: G.reverse_edges(G.edges())
-            sage: G.is_isomorphic(H)
+            sage: G2 = copy(G)
+            sage: G2.reverse_edges(G2.edges())
+            sage: G2.is_isomorphic(H)
             True
 
+        TESTS:
+
+        Check that :trac:`28828` is fixed::
+
+            sage: G._immutable
+            True
         """
 
         # We construct the edges and remove the columns that have all 1s;
@@ -655,7 +664,7 @@ class Polyhedron_base(Element):
                      if any(entry != 1 for entry in column)
                      for j in range(M.nrows()) if M[j, i] == 1]
         G.add_edges(edges)
-        return G
+        return G.copy(immutable=True)
 
     def plot(self,
              point=None, line=None, polygon=None,  # None means unspecified by the user
@@ -1916,6 +1925,13 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: no conversion of this rational to integer
+
+        TESTS:
+
+        Check that :trac:`28828` is fixed::
+
+                sage: P.vertices_matrix().is_immutable()
+                True
         """
         if base_ring is None:
             base_ring = self.base_ring()
@@ -1923,6 +1939,7 @@ class Polyhedron_base(Element):
         for i, v in enumerate(self.vertices()):
             for j in range(self.ambient_dim()):
                 m[j, i] = v[j]
+        m.set_immutable()
         return m
 
     def ray_generator(self):
@@ -2298,6 +2315,13 @@ class Polyhedron_base(Element):
             (0, 1, 0, 0, 1) A vertex at (1, 0)
             (0, 0, 0, 0, 1) A ray in the direction (1, 1)
             (0, 0, 1, 1, 0) A vertex at (3, 0)
+
+        TESTS:
+
+        Check that :trac:`28828` is fixed::
+
+                sage: P.adjacency_matrix().is_immutable()
+                True
         """
         return self._vertex_adjacency_matrix()
 
@@ -2372,6 +2396,13 @@ class Polyhedron_base(Element):
             [1 1 0 1 1]
             [1 1 1 0 1]
             [1 1 1 1 0]
+
+        TESTS:
+
+        Check that :trac:`28828` is fixed::
+
+                sage: s4.facet_adjacency_matrix().is_immutable()
+                True
         """
         return self._facet_adjacency_matrix()
 
@@ -2467,6 +2498,13 @@ class Polyhedron_base(Element):
             [1 0 1]
             [0 1 0]
             [0 0 1]
+
+        TESTS:
+
+        Check that :trac:`28828` is fixed::
+
+                sage: R.incidence_matrix().is_immutable()
+                True
         """
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
@@ -2492,6 +2530,7 @@ class Polyhedron_base(Element):
                 if self._is_zero(Hvec*Vvec):
                    incidence_matrix[Vindex, Hindex] = 1
 
+        incidence_matrix.set_immutable()
         return incidence_matrix
 
     def base_ring(self):
@@ -3285,7 +3324,7 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron(vertices = [[0,0],[0,1],[1,0]])
             sage: p2 = p.prism()
             sage: p2.gale_transform()
-            [(1, 0), (0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1)]
+            ((1, 0), (0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1))
 
         REFERENCES:
 
@@ -3305,7 +3344,7 @@ class Polyhedron_base(Element):
                    [ [1]+x for x in self.vertex_generator()])
         A = A.transpose()
         A_ker = A.right_kernel()
-        return A_ker.basis_matrix().transpose().rows()
+        return tuple(A_ker.basis_matrix().transpose().rows())
 
     @cached_method
     def normal_fan(self, direction='inner'):
@@ -5544,6 +5583,13 @@ class Polyhedron_base(Element):
             (A vertex at (1, 0), A vertex at (-1, 0))
             sage: P.f_vector()
             (1, 0, 2, 1)
+
+        TESTS:
+
+        Check that :trac:`28828` is fixed::
+
+            sage: P.f_vector().is_immutable()
+            True
         """
         return self.combinatorial_polyhedron().f_vector()
 
@@ -7495,10 +7541,7 @@ class Polyhedron_base(Element):
             G = self.graph()
         else:
             G = self.vertex_facet_graph()
-        group = G.automorphism_group(edge_labels=True)
-        self._combinatorial_automorphism_group = group
-
-        return self._combinatorial_automorphism_group
+        return G.automorphism_group(edge_labels=True)
 
     @cached_method
     def restricted_automorphism_group(self, output="abstract"):
@@ -7648,14 +7691,14 @@ class Polyhedron_base(Element):
             Permutation Group with generators [(1,2)]
             sage: G = P.restricted_automorphism_group(output="matrixlist")
             sage: G
-            [
+            (
             [1 0 0 0 0 0]  [ -87/55  -82/55    -2/5   38/55   98/55   12/11]
             [0 1 0 0 0 0]  [-142/55  -27/55    -2/5   38/55   98/55   12/11]
             [0 0 1 0 0 0]  [-142/55  -82/55     3/5   38/55   98/55   12/11]
             [0 0 0 1 0 0]  [-142/55  -82/55    -2/5   93/55   98/55   12/11]
             [0 0 0 0 1 0]  [-142/55  -82/55    -2/5   38/55  153/55   12/11]
             [0 0 0 0 0 1], [      0       0       0       0       0       1]
-            ]
+            )
             sage: g = AffineGroup(5, QQ)(G[1])
             sage: g
                   [ -87/55  -82/55    -2/5   38/55   98/55]     [12/11]
@@ -7841,7 +7884,7 @@ class Polyhedron_base(Element):
             matrices.append(A + W)
 
         if output == "matrixlist":
-            return matrices
+            return tuple(matrices)
         else:
             return MatrixGroup(matrices)
 

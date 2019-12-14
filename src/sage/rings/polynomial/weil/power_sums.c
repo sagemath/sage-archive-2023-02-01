@@ -771,8 +771,8 @@ void next_pol(ps_static_data_t *st_data, ps_dynamic_data_t *dy_data, int max_ste
 
   int i, j, flag = 1, count_steps = 0;
 
-  if (dy_data==NULL || !dy_data->flag) return(0); // No work assigned to this process
-  if (n>d) return(0);
+  if (dy_data==NULL || !dy_data->flag) return; // No work assigned to this process
+  if (n>d) return;
 
   dy_data->flag = 0; // Prevent work-stealing while this process is running
 

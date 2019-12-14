@@ -282,6 +282,8 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         Return the coproduct of the element of the basis indexed by
         the word ``w``.
 
+        The coproduct is given by deconcatenation.
+
         INPUT:
 
         - ``w`` -- a word
@@ -292,9 +294,8 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: F.coproduct_on_basis(Word('a'))
             B[word: ] # B[word: a] + B[word: a] # B[word: ]
             sage: F.coproduct_on_basis(Word('aba'))
-            B[word: ] # B[word: aba] + B[word: a] # B[word: ab] + B[word: a] # B[word: ba]
-             + B[word: aa] # B[word: b] + B[word: ab] # B[word: a] + B[word: aba] # B[word: ]
-             + B[word: b] # B[word: aa] + B[word: ba] # B[word: a]
+            B[word: ] # B[word: aba] + B[word: a] # B[word: ba]
+            + B[word: ab] # B[word: a] + B[word: aba] # B[word: ]
             sage: F.coproduct_on_basis(Word())
             B[word: ] # B[word: ]
 
@@ -306,29 +307,15 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: F.coproduct(S)
             B[word: ] # B[word: ] + 2*B[word: ] # B[word: a]
             + 3*B[word: ] # B[word: b] + B[word: ] # B[word: bab]
-            + 2*B[word: a] # B[word: ] + B[word: a] # B[word: bb]
-            + B[word: ab] # B[word: b] + 3*B[word: b] # B[word: ]
-            + B[word: b] # B[word: ab] + B[word: b] # B[word: ba]
-            + B[word: ba] # B[word: b] + B[word: bab] # B[word: ]
-            + B[word: bb] # B[word: a]
+            + 2*B[word: a] # B[word: ] + 3*B[word: b] # B[word: ]
+            + B[word: b] # B[word: ab] + B[word: ba] # B[word: b]
+            + B[word: bab] # B[word: ]
             sage: F.coproduct(F.one())
             B[word: ] # B[word: ]
         """
-        if not w:
-            return self.tensor_square().monomial((self.one_basis(), self.one_basis()))
         TS = self.tensor_square()
-        if len(w) == 1:
-            return TS.sum_of_terms([((w, self.one_basis()), 1),
-                                    ((self.one_basis(), w), 1)], distinct=True)
-
-        result = self.coproduct_on_basis(Word([w[0]]))
-        for i in w[1:]:
-            result = TS.sum_of_terms([((Word(v1) * Word(u1),
-                                        Word(v2) * Word(u2)),
-                                       coeff1 * coeff2)
-                    for ((u1, u2), coeff1) in self.coproduct_on_basis(Word([i]))
-                    for ((v1, v2), coeff2) in result])
-        return result
+        return TS.sum_of_terms([((w[:i], w[i:]), 1)
+                                for i in range(len(w) + 1)], distinct=True)
 
     def counit(self, S):
         """
@@ -848,7 +835,7 @@ class DualPBWBasis(CombinatorialFreeModule):
             sage: S = A.dual_pbw_basis()
             sage: ab = S('ab').coproduct(); ab
             S[word: ] # S[word: ab] + S[word: a] # S[word: b]
-            + S[word: ab] # S[word: ] + S[word: b] # S[word: a]
+            + S[word: ab] # S[word: ]
         """
         cp = self.expansion(elt).coproduct()
         S2 = self.tensor_square()

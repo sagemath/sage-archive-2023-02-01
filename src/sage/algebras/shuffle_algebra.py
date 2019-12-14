@@ -297,6 +297,22 @@ class ShuffleAlgebra(CombinatorialFreeModule):
              + B[word: b] # B[word: aa] + B[word: ba] # B[word: a]
             sage: F.coproduct_on_basis(Word())
             B[word: ] # B[word: ]
+
+        TESTS::
+
+            sage: F = ShuffleAlgebra(QQ,'ab')
+            sage: S = F.an_element(); S
+            B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
+            sage: F.coproduct(S)
+            B[word: ] # B[word: ] + 2*B[word: ] # B[word: a]
+            + 3*B[word: ] # B[word: b] + B[word: ] # B[word: bab]
+            + 2*B[word: a] # B[word: ] + B[word: a] # B[word: bb]
+            + B[word: ab] # B[word: b] + 3*B[word: b] # B[word: ]
+            + B[word: b] # B[word: ab] + B[word: b] # B[word: ba]
+            + B[word: ba] # B[word: b] + B[word: bab] # B[word: ]
+            + B[word: bb] # B[word: a]
+            sage: F.coproduct(F.one())
+            B[word: ] # B[word: ]
         """
         if not w:
             return self.tensor_square().monomial((self.one_basis(), self.one_basis()))
@@ -313,29 +329,6 @@ class ShuffleAlgebra(CombinatorialFreeModule):
                     for ((u1, u2), coeff1) in self.coproduct_on_basis(Word([i]))
                     for ((v1, v2), coeff2) in result])
         return result
-
-    def coproduct(self, S):
-        """
-        Return the coproduct of the series ``S``.
-
-        EXAMPLES::
-
-            sage: F = ShuffleAlgebra(QQ,'ab')
-            sage: S = F.an_element(); S
-            B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
-            sage: F.coproduct(S)
-            B[word: ] # B[word: ] + 2*B[word: ] # B[word: a]
-            + 3*B[word: ] # B[word: b] + B[word: ] # B[word: bab]
-            + 2*B[word: a] # B[word: ] + B[word: a] # B[word: bb]
-            + B[word: ab] # B[word: b] + 3*B[word: b] # B[word: ]
-            + B[word: b] # B[word: ab] + B[word: b] # B[word: ba]
-            + B[word: ba] # B[word: b] + B[word: bab] # B[word: ]
-            + B[word: bb] # B[word: a]
-            sage: F.coproduct(F.one())
-            B[word: ] # B[word: ]
-        """
-        return sum([c * self.coproduct_on_basis(i)
-                    for i, c in S.monomial_coefficients().items()])
 
     def counit(self, S):
         """
@@ -725,6 +718,21 @@ class DualPBWBasis(CombinatorialFreeModule):
         """
         W = self.basis().keys()
         return W([])
+
+    def counit(self, S):
+        """
+        Return the counit of ``S``.
+
+        EXAMPLES::
+
+            sage: F = ShuffleAlgebra(QQ,'ab').dual_pbw_basis()
+            sage: (3*F.gen(0)+5*F.gen(1)**2).counit()
+            0
+            sage: (4*F.one()).counit()
+            4
+        """
+        W = self.basis().keys()
+        return S.coefficient(W())
 
     def algebra_generators(self):
         """

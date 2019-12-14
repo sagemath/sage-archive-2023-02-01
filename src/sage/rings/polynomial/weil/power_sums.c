@@ -17,11 +17,11 @@
 
 */
 
-#include <flint.h>
-#include <fmpz_poly.h>
-#include <fmpq.h>
-#include <fmpq_mat.h>
-#include <arith.h>
+#include <flint/flint.h>
+#include <flint/fmpz_poly.h>
+#include <flint/fmpq.h>
+#include <flint/fmpq_mat.h>
+#include <flint/arith.h>
 
 /* Check for OpenMP at runtime.
 */

@@ -1,3 +1,6 @@
+#encoding=utf8
+#distutils: extra_compile_args = -fopenmp
+
 r"""
 Iterator for Weil polynomials.
 
@@ -43,15 +46,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-#encoding=utf8
-#distutils: language = c
-#distutils: libraries = gomp
-#distutils: sources = power_sums.c
-## Remove the next line if OpenMP is not available
-#distutils: extra_compile_args = -fopenmp
-
-## TODO: remove hard-coding of include directory
 
 from time import time as clock
 
@@ -313,7 +307,7 @@ class WeilPolynomials_iter():
             return self.count
         return self.process.node_count()
 
-cdef class WeilPolynomials():
+class WeilPolynomials():
     r"""
     Iterable for Weil polynomials, i.e., integer polynomials with all complex 
     roots having a particular absolute value.
@@ -379,4 +373,4 @@ cdef class WeilPolynomials():
         Return the number of terminal nodes found in the tree, excluding actual solutions.
         """
         return self.w.node_count()
-    
+

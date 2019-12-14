@@ -350,3 +350,155 @@ class DegenerateManifold(DifferentiableManifold):
         #!# update non-coordinate vector frames and change of frames
         #
         return resu
+
+
+    
+#*******************************************************************************************
+
+from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
+from sage.manifolds.differentiable.tensorfield import TensorField
+
+class TangentTensor(TensorFieldParal):
+    r"""
+    Let `S` be a lightlike submanifold embedded in a pseudo-Riemannian 
+    manifold `(M,g)` with `Phi` the embedding map. Let `T1` be a tensor 
+    on `M` along `S` or not. `TangentTensor(T1,Phi)` returns restriction
+    `T2` of `T1` along `S` that in addition can be applied only on vector
+    fields tangent to `S`, when `T1` has a covariant part.
+
+    INPUT:
+
+    - ``tensor`` -- a tensor field on the ambient manifold
+
+    OUTPUT:
+
+    - a tensor field on the ambient manifold along the submanifold
+        
+
+        """
+    
+    def __init__(self, tensor, embedding):
+        r"""
+
+        TESTS::
+
+            sage: M = Manifold(4, 'M', structure="Lorentzian")
+            sage: X.<t,x,y,z> = M.chart()
+            sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
+            sage: X_S.<u,v,w> = S.chart()
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
+            ....:         name='Phi', latex_name=r'\Phi'); 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
+            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
+            sage: v = M.vector_field(); v[1] = 1; v[2] = 1
+            sage: S.set_transverse(rigging=v)
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
+            sage: Sc = S.screen('Sc', (U,V), xi);  
+            sage: T1 = M.tensor_field(1,1).along(Phi); T1[0,0] = 1
+            sage: from sage.manifolds.differentiable.degenerate_submanifold import TangentTensor
+            sage: T2 = TangentTensor(T1, Phi); T2
+            Tensor field of type (1,1) along the degenerate hypersurface S embedded in 
+            4-dimensional differentiable manifold M with values on the 4-dimensional 
+            Lorentzian manifold M        
+
+        """
+        if not isinstance(tensor, TensorField):
+            raise TypeError("the second argument must be a tensor field")
+        self._tensor = tensor
+        self._tensor.set_name(tensor._name, latex_name=tensor._latex_name)
+        self._embedding = embedding
+        try:
+            tensor = tensor.along(embedding)
+        except ValueError:
+            pass
+        if isinstance(tensor, TensorFieldParal):
+            TensorFieldParal.__init__(self, tensor._vmodule, tensor._tensor_type, name=tensor._name,
+                   latex_name=tensor._latex_name, sym=tensor._sym, antisym=tensor._antisym)
+        else:
+            TensorField.__init__(self, tensor._vmodule, tensor._tensor_type, name=tensor._name,
+                   latex_name=tensor._latex_name, sym=tensor._sym, antisym=tensor._antisym)
+        f = tensor._domain._ambient.default_frame().along(embedding)
+        self[f, :] = tensor[f, :]
+        
+    def __call__(self, *args):
+        r"""
+
+        TESTS::
+
+            sage: M = Manifold(4, 'M', structure="Lorentzian")
+            sage: X.<t,x,y,z> = M.chart()
+            sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
+            sage: X_S.<u,v,w> = S.chart()
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
+            ....:         name='Phi', latex_name=r'\Phi'); 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
+            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
+            sage: v = M.vector_field(); v[1] = 1; v[2] = 1
+            sage: S.set_transverse(rigging=v)
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
+            sage: Sc = S.screen('Sc', (U,V), xi);  
+            sage: T1 = M.tensor_field(1,1).along(Phi); T1[0,0] = 1
+            sage: from sage.manifolds.differentiable.degenerate_submanifold import TangentTensor
+            sage: T2 = TangentTensor(T1, Phi); T2(xi.along(Phi))
+            Vector field along the degenerate hypersurface S embedded in 
+            4-dimensional differentiable manifold M with values on the 4-dimensional 
+            Lorentzian manifold M
+
+        """
+        for vector in args:
+            try:
+                vector = vector.along(self._embedding)
+            except ValueError:
+                pass
+            if not self._domain.is_tangent(vector):
+                raise ValueError("The provided vector field is not "+
+                        "tangent to {}".format(self._domain._name))
+        try:
+            return TensorField.__call__(self._tensor.along(self._embedding), *args)
+        except ValueError:    
+            return TensorField.__call__(self._tensor, *args)
+
+    def extension(self):
+        r"""
+
+        Return initial tensor
+
+        EXAMPLES:
+
+        Section of the lightcone of the Minkowski space with a hyperplane 
+        passing through the origin::
+
+            sage: M = Manifold(4, 'M', structure="Lorentzian")
+            sage: X.<t,x,y,z> = M.chart()
+            sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
+            sage: X_S.<u,v> = S.chart()
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v, 0]}, 
+            ....:               name='Phi', latex_name=r'\Phi')
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
+            ....:                       latex_name=r'\Phi^{-1}')
+            sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
+            sage: V = M.vector_field(); V[3] = 1
+            sage: S.set_transverse(rigging=t, normal=V)
+            sage: xi = M.vector_field(); xi[0] = sqrt(x^2+y^2+z^2); xi[1] = x; xi[2] = y
+            sage: U = M.vector_field(); U[1] = sqrt(x^2+y^2+z^2); U[0] = x
+            sage: Sc = S.screen('Sc', U, xi); 
+            sage: T1 = M.tensor_field(1,1).along(Phi); T1[0,0] = 1
+            sage: from sage.manifolds.differentiable.degenerate_submanifold import TangentTensor
+            sage: T2 = TangentTensor(T1, Phi); T3 = T2.extension() 
+            sage: T3 is T2
+            False
+            sage: T3 is T1
+            True
+        
+        """
+        return self._tensor

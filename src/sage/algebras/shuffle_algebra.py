@@ -16,9 +16,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.rings import Rings
-from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.commutative_algebras import CommutativeAlgebras
-from sage.categories.coalgebras_with_basis import CoalgebrasWithBasis
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.words.words import Words
@@ -154,9 +152,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         self.__ngens = self._alphabet.cardinality()
         CombinatorialFreeModule.__init__(self, R, Words(names, infinite=False),
                                          latex_prefix="",
-                                         category=(AlgebrasWithBasis(R),
-                                                   CommutativeAlgebras(R),
-                                                   CoalgebrasWithBasis(R)))
+                                         category=HopfAlgebrasWithBasis(R).Commutative())
 
     def variable_names(self):
         r"""
@@ -228,6 +224,20 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         """
         return sum(self.basis()[u] for u in w1.shuffle(w2))
 
+    def antipode_on_basis(self, w):
+        """
+        Return the antipode on the basis element ``w``.
+
+        EXAMPLES::
+
+            sage: A = ShuffleAlgebra(QQ,'abc')
+            sage: W = A.basis().keys()
+            sage: A.antipode_on_basis(W("acb"))
+            -B[word: bca]
+        """
+        mone = -self.base_ring().one()
+        return self.term(w.reversal(), mone**len(w))
+
     def gen(self, i):
         r"""
         Return the ``i``-th generator of the algebra.
@@ -251,6 +261,21 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         if i < 0 or not i < n:
             raise IndexError("argument i (= %s) must be between 0 and %s" % (i, n - 1))
         return self.algebra_generators()[i]
+
+    def some_elements(self):
+        """
+        Return some typical elements.
+
+        EXAMPLES::
+
+            sage: F = ShuffleAlgebra(ZZ,'xyz')
+            sage: F.some_elements()
+            [0, B[word: ], B[word: x], B[word: y], B[word: z], B[word: xz] + B[word: zx]]
+        """
+        gens = list(self.algebra_generators())
+        if gens:
+            gens.append(gens[0] * gens[-1])
+        return [self.zero(), self.one()] + gens
 
     def coproduct_on_basis(self, w):
         """
@@ -324,7 +349,8 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: F.counit(S)
             1
         """
-        return S.monomial_coefficients().get(Word(), 0)
+        W = self.basis().keys()
+        return S.coefficient(W())
 
     @cached_method
     def algebra_generators(self):
@@ -623,9 +649,7 @@ class DualPBWBasis(CombinatorialFreeModule):
         self._alphabet = names
         self._alg = ShuffleAlgebra(R, names)
         CombinatorialFreeModule.__init__(self, R, Words(names), prefix='S',
-                                         category=(AlgebrasWithBasis(R),
-                                                   CommutativeAlgebras(R),
-                                                   CoalgebrasWithBasis(R)))
+                                         category=HopfAlgebrasWithBasis(R).Commutative())
 
     def _repr_(self):
         """
@@ -731,6 +755,21 @@ class DualPBWBasis(CombinatorialFreeModule):
         """
         return self.algebra_generators()[i]
 
+    def some_elements(self):
+        """
+        Return some typical elements.
+
+        EXAMPLES::
+
+            sage: F = ShuffleAlgebra(QQ,'xyz').dual_pbw_basis()
+            sage: F.some_elements()
+            [0, S[word: ], S[word: x], S[word: y], S[word: z], S[word: zx]]
+        """
+        gens = list(self.algebra_generators())
+        if gens:
+            gens.append(gens[0] * gens[-1])
+        return [self.zero(), self.one()] + gens
+
     def shuffle_algebra(self):
         """
         Return the associated shuffle algebra of ``self``.
@@ -774,6 +813,38 @@ class DualPBWBasis(CombinatorialFreeModule):
             True
         """
         return self(self.expansion(u) * self.expansion(v))
+
+    def antipode(self, elt):
+        """
+        Return the antipode of the element ``elt``.
+
+        EXAMPLES::
+
+            sage: A = ShuffleAlgebra(QQ, 'ab')
+            sage: S = A.dual_pbw_basis()
+            sage: w = S('abaab').antipode(); w
+            S[word: abaab] - 2*S[word: ababa] - S[word: baaba]
+            + 3*S[word: babaa] - 6*S[word: bbaaa]
+            sage: w.antipode()
+            S[word: abaab]
+        """
+        return self(self.expansion(elt).antipode())
+
+    def coproduct(self, elt):
+        """
+        Return the coproduct of the element ``elt``.
+
+        EXAMPLES::
+
+            sage: A = ShuffleAlgebra(QQ, 'ab')
+            sage: S = A.dual_pbw_basis()
+            sage: ab = S('ab').coproduct(); ab
+            S[word: ] # S[word: ab] + S[word: a] # S[word: b]
+            + S[word: ab] # S[word: ] + S[word: b] # S[word: a]
+        """
+        cp = self.expansion(elt).coproduct()
+        S2 = self.tensor_square()
+        return S2.sum(c * self(m[0]).tensor(self(m[1])) for (m, c) in cp)
 
     @lazy_attribute
     def expansion(self):

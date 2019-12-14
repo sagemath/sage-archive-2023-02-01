@@ -1,6 +1,4 @@
-#encoding=utf8
-#distutils: extra_compile_args = -fopenmp
-
+# coding: utf-8
 r"""
 Iterator for Weil polynomials.
 
@@ -15,17 +13,6 @@ a polynomial specified by a congruence to a Weil polynomial.
 For large jobs, one can set parallel=True to use OpenMP. Due to increased overhead,
 this is not recommended for smaller problem sizes.
 
-EXAMPLES::
-
-    sage: list(WeilPolynomials(2,2))
-    [x^2 + 2*x + 2, x^2 + x + 2, x^2 + 2, x^2 - x + 2, x^2 - 2*x + 2]
-    sage: l = list(WeilPolynomials(4,2))
-    sage: l[0], l[-1]
-    (x^4 + 4*x^3 + 8*x^2 + 8*x + 4, x^4 - 4*x^3 + 8*x^2 - 8*x + 4)
-    sage: l = list(WeilPolynomials(3, 1, sign=-1))
-    sage: l[0], l[-1]
-    (x^3 + x^2 - x - 1, x^3 - 3*x^2 + 3*x - 1)
-
 AUTHOR:
   -- Kiran S. Kedlaya (2007-05-28): initial version
   -- (2015-08-29): switch from NTL to FLINT
@@ -37,6 +24,11 @@ AUTHOR:
                    improve parallel mode
 """
 
+#distutils: language = c
+## Remove second # from the next two lines to enable OpenMP support.
+##distutils: libraries = gomp
+##distutils: extra_compile_args = -fopenmp
+
 #*****************************************************************************
 #       Copyright (C) 2019 Kiran S. Kedlaya <kskedl@gmail.com>
 #
@@ -46,8 +38,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from time import time as clock
 
 cimport cython
 from cython.parallel import prange
@@ -76,7 +66,7 @@ cdef extern from "sage/rings/polynomial/weil/power_sums.c":
 
     int has_openmp()
     ps_static_data_t *ps_static_init(int d, fmpz_t q, int coeffsign, fmpz_t lead,
-    		     		     int cofactor, fmpz *modlist, long node_limit,
+                                     int cofactor, fmpz *modlist, long node_limit,
                                      int force_squarefree)
     ps_dynamic_data_t *ps_dynamic_init(int d, fmpz_t q, fmpz *coefflist)
     void *ps_dynamic_split(ps_dynamic_data_t *dy_data, ps_dynamic_data_t *dy_data2) nogil
@@ -84,8 +74,13 @@ cdef extern from "sage/rings/polynomial/weil/power_sums.c":
     void ps_dynamic_clear(ps_dynamic_data_t *dy_data)
     void next_pol(ps_static_data_t *st_data, ps_dynamic_data_t *dy_data, int max_steps) nogil
 
-# Data structure to manage parallel depth-first search.
 cdef class dfs_manager:
+    """
+    Data structure to manage depth-first search.
+
+    Such a structure is created and managed by an instance of `WeilPolynomials_iter`. 
+    There is generally no need for a user to manipulate it directly.
+    """
     cdef int d
     cdef int num_processes
     cdef long node_limit
@@ -94,6 +89,21 @@ cdef class dfs_manager:
 
     def __cinit__(self, int d, q, coefflist, modlist, int sign, int cofactor,
                         long node_limit, int parallel, int force_squarefree):
+        """
+        Perform required C-level initialization (e.g., memory allocation).
+
+        This is called automatically at object creation. It should never be called directly.
+
+        TESTS:
+
+        For some reason, Sage requires a dummy doctest to meet coverage requirements::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: it.process is not None # Verify object creation
+            True
+        """
         cdef fmpz_t temp_lead
         cdef fmpz_t temp_q
         cdef fmpz *temp_array
@@ -114,7 +124,7 @@ cdef class dfs_manager:
                                          temp_array, node_limit, force_squarefree)
 
         # Initialize processes, but assign work to only one process.
-        # Other processes will get initialized later via work-stealing.
+        # In parallel mode, other processes will get initialized later via work-stealing.
         for i in range(d+1):
             fmpz_set_mpz(temp_array+i, Integer(coefflist[i]).value)
         self.dy_data_buf[0] = ps_dynamic_init(d, temp_q, temp_array)
@@ -125,11 +135,11 @@ cdef class dfs_manager:
         fmpz_clear(temp_q)
         _fmpz_vec_clear(temp_array, d+1)
 
-    def __init__(self, d, q, coefflist, modlist, sign, cofactor,
-                        node_limit, parallel, force_squarefree):
-        pass
-
     def __dealloc__(self):
+        """
+        Deallocate memory.
+
+        """
         ps_static_clear(self.ps_st_data)
         self.ps_st_data = NULL
         if self.dy_data_buf != NULL:
@@ -139,6 +149,21 @@ cdef class dfs_manager:
             self.dy_data_buf = NULL
 
     cpdef long node_count(self):
+        """
+        Count nodes.
+
+        This method should not be called directly. Instead, use the `node_count` method
+        of an instance of `WeilPolynomials` or `WeilPolynomials_iter`.
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: _ = next(it)
+            sage: it.process.node_count()
+            158
+        """
         cdef long count = 0
         cdef int i
         for i in range(self.num_processes):
@@ -148,19 +173,26 @@ cdef class dfs_manager:
     cpdef object advance_exhaust(self):
         """
         Advance the tree exhaustion.
+
+        This method should not be called directly. Instead, use the iterator
+        `WeilPolynomials_iter` or the iterable `WeilPolynomials`.
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: it.process.advance_exhaust()[0]
+            [3, 1, 1, -5, 1, -2, 1, -5, 1, 1, 3, 0, 0]
         """
         cdef int i, j, k, d = self.d, t=1, u=0, np = self.num_processes, max_steps=1000
         cdef long ans_count = 0, ans_max = 10000
         cdef mpz_t z
         cdef Integer temp
-        cdef double time1, time2
         ans = []
 
         k=1
-        time1 = 0
-        time2 = 0
         while (t and not u and ans_count  < ans_max):
-            time1 -= clock()
             if np == 1: # Serial mode
                 next_pol(self.ps_st_data, self.dy_data_buf[0], max_steps)
                 t = self.dy_data_buf[0].flag
@@ -177,8 +209,6 @@ cdef class dfs_manager:
                         j = (i-k) % np
                         ps_dynamic_split(self.dy_data_buf[j], self.dy_data_buf[i])
                     sig_off()
-            time1 += clock()
-            time2 -= clock()
             for i in range(np):
                 if self.dy_data_buf[i].flag == 2: # Extract a solution
                     l = []
@@ -191,8 +221,6 @@ cdef class dfs_manager:
                         flint_mpz_clear_readonly(z)
                     ans.append(l)
                     ans_count += 1
-            time2 += clock()
-#        print(time1, time2,self.node_count())
         if u:
             print(u)
             raise RuntimeError("Node limit ({0:%d}) exceeded".format(self.node_limit))
@@ -203,16 +231,29 @@ class WeilPolynomials_iter():
     Iterator created by WeilPolynomials.
 
     EXAMPLES::
+
+        sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
         sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
         sage: it = iter(w)
         sage: next(it)
-        3*x^10 + x^9 + x^8 - x^7 + 4*x^6 + 2*x^5 + 4*x^4 - x^3 + x^2 + x + 3
+        3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
         sage: w = WeilPolynomials(10,1,sign=-1,lead=[3,1,1])
         sage: it = iter(w)
         sage: next(it)
-        3*x^10 + x^9 + x^8 + x^7 + 3*x^6 - 3*x^4 - x^3 - x^2 - x - 3
+        3*x^10 + x^9 + x^8 + 6*x^7 - 2*x^6 + 2*x^4 - 6*x^3 - x^2 - x - 3
     """
     def __init__(self, d, q, sign, lead, node_limit, parallel, squarefree):
+        r"""
+        Create an iterator for Weil polynomials.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: next(it)
+            3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
+        """
         self.pol = PolynomialRing(QQ, name='x')
         x = self.pol.gen()
         d = Integer(d)
@@ -282,9 +323,31 @@ class WeilPolynomials_iter():
         self.ans = []
 
     def __iter__(self):
+        r"""
+        Return the iterator (i.e. `self`).
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: it.__iter__() is it
+            True
+        """
         return(self)
 
     def __next__(self):
+        r"""
+        Step the iterator forward.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: it.__next__()
+            3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
+        """
         if self.process is None:
             raise StopIteration
         if len(self.ans) == 0:
@@ -295,13 +358,33 @@ class WeilPolynomials_iter():
                 raise StopIteration
         return self.pol(self.ans.pop())
 
-    def next(self):
+    def next(self): # For Python2 backward compatibility
+        r"""
+        Step the iterator forward.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: it.next()
+            3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
+        """
         return self.__next__()
 
     def node_count(self):
         r"""
         Return the number of terminal nodes found in the tree, excluding 
         actual solutions.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = iter(w)
+            sage: l = list(it)
+            sage: it.node_count()
+            158
         """
         if self.process is None:
             return self.count
@@ -322,6 +405,8 @@ class WeilPolynomials():
     EXAMPLES:
 
     Some simple cases::
+
+        sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
         sage: list(WeilPolynomials(2,2))
         [x^2 + 2*x + 2, x^2 + x + 2, x^2 + 2, x^2 - x + 2, x^2 - 2*x + 2]
         sage: l = list(WeilPolynomials(4,2))
@@ -336,6 +421,7 @@ class WeilPolynomials():
     product to have positive sign of the functional equation, the factors `x-1`
     and `x+1` must each occur with even multiplicity. This code confirms 
     Kronecker's theorem for polynomials of degree 6::
+
         sage: P.<x> = PolynomialRing(ZZ)
         sage: d = 6
         sage: ans1 = list(WeilPolynomials(d, 1, 1))
@@ -349,21 +435,57 @@ class WeilPolynomials():
         True
 
     Generating Weil polynomials with prescribed initial coefficients::
+
         sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
         sage: it = iter(w)
         sage: next(it)
-        3*x^10 + x^9 + x^8 - x^7 + 4*x^6 + 2*x^5 + 4*x^4 - x^3 + x^2 + x + 3
+        3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
         sage: w = WeilPolynomials(10,1,sign=-1,lead=[3,1,1])
         sage: it = iter(w)
         sage: next(it)
-        3*x^10 + x^9 + x^8 + x^7 + 3*x^6 - 3*x^4 - x^3 - x^2 - x - 3
+        3*x^10 + x^9 + x^8 + 6*x^7 - 2*x^6 + 2*x^4 - 6*x^3 - x^2 - x - 3
+
+    TESTS:
+
+    Check that restricting initial coefficients works properly::
+
+        sage: w1 = WeilPolynomials(10,1,sign=1,lead=3)
+        sage: l1 = list(w1)
+        sage: w2 = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+        sage: l2 = list(w2)
+        sage: l3 = [i for i in l1 if i[1] == 1 and i[2] == 1]
+        sage: l2 == l3
+        True
     """
     def __init__(self, d, q, sign=1, lead=1, node_limit=None, parallel=False, squarefree=False):
+        r"""
+        Initialize this iterable.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: w.__init__(10,1,sign=1,lead=[3,1,-1]) # Change parameters before iterating
+            sage: it = iter(w)
+            sage: next(it) # Results reflect the changed parameters
+            3*x^10 + x^9 - x^8 + 7*x^7 + 5*x^6 - 2*x^5 + 5*x^4 + 7*x^3 - x^2 + x + 3
+        """
         if parallel and not has_openmp():
             raise RuntimeError("Parallel execution not supported")
         self.data = (d,q,sign,lead,node_limit,parallel,squarefree)
 
     def __iter__(self):
+        r"""
+        Construct the associated iterator.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: it = w.__iter__()
+            sage: next(it)
+            3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
+        """
         w = WeilPolynomials_iter(*self.data)
         self.w = w
         return w
@@ -371,6 +493,15 @@ class WeilPolynomials():
     def node_count(self):
         r"""
         Return the number of terminal nodes found in the tree, excluding actual solutions.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+            sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
+            sage: l = list(w)
+            sage: w.node_count()
+            158
         """
         return self.w.node_count()
+
 

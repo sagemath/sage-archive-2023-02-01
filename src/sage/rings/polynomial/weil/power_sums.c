@@ -595,6 +595,20 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   if (k%2==1) change_upper(t1q, t2q);
   else change_lower(t1q, t2q);
 
+  if (fmpz_cmp(lower, upper) > 0) return(0);
+
+  /* Update Hankel matrices. */
+  if (k%2==0) {
+    fmpq_mat_one(dy_data->hankel_mat);
+    for (i=0; i<=k/2; i++)
+      for (j=0; j<=k/2; j++)
+	fmpq_set(fmpq_mat_entry(dy_data->hankel_mat, i, j),
+		 fmpq_mat_entry(dy_data->power_sums, i+j, 0));
+    fmpq_mat_det(t0q, dy_data->hankel_mat);
+    t = fmpq_mat_entry(dy_data->hankel_dets, k/2-1, 0);
+    fmpq_set(fmpq_mat_entry(dy_data->hankel_dets, k/2, 0), t0q);
+  }
+
   /* If modulus==0, then return 1 iff [lower, upper] contains 0
      and Rolle's theorem is satisfied.
    */
@@ -607,19 +621,9 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
     return(1);
   }
 
-  if (fmpz_cmp(lower, upper) > 0) return(0);
-
   /* Condition: nonnegativity of the Hankel determinant. 
      TODO: reimplement this as a subresultant. */
   if (k%2==0) {
-    fmpq_mat_one(dy_data->hankel_mat);
-    for (i=0; i<=k/2; i++)
-      for (j=0; j<=k/2; j++)
-	fmpq_set(fmpq_mat_entry(dy_data->hankel_mat, i, j),
-		 fmpq_mat_entry(dy_data->power_sums, i+j, 0));
-    fmpq_mat_det(t0q, dy_data->hankel_mat);
-    t = fmpq_mat_entry(dy_data->hankel_dets, k/2-1, 0);
-    fmpq_set(fmpq_mat_entry(dy_data->hankel_dets, k/2, 0), t0q);
     if (fmpq_sgn(t) > 0) {
       fmpq_div(t0q, t0q, t);
       change_upper(t0q, NULL);

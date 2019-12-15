@@ -107,8 +107,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def _points_via_group_structure(self):
         """
-        Return a list of all the points on the curve, for prime fields only
-        (see points() for the general case)
+        Return a list of all the points on the curve, for prime fields only.
+
+        See points() for the general case.
 
         EXAMPLES::
 
@@ -214,7 +215,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def count_points(self, n=1):
         """
-        Returns the cardinality of this elliptic curve over the base field or extensions.
+        Return the cardinality of this elliptic curve over the base field or extensions.
 
         INPUT:
 
@@ -622,7 +623,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     def frobenius_order(self):
         r"""
         Return the quadratic order Z[phi] where phi is the Frobenius
-        endomorphism of the elliptic curve
+        endomorphism of the elliptic curve.
 
         .. NOTE::
 
@@ -650,7 +651,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def frobenius(self):
         r"""
-        Return the frobenius of ``self`` as an element of a quadratic order
+        Return the frobenius of ``self`` as an element of a quadratic order.
 
         .. NOTE::
 
@@ -844,7 +845,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     @cached_method
     def abelian_group(self, debug=False):
         r"""
-        Returns the abelian group structure of the group of points on this
+        Return the abelian group structure of the group of points on this
         elliptic curve.
 
         .. warning::
@@ -1120,7 +1121,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def is_isogenous(self, other, field=None, proof=True):
         """
-        Return whether or not self is isogenous to other
+        Return whether or not self is isogenous to other.
 
         INPUT:
 
@@ -1666,12 +1667,12 @@ def is_j_supersingular(j, proof=True):
 
             if n is None:  # not yet decided between p+1 and p-1
                 pP = p*P
-                if not pP[0]==P[0]:  # i.e. pP is neither P nor -P
+                if pP[0] != P[0]:  # i.e. pP is neither P nor -P
                     return False
-                if pP[1]==P[1]:  # then p*P == P != -P
-                    n=p-1
+                if pP[1] == P[1]:  # then p*P == P != -P
+                    n = p - 1
                 else:           # then p*P == -P != P
-                    n=p+1
+                    n = p + 1
             else:
                 if not (n*P).is_zero():
                     return False

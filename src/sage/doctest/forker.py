@@ -2042,7 +2042,7 @@ class DocTestWorker(multiprocessing.Process):
     """
     The DocTestWorker process runs one :class:`DocTestTask` for a given
     source. It returns messages about doctest failures (or all tests if
-    verbose doctesting) though a pipe and returns results through a
+    verbose doctesting) through a pipe and returns results through a
     ``multiprocessing.Queue`` instance (both these are created in the
     :meth:`start` method).
 

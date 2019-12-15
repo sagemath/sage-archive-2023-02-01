@@ -1554,7 +1554,7 @@ cdef class SingularLibraryFunction(SingularFunction):
     """
     def __init__(self, name):
         """
-        Construct a new Singular kernel function.
+        Construct a new Singular library function.
 
         EXAMPLES::
 

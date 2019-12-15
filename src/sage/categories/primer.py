@@ -1093,7 +1093,7 @@ algebraic structure. This includes:
   See :meth:`Modules().DualObjects <Modules.SubcategoryMethods.DualObjects>`.
 
 - Algebras, as in group algebras, monoid algebras, ...:
-  See: :meth:`Sets.ParentMethods.algebras`.
+  See: :meth:`Sets.ParentMethods.algebra`.
 
 Let for example `A` and `B` be two parents, and let us construct the
 Cartesian product `A \times B \times B`::

@@ -632,6 +632,7 @@ class KenzoChainComplex(KenzoObject):
         Return the :orgn slot of Kenzo, which stores as a list the origin of the object
 
         EXAMPLES::
+
             sage: from sage.interfaces.kenzo import Sphere, loop_space    # optional - kenzo
             sage: s2 = Sphere(2)                                          # optional - kenzo
             sage: l2 = s2.loop_space()                                    # optional - kenzo
@@ -935,6 +936,7 @@ def k2s_matrix(kmatrix):
     - ``kmatrix`` -- An array in ECL
 
     EXAMPLES::
+
         sage: from sage.interfaces.kenzo import k2s_matrix         # optional - kenzo
         sage: from sage.libs.ecl import EclObject
         sage: M = EclObject("#2A((1 2 3) (3 2 1) (1 1 1))")
@@ -988,6 +990,7 @@ def s2k_dictmat(sdictmat):
     - A :class:`EclObject`
 
     EXAMPLES::
+
         sage: from sage.interfaces.kenzo import s2k_dictmat   # optional - kenzo
         sage: A = Matrix([[1,2,3],[3,2,1],[1,1,1]])
         sage: B = Matrix([[1,2],[2,1],[1,1]])
@@ -1015,6 +1018,7 @@ def pairing(slist):
     - A :class:`EclObject`
 
     EXAMPLES::
+
         sage: from sage.interfaces.kenzo import pairing   # optional - kenzo
         sage: l = [1,2,3]
         sage: pairing(l)                                  # optional - kenzo
@@ -1787,6 +1791,47 @@ class KenzoChainComplexMorphism(KenzoObject):
 
 
 def build_morphism(source_complex, target_complex, degree, algorithm, strategy, orgn):
+    r"""
+    Build a morphism of chain complexes by means of the corresponding build-mrph Kenzo
+    function.
+
+    INPUT:
+
+    - ``source_complex`` -- The source object as a KenzoChainComplex instance
+
+    - ``target_complex`` -- The target object as a KenzoChainComplex instance
+
+    - ``degree`` -- An integer number representing the degree of the morphism
+
+    - ``algorithm`` -- A Lisp function defining the mapping (:intr slot in Kenzo)
+
+    - ``strategy`` -- The strategy (:strt slot in Kenzo), which must be one of
+    the two strings ``gnrt`` or ``cmbn``, depending if the ``algorithm`` (a Lisp
+    function) uses as arguments a degree and a generator or a combination,
+    respectively.
+
+    - ``orgn`` -- A list containing a description about the origin of the morphism
+
+    OUTPUT:
+
+    - A :class:`KenzoChainComplexMorphism`
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.kenzo import KenzoChainComplex,\
+        ....: build_morphism                                            # optional - kenzo
+        sage: from sage.libs.ecl import ecl_eval
+        sage: ZCC = KenzoChainComplex(ecl_eval("(z-chcm)"))             # optional - kenzo
+        sage: A = build_morphism(ZCC, ZCC, -1,\
+        ....: ecl_eval("#'(lambda (comb) (cmbn (1- (degr comb))))"),\
+        ....: "cmbn", ["zero morphism on ZCC"])                         # optional - kenzo
+        sage: A.target_complex()                                        # optional - kenzo
+        [K... Chain-Complex]
+        sage: A.degree()                                                # optional - kenzo
+        -1
+        sage: type(A)                                                   # optional - kenzo
+        <class 'sage.interfaces.kenzo.KenzoChainComplexMorphism'>
+    """
     return KenzoChainComplexMorphism(
         build_mrph_aux(source_complex._kenzo, target_complex._kenzo,
                        degree, algorithm, ":"+strategy, orgn))

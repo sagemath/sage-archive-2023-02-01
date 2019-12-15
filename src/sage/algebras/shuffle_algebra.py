@@ -20,7 +20,6 @@ from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWi
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.words.words import Words
-from sage.combinat.words.word import Word
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -140,7 +139,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
             sage: F = ShuffleAlgebra(QQ, 'xyz'); F
             Shuffle Algebra on 3 generators ['x', 'y', 'z'] over Rational Field
-            sage: TestSuite(F).run()
+            sage: TestSuite(F).run()  # long time
 
         TESTS::
 
@@ -649,7 +648,7 @@ class DualPBWBasis(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: D = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
-            sage: TestSuite(D).run()
+            sage: TestSuite(D).run()  # long time
         """
         self._alphabet = names
         self._alg = ShuffleAlgebra(R, names)
@@ -963,4 +962,3 @@ class DualPBWBasis(CombinatorialFreeModule):
                 B[word: ab] + 2*B[word: abb] + B[word: bab]
             """
             return self.parent().expansion(self)
-

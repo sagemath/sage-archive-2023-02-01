@@ -17,11 +17,7 @@
 
 */
 
-#include <flint/flint.h>
-#include <flint/fmpz_poly.h>
-#include <flint/fmpq.h>
-#include <flint/fmpq_mat.h>
-#include <flint/arith.h>
+#include "power_sums.h"
 
 /* Check for OpenMP at runtime.
 */
@@ -55,14 +51,14 @@ int _fmpz_poly_all_real_roots(fmpz *poly, long n, fmpz *w, int force_squarefree,
   fmpz *c      = w + 2*n;
   fmpz *d      = w + 2*n+1;
   fmpz *t;
-  
+
   if (n <= 2) return(1);
   _fmpz_vec_set(f0, poly, n);
   if (a != NULL && b != NULL) fmpz_addmul(f0, a, b);
   _fmpz_poly_derivative(f1, f0, n);
   n--;
   int sgn0_l = fmpz_sgn(f0+n);
-  
+
   while (1) {
     /* At this point deg(f0) = n, deg(f1) = n-1.
        We explicitly compute the pseudoremainder of f0 modulo f1:
@@ -77,52 +73,25 @@ int _fmpz_poly_all_real_roots(fmpz *poly, long n, fmpz *w, int force_squarefree,
     fmpz_neg(d, f1+n);
     _fmpz_vec_scalar_mul_fmpz(f0, f0, n, d);
     _fmpz_vec_scalar_addmul_fmpz(f0, f1, n, c);
-    
+
     if (!force_squarefree && _fmpz_vec_is_zero(f0, n)) return(1);
-    
+
     /* If we miss any one sign change, we cannot have enough. */
     if (fmpz_sgn(f0+n-1) != sgn0_l) return(0);
 
     if (n==1) return(1); /* If f0 is a scalar, it is nonzero and we win. */
-    
+
     /* Extract content from f0; in practice, this seems to do better than
        an explicit subresultant computation. */
     _fmpz_vec_content(c, f0, n);
     _fmpz_vec_scalar_divexact_fmpz(f0, f0, n, c);
-    
+
     /* Swap f0 with f1. */
     t = f0; f0 = f1; f1 = t;
   }
 }
 
-/* Primary data structures for tree exhaustion.
- */
 
-typedef struct ps_static_data {
-  int d, sign, force_squarefree;
-  long node_limit;
-  fmpz_t lead, q;
-  fmpz_mat_t binom_mat;
-  fmpz *cofactor;
-  fmpz *modlist;
-  fmpq_mat_t *hausdorff_mats;
-  fmpq_mat_t *sum_mats;
-  fmpq_t *f;
-} ps_static_data_t;
-
-typedef struct ps_dynamic_data {
-  int d, n, ascend, flag, q_is_1;
-  long node_count;
-  fmpq_mat_t power_sums, sum_prod, hankel_mat, hankel_dets,
-    hausdorff_prod, hausdorff_sums1, hausdorff_sums2;
-  fmpz *pol, *sympol, *upper;
-
-  /* Scratch space */
-  fmpz *w;
-  int wlen; /* = 3*d+10 */
-  fmpq *w2;
-  int w2len; /* = 5 */
-} ps_dynamic_data_t;
 
 /* Set res to floor(a). */
 void fmpq_floor(fmpz_t res, const fmpq_t a) {
@@ -144,7 +113,7 @@ void fmpz_sqrt_c(fmpz_t res, const fmpz_t a) {
   if (!s) fmpz_add_ui(res, res, 1);
 }
 
-/* Set res to floor(a + b sqrt(q)). 
+/* Set res to floor(a + b sqrt(q)).
    For efficiency, we do not assume a and b are canonical;
    we must thus be careful about signs. */
 void fmpq_floor_quad(fmpz_t res, const fmpq_t a,
@@ -158,7 +127,7 @@ void fmpq_floor_quad(fmpz_t res, const fmpq_t a,
     int bnum_s = fmpz_sgn(bnum);
     fmpz *bden = fmpq_denref(b);
     int bden_s = fmpz_sgn(bden);
-    
+
     fmpz_mul(res, aden, bnum);
     fmpz_mul(res, res, res);
     fmpz_mul(res, res, q);
@@ -276,7 +245,7 @@ ps_static_data_t *ps_static_init(int d, fmpz_t q, int coeffsign, fmpz_t lead,
   for (i=0; i<=d; i++)
     for (j=0; j<=d; j++)
       fmpz_bin_uiui(fmpz_mat_entry(st_data->binom_mat, i, j), i, j);
-  
+
   st_data->hausdorff_mats = (fmpq_mat_t *)malloc((d+1)*sizeof(fmpq_mat_t));
   for (i=0; i<=d; i++) {
 
@@ -309,8 +278,8 @@ ps_static_data_t *ps_static_init(int d, fmpz_t q, int coeffsign, fmpz_t lead,
 
     arith_chebyshev_t_polynomial(pol, i);
     for (j=0; j<=d; j++) {
-      
-      /* Coefficients of 2*(i-th Chebyshev polynomial)(x/2). 
+
+      /* Coefficients of 2*(i-th Chebyshev polynomial)(x/2).
          If q != 1, the coeff of x^j is multiplied by q^{floor(i-j)/2}. */
       if (j <= i) {
 	k1 = fmpq_mat_entry(st_data->sum_mats[i], 0, j);
@@ -321,14 +290,14 @@ ps_static_data_t *ps_static_init(int d, fmpz_t q, int coeffsign, fmpz_t lead,
 	fmpq_mul_fmpz(k1, k1, m);
 	if (!fmpz_is_one(st_data->q) && i%2==j%2) {
 	  fmpz_set(m, st_data->q);
-	  fmpz_pow_ui(m, m, (i-j)/2); 
+	  fmpz_pow_ui(m, m, (i-j)/2);
 	  fmpq_mul_fmpz(k1, k1, m);
 	}
       }
 
     }
   }
-  
+
   fmpz_poly_clear(pol);
   fmpz_clear(m);
   fmpz_clear(const1);
@@ -352,10 +321,10 @@ ps_dynamic_data_t *ps_dynamic_init(int d, fmpz_t q, fmpz *coefflist) {
   dy_data->sympol = _fmpz_vec_init(2*d+3);
   if (coefflist != NULL) {
     dy_data->flag = 1; // Activate this process
-    for (i=0; i<=d; i++) 
+    for (i=0; i<=d; i++)
       fmpz_set(dy_data->pol+i, coefflist+i);
   } else dy_data->flag = 0;
-  
+
   fmpq_mat_init(dy_data->power_sums, d+1, 1);
   fmpq_set_si(fmpq_mat_entry(dy_data->power_sums, 0, 0), d, 1);
   fmpq_mat_init(dy_data->hankel_mat, d/2+1, d/2+1);
@@ -376,9 +345,9 @@ ps_dynamic_data_t *ps_dynamic_init(int d, fmpz_t q, fmpz *coefflist) {
   return(dy_data);
 }
 
-/* Split off a subtree. 
+/* Split off a subtree.
    The first process gives up on the current branch, up to the first coefficient that is not uniquely specified;
-   the remaining work is yielded to the second process, which may in turn be split immediately. 
+   the remaining work is yielded to the second process, which may in turn be split immediately.
 */
 void ps_dynamic_split(ps_dynamic_data_t *dy_data, ps_dynamic_data_t *dy_data2) {
   if ((dy_data == NULL) || (dy_data->flag <= 0) || dy_data2->flag) return(NULL);
@@ -459,7 +428,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   fmpz *q = st_data->q;
   fmpq *f = st_data->f+n-1;
   fmpq *t;
-    
+
   /* Allocate temporary variables from persistent scratch space. */
   fmpz *tpol = dy_data->w;
   fmpz *tpol2 = dy_data->w+d+1;
@@ -469,17 +438,17 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   fmpz *t2z = dy_data->w+3*d+7;
   fmpz *lower = dy_data->w+3*d+8;
   fmpz *upper = dy_data->w+3*d+9;
-  
+
   fmpq *t0q = dy_data->w2;
   fmpq *t1q = dy_data->w2+1;
   fmpq *t2q = dy_data->w2+2;
   fmpq *t3q = dy_data->w2+3;
   fmpq *t4q = dy_data->w2+4;
 
-  /* Embedded subroutines to adjust lower and upper bounds. 
+  /* Embedded subroutines to adjust lower and upper bounds.
    These use t0z, t0q, t4q as persistent scratch space.
    The pair (val1, val2) stands for val1 + val2*sqrt(q);
-   passing NULL for val2 is a faster variant of passing 0. 
+   passing NULL for val2 is a faster variant of passing 0.
 
   Usage: if g is a monic linear function of the k-th power sum, then
   set_upper(g) or change_upper(g) imposes the condition g >= 0;
@@ -493,7 +462,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
       fmpq_ceil_quad(lower, t0q, t4q, q);
     }
   }
-  
+
   void set_upper(const fmpq_t val1, const fmpq_t val2) {
     fmpq_div(t0q, val1, f);
     if (val2==NULL) fmpq_floor(upper, t0q);
@@ -512,7 +481,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
     }
     if (fmpz_cmp(t0z, lower) > 0) fmpz_set(lower, t0z);
   }
-  
+
   void change_upper(const fmpq_t val1, const fmpq_t val2) {
     fmpq_div(t0q, val1, f);
     if (val2==NULL) fmpq_floor(t0z, t0q);
@@ -537,7 +506,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   }
 
   /* End embedded subroutines */
-    
+
   /* If k>d, no further coefficients to bound. */
   if (k>d) return(1);
 
@@ -551,7 +520,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
     fmpq_addmul(t, t0q, fmpq_mat_entry(dy_data->power_sums, k-i, 0));
   }
   fmpq_div_fmpz(t, t, pol+d);
-  
+
   /* Condition: the k-th symmetrized power sum must lie in [-2*sqrt(q), 2*sqrt(q)]. */
   fmpq_mat_mul(dy_data->sum_prod, st_data->sum_mats[k], dy_data->power_sums);
   t = fmpq_mat_entry(dy_data->sum_prod, 0, 0);
@@ -571,14 +540,14 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
     fmpq_neg(t1q, t1q);
     set_lower(t, t1q);
     }
-    
+
   /* Compute the divided (n-1)-st derivative of pol, answer in tpol. */
   for (i=0; i<=k; i++)
     fmpz_mul(tpol+i, fmpz_mat_entry(st_data->binom_mat, n-1+i, n-1), pol+n-1+i);
 
-  /* Condition: Descartes' rule of signs applies at -2*sqrt(q), +2*sqrt(q). 
+  /* Condition: Descartes' rule of signs applies at -2*sqrt(q), +2*sqrt(q).
    This is only a new condition for the evaluations at these points. */
-  
+
   fmpq_set_si(t3q, -k, 1);
   fmpq_div_fmpz(t3q, t3q, pol+d);
 
@@ -589,12 +558,11 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   for (i=0; 2*i+1 <= k; i++) fmpz_mul_2exp(tpol2+i, tpol+2*i+1, 2*i+1);
   _fmpz_poly_evaluate_fmpz(t0z, tpol2, (k+1) / 2, q);
   fmpq_mul_fmpz(t2q, t3q, t0z);
-  
-  change_lower(t1q, t2q);  
+
+  change_lower(t1q, t2q);
   fmpq_neg(t2q, t2q);
   if (k%2==1) change_upper(t1q, t2q);
   else change_lower(t1q, t2q);
-
   if (fmpz_cmp(lower, upper) > 0) return(0);
 
   /* Update Hankel matrices. */
@@ -613,15 +581,16 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
      and Rolle's theorem is satisfied.
    */
   if (fmpz_is_zero(modulus)) {
-    if ((fmpz_sgn(lower) > 0) || (fmpz_sgn(upper) < 0) || 
+    if ((fmpz_sgn(lower) > 0) || (fmpz_sgn(upper) < 0) ||
 	!_fmpz_poly_all_real_roots(tpol, k, tpol2, st_data->force_squarefree,
 				   NULL, NULL)) return(0);
     fmpz_zero(lower);
     fmpz_zero(upper);
     return(1);
-  }
+  } else
+    if (fmpz_cmp(lower, upper) > 0) return(0);
 
-  /* Condition: nonnegativity of the Hankel determinant. 
+  /* Condition: nonnegativity of the Hankel determinant.
      TODO: reimplement this as a subresultant. */
   if (k%2==0) {
     if (fmpq_sgn(t) > 0) {
@@ -631,9 +600,10 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
     else if (st_data->force_squarefree || fmpq_sgn(t0q)) return(0);
     else change_upper(fmpq_mat_entry(dy_data->power_sums, k, 0), NULL);
     if (fmpz_cmp(lower, upper) > 0) return(0);
-  } 
+  }
 
-  /* Condition: the Hausdorff moment criterion for having roots in [-2, 2]. */
+  /* Condition: the Hausdorff moment criterion for having roots in [-2, 2]. 
+     This might be redundant given the Hankel and Descartes criteria. */
   fmpq_mat_mul(dy_data->hausdorff_prod, st_data->hausdorff_mats[k], dy_data->power_sums);
   for (i=0; i<=k; i++) {
     fmpq_set(t1q, fmpq_mat_entry(dy_data->hausdorff_prod, 2*i, 0));
@@ -646,7 +616,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
     }
   }
   if (fmpz_cmp(lower, upper) > 0) return(0);
-  
+
   /* Condition: log convexity based on Cauchy-Schwarz. */
   /* TODO: extend to q != 1 without losing too much efficiency. */
   if (q_is_1) {
@@ -706,11 +676,11 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
       if (r) fmpz_set(t2z, t1z);
       else fmpz_sub_ui(upper, t1z, 1);
   }
-  
+
   /* Set the new upper bound. */
   fmpz_mul(upper, upper, modulus);
   fmpz_add(dy_data->upper+n-1, pol+n-1, upper);
-  
+
   /* Set the new polynomial value. */
   fmpz_mul(lower, lower, modulus);
   fmpz_add(pol+n-1, pol+n-1, lower);

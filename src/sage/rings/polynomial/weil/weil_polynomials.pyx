@@ -1,4 +1,3 @@
-# coding: utf-8
 r"""
 Iterator for Weil polynomials.
 
@@ -10,8 +9,9 @@ coefficients. One may also impose certain congruence conditions; this can be
 used to limit the Newton polygons of the resulting polynomials, or to lift
 a polynomial specified by a congruence to a Weil polynomial.
 
-For large jobs, one can set parallel=True to use OpenMP. Due to increased overhead,
-this is not recommended for smaller problem sizes.
+For large jobs, one can set parallel=True to use OpenMP (if support was
+enabled at compile time). Due to increased overhead, this is not recommended 
+for smaller problem sizes.
 
 AUTHOR:
   -- Kiran S. Kedlaya (2007-05-28): initial version
@@ -25,8 +25,10 @@ AUTHOR:
 """
 
 #distutils: language = c
+#distutils: sources = power_sums.c
+#distutils: libraries = flint
 ## Remove second # from the next two lines to enable OpenMP support.
-##distutils: libraries = gomp
+##distutils: libraries = gomp flint
 ##distutils: extra_compile_args = -fopenmp
 
 #*****************************************************************************
@@ -60,7 +62,8 @@ cdef extern from "sage/rings/polynomial/weil/power_sums.c":
 
     ctypedef struct ps_dynamic_data_t:
         int flag        # State of the iterator (0 = inactive, 1 = running,
-                        #                        2 = found a solution, -1 = too many nodes)
+                        #                        2 = found a solution,
+                        #                        -1 = too many nodes)
         long node_count # Number of terminal nodes encountered
         fmpz *sympol    # Return value (a polynomial)
 
@@ -69,7 +72,7 @@ cdef extern from "sage/rings/polynomial/weil/power_sums.c":
                                      int cofactor, fmpz *modlist, long node_limit,
                                      int force_squarefree)
     ps_dynamic_data_t *ps_dynamic_init(int d, fmpz_t q, fmpz *coefflist)
-    void *ps_dynamic_split(ps_dynamic_data_t *dy_data, ps_dynamic_data_t *dy_data2) nogil
+    void ps_dynamic_split(ps_dynamic_data_t *dy_data, ps_dynamic_data_t *dy_data2) nogil
     void ps_static_clear(ps_static_data_t *st_data)
     void ps_dynamic_clear(ps_dynamic_data_t *dy_data)
     void next_pol(ps_static_data_t *st_data, ps_dynamic_data_t *dy_data, int max_steps) nogil
@@ -88,7 +91,7 @@ cdef class dfs_manager:
     cdef ps_dynamic_data_t **dy_data_buf
 
     def __cinit__(self, int d, q, coefflist, modlist, int sign, int cofactor,
-                        long node_limit, int parallel, int force_squarefree):
+                  long node_limit, int parallel, int force_squarefree):
         """
         Perform required C-level initialization (e.g., memory allocation).
 
@@ -117,9 +120,9 @@ cdef class dfs_manager:
         fmpz_set_mpz(temp_lead, Integer(coefflist[-1]).value)
         fmpz_init(temp_q)
         fmpz_set_mpz(temp_q, Integer(q).value)
-        temp_array = _fmpz_vec_init(d+1)
-        for i in range(d+1):
-            fmpz_set_mpz(temp_array+i, Integer(modlist[i]).value)
+        temp_array = _fmpz_vec_init(d + 1)
+        for i in range(d + 1):
+            fmpz_set_mpz(temp_array + i, Integer(modlist[i]).value)
         self.ps_st_data = ps_static_init(d, temp_q, sign, temp_lead, cofactor,
                                          temp_array, node_limit, force_squarefree)
 
@@ -133,7 +136,7 @@ cdef class dfs_manager:
 
         fmpz_clear(temp_lead)
         fmpz_clear(temp_q)
-        _fmpz_vec_clear(temp_array, d+1)
+        _fmpz_vec_clear(temp_array, d + 1)
 
     def __dealloc__(self):
         """
@@ -185,7 +188,7 @@ cdef class dfs_manager:
             sage: it.process.advance_exhaust()[0]
             [3, 1, 1, -5, 1, -2, 1, -5, 1, 1, 3, 0, 0]
         """
-        cdef int i, j, k, d = self.d, t=1, u=0, np = self.num_processes, max_steps=1000
+        cdef int i, j, k, d = self.d, t = 1, u = 0, np = self.num_processes, max_steps = 1000
         cdef long ans_count = 0, ans_max = 10000
         cdef mpz_t z
         cdef Integer temp
@@ -198,14 +201,14 @@ cdef class dfs_manager:
                 t = self.dy_data_buf[0].flag
             else: # Parallel mode
                 t = 0
-                k = (k<<1) %np # Note that 2 is a primitive root mod np.
+                k = (k<<1) % np # Note that 2 is a primitive root mod np.
                 with nogil:
                     sig_on()
-                    for i in prange(np, schedule='dynamic'): # Step each process forward
+                    for i in prange(np, schedule='dynamic'):  # Step each process forward
                         next_pol(self.ps_st_data, self.dy_data_buf[i], max_steps)
                         if self.dy_data_buf[i].flag: t += 1
                         if self.dy_data_buf[i].flag == -1: u += 1
-                    for i in prange(np, schedule='dynamic'): # Redistribute work to idle processes
+                    for i in prange(np, schedule='dynamic'):  # Redistribute work to idle processes
                         j = (i-k) % np
                         ps_dynamic_split(self.dy_data_buf[j], self.dy_data_buf[i])
                     sig_off()
@@ -213,7 +216,7 @@ cdef class dfs_manager:
                 if self.dy_data_buf[i].flag == 2: # Extract a solution
                     l = []
                     # Convert a vector of fmpz's into mpz's, then Integers.
-                    for j in range(2*d+3):
+                    for j in range(2 * d + 3):
                         flint_mpz_init_set_readonly(z, &self.dy_data_buf[i].sympol[j])
                         temp = Integer()
                         mpz_set(temp.value, z)
@@ -259,10 +262,10 @@ class WeilPolynomials_iter():
         d = Integer(d)
         if sign != 1 and sign != -1:
             return ValueError("Invalid sign")
-        if not q.is_integer() or q<=0:
+        if not q.is_integer() or q <= 0:
             return ValueError("q must be a positive integer")
-        if d%2==0:
-            if sign==1:
+        if d % 2 == 0:
+            if sign == 1:
                 d2 = d//2
                 num_cofactor = 0
             else:
@@ -272,8 +275,10 @@ class WeilPolynomials_iter():
             if not q.is_square():
                 return ValueError("Degree must be even if q is not a square")
             d2 = d//2
-            if sign==1: num_cofactor = 1
-            else: num_cofactor = 2
+            if sign == 1:
+                num_cofactor = 1
+            else:
+                num_cofactor = 2
         try:
             leadlist = list(lead)
         except TypeError:
@@ -282,9 +287,9 @@ class WeilPolynomials_iter():
         modlist = []
         for i in leadlist:
             try:
-                (j,k) = i
+                (j, k) = i
             except TypeError:
-                (j,k) = (i,0)
+                (j, k) = (i, 0)
             j = Integer(j)
             k = Integer(k)
             if len(modlist) == 0 and k != 0:
@@ -360,7 +365,7 @@ class WeilPolynomials_iter():
 
     def node_count(self):
         r"""
-        Return the number of terminal nodes found in the tree, excluding 
+        Return the number of terminal nodes found in the tree, excluding
         actual solutions.
 
         EXAMPLES::
@@ -376,16 +381,17 @@ class WeilPolynomials_iter():
             return self.count
         return self.process.node_count()
 
+
 class WeilPolynomials():
     r"""
-    Iterable for Weil polynomials, i.e., integer polynomials with all complex 
+    Iterable for Weil polynomials, i.e., integer polynomials with all complex
     roots having a particular absolute value.
 
     If parallel is False, then the order of values is descending lexicographical
     (i.e., polynomials with the largest coefficients of largest degrees sort first).
 
     If parallel is True, then the order of values is not specified. (Beware that
-    due to increased overhead, parallel execution may not yield a significant 
+    due to increased overhead, parallel execution may not yield a significant
     speedup for small problem sizes.)
 
     EXAMPLES:
@@ -405,14 +411,14 @@ class WeilPolynomials():
     By Kronecker's theorem, a monic integer polynomial has all roots of absolute
     value 1 if and only if it is a product of cyclotomic polynomials. For such a
     product to have positive sign of the functional equation, the factors `x-1`
-    and `x+1` must each occur with even multiplicity. This code confirms 
+    and `x+1` must each occur with even multiplicity. This code confirms
     Kronecker's theorem for polynomials of degree 6::
 
         sage: P.<x> = PolynomialRing(ZZ)
         sage: d = 6
         sage: ans1 = list(WeilPolynomials(d, 1, 1))
         sage: ans1.sort()
-        sage: l = [(x-1)^2, (x+1)^2] + [cyclotomic_polynomial(n,x) 
+        sage: l = [(x-1)^2, (x+1)^2] + [cyclotomic_polynomial(n,x)
         ....:     for n in range(3, 2*d*d) if euler_phi(n) <= d]
         sage: w = WeightedIntegerVectors(d, [i.degree() for i in l])
         sage: ans2 = [prod(l[i]^v[i] for i in range(len(l))) for v in w]
@@ -458,7 +464,7 @@ class WeilPolynomials():
         """
         if parallel and not has_openmp():
             raise RuntimeError("Parallel execution not supported")
-        self.data = (d,q,sign,lead,node_limit,parallel,squarefree)
+        self.data = (d, q, sign, lead, node_limit, parallel, squarefree)
 
     def __iter__(self):
         r"""
@@ -489,5 +495,4 @@ class WeilPolynomials():
             158
         """
         return self.w.node_count()
-
 

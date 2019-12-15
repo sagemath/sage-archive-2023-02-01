@@ -153,9 +153,10 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             raise TypeError("argument R must be a ring")
         self._alphabet = names
         self.__ngens = self._alphabet.cardinality()
+        cat = GradedHopfAlgebrasWithBasis(R).Commutative().Connected()
         CombinatorialFreeModule.__init__(self, R, Words(names, infinite=False),
                                          latex_prefix="",
-                                         category=GradedHopfAlgebrasWithBasis(R).Commutative())
+                                         category=cat)
 
     def variable_names(self):
         r"""
@@ -652,8 +653,9 @@ class DualPBWBasis(CombinatorialFreeModule):
         """
         self._alphabet = names
         self._alg = ShuffleAlgebra(R, names)
+        cat = GradedHopfAlgebrasWithBasis(R).Commutative().Connected()
         CombinatorialFreeModule.__init__(self, R, Words(names), prefix='S',
-                                         category=GradedHopfAlgebrasWithBasis(R).Commutative())
+                                         category=cat)
 
     def _repr_(self):
         """

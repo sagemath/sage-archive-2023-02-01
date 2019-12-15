@@ -3070,7 +3070,7 @@ class DiGraph(GenericGraph):
             sage: P.vertices()
             (A vertex at (1, 0), A vertex at (0, 1))
             sage: P.lines()
-            []
+            ()
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         if edges is None:

@@ -102,9 +102,11 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         sage: F = ShuffleAlgebra(QQ, 'abc')
         sage: B = F.basis()
         sage: B[Word('bb')] * B[Word('ca')]
-        B[word: bbca] + B[word: bcab] + B[word: bcba] + B[word: cabb] + B[word: cbab] + B[word: cbba]
+        B[word: bbca] + B[word: bcab] + B[word: bcba] + B[word: cabb]
+         + B[word: cbab] + B[word: cbba]
         sage: 1 - B[Word('bb')] * B[Word('ca')] / 2
-        B[word: ] - 1/2*B[word: bbca] - 1/2*B[word: bcab] - 1/2*B[word: bcba] - 1/2*B[word: cabb] - 1/2*B[word: cbab] - 1/2*B[word: cbba]
+        B[word: ] - 1/2*B[word: bbca] - 1/2*B[word: bcab] - 1/2*B[word: bcba]
+         - 1/2*B[word: cabb] - 1/2*B[word: cbab] - 1/2*B[word: cbba]
 
     TESTS::
 
@@ -305,7 +307,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             B[word: ] # B[word: a] + B[word: a] # B[word: ]
             sage: F.coproduct_on_basis(Word('aba'))
             B[word: ] # B[word: aba] + B[word: a] # B[word: ba]
-            + B[word: ab] # B[word: a] + B[word: aba] # B[word: ]
+             + B[word: ab] # B[word: a] + B[word: aba] # B[word: ]
             sage: F.coproduct_on_basis(Word())
             B[word: ] # B[word: ]
 
@@ -316,10 +318,10 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
             sage: F.coproduct(S)
             B[word: ] # B[word: ] + 2*B[word: ] # B[word: a]
-            + 3*B[word: ] # B[word: b] + B[word: ] # B[word: bab]
-            + 2*B[word: a] # B[word: ] + 3*B[word: b] # B[word: ]
-            + B[word: b] # B[word: ab] + B[word: ba] # B[word: b]
-            + B[word: bab] # B[word: ]
+             + 3*B[word: ] # B[word: b] + B[word: ] # B[word: bab]
+             + 2*B[word: a] # B[word: ] + 3*B[word: b] # B[word: ]
+             + B[word: b] # B[word: ab] + B[word: ba] # B[word: b]
+             + B[word: bab] # B[word: ]
             sage: F.coproduct(F.one())
             B[word: ] # B[word: ]
         """
@@ -477,8 +479,8 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Shuffle Algebra on 3 generators
-            ['x', 'y', 'z'] over Finite Field of size 7 to Shuffle Algebra on 3
-            generators ['x', 'y', 'z'] over Integer Ring
+             ['x', 'y', 'z'] over Finite Field of size 7 to Shuffle Algebra on 3
+             generators ['x', 'y', 'z'] over Integer Ring
 
         TESTS::
 
@@ -959,3 +961,4 @@ class DualPBWBasis(CombinatorialFreeModule):
                 B[word: ab] + 2*B[word: abb] + B[word: bab]
             """
             return self.parent().expansion(self)
+

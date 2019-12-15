@@ -1,5 +1,5 @@
 SAGE_SPKG_CONFIGURE([r], [
-    m4_pushdef([SAGE_R_MINVER],["3.5.2"])
+    m4_pushdef([SAGE_R_MINVER],["3.4.4"])
     SAGE_SPKG_DEPCHECK([atlas openblas iconv readline bzip2 xz pcre curl], [
       PKG_CHECK_MODULES([R], [libR >= $SAGE_R_MINVER], [
         AC_PATH_PROG([R], [R])

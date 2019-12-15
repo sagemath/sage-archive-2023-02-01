@@ -16,7 +16,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.rings import Rings
-from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.words.words import Words
@@ -26,6 +26,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.sets.family import Family
+from sage.rings.integer_ring import ZZ
 
 
 class ShuffleAlgebra(CombinatorialFreeModule):
@@ -152,7 +153,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         self.__ngens = self._alphabet.cardinality()
         CombinatorialFreeModule.__init__(self, R, Words(names, infinite=False),
                                          latex_prefix="",
-                                         category=HopfAlgebrasWithBasis(R).Commutative())
+                                         category=GradedHopfAlgebrasWithBasis(R).Commutative())
 
     def variable_names(self):
         r"""
@@ -216,11 +217,20 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: A = ShuffleAlgebra(QQ,'abc')
             sage: W = A.basis().keys()
             sage: A.product_on_basis(W("acb"), W("cba"))
-            B[word: acbacb] + B[word: acbcab] + 2*B[word: acbcba] + 2*B[word: accbab] + 4*B[word: accbba] + B[word: cabacb] + B[word: cabcab] + B[word: cabcba] + B[word: cacbab] + 2*B[word: cacbba] + 2*B[word: cbaacb] + B[word: cbacab] + B[word: cbacba]
+            B[word: acbacb] + B[word: acbcab] + 2*B[word: acbcba]
+             + 2*B[word: accbab] + 4*B[word: accbba] + B[word: cabacb]
+             + B[word: cabcab] + B[word: cabcba] + B[word: cacbab]
+             + 2*B[word: cacbba] + 2*B[word: cbaacb] + B[word: cbacab]
+             + B[word: cbacba]
 
             sage: (a,b,c) = A.algebra_generators()
             sage: a * (1-b)^2 * c
-            2*B[word: abbc] - 2*B[word: abc] + 2*B[word: abcb] + B[word: ac] - 2*B[word: acb] + 2*B[word: acbb] + 2*B[word: babc] - 2*B[word: bac] + 2*B[word: bacb] + 2*B[word: bbac] + 2*B[word: bbca] - 2*B[word: bca] + 2*B[word: bcab] + 2*B[word: bcba] + B[word: ca] - 2*B[word: cab] + 2*B[word: cabb] - 2*B[word: cba] + 2*B[word: cbab] + 2*B[word: cbba]
+            2*B[word: abbc] - 2*B[word: abc] + 2*B[word: abcb] + B[word: ac]
+             - 2*B[word: acb] + 2*B[word: acbb] + 2*B[word: babc]
+             - 2*B[word: bac] + 2*B[word: bacb] + 2*B[word: bbac]
+             + 2*B[word: bbca] - 2*B[word: bca] + 2*B[word: bcab]
+             + 2*B[word: bcba] + B[word: ca] - 2*B[word: cab] + 2*B[word: cabb]
+             - 2*B[word: cba] + 2*B[word: cbab] + 2*B[word: cbba]
         """
         return sum(self.basis()[u] for u in w1.shuffle(w2))
 
@@ -331,6 +341,18 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         """
         W = self.basis().keys()
         return S.coefficient(W())
+
+    def degree_on_basis(self, w):
+        """
+        Return the degree of the element ``w``.
+
+        EXAMPLES::
+
+            sage: A = ShuffleAlgebra(QQ, 'ab')
+            sage: [A.degree_on_basis(x.leading_support()) for x in A.some_elements() if x != 0]
+            [0, 1, 1, 2]
+        """
+        return ZZ(len(w))
 
     @cached_method
     def algebra_generators(self):
@@ -629,7 +651,7 @@ class DualPBWBasis(CombinatorialFreeModule):
         self._alphabet = names
         self._alg = ShuffleAlgebra(R, names)
         CombinatorialFreeModule.__init__(self, R, Words(names), prefix='S',
-                                         category=HopfAlgebrasWithBasis(R).Commutative())
+                                         category=GradedHopfAlgebrasWithBasis(R).Commutative())
 
     def _repr_(self):
         """
@@ -819,7 +841,7 @@ class DualPBWBasis(CombinatorialFreeModule):
             sage: S = A.dual_pbw_basis()
             sage: w = S('abaab').antipode(); w
             S[word: abaab] - 2*S[word: ababa] - S[word: baaba]
-            + 3*S[word: babaa] - 6*S[word: bbaaa]
+             + 3*S[word: babaa] - 6*S[word: bbaaa]
             sage: w.antipode()
             S[word: abaab]
         """
@@ -833,13 +855,35 @@ class DualPBWBasis(CombinatorialFreeModule):
 
             sage: A = ShuffleAlgebra(QQ, 'ab')
             sage: S = A.dual_pbw_basis()
-            sage: ab = S('ab').coproduct(); ab
+            sage: S('ab').coproduct()
             S[word: ] # S[word: ab] + S[word: a] # S[word: b]
-            + S[word: ab] # S[word: ]
+             + S[word: ab] # S[word: ]
+            sage: S('ba').coproduct()
+            S[word: ] # S[word: ba] + S[word: a] # S[word: b]
+             + S[word: b] # S[word: a] + S[word: ba] # S[word: ]
+
+        TESTS::
+
+            sage: all(A.tensor_square()(S(x).coproduct()) == x.coproduct()
+            ....:     for x in A.some_elements())
+            True
+            sage: all(S.tensor_square()(A(x).coproduct()) == x.coproduct()
+            ....:     for x in S.some_elements())
+            True
         """
-        cp = self.expansion(elt).coproduct()
-        S2 = self.tensor_square()
-        return S2.sum(c * self(m[0]).tensor(self(m[1])) for (m, c) in cp)
+        return self.tensor_square()(self.expansion(elt).coproduct())
+
+    def degree_on_basis(self, w):
+        """
+        Return the degree of the element ``w``.
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: [S.degree_on_basis(x.leading_support()) for x in S.some_elements() if x != 0]
+            [0, 1, 1, 2]
+        """
+        return ZZ(len(w))
 
     @lazy_attribute
     def expansion(self):

@@ -765,7 +765,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                coeffs=coeffs, start_values=start_values, n0=n0)
 
 
-    def _get_matrix_from_recursions_(self, recursion_rules, rem):
+    def _get_matrix_from_recursions_(self, recursion_rules, rem, function, var):
         r"""
         Construct the matrix for remainder ``rem`` of the linear
         representation of the sequence induced by ``recursion_rules``.
@@ -802,7 +802,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(8*n + 6) == 19*f(2*n) + 20*f(2*n + 1) + 21*f(2*n + 2),
             ....:     f(8*n + 7) == 22*f(2*n) + 23*f(2*n + 1) + 24*f(2*n + 2),],
             ....:     f, n)
-            sage: Seq2._get_matrix_from_recursions_(rules, 0)
+            sage: Seq2._get_matrix_from_recursions_(rules, 0, f, n)
             [ 0  1  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  1  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  1  0  0  0  0  0]
@@ -816,7 +816,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [ 0 13 14 15  0  0  0  0  0  0  0  0  0]
             [ 0 16 17 18  0  0  0  0  0  0  0  0  0]
             [ 0 19 20 21  0  0  0  0  0  0  0  0  0]
-            sage: Seq2._get_matrix_from_recursions_(rules, 1)
+            sage: Seq2._get_matrix_from_recursions_(rules, 1, f, n)
             [ 0  0  1  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  1  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  0  1  0  0  0]
@@ -836,11 +836,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: SB_rules = Seq2._parse_recursions_([
             ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1], f, n)
-            sage: Seq2._get_matrix_from_recursions_(SB_rules, 0)
+            sage: Seq2._get_matrix_from_recursions_(SB_rules, 0, f, n)
             [1 0 0]
             [1 1 0]
             [0 1 0]
-            sage: Seq2._get_matrix_from_recursions_(SB_rules, 1)
+            sage: Seq2._get_matrix_from_recursions_(SB_rules, 1, f, n)
             [1 1 0]
             [0 1 0]
             [0 1 1]
@@ -848,6 +848,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         """
         from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
+        from sage.matrix.matrix_space import MatrixSpace
+        from sage.matrix.special import block_matrix, zero_matrix
+        from sage.modules.free_module_element import vector
 
         k = self.k
         M = recursion_rules.M
@@ -859,6 +862,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         n_start = recursion_rules.n_start
         dim = recursion_rules.dim
         coeffs = recursion_rules.coeffs
+        start_values = recursion_rules.start_values
+        n0 = recursion_rules.n0
 
         mat = []
         current_shift = 0
@@ -911,12 +916,35 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         pass
             mat.append(row)
 
-        if n_start == 0:
-            return Matrix(mat)
+        mat = Matrix(mat)
 
+        if n0 == 0:
+            return mat
+        else:
+            arguments = [k**j*var + d for j in srange(m) for d in srange(k**j)] + \
+                        [k**j*var + d for j in srange(m, M) for d in srange(ll, k**j - k**m + uu + 1)]
+            W = []
+            for i in srange(n0):
+                v_eval_i = []
+                v_eval_ki_plus_r = []
+                for a in arguments:
+                    try:
+                        temp = a.substitute(var==i)
+                        v_eval_i.append(start_values[temp])
+                        temp = a.substitute(var==k*i+rem)
+                        v_eval_ki_plus_r.append(start_values[temp])
+                    except KeyError:
+                        raise ValueError('Start value %s is missing.'
+                                         % (function(temp),))
+                W.append(list(vector(v_eval_ki_plus_r) - mat*vector(v_eval_i)))
 
-    def _correct_matrices_(A, rem, n_start):
+            J = []
+            for i in srange(n0):
+                J.append([int(i >= rem and i % k == rem and j*k == i - rem) for j in srange(n0)])
 
+            Mat = MatrixSpace(self.base_ring(), dim + n0, dim + n0)
+            return Mat(block_matrix([[mat, Matrix(W).transpose()],
+                                     [zero_matrix(n0, dim), Matrix(J)]]))
 
 
     def _get_left_from_recursions_(self, dim):
@@ -939,10 +967,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         ll = recursion_rules.ll
         uu = recursion_rules.uu
         start_values = recursion_rules.start_values
+        n0 = recursion_rules.n0
         right = []
 
-        for i in srange(m):
-            for d in srange(base**i):
+        for j in srange(m):
+            for d in srange(base**j):
                 try:
                     right.append(start_values[d])
                 except KeyError:
@@ -957,11 +986,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                     raise ValueError('Start value %s is missing.'
                                      % (function(d),))
 
+        if n0 >= 1:
+            right = right + [1] + (n0 - 1)*[0]
+
         return vector(right)
 
 
-
-    def recursions(self, equations, function, var, minimize=False):
+    def recursions(self, equations, function, var, n0=0, minimize=False):
         r"""
         Construct a `k`-regular sequence that fulfills the recursions
         given in ``equations``.
@@ -1012,12 +1043,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         k = self.k
         mu = []
 
-        recursion_rules = self._parse_recursions_(equations, function, var)
+        recursion_rules = self._parse_recursions_(equations, function, var, n0)
 
         for rem in srange(k):
-            mu.append(self._get_matrix_from_recursions_(recursion_rules, rem))
+            mu.append(self._get_matrix_from_recursions_(recursion_rules, rem, function, var))
 
-        seq = self(mu, self._get_left_from_recursions_(recursion_rules.dim),
+        seq = self(mu, self._get_left_from_recursions_(recursion_rules.dim + n0),
                    self._get_right_from_recursions_(recursion_rules, function))
 
         if minimize:

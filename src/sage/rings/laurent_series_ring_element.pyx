@@ -363,8 +363,10 @@ cdef class LaurentSeries(AlgebraElement):
             s += " + %s"%bigoh
         return s[1:]
 
-    def V(self, n):
-        """
+    def verschiebung(self, n):
+        r"""
+        Return the ``n``-th Verschiebung of ``self``.
+
         If `f = \sum a_m x^m` then this function returns `\sum a_m x^{mn}`.
 
         EXAMPLES::
@@ -388,10 +390,6 @@ cdef class LaurentSeries(AlgebraElement):
             sage: g.V(-1)
             5*x^-1 + 3 + 2*x
         """
-        # cdef LaurentSeries l
-        # cdef PowerSeries __u
-        # cdef long __n
-
         if n == 0:
             raise NotImplementedError()
         if n < 0:
@@ -411,6 +409,8 @@ cdef class LaurentSeries(AlgebraElement):
             __n = <long>self.__n * n
             l = LaurentSeries(self._parent, __u, __n)
         return l
+
+    V = verschiebung
 
     def _latex_(self):
         r"""

@@ -1,16 +1,11 @@
 r"""
 Puiseux Series Ring Element
-===========================
 
-Behavior of the elements of the :class:`PuiseuxSeriesRing`.
+A Puiseux series is a series of the form
 
-This defines how to construct an element given a Laurent series,
-center, and ramification index. The class is designed to use and be
-compatible with Sage's coercion model.
+.. MATH::
 
-A Puiseux series is a series of the form .. MATH::
-
-    p(x) = \sum_{n=N}^\infty a_n (x-a)^{n/e}
+    p(x) = \sum_{n=N}^{\infty} a_n (x-a)^{n/e},
 
 where the integer :math:`e` is called the *ramification index* of the series
 and the number :math:`a` is the *center*. A Puiseux series is essentially a
@@ -19,14 +14,14 @@ Laurent series but with fractional exponents.
 EXAMPLES:
 
 We begin by constructing the ring of Puiseux series in `x` with coefficients
-in the rationals. ::
+in the rationals::
 
     sage: R.<x> = PuiseuxSeriesRing(QQ)
 
-This command also defines `x` as the generator of this ring.
+This command also defines ``x`` as the generator of this ring.
 
 When constructing a Puiseux series, the ramification index is automatically
-determined from the greatest common divisor of the exponents. ::
+determined from the greatest common divisor of the exponents::
 
     sage: p = x^(1/2); p
     x^(1/2)
@@ -37,7 +32,7 @@ determined from the greatest common divisor of the exponents. ::
     sage: q.ramification_index()
     6
 
-Other arithmetic can be performed with Puiseux Series. ::
+Other arithmetic can be performed with Puiseux Series::
 
     sage: p + q
     x^(1/3) + 2*x^(1/2)
@@ -48,7 +43,7 @@ Other arithmetic can be performed with Puiseux Series. ::
     sage: (p / q).add_bigoh(4/3)
     x^(1/6) - x^(1/3) + x^(1/2) - x^(2/3) + x^(5/6) - x + x^(7/6) + O(x^(4/3))
 
-Mind the base ring. However, the base ring can be changed. ::
+Mind the base ring. However, the base ring can be changed::
 
     sage: I*q
     Traceback (most recent call last):
@@ -76,8 +71,8 @@ Other properties of the Puiseux series can be easily obtained::
     sage: r.coefficients()
     [3, 7, 1/2]
 
-Finally, Puiseux series are compatible with other objects in Sage. For example,
-you can perform arithmetic with Laurent series. ::
+Finally, Puiseux series are compatible with other objects in Sage.
+For example, you can perform arithmetic with Laurent series::
 
     sage: L.<x> = LaurentSeriesRing(ZZ)
     sage: l = 3*x^(-2) + x^(-1) + 2 + x**3
@@ -128,7 +123,7 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.laurent_part()
             x^3 + 3/4*x^4
         """
-        return self.__l
+        return self._l
 
     def ramification_index(self):
         """
@@ -141,7 +136,7 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.ramification_index()
             6
         """
-        return self.__e
+        return self._e
 
     def __init__(self, parent, f, e=1):
         r"""
@@ -151,8 +146,8 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         f : one of the following types of inputs:
 
-            - `PuiseuxSeries`
-            - `LaurentSeries`
+        - `PuiseuxSeries`
+        - `LaurentSeries`
 
         EXAMPLES::
 
@@ -166,16 +161,17 @@ cdef class PuiseuxSeries(AlgebraElement):
             x^-1 - 2 + x + O(x^3)
         """
         AlgebraElement.__init__(self, parent)
+        L = parent._laurent_series_ring
 
         if isinstance(f, PuiseuxSeries):
-            if (<PuiseuxSeries>f).__l._parent is parent.laurent_series_ring():
-                l = (<PuiseuxSeries>f).__l
-                e = (<PuiseuxSeries>f).__e
+            if (<PuiseuxSeries>f)._l._parent is L:
+                l = (<PuiseuxSeries>f)._l
+                e = (<PuiseuxSeries>f)._e
             else:
-                l = parent.laurent_series_ring()((<PuiseuxSeries>f).__l)
-                e = parent.laurent_series_ring()((<PuiseuxSeries>f).__e)
+                l = L((<PuiseuxSeries>f)._l)
+                e = L((<PuiseuxSeries>f)._e)
         else:
-            l = parent.laurent_series_ring()(f)
+            l = L(f)
 
         # --------------------------------------------------------
         # choose a representative for this Puiseux series having
@@ -191,19 +187,19 @@ cdef class PuiseuxSeries(AlgebraElement):
             d = gcd(exp_list + [e] + [prec])
         if d > 1:
             # ramification index can be reduced dividing by d
-            e = e/d
+            e = e / d
             cf_ori = l.list()
-            cf = [cf_ori[d*i] for i in range((len(cf_ori)-1)/d +1)]
-            val = l.valuation()/d
+            cf = [cf_ori[d*i] for i in range((len(cf_ori)-1) / d + 1)]
+            val = l.valuation() / d
             l = l.parent()(cf, n=val)
             if prec != infinity:
-                l = l.add_bigoh(prec/d)
+                l = l.add_bigoh(prec / d)
 
-        self.__l = l
-        self.__e = long(abs(e))
+        self._l = l
+        self._e = long(abs(e))
 
     def __reduce__(self):
-        return self.parent()(self.__l, self.__e)
+        return (self._parent, (self._l, self._e))
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))
@@ -222,7 +218,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         if self.ramification_index() == 1:
             return repr(self.laurent_part())
-        X = self.parent().variable_name()
+        X = self._parent.variable_name()
 
         coeff = self.coefficients()
         exp   = self.exponents()
@@ -287,7 +283,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         INPUT:
 
-        x -- element of a ring
+        - ``x`` -- element of a ring
 
         EXAMPLES::
 
@@ -298,17 +294,17 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p(pi.n())
             32.0276049867404
         """
-        # use x.nth_root since x**(1/self.__e) returns oo when x = 0
+        # use x.nth_root since x**(1/self._e) returns oo when x = 0
         if isinstance(x, int):
             x = ZZ(x)
         elif isinstance(x, float):
             x = ComplexField()(x)
-        t = x.nth_root(self.__e)
-        return self.__l.laurent_polynomial()(t)
+        t = x.nth_root(self._e)
+        return self._l.laurent_polynomial()(t)
 
     def _common_ramification_index(self, PuiseuxSeries right):
         r"""
-        Return a ramification index common to self and right.
+        Return a ramification index common to ``self`` and ``right``.
 
         In order to perform arithmetic on Puiseux series it is useful to find a
         common ramification index between two operands. That is, given Puiseux
@@ -322,16 +318,15 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         INPUT:
 
-        right : PuiseuxSeries
+        - ``right`` -- a Puiseux series
 
         OUTPUT:
 
-        - g : int -- a ramification index common to self and right.
-        - M, N : int -- scaling factors on self and right, respectively.
-
+        - ``g`` -- int; a ramification index common to self and right
+        - ``M, N`` -- int, int; scaling factors on self and right, respectively
         """
-        m = self.__e
-        n = right.__e
+        m = self._e
+        n = right._e
         g = lcm(m, n)
         m = g / m
         n = g / n
@@ -354,10 +349,10 @@ cdef class PuiseuxSeries(AlgebraElement):
         cdef long g, m, n
 
         g, m, n = self._common_ramification_index(right)
-        l1 = self.__l.V(m)
-        l2 = right.__l.V(n)
+        l1 = self._l.V(m)
+        l2 = right._l.V(n)
         l = l1 + l2
-        return PuiseuxSeries(self._parent, l, g)
+        return type(self)(self._parent, l, g)
 
     cpdef _sub_(self, right_m):
         """
@@ -376,10 +371,10 @@ cdef class PuiseuxSeries(AlgebraElement):
         cdef long g, m, n
 
         g, m, n = self._common_ramification_index(right)
-        l1 = self.__l.V(m)
-        l2 = right.__l.V(n)
+        l1 = self._l.V(m)
+        l2 = right._l.V(n)
         l = l1 - l2
-        return PuiseuxSeries(self._parent, l, g)
+        return type(self)(self._parent, l, g)
 
     cpdef _mul_(self, right_r):
         """
@@ -398,16 +393,16 @@ cdef class PuiseuxSeries(AlgebraElement):
         cdef long g, m, n
 
         g, m, n = self._common_ramification_index(right)
-        l1 = self.__l.V(m)
-        l2 = right.__l.V(n)
+        l1 = self._l.V(m)
+        l2 = right._l.V(n)
         l = l1 * l2
-        return PuiseuxSeries(self._parent, l, g)
+        return type(self)(self._parent, l, g)
 
     cpdef _rmul_(self, Element c):
-        return PuiseuxSeries(self._parent, self.__l._rmul_(c), self.__e)
+        return type(self)(self._parent, self._l._rmul_(c), self._e)
 
     cpdef _lmul_(self, Element c):
-        return PuiseuxSeries(self._parent, self.__l._lmul_(c), self.__e)
+        return type(self)(self._parent, self._l._lmul_(c), self._e)
 
     cpdef _div_(self, right_r):
         """
@@ -419,17 +414,23 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p = x^(1/2) + 3/4 * x^(2/3)
             sage: q = 2*x^(1/3) + 3/4 * x^(2/5)
             sage: p / q
-            1/2*x^(1/6) - 3/16*x^(7/30) + 9/128*x^(3/10) + 3/8*x^(1/3) - 27/1024*x^(11/30) - 9/64*x^(2/5) + 81/8192*x^(13/30) + 27/512*x^(7/15) - 243/65536*x^(1/2) - 81/4096*x^(8/15) + 729/524288*x^(17/30) + 243/32768*x^(3/5) - 2187/4194304*x^(19/30) - 729/262144*x^(2/3) + 6561/33554432*x^(7/10) + 2187/2097152*x^(11/15) - 19683/268435456*x^(23/30) - 6561/16777216*x^(4/5) + O(x^(5/6))
+            1/2*x^(1/6) - 3/16*x^(7/30) + 9/128*x^(3/10) + 3/8*x^(1/3)
+             - 27/1024*x^(11/30) - 9/64*x^(2/5) + 81/8192*x^(13/30)
+             + 27/512*x^(7/15) - 243/65536*x^(1/2) - 81/4096*x^(8/15)
+             + 729/524288*x^(17/30) + 243/32768*x^(3/5) - 2187/4194304*x^(19/30)
+             - 729/262144*x^(2/3) + 6561/33554432*x^(7/10)
+             + 2187/2097152*x^(11/15) - 19683/268435456*x^(23/30)
+             - 6561/16777216*x^(4/5) + O(x^(5/6))
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_r
         cdef LaurentSeries l, l1, l2
         cdef long g, m, n
 
         g, m, n = self._common_ramification_index(right)
-        l1 = self.__l.V(m)
-        l2 = right.__l.V(n)
+        l1 = self._l.V(m)
+        l2 = right._l.V(n)
         l = l1 / l2
-        return PuiseuxSeries(self._parent, l, g)
+        return type(self)(self._parent, l, g)
 
     def __pow__(_self, r, dummy):
         """
@@ -452,20 +453,18 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         # if the exponent is integral then do normal exponentiation
         if denom == 1:
-            l = self.__l ** int(numer)
-            e = self.__e
+            l = self._l ** int(numer)
+            e = self._e
         # otherwise, we only exponentiate by a rational number if there is a
         # single term in the Puiseux series
         #
         # (I suppose we could use Taylor series expansions in the general case)
         else:
             if not self.is_monomial():
-                raise ValueError('Can only exponentiate single '
-                                 'term by rational')
-            l = self.__l.V(numer)
-            e = self.__e * int(denom)
-        return PuiseuxSeries(self._parent, l, e)
-
+                raise ValueError('can only exponentiate single term by rational')
+            l = self._l.V(numer)
+            e = self._e * int(denom)
+        return type(self)(self._parent, l, e)
 
     cpdef _richcmp_(self, right_r, int op):
         r"""
@@ -500,10 +499,9 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_r
         g, m, n = self._common_ramification_index(right)
-        l_l = self.__l.V(m)
-        l_r = right.__l.V(n)
+        l_l = self._l.V(m)
+        l_r = right._l.V(n)
         return richcmp(l_l, l_r, op)
-
 
     def __lshift__(self, r):
         return self.shift(r)
@@ -513,7 +511,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def __nonzero__(self):
         """
-        Return whether this is not zero.
+        Return whether ``self`` is not zero.
 
         EXAMPLES::
 
@@ -524,11 +522,11 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: R.zero() != 0
             False
         """
-        return not not self.__l
+        return bool(self._l)
 
     def __hash__(self):
         """
-        Return a hash of self.
+        Return a hash of ``self``.
 
         EXAMPLES::
 
@@ -538,11 +536,11 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: hash(p) == xor(hash(p.laurent_part()), 2)  # indirect doctest
             True
         """
-        return hash(self.__l) ^ self.__e
+        return hash(self._l) ^ self._e
 
     def __getitem__(self, r):
         r"""
-        Return the coefficient with exponent `r`.
+        Return the coefficient with exponent ``r``.
 
         EXAMPLES::
 
@@ -561,11 +559,11 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         if isinstance(r, slice):
             start, stop, step = r.start, r.stop, r.step
-            n = slice(start * self.__e, stop * self.__e, step * self.__e)
-            return PuiseuxSeries(self._parent, self.__l[start:stop:step], self.__e)
+            n = slice(start * self._e, stop * self._e, step * self._e)
+            return PuiseuxSeries(self._parent, self._l[start:stop:step], self._e)
         else:
-            n = int(r * self.__e)
-            return self.__l[n]
+            n = int(r * self._e)
+            return self._l[n]
 
     def __iter__(self):
         """
@@ -578,11 +576,11 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: list(p)
             [1, 0, 0, 0, 0, 0, 0, 3, 5, 0, 0, 0, 0, -7]
         """
-        return iter(self.__l)
+        return iter(self._l)
 
     def __copy__(self):
         """
-        Have the copy function work for self.
+        Since this is immutable, return ``self``.
 
         EXAMPLES::
 
@@ -593,13 +591,13 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p == p2
             True
             sage: p is p2
-            False
+            True
         """
-        return PuiseuxSeries(self._parent, self.__l.__copy__(), self.__e)
+        return self
 
     def valuation(self):
-        """
-        Return the valuation of self.
+        r"""
+        Return the valuation of ``self``.
 
         EXAMPLES::
 
@@ -608,14 +606,14 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.valuation()
             -7/2
         """
-        val = self.__l.valuation() / QQ(self.__e)
+        val = self._l.valuation() / QQ(self._e)
         if val == infinity:
             return 0
         return val
 
     def add_bigoh(self, prec):
-        """
-        Return the truncated series at chosen precision.
+        r"""
+        Return the truncated series at chosen precision ``prec``.
 
         EXAMPLES::
 
@@ -628,26 +626,26 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.add_bigoh(-1)
             x^(-7/2) + O(x^-1)
 
-        NOTE::
+        .. NOTE::
 
-        The precision passed to the method is adapted to the common
-        ramification index:
+            The precision passed to the method is adapted to the common
+            ramification index::
 
-            sage: R.<x> = PuiseuxSeriesRing(ZZ)
-            sage: p = x**(-1/3) + 2*x**(1/5)
-            sage: p.add_bigoh(1/2)
-            x^(-1/3) + 2*x^(1/5) + O(x^(7/15))
+                sage: R.<x> = PuiseuxSeriesRing(ZZ)
+                sage: p = x**(-1/3) + 2*x**(1/5)
+                sage: p.add_bigoh(1/2)
+                x^(-1/3) + 2*x^(1/5) + O(x^(7/15))
         """
         if prec == infinity or prec >= self.prec():
             return self
 
-        l_prec = int(prec * self.__e)
-        l = self.__l.add_bigoh(l_prec)
-        return PuiseuxSeries(self._parent, l, self.__e)
+        l_prec = int(prec * self._e)
+        l = self._l.add_bigoh(l_prec)
+        return PuiseuxSeries(self._parent, l, self._e)
 
     def change_ring(self, R):
-        """
-        Return self over a the new ring R.
+        r"""
+        Return ``self`` over a the new ring ``R``.
 
         EXAMPLES::
 
@@ -661,8 +659,8 @@ cdef class PuiseuxSeries(AlgebraElement):
         return self._parent.change_ring(R)(self)
 
     def is_unit(self):
-        """
-        Return whether self is a unit.
+        r"""
+        Return whether ``self`` is a unit.
 
         A Puiseux series is a unit if and only if its leading coefficient is.
 
@@ -676,11 +674,11 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: q.is_unit()
             False
         """
-        return self.__l.is_unit()
+        return self._l.is_unit()
 
     def is_zero(self):
         """
-        Return whether self is zero.
+        Return whether ``self`` is zero.
 
         EXAMPLES::
 
@@ -691,13 +689,14 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: R.zero().is_zero()
             True
         """
-        return self.__l.is_zero()
+        return self._l.is_zero()
 
     def is_monomial(self):
-        """
-        Return whether self is a monomial.
+        r"""
+        Return whether ``self`` is a monomial.
 
-        This is True if and only if self is `x^p` for some rational `p`.
+        This is ``True`` if and only if ``self`` is `x^p` for
+        some rational `p`.
 
         EXAMPLES::
 
@@ -712,10 +711,10 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: q.is_monomial()
             False
         """
-        return self.__l.is_monomial()
+        return self._l.is_monomial()
 
     def list(self):
-        """
+        r"""
         Return the list of coefficients indexed by the exponents of the
         the corresponding Laurent series.
 
@@ -726,10 +725,10 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.list()
             [1, 0, 0, 2, 0, 3]
         """
-        return self.__l.list()
+        return self._l.list()
 
     def coefficients(self):
-        """
+        r"""
         Return the list of coefficients.
 
         EXAMPLES::
@@ -739,10 +738,10 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.coefficients()
             [1, 2, 3]
         """
-        return self.__l.coefficients()
+        return self._l.coefficients()
 
     def exponents(self):
-        """
+        r"""
         Return the list of exponents.
 
         EXAMPLES::
@@ -752,14 +751,14 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.exponents()
             [3/4, 4/5, 5/6]
         """
-        return [QQ(n) /  self.__e for n in self.__l.exponents()]
+        return [QQ(n) /  self._e for n in self._l.exponents()]
 
     def __setitem__(self, n, value):
         raise IndexError('Puiseux series are immutable')
 
     def degree(self):
-        """
-        Return the degree of self.
+        r"""
+        Return the degree of ``self``.
 
         EXAMPLES::
 
@@ -770,7 +769,7 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.degree()
             1/5
         """
-        return self.__l.degree() / self.__e
+        return self._l.degree() / self._e
 
     def shift(self, r):
         r"""
@@ -785,14 +784,14 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: p.shift(3)
             y*x^(8/3) + (2*y^-2)*x^(7/2)
         """
-        cdef LaurentSeries l = self.__l.shift(r * self.__e)
-        return PuiseuxSeries(self._parent, l, self.__e)
+        cdef LaurentSeries l = self._l.shift(r * self._e)
+        return PuiseuxSeries(self._parent, l, self._e)
 
     def truncate(self, r):
         r"""
-        Return the Puiseux series of degree ` < r`.
+        Return the Puiseux series of degree `< r`.
 
-        This is equivalent to self modulo `x^r`.
+        This is equivalent to ``self`` modulo `x^r`.
 
         EXAMPLES::
 
@@ -804,12 +803,12 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: q == p.add_bigoh(5)
             True
         """
-        l = self.__l.truncate(r * self.__e)
-        return PuiseuxSeries(self._parent, l, self.__e)
+        l = self._l.truncate(r * self._e)
+        return PuiseuxSeries(self._parent, l, self._e)
 
     def prec(self):
-        """
-        Return the precision of self.
+        r"""
+        Return the precision of ``self``.
 
         EXAMPLES::
 
@@ -821,9 +820,9 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: q.prec()
             5
         """
-        if self.__l.prec() == infinity:
+        if self._l.prec() == infinity:
             return infinity
-        return self.__l.prec() / self.__e
+        return self._l.prec() / self._e
 
     precision_absolute = prec
 
@@ -831,8 +830,8 @@ cdef class PuiseuxSeries(AlgebraElement):
         r"""
         Return the relative precision of the series.
 
-        The relative precision of the Puiseux series is the difference between
-        its absolute precision and its valuation.
+        The relative precision of the Puiseux series is the difference
+        between its absolute precision and its valuation.
 
         EXAMPLES::
 
@@ -850,7 +849,20 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def common_prec(self, p):
         r"""
-        Return the minimum precision of `p` and self.
+        Return the minimum precision of `p` and ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: p = (x**(-1/3) + 2*x**3)**2
+            sage: q5 = p.add_bigoh(5); q5
+            x^(-2/3) + 4*x^(8/3) + O(x^5)
+            sage: q7 = p.add_bigoh(7); q7
+            x^(-2/3) + 4*x^(8/3) + 4*x^6 + O(x^7)
+            sage: q5.common_prec(q7)
+            5
+            sage: q7.common_prec(q5)
+            5
         """
         if self.prec() is infinity:
             return p.prec()
@@ -860,7 +872,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def variable(self):
         r"""
-        Return the variable of self.
+        Return the variable of ``self``.
 
         EXAMPLES::
 
@@ -873,7 +885,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def laurent_series(self):
         r"""
-        If self is a Laurent series, return it as a Laurent series.
+        If ``self`` is a Laurent series, return it as a Laurent series.
 
         EXAMPLES::
 
@@ -887,13 +899,13 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: q.laurent_series()
             x^-1 - 2 + x
         """
-        if self.__e != 1:
+        if self._e != 1:
             raise ArithmeticError('self is not a Laurent series')
-        return self.__l
+        return self._l
 
     def power_series(self):
         r"""
-        If self is a power series, return it as a power series.
+        If ``self`` is a power series, return it as a power series.
 
         EXAMPLES::
 
@@ -915,7 +927,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def inverse(self):
         r"""
-        Return the inverse of self.
+        Return the inverse of ``self``.
 
         EXAMPLES::
 
@@ -926,3 +938,4 @@ cdef class PuiseuxSeries(AlgebraElement):
             25*x^(23/2) + O(x^(27/2))
         """
         return self.__invert__()
+

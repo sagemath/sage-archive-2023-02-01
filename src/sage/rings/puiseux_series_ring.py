@@ -1,128 +1,102 @@
 r"""
 Puiseux Series Ring
-===================
 
 The ring of Puiseux series.
-
-This defines how to construct an element of the ring and
-how other rings can coerce into this ring.
-
-Classes
--------
-
-.. autosummary::
-
-    PuiseuxSeriesRing_generic
-    PuiseuxSeriesRing_domain
-    PuiseuxSeriesRing_field
-
-Functions
----------
-
-.. autosummary::
-
-    PuiseuxSeriesRing
-    is_PuiseuxSeriesRing
-
-Examples
---------
-
-See :mod:`sage.rings.puiseux_series_ring_element` for examples.
-
-Contents
---------
 """
-import weakref
 
-from sage.all import parent
-from sage.rings.ring import IntegralDomain, CommutativeRing, Field
+from sage.misc.cachefunc import cached_method
 from sage.rings.puiseux_series_ring_element import PuiseuxSeries
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 from sage.categories.fields import Fields
-from sage.rings.laurent_series_ring import (is_LaurentSeriesRing,
-                                            LaurentSeriesRing)
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.rings.ring import CommutativeRing
+from sage.structure.element import parent
+from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.laurent_series_ring_element import LaurentSeries
 from sage.rings.power_series_ring import is_PowerSeriesRing
 from sage.rings.power_series_ring_element import PowerSeries
 
-puiseux_series = {}
 
-
-def PuiseuxSeriesRing(base_ring, name=None, names=None, default_prec=None,
-                      sparse=False):
+class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
     """
     Rings of Puiseux series.
 
     EXAMPLES::
 
-        sage: P = PuiseuxSeriesRing(QQ,'y')
+        sage: P = PuiseuxSeriesRing(QQ, 'y')
         sage: y = P.gen()
-        sage: f = y**(4/3)+y**(-5/6); f
+        sage: f = y**(4/3) + y**(-5/6); f
         y^(-5/6) + y^(4/3)
         sage: f.add_bigoh(2)
         y^(-5/6) + y^(4/3) + O(y^2)
         sage: f.add_bigoh(1)
         y^(-5/6) + O(y)
     """
-    if not names is None:
-        name = names
-    if name is None:
-        raise TypeError('You must specify the name of the '
-                        'indeterminate of the Puiseux series ring.')
+    @staticmethod
+    def __classcall__(cls, *args, **kwds):
+        r"""
+        TESTS::
 
-    if default_prec is None:
-        from sage.misc.defaults import series_precision
-        default_prec = series_precision()
+            sage: L = PuiseuxSeriesRing(QQ, 'q')
+            sage: L is PuiseuxSeriesRing(QQ, name='q')
+            True
+            sage: Lp.<q> = PuiseuxSeriesRing(QQ)
+            sage: L is Lp
+            True
+            sage: loads(dumps(L)) is L
+            True
 
-    global puiseux_series
-    key = (base_ring, name, default_prec, sparse)
-    if key in puiseux_series:
-        x = puiseux_series[key]()
-        if x is not None:
-            return x
+            sage: L.variable_names()
+            ('q',)
+            sage: L.variable_name()
+            'q'
+        """
+        if not kwds and len(args) == 1 and isinstance(args[0], LaurentSeriesRing):
+            laurent_series = args[0]
+        else:
+            laurent_series = LaurentSeriesRing(*args, **kwds)
 
-    if isinstance(base_ring, Field):
-        R = PuiseuxSeriesRing_field(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, IntegralDomain):
-        R = PuiseuxSeriesRing_domain(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, CommutativeRing):
-        R = PuiseuxSeriesRing_generic(base_ring, name, default_prec, sparse)
-    else:
-        raise TypeError("base_ring must be a commutative ring")
-    puiseux_series[key] = weakref.ref(R)
-    return R
+        return super(PuiseuxSeriesRing, cls).__classcall__(cls, laurent_series)
 
-
-def is_PuiseuxSeriesRing(x):
-    """
-    Return whether this ring is a Puiseux series ring.
-
-    EXAMPLES::
-
-        sage: from sage.rings.puiseux_series_ring import is_PuiseuxSeriesRing
-        sage: is_PuiseuxSeriesRing(QQ)
-        False
-        sage: P = PuiseuxSeriesRing(QQ,'y')
-        sage: is_PuiseuxSeriesRing(P)
-        True
-    """
-    return isinstance(x, PuiseuxSeriesRing_generic)
-
-
-class PuiseuxSeriesRing_generic(CommutativeRing):
-    def __init__(self, base_ring, name=None, default_prec=None, sparse=False,
-                 category=None):
+    def __init__(self, laurent_series):
         """
         Generic class for Puiseux series rings.
+
+        EXAMPLES::
+
+            sage: P = PuiseuxSeriesRing(QQ, 'y')
+            sage: TestSuite(P).run()
+
+            sage: P = PuiseuxSeriesRing(ZZ, 'x')
+            sage: TestSuite(P).run()
+
+            sage: P = PuiseuxSeriesRing(ZZ['a,b'], 'x')
+            sage: TestSuite(P).run()
         """
-        CommutativeRing.__init__(self, base_ring, names=name,
-                                 category=getattr(self, '_default_category',
-                                                  Fields()))
+        base_ring = laurent_series.base_ring()
 
         # If self is R(( x^(1/e) )) then the corresponding Laurent series
         # ring will be R(( x ))
-        self._laurent_series_ring = LaurentSeriesRing(base_ring, name=name,
-                                                      default_prec=default_prec, sparse=sparse)
+        self._laurent_series_ring = laurent_series
+
+        CommutativeRing.__init__(self, base_ring,
+                                 names=laurent_series.variable_names(),
+                                 category=laurent_series.category())
+
+    def _repr_(self):
+        """
+        String representation.
+
+        EXAMPLES::
+
+            sage: PuiseuxSeriesRing(AA, 'y')
+            Puiseux Series Ring in y over Algebraic Real Field
+        """
+        s = "Puiseux Series Ring in {} over {}".format(self.variable_name(),
+                                                       self.base_ring())
+        if self.is_sparse():
+            s = 'Sparse ' + s
+        return s
 
     def base_extend(self, R):
         """
@@ -130,7 +104,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
 
         INPUT:
 
-        R -- a ring
+        - ``R`` -- a ring
 
         EXAMPLES::
 
@@ -138,10 +112,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
             sage: A.base_extend(QQ)
             Puiseux Series Ring in y over Rational Field
         """
-        if R.has_coerce_map_from(self.base_ring()):
-            return self.change_ring(R)
-        else:
-            raise TypeError("no valid base extension defined")
+        return PuiseuxSeriesRing(self._laurent_series_ring.base_extend(R))
 
     def change_ring(self, R):
         """
@@ -149,7 +120,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
 
         INPUT:
 
-        R -- a ring
+        - ``R`` -- a ring
 
         EXAMPLES::
 
@@ -157,17 +128,11 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
             sage: A.change_ring(QQ)
             Puiseux Series Ring in y over Rational Field
         """
-        return PuiseuxSeriesRing(R, self.variable_name(),
-                                 default_prec=self.default_prec(),
-                                 sparse=self.is_sparse())
+        return PuiseuxSeriesRing(self._laurent_series_ring.change_ring(R))
 
     def is_sparse(self):
         """
-        Return whether self is sparse.
-
-        INPUT:
-
-        R -- a ring
+        Return whether ``self`` is sparse.
 
         EXAMPLES::
 
@@ -177,16 +142,24 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         """
         return self.laurent_series_ring().is_sparse()
 
-    def is_field(self, proof=True):
+    def is_dense(self):
         """
-        Return whether self is a field.
+        Return whether ``self`` is dense.
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(ZZ, 'y')
+            sage: A.is_dense()
+            True
+        """
+        return self.laurent_series_ring().is_dense()
+
+    def is_field(self, proof=True):
+        r"""
+        Return whether ``self`` is a field.
 
         A Puiseux series ring is a field if and only
         its base ring is a field.
-
-        INPUT:
-
-        R -- a ring
 
         EXAMPLES::
 
@@ -198,81 +171,108 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         """
         return self.base_ring().is_field()
 
-    def is_dense(self):
-        """
-        Return whether self is dense.
+    def fraction_field(self):
+        r"""
+        Return the fraction field of this ring of Laurent series.
 
-        INPUT:
-
-        R -- a ring
-
-        EXAMPLES::
-
-            sage: A = PuiseuxSeriesRing(ZZ, 'y')
-            sage: A.is_dense()
-            True
-        """
-        return self.laurent_series_ring().is_dense()
-
-    def __reduce__(self):
-        """
-        Used for pickling.
+        If the base ring is a field, then Puiseux series are already a field.
+        If the base ring is a domain, then the Puiseux series over its fraction
+        field is returned. Otherwise, raise a ``ValueError``.
 
         EXAMPLES::
 
-            sage: P = PuiseuxSeriesRing(QQ,'y')
-            sage: P.__reduce__()
-            (<class 'sage.rings.puiseux_series_ring.PuiseuxSeriesRing_field_with_category'>,
-             (Rational Field, 'y', 20, False))
-        """
-        return self.__class__, (self.base_ring(), self.variable_name(),
-                                self.default_prec(), self.is_sparse())
+            sage: R = PuiseuxSeriesRing(ZZ, 't', 30).fraction_field()
+            sage: R
+            Puiseux Series Ring in t over Rational Field
+            sage: R.default_prec()
+            30
 
-    def _repr_(self):
+            sage: PuiseuxSeriesRing(Zmod(4), 't').fraction_field()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be an integral domain
         """
-        String representation.
+        from sage.categories.integral_domains import IntegralDomains
+        from sage.categories.fields import Fields
+        if self in Fields:
+            return self
+        elif self in IntegralDomains:
+            return PuiseuxSeriesRing(self._laurent_series_ring.fraction_field())
+        else:
+            raise ValueError('must be an integral domain')
+
+    def residue_field(self):
+        r"""
+        Return the residue field of this Puiseux series field
+        if it is a complete discrete valuation field (i.e. if
+        the base ring is a field, in which base it is also the
+        residue field).
 
         EXAMPLES::
 
-            sage: PuiseuxSeriesRing(AA, 'y')  # indirect doctest
-            Puiseux Series Ring in y over Algebraic Real Field
+            sage: R.<x> = PuiseuxSeriesRing(GF(17))
+            sage: R.residue_field()
+            Finite Field of size 17
+
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: R.residue_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: the base ring is not a field
         """
-        s = "Puiseux Series Ring in %s over %s" % (self.variable_name(),
-                                                   self.base_ring())
-        if self.is_sparse():
-            s = 'Sparse ' + s
-        return s
+        if not self.base_ring().is_field():
+            raise TypeError("the base ring is not a field")
+        return self.base_ring()
+
+    def uniformizer(self):
+        r"""
+        Return a uniformizer of this Puiseux series field if it is
+        a discrete valuation field (i.e. if the base ring is actually
+        a field). Otherwise, an error is raised.
+
+        EXAMPLES::
+
+            sage: R.<t> = PuiseuxSeriesRing(QQ)
+            sage: R.uniformizer()
+            t
+
+            sage: R.<t> = PuiseuxSeriesRing(ZZ)
+            sage: R.uniformizer()
+            Traceback (most recent call last):
+            ...
+            TypeError: the base ring is not a field
+        """
+        if not self.base_ring().is_field():
+            raise TypeError("the base ring is not a field")
+        return self.gen()
 
     Element = PuiseuxSeries
 
     def _element_constructor_(self, x, e=1):
         r"""
-        Construct a Puiseux series from `x`.
+        Construct a Puiseux series from ``x``.
 
         INPUT:
 
-        - ``x`` -- an object that can be converted into a Puiseux series in (x-a)
-
-        - ``a`` -- (default: 0) the series is in powers of (var - a)
-
-        - ``e`` -- (default: 1) the ramification index of the series
+        - ``x`` -- an object that can be converted into a Puiseux series
+        - ``e`` -- (default: ``1``) the ramification index of the series
 
         EXAMPLES::
 
-            sage: P = PuiseuxSeriesRing(QQ,'y')
+            sage: P = PuiseuxSeriesRing(QQ, 'y')
             sage: y = P.gen()
             sage: P([1,3,5,7])
             1 + 3*y + 5*y^2 + 7*y^3
             sage: P(33/14)
             33/14
 
-            sage: Q = PowerSeriesRing(QQ,'y')
+            sage: Q = PowerSeriesRing(QQ, 'y')
             sage: z = Q([1,2,4,5]).O(6); z
             1 + 2*y + 4*y^2 + 5*y^3 + O(y^6)
             sage: P(z) + y**(1/2)
             1 + y^(1/2) + 2*y + 4*y^2 + 5*y^3 + O(y^6)
 
-            sage: Q = LaurentSeriesRing(QQ,'y')
+            sage: Q = LaurentSeriesRing(QQ, 'y')
             sage: z = Q([3,2,1,2]).add_bigoh(5); z
             3 + 2*y + y^2 + 2*y^3 + O(y^5)
             sage: P(z) + y**(1/2)
@@ -280,26 +280,27 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         """
         P = parent(x)
 
-        # 1. x is a Puiseux series belonging to this ring
-        if isinstance(x, self.element_class) and P is self:
-            return x
+        # 1. x is a Puiseux series belonging to this ring.
+        #    This is short-circuited by the coercion framework.
+        #if isinstance(x, self.element_class) and P is self:
+        #    return x
         # 2. x is a Puiseux series but not an element of this ring. the laurent
         #    part should be coercible to the laurent series ring of self
-        elif isinstance(x, self.element_class):
-            l = self.laurent_series_ring()(x.laurent_part)
+        if isinstance(x, self.element_class):
+            l = self._laurent_series_ring(x.laurent_part)
             e = x.ramification_index()
         # 3. x is a member of the base ring then convert x to a laurent series
         #    and set the ramification index of the Puiseux series to 1.
         elif P is self.base_ring():
-            l = self.laurent_series_ring()(x)
+            l = self._laurent_series_ring(x)
             e = 1
         # 4. x is a Laurent or power series with the same base ring
         elif (isinstance(x, (LaurentSeries, PowerSeries))
               and P is self.base_ring()):
-            l = self.laurent_series_ring()(x)
+            l = self._laurent_series_ring(x)
         # 5. everything else: try to coerce to laurent series ring
         else:
-            l = self.laurent_series_ring()(x)
+            l = self._laurent_series_ring(x)
             e = 1
 
         return self.element_class(self, l, e=e)
@@ -320,7 +321,6 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
           index equal to a multiple of `self`'s ramification index. For
           example, Puiseux series in (x-a)^(1/2) can be interpreted as Puiseux
           series in (x-a)^(1/4).
-
         """
         # any ring that has a coercion map to A
         A = self.base_ring()
@@ -332,7 +332,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
 
         # Laurent series rings, power series rings, and polynomial rings with
         # the same variable name and the base rings are coercible
-        if ((is_PuiseuxSeriesRing(P) or is_LaurentSeriesRing(P) or
+        if ((isinstance(P, PuiseuxSeriesRing) or isinstance(P, LaurentSeriesRing) or
              is_PowerSeriesRing(P)) and
                 P.variable_name() == self.variable_name() and
                 A.has_coerce_map_from(P.base_ring())):
@@ -345,9 +345,10 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         #     P.variable_name() == self.variable_name()):
         #     return True
 
+    @cached_method
     def gen(self, n=0):
-        """
-        Return the generator of self.
+        r"""
+        Return the generator of ``self``.
 
         EXAMPLES::
 
@@ -356,17 +357,12 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
             z
         """
         if n != 0:
-            raise IndexError("Generator n not defined.")
-        try:
-            return self.__generator
-        except AttributeError:
-            #l = self.laurent_series_ring()([0,1])
-            self.__generator = PuiseuxSeries(self, [0, 1], e=1)
-            return self.__generator
+            raise IndexError("generator {} not defined".format(n))
+        return self.element_class(self, [0, 1], e=1)
 
     def ngens(self):
-        """
-        Return the number of generators of self, namely 1
+        r"""
+        Return the number of generators of ``self``, namely 1.
 
         EXAMPLES::
 
@@ -377,7 +373,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         return 1
 
     def laurent_series_ring(self):
-        """
+        r"""
         Return the underlying Laurent series ring.
 
         EXAMPLES::
@@ -390,7 +386,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
 
     def default_prec(self):
         """
-        Return the default precision of self.
+        Return the default precision of ``self``.
 
         EXAMPLES::
 
@@ -400,17 +396,3 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         """
         return self.laurent_series_ring().default_prec()
 
-
-class PuiseuxSeriesRing_domain(PuiseuxSeriesRing_generic,
-                               IntegralDomain):
-    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
-        PuiseuxSeriesRing_generic.__init__(self, base_ring, name,
-                                           default_prec, sparse)
-
-
-class PuiseuxSeriesRing_field(PuiseuxSeriesRing_generic, Field):
-    _default_category = CompleteDiscreteValuationFields()
-
-    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
-        PuiseuxSeriesRing_generic.__init__(self, base_ring, name,
-                                           default_prec, sparse)

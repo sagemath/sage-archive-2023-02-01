@@ -413,7 +413,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=11,
             coeffs={(0, 1): 2, (0, 0): 1, (3, 1): 11, (3, 0): 10, (2, -2): 9,
             (2, 1): 8, (2, 0): 7, (3, -2): 12, (0, -2): 3, (1, 0): 4, (1, -2): 6,
-            (1, 1): 5}, start_values={0: 1, 1: 2, 2: 1}, n0=42)
+            (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1}, n0=42)
 
         Stern--Brocot Sequence::
 
@@ -422,7 +422,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:    f(1) == 1, f(2) == 1], f, n)
             recursion_rules(M=1, m=0, l=0, u=1, ll=0, uu=2, dim=3,
             coeffs={(1, 0): 1, (0, 0): 1, (1, 1): 1},
-            start_values={0: 0, 1: 1, 2: 1}, n0=0)
+            initial_values={0: 0, 1: 1, 2: 1}, n0=0)
 
         TESTS:
 
@@ -612,7 +612,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
                 sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
                 recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={}, start_values={}, n0=0)
+                coeffs={}, initial_values={}, n0=0)
         """
         from collections import namedtuple
 
@@ -626,7 +626,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         base_ring = self.base()
         indices_right = [0]
         coeffs = {}
-        start_values = {}
+        initial_values = {}
         remainders = []
 
         def _parse_multiplication_(op):
@@ -681,7 +681,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 raise ValueError("%s is not a polynomial of degree smaller 2."
                                  % (polynomial_left,))
             if polynomial_left in base_ring and right_side in base_ring:
-                start_values.update({polynomial_left: right_side})
+                initial_values.update({polynomial_left: right_side})
             else:
                 poly_left = ZZ[var](left_side.operands()[0])
                 [r, base_power_M] = list(poly_left)
@@ -759,10 +759,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         recursion_rules = namedtuple('recursion_rules',
                                      ['M', 'm', 'l', 'u',
                                       'll', 'uu', 'dim',
-                                      'coeffs', 'start_values', 'n0'])
+                                      'coeffs', 'initial_values', 'n0'])
 
         return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
-                               coeffs=coeffs, start_values=start_values, n0=n0)
+                               coeffs=coeffs, initial_values=initial_values, n0=n0)
 
 
     def _get_matrix_from_recursions_(self, recursion_rules, rem, function, var):
@@ -862,7 +862,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         n_start = recursion_rules.n_start
         dim = recursion_rules.dim
         coeffs = recursion_rules.coeffs
-        start_values = recursion_rules.start_values
+        initial_values = recursion_rules.initial_values
         n0 = recursion_rules.n0
 
         mat = []
@@ -930,11 +930,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 for a in arguments:
                     try:
                         temp = a.substitute(var==i)
-                        v_eval_i.append(start_values[temp])
+                        v_eval_i.append(initial_values[temp])
                         temp = a.substitute(var==k*i+rem)
-                        v_eval_ki_plus_r.append(start_values[temp])
+                        v_eval_ki_plus_r.append(initial_values[temp])
                     except KeyError:
-                        raise ValueError('Start value %s is missing.'
+                        raise ValueError('Initial value %s is missing.'
                                          % (function(temp),))
                 W.append(list(vector(v_eval_ki_plus_r) - mat*vector(v_eval_i)))
 
@@ -966,24 +966,24 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         m = recursion_rules.m
         ll = recursion_rules.ll
         uu = recursion_rules.uu
-        start_values = recursion_rules.start_values
+        initial_values = recursion_rules.initial_values
         n0 = recursion_rules.n0
         right = []
 
         for j in srange(m):
             for d in srange(base**j):
                 try:
-                    right.append(start_values[d])
+                    right.append(initial_values[d])
                 except KeyError:
-                    raise ValueError('Start value %s is missing.'
+                    raise ValueError('Initial value %s is missing.'
                                      % (function(d),))
 
         for j in srange(m, M):
             for d in srange(ll, base**j - base**m + uu + 1):
                 try:
-                    right.append(start_values[d])
+                    right.append(initial_values[d])
                 except KeyError:
-                    raise ValueError('Start value %s is missing.'
+                    raise ValueError('Initial value %s is missing.'
                                      % (function(d),))
 
         if n0 >= 1:

@@ -8261,9 +8261,9 @@ class Polyhedron_base(Element):
              Domain: Vector space of dimension 3 over Rational Field
              Codomain: Vector space of dimension 3 over Rational Field, (0, 0, 0))
 
-        TESTS::
+        TESTS:
 
-            Check that :trac:`23355` is fixed::
+        Check that :trac:`23355` is fixed::
 
             sage: P = Polyhedron([[7]]); P
             A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
@@ -8274,7 +8274,7 @@ class Polyhedron_base(Element):
             sage: P.affine_hull(orthogonal='True')
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
 
-            Check that :trac:`24047` is fixed::
+        Check that :trac:`24047` is fixed::
 
             sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
             sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
@@ -8284,9 +8284,13 @@ class Polyhedron_base(Element):
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
 
-            Check that backend is preserved::
+        Check that backend is preserved::
 
             sage: polytopes.simplex(backend='field').affine_hull().backend()
+            'field'
+
+            sage: P = Polyhedron(vertices=[[0,0], [1,0]], backend='field')
+            sage: P.affine_hull(orthogonal=True, orthonormal=True, extend=True).backend()
             'field'
         """
         # handle trivial full-dimensional case
@@ -8319,7 +8323,9 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
-            return Polyhedron([A*vector(A.base_ring(), w) for w in Q.vertices()], base_ring=A.base_ring())
+            parent = self.parent().change_ring(A.base_ring(), ambient_dim=self.dim())
+            new_vertices = [A*vector(A.base_ring(), w) for w in Q.vertices()]
+            return parent.element_class(parent, [new_vertices, [], []], None)
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()

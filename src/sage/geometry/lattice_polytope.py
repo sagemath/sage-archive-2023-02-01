@@ -2374,6 +2374,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
            :meth:`vertices`.
 
         EXAMPLES::
+
             sage: o = lattice_polytope.cross_polytope(2)
             sage: o.incidence_matrix()
             [0 0 1 1]

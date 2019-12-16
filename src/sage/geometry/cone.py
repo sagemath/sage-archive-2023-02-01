@@ -2760,6 +2760,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             [1]
             [1]
             [1]
+
+        TESTS::
+
+            sage: halfspace.incidence_matrix().is_immutable()
+            True
         """
         normals = self.facet_normals()
         incidence_matrix = matrix(ZZ, self.nrays(),
@@ -2770,6 +2775,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 if normal*ray == 0:
                     incidence_matrix[Vindex, Hindex] = 1
 
+        incidence_matrix.set_immutable()
         return incidence_matrix
 
     def intersection(self, other):

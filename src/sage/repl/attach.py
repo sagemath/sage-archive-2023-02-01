@@ -6,7 +6,7 @@ TESTS::
     sage: attach('http://wstein.org/loadtest.py')
     Traceback (most recent call last):
     ...
-    NotImplementedError: you can't attach a URL
+    NotImplementedError: you cannot attach a URL
 
 Check that no file clutter is produced::
 

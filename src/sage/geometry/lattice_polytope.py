@@ -2361,6 +2361,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     # Dictionaries of normal forms
     _rp_dict = [None] * 4
 
+    @cached_method
     def incidence_matrix(self):
         """
         Return the incidence matrix.
@@ -2388,6 +2389,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [3, 4, 5, 6]
             sage: o.facets()[3].ambient_vertex_indices()
             (3, 4, 5, 6)
+
+        TESTS::
+
+            sage: o.incidence_matrix().is_immutable()
+            True
         """
         incidence_matrix = matrix(ZZ, self.nvertices(),
                                   self.nfacets(), 0)
@@ -2398,6 +2404,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 if normal*vertex + facet_constant == 0:
                     incidence_matrix[Vindex, Hindex] = 1
 
+        incidence_matrix.set_immutable()
         return incidence_matrix
 
     @cached_method

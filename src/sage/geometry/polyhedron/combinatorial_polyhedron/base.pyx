@@ -1174,7 +1174,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             Graph on 10 vertices
         """
         face_iter = self.face_iter(self.dimension() - 1, dual=False)
-        V = list(facet.Hrepr(names=names) for facet in face_iter)
+        if names:
+            V = list(facet.ambient_Hrepresentation() for facet in face_iter)
+        else:
+            V = list(facet.ambient_V_indices() for facet in face_iter)
         E = self.ridges(names=names, add_equalities=True)
         if not names:
             # If names is false, the ridges are given as tuple of indices,

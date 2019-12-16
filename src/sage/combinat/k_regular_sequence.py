@@ -1038,9 +1038,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(0) == 0, f(1) == 1, f(2) == 1], f, n)
             2-regular sequence 0, 1, 1, 2, 1, 3, 2, 3, 1, 4, ...
 
+        Number of Odd Entries in Pascal's Triangle::
+
+            sage: Seq2.recursions([
+            ....:     f(2*n) == 3*f(n), f(2*n + 1) == 2*f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1, f(2) == 3, f(3) == 5], f, n)
+            2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
+
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: Seq2 = kRegularSequenceSpace(2, QQ)
             sage: Seq2.recursions([
             ....:     f(8*n) == 2*f(4*n), f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1059,6 +1065,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         Number of Non-Zero Elements in the a Generalized Pascal's Triangle [TODO: reference]::
 
+            sage: Seq2 = kRegularSequenceSpace(2, QQ)
             sage: Seq2.recursions([
             ....:     f(4*n) == 5/3*f(2*n) - 1/3*f(2*n + 1),
             ....:     f(4*n + 1) == 4/3*f(2*n) + 1/3*f(2*n + 1),

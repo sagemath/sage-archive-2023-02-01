@@ -134,8 +134,8 @@ cdef class PolyhedronFaceLattice:
             self.dual = False
         cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
         self.face_length = face_iter.face_length
-        self._V = C.V()
-        self._H = C.H()
+        self._Vrep = C.Vrep()
+        self._facet_names = C.facet_names()
         self._equalities = C.equalities()
 
         # copy f_vector for later use
@@ -437,12 +437,12 @@ cdef class PolyhedronFaceLattice:
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(dimension=1)
             sage: face = next(it)
-            sage: face_via_all_faces_from_iterator(it, C).Vrepr()
+            sage: face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation()
             (A vertex at (3, 1, 4, 2), A vertex at (3, 2, 4, 1))
-            sage: face.Vrepr()
+            sage: face.ambient_Vrepresentation()
             (A vertex at (3, 1, 4, 2), A vertex at (3, 2, 4, 1))
-            sage: all(face_via_all_faces_from_iterator(it, C).Vrepr() ==
-            ....:     face.Vrepr() for face in it)
+            sage: all(face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation() ==
+            ....:     face.ambient_Vrepresentation() for face in it)
             True
 
             sage: P = polytopes.twenty_four_cell()
@@ -450,12 +450,12 @@ cdef class PolyhedronFaceLattice:
             sage: it = C.face_iter()
             sage: face = next(it)
             sage: while (face.dimension() == 3): face = next(it)
-            sage: face_via_all_faces_from_iterator(it, C).Vrepr()
+            sage: face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation()
             (A vertex at (-1/2, 1/2, -1/2, -1/2),
              A vertex at (-1/2, 1/2, 1/2, -1/2),
              A vertex at (0, 0, 0, -1))
-            sage: all(face_via_all_faces_from_iterator(it, C).Vrepr(False) ==
-            ....:     face.Vrepr(False) for face in it)
+            sage: all(face_via_all_faces_from_iterator(it, C).ambient_V_indices() ==
+            ....:     face.ambient_V_indices() for face in it)
             True
         """
         cdef size_t length

@@ -349,10 +349,10 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if Vrepr:
             # store vertices names
-            self._V = tuple(Vrepr)
-            Vinv = {v: i for i,v in enumerate(self._V)}
+            self._Vrep = tuple(Vrepr)
+            Vinv = {v: i for i,v in enumerate(self._Vrep)}
         else:
-            self._V = None
+            self._Vrep = None
             Vinv = None
 
         if facets:
@@ -367,11 +367,11 @@ cdef class CombinatorialPolyhedron(SageObject):
                     # will be detected.
                     if not facets[i].is_inequality():
                         test[i] = 0
-            self._H = tuple(facets[i] for i in range(len(facets)) if test[i])
+            self._facet_names = tuple(facets[i] for i in range(len(facets)) if test[i])
 
             self._equalities = tuple(facets[i] for i in range(len(facets)) if not test[i])
         else:
-            self._H = None
+            self._facet_names = None
 
         if data == [] or data == ():
             # Handling the empty polyhedron.
@@ -419,22 +419,22 @@ cdef class CombinatorialPolyhedron(SageObject):
             if is_iterator(data):
                 data = tuple(data)
 
-            if self._V is None:
+            if self._Vrep is None:
                 # Get the names of the Vrepr.
                 Vrepr = sorted(set.union(*map(set, data)))
                 n_Vrepresentation = len(Vrepr)
                 if Vrepr != range(len(Vrepr)):
-                    self._V = tuple(Vrepr)
-                    Vinv = {v: i for i,v in enumerate(self._V)}
+                    self._Vrep = tuple(Vrepr)
+                    Vinv = {v: i for i,v in enumerate(self._Vrep)}
             else:
                 # Assuming the user gave as correct names for the vertices
                 # and labeled them instead by `0,...,n`.
-                n_Vrepresentation = len(self._V)
+                n_Vrepresentation = len(self._Vrep)
 
             self._n_Vrepresentation = n_Vrepresentation
 
             # Relabel the Vrepr to be `0,...,n`.
-            if self._V is not None:
+            if self._Vrep is not None:
                 def f(v): return Vinv[v]
             else:
                 def f(v): return int(v)
@@ -508,8 +508,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C1 = loads(C.dumps())
             sage: it = C.face_iter()
             sage: it1 = C1.face_iter()
-            sage: tup = tuple((face.Vrepr(), face.Hrepr()) for face in it)
-            sage: tup1 = tuple((face.Vrepr(), face.Hrepr()) for face in it1)
+            sage: tup = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it)
+            sage: tup1 = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it1)
             sage: tup == tup1
             True
 
@@ -518,8 +518,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C1 = loads(C.dumps())
             sage: it = C.face_iter()
             sage: it1 = C1.face_iter()
-            sage: tup = tuple((face.Vrepr(), face.Hrepr()) for face in it)
-            sage: tup1 = tuple((face.Vrepr(), face.Hrepr()) for face in it1)
+            sage: tup = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it)
+            sage: tup1 = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it1)
             sage: tup == tup1
             True
 
@@ -528,8 +528,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C1 = loads(C.dumps())
             sage: it = C.face_iter()
             sage: it1 = C1.face_iter()
-            sage: tup = tuple((face.Vrepr(), face.Hrepr()) for face in it)
-            sage: tup1 = tuple((face.Vrepr(), face.Hrepr()) for face in it1)
+            sage: tup = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it)
+            sage: tup1 = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it1)
             sage: tup == tup1
             True
 
@@ -539,8 +539,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C1 = loads(C.dumps())
             sage: it = C.face_iter()
             sage: it1 = C1.face_iter()
-            sage: tup = tuple((face.Vrepr(), face.Hrepr()) for face in it)
-            sage: tup1 = tuple((face.Vrepr(), face.Hrepr()) for face in it1)
+            sage: tup = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it)
+            sage: tup1 = tuple((face.ambient_Vrepresentation(), face.ambient_Hrepresentation()) for face in it1)
             sage: tup == tup1
             True
         """
@@ -568,8 +568,8 @@ cdef class CombinatorialPolyhedron(SageObject):
              A vertex at (0, 0, 0),
              A ray in the direction (0, 1, 0))
         """
-        if self.V() is not None:
-            return self.V()
+        if self.Vrep() is not None:
+            return self.Vrep()
         else:
             return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()))
 
@@ -590,8 +590,8 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (0, 1, 1) x - 3 >= 0,
              An inequality (0, 0, 1) x - 1 >= 0)
         """
-        if self.H() is not None:
-            return self.equalities() + self.H()
+        if self.facet_names() is not None:
+            return self.equalities() + self.facet_names()
         else:
             return tuple(smallInteger(i) for i in range(self.n_Hrepresentation()))
 
@@ -724,8 +724,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if unlikely(self.dimension() == 0):
             # Handling the case of a trivial polyhedron of dimension `0`.
-            if names and self.V():
-                return (self.V()[0],)
+            if names and self.Vrep():
+                return (self.Vrep()[0],)
             else:
                 return (smallInteger(0),)
         if not self.is_bounded():
@@ -739,8 +739,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             except StopIteration:
                 # The Polyhedron has no vertex.
                 return ()
-        if names and self.V():
-            return tuple(self.V()[i]     for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
+        if names and self.Vrep():
+            return tuple(self.Vrep()[i]     for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
         else:
             return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
 
@@ -844,8 +844,11 @@ cdef class CombinatorialPolyhedron(SageObject):
         face_iter = self.face_iter(self.dimension() - 1, dual=False)
         facets = [None] * self.n_facets()
         for face in face_iter:
-            index = face.Hrepr(names=False)[0]
-            verts = face.Vrepr(names=names)
+            index = face.ambient_H_indices()[0]
+            if names:
+                verts = face.ambient_Vrepresentation()
+            else:
+                verts = face.ambient_V_indices()
             facets[index] = verts
 
         return tuple(facets)
@@ -930,8 +933,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         # with each array containing ``len_edge_list`` of edges.
 
         # Mapping the indices of the Vrepr to the names, if requested.
-        if self.V() is not None and names is True:
-            def f(size_t i): return self.V()[i]
+        if self.Vrep() is not None and names is True:
+            def f(size_t i): return self.Vrep()[i]
         else:
             def f(size_t i): return smallInteger(i)
 
@@ -1076,7 +1079,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.ridges()
             ()
             sage: it = C.face_iter(0)
-            sage: for face in it: face.Hrepr()
+            sage: for face in it: face.ambient_Hrepresentation()
             (An inequality (1, 0) x + 0 >= 0, An equation (0, 1) x + 0 == 0)
 
         TESTS:
@@ -1113,8 +1116,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         # with each array containing ``len_ridge_list`` of ridges.
 
         # Mapping the indices of the Vepr to the names, if requested.
-        if self.H() is not None and names is True:
-            def f(size_t i): return self.H()[i]
+        if self.facet_names() is not None and names is True:
+            def f(size_t i): return self.facet_names()[i]
         else:
             def f(size_t i): return smallInteger(i)
 
@@ -1266,34 +1269,34 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: it = C.face_iter(dimension=2)
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
-            sage: face.Vrepr()
+            sage: face.ambient_Vrepresentation()
             (A vertex at (4, 1, 5, 2, 3),
              A vertex at (4, 2, 5, 1, 3),
              A vertex at (5, 1, 4, 2, 3),
              A vertex at (5, 2, 4, 1, 3))
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
-            sage: face.Vrepr()
+            sage: face.ambient_Vrepresentation()
             (A vertex at (4, 1, 5, 2, 3),
              A vertex at (4, 1, 5, 3, 2),
              A vertex at (5, 1, 4, 2, 3),
              A vertex at (5, 1, 4, 3, 2))
-            sage: face.Hrepr()
+            sage: face.ambient_Hrepresentation()
             (An inequality (0, 1, 0, 0, 0) x - 1 >= 0,
              An inequality (0, 1, 0, 1, 1) x - 6 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
-            sage: face.Hrepr(names=False)
+            sage: face.ambient_H_indices()
             (25, 29)
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
-            sage: face.Hrepr(names=False)
+            sage: face.ambient_H_indices()
             (12, 29)
-            sage: face.Vrepr(names=False)
+            sage: face.ambient_V_indices()
             (76, 77, 82, 83, 88, 89)
 
             sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
             sage: it = C.face_iter()
-            sage: for face in it: face.Vrepr()
+            sage: for face in it: face.ambient_Vrepresentation()
             (1, 2, 3)
             (0, 2, 3)
             (0, 1, 3)
@@ -1312,7 +1315,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron(rays=[[1,0],[0,1]], vertices=[[1,0],[0,1]])
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(1)
-            sage: for face in it: face.Vrepr()
+            sage: for face in it: face.ambient_Vrepresentation()
             (A vertex at (0, 1), A vertex at (1, 0))
             (A ray in the direction (1, 0), A vertex at (1, 0))
             (A ray in the direction (0, 1), A vertex at (0, 1))
@@ -1525,7 +1528,7 @@ cdef class CombinatorialPolyhedron(SageObject):
               A 1-dimensional face of a 2-dimensional combinatorial polyhedron,
               A 2-dimensional face of a 2-dimensional combinatorial polyhedron)
 
-            sage: def f(i): return C.face_by_face_lattice_index(i).Vrepr(False)
+            sage: def f(i): return C.face_by_face_lattice_index(i).ambient_V_indices()
             sage: G = F.relabel(f)
             sage: G._elements
             ((), (0,), (0, 1), (0, 2), (0, 1, 2))
@@ -1537,19 +1540,19 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Let ``_all_faces`` determine Vrepresentation.
         return self._all_faces.get_face(dim, newindex)
 
-    cdef tuple V(self):
+    cdef tuple Vrep(self):
         r"""
         Return the names of the Vrepresentation, if they exist. Else return ``None``.
         """
-        return self._V
+        return self._Vrep
 
-    cdef tuple H(self):
+    cdef tuple facet_names(self):
         r"""
         Return the names Hrepresentatives, which are facets.
 
         If not given, return ``None``.
         """
-        return self._H
+        return self._facet_names
 
     cdef tuple equalities(self):
         r"""
@@ -2082,30 +2085,30 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: tup = tuple((face.Vrepr(),face.Hrepr()) for face in it)
+            sage: tup = tuple((face.ambient_Vrepresentation(),face.ambient_Hrepresentation()) for face in it)
             sage: rg = range(1,sum(C.f_vector()) - 1)
-            sage: tup2 = tuple((C.face_by_face_lattice_index(i).Vrepr(),
-            ....:               C.face_by_face_lattice_index(i).Hrepr()) for i in rg)
+            sage: tup2 = tuple((C.face_by_face_lattice_index(i).ambient_Vrepresentation(),
+            ....:               C.face_by_face_lattice_index(i).ambient_Hrepresentation()) for i in rg)
             sage: sorted(tup) == sorted(tup2)
             True
 
             sage: P = polytopes.cyclic_polytope(4,10)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: tup = tuple((face.Vrepr(),face.Hrepr()) for face in it)
+            sage: tup = tuple((face.ambient_Vrepresentation(),face.ambient_Hrepresentation()) for face in it)
             sage: rg = range(1,sum(C.f_vector()) - 1)
-            sage: tup2 = tuple((C.face_by_face_lattice_index(i).Vrepr(),
-            ....:               C.face_by_face_lattice_index(i).Hrepr()) for i in rg)
+            sage: tup2 = tuple((C.face_by_face_lattice_index(i).ambient_Vrepresentation(),
+            ....:               C.face_by_face_lattice_index(i).ambient_Hrepresentation()) for i in rg)
             sage: sorted(tup) == sorted(tup2)
             True
 
             sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0], [0,-1,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: tup = tuple((face.Vrepr(),face.Hrepr()) for face in it)
+            sage: tup = tuple((face.ambient_Vrepresentation(),face.ambient_Hrepresentation()) for face in it)
             sage: rg = range(1,sum(C.f_vector()) - 1)
-            sage: tup2 = tuple((C.face_by_face_lattice_index(i).Vrepr(),
-            ....:               C.face_by_face_lattice_index(i).Hrepr()) for i in rg)
+            sage: tup2 = tuple((C.face_by_face_lattice_index(i).ambient_Vrepresentation(),
+            ....:               C.face_by_face_lattice_index(i).ambient_Hrepresentation()) for i in rg)
             sage: sorted(tup) == sorted(tup2)
             True
 
@@ -2113,10 +2116,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             ....:                      [0,-1,0], [0,1,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: tup = tuple((face.Vrepr(),face.Hrepr()) for face in it)
+            sage: tup = tuple((face.ambient_Vrepresentation(),face.ambient_Hrepresentation()) for face in it)
             sage: rg = range(1,sum(C.f_vector()) - 1)
-            sage: tup2 = tuple((C.face_by_face_lattice_index(i).Vrepr(),
-            ....:               C.face_by_face_lattice_index(i).Hrepr()) for i in rg)
+            sage: tup2 = tuple((C.face_by_face_lattice_index(i).ambient_Vrepresentation(),
+            ....:               C.face_by_face_lattice_index(i).ambient_Hrepresentation()) for i in rg)
             sage: sorted(tup) == sorted(tup2)
             True
         """

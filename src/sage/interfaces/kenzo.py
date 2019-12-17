@@ -639,7 +639,7 @@ class KenzoChainComplex(KenzoObject):
             sage: l2.orgn()                                               # optional - kenzo
             '(LOOP-SPACE [K... Simplicial-Set])'
             sage: A = l2.cartesian_product(s2)                            # optional - kenzo
-            sage: A.orgn()
+            sage: A.orgn()                                                # optional - kenzo
             '(CRTS-PRDC [K... Simplicial-Group] [K... Simplicial-Set])'
         """
         return str(orgn_aux1(self._kenzo))

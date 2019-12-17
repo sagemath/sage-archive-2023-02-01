@@ -145,14 +145,15 @@ def is_FreeModuleElement(x):
     """
     return isinstance(x, FreeModuleElement)
 
-def vector(arg0, arg1=None, arg2=None, sparse=None):
+def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     r"""
     Return a vector or free module element with specified entries.
 
     CALL FORMATS:
 
     This constructor can be called in several different ways.
-    In each case, ``sparse=True`` or ``sparse=False`` can be
+    In each case, ``sparse=True`` or ``sparse=False`` as well
+    as ``immutable=True`` or ``immutable=False`` can be
     supplied as an option.  ``free_module_element()`` is an
     alias for ``vector()``.
 
@@ -179,6 +180,9 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
       entries in the vector or free module element
 
     - ``sparse`` -- boolean, whether the result should be a sparse
+      vector
+
+    - ``immutable`` -- boolean, whether the result should be an immutable
       vector
 
     In call format 4, an error is raised if the ``degree`` does not match
@@ -428,6 +432,13 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         ()
         sage: x.parent()
         Ambient free module of rank 0 over the principal ideal domain Integer Ring
+
+    The ``immutable`` switch allows to create an immutable vector. ::
+
+        sage: v = vector(QQ, {0:1/2, 4:-6, 7:0}, immutable=True); v
+        (1/2, 0, 0, 0, -6, 0, 0, 0)
+        sage: v.is_immutable()
+        True
     """
     # We first efficiently handle the important special case of the zero vector
     # over a ring. See trac 11657.
@@ -515,7 +526,12 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         M = FreeModule(R, len(v), sparse=True)
     else:
         M = R ** len(v)
-    return M(v)
+
+    w = M(v)
+    if immutable:
+        w.set_immutable()
+
+    return w
 
 
 free_module_element = vector

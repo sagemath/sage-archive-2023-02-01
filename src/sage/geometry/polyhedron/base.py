@@ -7769,6 +7769,11 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: unknown output 'foobar', valid values are ('abstract', 'permutation', 'matrix', 'matrixlist')
+
+        Check that :trac:`28828` is fixed::
+
+            sage: P.restricted_automorphism_group(output="matrixlist")[0].is_immutable()
+            True
         """
         # The algorithm works as follows:
         #
@@ -7882,6 +7887,9 @@ class Polyhedron_base(Element):
         for perm in permgroup:
             A = sum(V[perm(i)].column() * Vplus[i].row() for i in range(len(V)))
             matrices.append(A + W)
+
+        for mat in matrices:
+            mat.set_immutable()
 
         if output == "matrixlist":
             return tuple(matrices)

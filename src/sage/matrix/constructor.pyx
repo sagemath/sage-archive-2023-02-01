@@ -632,12 +632,11 @@ def matrix(*args, **kwds):
     - Jeroen Demeyer (2018-02-20): completely rewritten using
       :class:`MatrixArgs`, see :trac:`24742`
     """
-    if kwds.pop('immutable', False):
-        M = MatrixArgs(*args, **kwds).matrix()
+    immutable = kwds.pop('immutable', False)
+    M = MatrixArgs(*args, **kwds).matrix()
+    if immutable:
         M.set_immutable()
-        return M
-
-    return MatrixArgs(*args, **kwds).matrix()
+    return M
 
 Matrix = matrix
 

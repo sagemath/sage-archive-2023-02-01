@@ -133,8 +133,10 @@ class TateAlgebraIdeal(Ideal_generic):
             return _groebner_basis_buchberger(self, prec, False)
         elif algorithm == "buchberger-integral":
             return _groebner_basis_buchberger(self, prec, True)
-        elif algorithm == "F5":
-            return _groebner_basis_F5(self, prec, verbose=verbose)
+        elif algorithm == "F5pot":
+            return _groebner_basis_F5_pot(self, prec, verbose=verbose)
+        elif algorithm == "F5vopot":
+            return _groebner_basis_F5_vopot_v1(self, prec, verbose=verbose)
         # elif algorithm == "F5_vopot":
         #     return _groebner_basis_F5_vopot(self, prec, verbose=verbose)
         else:
@@ -559,12 +561,22 @@ def Jpair(p1, p2):
     elif su2 > su1:
         return su2, t2*v2
 
-def regular_reduce(sgb, s, v, verbose):
+def regular_reduce(sgb, s, v, verbose, stop_with_val=False):
     res = v.parent()(0, v.precision_absolute())
     #sgb.append((None, v << 1))
     count = 0
     val = v.valuation()
-    while v.valuation() == val:
+
+    """
+    | stop | 1 | 0 | 1 | 0 | 1 | 0 | 1 | 0 |
+    | val= | 1 | 1 | 0 | 0 | 1 | 1 | 0 | 0 |
+    | v!=0 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+    |------+---+---+---+---+---+---+---+---|
+    | res  | 1 | 1 | 0 | 1 | X | X | 0 | 0 |
+    | GOAL | 1 | 1 | 0 | 1 | X | X | 0 | 0 |
+    """
+    
+    while (not stop_with_val or v.valuation() == val) and v != 0:
         sv = v.leading_term()
         # We first check for top reduction
         for S,V in sgb:
@@ -588,12 +600,12 @@ def regular_reduce(sgb, s, v, verbose):
     #del sgb[-1]
     return v + res
 
-def reduce(gb, v, verbose):
+def reduce(gb, v, verbose, stop_with_val=False):
     res = v.parent()(0, v.precision_absolute())
     gb.append(v << 1)
     count = 0
     val = v.valuation()
-    while v.valuation() == val:
+    while (not stop_with_val or v.valuation() == val) and v != 0:
         sv = v.leading_term()
         # We first check for top reduction
         for V in gb:
@@ -624,7 +636,142 @@ def print_pair(p, verbose):
         s, v = p
         return "(sign = %s, series = %s + ...)" % (s, v.leading_term())
 
-def _groebner_basis_F5(I, prec, verbose):
+def _groebner_basis_F5_pot(I, prec, verbose):
+    cdef TateAlgebraElement g
+    cdef TateAlgebraTerm ti, tj
+
+    term_one = I.ring().monoid_of_terms().one()
+    gb = [ ]
+
+    for f in I.gens():
+        if verbose > 0:
+            print("---")
+            print("new generator: %s" % f)
+        # Initial strong Grobner basis:
+        # we add signatures
+        sgb = [ (None, g) for g in gb if g != 0 ]
+        # We compute initial J-pairs
+        l = len(sgb)
+        p = (term_one, f.add_bigoh(prec))
+        Jpairs = [ ]
+        for P in sgb:
+            J = Jpair(p, P)
+            if J is not None:
+                heappush(Jpairs, J)
+        sgb.append(p)
+
+        # For the syzygy criterium
+        gb0 = [ g.leading_term() for g in gb ]
+
+        if verbose > 1:
+            print("%s initial J-pairs" % len(Jpairs))
+        if verbose > 2:
+            for s,v in Jpairs:
+                print("| sign = %s; series = %s" % (s,v))
+
+        while Jpairs:
+            s, v = heappop(Jpairs)
+            sv = v.leading_term()
+
+            if verbose == 2:
+                print("pop one J-pair; %s remaining J-pairs" % len(Jpairs))
+            if verbose > 2:
+                print("current J-pair: " + print_pair((s,v), verbose))
+                print("%s remaining J-pairs" % len(Jpairs))
+
+            # The syzygy criterium
+            syzygy = None
+            for S in gb0:
+                if S.divides(s):
+                    syzygy = S
+                    break
+            if syzygy is not None:
+                if verbose > 1:
+                    print("| skip: sygyzy criterium; signature = %s" % syzygy)
+                continue
+
+            # We check if (s,v) is covered by 
+            # the current strong Grobner basis
+            cover = None
+            for S, V in sgb:
+                if S is not None and S.divides(s):
+                    sV = V.leading_term()
+                    if (s // S)*sV < sv:
+                        cover = (S,V)
+                        break
+            if cover is not None:
+                if verbose > 1:
+                    print("| skip: cover by " + print_pair(cover, verbose))
+                continue
+
+            # We perform regular top-reduction
+            v = regular_reduce(sgb, s, v, verbose)
+
+            if v == 0:
+                # We have a new element in (I0:f) whose signature
+                # could be useful to strengthen the syzygy criterium
+                #print ("| add signature for syzygy criterium: %s" % s)
+                gb0.append(s)
+            else:
+                # We update the current strong Grobner basis
+                # and the J-pairs accordingly
+                p = (s,v)
+                if verbose > 1:
+                    print("| new element is SGB: " + print_pair(p, verbose))
+                count = 0
+                for P in sgb:
+                    J = Jpair(p, P)
+                    if J is not None:
+                        count += 1
+                        if verbose > 2:
+                            print("| add J-pair: " + print_pair(J, verbose))
+                        heappush(Jpairs, J)
+                if verbose > 1:
+                    print("| add %s J-pairs" % count)
+                sgb.append(p)
+
+        # We forget signatures
+        gb = [ v.monic() for (s,v) in sgb ]
+        if verbose > 1:
+            print("%s elements in GB before minimization" % len(gb))
+        if verbose > 3:
+            for g in gb:
+                print("| %s" % g)
+        # we minimize the Grobner basis
+        i = 0
+        while i < len(gb):
+            ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
+            for j in range(len(gb)):
+                tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
+                if j != i and tj._divides_c(ti, False):
+                    del gb[i]
+                    break
+            else:
+                i += 1
+        if verbose > 0:
+             if verbose > 1:
+                 s = " after minimization"
+             else:
+                 s = ""
+             print("%s elements in GB%s" % (len(gb), s))
+        if verbose > 3:
+            for g in gb:
+                print("| %s" % g)
+        # and reduce it
+        for i in range(len(gb)-1, -1, -1):
+            g = gb[i]
+            gb[i] = g._positive_lshift_c(1)
+            _, gb[i] = g._quo_rem_c(gb, False, True, True)
+        if verbose > 1:
+            print("grobner basis reduced")
+        if verbose > 0:
+            for g in gb:
+                print("| %s" % g)
+
+    return gb
+
+    
+def _groebner_basis_F5_vopot_v1(I, prec, verbose):
     cdef TateAlgebraElement g
     cdef TateAlgebraTerm ti, tj
 
@@ -646,7 +793,7 @@ def _groebner_basis_F5(I, prec, verbose):
             print("---")
             print("new generator: %s" % f)
 
-        f = reduce(gb, f, verbose)
+        f = reduce(gb, f, verbose, stop_with_val=True)
         if verbose > 1:
             print("generator reduced")
 
@@ -722,10 +869,14 @@ def _groebner_basis_F5(I, prec, verbose):
 
             # if v == 0:
             if v.valuation() > val:
+                # (If v == 0)
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
                 if verbose > 1:
                     print ("| add signature for syzygy criterium: %s" % s)
+                    
+                # TODO: Do we have a syzygy criterion in this case? i.e., do we
+                # want to throw away elements which raise the valuation?
                 gb0.append(s)
                 if v != 0:
                     heappush(gens, (v.valuation(), v))

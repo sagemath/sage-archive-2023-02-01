@@ -237,7 +237,7 @@ def matrix(*args, **kwds):
         sage: M[0] = [9,9,9]
         Traceback (most recent call last)
         ...
-        sage: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+        ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
     TESTS:
 

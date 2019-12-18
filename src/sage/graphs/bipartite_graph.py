@@ -574,7 +574,7 @@ class BipartiteGraph(Graph):
     def add_vertices(self, vertices, left=False, right=False):
         """
         Add vertices to the bipartite graph from an iterable container of
-        vertices. 
+        vertices.
 
         Vertices that already exist in the graph will not be added again.
 
@@ -809,6 +809,10 @@ class BipartiteGraph(Graph):
             sage: bg.add_vertices([0, 1, 2], left=[True, False, True])
             sage: bg.add_edges([(0, 1), (2, 1)])
             sage: bg.add_edge(0, 2)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: edge vertices must lie in different partitions
+            sage: bg.add_edges([[0, 2]])
             Traceback (most recent call last):
             ...
             RuntimeError: edge vertices must lie in different partitions

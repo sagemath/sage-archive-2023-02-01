@@ -10,8 +10,9 @@ used to limit the Newton polygons of the resulting polynomials, or to lift
 a polynomial specified by a congruence to a Weil polynomial.
 
 For large jobs, one can set parallel=True to use OpenMP (if support was
-enabled at compile time). Due to increased overhead, this is not recommended 
-for smaller problem sizes.
+enabled at compile time). Due to increased overhead, this is not recommended
+for smaller problem sizes.  To enable support, ensure that your compiler supports
+OpenMP and remove the appropriate # characters in the distutils commands below.
 
 AUTHOR:
   -- Kiran S. Kedlaya (2007-05-28): initial version
@@ -245,7 +246,7 @@ class WeilPolynomials_iter():
         sage: next(it)
         3*x^10 + x^9 + x^8 + 6*x^7 - 2*x^6 + 2*x^4 - 6*x^3 - x^2 - x - 3
     """
-    def __init__(self, d, q, sign, lead, node_limit, parallel, squarefree):
+    def __init__(self, d, q, sign, lead, node_limit, parallel, squarefree, polring=None):
         r"""
         Create an iterator for Weil polynomials.
 
@@ -257,7 +258,9 @@ class WeilPolynomials_iter():
             sage: next(it)
             3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
         """
-        self.pol = PolynomialRing(QQ, name='x')
+        if polring is None:
+            polring = PolynomialRing(QQ, name='x')
+        self.pol = polring
         x = self.pol.gen()
         d = Integer(d)
         if sign != 1 and sign != -1:
@@ -387,12 +390,47 @@ class WeilPolynomials():
     Iterable for Weil polynomials, i.e., integer polynomials with all complex
     roots having a particular absolute value.
 
+    Such polynomials `f` satisfy a functional equation
+
+    .. MATH::
+
+        T^d f(q/T) = s q^{d/2} f(T)
+
+    where `d` is the degree of `f`, `s` is a sign and `q^{1/2}` is the absolute value
+    of the roots of `f`.
+
     If parallel is False, then the order of values is descending lexicographical
     (i.e., polynomials with the largest coefficients of largest degrees sort first).
 
     If parallel is True, then the order of values is not specified. (Beware that
     due to increased overhead, parallel execution may not yield a significant
     speedup for small problem sizes.)
+
+    INPUT:
+
+    - ``d`` -- integer, the degree of the polynomials
+
+    - ``q`` -- integer, the square of the complex absolute value of the roots
+
+    - ``sign`` -- integer (default `1`), the sign `s` of the functional equation
+
+    - ``lead`` -- integer, list of integers or list of pairs of integers (default `1`),
+        constraints on the leading few coefficients of the generated polynomials.
+        If pairs `(a, b)` of integers are given, they are treated as a constraint
+        of the form `\equiv a \pmod{b}`.
+
+    - ``node_limit`` -- integer (default ``None``), an upper bound on the number of
+        active nodes during the search (will raise a ``RuntimeError`` if exceeded)
+
+    - ``parallel`` -- boolean (default ``False``), whether to use multiple processes
+        in searching for Weil polynomials.  If set, then this file must have been
+        compiled with OpenMP support (see instructions at the top of
+        :mod:`sage.rings.polynomial.weil.weil_polynomials`)
+
+    - ``squarefree`` -- boolean (default ``False``), whether to only include squarefree
+        polynomials in the results
+
+    - ``polring`` -- optional, a polynomial ring in which to construct the results
 
     EXAMPLES:
 
@@ -449,7 +487,7 @@ class WeilPolynomials():
         sage: l2 == l3
         True
     """
-    def __init__(self, d, q, sign=1, lead=1, node_limit=None, parallel=False, squarefree=False):
+    def __init__(self, d, q, sign=1, lead=1, node_limit=None, parallel=False, squarefree=False, polring=None):
         r"""
         Initialize this iterable.
 
@@ -464,7 +502,7 @@ class WeilPolynomials():
         """
         if parallel and not has_openmp():
             raise RuntimeError("Parallel execution not supported")
-        self.data = (d, q, sign, lead, node_limit, parallel, squarefree)
+        self.data = (d, q, sign, lead, node_limit, parallel, squarefree, polring)
 
     def __iter__(self):
         r"""

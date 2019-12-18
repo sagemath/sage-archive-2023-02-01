@@ -449,15 +449,24 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
             M = FreeModule(arg0, arg1, sparse=True)
         else:
             M = arg0 ** arg1
-        return M.zero_vector()
+        v = M.zero_vector()
+        if immutable:
+            v.set_immutable()
+        return v
 
     # WARNING TO FUTURE OPTIMIZERS: The following two hasattr's take
     # quite a significant amount of time.
     if hasattr(arg0, '_vector_'):
-        return arg0._vector_(arg1)
+        v = arg0._vector_(arg1)
+        if immutable:
+            v.set_immutable()
+        return v
 
     if hasattr(arg1, '_vector_'):
-        return arg1._vector_(arg0)
+        v = arg1._vector_(arg0)
+        if immutable:
+            v.set_immutable()
+        return v
 
     # consider a possible degree specified in second argument
     degree = None
@@ -501,11 +510,17 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         if (R is None or R is RDF) and v.dtype.kind == 'f':
             V = VectorSpace(RDF, v.shape[0])
             from .vector_real_double_dense import Vector_real_double_dense
-            return Vector_real_double_dense(V, v)
+            v = Vector_real_double_dense(V, v)
+            if immutable:
+                v.set_immutable()
+            return v
         if (R is None or R is CDF) and v.dtype.kind == 'c':
             V = VectorSpace(CDF, v.shape[0])
             from .vector_complex_double_dense import Vector_complex_double_dense
-            return Vector_complex_double_dense(V, v)
+            v = Vector_complex_double_dense(V, v)
+            if immutable:
+                v.set_immutable()
+            return v
         # Use slower conversion via list
         v = list(v)
 
@@ -530,7 +545,6 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     w = M(v)
     if immutable:
         w.set_immutable()
-
     return w
 
 

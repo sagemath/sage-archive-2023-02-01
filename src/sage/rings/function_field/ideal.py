@@ -420,8 +420,8 @@ class FunctionFieldIdeal(Element):
             (Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1) of Maximal infinite order
             of Function field in y defined by y^3 + x^6 + x^4 + x^2)
 
-            sage: K.<x> = FunctionField(QQ); _.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: O = F.maximal_order()
             sage: I = O.ideal(y)
             sage: I == I.factor().prod()
@@ -1355,6 +1355,7 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
         Return the inverse fractional ideal of this ideal.
 
         EXAMPLES::
+
             sage: K.<x> = FunctionField(GF(7)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 - x^3 - 1)
             sage: O = L.maximal_order()
@@ -1366,7 +1367,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
             sage: ~I * I
             Ideal (1) of Maximal order of Function field in y defined by y^2 + 6*x^3 + 6
 
-            sage: K.<x> = FunctionField(GF(2)); _.<Y>=K[]
+        ::
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
@@ -1379,6 +1381,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
             sage: ~I * I
             Ideal (1) of Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
 
+        ::
+
             sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 - x^3 - 1)
             sage: O = L.maximal_order()
@@ -1390,7 +1394,9 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
             sage: ~I * I
             Ideal (1) of Maximal order of Function field in y defined by y^2 - x^3 - 1
 
-            sage: K.<x> = FunctionField(QQ); _.<Y>=K[]
+        ::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
@@ -1429,6 +1435,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
             True
             sage: I == I * I
             False
+
+        ::
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
@@ -1607,6 +1615,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
             [x^6 + x^3         0]
             [  x^3 + 1         1]
 
+        ::
+
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x^3 - 1)
             sage: O = L.maximal_order()
@@ -1630,6 +1640,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
             x^3
             sage: d in O
             True
+
+        ::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x^3 - 1)
@@ -2030,8 +2042,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2)); _.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: O = F.maximal_order()
             sage: I = O.ideal(y)
             sage: [f.prime_below() for f,_ in I.factor()]
@@ -2047,8 +2059,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
             [Ideal (x) of Maximal order of Rational function field in x over Finite Field of size 2,
              Ideal (x + 1) of Maximal order of Rational function field in x over Finite Field of size 2]
 
-            sage: K.<x> = FunctionField(QQ); _.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: O = F.maximal_order()
             sage: I = O.ideal(y)
             sage: [f.prime_below() for f,_ in I.factor()]
@@ -2087,6 +2099,7 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
                 if exp != 0:
                     factors.append((q,exp))
         return factors
+
 
 class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
     """

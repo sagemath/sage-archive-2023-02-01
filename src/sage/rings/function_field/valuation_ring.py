@@ -30,9 +30,9 @@ valuation ring, as shown in the following example::
     0
 
 The residue field at the place is defined as the quotient ring of the valuation
-ring modulo its unique maximal ideal.  The valuation ring's
-:meth:`residue_field()` method returns a field isomorphic to the residue
-field, along with lifting and evaluation homomorphisms::
+ring modulo its unique maximal ideal. The method :meth:`residue_field()` of the
+valuation ring returns an extension field of the constant base field, isomorphic
+to the residue field, along with lifting and evaluation homomorphisms::
 
     sage: k,phi,psi = R.residue_field()
     sage: k

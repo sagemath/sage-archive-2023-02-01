@@ -223,6 +223,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         """
         return "%s |--> %s"%(self.domain().variable_name(), self(self.domain().gen()))
 
+
 class FunctionFieldDerivation_separable(FunctionFieldDerivation):
     """
     Derivations of separable extensions.
@@ -333,6 +334,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             return ret + "\n" + base
         else:
             return ret
+
 
 class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
     r"""
@@ -445,6 +447,7 @@ class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
         ret = ["%s |--> %s"%(k.variable_name(), self(k.gen())) for k in self.domain()._intermediate_fields(self.domain().rational_function_field())]
         return "\n".join(ret)
 
+
 class FunctionFieldHigherDerivation(Map):
     """
     Base class of higher derivations on function fields.
@@ -542,9 +545,10 @@ def _pth_root_in_finite_field(e):
     """
     return e.pth_root()
 
-class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
+
+class RationalFunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
     """
-    Higher derivations of rational function fields.
+    Higher derivations of rational function fields over finite fields.
 
     INPUT:
 
@@ -946,9 +950,10 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
             coeffs.append(num / den)
         return self._field(coeffs)
 
-class FunctionFieldHigherDerivation_charzero(FunctionFieldHigherDerivation):
+
+class FunctionFieldHigherDerivation_char_zero(FunctionFieldHigherDerivation):
     """
-    Higher derivations of characteristic zero function fields.
+    Higher derivations of function fields of characteristic zero.
 
     INPUT:
 
@@ -973,7 +978,6 @@ class FunctionFieldHigherDerivation_charzero(FunctionFieldHigherDerivation):
         sage: h(h(h(e,1),1),1) == 3*2*h(e,3)
         True
     """
-
     def __init__(self, field):
         """
         Initialize.
@@ -1038,18 +1042,14 @@ class FunctionFieldHigherDerivation_charzero(FunctionFieldHigherDerivation):
         except KeyError:
             cache = self._cache[separating_element] = {}
 
-        # Step 1: zero-th derivative
         if i == 0:
             return f
 
-        # Step 1.5: use cached result if available
         try:
             return cache[f,i]
         except KeyError:
             pass
 
-        # Step 2:
-        # Step 3:
         s = i
         e = f
         while s > 0:
@@ -1060,6 +1060,7 @@ class FunctionFieldHigherDerivation_charzero(FunctionFieldHigherDerivation):
 
         cache[f,i] = der
         return der
+
 
 class FunctionFieldVectorSpaceIsomorphism(Morphism):
     r"""
@@ -1175,6 +1176,7 @@ class FunctionFieldVectorSpaceIsomorphism(Morphism):
         """
         return hash((self.domain(), self.codomain()))
 
+
 class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
     """
     Isomorphism from a vector space to a function field.
@@ -1277,6 +1279,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
             Function field in y defined by y^2 - x*y + 4*x^3
         """
         return self._K
+
 
 class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
     """
@@ -1411,6 +1414,7 @@ class FunctionFieldMorphism(RingHomomorphism):
             a += '\n' + self._base_morphism._repr_defn()
         return a
 
+
 class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
     """
     Morphism from a finite extension of a function field to a function field.
@@ -1464,6 +1468,7 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
             v = [self._base_morphism(a) for a in v]
         f = v[0].parent()['X'](v)
         return f(self._im_gen)
+
 
 class FunctionFieldMorphism_rational(FunctionFieldMorphism):
     """
@@ -1521,6 +1526,7 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
             den = R([f(c) for c in den.list()])
             return num.subs(self._im_gen) / den.subs(self._im_gen)
 
+
 class FunctionFieldConversionToConstantBaseField(Map):
     r"""
     Conversion map from the function field to its constant base field.
@@ -1572,6 +1578,7 @@ class FunctionFieldConversionToConstantBaseField(Map):
 
         """
         return x.parent()._to_constant_base_field(x)
+
 
 class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
     r"""
@@ -1633,6 +1640,7 @@ class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FractionFieldToFunctionField)(parent.domain(), parent.codomain())
 
+
 class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
     r"""
     Isomorphism from a fraction field of a polynomial ring to the isomorphic
@@ -1691,9 +1699,10 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
 
+
 class FunctionFieldCompletion(Map):
     """
-    Completions on global functionf fields.
+    Completions on function fields.
 
     INPUT:
 
@@ -1780,9 +1789,6 @@ class FunctionFieldCompletion(Map):
 
         Map.__init__(self, field, codomain)
 
-    """
-    Base class of completions on function fields.
-    """
     def _repr_type(self):
         """
         Return a string containing the type of the map.
@@ -1923,6 +1929,7 @@ class FunctionFieldCompletion(Map):
         """
         return self._precision
 
+
 class FunctionFieldRingMorphism(SetMorphism):
     """
     Ring homomorphism.
@@ -1949,6 +1956,7 @@ class FunctionFieldRingMorphism(SetMorphism):
         s += "\n  From: {}".format(self.domain())
         s += "\n  To:   {}".format(self.codomain())
         return s
+
 
 class FunctionFieldLinearMap(SetMorphism):
     """

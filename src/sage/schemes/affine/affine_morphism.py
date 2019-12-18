@@ -662,12 +662,12 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         H=0
         for i in range(self.domain().ambient_space().dimension_relative()):
             C = self[i].coefficients()
-            if C == []: #to deal with the case self[i]=0
+            if not C: #to deal with the case self[i]=0
                 h=0
             else:
                 h = max([c.global_height(prec) for c in C])
             H = max(H,h)
-        return(H)
+        return H
 
     def jacobian(self):
         r"""

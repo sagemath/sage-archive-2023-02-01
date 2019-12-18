@@ -182,8 +182,8 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     - ``sparse`` -- boolean, whether the result should be a sparse
       vector
 
-    - ``immutable`` -- boolean, whether the result should be an immutable
-      vector
+    - ``immutable`` -- boolean (default: ``False``); whether the result
+      should be an immutable vector
 
     In call format 4, an error is raised if the ``degree`` does not match
     the length of ``object`` so this call can provide some safeguards.

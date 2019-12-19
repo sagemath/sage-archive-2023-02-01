@@ -825,7 +825,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         nrows = nentries
 
     # provide a default ring for an empty list
-    if not entries and ring is None:
+    if not len(entries) and ring is None:
       ring = rings.ZZ
 
     # Convert entries to a list v over a common ring

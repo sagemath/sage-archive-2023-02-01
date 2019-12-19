@@ -492,6 +492,28 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
     if (fmpz_cmp(t0z, upper) < 0) fmpz_set(upper, t0z);
   }
 
+  void change_lower_strict(const fmpq_t val1, const fmpq_t val2) {
+    fmpq_div(t0q, val1, f);
+    if (val2==NULL) fmpq_floor(t0z, t0q);
+    else {
+      fmpq_div(t4q, val2, f);
+      fmpq_floor_quad(t0z, t0q, t4q, q);
+    }
+    fmpz_add_ui(t0z, t0z, 1);
+    if (fmpz_cmp(t0z, lower) > 0) fmpz_set(lower, t0z);
+  }
+
+  void change_upper_strict(const fmpq_t val1, const fmpq_t val2) {
+    fmpq_div(t0q, val1, f);
+    if (val2==NULL) fmpq_ceil(t0z, t0q);
+    else {
+      fmpq_div(t4q, val2, f);
+      fmpq_ceil_quad(t0z, t0q, t4q, q);
+    }
+    fmpz_sub_ui(t0z, t0z, 1);
+    if (fmpz_cmp(t0z, upper) < 0) fmpz_set(upper, t0z);
+  }
+
   /* Impose the condition that val1*val3 >= val2, assuming that val1 is a linear monic function
      of the k-th power sum and val2, val3 do not depend on this sum. */
   void impose_quadratic_condition(const fmpq_t val1, const fmpq_t val2, const fmpq_t val3) {
@@ -559,10 +581,19 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   _fmpz_poly_evaluate_fmpz(t0z, tpol2, (k+1) / 2, q);
   fmpq_mul_fmpz(t2q, t3q, t0z);
 
-  change_lower(t1q, t2q);
-  fmpq_neg(t2q, t2q);
-  if (k%2==1) change_upper(t1q, t2q);
-  else change_lower(t1q, t2q);
+  /* If checking for squarefree, shear endpoints off the range. */
+  if (st_data->force_squarefree) {
+    change_lower_strict(t1q, t2q);
+    fmpq_neg(t2q, t2q);
+    if (k%2==1) change_upper_strict(t1q, t2q);
+    else change_lower_strict(t1q, t2q);
+  }
+  else {
+    change_lower(t1q, t2q);
+    fmpq_neg(t2q, t2q);
+    if (k%2==1) change_upper(t1q, t2q);
+    else change_lower(t1q, t2q);
+  }
   if (fmpz_cmp(lower, upper) > 0) return(0);
 
   /* Update Hankel matrices. */

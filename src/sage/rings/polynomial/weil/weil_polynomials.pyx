@@ -489,6 +489,21 @@ class WeilPolynomials():
         sage: l = list(w)
         sage: l[0], l[-1]
         (x^4 + 4*x^3 + 8*x^2 + 8*x + 4, x^4 - 4*x^3 + 8*x^2 - 8*x + 4)
+        sage: sorted(list(set(i[3] for i in l)))
+        [-4, -2, 0, 2, 4]
+
+    Test restriction to squarefree polynomials::
+
+        sage: for (d,q,sign) in ((6,2,1),(6,4,-1),(5,4,-1)):
+        ....:     w1 = WeilPolynomials(d,q,sign=sign)
+        ....:     l1 = list(w1)
+        ....:     w2 = WeilPolynomials(d,q,sign=sign,squarefree=True)
+        ....:     l2 = list(w2)
+        ....:     l3 = [i for i in l1 if i.is_squarefree()]
+        ....:     print(l2 == l3)
+        True
+        True
+        True
     """
     def __init__(self, d, q, sign=1, lead=1, node_limit=None, parallel=False, squarefree=False, polring=None):
         r"""

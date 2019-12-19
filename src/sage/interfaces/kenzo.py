@@ -1089,12 +1089,28 @@ def SChainComplex(kchaincomplex, start=0, end=15):
         sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)     # optional - kenzo
         sage: SChainComplex(KChainComplex(sage_chcm)) == sage_chcm             # optional - kenzo
         True
+
+    ::
+
+        sage: from sage.interfaces.kenzo import SChainComplex, Sphere
+        sage: S4 = Sphere(4)
+        sage: C = SChainComplex(S4)
+        sage: C
+        Chain complex with at most 3 nonzero terms over Integer Ring
+        sage: C._ascii_art_()
+        0 <-- C_4 <-- 0  ...  0 <-- C_0 <-- 0
+        sage: [C.homology(i) for i in range(6)]
+        [Z, 0, 0, 0, Z, 0]
     """
     matrices = {}
     for i in range(start, end):
         dffr_i = __chcm_mat2__(kchaincomplex._kenzo, i)
-        if ((__nlig__(dffr_i).python() != 0) and (__ncol__(dffr_i).python() != 0)):
+        nlig = __nlig__(dffr_i).python()
+        ncol = __ncol__(dffr_i).python()
+        if ((nlig != 0) and (ncol != 0)):
             matrices[i] = k2s_matrix(__convertmatrice__(dffr_i))
+        else:
+            matrices[i] = matrix(nlig, ncol)
     return ChainComplex(matrices, degree=-1)
 
 

@@ -531,7 +531,7 @@ class PolyhedralFan(SageObject):
             cones = self.cones()
             for x in cones:
                 if x > 1:
-                    cdnt.append(cones[x])
+                    cdnt += cones[x]
             fan = Fan(cones=cdnt, rays=self.rays(), discard_faces=True)
             self._fan = fan
             return self._fan

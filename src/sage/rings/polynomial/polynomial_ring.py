@@ -1810,6 +1810,54 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
                 sparse=sparse, element_class=element_class, category=category)
         self._has_singular = can_convert_to_singular(self)
 
+    @cached_method
+    def weil_polynomials(self, d, q, sign=1, lead=1):
+        """
+        Return all integer polynomials whose complex roots all have a specified absolute value.
+
+        Such polynomials `f` satisfy a functional equation
+
+        .. MATH::
+
+            T^d f(q/T) = s q^{d/2} f(T)
+
+        where `d` is the degree of `f`, `s` is a sign and `q^{1/2}` is the absolute value
+        of the roots of `f`.
+
+        INPUT:
+
+        - ``d`` -- integer, the degree of the polynomials
+
+        - ``q`` -- integer, the square of the complex absolute value of the roots
+
+        - ``sign`` -- integer (default `1`), the sign `s` of the functional equation
+
+        - ``lead`` -- integer, list of integers or list of pairs of integers (default `1`),
+            constraints on the leading few coefficients of the generated polynomials.
+            If pairs `(a, b)` of integers are given, they are treated as a constraint
+            of the form `\equiv a \pmod{b}`.
+
+        .. SEEALSO::
+
+            More documentation and additional options are available using the iterator
+            :class:`sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`
+            directly.
+
+        EXAMPLES::
+
+            sage: R.<T> = ZZ[]
+            sage: L = R.weil_polynomials(4, 2)
+            sage: len(L)
+            35
+            sage: L[9]
+            T^4 + T^3 + 2*T^2 + 2*T + 4
+        """
+        R = self.base_ring()
+        if not (R is ZZ or R is QQ):
+            raise ValueError("Weil polynomials have integer coefficients")
+        from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+        return list(WeilPolynomials(d, q, sign, lead, polring=self))
+
     @staticmethod
     def _implementation_names_impl(implementation, base_ring, sparse):
         """

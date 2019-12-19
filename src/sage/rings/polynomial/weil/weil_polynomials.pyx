@@ -11,8 +11,9 @@ a polynomial specified by a congruence to a Weil polynomial.
 
 For large jobs, one can set parallel=True to use OpenMP (if support was
 enabled at compile time). Due to increased overhead, this is not recommended
-for smaller problem sizes.  To enable support, ensure that your compiler supports
+for smaller problem sizes. To enable support, ensure that your compiler supports
 OpenMP and remove the appropriate # characters in the distutils commands below.
+(You may also need to move those lines to the start of the file.)
 
 AUTHOR:
   -- Kiran S. Kedlaya (2007-05-28): initial version
@@ -24,12 +25,8 @@ AUTHOR:
   -- (2019-02-02): update for Python3
                    improve parallel mode
 """
-
-#distutils: language = c
-#distutils: sources = power_sums.c
-#distutils: libraries = flint
 ## Remove second # from the next two lines to enable OpenMP support.
-##distutils: libraries = gomp flint
+##distutils: libraries = gomp
 ##distutils: extra_compile_args = -fopenmp
 
 #*****************************************************************************
@@ -417,10 +414,11 @@ class WeilPolynomials():
     - ``lead`` -- integer, list of integers or list of pairs of integers (default `1`),
         constraints on the leading few coefficients of the generated polynomials.
         If pairs `(a, b)` of integers are given, they are treated as a constraint
-        of the form `\equiv a \pmod{b}`.
+        of the form `\equiv a \pmod{b}`; the moduli must be in decreasing order by
+        divisibility, and the modulus of the leading coefficient must be 0.
 
     - ``node_limit`` -- integer (default ``None``), an upper bound on the number of
-        active nodes during the search (will raise a ``RuntimeError`` if exceeded)
+        terminal nodes during the search (will raise a ``RuntimeError`` if exceeded)
 
     - ``parallel`` -- boolean (default ``False``), whether to use multiple processes
         in searching for Weil polynomials.  If set, then this file must have been
@@ -477,7 +475,7 @@ class WeilPolynomials():
 
     TESTS:
 
-    Check that restricting initial coefficients works properly::
+    Test restriction of initial coefficients::
 
         sage: w1 = WeilPolynomials(10,1,sign=1,lead=3)
         sage: l1 = list(w1)
@@ -486,6 +484,11 @@ class WeilPolynomials():
         sage: l3 = [i for i in l1 if i[1] == 1 and i[2] == 1]
         sage: l2 == l3
         True
+
+        sage: w = WeilPolynomials(4,2,lead=((1,0),(2,2)))
+        sage: l = list(w)
+        sage: l[0], l[-1]
+        (x^4 + 4*x^3 + 8*x^2 + 8*x + 4, x^4 - 4*x^3 + 8*x^2 - 8*x + 4)
     """
     def __init__(self, d, q, sign=1, lead=1, node_limit=None, parallel=False, squarefree=False, polring=None):
         r"""

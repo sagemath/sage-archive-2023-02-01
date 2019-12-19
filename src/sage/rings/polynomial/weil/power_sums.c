@@ -682,8 +682,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   fmpz_add(dy_data->upper+n-1, pol+n-1, upper);
 
   /* Set the new polynomial value. */
-  fmpz_mul(lower, lower, modulus);
-  fmpz_add(pol+n-1, pol+n-1, lower);
+  fmpz_addmul(pol+n-1, lower, modulus);
 
   /* Correct the k-th power sum and related quantities. */
   t1q = fmpq_mat_entry(dy_data->power_sums, k, 0);

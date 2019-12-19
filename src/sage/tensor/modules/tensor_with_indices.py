@@ -885,7 +885,9 @@ class TensorWithIndices(SageObject):
         INPUT:
 
         - ``permutation`` -- permutation that has to be applied to the indices
-
+            the input should be a ``list`` containing the second line of the permutation
+            in Cauchy notation.
+        
         OUTPUT:
 
         - an instance of ``TensorWithIndices`` whose indices names and place
@@ -898,11 +900,16 @@ class TensorWithIndices(SageObject):
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')
             sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
+            sage: b = M.tensor((2,0), name='b')
+            sage: b[:] = [[-1,2,-3], [-4,5,6], [7,-8,9]]
             sage: identity = [0,1]
             sage: transposition = [1,0]
             sage: a["ij"].permute_indices(identity) == a["ij"]
             True
             sage: a["ij"].permute_indices(transposition)[:] == a[:].transpose()
+            True
+            sage: cycle = [1,2,3,0] # the cyclic permutation sending 0 to 1
+            sage: (a*b)[0,1,2,0] == (a*b)["ijkl"].permute_indices(cycle)[1,2,0,0]
             True
 
         TESTS::
@@ -917,7 +924,8 @@ class TensorWithIndices(SageObject):
             True
             sage: a["ij"].permute_indices(transposition)[:] == a[:].transpose()
             True
-
+            sage: (a*a)["ijkl"].permute_indices([1,2,3,0])[0,1,2,1] == (a*a)[1,2,1,0]
+            True
         """
         # Decomposition of the permutation of the components of self
         # into product of swaps given by the method

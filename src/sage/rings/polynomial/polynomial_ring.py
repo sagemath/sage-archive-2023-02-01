@@ -1810,9 +1810,9 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
                 sparse=sparse, element_class=element_class, category=category)
         self._has_singular = can_convert_to_singular(self)
 
-    @cached_method(key=lambda self, d, q, sign, lead: (d, q, sign, tuple([x if isinstance(x, (tuple, list)) else (x, 0) for x in lead]) if isinstance(lead, (tuple, list)) else ((x, 0))))
+    @cached_method(key=lambda self, d, q, sign, lead: (d, q, sign, tuple([x if isinstance(x, (tuple, list)) else (x, 0) for x in lead]) if isinstance(lead, (tuple, list)) else ((lead, 0))))
     def weil_polynomials(self, d, q, sign=1, lead=1):
-        """
+        r"""
         Return all integer polynomials whose complex roots all have a specified absolute value.
 
         Such polynomials `f` satisfy a functional equation
@@ -1853,6 +1853,36 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
             sage: L[9]
             T^4 + T^3 + 2*T^2 + 2*T + 4
             sage: all(p.is_weil_polynomial() for p in L)
+            True
+
+        TESTS:
+
+        We check that products of Weil polynomials are also listed as Weil polynomials::
+
+            sage: all((f * g) in R.weil_polynomials(6, q) for q in [3,4] for f in R.weil_polynomials(2, q) for g in R.weil_polynomials(4, q))
+            True
+
+        We check that irreducible Weil polynomials of degree 6 are CM::
+
+            sage: simples = [f for f in R.weil_polynomials(6, 3) if f.is_irreducible()]
+            sage: len(simples)
+            348
+            sage: reals = [R([f[3+i] + sum((-3)^j * (i+2*j)/(i+j) * binomial(i+j,j) * f[3+i+2*j] for j in range(1,(3+i)//2+1)) for i in range(4)]) for f in simples]
+
+        Check that every polynomial in this list has 3 real roots between `-2 \sqrt{3}` and `2 \sqrt{3}`::
+
+            sage: roots = [f.roots(RR, multiplicities=False) for f in reals]
+            sage: all(len(L) == 3 and all(x^2 <= 12 for x in L) for L in roots)
+            True
+
+        Finally, check that the original polynomials are reconstructed as CM polynomials::
+
+            sage: all(f == T^3*r(T + 3/T) for (f, r) in zip(simples, reals))
+            True
+
+        A simple check (not sufficient)::
+
+            sage: all(f.number_of_real_roots() == 0 for f in simples)
             True
         """
         R = self.base_ring()

@@ -61,63 +61,63 @@ ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
 
 
 # defining the auxiliary functions as wrappers over the kenzo ones
-_chcm_mat = EclObject("chcm-mat")
-_homologie = EclObject("homologie")
-_sphere = EclObject("sphere")
-_crts_prdc = EclObject("crts-prdc")
-_moore = EclObject("moore")
-_k_z = EclObject("k-z")
-_k_z2 = EclObject("k-z2")
-_k_zp = EclObject("k-zp")
-_echcm = EclObject("echcm")
-_loop_space = EclObject("loop-space")
-_tnsr_prdc = EclObject("tnsr-prdc")
-_classifying_space = EclObject("classifying-space")
-_suspension = EclObject("suspension")
-_homotopy_list = EclObject("homotopy-list")
-_nth = EclObject("nth")
-_nlig = EclObject("nlig")
-_ncol = EclObject("ncol")
-_array_dimensions = EclObject("array-dimensions")
-_convertmatrice = EclObject("convertmatrice")
-_make_array_to_lists = EclObject("make-array-to-lists")
-_make_array_from_lists = EclObject("make-array-from-lists")
-_chcm_mat2 = EclObject("chcm-mat2")
-_build_finite_ss2 = EclObject("build-finite-ss2")
-_gmsm = EclObject("gmsm")
-_dgop = EclObject("dgop")
-_dgop_int_ext = EclObject("dgop-int-ext")
-_basis_aux1 = EclObject("basis_aux1")
-_orgn_aux1 = EclObject("orgn_aux1")
-_dffr_aux1 = EclObject("dffr_aux1")
-_kabstractsimplex_aux1 = EclObject("kabstractsimplex_aux1")
-_kchaincomplex_aux1 = EclObject("kchaincomplex_aux1")
-_sfinitesimplicialset_aux1 = EclObject("sfinitesimplicialset_aux1")
-_spectral_sequence_group = EclObject("spectral-sequence-group")
-_spectral_sequence_differential_matrix = EclObject("spectral-sequence-differential-matrix")
-_eilenberg_moore_spectral_sequence = EclObject("eilenberg-moore-spectral-sequence")
-_serre_whitehead_spectral_sequence = EclObject("serre-whitehead-spectral-sequence")
-_serre_spectral_sequence_product = EclObject("serre-spectral-sequence-product")
-_wedge = EclObject("wedge")
-_join = EclObject("join")
-_kmorphismchaincomplex_aux1 = EclObject("kmorphismchaincomplex_aux1")
-_bicomplex_spectral_sequence = EclObject("bicomplex-spectral-sequence")
-_nreverse = EclObject("nreverse")
-_smash_product = EclObject("smash-product")
-_build_mrph_aux = EclObject("build-mrph-aux")
-_zero_mrph = EclObject("zero-mrph")
-_idnt_mrph = EclObject("idnt-mrph")
-_dffr_aux = EclObject("dffr-aux")
-_sorc_aux = EclObject("sorc-aux")
-_trgt_aux = EclObject("trgt-aux")
-_degr_aux = EclObject("degr-aux")
-_evaluation_aux1 = EclObject("evaluation-aux1")
-_opps = EclObject("opps")
-_cmps = EclObject("cmps")
-_add = EclObject("add")
-_sbtr = EclObject("sbtr")
-_change_sorc_trgt_aux = EclObject("change-sorc-trgt-aux")
-_dstr_change_sorc_trgt_aux = EclObject("dstr-change-sorc-trgt-aux")
+__chcm_mat__ = EclObject("chcm-mat")
+__homologie__ = EclObject("homologie")
+__sphere__ = EclObject("sphere")
+__crts_prdc__ = EclObject("crts-prdc")
+__moore__ = EclObject("moore")
+__k_z__ = EclObject("k-z")
+__k_z2__ = EclObject("k-z2")
+__k_zp__ = EclObject("k-zp")
+__echcm__ = EclObject("echcm")
+__loop_space__ = EclObject("loop-space")
+__tnsr_prdc__ = EclObject("tnsr-prdc")
+__classifying_space__ = EclObject("classifying-space")
+__suspension__ = EclObject("suspension")
+__homotopy_list__ = EclObject("homotopy-list")
+__nth__ = EclObject("nth")
+__nlig__ = EclObject("nlig")
+__ncol__ = EclObject("ncol")
+__array_dimensions__ = EclObject("array-dimensions")
+__convertmatrice__ = EclObject("convertmatrice")
+__make_array_to_lists__ = EclObject("make-array-to-lists")
+__make_array_from_lists__ = EclObject("make-array-from-lists")
+__chcm_mat2__ = EclObject("chcm-mat2")
+__build_finite_ss2__ = EclObject("build-finite-ss2")
+__gmsm__ = EclObject("gmsm")
+__dgop__ = EclObject("dgop")
+__dgop_int_ext__ = EclObject("dgop-int-ext")
+__basis_aux1__ = EclObject("basis_aux1")
+__orgn_aux1__ = EclObject("orgn_aux1")
+__dffr_aux_1__ = EclObject("dffr_aux1")
+__kabstractsimplex_aux1__ = EclObject("kabstractsimplex_aux1")
+__kchaincomplex_aux1__ = EclObject("kchaincomplex_aux1")
+__sfinitesimplicialset_aux1__ = EclObject("sfinitesimplicialset_aux1")
+__spectral_sequence_group__ = EclObject("spectral-sequence-group")
+__spectral_sequence_differential_matrix__ = EclObject("spectral-sequence-differential-matrix")
+__eilenberg_moore_spectral_sequence__ = EclObject("eilenberg-moore-spectral-sequence")
+__serre_whitehead_spectral_sequence__ = EclObject("serre-whitehead-spectral-sequence")
+__serre_spectral_sequence_product__ = EclObject("serre-spectral-sequence-product")
+__wedge__ = EclObject("wedge")
+__join__ = EclObject("join")
+__kmorphismchaincomplex_aux1__ = EclObject("kmorphismchaincomplex_aux1")
+__bicomplex_spectral_sequence__ = EclObject("bicomplex-spectral-sequence")
+__nreverse__ = EclObject("nreverse")
+__smash_product__ = EclObject("smash-product")
+__build_mrph_aux__ = EclObject("build-mrph-aux")
+__zero_mrph__ = EclObject("zero-mrph")
+__idnt_mrph__ = EclObject("idnt-mrph")
+__dffr_aux__ = EclObject("dffr-aux")
+__sorc_aux__ = EclObject("sorc-aux")
+__trgt_aux__ = EclObject("trgt-aux")
+__degr_aux__ = EclObject("degr-aux")
+__evaluation_aux1__ = EclObject("evaluation-aux1")
+__opps__ = EclObject("opps")
+__cmps__ = EclObject("cmps")
+__add__ = EclObject("add")
+__sbtr__ = EclObject("sbtr")
+__change_sorc_trgt_aux__ = EclObject("change-sorc-trgt-aux")
+__dstr_change_sorc_trgt_aux__ = EclObject("dstr-change-sorc-trgt-aux")
 
 
 def Sphere(n):
@@ -141,7 +141,7 @@ def Sphere(n):
         sage: [s2.homology(i) for i in range(8)]       # optional - kenzo
         [Z, 0, Z, 0, 0, 0, 0, 0]
     """
-    kenzosphere = _sphere(n)
+    kenzosphere = __sphere__(n)
     return KenzoSimplicialSet(kenzosphere)
 
 
@@ -172,7 +172,7 @@ def MooreSpace(m, n):
         sage: [m24.homology(i) for i in range(8)]            # optional - kenzo
         [Z, 0, 0, 0, C2, 0, 0, 0]
     """
-    kenzomoore = _moore(m, n)
+    kenzomoore = __moore__(m, n)
     return KenzoSimplicialSet(kenzomoore)
 
 
@@ -205,13 +205,13 @@ def EilenbergMacLaneSpace(G, n):
         [Z, 0, 0, C2, 0, C2, C2, C2]
     """
     if G == ZZ:
-        kenzospace = _k_z(n)
+        kenzospace = __k_z__(n)
         return KenzoSimplicialGroup(kenzospace)
     elif G == AdditiveAbelianGroup([2]):
-        kenzospace = _k_z2(n)
+        kenzospace = __k_z2__(n)
         return KenzoSimplicialGroup(kenzospace)
     elif G in CommutativeAdditiveGroups() and G.is_cyclic():
-        kenzospace = _k_zp(G.cardinality(), n)
+        kenzospace = __k_zp__(G.cardinality(), n)
         return KenzoSimplicialGroup(kenzospace)
     else:
         raise NotImplementedError("Eilenberg-MacLane spaces are only supported over ZZ and ZZ_n")
@@ -234,8 +234,8 @@ class KenzoObject(SageObject):
         TESTS::
 
             sage: from sage.interfaces.kenzo import KenzoObject  # optional -kenzo
-            sage: from sage.interfaces.kenzo import _sphere       # optional -kenzo
-            sage: ks = _sphere(2)                                 # optional -kenzo
+            sage: from sage.interfaces.kenzo import __sphere__   # optional -kenzo
+            sage: ks = __sphere__(2)                             # optional -kenzo
             sage: ks                                             # optional -kenzo
             <ECL: [K1 Simplicial-Set]>
             sage: s2 = KenzoObject(ks)                           # optional -kenzo
@@ -291,7 +291,7 @@ class KenzoSpectralSequence(KenzoObject):
             sage: EMS.group(0, -1, 3)                      # optional - kenzo
             Trivial group
         """
-        invs = _spectral_sequence_group(self._kenzo, p, i, j).python()
+        invs = __spectral_sequence_group__(self._kenzo, p, i, j).python()
         if not invs:
             invs = []
         return AdditiveAbelianGroup(invs)
@@ -325,7 +325,7 @@ class KenzoSpectralSequence(KenzoObject):
             [ 3  0 -3]
             [ 0  2 -3]
         """
-        klist = _spectral_sequence_differential_matrix(self._kenzo, p, i, j)
+        klist = __spectral_sequence_differential_matrix__(self._kenzo, p, i, j)
         plist = klist.python()
         if plist is None or plist == [None]:
             i = len(self.group(p, i, j).invariants())
@@ -434,10 +434,10 @@ class KenzoChainComplex(KenzoObject):
             sage: s2.homology(2)                             # optional - kenzo
             Z
         """
-        echcm1 = _echcm(self._kenzo)
-        m1 = _chcm_mat(echcm1, n)
-        m2 = _chcm_mat(echcm1, n + 1)
-        homology = _homologie(m1, m2)
+        echcm1 = __echcm__(self._kenzo)
+        m1 = __chcm_mat__(echcm1, n)
+        m2 = __chcm_mat__(echcm1, n + 1)
+        homology = __homologie__(m1, m2)
         lhomomology = [i for i in EclListIterator(homology)]
         res = []
         for component in lhomomology:
@@ -468,7 +468,7 @@ class KenzoChainComplex(KenzoObject):
             sage: [p.homology(i) for i in range(8)]           # optional - kenzo
             [Z, 0, Z, Z, 0, Z, 0, 0]
         """
-        return KenzoChainComplex(_tnsr_prdc(self._kenzo, other._kenzo))
+        return KenzoChainComplex(__tnsr_prdc__(self._kenzo, other._kenzo))
 
     def basis(self, dim):
         r"""
@@ -502,7 +502,7 @@ class KenzoChainComplex(KenzoObject):
             Basis in dimension 5: ['G5G0', 'G5G1', 'G5G2']
 
         """
-        return _basis_aux1(self._kenzo, dim).python()
+        return __basis_aux1__(self._kenzo, dim).python()
 
     def identity_morphism(self):
         r"""
@@ -521,7 +521,7 @@ class KenzoChainComplex(KenzoObject):
             sage: type(idnt)                                                 # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoChainComplexMorphism'>
         """
-        return KenzoChainComplexMorphism(_idnt_mrph(self._kenzo))
+        return KenzoChainComplexMorphism(__idnt_mrph__(self._kenzo))
 
     def null_morphism(self, target=None, degree=None):
         r"""
@@ -567,7 +567,7 @@ class KenzoChainComplex(KenzoObject):
         elif (not degree == 0) and (not degree.is_integer()):
             raise ValueError("'degree' parameter must be an Integer number")
         else:
-            return KenzoChainComplexMorphism(_zero_mrph(self._kenzo, target._kenzo, degree))
+            return KenzoChainComplexMorphism(__zero_mrph__(self._kenzo, target._kenzo, degree))
 
     def differential(self, dim=None, comb=None):
         r"""
@@ -624,9 +624,9 @@ class KenzoChainComplex(KenzoObject):
         """
         if dim is not None and comb is not None:
             cmbn_list = pairing(comb)
-            return KenzoObject(_dffr_aux1(self._kenzo, dim, cmbn_list))
+            return KenzoObject(__dffr_aux_1__(self._kenzo, dim, cmbn_list))
         else:
-            return KenzoChainComplexMorphism(_dffr_aux(self._kenzo))
+            return KenzoChainComplexMorphism(__dffr_aux__(self._kenzo))
 
     def orgn(self):
         r"""
@@ -643,7 +643,7 @@ class KenzoChainComplex(KenzoObject):
             sage: A.orgn()                                                # optional - kenzo
             '(CRTS-PRDC [K... Simplicial-Group] [K... Simplicial-Set])'
         """
-        return str(_orgn_aux1(self._kenzo))
+        return str(__orgn_aux1__(self._kenzo))
 
 
 class KenzoSimplicialSet(KenzoChainComplex):
@@ -675,7 +675,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: [l2.homology(i) for i in range(8)]          # optional - kenzo
             [Z, Z, Z, Z, Z, Z, Z, Z]
         """
-        return KenzoSimplicialGroup(_loop_space(self._kenzo, n))
+        return KenzoSimplicialGroup(__loop_space__(self._kenzo, n))
 
     def cartesian_product(self, other):
         r"""
@@ -700,7 +700,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: [p.homology(i) for i in range(6)]           # optional - kenzo
             [Z, 0, Z, Z, 0, Z]
         """
-        prod_kenzo = _crts_prdc(self._kenzo, other._kenzo)
+        prod_kenzo = __crts_prdc__(self._kenzo, other._kenzo)
         return KenzoSimplicialSet(prod_kenzo)
 
     def suspension(self):
@@ -721,7 +721,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: [s.homology(i) for i in range(6)]                          # optional - kenzo
             [Z, 0, 0, 0, Z, 0]
         """
-        return KenzoSimplicialSet(_suspension(self._kenzo))
+        return KenzoSimplicialSet(__suspension__(self._kenzo))
 
     def homotopy_group(self, n):
         """
@@ -742,7 +742,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
         if n not in ZZ or n < 2:
             raise ValueError("""homotopy groups can only be computed
                 for dimensions greater than 1""")
-        lgens = _homotopy_list(self._kenzo, n).python()
+        lgens = __homotopy_list__(self._kenzo, n).python()
         if lgens is not None:
             trgens = [0 if i == 1 else i for i in sorted(lgens)]
             return AbelianGroup(trgens)
@@ -772,7 +772,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
         if self.homology(1).invariants():
             raise ValueError("""Eilenberg-Moore spectral sequence implemented
                 only for 1-reduced simplicial sets""")
-        return KenzoSpectralSequence(_eilenberg_moore_spectral_sequence(self._kenzo))
+        return KenzoSpectralSequence(__eilenberg_moore_spectral_sequence__(self._kenzo))
 
     def sw_spectral_sequence(self):
         r"""
@@ -795,7 +795,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
               0   0   0   0   0
               Z   0   0   Z   0
         """
-        return KenzoSpectralSequence(_serre_whitehead_spectral_sequence(self._kenzo))
+        return KenzoSpectralSequence(__serre_whitehead_spectral_sequence__(self._kenzo))
 
     def serre_spectral_sequence(self):
         r"""
@@ -820,7 +820,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
               0   0   0
               Z   0   Z
         """
-        return KenzoSpectralSequence(_serre_spectral_sequence_product(self._kenzo))
+        return KenzoSpectralSequence(__serre_spectral_sequence_product__(self._kenzo))
 
     def wedge(self, other):
         r"""
@@ -845,7 +845,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: [w.homology(i) for i in range(6)]           # optional - kenzo
             [Z, 0, Z, Z, 0, 0]
         """
-        wedge_kenzo = _wedge(self._kenzo, other._kenzo)
+        wedge_kenzo = __wedge__(self._kenzo, other._kenzo)
         return KenzoSimplicialSet(wedge_kenzo)
 
     def join(self, other):
@@ -871,7 +871,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: [j.homology(i) for i in range(6)]           # optional - kenzo
             [Z, 0, 0, 0, 0, 0]
         """
-        join_kenzo = _join(self._kenzo, other._kenzo)
+        join_kenzo = __join__(self._kenzo, other._kenzo)
         return KenzoSimplicialSet(join_kenzo)
 
     def smash_product(self, other):
@@ -897,7 +897,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: [s.homology(i) for i in range(6)]           # optional - kenzo
             [Z, 0, 0, 0, 0, Z]
         """
-        smash_kenzo = _smash_product(self._kenzo, other._kenzo)
+        smash_kenzo = __smash_product__(self._kenzo, other._kenzo)
         return KenzoSimplicialSet(smash_kenzo)
 
 
@@ -925,7 +925,7 @@ class KenzoSimplicialGroup(KenzoSimplicialSet):
             sage: [c.homology(i) for i in range(8)]                 # optional - kenzo
             [Z, 0, 0, 0, C2, 0, 0, 0]
         """
-        return KenzoSimplicialGroup(_classifying_space(self._kenzo))
+        return KenzoSimplicialGroup(__classifying_space__(self._kenzo))
 
 
 def k2s_matrix(kmatrix):
@@ -946,8 +946,8 @@ def k2s_matrix(kmatrix):
         [3 2 1]
         [1 1 1]
     """
-    dimensions = _array_dimensions(kmatrix).python()
-    kmatrix_list = _make_array_to_lists(kmatrix).python()
+    dimensions = __array_dimensions__(kmatrix).python()
+    kmatrix_list = __make_array_to_lists__(kmatrix).python()
     return matrix(dimensions[0], dimensions[1], kmatrix_list)
 
 
@@ -974,7 +974,7 @@ def s2k_matrix(smatrix):
     dimensions = smatrix.dimensions()
     for i in smatrix.rows():
         initcontents.append(i.list())
-    return _make_array_from_lists(dimensions[0], dimensions[1], initcontents)
+    return __make_array_from_lists__(dimensions[0], dimensions[1], initcontents)
 
 
 def s2k_dictmat(sdictmat):
@@ -1060,7 +1060,7 @@ def KChainComplex(chain_complex):
     d = chain_complex.differential()
     chcm = s2k_dictmat(d)
     str_orgn = str(d)[1:-1].replace(":", " ").replace(" ", ".").replace("\n", "").replace(",", "")
-    return KenzoChainComplex(_kchaincomplex_aux1(chcm, str_orgn))
+    return KenzoChainComplex(__kchaincomplex_aux1__(chcm, str_orgn))
 
 
 def SChainComplex(kchaincomplex, start=0, end=15):
@@ -1092,9 +1092,9 @@ def SChainComplex(kchaincomplex, start=0, end=15):
     """
     matrices = {}
     for i in range(start, end):
-        dffr_i = _chcm_mat2(kchaincomplex._kenzo, i)
-        if ((_nlig(dffr_i).python() != 0) and (_ncol(dffr_i).python() != 0)):
-            matrices[i] = k2s_matrix(_convertmatrice(dffr_i))
+        dffr_i = __chcm_mat2__(kchaincomplex._kenzo, i)
+        if ((__nlig__(dffr_i).python() != 0) and (__ncol__(dffr_i).python() != 0)):
+            matrices[i] = k2s_matrix(__convertmatrice__(dffr_i))
     return ChainComplex(matrices, degree=-1)
 
 
@@ -1127,12 +1127,12 @@ def SAbstractSimplex(simplex, dim):
         sage: SAbSm2.dimension()                                # optional - kenzo
         11
     """
-    degeneracies = _dgop_int_ext(_dgop(simplex._kenzo)).python()
+    degeneracies = __dgop_int_ext__(__dgop__(simplex._kenzo)).python()
     if degeneracies is None:
         degeneracies = []
     else:
         degeneracies = tuple(degeneracies)
-    name = _gmsm(simplex._kenzo).python()
+    name = __gmsm__(simplex._kenzo).python()
     return AbstractSimplex(dim, degeneracies, name=name)
 
 
@@ -1161,7 +1161,7 @@ def KAbstractSimplex(simplex):
         sage: SAbSm.dimension() == SAbSm2.dimension()                   # optional - kenzo
         True
     """
-    return KenzoObject(_kabstractsimplex_aux1(simplex.degeneracies(),
+    return KenzoObject(__kabstractsimplex_aux1__(simplex.degeneracies(),
                                              's' + str(hash(simplex))))
 
 
@@ -1227,7 +1227,7 @@ def KFiniteSimplicialSet(sset):
                             degen_z.append(name)
                             auxiliar_list.append(degen_z)
                         list_rslt.append(auxiliar_list)
-        return KenzoSimplicialSet(_build_finite_ss2(list_rslt))
+        return KenzoSimplicialSet(__build_finite_ss2__(list_rslt))
 
 
 def SFiniteSimplicialSet(ksimpset, limit):
@@ -1270,23 +1270,23 @@ def SFiniteSimplicialSet(ksimpset, limit):
         sage: SS1vS3.homology()                                     # optional - kenzo
         {0: 0, 1: Z, 2: 0, 3: Z}
     """
-    list_orgn = _orgn_aux1(ksimpset._kenzo).python()
-    if _nth(0, list_orgn).python()[0] == 'CRTS-PRDC':
+    list_orgn = __orgn_aux1__(ksimpset._kenzo).python()
+    if __nth__(0, list_orgn).python()[0] == 'CRTS-PRDC':
         return SFiniteSimplicialSet(
-            KenzoSimplicialSet(_nth(1, list_orgn)), limit).cartesian_product(
-                SFiniteSimplicialSet(KenzoSimplicialSet(_nth(2, list_orgn)), limit))
+            KenzoSimplicialSet(__nth__(1, list_orgn)), limit).cartesian_product(
+                SFiniteSimplicialSet(KenzoSimplicialSet(__nth__(2, list_orgn)), limit))
     rslt = {}
     simplices = []
     faces = []
     bases = []
     names = []
     for k in range(limit + 1):
-        basis_k = _basis_aux1(ksimpset._kenzo, k)
+        basis_k = __basis_aux1__(ksimpset._kenzo, k)
         names_k = ksimpset.basis(k)
         lbasis_k = [AbstractSimplex(k, name=i) for i in EclListIterator(basis_k)]
         bases.append(lbasis_k)
         names.append(names_k)
-    all_simplices = _sfinitesimplicialset_aux1(ksimpset._kenzo, limit)
+    all_simplices = __sfinitesimplicialset_aux1__(ksimpset._kenzo, limit)
     lall_simplices = [i for i in EclListIterator(all_simplices)]
     dim = 1
     for Kdim in lall_simplices:
@@ -1294,10 +1294,10 @@ def SFiniteSimplicialSet(ksimpset, limit):
             index1 = names[dim].index(str(simp.car()))
             lKdim_cdr = []
             for i in EclListIterator(simp.cdr()):
-                degenop = _dgop_int_ext(_dgop(i)).python()
+                degenop = __dgop_int_ext__(__dgop__(i)).python()
                 if degenop is None:
                     degenop = []
-                index2 = names[dim - len(degenop) - 1].index(str(_gmsm(i)))
+                index2 = names[dim - len(degenop) - 1].index(str(__gmsm__(i)))
                 lKdim_cdr.append(bases[dim - len(degenop) - 1][index2].apply_degeneracies(*degenop))
             simplices.append(bases[dim][index1])
             faces.append(tuple(lKdim_cdr))
@@ -1336,7 +1336,7 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: differential_morphism.source_complex()                         # optional - kenzo
             [K... Chain-Complex]
         """
-        return KenzoChainComplex(_sorc_aux(self._kenzo))
+        return KenzoChainComplex(__sorc_aux__(self._kenzo))
 
     def target_complex(self):
         r"""
@@ -1362,7 +1362,7 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: differential_morphism.target_complex()                         # optional - kenzo
             [K... Chain-Complex]
         """
-        return KenzoChainComplex(_trgt_aux(self._kenzo))
+        return KenzoChainComplex(__trgt_aux__(self._kenzo))
 
     def degree(self):
         r"""
@@ -1392,7 +1392,7 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: kenzo_chcm.null_morphism().degree()                            # optional - kenzo
             0
         """
-        return _degr_aux(self._kenzo).python()
+        return __degr_aux__(self._kenzo).python()
 
     def evaluation(self, dim, comb):
         r"""
@@ -1473,7 +1473,7 @@ class KenzoChainComplexMorphism(KenzoObject):
         if dim.is_integer():
             if isinstance(comb, list):
                 cmbn_list = pairing(comb)
-                return KenzoObject(_evaluation_aux1(self._kenzo, dim, cmbn_list))
+                return KenzoObject(__evaluation_aux1__(self._kenzo, dim, cmbn_list))
             else:
                 raise ValueError("'comb' parameter must be a list")
         else:
@@ -1520,7 +1520,7 @@ class KenzoChainComplexMorphism(KenzoObject):
             ------------------------------------------------------------------------------
             <BLANKLINE>
         """
-        return KenzoChainComplexMorphism(_opps(self._kenzo))
+        return KenzoChainComplexMorphism(__opps__(self._kenzo))
 
     def composite(self, object=None):
         r"""
@@ -1559,13 +1559,13 @@ class KenzoChainComplexMorphism(KenzoObject):
         if object is None:
             return self
         if isinstance(object, KenzoChainComplexMorphism):
-            return KenzoChainComplexMorphism(_cmps(self._kenzo, object._kenzo))
+            return KenzoChainComplexMorphism(__cmps__(self._kenzo, object._kenzo))
         elif isinstance(object, KenzoChainComplex):
-            return KenzoChainComplexMorphism(_cmps(self._kenzo, _dffr_aux(object._kenzo)))
+            return KenzoChainComplexMorphism(__cmps__(self._kenzo, __dffr_aux__(object._kenzo)))
         elif isinstance(object, tuple):
             rslt = self._kenzo
             for mrph in object:
-                rslt = _cmps(rslt, mrph._kenzo)
+                rslt = __cmps__(rslt, mrph._kenzo)
             return KenzoChainComplexMorphism(rslt)
 
     def sum(self, object=None):
@@ -1625,11 +1625,11 @@ class KenzoChainComplexMorphism(KenzoObject):
         if object is None:
             return self
         if isinstance(object, KenzoChainComplexMorphism):
-            return KenzoChainComplexMorphism(_add(self._kenzo, object._kenzo))
+            return KenzoChainComplexMorphism(__add__(self._kenzo, object._kenzo))
         elif isinstance(object, tuple):
             rslt = self._kenzo
             for mrph in object:
-                rslt = _add(rslt, mrph._kenzo)
+                rslt = __add__(rslt, mrph._kenzo)
             return KenzoChainComplexMorphism(rslt)
 
     def substract(self, object=None):
@@ -1691,11 +1691,11 @@ class KenzoChainComplexMorphism(KenzoObject):
         if object is None:
             return self
         if isinstance(object, KenzoChainComplexMorphism):
-            return KenzoChainComplexMorphism(_sbtr(self._kenzo, object._kenzo))
+            return KenzoChainComplexMorphism(__sbtr__(self._kenzo, object._kenzo))
         elif isinstance(object, tuple):
             rslt = self._kenzo
             for mrph in object:
-                rslt = _sbtr(rslt, mrph._kenzo)
+                rslt = __sbtr__(rslt, mrph._kenzo)
             return KenzoChainComplexMorphism(rslt)
 
     def change_source_target_complex(self, source=None, target=None):
@@ -1744,7 +1744,7 @@ class KenzoChainComplexMorphism(KenzoObject):
         source = source or self.source_complex()
         target = target or self.target_complex()
         return KenzoChainComplexMorphism(
-            _change_sorc_trgt_aux(self._kenzo, source._kenzo, target._kenzo))
+            __change_sorc_trgt_aux__(self._kenzo, source._kenzo, target._kenzo))
 
     def destructive_change_source_target_complex(self, source=None, target=None):
         r"""
@@ -1788,7 +1788,7 @@ class KenzoChainComplexMorphism(KenzoObject):
         source = source or self.source_complex()
         target = target or self.target_complex()
         return KenzoChainComplexMorphism(
-            _dstr_change_sorc_trgt_aux(self._kenzo, source._kenzo, target._kenzo))
+            __dstr_change_sorc_trgt_aux__(self._kenzo, source._kenzo, target._kenzo))
 
 
 def build_morphism(source_complex, target_complex, degree, algorithm, strategy, orgn):
@@ -1834,7 +1834,7 @@ def build_morphism(source_complex, target_complex, degree, algorithm, strategy, 
         <class 'sage.interfaces.kenzo.KenzoChainComplexMorphism'>
     """
     return KenzoChainComplexMorphism(
-        _build_mrph_aux(source_complex._kenzo, target_complex._kenzo,
+        __build_mrph_aux__(source_complex._kenzo, target_complex._kenzo,
                        degree, algorithm, ":"+strategy, orgn))
 
 
@@ -1898,7 +1898,7 @@ def KChainComplexMorphism(morphism):
     target = KChainComplex(morphism.codomain())
     matrix_list = morphism_dictmat(morphism)
     return KenzoChainComplexMorphism(
-        _kmorphismchaincomplex_aux1(matrix_list, source._kenzo, target._kenzo))
+        __kmorphismchaincomplex_aux1__(matrix_list, source._kenzo, target._kenzo))
 
 
 def s2k_listofmorphisms(l):
@@ -1928,7 +1928,7 @@ def s2k_listofmorphisms(l):
     rslt = EclObject([])
     for m in l:
         rslt = EclObject(KChainComplexMorphism(m)._kenzo).cons(rslt)
-    return _nreverse(rslt)
+    return __nreverse__(rslt)
 
 
 def BicomplexSpectralSequence(l):
@@ -1963,4 +1963,4 @@ def BicomplexSpectralSequence(l):
         [ 0  0]
         [-4  0]
     """
-    return KenzoSpectralSequence(_bicomplex_spectral_sequence(s2k_listofmorphisms(l)))
+    return KenzoSpectralSequence(__bicomplex_spectral_sequence__(s2k_listofmorphisms(l)))

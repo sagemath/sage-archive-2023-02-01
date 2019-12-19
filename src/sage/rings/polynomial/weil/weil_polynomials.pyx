@@ -485,7 +485,7 @@ class WeilPolynomials():
         sage: l2 == l3
         True
 
-        sage: w = WeilPolynomials(4,2,lead=((1,0),(2,2)))
+        sage: w = WeilPolynomials(4,2,lead=[(1,0),(0,2)])
         sage: l = list(w)
         sage: l[0], l[-1]
         (x^4 + 4*x^3 + 8*x^2 + 8*x + 4, x^4 - 4*x^3 + 8*x^2 - 8*x + 4)

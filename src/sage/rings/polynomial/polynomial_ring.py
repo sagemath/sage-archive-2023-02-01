@@ -1810,7 +1810,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
                 sparse=sparse, element_class=element_class, category=category)
         self._has_singular = can_convert_to_singular(self)
 
-    @cached_method
+    @cached_method(key=lambda self, d, q, sign, lead: (d, q, sign, tuple([x if isinstance(x, (tuple, list)) else (x, 0) for x in lead]) if isinstance(lead, (tuple, list)) else ((x, 0))))
     def weil_polynomials(self, d, q, sign=1, lead=1):
         """
         Return all integer polynomials whose complex roots all have a specified absolute value.

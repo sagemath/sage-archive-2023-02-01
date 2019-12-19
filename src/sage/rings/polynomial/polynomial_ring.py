@@ -1841,7 +1841,8 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
 
             More documentation and additional options are available using the iterator
             :class:`sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`
-            directly.
+            directly. In addition, polynomials have a method `is_weil_polynomial` to
+            test whether or not the given polynomial is a Weil polynomial.
 
         EXAMPLES::
 
@@ -1851,6 +1852,8 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
             35
             sage: L[9]
             T^4 + T^3 + 2*T^2 + 2*T + 4
+            sage: all(p.is_weil_polynomial() for p in L)
+            True
         """
         R = self.base_ring()
         if not (R is ZZ or R is QQ):

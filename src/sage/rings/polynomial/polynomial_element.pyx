@@ -8277,6 +8277,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P2.is_weil_polynomial()
             False
 
+        .. SEEALSO::
+
+            Polynomial rings have a method `weil_polynomials` to compute sets of Weil
+            polynomials. This computation uses the iterator
+            :class:`sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`.
+
         TESTS:
 
         Check that :trac:`28395` is fixed::

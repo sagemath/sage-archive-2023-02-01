@@ -154,6 +154,7 @@ import sage.rings.ring as ring
 from sage.structure.element import is_RingElement
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
+from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -1835,7 +1836,8 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
         - ``lead`` -- integer, list of integers or list of pairs of integers (default `1`),
             constraints on the leading few coefficients of the generated polynomials.
             If pairs `(a, b)` of integers are given, they are treated as a constraint
-            of the form `\equiv a \pmod{b}`.
+            of the form `\equiv a \pmod{b}`; the moduli must be in decreasing order by
+            divisibility, and the modulus of the leading coefficient must be 0.
 
         .. SEEALSO::
 
@@ -1854,6 +1856,26 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
             T^4 + T^3 + 2*T^2 + 2*T + 4
             sage: all(p.is_weil_polynomial() for p in L)
             True
+
+        Setting multiple leading coefficients:
+
+            sage: R.<T> = QQ[]
+            sage: l = R.weil_polynomials(4,2,lead=((1,0),(2,4),(1,2)))
+            sage: l
+            [T^4 + 2*T^3 + 5*T^2 + 4*T + 4,
+            T^4 + 2*T^3 + 3*T^2 + 4*T + 4,
+            T^4 - 2*T^3 + 5*T^2 - 4*T + 4,
+            T^4 - 2*T^3 + 3*T^2 - 4*T + 4]
+
+        We do not require Weil polynomials to be monic. This example generates Weil
+        polynomials associated to K3 surfaces over `GF(2)` of Picard number at least 12::
+
+            sage: R.<T> = QQ[]
+            sage: l = R.weil_polynomials(10,1,lead=2)
+            sage: len(l)
+            4865
+            sage: l[len(l)//2]
+            2*T^10 + T^8 + T^6 + T^4 + T^2 + 2
 
         TESTS:
 

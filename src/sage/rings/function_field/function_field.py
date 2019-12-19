@@ -3428,6 +3428,11 @@ def _singular_normal(ideal):
     list by the final element. Thus the list ``[x, y]`` means that `\{x/y, 1\}`
     is the set of generators of the normalization of `R/(x,y)`.
 
+    ALGORITHM:
+
+    Singular's implementation of the normalization algorithm described in G.-M.
+    Greuel, S. Laplagne, F. Seelisch: Normalization of Rings (2009).
+
     EXAMPLES::
 
         sage: from sage.rings.function_field.function_field import _singular_normal
@@ -3475,19 +3480,14 @@ class FunctionField_integral(FunctionField_simple):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2));
-            sage: R.<t> = PolynomialRing(K);
-            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18);
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18)
             sage: F._maximal_order_basis()
             [1, 1/x^4*y, 1/x^11*y^2 + 1/x^2, 1/x^15*y^3 + 1/x^6*y]
 
         The basis of the maximal order *always* starts with 1. This is assumed
         in some algorithms.
-
-        ALGORITHM:
-
-        Uses Singular's implementation of the normalization algorithm described in
-        G.-M. Greuel, S. Laplagne, F. Seelisch: Normalization of Rings (2009).
         """
         from sage.matrix.constructor import matrix
 
@@ -3502,9 +3502,33 @@ class FunctionField_integral(FunctionField_simple):
         v = self.polynomial().list()
         g = sum([v[i].numerator().subs(x) * y**i for i in range(len(v))])
 
-        # Call Singular. Singular's "normal" function returns a basis
-        # of the integral closure of k(x,y)/(g) as a k[x,y]-module.
-        pols_in_S = _singular_normal(S.ideal(g))[0]
+        if self.is_global():
+            from sage.libs.singular.function import singular_function, lib
+            from sage.env import SAGE_EXTCODE
+            lib(SAGE_EXTCODE + '/singular/function_field/core.lib')
+            normalize = singular_function('core_normalize')
+
+            # Singular "normalP" algorithm assumes affine domain over
+            # a prime field. So we construct gflat lifting g as in
+            # k_prime[yy,xx,zz]/(k_poly) where k = k_prime[zz]/(k_poly)
+            R = PolynomialRing(k.prime_subfield(), names='yy,xx,zz')
+            gflat = R.zero()
+            for m in g.monomials():
+                c = g.monomial_coefficient(m).polynomial('zz')
+                gflat += R(c) * R(m) # R(m) is a monomial in yy and xx
+
+            k_poly = R(k.polynomial('zz'))
+
+            # invoke Singular
+            pols_in_R = normalize(R.ideal([k_poly, gflat]))
+
+            # reconstruct polynomials in S
+            h = R.hom([y,x,k.gen()],S)
+            pols_in_S = [h(f) for f in pols_in_R]
+        else:
+            # Call Singular. Singular's "normal" function returns a basis
+            # of the integral closure of k(x,y)/(g) as a k[x,y]-module.
+            pols_in_S = _singular_normal(S.ideal(g))[0]
 
         # reconstruct the polynomials in the function field
         x = K.gen()

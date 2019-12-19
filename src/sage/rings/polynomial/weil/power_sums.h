@@ -14,7 +14,7 @@ typedef struct ps_static_data {
   fmpz *modlist;
   fmpq_mat_t *hausdorff_mats;
   fmpq_mat_t *sum_mats;
-  fmpq_t *f;
+  fmpq *f;
 } ps_static_data_t;
 
 typedef struct ps_dynamic_data {

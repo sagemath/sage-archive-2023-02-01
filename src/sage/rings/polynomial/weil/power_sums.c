@@ -116,8 +116,8 @@ void fmpz_sqrt_c(fmpz_t res, const fmpz_t a) {
 /* Set res to floor(a + b sqrt(q)).
    For efficiency, we do not assume a and b are canonical;
    we must thus be careful about signs. */
-void fmpq_floor_quad(fmpz_t res, const fmpq_t a,
-		     const fmpq_t b, const fmpz_t q) {
+void fmpq_floor_quad(fmpz_t res, fmpq_t a,
+		     fmpq_t b, const fmpz_t q) {
   if (b==NULL) fmpq_floor(res, a);
   else {
     fmpz *anum = fmpq_numref(a);
@@ -145,8 +145,8 @@ void fmpq_floor_quad(fmpz_t res, const fmpq_t a,
 }
 
 /* Set res to ceil(a + b sqrt(q)). */
-void fmpq_ceil_quad(fmpz_t res, const fmpq_t a,
-		     const fmpq_t b, const fmpz_t q) {
+void fmpq_ceil_quad(fmpz_t res, fmpq_t a,
+		     fmpq_t b, const fmpz_t q) {
   if (b==NULL) fmpq_ceil(res, a);
   else {
     fmpz *anum = fmpq_numref(a);
@@ -262,11 +262,11 @@ ps_static_data_t *ps_static_init(int d, fmpz_t q, int coeffsign, fmpz_t lead,
 	for (l=0; l<=j; l++) if (k-l >=0 && k-l<=i-j) {
 	    fmpz_mul(m, fmpz_mat_entry(st_data->binom_mat, j, l),
 		     fmpz_mat_entry(st_data->binom_mat, i-j, k-l));
-	    if ((j-l)%2==1) fmpq_neg(m, m);
+	    if ((j-l)%2==1) fmpz_neg(m, m);
 	    fmpq_add_fmpz(k1, k1, m);
 	  }
-	fmpz_mul_2exp(k1, k1, i-k);
-	for (l=0; l<(i-k)/2; l++) fmpz_mul(k1, k1, q);
+	fmpq_mul_2exp(k1, k1, i-k);
+	for (l=0; l<(i-k)/2; l++) fmpq_mul_fmpz(k1, k1, q);
       }
   }
 
@@ -350,7 +350,7 @@ ps_dynamic_data_t *ps_dynamic_init(int d, fmpz_t q, fmpz *coefflist) {
    the remaining work is yielded to the second process, which may in turn be split immediately.
 */
 void ps_dynamic_split(ps_dynamic_data_t *dy_data, ps_dynamic_data_t *dy_data2) {
-  if ((dy_data == NULL) || (dy_data->flag <= 0) || dy_data2->flag) return(NULL);
+  if ((dy_data == NULL) || (dy_data->flag <= 0) || dy_data2->flag) return;
 
   int i, d = dy_data->d, n = dy_data->n, ascend = dy_data->ascend;
 
@@ -369,14 +369,14 @@ void ps_dynamic_split(ps_dynamic_data_t *dy_data, ps_dynamic_data_t *dy_data2) {
       fmpz_set(dy_data2->upper+i, dy_data2->pol+i);
       dy_data->ascend = i-n;
       dy_data2->flag = 1; // This process can now itself be split.
-      return(NULL);
+      return;
   }
-  return(NULL);
+  return;
 }
 
 /* Memory deallocation. */
 void ps_static_clear(ps_static_data_t *st_data) {
-  if (st_data == NULL) return(NULL);
+  if (st_data == NULL) return;
   int i, d = st_data->d;
   fmpz_clear(st_data->lead);
   fmpz_clear(st_data->q);
@@ -394,7 +394,7 @@ void ps_static_clear(ps_static_data_t *st_data) {
 }
 
 void ps_dynamic_clear(ps_dynamic_data_t *dy_data) {
-  if (dy_data == NULL) return(NULL);
+  if (dy_data == NULL) return;
   int d = dy_data->d;
   _fmpz_vec_clear(dy_data->pol, d+1);
   _fmpz_vec_clear(dy_data->sympol, 2*d+3);
@@ -426,7 +426,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   fmpz *modulus = st_data->modlist+n-1;
   fmpz *pol = dy_data->pol;
   fmpz *q = st_data->q;
-  fmpq *f = st_data->f+n-1;
+  fmpq *f = (fmpq *)(st_data->f+n-1);
   fmpq *t;
 
   /* Allocate temporary variables from persistent scratch space. */

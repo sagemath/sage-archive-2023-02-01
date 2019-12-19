@@ -865,7 +865,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 continue
 
             # We perform regular top-reduction
-            v = regular_reduce(sgb, s, v, verbose)
+            v = regular_reduce(sgb, s, v, verbose, stop_with_val=True)
 
             # if v == 0:
             if v.valuation() > val:

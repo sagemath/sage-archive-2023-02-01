@@ -106,8 +106,6 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         sage: C = Curve([x^2 - z, z - 8*x], A); C
         Affine Curve over Finite Field of size 7 defined by x^2 - z, -x + z
     """
-    _point = AffineCurvePoint_field
-
     def __init__(self, A, X):
         r"""
         Initialize.
@@ -129,11 +127,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         """
         if not is_AffineSpace(A):
             raise TypeError("A (={}) must be an affine space".format(A))
-        Curve_generic.__init__(self, A, X)
 
-        d = self.dimension()
-        if d != 1:
-            raise ValueError("defining equations (={}) define a scheme of dimension {} != 1".format(X, d))
+        Curve_generic.__init__(self, A, X)
 
     def _repr_type(self):
         r"""
@@ -198,6 +193,592 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         """
         from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
+
+
+class AffinePlaneCurve(AffineCurve):
+    """
+    Affine plane curves.
+    """
+    def __init__(self, A, f):
+        r"""
+        Initialize.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^3 - y^2], A); C
+            Affine Plane Curve over Rational Field defined by x^3 - y^2
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(CC, 2)
+            sage: C = Curve([y^2 + x^2], A); C
+            Affine Plane Curve over Complex Field with 53 bits of precision defined
+            by x^2 + y^2
+        """
+        if not (is_AffineSpace(A) and A.dimension != 2):
+            raise TypeError("Argument A (= %s) must be an affine plane." % A)
+
+        super(AffinePlaneCurve, self).__init__(A, [f])
+
+    def _repr_type(self):
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y - 7/2*x^5 + x - 3], A)
+            sage: C._repr_type()
+            'Affine Plane'
+        """
+        return "Affine Plane"
+
+    def divisor_of_function(self, r):
+        """
+        Return the divisor of a function on a curve.
+
+        INPUT: r is a rational function on X
+
+        OUTPUT:
+
+
+        -  ``list`` - The divisor of r represented as a list of
+           coefficients and points. (TODO: This will change to a more
+           structural output in the future.)
+
+
+        EXAMPLES::
+
+            sage: F = GF(5)
+            sage: P2 = AffineSpace(2, F, names = 'xy')
+            sage: R = P2.coordinate_ring()
+            sage: x, y = R.gens()
+            sage: f = y^2 - x^9 - x
+            sage: C = Curve(f)
+            sage: K = FractionField(R)
+            sage: r = 1/x
+            sage: C.divisor_of_function(r)     # todo: not implemented (broken)
+                  [[-1, (0, 0, 1)]]
+            sage: r = 1/x^3
+            sage: C.divisor_of_function(r)     # todo: not implemented (broken)
+                  [[-3, (0, 0, 1)]]
+        """
+        F = self.base_ring()
+        f = self.defining_polynomial()
+        pts = self.places_on_curve()
+        R = f.parent()
+        x, y = R.gens()
+        R0 = PolynomialRing(F, 3, names=[str(x), str(y), "t"])
+        vars0 = R0.gens()
+        t = vars0[2]
+        divf = []
+        for pt0 in pts:
+            if pt0[2] != F(0):
+                lcs = self.local_coordinates(pt0, 5)
+                yt = lcs[1]
+                xt = lcs[0]
+                ldg = degree_lowest_rational_function(r(xt, yt), t)
+                if ldg != 0:
+                    divf.append([ldg, pt0])
+        return divf
+
+    def local_coordinates(self, pt, n):
+        r"""
+        Return local coordinates to precision n at the given point.
+
+        Behaviour is flaky - some choices of `n` are worst that
+        others.
+
+
+        INPUT:
+
+
+        -  ``pt`` - an F-rational point on X which is not a
+           point of ramification for the projection (x,y) - x.
+
+        -  ``n`` - the number of terms desired
+
+
+        OUTPUT: x = x0 + t y = y0 + power series in t
+
+        EXAMPLES::
+
+            sage: F = GF(5)
+            sage: pt = (2,3)
+            sage: R = PolynomialRing(F,2, names = ['x','y'])
+            sage: x,y = R.gens()
+            sage: f = y^2-x^9-x
+            sage: C = Curve(f)
+            sage: C.local_coordinates(pt, 9)
+            [t + 2, -2*t^12 - 2*t^11 + 2*t^9 + t^8 - 2*t^7 - 2*t^6 - 2*t^4 + t^3 - 2*t^2 - 2]
+        """
+        f = self.defining_polynomial()
+        R = f.parent()
+        F = self.base_ring()
+        p = F.characteristic()
+        x0 = F(pt[0])
+        y0 = F(pt[1])
+        astr = ["a"+str(i) for i in range(1,2*n)]
+        x,y = R.gens()
+        R0 = PolynomialRing(F,2*n+2,names = [str(x),str(y),"t"]+astr)
+        vars0 = R0.gens()
+        t = vars0[2]
+        yt = y0*t**0+add([vars0[i]*t**(i-2) for i in range(3,2*n+2)])
+        xt = x0+t
+        ft = f(xt,yt)
+        S = singular
+        S.eval('ring s = '+str(p)+','+str(R0.gens())+',lp;')
+        S.eval('poly f = '+str(ft) + ';')
+        c = S('coeffs(%s, t)' % ft)
+        N = int(c.size())
+        b = ','.join("%s[%s,1]" % (c.name(), i) for i in range(2, N//2-4))
+        cmd = 'ideal I = ' + b
+        S.eval(cmd)
+        S.eval('short=0')    # print using *'s and ^'s.
+        c = S.eval('slimgb(I)')
+        d = c.split("=")
+        d = d[1:]
+        d[len(d)-1] += "\n"
+        e = [xx[:xx.index("\n")] for xx in d]
+        vals = []
+        for x in e:
+            for y in vars0:
+                if str(y) in x:
+                    if len(x.replace(str(y),"")) != 0:
+                        i = x.find("-")
+                        if i>0:
+                            vals.append([eval(x[1:i]),x[:i],F(eval(x[i+1:]))])
+                        i = x.find("+")
+                        if i>0:
+                            vals.append([eval(x[1:i]),x[:i],-F(eval(x[i+1:]))])
+                    else:
+                        vals.append([eval(str(y)[1:]),str(y),F(0)])
+        vals.sort()
+        return [x0 + t, y0 + add(v[2] * t**(j+1) for j, v in enumerate(vals))]
+
+    def plot(self, *args, **kwds):
+        r"""
+        Plot the real points on this affine plane curve.
+
+        INPUT:
+
+
+        -  ``self`` - an affine plane curve
+
+        -  ``*args`` - optional tuples (variable, minimum, maximum) for
+           plotting dimensions
+
+        -  ``**kwds`` - optional keyword arguments passed on to
+           ``implicit_plot``
+
+
+        EXAMPLES:
+
+        A cuspidal curve::
+
+            sage: R.<x, y> = QQ[]
+            sage: C = Curve(x^3 - y^2)
+            sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
+
+        A 5-nodal curve of degree 11.  This example also illustrates
+        some of the optional arguments::
+
+            sage: R.<x, y> = ZZ[]
+            sage: C = Curve(32*x^2 - 2097152*y^11 + 1441792*y^9 - 360448*y^7 + 39424*y^5 - 1760*y^3 + 22*y - 1)
+            sage: C.plot((x, -1, 1), (y, -1, 1), plot_points=400)
+            Graphics object consisting of 1 graphics primitive
+
+        A line over `\mathbf{RR}`::
+
+            sage: R.<x, y> = RR[]
+            sage: C = Curve(R(y - sqrt(2)*x))
+            sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
+        """
+        I = self.defining_ideal()
+        return I.plot(*args, **kwds)
+
+    def is_transverse(self, C, P):
+        r"""
+        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
+
+        The intersection at ``P`` is transverse if ``P`` is a nonsingular point of both curves, and if the
+        tangents of the curves at ``P`` are distinct.
+
+        INPUT:
+
+        - ``C`` -- a curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of both curves.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 - 1], A)
+            sage: D = Curve([x - 1], A)
+            sage: Q = A([1,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^3 + 2)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = A.curve([x*y])
+            sage: D = A.curve([y - b*x])
+            sage: Q = A([0,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y - x^3], A)
+            sage: D = Curve([y + x], A)
+            sage: Q = A([0,0])
+            sage: C.is_transverse(D, Q)
+            True
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve" % (P, C))
+        if self.is_singular(P) or C.is_singular(P):
+            return False
+
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
+
+    def multiplicity(self, P):
+        r"""
+        Return the multiplicity of this affine plane curve at the point ``P``.
+
+        In the special case of affine plane curves, the multiplicity of an affine
+        plane curve at the point (0,0) can be computed as the minimum of the degrees
+        of the homogeneous components of its defining polynomial. To compute the
+        multiplicity of a different point, a linear change of coordinates is used.
+
+        This curve must be defined over a field. An error if raised if ``P`` is
+        not a point on this curve.
+
+        INPUT:
+
+        - ``P`` -- a point in the ambient space of this curve.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^2 - x^3], A)
+            sage: Q1 = A([1,1])
+            sage: C.multiplicity(Q1)
+            1
+            sage: Q2 = A([0,0])
+            sage: C.multiplicity(Q2)
+            2
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQbar,2)
+            sage: C = Curve([-x^7 + (-7)*x^6 + y^6 + (-21)*x^5 + 12*y^5 + (-35)*x^4 + 60*y^4 +\
+            (-35)*x^3 + 160*y^3 + (-21)*x^2 + 240*y^2 + (-7)*x + 192*y + 63], A)
+            sage: Q = A([-1,-2])
+            sage: C.multiplicity(Q)
+            6
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([y^3 - x^3 + x^6])
+            sage: Q = A([1,1])
+            sage: C.multiplicity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(1, 1)) is not a point on (=Affine Plane Curve over
+            Rational Field defined by x^6 - x^3 + y^3)
+        """
+        if not self.base_ring() in Fields():
+            raise TypeError("curve must be defined over a field")
+
+        # Check whether P is a point on this curve
+        try:
+            P = self(P)
+        except TypeError:
+            raise TypeError("(=%s) is not a point on (=%s)" % (P, self))
+
+        # Apply a linear change of coordinates to self so that P becomes (0,0)
+        AA = self.ambient_space()
+        f = self.defining_polynomials()[0](AA.gens()[0] + P[0], AA.gens()[1] + P[1])
+
+        # Compute the multiplicity of the new curve at (0,0), which is the minimum of the degrees of its
+        # nonzero terms
+        return min([g.degree() for g in f.monomials()])
+
+    def tangents(self, P, factor=True):
+        r"""
+        Return the tangents of this affine plane curve at the point ``P``.
+
+        The point ``P`` must be a point on this curve.
+
+        INPUT:
+
+        - ``P`` -- a point on this curve
+
+        - ``factor`` -- (default: True) whether to attempt computing the
+          polynomials of the individual tangent lines over the base field of this
+          curve, or to just return the polynomial corresponding to the union of
+          the tangent lines (which requires fewer computations)
+
+        OUTPUT: a list of polynomials in the coordinate ring of the ambient space
+
+        EXAMPLES::
+
+            sage: set_verbose(-1)
+            sage: A.<x,y> = AffineSpace(QQbar, 2)
+            sage: C = Curve([x^5*y^3 + 2*x^4*y^4 + x^3*y^5 + 3*x^4*y^3 + 6*x^3*y^4 + 3*x^2*y^5\
+            + 3*x^3*y^3 + 6*x^2*y^4 + 3*x*y^5 + x^5 + 10*x^4*y + 40*x^3*y^2 + 81*x^2*y^3 + 82*x*y^4\
+            + 33*y^5], A)
+            sage: Q = A([0,0])
+            sage: C.tangents(Q)
+            [x + 3.425299577684700?*y, x + (1.949159013086856? + 1.179307909383728?*I)*y,
+            x + (1.949159013086856? - 1.179307909383728?*I)*y, x + (1.338191198070795? + 0.2560234251008043?*I)*y,
+            x + (1.338191198070795? - 0.2560234251008043?*I)*y]
+            sage: C.tangents(Q, factor=False)
+            [120*x^5 + 1200*x^4*y + 4800*x^3*y^2 + 9720*x^2*y^3 + 9840*x*y^4 + 3960*y^5]
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 - 3)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
+            sage: Q = A([0,0])
+            sage: C.tangents(Q)
+            [x + (-1/3*b)*y, x + (1/3*b)*y]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([y^2 - x^3 - x^2])
+            sage: Q = A([0,0])
+            sage: C.tangents(Q)
+            [x - y, x + y]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([y*x - x^4 + 2*x^2])
+            sage: Q = A([1,1])
+            sage: C.tangents(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(1, 1)) is not a point on (=Affine Plane Curve over
+            Rational Field defined by -x^4 + 2*x^2 + x*y)
+        """
+        r = self.multiplicity(P)
+        f = self.defining_polynomial()
+        # move P to (0,0)
+        vars = self.ambient_space().gens()
+        coords = [vars[0] + P[0], vars[1] + P[1]]
+        f = f(coords)
+        coords = [vars[0] - P[0], vars[1] - P[1]] # coords to change back with
+        deriv = [f.derivative(vars[0],i).derivative(vars[1], r-i)([0,0]) for i in range(r+1)]
+        T = sum([binomial(r,i)*deriv[i]*(vars[0])**i*(vars[1])**(r-i) for i in range(r+1)])
+        if not factor:
+            return [T(coords)]
+        if self.base_ring() == QQbar:
+            fact = []
+            # first add tangents corresponding to vars[0], vars[1] if they divide T
+            t = min([e[0] for e in T.exponents()])
+            # vars[0] divides T
+            if t > 0:
+                fact.append(vars[0])
+                # divide T by that power of vars[0]
+                T = self.ambient_space().coordinate_ring()(dict([((v[0] - t,v[1]), h) for (v,h) in T.dict().items()]))
+            t = min([e[1] for e in T.exponents()])
+            # vars[1] divides T
+            if t > 0:
+                fact.append(vars[1])
+                # divide T by that power of vars[1]
+                T = self.ambient_space().coordinate_ring()(dict([((v[0],v[1] - t), h) for (v,h) in T.dict().items()]))
+            # T is homogeneous in var[0], var[1] if nonconstant, so dehomogenize
+            if not T in self.base_ring():
+                if T.degree(vars[0]) > 0:
+                    T = T(vars[0], 1)
+                    roots = T.univariate_polynomial().roots()
+                    fact.extend([vars[0] - roots[i][0]*vars[1] for i in range(len(roots))])
+                else:
+                    T = T(1, vars[1])
+                    roots = T.univariate_polynomial().roots()
+                    fact.extend([vars[1] - roots[i][0]*vars[0] for i in range(len(roots))])
+            return [ff(coords) for ff in fact]
+        else:
+            return [l[0](coords) for l in T.factor()]
+
+    def is_ordinary_singularity(self, P):
+        r"""
+        Return whether the singular point ``P`` of this affine plane curve is
+        an ordinary singularity.
+
+        The point ``P`` is an ordinary singularity of this curve if it is a
+        singular point, and if the tangents of this curve at ``P`` are
+        distinct.
+
+        INPUT:
+
+        - ``P`` -- a point on this curve
+
+        OUTPUT:
+
+        ``True`` or ``False`` depending on whether ``P`` is or is not an ordinary
+        singularity of this curve, respectively. An error is raised if ``P`` is
+        not a singular point of this curve.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^2 - x^3], A)
+            sage: Q = A([0,0])
+            sage: C.is_ordinary_singularity(Q)
+            False
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 - 3)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
+            sage: Q = A([0,0])
+            sage: C.is_ordinary_singularity(Q)
+            True
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([x^2*y - y^2*x + y^2 + x^3])
+            sage: Q = A([-1,-1])
+            sage: C.is_ordinary_singularity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(-1, -1)) is not a singular point of (=Affine Plane Curve
+            over Rational Field defined by x^3 + x^2*y - x*y^2 + y^2)
+        """
+        r = self.multiplicity(P)
+        if r < 2:
+            raise TypeError("(=%s) is not a singular point of (=%s)" % (P,self))
+
+        T = self.tangents(P, factor=False)[0]
+        vars = self.ambient_space().gens()
+
+        # use resultants to determine if there is a higher multiplicity tangent
+        if T.degree(vars[0]) > 0:
+            return T.resultant(T.derivative(vars[0]), vars[0]) != 0
+        else:
+            return T.resultant(T.derivative(vars[1]), vars[1]) != 0
+
+    def rational_parameterization(self):
+        r"""
+        Return a rational parameterization of this curve.
+
+        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
+        over the algebraic closure of the rational field). The curve must also be rational (have
+        geometric genus zero).
+
+        The rational parameterization may have coefficients in a quadratic extension of the rational
+        field.
+
+        OUTPUT:
+
+        - a birational map between `\mathbb{A}^{1}` and this curve, given as a scheme morphism.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^2 - x], A)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Plane Curve over Rational Field defined by y^2 - x
+              Defn: Defined on coordinates by sending (t) to
+                    (t^2, t)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Plane Curve over Rational Field defined by x^4 +
+            2*x^2*y^2 + y^4 - 4*x^3 - 4*x*y^2 + 3*x^2 - y^2
+              Defn: Defined on coordinates by sending (t) to
+                    ((-12*t^4 + 6*t^3 + 4*t^2 - 2*t)/(-25*t^4 + 40*t^3 - 26*t^2 +
+            8*t - 1), (-9*t^4 + 12*t^3 - 4*t + 1)/(-25*t^4 + 40*t^3 - 26*t^2 + 8*t - 1))
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 + 7], A)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Number Field in a with defining polynomial a^2 + 7
+              To:   Affine Plane Curve over Number Field in a with defining
+            polynomial a^2 + 7 defined by x^2 + y^2 + 7
+              Defn: Defined on coordinates by sending (t) to
+                    ((-7*t^2 + 7)/((-a)*t^2 + (-a)), 14*t/((-a)*t^2 + (-a)))
+        """
+        para = self.projective_closure(i=0).rational_parameterization().defining_polynomials()
+        # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables
+        R = para[0].parent()
+        A_line = AffineSpace(R.base_ring(), 1, 't')
+        para = [A_line.coordinate_ring()(para[i].substitute({R.gens()[0]: 1})) for i in range(3)]
+        C = self.change_ring(R.base_ring())
+        # because of the parameter i=0, the projective closure is constructed with respect to the
+        # affine patch corresponding to the first coordinate being nonzero. Thus para[0] will not be
+        # the zero polynomial, and dehomogenization won't change this
+        H = Hom(A_line, C)
+        return H([para[1]/para[0], para[2]/para[0]])
+
+
+class AffineCurve_field(AffineCurve):
+    """
+    Affine curves over fields.
+    """
+    _point = AffineCurvePoint_field
+
+    def __init__(self, A, X):
+        r"""
+        Initialize.
+
+        EXAMPLES::
+
+            sage: R.<v> = QQ[]
+            sage: K.<u> = NumberField(v^2 + 3)
+            sage: A.<x,y,z> = AffineSpace(K, 3)
+            sage: C = Curve([z - u*x^2, y^2], A); C
+            Affine Curve over Number Field in u with defining polynomial v^2 + 3
+            defined by (-u)*x^2 + z, y^2
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(GF(7), 3)
+            sage: C = Curve([x^2 - z, z - 8*x], A); C
+            Affine Curve over Finite Field of size 7 defined by x^2 - z, -x + z
+        """
+        super(AffineCurve_field, self).__init__(A, X)
+
+        if not A.base_ring() in Fields():
+            raise TypeError("curve not defined over a field")
+
+        d = self.dimension()
+        if d != 1:
+            raise ValueError("defining equations (={}) define a scheme of dimension {} != 1".format(X, d))
 
     def projection(self, indices, AS=None):
         r"""
@@ -981,556 +1562,11 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         return tuple([tuple(patches), tuple(t_maps), tuple(p_maps)])
 
 
-class AffinePlaneCurve(AffineCurve):
+class AffinePlaneCurve_field(AffinePlaneCurve, AffineCurve_field):
     """
-    Affine plane curves.
+    Affine plane curves over fields.
     """
     _point = AffinePlaneCurvePoint_field
-
-    def __init__(self, A, f):
-        r"""
-        Initialize.
-
-        EXAMPLES::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([x^3 - y^2], A); C
-            Affine Plane Curve over Rational Field defined by x^3 - y^2
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(CC, 2)
-            sage: C = Curve([y^2 + x^2], A); C
-            Affine Plane Curve over Complex Field with 53 bits of precision defined
-            by x^2 + y^2
-        """
-        if not (is_AffineSpace(A) and A.dimension != 2):
-            raise TypeError("Argument A (= %s) must be an affine plane." % A)
-        super(AffinePlaneCurve, self).__init__(A, [f])
-
-    def _repr_type(self):
-        r"""
-        Return a string representation of the type of this curve.
-
-        EXAMPLES::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([y - 7/2*x^5 + x - 3], A)
-            sage: C._repr_type()
-            'Affine Plane'
-        """
-        return "Affine Plane"
-
-    def divisor_of_function(self, r):
-        """
-        Return the divisor of a function on a curve.
-
-        INPUT: r is a rational function on X
-
-        OUTPUT:
-
-
-        -  ``list`` - The divisor of r represented as a list of
-           coefficients and points. (TODO: This will change to a more
-           structural output in the future.)
-
-
-        EXAMPLES::
-
-            sage: F = GF(5)
-            sage: P2 = AffineSpace(2, F, names = 'xy')
-            sage: R = P2.coordinate_ring()
-            sage: x, y = R.gens()
-            sage: f = y^2 - x^9 - x
-            sage: C = Curve(f)
-            sage: K = FractionField(R)
-            sage: r = 1/x
-            sage: C.divisor_of_function(r)     # todo: not implemented (broken)
-                  [[-1, (0, 0, 1)]]
-            sage: r = 1/x^3
-            sage: C.divisor_of_function(r)     # todo: not implemented (broken)
-                  [[-3, (0, 0, 1)]]
-        """
-        F = self.base_ring()
-        f = self.defining_polynomial()
-        pts = self.places_on_curve()
-        R = f.parent()
-        x, y = R.gens()
-        R0 = PolynomialRing(F, 3, names=[str(x), str(y), "t"])
-        vars0 = R0.gens()
-        t = vars0[2]
-        divf = []
-        for pt0 in pts:
-            if pt0[2] != F(0):
-                lcs = self.local_coordinates(pt0, 5)
-                yt = lcs[1]
-                xt = lcs[0]
-                ldg = degree_lowest_rational_function(r(xt, yt), t)
-                if ldg != 0:
-                    divf.append([ldg, pt0])
-        return divf
-
-    def local_coordinates(self, pt, n):
-        r"""
-        Return local coordinates to precision n at the given point.
-
-        Behaviour is flaky - some choices of `n` are worst that
-        others.
-
-
-        INPUT:
-
-
-        -  ``pt`` - an F-rational point on X which is not a
-           point of ramification for the projection (x,y) - x.
-
-        -  ``n`` - the number of terms desired
-
-
-        OUTPUT: x = x0 + t y = y0 + power series in t
-
-        EXAMPLES::
-
-            sage: F = GF(5)
-            sage: pt = (2,3)
-            sage: R = PolynomialRing(F,2, names = ['x','y'])
-            sage: x,y = R.gens()
-            sage: f = y^2-x^9-x
-            sage: C = Curve(f)
-            sage: C.local_coordinates(pt, 9)
-            [t + 2, -2*t^12 - 2*t^11 + 2*t^9 + t^8 - 2*t^7 - 2*t^6 - 2*t^4 + t^3 - 2*t^2 - 2]
-        """
-        f = self.defining_polynomial()
-        R = f.parent()
-        F = self.base_ring()
-        p = F.characteristic()
-        x0 = F(pt[0])
-        y0 = F(pt[1])
-        astr = ["a"+str(i) for i in range(1,2*n)]
-        x,y = R.gens()
-        R0 = PolynomialRing(F,2*n+2,names = [str(x),str(y),"t"]+astr)
-        vars0 = R0.gens()
-        t = vars0[2]
-        yt = y0*t**0+add([vars0[i]*t**(i-2) for i in range(3,2*n+2)])
-        xt = x0+t
-        ft = f(xt,yt)
-        S = singular
-        S.eval('ring s = '+str(p)+','+str(R0.gens())+',lp;')
-        S.eval('poly f = '+str(ft) + ';')
-        c = S('coeffs(%s, t)' % ft)
-        N = int(c.size())
-        b = ','.join("%s[%s,1]" % (c.name(), i) for i in range(2, N//2-4))
-        cmd = 'ideal I = ' + b
-        S.eval(cmd)
-        S.eval('short=0')    # print using *'s and ^'s.
-        c = S.eval('slimgb(I)')
-        d = c.split("=")
-        d = d[1:]
-        d[len(d)-1] += "\n"
-        e = [xx[:xx.index("\n")] for xx in d]
-        vals = []
-        for x in e:
-            for y in vars0:
-                if str(y) in x:
-                    if len(x.replace(str(y),"")) != 0:
-                        i = x.find("-")
-                        if i>0:
-                            vals.append([eval(x[1:i]),x[:i],F(eval(x[i+1:]))])
-                        i = x.find("+")
-                        if i>0:
-                            vals.append([eval(x[1:i]),x[:i],-F(eval(x[i+1:]))])
-                    else:
-                        vals.append([eval(str(y)[1:]),str(y),F(0)])
-        vals.sort()
-        return [x0 + t, y0 + add(v[2] * t**(j+1) for j, v in enumerate(vals))]
-
-    def plot(self, *args, **kwds):
-        r"""
-        Plot the real points on this affine plane curve.
-
-        INPUT:
-
-
-        -  ``self`` - an affine plane curve
-
-        -  ``*args`` - optional tuples (variable, minimum, maximum) for
-           plotting dimensions
-
-        -  ``**kwds`` - optional keyword arguments passed on to
-           ``implicit_plot``
-
-
-        EXAMPLES:
-
-        A cuspidal curve::
-
-            sage: R.<x, y> = QQ[]
-            sage: C = Curve(x^3 - y^2)
-            sage: C.plot()
-            Graphics object consisting of 1 graphics primitive
-
-        A 5-nodal curve of degree 11.  This example also illustrates
-        some of the optional arguments::
-
-            sage: R.<x, y> = ZZ[]
-            sage: C = Curve(32*x^2 - 2097152*y^11 + 1441792*y^9 - 360448*y^7 + 39424*y^5 - 1760*y^3 + 22*y - 1)
-            sage: C.plot((x, -1, 1), (y, -1, 1), plot_points=400)
-            Graphics object consisting of 1 graphics primitive
-
-        A line over `\mathbf{RR}`::
-
-            sage: R.<x, y> = RR[]
-            sage: C = Curve(R(y - sqrt(2)*x))
-            sage: C.plot()
-            Graphics object consisting of 1 graphics primitive
-        """
-        I = self.defining_ideal()
-        return I.plot(*args, **kwds)
-
-    def is_transverse(self, C, P):
-        r"""
-        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
-
-        The intersection at ``P`` is transverse if ``P`` is a nonsingular point of both curves, and if the
-        tangents of the curves at ``P`` are distinct.
-
-        INPUT:
-
-        - ``C`` -- a curve in the ambient space of this curve.
-
-        - ``P`` -- a point in the intersection of both curves.
-
-        OUTPUT: Boolean.
-
-        EXAMPLES::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([x^2 + y^2 - 1], A)
-            sage: D = Curve([x - 1], A)
-            sage: Q = A([1,0])
-            sage: C.is_transverse(D, Q)
-            False
-
-        ::
-
-            sage: R.<a> = QQ[]
-            sage: K.<b> = NumberField(a^3 + 2)
-            sage: A.<x,y> = AffineSpace(K, 2)
-            sage: C = A.curve([x*y])
-            sage: D = A.curve([y - b*x])
-            sage: Q = A([0,0])
-            sage: C.is_transverse(D, Q)
-            False
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([y - x^3], A)
-            sage: D = Curve([y + x], A)
-            sage: Q = A([0,0])
-            sage: C.is_transverse(D, Q)
-            True
-        """
-        if not self.intersects_at(C, P):
-            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve" % (P, C))
-        if self.is_singular(P) or C.is_singular(P):
-            return False
-
-        # there is only one tangent at a nonsingular point of a plane curve
-        return not self.tangents(P)[0] == C.tangents(P)[0]
-
-    def multiplicity(self, P):
-        r"""
-        Return the multiplicity of this affine plane curve at the point ``P``.
-
-        In the special case of affine plane curves, the multiplicity of an affine
-        plane curve at the point (0,0) can be computed as the minimum of the degrees
-        of the homogeneous components of its defining polynomial. To compute the
-        multiplicity of a different point, a linear change of coordinates is used.
-
-        This curve must be defined over a field. An error if raised if ``P`` is
-        not a point on this curve.
-
-        INPUT:
-
-        - ``P`` -- a point in the ambient space of this curve.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([y^2 - x^3], A)
-            sage: Q1 = A([1,1])
-            sage: C.multiplicity(Q1)
-            1
-            sage: Q2 = A([0,0])
-            sage: C.multiplicity(Q2)
-            2
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQbar,2)
-            sage: C = Curve([-x^7 + (-7)*x^6 + y^6 + (-21)*x^5 + 12*y^5 + (-35)*x^4 + 60*y^4 +\
-            (-35)*x^3 + 160*y^3 + (-21)*x^2 + 240*y^2 + (-7)*x + 192*y + 63], A)
-            sage: Q = A([-1,-2])
-            sage: C.multiplicity(Q)
-            6
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = A.curve([y^3 - x^3 + x^6])
-            sage: Q = A([1,1])
-            sage: C.multiplicity(Q)
-            Traceback (most recent call last):
-            ...
-            TypeError: (=(1, 1)) is not a point on (=Affine Plane Curve over
-            Rational Field defined by x^6 - x^3 + y^3)
-        """
-        if not self.base_ring() in Fields():
-            raise TypeError("curve must be defined over a field")
-
-        # Check whether P is a point on this curve
-        try:
-            P = self(P)
-        except TypeError:
-            raise TypeError("(=%s) is not a point on (=%s)" % (P, self))
-
-        # Apply a linear change of coordinates to self so that P becomes (0,0)
-        AA = self.ambient_space()
-        f = self.defining_polynomials()[0](AA.gens()[0] + P[0], AA.gens()[1] + P[1])
-
-        # Compute the multiplicity of the new curve at (0,0), which is the minimum of the degrees of its
-        # nonzero terms
-        return min([g.degree() for g in f.monomials()])
-
-    def tangents(self, P, factor=True):
-        r"""
-        Return the tangents of this affine plane curve at the point ``P``.
-
-        The point ``P`` must be a point on this curve.
-
-        INPUT:
-
-        - ``P`` -- a point on this curve
-
-        - ``factor`` -- (default: True) whether to attempt computing the
-          polynomials of the individual tangent lines over the base field of this
-          curve, or to just return the polynomial corresponding to the union of
-          the tangent lines (which requires fewer computations)
-
-        OUTPUT: a list of polynomials in the coordinate ring of the ambient space
-
-        EXAMPLES::
-
-            sage: set_verbose(-1)
-            sage: A.<x,y> = AffineSpace(QQbar, 2)
-            sage: C = Curve([x^5*y^3 + 2*x^4*y^4 + x^3*y^5 + 3*x^4*y^3 + 6*x^3*y^4 + 3*x^2*y^5\
-            + 3*x^3*y^3 + 6*x^2*y^4 + 3*x*y^5 + x^5 + 10*x^4*y + 40*x^3*y^2 + 81*x^2*y^3 + 82*x*y^4\
-            + 33*y^5], A)
-            sage: Q = A([0,0])
-            sage: C.tangents(Q)
-            [x + 3.425299577684700?*y, x + (1.949159013086856? + 1.179307909383728?*I)*y,
-            x + (1.949159013086856? - 1.179307909383728?*I)*y, x + (1.338191198070795? + 0.2560234251008043?*I)*y,
-            x + (1.338191198070795? - 0.2560234251008043?*I)*y]
-            sage: C.tangents(Q, factor=False)
-            [120*x^5 + 1200*x^4*y + 4800*x^3*y^2 + 9720*x^2*y^3 + 9840*x*y^4 + 3960*y^5]
-
-        ::
-
-            sage: R.<a> = QQ[]
-            sage: K.<b> = NumberField(a^2 - 3)
-            sage: A.<x,y> = AffineSpace(K, 2)
-            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
-            sage: Q = A([0,0])
-            sage: C.tangents(Q)
-            [x + (-1/3*b)*y, x + (1/3*b)*y]
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = A.curve([y^2 - x^3 - x^2])
-            sage: Q = A([0,0])
-            sage: C.tangents(Q)
-            [x - y, x + y]
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = A.curve([y*x - x^4 + 2*x^2])
-            sage: Q = A([1,1])
-            sage: C.tangents(Q)
-            Traceback (most recent call last):
-            ...
-            TypeError: (=(1, 1)) is not a point on (=Affine Plane Curve over
-            Rational Field defined by -x^4 + 2*x^2 + x*y)
-        """
-        r = self.multiplicity(P)
-        f = self.defining_polynomial()
-        # move P to (0,0)
-        vars = self.ambient_space().gens()
-        coords = [vars[0] + P[0], vars[1] + P[1]]
-        f = f(coords)
-        coords = [vars[0] - P[0], vars[1] - P[1]] # coords to change back with
-        deriv = [f.derivative(vars[0],i).derivative(vars[1], r-i)([0,0]) for i in range(r+1)]
-        T = sum([binomial(r,i)*deriv[i]*(vars[0])**i*(vars[1])**(r-i) for i in range(r+1)])
-        if not factor:
-            return [T(coords)]
-        if self.base_ring() == QQbar:
-            fact = []
-            # first add tangents corresponding to vars[0], vars[1] if they divide T
-            t = min([e[0] for e in T.exponents()])
-            # vars[0] divides T
-            if t > 0:
-                fact.append(vars[0])
-                # divide T by that power of vars[0]
-                T = self.ambient_space().coordinate_ring()(dict([((v[0] - t,v[1]), h) for (v,h) in T.dict().items()]))
-            t = min([e[1] for e in T.exponents()])
-            # vars[1] divides T
-            if t > 0:
-                fact.append(vars[1])
-                # divide T by that power of vars[1]
-                T = self.ambient_space().coordinate_ring()(dict([((v[0],v[1] - t), h) for (v,h) in T.dict().items()]))
-            # T is homogeneous in var[0], var[1] if nonconstant, so dehomogenize
-            if not T in self.base_ring():
-                if T.degree(vars[0]) > 0:
-                    T = T(vars[0], 1)
-                    roots = T.univariate_polynomial().roots()
-                    fact.extend([vars[0] - roots[i][0]*vars[1] for i in range(len(roots))])
-                else:
-                    T = T(1, vars[1])
-                    roots = T.univariate_polynomial().roots()
-                    fact.extend([vars[1] - roots[i][0]*vars[0] for i in range(len(roots))])
-            return [ff(coords) for ff in fact]
-        else:
-            return [l[0](coords) for l in T.factor()]
-
-    def is_ordinary_singularity(self, P):
-        r"""
-        Return whether the singular point ``P`` of this affine plane curve is
-        an ordinary singularity.
-
-        The point ``P`` is an ordinary singularity of this curve if it is a
-        singular point, and if the tangents of this curve at ``P`` are
-        distinct.
-
-        INPUT:
-
-        - ``P`` -- a point on this curve
-
-        OUTPUT:
-
-        ``True`` or ``False`` depending on whether ``P`` is or is not an ordinary
-        singularity of this curve, respectively. An error is raised if ``P`` is
-        not a singular point of this curve.
-
-        EXAMPLES::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([y^2 - x^3], A)
-            sage: Q = A([0,0])
-            sage: C.is_ordinary_singularity(Q)
-            False
-
-        ::
-
-            sage: R.<a> = QQ[]
-            sage: K.<b> = NumberField(a^2 - 3)
-            sage: A.<x,y> = AffineSpace(K, 2)
-            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
-            sage: Q = A([0,0])
-            sage: C.is_ordinary_singularity(Q)
-            True
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = A.curve([x^2*y - y^2*x + y^2 + x^3])
-            sage: Q = A([-1,-1])
-            sage: C.is_ordinary_singularity(Q)
-            Traceback (most recent call last):
-            ...
-            TypeError: (=(-1, -1)) is not a singular point of (=Affine Plane Curve
-            over Rational Field defined by x^3 + x^2*y - x*y^2 + y^2)
-        """
-        r = self.multiplicity(P)
-        if r < 2:
-            raise TypeError("(=%s) is not a singular point of (=%s)" % (P,self))
-
-        T = self.tangents(P, factor=False)[0]
-        vars = self.ambient_space().gens()
-
-        # use resultants to determine if there is a higher multiplicity tangent
-        if T.degree(vars[0]) > 0:
-            return T.resultant(T.derivative(vars[0]), vars[0]) != 0
-        else:
-            return T.resultant(T.derivative(vars[1]), vars[1]) != 0
-
-    def rational_parameterization(self):
-        r"""
-        Return a rational parameterization of this curve.
-
-        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
-        over the algebraic closure of the rational field). The curve must also be rational (have
-        geometric genus zero).
-
-        The rational parameterization may have coefficients in a quadratic extension of the rational
-        field.
-
-        OUTPUT:
-
-        - a birational map between `\mathbb{A}^{1}` and this curve, given as a scheme morphism.
-
-        EXAMPLES::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([y^2 - x], A)
-            sage: C.rational_parameterization()
-            Scheme morphism:
-              From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Plane Curve over Rational Field defined by y^2 - x
-              Defn: Defined on coordinates by sending (t) to
-                    (t^2, t)
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
-            sage: C.rational_parameterization()
-            Scheme morphism:
-              From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Plane Curve over Rational Field defined by x^4 +
-            2*x^2*y^2 + y^4 - 4*x^3 - 4*x*y^2 + 3*x^2 - y^2
-              Defn: Defined on coordinates by sending (t) to
-                    ((-12*t^4 + 6*t^3 + 4*t^2 - 2*t)/(-25*t^4 + 40*t^3 - 26*t^2 +
-            8*t - 1), (-9*t^4 + 12*t^3 - 4*t + 1)/(-25*t^4 + 40*t^3 - 26*t^2 + 8*t - 1))
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = Curve([x^2 + y^2 + 7], A)
-            sage: C.rational_parameterization()
-            Scheme morphism:
-              From: Affine Space of dimension 1 over Number Field in a with defining polynomial a^2 + 7
-              To:   Affine Plane Curve over Number Field in a with defining
-            polynomial a^2 + 7 defined by x^2 + y^2 + 7
-              Defn: Defined on coordinates by sending (t) to
-                    ((-7*t^2 + 7)/((-a)*t^2 + (-a)), 14*t/((-a)*t^2 + (-a)))
-        """
-        para = self.projective_closure(i=0).rational_parameterization().defining_polynomials()
-        # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables
-        R = para[0].parent()
-        A_line = AffineSpace(R.base_ring(), 1, 't')
-        para = [A_line.coordinate_ring()(para[i].substitute({R.gens()[0]: 1})) for i in range(3)]
-        C = self.change_ring(R.base_ring())
-        # because of the parameter i=0, the projective closure is constructed with respect to the
-        # affine patch corresponding to the first coordinate being nonzero. Thus para[0] will not be
-        # the zero polynomial, and dehomogenization won't change this
-        H = Hom(A_line, C)
-        return H([para[1]/para[0], para[2]/para[0]])
 
     def fundamental_group(self):
         r"""
@@ -1593,7 +1629,7 @@ class AffinePlaneCurve(AffineCurve):
         return RiemannSurface(self.defining_polynomial(),**kwargs)
 
 
-class AffinePlaneCurve_finite_field(AffinePlaneCurve):
+class AffinePlaneCurve_finite_field(AffinePlaneCurve_field):
     """
     Affine plane curves over finite fields.
     """
@@ -1746,7 +1782,7 @@ class AffinePlaneCurve_finite_field(AffinePlaneCurve):
             raise ValueError("No algorithm '%s' known"%algorithm)
 
 
-class IntegralAffineCurve(AffineCurve):
+class IntegralAffineCurve(AffineCurve_field):
     """
     Base class for integral affine curves.
     """
@@ -1791,7 +1827,7 @@ class IntegralAffineCurve(AffineCurve):
             (x/(x^5 + 1))*y^4 + x^2/(x^5 + 1)
             sage: C(GF(8^2))
             Set of rational points of Closed subscheme of Affine Space of dimension 2
-            over Finite Field in z6 of size 2^6 defined by: x0^5 + x1^5 + x0*x1 + 1
+            over Finite Field in z6 of size 2^6 defined by: x^5 + y^5 + x*y + 1
 
         ::
 

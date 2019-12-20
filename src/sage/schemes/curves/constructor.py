@@ -35,6 +35,8 @@ AUTHORS:
 #*********************************************************************
 from __future__ import absolute_import
 
+from sage.categories.fields import Fields
+
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
@@ -51,14 +53,18 @@ from sage.schemes.affine.all import AffineSpace
 from sage.schemes.projective.all import ProjectiveSpace
 
 
-from .projective_curve import (ProjectivePlaneCurve,
-                               ProjectiveCurve,
+from .projective_curve import (ProjectiveCurve,
+                               ProjectivePlaneCurve,
+                               ProjectiveCurve_field,
+                               ProjectivePlaneCurve_field,
                                ProjectivePlaneCurve_finite_field,
                                IntegralProjectivePlaneCurve_finite_field,
                                IntegralProjectiveCurve_finite_field)
 
-from .affine_curve import (AffinePlaneCurve,
-                           AffineCurve,
+from .affine_curve import (AffineCurve,
+                           AffinePlaneCurve,
+                           AffineCurve_field,
+                           AffinePlaneCurve_field,
                            AffinePlaneCurve_finite_field,
                            IntegralAffinePlaneCurve_finite_field,
                            IntegralAffineCurve_finite_field)
@@ -228,7 +234,7 @@ def Curve(F, A=None):
             if F.parent().ngens() == 2:
                 if F == 0:
                     raise ValueError("defining polynomial of curve must be nonzero")
-                A = AffineSpace(2, P.base_ring())
+                A = AffineSpace(2, P.base_ring(), names=P.variable_names())
                 A._coordinate_ring = P
             elif F.parent().ngens() == 3:
                 if F == 0:
@@ -245,7 +251,7 @@ def Curve(F, A=None):
                     raise ValueError("defining polynomial of curve must be zero "
                                      "if the ambient space is of dimension 1")
 
-                A = AffineSpace(1, P.base_ring())
+                A = AffineSpace(1, P.base_ring(), names=P.variable_names())
                 A._coordinate_ring = P
             else:
                 raise TypeError("number of variables of F (={}) must be 2 or 3".format(F))
@@ -271,6 +277,8 @@ def Curve(F, A=None):
             if is_FiniteField(k):
                 if A.coordinate_ring().ideal(F).is_prime():
                     return IntegralAffineCurve_finite_field(A, F)
+            if k in Fields():
+                return AffineCurve_field(A, F)
             return AffineCurve(A, F)
 
         if not (len(F) == 1 and F[0] != 0 and F[0].degree() > 0):
@@ -282,6 +290,8 @@ def Curve(F, A=None):
             if len(factors) == 1 and factors[0][1] == 1: # irreducible
                 return IntegralAffinePlaneCurve_finite_field(A, F)
             return AffinePlaneCurve_finite_field(A, F)
+        if k in Fields():
+            return AffinePlaneCurve_field(A, F)
         return AffinePlaneCurve(A, F)
 
     elif is_ProjectiveSpace(A):
@@ -291,6 +301,8 @@ def Curve(F, A=None):
             if is_FiniteField(k):
                 if A.coordinate_ring().ideal(F).is_prime():
                     return IntegralProjectiveCurve_finite_field(A, F)
+            if k in Fields():
+                return ProjectiveCurve_field(A, F)
             return ProjectiveCurve(A, F)
 
         # there is no dimension check when initializing a plane curve, so check
@@ -307,6 +319,8 @@ def Curve(F, A=None):
             if len(factors) == 1 and factors[0][1] == 1: # irreducible
                 return IntegralProjectivePlaneCurve_finite_field(A, F)
             return ProjectivePlaneCurve_finite_field(A, F)
+        if k in Fields():
+            return ProjectivePlaneCurve_field(A, F)
         return ProjectivePlaneCurve(A, F)
 
     else:

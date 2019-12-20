@@ -1145,7 +1145,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
 
-        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system
           should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_projective`

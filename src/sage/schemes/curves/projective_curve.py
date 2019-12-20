@@ -117,8 +117,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         Projective Curve over Cyclotomic Field of order 11 and degree 10 defined
         by -x^2 + (-u)*z^2 + y*w, x*w + (-3*u^2)*z*w
     """
-    _point = ProjectiveCurvePoint_field
-
     def __init__(self, A, X):
         """
         Initialize.
@@ -492,60 +490,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             phi = H([psi(L[0].defining_polynomials()[i]) for i in range(len(L[0].defining_polynomials()))])
         return tuple([phi, C])
 
-    def arithmetic_genus(self):
-        r"""
-        Return the arithmetic genus of this projective curve.
-
-        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. If `P` is the
-        Hilbert polynomial of the defining ideal of this curve, then the arithmetic genus
-        of this curve is `1 - P(0)`. This curve must be irreducible.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: C = P.curve([w*z - x^2, w^2 + y^2 + z^2])
-            sage: C.arithmetic_genus()
-            1
-
-        ::
-
-            sage: P.<x,y,z,w,t> = ProjectiveSpace(GF(7), 4)
-            sage: C = P.curve([t^3 - x*y*w, x^3 + y^3 + z^3, z - w])
-            sage: C.arithmetic_genus()
-            10
-        """
-        if not self.is_irreducible():
-            raise TypeError("this curve must be irreducible")
-        return 1 - self.defining_ideal().hilbert_polynomial()(0)
-
-    def is_complete_intersection(self):
-        r"""
-        Return whether this projective curve is a complete intersection.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: C = Curve([x*y - z*w, x^2 - y*w, y^2*w - x*z*w], P)
-            sage: C.is_complete_intersection()
-            False
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
-            sage: C.is_complete_intersection()
-            True
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: C = Curve([z^2 - y*w, y*z - x*w, y^2 - x*z], P)
-            sage: C.is_complete_intersection()
-            False
-        """
-        singular.lib("sing.lib")
-        I = singular.simplify(self.defining_ideal(), 10)
-        L = singular.is_ci(I).sage()
-        return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
-
 
 class ProjectivePlaneCurve(ProjectiveCurve):
     r"""
@@ -573,8 +517,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         sage: C = Curve([y^2*z - x*z^2 - z^3], P); C
         Projective Plane Curve over Finite Field in v of size 5^2 defined by y^2*z - x*z^2 - z^3
     """
-    _point = ProjectivePlaneCurvePoint_field
-
     def __init__(self, A, f):
         """
         Initialize.
@@ -603,37 +545,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             'Projective Plane'
         """
         return "Projective Plane"
-
-    def arithmetic_genus(self):
-        r"""
-        Return the arithmetic genus of this projective curve.
-
-        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. For a
-        projective plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It
-        need *not* equal the geometric genus (the genus of the normalization of
-        the curve). This curve must be irreducible.
-
-        EXAMPLES::
-
-            sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
-            sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
-            Projective Plane Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
-            sage: C.arithmetic_genus()
-            28
-            sage: C.genus()
-            4
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = Curve([y^3*x - x^2*y*z - 7*z^4])
-            sage: C.arithmetic_genus()
-            3
-        """
-        if not self.is_irreducible():
-            raise TypeError("this curve must be irreducible")
-        d = self.defining_polynomial().total_degree()
-        return Integer(d - 1).binomial(2)
 
     def divisor_of_function(self, r):
         """
@@ -1524,6 +1435,121 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # there is only one tangent at a nonsingular point of a plane curve
         return not self.tangents(P)[0] == C.tangents(P)[0]
 
+
+class ProjectiveCurve_field(ProjectiveCurve):
+    """
+    Projective curves over fields.
+    """
+    _point = ProjectiveCurvePoint_field
+
+    def __init__(self, A, X):
+        """
+        Initialize.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(x*y^2*z^7 - x^10 - x^2*z^8)
+            sage: loads(dumps(C)) == C
+            True
+        """
+        super(ProjectiveCurve_field, self).__init__(A, X)
+
+        if not A.base_ring() in Fields():
+            raise TypeError("curve not defined over a field")
+
+    def arithmetic_genus(self):
+        r"""
+        Return the arithmetic genus of this projective curve.
+
+        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. If `P` is the
+        Hilbert polynomial of the defining ideal of this curve, then the arithmetic genus
+        of this curve is `1 - P(0)`. This curve must be irreducible.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = P.curve([w*z - x^2, w^2 + y^2 + z^2])
+            sage: C.arithmetic_genus()
+            1
+
+        ::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(GF(7), 4)
+            sage: C = P.curve([t^3 - x*y*w, x^3 + y^3 + z^3, z - w])
+            sage: C.arithmetic_genus()
+            10
+        """
+        if not self.is_irreducible():
+            raise TypeError("this curve must be irreducible")
+        return 1 - self.defining_ideal().hilbert_polynomial()(0)
+
+    def is_complete_intersection(self):
+        r"""
+        Return whether this projective curve is a complete intersection.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x*y - z*w, x^2 - y*w, y^2*w - x*z*w], P)
+            sage: C.is_complete_intersection()
+            False
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
+            sage: C.is_complete_intersection()
+            True
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([z^2 - y*w, y*z - x*w, y^2 - x*z], P)
+            sage: C.is_complete_intersection()
+            False
+        """
+        singular.lib("sing.lib")
+        I = singular.simplify(self.defining_ideal(), 10)
+        L = singular.is_ci(I).sage()
+        return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
+
+
+class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):
+    """
+    Projective plane curves over fields.
+    """
+    _point = ProjectivePlaneCurvePoint_field
+
+    def arithmetic_genus(self):
+        r"""
+        Return the arithmetic genus of this projective curve.
+
+        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. For a
+        projective plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It
+        need *not* equal the geometric genus (the genus of the normalization of
+        the curve). This curve must be irreducible.
+
+        EXAMPLES::
+
+            sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
+            sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
+            Projective Plane Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
+            sage: C.arithmetic_genus()
+            28
+            sage: C.genus()
+            4
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^3*x - x^2*y*z - 7*z^4])
+            sage: C.arithmetic_genus()
+            3
+        """
+        if not self.is_irreducible():
+            raise TypeError("this curve must be irreducible")
+        d = self.defining_polynomial().total_degree()
+        return Integer(d - 1).binomial(2)
+
     def fundamental_group(self):
         r"""
         Return a presentation of the fundamental group of the complement
@@ -1652,7 +1678,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         return self.affine_patch(2).riemann_surface(**kwargs)
 
 
-class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
+class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
     """
     Projective plane curves over finite fields
     """
@@ -2017,7 +2043,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
             raise ValueError("No algorithm '{}' known".format(algorithm))
 
 
-class IntegralProjectiveCurve(ProjectiveCurve):
+class IntegralProjectiveCurve(ProjectiveCurve_field):
     """
     Integral projective curve.
     """

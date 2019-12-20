@@ -1317,11 +1317,12 @@ class AffinePlaneCurve(AffineCurve):
 
         - ``P`` -- a point on this curve
 
-        - ``factor`` -- (default: True) whether to attempt computing the polynomials of the individual tangent
-          lines over the base field of this curve, or to just return the polynomial corresponding to the union
-          of the tangent lines (which requires fewer computations)
+        - ``factor`` -- (default: True) whether to attempt computing the
+          polynomials of the individual tangent lines over the base field of this
+          curve, or to just return the polynomial corresponding to the union of
+          the tangent lines (which requires fewer computations)
 
-        OUTPUT: a list of polynomials in the coordinate ring of the ambient space of this curve
+        OUTPUT: a list of polynomials in the coordinate ring of the ambient space
 
         EXAMPLES::
 
@@ -1409,19 +1410,22 @@ class AffinePlaneCurve(AffineCurve):
 
     def is_ordinary_singularity(self, P):
         r"""
-        Return whether the singular point ``P`` of this affine plane curve is an ordinary singularity.
+        Return whether the singular point ``P`` of this affine plane curve is
+        an ordinary singularity.
 
-        The point ``P`` is an ordinary singularity of this curve if it is a singular point, and
-        if the tangents of this curve at ``P`` are distinct.
+        The point ``P`` is an ordinary singularity of this curve if it is a
+        singular point, and if the tangents of this curve at ``P`` are
+        distinct.
 
         INPUT:
 
-        - ``P`` -- a point on this curve.
+        - ``P`` -- a point on this curve
 
         OUTPUT:
 
-        - Boolean. True or False depending on whether ``P`` is or is not an ordinary singularity of this
-          curve, respectively. An error is raised if ``P`` is not a singular point of this curve.
+        ``True`` or ``False`` depending on whether ``P`` is or is not an ordinary
+        singularity of this curve, respectively. An error is raised if ``P`` is
+        not a singular point of this curve.
 
         EXAMPLES::
 

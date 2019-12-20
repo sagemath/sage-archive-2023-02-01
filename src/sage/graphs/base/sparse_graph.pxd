@@ -26,11 +26,16 @@ cdef class SparseGraph(CGraph):
     cdef int hash_length
     cdef int hash_mask
     cdef SparseGraphBTNode **vertices
+    cdef SparseGraphBTNode **vertices_rev
 
+    cdef int _add_arc_unsafe(self, int, int, SparseGraphBTNode **) except -1
+    cdef int _del_arc_unsafe(self, int, int, SparseGraphBTNode **) except -1
+    cdef int _add_arc_label_unsafe(self, int, int, int, SparseGraphBTNode **) except -1
     cdef int add_arc_label_unsafe(self, int, int, int) except -1
     cdef int arc_label_unsafe(self, int, int)
     cpdef int arc_label(self, int u, int v)
     cdef int all_arcs_unsafe(self, int, int, int *, int)
+    cdef int _del_arc_label_unsafe(self, int, int, int, SparseGraphBTNode **)
     cdef int del_arc_label_unsafe(self, int, int, int)
     cpdef del_arc_label(self, int u, int v, int l)
     cdef int has_arc_label_unsafe(self, int, int, int)
@@ -39,6 +44,8 @@ cdef class SparseGraph(CGraph):
     cpdef int in_degree(self, int u)
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
     cdef list out_arcs_unsafe(self, int u, bint labels)
+    cdef int in_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
+    cdef list in_arcs_unsafe(self, int u, bint labels)
 
 cdef class SparseGraphBackend(CGraphBackend):
     cdef int edge_labels_max

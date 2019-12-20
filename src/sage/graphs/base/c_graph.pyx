@@ -1291,8 +1291,6 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: cg,cg_rev = graphs.PetersenGraph()._backend.c_graph()
             sage: cg
             <sage.graphs.base.sparse_graph.SparseGraph object at ...>
-            sage: cg_rev
-            <sage.graphs.base.sparse_graph.SparseGraph object at ...>
         """
         return (self._cg, self._cg_rev)
 
@@ -1485,7 +1483,10 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef int v_int = self.get_vertex(v)
 
-        return self._cg_rev.out_degrees[v_int]
+        if self._cg_rev is not None:
+            return self._cg_rev.out_degrees[v_int]
+
+        return self._cg.in_degrees[v_int]
 
     def add_vertex(self, name):
         """
@@ -1750,12 +1751,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
-        # Sparse
         if self._cg_rev is not None:
             for u_int in self._cg_rev.out_neighbors(v_int):
                 yield self.vertex_label(u_int)
 
-        # Dense
         else:
             for u_int in self._cg.in_neighbors(v_int):
                 yield self.vertex_label(u_int)

@@ -243,7 +243,7 @@ cdef class SparseGraph(CGraph):
 
     """
 
-    def __cinit__(self, int nverts, int expected_degree = 16, int extra_vertices = 10, verts=None, arcs=None):
+    def __cinit__(self, int nverts, int expected_degree = 16, int extra_vertices = 10, verts=None, arcs=None, directed=True):
         """
         Allocation and initialization happen in one place.
 
@@ -279,6 +279,14 @@ cdef class SparseGraph(CGraph):
         # Allocating memory (initialized to zero)
         self.vertices = <SparseGraphBTNode **>check_calloc(
                 nverts * self.hash_length, sizeof(SparseGraphBTNode *))
+        if directed:
+            # In a directed graph we keep also track of the incoming edges.
+            # So each edge has two copies.
+            self.vertices_rev = <SparseGraphBTNode **>check_calloc(
+                    nverts * self.hash_length, sizeof(SparseGraphBTNode *))
+        else:
+            self.vertices_rev = self.vertices
+
         self.in_degrees = <int *>check_calloc(nverts, sizeof(int))
         self.out_degrees = <int *>check_calloc(nverts, sizeof(int))
 
@@ -300,7 +308,7 @@ cdef class SparseGraph(CGraph):
         cdef SparseGraphLLNode *label_temp
         cdef size_t i
 
-        # Freeing the list of arcs attached to each vertex
+        # Freeing the list of arcs attached to each vertex (going out)
         for i from 0 <= i < self.active_vertices.size * self.hash_length:
             temp = &(self.vertices[i])
 
@@ -321,6 +329,31 @@ cdef class SparseGraph(CGraph):
                     sig_free(temp[0])
                     temp[0] = NULL
                     temp = &(self.vertices[i])
+
+        if self.vertices != self.vertices_rev:
+
+            # Freeing the list of arcs attached to each vertex (going in)
+            for i from 0 <= i < self.active_vertices.size * self.hash_length:
+                temp = &(self.vertices_rev[i])
+
+                # While temp[0]=self.vertices_rev[i] is not NULL, find a leaf in the
+                # tree rooted at temp[0] and free it. Then go back to temp[0] and do
+                # it again. When self.vertices_rev[i] is NULL, go for self.vertices_rev[i+1]
+                while temp[0] != NULL:
+                    if temp[0].left != NULL:
+                        temp = &(temp[0].left)
+                    elif temp[0].right != NULL:
+                        temp = &(temp[0].right)
+                    else:
+                        label_temp = temp[0].labels
+                        while label_temp != NULL:
+                            temp[0].labels = label_temp.next
+                            sig_free(label_temp)
+                            label_temp = temp[0].labels
+                        sig_free(temp[0])
+                        temp[0] = NULL
+                        temp = &(self.vertices_rev[i])
+            sig_free(self.vertices_rev)
 
         sig_free(self.vertices)
         sig_free(self.in_degrees)
@@ -382,8 +415,15 @@ cdef class SparseGraph(CGraph):
                 return -1
             bitset_free(bits)
 
+        cdef bint directed = self.vertices != self.vertices_rev
         self.vertices = <SparseGraphBTNode **>check_reallocarray(
                 self.vertices, s_total * self.hash_length, sizeof(SparseGraphBTNode *))
+        if directed:
+            self.vertices_rev = <SparseGraphBTNode **>check_reallocarray(
+                    self.vertices_rev, s_total * self.hash_length, sizeof(SparseGraphBTNode *))
+        else:
+            self.vertices_rev = self.vertices
+
         self.in_degrees = <int *>check_reallocarray(self.in_degrees, s_total, sizeof(int))
         self.out_degrees = <int *>check_reallocarray(self.out_degrees, s_total, sizeof(int))
 
@@ -395,6 +435,9 @@ cdef class SparseGraph(CGraph):
             # self.vertices
             memset(self.vertices + self.active_vertices.size * self.hash_length, 0,
                    new_vertices * self.hash_length * sizeof(SparseGraphBTNode *))
+            if directed:
+                memset(self.vertices_rev + self.active_vertices.size * self.hash_length, 0,
+                       new_vertices * self.hash_length * sizeof(SparseGraphBTNode *))
 
             # self.in_degrees
             memset(self.in_degrees + self.active_vertices.size, 0,
@@ -411,16 +454,17 @@ cdef class SparseGraph(CGraph):
     # Unlabeled arc functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v) except -1:
-        """
-        Adds arc (u, v) to the graph with no label.
+    cdef inline int _add_arc_unsafe(self, int u, int v, SparseGraphBTNode **ins_pt) except -1:
+        r"""
+        .. WARNING::
 
-        INPUT:
-            u, v -- non-negative integers
+            This method is for internal use only. Use :meth:`add_arc_unsafe` instead.
+
+        Adds arc (u, v) to only the ingoing or outgoing arcs
         """
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
+        ins_pt = &ins_pt[i]
         cdef int compared
-        cdef SparseGraphBTNode **ins_pt = &(self.vertices[i])
         while ins_pt[0] != NULL:
             compared = compare(ins_pt[0].vertex, v)
             if compared > 0:
@@ -437,6 +481,24 @@ cdef class SparseGraph(CGraph):
             ins_pt[0].left = NULL
             ins_pt[0].right = NULL
             ins_pt[0].labels = NULL
+
+    cdef int add_arc_unsafe(self, int u, int v) except -1:
+        """
+        Adds arc (u, v) to the graph with no label.
+
+        INPUT:
+            u, v -- non-negative integers
+        """
+        self._add_arc_unsafe(u, v, self.vertices)
+        if u != v or self.vertices != self.vertices_rev:
+            # We add the reverse copy only if u != v or graph is directed.
+            self._add_arc_unsafe(v, u, self.vertices_rev)
+            if self.vertices == self.vertices_rev:
+                # In case of an undirected graph, we have added two arcs.
+                self.in_degrees[u] += 1
+                self.out_degrees[v] += 1
+                self.num_arcs += 1
+
         self.in_degrees[v] += 1
         self.out_degrees[u] += 1
         self.num_arcs += 1
@@ -464,25 +526,22 @@ cdef class SparseGraph(CGraph):
                 temp = temp.right
         return 0
 
-    cdef int del_arc_unsafe(self, int u, int v) except -1:
+    cdef inline int _del_arc_unsafe(self, int u, int v, SparseGraphBTNode **parent) except -1:
         """
-        Deletes *all* arcs from u to v.
+        .. WARNING::
 
-        INPUT:
-            u, v -- non-negative integers, must be in self
+            This method is for internal use only. Use :meth:`del_arc_unsafe` instead.
 
-        OUTPUT:
-            0 -- No error.
-            1 -- No arc to delete.
-
+        Deletes *all* arcs from u to v, returns the number of arcs deleted.
         """
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
+        parent = &parent[i]
         cdef int compared, left_len, right_len
         cdef SparseGraphBTNode *temp
         cdef SparseGraphBTNode **left_child
         cdef SparseGraphBTNode **right_child
-        cdef SparseGraphBTNode **parent = &self.vertices[i]
         cdef SparseGraphLLNode *labels
+        cdef int n_arcs = 0
 
         # Assigning to parent the SparseGraphBTNode corresponding to arc (u,v)
         while parent[0] != NULL:
@@ -496,24 +555,18 @@ cdef class SparseGraph(CGraph):
 
         # If not found, there is no arc to delete !
         if parent[0] == NULL:
-            return 1
+            return n_arcs
 
         # now parent[0] points to the BT node corresponding to (u,v)
         labels = parent[0].labels
-        i = parent[0].number
-        self.in_degrees[v] -= i
-        self.out_degrees[u] -= i
-        self.num_arcs -= i
+        n_arcs += parent[0].number
 
         # Freeing the labels
         while labels != NULL:
-            i = labels.number
+            n_arcs += labels.number
             parent[0].labels = parent[0].labels.next
             sig_free(labels)
             labels = parent[0].labels
-            self.in_degrees[v] -= i
-            self.out_degrees[u] -= i
-            self.num_arcs -= i
 
         # Now, if the SparseGraphBTNode element is to be removed, it has to be
         # replaced in the binary tree by one of its children.
@@ -523,14 +576,14 @@ cdef class SparseGraph(CGraph):
             temp = parent[0]
             parent[0] = parent[0].right
             sig_free(temp)
-            return 0
+            return n_arcs
 
         # If there is no right child
         elif parent[0].right == NULL:
             temp = parent[0]
             parent[0] = parent[0].left
             sig_free(temp)
-            return 0
+            return n_arcs
 
         # Both children
         else:
@@ -561,7 +614,7 @@ cdef class SparseGraph(CGraph):
                 left_child[0] = left_child[0].left
                 parent[0].left = temp.left
                 sig_free(temp)
-                return 0
+                return n_arcs
             else:
                 right_child[0].left = parent[0].left
                 temp = parent[0]
@@ -569,7 +622,33 @@ cdef class SparseGraph(CGraph):
                 right_child[0] = right_child[0].right
                 parent[0].right = temp.right
                 sig_free(temp)
-                return 0
+                return n_arcs
+
+    cdef int del_arc_unsafe(self, int u, int v) except -1:
+        """
+        Deletes *all* arcs from u to v.
+
+        INPUT:
+            u, v -- non-negative integers, must be in self
+
+        OUTPUT:
+            0 -- No error.
+            1 -- No arc to delete.
+
+        """
+        cdef int n_arcs = self._del_arc_unsafe(u, v, self.vertices)
+        if u != v or self.vertices != self.vertices_rev:
+            # We remove the reverse copy only if u != v or graph is directed.
+            self._del_arc_unsafe(v, u, self.vertices_rev)
+            if self.vertices == self.vertices_rev:
+                # In case of an undirected graph, we have added two copies each.
+                self.in_degrees[u] -= n_arcs
+                self.out_degrees[v] -= n_arcs
+                self.num_arcs -= n_arcs
+
+        self.in_degrees[v] -= n_arcs
+        self.out_degrees[u] -= n_arcs
+        self.num_arcs -= n_arcs
 
     ###################################
     # Neighbor functions
@@ -749,21 +828,74 @@ cdef class SparseGraph(CGraph):
         cdef int num_nbrs = 0
         if self.in_degrees[v] == 0:
             return 0
-        for i from 0 <= i < self.active_vertices.size:
-            if not bitset_in(self.active_vertices, i): continue
-            if self.has_arc_unsafe(i, v):
-                if num_nbrs == size:
-                    return -1
-                neighbors[num_nbrs] = i
-                num_nbrs += 1
+
+        cdef SparseGraphBTNode ** pointers[1]
+        cdef list l = []
+        cdef int n_neighbors = self.in_neighbors_BTNode_unsafe(v, pointers)
+        if size >= n_neighbors:
+            for i in range(n_neighbors):
+                neighbors[i] = pointers[0][i].vertex
+        else:
+            for i in range(size):
+                neighbors[i] = pointers[0][i].vertex
+            n_neighbors = -1
+
+        sig_free(pointers[0])
+        return n_neighbors
+
+    cdef int in_neighbors_BTNode_unsafe(self, int v, SparseGraphBTNode *** p_pointers):
+        """
+        Lists the in-neighbors of a vertex as BTNodes
+
+        Technically, this function transforms a binary tree into a list. The
+        information it returns is a list of pointers toward a
+        ``SparseGraphBTNode``, thus a ``SparseGraphBTNode **``.
+
+        INPUT:
+
+        - ``u`` -- the vertex to consider
+
+        - ``p_pointers`` -- a pointer toward a ``SparseGraphBTNode **``, i.e. a
+          ``SparseGraphBTNode ***``. When the function terminates,
+          ``p_pointers[0]`` points toward a filled ``SparseGraphBTNode **``. It
+          returns the length of this array.
+
+        .. NOTE::
+
+            Don't forget to free ``p_pointers[0]``  !
+        """
+        cdef int i, num_nbrs = 0, current_nbr = 0
+        cdef int degree = self.in_degrees[v]
+        if degree == 0:
+            p_pointers[0] = NULL
+            return 0
+        cdef SparseGraphBTNode **pointers = <SparseGraphBTNode **>check_allocarray(degree, sizeof(SparseGraphBTNode *))
+        p_pointers[0] = pointers
+        for i from v * self.hash_length <= i < (v+1) * self.hash_length:
+            if self.vertices_rev[i] == NULL:
+                continue
+            pointers[num_nbrs] = self.vertices_rev[i]
+            num_nbrs += 1
+
+            # While all the neighbors have not been added to the list, explore
+            # element pointers[current_nbr] and append its children to the end
+            # of pointers if necessary, the increment current_nbr.
+            while current_nbr < num_nbrs:
+                if pointers[current_nbr].left != NULL:
+                    pointers[num_nbrs] = pointers[current_nbr].left
+                    num_nbrs += 1
+                if pointers[current_nbr].right != NULL:
+                    pointers[num_nbrs] = pointers[current_nbr].right
+                    num_nbrs += 1
+                current_nbr += 1
         return num_nbrs
 
-    cpdef int in_degree(self, int u):
+    cpdef int in_degree(self, int v):
         """
         Returns the in-degree of ``v``
 
         INPUT:
-         - ``u`` - integer
+         - ``v`` - integer
 
         EXAMPLES::
 
@@ -777,28 +909,71 @@ cdef class SparseGraph(CGraph):
             sage: G.in_degree(1)
             1
         """
-        return self.in_degrees[u]
+        return self.in_degrees[v]
 
+    cdef list in_arcs_unsafe(self, int v, bint labels):
+        r"""
+        Builds the list of arcs into a vertex.
+
+        Note that the source of each edge is *NOT* returned.
+
+        INPUT:
+
+        - ``v`` -- the vertex to consider
+
+        - ``labels`` -- whether to return the labels alors with the outneighbor.
+          If set to ``True``, the function returns a list of pairs
+          ``(destination, label)`` for each arc leaving `u`. If set to
+          ``False``, it returns a list of outneighbors (with multiplicity if
+          several edges link two vertices).
+        """
+        cdef SparseGraphBTNode ** pointers[1]
+        cdef SparseGraphBTNode * node
+        cdef int neighbors = self.in_neighbors_BTNode_unsafe(v, pointers)
+        cdef SparseGraphLLNode *label
+        cdef int i,j
+        cdef list l = []
+        if labels:
+            for i in range(neighbors):
+                node = pointers[0][i]
+                for j in range(node.number):
+                    l.append((node.vertex, 0))
+                label = node.labels
+                while label != NULL:
+                    for k in range(label.number):
+                        l.append((node.vertex, label.label))
+                    label = label.next
+        else:
+            for i in range(neighbors):
+                node = pointers[0][i]
+                for j in range(node.number):
+                    l.append(node.vertex)
+                label = node.labels
+                while label != NULL:
+                    for k in range(label.number):
+                        l.append(node.vertex)
+                    label = label.next
+
+        if pointers[0] != NULL:
+            sig_free(pointers[0])
+
+        return l
 
     ###################################
     # Labeled arc functions
     ###################################
 
-    cdef int add_arc_label_unsafe(self, int u, int v, int l) except -1:
-        """
-        Adds arc (u, v) to the graph with label l.
+    cdef inline int _add_arc_label_unsafe(self, int u, int v, int l, SparseGraphBTNode **ins_pt) except -1:
+        r"""
+        .. WARNING::
 
-        INPUT:
-            u, v -- non-negative integers
-            l -- a positive integer label, or zero for no label
+            This method is for internal use only. Use :meth:`add_arc_label_unsafe` instead.
 
-        OUTPUT:
-            0 -- No error.
-
+        Adds arc (u, v) with label l to only the ingoing or outgoing arcs
         """
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
+        ins_pt = &ins_pt[i]
         cdef int compared
-        cdef SparseGraphBTNode **ins_pt = &(self.vertices[i])
         cdef SparseGraphLLNode *label_ptr
         while ins_pt[0] != NULL:
             compared = compare(ins_pt[0].vertex, v)
@@ -829,6 +1004,30 @@ cdef class SparseGraph(CGraph):
                 label_ptr.number += 1
         else:
             ins_pt[0].number += 1
+
+    cdef int add_arc_label_unsafe(self, int u, int v, int l) except -1:
+        """
+        Adds arc (u, v) to the graph with label l.
+
+        INPUT:
+            u, v -- non-negative integers
+            l -- a positive integer label, or zero for no label
+
+        OUTPUT:
+            0 -- No error.
+
+        """
+        self._add_arc_label_unsafe(u, v, l, self.vertices)
+        if u != v or self.vertices != self.vertices_rev:
+            # We add the reverse copy only if u != v or graph is directed.
+            self._add_arc_label_unsafe(v, u, l, self.vertices_rev)
+            if self.vertices == self.vertices_rev:
+                # In case of an undirected graph, we have added two arcs.
+                self.in_degrees[u] += 1
+                self.out_degrees[v] += 1
+                self.num_arcs += 1
+
+
         self.in_degrees[v] += 1
         self.out_degrees[u] += 1
         self.num_arcs += 1
@@ -1015,22 +1214,22 @@ cdef class SparseGraph(CGraph):
         sig_free(arc_labels)
         return output
 
-    cdef int del_arc_label_unsafe(self, int u, int v, int l):
+    cdef inline int _del_arc_label_unsafe(self, int u, int v, int l, SparseGraphBTNode **parent):
         """
-        Delete an arc (u, v) with label l.
+        .. WARNING::
 
-        INPUT:
-            u, v -- integers from 0, ..., n-1, where n is the number of vertices
-            l -- a positive integer label, or zero for no label
+            This method is for internal use only. Use :meth:`del_arc_label_unsafe` instead.
+
+        Delete an arc (u, v) with label l.
 
         OUTPUT:
             0 -- No error.
             1 -- No arc with label l.
-
         """
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
+        cdef SparseGraphBTNode **old_parent = parent
+        parent = &parent[i]
         cdef int compared
-        cdef SparseGraphBTNode **parent = &self.vertices[i]
         cdef SparseGraphLLNode **labels
         cdef SparseGraphLLNode *label
         while parent[0] != NULL:
@@ -1047,7 +1246,7 @@ cdef class SparseGraph(CGraph):
             if parent[0].number > 1: parent[0].number -= 1
             elif parent[0].number == 1:
                 if parent[0].labels == NULL:
-                    self.del_arc_unsafe(u, v)
+                    self._del_arc_unsafe(u, v, old_parent)
                     return 0
                 else: parent[0].number -= 1
             else: return 1 # indicate an error
@@ -1065,7 +1264,34 @@ cdef class SparseGraph(CGraph):
                 sig_free(label)
                 if labels == &(parent[0].labels) and labels[0] == NULL and parent[0].number == 0:
                     # here we need to delete an "empty" binary tree node
-                    self.del_arc_unsafe(u, v)
+                    self._del_arc_unsafe(u, v, old_parent)
+
+    cdef int del_arc_label_unsafe(self, int u, int v, int l):
+        """
+        Delete an arc (u, v) with label l.
+
+        INPUT:
+            u, v -- integers from 0, ..., n-1, where n is the number of vertices
+            l -- a positive integer label, or zero for no label
+
+        OUTPUT:
+            0 -- No error.
+            1 -- No arc with label l.
+
+        """
+        cdef int error = self._del_arc_label_unsafe(u, v, l, self.vertices)
+        if error:
+            return 1 # indicate an error
+
+        if u != v or self.vertices != self.vertices_rev:
+            # We remove the reverse copy only if u != v or graph is directed.
+            self._del_arc_label_unsafe(v, u, l, self.vertices_rev)
+            if self.vertices == self.vertices_rev:
+                # In case of an undirected graph, we have removed two arcs.
+                self.in_degrees[u] -= 1
+                self.out_degrees[v] -= 1
+                self.num_arcs -= 1
+
         self.in_degrees[v] -= 1
         self.out_degrees[u] -= 1
         self.num_arcs -= 1
@@ -1271,8 +1497,8 @@ cdef class SparseGraphBackend(CGraphBackend):
             [(0, 1, None)]
 
         """
-        self._cg = SparseGraph(n)
-        self._cg_rev = SparseGraph(n) if directed else self._cg
+        self._cg = SparseGraph(n, directed=directed)
+        self._cg_rev = None
         self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}
@@ -1347,8 +1573,8 @@ cdef class SparseGraphBackend(CGraphBackend):
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
 
-        cdef int u_int = self.check_labelled_vertex(u, self._directed)
-        cdef int v_int = self.check_labelled_vertex(v, self._directed)
+        cdef int u_int = self.check_labelled_vertex(u, 0)
+        cdef int v_int = self.check_labelled_vertex(v, 0)
 
         cdef int l_int
         if l is None:
@@ -1364,17 +1590,11 @@ cdef class SparseGraphBackend(CGraphBackend):
                 return
             else:
                 self._cg.del_all_arcs(u_int, v_int)
-                if directed:
-                    self._cg_rev.del_all_arcs(v_int, u_int)
-                else:
+                if not directed and self._directed and v_int != u_int:
                     self._cg.del_all_arcs(v_int, u_int)
-        if directed:
-            self._cg.add_arc_label(u_int, v_int, l_int)
-            self._cg_rev.add_arc_label(v_int, u_int, l_int)
-        elif u_int == v_int:
-            self._cg.add_arc_label(u_int, v_int, l_int)
-        else:
-            self._cg.add_arc_label(u_int, v_int, l_int)
+
+        self._cg.add_arc_label(u_int, v_int, l_int)
+        if not directed and self._directed and v_int != u_int:
             self._cg.add_arc_label(v_int, u_int, l_int)
 
     def add_edges(self, object edges, bint directed):
@@ -1461,8 +1681,8 @@ cdef class SparseGraphBackend(CGraphBackend):
         """
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return
-        cdef int u_int = self.check_labelled_vertex(u, self._directed)
-        cdef int v_int = self.check_labelled_vertex(v, self._directed)
+        cdef int u_int = self.check_labelled_vertex(u, 0)
+        cdef int v_int = self.check_labelled_vertex(v, 0)
 
         if l is None:
             if self._cg.has_arc_label(u_int, v_int, 0):
@@ -1476,18 +1696,12 @@ cdef class SparseGraphBackend(CGraphBackend):
             else:
                 return
 
-        if directed:
-            self._cg.del_arc_label(u_int, v_int, l_int)
-            self._cg_rev.del_arc_label(v_int, u_int, l_int)
-            if l_int:
-                self.edge_labels.pop(l_int)
-                self.edge_labels_available_ids.append(l_int)
-        else:
-            self._cg.del_arc_label(u_int, v_int, l_int)
-            if v_int != u_int: self._cg.del_arc_label(v_int, u_int, l_int)
-            if l_int:
-                self.edge_labels.pop(l_int)
-                self.edge_labels_available_ids.append(l_int)
+        self._cg.del_arc_label(u_int, v_int, l_int)
+        if not directed and self._directed and v_int != u_int:
+            self._cg.del_arc_label(v_int, u_int, l_int)
+        if l_int:
+            self.edge_labels.pop(l_int)
+            self.edge_labels_available_ids.append(l_int)
 
     def get_edge_label(self, object u, object v):
         """
@@ -1722,21 +1936,21 @@ cdef class SparseGraphBackend(CGraphBackend):
             if labels:
                 for v_int in vertices:
                     v = self.vertex_label(v_int)
-                    for u_int, l_int in (<SparseGraph> self._cg_rev).out_arcs_unsafe(v_int, True):
+                    for u_int, l_int in (<SparseGraph> self._cg).in_arcs_unsafe(v_int, True):
                         u = self.vertex_label(u_int)
                         l = self.edge_labels[l_int] if l_int else None
                         yield (u, v, l)
             else:
                 for v_int in vertices:
                     v = self.vertex_label(v_int)
-                    for u_int in (<SparseGraph> self._cg_rev).out_arcs_unsafe(v_int, False):
+                    for u_int in (<SparseGraph> self._cg).in_arcs_unsafe(v_int, False):
                         u = self.vertex_label(u_int)
                         yield (u, v)
         else:
             if labels:
                 for v_int in vertices:
                     v = self.vertex_label(v_int)
-                    for u_int in self._cg_rev.out_neighbors(v_int):
+                    for u_int in self._cg.in_neighbors(v_int):
                         l_int = self._cg.arc_label(u_int, v_int)
                         yield (self.vertex_label(u_int),
                                v,
@@ -1744,7 +1958,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             else:
                 for v_int in vertices:
                     v = self.vertex_label(v_int)
-                    for u_int in self._cg_rev.out_neighbors(v_int):
+                    for u_int in self._cg.in_neighbors(v_int):
                         yield (self.vertex_label(u_int),
                                v)
 
@@ -1872,16 +2086,8 @@ cdef class SparseGraphBackend(CGraphBackend):
         if ll_int:
             self.edge_labels.pop(ll_int)
             self.edge_labels_available_ids.append(ll_int)
-        if directed:
-            self._cg.del_arc_label(u_int, v_int, ll_int)
-            self._cg_rev.del_arc_label(v_int, u_int, ll_int)
-            self._cg.add_arc_label(u_int, v_int, l_int)
-            self._cg_rev.add_arc_label(v_int, u_int, l_int)
-        elif u_int == v_int:
-            self._cg.del_arc_label(u_int, v_int, ll_int)
-            self._cg.add_arc_label(u_int, v_int, l_int)
-        else:
-            self._cg.del_arc_label(u_int, v_int, ll_int)
+        self._cg.del_arc_label(u_int, v_int, ll_int)
+        self._cg.add_arc_label(u_int, v_int, l_int)
+        if not directed and self._directed and v_int != u_int:
             self._cg.del_arc_label(v_int, u_int, ll_int)
-            self._cg.add_arc_label(u_int, v_int, l_int)
             self._cg.add_arc_label(v_int, u_int, l_int)

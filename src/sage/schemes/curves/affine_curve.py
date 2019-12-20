@@ -1315,15 +1315,13 @@ class AffinePlaneCurve(AffineCurve):
 
         INPUT:
 
-        - ``P`` -- a point on this curve.
+        - ``P`` -- a point on this curve
 
         - ``factor`` -- (default: True) whether to attempt computing the polynomials of the individual tangent
           lines over the base field of this curve, or to just return the polynomial corresponding to the union
-          of the tangent lines (which requires fewer computations).
+          of the tangent lines (which requires fewer computations)
 
-        OUTPUT:
-
-        - a list of polynomials in the coordinate ring of the ambient space of this curve.
+        OUTPUT: a list of polynomials in the coordinate ring of the ambient space of this curve
 
         EXAMPLES::
 
@@ -1701,15 +1699,8 @@ class AffinePlaneCurve_finite_field(AffinePlaneCurve):
         """
         if algorithm == "enum":
             f = self.defining_polynomial()
-            R = f.parent()
-            K = R.base_ring()
-            points = []
-            for x in K:
-                for y in K:
-                    if f(x,y) == 0:
-                        points.append(self((x,y)))
-            points.sort()
-            return points
+            K = f.parent().base_ring()
+            return sorted((self((x,y)) for x in K for y in K if f(x,y) == 0))
 
         F = self.base_ring()
         if not F.is_prime_field():
@@ -1797,6 +1788,17 @@ class IntegralAffineCurve(AffineCurve):
             sage: C(GF(8^2))
             Set of rational points of Closed subscheme of Affine Space of dimension 2
             over Finite Field in z6 of size 2^6 defined by: x0^5 + x1^5 + x0*x1 + 1
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(GF(11), 3)
+            sage: C = Curve([x*z - y^2, y - z^2, x - y*z], A)
+            sage: C([0,0,0])
+            (0, 0, 0)
+            sage: C(y)
+            z^2
+            sage: C(A.coordinate_ring()(y))
+            z^2
         """
         try:
             return super(IntegralAffineCurve, self).__call__(*args)
@@ -1886,15 +1888,15 @@ class IntegralAffineCurve_finite_field(IntegralAffineCurve):
 
         TESTS::
 
-        sage: A.<x,y,z> = AffineSpace(GF(11), 3)
-        sage: C = Curve([x*z - y^2, y - z^2, x - y*z], A)
-        sage: C._nonsingular_model
-        (Function field in z defined by z^3 + 10*x, Ring morphism:
-           From: Multivariate Polynomial Ring in x, y, z over Finite Field of size 11
-           To:   Function field in z defined by z^3 + 10*x
-           Defn: x |--> x
-                 y |--> z^2
-                 z |--> z)
+            sage: A.<x,y,z> = AffineSpace(GF(11), 3)
+            sage: C = Curve([x*z - y^2, y - z^2, x - y*z], A)
+            sage: C._nonsingular_model
+            (Function field in z defined by z^3 + 10*x, Ring morphism:
+               From: Multivariate Polynomial Ring in x, y, z over Finite Field of size 11
+               To:   Function field in z defined by z^3 + 10*x
+               Defn: x |--> x
+                     y |--> z^2
+                     z |--> z)
         """
         from sage.rings.function_field.all import FunctionField
 
@@ -2031,35 +2033,6 @@ class IntegralAffineCurve_finite_field(IntegralAffineCurve):
         """
         return self._nonsingular_model[1].im_gens()
 
-    def _element_constructor_(self, x):
-        """
-        Construct an element of ``self`` from ``x``.
-
-        INPUT:
-
-        - ``x`` -- either a list (or tuple) or an element of the coordinate ring
-
-        If ``x`` is a list or a tuple, then construct a rational point from
-        ``obj``. If ``x`` is an element of the coordinate ring of ``self`` or
-        its ambient space, then construct an element in the function field of
-        ``self``.
-
-        EXAMPLES::
-
-            sage: A.<x,y,z> = AffineSpace(GF(11), 3)
-            sage: C = Curve([x*z - y^2, y - z^2, x - y*z], A)
-            sage: C([0,0,0])
-            (0, 0, 0)
-            sage: C(y)
-            z^2
-            sage: C(A.coordinate_ring()(y))
-            z^2
-        """
-        if x in self._lift_to_function_field.domain():
-            return self._lift_to_function_field(x)
-
-        super(IntegralAffineCurve, self)._element_constructor_(x)
-
     def places_at_infinity(self):
         """
         Return the places of the curve at infinity.
@@ -2079,8 +2052,7 @@ class IntegralAffineCurve_finite_field(IntegralAffineCurve):
             sage: C.places_at_infinity()
             [Place (1/x, 1/x*z^2)]
         """
-        s = set([p for f in self._coordinate_functions if f for p in f.poles()])
-        return list(s)
+        return list(set(p for f in self._coordinate_functions if f for p in f.poles()))
 
     def places(self, degree=1):
         """

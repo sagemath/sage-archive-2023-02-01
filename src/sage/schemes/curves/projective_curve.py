@@ -148,19 +148,19 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         """
         return "Projective"
 
-    def affine_patch(self, i, A=None):
+    def affine_patch(self, i, AA=None):
         r"""
         Return the `i`-th affine patch of this projective curve.
 
         INPUT:
 
         - ``i`` -- affine coordinate chart of the projective ambient space of
-          this curve to compute affine patch with respect to.
+          this curve to compute affine patch with respect to
 
-        - ``A`` -- (default: None) ambient affine space, this is constructed
-          if it is not given.
+        - ``AA`` -- (default: None) ambient affine space, this is constructed
+          if it is not given
 
-        OUTPUT: a curve in affine space.
+        OUTPUT: a curve in affine space
 
         EXAMPLES::
 
@@ -186,7 +186,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             True
         """
         from .constructor import Curve
-        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, A))
+        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
     def projection(self, P=None, PS=None):
         r"""
@@ -213,7 +213,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         - a scheme morphism from this curve into a projective space of
           dimension one less than that of the ambient space of this curve
 
-        - the projective curve that is the image of that morphism.
+        - the projective curve that is the image of that morphism
 
         EXAMPLES::
 
@@ -500,8 +500,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         Hilbert polynomial of the defining ideal of this curve, then the arithmetic genus
         of this curve is `1 - P(0)`. This curve must be irreducible.
 
-        OUTPUT: integer
-
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
@@ -610,12 +608,10 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         r"""
         Return the arithmetic genus of this projective curve.
 
-        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. For a projective
-        plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It need *not* equal
-        the geometric genus (the genus of the normalization of the curve). This curve must be
-        irreducible.
-
-        OUTPUT: Integer.
+        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. For a
+        projective plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It
+        need *not* equal the geometric genus (the genus of the normalization of
+        the curve). This curve must be irreducible.
 
         EXAMPLES::
 
@@ -647,11 +643,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         OUTPUT:
 
-
-        -  ``list`` - The divisor of r represented as a list of
-           coefficients and points. (TODO: This will change to a more
-           structural output in the future.)
-
+        - ``list`` -- The divisor of r represented as a list of coefficients and
+          points. (TODO: This will change to a more structural output in the
+          future.)
 
         EXAMPLES::
 
@@ -692,12 +686,12 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         INPUT:
 
-        -  ``pt`` - an F-rational point on X which is not a
-           point of ramification for the projection (x,y) - x.
+        - ``pt`` -- a rational point on X which is not a point of ramification
+           for the projection `(x,y) \to x`.
 
-        -  ``n`` - the number of terms desired
+        - ``n``-- the number of terms desired
 
-        OUTPUT: x = x0 + t y = y0 + power series in t
+        OUTPUT: `x = x0 + t`, `y = y0` + power series in `t`
 
         EXAMPLES::
 
@@ -759,9 +753,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         Plot the real points of an affine patch of this projective
         plane curve.
 
-
         INPUT:
-
 
         -  ``self`` - an affine plane curve
 
@@ -774,7 +766,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         -  ``**kwds`` - optional keyword arguments passed on to
            ``implicit_plot``
-
 
         EXAMPLES:
 
@@ -825,18 +816,19 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
     def is_singular(self, P=None):
         r"""
-        Return whether this curve is singular or not, or if a point ``P`` is provided,
-        whether ``P`` is a singular point of this curve.
+        Return whether this curve is singular or not, or if a point ``P`` is
+        provided, whether ``P`` is a singular point of this curve.
 
         INPUT:
 
-        - ``P`` -- (default: ``None``) a point on this curve.
+        - ``P`` -- (default: ``None``) a point on this curve
 
         OUTPUT:
 
-        - Boolean. If no point ``P`` is provided, returns True of False depending on whether
-          this curve is singular or not. If a point ``P`` is provided, returns True or False
-          depending on whether ``P`` is or is not a singular point of this curve.
+        If no point ``P`` is provided, return ``True`` or ``False`` depending
+        on whether this curve is singular or not. If a point ``P`` is provided,
+        return ``True`` or ``False`` depending on whether ``P`` is or is not a
+        singular point of this curve.
 
         EXAMPLES:
 
@@ -921,20 +913,22 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         r"""
         Return the tangents of this projective plane curve at the point ``P``.
 
-        These are found by homogenizing the tangents of an affine patch of this curve
-        containing ``P``. The point ``P`` must be a point on this curve.
+        These are found by homogenizing the tangents of an affine patch of this
+        curve containing ``P``. The point ``P`` must be a point on this curve.
 
         INPUT:
 
         - ``P`` -- a point on this curve.
 
-        - ``factor`` -- (default: ``True``) whether to attempt computing the polynomials of the individual tangent
-          lines over the base field of this curve, or to just return the polynomial corresponding to the union
-          of the tangent lines (which requires fewer computations).
+        - ``factor`` -- (default: ``True``) whether to attempt computing the
+          polynomials of the individual tangent lines over the base field of this
+          curve, or to just return the polynomial corresponding to the union of
+          the tangent lines (which requires fewer computations).
 
         OUTPUT:
 
-        - a list of polynomials in the coordinate ring of the ambient space of this curve.
+        a list of polynomials in the coordinate ring of the ambient space of
+        this curve.
 
         EXAMPLES::
 

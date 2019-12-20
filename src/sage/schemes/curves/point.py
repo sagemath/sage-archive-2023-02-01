@@ -45,8 +45,6 @@ class ProjectiveCurvePoint_field(SchemeMorphism_point_projective_field):
         r"""
         Return whether this point is a singular point of the projective curve it is on.
 
-        OUTPUT: Boolean.
-
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
@@ -68,8 +66,6 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
         Return the multiplicity of this point with respect to the projective
         curve it is on.
 
-        OUTPUT: Integer.
-
         EXAMPLES::
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
@@ -84,8 +80,10 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
         r"""
         Return the tangents at this point of the projective plane curve this point is on.
 
-        OUTPUT: a list of polynomials in the coordinate ring of the ambient
-        space of the curve this point is on.
+        OUTPUT:
+
+        A list of polynomials in the coordinate ring of the ambient space
+        of the curve this point is on.
 
         EXAMPLES::
 
@@ -101,8 +99,6 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
         r"""
         Return whether this point is an ordinary singularity of the projective
         plane curve it is on.
-
-        OUTPUT: Boolean.
 
         EXAMPLES::
 
@@ -134,9 +130,7 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
 
         INPUT:
 
-        - ``D`` -- a curve in the same ambient space as the curve this point is on.
-
-        OUTPUT: Boolean.
+        - ``D`` -- a curve in the same ambient space as the curve this point is on
 
         EXAMPLES::
 
@@ -186,8 +180,6 @@ class AffineCurvePoint_field(SchemeMorphism_point_affine_field):
         r"""
         Return whether this point is a singular point of the affine curve it is on.
 
-        OUTPUT: Boolean.
-
         EXAMPLES::
 
             sage: K = QuadraticField(-1)
@@ -210,8 +202,6 @@ class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
     def multiplicity(self):
         r"""
         Return the multiplicity of this point with respect to the affine curve it is on.
-
-        OUTPUT: Integer.
 
         EXAMPLES::
 
@@ -251,8 +241,6 @@ class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
         Return whether this point is an ordinary singularity of the affine
         plane curve it is on.
 
-        OUTPUT: Boolean.
-
         EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
@@ -281,8 +269,6 @@ class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
         INPUT:
 
         - ``D`` -- a curve in the same ambient space as the curve this point is on.
-
-        OUTPUT: Boolean.
 
         EXAMPLES::
 

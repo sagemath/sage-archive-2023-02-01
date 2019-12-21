@@ -207,8 +207,6 @@ class LorentzianStructure(Singleton):
         """
         return cat
 
-#********************************************************************************
-
 class DegenerateStructure(Singleton):
     """
     The structure of a degenerate manifold.

@@ -3791,22 +3791,22 @@ class DifferentiableManifold(TopologicalManifold):
             sage: det(g)
             Scalar field zero on the 3-dimensional differentiable manifold M
             sage: g.parent()
-            Free module T^(0,2)(M) of type-(0,2) tensors fields on the 
+            Free module T^(0,2)(M) of type-(0,2) tensors fields on the
             3-dimensional differentiable manifold M
             sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
             ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
             sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
             ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
             sage: g.disp()
-            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
-            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
-            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
-            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
+            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
+            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
+            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
             + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
 
         .. SEEALSO::
 
-            :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+            :class:`~sage.manifolds.differentiable.metric.DegenerateMetric`
             for more examples.
 
         """

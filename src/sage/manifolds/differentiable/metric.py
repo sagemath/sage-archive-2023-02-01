@@ -1,12 +1,12 @@
 r"""
-Pseudo-Riemannian Metrics and Degenerate Metric
+Pseudo-Riemannian Metrics and Degenerate Metrics
 
 The class :class:`PseudoRiemannianMetric` implements pseudo-Riemannian metrics
 on differentiable manifolds over `\RR`. The derived class
 :class:`PseudoRiemannianMetricParal` is devoted to metrics with values on a
 parallelizable manifold.
 
-The class :class:`DegenerateMetric` implements degenerate (or null or lightlike) 
+The class :class:`DegenerateMetric` implements degenerate (or null or lightlike)
 metrics on differentiable manifolds over `\RR`. The derived class
 :class:`DegenerateMetricParal` is devoted to metrics with values on a
 parallelizable manifold.
@@ -16,6 +16,7 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Pablo Angulo (2016) : Schouten, Cotton and Cotton-York tensors
 - Florentin Jaffredo (2018) : series expansion for the inverse metric
+- Hans Fotsing Tetsing (2019) : degenerate metrics
 
 REFERENCES:
 
@@ -31,6 +32,7 @@ REFERENCES:
 #  Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #  Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
 #  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
+#  Copyright (C) 2019 Hans Fotsing Tetsing <hans.fotsing@aims-cameroon.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -2539,19 +2541,19 @@ class DegenerateMetric(TensorField):
         sage: det(g)
         Scalar field zero on the 3-dimensional differentiable manifold M
         sage: g.parent()
-        Free module T^(0,2)(M) of type-(0,2) tensors fields on the 
+        Free module T^(0,2)(M) of type-(0,2) tensors fields on the
         3-dimensional differentiable manifold M
         sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
         ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
         sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
         ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
         sage: g.disp()
-        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
-        - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
-        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
-        - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
+        - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
+        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
+        - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
         + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
-        
+
     The position vector is a lightlike vector field::
 
         sage: v = M.vector_field()
@@ -2561,7 +2563,7 @@ class DegenerateMetric(TensorField):
         (x, y, z) |--> 0
 
     """
-    
+
     def __init__(self, vector_field_module, name, signature=None,
                  latex_name=None):
         r"""
@@ -2582,10 +2584,10 @@ class DegenerateMetric(TensorField):
             sage: g[e, 0,0], g[e, 0,1], g[e, 1,1], g[e, 2,2], \
             ....: g[e, 3,3] = -1+2*m/r, 2*m/r, 1+2*m/r, r^2, r^2*sin(th)^2
             sage: g.disp(e)
-            g = (2*m/r - 1) dt*dt + 2*m/r dt*dr + 2*m/r dr*dt + (2*m/r + 1) dr*dr 
+            g = (2*m/r - 1) dt*dt + 2*m/r dt*dr + 2*m/r dr*dt + (2*m/r + 1) dr*dr
             + r^2 dth*dth + r^2*sin(th)^2 dph*dph
 
-        
+
         """
         TensorField.__init__(self, vector_field_module, (0,2),
                              name=name, latex_name=latex_name, sym=(0,1))
@@ -2670,7 +2672,7 @@ class DegenerateMetric(TensorField):
             (0, 2, 1)
 
         """
-        return self._signature  
+        return self._signature
 
     def set(self, symbiform):
         r"""
@@ -2729,7 +2731,7 @@ class DegenerateMetric(TensorField):
         else:
             for dom, symbiform_rst in symbiform._restrictions.items():
                 rst = self.restrict(dom)
-                rst.set(symbiform_rst)  
+                rst.set(symbiform_rst)
 
     def restrict(self, subdomain, dest_map=None):
         r"""
@@ -2759,7 +2761,7 @@ class DegenerateMetric(TensorField):
             sage: g = M.metric('g', signature=(3,1,1))
             sage: U = M.open_subset('U')
             sage: g.restrict(U)
-            degenerate metric g on the Open subset U of the 5-dimensional 
+            degenerate metric g on the Open subset U of the 5-dimensional
             differentiable manifold M
             sage: g.restrict(U).signature()
             (3, 1, 1)
@@ -2809,12 +2811,12 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
     forms (metric field) along a differentiable manifold `U` with
     values on a differentiable manifold `M` over `\RR`, via a differentiable
     mapping `\Phi: U \rightarrow M`.
-    The standard case of a degenerate metric field *on* a manifold corresponds 
+    The standard case of a degenerate metric field *on* a manifold corresponds
     to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
     immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
-    A *degenerate metric* `g` is a field on `U`, such that at each point 
+    A *degenerate metric* `g` is a field on `U`, such that at each point
     `p\in U`, `g(p)` is a bilinear map of the type:
 
     .. MATH::
@@ -2855,19 +2857,19 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
         sage: det(g)
         Scalar field zero on the 3-dimensional differentiable manifold M
         sage: g.parent()
-        Free module T^(0,2)(M) of type-(0,2) tensors fields on the 
+        Free module T^(0,2)(M) of type-(0,2) tensors fields on the
         3-dimensional differentiable manifold M
         sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
         ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
         sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
         ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
         sage: g.disp()
-        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
-        - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
-        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
-        - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
+        - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
+        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
+        - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
         + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
-        
+
     The position vector is a lightlike vector field::
 
         sage: v = M.vector_field()
@@ -2877,7 +2879,7 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
         (x, y, z) |--> 0
 
     """
-    
+
     def __init__(self, vector_field_module, name, signature=None,
                  latex_name=None):
         r"""
@@ -2896,13 +2898,13 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
             sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
             ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
             sage: g.disp()
-            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
-            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
-            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
-            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
+            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
+            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
+            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
             + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
 
-        
+
         """
         TensorFieldParal.__init__(self, vector_field_module, (0,2),
                              name=name, latex_name=latex_name, sym=(0,1))
@@ -2939,7 +2941,7 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
         Metric defined from a field of symmetric bilinear forms on a
         parallelizable 3-dimensional manifold::
 
-            sage: M = Manifold(3, 'M', start_index=1); 
+            sage: M = Manifold(3, 'M', start_index=1);
             sage: X.<x,y,z> = M.chart()
             sage: dx, dy = X.coframe()[1], X.coframe()[2]
             sage: b = dx*dx + dy*dy

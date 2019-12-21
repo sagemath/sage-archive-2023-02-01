@@ -1822,7 +1822,7 @@ REFERENCES:
 .. [DS1994] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
             chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
 
-.. [DS2010] K. Duggal, B. Sahin,
+.. [DS2010] \K. Duggal, B. Sahin,
             *Differential Geometry of Lightlike Submanifolds*,
             Frontiers in Mathematics, 2010.
 
@@ -1833,10 +1833,6 @@ REFERENCES:
             2004,
             Pages 525-546,
             https://doi.org/10.1016/j.jcss.2004.03.004.
-
-.. [DS2010] \K. Duggal, B. Sahin,
-            *Differential Geometry of Lightlike Submanifolds*,
-            Frontiers in Mathematics, 2010.
 
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,

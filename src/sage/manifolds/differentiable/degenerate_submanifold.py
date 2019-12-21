@@ -1,39 +1,39 @@
 r"""
 Degenerate submanifolds
 
-An *embedded (resp. immersed) degenerate submanifold of a proper 
-pseudo-Riemannian manifold* `(M,g)` is an embedded (resp. immersed) 
-submanifold `H` of `M` as a differentiable manifold such that pull 
-back of the metric tensor `g` via the embedding (resp. immersion) 
+An *embedded (resp. immersed) degenerate submanifold of a proper
+pseudo-Riemannian manifold* `(M,g)` is an embedded (resp. immersed)
+submanifold `H` of `M` as a differentiable manifold such that pull
+back of the metric tensor `g` via the embedding (resp. immersion)
 endows `H` with the structure of a degenerate manifold.
 
 Degenerate submanifolds are study in many fields of mathematics and physics,
 for instance in Differential Geometry (especially in geometry of
-lightlike submanifold) and in General Relativity. In geometry of lightlike 
+lightlike submanifold) and in General Relativity. In geometry of lightlike
 submanifolds, according to the dimension `r` of the radical distribution
-(see below for definition of radical distribution), degenerate submanifolds 
+(see below for definition of radical distribution), degenerate submanifolds
 have been classify into 4 subgroups: `r`-lightlike submanifolds, Coisotropic
 submanifolds, Isotropic submanifolds and Totally lightlike submanifolds.
-(See the book of Krishan L. Duggal and Aurel Bejancu in *REFERENCES*.) 
+(See the book of Krishan L. Duggal and Aurel Bejancu [DS2010]_.)
 
-In the present module, you can definie any of the 4 types but most of the
+In the present module, you can define any of the 4 types but most of the
 methods are implemented only for degenerate hypersurfaces who belong to
-`r`-lightlike submanifolds. However, their might be generalized to
-`1`-lightlike submanifolds. In the litterature there is a new approach
+`r`-lightlike submanifolds. However, they might be generalized to
+`1`-lightlike submanifolds. In the literature there is a new approach
 (the rigging technique) for studying `1`-lightlike submanifolds but
-here we we the method of Krishan L. Duggal and Aurel Bejancu base on
+here we use the method of Krishan L. Duggal and Aurel Bejancu based on
 the screen distribution.
 
 Let `H` be a lightlike hypersurface of a pseudo-Riemannian manifold
-`(M,g)`. Then the normal bundle `T^\perp H` intersect the tangent 
+`(M,g)`. Then the normal bundle `T^\perp H` intersect the tangent
 bundle `TH`. The radical distribution is defined as
-'Rad(TH)=TH\cap T^\perp H'. In case of hypersurfaces, and more
-generally `1`-lightlike submanifolds, this is a rank 1 distribution. 
+`Rad(TH)=TH\cap T^\perp H`. In case of hypersurfaces, and more
+generally `1`-lightlike submanifolds, this is a rank 1 distribution.
 A screen distribution `S(TH)` is a complementary of `Rad(TH)` in `TH`.
 
-Giving a screen distribution `S(TH)` and a null vector field `\xi` 
-locally defined and spanning `Rad(TH)`, there exists a unique 
-transversal null vector field 'N' locally defined and such that 
+Giving a screen distribution `S(TH)` and a null vector field `\xi`
+locally defined and spanning `Rad(TH)`, there exists a unique
+transversal null vector field 'N' locally defined and such that
 `g(N,\xi)=1`. From a transverse vector 'v', the null rigging 'N'
 is giving by the formula
 
@@ -43,24 +43,25 @@ is giving by the formula
 
 Tensors on the ambient manifold `M` are projected on `H` along `N`
 to obtain induced objects. For instance, induced connection is the
-linear connexion defined on H through the Levi-Civitta connection of
+linear connection defined on H through the Levi-Civitta connection of
 `g` along `N`.
 
 To work on a degenerate submanifold, after defining `H` as an instance
 of :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`,
-with the keyword *structure='degenerate_metric'*, you have to set a transvervector
-`v` and screen distribution together with the radical distribution.
+with the keyword ``structure='degenerate_metric'``, you have to set a
+transvervector `v` and screen distribution together with the radical
+distribution.
 
 An example of degenerate submanifold from General Relativity is the
-horizon of the Shawrzschild black hole. Allow us to recall that 
-Shawrzschild black hole is the first non-trivial solution of Einstein's
+horizon of the Schwarzschild black hole. Allow us to recall that
+Schwarzschild black hole is the first non-trivial solution of Einstein's
 equations. It describes the metric inside a star of radius `R = 2m`,
 being `m` the inertial mass of the star. It can be seen as an open
 ball in a Lorentzian manifold structure on `\RR^4`::
 
     sage: M = Manifold(4, 'M', structure="Lorentzian")
     sage: X_M.<t, r, th, ph> = \
-    ....: M.chart(r"t r:(0,oo) th:(0,pi):\theta ph:(0,2*pi):\phi") 
+    ....: M.chart(r"t r:(0,oo) th:(0,pi):\theta ph:(0,2*pi):\phi")
     sage: var('m'); assume(m>0)
     m
     sage: g = M.metric()
@@ -71,9 +72,12 @@ Let us define the horizon as a degenerate hypersurface::
 
     sage: H = Manifold(3, 'H', ambient=M, structure='degenerate_metric')
     sage: H
-    degenerate hypersurface H embedded in 4-dimensional differentiable 
+    degenerate hypersurface H embedded in 4-dimensional differentiable
     manifold M
-    
+
+AUTHORS:
+
+- Hans Fotsing Tetsing (2019) : initial version
 
 REFERENCES:
 
@@ -82,28 +86,36 @@ REFERENCES:
 - [FNO2019]_
 
 """
+# *****************************************************************************
+#  Copyright (C) 2019 Hans Fotsing Tetsing <hans.fotsing@aims-cameroon.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.manifolds.differentiable.pseudo_riemannian import \
     PseudoRiemannianManifold
-from sage.manifolds.differentiable.degenerate import DegenerateManifold
+from sage.manifolds.differentiable.degenerate import (DegenerateManifold,
+                                                      TangentTensor)
 from sage.manifolds.differentiable.differentiable_submanifold import \
     DifferentiableSubmanifold
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.symbolic.expression import Expression
-from sage.manifolds.differentiable.degenerate import TangentTensor
 
 class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     r"""
     Degenerate submanifolds
 
-    An *embedded (resp. immersed) degenerate submanifold of a proper 
-    pseudo-Riemannian manifold* `(M,g)` is an embedded (resp. immersed) 
-    submanifold `H` of `M` as a differentiable manifold such that pull 
-    back of the metric tensor `g` via the embedding (resp. immersion) 
+    An *embedded (resp. immersed) degenerate submanifold of a proper
+    pseudo-Riemannian manifold* `(M,g)` is an embedded (resp. immersed)
+    submanifold `H` of `M` as a differentiable manifold such that pull
+    back of the metric tensor `g` via the embedding (resp. immersion)
     endows `H` with the structure of a degenerate manifold.
-    
+
     INPUT:
 
     - ``n`` -- positive integer; dimension of the manifold
@@ -165,9 +177,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
 
             sage: M = Manifold(4, 'M', structure="Lorentzian")
-            sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric') 
+            sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: S
-            2-dimensional degenerate submanifold S embedded in 4-dimensional 
+            2-dimensional degenerate submanifold S embedded in 4-dimensional
             differentiable manifold M
 
         """
@@ -212,7 +224,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             raise ValueError("ambient must be a proper pseudo-Riemannian"+
                               " or a degenerate manifold")
         self._transverse = {}
-        
+
     def _repr_(self):
         r"""
         Return a string representation of the submanifold.
@@ -225,9 +237,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
 
             sage: M = Manifold(4, 'M', structure="Lorentzian")
-            sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric') 
+            sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: S.__repr__()
-            '2-dimensional degenerate submanifold S embedded in 4-dimensional 
+            '2-dimensional degenerate submanifold S embedded in 4-dimensional
             differentiable manifold M'
 
         """
@@ -237,12 +249,12 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
           return "degenerate hypersurface {} embedded " \
                "in {}-dimensional differentiable " \
                "manifold {}".format(self._name, self._ambient._dim,
-                                    self._ambient._name)  
+                                    self._ambient._name)
         return "{}-dimensional degenerate submanifold {} embedded " \
                "in {}-dimensional differentiable " \
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
                                     self._ambient._name)
-  
+
     def ambient_metric(self):
         r"""
         Return the metric of the ambient manifold. The submanifold has to be
@@ -254,17 +266,17 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         EXAMPLES:
 
-        Section of the lightcone of the 3D Minkowski space with a hyperplane 
+        Section of the lightcone of the 3D Minkowski space with a hyperplane
         passing through the origin::
 
             sage: M = Manifold(3, 'M', structure="Lorentzian")
             sage: X.<t,x,y> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]}, 
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]},
             ....:           name='Phi', latex_name=r'\Phi');
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
-            ....:               latex_name=r'\Phi^{-1}'); 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv',
+            ....:               latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: S.ambient_metric()
             Lorentzian metric g on the 3-dimensional Lorentzian manifold M
@@ -277,7 +289,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
                                  "pseudo-Riemannian or degenerate manifold")
             self._ambient_metric = self._ambient.metric()
         return self._ambient_metric
-    
+
     def default_screen(self):
         r"""
         Return the default screen distribution
@@ -295,23 +307,23 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
             sage: Sc = S.screen('Sc', (U,V), xi)
             sage: S.default_screen()
-            screen distribution Sc along the degenerate hypersurface S embedded 
-            in 4-dimensional differentiable manifold M mapped into the 4-dimensional 
+            screen distribution Sc along the degenerate hypersurface S embedded
+            in 4-dimensional differentiable manifold M mapped into the 4-dimensional
             Lorentzian manifold M
 
-            
+
         """
         return self._default_screen
 
@@ -321,19 +333,19 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         according to the type of the submanifold amoung the 4 possible types,
         one must enter a list of normal transversal vector fields and/or a
         list of transversal and not normal vector fields spanning a transverse
-        distribution. 
+        distribution.
 
         INPUT:
 
         - ``rigging`` -- list or tuple (default: ``None``); list of vector fields
-          of the ambient manifold or chart function; of the ambient manifold in 
-          the latter case, the corresponding gradient vector field with respect to 
-          the ambient metric is calculated; the vectors must be linearly independent, 
+          of the ambient manifold or chart function; of the ambient manifold in
+          the latter case, the corresponding gradient vector field with respect to
+          the ambient metric is calculated; the vectors must be linearly independent,
           transversal to the submanifold but not normal
         - ``normal`` -- list or tuple (default: ``None``); list of vector fields
-          of the ambient manifold or chart function; of the ambient manifold in 
-          the latter case, the corresponding gradient vector field with respect to 
-          the ambient metric is calculated; the vectors must be linearly independent, 
+          of the ambient manifold or chart function; of the ambient manifold in
+          the latter case, the corresponding gradient vector field with respect to
+          the ambient metric is calculated; the vectors must be linearly independent,
           transversal and normal to the submanifold
 
         EXAMPLES:
@@ -344,9 +356,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]}, 
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]},
             ....:                   name='Phi', latex_name=r'\Phi')
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv',
             ....:                           latex_name=r'\Phi^{-1}')
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
@@ -409,14 +421,14 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         - ``latex_name`` -- string (default: ``None``); LaTeX symbol to denote
           the screen; if ``None``, the LaTeX symbol is set to ``name``
         - ``screen`` -- list or tuple  of vector fields
-          of the ambient manifold or chart function; of the ambient manifold in 
-          the latter case, the corresponding gradient vector field with respect to 
-          the ambient metric is calculated; the vectors must be linearly independent, 
+          of the ambient manifold or chart function; of the ambient manifold in
+          the latter case, the corresponding gradient vector field with respect to
+          the ambient metric is calculated; the vectors must be linearly independent,
           tangent to the submanifold but not normal
         - ``rad`` -- -- list or tuple  of vector fields
-          of the ambient manifold or chart function; of the ambient manifold in 
-          the latter case, the corresponding gradient vector field with respect to 
-          the ambient metric is calculated; the vectors must be linearly independent, 
+          of the ambient manifold or chart function; of the ambient manifold in
+          the latter case, the corresponding gradient vector field with respect to
+          the ambient metric is calculated; the vectors must be linearly independent,
           tangent and normal to the submanifold
 
         EXAMPLES:
@@ -427,19 +439,19 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
             sage: Sc = S.screen('Sc', (U,V), xi); Sc
-            screen distribution Sc along the degenerate hypersurface S embedded 
-            in 4-dimensional differentiable manifold M mapped into the 4-dimensional 
+            screen distribution Sc along the degenerate hypersurface S embedded
+            in 4-dimensional differentiable manifold M mapped into the 4-dimensional
             Lorentzian manifold M
 
         """
@@ -482,7 +494,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
                 if not g(u.along(im), v).is_zero():
                     raise ValueError("{} is not normal to {}".format(u, self._name))
         self._screens[name] = Screen(self, name, tuple(screen), tuple(rad), latex_name=latex_name)
-        self._default_screen = self._screens[name]  
+        self._default_screen = self._screens[name]
         return self._screens[name]
 
     def induced_metric(self):
@@ -496,22 +508,22 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         EXAMPLES:
 
-        Section of the lightcone of the Minkowski space with a hyperplane 
+        Section of the lightcone of the Minkowski space with a hyperplane
         passing through the origin::
 
             sage: M = Manifold(4, 'M', structure="Lorentzian")
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v, 0]}, 
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v, 0]},
             ....:             name='Phi', latex_name=r'\Phi');
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: h = S.induced_metric(); h
-            degenerate metric gamma on the 2-dimensional degenerate 
+            degenerate metric gamma on the 2-dimensional degenerate
             submanifold S embedded in 4-dimensional differentiable manifold M
 
         """
@@ -525,28 +537,28 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     def first_fundamental_form(self):
         r"""
         Return the restriction of the ambient metric on vector field
-        along the submanifold and tangent to it. It is difference from 
+        along the submanifold and tangent to it. It is difference from
         induced metric who gives the pullback of the ambient metric
-        on the submanifold. 
+        on the submanifold.
 
         OUTPUT:
 
         - the first fundamental form, as an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.TangentTensor`
+          :class:`~sage.manifolds.differentiable.degenerate.TangentTensor`
 
         EXAMPLES:
 
-        Section of the lightcone of the Minkowski space with a hyperplane 
+        Section of the lightcone of the Minkowski space with a hyperplane
         passing through the origin::
 
             sage: M = Manifold(3, 'M', structure="Lorentzian")
             sage: X.<t,x,y> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, v, 0]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [t, x]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, v, 0]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [t, x]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = -1,1,1
@@ -560,15 +572,15 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             h = TangentTensor(h, self.immersion())
             self._first_fundamental_form = h
         return self._first_fundamental_form
-    
+
     def _ambient_decomposition(self, screen=None):
         r"""
         Return a list ``[screen, rad, normal, rig]`` where `screen`
-        is a list a vector fields on the ambient manifoldspanning 
-        the giving screen distribution, `rad` a list of vector fields 
-        spanning radical distribution, `normal` list of normal transversal 
-        vector fields, and `rig` list of rigging vector fields 
-        corresponding to the giving screen. 
+        is a list a vector fields on the ambient manifold spanning
+        the giving screen distribution, `rad` a list of vector fields
+        spanning radical distribution, `normal` list of normal transversal
+        vector fields, and `rig` list of rigging vector fields
+        corresponding to the giving screen.
 
         INPUT:
 
@@ -587,24 +599,23 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: S._ambient_decomposition()
             [[Vector field on the 4-dimensional Lorentzian manifold M,
               Vector field on the 4-dimensional Lorentzian manifold M],
              [Vector field on the 4-dimensional Lorentzian manifold M],
              (),
              [Vector field N on the 4-dimensional Lorentzian manifold M]]
-
 
         """
         try:
@@ -627,15 +638,16 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             N.set_name(name='N')
             rig = [N]
         return [screen, rad, normal, rig]
-    
+
     @cached_method
     def _adapted_frame_(self, screen=None):
         r"""
-        Return a frame `(e_1,\ldots,e_p, xi_1,\ldots, xi_r, v_1,\ldots, v_q, N_1, \ldots, N_n)`
+        Return a frame
+        `(e_1,\ldots,e_p, \xi_1,\ldots, \xi_r, v_1,\ldots, v_q, N_1, \ldots, N_n)`
         of the ambient manifold, being `e_i` vector fields
-        spanning the giving screen distribution, `xi_i` vector fields spanning
+        spanning the giving screen distribution, `\xi_i` vector fields spanning
         radical distribution, `v_i` normal transversal vector fields, `N_i`
-        rigging vector fields corresponding to the giving screen. 
+        rigging vector fields corresponding to the giving screen.
 
         INPUT:
 
@@ -655,17 +667,17 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: T = S._adapted_frame_();
 
         """
@@ -713,11 +725,12 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     def adapted_frame(self, screen=None):
         r"""
-        Return a frame `(e_1,\ldots,e_p, xi_1,\ldots, xi_r, v_1,\ldots, v_q, N_1, \ldots, N_n)`
+        Return a frame
+        `(e_1,\ldots,e_p, \xi_1,\ldots, \xi_r, v_1,\ldots, v_q, N_1, \ldots, N_n)`
         of the ambient manifold along the submanifold, being `e_i` vector fields
-        spanning the giving screen distribution, `xi_i` vector fields spanning
+        spanning the giving screen distribution, `\xi_i` vector fields spanning
         radical distribution, `v_i` normal transversal vector fields, `N_i`
-        rigging vector fields corresponding to the giving screen. 
+        rigging vector fields corresponding to the giving screen.
 
         INPUT:
 
@@ -737,21 +750,21 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: T = S.adapted_frame(); T
-            Vector frame (S, (v_0,v_1,v_2,v_3)) with values on the 4-dimensional 
+            Vector frame (S, (v_0,v_1,v_2,v_3)) with values on the 4-dimensional
             Lorentzian manifold M
-            
+
         """
 
         f = self._adapted_frame_(screen).along(self.immersion())
@@ -767,8 +780,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         r"""
 
         This method is implemented only for null hypersurfaces. The method
-        returns a tensor `B` of type `(o,2)` instance of
-        :class:`~sage.manifolds.differentiable.degenerate_submanifold.TangentTensor` 
+        returns a tensor `B` of type `(0,2)` instance of
+        :class:`~sage.manifolds.differentiable.degenerate.TangentTensor`
         such that for two vector fields `U, V` on the ambient manifold along
         the null hypersurface, one has:
 
@@ -777,8 +790,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             \nabla_UV=D(U,V)+B(U,V)N
 
         being `\nabla` the ambient connection, `D` the induced connection
-        and `N` the choosen rigging.
-        
+        and `N` the chosen rigging.
+
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
@@ -786,7 +799,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         OUTPUT:
 
-        - an instance of :class:`TangentTensor`
+        - an instance of
+          :class:`~sage.manifolds.differentiable.degenerate.TangentTensor`
 
         EXAMPLES:
 
@@ -796,18 +810,18 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); 
-            sage: B = S.second_fundamental_form(); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
+            sage: B = S.second_fundamental_form();
             sage: B.disp()
             B = 0
 
@@ -836,12 +850,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     def projection(self, tensor, screen=None):
         r"""
 
-        For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this 
+        For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this
         method returns the tensor `T'` of type `(r,1)` such that for `r`
         vector fields `v_1,\ldots,v_r`, `T'(v_1,\ldots,v_r)` is the projection
         of  `T(v_1,\ldots,v_r)` on ``self`` along the bundle spans by the
-        transversal vector fields provided by the 
-        :meth:`~sage.manifolds.differentiable.degenerate_submanifold.set_transverse`
+        transversal vector fields provided by :meth:`set_transverse`.
 
         INPUT:
 
@@ -859,19 +872,19 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: U1 = S.projection(U)
-            
+
         """
         if tensor.tensor_type()[0]!=1:
             raise NotImplementedError("``projection`` is implemented only for "+
@@ -883,7 +896,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             T = T.along(self.immersion())
         except ValueError:
             pass
-        T.disp(frame)       
+        T.disp(frame)
         for i in self._ambient.index_generator(T.tensor_rank()):
             if i[0] in range(self._dim-self._sindex,self._ambient._dim-self._sindex):
                 T[frame, i] = 0
@@ -895,11 +908,10 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     def screen_projection(self, tensor, screen=None):
         r"""
-
-        For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this 
+        For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this
         method returns the tensor `T'` of type `(r,1)` such that for `r`
         vector fields `v_1,\ldots,v_r`, `T'(v_1,\ldots,v_r)` is the projection
-        of  `T(v_1,\ldots,v_r)` on the bundle spans by``screen`` along the 
+        of  `T(v_1,\ldots,v_r)` on the bundle spans by ``screen`` along the
         bundle spans by the transversal plus the radical vector fields provided.
 
         INPUT:
@@ -918,19 +930,19 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: U1 = S.screen_projection(U);
-            
+
         """
         if tensor.tensor_type()[0]!=1:
             raise NotImplementedError("``projection`` is implemented only for "+
@@ -954,17 +966,17 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     def weingarten_map(self, screen=None):
         r"""
 
-        This method is implemented only for hypersurfaces. 
+        This method is implemented only for hypersurfaces.
         *Weigarten map* is the `1`-form `W` defined for a vector field
-        `U` tangent to ``self`` by 
+        `U` tangent to ``self`` by
 
         .. MATH::
 
             W(U)=\nabla_U\xi
 
         being `\nabla` the Levi-Civita connection of the ambient manifold
-        and `\xi` the choosen vector field spanning the radical distribution.
-        
+        and `\xi` the chosen vector field spanning the radical distribution.
+
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
@@ -974,7 +986,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         OUTPUT:
 
         - tensor of type `(1,1)` instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.TangentTensor`
+          :class:`~sage.manifolds.differentiable.degenerate.TangentTensor`
 
         EXAMPLES:
 
@@ -984,18 +996,18 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: v = M.vector_field(); v[1] = 1; v[2] = 1
             sage: S.set_transverse(rigging=v)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);  
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: W = S.weingarten_map();
             sage: W.display()
             nabla_g(xi)|X(S) = 0
@@ -1007,17 +1019,17 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         nab = self.ambient_metric().connection()
         xi = rad[0]
         T = self.projection(nab(xi))
-        T.set_name("nabla_g(xi)|X("+self._name+")", 
+        T.set_name("nabla_g(xi)|X("+self._name+")",
           latex_name=r'\nabla_g(\xi)|_{\mathfrak{X}('+self._latex_name+r')}')
         return TangentTensor(T, im)
 
     def shape_operator(self, screen=None):
         r"""
 
-        This method is implemented only for hypersurfaces. 
+        This method is implemented only for hypersurfaces.
         *shape operator* is the projection of the Weingarten map
-        on the screen distribution along the radical distribution. 
-        
+        on the screen distribution along the radical distribution.
+
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
@@ -1027,7 +1039,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         OUTPUT:
 
         - tensor of type `(1,1)` instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.TangentTensor`
+          :class:`~sage.manifolds.differentiable.degenerate.TangentTensor`
 
         EXAMPLES:
 
@@ -1037,19 +1049,19 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: v = M.vector_field(); v[1] = 1; v[2] = 1
             sage: S.set_transverse(rigging=v)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);  
-            sage: SO = S.shape_operator(); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
+            sage: SO = S.shape_operator();
             sage: SO.disp()
             A^* = 0
 
@@ -1067,11 +1079,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         A = TangentTensor(T, im)
         self._shape_operator[screen._name] = A
         return A
-     
+
     def gauss_curvature(self, screen=None):
         r"""
         Gauss curvature is the product of all  eigenfunctions of the shape operator.
-        
+
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
@@ -1090,18 +1102,18 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); 
-            sage: K = S.gauss_curvature(); 
+            sage: Sc = S.screen('Sc', (U,V), xi);
+            sage: K = S.gauss_curvature();
             sage: K.disp()
             S --> R
             (u, v, w) |--> 0
@@ -1125,7 +1137,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         Principal directions are eigenvectors of the shape operator. This
         method is implemented only for hypersurfaces.
-        
+
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
@@ -1134,7 +1146,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         OUTPUT:
 
-        - a dictionnary
+        - a dictionary
 
         EXAMPLES:
 
@@ -1144,17 +1156,17 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); T = S.adapted_frame() 
+            sage: Sc = S.screen('Sc', (U,V), xi); T = S.adapted_frame()
             sage: PD = S.principal_directions()
             sage: PD[2][0].disp(T)
             e_2 = xi
@@ -1185,13 +1197,13 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         self._principal_directions[screen._name] = res
         return res
 
-    
+
     def mean_curvature(self, screen=None):
         r"""
 
         Mean curvature is the sum of principal curvatures. This
         method is implemented only for hypersurfaces.
-        
+
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
@@ -1200,7 +1212,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         OUTPUT:
 
-        - a dictionnary
+        - a dictionary
 
         EXAMPLES:
 
@@ -1210,19 +1222,19 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: S.set_transverse(rigging=x+y)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);  
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: m = S.mean_curvature(); m
-            Scalar field on the degenerate hypersurface S embedded in 4-dimensional 
+            Scalar field on the degenerate hypersurface S embedded in 4-dimensional
             differentiable manifold M
             sage: m.disp()
             S --> R
@@ -1243,16 +1255,17 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     def is_tangent(self, v):
         r"""
-        This method determine whether a vector field on the ambient
-        manifold along ``self`` is tangent to ``self`` or not
-        
+        Determine whether a vector field on the ambient manifold along ``self``
+        is tangent to ``self`` or not.
+
         INPUT:
 
         - ``v`` -- field on the ambient manifold along ``self``
 
         OUTPUT:
 
-        - True if ``v`` is everywhere tangent to ``self`` or False if not
+        - ``True`` if ``v`` is everywhere tangent to ``self`` or ``False`` if
+          not
 
         EXAMPLES:
 
@@ -1262,18 +1275,18 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: v = M.vector_field(); v[1] = 1; v[2] = 1
             sage: S.set_transverse(rigging=v)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);  
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: S.is_tangent(xi.along(Phi))
             True
             sage: S.is_tangent(v.along(Phi))
@@ -1290,19 +1303,19 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         for u in normal:
             if not g.along(im)(u.along(im),v).is_zero():
                 return False
-        return True 
+        return True
 
-    
+
 #**************************************************************************************
 
 from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 
 class Screen(VectorFieldModule):
     r"""
-    Let `H` be a lightlike submanifold embedded in a pseudo-Riemannian 
+    Let `H` be a lightlike submanifold embedded in a pseudo-Riemannian
     manifold `(M,g)` with `Phi` the embedding map. A screen distribution
-    is a complementary `S` of the radical distribution `Rad(TM)=TH\cap 
-    T^\perp H` in `TH`. One then has 
+    is a complementary `S` of the radical distribution `Rad(TM)=TH\cap
+    T^\perp H` in `TH`. One then has
 
     .. MATH::
 
@@ -1310,14 +1323,14 @@ class Screen(VectorFieldModule):
 
     INPUT:
 
-    - ``submanifold`` -- a lightlike submanifold instance of 
+    - ``submanifold`` -- a lightlike submanifold instance of
       :class:`DegenerateSubmanifold`
     - ``name`` -- name given to the screen distribution
     - ``screen`` -- vector fields of the ambient manifold which
       span the screen distribution
     - ``rad`` -- vector fields of the ambient manifold which
       span the radical distribution
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the 
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
       screen distribution; if ``None``, it is formed from ``name``
 
     OUTPUT:
@@ -1326,7 +1339,7 @@ class Screen(VectorFieldModule):
       :class:`sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
 
         """
-    
+
     def __init__(self, submanifold, name, screen, rad, latex_name=None):
         r"""
 
@@ -1336,9 +1349,9 @@ class Screen(VectorFieldModule):
             sage: X.<t,x,y> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]}, 
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]},
             ....:                   name='Phi', latex_name=r'\Phi')
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv',
             ....:                           latex_name=r'\Phi^{-1}')
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
@@ -1373,9 +1386,9 @@ class Screen(VectorFieldModule):
             sage: X.<t,x,y> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]}, 
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]},
             ....:                   name='Phi', latex_name=r'\Phi')
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv',
             ....:                           latex_name=r'\Phi^{-1}')
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
@@ -1384,8 +1397,8 @@ class Screen(VectorFieldModule):
             sage: xi = M.vector_field(); xi[0] = sqrt(x^2+y^2); xi[1] = x; xi[2] = y
             sage: U = M.vector_field(); U[1] = sqrt(x^2+y^2); U[0] = x
             sage: Sc = S.screen('Sc', U, xi); Sc._repr_()
-            'screen distribution Sc along the degenerate hypersurface S embedded in 
-            3-dimensional differentiable manifold M mapped into the 3-dimensional 
+            'screen distribution Sc along the degenerate hypersurface S embedded in
+            3-dimensional differentiable manifold M mapped into the 3-dimensional
             Lorentzian manifold M'
 
         """
@@ -1408,7 +1421,7 @@ class Screen(VectorFieldModule):
 
         OUTPUT:
 
-        - a vector field on the ambient manifold that belong to 
+        - a vector field on the ambient manifold that belong to
         the screen distribution
 
         TESTS::
@@ -1417,9 +1430,9 @@ class Screen(VectorFieldModule):
             sage: X.<t,x,y> = M.chart()
             sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]}, 
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v]},
             ....:                   name='Phi', latex_name=r'\Phi')
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv',
             ....:                           latex_name=r'\Phi^{-1}')
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
@@ -1429,23 +1442,23 @@ class Screen(VectorFieldModule):
             sage: U = M.vector_field(); U[1] = sqrt(x^2+y^2); U[0] = x
             sage: Sc = S.screen('Sc', U, xi);
             sage: Sc.__getitem__(0)
-            Vector field along the degenerate hypersurface S embedded in 
-            3-dimensional differentiable manifold M with values on the 3-dimensional 
+            Vector field along the degenerate hypersurface S embedded in
+            3-dimensional differentiable manifold M with values on the 3-dimensional
             Lorentzian manifold M
         """
         sc = [elt.along(self._domain.immersion()) for elt in self._screen]
         return sc[i-self._domain._sindex]
-  
+
     def normal_tangent_vector(self):
         r"""
 
-        return either a list ``Rad`` of vector fields spanning the radical 
-        distribution or (in case of hypersurface) a normal tangent null 
+        return either a list ``Rad`` of vector fields spanning the radical
+        distribution or (in case of hypersurface) a normal tangent null
         vector field spanning the radical distribution.
 
         OUTPUT:
 
-        - either a list made by vector fields or a vector field in 
+        - either a list made by vector fields or a vector field in
           case of hypersurface
 
         EXAMPLES:
@@ -1456,18 +1469,18 @@ class Screen(VectorFieldModule):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: v = M.vector_field(); v[1] = 1; v[2] = 1
             sage: S.set_transverse(rigging=v)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);  
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: Rad = Sc.normal_tangent_vector(); Rad.disp()
             xi = d/dt + d/dx
 
@@ -1483,14 +1496,14 @@ class Screen(VectorFieldModule):
     def rigging(self):
         r"""
 
-        Return either a list ``Rad`` of vector fields spanning the 
-        complementary of the normal distribution `T^\perp H` in the 
-        transverse bundle or (When `H` is a null hypersurface) the
-        null transversal vector field defined in `\cite{DB1996]`.
+        Return either a list ``Rad`` of vector fields spanning the
+        complementary of the normal distribution `T^\perp H` in the
+        transverse bundle or (when `H` is a null hypersurface) the
+        null transversal vector field defined in [DB1996]_.
 
         OUTPUT:
 
-        - either a list made by vector fields or a vector field in 
+        - either a list made by vector fields or a vector field in
           case of hypersurface
 
         EXAMPLES:
@@ -1501,18 +1514,18 @@ class Screen(VectorFieldModule):
             sage: X.<t,x,y,z> = M.chart()
             sage: S = Manifold(3, 'S', ambient=M, structure='degenerate_metric')
             sage: X_S.<u,v,w> = S.chart()
-            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]}, 
-            ....:         name='Phi', latex_name=r'\Phi'); 
-            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv', 
-            ....:           latex_name=r'\Phi^{-1}'); 
+            sage: Phi = S.diff_map(M, {(X_S, X): [u, u, v, w]},
+            ....:         name='Phi', latex_name=r'\Phi');
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y, z]}, name='Phi_inv',
+            ....:           latex_name=r'\Phi^{-1}');
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
             sage: v = M.vector_field(); v[1] = 1; v[2] = 1
             sage: S.set_transverse(rigging=v)
-            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1 
+            sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);  
+            sage: Sc = S.screen('Sc', (U,V), xi);
             sage: rig = Sc.rigging(); rig.disp()
             N = -d/dt + d/dy
 
@@ -1527,4 +1540,3 @@ class Screen(VectorFieldModule):
         N = (1/g(xi, v))*(v-(g(v,v)/(2*g(xi, v)))*xi)
         N.set_name(name='N')
         return N
-

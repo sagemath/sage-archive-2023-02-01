@@ -757,10 +757,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         from sage.manifolds.differentiable.automorphismfield import \
                                                        AutomorphismField
-        from sage.manifolds.differentiable.metric import \
-                                                  PseudoRiemannianMetric
-        from sage.manifolds.differentiable.metric import \
-                                                  DegenerateMetric
+        from sage.manifolds.differentiable.metric import (PseudoRiemannianMetric,
+                                                          DegenerateMetric)
         if tensor_type==(1,0):
             return self.element_class(self, name=name,
                                       latex_name=latex_name)
@@ -801,7 +799,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 # NB: the signature is not treated
             if issubclass(specific_type, DegenerateMetric):
                 sign = self._domain._dim
-                return self.metric(name, latex_name=latex_name, signature=(0,sign-1,1))
+                return self.metric(name, latex_name=latex_name,
+                                   signature=(0, sign-1, 1))
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name,
@@ -1098,7 +1097,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             if signature[2]!=0:
                 from sage.manifolds.differentiable.metric import DegenerateMetric
                 return DegenerateMetric(self, name, signature=signature,
-                                                  latex_name=latex_name)
+                                        latex_name=latex_name)
         except TypeError:
             pass
         if signature is None:
@@ -1112,7 +1111,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             signature = (int((ndim+signature)/2), int((ndim-signature)/2))
         from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
         return PseudoRiemannianMetric(self, name, signature=signature[0]-signature[1],
-                                    latex_name=latex_name)
+                                      latex_name=latex_name)
 
 
 #******************************************************************************
@@ -1993,10 +1992,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         from sage.manifolds.differentiable.automorphismfield import (
                               AutomorphismField, AutomorphismFieldParal)
-        from sage.manifolds.differentiable.metric import \
-                                                  PseudoRiemannianMetric
-        from sage.manifolds.differentiable.metric import \
-                                                  DegenerateMetric
+        from sage.manifolds.differentiable.metric import (PseudoRiemannianMetric,
+                                                          DegenerateMetric)
         if tensor_type == (1,0):
             return self.element_class(self, name=name,
                                       latex_name=latex_name)
@@ -2037,7 +2034,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 # NB: the signature is not treated
             if issubclass(specific_type, DegenerateMetric):
                 sign = self._domain._dim
-                return self.metric(name, latex_name=latex_name, signature=(0,sign-1,1))
+                return self.metric(name, latex_name=latex_name,
+                                   signature=(0, sign-1, 1))
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name,
@@ -2234,7 +2232,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             if signature[2]!=0:
                 from sage.manifolds.differentiable.metric import DegenerateMetricParal
                 return DegenerateMetricParal(self, name, signature=signature,
-                                                  latex_name=latex_name)
+                                             latex_name=latex_name)
         except TypeError:
             pass
         if signature is None:
@@ -2247,5 +2245,6 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                     raise ValueError("the metric signature must be odd")
             signature = (int((ndim+signature)/2), int((ndim-signature)/2))
         from sage.manifolds.differentiable.metric import PseudoRiemannianMetricParal
-        return PseudoRiemannianMetricParal(self, name, signature=signature[0]-signature[1],
-                                    latex_name=latex_name)
+        return PseudoRiemannianMetricParal(self, name,
+                                           signature=signature[0]-signature[1],
+                                           latex_name=latex_name)

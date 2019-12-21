@@ -6,8 +6,6 @@ The ring of Puiseux series.
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.puiseux_series_ring_element import PuiseuxSeries
-from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
-from sage.categories.fields import Fields
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.ring import CommutativeRing
 from sage.structure.element import parent
@@ -169,7 +167,7 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
             sage: A.change_ring(QQ).is_field()
             True
         """
-        return self.base_ring().is_field()
+        return self.base_ring().is_field(proof=proof)
 
     def fraction_field(self):
         r"""
@@ -205,7 +203,7 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
         r"""
         Return the residue field of this Puiseux series field
         if it is a complete discrete valuation field (i.e. if
-        the base ring is a field, in which base it is also the
+        the base ring is a field, in which case it is also the
         residue field).
 
         EXAMPLES::
@@ -301,7 +299,6 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
         # 5. everything else: try to coerce to laurent series ring
         else:
             l = self._laurent_series_ring(x)
-            e = 1
 
         return self.element_class(self, l, e=e)
 
@@ -321,6 +318,18 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
           index equal to a multiple of `self`'s ramification index. For
           example, Puiseux series in (x-a)^(1/2) can be interpreted as Puiseux
           series in (x-a)^(1/4).
+
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: 5 in R, 1/5 in R              # indirect doctests
+            (True, False)
+            sage: p = x^(1/2) + x**3-x**(-1/4)
+            sage: p.laurent_part() in R         # indirect doctests
+            True
+            sage: Q.<x> = PuiseuxSeriesRing(QQ) # indirect doctests
+            sage: p in Q
+            True
         """
         # any ring that has a coercion map to A
         A = self.base_ring()

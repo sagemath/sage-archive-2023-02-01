@@ -199,10 +199,30 @@ cdef class PuiseuxSeries(AlgebraElement):
         self._e = long(abs(e))
 
     def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: p = x^(1/2) + x**3-x**(-1/4)
+            sage: loads(dumps(p)) == p    # indirect doctest
+            True
+        """
         return (self._parent, (self._l, self._e))
 
-    def _im_gens_(self, codomain, im_gens):
-        return codomain(self(im_gens[0]))
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: p = x^(1/3) + x**3
+            sage: t = p._im_gens_(QQbar, [2])
+            sage: t  in QQbar
+            True
+            sage: f = R.hom([QQbar(2)], check=False)
+            sage: t == f(p)
+            True
+        """
+        return self(codomain(im_gens[0]))
 
     def _repr_(self):
         """
@@ -215,66 +235,48 @@ cdef class PuiseuxSeries(AlgebraElement):
             -x^(-1/4) + x^(1/2) + x^3
             sage: R.zero()
             0
+
+            sage: S.<t> = PuiseuxSeriesRing(Zp(5))
+            sage: t**(1/2) + 5 * t^(1/3)
+            (5 + O(5^21))*t^(1/3) + (1 + O(5^20))*t^(1/2)
         """
+        laurent = self.laurent_part()
+        s = repr(laurent)
         if self.ramification_index() == 1:
-            return repr(self.laurent_part())
+            return s
+
         X = self._parent.variable_name()
 
-        coeff = self.coefficients()
-        exp   = self.exponents()
+        # find a temporary variable name (to avoid multiple transformations)
+        Xtemp = '?'
+        while Xtemp in s: Xtemp +='?' # if somebody uses '?' in variable_name
 
-        # print each term
-        s = ''
-        first = True
-        for coeff, exp in zip(coeff, exp):
-            # omit ' +' in the first term of the expression
-            if first:
-                s += str(coeff)
-                first = False
+        # renaming and generalizing linear term
+        s = s.replace('%s' %X, '%s^1' %Xtemp)
+        s = s.replace('^1^', '^' )
+
+        # prepare exponent list
+        if laurent.prec() is infinity:
+            exponents = [ZZ(exp) for exp in set(laurent.exponents())]
+        else:
+            exponents = [ZZ(exp) for exp in set(laurent.exponents() + [laurent.prec()])]
+
+        # sort exponents such that the largest will be replaced first
+        exp_pos = [exp for exp in exponents if exp >= 0]; exp_pos.sort(reverse=True)
+        exp_neg = [exp for exp in exponents if exp < 0]; exp_neg.sort()
+        exponents = exp_neg + exp_pos
+
+        # replacing exponents
+        e = ZZ(self.ramification_index())
+        for exp_l in exponents:
+            exp = exp_l/e
+            repl_str = '%s^%s' %(Xtemp, exp_l)
+            if exp.is_one():
+                s = s.replace(repl_str, '%s' %X)
+            elif e.divides(exp_l):
+                s = s.replace(repl_str, '%s^%s' %(X, exp))
             else:
-                # if the coefficient itself is a sum (e.g. complex number or
-                # expression) then wrap with parens
-                coeff = str(coeff)
-                if coeff[1:].find("+") != -1 or coeff[1:].find("-") != -1:
-                    s += ' + (%s)' % coeff
-                else:
-                    s += ' + %s' % coeff
-
-            # don't print (x-a)^0
-            if exp:
-                # don't print (x-a)^1
-                if exp == 1:
-                    s += '*%s' % X
-                else:
-                    # place parentheses around exponent if rational
-                    s += '*%s^' % X
-                    if exp.denominator() == 1:
-                        s += str(exp)
-                    else:
-                        s += '(%s)' % exp
-
-        # big oh
-        prec = self.prec()
-        if prec != infinity:
-            prec = QQ(prec)
-            if prec == 0:
-                bigoh = 'O(1)'
-            elif prec == 1:
-                bigoh = 'O(%s)' % X
-            elif prec.denominator() == 1:
-                bigoh = 'O(%s^%s)' % (X, prec)
-            else:
-                bigoh = 'O(%s^(%s))' % (X, prec)
-
-            if not s:
-                return bigoh
-            s += ' + %s' % bigoh
-
-        # cleanup
-        s = s.replace(' + -', ' - ')
-        s = s.replace(' - -', ' + ')
-        s = s.replace('1*','')
-        s = s.replace('-1*', '-')
+                s = s.replace(repl_str, '%s^(%s)' %(X, exp))
         return s
 
     def __call__(self, x):
@@ -324,6 +326,16 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         - ``g`` -- int; a ramification index common to self and right
         - ``M, N`` -- int, int; scaling factors on self and right, respectively
+
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(QQ)
+            sage: p = x^(1/3) + x**2-x**(-1/7)
+            sage: q = x^(-1/3) + x**2-x**(1/5)
+            sage: p._common_ramification_index(q)
+            (105, 5, 7)
+            sage: q._common_ramification_index(p)
+            (105, 7, 5)
         """
         m = self._e
         n = right._e

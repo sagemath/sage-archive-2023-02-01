@@ -377,6 +377,13 @@ cdef class LaurentSeries(AlgebraElement):
             -x^-2 + 1 + 2*x^4 + 5*x^10
             sage: f.V(-1)
             5*x^-5 + 2*x^-2 + 1 - x
+            sage: h = f.add_bigoh(7)
+            sage: h.V(2)
+            -x^-2 + 1 + 2*x^4 + 5*x^10 + O(x^14)
+            sage: h.V(-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: For finite precision only positive arguments allowed
 
         TESTS::
 
@@ -391,8 +398,12 @@ cdef class LaurentSeries(AlgebraElement):
             5*x^-1 + 3 + 2*x
         """
         if n == 0:
-            raise NotImplementedError()
+            raise ValueError('n must be non zero')
+
         if n < 0:
+            if not self.prec() is infinity:
+                raise ValueError('For finite precision only positive arguments allowed')
+
             exponents = [e * n for e in self.exponents()]
             u = min(exponents)
             exponents = [e - u for e in exponents]

@@ -5,7 +5,7 @@ SAGE_SPKG_CONFIGURE([gsl], [
         PKG_CHECK_VAR([GSLPCDIR], [gsl], [pcfiledir], [
           AC_CONFIG_COMMANDS([GSLPCPROCESS], [
             $SED -e 's/\${GSL_CBLAS_LIB}\ //' \
-                 -e 's/GSL_CBLAS_LIB.*/Require: cblas/' $GSL_PC \
+                 -e 's/GSL_CBLAS_LIB.*/Requires: cblas/' $GSL_PC \
                   > "$SAGE_LOCAL"/lib/pkgconfig/gsl.pc
           ], [
             SED=$ac_cv_path_SED

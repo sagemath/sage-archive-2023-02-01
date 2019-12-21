@@ -974,6 +974,20 @@ cdef class RealDoubleElement(FieldElement):
         """
         return repr(self._value)
 
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(RDF(1e25))   # optional - mathematica
+            1.*^25
+            sage: mathematica(RDF(1e-25))  # optional - mathematica
+            1.*^-25
+        """
+        from .real_mpfr import RR
+        return RR(self._value)._mathematica_init_()
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.

@@ -9,6 +9,7 @@
 #*****************************************************************************
 
 from .c_graph cimport CGraph, CGraphBackend
+cimport cython
 
 cdef struct SparseGraphLLNode:
     int label
@@ -22,6 +23,7 @@ cdef struct SparseGraphBTNode:
     SparseGraphBTNode *left
     SparseGraphBTNode *right
 
+@cython.final
 cdef class SparseGraph(CGraph):
     cdef int hash_length
     cdef int hash_mask

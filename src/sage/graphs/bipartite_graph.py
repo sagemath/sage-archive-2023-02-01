@@ -84,6 +84,14 @@ class BipartiteGraph(Graph):
       partition raises an exception. In the other case offending edges simply
       won't be included.
 
+    - ``loops`` -- ignored; bipartite graphs cannot have loops
+
+    - ``multiedges`` -- boolean (default: ``None``); whether to allow multiple
+      edges
+
+    - ``weighted`` -- boolean (default: ``None``); whether graph thinks of
+      itself as weighted or not. See ``self.weighted()``
+
     .. NOTE::
 
         All remaining arguments are passed to the ``Graph`` constructor
@@ -855,11 +863,14 @@ class BipartiteGraph(Graph):
         - ``edges`` -- an iterable of edges, given either as ``(u, v)``
           or ``(u, v, label)``.
 
-        - ``loops`` -- boolean (default: ``True``); if ``False``, remove all
-          loops ``(v, v)`` from the input iterator. If ``None``, remove loops
-          unless the graph allows loops.
+        - ``loops`` -- ignored
 
         See :meth:`~sage.graphs.graph.Graph.add_edges` for more detail.
+
+        This method simply checks that the edge endpoints are in different
+        partitions. If a new vertex is to be created, it will be added to the
+        proper partition. If both vertices are created, the first one will be
+        added to the left partition, the second to the right partition.
 
         EXAMPLES::
 
@@ -870,8 +881,15 @@ class BipartiteGraph(Graph):
             Traceback (most recent call last):
             ...
             RuntimeError: edge vertices must lie in different partitions
+
+        Loops will raise an error::
+
+            sage: bg.add_edges([[0, 3], [3, 3]])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: edge vertices must lie in different partitions
         """
-        def check_edge(edge):
+        for edge in edges:
             try:
                 if len(edge) == 3:
                     u, v, label = edge
@@ -880,10 +898,18 @@ class BipartiteGraph(Graph):
                     label = None
             except Exception:
                 raise TypeError("cannot interpret {!r} as graph edge".format(edge))
+
+            # check for endpoints in different partitions
             if self.left.issuperset((u, v)) or self.right.issuperset((u, v)):
                 raise RuntimeError("edge vertices must lie in different partitions")
-            return (u, v, label)
-        self._backend.add_edges(map(check_edge, edges), self._directed)
+
+            # automatically decide partitions for the newly created vertices
+            if u not in self:
+                self.add_vertex(u, left=(v in self.right or v not in self), right=(v in self.left))
+            if v not in self:
+                self.add_vertex(v, left=(u in self.right), right=(u in self.left))
+
+            self._backend.add_edge(u, v, label, self._directed)
 
     def allow_loops(self, new, check=True):
         """

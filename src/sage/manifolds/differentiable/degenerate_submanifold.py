@@ -25,9 +25,9 @@ here we use the method of Krishan L. Duggal and Aurel Bejancu based on
 the screen distribution.
 
 Let `H` be a lightlike hypersurface of a pseudo-Riemannian manifold
-`(M,g)`. Then the normal bundle `T^\perp H` intersect the tangent
+`(M,g)`. Then the normal bundle `TH^\perp` intersect the tangent
 bundle `TH`. The radical distribution is defined as
-`Rad(TH)=TH\cap T^\perp H`. In case of hypersurfaces, and more
+`Rad(TH)=TH\cap TH^\perp`. In case of hypersurfaces, and more
 generally `1`-lightlike submanifolds, this is a rank 1 distribution.
 A screen distribution `S(TH)` is a complementary of `Rad(TH)` in `TH`.
 
@@ -39,7 +39,7 @@ is giving by the formula
 
 .. MATH::
 
-    N = \frac{1}{g(\xi, v)}\left(v-\frac{g(v,v)}{2g(xi, v)}\xi\right)
+    N = \frac{1}{g(\xi, v)}\left(v-\frac{g(v,v)}{2g(\xi, v)}\xi\right)
 
 Tensors on the ambient manifold `M` are projected on `H` along `N`
 to obtain induced objects. For instance, induced connection is the
@@ -576,7 +576,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     def _ambient_decomposition(self, screen=None):
         r"""
         Return a list ``[screen, rad, normal, rig]`` where `screen`
-        is a list a vector fields on the ambient manifold spanning
+        is a list a vector fields on the ambient manifold `M` spanning
         the giving screen distribution, `rad` a list of vector fields
         spanning radical distribution, `normal` list of normal transversal
         vector fields, and `rig` list of rigging vector fields
@@ -589,9 +589,18 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
           if ``None`` default screen is used.
         OUTPUT:
 
-        - a list
+        - a list of 4 lists, this 1st one being independents vector fields 
+        spanning the screen distribution, the 2nd one independents vector fields 
+        spanning the radical distribution, the 3rd one independents vector fields 
+        spanning the transversal normal distribution, the 4th one being a list
+         of independents rigging in `Rig(T\Sigma)` according to the decomposition
 
-        EXAMPLES:
+         .. MATH::
+
+         TM_{|\Sigma}=S(T\Sigma)\oplus_{orth}((Rad(T\Sigma)\oplus_{orth}(
+            T\sigma^\perp\cap tr(TM))\oplus Rig(T\Sigma))
+
+  `     EXAMPLE`:
 
         A degenerate hyperplane the 4-dimensional Minkowski space `\RR^4_1`::
 
@@ -652,7 +661,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
           if ``None`` default screen is used.
 
         OUTPUT:
@@ -735,7 +744,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
           if ``None`` default screen is used.
 
         OUTPUT:
@@ -795,7 +804,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         INPUT:
 
         - ``screen`` -- (default: ``None``); an instance of
-          :class:`Screen`. If ``None`` default screen is used.
+          :class:`Screen`. If ``None`` default screen is used
 
         OUTPUT:
 
@@ -853,16 +862,16 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this
         method returns the tensor `T'` of type `(r,1)` such that for `r`
         vector fields `v_1,\ldots,v_r`, `T'(v_1,\ldots,v_r)` is the projection
-        of  `T(v_1,\ldots,v_r)` on ``self`` along the bundle spans by the
+        of  `T(v_1,\ldots,v_r)` on ``self`` along the bundle spanned by the
         transversal vector fields provided by :meth:`set_transverse`.
 
         INPUT:
 
-        - ``tensor`` -- a tensor of type `(r,1)` on the ambient manifold;
+        - ``tensor`` -- a tensor of type `(r,1)` on the ambient manifold
 
         OUTPUT:
 
-        - a tensor of type `(r,1)` on the ambient manifold along ``self``;
+        - a tensor of type `(r,1)` on the ambient manifold along ``self``
 
         EXAMPLES:
 
@@ -911,16 +920,16 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this
         method returns the tensor `T'` of type `(r,1)` such that for `r`
         vector fields `v_1,\ldots,v_r`, `T'(v_1,\ldots,v_r)` is the projection
-        of  `T(v_1,\ldots,v_r)` on the bundle spans by ``screen`` along the
-        bundle spans by the transversal plus the radical vector fields provided.
+        of  `T(v_1,\ldots,v_r)` on the bundle spanned by ``screen`` along the
+        bundle spanned by the transversal plus the radical vector fields provided.
 
         INPUT:
 
-        - ``tensor`` -- a tensor of type `(r,1)` on the ambient manifold;
+        - ``tensor`` -- a tensor of type `(r,1)` on the ambient manifold
 
         OUTPUT:
 
-        - a tensor of type `(r,1)` on the ambient manifold;
+        - a tensor of type `(r,1)` on the ambient manifold
 
         EXAMPLES:
 
@@ -1146,7 +1155,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         OUTPUT:
 
-        - a dictionary
+        - list of pairs (vector field, scalar field) representing the
+          principal directions and the associated principal curvatures
 
         EXAMPLES:
 
@@ -1212,7 +1222,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         OUTPUT:
 
-        - a dictionary
+        - the mean curvature, as a scalar field on the submanifold
 
         EXAMPLES:
 
@@ -1313,13 +1323,13 @@ from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 class Screen(VectorFieldModule):
     r"""
     Let `H` be a lightlike submanifold embedded in a pseudo-Riemannian
-    manifold `(M,g)` with `Phi` the embedding map. A screen distribution
-    is a complementary `S` of the radical distribution `Rad(TM)=TH\cap
-    T^\perp H` in `TH`. One then has
+    manifold `(M,g)` with `\Phi` the embedding map. A screen distribution
+    is a complementary `S(TH)` of the radical distribution `Rad(TM)=TH\cap
+    TH^\perp` in `TH`. One then has
 
     .. MATH::
 
-        TH=S\oplus_{orth}Rad(TH)
+        TH=S(TH)\oplus_{orth}Rad(TH)
 
     INPUT:
 
@@ -1497,7 +1507,7 @@ class Screen(VectorFieldModule):
         r"""
 
         Return either a list ``Rad`` of vector fields spanning the
-        complementary of the normal distribution `T^\perp H` in the
+        complementary of the normal distribution `TH^\perp` in the
         transverse bundle or (when `H` is a null hypersurface) the
         null transversal vector field defined in [DB1996]_.
 

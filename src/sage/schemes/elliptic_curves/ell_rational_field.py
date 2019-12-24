@@ -474,7 +474,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Generator 1 is [29604565304828237474403861024284371796799791624792913256602210:-256256267988926809388776834045513089648669153204356603464786949:490078023219787588959802933995928925096061616470779979261000]; height 95.98037...
             Regulator = 95.98037...
         """
-        if options == "":
+        if not options:
             from sage.interfaces.all import mwrank
         else:
             from sage.interfaces.all import Mwrank
@@ -490,7 +490,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``algorithm`` - str, (default: "pari")
 
-           -  ``"pari"`` - use the PARI C-library ellglobalred
+           -  ``"pari"`` - use the PARI C-library :pari:`ellglobalred`
               implementation of Tate's algorithm
 
            -  ``"mwrank"`` - use Cremona's mwrank implementation
@@ -4672,7 +4672,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise ValueError("%s is not prime."%l)
         if l is None:
             isogs = isogenies_prime_degree_genus_0(self)
-            if isogs != []:
+            if isogs:
                 return isogs
             else:
                 return isogenies_sporadic_Q(self)
@@ -4682,7 +4682,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             while i<len(l):
                 isogenies = [f for f in self.isogenies_prime_degree(l[i]) if not f in isogs]
                 isogs.extend(isogenies)
-                i = i+1
+                i += 1
             return isogs
 
     def is_isogenous(self, other, proof=True, maxp=200):

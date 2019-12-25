@@ -411,6 +411,94 @@ void ps_dynamic_clear(ps_dynamic_data_t *dy_data) {
   free(dy_data);
 }
 
+/* Subroutines to adjust lower and upper bounds within set_range_from_power_sums.
+   These use t0z, t0q, t4q as persistent scratch space.
+   The pair (val1, val2) stands for val1 + val2*sqrt(q);
+   passing NULL for val2 is a faster variant of passing 0.
+
+  Usage: if g is a monic linear function of the k-th power sum, then
+  set_upper(g) or change_upper(g) imposes the condition g >= 0;
+  set_lower(g) or change_lower(g) imposes the condition g <= 0.
+
+*/
+
+#define STATE lower, upper, q, f, t0z, t0q, t4q
+#define STATE_DECLARE fmpz_t lower, fmpz_t upper, fmpz_t q, fmpq_t f, fmpz_t t0z, fmpq_t t0q, fmpq_t t4q
+
+void set_lower(const fmpq_t val1, const fmpq_t val2, STATE_DECLARE) {
+  fmpq_div(t0q, val1, f);
+  if (val2==NULL) fmpq_ceil(lower, t0q);
+  else {
+    fmpq_div(t4q, val2, f);
+    fmpq_ceil_quad(lower, t0q, t4q, q);
+  }
+}
+
+void set_upper(const fmpq_t val1, const fmpq_t val2, STATE_DECLARE) {
+  fmpq_div(t0q, val1, f);
+  if (val2==NULL) fmpq_floor(upper, t0q);
+  else {
+    fmpq_div(t4q, val2, f);
+    fmpq_floor_quad(upper, t0q, t4q, q);
+  }
+}
+
+void change_lower(const fmpq_t val1, const fmpq_t val2, STATE_DECLARE) {
+  fmpq_div(t0q, val1, f);
+  if (val2==NULL) fmpq_ceil(t0z, t0q);
+  else {
+    fmpq_div(t4q, val2, f);
+    fmpq_ceil_quad(t0z, t0q, t4q, q);
+  }
+  if (fmpz_cmp(t0z, lower) > 0) fmpz_set(lower, t0z);
+}
+
+void change_upper(const fmpq_t val1, const fmpq_t val2, STATE_DECLARE) {
+  fmpq_div(t0q, val1, f);
+  if (val2==NULL) fmpq_floor(t0z, t0q);
+  else {
+    fmpq_div(t4q, val2, f);
+    fmpq_floor_quad(t0z, t0q, t4q, q);
+  }
+  if (fmpz_cmp(t0z, upper) < 0) fmpz_set(upper, t0z);
+}
+
+void change_lower_strict(const fmpq_t val1, const fmpq_t val2, STATE_DECLARE) {
+  fmpq_div(t0q, val1, f);
+  if (val2==NULL) fmpq_floor(t0z, t0q);
+  else {
+    fmpq_div(t4q, val2, f);
+    fmpq_floor_quad(t0z, t0q, t4q, q);
+  }
+  fmpz_add_ui(t0z, t0z, 1);
+  if (fmpz_cmp(t0z, lower) > 0) fmpz_set(lower, t0z);
+}
+
+void change_upper_strict(const fmpq_t val1, const fmpq_t val2, STATE_DECLARE) {
+  fmpq_div(t0q, val1, f);
+  if (val2==NULL) fmpq_ceil(t0z, t0q);
+  else {
+    fmpq_div(t4q, val2, f);
+    fmpq_ceil_quad(t0z, t0q, t4q, q);
+  }
+  fmpz_sub_ui(t0z, t0z, 1);
+  if (fmpz_cmp(t0z, upper) < 0) fmpz_set(upper, t0z);
+}
+
+/* Impose the condition that val1*val3 >= val2, assuming that val1 is a linear 
+   monic function of the k-th power sum and val2, val3 do not depend on this sum. */
+void impose_quadratic_condition(const fmpq_t val1, const fmpq_t val2,
+				const fmpq_t val3, STATE_DECLARE) {
+  int s = fmpq_sgn(val3);
+  if (s) {
+    fmpq_mul(t0q, val2, val2);
+    fmpq_div(t0q, t0q, val3);
+    fmpq_sub(t0q, val1, t0q);
+    if (s>0) change_upper(t0q, NULL, STATE);
+    else change_lower(t0q, NULL, STATE);
+  }
+}
+
 /* The following is the key subroutine: given some initial coefficients, compute
    a lower and upper bound for the next coefficient. Return 1 iff the resulting
    interval is nonempty.
@@ -445,90 +533,6 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   fmpq *t3q = dy_data->w2+3;
   fmpq *t4q = dy_data->w2+4;
 
-  /* Embedded subroutines to adjust lower and upper bounds.
-   These use t0z, t0q, t4q as persistent scratch space.
-   The pair (val1, val2) stands for val1 + val2*sqrt(q);
-   passing NULL for val2 is a faster variant of passing 0.
-
-  Usage: if g is a monic linear function of the k-th power sum, then
-  set_upper(g) or change_upper(g) imposes the condition g >= 0;
-  set_lower(g) or change_lower(g) imposes the condition g <= 0.*/
-
-  void set_lower(const fmpq_t val1, const fmpq_t val2) {
-    fmpq_div(t0q, val1, f);
-    if (val2==NULL) fmpq_ceil(lower, t0q);
-    else {
-      fmpq_div(t4q, val2, f);
-      fmpq_ceil_quad(lower, t0q, t4q, q);
-    }
-  }
-
-  void set_upper(const fmpq_t val1, const fmpq_t val2) {
-    fmpq_div(t0q, val1, f);
-    if (val2==NULL) fmpq_floor(upper, t0q);
-    else {
-      fmpq_div(t4q, val2, f);
-      fmpq_floor_quad(upper, t0q, t4q, q);
-    }
-  }
-
-  void change_lower(const fmpq_t val1, const fmpq_t val2) {
-    fmpq_div(t0q, val1, f);
-    if (val2==NULL) fmpq_ceil(t0z, t0q);
-    else {
-      fmpq_div(t4q, val2, f);
-      fmpq_ceil_quad(t0z, t0q, t4q, q);
-    }
-    if (fmpz_cmp(t0z, lower) > 0) fmpz_set(lower, t0z);
-  }
-
-  void change_upper(const fmpq_t val1, const fmpq_t val2) {
-    fmpq_div(t0q, val1, f);
-    if (val2==NULL) fmpq_floor(t0z, t0q);
-    else {
-      fmpq_div(t4q, val2, f);
-      fmpq_floor_quad(t0z, t0q, t4q, q);
-    }
-    if (fmpz_cmp(t0z, upper) < 0) fmpz_set(upper, t0z);
-  }
-
-  void change_lower_strict(const fmpq_t val1, const fmpq_t val2) {
-    fmpq_div(t0q, val1, f);
-    if (val2==NULL) fmpq_floor(t0z, t0q);
-    else {
-      fmpq_div(t4q, val2, f);
-      fmpq_floor_quad(t0z, t0q, t4q, q);
-    }
-    fmpz_add_ui(t0z, t0z, 1);
-    if (fmpz_cmp(t0z, lower) > 0) fmpz_set(lower, t0z);
-  }
-
-  void change_upper_strict(const fmpq_t val1, const fmpq_t val2) {
-    fmpq_div(t0q, val1, f);
-    if (val2==NULL) fmpq_ceil(t0z, t0q);
-    else {
-      fmpq_div(t4q, val2, f);
-      fmpq_ceil_quad(t0z, t0q, t4q, q);
-    }
-    fmpz_sub_ui(t0z, t0z, 1);
-    if (fmpz_cmp(t0z, upper) < 0) fmpz_set(upper, t0z);
-  }
-
-  /* Impose the condition that val1*val3 >= val2, assuming that val1 is a linear monic function
-     of the k-th power sum and val2, val3 do not depend on this sum. */
-  void impose_quadratic_condition(const fmpq_t val1, const fmpq_t val2, const fmpq_t val3) {
-    int s = fmpq_sgn(val3);
-    if (s) {
-      fmpq_mul(t0q, val2, val2);
-      fmpq_div(t0q, t0q, val3);
-      fmpq_sub(t0q, val1, t0q);
-      if (s>0) change_upper(t0q, NULL);
-      else change_lower(t0q, NULL);
-    }
-  }
-
-  /* End embedded subroutines */
-
   /* If k>d, no further coefficients to bound. */
   if (k>d) return(1);
 
@@ -554,13 +558,13 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   }
   if (k%2==0) {
     fmpq_sub(t0q, t, t1q);
-    set_lower(t0q, NULL);
+    set_lower(t0q, NULL, STATE);
     fmpq_add(t0q, t, t1q);
-    set_upper(t0q, NULL);
+    set_upper(t0q, NULL, STATE);
   } else {
-    set_upper(t, t1q);
+    set_upper(t, t1q, STATE);
     fmpq_neg(t1q, t1q);
-    set_lower(t, t1q);
+    set_lower(t, t1q, STATE);
     }
 
   /* Compute the divided (n-1)-st derivative of pol, answer in tpol. */
@@ -583,16 +587,16 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
 
   /* If checking for squarefree, shear endpoints off the range. */
   if (st_data->force_squarefree) {
-    change_lower_strict(t1q, t2q);
+    change_lower_strict(t1q, t2q, STATE);
     fmpq_neg(t2q, t2q);
-    if (k%2==1) change_upper_strict(t1q, t2q);
-    else change_lower_strict(t1q, t2q);
+    if (k%2==1) change_upper_strict(t1q, t2q, STATE);
+    else change_lower_strict(t1q, t2q, STATE);
   }
   else {
-    change_lower(t1q, t2q);
+    change_lower(t1q, t2q, STATE);
     fmpq_neg(t2q, t2q);
-    if (k%2==1) change_upper(t1q, t2q);
-    else change_lower(t1q, t2q);
+    if (k%2==1) change_upper(t1q, t2q, STATE);
+    else change_lower(t1q, t2q, STATE);
   }
   if (fmpz_cmp(lower, upper) > 0) return(0);
 
@@ -626,10 +630,10 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   if (k%2==0) {
     if (fmpq_sgn(t) > 0) {
       fmpq_div(t0q, t0q, t);
-      change_upper(t0q, NULL);
+      change_upper(t0q, NULL, STATE);
       }
     else if (st_data->force_squarefree || fmpq_sgn(t0q)) return(0);
-    else change_upper(fmpq_mat_entry(dy_data->power_sums, k, 0), NULL);
+    else change_upper(fmpq_mat_entry(dy_data->power_sums, k, 0), NULL, STATE);
     if (fmpz_cmp(lower, upper) > 0) return(0);
   }
 
@@ -639,8 +643,8 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
   for (i=0; i<=k; i++) {
     fmpq_set(t1q, fmpq_mat_entry(dy_data->hausdorff_prod, 2*i, 0));
     fmpq_set(t2q, fmpq_mat_entry(dy_data->hausdorff_prod, 2*i+1, 0));
-    if (i%2==0) change_upper(t1q, t2q);
-    else change_lower(t1q, t2q);
+    if (i%2==0) change_upper(t1q, t2q, STATE);
+    else change_lower(t1q, t2q, STATE);
     if (q_is_1) {
       fmpq_set(fmpq_mat_entry(dy_data->hausdorff_sums1, k, i), t1q);
       fmpq_set(fmpq_mat_entry(dy_data->hausdorff_sums2, k, i), t2q);
@@ -658,7 +662,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
 	       fmpq_mat_entry(dy_data->hausdorff_sums2, k-1, i));
       fmpq_add(t3q, fmpq_mat_entry(dy_data->hausdorff_sums1, k-2, i),
 	       fmpq_mat_entry(dy_data->hausdorff_sums2, k-2, i));
-      impose_quadratic_condition(t1q, t2q, t3q);
+      impose_quadratic_condition(t1q, t2q, t3q, STATE);
     }
     for (i=2; i<=k; i++) {
       fmpq_add(t1q, fmpq_mat_entry(dy_data->hausdorff_sums1, k, i),
@@ -667,7 +671,7 @@ int set_range_from_power_sums(ps_static_data_t *st_data,
 	       fmpq_mat_entry(dy_data->hausdorff_sums2, k-1, i-1));
       fmpq_add(t3q, fmpq_mat_entry(dy_data->hausdorff_sums1, k-2, i-2),
 	       fmpq_mat_entry(dy_data->hausdorff_sums2, k-2, i-2));
-      impose_quadratic_condition(t1q, t2q, t3q);
+      impose_quadratic_condition(t1q, t2q, t3q, STATE);
     }
   }
   r = fmpz_cmp(lower, upper);

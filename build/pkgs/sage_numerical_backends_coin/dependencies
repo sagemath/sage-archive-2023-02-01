@@ -1,4 +1,4 @@
-| $(SAGERUNTIME) setuptools pip cython
+cbc | $(SAGERUNTIME) setuptools pip cython
 
 ----------
 All lines of this file are ignored except the first.

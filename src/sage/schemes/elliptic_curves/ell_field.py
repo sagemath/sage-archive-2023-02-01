@@ -441,7 +441,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
                 um = c6E/c6F
                 x=rings.polygen(K)
                 ulist=(x**3-um).roots(multiplicities=False)
-                if len(ulist)==0:
+                if  not ulist:
                     D = zero
                 else:
                     D = ulist[0]
@@ -449,7 +449,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
                 um=c4E/c4F
                 x=rings.polygen(K)
                 ulist=(x**2-um).roots(multiplicities=False)
-                if len(ulist)==0:
+                if not ulist:
                     D = zero
                 else:
                     D = ulist[0]
@@ -706,7 +706,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
                 return []
         elif f is None:
             embeddings = K.embeddings(L)
-            if len(embeddings) == 0:
+            if not embeddings:
                 raise TypeError("Input must be a subfield of the base field of the curve.")
             for g in embeddings:
                 try:

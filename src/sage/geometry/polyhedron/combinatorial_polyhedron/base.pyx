@@ -349,10 +349,10 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if Vrepr:
             # store vertices names
-            self._V = tuple(Vrepr)
-            Vinv = {v: i for i,v in enumerate(self._V)}
+            self._Vrep = tuple(Vrepr)
+            Vinv = {v: i for i,v in enumerate(self._Vrep)}
         else:
-            self._V = None
+            self._Vrep = None
             Vinv = None
 
         if facets:
@@ -367,11 +367,11 @@ cdef class CombinatorialPolyhedron(SageObject):
                     # will be detected.
                     if not facets[i].is_inequality():
                         test[i] = 0
-            self._H = tuple(facets[i] for i in range(len(facets)) if test[i])
+            self._facet_names = tuple(facets[i] for i in range(len(facets)) if test[i])
 
             self._equalities = tuple(facets[i] for i in range(len(facets)) if not test[i])
         else:
-            self._H = None
+            self._facet_names = None
 
         if data == [] or data == ():
             # Handling the empty polyhedron.
@@ -419,22 +419,22 @@ cdef class CombinatorialPolyhedron(SageObject):
             if is_iterator(data):
                 data = tuple(data)
 
-            if self._V is None:
+            if self._Vrep is None:
                 # Get the names of the Vrepr.
                 Vrepr = sorted(set.union(*map(set, data)))
                 n_Vrepresentation = len(Vrepr)
                 if Vrepr != range(len(Vrepr)):
-                    self._V = tuple(Vrepr)
-                    Vinv = {v: i for i,v in enumerate(self._V)}
+                    self._Vrep = tuple(Vrepr)
+                    Vinv = {v: i for i,v in enumerate(self._Vrep)}
             else:
                 # Assuming the user gave as correct names for the vertices
                 # and labeled them instead by `0,...,n`.
-                n_Vrepresentation = len(self._V)
+                n_Vrepresentation = len(self._Vrep)
 
             self._n_Vrepresentation = n_Vrepresentation
 
             # Relabel the Vrepr to be `0,...,n`.
-            if self._V is not None:
+            if self._Vrep is not None:
                 def f(v): return Vinv[v]
             else:
                 def f(v): return int(v)
@@ -568,8 +568,8 @@ cdef class CombinatorialPolyhedron(SageObject):
              A vertex at (0, 0, 0),
              A ray in the direction (0, 1, 0))
         """
-        if self.V() is not None:
-            return self.V()
+        if self.Vrep() is not None:
+            return self.Vrep()
         else:
             return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()))
 
@@ -590,8 +590,8 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (0, 1, 1) x - 3 >= 0,
              An inequality (0, 0, 1) x - 1 >= 0)
         """
-        if self.H() is not None:
-            return self.equalities() + self.H()
+        if self.facet_names() is not None:
+            return self.equalities() + self.facet_names()
         else:
             return tuple(smallInteger(i) for i in range(self.n_Hrepresentation()))
 
@@ -724,8 +724,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if unlikely(self.dimension() == 0):
             # Handling the case of a trivial polyhedron of dimension `0`.
-            if names and self.V():
-                return (self.V()[0],)
+            if names and self.Vrep():
+                return (self.Vrep()[0],)
             else:
                 return (smallInteger(0),)
         if not self.is_bounded():
@@ -739,8 +739,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             except StopIteration:
                 # The Polyhedron has no vertex.
                 return ()
-        if names and self.V():
-            return tuple(self.V()[i]     for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
+        if names and self.Vrep():
+            return tuple(self.Vrep()[i]     for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
         else:
             return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
 
@@ -930,8 +930,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         # with each array containing ``len_edge_list`` of edges.
 
         # Mapping the indices of the Vrepr to the names, if requested.
-        if self.V() is not None and names is True:
-            def f(size_t i): return self.V()[i]
+        if self.Vrep() is not None and names is True:
+            def f(size_t i): return self.Vrep()[i]
         else:
             def f(size_t i): return smallInteger(i)
 
@@ -1113,8 +1113,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         # with each array containing ``len_ridge_list`` of ridges.
 
         # Mapping the indices of the Vepr to the names, if requested.
-        if self.H() is not None and names is True:
-            def f(size_t i): return self.H()[i]
+        if self.facet_names() is not None and names is True:
+            def f(size_t i): return self.facet_names()[i]
         else:
             def f(size_t i): return smallInteger(i)
 
@@ -1237,7 +1237,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             raise ValueError("could not determine f_vector")
         from sage.modules.free_module_element import vector
         from sage.rings.all                   import ZZ
-        return vector(ZZ, self._f_vector)
+        f_vector = vector(ZZ, self._f_vector)
+        f_vector.set_immutable()
+        return f_vector
 
     def face_iter(self, dimension=None, dual=None):
         r"""
@@ -1537,19 +1539,19 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Let ``_all_faces`` determine Vrepresentation.
         return self._all_faces.get_face(dim, newindex)
 
-    cdef tuple V(self):
+    cdef tuple Vrep(self):
         r"""
         Return the names of the Vrepresentation, if they exist. Else return ``None``.
         """
-        return self._V
+        return self._Vrep
 
-    cdef tuple H(self):
+    cdef tuple facet_names(self):
         r"""
         Return the names Hrepresentatives, which are facets.
 
         If not given, return ``None``.
         """
-        return self._H
+        return self._facet_names
 
     cdef tuple equalities(self):
         r"""

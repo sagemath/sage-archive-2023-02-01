@@ -781,6 +781,21 @@ cdef class Expression(CommutativeRingElement):
             ⎮ ─────── dx
             ⎮  x + 1
             ⌡
+
+        TESTS:
+
+        Check that :trac:`28891` is fixed::
+
+            sage: unicode_art(exp(x).series(x, 4))
+                     2    3
+                    x    x     ⎛ 4⎞
+            1 + x + ── + ── + O⎝x ⎠
+                    2    6
+            sage: unicode_art(exp(x).series(x==1, 3))
+                                     2
+                            ℯ⋅(x - 1)     ⎛       3       ⎞
+            ℯ + ℯ⋅(x - 1) + ────────── + O⎝(x - 1) ; x → 1⎠
+                                2
         """
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(self._sympy_character_art(True).splitlines())
@@ -5722,6 +5737,8 @@ cdef class Expression(CommutativeRingElement):
             <built-in function ge>
             sage: SR._force_pyobject( (x, x + 1, x + 2) ).operator()
             <... 'tuple'>
+            sage: exp(x).series(x,3).operator()
+            <function add_vararg ...>
         """
         cdef operators o
         cdef unsigned serial
@@ -5766,6 +5783,8 @@ cdef class Expression(CommutativeRingElement):
             return res
         elif is_exactly_a_exprseq(self._gobj):
             return tuple
+        elif is_a_series(self._gobj):
+            return add_vararg
 
         # self._gobj is either a symbol, constant or numeric
         return None

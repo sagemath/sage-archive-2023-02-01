@@ -345,7 +345,7 @@ class AffinePlaneCurve(AffineCurve):
         for x in e:
             for y in vars0:
                 if str(y) in x:
-                    if len(x.replace(str(y),"")) != 0:
+                    if x.replace(str(y), ""):
                         i = x.find("-")
                         if i>0:
                             vals.append([eval(x[1:i]),x[:i],F(eval(x[i+1:]))])
@@ -363,15 +363,11 @@ class AffinePlaneCurve(AffineCurve):
 
         INPUT:
 
-
-        -  ``self`` - an affine plane curve
-
         -  ``*args`` - optional tuples (variable, minimum, maximum) for
            plotting dimensions
 
         -  ``**kwds`` - optional keyword arguments passed on to
            ``implicit_plot``
-
 
         EXAMPLES:
 
@@ -1442,7 +1438,7 @@ class AffineCurve_field(AffineCurve):
         # map from the patch to the original curve, and the set of singular points
         # of the patch
         res = [[C, [placeholder], placeholder, C.singular_points()]]
-        if len(res[0][3]) == 0:
+        if not res[0][3]:
             if C.is_smooth():
                 raise TypeError("this curve is already nonsingular")
             else:
@@ -1454,7 +1450,7 @@ class AffineCurve_field(AffineCurve):
         while not_resolved:
             [BC, t_maps, pi, pts] = [res[t][0], res[t][1], res[t][2], res[t][3]]
             # check if there are any singular points in this patch
-            if len(pts) == 0:
+            if not pts:
                 t = t + 1
                 if t == len(res):
                     not_resolved = False
@@ -1491,7 +1487,7 @@ class AffineCurve_field(AffineCurve):
                         if tmp_curve.is_singular(tmp_pt):
                             n_pts.append(tmp_pt)
                     # avoid needlessly extending the base field
-                    if len(n_pts) > 0:
+                    if n_pts:
                         # coerce everything to the new base field
                         BC = BC.change_ring(emb)
                         t_maps = [t_maps[j].change_ring(emb) for j in range(len(t_maps))]

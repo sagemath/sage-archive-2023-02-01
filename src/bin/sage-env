@@ -342,14 +342,6 @@ export LIBRARY_PATH="${LIBRARY_PATH}$SAGE_LOCAL/lib"
 [ -z "$CPATH" ] || CPATH="${CPATH}:"
 export CPATH="${CPATH}$SAGE_LOCAL/include"
 
-# Add Debian multi-arch directories if applicable.
-# See http://wiki.debian.org/Multiarch
-MULTI_ARCH=`dpkg-architecture -qDEB_BUILD_MULTIARCH 2>/dev/null`
-if [ -n "$MULTI_ARCH" ]; then
-    LIBRARY_PATH="${LIBRARY_PATH}:/usr/lib/$MULTI_ARCH"
-    CPATH="${CPATH}:/usr/include/$MULTI_ARCH"
-fi
-
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 

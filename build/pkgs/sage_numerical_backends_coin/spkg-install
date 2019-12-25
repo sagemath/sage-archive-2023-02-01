@@ -10,6 +10,6 @@ cd src
 sdh_pip_install .
 
 if [ $? -ne 0 ]; then
-   echo "Error installing PyNormaliz."
+   echo "Error installing sage_numerical_backends_coin."
    exit 1
 fi

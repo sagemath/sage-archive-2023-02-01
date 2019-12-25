@@ -442,11 +442,11 @@ Solvers (backends)
 Sage solves linear programs by calling specific libraries. The
 following libraries are currently supported:
 
-* `CBC <http://www.coin-or.org/projects/Cbc.xml>`_: A solver from
-  `COIN-OR <http://www.coin-or.org/>`_
-
-  Provided under the open source license CPL, but incompatible with
-  GPL. CBC and the Sage CBC backend can be installed using the shell command::
+* `CBC <https://github.com/coin-or/Cbc>`_: A solver from
+  `COIN-OR <http://www.coin-or.org/>`_,
+  provided under the Eclipse Public License (EPL), which is an open source
+  license but incompatible with GPL. CBC and the Sage CBC backend can be
+  installed using the shell command::
 
     $ sage -i -c sage_numerical_backends_coin
 

@@ -1056,27 +1056,6 @@ ext_modules = [
     Extension("sage.numerical.backends.interactivelp_backend",
               ["sage/numerical/backends/interactivelp_backend.pyx"]),
 
-    OptionalExtension("sage.numerical.backends.gurobi_backend",
-              ["sage/numerical/backends/gurobi_backend.pyx"],
-              libraries = ["gurobi"],
-              condition = os.path.isfile(SAGE_INC + "/gurobi_c.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")),
-
-    OptionalExtension("sage.numerical.backends.cplex_backend",
-              ["sage/numerical/backends/cplex_backend.pyx"],
-              libraries = ["cplex"],
-              condition = os.path.isfile(SAGE_INC + "/cplex.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
-
-    OptionalExtension("sage.numerical.backends.coin_backend",
-              ["sage/numerical/backends/coin_backend.pyx"],
-              language = 'c++',
-              libraries = ["Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils",
-                           "OsiCbc", "OsiClp", "Osi"] + lapack_libs,
-              library_dirs = lapack_library_dirs,
-              include_dirs = lapack_include_dirs,
-              package = 'cbc'),
-
     ################################
     ##
     ## sage.plot

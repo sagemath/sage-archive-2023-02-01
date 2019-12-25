@@ -1612,14 +1612,14 @@ def default_mip_solver(solver = None):
 
     if solver == "Cplex":
         try:
-            from sage.numerical.backends.cplex_backend import CPLEXBackend
+            from sage_numerical_backends_cplex.cplex_backend import CPLEXBackend
             default_solver = solver
         except ImportError:
             raise ValueError("CPLEX is not available. Please refer to the documentation to install it.")
 
     elif solver == "Coin":
         try:
-            from sage.numerical.backends.coin_backend import CoinBackend
+            from sage_numerical_backends_coin.coin_backend import CoinBackend
             default_solver = solver
         except ImportError:
             raise ValueError("COIN is not available. Please refer to the documentation to install it.")
@@ -1640,7 +1640,7 @@ def default_mip_solver(solver = None):
 
     elif solver == "Gurobi":
         try:
-            from sage.numerical.backends.gurobi_backend import GurobiBackend
+            from sage_numerical_backends_gurobi.gurobi_backend import GurobiBackend
             default_solver = solver
         except ImportError:
             raise ValueError("Gurobi is not available. Please refer to the documentation to install it.")
@@ -1789,7 +1789,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         solver = solver.capitalize()
 
     if solver == "Coin":
-        from sage.numerical.backends.coin_backend import CoinBackend
+        from sage_numerical_backends_coin.coin_backend import CoinBackend
         return CoinBackend()
 
     elif solver == "Glpk":
@@ -1801,7 +1801,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         return GLPKExactBackend()
 
     elif solver == "Cplex":
-        from sage.numerical.backends.cplex_backend import CPLEXBackend
+        from sage_numerical_backends_cplex.cplex_backend import CPLEXBackend
         return CPLEXBackend()
 
     elif solver == "Cvxopt":
@@ -1809,7 +1809,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         return CVXOPTBackend()
 
     elif solver == "Gurobi":
-        from sage.numerical.backends.gurobi_backend import GurobiBackend
+        from sage_numerical_backends_gurobi.gurobi_backend import GurobiBackend
         return GurobiBackend()
 
     elif solver == "Ppl":

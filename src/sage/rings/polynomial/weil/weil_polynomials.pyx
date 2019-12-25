@@ -375,11 +375,11 @@ class WeilPolynomials_iter():
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPoynomials
+            sage: from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
             sage: w = WeilPolynomials(10,1,sign=1,lead=[3,1,1])
             sage: it = iter(w)
             sage: next(it)
-            3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x 3
+            3*x^10 + x^9 + x^8 + 7*x^7 + 5*x^6 + 2*x^5 + 5*x^4 + 7*x^3 + x^2 + x + 3
         """
         return self.__next__()
 

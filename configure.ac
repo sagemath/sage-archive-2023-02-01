@@ -99,7 +99,15 @@ SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 #---------------------------------------------------------
-AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unpriviledged user])], [])
+
+AC_ARG_ENABLE([build-as-root],
+              [AS_HELP_STRING([--enable-build-as-root],
+                              [allow building Sage as root (for use in containers)])],
+              [enable_build_as_root=$enableval],
+              [enable_build_as_root=no])
+if test "$enable_build_as_root" != yes; then
+   AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unprivileged user.  (If building in a container, use --enable-build-as-root.)])], [])
+fi
 
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()

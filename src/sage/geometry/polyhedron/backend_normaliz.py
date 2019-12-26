@@ -1281,7 +1281,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
             True
 
-            sage: P = polytopes.dodecahedron(backend='normaliz')
+            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz
             sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
             True
 

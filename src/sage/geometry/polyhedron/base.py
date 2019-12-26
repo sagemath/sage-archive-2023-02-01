@@ -5186,9 +5186,6 @@ class Polyhedron_base(Element):
         barycenter = self.center()
         parent = self.parent().base_extend(subdivision_frac)
 
-        ambient_dim = self.ambient_dim()
-        polytope_dim = self.dimension()
-
         start_polar = (self - barycenter).polar(in_affine_span=True)
         polar = (self - barycenter).polar(in_affine_span=True)
 

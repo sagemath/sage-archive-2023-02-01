@@ -161,7 +161,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.arith.long cimport (pyobject_to_long, integer_check_long,
-                              integer_check_long_py)
+                              integer_check_long_py, is_small_python_int)
 
 from cpython.list cimport *
 from cpython.number cimport *
@@ -5509,7 +5509,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         cdef long tmp
-        if isinstance(b, int):
+        if is_small_python_int(b):
             tmp = b
             if (tmp & 1) == 0:
                 raise ValueError("Jacobi symbol not defined for even b.")
@@ -5541,7 +5541,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a.kronecker(b) == b.kronecker(a)
             True
         """
-        if isinstance(b, int):
+        if is_small_python_int(b):
             return mpz_kronecker_si(self.value, b)
         if not isinstance(b, Integer):
             b = Integer(b)

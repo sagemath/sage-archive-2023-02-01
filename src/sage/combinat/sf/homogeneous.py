@@ -249,15 +249,15 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
               the default is to create a ring (or fraction field) of
               polynomials in ``q`` over the coefficient ring.
 
-            We use the formulas from Proposition 7.8.3 of [EnumComb2]_
+            We use the formulas from Proposition 7.8.3 of [EnumComb2]_,
 
             .. MATH::
 
-                ps_{n,q}(h_\lambda) = \prod_i \binom{n+\lambda_i-1}{\lambda_i}_q
+                ps_{n,q}(h_\lambda) = \prod_i \binom{n+\lambda_i-1}{\lambda_i}_q,
 
-                ps_{n,1}(h_\lambda) = \prod_i \binom{n+\lambda_i-1}{\lambda_i}
+                ps_{n,1}(h_\lambda) = \prod_i \binom{n+\lambda_i-1}{\lambda_i},
 
-                ps_q(h_\lambda) = 1 / \prod_i \prod_{j=1}^{\lambda_i} (1-q^j)
+                ps_q(h_\lambda) = 1 / \prod_i \prod_{j=1}^{\lambda_i} (1-q^j).
 
             EXAMPLES::
 
@@ -323,9 +323,9 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
             .. MATH::
 
-                ex_q(f) = (1-q)^n t^n ps(f),
+                ex_q(f) = (1-q)^n t^n ps_q(f),
 
-            where `ps(f)` is the stable principal specialization of `f`.
+            where `ps_q(f)` is the stable principal specialization of `f`.
             Note that setting `q = 1` in the stable principal
             specialization is an invalid operation.
 

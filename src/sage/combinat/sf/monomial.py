@@ -340,12 +340,13 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
               the default is to create a ring (or fraction field) of
               polynomials in ``q`` over the coefficient ring.
 
-            For ``q=1`` we use the formula from Proposition 7.8.3 of [EnumComb2]_
+            For ``q=1`` and finite ``n`` we use the formula from
+            Proposition 7.8.3 of [EnumComb2]_,
 
             .. MATH::
 
                 ps_{n,1}(m_\lambda) = \binom{n}{len(\lambda)}
-                                      \binom{len(\lambda)}{m_1(\lambda), m_2(\lambda),\dots}
+                                      \binom{len(\lambda)}{m_2(\lambda), m_2(\lambda),\dots}.
 
             In all other cases, we convert to powersum symmetric functions.
 
@@ -396,9 +397,9 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
             .. MATH::
 
-                ex_q(f) = (1-q)^n t^n ps(f),
+                ex_q(f) = (1-q)^n t^n ps_q(f),
 
-            where `ps(f)` is the stable principal specialization of `f`.
+            where `ps_q(f)` is the stable principal specialization of `f`.
             Note that setting `q = 1` in the stable principal
             specialization is an invalid operation.
 

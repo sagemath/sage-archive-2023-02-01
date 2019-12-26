@@ -732,11 +732,11 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             .. MATH::
 
-                ps_{n,q}(p_\lambda) = \prod_i (1-q^{n\lambda_i}) / (1-q^{\lambda_i})
+                ps_{n,q}(p_\lambda) = \prod_i (1-q^{n\lambda_i}) / (1-q^{\lambda_i}),
 
-                ps_{n,1}(p_\lambda) = n^{len(\lambda)}
+                ps_{n,1}(p_\lambda) = n^{len(\lambda)},
 
-                ps_q(p_\lambda) = 1 / \prod_i (1-q^{\lambda_i})
+                ps_q(p_\lambda) = 1 / \prod_i (1-q^{\lambda_i}).
 
             EXAMPLES::
 
@@ -796,8 +796,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             = t^n / n!`, see Proposition 7.8.4 of [EnumComb2]_.
 
             By analogy `q`-exponential specialization is a ring homomorphism
-            defined on homogeneous symmetric functions `f` of degree `n`
-            as
+            defined on homogeneous symmetric functions `f` of degree `n` as
 
             .. MATH::
 
@@ -807,9 +806,9 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             .. MATH::
 
-                ex_q(f) = (1-q)^n t^n ps(f),
+                ex_q(f) = (1-q)^n t^n ps_q(f),
 
-            where `ps(f)` is the stable principal specialization of `f`.
+            where `ps_q(f)` is the stable principal specialization of `f`.
             Note that setting `q = 1` in the stable principal
             specialization is an invalid operation.
 

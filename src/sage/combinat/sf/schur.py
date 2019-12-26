@@ -609,14 +609,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             .. MATH::
 
-                ps_q(s_\lambda) = q^{\sum_i i\lambda_i} / \prod_{u\in\lambda} (1-q^{h(u)})
+                ps_q(s_\lambda) = q^{\sum_i i\lambda_i} / \prod_{u\in\lambda} (1-q^{h(u)}).
 
-            Otherwise, we use the formula  from Corollary 7.21.2 of [EnumComb2]_
+            Otherwise, we use the formula  from Corollary 7.21.2 of [EnumComb2]_,
 
             .. MATH::
 
                 ps_{n,q}(s_\lambda) = q^{\sum_i i\lambda_i}
-                                      \prod_{u\in\lambda} (1-q^{n+c(u)}/(1-q^{h(u)})
+                                      \prod_{u\in\lambda} (1-q^{n+c(u)}/(1-q^{h(u)}).
 
             EXAMPLES::
 
@@ -687,9 +687,9 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             .. MATH::
 
-                ex_q(f) = (1-q)^n t^n ps(f),
+                ex_q(f) = (1-q)^n t^n ps_q(f),
 
-            where `ps(f)` is the stable principal specialization of `f`.
+            where `ps_q(f)` is the stable principal specialization of `f`.
             Note that setting `q = 1` in the stable principal
             specialization is an invalid operation.
 

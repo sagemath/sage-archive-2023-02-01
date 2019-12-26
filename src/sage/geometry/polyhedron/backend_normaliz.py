@@ -274,17 +274,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         def nfelem_handler(coords):
             # coords might be too short which is not accepted by Sage number field
-            list_coords = list(coords)
-            if len(coords) > 0 and isinstance(coords[0], list):
-                return list(nfelem_handler(y) for y in coords)
-            else:
-                v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
-                return self._normaliz_field(v)
-
-        # There is a bug in pynormaliz when applying a NumberField handler to
-        if property == 'Sublattice' and not self._normaliz_field in (ZZ, QQ):
-            # Handling a bug in PyNormaliz.
-            rational_handler = nfelem_handler
+            v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
+            return self._normaliz_field(v)
 
         import PyNormaliz
         return PyNormaliz.NmzResult(normaliz_cone, property,

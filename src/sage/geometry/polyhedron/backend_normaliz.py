@@ -279,8 +279,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         import PyNormaliz
         return PyNormaliz.NmzResult(normaliz_cone, property,
-                                       RationalHandler=rational_handler,
-                                       NumberfieldElementHandler=nfelem_handler)
+                                    RationalHandler=rational_handler,
+                                    NumberfieldElementHandler=nfelem_handler)
 
     def _init_from_normaliz_cone(self, normaliz_cone, normaliz_field):
         """

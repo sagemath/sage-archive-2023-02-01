@@ -197,31 +197,32 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             return self.zero()
         elif comp in ZZ and comp == 1:
             return self.one()
-        elif isinstance(comp, tuple):
-            comp_list = list(comp)
-            if len(comp_list) != self._max_deg + 1:
-                raise IndexError( "input list must have"
-                                  " length {}".format(self._max_deg + 1))
-            res[:] = comp_list
-        elif isinstance(comp, list):
+        elif isinstance(comp, (tuple, list)):
             if len(comp) != self._max_deg + 1:
-                raise IndexError( "input list must have"
-                                  " length {}".format(self._max_deg + 1))
-            res[:] = comp
+                raise IndexError( "input list must have "
+                                  "length {}".format(self._max_deg + 1))
+            if isinstance(com, tuple):
+                comp = list(comp)
+            res[:] = comp[:]
         elif isinstance(comp, self.Element):
             res[:] = comp[:]
         else:
-            ###
-            # Now, comp seems to be a differential form:
+            # Has comp a degree method?
             try:
                 deg = comp.degree()
             except (AttributeError, NotImplementedError):
-            # No degree method? Perhaps the degree is zero?
-                deg = 0
-
+            # No? Then we must check consecutively:
+                for d in self.irange():
+                    dmodule = self._domain.diff_form_module(deg,
+                                                        dest_map=self._dest_map)
+                    if dmodule.has_coerce_map_from(comp.parent()):
+                        deg = d
+                        break
+                else:
+                    raise TypeError("cannot convert {} into an element of "
+                                    "the {}".format(comp, self))
             res[:] = [0] * (self._max_deg + 1)  # fill up with zeroes...
             res[deg] = comp                     # ...and set comp at deg of res
-            ###
             # In case, no other name is given, use name of comp for better
             # coercion:
             if name is None:
@@ -277,20 +278,36 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             False
 
         """
-        if isinstance(S, self.__class__):
+        if isinstance(S, type(self)):
             # coercion by domain restriction
-            return (self._domain.is_subset(S._domain) and
-                   self._ambient_domain.is_subset(S._ambient_domain))
-        # Test scalar_field_algebra separately to ensure coercion from SR:
-        if self._domain.scalar_field_algebra().has_coerce_map_from(S):
+            if (self._domain.is_subset(S._domain) and
+                             self._ambient_domain.is_subset(S._ambient_domain)):
+                return True
+            # Still, there could be a coerce map
+            if self.irange() != S.irange():
+                return False
+            # Check coercions on each degree:
+            for deg in self.irange():
+                dmodule1 = self._domain.diff_form_module(deg, self._dest_map)
+                dmodule2 = S._domain.diff_form_module(deg, S._dest_map)
+                if not dmodule1.has_coerce_map_from(dmodule2):
+                    return False
+            # Each degree is coercible so there must be a coerce map:
             return True
-        # This is tricky, we need to check the degree first:
+        # If S has a degree method, a coerce map could exist:
         try:
             deg = S.degree()
-            if self._domain.diff_form_module(deg, self._dest_map).has_coerce_map_from(S):
+            if self._domain.diff_form_module(deg,
+                                         self._dest_map).has_coerce_map_from(S):
                 return True
         except (NotImplementedError, AttributeError, TypeError):
             pass
+        # Otherwise let us check the degree consecutively:
+        for deg in self.irange():
+            if self._domain.diff_form_module(deg,
+                                         self._dest_map).has_coerce_map_from(S):
+                return True
+        # Nothing found...
         return False
 
     @cached_method
@@ -369,19 +386,18 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
              3-dimensional differentiable manifold M
 
         """
-        description = ("Graded algebra " + self._name +
-                      " of mixed differential forms ")
+        desc = ("Graded algebra " + self._name + " of mixed differential forms ")
         if self._dest_map is self._domain.identity_map():
-            description += "on the {}".format(self._domain)
+            desc += "on the {}".format(self._domain)
         else:
-            description += "along the {} mapped into the {} ".format(
-                self._domain, self._ambient_domain)
+            desc += "along the {} mapped into the {} ".format(self._domain,
+                                                           self._ambient_domain)
             if self._dest_map._name is None:
                 dm_name = "unnamed map"
             else:
                 dm_name = self._dest_map._name
-            description += "via " + dm_name
-        return description
+            desc += "via " + dm_name
+        return desc
 
     def _latex_(self):
         r"""

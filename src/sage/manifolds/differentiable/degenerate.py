@@ -382,6 +382,43 @@ class TangentTensor(TensorFieldParal):
 
     - a tensor field on the ambient manifold along the submanifold
 
+    EXAMPLES:
+
+        Section of the lightcone of the Minkowski space with a hyperplane 
+        passing through the origin::
+
+            sage: M = Manifold(4, 'M', structure="Lorentzian")
+            sage: X.<t,x,y,z> = M.chart()
+            sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
+            sage: X_S.<u,v> = S.chart()
+            sage: Phi = S.diff_map(M, {(X_S, X): [sqrt(u^2+v^2), u, v, 0]}, 
+            ....:               name='Phi', latex_name=r'\Phi')
+            sage: Phi_inv = M.diff_map(S, {(X, X_S): [x, y]}, name='Phi_inv', 
+            ....:                       latex_name=r'\Phi^{-1}')
+            sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
+            sage: V = M.vector_field(); V[3] = 1
+            sage: S.set_transverse(rigging=t, normal=V)
+            sage: xi = M.vector_field(); xi[0] = sqrt(x^2+y^2+z^2); xi[1] = x; xi[2] = y
+            sage: U = M.vector_field(); U[1] = sqrt(x^2+y^2+z^2); U[0] = x
+            sage: Sc = S.screen('Sc', U, xi); 
+            sage: T1 = M.tensor_field(1,1).along(Phi); T1[0,0] = 1
+            sage: V1 = M.vector_field().along(Phi); V1[0] = 1; V1[1]=1
+            sage: T1(V1).disp()
+            d/dt
+            sage: from sage.manifolds.differentiable.degenerate_submanifold import TangentTensor
+            sage: T2 = TangentTensor(T1, Phi); V2 = S.projection(V1)
+            sage: T2(V2).disp()
+            u/sqrt(u^2 + v^2) d/dt
+
+        Of course `T1` and `T2` give the same output on vector fields tangent to S::
+
+            sage: T1(xi.along(Phi)).disp()
+            sqrt(u^2 + v^2) d/dt
+            sage: T2(xi.along(Phi)).disp()
+            sqrt(u^2 + v^2) d/dt
+
     """
 
     def __init__(self, tensor, embedding):

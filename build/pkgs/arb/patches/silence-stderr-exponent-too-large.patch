@@ -1,0 +1,17 @@
+Do not write stuff to stderr when signalling errors
+
+See https://trac.sagemath.org/ticket/28817
+
+
+diff --git a/arf/get_mpfr.c b/arf/get_mpfr.c
+index 34012af..9ccb87b 100644
+--- a/arf/get_mpfr.c
++++ b/arf/get_mpfr.c
+@@ -30,7 +30,6 @@ arf_get_mpfr(mpfr_t x, const arf_t y, mpfr_rnd_t rnd)
+     }
+     else if (COEFF_IS_MPZ(*ARF_EXPREF(y)))
+     {
+-        flint_printf("exception: exponent too large to convert to mpfr");
+         flint_abort();
+         r = 0; /* dummy return because flint_abort() is not declared noreturn */
+     }

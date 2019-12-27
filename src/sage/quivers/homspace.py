@@ -17,7 +17,6 @@ Quiver Homspace
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 from sage.categories.homset import Homset
 from sage.quivers.morphism import QuiverRepHom
 from sage.misc.cachefunc import cached_method
@@ -123,20 +122,20 @@ class QuiverHomSpace(Homset):
         # ith vertex. (So varstart[0] will be 0.)
         eqs = 0
         verts = domain._quiver.vertices()
-        varstart = [0]*(len(verts) + 1)
+        varstart = [0] * (len(verts) + 1)
 
         # First assign to varstart the dimension of the matrix assigned to the
         # previous vertex.
         for v in verts:
-            varstart[verts.index(v) + 1] = domain._spaces[v].dimension()*codomain._spaces[v].dimension()
+            varstart[verts.index(v) + 1] = domain._spaces[v].dimension() * codomain._spaces[v].dimension()
         for e in domain._semigroup._sorted_edges:
-            eqs += domain._spaces[e[0]].dimension()*codomain._spaces[e[1]].dimension()
+            eqs += domain._spaces[e[0]].dimension() * codomain._spaces[e[1]].dimension()
 
         # After this cascading sum varstart[v] will be the sum of the
         # dimensions of the matrices assigned to vertices ordered before v.
         # This is equal to the number of the first variable assigned to v.
         for i in range(2, len(varstart)):
-            varstart[i] += varstart[i-1]
+            varstart[i] += varstart[i - 1]
 
         # This will be the coefficient matrix for the system of equations.  We
         # start with all zeros and will fill in as we go.  We think of this
@@ -163,9 +162,9 @@ class QuiverHomSpace(Homset):
             for i in range(X.nrows()):
                 for j in range(Y.ncols()):
                     for k in range(Y.nrows()):
-                        coef_mat[varstart[verts.index(e[0])] + i*Y.nrows() + k, eqn] = Y[k, j]
+                        coef_mat[varstart[verts.index(e[0])] + i * Y.nrows() + k, eqn] = Y[k, j]
                     for k in range(X.ncols()):
-                        coef_mat[varstart[verts.index(e[1])] + k*Y.ncols() + j, eqn] = -X[i, k]
+                        coef_mat[varstart[verts.index(e[1])] + k * Y.ncols() + j, eqn] = -X[i, k]
                     eqn += 1
 
         # Now we can create the hom space

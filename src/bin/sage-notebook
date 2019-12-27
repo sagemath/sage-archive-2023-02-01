@@ -249,6 +249,12 @@ if __name__ == '__main__':
     logger.info('Main parser got arguments %s', args)
     logger.info('Passing on to notebook implementation: %s', unknown)
 
+    if sys.version_info.major == 3 and args.notebook == "sagenb":
+        logger.critical('trying to use old notebook under Python 3')
+        print('old notebook not working under Python 3, use Jupyter notebook')
+        print('see https://wiki.sagemath.org/Python3-Switch')
+        sys.exit(1)
+
     try:
         launcher = notebook_launcher[args.notebook]
     except KeyError:

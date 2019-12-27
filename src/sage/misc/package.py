@@ -422,14 +422,10 @@ def optional_packages():
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()  # optional - build
-        sage: 'ore_algebra' in installed+not_installed  # optional - build
-        True
         sage: 'beautifulsoup4' in installed+not_installed  # optional - build
         True
 
         sage: 'beautifulsoup4' in installed   # optional - build beautifulsoup4
-        True
-        sage: 'ore_algebra' in installed     # optional - build ore_algebra
         True
     """
     pkgs = list_packages('optional', local=True)

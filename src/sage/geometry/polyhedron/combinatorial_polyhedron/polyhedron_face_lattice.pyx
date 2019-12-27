@@ -134,8 +134,8 @@ cdef class PolyhedronFaceLattice:
             self.dual = False
         cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
         self.face_length = face_iter.face_length
-        self._V = C.V()
-        self._H = C.H()
+        self._Vrep = C.Vrep()
+        self._facet_names = C.facet_names()
         self._equalities = C.equalities()
 
         # copy f_vector for later use
@@ -269,7 +269,7 @@ cdef class PolyhedronFaceLattice:
 
         Sorts ``inp`` and returns it in ``output1``.
 
-        ..WARNING::
+        .. WARNING::
 
             Input is the same as output1 or output2
 

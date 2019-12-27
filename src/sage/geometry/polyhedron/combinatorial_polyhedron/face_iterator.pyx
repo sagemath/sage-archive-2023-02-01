@@ -446,8 +446,8 @@ cdef class FaceIterator(SageObject):
             self.coatoms = C.bitrep_facets()
             self.atoms = C.bitrep_Vrepr()
         self.face_length = self.coatoms.face_length
-        self._V = C.V()
-        self._H = C.H()
+        self._Vrep = C.Vrep()
+        self._facet_names = C.facet_names()
         self._equalities = C.equalities()
 
         self.atom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))

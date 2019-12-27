@@ -77,12 +77,12 @@ def bCheck(c, v, p, b):
     return (bval).ceil()
 
 
-def scale(c,v,p):
+def scale(c, v, p):
     r"""
     Create scaled integer polynomial with respect to prime ``p``.
 
     Given an integral polynomial ``c``, we can write `c = p^i*c'`, where ``p`` does not
-    divide ``c``. Returns ``c'`` and `v - i` where `i` is the smallest valuation of the
+    divide ``c``. Return ``c'`` and `v - i` where `i` is the smallest valuation of the
     coefficients of `c`.
 
     INPUT:
@@ -116,7 +116,7 @@ def scale(c,v,p):
         flag = False
     else:
         flag = True
-    return [flag,c,v]
+    return [flag, c, v]
 
 
 def blift(LF, Li, p, k, S=None, all_orbits=False):

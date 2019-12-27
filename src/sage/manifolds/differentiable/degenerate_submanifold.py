@@ -101,6 +101,7 @@ from sage.manifolds.differentiable.degenerate import (DegenerateManifold,
                                                       TangentTensor)
 from sage.manifolds.differentiable.differentiable_submanifold import \
     DifferentiableSubmanifold
+from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
@@ -123,14 +124,14 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     - ``field`` -- field `K` on which the manifold is
       defined; allowed values are
 
-        - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
-           a manifold over `\RR`
-        - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
-           for a manifold over `\CC`
-        - an object in the category of topological fields (see
-          :class:`~sage.categories.fields.Fields` and
-          :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-          for other types of manifolds
+      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+        a manifold over `\RR`
+      - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
+        for a manifold over `\CC`
+      - an object in the category of topological fields (see
+        :class:`~sage.categories.fields.Fields` and
+        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+        for other types of manifolds
 
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
       tuple: `S = (n_+, n_-, n_0)`, where `n_+` (resp. `n_-`, resp. `n_0`) is the
@@ -584,23 +585,24 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`
-          if ``None`` default screen is used.
+        - ``screen`` -- (default: ``None``) an instance of
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`;
+          if ``None``, the default screen is used.
+
         OUTPUT:
 
-        - a list of 4 lists, this 1st one being independents vector fields 
-        spanning the screen distribution, the 2nd one independents vector fields 
-        spanning the radical distribution, the 3rd one independents vector fields 
-        spanning the transversal normal distribution, the 4th one being a list
-         of independents rigging in `Rig(T\Sigma)` according to the decomposition
+        - a list of 4 lists, this 1st one being independent vector fields
+          spanning the screen distribution, the 2nd one independent vector fields
+          spanning the radical distribution, the 3rd one independent vector fields
+          spanning the transversal normal distribution, the 4th one being a list
+          of independent riggings in `Rig(T\Sigma)` according to the decomposition
 
          .. MATH::
 
          TM_{|\Sigma}=S(T\Sigma)\oplus_{orth}((Rad(T\Sigma)\oplus_{orth}(
             T\sigma^\perp\cap tr(TM))\oplus Rig(T\Sigma))
 
-  `     EXAMPLE`:
+        EXAMPLE:
 
         A degenerate hyperplane the 4-dimensional Minkowski space `\RR^4_1`::
 
@@ -660,8 +662,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
-          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+        - ``screen`` -- (default: ``None``) an instance of
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`;
           if ``None`` default screen is used.
 
         OUTPUT:
@@ -743,7 +745,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
+        - ``screen`` -- (default: ``None``) an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
           if ``None`` default screen is used.
 
@@ -803,8 +805,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
-          :class:`Screen`. If ``None`` default screen is used
+        - ``screen`` -- (default: ``None``) an instance of
+          :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
+          If ``None``, the default screen is used
 
         OUTPUT:
 
@@ -859,7 +862,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     def projection(self, tensor, screen=None):
         r"""
 
-        For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this
+        For a given tensor `T` of type `(r, 1)` on the ambient manifold, this
         method returns the tensor `T'` of type `(r,1)` such that for `r`
         vector fields `v_1,\ldots,v_r`, `T'(v_1,\ldots,v_r)` is the projection
         of  `T(v_1,\ldots,v_r)` on ``self`` along the bundle spanned by the
@@ -917,7 +920,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     def screen_projection(self, tensor, screen=None):
         r"""
-        For a giving tensor `T` of type `(r, 1)` on the ambient manifold, this
+        For a given tensor `T` of type `(r, 1)` on the ambient manifold, this
         method returns the tensor `T'` of type `(r,1)` such that for `r`
         vector fields `v_1,\ldots,v_r`, `T'(v_1,\ldots,v_r)` is the projection
         of  `T(v_1,\ldots,v_r)` on the bundle spanned by ``screen`` along the
@@ -988,9 +991,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
+        - ``screen`` -- (default: ``None``) an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
-          If ``None`` default screen is used.
+          If ``None`` the default screen is used.
 
         OUTPUT:
 
@@ -1041,9 +1044,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
+        - ``screen`` -- (default: ``None``) an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
-          If ``None`` default screen is used.
+          If ``None`` the default screen is used.
 
         OUTPUT:
 
@@ -1095,9 +1098,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
+        - ``screen`` -- (default: ``None``) an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
-          If ``None`` default screen is used.
+          If ``None`` the default screen is used.
 
         OUTPUT:
 
@@ -1149,7 +1152,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
+        - ``screen`` -- (default: ``None``) an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
           If ``None`` default screen is used.
 
@@ -1216,9 +1219,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         INPUT:
 
-        - ``screen`` -- (default: ``None``); an instance of
+        - ``screen`` -- (default: ``None``) an instance of
           :class:`~sage.manifolds.differentiable.degenerate_submanifold.Screen`.
-          If ``None`` default screen is used.
+          If ``None`` the default screen is used.
 
         OUTPUT:
 
@@ -1318,8 +1321,6 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
 #**************************************************************************************
 
-from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
-
 class Screen(VectorFieldModule):
     r"""
     Let `H` be a lightlike submanifold embedded in a pseudo-Riemannian
@@ -1333,7 +1334,7 @@ class Screen(VectorFieldModule):
 
     INPUT:
 
-    - ``submanifold`` -- a lightlike submanifold instance of
+    - ``submanifold`` -- a lightlike submanifold, as an instance of
       :class:`DegenerateSubmanifold`
     - ``name`` -- name given to the screen distribution
     - ``screen`` -- vector fields of the ambient manifold which
@@ -1343,12 +1344,7 @@ class Screen(VectorFieldModule):
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
       screen distribution; if ``None``, it is formed from ``name``
 
-    OUTPUT:
-
-    - an instance of
-      :class:`sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
-
-        """
+    """
 
     def __init__(self, submanifold, name, screen, rad, latex_name=None):
         r"""
@@ -1461,15 +1457,14 @@ class Screen(VectorFieldModule):
 
     def normal_tangent_vector(self):
         r"""
-
-        return either a list ``Rad`` of vector fields spanning the radical
-        distribution or (in case of hypersurface) a normal tangent null
+        Return either a list ``Rad`` of vector fields spanning the radical
+        distribution or (in case of a hypersurface) a normal tangent null
         vector field spanning the radical distribution.
 
         OUTPUT:
 
-        - either a list made by vector fields or a vector field in
-          case of hypersurface
+        - either a list of vector fields or a single vector field in
+          case of a hypersurface
 
         EXAMPLES:
 
@@ -1505,7 +1500,6 @@ class Screen(VectorFieldModule):
 
     def rigging(self):
         r"""
-
         Return either a list ``Rad`` of vector fields spanning the
         complementary of the normal distribution `TH^\perp` in the
         transverse bundle or (when `H` is a null hypersurface) the

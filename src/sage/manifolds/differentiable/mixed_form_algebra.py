@@ -199,32 +199,26 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             return self.one()
         elif isinstance(comp, (tuple, list)):
             if len(comp) != self._max_deg + 1:
-                raise IndexError( "input list must have "
-                                  "length {}".format(self._max_deg + 1))
-            if isinstance(com, tuple):
+                raise IndexError("input list must have "
+                                 "length {}".format(self._max_deg + 1))
+            if isinstance(comp, tuple):
                 comp = list(comp)
             res[:] = comp[:]
         elif isinstance(comp, self.Element):
             res[:] = comp[:]
         else:
-            # Has comp a degree method?
-            try:
-                deg = comp.degree()
-            except (AttributeError, NotImplementedError):
-            # No? Then we must check consecutively:
-                for d in self.irange():
-                    dmodule = self._domain.diff_form_module(deg,
-                                                        dest_map=self._dest_map)
-                    if dmodule.has_coerce_map_from(comp.parent()):
-                        deg = d
-                        break
-                else:
-                    raise TypeError("cannot convert {} into an element of "
-                                    "the {}".format(comp, self))
+            for d in self.irange():
+                dmodule = self._domain.diff_form_module(d, dest_map=self._dest_map)
+                if dmodule.has_coerce_map_from(comp.parent()):
+                    deg = d
+                    break
+            else:
+                raise TypeError("cannot convert {} into an element of "
+                                "the {}".format(comp, self))
             res[:] = [0] * (self._max_deg + 1)  # fill up with zeroes...
-            res[deg] = comp                     # ...and set comp at deg of res
-            # In case, no other name is given, use name of comp for better
-            # coercion:
+            res[deg] = comp                     # ...and set comp at deg of res;
+                                                # the coercion is performed here
+            # In case, no other name is given, use name of comp:
             if name is None:
                 if hasattr(comp, '_name'):
                     res._name = comp._name

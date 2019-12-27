@@ -62,7 +62,6 @@ REFERENCES:
 from collections import defaultdict
 from itertools import combinations
 import array
-import sys
 
 from sage.arith.misc import divisors, gcd, euler_phi, moebius, is_prime
 from sage.arith.misc import gauss_sum, kronecker_symbol
@@ -77,7 +76,6 @@ from sage.modular.hypergeometric_misc import hgm_coeffs
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer_ring import ZZ
-from sage.rings.padics.factory import Qp, Zp
 from sage.rings.padics.padic_generic_element import gauss_table
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

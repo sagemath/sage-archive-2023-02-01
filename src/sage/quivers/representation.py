@@ -647,7 +647,7 @@ class QuiverRepFactory(UniqueFactory):
                     to_be_added = []
                     for e in edges:
                         for p in just_added:
-                            pe = p*e
+                            pe = p * e
                             if pe is not None and pe not in paths:
                                 to_be_added.append(pe)
 
@@ -662,7 +662,7 @@ class QuiverRepFactory(UniqueFactory):
                     to_be_added = []
                     for e in edges:
                         for p in just_added:
-                            ep = e*p
+                            ep = e * p
                             if ep is not None and ep not in paths:
                                 to_be_added.append(ep)
 
@@ -1019,7 +1019,7 @@ class QuiverRepElement(ModuleElement):
 
         for path in mons:
             # Multiply by the scalar
-            x = mons[path]*self._elems[path.initial_vertex()]
+            x = mons[path] * self._elems[path.initial_vertex()]
 
             # If the edge isn't trivial apply the corresponding maps
             if path:
@@ -2056,9 +2056,8 @@ class QuiverRep_generic(WithEqualityById, Module):
             raise ValueError("the coordinates do not match the dimension of the module")
 
         result = self()  # this must not be self.zero(), which is cached
-        for i in range(len(gens)):
-            result += coordinates[i]*gens[i]
-
+        for ci, gi in zip(coordinates, gens):
+            result += ci * gi
         return result
 
     ###########################################################################
@@ -2641,7 +2640,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         # need to alter the codomain to be the projective and not the kernel.
         p1 = self.projective_cover()
         k = p1.kernel()
-        p = p1.domain().coerce_map_from(k)*k.projective_cover()
+        p = p1.domain().coerce_map_from(k) * k.projective_cover()
 
         # Return the cokernel
         return p.algebraic_dual().cokernel()
@@ -2812,7 +2811,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(len(self._bases[e[0]])):
                 # Add an entry to the matrix corresponding to where the new path is found
-                j = self._bases[e[1]].index(self._bases[e[0]][i]*arrow)
+                j = self._bases[e[1]].index(self._bases[e[0]][i] * arrow)
                 maps[e][i, j] = k.one()
 
         # Create the spaces and then the representation
@@ -2833,7 +2832,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
                 for j in range(l):
                     if e[1] == self._bases[v][j].initial_vertex():
                         try:
-                            action_mats[e][v][self._bases[v].index(P([e], check=False)*self._bases[v][j]), j] = k.one()
+                            action_mats[e][v][self._bases[v].index(P([e], check=False) * self._bases[v][j]), j] = k.one()
                         except ValueError:
                             # There is no left action
                             return

@@ -257,7 +257,7 @@ def three_n_minus_four(B):
     for a in range(2):
         for aa in range(n-2):
             for aaa in range(n-2):
-                aaaa= -(a+aa+aaa)%(n-2)
+                aaaa = -(a+aa+aaa) % (n-2)
                 Y.append([r(0,aa),r(1,aaa), r(2,aaaa),3*(n-2)+a])
 
     # Line 4.

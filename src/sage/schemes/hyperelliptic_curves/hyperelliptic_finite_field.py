@@ -471,6 +471,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial_pari()
             x^4 + 2*x^3 - 58*x^2 + 202*x + 10201
 
+        TESTS:
+
+        Check that :trac:`28789` is fixed::
+
+            sage: P.<x> = PolynomialRing(GF(3))
+            sage: u = x^10 + x^9 + x^8 + x
+            sage: C = HyperellipticCurve(u)
+            sage: C.frobenius_polynomial_pari()
+            x^8 + 2*x^7 + 6*x^6 + 9*x^5 + 18*x^4 + 27*x^3 + 54*x^2 + 54*x + 81
         """
         f, h = self.hyperelliptic_polynomials()
         return ZZ['x'](pari([f, h]).hyperellcharpoly())
@@ -541,6 +550,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H = HyperellipticCurve(t^5 + z*t + z**3, t)
             sage: H.frobenius_polynomial()
             x^4 - x^3 + 16*x^2 - 32*x + 1024
+
+        TESTS:
+
+        Check that :trac:`28789` is fixed::
+
+            sage: P.<x> = PolynomialRing(GF(3))
+            sage: u = x^10 + x^9 + x^8 + x
+            sage: C = HyperellipticCurve(u)
+            sage: C.frobenius_polynomial()
+            x^8 + 2*x^7 + 6*x^6 + 9*x^5 + 18*x^4 + 27*x^3 + 54*x^2 + 54*x + 81
         """
         K = self.base_ring()
         e = K.degree()

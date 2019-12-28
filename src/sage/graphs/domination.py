@@ -12,12 +12,18 @@ and more precisely:
 
     :meth:`~dominating_set` | Return a minimum dominating set of the graph.
     :meth:`~minimal_dominating_sets` | Return an iterator over the minimal dominating sets of a graph.
-    :meth:`~is_dominating` | Check whether ``dom`` is a dominating set of ``G``.
-    :meth:`~is_redundant` | Check whether a ``dom`` has redundant vertices.
+    :meth:`~is_dominating` | Check whether a set of vertices dominates a graph.
+    :meth:`~is_redundant` | Check whether a set of vertices has redundant vertices (with respect to domination).
     :meth:`~private_neighbors` | Return the private neighbors of a vertex with repect to other vertices.
 
 
 EXAMPLES:
+
+We compute the size of a minimum dominating set of the Petersen graph::
+
+    sage: g = graphs.PetersenGraph()
+    sage: g.dominating_set(value_only=True)
+    3
 
 We enumerate the minimal dominating sets of the 5-star graph::
 
@@ -41,12 +47,8 @@ We count the minimal dominating sets of the Petersen graph::
     sage: sum(1 for _ in graphs.PetersenGraph().minimal_dominating_sets())
     27
 
-AUTHORS:
-
-- Jean-Florent Raymond (2019-03-04): initial version
-
-
-Methods:
+Methods
+-------
 """
 
 # ****************************************************************************
@@ -100,7 +102,7 @@ def is_dominating(G, dom, focus=None):
 
 def is_redundant(G, dom, focus=None):
     r"""
-    Check whether a ``dom`` has redundant vertices.
+    Check whether ``dom`` has redundant vertices.
 
     For a graph `G` and sets `D` and `S` of vertices, we say that a vertex `v
     \in D` is *redundant* in `S` if `v` has no private neighbor with repect to
@@ -564,22 +566,24 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
     ALGORITHM: The algorithm described in [BDHPR2019]_.
 
+    AUTHOR: Jean-Florent Raymond (2019-03-04) -- initial version.
+
     EXAMPLES::
 
         sage: G = graphs.ButterflyGraph()
         sage: ll = list(G.minimal_dominating_sets())
         sage: pp = [{0, 1}, {1, 3}, {0, 2}, {2, 3}, {4}]
-        sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
+        sage: len(ll) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
         sage: ll = list(G.minimal_dominating_sets([0,3]))
         sage: pp = [{0}, {3}, {4}]
-        sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
+        sage: len(ll) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
         sage: ll = list(G.minimal_dominating_sets([4]))
         sage: pp = [{4}, {0}, {1}, {2}, {3}]
-        sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
+        sage: len(ll) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
     ::
@@ -612,7 +616,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         ....: {8, 2, 3, 5, 7},
         ....: {8, 9, 3, 4, 6},
         ....: {8, 9, 5, 6, 7}]
-        sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
+        sage: len(ll) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
     TESTS:

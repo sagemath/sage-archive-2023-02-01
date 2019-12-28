@@ -1348,51 +1348,6 @@ class Screen(VectorFieldModule):
     - an instance of
       :class:`sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
 
-    EXAMPLES:
-
-    The horizon of the Shawrzschild black hole::
-
-        sage: M = Manifold(4, 'M', structure="Lorentzian")
-        sage: X_M.<t, r, th, ph> = \
-        ....: M.chart(r"t r:(0,oo) th:(0,pi):\theta ph:(0,2*pi):\phi") 
-        sage: var('m'); assume(m>0)
-        m
-        sage: g = M.metric()
-        sage: g[0,0], g[0,1], g[1,1], g[2,2], g[3,3] = \
-        ....: -1+2*m/r, 2*m/r, 1+2*m/r, r^2, r^2*sin(th)^2
-        sage: H = Manifold(3, 'H', ambient=M, structure='degenerate_metric')
-        sage: X_H.<ht,hth,hph> = \
-        ....: H.chart(r"ht:(-oo,oo):t hth:(0,pi):\theta hph:(0,2*pi):\phi")
-        sage: Phi = H.diff_map(M, {(X_H, X_M): [ht, 2*m,hth, hph]}, \
-        ....: name='Phi', latex_name=r'\Phi')
-        sage: Phi_inv = M.diff_map(H, {(X_M, X_H): [t,th, ph]}, \
-        ....: name='Phi_inv', latex_name=r'\Phi^{-1}')
-        sage: H.set_immersion(Phi, inverse=Phi_inv); H.declare_embedding()
-        sage: xi=M.vector_field(); v=M.vector_field(); e1=M.vector_field()
-        sage: e2=M.vector_field();xi[0]=-1;v[0]=r;v[1]=-r;e1[2]=1;e2[3]=1
-
-    A screen distribution for the Shawrzschild black hole horizon::
-
-        sage: H.set_transverse(rigging=v)
-        sage: S = H.screen('S', [e1, e2], (xi)); S
-        screen distribution S along the degenerate hypersurface H embedded 
-        in 4-dimensional differentiable manifold M mapped into the 
-        4-dimensional Lorentzian manifold M
-
-    The corresponding normal tangent null vector field and null
-    transversal vector field::
-
-        sage: xi = S.normal_tangent_vector(); xi.disp()
-        xi = -d/dt
-        sage: N = S.rigging(); N.disp()
-        N = d/dt - d/dr
-
-    Those vector fields are normalized by `g(\xi,N)=1`::
-
-        sage: g.along(Phi)(xi, N).disp()
-        g(xi,N): H --> R
-        (ht, hth, hph) |--> 1
-
         """
 
     def __init__(self, submanifold, name, screen, rad, latex_name=None):

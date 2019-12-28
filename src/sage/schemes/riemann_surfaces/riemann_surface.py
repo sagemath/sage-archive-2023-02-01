@@ -647,7 +647,7 @@ class RiemannSurface(object):
                            for ak in self._aks]
             upperbounds.reverse()
             # If a0 is a constant polynomial, it is obviously bounded below.
-            if self._a0roots == []:
+            if not self._a0roots:
                 lowerbound = self._CC(self._a0) / 2
             else:
                 lowerbound = self._a0[self._a0.degree()]*prod(abs((zk - z1) - rho) for zk in self._a0roots) / 2

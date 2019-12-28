@@ -153,7 +153,8 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     DEF small_prime_max = 436273009 # a prime < init_primes_max (preferably the largest)
     DEF prime_gap_bound = 250 # upper bound for gap between primes <= small_prime_max
 
-    if (algorithm == "pari_primes") and (max(start,stop) <= small_prime_max):
+    # if 'stop' is 'None', need to change it to an integer before comparing with 'start'
+    if (algorithm == "pari_primes") and (max(start, stop or 0) <= small_prime_max):
 
         if stop is None:
             # In this case, "start" is really stop

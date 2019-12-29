@@ -459,17 +459,19 @@ following libraries are currently supported:
   Install CPLEX according to the instructions on the
   website, which includes obtaining a license key.
 
-  Then find the directory named ``cplex`` of your CPLEX installation, which
-  contains subdirectories ``bin``, ``examples``, ``include``, etc.
-  Set the environment variable ``CPLEX_HOME`` to this directory; for example
-  using the following shell command::
+  Then find the installation directory of your ILOG CPLEX Studio installation, which contains subdirectories ``cplex``, ``doc``, ``opl``, etc.
+  Set the environment variable ``CPLEX_HOME`` to this directory; for example using the following shell command (on macOS)::
 
-    $ export CPLEX_HOME=/Applications/CPLEX_Studio1210/cplex/
+    $ export CPLEX_HOME=/Applications/CPLEX_Studio1210
+
+  or (on Linux)::
+
+    $ export CPLEX_HOME=/opt/ibm/ILOG/CPLEX_Studio1210
 
   Now verify that the CPLEX binary that you will find in the subdirectory
-  ``bin/ARCH-OS`` starts correctly, for example::
+  ``cplex/bin/ARCH-OS`` starts correctly, for example::
 
-    $ $CPLEX_HOME/bin/x86-64_osx/cplex
+    $ $CPLEX_HOME/cplex/bin/x86-64_osx/cplex
     Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer...
 
   This environment variable only needs to be set for the following step:

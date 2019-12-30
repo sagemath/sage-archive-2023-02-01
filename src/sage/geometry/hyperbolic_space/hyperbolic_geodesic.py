@@ -1504,7 +1504,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ...
             ValueError: geodesics do not intersect
 
-        TESTS::
+        TESTS:
 
         Points as parameters raise an error. ::
 
@@ -1518,7 +1518,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             Traceback (most recent call last):
             ...
             ValueError: intersecting geodesic is a point
-            
+
             sage: g = HyperbolicPlane().UHP().get_geodesic(I, I)
             sage: h = HyperbolicPlane().UHP().get_geodesic(0, infinity)
             sage: g.angle(h)
@@ -1554,7 +1554,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ...
             ValueError: geodesics do not intersect
 
-        Parallel lines raise an error.
+        Parallel lines raise an error. ::
 
             sage: g = HyperbolicPlane().UHP().get_geodesic(-2, -2 + 4*I)
             sage: h = HyperbolicPlane().UHP().get_geodesic(9, Infinity)
@@ -1619,7 +1619,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             0
             sage: h.angle(g)
             0
-        
+
         Angle between two complete circles. ::
 
             sage: g = HyperbolicPlane().UHP().get_geodesic(0, 2)
@@ -1638,7 +1638,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: h.angle(g)
             arccos(7/8)
                                                                      
-        Angle between circle and line. Note that 1/2*sqrt(2) equals 1/4*pi. ::
+        Angle between circle and line. Note that ``1/2*sqrt(2)`` equals
+        ``1/4*pi``. ::
 
             sage: g = HyperbolicPlane().UHP().get_geodesic( 0, Infinity)
             sage: h = HyperbolicPlane().UHP().get_geodesic(-1, 1)
@@ -1695,7 +1696,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         v = (abs(p1 - q1) < EPSILON and abs(p2 - q2) < EPSILON)
         w = (abs(p1 - q2) < EPSILON and abs(p2 - q1) < EPSILON)
         if v or w:
-            return 0    
+            return 0
 
         # Next, check if exactly one geodesic is a line. If this is the
         # case, we will swap the values of the four points around until

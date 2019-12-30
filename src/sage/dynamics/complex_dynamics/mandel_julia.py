@@ -42,11 +42,10 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
                                                                 polynomial_mandelbrot,
                                                                 julia_helper)
 
-from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import logb
-from sage.rings.all import QQ, CC, CDF
+from sage.rings.all import CC, CDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.prandom import randint

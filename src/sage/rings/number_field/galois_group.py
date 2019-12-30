@@ -22,10 +22,12 @@ Standard test of pickleability::
 """
 
 from sage.structure.sage_object import SageObject
+from sage.groups.galois_group import GaloisGroup as GaloisGroup_base
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic, standardize_generator
 from sage.structure.category_object import normalize_names
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.libs.pari.all import pari
@@ -216,22 +218,13 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: phi(z) # random
             z^3
         """
-        self._number_field = number_field
+        if not number_field.is_absolute():
+            # We eventually want to support relative Galois groups, which currently just create the Galois group of the absolute field
+            deprecation(28782, "Use .absolute_field().galois_group() if you want the Galois group of the absolute field")
         self._default_algorithm = algorithm
         if gc_numbering is None:
             gc_numbering = False if algorithm == 'magma' else True
-        self._gc_numbering = gc_numbering
-        if names is None:
-            # add a c for Galois closure
-            names = number_field.variable_name() + 'c'
-        self._gc_names = normalize_names(1, names)
-        # We do only the parts of the initialization of PermutationGroup_generic
-        # that don't depend on _gens
-        from sage.categories.permutation_groups import PermutationGroups
-        category = PermutationGroups().FinitelyGenerated().Finite()
-        # Note that we DON'T call the __init__ method for PermutationGroup_generic
-        # Instead, the relevant attributes are computed lazily
-        super(PermutationGroup_generic, self).__init__(category=category)
+        super(GaloisGroup_v2, self).__init__(number_field, names, gc_numbering)
 
     def _get_algorithm(self, algorithm):
         return self._default_algorithm if algorithm is None else algorithm
@@ -239,7 +232,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
     @cached_method(key=_get_algorithm)
     def _pol_galgp(self, algorithm=None):
         algorithm = self._get_algorithm(algorithm)
-        f = self._number_field.absolute_polynomial()
+        f = self._field.absolute_polynomial()
         return f.galois_group(pari_group=True, algorithm=algorithm)
 
     def order(self, algorithm=None, recompute=False):
@@ -247,7 +240,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         # We cache manually since we're computing the same quantity using different backends
         if not recompute and '_size' in self.__dict__:
             return self._size # _order is a method on permgroup
-        K = self._number_field
+        K = self._field
         if K.absolute_degree() < 12 or algorithm != "pari":
             self._size = self._pol_galgp(algorithm=algorithm).order()
         else:
@@ -258,7 +251,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         algorithm = self._get_algorithm(algorithm)
         if '_size' in self.__dict__:
             return self._size
-        K = self._number_field
+        K = self._field
         if K.absolute_degree() < 12 or algorithm != "pari":
             self._size = self._pol_galgp(algorithm=algorithm).order()
             return self._size
@@ -273,17 +266,19 @@ class GaloisGroup_v2(PermutationGroup_generic):
         # We cache manually since we're computing the same quantity using different backends
         if not recompute and '_t' in self.__dict__:
             return self._t
-        K = self._number_field
+        K = self._field
         if K.absolute_degree() < 12 or algorithm != "pari":
             self._t = self._pol_galgp(algorithm=algorithm).transitive_number()
-        elif not self._gc_numbering:
-            self._t = ZZ(self.gap().TransitiveIdentification())
         else:
-            self._t = ZZ(PermutationGroup(self._short_gens(self._gens)).TransitiveIdentification())
+            if self._gc_numbering:
+                G = self._field.galois_group(algorithm=self._default_algorithm, names=self._gc_names, gc_numbering=False)
+            else:
+                G = self
+            self._t = ZZ(G.gap().TransitiveIdentification())
         return self._t
 
     def transitive_label(self):
-        return "%sT%s" % (self._number_field.degree(), self.transitive_number())
+        return "%sT%s" % (self._field.degree(), self.transitive_number())
 
     def pari_label(self):
         return self._pol_galgp().label()
@@ -293,9 +288,9 @@ class GaloisGroup_v2(PermutationGroup_generic):
         """
         Returns 1 if contained in the alternating group, -1 otherwise.
         """
-        if self._number_field.degree() < 12:
+        if self._field.degree() < 12:
             return self._pol_galgp().signature()
-        elif self._number_field.absolute_polynomial().discriminant().is_square():
+        elif self._field.absolute_polynomial().discriminant().is_square():
             return ZZ(1)
         else:
             return ZZ(-1)
@@ -305,7 +300,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
     # having initialized as a permutation group.
     @lazy_attribute
     def _gcdata(self):
-        K = self._number_field
+        K = self._field
         if self.is_galois():
             return K, K.hom(K.gen(), K)
         else:
@@ -327,78 +322,6 @@ class GaloisGroup_v2(PermutationGroup_generic):
     def _elts(self):
         # PARI computes all the elements of self anyway, so we might as well store them
         return sorted([self(x, check=False) for x in self._pari_data[5]])
-
-    @lazy_attribute
-    def _deg(self):
-        """
-        The number of moved points in the permutation representation.
-
-        This will be the degree of the original number field if `_gc_numbering``
-        is ``False``, or the degree of the Galois closure otherwise.
-
-        EXAMPES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^5-2)
-            sage: G = K.galois_group(gc_numbering=False); G
-            Galois group 5T3 (5:4) with order 20 of x^5 - 2
-            sage: G._deg
-            5
-            sage: G = K.galois_group(gc_numbering=True); G._deg
-            20
-        """
-        if self._gc_numbering:
-            return self.order()
-        else:
-            return self._number_field.degree()
-
-    @lazy_attribute
-    def _domain(self):
-        """
-        The integers labeling the roots on which this Galois group acts.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^5-2)
-            sage: G = K.galois_group(gc_numbering=False); G
-            Galois group 5T3 (5:4) with order 20 of x^5 - 2
-            sage: G._domain
-            {1, 2, 3, 4, 5}
-            sage: G = K.galois_group(gc_numbering=True); G._domain
-            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
-        """
-        return FiniteEnumeratedSet(range(1, self._deg+1))
-
-    @lazy_attribute
-    def _domain_to_gap(self):
-        """
-        Dictionary implementing the identity (used by PermutationGroup_generic).
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^5-2)
-            sage: G = K.galois_group(gc_numbering=False)
-            sage: G._domain_to_gap[5]
-            5
-        """
-        return dict((key, i+1) for i, key in enumerate(self._domain))
-
-    @lazy_attribute
-    def _domain_from_gap(self):
-        """
-        Dictionary implementing the identity (used by PermutationGroup_generic).
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^5-2)
-            sage: G = K.galois_group(gc_numbering=True)
-            sage: G._domain_from_gap[20]
-            20
-        """
-        return dict((i+1, key) for i, key in enumerate(self._domain))
 
     @lazy_attribute
     def _gens(self):
@@ -425,12 +348,12 @@ class GaloisGroup_v2(PermutationGroup_generic):
             gens = [self.element_class(x, self, check=False) for x in gens]
             return sorted(set(gens))
         else:
-            self._gc_numbered = G = self._number_field.galois_group(algorithm=self._default_algorithm, names=self._gc_names, gc_numbering=True)
+            self._gc_numbered = G = self._field.galois_group(algorithm=self._default_algorithm, names=self._gc_names, gc_numbering=True)
             self._galois_closure = L = G._galois_closure
             gens = [g.as_hom() for g in G._gens]
             if gens:
                 # We add None so that we're 1-indexed
-                roots = [None] + self._number_field.absolute_polynomial().roots(L, multiplicities=False)
+                roots = [None] + self._field.absolute_polynomial().roots(L, multiplicities=False)
                 new_gens = []
                 for g in gens:
                     seen = set()
@@ -503,7 +426,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: NumberField(x^2 - x + 1,'a').galois_group().is_galois()
             True
         """
-        K = self._number_field
+        K = self._field
         if K.degree() < 12:
             return self._pol_galgp().order() == K.degree()
         else:
@@ -555,7 +478,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: K.galois_group(names='b').number_field() is K
             True
         """
-        return self._number_field
+        return self._field
 
     def splitting_field(self):
         r"""
@@ -915,7 +838,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
         PermutationGroup_generic.__init__(self, elts, canonicalize=True,
                                           domain=ambient.domain())
         self._ambient = ambient
-        self._number_field = ambient.number_field()
+        self._field = ambient.number_field()
         self._galois_closure = ambient._galois_closure
         self._pari_data = ambient._pari_data
         self._gc_map = ambient._gc_map

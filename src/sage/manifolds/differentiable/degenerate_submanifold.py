@@ -602,7 +602,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
          TM_{|\Sigma}=S(T\Sigma)\oplus_{orth}((Rad(T\Sigma)\oplus_{orth}(
             T\sigma^\perp\cap tr(TM))\oplus Rig(T\Sigma))
 
-        EXAMPLE:
+        EXAMPLES:
 
         A degenerate hyperplane the 4-dimensional Minkowski space `\RR^4_1`::
 

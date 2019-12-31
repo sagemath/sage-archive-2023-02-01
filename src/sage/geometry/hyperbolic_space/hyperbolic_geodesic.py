@@ -1141,6 +1141,32 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             g = UHP.get_geodesic(1, infinity).plot(color='orange')
             sphinx_plot(g)
 
+        TESTS:
+
+        Plotting a line with ``boundary=True``. ::
+
+            sage: g = HyperbolicPlane().UHP().get_geodesic(0, I)
+            sage: g.plot()
+            Graphics object consisting of 2 graphics primitives
+
+        Plotting a line with ``boundary=False``. ::
+            
+            sage: g = HyperbolicPlane().UHP().get_geodesic(0, I)
+            sage: g.plot(boundary=False)
+            Graphics object consisting of 1 graphics primitive
+
+        Plotting a circle with ``boundary=True``. ::
+
+            sage: g = HyperbolicPlane().UHP().get_geodesic(-3, 19)
+            sage: g.plot()
+            Graphics object consisting of 2 graphics primitives
+
+        Plotting a circle with ``boundary=False``. ::
+
+            sage: g = HyperbolicPlane().UHP().get_geodesic(3, 4)
+            sage: g.plot(boundary=False)
+            Graphics object consisting of 1 graphics primitive
+
         """
 
         opts = {'axes': False, 'aspect_ratio': 1}
@@ -1164,7 +1190,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 bd_dict = {'bd_min': cent - 3, 'bd_max': cent + 3}
                 bd_pic = self._model.get_background_graphic(**bd_dict)
                 pic = bd_pic + pic
-                return pic
+            return pic
         else:
             center = (bd_1 + bd_2) / 2  # Circle center
             radius = abs(bd_1 - bd_2) / 2

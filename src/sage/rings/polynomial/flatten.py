@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Class to flatten polynomial rings over polynomial ring.
+Class to flatten polynomial rings over polynomial ring
 
 For example ``QQ['a','b'],['x','y']`` flattens to ``QQ['a','b','x','y']``.
 

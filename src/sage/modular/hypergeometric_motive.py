@@ -396,7 +396,7 @@ def gamma_list_to_cyclotomic(galist):
 
 class HypergeometricData(object):
     _gauss_table = {}
-    
+
     def __init__(self, cyclotomic=None, alpha_beta=None, gamma_list=None):
         r"""
         Creation of hypergeometric motives.
@@ -468,6 +468,7 @@ class HypergeometricData(object):
         self._beta = tuple(beta)
         self._deg = deg
         self._gamma_array = cyclotomic_to_gamma(cyclo_up, cyclo_down)
+        self._trace_coeffs = {}
         up = QQ.prod(capital_M(d) for d in cyclo_up)
         down = QQ.prod(capital_M(d) for d in cyclo_down)
         self._M_value = up / down
@@ -1096,13 +1097,11 @@ class HypergeometricData(object):
             [1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3]
         """
         try:
-            (prec1, gtab) = self._gauss_table[(p, f)]
+            prec1, gtab = self._gauss_table[p, f]
             if prec1 < prec: raise KeyError
-        except (AttributeError, KeyError) as err:
-            if err.__class__ == AttributeError:
-                self._gauss_table = {}
+        except KeyError:
             gtab = gauss_table(p, f, prec, False)
-            self._gauss_table[(p, f)] = (prec, gtab)
+            self._gauss_table[p, f] = (prec, gtab)
         return gtab
 
     def gauss_table_full(self):
@@ -1152,8 +1151,7 @@ class HypergeometricData(object):
 
         If `cache_p` is True, then the function caches an intermediate
         result which depends only on `p` and `f`. This leads to a significant
-        speedup when iterating over `t`. (When iterating also over the
-        hypergeometric data, one should also use :meth:`set_gauss_table`.)
+        speedup when iterating over `t`.
 
         INPUT:
 
@@ -1230,13 +1228,11 @@ class HypergeometricData(object):
         gamma = self._gamma_array
         if cache_p:
             try:
-                trcoeffs = self._trace_coeffs[(p, f)]
-            except (AttributeError, KeyError) as err:
-                if err.__class__ == AttributeError:
-                    self._trace_coeffs = {}
+                trcoeffs = self._trace_coeffs[p, f]
+            except KeyError:
                 gtab = self.gauss_table(p, f, prec)
                 trcoeffs = hgm_coeffs(p, f, prec, gamma, m, D, gtab, use_longs)
-                self._trace_coeffs[(p,f)] = trcoeffs
+                self._trace_coeffs[p, f] = trcoeffs
         else:
             gtab = gauss_table(p, f, prec, use_longs)
             trcoeffs = hgm_coeffs(p, f, prec, gamma, m, D, gtab, use_longs)

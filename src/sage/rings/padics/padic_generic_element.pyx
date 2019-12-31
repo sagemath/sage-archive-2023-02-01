@@ -28,6 +28,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.ext.stdsage cimport PY_NEW
+from cysignals.memory cimport sig_malloc, sig_free
 
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
@@ -4460,25 +4461,25 @@ cpdef evaluate_dwork_mahler(v, x, long long p, int bd, long long a):
     a1 = a + bd*p
     s = v[a1]
     u = x + bd
-    w = x.parent().one()
+    one = x.parent().one()
     for k in range(bd):
         a1 -= p
-        u -= w
+        u -= one
         s = s*u + v[a1]
     return -s
 
-cdef long long evaluate_dwork_mahler_long(v, long long x, long long p, int bd,
+cdef long long evaluate_dwork_mahler_long(long long *v, long long x, long long p, int bd,
                                      long long a, long long q):
     cdef int k
     cdef long long a1, s, u
     bd -= 1
     a1 = a + bd*p
-    s = v[a1].lift()
+    s = v[a1]
     u = x + bd
     for k in range(bd):
         a1 -= p
         u -= 1
-        s = (s*u + v[a1].lift()) % q
+        s = (s*u + v[a1]) % q
     return -s
 
 cpdef gauss_table(long long p, int f, int prec, bint use_longs):
@@ -4493,7 +4494,7 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
 
     - `p` - prime
     - `f`, `prec` - positive integers
-    - `use_longs` - boolean; if True, computations are done in C long 
+    - `use_longs` - boolean; if True, computations are done in C long
         integers rather than Sage `p`-adics
 
     OUTPUT:
@@ -4510,9 +4511,10 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
         2 + 3 + 2*3^2
     """
     from sage.rings.padics.factory import Zp, Qp
-    
+
     cdef int i, j, bd
     cdef long long q, q1, q3, r, r1, r2, s1, k
+    cdef long long *vv
 
     R = Zp(p, prec, 'fixed-mod')
 
@@ -4537,26 +4539,37 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
         q3 = p ** prec
         r2 = d.lift() % q3
     v = dwork_mahler_coeffs(R1, bd)
-    for r in range(1, q1):
-        if ans[r] is not None: continue
-        s = u
-        if use_longs: s1 = 1
-        r1 = r
-        for j in range(1, f+1):
-            k = r1 % p
-            r1 = (r1 + k * q1) // p
-            if use_longs: # Use Dwork expansion to compute p-adic Gamma
-                s1 *= -evaluate_dwork_mahler_long(v, r1*r2, p, bd, k, q3)
-                s1 %= q3
-            else:
-                s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
-            if r1 == r: # End the loop.
-                if use_longs: s = R1(s1)
-                if j < f: s **= f // j
-                break
-        ans[r] = -s
-        for i in range(j-1):
-            r1 = r1 * p % q1 # Initially r1 == r
-            ans[r1] = ans[r]
+    if use_longs:
+        vv = <long long *>sig_malloc(sizeof(long long) * len(v))
+        for i in range(len(v)):
+            vv[i] = v[i].lift()
+    try:
+        for r in range(1, q1):
+            if ans[r] is not None:
+                continue
+            s = u
+            if use_longs: s1 = 1
+            r1 = r
+            for j in range(1, f+1):
+                k = r1 % p
+                r1 = (r1 + k * q1) // p
+                if use_longs: # Use Dwork expansion to compute p-adic Gamma
+                    s1 *= -evaluate_dwork_mahler_long(vv, r1*r2, p, bd, k, q3)
+                    s1 %= q3
+                else:
+                    s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
+                if r1 == r: # End the loop.
+                    if use_longs:
+                        s = R1(s1)
+                    if j < f:
+                        s **= f // j
+                    break
+            ans[r] = -s
+            for i in range(j-1):
+                r1 = r1 * p % q1 # Initially r1 == r
+                ans[r1] = ans[r]
+    finally:
+        if use_longs:
+            sig_free(vv)
     if p != 2: return ans
     return [R(x) for x in ans]

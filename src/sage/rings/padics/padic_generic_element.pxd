@@ -1,3 +1,5 @@
+from cpython cimport array
+
 cimport sage.structure.element
 from sage.libs.gmp.types cimport mpz_t, mpq_t
 from sage.structure.element cimport Element, RingElement

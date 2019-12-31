@@ -4468,7 +4468,7 @@ cpdef evaluate_dwork_mahler(v, x, long long p, int bd, long long a):
         s = s*u + v[a1]
     return -s
 
-cdef long long evaluate_dwork_mahler_long(long long *v, long long x, long long p, int bd,
+cdef long long evaluate_dwork_mahler_long(array.array v, long long x, long long p, int bd,
                                      long long a, long long q):
     cdef int k
     cdef long long a1, s, u
@@ -4494,8 +4494,9 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
 
     - `p` - prime
     - `f`, `prec` - positive integers
-    - `use_longs` - boolean; if True, computations are done in C long
-        integers rather than Sage `p`-adics
+    - `use_longs` - boolean; if True, computations are done in C long long
+        integers rather than Sage `p`-adics, and the results are returned
+        as a Python array rather than a list.
 
     OUTPUT:
 
@@ -4510,66 +4511,68 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
         sage: gauss_table(3,2,4,False)[3]
         2 + 3 + 2*3^2
     """
+    from sage.arith.misc import power_mod
     from sage.rings.padics.factory import Zp, Qp
 
     cdef int i, j, bd
     cdef long long q, q1, q3, r, r1, r2, s1, k
-    cdef long long *vv
-
-    R = Zp(p, prec, 'fixed-mod')
+    cdef array.array vv, ans1
 
     if (f == 1 and prec == 1): # Shortcut for this key special case
-        ans = [-R.one()]
+        ans1 = array.array('q', [0]) * p
+        ans1[0] = p-1
         for r in range(1, p-1):
-            ans.append(ans[-1] * R(r))
-        return ans
+            ans1[r] = ans1[r-1] * r % p
+        return ans1
 
     q = p ** f
     q1 = q - 1
     bd = (p*prec+p-2) // (p-1) - 1
+    R = Zp(p, prec, 'fixed-mod')
     if p == 2: # Dwork expansion has denominators when p = 2
         R1 = Qp(p, prec)
     else:
         R1 = R
-    u = R1.one()
-    ans = [None for r in range(q1)]
-    ans[0] = -u
     d = ~R1(q1)
+    v = dwork_mahler_coeffs(R1, bd)
     if use_longs:
         q3 = p ** prec
         r2 = d.lift() % q3
-    v = dwork_mahler_coeffs(R1, bd)
-    if use_longs:
-        vv = <long long *>sig_malloc(sizeof(long long) * len(v))
-        for i in range(len(v)):
-            vv[i] = v[i].lift()
-    try:
-        for r in range(1, q1):
-            if ans[r] is not None:
-                continue
-            s = u
-            if use_longs: s1 = 1
-            r1 = r
-            for j in range(1, f+1):
-                k = r1 % p
-                r1 = (r1 + k * q1) // p
-                if use_longs: # Use Dwork expansion to compute p-adic Gamma
-                    s1 *= -evaluate_dwork_mahler_long(vv, r1*r2, p, bd, k, q3)
-                    s1 %= q3
-                else:
-                    s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
-                if r1 == r: # End the loop.
-                    if use_longs:
-                        s = R1(s1)
-                    if j < f:
-                        s **= f // j
-                    break
-            ans[r] = -s
-            for i in range(j-1):
-                r1 = r1 * p % q1 # Initially r1 == r
-                ans[r1] = ans[r]
-    finally:
+        vv = array.array('q', [0]) * len(v)
+        for k in range(len(v)):
+            vv[k] = v[k].lift() % q3
+        ans1 = array.array('q', [0]) * q1
+        ans1[0] = -1
+        ans = ans1
+    else:
+        u = R1.one()
+        ans = [0 for r in range(q1)]
+        ans[0] = -u
+    for r in range(1, q1):
+        if ans[r]: continue
         if use_longs:
-            sig_free(vv)
+            s1 = 1
+        else:
+            s = u
+        r1 = r
+        for j in range(1, f+1):
+            k = r1 % p
+            r1 = (r1 + k * q1) // p
+            if use_longs: # Use Dwork expansion to compute p-adic Gamma
+                s1 *= -evaluate_dwork_mahler_long(vv, r1*r2, p, bd, k, q3)
+                s1 %= q3
+            else:
+                s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
+            if r1 == r:
+                break
+        if use_longs:
+            if j < f: s1 = power_mod(s1, f // j, q3)
+            ans1[r] = -s1
+        else:
+            if j < f: s **= f // j
+            ans[r] = -s
+        for i in range(j-1):
+            r1 = r1 * p % q1 # Initially r1 == r
+            ans[r1] = ans[r]
     if p != 2: return ans
     return [R(x) for x in ans]

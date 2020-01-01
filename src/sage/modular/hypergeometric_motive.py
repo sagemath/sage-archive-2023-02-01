@@ -1100,7 +1100,8 @@ class HypergeometricData(object):
             prec1, gtab = self._gauss_table[p, f]
             if prec1 < prec: raise KeyError
         except KeyError:
-            gtab = gauss_table(p, f, prec, False)
+            use_longs = (p ** prec < 2 ** 31)
+            gtab = gauss_table(p, f, prec, use_longs)
             self._gauss_table[p, f] = (prec, gtab)
         return gtab
 
@@ -1123,7 +1124,7 @@ class HypergeometricData(object):
             sage: H.euler_factor(2, 7, cache_p=True)
             7*T^2 - 3*T + 1
             sage: H.gauss_table_full()[(7, 1)]
-            (2, [6 + 6*7, 6 + 2*7, 3 + 3*7, 1, 2, 6 + 3*7])
+            (2, array('q', [-1, -29, -25, -48, -47, -22]))
 
         Clearing cached values::
 
@@ -1191,6 +1192,8 @@ class HypergeometricData(object):
             sage: H.padic_H_value(13,1,1/t)
             0
 
+        TESTS:
+
         Check issue from :trac:`28404`::
 
             sage: H1 = Hyp(cyclotomic=([1,1,1],[6,2]))
@@ -1199,6 +1202,12 @@ class HypergeometricData(object):
             [1, -4, -4]
             sage: [H2.padic_H_value(5,1,i) for i in range(2,5)]
             [-4, 1, -4]
+
+        Check for potential overflow::
+
+            sage: H = Hyp(cyclotomic=[[10,6],[5,4]])
+            sage: H.padic_H_value(101, 2, 2)
+            -1560629
 
         REFERENCES:
 

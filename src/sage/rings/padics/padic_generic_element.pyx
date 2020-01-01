@@ -4511,11 +4511,10 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
         sage: gauss_table(3,2,4,False)[3]
         2 + 3 + 2*3^2
     """
-    from sage.arith.misc import power_mod
     from sage.rings.padics.factory import Zp, Qp
 
     cdef int i, j, bd
-    cdef long long q, q1, q3, r, r1, r2, s1, k
+    cdef long long q, q1, q3, r, r1, r2, s1, s2, k
     cdef array.array vv, ans1
 
     if (f == 1 and prec == 1): # Shortcut for this key special case
@@ -4531,6 +4530,7 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
     R = Zp(p, prec, 'fixed-mod')
     if p == 2: # Dwork expansion has denominators when p = 2
         R1 = Qp(p, prec)
+        use_longs = False
     else:
         R1 = R
     d = ~R1(q1)
@@ -4559,17 +4559,21 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
             k = r1 % p
             r1 = (r1 + k * q1) // p
             if use_longs: # Use Dwork expansion to compute p-adic Gamma
-                s1 *= -evaluate_dwork_mahler_long(vv, r1*r2, p, bd, k, q3)
+                s1 *= -evaluate_dwork_mahler_long(vv, r1*r2%q3, p, bd, k, q3)
                 s1 %= q3
             else:
                 s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
             if r1 == r:
                 break
         if use_longs:
-            if j < f: s1 = power_mod(s1, f // j, q3)
+            if j < f:
+                s2 = s1
+                for i in range(f//j-1):
+                    s1 = s1 * s2 % q3
             ans1[r] = -s1
         else:
-            if j < f: s **= f // j
+            if j < f:
+                s **= f // j
             ans[r] = -s
         for i in range(j-1):
             r1 = r1 * p % q1 # Initially r1 == r

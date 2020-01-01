@@ -436,7 +436,7 @@ def kneading_sequence(theta):
     r"""
     Determines the kneading sequence for an angle theta in RR/ZZ which
     is periodic under doubling. We use the definition for the kneading
-    sequence given in [LS1994]_.
+    sequence given in Definition 3.2 of [LS1994]_.
 
     INPUT:
 
@@ -469,7 +469,7 @@ def kneading_sequence(theta):
 
         sage: kneading_sequence(1.2)
         '110*'
-    
+
     Since rationals with even denominator are not periodic under doubling, we have not implemented kneading sequences for such rationals::
 
         sage: kneading_sequence(1/4)
@@ -498,7 +498,6 @@ def kneading_sequence(theta):
             else:
                 not_done = False
             y = 2*y - floor(2*y)
-        L = len(KS)
         KS_str = ''.join(KS) + '*'
     return KS_str
 
@@ -662,11 +661,11 @@ def julia_plot(f=None, **kwds):
     max_iteration = kwds.pop("max_iteration", 500)
     pixel_count = kwds.pop("pixel_count", 500)
     base_color = kwds.pop("base_color", 'steelblue')
-    level_sep= kwds.pop("level_sep", 1)
+    level_sep = kwds.pop("level_sep", 1)
     number_of_colors = kwds.pop("number_of_colors", 30)
     interacts = kwds.pop("interact", False)
 
-    f_is_default_after_all=None
+    f_is_default_after_all = None
 
     if period: # pick a random c with the specified period
         R = PolynomialRing(CC, 'c')

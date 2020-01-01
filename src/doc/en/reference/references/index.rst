@@ -3534,6 +3534,7 @@ REFERENCES:
 .. [LS1994] Eike Lau and Dierk Schleicher.
             *Internal addresses in the Mandelbrot set and irreducibility of
             polynomials*. Stony Brook Preprint #19 (1994).
+            https://www.math.stonybrook.edu/theses/thesis94-2/part1.pdf
 
 .. [LS2007] Thomas Lam and Mark Shimozono.  *Dual graded graphs for
             Kac-Moody algebras*.  Algebra & Number Theory 1.4 (2007)

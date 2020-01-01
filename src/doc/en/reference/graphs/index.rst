@@ -101,5 +101,6 @@ Libraries of algorithms
    sage/graphs/generic_graph_pyx
    sage/graphs/orientations
    sage/graphs/connectivity
+   sage/graphs/domination
 
 .. include:: ../footer.txt

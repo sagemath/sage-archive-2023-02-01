@@ -86,6 +86,9 @@ AUTHORS:
 - Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
   most_common_neighbors and common_neighbors_matrix added.
 
+- Jean-Florent Raymond (2019-04): is_redundant, is_dominating,
+   private_neighbors
+
 Graph Format
 ------------
 
@@ -8619,6 +8622,10 @@ class Graph(GenericGraph):
     from sage.graphs.connectivity import is_triconnected
     from sage.graphs.comparability import is_comparability
     from sage.graphs.comparability import is_permutation
+    from sage.graphs.domination import is_dominating
+    from sage.graphs.domination import is_redundant
+    from sage.graphs.domination import private_neighbors
+    from sage.graphs.domination import minimal_dominating_sets
 
 
 _additional_categories = {
@@ -8647,7 +8654,11 @@ _additional_categories = {
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
     "spqr_tree"                 : "Connectivity, orientations, trees",
-    "is_triconnected"           : "Connectivity, orientations, trees"
+    "is_triconnected"           : "Connectivity, orientations, trees",
+    "is_dominating"             : "Domination",
+    "is_redundant"              : "Domination",
+    "private_neighbors"         : "Domination",
+    "minimal_dominating_sets"   : "Domination"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

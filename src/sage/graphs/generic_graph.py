@@ -9546,119 +9546,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-    def dominating_set(self, independent=False, total=False, value_only=False, solver=None, verbose=0):
-        r"""
-        Return a minimum dominating set of the graph.
-
-        A minimum dominating set `S` of a graph `G` is a set of its vertices of
-        minimal cardinality such that any vertex of `G` is in `S` or has one of
-        its neighbors in `S`. See the :wikipedia:`Dominating_set`.
-
-        As an optimization problem, it can be expressed as:
-
-        .. MATH::
-
-            \mbox{Minimize : }&\sum_{v\in G} b_v\\
-            \mbox{Such that : }&\forall v \in G, b_v+\sum_{(u,v)\in G.edges()} b_u\geq 1\\
-            &\forall x\in G, b_x\mbox{ is a binary variable}
-
-        INPUT:
-
-        - ``independent`` -- boolean (default: ``False``); when ``True``,
-          computes a minimum independent dominating set, that is a minimum
-          dominating set that is also an independent set (see also
-          :meth:`~sage.graphs.graph.independent_set`)
-
-        - ``total`` -- boolean (default: ``False``); when ``True``, computes a
-          total dominating set (see the See the :wikipedia:`Dominating_set`)
-
-        - ``value_only`` -- boolean (default: ``False``); whether to only return
-          the cardinality of the computed dominating set, or to return its list
-          of vertices (default)
-
-        - ``solver`` -- (default: ``None``); specifies a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
-          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
-          :class:`MixedIntegerLinearProgram
-          <sage.numerical.mip.MixedIntegerLinearProgram>`.
-
-        - ``verbose`` -- integer (default: ``0``); sets the level of
-          verbosity. Set to 0 by default, which means quiet.
-
-        EXAMPLES:
-
-        A basic illustration on a ``PappusGraph``::
-
-           sage: g = graphs.PappusGraph()
-           sage: g.dominating_set(value_only=True)
-           5
-
-        If we build a graph from two disjoint stars, then link their centers we
-        will find a difference between the cardinality of an independent set and
-        a stable independent set::
-
-           sage: g = 2 * graphs.StarGraph(5)
-           sage: g.add_edge(0, 6)
-           sage: len(g.dominating_set())
-           2
-           sage: len(g.dominating_set(independent=True))
-           6
-
-        The total dominating set of the Petersen graph has cardinality 4::
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.dominating_set(total=True, value_only=True)
-            4
-
-        The dominating set is calculated for both the directed and undirected
-        graphs (modification introduced in :trac:`17905`)::
-
-            sage: g = digraphs.Path(3)
-            sage: g.dominating_set(value_only=True)
-            2
-            sage: g = graphs.PathGraph(3)
-            sage: g.dominating_set(value_only=True)
-            1
-
-        """
-        self._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)
-
-        from sage.numerical.mip import MixedIntegerLinearProgram
-        g = self
-        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b = p.new_variable(binary=True)
-
-        # For any vertex v, one of its neighbors or v itself is in
-        # the minimum dominating set. If g is directed, we use the
-        # in neighbors of v instead.
-
-        neighbors_iter = g.neighbor_in_iterator if g.is_directed() else g.neighbor_iterator
-
-        if total:
-            # We want a total dominating set
-            for v in g:
-                p.add_constraint(p.sum(b[u] for u in neighbors_iter(v)), min=1)
-        else:
-            for v in g:
-                p.add_constraint(b[v] + p.sum(b[u] for u in neighbors_iter(v)), min=1)
-
-        if independent:
-            # no two adjacent vertices are in the set
-            for u,v in g.edge_iterator(labels=None):
-                p.add_constraint(b[u] + b[v], max=1)
-
-        # Minimizes the number of vertices used
-        p.set_objective(p.sum(b[v] for v in g))
-
-        if value_only:
-            return Integer(round(p.solve(objective_only=True, log=verbose)))
-        else:
-            p.solve(log=verbose)
-            b = p.get_values(b)
-            return [v for v in g if b[v] == 1]
-
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
                  weight_function=None, dangling=None, algorithm=None):
         r"""
@@ -23418,6 +23305,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import is_cut_vertex
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
+    from sage.graphs.domination import dominating_set
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
     from sage.graphs.path_enumeration import shortest_simple_paths
     from sage.graphs.path_enumeration import all_paths

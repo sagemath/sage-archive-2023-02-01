@@ -1612,14 +1612,14 @@ def default_mip_solver(solver = None):
 
     if solver == "Cplex":
         try:
-            from sage.numerical.backends.cplex_backend import CPLEXBackend
+            from sage_numerical_backends_cplex.cplex_backend import CPLEXBackend
             default_solver = solver
         except ImportError:
             raise ValueError("CPLEX is not available. Please refer to the documentation to install it.")
 
     elif solver == "Coin":
         try:
-            from sage.numerical.backends.coin_backend import CoinBackend
+            from sage_numerical_backends_coin.coin_backend import CoinBackend
             default_solver = solver
         except ImportError:
             raise ValueError("COIN is not available. Please refer to the documentation to install it.")
@@ -1640,7 +1640,7 @@ def default_mip_solver(solver = None):
 
     elif solver == "Gurobi":
         try:
-            from sage.numerical.backends.gurobi_backend import GurobiBackend
+            from sage_numerical_backends_gurobi.gurobi_backend import GurobiBackend
             default_solver = solver
         except ImportError:
             raise ValueError("Gurobi is not available. Please refer to the documentation to install it.")
@@ -1660,40 +1660,16 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
 
     INPUT:
 
-    - ``solver`` -- 7 solvers should be available through this class:
+    - ``solver`` -- one of the following:
 
-        - GLPK (``solver="GLPK"``). See the `GLPK
-          <http://www.gnu.org/software/glpk/>`_ web site.
+        - a string indicating one of the available solvers
+          (see :class:`MixedIntegerLinearProgram`);
 
-        - GLPK's implementation of an exact rational simplex
-          method (``solver="GLPK/exact"``).
+        - ``None`` (default), in which case the default solver is used
+          (see :func:`default_mip_solver`);
 
-        - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
-          <http://www.coin-or.org>`_ web site.
-
-        - CPLEX (``solver="CPLEX"``). See the
-          `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
-
-        - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT
-          <http://cvxopt.org/>`_ web site.
-
-        - Gurobi (``solver="Gurobi"``). See the `Gurobi
-          <http://www.gurobi.com/>`_ web site.
-
-        - PPL (``solver="PPL"``). See the `PPL
-          <http://bugseng.com/products/ppl/>`_ web site.  This solver is
-          an exact rational solver.
-
-        - ``InteractiveLPProblem`` (``solver="InteractiveLP"``).  A didactical
-          implementation of the revised simplex method in Sage.  It works over
-          any exact ordered field, the default is ``QQ``.
-
-        ``solver`` should then be equal to one of the above strings,
-        or ``None`` (default), in which case the default solver is used
-        (see ``default_mip_solver`` method).
-
-        ``solver`` can also be a callable, in which case it is called,
-        and its result is returned.
+        - or a callable (such as a class), in which case it is called,
+          and its result is returned.
 
     - ``base_ring`` -- If not ``None``, request a solver that works over this
         (ordered) field.  If ``base_ring`` is not a field, its fraction field
@@ -1789,7 +1765,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         solver = solver.capitalize()
 
     if solver == "Coin":
-        from sage.numerical.backends.coin_backend import CoinBackend
+        from sage_numerical_backends_coin.coin_backend import CoinBackend
         return CoinBackend()
 
     elif solver == "Glpk":
@@ -1801,7 +1777,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         return GLPKExactBackend()
 
     elif solver == "Cplex":
-        from sage.numerical.backends.cplex_backend import CPLEXBackend
+        from sage_numerical_backends_cplex.cplex_backend import CPLEXBackend
         return CPLEXBackend()
 
     elif solver == "Cvxopt":
@@ -1809,7 +1785,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         return CVXOPTBackend()
 
     elif solver == "Gurobi":
-        from sage.numerical.backends.gurobi_backend import GurobiBackend
+        from sage_numerical_backends_gurobi.gurobi_backend import GurobiBackend
         return GurobiBackend()
 
     elif solver == "Ppl":

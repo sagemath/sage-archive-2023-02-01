@@ -13417,7 +13417,20 @@ cdef class Matrix(Matrix1):
             sage: a.change_ring(RDF).exp()  # rel tol 1e-14
             [42748127.31532951 7368259.244159399]
             [234538976.1381042 40426191.45156228]
+
+        TESTS:
+
+        Check that sparse matrices are handled correctly (:trac:`28935`)::
+
+            sage: matrix.diagonal([0], sparse=True).exp()
+            [1]
+            sage: matrix.zero(CBF, 2, sparse=True).exp()
+            [1.000000000000000                 0]
+            [                0 1.000000000000000]
         """
+        if self.is_sparse():
+            # exp is only implemented for dense matrices (:trac:`28935`)
+            return self.dense_matrix().exp().sparse_matrix()
         from sage.symbolic.ring import SR
         return self.change_ring(SR).exp()
 

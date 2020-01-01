@@ -585,6 +585,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             The stable principal specialization is the ring
             homomorphism given by setting `x_i = q^i` for all `i`.
+            Note that setting `q = 1` in the stable principal
+            specialization is an invalid operation.
 
             INPUT:
 
@@ -648,8 +650,9 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             if q is None:
                 q = get_variable(self.base_ring(), 'q')
-
             if q == 1:
+                if n == infinity:
+                    raise ValueError("the stable principal specialization at q=1 is not defined")
                 f = lambda partition: (prod(n+partition.content(*c) for c in partition.cells())
                                        / prod(h for h in partition.hooks()))
             elif n == infinity:
@@ -690,8 +693,6 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 ex_q(f) = (1-q)^n t^n ps_q(f),
 
             where `ps_q(f)` is the stable principal specialization of `f`.
-            Note that setting `q = 1` in the stable principal
-            specialization is an invalid operation.
 
             INPUT:
 

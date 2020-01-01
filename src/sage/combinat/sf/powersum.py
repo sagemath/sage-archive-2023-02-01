@@ -707,7 +707,8 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             return p._apply_module_morphism(self, on_basis, R)
 
         def principal_specialization(self, n=infinity, q=None):
-            r"""Return the principal specialization of the symmetric function.
+            r"""
+            Return the principal specialization of the symmetric function.
 
             The principal specialization of order `n` is the ring
             homomorphism given by setting `x_i = q^i` for `i \in
@@ -716,6 +717,8 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             The stable principal specialization is the ring
             homomorphism given by setting `x_i = q^i` for all `i`.
+            Note that setting `q = 1` in the stable principal
+            specialization is an invalid operation.
 
             INPUT:
 
@@ -777,6 +780,8 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 q = get_variable(self.base_ring(), 'q')
 
             if q == 1:
+                if n == infinity:
+                    raise ValueError("the stable principal specialization at q=1 is not defined")
                 f = lambda partition: n**len(partition)
             elif n == infinity:
                 f = lambda partition: prod(1/(1-q**part) for part in partition)
@@ -809,8 +814,6 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 ex_q(f) = (1-q)^n t^n ps_q(f),
 
             where `ps_q(f)` is the stable principal specialization of `f`.
-            Note that setting `q = 1` in the stable principal
-            specialization is an invalid operation.
 
             INPUT:
 

@@ -5449,7 +5449,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         of [EnumComb2]_.
 
         The stable principal specialization is the ring homomorphism
-        given by setting `x_i = q^i` for all `i`.
+        given by setting `x_i = q^i` for all `i`.  Note that setting
+        `q = 1` in the stable principal specialization is an invalid
+        operation.
 
         INPUT:
 
@@ -5526,6 +5528,22 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: len(set([b(x).principal_specialization(n=4, q=2) for b in B]))
             1
 
+        Check that the stable principal specialization at `q = 1`
+        raises a ``ValueError``:
+
+            sage: def test_error(x):
+            ....:     message = "the stable principal specialization of %s at q=1 should raise a ValueError"
+            ....:     try:
+            ....:         x.principal_specialization(q=1)
+            ....:     except ValueError as e:
+            ....:         return(e)
+            ....:     except StandardError as e:
+            ....:         raise ValueError((message + ", but raised '%s' instead") % (x, e))
+            ....:     raise ValueError((message + ", but didn't") % x)
+
+            sage: set([str(test_error(b(x))) for b in B])
+            {'the stable principal specialization at q=1 is not defined'}
+
         """
         p = self.parent().realization_of().powersum()
         return p(self).principal_specialization(n, q=q)
@@ -5557,8 +5575,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ex_q(f) = (1-q)^n t^n ps(f),
 
         where `ps(f)` is the stable principal specialization of `f`.
-        Note that setting `q = 1` in the stable principal
-        specialization is an invalid operation.
 
         INPUT:
 

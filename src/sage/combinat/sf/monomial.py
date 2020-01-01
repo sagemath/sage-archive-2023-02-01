@@ -368,6 +368,8 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
             """
             if q == 1:
+                if n == infinity:
+                    raise ValueError("the stable principal specialization at q=1 is not defined")
                 f = lambda partition: binomial(n, len(partition))*multinomial(partition.to_exp())
                 return self.parent()._apply_module_morphism(self, f, q.parent())
 

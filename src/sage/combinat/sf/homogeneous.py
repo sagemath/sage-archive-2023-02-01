@@ -237,6 +237,8 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
             The stable principal specialization is the ring
             homomorphism given by setting `x_i = q^i` for all `i`.
+            Note that setting `q = 1` in the stable principal
+            specialization is an invalid operation.
 
             INPUT:
 
@@ -290,6 +292,8 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
                 q = get_variable(self.base_ring(), 'q')
 
             if q == 1:
+                if n == infinity:
+                    raise ValueError("the stable principal specialization at q=1 is not defined")
                 f = lambda partition: prod(binomial(n+part-1, part) for part in partition)
             elif n == infinity:
                 f = lambda partition: prod(1/prod((1-q**i) for i in range(1, part+1)) for part in partition)
@@ -326,8 +330,6 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
                 ex_q(f) = (1-q)^n t^n ps_q(f),
 
             where `ps_q(f)` is the stable principal specialization of `f`.
-            Note that setting `q = 1` in the stable principal
-            specialization is an invalid operation.
 
             INPUT:
 

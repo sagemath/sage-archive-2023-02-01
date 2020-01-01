@@ -205,7 +205,6 @@ from __future__ import division, print_function, absolute_import
 
 from six.moves import range
 
-import inspect
 from copy import copy
 
 from sage.cpython.string import bytes_to_str
@@ -229,12 +228,10 @@ from sage.structure.parent import Parent
 from sage.misc.all import prod
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
-from sage.misc.sageinspect import sage_getargspec
 from sage.misc.randstate import current_randstate
 from sage.combinat.subset import Subsets
 from sage.features.gap import GapPackage
-from sage.coding.abstract_code import *
-
+from sage.coding.abstract_code import AbstractCode
 from .encoder import Encoder
 from .decoder import Decoder
 

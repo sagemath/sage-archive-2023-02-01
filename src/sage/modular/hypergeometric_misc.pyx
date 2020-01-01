@@ -19,10 +19,10 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
         sage: H.euler_factor(2, 7, cache_p=True)
         7*T^2 - 3*T + 1
         sage: gamma = H.gamma_array()
-        sage: gtable = H.gauss_table(7, 1, 2)
+        sage: prec, gtable = H.gauss_table(7, 1, 2)
         sage: m = array.array('i', [0]*6)
         sage: D = 1
-        sage: hgm_coeffs(7, 1, 2, gamma, m, D, gtable, 1, False)
+        sage: hgm_coeffs(7, 1, 2, gamma, m, D, gtable, prec, False)
         [7, 2*7, 6*7, 7, 6, 4*7]
     """
     from sage.rings.padics.factory import Zp

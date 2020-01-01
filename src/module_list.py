@@ -39,7 +39,11 @@ png_library_dirs = png_pc['library_dirs']
 png_include_dirs = png_pc['include_dirs']
 
 # zlib
-zlib_pc = pkgconfig.parse('zlib')
+try:
+    zlib_pc = pkgconfig.parse('zlib')
+except pkgconfig.PackageNotFoundError:
+    from collections import defaultdict
+    zlib_pc = defaultdict(list, {'libraries': ['z']})
 zlib_libs = zlib_pc['libraries']
 zlib_library_dirs = zlib_pc['library_dirs']
 zlib_include_dirs = zlib_pc['include_dirs']

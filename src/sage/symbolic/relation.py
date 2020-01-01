@@ -891,7 +891,7 @@ def solve(f, *args, **kwds):
         sage: _ = var('t')
         sage: r = solve([x^2 - y^2/exp(x), y-1], x, y, algorithm='sympy')
         sage: (r[0][x], r[0][y])
-        (2*lambert_w(1/2), 1)
+        (2*lambert_w(-1/2), 1)
         sage: solve(-2*x**3 + 4*x**2 - 2*x + 6 > 0, x, algorithm='sympy')
         [x < 1/3*(1/2)^(1/3)*(9*sqrt(77) + 79)^(1/3) + 2/3*(1/2)^(2/3)/(9*sqrt(77) + 79)^(1/3) + 2/3]
         sage: solve(sqrt(2*x^2 - 7) - (3 - x),x,algorithm='sympy')

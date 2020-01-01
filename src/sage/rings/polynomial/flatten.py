@@ -371,14 +371,14 @@ class UnflatteningMorphism(Morphism):
             cur_exp = expo[i]
             for l in range(len(self._intermediate_rings)):
                 R, univariate = self._intermediate_rings[-1 - l]
+                idx = index[l + 1]
                 sub_exp = (cur_exp[index[l]] if univariate
-                           else cur_exp[index[l]:index[l + 1]])
+                           else cur_exp[index[l]:idx])
                 if l == 0:
                     newpol[l][sub_exp] = p[cur_exp]
                 else:
                     newpol[l][sub_exp] = newpol[l - 1]
                     newpol[l - 1] = {}
-                idx = index[l + 1]
                 if (i == len(expo) - 1 or expo[i + 1][idx:] != cur_exp[idx:]):
                     newpol[l] = R(newpol[l], check=False)
                 else:
@@ -460,7 +460,7 @@ class SpecializationMorphism(Morphism):
             sage: R.<c> = RR[]
             sage: P.<z> = AffineSpace(R, 1)
             sage: H = End(P)
-            sage: f = H([z^2+c])
+            sage: f = H([z^2 + c])
             sage: f.specialization({c:1})
             Scheme endomorphism of Affine Space of dimension 1 over Real Field with 53 bits of precision
               Defn: Defined on coordinates by sending (z) to

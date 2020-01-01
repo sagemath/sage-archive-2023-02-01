@@ -290,10 +290,8 @@ class PolyhedralFan(SageObject):
 
         INPUT:
 
-
         -  ``gfan_polyhedral_fan`` - output from gfan of a
            polyhedral fan.
-
 
         EXAMPLES::
 
@@ -662,11 +660,12 @@ class TropicalPrevariety(PolyhedralFan):
 
         INPUT:
 
-        -  ``gfan_polyhedral_fan`` - output from ``gfan`` of a
-           polyhedral fan.
-        -  ``polynomial_system`` - a list of polynomials
-        -  ``poly_ring`` - the polynomial ring of the list of polynomials
-        -  ``parameters`` (optional) - a list of variables to be considered as parameters
+        - ``gfan_polyhedral_fan`` -- output from ``gfan`` of a
+          polyhedral fan.
+        - ``polynomial_system`` -- a list of polynomials
+        - ``poly_ring`` -- the polynomial ring of the list of polynomials
+        - ``parameters`` (optional) -- a list of variables to be considered
+           as parameters
 
         EXAMPLES::
 
@@ -790,18 +789,17 @@ class GroebnerFan(SageObject):
 
         INPUT:
 
-        -  ``I`` - ideal in a multivariate polynomial ring
+        -  ``I`` -- ideal in a multivariate polynomial ring
 
-        -  ``is_groebner_basis`` - bool (default False). if
-           True, then I.gens() must be a Groebner basis with respect to the
+        -  ``is_groebner_basis`` -- bool (default ``False``). if
+           ``True``, then I.gens() must be a Groebner basis with respect to the
            standard degree lexicographic term order.
 
-        -  ``symmetry`` - default: None; if not None, describes
+        -  ``symmetry`` -- default: ``None``; if not ``None``, describes
            symmetries of the ideal
 
-        -  ``verbose`` - default: False; if True, printout
+        -  ``verbose`` -- default: ``False``; if ``True``, printout
            useful info during computations
-
 
         EXAMPLES::
 
@@ -1672,7 +1670,8 @@ class GroebnerFan(SageObject):
 
         INPUT:
 
-        - ``parameters`` (optional) - a list of variables to be considered as parameters
+        - ``parameters`` (optional) - a list of variables to be
+          considered as parameters
         - ``symmetry_generators`` (optional) - generators of the symmetry group
 
         OUTPUT: a TropicalPrevariety object
@@ -1781,7 +1780,6 @@ class ReducedGroebnerBasis(SageObject, list):
         -  ``gens`` - the generators of the ideal
 
         -  ``gfan_gens`` - the generators as a gfan string
-
 
         EXAMPLES::
 

@@ -932,6 +932,11 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         False
         sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a', latex_name=None)
         False
+
+    Check quadratic fields without embedding (:trac:`28932`)::
+
+        sage: QuadraticField(3, embedding=False)
+        Number Field in a with defining polynomial x^2 - 3
     """
     D = QQ(D)
     if check:
@@ -944,6 +949,8 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
             embedding = RLF(D).sqrt()
         else:
             embedding = CLF(D).sqrt()
+    elif embedding is False:
+        embedding = None
     if latex_name == 'sqrt':
         latex_name = r'\sqrt{%s}' % D
     return NumberField(f, name, check=False, embedding=embedding, latex_name=latex_name, **args)

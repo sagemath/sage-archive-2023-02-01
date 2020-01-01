@@ -1094,7 +1094,7 @@ class HypergeometricData(object):
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([3],[4]))
             sage: H.gauss_table(2, 2, 4)
-            [1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3]
+            (4, [1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3])
         """
         try:
             prec1, gtab = self._gauss_table[p, f]
@@ -1103,7 +1103,8 @@ class HypergeometricData(object):
             use_longs = (p ** prec < 2 ** 31)
             gtab = gauss_table(p, f, prec, use_longs)
             self._gauss_table[p, f] = (prec, gtab)
-        return gtab
+            prec1 = prec
+        return prec1, gtab
 
     def gauss_table_full(self):
         """
@@ -1239,12 +1240,12 @@ class HypergeometricData(object):
             try:
                 trcoeffs = self._trace_coeffs[p, f]
             except KeyError:
-                gtab = self.gauss_table(p, f, prec)
-                trcoeffs = hgm_coeffs(p, f, prec, gamma, m, D, gtab, use_longs)
+                gtab_prec, gtab = self.gauss_table(p, f, prec)
+                trcoeffs = hgm_coeffs(p, f, prec, gamma, m, D, gtab, gtab_prec, use_longs)
                 self._trace_coeffs[p, f] = trcoeffs
         else:
             gtab = gauss_table(p, f, prec, use_longs)
-            trcoeffs = hgm_coeffs(p, f, prec, gamma, m, D, gtab, use_longs)
+            trcoeffs = hgm_coeffs(p, f, prec, gamma, m, D, gtab, prec, use_longs)
         sigma = trcoeffs[q-2]
         p_ring = sigma.parent()
         teich = p_ring.teichmuller(M/t)
@@ -1482,6 +1483,15 @@ class HypergeometricData(object):
              sage: H = Hyp(alpha_beta=([0,0,0,1/3,2/3],[1/2,1/5,2/5,3/5,4/5]))
              sage: H.euler_factor(5,7)
              16807*T^5 - 686*T^4 - 105*T^3 - 15*T^2 - 2*T + 1
+
+        Check for precision downsampling::
+
+            sage: H = Hyp(cyclotomic=[[3],[4]])
+            sage: H.euler_factor(2, 11, cache_p=True)
+            11*T^2 - 3*T + 1
+            sage: H = Hyp(cyclotomic=[[12],[1,2,6]])
+            sage: H.euler_factor(2, 11, cache_p=True)
+            -T^4 + T^3 - T + 1
 
         REFERENCES:
 

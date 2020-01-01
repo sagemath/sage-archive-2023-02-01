@@ -4,7 +4,7 @@ significantly from Cythonization.
 """
 
 cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
-                 gtable, bint use_longs):
+                 gtable, int gtable_prec, bint use_longs):
     r"""
     Compute coefficients for the hypergeometric trace formula.
 
@@ -22,7 +22,7 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
         sage: gtable = H.gauss_table(7, 1, 2)
         sage: m = array.array('i', [0]*6)
         sage: D = 1
-        sage: hgm_coeffs(7, 1, 2, gamma, m, D, gtable, False)
+        sage: hgm_coeffs(7, 1, 2, gamma, m, D, gtable, 1, False)
         [7, 2*7, 6*7, 7, 6, 4*7]
     """
     from sage.rings.padics.factory import Zp
@@ -45,7 +45,7 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
         R = Zp(p, prec, "fixed-mod")
     # In certain cases, the reciprocals of the Gauss sums are reported
     # for efficiency.
-    flip = (f == 1 and prec == 1 and R.precision_cap() == 1)
+    flip = (f == 1 and prec == 1 and gtable_prec == 1)
     ans = []
     if use_longs:
         q2 = p ** prec

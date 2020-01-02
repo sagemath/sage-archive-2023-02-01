@@ -581,7 +581,7 @@ class DiGraph(GenericGraph):
             sage: g.add_edge("Hey", "Heyyyyyyy")
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: graph is immutable; please change a copy instead (use function copy())
             sage: {g:1}[g]
             1
             sage: copy(g) is g    # copy is mutable again
@@ -2949,9 +2949,10 @@ class DiGraph(GenericGraph):
 
         INPUT:
 
-        - ``edges`` -- (optional, default: ``self.edges()``) a list or tuple of
-          all edges of ``self`` (each only once). This determines which
-          coordinate of a point in the polytope will correspond to which edge of
+        - ``edges`` -- list (default: ``None``); a list of edges of ``self``. If
+          not specified, the list of all edges of ``self`` is used with the
+          default ordering of ``self.edges()``. This determines which coordinate
+          of a point in the polytope will correspond to which edge of
           ``self``. It is also possible to specify a list which contains not all
           edges of ``self``; this results in a polytope corresponding to the
           flows which are `0` on all remaining edges. Notice that the edges
@@ -3057,12 +3058,25 @@ class DiGraph(GenericGraph):
             sage: Z.flow_polytope()
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull
             of 1 vertex
+
+        A digraph with multiple edges (:trac:`28837`)::
+
+            sage: G = DiGraph([(0, 1), (0,1)], multiedges=True)
+            sage: G
+            Multi-digraph on 2 vertices
+            sage: P = G.flow_polytope()
+            sage: P
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
+            sage: P.vertices()
+            (A vertex at (1, 0), A vertex at (0, 1))
+            sage: P.lines()
+            ()
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         if edges is None:
             edges = self.edges(sort=False)
-        ineqs = [[0] + [Integer(j == u) for j in edges]
-                 for u in edges]
+        m = len(edges)
+        ineqs = [[0] * (i + 1) + [1] + [0] * (m - i - 1) for i in range(m)]
 
         eqs = []
         for u in self:

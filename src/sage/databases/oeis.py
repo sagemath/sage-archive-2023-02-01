@@ -149,14 +149,14 @@ Classes and methods
 -------------------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Thierry Monteil <sage!lma.metelu.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.parse import urlencode
@@ -681,7 +681,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def __init__(self, ident):
         r"""
-        Initializes an OEIS sequence.
+        Initialize an OEIS sequence.
 
         There is no fetching of additional information about the sequence at
         this point, only the A-number is required to construct a sequence.
@@ -873,7 +873,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def old_IDs(self):
         r"""
-        Returns the IDs of the sequence ``self`` corresponding to ancestors of OEIS.
+        Return the IDs of the sequence ``self`` corresponding to ancestors of OEIS.
 
         OUTPUT:
 
@@ -935,7 +935,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def author(self):
         r"""
-        Returns the author of the sequence in the encyclopedia.
+        Return the author of the sequence in the encyclopedia.
 
         OUTPUT:
 
@@ -1095,7 +1095,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def is_dead(self, warn_only=False):
         r"""
-        Tells whether the sequence is dead (i.e. eroneous).
+        Tell whether the sequence is dead (i.e. erroneous).
 
         INPUT:
 
@@ -1142,7 +1142,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def is_finite(self):
         r"""
-        Tells whether the sequence is finite.
+        Tell whether the sequence is finite.
 
         Currently, OEIS only provides a keyword when the sequence is known to
         be finite. So, when this keyword is not there, we do not know whether
@@ -1150,8 +1150,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-        - Returns ``True`` when the sequence is known to be finite.
-        - Returns ``Unknown`` otherwise.
+        - ``True`` when the sequence is known to be finite.
+        - ``Unknown`` otherwise.
 
         .. TODO::
 
@@ -1191,7 +1191,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def is_full(self):
         r"""
-        Tells whether the sequence ``self`` is full, that is, if all its
+        Tell whether the sequence ``self`` is full, that is, if all its
         elements are listed in ``self.first_terms()``.
 
         Currently, OEIS only provides a keyword when the sequence is known to
@@ -1200,8 +1200,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-        - Returns ``True`` when the sequence is known to be full.
-        - Returns ``Unknown`` otherwise.
+        - ``True`` when the sequence is known to be full.
+        - ``Unknown`` otherwise.
 
         EXAMPLES::
 
@@ -1277,7 +1277,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def _repr_(self):
         r"""
-        Prints the sequence number and a short summary of this sequence.
+        Print the sequence number and a short summary of this sequence.
 
         OUTPUT:
 
@@ -1397,7 +1397,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def __iter__(self):
         r"""
-        Iterates over the first terms of ``self``, and raises an error if
+        Iterate over the first terms of ``self``, and raise an error if
         those first terms are exhausted and the real associated sequence
         still have terms to produce.
 
@@ -1834,7 +1834,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
     def programs(self, language='other'):
         r"""
-        Returns programs implementing the sequence ``self`` in the given ``language``.
+        Return programs implementing the sequence ``self`` in the given ``language``.
 
         INPUT:
 

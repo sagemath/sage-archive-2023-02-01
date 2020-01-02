@@ -1892,7 +1892,7 @@ class WordGenerator(object):
         elif hasattr(morphisms, '__call__'):
             seq = (morphisms(i) for i in sequence)
         else:
-            raise TypeError("morphisms (=%s) must be None, callable or provide a __getitem__ method."%morphisms)
+            raise TypeError("morphisms (=%s) must be None, callable or provide a __getitem__ method." % morphisms)
 
         from sage.combinat.words.word import FiniteWord_class
         if isinstance(sequence,(tuple,list,str,FiniteWord_class)) \
@@ -1901,12 +1901,12 @@ class WordGenerator(object):
             return prod(seq)(letters)
 
         from itertools import tee
-        seq_it,seq= tee(seq)
+        seq_it, seq = tee(seq)
         m = next(seq_it)
         W = m.codomain()
 
         kwds = {}
-        kwds['data'] = self._s_adic_iterator(seq,letters)
+        kwds['data'] = self._s_adic_iterator(seq, letters)
         kwds['datatype'] = 'iter'
         kwds['caching'] = True
         #kwds['check'] = False

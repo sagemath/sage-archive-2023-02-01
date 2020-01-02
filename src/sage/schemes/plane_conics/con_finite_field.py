@@ -7,7 +7,7 @@ AUTHORS:
 
 """
 from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009/2010 Marco Streng <marco.streng@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,16 +19,18 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import PolynomialRing
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_finite_field
 from .con_field import ProjectiveConic_field
 
+
 class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_finite_field):
     r"""
     Create a projective plane conic curve over a finite field.
+
     See ``Conic`` for full documentation.
 
     EXAMPLES::
@@ -54,7 +56,6 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_f
         """
         ProjectiveConic_field.__init__(self, A, f)
 
-
     def count_points(self, n):
         r"""
         If the base field `B` of `self` is finite of order `q`,
@@ -70,10 +71,9 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_f
         """
         F = self.base_ring()
         q = F.cardinality()
-        return [q**i+1 for i in range(1, n+1)]
+        return [q**i + 1 for i in range(1, n + 1)]
 
-
-    def has_rational_point(self, point = False, read_cache = True, \
+    def has_rational_point(self, point = False, read_cache = True,
                            algorithm = 'default'):
         r"""
         Always returns ``True`` because self has a point defined over
@@ -135,10 +135,7 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_f
             return True, pt
         while True:
             x = B.random_element()
-            Y = PolynomialRing(B,'Y').gen()
-            r = self.defining_polynomial()([x,Y,1]).roots()
-            if len(r) > 0:
-                return True, self.point([x,r[0][0],B(1)])
-
-
-
+            Y = PolynomialRing(B, 'Y').gen()
+            r = self.defining_polynomial()([x, Y, 1]).roots()
+            if r:
+                return True, self.point([x, r[0][0], B(1)])

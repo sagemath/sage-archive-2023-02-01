@@ -443,10 +443,9 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef int i
         if P.monomial_divides(s_poly,p_poly):
             return True
-        # current_ring has one additional variable if the variables have weights
-        realngens = A._current_ring.ngens() / A.degbound()
+        realngens = A._commutative_ring.ngens()
         for i from 0 <= i < p_d-s_d:
-            s_poly = s_poly.shift(realngens)
+            s_poly = s_poly._cycle(realngens)
             if P.monomial_divides(s_poly,p_poly):
                 return True
         return False
@@ -600,9 +599,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         # we must put the polynomials into the same ring
         left._poly = A._current_ring(left._poly)
         right._poly = A._current_ring(right._poly)
-        # current_ring has one additional variable if the variables have weights
-        realngens = A._current_ring.ngens() / A.degbound()
-        rshift = right._poly.shift(left._poly.degree()*realngens)
+        realngens = A._commutative_ring.ngens()
+        rshift = right._poly._cycle(left._poly.degree() * realngens)
         return FreeAlgebraElement_letterplace(A,left._poly*rshift, check=False)
 
     def __pow__(FreeAlgebraElement_letterplace self, int n, k):
@@ -628,11 +626,10 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         self._poly = A._current_ring(self._poly)
         cdef int d = self._poly.degree()
         q = p = self._poly
-        # current_ring has one additional variable if the variables have weights
-        realngens = A._current_ring.ngens() / A.degbound()
+        realngens = A._commutative_ring.ngens()
         cdef int i
         for i from 0<i<n:
-            q = q.shift(d*realngens)
+            q = q._cycle(d * realngens)
             p *= q
         return FreeAlgebraElement_letterplace(A, p, check=False)
 

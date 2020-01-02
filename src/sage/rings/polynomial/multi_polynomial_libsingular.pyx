@@ -2588,8 +2588,19 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         return  singular_polynomial_str_with_changed_varnames(self._poly, self._parent_ring, varnames)
 
-    def shift(self, int n):
+    def _cycle(self, int n):
+        """
+        Permute the variables by shifting ``n`` positions to the right.
+
+        EXAMPLES::
+
+            sage: R.<a,b,c,d> = QQ[]
+            sage: f = a*b + c
+            sage: f._cycle(-1), f._cycle(0), f._cycle(1)
+            (a*d + b, a*b + c, b*c + d)
+        """
         r = self.parent()
+        n = n % r.ngens()
         olddict = self.dict()
         newdict = dict()
         for key in olddict:

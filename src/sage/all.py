@@ -19,7 +19,7 @@ We exclude the dependencies and check to see that there are no others
 except for the known bad apples::
 
     sage: allowed = [
-    ....:     'IPython', 'prompt_toolkit',     # sage dependencies
+    ....:     'IPython', 'prompt_toolkit', 'jedi',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
     ....:     'signal', 'enum',                # may appear in Python 3

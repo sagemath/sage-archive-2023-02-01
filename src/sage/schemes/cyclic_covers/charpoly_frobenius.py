@@ -14,7 +14,6 @@ Computation of the Frobenius polynomial using Newton's identities
 from __future__ import division
 from sage.rings.integer_ring import ZZ
 from sage.functions.log import log
-from sage.functions.other import floor
 
 
 def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=[1]):
@@ -252,7 +251,7 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
 
     # reduce cp mod prec
     degree = len(charpoly_prec) - 1
-    halfdegree = floor(degree / 2) + 1
+    halfdegree = degree // 2 + 1
     mod = [0] * (degree + 1)
     for i in range(len(charpoly_prec)):
         mod[-i] = p**charpoly_prec[-i]

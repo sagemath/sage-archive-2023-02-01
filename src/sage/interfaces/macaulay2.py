@@ -126,8 +126,10 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     FunctionElement)
 from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
+from sage.misc.superseded import deprecated_function_alias
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.global_options import GlobalOptions
 
 
 def remove_output_labels(s):
@@ -332,6 +334,36 @@ class Macaulay2(ExtraTabCompletion, Expect):
         self.eval('setRandomSeed(%d)' % seed)
         self._seed = seed
         return seed
+
+    class options(GlobalOptions):
+        r"""
+        Global options for Macaulay2 elements.
+
+        @OPTIONS@
+
+        EXAMPLES::
+
+            sage: macaulay2.options.after_print = True  # optional - macaulay2
+            sage: A = macaulay2(matrix([[1, 2], [3, 6]])); A  # optional - macaulay2
+            | 1 2 |
+            | 3 6 |
+            <BLANKLINE>
+                     2        2
+            Matrix ZZ  <--- ZZ
+            sage: A.kernel()  # optional - macaulay2
+            image | 2  |
+                  | -1 |
+            <BLANKLINE>
+                                      2
+            ZZ-module, submodule of ZZ
+            sage: macaulay2.options.after_print = False  # optional - macaulay2
+        """
+        NAME = 'Macaulay2'
+        module = 'sage.interfaces.macaulay2'
+        after_print = dict(default=False,
+                           description='append AfterPrint type information to '
+                                       'textual representations',
+                           checker=lambda val: isinstance(val, bool))
 
     def get(self, var):
         """
@@ -878,9 +910,32 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             23, 24, 25)
             sage: str(macaulay2('1..25'))  # optional - macaulay2
             (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
+
+        If ``AfterPrint`` is enabled, the ``repr`` contains type information,
+        but the string representation does not::
+
+            sage: macaulay2.options.after_print = True  # optional - macaulay2
+            sage: repr(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+            --------------------------------------------------------------------------------
+            23, 24, 25)
+            <BLANKLINE>
+            Sequence
+            sage: str(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
+            sage: macaulay2.options.after_print = False  # optional - macaulay2
         """
         from sage.typeset.ascii_art import empty_ascii_art
         P = self.parent()
+        if P.options.after_print:
+            # In M2, the wrapped output is indented by the width of the prompt,
+            # which we strip in Sage. We hardcode the width of the prompt to
+            # 14=len('o1000000001 = '), which is tested in the doctests by the
+            # output getting wrapped at 80 characters.
+            width = 14 + empty_ascii_art._terminal_width()
+            return P.eval('printWidth=%d;%s' % (width, self._name))
+        # Otherwise manually wrap the net representation which does not display
+        # AfterPrint text
         return P.eval('print(wrap(%d,"-",net %s))'
                       % (empty_ascii_art._terminal_width(), self._name),
                       strip=False)
@@ -971,7 +1026,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             <... 'int'>
         """
         self._check_valid()
-        return int(self.parent()("#%s"%self.name()))
+        # we use str instead of repr to avoid wrapping
+        return int(str(self.parent()("#%s"%self.name())))
 
     def __getitem__(self, n):
         """
@@ -1076,6 +1132,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
     def __bool__(self):
         """
+        Return whether this Macaulay2 element is not ``False`` or not ``0``.
+
         EXAMPLES::
 
             sage: a = macaulay2(0)  # optional - macaulay2
@@ -1083,9 +1141,22 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             True
             sage: bool(a)           # optional - macaulay2
             False
+
+        TESTS:
+
+        Check that :trac:`28705` is fixed::
+
+            sage: t = macaulay2(True); t     # optional - macaulay2
+            true
+            sage: bool(t)                    # optional - macaulay2
+            True
+            sage: bool(macaulay2('false'))   # optional - macaulay2
+            False
+            sage: bool(macaulay2('"a"'))     # optional - macaulay2
+            True
         """
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == 'false'
+        return P.eval('{0}===false or {0}==0'.format(self._name)) != 'true'
 
     __nonzero__ = __bool__
 
@@ -1209,6 +1280,29 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         """
         return self.parent()("class %s"%self.name())
+
+    def after_print_text(self):
+        r"""
+        Obtain type information for this Macaulay2 element.
+
+        This is the text that is displayed using ``AfterPrint`` in a Macaulay2
+        interpreter.
+
+        Macaulay2 by default includes this information in the output.
+        In Sage, this behavior can optionally be enabled by setting the option
+        ``after_print`` in :class:`Macaulay2.options`.
+
+        EXAMPLES::
+
+            sage: B = macaulay2(matrix([[1, 2], [3, 6]])).kernel(); B  # optional - macaulay2
+            image | 2  |
+                  | -1 |
+            sage: B.after_print_text()  # optional - macaulay2
+                                      2
+            ZZ-module, submodule of ZZ
+        """
+        return self.parent().eval('(lookup({topLevelMode,AfterPrint},' +
+                                  'class {0}))({0})'.format(self._name))
 
     ##########################
     #Aliases for M2 operators#
@@ -1568,7 +1662,6 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         except Exception:
             raise NotImplementedError("cannot convert %s to a Sage object"%repr_str)
 
-    from sage.misc.superseded import deprecated_function_alias
     to_sage = deprecated_function_alias(27848, ExpectElement.sage)
 
     def _matrix_(self, R):

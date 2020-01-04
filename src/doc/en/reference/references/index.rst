@@ -248,6 +248,8 @@ REFERENCES:
 .. [Arn2002] \P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
              N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
              Notes in Mathematics, Vol. 1794), 2002.
+.. [Ass1978] \J. Assion: *Einige endliche Faktorgruppen der Zopfgruppen*, Math. Z., 163
+             (1978), 291-302.
 
 .. [ARVT2005] Michael Artin, Fernando Rodriguez-Villegas, John Tate,
               On the Jacobians of plane cubics,
@@ -1489,6 +1491,9 @@ REFERENCES:
 
 .. [Cox] David Cox, "What is a Toric Variety",
          https://dacox.people.amherst.edu/lectures/tutorial.ps
+
+.. [Cox1957] \H. S. M. Coxeter: *Factor groups of the braid groups*, Proceedings of the Fourth Candian
+             Mathematical Congress (Vancouver 1957), pp. 95-122.
 
 .. [Cox1969] Harold S. M. Coxeter, *Introduction to Geometry*, 2nd ed. New York:Wiley, 1969. 
 
@@ -2976,6 +2981,10 @@ REFERENCES:
              Monsky-Washnitzer cohomology*, J. Ramanujan Math. Soc. 16 (2001) no
              4, 323-338
 
+.. [KeSm1998] \S. Keller and M. Smid, *Modes of Operation Validation System
+              (MOVS): Requirements and Procedures* NIST Special Publication
+              800-17, 1998 :doi:`10.6028/NIST.SP.800-17`
+
 .. [KG2016] \P. Karpmann and Benjamin Gregoire, *The LITTLUN S-box and the FLY
             block cipher*, Lightweight Cryptography Workshop, 2016.
             https://www.nist.gov/sites/default/files/documents/2016/10/18/karpman-paper-lwc2016.pdf
@@ -3750,6 +3759,9 @@ REFERENCES:
 .. [Mil1958] \J. W. Milnor, *The Steenrod algebra and its dual*,
              Ann. of Math. (2) 67 (1958), 150-171.
 
+.. [Mil1974] \J. W. Milnor and J. D. Stasheff, *Characteristic Classes*,
+             University Press, Princeton and Tokyo, 1974.
+
 .. [Mil1978] \S. Milne, *A q-analog of restricted growth functions,
              Dobinsky’s equality and Charlier
              polynomials*. Trans. Amer. Math. Soc., 245 (1978),
@@ -4393,6 +4405,9 @@ REFERENCES:
 
 .. [Roc1970] \R.T. Rockafellar, *Convex Analysis*. Princeton
              University Press, Princeton, 1970.
+
+.. [Roe1988] John Roe, *Elliptic operators, topology and asymptotic methods*.
+             2nd edition. CRC Press, 1988.
 
 .. [Rog2018] Baptiste Rognerud,
              *Exceptional and modern intervals of the Tamari lattice*.
@@ -5071,6 +5086,7 @@ REFERENCES:
 
 .. [U.S1999] \U.S. Department Of Commerce/National Institute of Standards and Technology,
              *Data Encryption Standard*, (1999).
+             https://csrc.nist.gov/CSRC/media/Publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf
 
 .. _ref-V:
 

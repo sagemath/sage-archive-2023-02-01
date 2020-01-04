@@ -126,7 +126,7 @@ ARG SAGE_ROOT=/home/sage/sage
 WORKDIR $SAGE_ROOT
 # We create a list of all files present in the artifact-base (with a timestamp
 # of now) so we can find out later which files were added/changed/removed.
-RUN find . -type f > $HOME/artifact-base.manifest
+RUN find . \( -type f -or -type l \) > $HOME/artifact-base.manifest
 RUN git fetch "$HOME/sage-context" HEAD \
     && if [ -e docker/.commit ]; then \
           git reset `cat docker/.commit` \
@@ -184,7 +184,7 @@ FROM make-build as make-all
 ARG MAKEFLAGS_DOCBUILD=$MAKEFLAGS
 ENV MAKEFLAGS_DOCBUILD $MAKEFLAGS_DOCBUILD
 ARG SAGE_NUM_THREADS_DOCBUILD=$SAGE_NUM_THREADS
-ENV SAGE_NUM_THREADS_DOCBUILD $SAGE_NUM_THREADS_DOCBUILD
+ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS_DOCBUILD
 RUN make
 
 ################################################################################
@@ -232,9 +232,9 @@ ARG SAGE_ROOT=/home/sage/sage
 # and a list of all modified files (added/updated/removed).
 RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
         mkdir -p $HOME/patch \
-        && find . -type f > $HOME/make-fast-rebuild-clean.manifest \
+        && find . \( -type f -or -type l \) > $HOME/make-fast-rebuild-clean.manifest \
         && cat $HOME/make-fast-rebuild-clean.manifest $HOME/artifact-base.manifest | sort | uniq -u > $HOME/obsolete \
-        && find . -type f -cnewer $HOME/artifact-base.manifest > $HOME/modified \
+        && find . \( -type f -or -type l \) -cnewer $HOME/artifact-base.manifest > $HOME/modified \
         && tar -cJf $HOME/patch/modified.tar.xz -T $HOME/modified \
         && cat $HOME/obsolete $HOME/modified | xz > $HOME/patch/modified.xz \
         && rm -rf $SAGE_ROOT \

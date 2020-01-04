@@ -693,7 +693,7 @@ def is_permutation(g, algorithm="greedy", certificate=False, check=True,
             return False, co_certif
 
         # Building the two orderings
-        tmp = co_certif.edges(labels=False, sort=False)
+        tmp = list(co_certif.edges(labels=False, sort=False))
         for u,v in certif.edge_iterator(labels=False):
             co_certif.add_edge(v,u)
         certif.add_edges(tmp)

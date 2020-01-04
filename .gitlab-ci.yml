@@ -88,9 +88,10 @@ build-from-latest:
     when: always
     paths:
     - gitlab-build-docker.log
+    - html
     expire_in: 1 month
   script:
-    - apk --update add coreutils
+    - apk --update add coreutils rsync
     # The output of the build can get larger than gitlab.com's limit; only
     # print the first 1MB (and the last 80 lines.) GitLab's limit is 4MB,
     # however, the list of all branches and tags that shows up in the initial
@@ -115,6 +116,12 @@ build-from-latest:
 build-from-clean:
   extends:
     - build-from-latest
+  artifacts:
+    when: always
+    paths:
+    - gitlab-build-docker.log
+    - html
+    expire_in: 99 years
   variables:
     ARTIFACT_BASE: "source-clean"
   only:
@@ -136,18 +143,21 @@ build-from-clean:
 
 test-dev:
   stage: test
+  dependencies: []
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/test-dev.sh "$DOCKER_IMAGE"
 
 test-cli:
   stage: test
+  dependencies: []
   script:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-cli.sh "$DOCKER_IMAGE"
 
 test-jupyter:
   stage: test
+  dependencies: []
   script:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
@@ -156,6 +166,7 @@ test-jupyter:
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
 push-dockerhub:
   stage: release
+  dependencies: []
   only:
     refs:
       - branches
@@ -170,6 +181,7 @@ push-dockerhub:
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
 push-dockerhub-dev:
   stage: release
+  dependencies: []
   only:
     refs:
       - master

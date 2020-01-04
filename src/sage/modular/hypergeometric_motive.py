@@ -531,6 +531,18 @@ class HypergeometricData(object):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return a hash for ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
+            sage: H1 = Hyp(alpha_beta=([1/2],[0]))
+            sage: h = hash(H1)
+        """
+        return hash((self._alpha, self._beta))
+
     # --- Parameters and invariants ---
     def cyclotomic_data(self):
         """

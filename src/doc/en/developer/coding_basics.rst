@@ -1121,7 +1121,10 @@ framework. Here is a comprehensive list:
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: hash(2^31 + 2^13)
+      sage: hash(2^31 + 2^13)   # py3
+      8193                      # 32-bit
+      2147491840                # 64-bit
+      sage: hash(2^31 + 2^13)   # py2
       -2147475456               # 32-bit
       2147491840                # 64-bit
 

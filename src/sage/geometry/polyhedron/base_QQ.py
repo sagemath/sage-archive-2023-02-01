@@ -480,11 +480,11 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: even_ep(2)                                # optional - pynormaliz
             23
             sage: ts = 2*subpoly                            # optional - pynormaliz
-            sage: ts.integral_points_count()                # optional - pynormaliz
+            sage: ts.integral_points_count()                # optional - pynormaliz latte_int
             23
             sage: odd_ep(1)                                 # optional - pynormaliz
             6
-            sage: subpoly.integral_points_count()           # optional - pynormaliz
+            sage: subpoly.integral_points_count()           # optional - pynormaliz latte_int
             6
 
         A polytope with rational nonintegral vertices must have
@@ -512,7 +512,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: poly = simplex.ehrhart_quasipolynomial(engine='normaliz')                               # optional - pynormaliz
             sage: poly                                                                                    # optional - pynormaliz
             7/2*t^3 + 2*t^2 - 1/2*t + 1
-            sage: simplex.ehrhart_polynomial()                                                            # optional - pynormaliz
+            sage: simplex.ehrhart_polynomial()                                                            # optional - pynormaliz latte_int
             7/2*t^3 + 2*t^2 - 1/2*t + 1
         """
         if self.is_empty():
@@ -578,11 +578,11 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: even_ep(2)                                        # optional - pynormaliz
             23
             sage: ts = 2*subpoly                                    # optional - pynormaliz
-            sage: ts.integral_points_count()                        # optional - pynormaliz
+            sage: ts.integral_points_count()                        # optional - pynormaliz latte_int
             23
             sage: odd_ep(1)                                         # optional - pynormaliz
             6
-            sage: subpoly.integral_points_count()                   # optional - pynormaliz
+            sage: subpoly.integral_points_count()                   # optional - pynormaliz latte_int
             6
 
         TESTS::
@@ -742,7 +742,7 @@ class Polyhedron_QQ(Polyhedron_base):
             Unknown command/option --bim-bam-boum=19
         """
 
-        # note: the options below are explicitely written in the function
+        # note: the options below are explicitly written in the function
         # declaration in order to keep tab completion (see #18211).
         kwds.update({
             'dual'                    : dual,

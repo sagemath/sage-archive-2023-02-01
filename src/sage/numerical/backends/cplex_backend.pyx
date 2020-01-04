@@ -592,12 +592,12 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX")                             # optional - CPLEX
             sage: p.add_variables(5)                                           # optional - CPLEX
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5), 2.0, 2.0)  # optional - CPLEX
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2.0, 2.0)  # optional - CPLEX
             sage: p.row(0)                                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                                              # optional - CPLEX
             (2.0, 2.0)
-            sage: p.add_linear_constraint(zip(range(5), range(5), 1.0, 1.0, name='foo') # optional - CPLEX
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - CPLEX
             sage: p.row_name(1)                                                           # optional - CPLEX
             'foo'
 
@@ -1591,27 +1591,29 @@ cdef class CPLEXBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             ValueError: This parameter is not available.
+
+        Ticket :trac:`27089` is fixed::
+
+            sage: p.solver_parameter("CPX_PARAM_ITLIM", 10000)  # optional - CPLEX
+            sage: p.solver_parameter("CPX_PARAM_ITLIM")         # optional - CPLEX
+            10000
         """
         cdef int intv
         cdef double doublev
         cdef char * strv
+        cdef long long longv
 
         # Specific action for log file
-        cdef FILE *ff
         if name.lower() == "logfile":
             if value is None: # Return logfile name
                 return self._logfilename
             elif not value:   # Close current logfile and disable logs
-                check( CPXsetlogfile(self.env, NULL) )
+                check( CPXsetlogfilename(self.env, NULL, NULL) )
                 self._logfilename = ''
             else:             # Set log file to logfilename
-                ff = fopen(str_to_bytes(value), "a")
-                if not ff:
-                    raise ValueError("Unable to append file {}.".format(value))
-                check( CPXsetlogfile(self.env, ff) )
+                check( CPXsetlogfilename(self.env, str_to_bytes(value), "a") )
                 self._logfilename = value
             return
-
 
         # If the name has to be translated to a CPLEX parameter ID
         if name == "timelimit":
@@ -1622,7 +1624,8 @@ cdef class CPLEXBackend(GenericBackend):
         if paramid == -1:
             raise ValueError("This parameter is not available.")
 
-        # Type of the parameter. Can be INT (1), Double(2) or String(3)
+        # Type of the parameter.
+        # Can be None (0), INT (1), Double (2), String (3) or Long (4)
         cdef int paramtype
         check(CPXgetparamtype(self.env, paramid, &paramtype))
 
@@ -1633,20 +1636,26 @@ cdef class CPLEXBackend(GenericBackend):
             elif paramtype == 2:
                 check(CPXgetdblparam(self.env, paramid, &doublev))
                 return doublev
-            else:
+            elif paramtype == 3:
                 strv = <char *>sig_malloc(500*sizeof(char))
                 status = CPXgetstrparam(self.env, paramid, strv)
                 s = str(strv)
                 sig_free(strv)
                 check(status)
                 return s
+            elif paramtype == 4:
+                check(CPXgetlongparam(self.env, paramid, &longv))
+                return longv
+
         else:
             if paramtype == 1:
                 check(CPXsetintparam(self.env, paramid, value))
             elif paramtype == 2:
                 check(CPXsetdblparam(self.env, paramid, value))
-            else:
+            elif paramtype == 3:
                 check(CPXsetstrparam(self.env, paramid, value))
+            elif paramtype == 4:
+                check(CPXsetlongparam(self.env, paramid, value))
 
     def __dealloc__(self):
         r"""

@@ -592,7 +592,7 @@ cdef class Converter(SageObject):
 
             if attributes and a in attributes:
                 for attrib in attributes[a]:
-                    if attrib == "isSB" :
+                    if attrib == "isSB":
                         val = <long>(attributes[a][attrib])
                         atSet(v, omStrDup("isSB"), <void*>val, INT_CMD)
                         setFlag(v, FLAG_STD)

@@ -253,13 +253,13 @@ We can now define the MILP itself
 
 ::
 
-    sage: p.add_constraint(sum(weight[o] * taken[o] for o in L) <= C)
+    sage: p.add_constraint(p.sum(weight[o] * taken[o] for o in L) <= C)
 
 .. link
 
 ::
 
-    sage: p.set_objective(sum(usefulness[o] * taken[o] for o in L))
+    sage: p.set_objective(p.sum(usefulness[o] * taken[o] for o in L))
 
 .. link
 
@@ -275,7 +275,7 @@ The solution found is (of course) admissible
 
 ::
 
-    sage: sum(weight[o] * taken[o] for o in L) # abs tol 1e-6
+    sage: sum(weight[o] * taken[o] for o in L)  # abs tol 1e-6
     0.6964959796619171
 
 Should we take a flashlight?
@@ -284,7 +284,7 @@ Should we take a flashlight?
 
 ::
 
-    sage: taken["flashlight"]
+    sage: taken["flashlight"] # abs tol 1e-6
     1.0
 
 Wise advice. Based on purely random considerations.
@@ -331,14 +331,14 @@ Let us write the Sage code of this MILP::
 
 ::
 
-    sage: p.set_objective(sum(matching[e] for e in g.edges(labels=False)))
+    sage: p.set_objective(p.sum(matching[e] for e in g.edges(labels=False)))
 
 .. link
 
 ::
 
     sage: for v in g:
-    ....:     p.add_constraint(sum(matching[e]
+    ....:     p.add_constraint(p.sum(matching[e]
     ....:         for e in g.edges_incident(v, labels=False)) <= 1)
 
 .. link
@@ -409,8 +409,8 @@ graph, in which all the edges have a capacity of 1::
     sage: for v in g:
     ....:     if v != s and v != t:
     ....:         p.add_constraint(
-    ....:             sum(f[(v,u)] for u in g.neighbors_out(v))
-    ....:             - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
+    ....:             p.sum(f[v,u] for u in g.neighbors_out(v))
+    ....:             - p.sum(f[u,v] for u in g.neighbors_in(v)) == 0)
 
 .. link
 
@@ -423,7 +423,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.set_objective(sum(f[(s,u)] for u in g.neighbors_out(s)))
+    sage: p.set_objective(p.sum(f[s,u] for u in g.neighbors_out(s)))
 
 .. link
 
@@ -455,6 +455,8 @@ following libraries are currently supported:
 
   Proprietary, but free for researchers and students.
 
+  Since :trac:`27790`, only versions 12.8 and above are supported.
+
 * `CVXOPT <http://cvxopt.org/>`_: an LP solver from Python Software for
   Convex Optimization, uses an interior-point method, always installed in Sage.
 
@@ -483,7 +485,6 @@ of several files to use it through Sage. In each case, the **expected** (it may
 change !) filename is joined.
 
 * A valid license file
-    * CPLEX : a ``.ilm`` file
     * GUROBI : a ``.lic`` file
 
 * A compiled version of the library
@@ -496,12 +497,6 @@ change !) filename is joined.
 
 The environment variable defining the licence's path must also be set when
 running Sage. You can append to your ``.bashrc`` file one of the following :
-
-* For CPLEX
-
-  .. CODE-BLOCK:: bash
-
-    export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
 
 * For GUROBI
 

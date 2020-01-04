@@ -1008,13 +1008,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         r"""
         Return a maximal even integral overlattice of this lattice.
 
-        The lattice must be even.
-
         INPUT:
 
         - ``p`` -- (default:``None``) if given return an overlattice
           `M` of this lattice `L` that is maximal at `p` and the
           completions `M_q = L_q` are equal for all primes `q \neq p`.
+
+        If `p` is `2` or ``None``, then the lattice must be even.
 
         EXAMPLES::
 
@@ -1026,12 +1026,18 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L.maximal_overlattice(5).determinant().factor()
             5 * 89^4
 
+        TESTS::
+
+            sage: L = IntegralLattice(matrix.diagonal([2,4,4,8]))
+            sage: L.maximal_overlattice().is_even()
+            True
+
         """
         # this code is somewhat slow but it works
         # it might speed up things to use the algorithms given in
         # https://arxiv.org/abs/1208.2481
         # and trac:11940
-        if not self.is_even():
+        if not self.is_even() and (p is None or p==2):
             raise ValueError("This lattice must be even to admit an even overlattice")
         from sage.rings.all import GF
         L = self
@@ -1044,10 +1050,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             # create an isotropic subspace by rescaling
             # the generators
             D = L.discriminant_group(2)
+            isotropic = []
             for b in D.gens():
                 e = b.additive_order()
                 v = e.valuation(2)
-                delta = (q*e).lift().valuation(2) % 2
+                q = b.q().lift()
+                delta = (q*e) % 2
                 b = 2**((e.valuation(2)/2).ceil() + delta)*b.lift()
                 isotropic.append(b)
             L = L.overlattice(isotropic)

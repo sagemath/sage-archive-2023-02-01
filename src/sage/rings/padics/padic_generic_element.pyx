@@ -4479,7 +4479,8 @@ cdef long long evaluate_dwork_mahler_long(array.array v, long long x, long long 
     for k in range(bd):
         a1 -= p
         u -= 1
-        s = (s*u + v[a1]) % q
+        s = s*u + v[a1] # force cast to long long
+        s = s % q
     return -s
 
 cpdef gauss_table(long long p, int f, int prec, bint use_longs):
@@ -4518,10 +4519,11 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
     cdef array.array vv, ans1
 
     if (f == 1 and prec == 1): # Shortcut for this key special case
-        ans1 = array.array('q', [0]) * p
+        ans1 = array.array('l', [0]) * p
         ans1[0] = p-1
         for r in range(1, p-1):
-            ans1[r] = ans1[r-1] * r % p
+            k = ans1[r-1]
+            ans1[r] = k * r % p
         return ans1
 
     q = p ** f
@@ -4538,10 +4540,10 @@ cpdef gauss_table(long long p, int f, int prec, bint use_longs):
     if use_longs:
         q3 = p ** prec
         r2 = d.lift() % q3
-        vv = array.array('q', [0]) * len(v)
+        vv = array.array('l', [0]) * len(v)
         for k in range(len(v)):
             vv[k] = v[k].lift() % q3
-        ans1 = array.array('q', [0]) * q1
+        ans1 = array.array('l', [0]) * q1
         ans1[0] = -1
         ans = ans1
     else:

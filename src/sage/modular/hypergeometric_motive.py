@@ -1125,7 +1125,7 @@ class HypergeometricData(object):
             sage: H.euler_factor(2, 7, cache_p=True)
             7*T^2 - 3*T + 1
             sage: H.gauss_table_full()[(7, 1)]
-            (2, array('q', [-1, -29, -25, -48, -47, -22]))
+            (2, array('l', [-1, -29, -25, -48, -47, -22]))
 
         Clearing cached values::
 
@@ -1220,8 +1220,8 @@ class HypergeometricData(object):
         if 0 in alpha:
             return self._swap.padic_H_value(p, f, ~t, prec)
         q = p ** f
-        if q * p > 2 ** 64:
-            return ValueError("p^(f+1) cannot exceed 2^64")
+        if q > 2 ** 31:
+            return ValueError("p^f cannot exceed 2^31")
 
         m = array.array('i', [0]) * int(q - 1)
         for b in beta:

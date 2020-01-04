@@ -2,7 +2,6 @@
 Some utility routines for the hypergeometric motives package that benefit
 significantly from Cythonization.
 """
-
 cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
                  gtable, int gtable_prec, bint use_longs):
     r"""
@@ -28,7 +27,7 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
     from sage.rings.padics.factory import Zp
 
     cdef int gl, j, k, l, v, gv
-    cdef long long i, q1, w, w1, q2, r, r1
+    cdef long long i, q1, w, w1, w2, q2, r, r1
     cdef bint flip
 
     q1 = p ** f - 1
@@ -36,7 +35,7 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
     cdef array.array gamma_array1 = array.array('i', gamma.keys())
     cdef array.array gamma_array2 = array.array('i', gamma.values())
     cdef array.array r_array = array.array('i', [0]) * gl
-    cdef array.array digit_count = array.array('q', [0]) * q1
+    cdef array.array digit_count = array.array('i', [0]) * q1
     cdef array.array gtab2
 
     try:
@@ -52,7 +51,7 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
         try:
             gtab2 = gtable
         except TypeError:
-            gtab2 = array.array('q', [0]) * q1
+            gtab2 = array.array('l', [0]) * q1
             for r in range(q1):
                 gtab2[r] = gtable[r].lift() % q2
     if f == 1:
@@ -94,10 +93,11 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
             if flip:
                 gv = -gv
             if use_longs:
-                if gv > 0:
-                    for j in range(gv): w = w * gtab2[r1] % q2
+                w2 = gtab2[r1] # cast to long long to avoid overflow
+                if gv > 0: 
+                    for j in range(gv): w = w * w2 % q2
                 else:
-                    for j in range(-gv): w1 = w1 * gtab2[r1] % q2
+                    for j in range(-gv): w1 = w1 * w2 % q2
             else:
                 if gv > 0:
                     for j in range(gv): u *= gtable[r1]

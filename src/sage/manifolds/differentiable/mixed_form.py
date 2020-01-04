@@ -899,7 +899,7 @@ class MixedForm(AlgebraElement):
         # Simple checks:
         if other.is_trivial_zero():
             return self.parent().zero()
-        elif other.is_one():
+        elif (other - 1).is_trivial_zero():
             return self
         resu = self._new_instance()
         resu[:] = [other * form for form in self._comp]

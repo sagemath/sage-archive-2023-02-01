@@ -2242,6 +2242,7 @@ class GenusSymbol_global_ring(object):
         return p + n
 
     dim = dimension
+    rank = dimension
 
     def discriminant_form(self):
         r"""
@@ -2275,6 +2276,49 @@ class GenusSymbol_global_ring(object):
                 qL.append(_gram_from_jordan_block(p, block, True))
         q = matrix.block_diagonal(qL)
         return TorsionQuadraticForm(q)
+
+    def rational_representative(self):
+        r"""
+        Return a representative of the rational
+        bilinear form defined by this genus.
+
+        OUTPUT:
+
+        A diagonal_matrix.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: G = genera((8,0),1)[0]
+            sage: G
+            Genus of
+            None
+            Signature:  (8, 0)
+            Genus symbol at 2:    1^8
+            sage: G.rational_representative()
+            [1 0 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0]
+            [0 0 0 0 1 0 0 0]
+            [0 0 0 0 0 2 0 0]
+            [0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 2]
+        """
+        from sage.quadratic_forms.all import QuadraticForm, quadratic_form_from_invariants
+        sminus = self.signature_pair_of_matrix()[1]
+        det = self.determinant()
+        m = self.rank()
+        P = []
+        for sym in self._local_symbols:
+            p = sym._prime
+            # it is important to use the definition of Cassels here!
+            if QuadraticForm(QQ,2*sym.gram_matrix()).hasse_invariant(p) == -1:
+                P.append(p)
+        q = quadratic_form_from_invariants(F=QQ, rk=m, det=det,
+                                           P=P, sminus=sminus)
+        return q.Hessian_matrix()/2
+
 
     def local_symbols(self):
         r"""

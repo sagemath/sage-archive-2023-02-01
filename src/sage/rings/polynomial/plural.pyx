@@ -2876,7 +2876,8 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     self.__ngens = rw.ngens()
     self.__term_order =  TermOrder(rw.ordering_string(), force=True)
 
-    ParentWithGens.__init__(self, base_ring, rw.var_names())
+    ParentWithGens.__init__(self, base_ring, tuple(rw.var_names()),
+                            normalize=False)
 #    self._populate_coercion_lists_()  # ???
 
     #MPolynomialRing_generic.__init__(self, base_ring, n, names, order)

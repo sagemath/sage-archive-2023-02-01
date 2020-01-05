@@ -7,6 +7,7 @@ AUTHORS:
 - David Kohel & Gabriele Nebe (2007): First created
 - Simon Brandhorst (2018): various bugfixes and printing
 - Simon Brandhorst (2018): enumeration of genera
+- Simon Brandhorst (2020): genus representative
 """
 # ****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>

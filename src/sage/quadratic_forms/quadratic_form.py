@@ -117,6 +117,16 @@ def quadratic_form_from_invariants(F, rk, det, P, sminus):
         [ * -3 ]
         sage: all(q.hasse_invariant(p)==-1 for p in P)
         True
+
+    TESTS:
+
+    This shows that :trac:`28955` is fixed::
+
+        sage: quadratic_form_from_invariants(QQ,3,2,[2],2)
+        Quadratic form in 3 variables over Rational Field with coefficients:
+        [ -1 0 0 ]
+        [ * 1 0 ]
+        [ * * -2 ]
     """
     from sage.arith.misc import hilbert_symbol
     # normalize input
@@ -162,9 +172,9 @@ def quadratic_form_from_invariants(F, rk, det, P, sminus):
                 S += [-1]
             a = QQ.hilbert_symbol_negative_at_S(S,-d)
             a = ZZ(a)
-        P = [p for p in P if hilbert_symbol(a, -d, p) == 1]
-        P += [p for p in (2*a*d).prime_divisors()
-              if hilbert_symbol(a, -d, p)==-1 and p not in P]
+        P = ([p for p in P if hilbert_symbol(a, -d, p) == 1]
+            +[p for p in (2*a*d).prime_divisors()
+              if hilbert_symbol(a, -d, p)==-1 and p not in P])
         sminus = max(0, sminus-1)
         rk = rk - 1
         d = a*d

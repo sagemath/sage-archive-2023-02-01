@@ -231,7 +231,9 @@ you would use
        libpcre3-dev libgd-dev libflint-dev libflint-arb-dev \
        libsymmetrica2-dev gmp-ecm libecm-dev libisl-dev libgivaro-dev \
        libpari-dev pari-gp2c libec-dev liblrcalc-dev \
-       libm4ri-dev libm4rie-dev liblfunction-dev lcalc
+       libm4ri-dev libm4rie-dev liblfunction-dev lcalc \
+       libopenblas-dev r-base-dev libgsl-dev libcliquer-dev cliquer
+
 
      # redhat / fedora / centos
      $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
@@ -240,7 +242,8 @@ you would use
        pkg-config ntl-devel mpfr-devel libmpc-devel libsymmetrica-devel \
        eclib-devel gmp-ecm-devel lrcalc-devel isl-devel givaro-devel \
        pari-devel pari-elldata pari-seadata pari-galdata pari-galpol \
-       m4ri-devel m4rie-devel L-function-devel
+       m4ri-devel m4rie-devel L-function-devel \
+       openblas openblas-devel R R-devel gsl gsl-devel cliquer cliquer-devel
 
 (These examples suppose that you choose to use a systemwide OpenSSL library.)
 In addition, if you don't want Sage to build other packages that might be available from

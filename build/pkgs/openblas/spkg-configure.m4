@@ -1,5 +1,5 @@
 SAGE_SPKG_CONFIGURE([openblas], [
-  PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.3.5], [
+  PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.2.20], [
     PKG_CHECK_VAR([OPENBLASPCDIR], [openblas], [pcfiledir], [
        AC_CONFIG_LINKS([
          $SAGE_LOCAL/lib/pkgconfig/blas.pc:$OPENBLASPCDIR/openblas.pc

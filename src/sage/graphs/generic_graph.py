@@ -1936,7 +1936,7 @@ class GenericGraph(GenericGraph_pyx):
 
     am = adjacency_matrix # shorter call makes life easier
 
-    def incidence_matrix(self, oriented=None, sparse=True, vertices=None):
+    def incidence_matrix(self, oriented=None, sparse=True, vertices=None, edges=None):
         r"""
         Return the incidence matrix of the (di)graph.
 
@@ -1974,6 +1974,11 @@ class GenericGraph(GenericGraph_pyx):
           row of the matrix corresponds to the `i`-th vertex in the ordering of
           ``vertices``, otherwise, the `i`-th row of the matrix corresponds to
           the `i`-th vertex in the ordering given by method :meth:`vertices`.
+
+        - ``edges`` -- list (default: ``None``); when specified, the `i`-th
+          column of the matrix corresponds to the `i`-th edge in the ordering of
+          ``edges``, otherwise, the `i`-th column of the matrix corresponds to
+          the `i`-th edge in the ordering given by method :meth:`edge_iterator`.
 
         EXAMPLES::
 
@@ -2038,18 +2043,53 @@ class GenericGraph(GenericGraph_pyx):
 
         A different ordering of the vertices::
 
-            sage: graphs.PathGraph(5).incidence_matrix()
+            sage: P5 = graphs.PathGraph(5)
+            sage: P5.incidence_matrix()
             [1 0 0 0]
             [1 1 0 0]
             [0 1 1 0]
             [0 0 1 1]
             [0 0 0 1]
-            sage: graphs.PathGraph(5).incidence_matrix(vertices=[2, 4, 1, 3, 0])
+            sage: P5.incidence_matrix(vertices=[2, 4, 1, 3, 0])
             [0 1 1 0]
             [0 0 0 1]
             [1 1 0 0]
             [0 0 1 1]
             [1 0 0 0]
+
+        A different ordering of the edges::
+
+            sage: E = list(P5.edge_iterator(labels=False))
+            sage: P5.incidence_matrix(edges=E[::-1])
+            [0 0 0 1]
+            [0 0 1 1]
+            [0 1 1 0]
+            [1 1 0 0]
+            [1 0 0 0]
+            sage: P5.incidence_matrix(vertices=[2, 4, 1, 3, 0], edges=E[::-1])
+            [0 1 1 0]
+            [1 0 0 0]
+            [0 0 1 1]
+            [1 1 0 0]
+            [0 0 0 1]
+
+        TESTS::
+
+            sage: P5 = graphs.PathGraph(5)
+            sage: P5.incidence_matrix(vertices=[1] * P5.order())
+            Traceback (most recent call last):
+            ...
+            ValueError: ``vertices`` must be a permutation of the vertices
+            sage: P5.incidence_matrix(edges=[(0, 1)] * P5.size())
+            Traceback (most recent call last):
+            ...
+            ValueError: ``edges`` must be a permutation of the edges
+            sage: P5.incidence_matrix(edges=P5.edges(sort=False, labels=True))
+            [1 0 0 0]
+            [1 1 0 0]
+            [0 1 1 0]
+            [0 0 1 1]
+            [0 0 0 1]
         """
         if oriented is None:
             oriented = self.is_directed()
@@ -2060,20 +2100,37 @@ class GenericGraph(GenericGraph_pyx):
               set(vertices) != set(self.vertex_iterator())):
             raise ValueError("``vertices`` must be a permutation of the vertices")
 
+        verts = {v: i for i, v in enumerate(vertices)}
+        if edges is None:
+            edges = self.edge_iterator(labels=False)
+        elif len(edges) != self.size():
+            raise ValueError("``edges`` must be a permutation of the edges")
+        else:
+            # We check that we have the same set of unlabeled edges
+            if oriented:
+                i_edges = [(verts[e[0]], verts[e[1]]) for e in edges]
+                s_edges = [(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
+            else:
+                def reorder(u, v):
+                    return (u, v) if u <= v else (v, u)
+                i_edges = [reorder(verts[e[0]], verts[e[1]]) for e in edges]
+                s_edges = [reorder(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
+            if sorted(i_edges) != sorted(s_edges):
+                raise ValueError("``edges`` must be a permutation of the edges")
+
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
         m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
-        verts = {v: i for i, v in enumerate(vertices)}
 
         if oriented:
-            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
-                if i != j:
-                    m[verts[i],e] = -1
-                    m[verts[j],e] = +1
+            for i, e in enumerate(edges):
+                if e[0] != e[1]:
+                    m[verts[e[0]], i] = -1
+                    m[verts[e[1]], i] = +1
         else:
-            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
-                m[verts[i],e] += 1
-                m[verts[j],e] += 1
+            for i, e in enumerate(edges):
+                m[verts[e[0]], i] += 1
+                m[verts[e[1]], i] += 1
 
         return m
 

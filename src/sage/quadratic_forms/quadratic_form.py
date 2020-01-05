@@ -127,6 +127,11 @@ def quadratic_form_from_invariants(F, rk, det, P, sminus):
         [ -1 0 0 ]
         [ * 1 0 ]
         [ * * -2 ]
+
+        sage: quadratic_form_from_invariants(QQ,4,2,[2],4)
+        Traceback (most recent call last):
+        ...
+        ValueError: invariants do not define a rational quadratic form
     """
     from sage.arith.misc import hilbert_symbol
     # normalize input
@@ -145,7 +150,10 @@ def quadratic_form_from_invariants(F, rk, det, P, sminus):
         for p in P:
             if QQ(-d).is_padic_square(p):
                 raise ValueError("invariants do not define a rational quadratic form")
-    if sminus % 4 in (2, 3) and len(P) % 2 == 0:
+    f = 0
+    if sminus % 4 in (2, 3):
+        f = 1
+    if (f + len(P)) % 2 == 1:
         raise ValueError("invariants do not define a rational quadratic form")
     D = []
     while rk >= 2:

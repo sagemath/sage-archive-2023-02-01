@@ -289,12 +289,9 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             # Each degree is coercible so there must be a coerce map:
             return True
         # Let us check for each degree consecutively:
-        for deg in self.irange():
-            if self._domain.diff_form_module(deg,
-                                         self._dest_map).has_coerce_map_from(S):
-                return True
-        # Nothing found...
-        return False
+        return any(self._domain.diff_form_module(deg,
+                                          self._dest_map).has_coerce_map_from(S)
+                   for deg in self.irange())
 
     @cached_method
     def zero(self):

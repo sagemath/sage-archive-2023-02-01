@@ -4308,20 +4308,41 @@ class Polyhedron_base(Element):
             sage: t = matrix([[1,1,1,1],[0,1,1,1],[0,0,1,1],[0,0,0,1]])
             sage: P.linear_transformation(t).backend()
             'field'
+
+        Check that coercion works::
+
+            sage: (1.0 * proj_mat) * b3
+            A 3-dimensional polyhedron in RDF^4 defined as the convex hull of 5 vertices
+            sage: (1/1 * proj_mat) * b3
+            A 3-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
+            sage: (AA(2).sqrt() * proj_mat) * b3
+            A 3-dimensional polyhedron in AA^4 defined as the convex hull of 5 vertices
+
+        Check that zero-matrices act correctly::
+
+            sage: Matrix([]) * b3
+            The empty polyhedron in ZZ^0
+            sage: Matrix([[0 for _ in range(9)]]) * b3
+            A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
+            sage: Matrix([[0 for _ in range(9)] for _ in range(4)]) * b3
+            A 0-dimensional polyhedron in ZZ^4 defined as the convex hull of 1 vertex
+            sage: Matrix([[0 for _ in range(8)]]) * b3
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 1 by 8 dense matrices over Integer Ring' and 'Ambient free module of rank 9 over the principal ideal domain Integer Ring'
         """
-        if not linear_transf.is_zero():
+        if linear_transf.ncols() != 0:
             new_vertices = [ list(linear_transf*v.vector()) for v in self.vertex_generator() ]
             new_rays = [ list(linear_transf*r.vector()) for r in self.ray_generator() ]
             new_lines = [ list(linear_transf*l.vector()) for l in self.line_generator() ]
         else:
-            new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
+            new_vertices = []
             new_rays = []
             new_lines = []
 
-        par = self.parent()
         new_dim = linear_transf.nrows()
-        new_br = par.base_extend(linear_transf.base_ring()).base_ring()
-        new_parent = par.parent()(new_br,new_dim,self.backend())
+        par = self.parent()
+        new_parent = par.base_extend(linear_transf.base_ring(), ambient_dim=new_dim)
 
         return new_parent.element_class(new_parent, [new_vertices, new_rays, new_lines], None)
 
@@ -4353,13 +4374,18 @@ class Polyhedron_base(Element):
              True
              sage: matrix(ZZ,[[1,2,3]]) * p
              A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+             sage: matrix(ZZ,[[1,2,3]]) * p == p * matrix(ZZ, [[1], [2], [3]])
+             True
         """
         if is_Polyhedron(actor):
             return self.product(actor)
         elif is_Vector(actor):
             return self.translation(actor)
         elif is_Matrix(actor):
-            return self.linear_transformation(actor)
+            if self_on_left:
+                return self.linear_transformation(actor.transpose())
+            else:
+                return self.linear_transformation(actor)
         else:
             return self.dilation(actor)
 

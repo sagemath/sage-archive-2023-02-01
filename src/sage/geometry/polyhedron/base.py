@@ -4321,7 +4321,7 @@ class Polyhedron_base(Element):
         Check that zero-matrices act correctly::
 
             sage: Matrix([]) * b3
-            The empty polyhedron in ZZ^0
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
             sage: Matrix([[0 for _ in range(9)]]) * b3
             A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
             sage: Matrix([[0 for _ in range(9)] for _ in range(4)]) * b3
@@ -4336,7 +4336,7 @@ class Polyhedron_base(Element):
             new_rays = [ list(linear_transf*r.vector()) for r in self.ray_generator() ]
             new_lines = [ list(linear_transf*l.vector()) for l in self.line_generator() ]
         else:
-            new_vertices = []
+            new_vertices = [[] for v in self.vertex_generator() ]
             new_rays = []
             new_lines = []
 

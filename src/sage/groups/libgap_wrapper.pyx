@@ -618,8 +618,9 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: y*x == y._mul_(x)
             True
         """
-        P = left.parent()
-        return P.element_class(P, left.gap() * right.gap())
+        P = (<ElementLibGAP> left)._parent
+        return P.element_class(P, (<ElementLibGAP> left)._libgap * \
+                                  (<ElementLibGAP> right)._libgap)
 
     cpdef _richcmp_(left, right, int op):
         """
@@ -659,8 +660,9 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: x/y == y.__truediv__(x)
             False
         """
-        P = left.parent()
-        return P.element_class(P, left.gap() / right.gap())
+        P = (<ElementLibGAP> left)._parent
+        return P.element_class(P, (<ElementLibGAP> left)._libgap / \
+                                  (<ElementLibGAP> right)._libgap)
 
     def __pow__(self, n, dummy):
         """
@@ -680,8 +682,8 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         """
         if n not in IntegerRing():
             raise TypeError("exponent must be an integer")
-        P = self.parent()
-        return P.element_class(P, self.gap() ** n)
+        P = (<ElementLibGAP> self)._parent
+        return P.element_class(P, (<ElementLibGAP> self)._libgap ** n)
 
     def __invert__(self):
         """
@@ -701,8 +703,8 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: x.inverse()
             b*a*b^-1*a^-1
         """
-        P = self.parent()
-        return P.element_class(P, self.gap().Inverse())
+        P = (<ElementLibGAP> self)._parent
+        return P.element_class(P, (<ElementLibGAP> self)._libgap.Inverse())
 
     inverse = __invert__
 

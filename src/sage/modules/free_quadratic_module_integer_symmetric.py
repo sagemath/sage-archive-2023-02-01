@@ -1069,7 +1069,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             i = 0
             while i < len(D.gens()):
                 t = D.gens()[i]
-                if t.q() == 0 and all([t.b(g)==0 for g in isotropic]):
+                if t.q() == 0 and all(t.b(g) == 0 for g in isotropic):
                     isotropic.append(t)
                 i += 1
             isotropic = [g.lift() for g in isotropic]
@@ -1078,9 +1078,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             # clean up whatever is left by brute force
             while D.cardinality().valuation(2) > 1:
                 for t in D:
-                    if t != 0 and t.q()==0:
+                    if t != 0 and t.q() == 0:
                         break
-                if t.q()!=0:
+                if t.q()!=0 :
                     # no isotropic vector left
                     break
                 L = L.overlattice([t.lift()])
@@ -1098,7 +1098,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 d = L.discriminant_group(p).gram_matrix_bilinear().det()
                 v = -d.valuation(p)
                 u = d.numerator()
-                if v<=1 or (v == 2 and ZZ(-1).kronecker(p) != u.kronecker(p)):
+                if v <= 1 or (v == 2 and ZZ(-1).kronecker(p) != u.kronecker(p)):
                     # the lattice is already maximal at p
                     break
                 # diagonalize the gram matrix
@@ -1106,7 +1106,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 gen = D.gens()
                 G = D.gram_matrix_quadratic().diagonal()
                 k = GF(p)
-                a = k(G[0].numerator()); b = k(G[1].numerator());
+                a = k(G[0].numerator())
+                b = k(G[1].numerator())
                 if (-b/a).is_square():
                     # solve:  a*x^2 + b *y^2  = 0
                     x = (-b/a).sqrt()
@@ -1119,7 +1120,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                     # brute force to find a suitable y
                     # very fast
                     for y in GF(p):
-                        x = ((-c - b*y**2)/a)
+                        x = (-c - b*y**2)/a
                         if x.is_square():
                             x = x.sqrt()
                             break

@@ -59,6 +59,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
+from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element cimport GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
@@ -517,10 +518,36 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             a*b*a^-1*b^-1
             sage: type(xg)
             <type 'sage.libs.gap.element.GapElement'>
+
+        TESTS::
+
+            sage: libgap(FreeGroup('a, b').an_element())
+            a*b
+            sage: type(libgap(FreeGroup('a, b').an_element()))
+            <class 'sage.libs.gap.element.GapElement'>
         """
         return self._libgap
 
-    _gap_ = gap
+    _libgap_ = _gap_ = gap
+
+    def _test_libgap_conversion(self, **options):
+        r"""
+        TESTS::
+
+            sage: FreeGroup(2).an_element()._test_libgap_conversion()
+        """
+        tester = self._tester(**options)
+        tester.assertTrue(libgap(self) is self.gap())
+
+    def _test_libgap_reconstruction(self, **options):
+        r"""
+        TESTS::
+
+            sage: FreeGroup(2).an_element()._test_libgap_reconstruction()
+        """
+        tester = self._tester(**options)
+        P = self.parent()
+        tester.assertEqual(self, P.element_class(P, libgap(self)))
 
     def is_one(self):
         """

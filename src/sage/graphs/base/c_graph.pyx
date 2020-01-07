@@ -606,9 +606,7 @@ cdef class CGraph:
             sage: G.verts()
             [1, 2]
         """
-        cdef int i
-        return [i for i in range(<int>self.active_vertices.size)
-                if bitset_in(self.active_vertices, i)]
+        return bitset_list(self.active_vertices)
 
     cpdef realloc(self, int total):
         """
@@ -1842,11 +1840,12 @@ cdef class CGraphBackend(GenericGraphBackend):
         if verts is None:
             for x in self.vertex_ints:
                 yield x
-            for i in range(self._cg.active_vertices.size):
-                if (bitset_in(self._cg.active_vertices, i)
-                    and i not in self.vertex_labels
+            i = bitset_first(self._cg.active_vertices)
+            while i != -1:
+                if (i not in self.vertex_labels
                     and i not in self.vertex_ints):
                         yield i
+                i = bitset_next(self._cg.active_vertices, i + 1)
             return
 
         try:

@@ -2713,7 +2713,7 @@ cdef class RingElement(ModuleElement):
             sage: Mod(-15, 37).abs()
             Traceback (most recent call last):
             ...
-            ArithmeticError: absolute valued not defined on integers modulo n.
+            ArithmeticError: absolute value not defined on integers modulo n.
         """
         return abs(self)
 
@@ -2794,12 +2794,36 @@ cdef class CommutativeRingElement(RingElement):
     """
     Base class for elements of commutative rings.
     """
+
     def inverse_mod(self, I):
         r"""
         Return an inverse of ``self`` modulo the ideal `I`, if defined,
         i.e., if `I` and ``self`` together generate the unit ideal.
+
+        EXAMPLES::
+
+            sage: F = GF(25)
+            sage: x = F.gen()
+            sage: z = F.zero()
+            sage: x.inverse_mod(F.ideal(z))
+            2*z2 + 3
+            sage: x.inverse_mod(F.ideal(1))
+            1
+            sage: z.inverse_mod(F.ideal(1))
+            1
+            sage: z.inverse_mod(F.ideal(z))
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 is in the proper ideal Principal ideal (0) of Finite Field in z2 of size 5^2 and therefore does not have an inverse
         """
-        raise NotImplementedError
+        if I.is_one():
+            return self.parent().one()
+        elif self.is_unit():
+            return self.inverse_of_unit()
+        elif self in I:
+            raise ValueError("%s is in the proper ideal %s and therefore does not have an inverse"%(self,I))
+        else:
+            raise NotImplementedError
 
     def divides(self, x):
         """

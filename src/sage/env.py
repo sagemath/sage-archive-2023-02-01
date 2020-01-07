@@ -187,6 +187,7 @@ var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
 var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA_FAS')
+var('SAGE_NAUTY_BINS_PREFIX')
 
 # misc
 var('SAGE_BANNER', '')

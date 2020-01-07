@@ -300,26 +300,6 @@ class ParentLibGAP(SageObject):
 
     _libgap_ = _gap_ = gap
 
-    @cached_method
-    def _gap_gens(self):
-        """
-        Return the generators as a LibGAP object
-
-        OUTPUT:
-
-        A :class:`~sage.libs.gap.element.GapElement`
-
-        EXAMPLES::
-
-            sage: G = FreeGroup(2)
-            sage: G._gap_gens()
-            [ x0, x1 ]
-            sage: type(_)
-            <type 'sage.libs.gap.element.GapElement_List'>
-        """
-        return self._libgap.GeneratorsOfGroup()
-
-    @cached_method
     def ngens(self):
         """
         Return the number of generators of self.
@@ -339,7 +319,7 @@ class ParentLibGAP(SageObject):
             sage: type(G.ngens())
             <type 'sage.rings.integer.Integer'>
         """
-        return self._gap_gens().Length().sage()
+        return Integer(len(self.gens()))
 
     def _repr_(self):
         """
@@ -357,6 +337,33 @@ class ParentLibGAP(SageObject):
             '<free group on the generators [ a, b ]>'
         """
         return self._libgap._repr_()
+
+    @cached_method
+    def gens(self):
+        """
+        Returns the generators of the group.
+
+        EXAMPLES::
+
+            sage: G = FreeGroup(2)
+            sage: G.gens()
+            (x0, x1)
+            sage: H = FreeGroup('a, b, c')
+            sage: H.gens()
+            (a, b, c)
+
+        :meth:`generators` is an alias for :meth:`gens` ::
+
+            sage: G = FreeGroup('a, b')
+            sage: G.generators()
+            (a, b)
+            sage: H = FreeGroup(3, 'x')
+            sage: H.generators()
+            (x0, x1, x2)
+        """
+        return tuple(self.element_class(self, g) for g in self._libgap.GeneratorsOfGroup())
+
+    generators = gens
 
     def gen(self, i):
         """
@@ -386,35 +393,7 @@ class ParentLibGAP(SageObject):
         """
         if not (0 <= i < self.ngens()):
             raise ValueError('i must be in range(ngens)')
-        gap = self._gap_gens()[i]
-        return self.element_class(self, gap)
-
-    @cached_method
-    def gens(self):
-        """
-        Returns the generators of the group.
-
-        EXAMPLES::
-
-            sage: G = FreeGroup(2)
-            sage: G.gens()
-            (x0, x1)
-            sage: H = FreeGroup('a, b, c')
-            sage: H.gens()
-            (a, b, c)
-
-        :meth:`generators` is an alias for :meth:`gens` ::
-
-            sage: G = FreeGroup('a, b')
-            sage: G.generators()
-            (a, b)
-            sage: H = FreeGroup(3, 'x')
-            sage: H.generators()
-            (x0, x1, x2)
-        """
-        return tuple( self.gen(i) for i in range(self.ngens()) )
-
-    generators = gens
+        return self.gens()[i]
 
     @cached_method
     def one(self):

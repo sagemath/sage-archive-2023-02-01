@@ -708,3 +708,25 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
 
     inverse = __invert__
 
+    def order(self):
+        r"""
+        Return the multiplicative order.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: G = GroupLibGAP(libgap.GL(2, 3))
+            sage: a,b = G.gens()
+            sage: print(a.order(), b.order())
+            2 3
+            sage: print(a.multiplicative_order(), b.multiplicative_order())
+            2 3
+
+            sage: z = Mod(0, 3)
+            sage: o = Mod(1, 3)
+            sage: G(libgap([[o,o],[z,o]])).order()
+            3
+        """
+        return self._libgap.Order().sage()
+
+    multiplicative_order = order

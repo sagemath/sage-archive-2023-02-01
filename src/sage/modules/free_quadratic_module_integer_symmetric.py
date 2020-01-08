@@ -1080,7 +1080,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 for t in D:
                     if t != 0 and t.q() == 0:
                         break
-                if t.q()!=0 :
+                if t.q() != 0 :
                     # no isotropic vector left
                     break
                 L = L.overlattice([t.lift()])

@@ -264,6 +264,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             True
             sage: A._coerce_map_from_(M.diff_form_module(3))
             True
+            sage: A._coerce_map_from_(M.tensor_field_module((0,1)))
+            True
             sage: U = M.open_subset('U')
             sage: AU = U.mixed_form_algebra()
             sage: AU._coerce_map_from_(A)

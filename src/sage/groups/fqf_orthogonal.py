@@ -31,7 +31,7 @@ Isometries are represented with respect to the Smith form generators of `T`::
 
 AUTHORS:
 
-- Simon Brandhorst (2018-05-15): initial version
+- Simon Brandhorst (2020-01-08): initial version
 """
 
 # ****************************************************************************

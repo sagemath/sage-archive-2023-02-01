@@ -1130,7 +1130,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         sage: CGB.degree(0, True)
         Traceback (most recent call last):
         ...
-        TypeError: 'NoneType' object is not iterable
+        NotImplementedError: a derived class must return ``self._cg``
 
     The appropriate way to use these backends is via Sage graphs::
 
@@ -1198,7 +1198,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef dict vertex_ints   = self.vertex_ints
         cdef dict vertex_labels = self.vertex_labels
-        cdef CGraph G = self._cg
+        cdef CGraph G = self.cg()
         cdef long u_long
         if u in vertex_ints:
             return vertex_ints[u]
@@ -1219,7 +1219,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         if u_int in vertex_labels:
             return vertex_labels[u_int]
-        elif bitset_in(self._cg.active_vertices, u_int):
+        elif bitset_in(self.cg().active_vertices, u_int):
             return u_int
         else:
             return None
@@ -1230,7 +1230,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         update, if necessary, the translation dict and list. Add a vertex if the
         label is new.
         """
-        cdef CGraph G = self._cg
+        cdef CGraph G = self.cg()
         cdef CGraph G_rev = self._cg_rev
 
         cdef int u_int = self.get_vertex(u)
@@ -1278,7 +1278,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             False
         """
         cdef int v_int = self.get_vertex(v)
-        return v_int != -1 and bitset_in((<CGraph>self._cg).active_vertices, v_int)
+        return v_int != -1 and bitset_in(self.cg().active_vertices, v_int)
+
+    cdef CGraph cg(self):
+        r"""
+        Return the attribute ``_cg`` casted into ``CGraph``.
+        """
+        raise NotImplementedError("a derived class must return ``self._cg``")
 
     def c_graph(self):
         r"""
@@ -1290,7 +1296,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: cg
             <sage.graphs.base.sparse_graph.SparseGraph object at ...>
         """
-        return (self._cg, self._cg_rev)
+        return (self.cg(), self._cg_rev)
 
     def degree(self, v, directed):
         """
@@ -1425,14 +1431,14 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int v_int = self.get_vertex(v)
         if directed:
-            return self._cg.in_degrees[v_int] + self._cg.out_degrees[v_int]
+            return self.cg().in_degrees[v_int] + self.cg().out_degrees[v_int]
         cdef int d = 0
         if self._loops and self.has_edge(v, v, None):
             if self._multiple_edges:
                 d += len(self.get_edge_label(v, v))
             else:
                 d += 1
-        return self._cg.out_degrees[v_int] + d
+        return self.cg().out_degrees[v_int] + d
 
     def out_degree(self, v):
         r"""
@@ -1451,7 +1457,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int v_int = self.get_vertex(v)
         if self._directed:
-            return self._cg.out_degrees[v_int]
+            return self.cg().out_degrees[v_int]
         cdef int d = 0
         if self._loops and self.has_edge(v, v, None):
             if self._multiple_edges:
@@ -1459,7 +1465,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             else:
                 d += 1
 
-        return self._cg.out_degrees[v_int] + d
+        return self.cg().out_degrees[v_int] + d
 
     def in_degree(self, v):
         r"""
@@ -1484,7 +1490,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         if self._cg_rev is not None:
             return self._cg_rev.out_degrees[v_int]
 
-        return self._cg.in_degrees[v_int]
+        return self.cg().in_degrees[v_int]
 
     def add_vertex(self, name):
         """
@@ -1530,7 +1536,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             name = 0
             while name in self.vertex_ints or (
                 name not in self.vertex_labels and
-                bitset_in((<CGraph>self._cg).active_vertices, name)):
+                bitset_in(self.cg().active_vertices, name)):
                 name += 1
             retval = name
 
@@ -1627,7 +1633,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int v_int = self.get_vertex(v)
 
         # delete each arc incident with v and v
-        self._cg.del_vertex(v_int)
+        self.cg().del_vertex(v_int)
         if self._cg_rev is not None:
             self._cg_rev.del_vertex(v_int)
 
@@ -1746,7 +1752,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef int u_int
         cdef int v_int = self.get_vertex(v)
-        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+        if v_int == -1 or not bitset_in(self.cg().active_vertices, v_int):
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
         if self._cg_rev is not None:
@@ -1754,7 +1760,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 yield self.vertex_label(u_int)
 
         else:
-            for u_int in self._cg.in_neighbors(v_int):
+            for u_int in self.cg().in_neighbors(v_int):
                 yield self.vertex_label(u_int)
 
     def iterator_out_nbrs(self, v):
@@ -1793,10 +1799,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int u_int
         cdef int v_int = self.get_vertex(v)
-        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+        if v_int == -1 or not bitset_in(self.cg().active_vertices, v_int):
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
-        for u_int in self._cg.out_neighbors(v_int):
+        for u_int in self.cg().out_neighbors(v_int):
             yield self.vertex_label(u_int)
 
     def iterator_verts(self, verts=None):
@@ -1840,12 +1846,12 @@ cdef class CGraphBackend(GenericGraphBackend):
         if verts is None:
             for x in self.vertex_ints:
                 yield x
-            i = bitset_first(self._cg.active_vertices)
-            while i != -1:
+            i = bitset_first(self.cg().active_vertices)
+            while i != <size_t>-1:
                 if (i not in self.vertex_labels
                     and i not in self.vertex_ints):
                         yield i
-                i = bitset_next(self._cg.active_vertices, i + 1)
+                i = bitset_next(self.cg().active_vertices, i + 1)
             return
 
         try:
@@ -1980,9 +1986,9 @@ cdef class CGraphBackend(GenericGraphBackend):
             1
         """
         if directed:
-            return self._cg.num_arcs
+            return self.cg().num_arcs
         else:
-            i = self._cg.num_arcs
+            i = self.cg().num_arcs
             k = 0
             if self.loops(None):
                 if self.multiple_edges(None):
@@ -2015,7 +2021,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G._backend.num_verts()
             10
         """
-        return (<CGraph>self._cg).num_verts
+        return self.cg().num_verts
 
     def relabel(self, perm, directed):
         """
@@ -2192,11 +2198,11 @@ cdef class CGraphBackend(GenericGraphBackend):
             # After this, current and other are reversed, and the loop restarts
             for u in next_current:
                 if out == 1:
-                    nbr = self._cg.out_neighbors(u)
+                    nbr = self.cg().out_neighbors(u)
                 elif self._cg_rev is not None:  # Sparse
                     nbr = self._cg_rev.out_neighbors(u)
                 else:  # Dense
-                    nbr = self._cg.in_neighbors(u)
+                    nbr = self.cg().in_neighbors(u)
 
                 if not exclude_e and not exclude_v:
                     neighbors = nbr
@@ -2349,11 +2355,11 @@ cdef class CGraphBackend(GenericGraphBackend):
             # After this, current and other are reversed, and the loop restarts
             for u in next_current:
                 if out == 1:
-                    neighbors = self._cg.out_neighbors(u)
+                    neighbors = self.cg().out_neighbors(u)
                 elif self._cg_rev is not None: # Sparse
                     neighbors = self._cg_rev.out_neighbors(u)
                 else: # Dense
-                    neighbors = self._cg.in_neighbors(u)
+                    neighbors = self.cg().in_neighbors(u)
                 for v in neighbors:
                     # If the neighbor is new, updates the distances and adds
                     # to the list.
@@ -2570,11 +2576,11 @@ cdef class CGraphBackend(GenericGraphBackend):
                         meeting_vertex = v
                         shortest_path_length = f_tmp
                 if side == 1:
-                    nbr = self._cg.out_neighbors(v)
+                    nbr = self.cg().out_neighbors(v)
                 elif self._cg_rev is not None:  # Sparse
                     nbr = self._cg_rev.out_neighbors(v)
                 else:  # Dense
-                    nbr = self._cg.in_neighbors(v)
+                    nbr = self.cg().in_neighbors(v)
 
                 if not exclude_e and not exclude_v:
                     neighbors = []
@@ -2789,11 +2795,11 @@ cdef class CGraphBackend(GenericGraphBackend):
                         shortest_path_length = f_tmp
 
                 if side == 1:
-                    neighbors = self._cg.out_neighbors(v)
+                    neighbors = self.cg().out_neighbors(v)
                 elif self._cg_rev is not None:  # Sparse
                     neighbors = self._cg_rev.out_neighbors(v)
                 else:  # Dense
-                    neighbors = self._cg.in_neighbors(v)
+                    neighbors = self.cg().in_neighbors(v)
                 for w in neighbors:
                     # If the neighbor is new, adds its non-found neighbors to
                     # the queue.
@@ -2919,12 +2925,12 @@ cdef class CGraphBackend(GenericGraphBackend):
         if v_int == -1:
             raise LookupError(f"vertex {v!r} is not a vertex of the graph")
 
-        bitset_init(seen, (<CGraph>self._cg).active_vertices.size)
+        bitset_init(seen, self.cg().active_vertices.size)
         bitset_set_first_n(seen, 0)
         bitset_add(seen, v_int)
 
         current_layer = [(u_int, v_int)
-                         for u_int in self._cg.out_neighbors(v_int)]
+                         for u_int in self.cg().out_neighbors(v_int)]
         next_layer = []
 
         distances[v] = 0 if distance_flag else [v]
@@ -2943,7 +2949,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                         distances[self.vertex_label(v_int)] = d
                     else:
                         distances[self.vertex_label(v_int)] = distances[self.vertex_label(u_int)] + [self.vertex_label(v_int)]
-                    next_layer.extend([(u_int, v_int) for u_int in self._cg.out_neighbors(v_int)])
+                    next_layer.extend([(u_int, v_int) for u_int in self.cg().out_neighbors(v_int)])
 
             current_layer = next_layer
             next_layer = []
@@ -3138,7 +3144,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             True
         """
         cdef int v_int
-        cdef CGraph cg = <CGraph> self._cg
+        cdef CGraph cg = self.cg()
 
         if cg.num_edges() < cg.num_verts - 1:
             return False
@@ -3172,7 +3178,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             False
         """
         cdef int v_int = 0
-        cdef CGraph cg = self._cg
+        cdef CGraph cg = self.cg()
 
         # Pick one vertex
         v_int = bitset_first(cg.active_vertices)
@@ -3321,12 +3327,12 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         # Activated vertices
         cdef bitset_t activated
-        bitset_init(activated, (<CGraph>self._cg).active_vertices.size)
-        bitset_set_first_n(activated, (<CGraph>self._cg).active_vertices.size)
+        bitset_init(activated, self.cg().active_vertices.size)
+        bitset_set_first_n(activated, self.cg().active_vertices.size)
 
         # Vertices whose neighbors have already been added to the stack
         cdef bitset_t tried
-        bitset_init(tried, (<CGraph>self._cg).active_vertices.size)
+        bitset_init(tried, self.cg().active_vertices.size)
         bitset_set_first_n(tried, 0)
 
         # Parent of a vertex in the discovery tree
@@ -3342,7 +3348,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef list cycle
 
         # We try any vertex as the source of the exploration tree
-        for v in (<CGraph>self._cg).verts():
+        for v in self.cg().verts():
 
             # We are not interested in trying de-activated vertices
             if bitset_not_in(activated, v):
@@ -3376,7 +3382,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 bitset_add(tried, u)
 
                 # We append its out-neighbours to the stack.
-                for uu in self._cg.out_neighbors(u):
+                for uu in self.cg().out_neighbors(u):
 
                     # If we have found a new vertex, we put it at the end of the
                     # stack. We ignored de-activated vertices.
@@ -3530,7 +3536,7 @@ cdef class Search_iterator:
         self.graph = graph
         self.direction = direction
 
-        bitset_init(self.seen, self.graph._cg.active_vertices.size)
+        bitset_init(self.seen, self.graph.cg().active_vertices.size)
         bitset_set_first_n(self.seen, 0)
 
         cdef int v_id = self.graph.get_vertex(v)
@@ -3548,7 +3554,7 @@ cdef class Search_iterator:
 
         if self.test_in: # How do we list in_neighbors ?
             if self.graph._cg_rev is None:
-                self.in_neighbors = self.graph._cg.in_neighbors
+                self.in_neighbors = self.graph.cg().in_neighbors
             else:
                 self.in_neighbors = self.graph._cg_rev.out_neighbors
 
@@ -3593,7 +3599,7 @@ cdef class Search_iterator:
                 bitset_add(self.seen, v_int)
 
                 if self.test_out:
-                    self.stack.extend(self.graph._cg.out_neighbors(v_int))
+                    self.stack.extend(self.graph.cg().out_neighbors(v_int))
                 if self.test_in:
                     self.stack.extend(self.in_neighbors(v_int))
 

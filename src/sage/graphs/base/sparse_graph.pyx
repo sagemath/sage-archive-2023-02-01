@@ -1728,7 +1728,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             raise LookupError("({0}) is not a vertex of the graph.".format(repr(v)))
         cdef int u_int = self.get_vertex(u)
         cdef int v_int = self.get_vertex(v)
-        if not (<SparseGraph>self._cg).has_arc_unsafe(u_int, v_int):
+        if not self._cg.has_arc_unsafe(u_int, v_int):
             raise LookupError("({0}, {1}) is not an edge of the graph.".format(repr(u),repr(v)))
         if self.multiple_edges(None):
             return [self.edge_labels[l_int] if l_int != 0 else None

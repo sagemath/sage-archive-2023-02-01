@@ -9,10 +9,15 @@
 #*****************************************************************************
 
 
-from .c_graph cimport CGraph
+from .c_graph cimport CGraph, CGraphBackend
 
 cdef class DenseGraph(CGraph):
     cdef int radix_div_shift
     cdef int radix_mod_mask
     cdef size_t num_longs
     cdef unsigned long *edges
+
+cdef class DenseGraphBackend(CGraphBackend):
+    cdef DenseGraph _cg
+    cdef inline CGraph cg(self):
+        return <CGraph> self._cg

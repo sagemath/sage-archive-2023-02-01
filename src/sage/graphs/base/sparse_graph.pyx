@@ -649,6 +649,8 @@ cdef class SparseGraph(CGraph):
         self.in_degrees[v] -= n_arcs
         self.out_degrees[u] -= n_arcs
         self.num_arcs -= n_arcs
+        if n_arcs:
+            return 1
 
     ###################################
     # Neighbor functions
@@ -1279,8 +1281,7 @@ cdef class SparseGraph(CGraph):
             1 -- No arc with label l.
 
         """
-        cdef int error = self._del_arc_label_unsafe(u, v, l, self.vertices)
-        if error:
+        if self._del_arc_label_unsafe(u, v, l, self.vertices):
             return 1 # indicate an error
 
         if u != v or self.vertices != self.vertices_rev:

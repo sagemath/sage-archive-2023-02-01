@@ -2814,14 +2814,14 @@ cdef class CommutativeRingElement(RingElement):
             sage: z.inverse_mod(F.ideal(z))
             Traceback (most recent call last):
             ...
-            ValueError: 0 is in the proper ideal Principal ideal (0) of Finite Field in z2 of size 5^2 and therefore does not have an inverse
+            ValueError: Impossible inverse modulo
         """
         if I.is_one():
             return self.parent().one()
-        elif self.is_unit():
-            return self.inverse_of_unit()
         elif self in I:
-            raise ValueError("%s is in the proper ideal %s and therefore does not have an inverse"%(self,I))
+            raise ValueError("Impossible inverse modulo")
+        elif hasattr(self, "is_unit") and self.is_unit():
+            return self.inverse_of_unit()
         else:
             raise NotImplementedError
 

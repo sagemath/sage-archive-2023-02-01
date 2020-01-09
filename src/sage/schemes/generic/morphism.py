@@ -1229,7 +1229,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: f.base_ring()
             Multivariate Polynomial Ring in t over Integer Ring
         """
-        return(self.domain().base_ring())
+        return self.domain().base_ring()
 
     def coordinate_ring(self):
         r"""
@@ -1258,7 +1258,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring
             in t over Integer Ring
         """
-        return(self._polys[0].parent())
+        return self._polys[0].parent()
 
     def change_ring(self, R, check=True):
         r"""
@@ -1935,7 +1935,7 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         S = self.codomain().change_ring(R)
         Q = [R(t) for t in self]
-        return(S.point(Q, check=check))
+        return S.point(Q, check=check)
 
     def __copy__(self):
         r"""
@@ -1955,7 +1955,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: Q2 == Q
             True
         """
-        return(self._codomain.point(self._coords, check=False))
+        return self._codomain.point(self._coords, check=False)
 
     def specialization(self, D=None, phi=None, ambient=None):
         r"""

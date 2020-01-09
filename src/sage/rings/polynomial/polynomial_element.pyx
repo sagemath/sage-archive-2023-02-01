@@ -7988,10 +7988,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         [a,b], counted without multiplicity. The endpoints a, b default to
         -Infinity, Infinity (which are also valid input values).
 
-        Calls the PARI routine polsturm. Note that as of version 2.8, PARI
-        includes the left endpoint of the interval (and no longer uses
-        Sturm's algorithm on exact inputs). polsturm requires a polynomial
-        with real coefficients; in case PARI returns an error, we try again
+        Calls the PARI routine :pari:`polsturm`.
+
+        Note that as of version 2.8, PARI includes the left endpoint
+        of the interval (and no longer uses Sturm's algorithm on exact
+        inputs). polsturm requires a polynomial with real
+        coefficients; in case PARI returns an error, we try again
         after taking the GCD of `self` with its complex conjugate.
 
         EXAMPLES::
@@ -8030,7 +8032,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3
 
         """
-        pol = self // self.gcd(self.derivative()) #squarefree part
+        pol = self // self.gcd(self.derivative())  # squarefree part
         if a is None:
             a1 = -infinity.infinity
         else:
@@ -8040,12 +8042,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             b1 = b
         try:
-            return(pari(pol).polsturm([a1,b1]))
+            return pari(pol).polsturm([a1, b1])
         except PariError:
             # Take GCD with the conjugate, to extract the maximum factor
             # with real coefficients.
             pol2 = pol.gcd(pol.map_coefficients(lambda z: z.conjugate()))
-            return(pari(pol2).polsturm([a1,b1]))
+            return pari(pol2).polsturm([a1, b1])
 
     def number_of_real_roots(self):
         r"""
@@ -8092,7 +8094,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         pol = self // self.gcd(self.derivative())
-        return(pol.number_of_roots_in_interval(a,b) == pol.degree())
+        return pol.number_of_roots_in_interval(a, b) == pol.degree()
 
     def is_real_rooted(self):
         r"""
@@ -9663,9 +9665,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # stable under squaring. This factor is constant if and only if
         # the original polynomial has no cyclotomic factor.
         while True:
-            if pol1.is_constant(): return(False)
+            if pol1.is_constant():
+                return False
             pol2 = pol1.gcd(polRing((pol1*pol1(-x)).list()[::2]))
-            if pol1.degree() == pol2.degree(): return(True)
+            if pol1.degree() == pol2.degree():
+                return True
             pol1 = pol2
 
     def homogenize(self, var='h'):

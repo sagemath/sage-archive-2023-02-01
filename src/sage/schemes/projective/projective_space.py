@@ -1018,7 +1018,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             #assume that if you've passed in a new affine space you want to override
             #the existing patch
             if AA is None or A == AA:
-                return(A)
+                return A
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
@@ -1851,7 +1851,8 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
                     P[j] = zero
                     j += 1
             i -= 1
-        return(D)
+        return D
+
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
     def rational_points(self, bound=0):

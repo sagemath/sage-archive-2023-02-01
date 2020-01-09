@@ -2,13 +2,13 @@
 Affine `n` space over a ring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function
 from six import integer_types
 
@@ -760,7 +760,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             #assume that if you've passed in a new codomain you want to override
             #the existing embedding
             if PP is None or phi.codomain() == PP:
-                return(phi)
+                return phi
         except AttributeError:
             self.__projective_embedding = {}
         except KeyError:

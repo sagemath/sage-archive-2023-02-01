@@ -1242,11 +1242,11 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
                 return sympy_set_to_list(ret, sympy_vars)
             else:
                 try:
-                    return(solve_ineq(f)) # trying solve_ineq_univar
+                    return solve_ineq(f)  # trying solve_ineq_univar
                 except Exception:
                     pass
                 try:
-                    return(solve_ineq([f])) # trying solve_ineq_fourier
+                    return solve_ineq([f])  # trying solve_ineq_fourier
                 except Exception:
                     raise NotImplementedError("solving only implemented for equalities and few special inequalities, see solve_ineq")
         ex = f
@@ -1809,7 +1809,6 @@ def solve_ineq(ineq, vars=None):
 
     - Robert Marik (01-2010)
     """
-    if isinstance(ineq,list):
-        return(solve_ineq_fourier(ineq, vars))
-    else:
-        return(solve_ineq_univar(ineq))
+    if isinstance(ineq, list):
+        return solve_ineq_fourier(ineq, vars)
+    return solve_ineq_univar(ineq)

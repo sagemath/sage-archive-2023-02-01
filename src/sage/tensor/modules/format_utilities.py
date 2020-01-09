@@ -61,9 +61,9 @@ def is_atomic(expr, sep=['+', '-']):
         False
         sage: is_atomic("(a*b)", sep=['*'])
         True
-        sage: is_atomic("a<>b", sep=['<>'])
+        sage: is_atomic(r"a<>b", sep=[r'<>'])
         False
-        sage: is_atomic("(a<>b)", sep=['<>'])
+        sage: is_atomic(r"(a<>b)", sep=[r'<>'])
         True
 
     """
@@ -76,9 +76,9 @@ def is_atomic(expr, sep=['+', '-']):
     level = 0
     for n, c in enumerate(expr):
         if c == '(':
-            level += 1
+            level += 1; continue
         elif c == ')':
-            level -= 1
+            level -= 1; continue
         if any(expr[n:n + len(s)] == s for s in sep):
             if level == 0 and n > 0:
                 return False

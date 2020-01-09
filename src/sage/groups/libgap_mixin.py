@@ -89,7 +89,7 @@ class GroupMixinLibGAP(object):
 
     def is_solvable(self):
         r"""
-        Return whether this group is nilpotent.
+        Return whether this group is solvable.
 
         EXAMPLES::
 

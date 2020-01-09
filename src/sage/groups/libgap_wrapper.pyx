@@ -717,10 +717,10 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: from sage.groups.libgap_group import GroupLibGAP
             sage: G = GroupLibGAP(libgap.GL(2, 3))
             sage: a,b = G.gens()
-            sage: print(a.order(), b.order())
-            2 3
-            sage: print(a.multiplicative_order(), b.multiplicative_order())
-            2 3
+            sage: print(a.order())
+            2
+            sage: print(a.multiplicative_order())
+            2
 
             sage: z = Mod(0, 3)
             sage: o = Mod(1, 3)

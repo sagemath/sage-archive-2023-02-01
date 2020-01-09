@@ -4348,43 +4348,63 @@ class Polyhedron_base(Element):
 
     def _acted_upon_(self, actor, self_on_left):
         """
-        Implement the multiplicative action by scalars or other polyhedra.
+        Implement the action by scalars, vectors, matrices or other polyhedra.
 
         INPUT:
 
-        - ``actor`` -- A scalar, not necessarily in :meth:`base_ring`,
-          or a :class:`Polyhedron`
+        - ``actor`` -- one of the following:
+          - a scalar, not necessarily in :meth:`base_ring`,
+          - a :class:`Polyhedron`,
+          - a :class:`sage.modules.free_module_element.vector`,
+          - a :class:`sage.matrix.constructor.matrix`,
+        - ``self_on_right`` -- must be ``False`` for actor a matrix;
+          ignored otherwise
 
         OUTPUT:
 
-        Multiplication by another polyhedron returns the product
-        polytope. Multiplication by a scalar returns the polytope
-        dilated by that scalar, possibly coerced to the bigger base ring.
+        - Dilation for a scalar
+        - Product for a polyhedron
+        - Translation for a vector
+        - Linear transformation for a matrix
 
-        EXAMPLES::
+        EXAMPLES:
+
+        ``actor`` is a scalar::
 
              sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(2,6)])
              sage: p._acted_upon_(2, True) == p.dilation(2)
              True
              sage: p*2 == p.dilation(2)
              True
+
+        ``actor`` is a polyhedron::
+
              sage: p*p == p.product(p)
              True
+
+        ``actor`` is a vector::
+
              sage: p + vector(ZZ,[1,2,3]) == p.translation([1,2,3])
              True
+
+        ``actor`` is a matrix::
+
              sage: matrix(ZZ,[[1,2,3]]) * p
              A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
-             sage: matrix(ZZ,[[1,2,3]]) * p == p * matrix(ZZ, [[1], [2], [3]])
-             True
+
+        A matrix must act from the left::
+
+             sage: p * matrix(ZZ, [[1,2,3]]*3)
+             Traceback (most recent call last):
+             ...
+             TypeError: unsupported operand parent(s) for *: 'Polyhedra in ZZ^3' and 'Full MatrixSpace of 3 by 3 dense matrices over Integer Ring'
         """
         if is_Polyhedron(actor):
             return self.product(actor)
         elif is_Vector(actor):
             return self.translation(actor)
         elif is_Matrix(actor):
-            if self_on_left:
-                return self.linear_transformation(actor.transpose())
-            else:
+            if not self_on_left:
                 return self.linear_transformation(actor)
         else:
             return self.dilation(actor)

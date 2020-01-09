@@ -123,9 +123,9 @@ class AutomorphismField(TensorField):
         Field of tangent-space automorphisms a^(-1) on the 2-dimensional
          differentiable manifold M
         sage: ia.display(eU)
-        (a)^(-1) = d/dx*dx - 1/2*x d/dx*dy + 1/2 d/dy*dy
+        a^(-1) = d/dx*dx - 1/2*x d/dx*dy + 1/2 d/dy*dy
         sage: ia.display(eV)
-        (a)^(-1) = (-1/8*u - 1/8*v + 3/4) d/du*du + (1/8*u + 1/8*v + 1/4) d/du*dv
+        a^(-1) = (-1/8*u - 1/8*v + 3/4) d/du*du + (1/8*u + 1/8*v + 1/4) d/du*dv
          + (-1/8*u - 1/8*v + 1/4) d/dv*du + (1/8*u + 1/8*v + 3/4) d/dv*dv
 
     Equivalently, one can use the power minus one to get the inverse::
@@ -946,10 +946,10 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
     The inverse automorphism is obtained via the method :meth:`inverse`::
 
         sage: inv = rot.inverse() ; inv
-        Field of tangent-space automorphisms (R)^(-1) on the 2-dimensional
+        Field of tangent-space automorphisms R^(-1) on the 2-dimensional
          differentiable manifold R^2
         sage: latex(inv)
-        \left(R\right)^{-1}
+        R
         sage: inv[:]
         [1/2*sqrt(3)         1/2]
         [       -1/2 1/2*sqrt(3)]
@@ -1130,7 +1130,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: X.<x,y> = M.chart()
             sage: a = M.automorphism_field([[0, 2], [-1, 0]], name='a')
             sage: b = a.inverse(); b
-            Field of tangent-space automorphisms (a)^(-1) on the 2-dimensional
+            Field of tangent-space automorphisms a^(-1) on the 2-dimensional
              differentiable manifold M
             sage: b[:]
             [  0  -1]
@@ -1162,14 +1162,22 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         if self._is_identity:
             return self
         if self._inverse is None:
+            from sage.tensor.modules.format_utilities import is_atomic
             if self._name is None:
                 inv_name = None
             else:
-                inv_name = '(' + self._name  + ')^(-1)'
+                if is_atomic(self._name, ['*']):
+                    inv_name = self._name + '^(-1)'
+                else:
+                    inv_name = '(' + self._name + ')^(-1)'
             if self._latex_name is None:
                 inv_latex_name = None
             else:
-                inv_latex_name = r'\left(' + self._latex_name + r'\right)^{-1}'
+                if is_atomic(self._latex_name, ['\\circ', '\\otimes']):
+                    inv_latex_name = self._latex_name + r'^{-1}'
+                else:
+                    inv_latex_name = r'\left(' + self._latex_name + \
+                                     r'\right)^{-1}'
             fmodule = self._fmodule
             si = fmodule._sindex ; nsi = fmodule._rank + si
             self._inverse = fmodule.automorphism(name=inv_name,

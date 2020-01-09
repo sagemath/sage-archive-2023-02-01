@@ -537,10 +537,10 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
         sage: t1.display()
         t = (e^y + 1) d/dx*dx + x*y d/dx*dy + (x^2 + 1) d/dy*dy
         sage: t1^(-1)
-        Field of tangent-space automorphisms (t)^(-1) on the 2-dimensional
+        Field of tangent-space automorphisms t^(-1) on the 2-dimensional
          differentiable manifold M
         sage: (t1^(-1)).display()
-        (t)^(-1) = 1/(e^y + 1) d/dx*dx - x*y/(x^2 + (x^2 + 1)*e^y + 1) d/dx*dy
+        t^(-1) = 1/(e^y + 1) d/dx*dx - x*y/(x^2 + (x^2 + 1)*e^y + 1) d/dx*dy
          + 1/(x^2 + 1) d/dy*dy
 
     Since any automorphism field can be considered as a tensor field of

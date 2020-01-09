@@ -193,7 +193,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
     or the operator ~, or the exponent -1::
 
         sage: a.inverse()
-        Automorphism (a)^(-1) of the Rank-2 free module M over the Integer Ring
+        Automorphism a^(-1) of the Rank-2 free module M over the Integer Ring
         sage: a.inverse() is ~a
         True
         sage: a.inverse() is a^(-1)
@@ -357,7 +357,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: a[e,:] = [[1,0,-1], [0,3,0], [0,0,2]]
             sage: b = a.inverse()
             sage: a._inverse
-            Automorphism (a)^(-1) of the 3-dimensional vector space M over the
+            Automorphism a^(-1) of the 3-dimensional vector space M over the
              Rational Field
             sage: a._del_derived()
             sage: a._inverse  # has been reset to None
@@ -683,7 +683,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: a = M.automorphism(name='a')
             sage: a[e,:] = [[1,0,0],[0,-1,2],[0,1,-3]]
             sage: a.inverse()
-            Automorphism (a)^(-1) of the Rank-3 free module M over the Integer
+            Automorphism a^(-1) of the Rank-3 free module M over the Integer
              Ring
             sage: a.inverse().parent()
             General linear group of the Rank-3 free module M over the Integer
@@ -744,19 +744,37 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
             sage: (a)^(-1)*a == id
             True
+
+        If the name could cause some confusion, a bracket is added around the
+        element before taking the inverse::
+
+            sage: c = M.automorphism(name='a^(-1)*b')
+            sage: c[e,:] = [[1,0,0],[0,-1,1],[0,2,-1]]
+            sage: c.inverse()
+            Automorphism (a^(-1)*b)^(-1) of the Rank-3 free module M over the
+             Integer Ring
+
         """
         from .comp import Components
         if self._is_identity:
             return self
         if self._inverse is None:
+            from sage.tensor.modules.format_utilities import is_atomic
             if self._name is None:
                 inv_name = None
             else:
-                inv_name = '(' + self._name  + ')^(-1)'
+                if is_atomic(self._name, ['*']):
+                    inv_name = self._name + '^(-1)'
+                else:
+                    inv_name = '(' + self._name + ')^(-1)'
             if self._latex_name is None:
                 inv_latex_name = None
             else:
-                inv_latex_name = r'\left(' + self._latex_name + r'\right)^{-1}'
+                if is_atomic(self._latex_name, ['\\circ', '\\otimes']):
+                    inv_latex_name = self._latex_name + r'^{-1}'
+                else:
+                    inv_latex_name = r'\left(' + self._latex_name + \
+                                     r'\right)^{-1}'
             fmodule = self._fmodule
             si = fmodule._sindex
             nsi = fmodule._rank + si

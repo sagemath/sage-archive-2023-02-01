@@ -120,7 +120,7 @@ class AutomorphismField(TensorField):
     In particular, we may ask for its inverse on the whole manifold `M`::
 
         sage: ia = a.inverse() ; ia
-        Field of tangent-space automorphisms (a)^(-1) on the 2-dimensional
+        Field of tangent-space automorphisms a^(-1) on the 2-dimensional
          differentiable manifold M
         sage: ia.display(eU)
         (a)^(-1) = d/dx*dx - 1/2*x d/dx*dy + 1/2 d/dy*dy
@@ -550,7 +550,7 @@ class AutomorphismField(TensorField):
             sage: a = M.automorphism_field({eU: [[1,x], [0,2]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, c_uv)
             sage: ia = a.inverse() ; ia
-            Field of tangent-space automorphisms (a)^(-1) on the 2-dimensional
+            Field of tangent-space automorphisms a^(-1) on the 2-dimensional
              differentiable manifold M
             sage: a[eU,:], ia[eU,:]
             (
@@ -600,14 +600,22 @@ class AutomorphismField(TensorField):
         if self._is_identity:
             return self
         if self._inverse is None:
+            from sage.tensor.modules.format_utilities import is_atomic
             if self._name is None:
                 inv_name = None
             else:
-                inv_name = '(' + self._name  + ')^(-1)'
+                if is_atomic(self._name, ['*']):
+                    inv_name = self._name + '^(-1)'
+                else:
+                    inv_name = '(' + self._name + ')^(-1)'
             if self._latex_name is None:
                 inv_latex_name = None
             else:
-                inv_latex_name = r'\left(' + self._latex_name + r'\right)^{-1}'
+                if is_atomic(self._latex_name, ['\\circ', '\\otimes']):
+                    inv_latex_name = self._latex_name + r'^{-1}'
+                else:
+                    inv_latex_name = r'\left(' + self._latex_name + \
+                                     r'\right)^{-1}'
             self._inverse = self._vmodule.automorphism(name=inv_name,
                                                        latex_name=inv_latex_name)
             for dom, rst in self._restrictions.items():

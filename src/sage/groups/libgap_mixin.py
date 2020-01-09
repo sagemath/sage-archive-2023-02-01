@@ -614,6 +614,11 @@ class GroupMixinLibGAP(object):
             sage: next(iter(G))
             [1 0]
             [0 1]
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: G = GroupLibGAP(libgap.AlternatingGroup(5))
+            sage: sum(1 for g in G)
+            60
         """
         if self.list.cache is not None:
             for g in self.list():
@@ -621,7 +626,7 @@ class GroupMixinLibGAP(object):
             return
         iterator = self.gap().Iterator()
         while not iterator.IsDoneIterator().sage():
-            yield self(iterator.NextIterator(), check=False)
+            yield self.element_class(self, iterator.NextIterator())
 
     def __len__(self):
         """

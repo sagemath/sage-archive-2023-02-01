@@ -226,7 +226,7 @@ cdef inline bint bitset_eq(bitset_t a, bitset_t b):
 
 cdef inline int bitset_cmp(bitset_t a, bitset_t b):
     """
-    Compare bitsets a and b.  Returns 0 if the two sets are
+    Compare bitsets a and b.  Return 0 if the two sets are
     identical, and consistently return -1 or 1 for two sets that are
     not equal.
 

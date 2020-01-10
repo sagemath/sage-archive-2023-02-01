@@ -807,9 +807,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def normalize_coordinates(self):
         """
-        Scales by 1/gcd of the coordinate functions.
+        Ensures that this morphism has integral coefficients, and,
+        if the number field has a GCD, then it ensures that the 
+        coefficients have no common factor.
 
-        Scales to clear any denominators from the coefficients.
         Also, makes the leading coefficients of the first polynomial
         positive. This is done in place.
 
@@ -858,28 +859,50 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: K.<w> = QuadraticField(5)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: f = DynamicalSystem([w*x^2 + (1/5*w)*y^2, w*y^2])
-            sage: f.normalize_coordinates();f
+            sage: f.normalize_coordinates(); f
             Dynamical System of Projective Space of dimension 1 over Number Field in
             w with defining polynomial x^2 - 5 with w = 2.236067977499790?
               Defn: Defined on coordinates by sending (x : y) to
                     (5*x^2 + y^2 : 5*y^2)
 
-        .. NOTE:: gcd raises an error if the base_ring does not support gcds.
+        ::
+            
+            sage: R.<t> = PolynomialRing(ZZ)
+            sage: K.<b> = NumberField(t^3 - 11)
+            sage: a = 7/(b-1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem_projective([a*y^2 - (a*y-x)^2, y^2])
+            sage: f.normalize_coordinates(); f
+            Dynamical System of Projective Space of dimension 1 over Number Field in b with defining polynomial t^3 - 11
+            Defn: Defined on coordinates by sending (x : y) to
+                    (-100*x^2 + (140*b^2 + 140*b + 140)*x*y + (-77*b^2 - 567*b - 1057)*y^2 : 100*y^2)
+
         """
-        GCD = gcd(self[0], self[1])
-        index = 2
+        # clear any denominators from the coefficients
+        N = self.codomain().ambient_space().dimension_relative() + 1
+        LCM = lcm([self[i].denominator() for i in range(N)])
+        self.scale_by(LCM)
+
         R = self.domain().base_ring()
 
-        N = self.codomain().ambient_space().dimension_relative() + 1
+        # There are cases, such as the example above over GF(7),
+        # where we want to compute GCDs, but NOT in the case 
+        # where R is a NumberField of class number > 1. 
+        if R in NumberFields:
+            if R.class_number() > 1:
+                return 
+        
+        # R is a Number Field with class number 1 (i.e., a UFD) then 
+        # we can compute GCDs, so we attempt to remove any common factors. 
+        
+        GCD = gcd(self[0], self[1])
+        index = 2
+
         while GCD != 1 and index < N:
             GCD = gcd(GCD, self[index])
             index += +1
         if GCD != 1:
             self.scale_by(R(1) / GCD)
-
-        #clears any denominators from the coefficients
-        LCM = lcm([self[i].denominator() for i in range(N)])
-        self.scale_by(LCM)
 
         #scales by 1/gcd of the coefficients.
         if R in _NumberFields:

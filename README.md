@@ -5,7 +5,7 @@
 >   "Creating a Viable Open Source Alternative to
 >    Magma, Maple, Mathematica, and MATLAB"
 
->   Copyright (C) 2005-2018 The Sage Development Team
+>   Copyright (C) 2005-2019 The Sage Development Team
 
    https://www.sagemath.org
 
@@ -17,14 +17,14 @@ and functions list the authors.
 Getting Started
 ---------------
 
-If you downloaded a [binary](http://www.sagemath.org/download.html)
+If you downloaded a [binary](https://www.sagemath.org/download.html)
 (i.e. a version of SageMath prepared for a specific operating system),
 Sage is ready to start -- just open a terminal in the directory where
 you extracted the binary archive and type:
 
     ./sage
 
-If you downloaded the [sources](http://www.sagemath.org/download-source.html),
+If you downloaded the [sources](https://www.sagemath.org/download-source.html),
 please read below on how to build Sage and work around common issues.
 
 If you have questions or encounter problems, please do not hesitate
@@ -177,7 +177,7 @@ More Detailed Instructions to Build from Source
    several jobs in parallel, while the `SAGE_CHECK` environment variable
    controls whether to perform more tests during the installation.  For
    an in-depth discussion of environment variables for building Sage, see
-   [the installation guide](http://doc.sagemath.org/html/en/installation/source.html#environment-variables).
+   [the installation guide](https://doc.sagemath.org/html/en/installation/source.html#environment-variables).
 
    On a machine with 4 processors, say, typing `export MAKE="make -j4"`
    will configure the build script to perform a parallel compilation of
@@ -221,7 +221,7 @@ More Detailed Instructions to Build from Source
 
    Note: if you built for Python 3, you can instead run `make ptest-python3`.
 
-1. The HTML version of the [documentation](http://doc.sagemath.org/html/en/index.html)
+1. The HTML version of the [documentation](https://doc.sagemath.org/html/en/index.html)
    is built during the compilation process of Sage and resides in the directory
    `local/share/doc/sage/html/`.
 

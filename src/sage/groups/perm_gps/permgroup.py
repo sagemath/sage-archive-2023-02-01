@@ -128,13 +128,13 @@ REFERENCES:
    generators.
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                          David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
 from six import integer_types
@@ -3582,7 +3582,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         This method returns a description of *all* block systems. Hence, the
         output is a "list of lists of lists" or a "list of lists" depending on
-        the value of ``representatives``. A bit more clearly, output is :
+        the value of ``representatives``. A bit more clearly, output is:
 
         * A list of length (#number of different block systems) of
 
@@ -4545,7 +4545,7 @@ class PermutationGroup_generic(FiniteGroup):
             1/(x^2 - 2*x + 1)
         """
         pi = self._libgap_().NaturalCharacter()
-        # because NaturalCharacter forgets about fixed points :
+        # because NaturalCharacter forgets about fixed points:
         pi += self._libgap_().TrivialCharacter() * len(self.fixed_points())
 
         # TODO: pi is a Character from a CharacterTable on self, however libgap

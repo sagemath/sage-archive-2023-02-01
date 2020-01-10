@@ -14,7 +14,7 @@ Graph objects and methods
    sage/graphs/graph
    sage/graphs/digraph
    sage/graphs/bipartite_graph
-
+   sage/graphs/views
 
 Constructors and databases
 --------------------------
@@ -101,5 +101,6 @@ Libraries of algorithms
    sage/graphs/generic_graph_pyx
    sage/graphs/orientations
    sage/graphs/connectivity
+   sage/graphs/domination
 
 .. include:: ../footer.txt

@@ -231,16 +231,16 @@ def WordPaths(alphabet, steps=None):
       - ``None``: In this case, the type of steps are guessed from the
         length of alphabet.
 
-      - 'square_grid' or 'square' : (default when size of alphabet is 4)
+      - 'square_grid' or 'square': (default when size of alphabet is 4)
         The order is : East, North, West, South.
 
       - 'triangle_grid' or 'triangle':
 
-      - 'hexagonal_grid' or 'hexagon' :(default when size of alphabet is 6)
+      - 'hexagonal_grid' or 'hexagon': (default when size of alphabet is 6)
 
-      - 'cube_grid' or 'cube' :
+      - 'cube_grid' or 'cube':
 
-      - 'north_east', 'ne' or 'NE' : (the default when size of alphabet is 2)
+      - 'north_east', 'ne' or 'NE': (the default when size of alphabet is 2)
 
       - 'dyck':
 
@@ -250,7 +250,7 @@ def WordPaths(alphabet, steps=None):
 
     EXAMPLES:
 
-    The steps can be given explicitely::
+    The steps can be given explicitly::
 
         sage: WordPaths('abc', steps=[(1,2), (-1,4), (0,-3)])
         Word Paths over 3 steps

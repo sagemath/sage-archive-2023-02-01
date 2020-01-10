@@ -320,7 +320,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         # If it's a scalar, return a multiple of one:
         if x in self.base_ring():
-            return self.one()*x
+            return self.one() * x
 
         # If it's a tuple or a list, try and create a QuiverPath from it and
         # then return the associated basis element

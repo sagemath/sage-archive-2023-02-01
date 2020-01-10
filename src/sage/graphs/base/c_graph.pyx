@@ -49,6 +49,7 @@ from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
+from cysignals.memory cimport check_allocarray, sig_free
 
 cdef class CGraph:
     """
@@ -515,6 +516,7 @@ cdef class CGraph:
         if self.has_vertex(v):
             self.del_vertex_unsafe(v)
 
+
     cpdef int current_allocation(self):
         r"""
         Report the number of vertices allocated.
@@ -733,38 +735,52 @@ cdef class CGraph:
 
     cpdef add_arc(self, int u, int v):
         """
-        Add the given arc to this graph.
+        Add arc ``(u, v)`` to the graph.
 
         INPUT:
 
-        - ``u`` -- integer; the tail of an arc
+        - ``u``, ``v`` -- non-negative integers, must be in self
 
-        - ``v`` -- integer; the head of an arc
+        EXAMPLES:
 
-        OUTPUT:
-
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
-
-        .. SEEALSO::
-
-            - :meth:`add_arc <sage.graphs.base.sparse_graph.SparseGraph.add_arc>`
-              -- ``add_arc`` method for sparse graphs.
-
-            - :meth:`add_arc <sage.graphs.base.dense_graph.DenseGraph.add_arc>`
-              -- ``add_arc`` method for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.add_arc(0, 1)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`add_arc_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.add_arc(4, 7)
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (7) is not a vertex of the graph
+            sage: G.has_arc(1, 0)
+            False
+            sage: G.has_arc(0, 1)
+            True
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(4,7)
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (7) is not a vertex of the graph
+            sage: G.has_arc(1,0)
+            False
+            sage: G.has_arc(0,1)
+            True
         """
-        raise NotImplementedError()
+        self.check_vertex(u)
+        self.check_vertex(v)
+        self.add_arc_unsafe(u, v)
 
     cpdef bint has_arc(self, int u, int v) except -1:
         """
@@ -782,24 +798,38 @@ cdef class CGraph:
           at the :class:`CGraph` level. A child class should provide a suitable
           implementation.
 
-        .. SEEALSO::
+        EXAMPLES:
 
-            - :meth:`has_arc <sage.graphs.base.sparse_graph.SparseGraph.has_arc>`
-              -- ``has_arc`` method for sparse graphs.
-
-            - :meth:`has_arc <sage.graphs.base.dense_graph.DenseGraph.has_arc>`
-              -- ``has_arc`` method for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` this always returns ``False``::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.has_arc(0, 1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            False
+
+        It works once :class:`has_arc_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.has_arc(1, 0)
+            False
+            sage: G.has_arc(0, 1)
+            True
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(0,1)
+            sage: G.has_arc(1,0)
+            False
+            sage: G.has_arc(0,1)
+            True
         """
-        raise NotImplementedError
+        if u < 0 or u >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, u):
+            return False
+        if v < 0 or v >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, v):
+            return False
+        return self.has_arc_unsafe(u, v) == 1
 
     cpdef del_all_arcs(self, int u, int v):
         """
@@ -811,30 +841,44 @@ cdef class CGraph:
 
         - ``v`` -- integer; the head of an arc.
 
-        OUTPUT:
+        EXAMPLES:
 
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
-
-        .. SEEALSO::
-
-            - :meth:`del_all_arcs <sage.graphs.base.sparse_graph.SparseGraph.del_all_arcs>`
-              -- ``del_all_arcs`` method for sparse graphs.
-
-            - :meth:`del_all_arcs <sage.graphs.base.dense_graph.DenseGraph.del_all_arcs>`
-              -- ``del_all_arcs`` method for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.del_all_arcs(0,1)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`del_arc_unsafe` is implemented::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(0,1,0)
+            sage: G.add_arc_label(0,1,1)
+            sage: G.add_arc_label(0,1,2)
+            sage: G.add_arc_label(0,1,3)
+            sage: G.del_all_arcs(0,1)
+            sage: G.has_arc(0,1)
+            False
+            sage: G.arc_label(0,1)
+            0
+            sage: G.del_all_arcs(0,1)
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.has_arc(0, 1)
+            True
+            sage: G.del_all_arcs(0, 1)
+            sage: G.has_arc(0, 1)
+            False
         """
-        raise NotImplementedError()
+        self.check_vertex(u)
+        self.check_vertex(v)
+        self.del_arc_unsafe(u,v)
 
     cdef adjacency_sequence_in(self, int n, int *vertices, int v, int* sequence):
         r"""
@@ -961,24 +1005,56 @@ cdef class CGraph:
           the :class:`CGraph` level. A child class should provide a suitable
           implementation.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            - :meth:`in_neighbors <sage.graphs.base.sparse_graph.SparseGraph.in_neighbors>`
-              -- ``in_neighbors`` method for sparse graphs.
+            Due to the implementation of SparseGraph, this method is much more
+            expensive than out_neighbors_unsafe for SparseGraph's.
 
-            - :meth:`in_neighbors <sage.graphs.base.dense_graph.DenseGraph.in_neighbors>`
-              -- ``in_neighbors`` method for dense graphs.
+        EXAMPLES:
 
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.in_neighbors(0)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`out_neighbors_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.add_arc(3, 1)
+            sage: G.add_arc(1, 3)
+            sage: G.in_neighbors(1)
+            [0, 3]
+            sage: G.in_neighbors(3)
+            [1]
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(3,1)
+            sage: G.add_arc(1,3)
+            sage: G.in_neighbors(1)
+            [0, 3]
+            sage: G.in_neighbors(3)
+            [1]
         """
-        raise NotImplementedError()
+        cdef int i, num_nbrs
+        self.check_vertex(v)
+        if not self.in_degrees[v]:
+            return []
+        cdef int size = self.in_degrees[v]
+        cdef int *neighbors = <int *> check_allocarray(size, sizeof(int))
+        if not neighbors:
+            raise MemoryError
+        num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
+        output = [neighbors[i] for i in range(num_nbrs)]
+        sig_free(neighbors)
+        return output
 
     cpdef list out_neighbors(self, int u):
         """
@@ -988,30 +1064,51 @@ cdef class CGraph:
 
         - ``u`` -- integer representing a vertex of this graph
 
-        OUTPUT:
+        EXAMPLES:
 
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
-
-        .. SEEALSO::
-
-            - :meth:`out_neighbors <sage.graphs.base.sparse_graph.SparseGraph.out_neighbors>`
-              -- ``out_neighbors`` implementation for sparse graphs.
-
-            - :meth:`out_neighbors <sage.graphs.base.dense_graph.DenseGraph.out_neighbors>`
-              -- ``out_neighbors`` implementation for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.out_neighbors(0)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`out_neighbors_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.add_arc(1, 2)
+            sage: G.add_arc(1, 3)
+            sage: G.out_neighbors(0)
+            [1]
+            sage: G.out_neighbors(1)
+            [2, 3]
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(1,2)
+            sage: G.add_arc(1,3)
+            sage: G.out_neighbors(0)
+            [1]
+            sage: G.out_neighbors(1)
+            [2, 3]
         """
-        raise NotImplementedError()
+        cdef int i, num_nbrs
+        self.check_vertex(u)
+        if not self.out_degrees[u]:
+            return []
+        cdef int size = self.out_degrees[u]
+        cdef int *neighbors = <int *>check_allocarray(size, sizeof(int))
+        if not neighbors:
+            raise MemoryError
+        num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
+        output = [neighbors[i] for i in range(num_nbrs)]
+        sig_free(neighbors)
+        return output
 
 
 cdef class CGraphBackend(GenericGraphBackend):
@@ -2051,12 +2148,12 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef set exclude_vertices_int = None
         cdef set exclude_edges_int = None
-        
+
         if exclude_v:
             exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
         if exclude_e:
             exclude_edges_int = {(self.get_vertex(v1), self.get_vertex(v2)) for v1, v2 in exclude_edges}
- 
+
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
         cdef dict pred_y = {}
@@ -2406,7 +2503,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef double distance
         cdef set exclude_vertices_int = None
         cdef set exclude_edges_int = None
-        
+
         if exclude_v:
             exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
         if exclude_e:
@@ -2486,7 +2583,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                     for n in nbr:
                         if include_v and n not in include_vertices_int:
                             continue
-                        neighbors.append(n)    
+                        neighbors.append(n)
                 else:
                     neighbors = []
                     for w in nbr:

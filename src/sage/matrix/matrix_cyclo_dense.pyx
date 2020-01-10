@@ -454,7 +454,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
     # x * cdef _sub_
     #   * cdef _mul_
     # x * cdef _lmul_    -- scalar multiplication
-    # x * cpdef _cmp_
+    # x * cpdef _richcmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__

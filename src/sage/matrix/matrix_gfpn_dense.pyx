@@ -52,6 +52,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
+from sage.structure.richcmp import rich_to_bool
 from .args cimport MatrixArgs_init
 
 from libc.string cimport memset, memcpy
@@ -799,11 +800,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 ##################
 ## comparison
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare two :class:`Matrix_gfpn_dense` matrices.
 
-        Of course, '<' and '>' doesn't make much sense for matrices.
+        Of course, '<' and '>' do not make much sense for matrices.
 
         EXAMPLES::
 
@@ -824,26 +825,26 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense self = left
         cdef Matrix_gfpn_dense N = right
         if self is None or N is None:
-            return -1
+            return rich_to_bool(op, -1)
         if self.Data == NULL:
             if N.Data == NULL:
-                return 0
+                return rich_to_bool(op, 0)
             else:
-                return 1
+                return rich_to_bool(op, 1)
         elif N.Data == NULL:
-            return -1
+            return rich_to_bool(op, -1)
         if self.Data.Field != N.Data.Field:
             if self.Data.Field > N.Data.Field:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
         if self.Data.Noc != N.Data.Noc:
             if self.Data.Noc > N.Data.Noc:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
         if self.Data.Nor != N.Data.Nor:
             if self.Data.Nor > N.Data.Nor:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
 
         cdef char* d1 = <char*>self.Data.Data
         cdef char* d2 = <char*>N.Data.Data
@@ -854,9 +855,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         s2 = PyBytes_FromStringAndSize(d2, total_size)
         if s1 != s2:
             if s1 > s2:
-                return 1
-            return -1
-        return 0
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
     cpdef list _rowlist_(self, i, j=-1):
         """

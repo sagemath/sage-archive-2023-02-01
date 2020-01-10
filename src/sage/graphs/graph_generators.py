@@ -1405,7 +1405,7 @@ class GraphGenerators():
         - ``exact_connectivity`` - default: ``False`` - if ``True`` only
           graphs with exactly the specified connectivity will be generated.
           This option cannot be used with ``minimum_connectivity=3``, or if
-          the minimum connectivity is not explicitely set.
+          the minimum connectivity is not explicitly set.
 
         - ``only_bipartite`` - default: ``False`` - if ``True`` only bipartite
           graphs will be generated. This option cannot be used for graphs with
@@ -1596,11 +1596,11 @@ class GraphGenerators():
         - ``exact_connectivity`` - default: ``False`` - if ``True`` only
           triangulations with exactly the specified connectivity will be generated.
           This option cannot be used with ``minimum_connectivity=3``, or if
-          the minimum connectivity is not explicitely set.
+          the minimum connectivity is not explicitly set.
 
         - ``only_eulerian`` - default: ``False`` - if ``True`` only Eulerian
           triangulations will be generated. This option cannot be used if the
-          minimum degree is explicitely set to anything else than 4.
+          minimum degree is explicitly set to anything else than 4.
 
         - ``dual`` - default: ``False`` - if ``True`` return instead the
           planar duals of the generated graphs.
@@ -2352,7 +2352,7 @@ def check_aut(aut_gens, cut_vert, n):
     perm = list(range(n + 1))
     seen_perms = [perm]
     unchecked_perms = [perm]
-    while len(unchecked_perms) != 0:
+    while unchecked_perms:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
@@ -2363,6 +2363,7 @@ def check_aut(aut_gens, cut_vert, n):
                 unchecked_perms.append(new_perm)
                 if new_perm[cut_vert] == n:
                     yield new_perm
+
 
 def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, sparse=True):
     """
@@ -2556,7 +2557,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     perm = list(range(n))
     seen_perms = [perm]
     unchecked_perms = [perm]
-    while len(unchecked_perms) != 0:
+    while unchecked_perms:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)

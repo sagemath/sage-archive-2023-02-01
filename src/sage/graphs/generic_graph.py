@@ -71,7 +71,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.delete_multiedge` | Delete all edges from ``u`` to ``v``.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
     :meth:`~GenericGraph.has_edge` | Check whether ``(u, v)`` is an edge of the (di)graph.
-    :meth:`~GenericGraph.edges` | Return a list of edges.
+    :meth:`~GenericGraph.edges` | Return a :class:`~EdgesView` of edges.
     :meth:`~GenericGraph.edge_boundary` | Return a list of edges ``(u,v,l)`` with ``u`` in ``vertices1``
     :meth:`~GenericGraph.edge_iterator` | Return an iterator over edges.
     :meth:`~GenericGraph.edges_incident` | Return incident edges to some vertices.
@@ -430,6 +430,7 @@ from six import itervalues, iteritems, integer_types
 
 from copy import copy
 
+from sage.graphs.views import EdgesView
 from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from .dot2tex_utils import assert_have_dot2tex
 
@@ -1935,7 +1936,7 @@ class GenericGraph(GenericGraph_pyx):
 
     am = adjacency_matrix # shorter call makes life easier
 
-    def incidence_matrix(self, oriented=None, sparse=True, vertices=None):
+    def incidence_matrix(self, oriented=None, sparse=True, vertices=None, edges=None):
         r"""
         Return the incidence matrix of the (di)graph.
 
@@ -1973,6 +1974,11 @@ class GenericGraph(GenericGraph_pyx):
           row of the matrix corresponds to the `i`-th vertex in the ordering of
           ``vertices``, otherwise, the `i`-th row of the matrix corresponds to
           the `i`-th vertex in the ordering given by method :meth:`vertices`.
+
+        - ``edges`` -- list (default: ``None``); when specified, the `i`-th
+          column of the matrix corresponds to the `i`-th edge in the ordering of
+          ``edges``, otherwise, the `i`-th column of the matrix corresponds to
+          the `i`-th edge in the ordering given by method :meth:`edge_iterator`.
 
         EXAMPLES::
 
@@ -2037,18 +2043,53 @@ class GenericGraph(GenericGraph_pyx):
 
         A different ordering of the vertices::
 
-            sage: graphs.PathGraph(5).incidence_matrix()
+            sage: P5 = graphs.PathGraph(5)
+            sage: P5.incidence_matrix()
             [1 0 0 0]
             [1 1 0 0]
             [0 1 1 0]
             [0 0 1 1]
             [0 0 0 1]
-            sage: graphs.PathGraph(5).incidence_matrix(vertices=[2, 4, 1, 3, 0])
+            sage: P5.incidence_matrix(vertices=[2, 4, 1, 3, 0])
             [0 1 1 0]
             [0 0 0 1]
             [1 1 0 0]
             [0 0 1 1]
             [1 0 0 0]
+
+        A different ordering of the edges::
+
+            sage: E = list(P5.edge_iterator(labels=False))
+            sage: P5.incidence_matrix(edges=E[::-1])
+            [0 0 0 1]
+            [0 0 1 1]
+            [0 1 1 0]
+            [1 1 0 0]
+            [1 0 0 0]
+            sage: P5.incidence_matrix(vertices=[2, 4, 1, 3, 0], edges=E[::-1])
+            [0 1 1 0]
+            [1 0 0 0]
+            [0 0 1 1]
+            [1 1 0 0]
+            [0 0 0 1]
+
+        TESTS::
+
+            sage: P5 = graphs.PathGraph(5)
+            sage: P5.incidence_matrix(vertices=[1] * P5.order())
+            Traceback (most recent call last):
+            ...
+            ValueError: ``vertices`` must be a permutation of the vertices
+            sage: P5.incidence_matrix(edges=[(0, 1)] * P5.size())
+            Traceback (most recent call last):
+            ...
+            ValueError: ``edges`` must be a permutation of the edges
+            sage: P5.incidence_matrix(edges=P5.edges(sort=False, labels=True))
+            [1 0 0 0]
+            [1 1 0 0]
+            [0 1 1 0]
+            [0 0 1 1]
+            [0 0 0 1]
         """
         if oriented is None:
             oriented = self.is_directed()
@@ -2059,20 +2100,37 @@ class GenericGraph(GenericGraph_pyx):
               set(vertices) != set(self.vertex_iterator())):
             raise ValueError("``vertices`` must be a permutation of the vertices")
 
+        verts = {v: i for i, v in enumerate(vertices)}
+        if edges is None:
+            edges = self.edge_iterator(labels=False)
+        elif len(edges) != self.size():
+            raise ValueError("``edges`` must be a permutation of the edges")
+        else:
+            # We check that we have the same set of unlabeled edges
+            if oriented:
+                i_edges = [(verts[e[0]], verts[e[1]]) for e in edges]
+                s_edges = [(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
+            else:
+                def reorder(u, v):
+                    return (u, v) if u <= v else (v, u)
+                i_edges = [reorder(verts[e[0]], verts[e[1]]) for e in edges]
+                s_edges = [reorder(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
+            if sorted(i_edges) != sorted(s_edges):
+                raise ValueError("``edges`` must be a permutation of the edges")
+
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
         m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
-        verts = {v: i for i, v in enumerate(vertices)}
 
         if oriented:
-            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
-                if i != j:
-                    m[verts[i],e] = -1
-                    m[verts[j],e] = +1
+            for i, e in enumerate(edges):
+                if e[0] != e[1]:
+                    m[verts[e[0]], i] = -1
+                    m[verts[e[1]], i] = +1
         else:
-            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
-                m[verts[i],e] += 1
-                m[verts[j],e] += 1
+            for i, e in enumerate(edges):
+                m[verts[e[0]], i] += 1
+                m[verts[e[1]], i] += 1
 
         return m
 
@@ -3045,21 +3103,23 @@ class GenericGraph(GenericGraph_pyx):
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
             seen = dict()
-            for u,v,l in self.multiple_edges(sort=False):
-                if not (u,v) in seen:
+            keep_min = keep_label == 'min'
+            keep_max = keep_label == 'max'
+            for u, v, l in self.multiple_edges(sort=False):
+                if (u, v) not in seen:
                     # This is the first time we see this edge
-                    seen[u,v] = l
+                    seen[u, v] = l
                 else:
                     # This edge has already been seen: we have to remove
                     # something from the graph.
-                    oldl = seen[u,v]
-                    if ((keep_label == 'min' and l < oldl) or (keep_label == 'max' and l > oldl)):
+                    oldl = seen[u, v]
+                    if (keep_min and l < oldl) or (keep_max and l > oldl):
                         # Keep the new edge, delete the old one
-                        self.delete_edge((u, v, oldl))
-                        seen[u,v] = l
+                        self.delete_edge(u, v, oldl)
+                        seen[u, v] = l
                     else:
                         # Delete the new edge
-                        self.delete_edge((u, v, l))
+                        self.delete_edge(u, v, l)
 
         self._backend.multiple_edges(new)
 
@@ -4370,7 +4430,7 @@ class GenericGraph(GenericGraph_pyx):
                 v = next(self.vertex_iterator())
             else:
                 v = starting_vertex
-            sorted_edges = self.edges(key=wfunction_float)
+            sorted_edges = sorted(self.edges(sort=False), key=wfunction_float)
             tree = set([v])
             edges = []
             for _ in range(self.order() - 1):
@@ -9543,119 +9603,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-    def dominating_set(self, independent=False, total=False, value_only=False, solver=None, verbose=0):
-        r"""
-        Return a minimum dominating set of the graph.
-
-        A minimum dominating set `S` of a graph `G` is a set of its vertices of
-        minimal cardinality such that any vertex of `G` is in `S` or has one of
-        its neighbors in `S`. See the :wikipedia:`Dominating_set`.
-
-        As an optimization problem, it can be expressed as:
-
-        .. MATH::
-
-            \mbox{Minimize : }&\sum_{v\in G} b_v\\
-            \mbox{Such that : }&\forall v \in G, b_v+\sum_{(u,v)\in G.edges()} b_u\geq 1\\
-            &\forall x\in G, b_x\mbox{ is a binary variable}
-
-        INPUT:
-
-        - ``independent`` -- boolean (default: ``False``); when ``True``,
-          computes a minimum independent dominating set, that is a minimum
-          dominating set that is also an independent set (see also
-          :meth:`~sage.graphs.graph.independent_set`)
-
-        - ``total`` -- boolean (default: ``False``); when ``True``, computes a
-          total dominating set (see the See the :wikipedia:`Dominating_set`)
-
-        - ``value_only`` -- boolean (default: ``False``); whether to only return
-          the cardinality of the computed dominating set, or to return its list
-          of vertices (default)
-
-        - ``solver`` -- (default: ``None``); specifies a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
-          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
-          :class:`MixedIntegerLinearProgram
-          <sage.numerical.mip.MixedIntegerLinearProgram>`.
-
-        - ``verbose`` -- integer (default: ``0``); sets the level of
-          verbosity. Set to 0 by default, which means quiet.
-
-        EXAMPLES:
-
-        A basic illustration on a ``PappusGraph``::
-
-           sage: g = graphs.PappusGraph()
-           sage: g.dominating_set(value_only=True)
-           5
-
-        If we build a graph from two disjoint stars, then link their centers we
-        will find a difference between the cardinality of an independent set and
-        a stable independent set::
-
-           sage: g = 2 * graphs.StarGraph(5)
-           sage: g.add_edge(0, 6)
-           sage: len(g.dominating_set())
-           2
-           sage: len(g.dominating_set(independent=True))
-           6
-
-        The total dominating set of the Petersen graph has cardinality 4::
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.dominating_set(total=True, value_only=True)
-            4
-
-        The dominating set is calculated for both the directed and undirected
-        graphs (modification introduced in :trac:`17905`)::
-
-            sage: g = digraphs.Path(3)
-            sage: g.dominating_set(value_only=True)
-            2
-            sage: g = graphs.PathGraph(3)
-            sage: g.dominating_set(value_only=True)
-            1
-
-        """
-        self._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)
-
-        from sage.numerical.mip import MixedIntegerLinearProgram
-        g = self
-        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b = p.new_variable(binary=True)
-
-        # For any vertex v, one of its neighbors or v itself is in
-        # the minimum dominating set. If g is directed, we use the
-        # in neighbors of v instead.
-
-        neighbors_iter = g.neighbor_in_iterator if g.is_directed() else g.neighbor_iterator
-
-        if total:
-            # We want a total dominating set
-            for v in g:
-                p.add_constraint(p.sum(b[u] for u in neighbors_iter(v)), min=1)
-        else:
-            for v in g:
-                p.add_constraint(b[v] + p.sum(b[u] for u in neighbors_iter(v)), min=1)
-
-        if independent:
-            # no two adjacent vertices are in the set
-            for u,v in g.edge_iterator(labels=None):
-                p.add_constraint(b[u] + b[v], max=1)
-
-        # Minimizes the number of vertices used
-        p.set_objective(p.sum(b[v] for v in g))
-
-        if value_only:
-            return Integer(round(p.solve(objective_only=True, log=verbose)))
-        else:
-            p.solve(log=verbose)
-            b = p.get_values(b)
-            return [v for v in g if b[v] == 1]
-
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
                  weight_function=None, dangling=None, algorithm=None):
         r"""
@@ -11526,7 +11473,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def edges(self, labels=True, sort=True, key=None):
         r"""
-        Return a list of edges.
+        Return a :class:`~EdgesView` of edges.
 
         Each edge is a triple ``(u, v, l)`` where ``u`` and ``v`` are vertices
         and ``l`` is a label. If the parameter ``labels`` is ``False`` then a
@@ -11546,7 +11493,7 @@ class GenericGraph(GenericGraph_pyx):
           one argument and returns a value that can be used for comparisons in
           the sorting algorithm
 
-        OUTPUT: A list of tuples. It is safe to change the returned list.
+        OUTPUT: A :class:`~EdgesView`.
 
         .. WARNING::
 
@@ -11605,7 +11552,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.edges(sort=False, key=lambda x: x)
             Traceback (most recent call last):
             ...
-            ValueError: sort keyword is False, yet a key function is given
+            ValueError: sort keyword is not True, yet a key function is given
 
             sage: G = Graph()
             sage: G.add_edge(0, 1, [7])
@@ -11613,13 +11560,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edge_label(0, 1)[0] += 1
             sage: G.edges()
             [(0, 1, [8]), (0, 2, [7])]
+
+        Deprecation warning for ``sort=None`` (:trac:`27408`)::
+
+            sage: G = graphs.HouseGraph()
+            sage: G.edges(sort=None)
+            doctest:...: DeprecationWarning: parameter 'sort' will be set to False by default in the future
+            See https://trac.sagemath.org/27408 for details.
+            [(0, 1, None), (0, 2, None), (1, 3, None), (2, 3, None), (2, 4, None), (3, 4, None)]
         """
-        if (not sort) and key:
-            raise ValueError('sort keyword is False, yet a key function is given')
-        L = list(self.edge_iterator(labels=labels))
-        if sort:
-            L.sort(key=key)
-        return L
+        if sort is None:
+            deprecation(27408, "parameter 'sort' will be set to False by default in the future")
+            sort = True
+        return EdgesView(self, labels=labels, sort=sort, key=key)
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
         r"""
@@ -16685,9 +16638,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 # Needed to remove labels.
                 if self.is_directed():
-                    G = networkx.DiGraph(self.edges(labels=False, sort=False))
+                    G = networkx.DiGraph(list(self.edges(labels=False, sort=False)))
                 else:
-                    G = networkx.Graph(self.edges(labels=False, sort=False))
+                    G = networkx.Graph(list(self.edges(labels=False, sort=False)))
             G.add_nodes_from(self)
             return networkx.single_source_dijkstra_path(G, u)
 
@@ -16908,9 +16861,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 # Needed to remove labels.
                 if self.is_directed():
-                    G = networkx.DiGraph(self.edges(labels=False, sort=False))
+                    G = networkx.DiGraph(list(self.edges(labels=False, sort=False)))
                 else:
-                    G = networkx.Graph(self.edges(labels=False, sort=False))
+                    G = networkx.Graph(list(self.edges(labels=False, sort=False)))
             G.add_nodes_from(self)
             return networkx.single_source_dijkstra_path_length(G, u)
 
@@ -17805,7 +17758,6 @@ class GenericGraph(GenericGraph_pyx):
             [0, 2, 1]
 
         """
-        from sage.misc.superseded import deprecation
         if distance is not None:
             deprecation(19227, "Parameter 'distance' is broken. Do not use.")
 
@@ -21222,7 +21174,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph({0: {1: None, 2: None}, 1: {0: None, 2: None}, 2: {0: None, 1: None, 3: 'foo'}, 3: {2: 'foo'}}, sparse=True)
             sage: tempfile = os.path.join(SAGE_TMP, 'temp_graphviz')
             sage: G.graphviz_to_file_named(tempfile, edge_labels=True)
-            sage: print(open(tempfile).read())
+            sage: with open(tempfile) as f:
+            ....:     print(f.read())
             graph {
               node_0  [label="0"];
               node_1  [label="1"];
@@ -21235,7 +21188,8 @@ class GenericGraph(GenericGraph_pyx):
               node_2 -- node_3 [label="foo"];
             }
         """
-        open(filename, 'wt').write(self.graphviz_string(**options))
+        with open(filename, 'wt') as file:
+            file.write(self.graphviz_string(**options))
 
     ### Spectrum
 
@@ -23408,6 +23362,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import is_cut_vertex
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
+    from sage.graphs.domination import dominating_set
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
     from sage.graphs.path_enumeration import shortest_simple_paths
     from sage.graphs.path_enumeration import all_paths

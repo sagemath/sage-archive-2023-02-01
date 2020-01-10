@@ -3335,7 +3335,7 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
-          ``fontsize`` has been explicitely set in the construction of
+          ``fontsize`` has been explicitly set in the construction of
           ``graphics`` (in this case, it is not overwritten here)
 
         OUTPUT:

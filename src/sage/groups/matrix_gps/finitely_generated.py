@@ -574,7 +574,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: Psmaller.degree()
             80
 
-        ..  NOTE::
+        .. NOTE::
 
             In this case, the "smaller" option returned an isomorphic
             group of lower degree. The above example used GAP's library
@@ -583,7 +583,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             "Irreducible Maximal Finite Integral Matrix Groups" in the
             GAP reference manual has more details.
 
-        ..  NOTE::
+        .. NOTE::
 
             Concerning the option ``algorithm='smaller'`` you should note
             the following from GAP documentation: "The methods used might

@@ -2051,7 +2051,7 @@ class FindStatCollection(Element):
 
     def __hash__(self):
         """
-        Returns a hash value for the collection.
+        Return a hash value for the collection.
 
         EXAMPLES::
 
@@ -2822,7 +2822,7 @@ class FindStatMap(Element):
 
     def __hash__(self):
         """
-        Returns a hash value for the map.
+        Return a hash value for the map.
 
         EXAMPLES::
 

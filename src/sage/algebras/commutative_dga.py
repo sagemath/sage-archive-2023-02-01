@@ -102,6 +102,7 @@ from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.misc.cachefunc import cached_function
 
+
 def sorting_keys(element):
     r"""
     Auxiliary function to sort the elements of a basis of a Cohomology group.
@@ -1208,7 +1209,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
     def _coerce_map_from_(self, other):
         r"""
-        Returns ``True`` if there is a coercion map from ``R`` to ``self``.
+        Return ``True`` if there is a coercion map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -1725,7 +1726,7 @@ class GCAlgebra_multigraded(GCAlgebra):
 
     def _coerce_map_from_(self, other):
         r"""
-        Returns ``True`` if there is a coercion map from ``R`` to ``self``.
+        Return ``True`` if there is a coercion map from ``R`` to ``self``.
 
         EXAMPLES::
 

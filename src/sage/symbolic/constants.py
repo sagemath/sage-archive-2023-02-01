@@ -233,6 +233,9 @@ register_symbol(infinity, {'maxima':'inf'})
 register_symbol(minus_infinity, {'maxima':'minf'})
 register_symbol(unsigned_infinity, {'maxima':'infinity'})
 register_symbol(I, {'mathematica':'I'})
+register_symbol(True, {'giac':'true', 'mathematica':'True', 'maxima':'true'})
+register_symbol(False, {'giac':'false', 'mathematica':'False',
+                        'maxima':'false'})
 
 
 def unpickle_Constant(class_name, name, conversions, latex, mathml, domain):

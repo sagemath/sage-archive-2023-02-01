@@ -1018,16 +1018,16 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             return 1
         return -2  # that's supposed to be an error value.
 
-    def bool(self):
+    def __bool__(self):
         """
         Return whether this polymake element is equal to ``True``.
 
         EXAMPLES::
 
             sage: from sage.interfaces.polymake import polymake
-            sage: polymake(0).bool()                # optional polymake
+            sage: bool(polymake(0))                # optional polymake
             False
-            sage: polymake(1).bool()                # optional polymake
+            sage: bool(polymake(1))                # optional polymake
             True
 
         """
@@ -1035,6 +1035,8 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         t = P._true_symbol()
         cmd = '{} {} {};'.format(self._name, P._equality_symbol(), t)
         return P.get(cmd) == t
+
+    __nonzero__ = __bool__
 
     def known_properties(self):
         """

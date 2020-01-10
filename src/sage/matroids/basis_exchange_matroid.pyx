@@ -2183,7 +2183,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _isomorphism(self, other):
         """
-        Returns an isomorphism form ``self`` to ``other``, if one exists.
+        Return an isomorphism form ``self`` to ``other``, if one exists.
 
         Internal version that performs no checks on input.
 
@@ -2425,13 +2425,16 @@ cdef class BasisExchangeMatroid(Matroid):
             pointerX += 1
         return True
 
+
 cdef bint nxksrd(bitset_s* b, long n, long k, bint succ):
     """
-    Next size-k subset of a size-n set in a revolving-door sequence. It will
-    cycle through all such sets, returning each set exactly once. Each
-    successive set differs from the last in exactly one element.
+    Next size-k subset of a size-n set in a revolving-door sequence.
 
-    Returns ``True`` if there is a next set, ``False`` otherwise.
+    It will cycle through all such sets, returning each set exactly
+    once. Each successive set differs from the last in exactly one
+    element.
+
+    This returns ``True`` if there is a next set, ``False`` otherwise.
     """
     # next k-subset of n-set in a revolving-door sequence
     if n == k or k == 0:

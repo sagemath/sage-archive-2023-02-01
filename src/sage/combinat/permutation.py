@@ -3917,9 +3917,9 @@ class Permutation(CombinatorialElement):
             sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3])) # indirect doctest
             [[2, 4, 5, 1, 3], [2, 4, 1, 5, 3], [2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
         """
-        if len(self) != len(other) :
+        if len(self) != len(other):
             raise ValueError("len({}) and len({}) must be equal".format(self, other))
-        if not self.permutohedron_lequal(other) :
+        if not self.permutohedron_lequal(other):
             raise ValueError("{} must be lower or equal than {} for the right permutohedron order".format(self, other))
         d = DiGraph()
         d.add_vertices(range(1, len(self) + 1))
@@ -4253,11 +4253,11 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: P=Permutations(6)
-            sage: p=P([4,5,1,6,3,2])
-            sage: pl= [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
+            sage: P = Permutations(6)
+            sage: p = P([4,5,1,6,3,2])
+            sage: pl = [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
             sage: for q in pl:
-            ....:     s=p.simion_schmidt(q)
+            ....:     s = p.simion_schmidt(q)
             ....:     print("{} {}".format(s, s.has_pattern(q)))
             [4, 6, 1, 5, 3, 2] False
             [4, 2, 1, 3, 5, 6] False
@@ -4981,12 +4981,12 @@ class Permutation(CombinatorialElement):
             sage: Permutation([2, 4, 1, 3]).shifted_concatenation(Permutation([3, 1, 2]), "left")
             [7, 5, 6, 2, 4, 1, 3]
         """
-        if side == "right" :
+        if side == "right":
             return Permutations()(list(self) + [a + len(self) for a in other])
-        elif side == "left" :
+        elif side == "left":
             return Permutations()([a + len(self) for a in other] + list(self))
-        else :
-            raise ValueError("%s must be \"left\" or \"right\"" %(side))
+        else:
+            raise ValueError("%s must be \"left\" or \"right\"" % side)
 
     def shifted_shuffle(self, other):
         r"""

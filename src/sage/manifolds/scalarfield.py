@@ -1277,7 +1277,7 @@ class ScalarField(CommutativeAlgebraElement):
                 return False
             try:
                 other = self.parent()(other)  # conversion to a scalar field
-            except TypeError:
+            except Exception:
                 return False
         if other._domain != self._domain:
             return False

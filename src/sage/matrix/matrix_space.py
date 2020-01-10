@@ -1985,8 +1985,8 @@ class MatrixSpace(UniqueRepresentation, Parent):
         Check that this works for sparse matrices::
 
             sage: M = MatrixSpace(ZZ, 1000, 1000, sparse=True).an_element()
-            sage: M.density()
-            99/1000000
+            sage: 96 <= M.density() * 10^6 <= 99
+            True
         """
         from .args import MatrixArgs
         dim = self.dimension()

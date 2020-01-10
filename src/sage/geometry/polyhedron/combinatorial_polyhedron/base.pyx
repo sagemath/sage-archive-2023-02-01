@@ -1318,8 +1318,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         Return the dimension in case of a simplex.
 
-        A polytope `P` is `k`-simple, if for every face `F`
-        of codimension `k` the polytope `P/F` is simple.
+        A polytope `P` is `k`-simple, if every `(d-1-k)`-face
+        is contained in exactly `k+1` facets of `P` for `1 <= k <= d-1`.
 
         Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
 
@@ -1354,7 +1354,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if not self.is_bounded():
             raise NotImplementedError("must be bounded")
-        cdef FaceIterator face_iter = self._face_iter(True, -2)
+        cdef FaceIterator coface_iter = self._face_iter(True, -2)
         cdef int d
         cdef int dim = self.dimension()
 
@@ -1365,18 +1365,18 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef simplicity = dim - 1
 
         # For each coface in the iterator, check if its a simplex.
-        face_iter.lowest_dimension = 2 # every coface of dimension 1 is a simplex
-        d = face_iter.next_dimension()
+        coface_iter.lowest_dimension = 2 # every coface of dimension 1 is a simplex
+        d = coface_iter.next_dimension()
         while (d < dim):
             sig_check()
-            if face_iter.n_atom_rep() == d + 1:
-                # The current face is a simplex.
-                face_iter.ignore_supfaces()
+            if coface_iter.n_atom_rep() == d + 1:
+                # The current coface is a simplex.
+                coface_iter.ignore_supfaces()
             else:
                 # Current coface is not a simplex.
                 if simplicity > d - 1:
                     simplicity = d - 1
-            d = face_iter.next_dimension()
+            d = coface_iter.next_dimension()
             if simplicity == 1:
                 # Every polytope is 1-simple.
                 d = dim

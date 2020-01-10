@@ -931,6 +931,9 @@ ext_modules = [
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
+    Extension('sage.modular.hypergeometric_misc',
+              sources = ['sage/modular/hypergeometric_misc.pyx']),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx']),
 

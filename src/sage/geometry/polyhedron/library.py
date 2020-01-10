@@ -88,7 +88,7 @@ from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from .constructor import Polyhedron
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
-
+from sage.categories.cartesian_product import cartesian_product
 
 def zero_sum_projection(d, base_ring=RDF):
     r"""
@@ -2672,8 +2672,8 @@ class Polytopes():
           possible inputs:
          
             - '0,1' -- (string). Return the 0/1 cube.
-            - a list of 3 lists of length 2. The cube will be a product of 
-              these three intervals.
+            - a list of ``dim`` lists of length 2. The cube will be a product of 
+              these intervals.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -2690,13 +2690,12 @@ class Polytopes():
             16
             sage: four_cube.ehrhart_polynomial()    # optional - latte_int
             16*t^4 + 32*t^3 + 24*t^2 + 8*t + 1
-            t^4 + 4*t^3 + 6*t^2 + 4*t + 1
 
         Return the `0/1` hypercube of dimension 4::
 
             sage: z_cube = polytopes.hypercube(4,intervals = '0,1')
             sage: z_cube.vertices()[0]
-            [0, 0, 0, 0]
+            A vertex at (0, 0, 0, 0)
             sage: z_cube.is_simple()
             True
             sage: z_cube.base_ring()
@@ -2710,13 +2709,16 @@ class Polytopes():
         [0,3]^4::
 
             sage: t_cube = polytopes.hypercube(4, intervals = [[0,3]]*4)
-            sage: t_cube == 4*polytopes.hypercube(4, intervals = '0,1')
+            sage: t_cube == 3*polytopes.hypercube(4, intervals = '0,1')
             True
 
         If the dimension ``dim`` is not equal to the length of intervals, an
         error is raised::
 
             sage: u_cube = polytopes.hypercube(2,intervals = [[0,1],[0,2],[0,3]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the dimension of the hypercube must match the number of intervals
 
         TESTS::
 
@@ -2729,12 +2731,12 @@ class Polytopes():
         elif intervals == '0,1':
             cp = list(itertools.product([0,1], repeat=dim))
         elif len(intervals) == dim:
-            cp = list(itertools.product(intervals))
+            cp = list(cartesian_product(intervals))
         else:
             raise ValueError("the dimension of the hypercube must match the number of intervals")
         return Polyhedron(vertices=cp, backend=backend)
 
-    def cube(self, intervals_list=None, backend=None):
+    def cube(self, intervals=None, backend=None):
         r"""
         Return the cube.
 
@@ -2750,7 +2752,7 @@ class Polytopes():
 
         INPUT:
 
-        - ``intervals_list`` -- list (default=None). It takes the following 
+        - ``intervals`` -- list (default=None). It takes the following 
           possible inputs:
           
             - '0,1' -- (string). Return the 0/1 cube.
@@ -2780,18 +2782,18 @@ class Polytopes():
 
         Return the 0/1 cube::
 
-            sage: cc = polytopes.cube(intervals_list ='0,1')
+            sage: cc = polytopes.cube(intervals ='0,1')
             sage: cc.vertices_list()
-                [[-1, -1, -1],
-                 [-1, -1, 1],
-                 [-1, 1, -1],
-                 [-1, 1, 1],
-                 [1, -1, -1],
-                 [1, -1, 1],
-                 [1, 1, -1],
-                 [1, 1, 1]]
+                [[0, 0, 0],
+                [0, 0, 1],
+                [0, 1, 0],
+                [0, 1, 1],
+                [1, 0, 0],
+                [1, 0, 1],
+                [1, 1, 0],
+                [1, 1, 1]]  
         """
-        return self.hypercube(3, backend=backend, intervals_list=intervals_list)
+        return self.hypercube(3, backend=backend, intervals=intervals)
 
     def cross_polytope(self, dim, backend=None):
         r"""

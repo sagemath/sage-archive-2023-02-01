@@ -825,7 +825,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                             p_SetExp(mon, pos+1, m[pos], _ring)
                         p_Setm(mon, _ring)
                         #we can use "_m" because we're merging a monomial and
-                        #"Merge" because this monomial is different from the rest 
+                        #"Merge" because this monomial is different from the rest
                         sBucket_Merge_m(bucket, mon)
                     e=0
                     #we can use "Merge" because the monomials are distinct
@@ -4501,12 +4501,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
     def reduce(self,I):
         """
-        Return a remainder of this polynomial modulo the 
+        Return a remainder of this polynomial modulo the
         polynomials in ``I``.
-        
+
         INPUT:
 
-        - ``I`` - an ideal or a list/set/iterable of polynomials. 
+        - ``I`` - an ideal or a list/set/iterable of polynomials.
 
         OUTPUT:
 
@@ -4522,12 +4522,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
         - ``I`` is an ideal, and Sage can compute a Groebner basis of it.
 
         - ``I`` is a list/set/iterable that is a (strong) Groebner basis
-          for the term order of ``self``. (A strong Groebner basis is 
+          for the term order of ``self``. (A strong Groebner basis is
           such that for every leading term ``t`` of the ideal generated
           by ``I``, there exists an element ``g`` of ``I`` such that the
           leading term of ``g`` divides ``t``.)
 
-        The result ``r`` is implementation-dependent (and possibly 
+        The result ``r`` is implementation-dependent (and possibly
         order-dependent) otherwise. If ``I`` is an ideal and no Groebner
         basis can be computed, its list of generators ``I.gens()`` is
         used for the reduction.
@@ -4562,7 +4562,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f.reduce([2*x,y])
             3*x
 
-        The reduction is not canonical when ``I`` is not a Groebner 
+        The reduction is not canonical when ``I`` is not a Groebner
         basis::
 
             sage: A.<x,y> = QQ[]

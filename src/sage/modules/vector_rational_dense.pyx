@@ -1,5 +1,5 @@
 """
-Vectors with rational entries.
+Vectors with rational entries
 
 AUTHOR:
 

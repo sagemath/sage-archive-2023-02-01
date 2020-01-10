@@ -101,16 +101,16 @@ class GroupMixinLibGAP(object):
         """
         return self.gap().IsSolvableGroup().sage()
 
-    def is_super_solvable(self):
+    def is_supersolvable(self):
         r"""
-        Return whether this group is super solvable.
+        Return whether this group is supersolvable.
 
         EXAMPLES::
 
             sage: from sage.groups.libgap_group import GroupLibGAP
-            sage: GroupLibGAP(libgap.SymmetricGroup(3)).is_super_solvable()
+            sage: GroupLibGAP(libgap.SymmetricGroup(3)).is_supersolvable()
             True
-            sage: GroupLibGAP(libgap.SymmetricGroup(4)).is_super_solvable()
+            sage: GroupLibGAP(libgap.SymmetricGroup(4)).is_supersolvable()
             False
         """
         return self.gap().IsSupersolvableGroup().sage()

@@ -355,7 +355,7 @@ cdef class CombinatorialFace(SageObject):
             (0, (0,))
             (1, (0, 1))
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`ambient_V_indices`.
         """
@@ -408,7 +408,7 @@ cdef class CombinatorialFace(SageObject):
             (0, (0,))
             (1, (0, 1))
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`ambient_Vrepresentation`.
         """
@@ -532,7 +532,7 @@ cdef class CombinatorialFace(SageObject):
              An inequality (-154, 71, -14, 1) x + 120 >= 0,
              An inequality (-78, 49, -12, 1) x + 40 >= 0)
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`ambient_H_indices`.
         """
@@ -582,7 +582,7 @@ cdef class CombinatorialFace(SageObject):
             sage: face.ambient_H_indices()
             (4, 5, 7)
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`ambient_Hrepresentation`.
         """

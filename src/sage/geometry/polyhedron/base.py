@@ -5782,7 +5782,6 @@ class Polyhedron_base(Element):
 
         return (polar.polar(in_affine_span=True)) + barycenter
 
-    @cached_method
     def face_lattice(self):
         """
         Return the face-lattice poset.
@@ -5816,31 +5815,11 @@ class Polyhedron_base(Element):
 
         ALGORITHM:
 
-        For a full-dimensional polytope, the basic algorithm is
-        described in
-        :func:`~sage.geometry.hasse_diagram.lattice_from_incidences`.
-        There are three generalizations of [KP2002]_ necessary to deal
-        with more general polytopes, corresponding to the extra
-        H/V-representation objects:
+        See :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`.
 
-        * Lines are removed before calling
-          :func:`lattice_from_incidences`, and then added back
-          to each face V-representation except for the "empty face".
+        .. NOTE::
 
-        * Equations are removed before calling
-          :func:`lattice_from_incidences`, and then added back
-          to each face H-representation.
-
-        * Rays: Consider the half line as an example. The
-          V-representation objects are a point and a ray, which we can
-          think of as a point at infinity. However, the point at
-          infinity has no inequality associated to it, so there is
-          only one H-representation object alltogether. The face
-          lattice does not contain the "face at infinity". This means
-          that in :func:`lattice_from_incidences`, one needs to
-          drop faces with V-representations that have no matching
-          H-representation. In addition, one needs to ensure that
-          every non-empty face contains at least one vertex.
+            The face lattice is not cached, as it would create a memory leak.
 
         EXAMPLES::
 
@@ -5849,7 +5828,7 @@ class Polyhedron_base(Element):
             Finite lattice containing 10 elements with distinguished linear extension
             sage: list(f.ambient_V_indices() for f in fl)
             [(), (0,), (1,), (2,), (3,), (0, 1), (1, 2), (2, 3), (0, 3), (0, 1, 2, 3)]
-            sage: poset_element = fl[6]
+            sage: poset_element = fl[4]
             sage: a_face = poset_element
             sage: a_face
             A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 2 vertices
@@ -5915,41 +5894,21 @@ class Polyhedron_base(Element):
             [[()], [(0, 1)]]
             sage: [[ls.ambient_V_indices() for ls in lss] for lss in Polyhedron(lines=[(1,0)], vertices=[(0,0)]).face_lattice().level_sets()]
             [[()], [(0, 1)]]
+
+        Test that face lattice give no memory leak::
+
+            sage: import gc
+            sage: P = polytopes.cube()
+            sage: a = P.face_lattice()
+            sage: n = get_memory_usage()
+            sage: P = polytopes.cube()
+            sage: a = P.face_lattice()
+            sage: _ = gc.collect()
+            sage: n == get_memory_usage()
+            True
         """
-        coatom_to_Hindex = [ h.index() for h in self.inequality_generator() ]
-        Hindex_to_coatom = [None] * self.n_Hrepresentation()
-        for i in range(len(coatom_to_Hindex)):
-            Hindex_to_coatom[ coatom_to_Hindex[i] ] = i
-
-        atom_to_Vindex = [ v.index() for v in self.Vrep_generator() if not v.is_line() ]
-        Vindex_to_atom = [None] * self.n_Vrepresentation()
-        for i in range(len(atom_to_Vindex)):
-                        Vindex_to_atom[ atom_to_Vindex[i] ] = i
-
-        atoms_incidences   = [ tuple([ Hindex_to_coatom[h.index()]
-                                       for h in v.incident() if h.is_inequality() ])
-                               for v in self.Vrepresentation() if not v.is_line() ]
-
-        coatoms_incidences = [ tuple([ Vindex_to_atom[v.index()]
-                                       for v in h.incident() if not v.is_line() ])
-                               for h in self.Hrepresentation() if h.is_inequality() ]
-
-        atoms_vertices = [ Vindex_to_atom[v.index()] for v in self.vertex_generator() ]
-        equations = [ e.index() for e in self.equation_generator() ]
-        lines     = [ l.index() for l in self.line_generator() ]
-
-        def face_constructor(atoms, coatoms):
-            from sage.geometry.polyhedron.face import PolyhedronFace
-            if not atoms:
-                Vindices = ()
-            else:
-                Vindices = tuple(sorted([atom_to_Vindex[i] for i in atoms] + lines))
-            Hindices = tuple(sorted([coatom_to_Hindex[i] for i in coatoms] + equations))
-            return PolyhedronFace(self, Vindices, Hindices)
-
-        from sage.geometry.hasse_diagram import lattice_from_incidences
-        return lattice_from_incidences(atoms_incidences, coatoms_incidences,
-             face_constructor=face_constructor, required_atoms=atoms_vertices)
+        from sage.combinat.posets.lattices import FiniteLatticePoset
+        return FiniteLatticePoset(self.hasse_diagram(), sorted(self.hasse_diagram().vertices()))
 
     @cached_method
     def hasse_diagram(self):

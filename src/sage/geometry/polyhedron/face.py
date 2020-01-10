@@ -382,14 +382,14 @@ class PolyhedronFace(SageObject):
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0,
              An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
-            (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
-            (An inequality (0, -1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0)
-            (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0,)
-            (An inequality (0, -1) x + 1 >= 0,)
-            (An inequality (1, 0) x + 1 >= 0,)
-            (An inequality (0, 1) x + 1 >= 0,)
             ()
+            (An inequality (0, 1) x + 1 >= 0,)
+            (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
+            (An inequality (0, -1) x + 1 >= 0,)
+            (An inequality (0, -1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0)
+            (An inequality (1, 0) x + 1 >= 0,)
+            (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
         """
         if index is None:
             return self._ambient_Hrepresentation
@@ -421,16 +421,17 @@ class PolyhedronFace(SageObject):
             sage: for fl in square.face_lattice():
             ....:     print(fl.ambient_Vrepresentation())
             ()
+            ()
             (A vertex at (1, -1),)
-            (A vertex at (1, 1),)
-            (A vertex at (-1, 1),)
-            (A vertex at (-1, -1),)
             (A vertex at (1, -1), A vertex at (1, 1))
-            (A vertex at (1, 1), A vertex at (-1, 1))
-            (A vertex at (-1, 1), A vertex at (-1, -1))
-            (A vertex at (1, -1), A vertex at (-1, -1))
             (A vertex at (1, -1), A vertex at (1, 1),
              A vertex at (-1, 1), A vertex at (-1, -1))
+            (A vertex at (1, -1), A vertex at (-1, -1))
+            (A vertex at (1, 1),)
+            (A vertex at (1, 1), A vertex at (-1, 1))
+            (A vertex at (-1, 1),)
+            (A vertex at (-1, 1), A vertex at (-1, -1))
+            (A vertex at (-1, -1),)
         """
         if index is None:
             return self._ambient_Vrepresentation
@@ -451,7 +452,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[10]
+            sage: face = p.face_lattice()[12]
             sage: face
             A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices
             sage: face.ambient_Hrepresentation()
@@ -478,7 +479,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[10]
+            sage: face = p.face_lattice()[12]
             sage: face
             A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices
             sage: face.ambient_Vrepresentation()
@@ -569,7 +570,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: fl = polytopes.dodecahedron().face_lattice()
-            sage: [ x.dim() for x in fl ]
+            sage: sorted([ x.dim() for x in fl ])
             [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
@@ -808,5 +809,10 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
         H_indices += tuple(x for x in combinatorial_face.ambient_H_indices())
     else:
         raise NotImplementedError("unknown backend")
+
+    if polyhedron.dimension() == 0:
+        # In case of the 0-dimensional polyhedron,
+        # there is a facets but no inequality.
+        H_indices = tuple(range(n_equations))
 
     return PolyhedronFace(polyhedron, V_indices, H_indices)

@@ -1004,6 +1004,130 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             inner_product_matrix=self.inner_product_matrix(),
             already_echelonized=False)
 
+    def maximal_overlattice(self, p=None):
+        r"""
+        Return a maximal even integral overlattice of this lattice.
+
+        INPUT:
+
+        - ``p`` -- (default:``None``) if given return an overlattice
+          `M` of this lattice `L` that is maximal at `p` and the
+          completions `M_q = L_q` are equal for all primes `q \neq p`.
+
+        If `p` is `2` or ``None``, then the lattice must be even.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4").twist(25*89)
+            sage: L.maximal_overlattice().determinant()
+            5
+            sage: L.maximal_overlattice(89).determinant().factor()
+            5^9
+            sage: L.maximal_overlattice(5).determinant().factor()
+            5 * 89^4
+
+        TESTS::
+
+            sage: L = IntegralLattice(matrix.diagonal([2,4,4,8]))
+            sage: L.maximal_overlattice().is_even()
+            True
+
+        """
+        # this code is somewhat slow but it works
+        # it might speed up things to use the algorithms given in
+        # https://arxiv.org/abs/1208.2481
+        # and trac:11940
+        if not self.is_even() and (p is None or p==2):
+            raise ValueError("This lattice must be even to admit an even overlattice")
+        from sage.rings.all import GF
+        L = self
+        if p is None:
+            P = ZZ(self.determinant()).prime_factors()
+        else:
+            P = ZZ(p).prime_factors()
+        # even case
+        if 2 in P:
+            # create an isotropic subspace by rescaling
+            # the generators
+            D = L.discriminant_group(2)
+            isotropic = []
+            for b in D.gens():
+                e = b.additive_order()
+                v = e.valuation(2)
+                q = b.q().lift()
+                delta = (q*e) % 2
+                b = 2**((e.valuation(2)/2).ceil() + delta)*b.lift()
+                isotropic.append(b)
+            L = L.overlattice(isotropic)
+            D = L.discriminant_group()
+            # now L is of exponent at most 4.
+            if D.cardinality() > 512:
+                D = D.normal_form(partial=True)
+            isotropic = []
+            # extract an isotropic space spanned by
+            # a subset of the generators of D
+            i = 0
+            while i < len(D.gens()):
+                t = D.gens()[i]
+                if t.q() == 0 and all(t.b(g) == 0 for g in isotropic):
+                    isotropic.append(t)
+                i += 1
+            isotropic = [g.lift() for g in isotropic]
+            L = L.overlattice(isotropic)
+            D = L.discriminant_group(2)
+            # clean up whatever is left by brute force
+            while D.cardinality().valuation(2) > 1:
+                for t in D:
+                    if t != 0 and t.q() == 0:
+                        break
+                if t.q() != 0 :
+                    # no isotropic vector left
+                    break
+                L = L.overlattice([t.lift()])
+                D = L.discriminant_group(2)
+        # odd case
+        for p in P:
+            if p == 2:
+                continue
+            # go squarefree
+            D = L.discriminant_group(p).normal_form()
+            isotropic = [p**(-b.q().lift().valuation(p)/2).ceil()*b.lift() for b in D.gens()]
+            L = L.overlattice(isotropic)
+            # now the p-discriminant_group is a vector space
+            while True:
+                d = L.discriminant_group(p).gram_matrix_bilinear().det()
+                v = -d.valuation(p)
+                u = d.numerator()
+                if v <= 1 or (v == 2 and ZZ(-1).kronecker(p) != u.kronecker(p)):
+                    # the lattice is already maximal at p
+                    break
+                # diagonalize the gram matrix
+                D = L.discriminant_group(p).normal_form(partial=True)
+                gen = D.gens()
+                G = D.gram_matrix_quadratic().diagonal()
+                k = GF(p)
+                a = k(G[0].numerator())
+                b = k(G[1].numerator())
+                if (-b/a).is_square():
+                    # solve:  a*x^2 + b *y^2  = 0
+                    x = (-b/a).sqrt()
+                    y = 1
+                    t = ZZ(x)*gen[0] + ZZ(y)*gen[1]
+                else:
+                    # or solve a*x^2 + b*y^2 + c = 0
+                    # we know the rank is at least 3
+                    c = k(G[2].numerator())
+                    # brute force to find a suitable y
+                    # very fast
+                    for y in GF(p):
+                        x = (-c - b*y**2)/a
+                        if x.is_square():
+                            x = x.sqrt()
+                            break
+                    t = ZZ(x)*gen[0] + ZZ(y)*gen[1] + ZZ(1)*gen[2]
+                L = L.overlattice([t.lift()])
+        return L
+
     def orthogonal_group(self, gens=None, is_finite=None):
         """
         Return the orthogonal group of this lattice as a matrix group.

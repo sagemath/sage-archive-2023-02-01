@@ -262,7 +262,7 @@ class ParentLibGAP(SageObject):
 
     def gap(self):
         """
-        Returns the gap representation of self
+        Return the gap representation of self.
 
         OUTPUT:
 
@@ -323,7 +323,7 @@ class ParentLibGAP(SageObject):
 
     def _repr_(self):
         """
-        Return a string representation
+        Return a string representation.
 
         OUTPUT:
 
@@ -341,7 +341,7 @@ class ParentLibGAP(SageObject):
     @cached_method
     def gens(self):
         """
-        Returns the generators of the group.
+        Return the generators of the group.
 
         EXAMPLES::
 
@@ -398,7 +398,7 @@ class ParentLibGAP(SageObject):
     @cached_method
     def one(self):
         """
-        Returns the identity element of self
+        Return the identity element of self.
 
         EXAMPLES::
 
@@ -414,7 +414,7 @@ class ParentLibGAP(SageObject):
 
     def _an_element_(self):
         """
-        Returns an element of self.
+        Return an element of self.
 
         EXAMPLES::
 
@@ -480,7 +480,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
 
     cpdef GapElement gap(self):
         """
-        Returns a LibGAP representation of the element
+        Return a LibGAP representation of the element.
 
         OUTPUT:
 

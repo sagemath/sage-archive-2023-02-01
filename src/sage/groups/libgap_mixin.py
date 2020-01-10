@@ -52,11 +52,12 @@ class GroupMixinLibGAP(object):
 
     def is_abelian(self):
         r"""
-        Test whether the group is Abelian.
+        Return whether the group is Abelian.
 
         OUTPUT:
 
-        Boolean. ``True`` if this group is an Abelian group.
+        Boolean. ``True`` if this group is an Abelian group and ``False``
+        otherwise.
 
         EXAMPLES::
 
@@ -473,7 +474,7 @@ class GroupMixinLibGAP(object):
 
     def character(self, values):
         r"""
-        Returns a group character from ``values``, where ``values`` is
+        Return a group character from ``values``, where ``values`` is
         a list of the values of the character evaluated on the conjugacy
         classes.
 
@@ -503,7 +504,7 @@ class GroupMixinLibGAP(object):
 
     def trivial_character(self):
         r"""
-        Returns the trivial character of this group.
+        Return the trivial character of this group.
 
         OUTPUT: a group character
 
@@ -526,7 +527,7 @@ class GroupMixinLibGAP(object):
 
     def character_table(self):
         r"""
-        Returns the matrix of values of the irreducible characters of this
+        Return the matrix of values of the irreducible characters of this
         group `G` at its conjugacy classes.
 
         The columns represent the conjugacy classes of

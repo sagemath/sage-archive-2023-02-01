@@ -2660,7 +2660,7 @@ class Polytopes():
         Return a hypercube of the given dimension.
 
         The ``dim``-dimensional hypercube is by default the convex hull of the
-        `2^``dim`` ` `\pm 1` vectors in `\RR^d`. Alternatively, it is the 
+        `2^``dim`` ` `\pm 1` vectors in `\RR^d`. Alternatively, it is the
         product of ``dim`` line segments given in the ``intervals``. For more
         information see the article :wikipedia:`Hypercube`.
 
@@ -2670,9 +2670,9 @@ class Polytopes():
 
         - ``intervals`` -- (default = None). It takes the following
           possible inputs:
-         
+
             - '0,1' -- (string). Return the 0/1 cube.
-            - a list of ``dim`` lists of length 2. The cube will be a product of 
+            - a list of ``dim`` lists of length 2. The cube will be a product of
               these intervals.
 
         - ``backend`` -- the backend to use to create the polytope.
@@ -2705,7 +2705,7 @@ class Polytopes():
             sage: z_cube.ehrhart_polynomial()    # optional - latte_int
             t^4 + 4*t^3 + 6*t^2 + 4*t + 1
 
-        Return the 4-dimensional combinatorial cube that is the product of 
+        Return the 4-dimensional combinatorial cube that is the product of
         [0,3]^4::
 
             sage: t_cube = polytopes.hypercube(4, intervals = [[0,3]]*4)
@@ -2741,9 +2741,9 @@ class Polytopes():
         Return the cube.
 
         The cube is the Platonic solid that is obtained as the convex hull of
-        the eight `\pm 1` vectors of length 3 (by default). Alternatively, the 
-        cube is the product of three intervals of length 2 from 
-        ``intervals_list``. It generalizes into other dimensions as the 
+        the eight `\pm 1` vectors of length 3 (by default). Alternatively, the
+        cube is the product of three intervals of length 2 from
+        ``intervals_list``. It generalizes into other dimensions as the
         hypercube.
 
         .. SEEALSO::
@@ -2752,11 +2752,12 @@ class Polytopes():
 
         INPUT:
 
-        - ``intervals`` -- list (default=None). It takes the following 
+        - ``intervals`` -- list (default=None). It takes the following
           possible inputs:
-          
+
             - '0,1' -- (string). Return the 0/1 cube.
-            - a list of 3 lists of length 2. The cube will be a product of 
+            - a list of 3 lists of length 2. The cube will be a product of
+
               these three intervals.
 
         - ``backend`` -- the backend to use to create the polytope. Options are
@@ -2791,7 +2792,7 @@ class Polytopes():
                 [1, 0, 0],
                 [1, 0, 1],
                 [1, 1, 0],
-                [1, 1, 1]]  
+                [1, 1, 1]]
         """
         return self.hypercube(3, backend=backend, intervals=intervals)
 

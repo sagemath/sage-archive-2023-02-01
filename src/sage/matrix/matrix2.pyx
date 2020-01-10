@@ -9502,7 +9502,7 @@ cdef class Matrix(Matrix1):
                 R[nnz, i] = 1
                 nnz = nnz + 1
         R = R[0:nnz]
-        if Bstar == []:
+        if not Bstar:
             Q = matrix(F, 0, self.nrows()).transpose()
         else:
             Q = matrix(F, Bstar).transpose()

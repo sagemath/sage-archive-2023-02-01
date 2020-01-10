@@ -2655,21 +2655,31 @@ class Polytopes():
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 0, 0, 1], exact=exact, backend=backend, regular=True)
 
-    def hypercube(self, dim, backend=None):
+    def hypercube(self, dim, intervals=None, backend=None):
         r"""
-        Return a hypercube in the given dimension.
+        Return a hypercube of the given dimension.
 
-        The `d` dimensional hypercube is the convex hull of the points `(\pm 1,
-        \pm 1, \ldots, \pm 1)` in `\RR^d`. For more information see
-        the :wikipedia:`Hypercube`.
+        The ``dim``-dimensional hypercube is by default the convex hull of the
+        `2^``dim`` ` `\pm 1` vectors in `\RR^d`. Alternatively, it is the 
+        product of ``dim`` line segments given in the ``intervals``. For more
+        information see the article :wikipedia:`Hypercube`.
 
         INPUT:
 
-        - ``dim`` -- integer. The dimension of the cube.
+        - ``dim`` -- integer. The dimension of the hypercube.
+
+        - ``intervals`` -- (default = None). It takes the following
+          possible inputs:
+         
+            - '0,1' -- (string). Return the 0/1 cube.
+            - a list of 3 lists of length 2. The cube will be a product of 
+              these three intervals.
 
         - ``backend`` -- the backend to use to create the polytope.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Create the `\pm 1` hypercube of dimension 4::
 
             sage: four_cube = polytopes.hypercube(4)
             sage: four_cube.is_simple()
@@ -2680,21 +2690,59 @@ class Polytopes():
             16
             sage: four_cube.ehrhart_polynomial()    # optional - latte_int
             16*t^4 + 32*t^3 + 24*t^2 + 8*t + 1
+            t^4 + 4*t^3 + 6*t^2 + 4*t + 1
+
+        Return the `0/1` hypercube of dimension 4::
+
+            sage: z_cube = polytopes.hypercube(4,intervals = '0,1')
+            sage: z_cube.vertices()[0]
+            [0, 0, 0, 0]
+            sage: z_cube.is_simple()
+            True
+            sage: z_cube.base_ring()
+            Integer Ring
+            sage: z_cube.volume()
+            1
+            sage: z_cube.ehrhart_polynomial()    # optional - latte_int
+            t^4 + 4*t^3 + 6*t^2 + 4*t + 1
+
+        Return the 4-dimensional combinatorial cube that is the product of 
+        [0,3]^4::
+
+            sage: t_cube = polytopes.hypercube(4, intervals = [[0,3]]*4)
+            sage: t_cube == 4*polytopes.hypercube(4, intervals = '0,1')
+            True
+
+        If the dimension ``dim`` is not equal to the length of intervals, an
+        error is raised::
+
+            sage: u_cube = polytopes.hypercube(2,intervals = [[0,1],[0,2],[0,3]])
 
         TESTS::
 
             sage: fc = polytopes.hypercube(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(fc).run(skip='_test_pickling')         # optional - pynormaliz
         """
-        return Polyhedron(vertices=list(itertools.product([1, -1], repeat=dim)), base_ring=ZZ, backend=backend)
+        # from sage.categories.cartesian_product import cartesian_product
+        if intervals is None:
+            cp = list(itertools.product([-1,1], repeat=dim))
+        elif intervals == '0,1':
+            cp = list(itertools.product([0,1], repeat=dim))
+        elif len(intervals) == dim:
+            cp = list(itertools.product(intervals))
+        else:
+            raise ValueError("the dimension of the hypercube must match the number of intervals")
+        return Polyhedron(vertices=cp, backend=backend)
 
-    def cube(self, backend=None):
+    def cube(self, intervals_list=None, backend=None):
         r"""
         Return the cube.
 
         The cube is the Platonic solid that is obtained as the convex hull of
-        the points `(\pm 1, \pm 1, \pm 1)`. It generalizes into several
-        dimension into hypercubes.
+        the eight `\pm 1` vectors of length 3 (by default). Alternatively, the 
+        cube is the product of three intervals of length 2 from 
+        ``intervals_list``. It generalizes into other dimensions as the 
+        hypercube.
 
         .. SEEALSO::
 
@@ -2702,9 +2750,23 @@ class Polytopes():
 
         INPUT:
 
-        - ``backend`` -- the backend to use to create the polytope.
+        - ``intervals_list`` -- list (default=None). It takes the following 
+          possible inputs:
+          
+            - '0,1' -- (string). Return the 0/1 cube.
+            - a list of 3 lists of length 2. The cube will be a product of 
+              these three intervals.
+
+        - ``backend`` -- the backend to use to create the polytope. Options are
+          None or 'normaliz'.
+
+        OUTPUT:
+
+        The cube as a polyhedron object.
 
         EXAMPLES::
+
+        Return the `\pm 1` cube::
 
             sage: c = polytopes.cube()
             sage: c
@@ -2715,8 +2777,21 @@ class Polytopes():
             8
             sage: c.plot()
             Graphics3d Object
+
+        Return the 0/1 cube::
+
+            sage: cc = polytopes.cube(intervals_list ='0,1')
+            sage: cc.vertices_list()
+                [[-1, -1, -1],
+                 [-1, -1, 1],
+                 [-1, 1, -1],
+                 [-1, 1, 1],
+                 [1, -1, -1],
+                 [1, -1, 1],
+                 [1, 1, -1],
+                 [1, 1, 1]]
         """
-        return self.hypercube(3, backend=backend)
+        return self.hypercube(3, backend=backend, intervals_list=intervals_list)
 
     def cross_polytope(self, dim, backend=None):
         r"""

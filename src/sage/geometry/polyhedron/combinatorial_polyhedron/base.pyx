@@ -86,8 +86,6 @@ AUTHOR:
 import numbers
 from sage.rings.integer             import Integer
 from sage.graphs.graph              import Graph
-from sage.graphs.digraph            import DiGraph
-from sage.combinat.posets.lattices  import FiniteLatticePoset
 from sage.geometry.polyhedron.base  import Polyhedron_base
 from sage.geometry.lattice_polytope import LatticePolytopeClass
 from sage.geometry.cone             import ConvexRationalPolyhedralCone
@@ -2187,7 +2185,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         OUTPUT:
 
-        - :class:'~sage.combinat.posets.lattices.FiniteLatticePoset'
+        - :class:`~sage.combinat.posets.lattices.FiniteLatticePoset`
 
         .. NOTE::
 
@@ -2197,10 +2195,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         .. WARNING::
 
             The labeling of the face lattice might depend on architecture
-            and implementation.
-            Relabeling the face lattice with
+            and implementation. Relabeling the face lattice with
             :meth:`CombinatorialPolyhedron.face_by_face_lattice_index` or
-             the properties obtained from this face will be platform independent
+            the properties obtained from this face will be platform independent.
 
         EXAMPLES::
 
@@ -2233,6 +2230,48 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.face_lattice().is_isomorphic(P.face_lattice())
             True
         """
+        from sage.combinat.posets.lattices import FiniteLatticePoset
+        return FiniteLatticePoset(self.hasse_diagram())
+
+    def hasse_diagram(self):
+        r"""
+        Return the hasse diagram of ``self``.
+
+        This is the hasse diagram of the poset of the faces of ``self``:
+        A directed graph consisting of a vertex for each face
+        and an edge for each minimal inclusion of faces.
+
+        .. NOTE::
+
+            The vertices of the hasse diagram are given by indices.
+            Use :meth:`CombinatorialPolyhedron.face_by_face_lattice_index`
+            to relabel.
+
+        .. WARNING::
+
+            The indices of the hasse diagram might depend on architecture
+            and implementation. Relabeling the face lattice with
+            :meth:`CombinatorialPolyhedron.face_by_face_lattice_index` or
+            the properties obtained from this face will be platform independent
+
+        EXAMPLES::
+
+            sage: P = polytopes.regular_polygon(4).pyramid()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: D = C.hasse_diagram(); D
+            Digraph on 20 vertices
+            sage: D.average_degree()
+            21/5
+            sage: D.relabel(C.face_by_face_lattice_index)
+            sage: dim_0_vert = D.vertices()[1:6]; dim_0_vert
+            [A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron]
+            sage: sorted(D.out_degree(vertices=dim_0_vert))
+            [3, 3, 3, 3, 4]
+        """
         if not self._face_lattice_incidences:
             # compute all incidences.
             self._compute_face_lattice_incidences()
@@ -2263,9 +2302,11 @@ cdef class CombinatorialPolyhedron(SageObject):
         edges = tuple((face_one(j), face_two(j))
                           for j in range(n_incidences))
 
-        V = tuple(range(sum(self._f_vector)))
+        V = tuple(smallInteger(i) for i in range(sum(self._f_vector)))
+
+        from sage.graphs.digraph import DiGraph
         D = DiGraph([V, edges], format='vertices_and_edges')
-        return FiniteLatticePoset(D)
+        return D
 
     def _face_lattice_dimension(self, index):
         r"""

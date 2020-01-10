@@ -704,7 +704,7 @@ class Polyhedron_base(Element):
              An inequality (0, 0, 1) x + 1 >= 0,
              An inequality (0, 1, 0) x + 1 >= 0,
              An inequality (1, 0, 0) x + 1 >= 0]
-            sage: G.automorphism_group().is_isomorphic(P.face_lattice().hasse_diagram().automorphism_group())
+            sage: G.automorphism_group().is_isomorphic(P.hasse_diagram().automorphism_group())
             True
             sage: O = polytopes.octahedron(); O
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
@@ -5951,6 +5951,34 @@ class Polyhedron_base(Element):
         return lattice_from_incidences(atoms_incidences, coatoms_incidences,
              face_constructor=face_constructor, required_atoms=atoms_vertices)
 
+    @cached_method
+    def hasse_diagram(self):
+        r"""
+        Return the hasse diagram of ``self``.
+
+        This is the hasse diagram of the poset of the faces of ``self``.
+
+        OUTPUT: a directed graph
+
+        EXAMPLES::
+
+            sage: P = polytopes.regular_polygon(4).pyramid()
+            sage: D = P.hasse_diagram(); D
+            Digraph on 20 vertices
+            sage: D.degree_polynomial()
+            x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
+        """
+        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
+        C = self.combinatorial_polyhedron()
+        D = C.hasse_diagram()
+
+        def index_to_polyhedron_face(n):
+            return combinatorial_face_to_polyhedral_face(
+                    self, C.face_by_face_lattice_index(n))
+
+        D.relabel(index_to_polyhedron_face)
+        return D
+
     def face_generator(self, face_dimension=None):
         r"""
         Return an iterator over the faces of given dimension.
@@ -8494,10 +8522,10 @@ class Polyhedron_base(Element):
 
         The automorphism group of the face lattice is isomorphic to the combinatorial automorphism group::
 
-            sage: CG = C.face_lattice().hasse_diagram().automorphism_group()
+            sage: CG = C.hasse_diagram().automorphism_group()
             sage: C.combinatorial_automorphism_group().is_isomorphic(CG)
             True
-            sage: QG = Q.face_lattice().hasse_diagram().automorphism_group()
+            sage: QG = Q.hasse_diagram().automorphism_group()
             sage: Q.combinatorial_automorphism_group().is_isomorphic(QG)
             True
 

@@ -127,6 +127,7 @@ List of Polyhedron methods
 
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.combinatorial_polyhedron` | the combinatorial polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_lattice` | the face lattice
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.hasse_diagram` | the hasse diagram
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.combinatorial_automorphism_group` | the automorphism group of the underlying combinatorial polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.graph`, :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_graph` | underlying graph
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_digraph` | digraph (orientation of edges determined by a linear form)

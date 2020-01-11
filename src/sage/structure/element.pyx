@@ -1046,7 +1046,7 @@ cdef class Element(SageObject):
             sage: a._cache_key()
             (Integer Ring, 'Generic element of a structure')
         """
-        return (self.parent(), str(self))
+        return self.parent(), str(self)
 
     ####################################################################
     # In a Cython or a Python class, you must define either _cmp_

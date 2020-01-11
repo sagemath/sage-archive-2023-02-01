@@ -1488,7 +1488,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
                     g = strongly_regular_graph(vv, k, l - 2*mu + k)
                     return twograph_descendant(g, next(g.vertex_iterator()),
                                                name=True)
-                return (la, v + 1)
+                return la, v + 1
     return
 
 

@@ -2713,7 +2713,7 @@ cdef class RingElement(ModuleElement):
             sage: Mod(-15, 37).abs()
             Traceback (most recent call last):
             ...
-            ArithmeticError: absolute valued not defined on integers modulo n.
+            ArithmeticError: absolute value not defined on integers modulo n.
         """
         return abs(self)
 

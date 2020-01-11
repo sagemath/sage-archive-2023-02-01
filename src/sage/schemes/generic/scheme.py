@@ -692,7 +692,7 @@ class Scheme(Parent):
             F1, psi = F.extension(i, map=True)
             S1 = self.change_ring(psi)
             a.append(len(S1.rational_points()))
-        return(a)
+        return a
 
     def zeta_function(self):
         r"""

@@ -503,7 +503,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: libgap(FreeGroup('a, b').an_element())
             a*b
             sage: type(libgap(FreeGroup('a, b').an_element()))
-            <class 'sage.libs.gap.element.GapElement'>
+            <type 'sage.libs.gap.element.GapElement'>
         """
         return self._libgap
 

@@ -950,7 +950,10 @@ class BinaryQF(SageObject):
             # Prop 6.10.5 in Buchmann Vollmer
             C = self.cycle(proper=False)
             if len(C) % 2:
-                return C
+                Cdouble = C + C
+                for i in range(len(C)):
+                    Cdouble[2*i+1] = Cdouble[2*i+1]._Tau()
+                return Cdouble
             else:
                 return C[:1] + [q._Tau() for q in C[1:]]
         if not hasattr(self, '_cycle_list'):

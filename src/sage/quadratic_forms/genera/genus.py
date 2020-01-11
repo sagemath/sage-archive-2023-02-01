@@ -111,7 +111,8 @@ def genera(sig_pair, determinant, max_scale=None, even=False):
             genera.append(G)
     # render the output deterministic for testing
     genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
-    return(genera)
+    return genera
+
 
 def _local_genera(p, rank, det_val, max_scale, even):
     r"""
@@ -210,7 +211,7 @@ def _local_genera(p, rank, det_val, max_scale, even):
                     # each equivalence class
                     if not g1 in symbols:
                         symbols.append(g1)
-    return(symbols)
+    return symbols
 
 
 def _blocks(b, even_only=False):

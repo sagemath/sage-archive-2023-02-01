@@ -758,7 +758,7 @@ class Magmas(Category_singleton):
                         sage: PvW0.one()
                         1
                     """
-                    return(self(self.realization_of().a_realization().one()))
+                    return self(self.realization_of().a_realization().one())
 
     class ParentMethods:
 

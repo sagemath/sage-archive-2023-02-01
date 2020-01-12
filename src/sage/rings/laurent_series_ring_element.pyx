@@ -800,6 +800,14 @@ cdef class LaurentSeries(AlgebraElement):
 
     def add_bigoh(self, prec):
         """
+        Return the truncated series at chosen precision ``prec``.
+
+        See also :meth:`O`.
+
+        INPUT:
+
+        - ``prec`` -- the precision of the series as an integer.
+
         EXAMPLES::
 
             sage: R.<t> = LaurentSeriesRing(QQ)
@@ -807,11 +815,20 @@ cdef class LaurentSeries(AlgebraElement):
             t^2 + t^3 + O(t^10)
             sage: f.add_bigoh(5)
             t^2 + t^3 + O(t^5)
+
+        TESTS:
+
+        Check that :trac:`28239` is fixed::
+
+            sage: (t^(-2)).add_bigoh(-1)
+            t^-2 + O(t^-1)
+            sage: (t^(-2)).add_bigoh(-3)
+            O(t^-3)
         """
         if prec == infinity or prec >= self.prec():
             return self
         P = self._parent
-        if not self:
+        if not self or prec < self.__n:
             return type(self)(P, P._power_series_ring(0, prec=0), prec)
         u = self.__u.add_bigoh(prec - self.__n)
         return type(self)(P, u, self.__n)
@@ -825,6 +842,8 @@ cdef class LaurentSeries(AlgebraElement):
         resulting Laurent series will have precision equal to the minimum of
         the precision of ``self`` and ``prec``. The term `O(q^\text{prec})` is the
         zero series with precision ``prec``.
+
+        See also :meth:`add_bigoh`.
 
         EXAMPLES::
 

@@ -2,9 +2,46 @@ r"""
 Puiseux Series Ring
 
 The ring of Puiseux series.
+
+AUTHORS:
+
+- Chris Swierczewski 2016: initial version on https://github.com/abelfunctions/abelfunctions/tree/master/abelfunctions
+- Frédéric Chapoton 2016: integration of code
+- Travis Scrimshaw, Sebastian Oehms 2019-2020: basic improvements and completions
+
+REFERENCES:
+
+- :wikipedia:`Puiseux_series`
 """
 
+
+# ****************************************************************************
+# MIT License
+#
+# Copyright (c) 2016 Chris Swierczewski
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ****************************************************************************
+
+
 from sage.misc.cachefunc import cached_method
+from sage.rings.infinity import infinity
 from sage.rings.puiseux_series_ring_element import PuiseuxSeries
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.ring import CommutativeRing
@@ -246,7 +283,7 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
 
     Element = PuiseuxSeries
 
-    def _element_constructor_(self, x, e=1):
+    def _element_constructor_(self, x, e=1, prec=infinity):
         r"""
         Construct a Puiseux series from ``x``.
 
@@ -254,6 +291,8 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
 
         - ``x`` -- an object that can be converted into a Puiseux series
         - ``e`` -- (default: ``1``) the ramification index of the series
+        - ``prec`` -- (default: ``infinity``) the precision of the series
+            as a rational number.
 
         EXAMPLES::
 
@@ -275,6 +314,10 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
             3 + 2*y + y^2 + 2*y^3 + O(y^5)
             sage: P(z) + y**(1/2)
             3 + y^(1/2) + 2*y + y^2 + 2*y^3 + O(y^5)
+
+            sage: from sage.modular.etaproducts import qexp_eta
+            sage: y^(1/24)*qexp_eta(P, prec=30)
+            y^(1/24) - y^(25/24) - y^(49/24) + y^(121/24) + y^(169/24) - y^(289/24) - y^(361/24) + y^(529/24) + y^(625/24) + O(y^(721/24))
         """
         P = parent(x)
 
@@ -300,7 +343,7 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
         else:
             l = self._laurent_series_ring(x)
 
-        return self.element_class(self, l, e=e)
+        return self.element_class(self, l, e=e).add_bigoh(prec)
 
     def _coerce_map_from_(self, P):
         r"""

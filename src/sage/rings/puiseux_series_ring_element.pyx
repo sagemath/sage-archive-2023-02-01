@@ -78,7 +78,43 @@ For example, you can perform arithmetic with Laurent series::
     sage: l = 3*x^(-2) + x^(-1) + 2 + x**3
     sage: r + l
     3*x^-2 + x^-1 + 3*x^(-1/5) + 2 + 7*x^(2/5) + 1/2*x + O(x^(6/5))
+
+AUTHORS:
+
+- Chris Swierczewski 2016: initial version on https://github.com/abelfunctions/abelfunctions/tree/master/abelfunctions
+- Frédéric Chapoton 2016: integration of code
+- Travis Scrimshaw, Sebastian Oehms 2019-2020: basic improvements and completions
+
+REFERENCES:
+
+- :wikipedia:`Puiseux_series`
 """
+
+
+# ****************************************************************************
+# MIT License
+#
+# Copyright (c) 2016 Chris Swierczewski
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ****************************************************************************
+
 from sage.arith.functions import lcm
 from sage.arith.misc import gcd
 from sage.ext.fast_callable import fast_callable
@@ -189,7 +225,10 @@ cdef class PuiseuxSeries(AlgebraElement):
             # ramification index can be reduced dividing by d
             e = e / d
             cf_ori = l.list()
-            cf = [cf_ori[d*i] for i in range((len(cf_ori)-1) / d + 1)]
+            if cf_ori:
+                cf = [cf_ori[d*i] for i in range((len(cf_ori)-1) / d + 1)]
+            else:
+                cf = cf_ori
             val = l.valuation() / d
             l = l.parent()(cf, n=val)
             if prec != infinity:
@@ -353,7 +392,7 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: R.<x> = PuiseuxSeriesRing(QQ)
             sage: p = x^(1/2) + 3/4 * x^(2/3)
             sage: q = 2*x^(1/3) + 3/4 * x^(2/5)
-            sage: p + q
+            sage: p + q                                        # indirect doctest
             2*x^(1/3) + 3/4*x^(2/5) + x^(1/2) + 3/4*x^(2/3)
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_m
@@ -375,7 +414,7 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: R.<x> = PuiseuxSeriesRing(QQ)
             sage: p = x^(1/2) + 3/4 * x^(2/3)
             sage: q = 2*x^(1/3) + 3/4 * x^(2/5)
-            sage: p - q
+            sage: p - q                                        # indirect doctest
             -2*x^(1/3) - 3/4*x^(2/5) + x^(1/2) + 3/4*x^(2/3)
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_m
@@ -397,7 +436,7 @@ cdef class PuiseuxSeries(AlgebraElement):
             sage: R.<x> = PuiseuxSeriesRing(QQ)
             sage: p = x^(1/2) + 3/4 * x^(2/3)
             sage: q = 2*x^(1/3) + 3/4 * x^(2/5)
-            sage: p * q
+            sage: p * q                                        # indirect doctest
             2*x^(5/6) + 3/4*x^(9/10) + 3/2*x + 9/16*x^(16/15)
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_r
@@ -411,9 +450,29 @@ cdef class PuiseuxSeries(AlgebraElement):
         return type(self)(self._parent, l, g)
 
     cpdef _rmul_(self, Element c):
+        """
+        Return the rigth scalar multiplication.
+
+        EXAMPLES::
+
+            sage: P.<y> = PuiseuxSeriesRing(ZZ)
+            sage: t = y^(-1/3) + O(y^(0))
+            sage: 5*t                                          # indirect doctest
+            5*y^(-1/3) + O(1)
+        """
         return type(self)(self._parent, self._l._rmul_(c), self._e)
 
     cpdef _lmul_(self, Element c):
+        """
+        Return the left scalar multiplication.
+
+        EXAMPLES::
+
+            sage: P.<y> = PuiseuxSeriesRing(Zp(3))
+            sage: t = y^(2/5) + O(y)
+            sage: 5*t                                          # indirect doctest
+            (2 + 3 + O(3^20))*y^(2/5) + O(y)
+        """
         return type(self)(self._parent, self._l._lmul_(c), self._e)
 
     cpdef _div_(self, right_r):
@@ -516,9 +575,31 @@ cdef class PuiseuxSeries(AlgebraElement):
         return richcmp(l_l, l_r, op)
 
     def __lshift__(self, r):
+        """
+        Applies :meth:`shift` using the operator `<<`
+
+        EXAMPLES::
+
+            sage: P.<y> = LaurentPolynomialRing(ZZ)
+            sage: R.<x> = PuiseuxSeriesRing(P)
+            sage: p = y*x**(-1/3) + 2*y^(-2)*x**(1/2)
+            sage: p << 1/3                             # indirect doctest
+            y + (2*y^-2)*x^(5/6)
+        """
         return self.shift(r)
 
     def __rshift__(self, r):
+        """
+        Applies :meth:`shift` with negative argument using the operator `>>`
+
+        EXAMPLES::
+
+            sage: P.<y> = LaurentPolynomialRing(ZZ)
+            sage: R.<x> = PuiseuxSeriesRing(P)
+            sage: p = y*x**(-1/3) + 2*y^(-2)*x**(1/2)
+            sage: p >> 1/3                             # indirect doctest
+            y*x^(-2/3) + (2*y^-2)*x^(1/6)
+        """
         return self.shift(-r)
 
     def __nonzero__(self):
@@ -626,6 +707,10 @@ cdef class PuiseuxSeries(AlgebraElement):
     def add_bigoh(self, prec):
         r"""
         Return the truncated series at chosen precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- the precision of the series as a rational number.
 
         EXAMPLES::
 
@@ -766,6 +851,16 @@ cdef class PuiseuxSeries(AlgebraElement):
         return [QQ(n) /  self._e for n in self._l.exponents()]
 
     def __setitem__(self, n, value):
+        """
+        EXAMPLES::
+
+            sage: R.<t> = PuiseuxSeriesRing(QQ)
+            sage: f = t^2 + t^3 + O(t^10)
+            sage: f[2] = 5
+            Traceback (most recent call last):
+            ...
+            IndexError: Puiseux series are immutable
+        """
         raise IndexError('Puiseux series are immutable')
 
     def degree(self):

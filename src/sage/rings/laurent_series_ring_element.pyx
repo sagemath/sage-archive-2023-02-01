@@ -746,7 +746,7 @@ cdef class LaurentSeries(AlgebraElement):
 
         INPUT:
 
-        - ``prec`` -- the precision of the series as an integer.
+        - ``prec`` -- the precision of the series as an integer
 
         EXAMPLES::
 
@@ -762,6 +762,8 @@ cdef class LaurentSeries(AlgebraElement):
 
             sage: (t^(-2)).add_bigoh(-1)
             t^-2 + O(t^-1)
+            sage: (t^(-2)).add_bigoh(-2)
+            O(t^-2)
             sage: (t^(-2)).add_bigoh(-3)
             O(t^-3)
         """

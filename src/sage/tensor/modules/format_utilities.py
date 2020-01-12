@@ -61,9 +61,9 @@ def is_atomic(expr, sep=['+', '-']):
         False
         sage: is_atomic("(a*b)", sep=['*'])
         True
-        sage: is_atomic(r"a<>b", sep=[r'<>'])
+        sage: is_atomic("a mod b", sep=['mod'])
         False
-        sage: is_atomic(r"(a<>b)", sep=[r'<>'])
+        sage: is_atomic("(a mod b)", sep=['mod'])
         True
 
     """

@@ -51,7 +51,6 @@ def is_Scheme(x):
     return isinstance(x, Scheme)
 
 
-
 class Scheme(Parent):
     r"""
     The base class for all schemes.

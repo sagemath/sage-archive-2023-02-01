@@ -949,7 +949,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         Field of tangent-space automorphisms R^(-1) on the 2-dimensional
          differentiable manifold R^2
         sage: latex(inv)
-        R
+        R^{-1}
         sage: inv[:]
         [1/2*sqrt(3)         1/2]
         [       -1/2 1/2*sqrt(3)]

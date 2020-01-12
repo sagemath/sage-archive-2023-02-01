@@ -42,11 +42,10 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
                                                                 polynomial_mandelbrot,
                                                                 julia_helper)
 
-from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import logb
-from sage.rings.all import QQ, CC, CDF
+from sage.rings.all import CC, CDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.prandom import randint
@@ -445,12 +444,14 @@ def julia_plot(f=None, **kwds):
 
     ALGORITHM:
 
-    For every `p \in \mathbb{C}`, if `|f^{k}(p)| > 2` for some `k \geq 0`,
-    then `f^{n}(p) \to \infty`. Let `N` be the maximum number of iterations.
+    Let `R_c = \bigl(1 + \sqrt{1 + 4|c|}\bigr)/2` if the polynomial is of the
+    form `f(z) = z^2 + c`; otherwise, let `R_c = 2`.
+    For every `p \in \mathbb{C}`, if `|f^{k}(p)| > R_c` for some `k \geq 0`,
+    then `f^{n}(p) \to \infty`.  Let `N` be the maximum number of iterations.
     Compute the first `N` points on the orbit of `p` under `f`. If for
-    any `k < N`, `|f^{k}(p)| > 2`, we stop the iteration and assign a color
+    any `k < N`, `|f^{k}(p)| > R_c`, we stop the iteration and assign a color
     to the point `p` based on how quickly `p` escaped to infinity under
-    iteration of `f`. If `|f^{i}(p)| \leq 2` for all `i \leq N`, we assume
+    iteration of `f`. If `|f^{i}(p)| \leq R_c` for all `i \leq N`, we assume
     `p` is in the Julia set and assign the point `p` the color black.
 
     INPUT:

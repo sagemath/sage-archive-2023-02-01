@@ -39,7 +39,11 @@ png_library_dirs = png_pc['library_dirs']
 png_include_dirs = png_pc['include_dirs']
 
 # zlib
-zlib_pc = pkgconfig.parse('zlib')
+try:
+    zlib_pc = pkgconfig.parse('zlib')
+except pkgconfig.PackageNotFoundError:
+    from collections import defaultdict
+    zlib_pc = defaultdict(list, {'libraries': ['z']})
 zlib_libs = zlib_pc['libraries']
 zlib_library_dirs = zlib_pc['library_dirs']
 zlib_include_dirs = zlib_pc['include_dirs']
@@ -1056,27 +1060,6 @@ ext_modules = [
     Extension("sage.numerical.backends.interactivelp_backend",
               ["sage/numerical/backends/interactivelp_backend.pyx"]),
 
-    OptionalExtension("sage.numerical.backends.gurobi_backend",
-              ["sage/numerical/backends/gurobi_backend.pyx"],
-              libraries = ["gurobi"],
-              condition = os.path.isfile(SAGE_INC + "/gurobi_c.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")),
-
-    OptionalExtension("sage.numerical.backends.cplex_backend",
-              ["sage/numerical/backends/cplex_backend.pyx"],
-              libraries = ["cplex"],
-              condition = os.path.isfile(SAGE_INC + "/cplex.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
-
-    OptionalExtension("sage.numerical.backends.coin_backend",
-              ["sage/numerical/backends/coin_backend.pyx"],
-              language = 'c++',
-              libraries = ["Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils",
-                           "OsiCbc", "OsiClp", "Osi"] + lapack_libs,
-              library_dirs = lapack_library_dirs,
-              include_dirs = lapack_include_dirs,
-              package = 'cbc'),
-
     ################################
     ##
     ## sage.plot
@@ -1523,6 +1506,11 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+
+    # Note that weil_polynomials includes distutils directives in order to support
+    # conditional OpenMP compilation (by uncommenting lines)
+    Extension('sage.rings.polynomial.weil.weil_polynomials',
+              sources = ['sage/rings/polynomial/weil/weil_polynomials.pyx']),
 
 
     ################################

@@ -67,10 +67,9 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import typecall
 from sage.misc.mrange import xmrange
 from sage.modules.free_module_element import vector
-from sage.rings.all import Integer, CIF
+from sage.rings.all import Integer
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
-from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
@@ -84,7 +83,7 @@ from sage.rings.padics.all import Qp
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.qqbar import QQbar, AlgebraicField_common
+from sage.rings.qqbar import QQbar
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -2346,7 +2345,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         return_points = kwds.get("return_points", False)
         numerical = kwds.get("numerical", False)
         prec = kwds.get("prec", 100)
-        display_labels = kwds.get("display_labels", True)
         display_complex = kwds.get("display_complex", False)
         digits = kwds.get("digits", 5)
         embed = kwds.get("embed", None)
@@ -3791,12 +3789,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             return X
         if X.dimension() == 0:
             if R in NumberFields() or R is QQbar or R in FiniteFields():
-                Z = f.indeterminacy_locus()
                 points = [dom(Q) for Q in X.rational_points()]
                 good_points = []
                 for Q in points:
                     #check if point is in indeterminacy
-                    if not all([F(list(Q)) == 0 for F in f]):
+                    if not all(F(list(Q)) == 0 for F in f):
                         good_points.append(Q)
                 points = good_points
                 if not minimal:

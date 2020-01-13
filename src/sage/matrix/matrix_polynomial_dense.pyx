@@ -2044,6 +2044,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
+            sage: F = Matrix([[(x+1)*(x+3)],[(x+1)*(x+3)+1]])
+            sage: F.minimal_kernel_basis()
+            [6*x^2 + 3*x + 3   x^2 + 4*x + 3]
+
+            sage: F = Matrix([[(x+1)*(x+3)],[(x+1)*(x+4)]])
+            sage: F.minimal_kernel_basis()
+            [6*x + 3   x + 3]
+
+            sage: F.minimal_kernel_basis(row_wise=False)
+            [6*x^2 + 3*x + 3   x^2 + 4*x + 3]
         """
         m = self.nrows()
         n = self.ncols()
@@ -2056,53 +2066,21 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         elif (not row_wise) and len(shifts) != n:
             raise ValueError('shifts length should be the column dimension')
 
-        # compute approximant basis
-        # if required, normalize it into shifted Popov form
+        # compute kernel basis
         if row_wise:
-            P,rdeg = self._approximant_basis_iterative(shifts)
-            if normal_form:
-                # compute the list "- pivot degree"
-                # (since weak Popov, pivot degree is rdeg-shifts entrywise)
-                # Note: -deg(P[i,i]) = shifts[i] - rdeg[i]
-                degree_shifts = [shifts[i] - rdeg[i] for i in range(m)]
-                # compute approximant basis with that list as shifts
-                P,rdeg = self._approximant_basis_iterative(degree_shifts)
-                # left-multiply by inverse of leading matrix
-                lmat = P.leading_matrix(shifts=degree_shifts)
-                P = lmat.inverse() * P
+            P = self._kernel_basis_via_approximant(shifts,normal_form)
         else:
-            P,rdeg = self.transpose()._approximant_basis_iterative(shifts)
-            if normal_form:
-                # compute the list "- pivot degree"
-                # (since weak Popov, pivot degree is rdeg-shifts entrywise)
-                degree_shifts = [shifts[i] - rdeg[i] for i in range(n)]
-                # compute approximant basis with that list as shifts
-                P,rdeg = self.transpose()._approximant_basis_iterative(degree_shifts)
-                P = P.transpose()
-                # right-multiply by inverse of leading matrix
-                lmat = P.leading_matrix(shifts=degree_shifts,row_wise=False)
-                P = P * lmat.inverse()
-            else:
-                P = P.transpose()
+            P = self.transpose()._kernel_basis_via_approximant(shifts,normal_form)
+            print P
 
         return P
 
-    def _kernel_basis_via_approximant(self, shifts, degree_bounds=None):
+    def _kernel_basis_via_approximant(self, shifts, normal_form=False):
         r"""
         Return a ``shifts``-ordered weak Popov kernel basis for this polynomial
         matrix (see :meth:`minimal_kernel_basis` for definitions). The output
         basis is considered row-wise, that is, its rows are in the left kernel
         of ``self``.
-
-        If ``degree_bounds`` is provided, it must be a list of integers such
-        that, if ``d`` is the list of column degrees of ``self`` shifted by
-        ``degree_bounds`` to which we add ``1`` entry-wise, then a
-        ``shifts``-minimal approximant basis of ``self`` at order ``d``
-        contains a ``shifts``-minimal kernel basis of ``self``. If this
-        argument is not provided, then general bounds are used; namely, we take
-        ``degree_bounds`` as the list $(c+a,\ldots,c+a)$ where $c$ is the sum
-        of column degrees of ``self`` and $a$ is the amplitude of ``shifts``
-        (i.e.  the difference between its maximum and its minimum).
 
         The input dimensions are supposed to be sound: the length of ``shifts``
         must be the number of rows of ``self``.
@@ -2111,48 +2089,38 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         - ``shifts`` -- a list of integers.
 
-        - ``degree_bounds`` -- (optional, default: ``None``) list of integers,
-          which must be either ``None`` or a list of bounds on the column
-          degrees of any `shifts`-minimal kernel basis of ``self``.
+        - ``normal_form`` -- (optional, default: ``False``) boolean, if
+          ``True`` then the output basis is in ``shifts``-Popov form.
 
         OUTPUT:
 
         - a polynomial matrix (the kernel basis ``P``).
-
-        - a list of integers (the shifts-row degree of ``P``).
-
-        - a list of integers (the shifts-leading positions of ``P``).
 
         ALGORITHM:
 
         This computes a `shifts`-minimal approximant basis at sufficiently
         large order so that a subset of the rows of this basis form a kernel
         basis. This subset is identified using degree properties.
-
-        EXAMPLES::
-
-            sage: pR.<x> = GF(7)[]
         """
         m = self.nrows()
         n = self.ncols()
         d = self.degree()
 
         if d is -1: # matrix is zero
-            return Matrix.identity(self.base_ring(), m, m), shifts, [i for i in range(m)]
+            return Matrix.identity(self.base_ring(), m, m)
 
         if m <= n and self(0).rank() == m: # early exit: kernel is empty
-            return Matrix.zero(self.base_ring(), 0, m), [], []
+            return Matrix(self.base_ring(), 0, m)
 
-        if degree_bounds==None:
-            # list of column degrees with zero columns discarded
-            cdeg = self.column_degrees()
-            cdeg = [cdeg[i] for i in range(n) if cdeg[i] >= 0]
-            # take general bound: bound on pivot degree + amplitude of shift
-            degree_bound = sum(cdeg)+max(shifts)-min(shifts)
-            degree_bounds = [degree_bound]*m
+        degree_bound = min(m,n)*d+max(shifts)
+        degree_bounds = [degree_bound - shifts[i] for i in range(m)]
 
         orders = self.column_degrees(degree_bounds)
         for i in range(n): orders[i] = orders[i]+1
 
-        P = self.minimal_approximant_basis(orders,shifts)
-        return P
+        P = self.minimal_approximant_basis(orders,shifts,True,normal_form)
+        row_indices = []
+        for i in range(m):
+            if P[i,i].degree() + shifts[i] <= degree_bound:
+                row_indices.append(i)
+        return P[row_indices,:]

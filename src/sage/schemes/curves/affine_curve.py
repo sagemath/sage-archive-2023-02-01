@@ -35,6 +35,43 @@ EXAMPLES::
     sage: C.function_field()
     Function field in z defined by z^9 + x^8 + x^6 + x^5 + x^4 + x^3 + x
 
+Closed points of arbitrary degree can be computed::
+
+    sage: C.closed_points()
+    [Point (x, y, z), Point (x + 1, y, z)]
+    sage: C.closed_points(2)
+    [Point (x^2 + x + 1, y + 1, z),
+     Point (y^2 + y + 1, x + y, z),
+     Point (y^2 + y + 1, x + y + 1, z)]
+    sage: p = _[0]
+    sage: p.places()
+    [Place (x^2 + x + 1, (1/(x^4 + x^2 + 1))*z^7 + (1/(x^4 + x^2 + 1))*z^6 + 1)]
+
+The places at infinity correspond to the extra closed points of the curve's
+projective closure::
+
+    sage: C.places_at_infinity()
+    [Place (1/x, 1/x*z)]
+
+It is easy to transit to and from the function field of the curve::
+
+    sage: fx = C(x)
+    sage: fy = C(y)
+    sage: fx^2 + fx - fy^3
+    0
+    sage: fx.divisor()
+    -9*Place (1/x, 1/x*z)
+     + 9*Place (x, z)
+    sage: p, = fx.zeros()
+    sage: C.place_to_closed_point(p)
+    Point (x, y, z)
+    sage: _.rational_point()
+    (0, 0, 0)
+    sage: _.closed_point()
+    Point (x, y, z)
+    sage: _.place()
+    Place (x, z)
+
 AUTHORS:
 
 - William Stein (2005-11-13)
@@ -59,6 +96,7 @@ AUTHORS:
 from __future__ import absolute_import
 
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 
 from sage.arith.misc import binomial
 from sage.interfaces.all import singular
@@ -69,11 +107,14 @@ from sage.categories.finite_fields import FiniteFields
 from sage.categories.homset import Hom, End, hom
 from sage.categories.number_fields import NumberFields
 
+from sage.matrix.all import matrix
+
 from sage.rings.all import degree_lowest_rational_function
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import number_field_elements_from_algebraics, QQbar
 from sage.rings.rational_field import is_RationalField
+from sage.rings.infinity import infinity
 
 from sage.schemes.affine.affine_space import AffineSpace, is_AffineSpace
 from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
@@ -85,6 +126,8 @@ from .point import (AffineCurvePoint_field,
                     AffinePlaneCurvePoint_finite_field,
                     IntegralAffineCurvePoint_finite_field,
                     IntegralAffinePlaneCurvePoint_finite_field)
+
+from .closed_point import IntegralAffineCurveClosedPoint
 
 
 class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
@@ -1782,6 +1825,8 @@ class IntegralAffineCurve(AffineCurve_field):
     """
     Base class for integral affine curves.
     """
+    _closed_point = IntegralAffineCurveClosedPoint
+
     def function_field(self):
         """
         Return the function field of the curve.
@@ -2069,6 +2114,151 @@ class IntegralAffineCurve_finite_field(IntegralAffineCurve):
         """
         return self._nonsingular_model[1].im_gens()
 
+    @lazy_attribute
+    def _singularities(self):
+        """
+        Return a list of the pairs of singular closed points and the places above it.
+
+        TESTS::
+
+            sage: A.<x,y> = AffineSpace(GF(7^2),2)
+            sage: C = Curve(x^2 - x^4 - y^4)
+            sage: C._singularities
+            [(Point (x, y),
+              [Place (x, 1/x*y^3 + 1/x*y^2 + 1), Place (x, 1/x*y^3 + 1/x*y^2 + 6)])]
+        """
+        to_F = self._lift_to_function_field
+        sing = self.singular_subscheme()
+
+        funcs = []
+        for p in sing.defining_polynomials():
+            f = to_F(p)
+            if not f.is_zero():
+                funcs.append(f)
+
+        if funcs:
+            f = funcs.pop()
+            places = f.zeros()
+            for f in funcs:
+                places = [p for p in places if f.valuation(p) > 0]
+        else:
+            places = []
+
+        points = []
+        for place in places:
+            p = self.place_to_closed_point(place)
+
+            for q, places in points:
+                if p == q:
+                    places.append(place)
+                    break
+            else: # new singularity
+                points.append((p, [place]))
+
+        return points
+
+    def singular_closed_points(self):
+        """
+        Return the singular closed points of the curve.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(7^2),2)
+            sage: C = Curve(x^2 - x^4 - y^4)
+            sage: C.singular_closed_points()
+            [Point (x, y)]
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(GF(11), 3)
+            sage: C = Curve([x*z - y^2, y - z^2, x - y*z], A)
+            sage: C.singular_closed_points()
+            []
+        """
+        return [p for p, _ in self._singularities]
+
+    @cached_method
+    def place_to_closed_point(self, place):
+        """
+        Return the closed point on the place.
+
+        INPUT:
+
+        - ``place`` -- a place of the function field of the curve
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(4), 2)
+            sage: C = Curve(x^5 + y^5 + x*y + 1)
+            sage: F = C.function_field()
+            sage: pls = F.places(1)
+            sage: C.place_to_closed_point(pls[-1])
+            Point (x + 1, y + 1)
+            sage: C.place_to_closed_point(pls[-2])
+            Point (x + 1, y + 1)
+        """
+        F = self.function_field()
+
+        A = self.ambient_space()
+        R = A.coordinate_ring().change_ring(order='degrevlex')
+
+        coords = self._coordinate_functions
+
+        if any(f.valuation(place) < 0 for f in coords):
+            raise ValueError("the place is at infinity")
+
+        k, from_k, to_k = place.residue_field()
+        V, from_V, to_V = k.vector_space(F.constant_base_field(), map=True)
+
+        # implement an FGLM-like algorithm
+        e = [0 for i in range(R.ngens())]
+        basis = [R.one()]
+        basis_vecs = [to_V(k.one())] # represent as a vector
+
+        gens = []
+        gens_lts = []
+        terminate = False
+        while True: # check FGLM termination condition
+            # compute next exponent in degree reverse lexicographical order
+            j = R.ngens() - 1
+            while j > 0 and not e[j]:
+                j -= 1
+
+            if not j: # j is zero
+                if terminate:
+                    break
+                terminate = True
+                d = e[0]
+                e[0] = 0
+                e[-1] = d + 1
+            else:
+                e[j] -= 1
+                e[j-1] += 1
+
+            m = R.monomial(*e)
+            if any(g.divides(m) for g in gens_lts):
+                continue
+
+            prod = 1
+            for i in range(R.ngens()):
+                prod *= coords[i]**e[i]
+            vec = to_V(to_k(prod)) # represent as a vector
+            mat = matrix(basis_vecs)
+            try:
+                s = mat.solve_left(vec)
+            except ValueError: # no solution
+                basis.append(m)
+                basis_vecs.append(vec)
+                terminate = False
+                continue
+
+            gens.append(m - sum([s[i] * basis[i] for i in range(len(basis))]))
+            gens_lts.append(m)
+
+        prime = R.ideal(gens).groebner_basis().ideal()
+
+        return self._closed_point(self, prime, len(basis))
+
     def places_at_infinity(self):
         """
         Return the places of the curve at infinity.
@@ -2089,6 +2279,58 @@ class IntegralAffineCurve_finite_field(IntegralAffineCurve):
             [Place (1/x, 1/x*z^2)]
         """
         return list(set(p for f in self._coordinate_functions if f for p in f.poles()))
+
+    def places_on(self, point):
+        """
+        Return the places on the closed point.
+
+        INPUT:
+
+        - ``point`` -- a closed point of the curve
+
+        OUTPUT: a list of the places of the function field of the curve
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(9)
+            sage: A.<x,y> = AffineSpace(k,2)
+            sage: C = Curve(y^2-x^5-x^4-2*x^3-2*x-2)
+            sage: pts = C.closed_points()
+            sage: pts
+            [Point (x, y + (a + 1)),
+             Point (x, y + (-a - 1)),
+             Point (x + (a + 1), y + (a - 1)),
+             Point (x + (a + 1), y + (-a + 1)),
+             Point (x - 1, y + (a + 1)),
+             Point (x - 1, y + (-a - 1)),
+             Point (x + (-a - 1), y + (a)),
+             Point (x + (-a - 1), y + (-a)),
+             Point (x + 1, y + 1),
+             Point (x + 1, y - 1)]
+            sage: p1, p2, p3 = pts[:3]
+            sage: C.places_on(p1)
+            [Place (x, y + a + 1)]
+            sage: C.places_on(p2)
+            [Place (x, y + 2*a + 2)]
+            sage: C.places_on(p3)
+            [Place (x + a + 1, y + a + 2)]
+
+        ::
+
+            sage: F.<a> = GF(8)
+            sage: P.<x,y,z> = ProjectiveSpace(F, 2)
+            sage: Cp = Curve(x^3*y + y^3*z + x*z^3)
+            sage: C = Cp.affine_patch(0)
+        """
+        phi = self._lift_to_function_field
+        gs = [phi(g) for g in point.prime_ideal().gens()]
+        fs = [g for g in gs if not g.is_zero()]
+        f = fs.pop()
+        places = []
+        for p in f.zeros():
+            if all(f.valuation(p) > 0 for f in fs):
+                places.append(p)
+        return places
 
     def places(self, degree=1):
         """
@@ -2135,6 +2377,80 @@ class IntegralAffineCurve_finite_field(IntegralAffineCurve):
         """
         F = self.function_field()
         return F.places(degree)
+
+    @cached_method(do_pickle=True)
+    def closed_points(self, degree=1):
+        """
+        Return a list of the closed points of ``degree`` of the curve.
+
+        INPUT:
+
+        - ``degree`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(7),2)
+            sage: C = Curve(x^2 - x^4 - y^4)
+            sage: C.closed_points()
+            [Point (x, y),
+             Point (x + 1, y),
+             Point (x + 2, y + 2),
+             Point (x + 2, y - 2),
+             Point (x - 2, y + 2),
+             Point (x - 2, y - 2),
+             Point (x - 1, y)]
+        """
+        F = self.function_field()
+        places_above = F.places(degree)
+
+        points = []
+
+        # consider singular points
+        for p in self.singular_closed_points():
+            if p.degree() == degree:
+                points.append(p)
+            for place in p.places():
+                if place.degree() == degree:
+                    places_above.remove(place)
+
+        for place in places_above:
+            try:
+                p = self.place_to_closed_point(place)
+            except ValueError: # place is at infinity
+                continue
+            assert p.degree() == degree # sanity check
+            points.append(p)
+
+        return points
+
+    def parametric_representation(self, place, name=None):
+        """
+        Return a power series representation of the branch of the
+        curve given by ``place``.
+
+        INPUT:
+
+        - ``place`` -- a place on the curve
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(7^2),2)
+            sage: C = Curve(x^2 - x^4 - y^4)
+            sage: p, = C.singular_closed_points()
+            sage: b1, b2 = p.places()
+            sage: xs, ys = C.parametric_representation(b1)
+            sage: f = xs^2 - xs^4 - ys^4
+            sage: [f.coefficient(i) for i in range(5)]
+            [0, 0, 0, 0, 0]
+            sage: xs, ys = C.parametric_representation(b2)
+            sage: f = xs^2 - xs^4 - ys^4
+            sage: [f.coefficient(i) for i in range(5)]
+            [0, 0, 0, 0, 0]
+        """
+        F = place.function_field()
+        F_place = F.completion(place, prec=infinity, name=name)
+
+        return tuple(F_place._expand_lazy(c) for c in self._coordinate_functions)
 
 
 class IntegralAffinePlaneCurve_finite_field(AffinePlaneCurve_finite_field, IntegralAffineCurve_finite_field):

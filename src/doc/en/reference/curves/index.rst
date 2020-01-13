@@ -9,6 +9,7 @@ Curves
    sage/schemes/curves/affine_curve
    sage/schemes/curves/projective_curve
    sage/schemes/curves/point
+   sage/schemes/curves/closed_point
 
    sage/schemes/jacobians/abstract_jacobian
 

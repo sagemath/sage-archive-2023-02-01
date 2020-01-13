@@ -179,7 +179,6 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
@@ -220,7 +219,6 @@ from sage.combinat.parking_functions import ParkingFunction, ParkingFunction_cla
 from sage.combinat.perfect_matching import PerfectMatching, PerfectMatchings
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.posets.posets import Poset, FinitePoset, Posets
-from sage.combinat.posets.poset_examples import posets
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux, StandardTableau, StandardTableaux
 from sage.combinat.set_partition import SetPartition, SetPartitions
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
@@ -231,19 +229,21 @@ from sage.combinat.words.abstract_word import Word_class
 
 ######################################################################
 # the FindStat URLs
-FINDSTAT_URL                        = 'http://www.findstat.org/'
-FINDSTAT_API                        = FINDSTAT_URL + "api/"
-FINDSTAT_API_COLLECTIONS            = FINDSTAT_API + 'CollectionsDatabase/'
-FINDSTAT_API_STATISTICS             = FINDSTAT_API + 'StatisticsDatabase/'
-FINDSTAT_API_MAPS                   = FINDSTAT_API + 'MapsDatabase/'
+FINDSTAT_URL                = 'http://www.findstat.org/'
+FINDSTAT_API                = FINDSTAT_URL + "api/"
+FINDSTAT_API_COLLECTIONS    = FINDSTAT_API + 'CollectionsDatabase/'
+FINDSTAT_API_STATISTICS     = FINDSTAT_API + 'StatisticsDatabase/'
+FINDSTAT_API_MAPS           = FINDSTAT_API + 'MapsDatabase/'
 
-FINDSTAT_URL_LOGIN                  = FINDSTAT_URL + "?action=login"
-FINDSTAT_URL_COLLECTIONS            = FINDSTAT_URL + 'CollectionsDatabase/'
-FINDSTAT_URL_STATISTICS             = FINDSTAT_URL + 'StatisticsDatabase/'
-FINDSTAT_URL_EDIT_STATISTIC         = FINDSTAT_URL + 'EditStatistic/'
-FINDSTAT_URL_NEW_STATISTIC          = FINDSTAT_URL + 'NewStatistic/'
-FINDSTAT_URL_MAPS                   = FINDSTAT_URL + 'MapsDatabase/'
-FINDSTAT_URL_EDIT_MAP               = FINDSTAT_URL + 'EditMap/'
+FINDSTAT_URL_LOGIN          = FINDSTAT_URL + "?action=login"
+FINDSTAT_URL_COLLECTIONS    = FINDSTAT_URL + 'CollectionsDatabase/'
+FINDSTAT_URL_STATISTICS     = FINDSTAT_URL + 'StatisticsDatabase/'
+FINDSTAT_URL_EDIT_STATISTIC = FINDSTAT_URL + 'EditStatistic/'
+FINDSTAT_URL_NEW_STATISTIC  = FINDSTAT_URL + 'NewStatistic/'
+FINDSTAT_URL_MAPS           = FINDSTAT_URL + 'MapsDatabase/'
+FINDSTAT_URL_EDIT_MAP       = FINDSTAT_URL + 'EditMap/'
+FINDSTAT_URL_NEW_MAP        = FINDSTAT_URL + 'NewMap/'
+
 
 ######################################################################
 # the number of values FindStat allows to search for at most
@@ -628,11 +628,13 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         sage: l = [pi for n in range(7) for pi in Permutations(n)]
         sage: q = findstat([(pi, pi.length()) for pi in l], depth=0); q         # optional -- internet, random
         0: St000018 (quality [100, 100])
+        1: St000000: a new statistic on Cc0001: Permutations
 
     or a dictionary::
 
         sage: p = findstat({pi: pi.length() for pi in l}, depth=0); p           # optional -- internet, random
         0: St000018 (quality [100, 100])
+        1: St000000: a new statistic on Cc0001: Permutations
 
     Note however, that the results of these two queries need not
     compare equal, because we compare queries by the data
@@ -652,6 +654,13 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         0: St000042 (quality [100, 100])
         1: St000041 (quality [9, 100])
         2: St000000: a new statistic on a subset of Cc0012: Perfect matchings
+
+    Alternatively, specify the ``distribution`` parameter::
+
+        sage: findstat(12, distribution=lambda pi: pi.number_of_nestings(), depth=0) # optional -- internet
+        0: St000041 (quality [100, 100])
+        1: St000042 (quality [100, 100])
+        2: St000000: a new statistic on Cc0012: Perfect matchings
 
     Note that there is a limit, ``FINDSTAT_MAX_VALUES``, on the number
     of elements that may be submitted to FindStat, which is currently
@@ -691,20 +700,17 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         1: St000000: a new statistic on Cc0002: Integer partitions
 
     """
-    if query is None and values is None and distribution is None:
-        return FindStat()
-
     try:
         depth = int(depth)
         assert 0 <= depth <= FINDSTAT_MAX_DEPTH
     except (ValueError, AssertionError):
-        raise ValueError("The depth of a FindStat query must be a non-negative integer less than or equal to %i." % FINDSTAT_MAX_DEPTH)
+        raise ValueError("the depth of a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_DEPTH)
 
     try:
         max_values = int(max_values)
         assert 0 <= max_values <= FINDSTAT_MAX_VALUES
     except (ValueError, AssertionError):
-        raise ValueError("The maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i." % FINDSTAT_MAX_VALUES)
+        raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
     def get_data(raw, domain=None):
@@ -739,19 +745,36 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         return all_data, data, domain, function
 
     ######################################################################
+    if query is None and values is None and distribution is None and domain is None:
+        return FindStat()
+
     if values is not None and distribution is not None:
-        raise ValueError("Not both of `values` and `distribution` may be given for a FindStat query.")
+        raise ValueError("not both of `values` and `distribution` may be given for a FindStat query")
 
     if values is None and distribution is None:
-        if isinstance(query, (Integer, string_types)):
-            return FindStatStatistic(query)
+        if query is None:
+            return FindStatStatistics(domain=domain)
+
+        if domain is None:
+            if isinstance(query, Integer):
+                return FindStatStatistic(query)
+
+            if isinstance(query, string_types):
+                if re.match(FINDSTAT_COLLECTION_REGEXP, query):
+                    return FindStatStatistics(domain=query)
+
+                return FindStatStatistic(query)
 
         values, query = query, None
 
-    if query is None:
-        domain = None
-    else:
-        domain = FindStatCollection(query)
+    if query is not None:
+        if domain is None:
+            domain, query = query, None
+        else:
+            raise ValueError("the given arguments cannot be used for a FindStat search")
+
+    if domain is not None:
+        domain = FindStatCollection(domain)
 
     if values is not None:
         if isinstance(values, (string_types, Integer)):
@@ -773,12 +796,12 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         return FindStatStatisticQuery(data=data, domain=domain, depth=depth,
                                       all_data=all_data, function=function)
 
-    raise ValueError("The given arguments cannot be used for a FindStat search.")
+    raise ValueError("the given arguments cannot be used for a FindStat search")
 
 ######################################################################
 
 def findmap(query=None, arg=None, values=None, distribution=None,
-             depth=FINDSTAT_DEFAULT_DEPTH, max_values=FINDSTAT_MAX_VALUES):
+            depth=FINDSTAT_DEFAULT_DEPTH, max_values=FINDSTAT_MAX_VALUES):
     r"""
     Return an instance of a :class:`FindStatStatistic`.
 
@@ -880,12 +903,6 @@ def findmap(query=None, arg=None, values=None, distribution=None,
     except (ValueError, AssertionError):
         raise ValueError("The maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i." % FINDSTAT_MAX_VALUES)
 
-    if query is None and arg is not None:
-        raise ValueError("arg may only be given if query is provided.")
-
-    if values is not None and distribution is not None:
-        raise ValueError("Not both of `values` and `distribution` may be given for a FindStat query.")
-
     check_collection = True
     def get_data(raw, domain=None, codomain=None):
         all_data, domain, codomain = _data_from_iterable(raw, domain=domain,
@@ -924,6 +941,11 @@ def findmap(query=None, arg=None, values=None, distribution=None,
         return all_data, data, domain, codomain, function
 
     ######################################################################
+    if query is None and arg is not None:
+        raise ValueError("arg may only be given if query is provided.")
+
+    if values is not None and distribution is not None:
+        raise ValueError("Not both of `values` and `distribution` may be given for a FindStat query.")
 
     if values is None and distribution is None:
         if arg is None:
@@ -1822,11 +1844,12 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         if domain is None:
             self._domain = None
             url = FINDSTAT_API_STATISTICS
-            self._all_statistics = {st: None for st in json.load(urlopen(url))["data"]}
         else:
             self._domain = FindStatCollection(domain)
             url = FINDSTAT_API_STATISTICS + "?Domain=%s" % self._domain.id_str()
-            self._all_statistics = {st: None for st in json.load(urlopen(url))["data"]}
+
+        # TODO: it may be better to make ths lazy
+        self._all_statistics = {st: None for st in json.load(urlopen(url))["data"]}
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, id):
@@ -2361,7 +2384,7 @@ class FindStatMap(Element, FindStatFunction):
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:
-            f.write(FINDSTAT_NEWMAP_FORM_HEADER % FINDSTAT_URL_NEW)
+            f.write(FINDSTAT_NEWMAP_FORM_HEADER % FINDSTAT_URL_NEW_MAP)
         else:
             f.write(FINDSTAT_NEWMAP_FORM_HEADER % (FINDSTAT_URL_EDIT_MAP+self.id_str()))
         for key, value in iteritems(args):
@@ -2947,7 +2970,7 @@ class FindStatCollection(Element):
                 g = self._sageconstructor_overridden
             else:
                 g = (x for x in self._sageconstructor_overridden
-                     if self.element_level(x) == element)
+                     if self.element_level(x) == level)
 
         return lazy_list(((x, function(x)) for x in g))
 

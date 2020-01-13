@@ -2660,7 +2660,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.to_tikz() == pp._to_tikz_bounce()
             False
             sage: pp.set_options(drawing_components=dict(
-            ....:     diagram= False, bounce_0=True)
+            ....:     diagram=False, bounce_0=True)
             ....: )
             sage: pp.to_tikz() == pp._to_tikz_bounce([0])
             True

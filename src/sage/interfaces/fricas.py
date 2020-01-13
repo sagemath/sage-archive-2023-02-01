@@ -1569,11 +1569,11 @@ class FriCASElement(ExpectElement):
         register_symbol(_convert_sum, {'fricas': 'sum'})
         register_symbol(_convert_prod, {'fricas': 'product'})
 
-        def explicitely_not_implemented(*args):
+        def explicitly_not_implemented(*args):
             raise NotImplementedError("the translation of the FriCAS Expression '%s' to sage is not yet implemented" % args)
 
-        register_symbol(lambda *args: explicitely_not_implemented("rootOfADE"), {'fricas': 'rootOfADE'})
-        register_symbol(lambda *args: explicitely_not_implemented("rootOfRec"), {'fricas': 'rootOfRec'})
+        register_symbol(lambda *args: explicitly_not_implemented("rootOfADE"), {'fricas': 'rootOfADE'})
+        register_symbol(lambda *args: explicitly_not_implemented("rootOfRec"), {'fricas': 'rootOfRec'})
 
         rootOf = dict()  # (variable, polynomial)
         rootOf_ev = dict()  # variable -> (complex) algebraic number

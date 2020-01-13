@@ -53,9 +53,11 @@ build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs
 		fi; )
 
 # This is used to monitor progress towards Python 3 and prevent
-# regressions. Should be removed after the full switch to python3
-buildbot-python3: configure
-	./configure --with-python=3
+# regressions. Should be removed after the full switch to python3.
+#
+# As of Sage 9.0: keep the build target for backward compatibility,
+# but it just runs "make".
+buildbot-python3:
 	$(MAKE)
 
 # Preemptively download all standard upstream source tarballs.
@@ -145,7 +147,6 @@ fast-rebuild-clean: misc-clean
 
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
-PTEST_PYTHON3 = cat src/ext/doctest/python3-known-passing.txt | xargs ./sage -t --long -p
 
 # Flags for ./sage -t --all.
 # By default, include all tests marked 'dochtml' -- see
@@ -191,9 +192,6 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-ptest-python3: buildbot-python3
-	$(PTEST_PYTHON3) --logfile=logs/ptest_python3.log
-
 configure: configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4
 	./bootstrap -d
 
@@ -214,4 +212,4 @@ list:
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
-	buildbot-python3 ptest-python3 list
+	buildbot-python3 list

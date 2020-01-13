@@ -99,7 +99,15 @@ SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 #---------------------------------------------------------
-AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unpriviledged user])], [])
+
+AC_ARG_ENABLE([build-as-root],
+              [AS_HELP_STRING([--enable-build-as-root],
+                              [allow building Sage as root (for use in containers)])],
+              [enable_build_as_root=$enableval],
+              [enable_build_as_root=no])
+if test "$enable_build_as_root" != yes; then
+   AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unprivileged user.  (If building in a container, use --enable-build-as-root.)])], [])
+fi
 
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
@@ -399,25 +407,6 @@ esac
 
 AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
 AC_SUBST(SAGE_PYTHON_VERSION)
-
-# BLAS library
-AC_MSG_CHECKING([BLAS library])
-AC_ARG_WITH([blas],
-[AS_HELP_STRING([--with-blas=openblas],
-    [use OpenBLAS as BLAS library (default)])]
-[AS_HELP_STRING([--with-blas=atlas],
-    [use ATLAS as BLAS library])],,
-    [with_blas=openblas]  # default
-)
-
-case "$with_blas" in
-    openblas) true;;
-    atlas) sage_spkg_install_openblas=no;;
-    *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
-esac
-
-AC_MSG_RESULT([$with_blas])
-AC_SUBST([SAGE_BLAS], [$with_blas])
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
 SAGE_TOOLCHAIN=gcc

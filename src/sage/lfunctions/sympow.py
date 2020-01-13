@@ -77,8 +77,9 @@ class Sympow(SageObject):
         """
         Used to call sympow with given args
         """
-        cmd = 'sympow %s'%args
-        v = os.popen(cmd).read().strip()
+        cmd = 'sympow %s' % args
+        with os.popen(cmd) as f:
+            v = f.read().strip()
         verbose(v, level=2)
         return v
 

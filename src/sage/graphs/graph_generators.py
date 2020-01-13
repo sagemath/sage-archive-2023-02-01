@@ -1405,7 +1405,7 @@ class GraphGenerators():
         - ``exact_connectivity`` - default: ``False`` - if ``True`` only
           graphs with exactly the specified connectivity will be generated.
           This option cannot be used with ``minimum_connectivity=3``, or if
-          the minimum connectivity is not explicitely set.
+          the minimum connectivity is not explicitly set.
 
         - ``only_bipartite`` - default: ``False`` - if ``True`` only bipartite
           graphs will be generated. This option cannot be used for graphs with
@@ -1596,11 +1596,11 @@ class GraphGenerators():
         - ``exact_connectivity`` - default: ``False`` - if ``True`` only
           triangulations with exactly the specified connectivity will be generated.
           This option cannot be used with ``minimum_connectivity=3``, or if
-          the minimum connectivity is not explicitely set.
+          the minimum connectivity is not explicitly set.
 
         - ``only_eulerian`` - default: ``False`` - if ``True`` only Eulerian
           triangulations will be generated. This option cannot be used if the
-          minimum degree is explicitely set to anything else than 4.
+          minimum degree is explicitly set to anything else than 4.
 
         - ``dual`` - default: ``False`` - if ``True`` return instead the
           planar duals of the generated graphs.

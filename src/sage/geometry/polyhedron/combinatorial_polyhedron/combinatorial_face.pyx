@@ -173,8 +173,8 @@ cdef class CombinatorialFace(SageObject):
             self._dimension         = it.current_dimension
             self._ambient_dimension = it.dimension
             self.face_length        = it.face_length
-            self._V                 = it._V
-            self._H                 = it._H
+            self._ambient_Vrep      = it._Vrep
+            self._ambient_facets    = it._facet_names
             self._equalities        = it._equalities
             self.atoms              = it.atoms
             self.coatoms            = it.coatoms
@@ -196,8 +196,8 @@ cdef class CombinatorialFace(SageObject):
             self._dimension         = dimension
             self._ambient_dimension = all_faces.dimension
             self.face_length        = all_faces.face_length
-            self._V                 = all_faces._V
-            self._H                 = all_faces._H
+            self._ambient_Vrep      = all_faces._Vrep
+            self._ambient_facets    = all_faces._facet_names
             self._equalities        = all_faces._equalities
             self.atoms              = all_faces.atoms
             self.coatoms            = all_faces.coatoms
@@ -367,8 +367,8 @@ cdef class CombinatorialFace(SageObject):
         if self._dual:
             # if dual, the Vrepresenation corresponds to the coatom-representation
             length = self.set_coatom_repr()
-            if names and self._V:
-                return tuple(self._V[self.coatom_repr[i]]
+            if names and self._ambient_Vrep:
+                return tuple(self._ambient_Vrep[self.coatom_repr[i]]
                              for i in range(length))
             else:
                 return tuple(smallInteger(self.coatom_repr[i])
@@ -376,8 +376,8 @@ cdef class CombinatorialFace(SageObject):
         else:
             # if not dual, the Vrepresenation corresponds to the atom-representation
             length = self.set_atom_repr()
-            if names and self._V:
-                return tuple(self._V[self.atom_repr[i]]
+            if names and self._ambient_Vrep:
+                return tuple(self._ambient_Vrep[self.atom_repr[i]]
                              for i in range(length))
             else:
                 return tuple(smallInteger(self.atom_repr[i])
@@ -486,8 +486,8 @@ cdef class CombinatorialFace(SageObject):
         if not self._dual:
             # if not dual, the facet-represention corresponds to the coatom-representation
             length = self.set_coatom_repr()  # fill self.coatom_repr_face
-            if names and self._H:
-                return tuple(self._H[self.coatom_repr[i]]
+            if names and self._ambient_facets:
+                return tuple(self._ambient_facets[self.coatom_repr[i]]
                              for i in range(length)) + self._equalities
             else:
                 return tuple(smallInteger(self.coatom_repr[i])
@@ -495,8 +495,8 @@ cdef class CombinatorialFace(SageObject):
         else:
             # if dual, the facet-represention corresponds to the atom-representation
             length = self.set_atom_repr()  # fill self.atom_repr_face
-            if names and self._H:
-                return tuple(self._H[self.atom_repr[i]]
+            if names and self._ambient_facets:
+                return tuple(self._ambient_facets[self.atom_repr[i]]
                              for i in range(length)) + self._equalities
             else:
                 return tuple(smallInteger(self.atom_repr[i])

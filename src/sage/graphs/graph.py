@@ -86,6 +86,9 @@ AUTHORS:
 - Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
   most_common_neighbors and common_neighbors_matrix added.
 
+- Jean-Florent Raymond (2019-04): is_redundant, is_dominating,
+   private_neighbors
+
 Graph Format
 ------------
 
@@ -3083,7 +3086,7 @@ class Graph(GenericGraph):
             sage: P.is_edge_transitive()
             False
         """
-        from sage.interfaces.gap import gap
+        from sage.libs.gap.libgap import libgap
 
         if not self.size():
             return True
@@ -3092,7 +3095,7 @@ class Graph(GenericGraph):
         e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
-        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnSets);") == self.size()
+        return libgap(A).OrbitLength(e, libgap.OnSets) == self.size()
 
     @doc_index("Graph properties")
     def is_arc_transitive(self):
@@ -3123,7 +3126,7 @@ class Graph(GenericGraph):
             sage: G.is_arc_transitive()
             False
         """
-        from sage.interfaces.gap import gap
+        from sage.libs.gap.libgap import libgap
 
         if not self.size():
             return True
@@ -3132,7 +3135,7 @@ class Graph(GenericGraph):
         e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
-        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnTuples);") == 2*self.size()
+        return libgap(A).OrbitLength(e,libgap.OnTuples) == 2*self.size()
 
     @doc_index("Graph properties")
     def is_half_transitive(self):
@@ -8619,6 +8622,10 @@ class Graph(GenericGraph):
     from sage.graphs.connectivity import is_triconnected
     from sage.graphs.comparability import is_comparability
     from sage.graphs.comparability import is_permutation
+    from sage.graphs.domination import is_dominating
+    from sage.graphs.domination import is_redundant
+    from sage.graphs.domination import private_neighbors
+    from sage.graphs.domination import minimal_dominating_sets
 
 
 _additional_categories = {
@@ -8647,7 +8654,11 @@ _additional_categories = {
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
     "spqr_tree"                 : "Connectivity, orientations, trees",
-    "is_triconnected"           : "Connectivity, orientations, trees"
+    "is_triconnected"           : "Connectivity, orientations, trees",
+    "is_dominating"             : "Domination",
+    "is_redundant"              : "Domination",
+    "private_neighbors"         : "Domination",
+    "minimal_dominating_sets"   : "Domination"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

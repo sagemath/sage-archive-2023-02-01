@@ -1056,7 +1056,7 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
         F = field
 
     Theta = PG(3, 1, F, point_coordinates=1)
-    Pi = set(filter(lambda x: x[0]==F.zero(), Theta.ground_set()))
+    Pi = set(x for x in Theta.ground_set() if x[0] == F.zero())
     if hyperoval is None:
         O = set(x for x in Pi
                 if (x[1] + x[2] * x[3] == 0) or

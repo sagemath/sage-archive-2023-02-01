@@ -13,16 +13,17 @@ This module defines the class ``EllipticCurve_field``, based on
 #*****************************************************************************
 from __future__ import absolute_import
 
-from . import ell_generic
 import sage.rings.all as rings
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
-from .constructor import EllipticCurve
 from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
+from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_field
 
+from .constructor import EllipticCurve
 from .ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
+from . import ell_generic
 
-class EllipticCurve_field(ell_generic.EllipticCurve_generic):
+class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurve_field):
 
     base_field = ell_generic.EllipticCurve_generic.base_ring
 
@@ -440,7 +441,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 um = c6E/c6F
                 x=rings.polygen(K)
                 ulist=(x**3-um).roots(multiplicities=False)
-                if len(ulist)==0:
+                if  not ulist:
                     D = zero
                 else:
                     D = ulist[0]
@@ -448,7 +449,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 um=c4E/c4F
                 x=rings.polygen(K)
                 ulist=(x**2-um).roots(multiplicities=False)
-                if len(ulist)==0:
+                if not ulist:
                     D = zero
                 else:
                     D = ulist[0]
@@ -705,7 +706,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 return []
         elif f is None:
             embeddings = K.embeddings(L)
-            if len(embeddings) == 0:
+            if not embeddings:
                 raise TypeError("Input must be a subfield of the base field of the curve.")
             for g in embeddings:
                 try:

@@ -112,7 +112,7 @@ class GraphicMatroid(Matroid):
     A ``GraphicMatroid`` instance where the ground set elements are
     the edges of ``G``.
 
-    ..NOTE::
+    .. NOTE::
 
         If a disconnected graph is given as input, the instance of
         ``GraphicMatroid`` will connect the graph components and store

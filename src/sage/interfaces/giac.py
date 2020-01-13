@@ -374,14 +374,13 @@ class Giac(Expect):
         ::
 
             sage: filename = tmp_filename()
-            sage: f = open(filename,'w')
-            sage: _ = f.write('xx := 22;\n')
-            sage: f.close()
+            sage: with open(filename,'w') as f:
+            ....:     _ = f.write('xx := 22;\n')
             sage: giac.read(filename)
             sage: giac.get('xx').strip()
             '22'
         """
-        return 'read "%s"'%filename
+        return 'read "%s"' % filename
 
     def _quit_string(self):
         """

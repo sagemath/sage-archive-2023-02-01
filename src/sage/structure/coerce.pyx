@@ -892,7 +892,7 @@ cdef class CoercionModel:
 
         .. NOTE::
 
-           This function is accurate only in so far as analyse is kept
+           This function is accurate only in so far as :meth:`analyse` is kept
            in sync with the :meth:`bin_op` and
            :meth:`canonical_coercion` which are kept separate for
            maximal efficiency.

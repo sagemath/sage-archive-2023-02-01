@@ -454,7 +454,7 @@ class ShiftingOperatorAlgebra(CombinatorialFreeModule):
             The actions on the complete homogeneous symmetric functions and
             on the Schur functions by morphisms are already registered.
 
-        ..  WARNING::
+        .. WARNING::
 
             Because :class:`ShiftingOperatorAlgebra` inherits from
             :class:`UniqueRepresentation`, once you register a conversion, this

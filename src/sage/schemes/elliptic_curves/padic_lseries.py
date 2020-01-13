@@ -948,7 +948,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         R = PowerSeriesRing(K,'T',res_series_prec)
         L = R(L,res_series_prec)
         aj = L.list()
-        if len(aj) > 0:
+        if aj:
             aj = [aj[0].add_bigoh(padic_prec-2)] + \
                  [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
         L = R(aj,res_series_prec )
@@ -1214,7 +1214,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # the coefficients are now treated as alpha-adic numbers (trac 20254)
         L = R(L,prec)
         aj = L.list()
-        if len(aj) > 0:
+        if aj:
             bj = [aj[0].add_bigoh(2*(padic_prec-2))]
             j = 1
             while j < len(aj):

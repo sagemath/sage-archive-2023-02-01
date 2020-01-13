@@ -709,9 +709,9 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     OA = [list(B[3:]+B[:3]) for B in OA]
 
     # Set of values in the axb square
-    third_complement= set([B[-1] for B in OA if B[-3] < a and B[-2] < b])
+    third_complement = set(B[-1] for B in OA if B[-3] < a and B[-2] < b)
 
-    assert n-len(third_complement) >= c
+    assert n - len(third_complement) >= c
 
     # The keepers
     first_set  = list(range(a))
@@ -1164,7 +1164,7 @@ def _reorder_matrix(matrix):
         sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))
         True
 
-        sage: M =[list(range(10))]*10
+        sage: M = [list(range(10))] * 10
         sage: N = k = 10
         sage: M2 = _reorder_matrix(M)
         sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))

@@ -398,13 +398,17 @@ cdef double c_monte_carlo_ff(double *x, size_t dim, void *params):
     (<Wrapper_rdf> params).call_c(x, &result)
     return result
 
-def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=None):
-    """
-    Integrate ``func``.
 
-    Integrate ``func`` over the dim-dimensional hypercubic region defined by
-    the lower and upper limits in the arrays xl and xu, each of size dim.
-    The integration uses a fixed number of function calls calls and obtains
+def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain',
+                         params=None):
+    """
+    Integrate ``func`` by Monte-Carlo method.
+
+    Integrate ``func`` over the ``dim``-dimensional hypercubic region
+    defined by the lower and upper limits in the arrays ``xl`` and
+    ``xu``, each of size ``dim``.
+
+    The integration uses a fixed number of function calls and obtains
     random sampling points using the default gsl's random number generator.
 
     ALGORITHM: Uses calls to the GSL (GNU Scientific Library) C library.
@@ -412,19 +416,19 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
 
     INPUT:
 
-    - ``func`` -- The function to integrate
+    - ``func`` -- the function to integrate
     - ``params`` -- used to pass parameters to your function
     - ``xl`` -- list of lower limits
     - ``xu`` -- list of upper limits
-    - ``calls`` -- Number of functions calls used.
+    - ``calls`` -- number of functions calls used
     - ``algorithm`` -- valid choices are:
 
       * 'plain' -- The plain Monte Carlo algorithm samples points randomly
-         from the integration region to estimate the integral and its error.
+        from the integration region to estimate the integral and its error.
       * 'miser' -- The MISER algorithm of Press and Farrar is based on
-         recursive stratified sampling
+        recursive stratified sampling
       * 'vegas' -- The VEGAS algorithm of Lepage is based on importance
-         sampling.
+        sampling.
 
     EXAMPLES::
 
@@ -497,13 +501,13 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
         Traceback (most recent call last):
         ...
         ValueError: The function to be integrated depends on 2 variables (x, y),
-        and so cannot be integrated in 1 dimensions. Please addmore items in
+        and so cannot be integrated in 1 dimensions. Please add more items in
         upper and lower limits
         sage: monte_carlo_integral(f, [0], [2], 100)
         Traceback (most recent call last):
         ...
         ValueError: The function to be integrated depends on 2 variables ('x', 'y'),
-        and so cannot be integrated in 1 dimensions. Please addmore items in
+        and so cannot be integrated in 1 dimensions. Please add more items in
         upper and lower limits
 
     AUTHORS:
@@ -574,7 +578,7 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
         elif len(vars) > target_dim:
             raise ValueError(("The function to be integrated depends on "
                               "{} variables {}, and so cannot be "
-                              "integrated in {} dimensions. Please add"
+                              "integrated in {} dimensions. Please add "
                               "more items in upper and lower limits"
                              ).format(len(vars), tuple(vars), target_dim))
 

@@ -1500,6 +1500,9 @@ class LiftMorphismToAssociative(LiftMorphism):
 class MatrixLieAlgebraFromAssociative(LieAlgebraFromAssociative):
     """
     A Lie algebra constructed from a matrix algebra.
+
+    This means a Lie algebra consisting of matrices,
+    with commutator as Lie bracket.
     """
     class Element(LieAlgebraMatrixWrapper, LieAlgebraFromAssociative.Element):
         def matrix(self):
@@ -1531,6 +1534,11 @@ class MatrixLieAlgebraFromAssociative(LieAlgebraFromAssociative):
                 [ 0  0 -1 -1  0]
                 [ 0  0 -1 -1 -1]
                 [ 0  1  0 -2  0]
+
+                sage: gl2 = lie_algebras.gl(QQ, 2)
+                sage: matrix(gl2.an_element())
+                [1 1]
+                [1 1]
             """
             return self.value
 

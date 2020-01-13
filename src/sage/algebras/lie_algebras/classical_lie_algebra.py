@@ -47,6 +47,9 @@ class ClassicalMatrixLieAlgebra(MatrixLieAlgebraFromAssociative):
     """
     A classical Lie algebra represented using matrices.
 
+    This means a classical Lie algebra given as a Lie
+    algebra of matrices, with commutator as Lie bracket.
+
     INPUT:
 
     - ``R`` -- the base ring
@@ -166,7 +169,7 @@ class ClassicalMatrixLieAlgebra(MatrixLieAlgebraFromAssociative):
 
     def f(self, i):
         r"""
-        Return the generator `f_i`.-
+        Return the generator `f_i`.
 
         EXAMPLES::
 
@@ -466,7 +469,7 @@ class gl(MatrixLieAlgebraFromAssociative):
             return self.basis()['E_{}_{}'.format(*i)]
         return self.basis()[i]
 
-    class Element(ClassicalMatrixLieAlgebra.Element):
+    class Element(MatrixLieAlgebraFromAssociative.Element):
         def monomial_coefficients(self, copy=True):
             r"""
             Return the monomial coefficients of ``self``.

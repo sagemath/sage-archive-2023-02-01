@@ -1,0 +1,4 @@
+# .pc files created at configure time
+blas.pc
+cblas.pc
+lapack.pc

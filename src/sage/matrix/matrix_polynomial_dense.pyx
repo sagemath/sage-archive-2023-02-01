@@ -2059,28 +2059,25 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # compute approximant basis
         # if required, normalize it into shifted Popov form
         if row_wise:
-            P,rdeg = self._approximant_basis_iterative(order, shifts)
+            P,rdeg = self._approximant_basis_iterative(shifts)
             if normal_form:
                 # compute the list "- pivot degree"
                 # (since weak Popov, pivot degree is rdeg-shifts entrywise)
                 # Note: -deg(P[i,i]) = shifts[i] - rdeg[i]
                 degree_shifts = [shifts[i] - rdeg[i] for i in range(m)]
                 # compute approximant basis with that list as shifts
-                P,rdeg = self._approximant_basis_iterative(order,
-                        degree_shifts)
+                P,rdeg = self._approximant_basis_iterative(degree_shifts)
                 # left-multiply by inverse of leading matrix
                 lmat = P.leading_matrix(shifts=degree_shifts)
                 P = lmat.inverse() * P
         else:
-            P,rdeg = self.transpose()._approximant_basis_iterative(order,
-                    shifts)
+            P,rdeg = self.transpose()._approximant_basis_iterative(shifts)
             if normal_form:
                 # compute the list "- pivot degree"
                 # (since weak Popov, pivot degree is rdeg-shifts entrywise)
                 degree_shifts = [shifts[i] - rdeg[i] for i in range(n)]
                 # compute approximant basis with that list as shifts
-                P,rdeg = self.transpose()._approximant_basis_iterative( \
-                                                order, degree_shifts)
+                P,rdeg = self.transpose()._approximant_basis_iterative(degree_shifts)
                 P = P.transpose()
                 # right-multiply by inverse of leading matrix
                 lmat = P.leading_matrix(shifts=degree_shifts,row_wise=False)

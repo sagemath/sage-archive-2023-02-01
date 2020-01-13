@@ -64,7 +64,7 @@ download-for-sdist:
 
 # TOOLCHAIN consists of dependencies determined by configure.
 # These are built after the "base" target but before anything else.
-toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
+toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname))) $(PCFILES)
 
 # Build all packages that GCC links against serially, otherwise this
 # leads to race conditions where some library which is used by GCC gets

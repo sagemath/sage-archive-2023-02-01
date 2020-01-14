@@ -230,6 +230,7 @@ from sage.combinat.words.abstract_word import Word_class
 ######################################################################
 # the FindStat URLs
 FINDSTAT_URL                = 'http://www.findstat.org/'
+FINDSTAT_URL                = 'http://localhost:8090/'
 FINDSTAT_API                = FINDSTAT_URL + "api/"
 FINDSTAT_API_COLLECTIONS    = FINDSTAT_API + 'CollectionsDatabase/'
 FINDSTAT_API_STATISTICS     = FINDSTAT_API + 'StatisticsDatabase/'
@@ -1812,6 +1813,8 @@ class FindStatStatistic(Element, FindStatFunction):
     # editing and submitting is really the same thing
     edit = submit
 
+_all_statistics = {}
+
 class FindStatStatistics(UniqueRepresentation, Parent):
     r"""
     The class of FindStat statistics.
@@ -1843,13 +1846,9 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         """
         if domain is None:
             self._domain = None
-            url = FINDSTAT_API_STATISTICS
         else:
             self._domain = FindStatCollection(domain)
-            url = FINDSTAT_API_STATISTICS + "?Domain=%s" % self._domain.id_str()
-
-        # TODO: it may be better to make ths lazy
-        self._all_statistics = {st: None for st in json.load(urlopen(url))["data"]}
+        self._identifiers = None
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, id):
@@ -1881,10 +1880,10 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             return FindStatCompoundStatistic(id)
         if not re.match(FINDSTAT_STATISTIC_REGEXP, id) or id == FINDSTAT_STATISTIC_PADDED_IDENTIFIER % 0:
             raise ValueError("The value %s is not a valid FindStat statistic identifier." % id)
-        if id not in self._all_statistics or self._all_statistics[id] is None:
-            self._all_statistics[id] = self.element_class(self, id)
+        if id not in _all_statistics or _all_statistics[id] is None:
+            _all_statistics[id] = self.element_class(self, id)
 
-        return self._all_statistics[id]
+        return _all_statistics[id]
 
     def _repr_(self):
         """
@@ -1900,7 +1899,7 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             return "Set of combinatorial statistics used by FindStat"
         return "Set of combinatorial statistics with domain %s used by FindStat" % self._domain
 
-    def __getitem__(self, id):
+    def __iter__(self):
         """
         Return an iterator over all FindStat statistics.
 
@@ -1911,7 +1910,16 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             St000062: The length of the longest increasing subsequence of the permutation.
 
         """
-        return FindStatStatistic(id+1)
+        if self._identifiers is None:
+            if self._domain is None:
+                url = FINDSTAT_API_STATISTICS
+            else:
+                url = FINDSTAT_API_STATISTICS + "?Domain=%s" % self._domain.id_str()
+
+            self._identifiers = json.load(urlopen(url))["data"]
+
+        for st in self._identifiers:
+            yield FindStatStatistic(st)
 
     Element = FindStatStatistic
 

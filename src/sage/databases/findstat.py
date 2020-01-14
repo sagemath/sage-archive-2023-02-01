@@ -64,7 +64,7 @@ FindStat.  This means, that the set of `(object, value)` pairs of the
 statistic `s` as stored in the FindStat database is a superset of the
 data sent.  We can now retrieve the description from the database::
 
-    sage: print(r[1].statistic().description())                                                # optional -- internet
+    sage: print(r[1].statistic().description())                                 # optional -- internet
     The number of nestings of a perfect matching.
     <BLANKLINE>
     <BLANKLINE>
@@ -72,13 +72,13 @@ data sent.  We can now retrieve the description from the database::
 
 and check the references::
 
-    sage: r[1].statistic().references()                                                        # optional -- internet
+    sage: r[1].statistic().references()                                         # optional -- internet
     0: [1]  de Médicis, A., Viennot, X. G., Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger [[MathSciNet:1288802]]
     1: [2]  Simion, R., Stanton, D., Octabasic Laguerre polynomials and permutation statistics [[MathSciNet:1418763]]...
 
 If you prefer, you can look at this information also in your browser::
 
-    sage: r[1].statistic().browse()                                                 # optional -- webbrowser
+    sage: r[1].statistic().browse()                                             # optional -- webbrowser
 
 Another interesting possibility is to look for equidistributed
 statistics.  Instead of submitting a list of `(object, value)` pairs,
@@ -101,11 +101,11 @@ submitted statistic is the composition of a sequence of combinatorial
 maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
-    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2)           # optional -- internet
+    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2)     # optional -- internet
 
 Let us pick one particular result::
 
-    sage: s = next(s for s in r if s.statistic().id() == 51); s   # optional -- internet
+    sage: s = next(s for s in r if s.statistic().id() == 51); s                 # optional -- internet
     St000051oMp00061oMp00069 (quality [87, 86])
 
 To obtain the value of the statistic sent to FindStat on a given
@@ -119,10 +119,10 @@ following permutation::
 
 We first have to find out, what the maps and the statistic actually do::
 
-    sage: print(s.statistic().description())                                                # optional -- internet
+    sage: print(s.statistic().description())                                    # optional -- internet
     The size of the left subtree of a binary tree.
 
-    sage: print(s.statistic().sage_code())                                                       # optional -- internet
+    sage: print(s.statistic().sage_code())                                      # optional -- internet
     def statistic(T):
         return T[0].node_number()
 
@@ -143,7 +143,7 @@ Editing and submitting statistics
 
 Of course, often a statistic will not be in the database::
 
-    sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s                # optional -- internet
+    sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s         # optional -- internet
     0: St000000: a new statistic on Cc0005: Dyck paths
 
 In this case, and if the statistic might be "interesting", please
@@ -218,7 +218,8 @@ from sage.combinat.ordered_tree import OrderedTree, OrderedTrees
 from sage.combinat.parking_functions import ParkingFunction, ParkingFunction_class, ParkingFunctions
 from sage.combinat.perfect_matching import PerfectMatching, PerfectMatchings
 from sage.combinat.permutation import Permutation, Permutations
-from sage.combinat.posets.posets import Poset, FinitePoset, Posets
+from sage.combinat.posets.posets import Poset, FinitePoset
+from sage.combinat.posets.poset_examples import Posets
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux, StandardTableau, StandardTableaux
 from sage.combinat.set_partition import SetPartition, SetPartitions
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
@@ -229,8 +230,7 @@ from sage.combinat.words.abstract_word import Word_class
 
 ######################################################################
 # the FindStat URLs
-FINDSTAT_URL                = 'http://www.findstat.org/'
-FINDSTAT_URL                = 'http://localhost:8090/'
+FINDSTAT_URL                = 'https://www.findstat.org/'
 FINDSTAT_API                = FINDSTAT_URL + "api/"
 FINDSTAT_API_COLLECTIONS    = FINDSTAT_API + 'CollectionsDatabase/'
 FINDSTAT_API_STATISTICS     = FINDSTAT_API + 'StatisticsDatabase/'
@@ -333,7 +333,7 @@ class FindStat(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: findstat().browse()                                             # optional -- webbrowser
+            sage: findstat().browse()                                           # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL)
 
@@ -372,7 +372,7 @@ class FindStat(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: findstat().login()                                              # optional -- webbrowser
+            sage: findstat().login()                                            # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_LOGIN)
 
@@ -528,6 +528,15 @@ def _distribution_from_data(data, domain, max_values):
     - ``max_values``, the maximal number of objects (and values) to
       return
 
+    TESTS::
+
+        sage: from sage.databases.findstat import _distribution_from_data, FindStatCollection
+        sage: cc = FindStatCollection(1)
+        sage: n = 3; l = lambda i: [pi for pi in Permutations(n) if pi(1) == i]
+        sage: data = [([pi for pi in l(i)], [pi(1) for pi in l(i)]) for i in range(1,n+1)]
+        sage: _distribution_from_data(data, cc, 10)
+        [([[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]],
+          [1, 1, 2, 2, 3, 3])]
     """
     lvl_dict = {} # lvl: elts, vals
     total = min(max_values, FINDSTAT_MAX_VALUES)
@@ -555,6 +564,23 @@ def _distribution_from_data(data, domain, max_values):
     return [(elts, vals) for lvl, (elts, vals) in lvl_dict.items()
             if levels_with_sizes[lvl] == len(elts)]
 
+def _generating_functions_from_dict(gfs, style):
+    if style == "dictionary":
+        return gfs
+    elif style == "list":
+        return { key : [ gfs[key][deg] if deg in gfs[key] else 0
+                         for deg in range(min(gfs[key]),max(gfs[key])+1) ]
+                 for key in gfs }
+    elif style == "polynomial":
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.integer_ring import ZZ
+        P = PolynomialRing(ZZ,"q")
+        q = P.gen()
+        return { level : sum( coefficient * q**exponent
+                              for exponent,coefficient in iteritems(gen_dict) )
+                 for level, gen_dict in iteritems(gfs)}
+    else:
+        raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'." % style)
 
 def findstat(query=None, values=None, distribution=None, domain=None,
              depth=FINDSTAT_DEFAULT_DEPTH, max_values=FINDSTAT_MAX_VALUES):
@@ -681,22 +707,22 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         sage: findstat("Permutations", lambda x: 1, depth="x")
         Traceback (most recent call last):
         ...
-        ValueError: The depth of a FindStat query must be a non-negative integer less than or equal to 4.
+        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 4
 
         sage: findstat("Permutations", lambda x: 1, depth=100)
         Traceback (most recent call last):
         ...
-        ValueError: The depth of a FindStat query must be a non-negative integer less than or equal to 4.
+        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 4
 
         sage: S = Permutation
-        sage: findstat([(S([1,2]), 1), ([S([1,3,2]), S([1,2])], [2,3])])    # optional -- internet
+        sage: findstat([(S([1,2]), 1), ([S([1,3,2]), S([1,2])], [2,3])])        # optional -- internet
         Traceback (most recent call last):
         ...
         ValueError: FindStat expects that every object occurs at most once: [1, 2]
 
     Check that values which can be converted to integers are supported::
 
-        sage: findstat([(la, la[0]/1) for la in Partitions(10)], depth=0)   # optional -- internet
+        sage: findstat([(la, la[0]/1) for la in Partitions(10)], depth=0)       # optional -- internet
         0: St000147 (quality [100, 100])
         1: St000000: a new statistic on Cc0002: Integer partitions
 
@@ -860,24 +886,24 @@ def findmap(query=None, arg=None, values=None, distribution=None,
     A particular statistic can be retrieved by its St-identifier or
     number::
 
-        sage: findmap('Mp00001')                                               # optional -- internet
+        sage: findmap('Mp00001')                                                # optional -- internet
         Mp00001: to semistandard tableau via monotone triangles
 
-        sage: findmap(1)                                                      # optional -- internet
+        sage: findmap(1)                                                        # optional -- internet
         Mp00001: to semistandard tableau via monotone triangles
 
-        sage: findmap("Mp00087oMp00058")                                      # optional -- internet
+        sage: findmap("Mp00087oMp00058")                                        # optional -- internet
         Mp00087oMp00058
 
     The database can be searched by providing a list of pairs::
 
         sage: l = [pi for n in range(7) for pi in Permutations(n)]
-        sage: q = findmap([(pi, pi.inverse().complement()) for pi in l], depth=2); q         # optional -- internet, random
+        sage: q = findmap([(pi, pi.inverse().complement()) for pi in l], depth=2); q      # optional -- internet, random
         0: Mp00066oMp00064 (quality [100])
 
     or a dictionary::
 
-        sage: p = findmap({pi: pi.inverse().complement() for pi in l}, depth=2); p           # optional -- internet, random
+        sage: p = findmap({pi: pi.inverse().complement() for pi in l}, depth=2); p        # optional -- internet, random
         0: Mp00066oMp00064 (quality [100])
 
     Note however, that the results of these two queries need not
@@ -888,7 +914,7 @@ def findmap(query=None, arg=None, values=None, distribution=None,
     this case, the function is applied to the first few objects of
     the collection::
 
-        sage: findmap("Permutations", lambda pi: pi.inverse().complement(), depth=2)         # optional -- internet
+        sage: findmap("Permutations", lambda pi: pi.inverse().complement(), depth=2)      # optional -- internet
         0: Mp00066oMp00064 (quality [100])
 
     """
@@ -1113,12 +1139,12 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: q = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); q[-1]            # optional -- internet
+            sage: q = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); q[-1]  # optional -- internet
             St000000: a new statistic on Cc0005: Dyck paths
             sage: q[-1].set_description("Random values on Dyck paths.\nNot for submission.")   # optional -- internet
-            sage: q[-1]                                                                        # optional -- internet
+            sage: q[-1]                                                              # optional -- internet
             St000000(modified): a new statistic on Cc0005: Dyck paths
-            sage: print(q[-1].description())                                                       # optional -- internet
+            sage: print(q[-1].description())                                         # optional -- internet
             Random values on Dyck paths.
             Not for submission.
 
@@ -1323,7 +1349,7 @@ class FindStatStatistic(Element, FindStatFunction):
             sage: FindStatStatistic("abcdefgh")                                 # optional -- internet
             Traceback (most recent call last):
             ...
-            ValueError: The value abcdefgh is not a valid FindStat statistic identifier.
+            ValueError: the value 'abcdefgh' is not a valid FindStat statistic identifier
         """
         return FindStatStatistics()(entry)
 
@@ -1585,31 +1611,30 @@ class FindStatStatistic(Element, FindStatFunction):
         TESTS:
 
             sage: q = findstat((DyckWords(4), range(14)))                       # optional -- internet, indirect doctest
-            sage: q[-1].generating_functions()                                  # optional -- internet, indirect doctest
+            sage: q.generating_functions()                                      # optional -- internet, indirect doctest
             {4: q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
 
             sage: C = AlternatingSignMatrices(4)
             sage: q = findstat((C, range(C.cardinality())))                     # optional -- internet, indirect doctest
-            sage: q[-1].generating_functions()                                  # optional -- internet, indirect doctest
+            sage: q.generating_functions()                                      # optional -- internet, indirect doctest
             {4: q^41 + q^40 + q^39 + q^38 + q^37 + q^36 + q^35 + q^34 + q^33 + q^32 + q^31 + q^30 + q^29 + q^28 + q^27 + q^26 + q^25 + q^24 + q^23 + q^22 + q^21 + q^20 + q^19 + q^18 + q^17 + q^16 + q^15 + q^14 + q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
         """
-        c = self.collection()
-        gfs = dict()
-        for (elements, elements_str, values) in self._data:
-            l = c._get_level(elements[0])
-            if l in c._levels and all(l == c._get_level(e) for e in elements[1:]):
-                gfs[l] = gfs.get(l, dict())
-                for v in values:
-                    gfs[l][v] = gfs[l].get(v, 0) + 1
+        gfs = {}
+        lvls = {}
+        domain = self.collection()
+        levels_with_sizes = domain.levels_with_sizes()
+        for elt, val in self.first_terms().items():
+            lvl = domain.element_level(elt)
+            if lvl not in levels_with_sizes:
+                continue
+            if lvl not in gfs:
+                gfs[lvl] = {}
+            gfs[lvl][val] = gfs[lvl].get(val, 0) + 1
+            lvls[lvl] = lvls.get(lvl, 0) + 1
 
-        for (l, p) in gfs.items():
-            ns = sum(p.values())
-            nc = c._levels[l]
-            if ns < nc:
-                del gfs[l]
-            elif ns > nc:
-                raise ValueError("FindStat delivers more statistic values than the level has elements.  This should not happen.  Please send an email to the developers.")
-
+        for lvl, size in lvls.items():
+            if size < levels_with_sizes[lvl]:
+                del gfs[lvl]
         return gfs
 
     def generating_functions(self, style="polynomial"):
@@ -1682,23 +1707,8 @@ class FindStatStatistic(Element, FindStatFunction):
              5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
              6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
         """
-        gfs = self._generating_functions_dict
-        if style == "dictionary":
-            return gfs
-        elif style == "list":
-            return { key : [ gfs[key][deg] if deg in gfs[key] else 0
-                             for deg in range(min(gfs[key]),max(gfs[key])+1) ]
-                     for key in gfs }
-        elif style == "polynomial":
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.integer_ring import ZZ
-            P = PolynomialRing(ZZ,"q")
-            q = P.gen()
-            return { level : sum( coefficient * q**exponent
-                                  for exponent,coefficient in iteritems(gen_dict) )
-                     for level, gen_dict in iteritems(gfs)}
-        else:
-            raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'." % style)
+        return _generating_functions_from_dict(self._generating_functions_dict(),
+                                               style=style)
 
     def oeis_search(self, search_size=32, verbose=True):
         r"""
@@ -1824,16 +1834,26 @@ class FindStatStatistics(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
-    We can print a nice list of statistics currently in FindStat,
-    sorted by domain::
+    We can print a nice list of the first few statistics currently in
+    FindStat, sorted by domain::
 
-        sage: from sage.databases.findstat import FindStatStatistic, FindStatStatistics
-        sage: for m in sorted(FindStatStatistics(), key=lambda m: m.domain()):  # optional -- internet, random
-        ....:     print(m.domain().name().ljust(30) + " " + m.name())
-        Permutation                    The length of the longest increasing subsequence of the permutation.
-        Permutation                    The number of inversions of a permutation.
-        Permutation                    The number of reduced words for a permutation.
-        Binary tree                    The number of occurrences of the contiguous pattern [.,[.,[.,.]]] in a binary tree.
+        sage: from sage.databases.findstat import FindStatCollections, FindStatStatistic, FindStatStatistics
+        sage: for cc, _ in zip(FindStatCollections(), range(3)):                # optional -- internet, random
+        ....:     print(cc.name(style="plural"))
+        ....:     for st, _ in zip(FindStatStatistics(cc), range(3)):
+        ....:         print("    " + st.name())
+        Semistandard tableaux
+            The cocharge of a semistandard tableau.
+            The charge of a semistandard tableau.
+            The sum of the entries of a semistandard tableau.
+        Gelfand-Tsetlin patterns
+            The number of circled entries.
+            The number of boxed entries.
+            The number of special entries.
+        Cores
+            The length of a core.
+            The size of a core.
+            The number of strong covers of a core.
 
     """
     def __init__(self, domain=None):
@@ -1861,8 +1881,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.databases.findstat import FindStatStatistics
-            sage: FindStatStatistic(1)                                         # optional -- internet
+            sage: from sage.databases.findstat import FindStatStatistic
+            sage: FindStatStatistic(1)                                          # optional -- internet
             St000001: The number of reduced words for a permutation.
 
         """
@@ -1871,15 +1891,15 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         if isinstance(id, FindStatStatisticQuery):
             if id.submittable():
                 return self.element_class(self, FINDSTAT_STATISTIC_PADDED_IDENTIFIER % 0, id)
-            raise ValueError("The given query cannot be submitted.")
+            raise ValueError("the given query cannot be submitted")
         if isinstance(id, (int, Integer)):
             id = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id
         if not isinstance(id, string_types):
-            raise TypeError("The value %s is not a valid FindStat statistic identifier, nor a FindStat statistic query." % id)
+            raise TypeError("the value '%s' is not a valid FindStat statistic identifier, nor a FindStat statistic query" % id)
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundStatistic(id)
         if not re.match(FINDSTAT_STATISTIC_REGEXP, id) or id == FINDSTAT_STATISTIC_PADDED_IDENTIFIER % 0:
-            raise ValueError("The value %s is not a valid FindStat statistic identifier." % id)
+            raise ValueError("the value '%s' is not a valid FindStat statistic identifier" % id)
         if id not in _all_statistics or _all_statistics[id] is None:
             _all_statistics[id] = self.element_class(self, id)
 
@@ -1892,12 +1912,15 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatStatistics
-            sage: FindStatStatistics()                                                # optional -- internet
-            Set of combinatorial statistics used by FindStat
+            sage: FindStatStatistics()                                          # optional -- internet
+            Set of combinatorial statistics in FindStat
+
+            sage: FindStatStatistics(12)                                        # optional -- internet
+            Set of combinatorial statistics with domain Cc0012: Perfect matchings in FindStat
         """
         if self._domain is None:
-            return "Set of combinatorial statistics used by FindStat"
-        return "Set of combinatorial statistics with domain %s used by FindStat" % self._domain
+            return "Set of combinatorial statistics in FindStat"
+        return "Set of combinatorial statistics with domain %s in FindStat" % self._domain
 
     def __iter__(self):
         """
@@ -1906,8 +1929,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatStatistics
-            sage: [s for s in FindStatStatistics()][0]                                # optional -- internet
-            St000062: The length of the longest increasing subsequence of the permutation.
+            sage: next(iter(FindStatStatistics("Permutations")))                # optional -- internet
+            St000001: The number of reduced words for a permutation.
 
         """
         if self._identifiers is None:
@@ -1976,12 +1999,13 @@ class FindStatStatisticQuery(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatStatisticQuery
             sage: data = [[[pi],[pi[0]]] for n in range(1,7) for pi in Permutations(n)]
-            sage: indStatStatisticQuery(domain=1, data=data, depth=1)
+            sage: FindStatStatisticQuery(domain=1, data=data, depth=1)
             0: St000054 (quality [100, 100])
             1: St000025oMp00127 (quality [100, 100])
-            2: St000051oMp00072 (quality [100, 100])
-            ....
+            2: St000051oMp00072 with offset -1 (quality [100, 100])
+            ...
 
         """
         self._data = data
@@ -2057,6 +2081,40 @@ class FindStatStatisticQuery(SageObject):
     def data(self):
         return self._all_data
 
+    def generating_functions(self, style="polynomial"):
+        return _generating_functions_from_dict(self._generating_functions_dict(),
+                                               style=style)
+
+    def _generating_functions_dict(self, max_values=FINDSTAT_MAX_VALUES):
+        gfs = {} # lvl: vals
+        total = min(max_values, FINDSTAT_MAX_VALUES)
+        iterator = iter(self.data())
+        domain = self.domain()
+        levels_with_sizes = domain.levels_with_sizes()
+        while total > 0:
+            try:
+                elts, vals = next(iterator)
+            except StopIteration:
+                break
+            if total < len(elts):
+                break
+            else:
+                lvl = domain.element_level(elts[0])
+                if lvl not in levels_with_sizes:
+                    continue
+                if levels_with_sizes[lvl] > total:
+                    # we assume that from now on levels become even larger
+                    break
+                if not all(domain.element_level(elt) == lvl for elt in elts[1:]):
+                    raise ValueError("cannot combine %s into a distribution" % elts)
+                gfs[lvl] = gfs.get(lvl, []) + vals
+                if levels_with_sizes[lvl] == len(gfs[lvl]):
+                    total -= levels_with_sizes[lvl]
+
+        return {lvl: {val: vals.count(val) for val in set(vals)}
+                for lvl, vals in gfs.items()
+                if levels_with_sizes[lvl] == len(vals)}
+
     def _repr_(self):
         return repr(self._result)
 
@@ -2093,7 +2151,7 @@ class FindStatCompoundStatistic(Element):
 
         EXAMPLES::
 
-            sage: FindStatCompoundMap("Mp00087oMp00058").browse()                                         # optional -- webbrowser
+            sage: FindStatCompoundMap("Mp00087oMp00058").browse()               # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_STATISTICS + self.id_str())
 
@@ -2134,6 +2192,7 @@ class FindStatMapQuery(SageObject):
         """
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMapQuery
             sage: FindStatMapQuery(domain=1, codomain=1, data=[[[pi],[pi.reverse().inverse()]] for pi in Permutations(4)])
             0: Mp00066oMp00064 (quality [100])
         """
@@ -2236,7 +2295,7 @@ class FindStatCompoundMap(Element):
 
         EXAMPLES::
 
-            sage: findmap(41).browse()                                         # optional -- webbrowser
+            sage: findmap(41).browse()                                          # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_MAPS + self.id_str())
 
@@ -2267,15 +2326,13 @@ class FindStatMap(Element, FindStatFunction):
 
     INPUT:
 
-    - a string containing the FindStat name of the map, or an integer
-      representing its FindStat id.
+    - a string or an integer representing the FindStat identifier of
+      the map.
 
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatMap
         sage: FindStatMap(71)                                                   # optional -- internet
-        Mp00071: descent composition
-        sage: FindStatMap("descent composition")                                # optional -- internet
         Mp00071: descent composition
 
     .. SEEALSO::
@@ -2294,7 +2351,7 @@ class FindStatMap(Element, FindStatFunction):
             sage: FindStatMap("abcdefgh")                                       # optional -- internet
             Traceback (most recent call last):
             ...
-            ValueError: Could not find FindStat map for abcdefgh.
+            ValueError: the value 'abcdefgh' is not a valid FindStat map identifier
         """
         return FindStatMaps()(entry)
 
@@ -2338,6 +2395,9 @@ class FindStatMap(Element, FindStatFunction):
 
         """
         return (FindStatMap, (self.id(),))
+
+    def _richcmp_(self, other, op):
+        return richcmp(self.id(), other.id(), op)
 
     # WARNING: before modifying self._modified_data this method has
     # to be called, it is cached because it needs to be executed only
@@ -2418,15 +2478,14 @@ class FindStatMap(Element, FindStatFunction):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMaps
-            sage: set(c for c in FindStatMaps())                                # optional -- internet
-            {Mp00001: to semistandard tableau,
-             Mp00002: to left key permutation,
-             Mp00003: rotate counterclockwise,
+            sage: sorted(list(FindStatMaps(codomain=17)))                       # optional -- internet
+            [Mp00003: rotate counterclockwise,
              Mp00004: rotate clockwise,
              Mp00005: transpose,
              Mp00006: gyration,
-             ...
-
+             Mp00035: to alternating sign matrix,
+             Mp00063: to alternating sign matrix,
+             Mp00137: to symmetric ASM]
         """
         return self.id()
 
@@ -2485,12 +2544,13 @@ class FindStatMap(Element, FindStatFunction):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: FindStatMap(71).set_properties_raw(u'surjective')                              # optional -- internet
+            sage: FindStatMap(71).set_properties_raw(u'surjective')             # optional -- internet
             sage: FindStatMap(71).properties_raw()                              # optional -- internet
             u'surjective'
             sage: FindStatMap(71)
             Mp00071(modified): descent composition
-            sage: del FindStatMaps()._all_maps['Mp00071']
+            sage: from sage.databases.findstat import _all_maps                 # optional -- internet
+            sage: del _all_maps['Mp00071']
             sage: FindStatMap(71)
             Mp00071: descent composition
         """
@@ -2531,6 +2591,7 @@ class FindStatMap(Element, FindStatFunction):
             self._modified = True
             self._modified_data["SageName"] = value
 
+_all_maps = {}
 
 class FindStatMaps(UniqueRepresentation, Parent):
     r"""
@@ -2541,16 +2602,34 @@ class FindStatMaps(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
-    We can print a nice list of maps currently in FindStat, sorted by
-    domain and codomain::
+    We can print a sample map, for each domain and codomain::
 
-        sage: from sage.databases.findstat import FindStatMap, FindStatMaps
-        sage: for m in sorted(FindStatMaps(), key=lambda m: (m.domain(), m.codomain())):  # optional -- internet, random
-        ....:     print(m.domain().name().ljust(30)+" "+m.codomain().name().ljust(30)+" "+m.name())
-        Permutation                    Permutation                    cactus evacuation
-        Permutation                    Permutation                    complement
-        Permutation                    Permutation                    cycle-as-one-line notation
-        ...
+        sage: from sage.databases.findstat import FindStatCollections, FindStatMap, FindStatMaps
+        sage: ccs = sorted(FindStatCollections())[:3]
+        sage: for cc_dom in ccs:                                                # optional -- internet, random
+        ....:     for cc_codom in ccs:
+        ....:         print(cc_dom.name(style="plural") + " -> " + cc_codom.name(style="plural"))
+        ....:         try:
+        ....:             print("    " + next(iter(FindStatMaps(cc_dom, cc_codom))).name())
+        ....:         except StopIteration:
+        ....:             pass
+        Permutations -> Permutations
+            Lehmer-code to major-code bijection
+        Permutations -> Integer partitions
+            Robinson-Schensted tableau shape
+        Permutations -> Dyck paths
+            left-to-right-maxima to Dyck path
+        Integer partitions -> Permutations
+        Integer partitions -> Integer partitions
+            conjugate
+        Integer partitions -> Dyck paths
+            to Dyck path
+        Dyck paths -> Permutations
+            to non-crossing permutation
+        Dyck paths -> Integer partitions
+            to partition
+        Dyck paths -> Dyck paths
+            reverse
 
     """
     def __init__(self, domain=None, codomain=None):
@@ -2563,22 +2642,13 @@ class FindStatMaps(UniqueRepresentation, Parent):
         """
         if domain is None:
             self._domain = None
-            query = []
         else:
             self._domain = FindStatCollection(domain)
-            query = ["Domain=%s" % self._domain.id_str()]
-
         if codomain is None:
             self._codomain = None
         else:
             self._codomain = FindStatCollection(codomain)
-            query.append("Codomain=%s" % self._codomain.id_str())
-
-        if query:
-            url = FINDSTAT_API_MAPS + "?" + "&".join(query)
-        else:
-            url = FINDSTAT_API_MAPS
-        self._all_maps = {mp: None for mp in json.load(urlopen(url))["data"]}
+        self._identifiers = None
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, id):
@@ -2601,15 +2671,15 @@ class FindStatMaps(UniqueRepresentation, Parent):
         if isinstance(id, (int, Integer)):
             id = FINDSTAT_MAP_PADDED_IDENTIFIER % id
         if not isinstance(id, string_types):
-            raise TypeError("The value %s is neither an integer nor a string." % id)
+            raise TypeError("the value %s is neither an integer nor a string" % id)
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundMap(id)
         if not re.match(FINDSTAT_MAP_REGEXP, id) or id == FINDSTAT_MAP_PADDED_IDENTIFIER % 0:
-            raise ValueError("The value %s is not a valid FindStat map identifier." % id)
-        if id not in self._all_maps or self._all_maps[id] is None:
-            self._all_maps[id] = self.element_class(self, id)
+            raise ValueError("the value '%s' is not a valid FindStat map identifier" % id)
+        if id not in _all_maps or _all_maps[id] is None:
+            _all_maps[id] = self.element_class(self, id)
 
-        return self._all_maps[id]
+        return _all_maps[id]
 
     def _repr_(self):
         """
@@ -2639,12 +2709,24 @@ class FindStatMaps(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMaps
-            sage: [m for m in FindStatMaps()][0]                                # optional -- internet
-            Mp00124: Adin-Bagno-Roichman transformation
+            sage: next(iter(FindStatMaps(domain=5)))                            # optional -- internet
+            Mp00023: to non-crossing permutation
 
         """
-        for m in self._all_maps:
-            yield FindStatMap(m)
+        if self._identifiers is None:
+            query = []
+            if self._domain is not None:
+                query.append("Domain=%s" % self._domain.id_str())
+            if self._codomain is not None:
+                query.append("Codomain=%s" % self._codomain.id_str())
+            if query:
+                url = FINDSTAT_API_MAPS + "?" + "&".join(query)
+            else:
+                url = FINDSTAT_API_MAPS
+            self._identifiers = json.load(urlopen(url))["data"]
+
+        for mp in self._identifiers:
+            yield FindStatMap(mp)
 
     Element = FindStatMap
 
@@ -2722,7 +2804,7 @@ class FindStatCollection(Element):
         Cc0005: Dyck paths
 
         sage: FindStatCollection(DyckWords(2))                                  # optional -- internet
-        Cc0005: Dyck paths
+        a subset of Cc0005: Dyck paths
 
         sage: FindStatCollection(DyckWords)                                     # optional -- internet
         Cc0005: Dyck paths
@@ -2792,7 +2874,7 @@ class FindStatCollection(Element):
             True
 
         """
-        return (FindStatCollection, (self.id(),))
+        return FindStatCollection, (self.id(),)
 
     def _richcmp_(self, other, op):
         """
@@ -2914,22 +2996,24 @@ class FindStatCollection(Element):
             sage: long = [9, 12, 14, 20]
             sage: for c in sorted(l):                                           # optional -- internet, random
             ....:     if c.id() not in long and c.is_supported():
-            ....:         f = c.first_terms(lambda x: 1, max_values=10000)
-            ....:         print("{} {} {}".format(c, len(f), all(c.in_range(e) for e, _ in f)))
+            ....:         f = c.first_terms(lambda x: 1)
+            ....:         print("{} {} {}".format(c, len(list(f)), all(c.in_range(e) for e, _ in f)))
             ....:
-            Cc0001: Permutations 10000 True
-            Cc0002: Integer partitions 270 True
-            Cc0005: Dyck paths 2054 True
-            Cc0006: Integer compositions 510 True
-            Cc0007: Standard tableaux 3734 True
-            Cc0010: Binary trees 2054 True
+            Cc0001: Permutations 5913 True
+            Cc0002: Integer partitions 1211 True
+            Cc0005: Dyck paths 2055 True
+            Cc0006: Integer compositions 1023 True
+            Cc0007: Standard tableaux 1115 True
+            Cc0010: Binary trees 2055 True
             Cc0013: Cores 100 True
-            Cc0017: Alternating sign matrices 7916 True
-            Cc0018: Gelfand-Tsetlin patterns 934 True
-            Cc0019: Semistandard tableaux 10000 True
-            Cc0021: Ordered trees 2055 True
+            Cc0017: Alternating sign matrices 7917 True
+            Cc0018: Gelfand-Tsetlin patterns 1409 True
+            Cc0019: Semistandard tableaux 2374 True
+            Cc0021: Ordered trees 2056 True
             Cc0022: Finite Cartan types 31 True
-            Cc0023: Parking functions 10000 True
+            Cc0023: Parking functions 18248 True
+            Cc0024: Binary words 1022 True
+            Cc0028: Skew partitions 1250 True
 
         """
         return self._data["Code"].element_level(element) in self._data["LevelsWithSizes"]
@@ -3012,7 +3096,7 @@ class FindStatCollection(Element):
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("GelfandTsetlinPatterns")              # optional -- internet
             sage: c.id_str()                                                    # optional -- internet
-            'Cc0018'
+            u'Cc0018'
         """
         return self._id
 
@@ -3282,7 +3366,11 @@ class FindStatCollections(UniqueRepresentation, Parent):
          Cc0021: Ordered trees,
          Cc0022: Finite Cartan types,
          Cc0023: Parking functions,
-         Cc0024: Binary words]
+         Cc0024: Binary words,
+         Cc0025: Plane partitions,
+         Cc0026: Decorated permutations,
+         Cc0027: Signed permutations,
+         Cc0028: Skew partitions]
     """
     def _raise_unsupported_error(*args):
         """A placeholder function for unsupported collections that raises an
@@ -3332,7 +3420,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
             if data["NameWiki"] in SupportedFindStatCollections:
                 data["Code"] = SupportedFindStatCollections[data["NameWiki"]]
             else:
-                print("There is a new collection available at `%s`: %s." % (findstat, data["NamePlural"]))
+                print("There is a new collection available at `%s`: %s." % (findstat(), data["NamePlural"]))
                 print("To use it with this interface, it has to be added to the dictionary SupportedFindStatCollections in src/sage/databases/findstat.py of the SageMath distribution.  Please open a ticket on trac!")
 #                print("Very likely, the following code would work:")
 #                fields = "SageCodeElementToString,SageCodeElementsOnLevel,SageCodeStringToElement"
@@ -3377,13 +3465,13 @@ class FindStatCollections(UniqueRepresentation, Parent):
             Cc0001: Permutations
 
             sage: FindStatCollection(Permutations(3))                           # optional -- internet
-            Cc0001: Permutations
+            a subset of Cc0001: Permutations
 
             sage: FindStatCollection(PerfectMatching([[1,2]]))                  # optional -- internet
             Cc0012: Perfect matchings
 
             sage: FindStatCollection(PerfectMatchings(4))                       # optional -- internet
-            Cc0012: Perfect matchings
+            a subset of Cc0012: Perfect matchings
 
             sage: FindStatCollection(SetPartition([[1,2]]))                     # optional -- internet
             Cc0009: Set partitions

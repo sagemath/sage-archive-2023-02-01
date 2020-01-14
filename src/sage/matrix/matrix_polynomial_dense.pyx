@@ -2057,6 +2057,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
+        d = self.degree()
 
         # set default shifts / check shifts dimension
         if shifts is None:
@@ -2068,59 +2069,49 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         # compute kernel basis
         if row_wise:
-            P = self._kernel_basis_via_approximant(shifts,normal_form)
+            if d is -1: # matrix is zero
+                return Matrix.identity(self.base_ring(), m, m)
+
+            if m <= n and self(0).rank() == m: # early exit: kernel is empty
+                return Matrix(self.base_ring(), 0, m)
+
+            # degree bounds on the kernel basis
+            degree_bound = min(m,n)*d+max(shifts)
+            degree_bounds = [degree_bound - shifts[i] for i in range(m)]
+
+            # orders for approximation
+            orders = self.column_degrees(degree_bounds)
+            for i in range(n): orders[i] = orders[i]+1
+
+            # compute approximant basis and retrieve kernel rows
+            P = self.minimal_approximant_basis(orders,shifts,True,normal_form)
+            row_indices = []
+            for i in range(m):
+                if P[i,i].degree() + shifts[i] <= degree_bound:
+                    row_indices.append(i)
+            return P[row_indices,:]
+
         else:
-            P = self.transpose()._kernel_basis_via_approximant(shifts,normal_form)
-            print P
+            if d is -1: # matrix is zero
+                return Matrix.identity(self.base_ring(), n, n)
+
+            if n <= m and self(0).rank() == n: # early exit: kernel is empty
+                return Matrix(self.base_ring(), n, 0)
+
+            # degree bounds on the kernel basis
+            degree_bound = min(m,n)*d+max(shifts)
+            degree_bounds = [degree_bound - shifts[i] for i in range(n)]
+
+            # orders for approximation
+            orders = self.row_degrees(degree_bounds)
+            for i in range(m): orders[i] = orders[i]+1
+
+            # compute approximant basis and retrieve kernel columns
+            P = self.minimal_approximant_basis(orders,shifts,False,normal_form)
+            column_indices = []
+            for j in range(n):
+                if P[j,j].degree() + shifts[j] <= degree_bound:
+                    column_indices.append(j)
+            return P[:,column_indices]
 
         return P
-
-    def _kernel_basis_via_approximant(self, shifts, normal_form=False):
-        r"""
-        Return a ``shifts``-ordered weak Popov kernel basis for this polynomial
-        matrix (see :meth:`minimal_kernel_basis` for definitions). The output
-        basis is considered row-wise, that is, its rows are in the left kernel
-        of ``self``.
-
-        The input dimensions are supposed to be sound: the length of ``shifts``
-        must be the number of rows of ``self``.
-
-        INPUT:
-
-        - ``shifts`` -- a list of integers.
-
-        - ``normal_form`` -- (optional, default: ``False``) boolean, if
-          ``True`` then the output basis is in ``shifts``-Popov form.
-
-        OUTPUT:
-
-        - a polynomial matrix (the kernel basis ``P``).
-
-        ALGORITHM:
-
-        This computes a `shifts`-minimal approximant basis at sufficiently
-        large order so that a subset of the rows of this basis form a kernel
-        basis. This subset is identified using degree properties.
-        """
-        m = self.nrows()
-        n = self.ncols()
-        d = self.degree()
-
-        if d is -1: # matrix is zero
-            return Matrix.identity(self.base_ring(), m, m)
-
-        if m <= n and self(0).rank() == m: # early exit: kernel is empty
-            return Matrix(self.base_ring(), 0, m)
-
-        degree_bound = min(m,n)*d+max(shifts)
-        degree_bounds = [degree_bound - shifts[i] for i in range(m)]
-
-        orders = self.column_degrees(degree_bounds)
-        for i in range(n): orders[i] = orders[i]+1
-
-        P = self.minimal_approximant_basis(orders,shifts,True,normal_form)
-        row_indices = []
-        for i in range(m):
-            if P[i,i].degree() + shifts[i] <= degree_bound:
-                row_indices.append(i)
-        return P[row_indices,:]

@@ -83,6 +83,24 @@ class NumberFieldHomset(RingHomset_generic):
             sage: g = End(H1.domain(), category=Rings())(f)
             sage: f == End(H1.domain(), category=NumberFields())(g)
             True
+
+        Check that :trac:`28869` is fixed::
+
+            sage: K.<a> = CyclotomicField(8)
+            sage: L.<b> = K.absolute_field()
+            sage: H = K.Hom(L)
+            sage: phi = L.structure()[1]
+            sage: phi.parent() is H
+            True
+            sage: H(phi)
+            Isomorphism given by variable name change map:
+              From: Cyclotomic Field of order 8 and degree 4
+              To:   Number Field in b with defining polynomial x^4 + 1
+
+            sage: R.<x> = K[]
+            sage: f = x^2 + a
+            sage: f.change_ring(L.structure()[1])
+            x^2 + b
         """
         if not isinstance(x, NumberFieldHomomorphism_im_gens):
             return self.element_class(self, x, check=check)

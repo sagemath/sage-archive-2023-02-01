@@ -5927,7 +5927,7 @@ class Polyhedron_base(Element):
             sage: D.degree_polynomial()
             x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
         """
-        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
+        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face
         C = self.combinatorial_polyhedron()
         D = C.hasse_diagram()
 

@@ -594,9 +594,10 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if not self.is_galois():
             raise TypeError("Ramification breaks only defined for Galois extensions")
         ramdata = self._ramgroups(P)
+        n = len(ramdata)
         from sage.sets.set import Set
-        return Set([i - 1 for (i, (v, w)) in enumerate(zip(ramdata[:-1], ramdata[1:]))
-                    if v[1] != w[1]] + [len(ramdata) - 2])
+        return Set([i - 1 for i in range(n - 1)
+                    if ramdata[i][1] != ramdata[i + 1][1]] + [n - 2])
 
     def artin_symbol(self, P):
         r"""

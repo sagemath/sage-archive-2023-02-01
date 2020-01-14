@@ -421,15 +421,20 @@ class GaloisGroup_v2(PermutationGroup_generic):
     @cached_method
     def _ramgroups(self, P):
         """
-        Compute ramification data using Pari.
+        Compute ramification data using PARI.
 
         INPUT:
 
-        - ``P`` -- a prime ideal.
+        - ``P`` -- a prime ideal
 
         OUTPUT:
 
-        A pari vector holding the decomposition group, inertia groups, and higher ramification groups.
+        A PARI vector holding the decomposition group, inertia groups,
+        and higher ramification groups.
+
+        ALGORITHM:
+
+        This uses the PARI function :pari:`idealramgroups`.
 
         EXAMPLES::
 

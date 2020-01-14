@@ -153,7 +153,7 @@ def is_NumberFieldHomsetCodomain(codomain):
     Returns whether ``codomain`` is a valid codomain for a number
     field homset. This is used by NumberField._Hom_ to determine
     whether the created homsets should be a
-    :class:`sage.rings.number_field.morphism.NumberFieldHomset`.
+    :class:`sage.rings.number_field.homset.NumberFieldHomset`.
 
     EXAMPLES:
 
@@ -1917,7 +1917,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             # Using LazyFormat fixes #28036 - infinite loop
             from sage.misc.lazy_format import LazyFormat
             raise TypeError(LazyFormat("%s is not suitable as codomain for homomorphisms from %s") % (codomain, self))
-        from .morphism import NumberFieldHomset
+        from sage.rings.number_field.homset import NumberFieldHomset
         return NumberFieldHomset(self, codomain, category)
 
     @cached_method
@@ -10561,8 +10561,8 @@ class NumberField_cyclotomic(NumberField_absolute):
             Automorphism group of Cyclotomic Field of order 21 and degree 12
         """
         if is_NumberFieldHomsetCodomain(codomain):
-            from . import morphism
-            return morphism.CyclotomicFieldHomset(self, codomain)
+            from sage.rings.number_field.homset import CyclotomicFieldHomset
+            return CyclotomicFieldHomset(self, codomain)
         else:
             raise TypeError
 

@@ -702,6 +702,14 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         ...
         ValueError: E016: You passed too few elements (0 < 3) to FindStat!
 
+    Finally, we can also retrieve all statistics with a given domain::
+
+        sage: findstat("Cc0024")                                                # optional -- internet
+        Set of combinatorial statistics with domain Cc0024: Binary words in FindStat
+
+        sage: findstat(domain="Cores")                                          # optional -- internet
+        Set of combinatorial statistics with domain Cc0013: Cores in FindStat
+
     TESTS::
 
         sage: findstat("Permutations", lambda x: 1, depth="x")
@@ -827,10 +835,8 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 
 ######################################################################
 
-def findmap(query=None, arg=None, values=None, distribution=None,
-            depth=FINDSTAT_DEFAULT_DEPTH, max_values=FINDSTAT_MAX_VALUES):
-    r"""
-    Return an instance of a :class:`FindStatStatistic`.
+def findmap(*args, **kwargs):
+    r"""Return an instance of a :class:`FindStatStatistic`.
 
     INPUT:
 
@@ -866,24 +872,12 @@ def findmap(query=None, arg=None, values=None, distribution=None,
 
     OUTPUT:
 
-    An instance of a :class:`FindStatStatistic`, represented by
-
-    - the FindStat identifier together with its name, or
-
-    - a list of triples, each consisting of
-
-        - the statistic
-
-        - a list of strings naming certain maps
-
-        - a number which says how many of the values submitted agree
-          with the values in the database, when applying the maps in
-          the given order to the object and then computing the
-          statistic on the result.
+    An instance of a :class:`FindStatMap`, :class:`FindStatMapQuery`
+    or :class:`FindStatMaps`.
 
     EXAMPLES:
 
-    A particular statistic can be retrieved by its St-identifier or
+    A particular map can be retrieved by its Mp-identifier or
     number::
 
         sage: findmap('Mp00001')                                                # optional -- internet
@@ -917,7 +911,32 @@ def findmap(query=None, arg=None, values=None, distribution=None,
         sage: findmap("Permutations", lambda pi: pi.inverse().complement(), depth=2)      # optional -- internet
         0: Mp00066oMp00064 (quality [100])
 
+    Finally, we can also retrieve all maps with a given domain or codomain::
+
+        sage: findmap("Cc0024")                                                 # optional -- internet
+        Set of combinatorial maps with domain Cc0024: Binary words used by FindStat
+
+        sage: findmap(codomain="Cores")                                         # optional -- internet
+        Set of combinatorial maps with codomain Cc0013: Cores used by FindStat
+
+
     """
+    if len(args) > 2:
+        raise TypeError("findmap takes at most 2 positional arguments (%s given)" % len(args))
+
+    bad_args = set(kwargs).difference(["values", "distribution",
+                                       "domain", "codomain",
+                                       "depth", "max_values"])
+    if bad_args:
+        raise TypeError("findmap got unexpected keyword arguments '%s'" % bad_args)
+
+    max_values = kwargs.get("max_values", FINDSTAT_MAX_VALUES)
+    depth = kwargs.get("depth", FINDSTAT_DEFAULT_DEPTH)
+    values = kwargs.get("values", None)
+    distribution = kwargs.get("distribution", None)
+    domain = kwargs.get("domain", None)
+    codomain = kwargs.get("codomain", None)
+
     try:
         depth = int(depth)
         assert 0 <= depth <= FINDSTAT_MAX_DEPTH
@@ -967,30 +986,62 @@ def findmap(query=None, arg=None, values=None, distribution=None,
         data = _distribution_from_data(all_data, domain, max_values)
         return all_data, data, domain, codomain, function
 
-    ######################################################################
-    if query is None and arg is not None:
-        raise ValueError("arg may only be given if query is provided.")
+    def is_collection(arg):
+        try:
+            FindStatCollection(arg)
+            return True
+        except ValueError:
+            return False
 
+    def check_domain(arg, domain):
+        if domain is not None:
+            raise TypeError("the domain was specified twice, as positional argument (%s) and as keyword domain=%s" % (arg, domain))
+        return arg
+
+    def check_codomain(arg, codomain):
+        if codomain is not None:
+            raise TypeError("the codomain was specified twice, as positional argument (%s) and as keyword codomain=%s" % (arg, codomain))
+        return arg
+
+    def check_values(arg, values):
+        if values is not None:
+            raise TypeError("values were specified twice, as positional argument (%s) and as keyword values=%s" % (arg, values))
+        return arg
+
+    ######################################################################
     if values is not None and distribution is not None:
         raise ValueError("Not both of `values` and `distribution` may be given for a FindStat query.")
 
-    if values is None and distribution is None:
-        if arg is None:
-            if isinstance(query, (string_types, Integer)):
-                return FindStatMap(query)
+    if len(args) == 1:
+        if (values is None and distribution is None
+            and domain is None and codomain is None
+            and (isinstance(args[0], Integer)
+                 or (isinstance(args[0], string_types)
+                     and not is_collection(args[0])))):
+            return FindStatMap(args[0])
 
-            values, query = query, None
+        elif (isinstance(args[0], string_types) and
+              is_collection(args[0])):
+            domain = check_domain(args[0], domain)
+
         else:
-            values, arg = arg, None
+            values = check_values(args[0], values)
 
-    if query is None:
-        domain = None
-    else:
-        domain = FindStatCollection(query)
-    if arg is None:
-        codomain = None
-    else:
-        codomain = FindStatCollection(arg)
+    elif len(args) == 2:
+        domain = check_domain(args[0], domain)
+        if isinstance(args[1], (Integer, string_types)):
+            codomain = check_codomain(args[1], codomain)
+        else:
+            values = check_values(args[1], values)
+
+    if domain is not None:
+        domain = FindStatCollection(domain)
+    if codomain is not None:
+        codomain = FindStatCollection(codomain)
+
+    if (values is None and distribution is None
+        and (domain is not None or codomain is not None)):
+        return FindStatMaps(domain=domain, codomain=codomain)
 
     if values is not None:
         if isinstance(values, (string_types, Integer)):
@@ -1242,7 +1293,7 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)]); q[-1]       # optional -- internet
+            sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)]); q[-1]      # optional -- internet
             St000000: a new statistic on Cc0005: Dyck paths
             sage: q[-1].set_references_raw("[1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].\r\n[2] [[oeis:A000001]]")  # optional -- internet
             sage: q[-1].references()                                                      # optional -- internet
@@ -1304,7 +1355,7 @@ class FindStatFunction(SageObject):
             sage: q = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); q[-1]       # optional -- internet
             St000000: a new statistic on Cc0005: Dyck paths
             sage: q[-1].set_sage_code("def statistic(x):\r\n    return randint(1,1000)")  # optional -- internet
-            sage: print(q[-1].sage_code())                                          # optional -- internet
+            sage: print(q[-1].sage_code())                                                # optional -- internet
             def statistic(x):
                 return randint(1,1000)
         """

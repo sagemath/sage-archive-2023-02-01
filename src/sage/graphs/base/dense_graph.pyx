@@ -568,7 +568,6 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         """
         self._cg = DenseGraph(n)
-        self._cg_rev = None
         self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}

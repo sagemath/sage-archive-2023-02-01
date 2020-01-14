@@ -1499,7 +1499,6 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         """
         self._cg = SparseGraph(n, directed=directed)
-        self._cg_rev = None
         self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}

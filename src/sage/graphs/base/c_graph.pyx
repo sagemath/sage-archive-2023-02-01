@@ -1231,29 +1231,21 @@ cdef class CGraphBackend(GenericGraphBackend):
         label is new.
         """
         cdef CGraph G = self.cg()
-        cdef CGraph G_rev = self._cg_rev
 
         cdef int u_int = self.get_vertex(u)
         if u_int != -1:
             if not bitset_in(G.active_vertices, u_int):
                 bitset_add(G.active_vertices, u_int)
                 G.num_verts += 1
-                if reverse:
-                    bitset_add(G_rev.active_vertices, u_int)
-                    G_rev.num_verts += 1
             return u_int
         u_int = bitset_first_in_complement(G.active_vertices)
         if u_int == -1:
             G.realloc(2 * G.active_vertices.size)
-            if reverse:
-                G_rev.realloc(2 * G_rev.active_vertices.size)
             return self.check_labelled_vertex(u, reverse)
 
         self.vertex_labels[u_int] = u
         self.vertex_ints[u] = u_int
         G.add_vertex(u_int)
-        if reverse:
-            G_rev.add_vertex(u_int)
         return u_int
 
     def has_vertex(self, v):
@@ -1290,13 +1282,17 @@ cdef class CGraphBackend(GenericGraphBackend):
         r"""
         Return the ``._cg`` and ``._cg_rev`` attributes
 
+        .. NOTE::
+
+            The ``._cg_rev`` attribute has been removed and hence ``None`` is returned.
+
         EXAMPLES::
 
             sage: cg,cg_rev = graphs.PetersenGraph()._backend.c_graph()
             sage: cg
             <sage.graphs.base.sparse_graph.SparseGraph object at ...>
         """
-        return (self.cg(), self._cg_rev)
+        return (self.cg(), None)
 
     def degree(self, v, directed):
         """
@@ -1487,9 +1483,6 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef int v_int = self.get_vertex(v)
 
-        if self._cg_rev is not None:
-            return self._cg_rev.out_degrees[v_int]
-
         return self.cg().in_degrees[v_int]
 
     def add_vertex(self, name):
@@ -1540,9 +1533,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 name += 1
             retval = name
 
-        self.check_labelled_vertex(name,
-                     (self._directed and
-                      self._cg_rev is not None)) # this will add the vertex
+        self.check_labelled_vertex(name, False)  # this will add the vertex
 
         return retval
 
@@ -1634,8 +1625,6 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         # delete each arc incident with v and v
         self.cg().del_vertex(v_int)
-        if self._cg_rev is not None:
-            self._cg_rev.del_vertex(v_int)
 
         # add v to unused vertices
         if v_int in self.vertex_labels:
@@ -1755,13 +1744,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         if v_int == -1 or not bitset_in(self.cg().active_vertices, v_int):
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
-        if self._cg_rev is not None:
-            for u_int in self._cg_rev.out_neighbors(v_int):
-                yield self.vertex_label(u_int)
-
-        else:
-            for u_int in self.cg().in_neighbors(v_int):
-                yield self.vertex_label(u_int)
+        for u_int in self.cg().in_neighbors(v_int):
+            yield self.vertex_label(u_int)
 
     def iterator_out_nbrs(self, v):
         """
@@ -2199,9 +2183,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             for u in next_current:
                 if out == 1:
                     nbr = self.cg().out_neighbors(u)
-                elif self._cg_rev is not None:  # Sparse
-                    nbr = self._cg_rev.out_neighbors(u)
-                else:  # Dense
+                else:
                     nbr = self.cg().in_neighbors(u)
 
                 if not exclude_e and not exclude_v:
@@ -2356,9 +2338,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             for u in next_current:
                 if out == 1:
                     neighbors = self.cg().out_neighbors(u)
-                elif self._cg_rev is not None: # Sparse
-                    neighbors = self._cg_rev.out_neighbors(u)
-                else: # Dense
+                else:
                     neighbors = self.cg().in_neighbors(u)
                 for v in neighbors:
                     # If the neighbor is new, updates the distances and adds
@@ -2577,9 +2557,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                         shortest_path_length = f_tmp
                 if side == 1:
                     nbr = self.cg().out_neighbors(v)
-                elif self._cg_rev is not None:  # Sparse
-                    nbr = self._cg_rev.out_neighbors(v)
-                else:  # Dense
+                else:
                     nbr = self.cg().in_neighbors(v)
 
                 if not exclude_e and not exclude_v:
@@ -2796,9 +2774,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
                 if side == 1:
                     neighbors = self.cg().out_neighbors(v)
-                elif self._cg_rev is not None:  # Sparse
-                    neighbors = self._cg_rev.out_neighbors(v)
-                else:  # Dense
+                else:
                     neighbors = self.cg().in_neighbors(v)
                 for w in neighbors:
                     # If the neighbor is new, adds its non-found neighbors to
@@ -3553,10 +3529,7 @@ cdef class Search_iterator:
         self.test_in = reverse or ignore_direction
 
         if self.test_in: # How do we list in_neighbors ?
-            if self.graph._cg_rev is None:
-                self.in_neighbors = self.graph.cg().in_neighbors
-            else:
-                self.in_neighbors = self.graph._cg_rev.out_neighbors
+            self.in_neighbors = self.graph.cg().in_neighbors
 
     def __dealloc__(self):
         r"""

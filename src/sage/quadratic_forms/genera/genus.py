@@ -2334,15 +2334,12 @@ class GenusSymbol_global_ring(object):
 
             sage: from sage.quadratic_forms.genera.genus import genera
             sage: for det in range(1,5):
-            ....:     G = genera((3,0), det, even=False)
+            ....:     G = genera((4,0), det, even=False)
             ....:     assert all(g==Genus(g.representative()) for g in G)
             sage: for det in range(1,5):
             ....:     G = genera((1,2), det, even=False)
             ....:     assert all(g==Genus(g.representative()) for g in G)
-            sage: for det in range(1,20):           # long time (about 40s, 2020)
-            ....:     G = genera((3,0), det, even=False) # long time
-            ....:     assert all(g==Genus(g.representative()) for g in G) # long time
-            sage: for det in range(1,20): # long time
+            sage: for det in range(1,9): # long time (8s, 2020)
             ....:     G = genera((2,2), det, even=False) # long time
             ....:     assert all(g==Genus(g.representative()) for g in G) # long time
         """

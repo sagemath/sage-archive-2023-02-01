@@ -411,11 +411,13 @@ class KenzoSpectralSequence(KenzoObject):
 
 class KenzoChainComplex(KenzoObject):
     r"""
-    Wrapper to Kenzo chain complexes.
+    Wrapper to Kenzo chain complexes. Kenzo simplicial sets are a particular case
+    of Kenzo chain complexes.
     """
     def homology(self, n):
         r"""
-        Return the ``n``'th homology group of the kenzo chain complex
+        Return the ``n``'th homology group of the chain complex associated to this
+        kenzo object.
 
         INPUT:
 
@@ -472,7 +474,8 @@ class KenzoChainComplex(KenzoObject):
 
     def basis(self, dim):
         r"""
-        Return the list of generators of the Kenzo chain complex ``self`` in dimension ``dim``.
+        Return the list of generators of the chain complex associated to the kenzo
+        object ``self`` in dimension ``dim``.
 
         INPUT:
 
@@ -649,6 +652,9 @@ class KenzoChainComplex(KenzoObject):
 class KenzoSimplicialSet(KenzoChainComplex):
     r"""
     Wrapper to Kenzo simplicial sets.
+
+    In Kenzo, the homology of a simplicial set in computed from its associated
+    chain complex. Hence, this class inherits from `KenzoChainComplex`.
     """
 
     def loop_space(self, n=1):

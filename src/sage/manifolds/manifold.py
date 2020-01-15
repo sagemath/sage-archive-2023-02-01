@@ -2260,6 +2260,7 @@ class TopologicalManifold(ManifoldSubset):
             control of the calculus method chart by chart
 
         """
+        self._calculus_method = method
         for chart in self._atlas:
             chart.calculus_method().set(method)
 

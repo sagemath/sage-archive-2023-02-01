@@ -2096,6 +2096,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 return Matrix.identity(self.base_ring(), n, n)
 
             if n <= m and self(0).rank() == n: # early exit: kernel is empty
+                print self.base_ring()
                 return Matrix(self.base_ring(), n, 0)
 
             # degree bounds on the kernel basis
@@ -2113,5 +2114,3 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 if P[j,j].degree() + shifts[j] <= degree_bound:
                     column_indices.append(j)
             return P[:,column_indices]
-
-        return P

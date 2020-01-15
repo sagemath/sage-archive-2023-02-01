@@ -13,6 +13,7 @@
 /config.log
 /config.status
 /configure
+/config_venv
 
 /m4/sage_spkg_configures.m4
 

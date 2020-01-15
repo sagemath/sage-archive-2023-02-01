@@ -61,7 +61,6 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 
-
 @total_ordering
 class BinaryQF(SageObject):
     r"""
@@ -895,21 +894,31 @@ class BinaryQF(SageObject):
         """
         Return the cycle of reduced forms to which ``self`` belongs.
 
-        This is Algorithm 6.1 of [BUVO2007]_.
+        This is based on Algorithm 6.1 of [BUVO2007]_.
 
         INPUT:
 
         - ``self`` -- reduced, indefinite form of non-square discriminant
 
         - ``proper`` -- boolean (default: ``False``); if ``True``, return the
-          proper cycle (not implemented)
+          proper cycle
 
-        This is used to test for equivalence between indefinite forms.
-        The cycle of a form `f` consists of all reduced, equivalent forms `g`
-        such that the `a`-coefficients of `f` and `g` have the same
-        sign.  The proper cycle consists of all equivalent forms, and
-        is either the same as, or twice the size of, the cycle.  In
-        the latter case, the cycle has odd length.
+        The proper cycle of a form `f` consists of all reduced forms that are
+        properly equivalent to `f`. This is useful when testing for proper
+        equivalence (or equivalence) between indefinite forms.
+
+        The cycle of `f` is a technical tool that is used when computing the proper
+        cycle. Our definition of the cycle is slightly different from the one
+        in [BUVO2007]_. In our definition, the cycle consists of all reduced
+        forms `g`, such that the `a`-coefficient of `g` has the same sign as the
+        `a`-coefficient of `f`, and `g` can be obtained from `f` by performing a
+        change of variables, and then multiplying by the determinant of the
+        change-of-variables matrix. It is important to note that `g` might not be
+        equivalent to `f` (because of multiplying by the determinant).  However,
+        either 'g' or '-g' must be equivalent to `f`. Also note that the cycle
+        does contain `f`. (Under the definition in [BUVO2007]_, the cycle might
+        not contain `f`, because all forms in the cycle are required to have
+        positive `a`-coefficient, even if the `a`-coefficient of `f` is negative.)
 
         EXAMPLES::
 
@@ -918,6 +927,13 @@ class BinaryQF(SageObject):
             [14*x^2 + 17*x*y - 2*y^2,
              2*x^2 + 19*x*y - 5*y^2,
              5*x^2 + 11*x*y - 14*y^2]
+            sage: Q.cycle(proper=True)
+            [14*x^2 + 17*x*y - 2*y^2,
+             -2*x^2 + 19*x*y + 5*y^2,
+             5*x^2 + 11*x*y - 14*y^2,
+             -14*x^2 + 17*x*y + 2*y^2,
+             2*x^2 + 19*x*y - 5*y^2,
+             -5*x^2 + 11*x*y + 14*y^2]
 
             sage: Q = BinaryQF(1,8,-3)
             sage: Q.cycle()
@@ -927,6 +943,13 @@ class BinaryQF(SageObject):
             2*x^2 + 6*x*y - 5*y^2,
             5*x^2 + 4*x*y - 3*y^2,
             3*x^2 + 8*x*y - y^2]
+            sage: Q.cycle(proper=True)
+            [x^2 + 8*x*y - 3*y^2,
+            -3*x^2 + 4*x*y + 5*y^2,
+             5*x^2 + 6*x*y - 2*y^2,
+             -2*x^2 + 6*x*y + 5*y^2,
+             5*x^2 + 4*x*y - 3*y^2,
+             -3*x^2 + 8*x*y + y^2]
 
             sage: Q=BinaryQF(1,7,-6)
             sage: Q.cycle()
@@ -939,6 +962,83 @@ class BinaryQF(SageObject):
             3*x^2 + 7*x*y - 2*y^2,
             2*x^2 + 5*x*y - 6*y^2,
             6*x^2 + 7*x*y - y^2]
+
+        TESTS::
+
+            # :trac:`28989`
+            sage: Q=BinaryQF(1,1,-1)
+            sage: Q.cycle(proper=True)
+            [x^2 + x*y - y^2, -x^2 + x*y + y^2]
+
+            # Example 6.10.6 of [BUVO2007]_
+            sage: Q=BinaryQF(1,7,-6)
+            sage: Q.cycle()
+            [x^2 + 7*x*y - 6*y^2,
+             6*x^2 + 5*x*y - 2*y^2,
+             2*x^2 + 7*x*y - 3*y^2,
+             3*x^2 + 5*x*y - 4*y^2,
+             4*x^2 + 3*x*y - 4*y^2,
+             4*x^2 + 5*x*y - 3*y^2,
+             3*x^2 + 7*x*y - 2*y^2,
+             2*x^2 + 5*x*y - 6*y^2,
+             6*x^2 + 7*x*y - y^2]
+            sage: Q.cycle(proper=True)
+            [x^2 + 7*x*y - 6*y^2,
+             -6*x^2 + 5*x*y + 2*y^2,
+             2*x^2 + 7*x*y - 3*y^2,
+             -3*x^2 + 5*x*y + 4*y^2,
+             4*x^2 + 3*x*y - 4*y^2,
+             -4*x^2 + 5*x*y + 3*y^2,
+             3*x^2 + 7*x*y - 2*y^2,
+             -2*x^2 + 5*x*y + 6*y^2,
+             6*x^2 + 7*x*y - y^2,
+             -x^2 + 7*x*y + 6*y^2,
+             6*x^2 + 5*x*y - 2*y^2,
+             -2*x^2 + 7*x*y + 3*y^2,
+             3*x^2 + 5*x*y - 4*y^2,
+             -4*x^2 + 3*x*y + 4*y^2,
+             4*x^2 + 5*x*y - 3*y^2,
+             -3*x^2 + 7*x*y + 2*y^2,
+             2*x^2 + 5*x*y - 6*y^2,
+             -6*x^2 + 7*x*y + y^2]
+
+            # Example 6.10.7 of [BUVO2007]_
+            sage: Q=BinaryQF(1,8,-3)
+            sage: Q.cycle()
+            [x^2 + 8*x*y - 3*y^2,
+             3*x^2 + 4*x*y - 5*y^2,
+             5*x^2 + 6*x*y - 2*y^2,
+             2*x^2 + 6*x*y - 5*y^2,
+             5*x^2 + 4*x*y - 3*y^2,
+             3*x^2 + 8*x*y - y^2]
+            sage: Q.cycle(proper=True)
+            [x^2 + 8*x*y - 3*y^2,
+             -3*x^2 + 4*x*y + 5*y^2,
+             5*x^2 + 6*x*y - 2*y^2,
+             -2*x^2 + 6*x*y + 5*y^2,
+             5*x^2 + 4*x*y - 3*y^2,
+             -3*x^2 + 8*x*y + y^2]
+            sage: Q.cycle(proper=True) # should be the same as the previous one
+            [x^2 + 8*x*y - 3*y^2,
+             -3*x^2 + 4*x*y + 5*y^2,
+             5*x^2 + 6*x*y - 2*y^2,
+             -2*x^2 + 6*x*y + 5*y^2,
+             5*x^2 + 4*x*y - 3*y^2,
+             -3*x^2 + 8*x*y + y^2]
+
+            # try one where a is negative
+            sage: Q=BinaryQF(-1, 8, 3)
+            sage: hasattr(Q, '_cycle_list')
+            False
+            sage: Q.cycle(proper=True)
+            [-x^2 + 8*x*y + 3*y^2,
+             3*x^2 + 4*x*y - 5*y^2,
+             -5*x^2 + 6*x*y + 2*y^2,
+             2*x^2 + 6*x*y - 5*y^2,
+             -5*x^2 + 4*x*y + 3*y^2,
+             3*x^2 + 8*x*y - y^2]
+            sage: hasattr(Q, '_cycle_list')
+            True
         """
         if not (self.is_indef() and self.is_reduced()):
             raise ValueError("%s must be indefinite and reduced" % self)
@@ -948,7 +1048,7 @@ class BinaryQF(SageObject):
                     'implemented for non-square discriminants')
         if proper:
             # Prop 6.10.5 in Buchmann Vollmer
-            C = self.cycle(proper=False)
+            C = list(self.cycle(proper=False)) # make a copy so we can modify it
             if len(C) % 2:
                 C = C + C
             for i in range(len(C)//2):
@@ -1054,43 +1154,50 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q3 = BinaryQF(4,4,15)
-            sage: Q2 = BinaryQF(4,-4,15)
+            sage: Q3 = BinaryQF(4, 4, 15)
+            sage: Q2 = BinaryQF(4, -4, 15)
             sage: Q2.is_equivalent(Q3)
             True
-            sage: a = BinaryQF([33,11,5])
+            sage: a = BinaryQF([33, 11, 5])
             sage: b = a.reduced_form(); b
             5*x^2 - x*y + 27*y^2
             sage: a.is_equivalent(b)
             True
-            sage: a.is_equivalent(BinaryQF((3,4,5)))
+            sage: a.is_equivalent(BinaryQF((3, 4, 5)))
             False
 
         Some indefinite examples::
 
-            sage: Q1 = BinaryQF(3,  4, -2)
-            sage: Q2 = BinaryQF(-2, 4, 3)
-            sage: Q1.is_equivalent(Q2)
+            sage: Q1 = BinaryQF(9, 8, -7)
+            sage: Q2 = BinaryQF(9, -8, -7)
+            sage: Q1.is_equivalent(Q2, proper=True)
             False
-            sage: Q1.is_equivalent(Q2,proper=False)
+            sage: Q1.is_equivalent(Q2, proper=False)
             True
 
         TESTS:
 
         We check that :trac:`25888` is fixed::
 
-            sage: Q1 = BinaryQF(3,  4, -2)
+            sage: Q1 = BinaryQF(3, 4, -2)
             sage: Q2 = BinaryQF(-2, 4, 3)
-            sage: Q1.is_equivalent(Q2, proper=False)
+            sage: Q1.is_equivalent(Q2) == Q2.is_equivalent(Q1)
             True
-            sage: Q2.is_equivalent(Q1, proper=True)
-            False
+            sage: Q1.is_equivalent(Q2, proper=False) == Q2.is_equivalent(Q1, proper=False)
+            True
+            sage: Q1.is_equivalent(Q2, proper=True)
+            True
 
         A test for rational forms::
 
             sage: Q1 = BinaryQF(0, 4, 2)
             sage: Q2 = BinaryQF(2, 4, 0)
             sage: Q1.is_equivalent(Q2, proper=False)
+            True
+
+            # :trac:`28989`
+            sage: Q1, Q2 = BinaryQF(1, 1, -1), BinaryQF(-1, 1, 1)
+            sage: Q1.is_equivalent(Q2, proper=True)
             True
         """
         if type(other) != type(self):
@@ -1129,7 +1236,8 @@ class BinaryQF(SageObject):
             # ours is q(f(x,y))
 
             # an improper equivalence in our convention
-            selfred = BinaryQF(self._c, self._b, self._a)
+            selfred = BinaryQF(selfred._c, selfred._b, selfred._a)
+            assert selfred.is_reduced()
 
             return selfred in proper_cycle
 
@@ -1436,22 +1544,31 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
     TESTS::
 
         sage: BinaryQF_reduced_representatives(73)
-        [-4*x^2 + 3*x*y + 4*y^2,
-         4*x^2 + 3*x*y - 4*y^2]
+        [4*x^2 + 3*x*y - 4*y^2]
         sage: BinaryQF_reduced_representatives(76, primitive_only=True)
         [-3*x^2 + 4*x*y + 5*y^2,
          3*x^2 + 4*x*y - 5*y^2]
+        sage: BinaryQF_reduced_representatives(136)
+        [-5*x^2 + 4*x*y + 6*y^2,
+         -2*x^2 + 8*x*y + 9*y^2,
+         2*x^2 + 8*x*y - 9*y^2,
+         5*x^2 + 4*x*y - 6*y^2]
+        sage: BinaryQF_reduced_representatives(136, proper=False)
+        [-2*x^2 + 8*x*y + 9*y^2, 2*x^2 + 8*x*y - 9*y^2, 5*x^2 + 4*x*y - 6*y^2]
 
     Check that the primitive_only keyword does something::
 
-        sage: BinaryQF_reduced_representatives(4*5, primitive_only=True)
-        [-x^2 + 4*x*y + y^2,
-         x^2 + 4*x*y - y^2]
-        sage: BinaryQF_reduced_representatives(4*5, primitive_only=False)
-        [-2*x^2 + 2*x*y + 2*y^2,
-         -x^2 + 4*x*y + y^2,
-         x^2 + 4*x*y - y^2,
-         2*x^2 + 2*x*y - 2*y^2]
+        sage: BinaryQF_reduced_representatives(148, proper=False, primitive_only=False)
+        [x^2 + 12*x*y - y^2, 4*x^2 + 6*x*y - 7*y^2, 6*x^2 + 2*x*y - 6*y^2]
+        sage: BinaryQF_reduced_representatives(148, proper=False, primitive_only=True)
+        [x^2 + 12*x*y - y^2, 4*x^2 + 6*x*y - 7*y^2]
+        sage: BinaryQF_reduced_representatives(148, proper=True, primitive_only=True)
+        [-7*x^2 + 6*x*y + 4*y^2, x^2 + 12*x*y - y^2, 4*x^2 + 6*x*y - 7*y^2]
+        sage: BinaryQF_reduced_representatives(148, proper=True, primitive_only=False)
+        [-7*x^2 + 6*x*y + 4*y^2,
+         x^2 + 12*x*y - y^2,
+         4*x^2 + 6*x*y - 7*y^2,
+         6*x^2 + 2*x*y - 6*y^2]
     """
     D = ZZ(D)
 

@@ -89,7 +89,10 @@ all-toolchain: base-toolchain
 # Python 3 venv: For Python 3 builds, $(PYTHON) is set in Makefile to python3_venv.
 # Thus $(inst_python3_venv) will be the dependency of every Python package.
 inst_python3_venv = $(INST)/python3_venv
-VENV_OPTIONS = --system-site-packages --without-pip
+
+# We do not use --system-site-packages at the moment.
+# We install our own pip.
+VENV_OPTIONS = --without-pip
 $(inst_python3_venv): $(inst_python3)
 	source $(SAGE_SRC)/bin/sage-env;				\
 	if [ -r "$$SAGE_VENV"/bin/activate ]; then			\

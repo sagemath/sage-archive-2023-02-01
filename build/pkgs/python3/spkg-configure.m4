@@ -1,5 +1,5 @@
-SAGE_SPKG_CONFIGURE(
-    [python3], [
+SAGE_SPKG_CONFIGURE([python3], [
+    SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [
         AC_CACHE_CHECK([for python3 >= 3.7.3, < 3.8], [ac_cv_path_PYTHON3], [
             AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3], [
                 python3_version=`$ac_path_PYTHON3 --version 2>&1 \
@@ -14,5 +14,5 @@ SAGE_SPKG_CONFIGURE(
             ])
         ])
         AS_IF([test -z "$ac_cv_path_PYTHON3"], [sage_spkg_install_python3_build=yes])
-    ]
-)
+    ])
+])

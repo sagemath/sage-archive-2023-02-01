@@ -244,12 +244,12 @@ class TensorWithIndices(SageObject):
     def _parse_indices(indices, tensor_type=None, allow_contraction=True,
                        allow_symmetries=True):
         r"""
-        Parses index notation for tensors, enforces conventions and returns
+        Parse index notation for tensors, enforces conventions and return
         indices.
 
         Parse ``indices`` checking usual conventions on repeating indices,
         wildcard, balanced parentheses/brackets and raises a ValueError if not.
-        Returns a couple contravariant/covariant indices.
+        Return a couple contravariant/covariant indices.
 
         INPUT:
 

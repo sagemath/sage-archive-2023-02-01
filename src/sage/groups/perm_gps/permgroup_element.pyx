@@ -127,6 +127,7 @@ from sage.libs.gap.libgap import libgap
 from sage.libs.gap.gap_includes cimport (UInt, UInt2, UInt4, T_PERM2, T_PERM4,
         NEW_PERM2, NEW_PERM4, TNUM_OBJ, DEG_PERM2, DEG_PERM4, CONST_ADDR_PERM2,
         CONST_ADDR_PERM4, ADDR_PERM2, ADDR_PERM4)
+from sage.libs.gap.util cimport initialize
 from sage.libs.gap.element cimport (GapElement, GapElement_List,
         GapElement_String, GapElement_Permutation, make_GapElement_Permutation)
 from sage.libs.gap.gap_includes cimport Obj, INT_INTOBJ, ELM_LIST
@@ -869,6 +870,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         if self._libgap is not None:
             return self._libgap
+        initialize()
 
         cdef Obj res = NEW_PERM2(self.n)
         cdef UInt2* p = ADDR_PERM2(res)

@@ -881,8 +881,8 @@ class TensorWithIndices(SageObject):
         INPUT:
 
         - ``permutation`` -- permutation that has to be applied to the indices
-            the input should be a ``list`` containing the second line of the permutation
-            in Cauchy notation.
+          the input should be a ``list`` containing the second line of the permutation
+          in Cauchy notation.
         
         OUTPUT:
 

@@ -28,6 +28,8 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_GT, op_LE, op_GE
 
 from sage.structure.element cimport Element
+from sage.rings.polynomial.polydict cimport PolyDict
+
 from sage.rings.tate_algebra_element cimport TateAlgebraTerm
 from sage.rings.tate_algebra_element cimport TateAlgebraElement
 from heapq import heappush, heappop
@@ -561,72 +563,134 @@ def Jpair(p1, p2):
     elif su2 > su1:
         return su2, t2*v2
 
-def regular_reduce(sgb, s, v, verbose, stop_with_val=False):
-    res = v.parent()(0, v.precision_absolute())
-    #sgb.append((None, v << 1))
-    count = 0
-    val = v.valuation()
 
-    """
-    | stop | 1 | 0 | 1 | 0 | 1 | 0 | 1 | 0 |
-    | val= | 1 | 1 | 0 | 0 | 1 | 1 | 0 | 0 |
-    | v!=0 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
-    |------+---+---+---+---+---+---+---+---|
-    | res  | 1 | 1 | 0 | 1 | X | X | 0 | 0 |
-    | GOAL | 1 | 1 | 0 | 1 | X | X | 0 | 0 |
-    """
-    
-    while (not stop_with_val or v.valuation() == val) and v != 0:
-        sv = v.leading_term()
-        # We first check for top reduction
-        for S,V in sgb:
-            if V == 0: continue
-            sV = V.leading_term()
-            if sV.divides(sv):
-                t = sv // sV
-                if S is None or t*S < s:
-                    v -= t*V
-                    count += 1
-                    if verbose > 3:
-                        print("| regular reduction by (sign = %s, series = %s)" % (S,V))
-                        print("| new series is: %s" % (res+v))
+cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElement v, verbose, stopval):
+    cdef dict coeffs = { }
+    cdef TateAlgebraElement f
+    cdef TateAlgebraTerm lt, factor
+    cdef list ltds = [ (<TateAlgebraElement>(d[1]))._terms_c()[0] for d in sgb ]
+    cdef list terms = v._terms_c()
+    cdef int index = 0
+    cdef int i
+    cdef bint in_rem
+
+    f = v._new_c()
+    f._poly = PolyDict(v._poly.__repn, None)
+    f._prec = v._prec
+    while len(terms) > index:
+        lt = terms[index]
+        if lt._valuation_c() >= stopval:
+            break
+        for i in range(len(sgb)):
+            if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
+                factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
+                if sgb[i][0] is None or factor * sgb[i][0] < s:
+                    f = f - (<TateAlgebraElement>sgb[i][1])._term_mul_c(factor)
+                    terms = f._terms_c()
+                    index = 0
                     break
-        else:  
-            # no possible top-reduction
-            res += sv
-            v -= sv
-    if verbose > 1:
-        print("| %s regular reductions done" % count)
-    #del sgb[-1]
-    return v + res
+        else:
+            if coeffs.has_key(lt._exponent):
+                coeffs[lt._exponent] += lt._coeff
+            else:
+                coeffs[lt._exponent] = lt._coeff
+            del f._poly.__repn[lt._exponent]
+            index += 1
+    f._poly += PolyDict(coeffs, None)
+    f._terms = None
+    return f
 
-def reduce(gb, v, verbose, stop_with_val=False):
-    res = v.parent()(0, v.precision_absolute())
-    gb.append(v << 1)
-    count = 0
-    val = v.valuation()
-    while (not stop_with_val or v.valuation() == val) and v != 0:
-        sv = v.leading_term()
-        # We first check for top reduction
-        for V in gb:
-            if V == 0: continue
-            sV = V.leading_term()
-            if sV.divides(sv):
-                t = sv // sV
-                v -= t*V
-                count += 1
-                if verbose > 3:
-                    print("| reduction by %s" % V)
-                    print("| new series is: %s" % (res+v))
+cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, verbose, stopval):
+    cdef dict coeffs = { }
+    cdef TateAlgebraElement f
+    cdef TateAlgebraTerm lt, factor
+    cdef list ltds = [ (<TateAlgebraElement>d)._terms_c()[0] for d in gb ]
+    cdef list terms = v._terms_c()
+    cdef int index = 0
+    cdef int i
+
+    f = v._new_c()
+    f._poly = PolyDict(v._poly.__repn, None)
+    f._prec = v._prec
+    while len(terms) > index:
+        lt = terms[index]
+        if lt._valuation_c() >= stopval:
+            break
+        for i in range(len(gb)):
+            if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
+                factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
+                f = f - (<TateAlgebraElement>gb[i])._term_mul_c(factor)
+                terms = f._terms_c()
+                index = 0
                 break
-        else:  
-            # no possible top-reduction
-            res += sv
-            v -= sv
-    if verbose > 1:
-        print("| %s regular reductions done" % count)
-    del gb[-1]
-    return v + res
+        else:
+            if coeffs.has_key(lt._exponent):
+                coeffs[lt._exponent] += lt._coeff
+            else:
+                coeffs[lt._exponent] = lt._coeff
+            del f._poly.__repn[lt._exponent]
+            index += 1
+    f._poly += PolyDict(coeffs, None)
+    f._terms = None
+    return f
+
+
+#def regular_reduce(sgb, s, v, verbose, stopval=None):
+#    res = v.parent()(0, v.precision_absolute())
+#    #sgb.append((None, v << 1))
+#    count = 0
+#    val = v.valuation()
+#    while (stopval is None or v.valuation() < stopval) and v != 0:
+#        sv = v.leading_term()
+#        # We first check for top reduction
+#        for S,V in sgb:
+#            if V == 0: continue
+#            sV = V.leading_term()
+#            if sV.divides(sv):
+#                t = sv // sV
+#                if S is None or t*S < s:
+#                    v -= t*V
+#                    count += 1
+#                    if verbose > 3:
+#                        print("| regular reduction by (sign = %s, series = %s)" % (S,V))
+#                        print("| new series is: %s" % (res+v))
+#                    break
+#        else:  
+#            # no possible top-reduction
+#            res += sv
+#            v -= sv
+#    if verbose > 1:
+#        print("| %s regular reductions done" % count)
+#    #del sgb[-1]
+#    return v + res
+
+#def reduce(gb, v, verbose, stopval=None):
+#    res = v.parent()(0, v.precision_absolute())
+#    gb.append(v << 1)
+#    count = 0
+#    val = v.valuation()
+#    while (stopval is None or v.valuation() < stopval) and v != 0:
+#        sv = v.leading_term()
+#        # We first check for top reduction
+#        for V in gb:
+#            if V == 0: continue
+#            sV = V.leading_term()
+#            if sV.divides(sv):
+#                t = sv // sV
+#                v -= t*V
+#                count += 1
+#                if verbose > 3:
+#                    print("| reduction by %s" % V)
+#                    print("| new series is: %s" % (res+v))
+#                break
+#        else:  
+#            # no possible top-reduction
+#            res += sv
+#            v -= sv
+#    if verbose > 1:
+#        print("| %s reductions done" % count)
+#    del gb[-1]
+#    return v + res
 
 
 def print_pair(p, verbose):
@@ -705,7 +769,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
                 continue
 
             # We perform regular top-reduction
-            v = regular_reduce(sgb, s, v, verbose)
+            v = regular_reduce(sgb, s, v, verbose, prec)
 
             if v == 0:
                 # We have a new element in (I0:f) whose signature
@@ -784,16 +848,30 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
         if val < prec:
             heappush(gens, (val, f.add_bigoh(prec)))
 
+    do_reduce = False
+
     while gens:
         val, f = heappop(gens)
         if val > prec:
             break
 
+        # We reduce the current Gröbner basis
+        if val == 0 or do_reduce:
+            for i in range(len(gb)-1, -1, -1):
+                g = gb[i]
+                gb[i] = g._positive_lshift_c(1)
+                gb[i] = reduce(gb, g, verbose, prec)
+            if verbose > 1:
+                print("grobner basis reduced")
+                for g in gb:
+                    print("| %s" % g)
+            do_reduce = False
+
         if verbose > 0:
             print("---")
             print("new generator: %s" % f)
 
-        f = reduce(gb, f, verbose, stop_with_val=True)
+        f = reduce(gb, f, verbose, val + 1)
         if verbose > 1:
             print("generator reduced")
 
@@ -865,7 +943,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 continue
 
             # We perform regular top-reduction
-            v = regular_reduce(sgb, s, v, verbose, stop_with_val=True)
+            v = regular_reduce(sgb, s, v, verbose, val + 1)
 
             # if v == 0:
             if v.valuation() > val:
@@ -927,15 +1005,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             for g in gb:
                 print("| %s" % g)
         # and reduce it
-        for i in range(len(gb)-1, -1, -1):
-            g = gb[i]
-            gb[i] = g._positive_lshift_c(1)
-            _, gb[i] = g._quo_rem_c(gb, False, True, True)
-        if verbose > 1:
-            print("grobner basis reduced")
-        if verbose > 0:
-            for g in gb:
-                print("| %s" % g)
+        do_reduce = True
 
     gb.sort(reverse=True)
     return gb

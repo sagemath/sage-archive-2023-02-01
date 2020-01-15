@@ -66,7 +66,7 @@ class RingHomset_generic(HomsetWithBase):
         Set of Homomorphisms from Rational Field to Integer Ring
     """
 
-    Element = morphism.RingHomomorphism_im_gens
+    Element = morphism.RingHomomorphism
 
     def __init__(self, R, S, category = None):
         """
@@ -162,13 +162,13 @@ class RingHomset_generic(HomsetWithBase):
         from sage.categories.map import Map
         # Case 0: the homomorphism is given by images of generators
         if not (isinstance(x, Map) and x.category_for().is_subcategory(Rings())):
-            return self.element_class(self, x, base_map=base_map, check=check)
+            return morphism.RingHomomorphism_im_gens(self, x, base_map=base_map, check=check)
         if base_map is not None:
             raise ValueError("cannot specify base_map when providing a map")
         # Case 1: the parent fits
         if x.parent() == self:
             if isinstance(x, morphism.RingHomomorphism_im_gens):
-                return self.element_class(self, x.im_gens())
+                return morphism.RingHomomorphism_im_gens(self, x.im_gens())
             elif isinstance(x, morphism.RingHomomorphism_cover):
                 return morphism.RingHomomorphism_cover(self)
             elif isinstance(x, morphism.RingHomomorphism_from_base):
@@ -177,7 +177,7 @@ class RingHomset_generic(HomsetWithBase):
         try:
             if (isinstance(x, morphism.RingHomomorphism_im_gens)
                 and x.domain().fraction_field().has_coerce_map_from(self.domain())):
-                return self.element_class(self, x.im_gens())
+                return morphism.RingHomomorphism_im_gens(self, x.im_gens())
         except (TypeError, ValueError):
             pass
         # Case 3: the homomorphism can be extended by coercion

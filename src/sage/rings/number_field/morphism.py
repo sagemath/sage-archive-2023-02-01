@@ -16,6 +16,7 @@ fields (i.e. field embeddings).
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import lazy_import
 
 from sage.rings.morphism import RingHomomorphism_im_gens, RingHomomorphism
 from sage.structure.sequence import Sequence
@@ -256,3 +257,8 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
 
 class CyclotomicFieldHomomorphism_im_gens(NumberFieldHomomorphism_im_gens):
     pass
+
+
+lazy_import('sage.rings.number_field.homset',
+            ('NumberFieldHomset', 'RelativeNumberFieldHomset', 'CyclotomicFieldHomset'),
+            deprecation=29010)

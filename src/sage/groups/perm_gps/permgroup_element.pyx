@@ -867,6 +867,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: p = libgap.eval('(1,3)')
             sage: libgap(S(p)) is p
             True
+
+        Test the empty permutation::
+
+            sage: p = SymmetricGroup(0).an_element()
+            sage: p._libap_()
+            ()
         """
         if self._libgap is not None:
             return self._libgap

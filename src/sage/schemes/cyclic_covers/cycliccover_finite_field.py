@@ -606,15 +606,15 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         return ((m1, m2), (M1, M2))
 
     def _reduce_vector_horizontal(self, G, e, s, k=1):
-        """
+        r"""
         INPUT:
 
-        - a vector -- G \in W_{e, s}
+        - a vector -- `G \in W_{e, s}`
 
         OUTPUT:
 
-        - a vector -- H \in W_{e - k, s} such that
-            G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
+        - a vector -- `H \in W_{e - k, s}` such that
+            `G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx`
 
         TESTS::
 
@@ -638,12 +638,12 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         r"""
         INPUT:
 
-        - a vector -- G \in W_{e, s}
+        - a vector -- `G \in W_{e, s}`
 
         OUTPUT:
 
-        - a vector -- H \in W_{e - p, s} such that
-            G x^e y^{-s} dx \cong H x^{e - p} y^{-s} dx
+        - a vector -- `H \in W_{e - p, s}` such that
+            `G x^e y^{-s} dx \cong H x^{e - p} y^{-s} dx`
 
         TESTS::
 
@@ -761,12 +761,12 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         r"""
         INPUT:
 
-        - a vector -- G \in W_{e, s}
+        - a vector -- `G \in W_{e, s}`
 
         OUTPUT:
 
-        - a vector -- H \in W_{e - k, s} such that
-            G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
+        - a vector -- `H \in W_{e - k, s}` such that
+            `G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx`
 
         TESTS::
 
@@ -816,12 +816,12 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         return vect
 
     def _reduce_vector_vertical(self, G, s0, s, k=1):
-        """
+        r"""
         Reduce the vector `G` representing an element of `W_{-1,rs + s0}` by `r k` steps
 
         INPUT:
 
-        - a vector -- G \in W_{-1, r*s + s0}
+        - a vector -- `G \in W_{-1, r*s + s0}`
 
         OUTPUT:
 
@@ -842,7 +842,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             r"""
             INPUT:
 
-            - a vector -- G \in W_{-1, r*s + s0}
+            - a vector -- `G \in W_{-1, r*s + s0}`
 
             OUTPUT:
 

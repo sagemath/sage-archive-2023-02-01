@@ -2205,6 +2205,7 @@ class FindStatCompoundStatistic(Element):
         self._maps = FindStatCompoundMap(composition[2])
         if self._maps.codomain() is not None and self._maps.codomain() != self._statistic.domain():
             raise ValueError("the statistic %s cannot be composed with the map %s" % (self._statistic, self._maps))
+        Element.__init__(self, FindStatStatistics())
 
     def domain(self):
         return self._maps.domain()
@@ -2368,6 +2369,7 @@ class FindStatCompoundMap(Element):
             if not all(self._maps[i].codomain() == self._maps[i+1].domain()
                        for i in range(len(self._maps)-1)):
                 raise ValueError("the sequence of maps %s cannot be composed" % self._maps)
+        Element.__init__(self, FindStatMaps())
 
     def __getitem__(self, i):
         return self._maps[i]

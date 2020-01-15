@@ -531,10 +531,10 @@ def _distribution_from_data(data, domain, max_values):
     TESTS::
 
         sage: from sage.databases.findstat import _distribution_from_data, FindStatCollection
-        sage: cc = FindStatCollection(1)
-        sage: n = 3; l = lambda i: [pi for pi in Permutations(n) if pi(1) == i]
-        sage: data = [([pi for pi in l(i)], [pi(1) for pi in l(i)]) for i in range(1,n+1)]
-        sage: _distribution_from_data(data, cc, 10)
+        sage: cc = FindStatCollection(1)                                        # optional -- internet
+        sage: n = 3; l = lambda i: [pi for pi in Permutations(n) if pi(1) == i] # optional -- internet
+        sage: data = [([pi for pi in l(i)], [pi(1) for pi in l(i)]) for i in range(1,n+1)] # optional -- internet
+        sage: _distribution_from_data(data, cc, 10)                             # optional -- internet
         [([[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]],
           [1, 1, 2, 2, 3, 3])]
     """
@@ -911,6 +911,16 @@ def findmap(*args, **kwargs):
         sage: findmap("Permutations", lambda pi: pi.inverse().complement(), depth=2)      # optional -- internet
         0: Mp00066oMp00064 (quality [100])
 
+    In rare cases, it may not be possible to guess the codomain of a
+    map, in which case it can be provided as second argument or
+    keyword argument::
+
+        sage: findmap("Dyck paths", "Perfect matchings", lambda D: [(a+1, b) for a,b in D.tunnels()]) # optional -- internet
+        0: Mp00146 (quality [100])
+
+        sage: findmap("Dyck paths", "Set partitions", lambda D: [(a+1, b) for a,b in D.tunnels()]) # optional -- internet
+        0: Mp00092oMp00146 (quality [50])
+
     Finally, we can also retrieve all maps with a given domain or codomain::
 
         sage: findmap("Cc0024")                                                 # optional -- internet
@@ -919,10 +929,9 @@ def findmap(*args, **kwargs):
         sage: findmap(codomain="Cores")                                         # optional -- internet
         Set of combinatorial maps with codomain Cc0013: Cores used by FindStat
 
-
     """
-    if len(args) > 2:
-        raise TypeError("findmap takes at most 2 positional arguments (%s given)" % len(args))
+    if len(args) > 3:
+        raise TypeError("findmap takes at most 3 positional arguments (%s given)" % len(args))
 
     bad_args = set(kwargs).difference(["values", "distribution",
                                        "domain", "codomain",
@@ -1033,6 +1042,11 @@ def findmap(*args, **kwargs):
             codomain = check_codomain(args[1], codomain)
         else:
             values = check_values(args[1], values)
+
+    elif len(args) == 3:
+        domain = check_domain(args[0], domain)
+        codomain = check_codomain(args[1], codomain)
+        values = check_values(args[2], values)
 
     if domain is not None:
         domain = FindStatCollection(domain)
@@ -2051,8 +2065,8 @@ class FindStatStatisticQuery(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatStatisticQuery
-            sage: data = [[[pi],[pi[0]]] for n in range(1,7) for pi in Permutations(n)]
-            sage: FindStatStatisticQuery(domain=1, data=data, depth=1)
+            sage: data = [[[pi],[pi[0]]] for n in range(1,7) for pi in Permutations(n)] # optional -- internet
+            sage: FindStatStatisticQuery(domain=1, data=data, depth=1)          # optional -- internet
             0: St000054 (quality [100, 100])
             1: St000025oMp00127 (quality [100, 100])
             2: St000051oMp00072 with offset -1 (quality [100, 100])
@@ -2174,12 +2188,26 @@ class FindStatStatisticQuery(SageObject):
 
 class FindStatCompoundStatistic(Element):
     def __init__(self, id_str):
+        """
+        TESTS::
+
+            sage: findstat("St000001oMp00127")                                  # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: the statistic St000001: The number of reduced words for a permutation. cannot be composed with the map Mp00127
+
+        """
         if isinstance(id_str, Integer):
             id_str = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id_str
         self._id_str = id_str
         composition = id_str.partition("o")
         self._statistic = FindStatStatistic(composition[0])
         self._maps = FindStatCompoundMap(composition[2])
+        if self._maps.codomain() is not None and self._maps.codomain() != self._statistic.domain():
+            raise ValueError("the statistic %s cannot be composed with the map %s" % (self._statistic, self._maps))
+
+    def domain(self):
+        return self._maps.domain()
 
     def __call__(self, elt):
         return self.statistic()(self.maps()(elt))
@@ -2202,7 +2230,7 @@ class FindStatCompoundStatistic(Element):
 
         EXAMPLES::
 
-            sage: FindStatCompoundMap("Mp00087oMp00058").browse()               # optional -- webbrowser
+            sage: FindStatCompoundStatistic("Mp00087oMp00058").browse()         # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_STATISTICS + self.id_str())
 
@@ -2244,7 +2272,7 @@ class FindStatMapQuery(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMapQuery
-            sage: FindStatMapQuery(domain=1, codomain=1, data=[[[pi],[pi.reverse().inverse()]] for pi in Permutations(4)])
+            sage: FindStatMapQuery(domain=1, codomain=1, data=[[[pi],[pi.reverse().inverse()]] for pi in Permutations(4)]) # optional -- internet
             0: Mp00066oMp00064 (quality [100])
         """
         self._data = data
@@ -2314,6 +2342,21 @@ class FindStatMapQuery(SageObject):
 
 class FindStatCompoundMap(Element):
     def __init__(self, id_str):
+        """
+        TESTS::
+
+            sage: findmap("Mp00146oMp00127").domain()                           # optional -- internet
+            Cc0001: Permutations
+
+            sage: findmap("Mp00146oMp00127").codomain()                         # optional -- internet
+            Cc0012: Perfect matchings
+
+            sage: findmap("Mp00127oMp00146")                                    # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: the sequence of maps [Mp00146: to tunnel matching, Mp00127: left-to-right-maxima to Dyck path] cannot be composed
+        """
+
         if isinstance(id_str, Integer):
             id_str = FINDSTAT_MAP_PADDED_IDENTIFIER % id_str
         if id_str == "":
@@ -2322,9 +2365,20 @@ class FindStatCompoundMap(Element):
         else:
             self._id_str = id_str
             self._maps = [FindStatMap(m) for m in id_str.split("o")][::-1]
+            if not all(self._maps[i].codomain() == self._maps[i+1].domain()
+                       for i in range(len(self._maps)-1)):
+                raise ValueError("the sequence of maps %s cannot be composed" % self._maps)
 
     def __getitem__(self, i):
         return self._maps[i]
+
+    def domain(self):
+        if self._maps:
+            return self._maps[0].domain()
+
+    def codomain(self):
+        if self._maps:
+            return self._maps[-1].codomain()
 
     def __call__(self, elt):
         for m in self.maps():
@@ -2598,11 +2652,11 @@ class FindStatMap(Element, FindStatFunction):
             sage: FindStatMap(71).set_properties_raw(u'surjective')             # optional -- internet
             sage: FindStatMap(71).properties_raw()                              # optional -- internet
             u'surjective'
-            sage: FindStatMap(71)
+            sage: FindStatMap(71)                                               # optional -- internet
             Mp00071(modified): descent composition
             sage: from sage.databases.findstat import _all_maps                 # optional -- internet
-            sage: del _all_maps['Mp00071']
-            sage: FindStatMap(71)
+            sage: del _all_maps['Mp00071']                                      # optional -- internet
+            sage: FindStatMap(71)                                               # optional -- internet
             Mp00071: descent composition
         """
         if value != self.properties_raw():
@@ -2656,7 +2710,7 @@ class FindStatMaps(UniqueRepresentation, Parent):
     We can print a sample map, for each domain and codomain::
 
         sage: from sage.databases.findstat import FindStatCollections, FindStatMap, FindStatMaps
-        sage: ccs = sorted(FindStatCollections())[:3]
+        sage: ccs = sorted(FindStatCollections())[:3]                           # optional -- internet
         sage: for cc_dom in ccs:                                                # optional -- internet, random
         ....:     for cc_codom in ccs:
         ....:         print(cc_dom.name(style="plural") + " -> " + cc_codom.name(style="plural"))
@@ -3532,7 +3586,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
 
             sage: cc = FindStatCollection(graphs(3)); cc                        # optional -- internet
             a subset of Cc0020: Graphs
-            sage: cc.first_terms(lambda x: x.edges(False)).list()
+            sage: cc.first_terms(lambda x: x.edges(False)).list()               # optional -- internet
             [(Graph on 3 vertices, []),
              (Graph on 3 vertices, [(0, 2)]),
              (Graph on 3 vertices, [(0, 2), (1, 2)]),

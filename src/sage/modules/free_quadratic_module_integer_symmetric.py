@@ -1056,7 +1056,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 v = e.valuation(2)
                 q = b.q().lift()
                 delta = (q*e) % 2
-                b = 2**((e.valuation(2)/2).ceil() + delta)*b.lift()
+                b = 2**(((e.valuation(2)+1)//2) + delta) * b.lift()
                 isotropic.append(b)
             L = L.overlattice(isotropic)
             D = L.discriminant_group()
@@ -1091,7 +1091,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 continue
             # go squarefree
             D = L.discriminant_group(p).normal_form()
-            isotropic = [p**(-b.q().lift().valuation(p)/2).ceil()*b.lift() for b in D.gens()]
+            isotropic = [p**((-b.q().lift().valuation(p)+1)//2) * b.lift() for b in D.gens()]
             L = L.overlattice(isotropic)
             # now the p-discriminant_group is a vector space
             while True:

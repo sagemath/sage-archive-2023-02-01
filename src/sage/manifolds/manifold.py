@@ -2254,6 +2254,16 @@ class TopologicalManifold(ManifoldSubset):
             F: M --> R
                (x, y) |--> x^2 + cos(y)*sin(x)
 
+        The calculus method chosen via ``set_calculus_method()`` applies to any
+        chart defined subsequently on the manifold::
+
+            sage: M.set_calculus_method('sympy')
+            sage: Y.<u,v> = M.chart()  # a new chart
+            sage: Y.calculus_method()
+            Available calculus methods (* = current):
+             - SR (default)
+             - sympy (*)
+
         .. SEEALSO::
 
             :meth:`~sage.manifolds.chart.Chart.calculus_method` for a

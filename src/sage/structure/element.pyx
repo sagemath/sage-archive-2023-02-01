@@ -2814,12 +2814,12 @@ cdef class CommutativeRingElement(RingElement):
             sage: z.inverse_mod(F.ideal(z))
             Traceback (most recent call last):
             ...
-            ValueError: An element of a proper ideal does not have an inverse modulo that ideal
+            ValueError: an element of a proper ideal does not have an inverse modulo that ideal
         """
         if I.is_one():
             return self.parent().one()
         elif self in I:
-            raise ValueError("An element of a proper ideal does not have an inverse modulo that ideal")
+            raise ValueError("an element of a proper ideal does not have an inverse modulo that ideal")
         elif hasattr(self, "is_unit") and self.is_unit():
             return self.inverse_of_unit()
         else:

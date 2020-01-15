@@ -156,10 +156,10 @@ cdef extern from "gap/permutat.h" nogil:
     UInt DEG_PERM4(Obj)
     Obj NEW_PERM2(UInt)
     Obj NEW_PERM4(UInt)
-    UInt2 * ADDR_PERM2(Obj)
-    UInt4 * ADDR_PERM4(Obj)
-    const UInt2 * CONST_ADDR_PERM2(Obj)
-    const UInt4 * CONST_ADDR_PERM4(Obj)
+    UInt2* ADDR_PERM2(Obj)
+    UInt4* ADDR_PERM4(Obj)
+    const UInt2* CONST_ADDR_PERM2(Obj)
+    const UInt4* CONST_ADDR_PERM4(Obj)
 
 
 cdef extern from "gap/precord.h" nogil:

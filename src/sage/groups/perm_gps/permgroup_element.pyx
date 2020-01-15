@@ -577,8 +577,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ...
             ValueError: invalid data to initialize a permutation
         """
-        cdef UInt2 * p2
-        cdef UInt4 * p4
+        cdef UInt2* p2
+        cdef UInt4* p4
         cdef int i
         cdef UInt d
 
@@ -871,7 +871,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             return self._libgap
 
         cdef Obj res = NEW_PERM2(self.n)
-        cdef UInt2 * p = ADDR_PERM2(res)
+        cdef UInt2* p = ADDR_PERM2(res)
         cdef UInt i
         for i in range(self.n):
             p[i] = self.perm[i]

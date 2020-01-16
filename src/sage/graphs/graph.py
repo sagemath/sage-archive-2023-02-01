@@ -8627,9 +8627,8 @@ class Graph(GenericGraph):
     from sage.graphs.domination import is_redundant
     from sage.graphs.domination import private_neighbors
     from sage.graphs.domination import minimal_dominating_sets
-    from sage.graphs.traversals import lex_M
-    from sage.graphs.traversals import maximum_cardinality_search
-    from sage.graphs.traversals import maximum_cardinality_search_M
+    from sage.graphs.traversals import (lex_M, maximum_cardinality_search,
+                                        maximum_cardinality_search_M)
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",

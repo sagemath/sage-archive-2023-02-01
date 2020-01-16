@@ -141,6 +141,21 @@ def make_labelled_rooted_tree(atoms, cliques):
     return to_tree(0, len(cliques))
 
 
+cdef inline bint is_clique(short_digraph sd, vector[int] Hx):
+    """
+    Check if the subgraph sd[Hx] is a clique.
+
+    This is a helper function of ``atoms_and_clique_separators``.
+    """
+    cdef size_t Hx_size = Hx.size()
+    cdef size_t i, j
+    cdef int u
+    for i in range(Hx_size -1):
+        u = Hx[i]
+        for j in range(i + 1, Hx_size):
+            if not has_edge(sd, u, Hx[j]):
+                return False
+    return True
 
 def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=False):
     r"""
@@ -422,7 +437,10 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
                 Sh.extend(res[1])
             if not first:
                 Sc.append(Set())
-            Sc.extend(res[2 if separators else 1])
+            if separators:
+                Sc.extend(res[2])
+            else:
+               Sc.extend(res[1])
             first = False
 
         # Format and return the result
@@ -503,6 +521,7 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
     cdef frozenset Sint
     cdef vector[int] Sint_min
     cdef vector[int] Cint
+    cdef vector[int] Hx
     cdef size_t ui, vi
     cdef bint stop
 
@@ -510,26 +529,15 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         sig_check()
         x = alpha[i]
         if X[x] and not H[x].empty():
+            Hx = H[x]
 
             if separators:
-                Sh.append(Set(int_to_vertex[u] for u in H[x]))
+                Sh.append(Set(int_to_vertex[u] for u in Hx))
 
-            # Check if the subgraph of G[H[x]] is a clique
-            stop = False
-            for ui in range(H[x].size() -1):
-                u = H[x][ui]
-                for vi in range(ui + 1, H[x].size()):
-                    if not has_edge(sd, u, H[x][vi]):
-                        stop = True
-                        break
-                if stop:
-                    break
-
-            # Weird Python syntax which is useful once in a lifetime : if break
-            # was never called in the loop above, G[H[x]] = G[S] is a clique
-            else:
-                # Extract the connected component of Gp - S containing x
-                Sint = frozenset(H[x])
+            if is_clique(sd, Hx):
+                # The subgraph G[H[x]] = G[S] is a clique.
+                # We extract the connected component of Gp - S containing x
+                Sint = frozenset(Hx)
                 Sint_min.clear()
                 Cint.clear()
                 Cint.push_back(x)

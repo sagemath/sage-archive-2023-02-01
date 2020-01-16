@@ -1366,7 +1366,9 @@ def maximum_cardinality_search(G, reverse=False, tree=False, initial_vertex=None
 
     - ``initial_vertex`` -- (default: ``None``); the first vertex to consider
 
-    OUPUT: by default, return the ordering `\alpha` as a list. When ``tree`` is
+    OUTPUT:
+
+    By default, return the ordering `\alpha` as a list. When ``tree`` is
     ``True``, the method returns a tuple `(\alpha, T)`, where `T` is a directed
     tree with the same set of vertices as `G`and a directed edge from `u` to `v`
     if `u` was the first vertex to saw `v`.
@@ -1446,7 +1448,7 @@ def maximum_cardinality_search(G, reverse=False, tree=False, initial_vertex=None
     cdef int* pred = <int *>mem.allocarray(N, sizeof(int))
 
     cdef int i, u, v
-    for i in range(G.order()):
+    for i in range(N):
         weight[i] = 0
         seen[i] = False
         pred[i] = i

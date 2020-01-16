@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-r"""FindStat - the Combinatorial Statistic Finder.
+r"""
+FindStat - the Combinatorial Statistic Finder.
 
 The FindStat database can be found at::
 
@@ -16,7 +17,7 @@ You can use the sage interface to FindStat to:
 
 - identify a combinatorial statistic from the values on a few small objects,
 - obtain more terms, formulae, references, etc. for a given statistic,
-- edit statistics and submit new statistics.
+- edit statistics and maps and submit new statistics.
 
 AUTHORS:
 
@@ -31,7 +32,7 @@ Retrieving information
 
 The most straightforward application of the FindStat interface is to
 gather information about a combinatorial statistic.  To do this, we
-supply :class:`findstat<FindStat>` with a list of `(object, value)`
+supply :class:`findstat<FindStat>` with a list of ``(object, value)``
 pairs.  For example::
 
     sage: PM = PerfectMatchings
@@ -43,26 +44,30 @@ pairs.  For example::
 The result of this query is a list (presented as a
 :class:`sage.databases.oeis.FancyTuple`) of matches.  Each match
 consists of a :class:`FindStatCompoundStatistic` `s: S \to \ZZ` and
-an indication of the quality of the match, which is a pair
-`(percentage of matching values, percentage of distinct matching
-values)`.
+an indication of the quality of the match.
 
 The precise meaning of the result is as follows:
 
     The composition `f_n \circ ... \circ f_2 \circ f_1` applied to
-    the objects sent to FindStat agrees with `quality` many `(object,
-    value)` pairs of `s` in the database.  Moreover, there are no
-    other `(object, value)` pairs of `s` stored in the database,
-    i.e., there is no disagreement of values.
+    the objects sent to FindStat agrees with all ``(object, value)``
+    pairs of `s` in the database.
 
-Put differently, if `quality` is not too small it is likely that the
-statistic sent to FindStat equals `s \circ f_n \circ ... \circ f_2 \circ f_1`.
+    Suppose that the quality of the match is `(q_a, q_d)`.  Then
+    `q_a` is the percentage of ``(object, value)`` pairs that are in
+    the database among those which were sent to FindStat, and `q_d`
+    is the percentage of ``(object, value)`` pairs with distinct
+    values in the database among those which were sent to FindStat.
 
-In the case at hand, the list of maps is empty and the integer
-`quality` equals the number of `(object, value)` pairs passed to
-FindStat.  This means, that the set of `(object, value)` pairs of the
-statistic `s` as stored in the FindStat database is a superset of the
-data sent.  We can now retrieve the description from the database::
+Put differently, if ``quality`` is not too small it is likely that
+the statistic sent to FindStat equals `s \circ f_n \circ ... \circ
+f_2 \circ f_1`.  If `q_a` is large, but `q_b` is small, then there
+were many matches, but while the sought for statistic attains many
+distinct values, the match found by FindStat covers only ``(object,
+value)`` pairs for few values.
+
+In the case at hand, for the match ``St000041``, the list of maps is
+empty.  We can retrieve the description of the statistic from the
+database as follows::
 
     sage: print(r[1].statistic().description())                                 # optional -- internet
     The number of nestings of a perfect matching.
@@ -70,7 +75,7 @@ data sent.  We can now retrieve the description from the database::
     <BLANKLINE>
     This is the number of pairs of edges $((a,b), (c,d))$ such that $a\le c\le d\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$...
 
-and check the references::
+We can check the references::
 
     sage: r[1].statistic().references()                                         # optional -- internet
     0: [1]  de Médicis, A., Viennot, X. G., Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger [[MathSciNet:1288802]]
@@ -81,8 +86,8 @@ If you prefer, you can look at this information also in your browser::
     sage: r[1].statistic().browse()                                             # optional -- webbrowser
 
 Another interesting possibility is to look for equidistributed
-statistics.  Instead of submitting a list of `(object, value)` pairs,
-we pass a list of pairs `(objects, values)`::
+statistics.  Instead of submitting a list of ``(object, value)``
+pairs, we pass a list of pairs ``(objects, values)``::
 
     sage: r = findstat([(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)], depth=0); r # optional -- internet
     0: St000041 (quality [99, 100])
@@ -387,7 +392,7 @@ def _data_from_iterable(iterable, mapping=False, domain=None,
     - iterable, a pair of lists of the same size, or an iterable of
       pairs, such that every pair consists of two iterables of the
       same size, or a single element and a single value.  Every
-      object must be a :cls:`SageObject`.
+      object must be a :class:`SageObject`.
 
     - mapping -- (default: ``False``), ``False``, if the codomain is
       ``Integer`` and ``True`` if it is a FindStat collection
@@ -431,8 +436,8 @@ def _data_from_iterable(iterable, mapping=False, domain=None,
 
     # pre_data is a list of all elements of the iterator accessed so
     # far, for each of its elements and also the remainder ot the
-    # iterator, each element is either a pair `(object, value)` or a
-    # pair `(objects, values)`
+    # iterator, each element is either a pair ``(object, value)`` or
+    # a pair ``(objects, values)``
     elts, vals = pre_data[0]
     if domain is None:
         domain = FindStatCollection(elts)
@@ -523,7 +528,7 @@ def _distribution_from_data(data, domain, max_values):
 
     - ``data``, an iterable over pairs of lists of the same size
 
-    - ``domain``, a :cls:`FindStatCollection`
+    - ``domain``, a :class:`FindStatCollection`
 
     - ``max_values``, the maximal number of objects (and values) to
       return
@@ -585,7 +590,7 @@ def _generating_functions_from_dict(gfs, style):
 def findstat(query=None, values=None, distribution=None, domain=None,
              depth=FINDSTAT_DEFAULT_DEPTH, max_values=FINDSTAT_MAX_VALUES):
     r"""
-    Return an instance of a :class:`FindStatStatistic`.
+    Return matching statistics.
 
     INPUT:
 
@@ -596,10 +601,10 @@ def findstat(query=None, values=None, distribution=None, domain=None,
       ``max_values`` are ignored, ``values`` and ``distribution``
       must be ``None``.
 
-    - a list of pairs of the form (object, value), or a dictionary
-      from sage objects to integer values.  The keyword arguments
-      ``depth`` and ``max_values`` are passed to the finder,
-      ``values`` and ``distribution`` must be ``None``.
+    - a list of pairs of the form ``(object, value)``, or a
+      dictionary from sage objects to integer values.  The keyword
+      arguments ``depth`` and ``max_values`` are passed to the
+      finder, ``values`` and ``distribution`` must be ``None``.
 
     - a list of pairs of the form (list of objects, list of values),
       or a single pair of the form (list of objects, list of values).
@@ -614,7 +619,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
       supported.
 
     - a collection and a callable.  The callable is used to generate
-      ``max_values`` (object, value) pairs.  The number of terms
+      ``max_values`` ``(object, value)`` pairs.  The number of terms
       generated may also be controlled by passing an iterable
       collection, such as ``Permutations(3)``.  The keyword arguments
       ``depth`` and ``max_values`` are passed to the finder.
@@ -836,27 +841,26 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 ######################################################################
 
 def findmap(*args, **kwargs):
-    r"""Return an instance of a :class:`FindStatStatistic`.
+    r"""
+    Return matching maps.
 
     INPUT:
 
     One of the following:
 
     - an integer or a string representing a valid FindStat map identifier
-      (e.g. 45 or 'Mp00045').  The keyword arguments ``depth`` and
-      ``max_values`` are ignored, ``values`` and ``distribution``
-      must be ``None``.
+      (e.g. 45 or 'Mp00045').
 
-    - a list of pairs of the form (object, value), or a dictionary
-      from sage objects to integer values.  The keyword arguments
-      ``depth`` and ``max_values`` are passed to the finder,
-      ``values`` and ``distribution`` must be ``None``.
+    - a list of pairs of the form ``(object, value)``, or a
+      dictionary from sage objects to integer values.  The keyword
+      arguments ``depth`` and ``max_values`` are passed to the
+      finder.
 
-    - a list of pairs of the form (list of objects, list of values),
-      or a single pair of the form (list of objects, list of values).
-      In each pair there should be as many objects as values.  The
-      keyword arguments ``depth`` and ``max_values`` are passed to
-      the finder.
+    - a list of pairs of the form ``(list of objects, list of
+      values)``, or a single pair of the form ``(list of objects,
+      list of values)``.  In each pair there should be as many
+      objects as values.  The keyword arguments ``depth`` and
+      ``max_values`` are passed to the finder.
 
     - a collection and a list of pairs of the form (string, value),
       or a dictionary from strings to integer values.  The keyword
@@ -865,7 +869,7 @@ def findmap(*args, **kwargs):
       supported.
 
     - a collection and a callable.  The callable is used to generate
-      ``max_values`` (object, value) pairs.  The number of terms
+      ``max_values`` ``(object, value)`` pairs.  The number of terms
       generated may also be controlled by passing an iterable
       collection, such as ``Permutations(3)``.  The keyword arguments
       ``depth`` and ``max_values`` are passed to the finder.
@@ -1083,8 +1087,8 @@ def findmap(*args, **kwargs):
 
 class FindStatFunction(SageObject):
     """
-    A class containing the common methods of :cls:`FindStatMap` and
-    :cls:`FindStatStatistic`.
+    A class containing the common methods of :class:`FindStatMap` and
+    :class:`FindStatStatistic`.
     """
     def __call__(self, elt):
         if self._function is False:
@@ -1494,9 +1498,11 @@ class FindStatStatistic(Element, FindStatFunction):
     # executed only once
     def _fetch_first_terms(self):
         r"""
-        Initialize the first terms of the statistic, as (object, value) pairs.
+        Initialize the first terms of the statistic, as ``(object,
+        value)`` pairs.
 
         This sets ``self._modified_first_terms``.
+
         """
         if self._modified_first_terms is not None:
             return
@@ -1508,10 +1514,11 @@ class FindStatStatistic(Element, FindStatFunction):
 
     def _initialize_first_terms(self, data):
         r"""
-        Initialize the first terms of the statistic, as (object, value)
-        pairs.
+        Initialize the first terms of the statistic, as ``(object,
+        value)`` pairs.
 
         This sets ``self._modified_first_terms``.
+
         """
         to_str = self.collection().to_string()
         self._modified_first_terms = [(objs[0], vals[0])
@@ -2042,13 +2049,13 @@ class FindStatStatisticQuery(SageObject):
           may be used for submission
 
         - ``values_of`` -- (optional), anything accepted by
-          :cls:`FindStatCompoundStatistic`
+          :class:`FindStatCompoundStatistic`
 
         - ``distribution_of`` -- (optional), anything accepted by
-          :cls:`FindStatCompoundStatistic`
+          :class:`FindStatCompoundStatistic`
 
         - ``domain`` -- (optional), anything accepted by
-          :cls:`FindStatCollection`
+          :class:`FindStatCollection`
 
         - ``depth`` -- (optional), the number of maps to apply before
           applying the statistic
@@ -2463,11 +2470,12 @@ class FindStatMap(Element, FindStatFunction):
         return FindStatMaps()(entry)
 
     def __init__(self, parent, id):
-        """Initialize the map.
+        """
+        Initialize the map.
 
         This should only be called in
         :meth:`FindStatMaps()._element_constructor_` via
-        `element_class`.
+        :meth:`FindStatMaps().element_class`.
 
         INPUT:
 
@@ -2940,7 +2948,7 @@ class FindStatCollection(Element):
 
         This should only be called in
         :meth:`FindStatCollections()._element_constructor_` via
-        `element_class`.
+        :meth:`FindStatCollections().element_class`.
 
         INPUT:
 
@@ -3138,7 +3146,7 @@ class FindStatCollection(Element):
 
         OUTPUT:
 
-        A lazy list of pairs of the form (object, value).
+        A lazy list of pairs of the form ``(object, value)``.
 
         EXAMPLES::
 

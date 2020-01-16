@@ -2659,7 +2659,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: poly.degree(q)
             Traceback (most recent call last):
             ...
-            TypeError: argument must canonically coerce to parent
+            TypeError: argument is not coercible to the parent
 
         Using a non-canonical coercion does work, but we require this
         to be done explicitly, since it can lead to confusing results
@@ -2681,7 +2681,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: poly.degree(pp+1)
             Traceback (most recent call last):
             ...
-            TypeError: argument must be a generator
+            TypeError: argument is not a generator
 
         Canonical coercions are used::
 

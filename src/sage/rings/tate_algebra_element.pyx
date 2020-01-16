@@ -348,7 +348,7 @@ cdef class TateAlgebraTerm(MonoidElement):
     #    """
     #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
-    cdef long _cmp_c(self, TateAlgebraTerm other):
+    cdef long _cmp_c(self, TateAlgebraTerm other) except? 300:
         r"""
         Compare the Tate algebra term with ``other``.
 

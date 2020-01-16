@@ -467,6 +467,7 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
     # the S-polynomials of pairs of elements in rgb 
     # all reduce to zero modulo (rgb,S)
     while S:
+        sig_check()
         # We reduce the Grobner basis if needed
         if reduce:
             reduce = False
@@ -579,6 +580,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
     f._poly = PolyDict(v._poly.__repn, None)
     f._prec = v._prec
     while len(terms) > index:
+        sig_check()
         lt = terms[index]
         if lt._valuation_c() >= stopval:
             break
@@ -710,6 +712,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
     gb = [ ]
 
     for f in I.gens():
+        sig_check()
         if verbose > 0:
             print("---")
             print("new generator: %s + ..." % f.leading_term())
@@ -721,6 +724,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
         p = (term_one, f.add_bigoh(prec))
         Jpairs = [ ]
         for P in sgb:
+            sig_check()
             J = Jpair(p, P)
             if J is not None:
                 heappush(Jpairs, J)
@@ -749,6 +753,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             # The syzygy criterium
             syzygy = None
             for S in gb0:
+                sig_check()
                 if S.divides(s):
                     syzygy = S
                     break
@@ -761,6 +766,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             # the current strong Grobner basis
             cover = None
             for S, V in sgb:
+                sig_check()
                 if S is not None and S.divides(s):
                     sV = V.leading_term()
                     if (s // S)*sV < sv:
@@ -787,6 +793,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
                     print("| new element is SGB: " + print_pair(p, verbose))
                 count = 0
                 for P in sgb:
+                    sig_check()
                     J = Jpair(p, P)
                     if J is not None:
                         count += 1
@@ -809,6 +816,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
         while i < len(gb):
             ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
             for j in range(len(gb)):
+                sig_check()
                 tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
                 if j != i and tj._divides_c(ti, False):
                     del gb[i]
@@ -826,6 +834,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
                 print("| %s" % g)
         # and reduce it
         for i in range(len(gb)-1, -1, -1):
+            sig_check()
             g = gb[i]
             gb[i] = g._positive_lshift_c(1)
             _, gb[i] = g._quo_rem_c(gb, False, True, True)
@@ -854,6 +863,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
     do_reduce = False
 
     while gens:
+        sig_check()
         val, f = heappop(gens)
         if val > prec:
             break
@@ -925,6 +935,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             # The syzygy criterium
             syzygy = None
             for S in gb0:
+                sig_check()
                 if S.divides(s):
                     syzygy = S
                     break
@@ -937,6 +948,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             # the current strong Grobner basis
             cover = None
             for S, V in sgb:
+                sig_check()
                 if S is not None and S.divides(s):
                     sV = V.leading_term()
                     if (s // S)*sV < sv:
@@ -971,6 +983,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                     print("| new element is SGB: " + print_pair(p, verbose))
                 count = 0
                 for P in sgb:
+                    sig_check()
                     J = Jpair(p, P)
                     if J is not None:
                         count += 1
@@ -994,6 +1007,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
         while i < len(gb):
             ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
             for j in range(len(gb)):
+                sig_check()
                 tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
                 if j != i and tj._divides_c(ti, False):
                     del gb[i]

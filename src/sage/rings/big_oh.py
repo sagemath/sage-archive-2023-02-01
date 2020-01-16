@@ -13,7 +13,7 @@ from six import integer_types
 
 import sage.arith.all as arith
 from . import laurent_series_ring_element
-from . import puiseux_series_ring_element
+from sage.rings.puiseux_series_ring_element import PuiseuxSeries
 import sage.rings.padics.factory as padics_factory
 import sage.rings.padics.padic_generic_element as padic_generic_element
 from . import power_series_ring_element
@@ -143,7 +143,7 @@ def O(*x, **kwds):
         return laurent_series_ring_element.LaurentSeries(x.parent(), 0).\
             add_bigoh(x.valuation(), **kwds)
 
-    elif isinstance(x, puiseux_series_ring_element.PuiseuxSeries):
+    elif isinstance(x, PuiseuxSeries):
         return x.add_bigoh(x.valuation(), **kwds)
 
     elif isinstance(x, integer_types + (integer.Integer, rational.Rational)):

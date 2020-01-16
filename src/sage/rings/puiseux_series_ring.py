@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Puiseux Series Ring
 
@@ -363,7 +364,6 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
           series in (x-a)^(1/4).
 
         EXAMPLES::
-
             sage: R.<x> = PuiseuxSeriesRing(ZZ)
             sage: 5 in R, 1/5 in R              # indirect doctests
             (True, False)

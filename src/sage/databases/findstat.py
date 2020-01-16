@@ -408,15 +408,15 @@ def _data_from_iterable(iterable, mapping=False, domain=None,
         iterator = iter(iterable.items())
     else:
         iterator = iter(iterable)
-    query0 = iterator.next()
+    query0 = next(iterator)
     try:
-        query1 = iterator.next()
+        query1 = next(iterator)
     except StopIteration:
         # query0 == (elts, vals), which we interpret as [(elts, vals)]
         pre_data = [(query0[0], query0[1])]
-        # iterator.next() will raise StopIteration
+        # next(iterator) will raise StopIteration
     try:
-        query2 = iterator.next()
+        query2 = next(iterator)
         pre_data = [query0, query1, query2]
     except StopIteration:
         # (query0, query1) == (elts, vals) or
@@ -1094,12 +1094,13 @@ class FindStatFunction(SageObject):
         if self._function is False:
             raise ValueError("execution of code provided by FindStat is not enabled for %s" % self)
         if self._function is True:
-            if self.sage_code() is None:
+            if not self.sage_code():
                 raise ValueError("there is no code available for %s" % self)
             from sage.repl.preparse import preparse
             try:
-                l = globals().copy()
-                exec preparse(self.sage_code()) in l
+                l = {}
+                code = "from sage.all import *\n" + preparse(self.sage_code())
+                exec(code, l)
             except SyntaxError:
                 raise ValueError("could not execute code for %s" % self)
             if isinstance(self, FindStatStatistic):
@@ -1872,7 +1873,7 @@ class FindStatStatistic(Element, FindStatFunction):
         args["CurrentAuthor"]     = FindStat()._user_name
         args["CurrentEmail"]      = FindStat()._user_email
 
-        f = tempfile.NamedTemporaryFile(suffix='.html', delete=False)
+        f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:

@@ -34,6 +34,7 @@ from sage.rings.tate_algebra_element cimport TateAlgebraTerm
 from sage.rings.tate_algebra_element cimport TateAlgebraElement
 from heapq import heappush, heappop
 
+from cysignals.signals cimport sig_check
 
 class TateAlgebraIdeal(Ideal_generic):
     r"""
@@ -582,6 +583,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
         if lt._valuation_c() >= stopval:
             break
         for i in range(len(sgb)):
+            sig_check()
             if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
                 factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
                 if sgb[i][0] is None or factor * sgb[i][0] < s:
@@ -710,7 +712,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
     for f in I.gens():
         if verbose > 0:
             print("---")
-            print("new generator: %s" % f)
+            print("new generator: %s + ..." % f.leading_term())
         # Initial strong Grobner basis:
         # we add signatures
         sgb = [ (None, g) for g in gb if g != 0 ]
@@ -731,9 +733,10 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             print("%s initial J-pairs" % len(Jpairs))
         if verbose > 2:
             for s,v in Jpairs:
-                print("| sign = %s; series = %s" % (s,v))
+                print("| sign = %s; series = %s" % print_pair((s,v),verbose))
 
         while Jpairs:
+            sig_check()
             s, v = heappop(Jpairs)
             sv = v.leading_term()
 
@@ -828,7 +831,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             _, gb[i] = g._quo_rem_c(gb, False, True, True)
         if verbose > 1:
             print("grobner basis reduced")
-        if verbose > 0:
+        if verbose > 3:
             for g in gb:
                 print("| %s" % g)
 
@@ -858,10 +861,11 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
         # We reduce the current Gröbner basis
         if val == 0 or do_reduce:
             for i in range(len(gb)-1, -1, -1):
+                sig_check()
                 g = gb[i]
                 gb[i] = g._positive_lshift_c(1)
                 gb[i] = reduce(gb, g, verbose, prec)
-            if verbose > 1:
+            if verbose > 3:
                 print("grobner basis reduced")
                 for g in gb:
                     print("| %s" % g)
@@ -869,9 +873,9 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
 
         if verbose > 0:
             print("---")
-            print("new generator: %s" % f)
+            print("new generator: %s + ..." % f.leading_term())
 
-        f = reduce(gb, f, verbose, val + 1)
+        f = reduce(gb, f, verbose, val + 1) 
         if verbose > 1:
             print("generator reduced")
 
@@ -905,9 +909,10 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             print("%s initial J-pairs" % len(Jpairs))
         if verbose > 2:
             for s,v in Jpairs:
-                print("| sign = %s; series = %s" % (s,v))
+                print("| sign = %s; series = %s" % print_pair((s,v),verbose))
 
         while Jpairs:
+            sig_check()
             s, v = heappop(Jpairs)
             sv = v.leading_term()
 

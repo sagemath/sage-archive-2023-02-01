@@ -40,7 +40,7 @@ SAGE_SPKG_CONFIGURE([python3], [
     dnl PRE
 ], [
     dnl POST
-    AS_IF([test sage_spkg_install_python3=yes],
+    AS_IF([test "$sage_spkg_install_python3" = yes],
           [PYTHON_FOR_VENV=python3],
           [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"])
     AC_SUBST([PYTHON_FOR_VENV])

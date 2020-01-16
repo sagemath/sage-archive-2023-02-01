@@ -96,14 +96,14 @@ VENV_OPTIONS = --without-pip
 $(inst_python3_venv): $(inst_python3)
 	source $(SAGE_SRC)/bin/sage-env;				\
 	if [ -r "$$SAGE_VENV"/bin/activate ]; then			\
-	   python3 -m venv --upgrade $(VENV_OPTIONS) "$$SAGE_VENV";	\
+	   $(PYTHON_FOR_VENV) -m venv --upgrade $(VENV_OPTIONS) "$$SAGE_VENV";	\
 	else								\
-	   python3 -m venv $(VENV_OPTIONS) "$$SAGE_VENV";		\
+	   $(PYTHON_FOR_VENV) -m venv $(VENV_OPTIONS) "$$SAGE_VENV";		\
 	fi
 	touch $@
 .PHONY: upgrade-venv
 upgrade-venv:
-	python3 -m venv --upgrade $(VENV_OPTIONS) "$$SAGE_VENV"
+	$(PYTHON_FOR_VENV) -m venv --upgrade $(VENV_OPTIONS) "$$SAGE_VENV"
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.

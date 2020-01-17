@@ -2617,6 +2617,14 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: (y^10*x - 7*x^2*y^5 + 5*x^3).degree(y)
             10
 
+        The term ordering of the parent ring determines the grading of the
+        generators. ::
+
+            sage: T = TermOrder('wdegrevlex', (1,2,3,4))
+            sage: R = PolynomialRing(QQ, 'x', 12, order=T+T+T)
+            sage: [x.degree() for x in R.gens()]
+            [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
+
         A matrix term ordering determines the grading of the generators by the
         first row of the matrix. ::
 
@@ -2632,7 +2640,22 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f.degree()
             11
 
-        To get the degree with the standard grading, use ``std_grading=True``. ::
+        If the first row contains zero, the grading becomes the standard one. ::
+
+            sage: m = matrix(3, [3,0,1,1,1,0,1,0,0])
+            sage: m
+            [3 0 1]
+            [1 1 0]
+            [1 0 0]
+            sage: R.<x,y,z> = PolynomialRing(QQ, order=TermOrder(m))
+            sage: x.degree(), y.degree(), z.degree()
+            (1, 1, 1)
+            sage: f = x^3*y + x*z^4
+            sage: f.degree()
+            5
+
+        To get the degree with the standard grading regardless of the term
+        ordering of the parent ring, use ``std_grading=True``. ::
 
             sage: f.degree(std_grading=True)
             5

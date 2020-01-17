@@ -138,9 +138,9 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         Return the degree of the underlying polynomial of ``self``.
 
-        That is, if ``self`` is of the form f(x) + O(x^n), we return
-        the degree of f(x). Note that if f(x) is 0, we return -1, just
-        as with polynomials.
+        That is, if ``self`` is of the form `f(x) + O(x^n)`, we return
+        the degree of `f(x)`. Note that if `f(x)` is `0`, we return `-1`,
+        just as with polynomials.
 
         EXAMPLES::
 
@@ -587,7 +587,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
     def __rshift__(PowerSeries_poly self, n):
         """
-        Shift ``self`` to the right by ``n``, i.e. multiply by `x^-n` and
+        Shift ``self`` to the right by ``n``, i.e. multiply by `x^{-n}` and
         remove any terms of negative exponent.
 
         EXAMPLES::

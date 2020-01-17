@@ -965,12 +965,12 @@ class BinaryQF(SageObject):
 
         TESTS::
 
-            # :trac:`28989`
+        Check an example in :trac:`28989`::
             sage: Q=BinaryQF(1,1,-1)
             sage: Q.cycle(proper=True)
             [x^2 + x*y - y^2, -x^2 + x*y + y^2]
 
-            # Example 6.10.6 of [BUVO2007]_
+        This is Example 6.10.6 of [BUVO2007]_::
             sage: Q=BinaryQF(1,7,-6)
             sage: Q.cycle()
             [x^2 + 7*x*y - 6*y^2,
@@ -1002,7 +1002,7 @@ class BinaryQF(SageObject):
              2*x^2 + 5*x*y - 6*y^2,
              -6*x^2 + 7*x*y + y^2]
 
-            # Example 6.10.7 of [BUVO2007]_
+        This is Example 6.10.7 of [BUVO2007]_::
             sage: Q=BinaryQF(1,8,-3)
             sage: Q.cycle()
             [x^2 + 8*x*y - 3*y^2,
@@ -1026,7 +1026,7 @@ class BinaryQF(SageObject):
              5*x^2 + 4*x*y - 3*y^2,
              -3*x^2 + 8*x*y + y^2]
 
-            # try one where a is negative
+        Try an example where a is negative::
             sage: Q=BinaryQF(-1, 8, 3)
             sage: hasattr(Q, '_cycle_list')
             False
@@ -1195,7 +1195,7 @@ class BinaryQF(SageObject):
             sage: Q1.is_equivalent(Q2, proper=False)
             True
 
-            # :trac:`28989`
+        Test another part of :trac:`28989`::
             sage: Q1, Q2 = BinaryQF(1, 1, -1), BinaryQF(-1, 1, 1)
             sage: Q1.is_equivalent(Q2, proper=True)
             True

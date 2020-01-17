@@ -28,6 +28,9 @@
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"
 
+# SAGE_ROOT is the location of the Sage source/build tree.
+export SAGE_ROOT="@abs_top_srcdir@"
+
 #######################################
 # Compilers set at configuration time
 #######################################

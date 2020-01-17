@@ -42,14 +42,15 @@ PyInit_spam(void)
                                     ]])
                                 ])
                                 AC_LANG_POP([C])
-                                cat > config_setup.py <<EOF
+                                cat > conftest.py <<EOF
 from distutils.core import setup
 from distutils.extension import Extension
+from sys import exit
 modules = list((Extension("config_check_distutils", list(("conftest.c",))),))
 setup(name="config_check_distutils", ext_modules=modules)
 exit(0)
 EOF
-                                AS_IF([config_venv/bin/python3 config_setup.py --quiet build --build-base=config_build], [
+                                AS_IF([config_venv/bin/python3 conftest.py --quiet build --build-base=conftest.dir], [
                                     ac_cv_path_PYTHON3="$ac_path_PYTHON3"
                                     ac_path_PYTHON3_found=:
                                     AC_MSG_RESULT([yes])
@@ -59,7 +60,7 @@ EOF
                                     AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build an extension])
                                 ])
                             ], [
-                                AC_MSG_RESULT([no, the version is in the supported range but cannot import all required modules in a venv])
+                                AC_MSG_RESULT([no, the version is in the supported range but cannot import one of the required modules: $check_modules])
                             ])
                         ], [
                             AC_MSG_RESULT([no, $python3_version is too recent])

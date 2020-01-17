@@ -410,8 +410,8 @@ cdef class PowerSeries_poly(PowerSeries):
         same precision, whose coefficients are the same as ``self`` for
         those indices in the slice, and 0 otherwise.
 
-        Returns 0 for negative coefficients. Raises an ``IndexError`` if
-        try to access beyond known coefficients.
+        This returns 0 for negative coefficients and raises an
+        ``IndexError`` if trying to access beyond known coefficients.
 
         EXAMPLES::
 

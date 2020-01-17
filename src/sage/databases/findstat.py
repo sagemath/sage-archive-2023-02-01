@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
+r"""a
 FindStat - the Combinatorial Statistic Finder.
 
 The FindStat database can be found at::
@@ -107,8 +107,29 @@ maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
     sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2)     # optional -- internet
+    0: St000476oMp00099oMp00127 (quality [100, 100])
+    1: St001497oMp00119oMp00127 with offset 1 (quality [100, 100])
+    2: St000147oMp00027oMp00127 (quality [96, 100])
+    3: St000054oMp00064oMp00062 with offset 1 (quality [88, 100])
+    4: St000740oMp00062 with offset 1 (quality [87, 100])
+    ...
 
-Let us pick one particular result::
+Note that some of the matches are up to a global offset, which is
+then given.  For example, we have::
+
+    sage: r[4].info()                                                           # optional -- internet
+    after adding 1 to every value
+    and applying
+        Mp00062: Lehmer-code to major-code bijection: Permutations -> Permutations
+    to the objects (see `.maps()` for details)
+    <BLANKLINE>
+    your input matches
+        St000740: The last entry of a permutation.
+    <BLANKLINE>
+    among the values you sent, 87 percent are actually in the database,
+    among the distinct values you sent, 100 percent are actually in the database
+
+Let us pick another particular result::
 
     sage: s = next(s for s in r if s.statistic().id() == 51); s                 # optional -- internet
     St000051oMp00061oMp00069 (quality [87, 86])
@@ -488,7 +509,8 @@ def _data_from_function(function, domain):
 
 
 def _data_from_data(data, max_values):
-    """Return the first few pairs (of lists of the same size) with a
+    """
+    Return the first few pairs (of lists of the same size) with a
     total of at most ``max_values`` objects in the range of the
     collection.
 
@@ -520,7 +542,8 @@ def _data_from_data(data, max_values):
 
 
 def _distribution_from_data(data, domain, max_values):
-    """Return the first few pairs (of lists of the same size) with a
+    """
+    Return the first few pairs (of lists of the same size) with a
     total of at most ``max_values`` objects in the range of the
     collection, combined by level.
 
@@ -846,33 +869,60 @@ def findmap(*args, **kwargs):
 
     INPUT:
 
-    One of the following:
+    Valid keywords are: ``domain``, ``codomain``, ``values``,
+    ``distribution``, ``depth`` and ``max_values``. They have the
+    following meanings:
 
-    - an integer or a string representing a valid FindStat map identifier
-      (e.g. 45 or 'Mp00045').
+    - ``depth`` -- (default ``FINDSTAT_DEFAULT_DEPTH``), an integer
+      between 0 and ``FINDSTAT_MAX_DEPTH``, specifying how many maps
+      to apply to generate the given map.
 
-    - a list of pairs of the form ``(object, value)``, or a
-      dictionary from sage objects to integer values.  The keyword
+    - ``max_values`` -- (default ``FINDSTAT_MAX_VALUES``), an integer
+      specifying how many values are sent to the finder.
+
+    - ``domain``, ``codomain``, an integer or string of the form
+      ``Cc1234``, designates the domain and codomain of the sought
+      for maps.
+
+    - ``values``, ``distribution``, data specifying the values or
+      distribution of values of the sought for maps.  The keyword
       arguments ``depth`` and ``max_values`` are passed to the
-      finder.
+      finder.  The data may be specified in one of the following
+      forms:
 
-    - a list of pairs of the form ``(list of objects, list of
-      values)``, or a single pair of the form ``(list of objects,
-      list of values)``.  In each pair there should be as many
-      objects as values.  The keyword arguments ``depth`` and
-      ``max_values`` are passed to the finder.
+        - a list of pairs of the form ``(object, value)``, or a
+          dictionary from sage objects to sage objects.
 
-    - a collection and a list of pairs of the form (string, value),
-      or a dictionary from strings to integer values.  The keyword
-      arguments ``depth`` and ``max_values`` are passed to the
-      finder.  This should only be used if the collection is not yet
-      supported.
+        - a list of pairs of the form ``(list of objects, list of
+          values)``, or a single pair of the form ``(list of objects,
+          list of values)``.  In each pair there should be as many
+          objects as values.
 
-    - a collection and a callable.  The callable is used to generate
-      ``max_values`` ``(object, value)`` pairs.  The number of terms
-      generated may also be controlled by passing an iterable
-      collection, such as ``Permutations(3)``.  The keyword arguments
-      ``depth`` and ``max_values`` are passed to the finder.
+        - a callable.  In this case, the domain must be specified,
+          also.  The callable is then used to generate ``max_values``
+          ``(object, value)`` pairs.
+
+          The number of terms generated may also be controlled by
+          passing an iterable collection, such as
+          ``Permutations(3)``.
+
+    ``findmap`` also accepts at most three positional arguments as
+    follows:
+
+    - a single positional argument, if none of ``domain``,
+      ``codomain``, ``values`` or ``distribution`` are specified, is
+      interpreted as a FindStat map identifier.  If further arguments
+      are given and it is a string, it is interpreted as a domain.
+      If all this fails, it is interpreted as the specification of
+      values.
+
+    - if two positional arguments are given, the first is interpreted
+      as domain, and the second either as codomain or the
+      specification of values.
+
+    - if three positional arguments are given, the first two are
+      interpreted as domain and codomain, and the third as the
+      specification of values.
 
     OUTPUT:
 
@@ -1437,7 +1487,8 @@ class FindStatStatistic(Element, FindStatFunction):
         Element.__init__(self, parent)
 
     def __reduce__(self):
-        """Return a function and its arguments needed to create this
+        """
+        Return a function and its arguments needed to create this
         statistic.
 
         TESTS::
@@ -1678,7 +1729,8 @@ class FindStatStatistic(Element, FindStatFunction):
             self._modified_data["Code"] = value
 
     def _generating_functions_dict(self):
-        r""" Return the generating functions of ``self`` in a dictionary,
+        r"""
+        Return the generating functions of ``self`` in a dictionary,
         computed from ``self.first_terms``.
 
         TESTS:
@@ -1945,7 +1997,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, id):
-        """Initialize a FindStat statistic.
+        """
+        Initialize a FindStat statistic.
 
         INPUT:
 
@@ -2036,7 +2089,8 @@ class FindStatStatisticQuery(SageObject):
                  domain=None, all_data=None, function=None,
                  depth=FINDSTAT_DEFAULT_DEPTH,
                  debug=False):
-        """Initialize a query for FindStat (compound) statistics.
+        """
+        Initialize a query for FindStat (compound) statistics.
 
         INPUT::
 
@@ -2260,6 +2314,28 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 
     def quality(self):
         return self._quality[:]
+
+    def info(self):
+        if self.offset() < 0:
+            print("after subtracting %s from every value" % (-self.offset()))
+        if self.offset() > 0:
+            print("after adding %s to every value" % self.offset())
+        if self.maps():
+            if self.offset():
+                print("and applying")
+            else:
+                print("after applying")
+            for mp in self.maps():
+                print("    %s: %s -> %s" % (mp,
+                                            mp.domain().name("plural"),
+                                            mp.codomain().name("plural")))
+            print("to the objects (see `.maps()` for details)")
+        print()
+        print("your input matches")
+        print("    %s" % self.statistic())
+        print()
+        print("among the values you sent, %s percent are actually in the database," % self.quality()[0])
+        print("among the distinct values you sent, %s percent are actually in the database" % self.quality()[1])
 
 
 class FindStatMapQuery(SageObject):
@@ -2499,7 +2575,8 @@ class FindStatMap(Element, FindStatFunction):
         Element.__init__(self, parent)
 
     def __reduce__(self):
-        """Return a function and its arguments needed to create this
+        """
+        Return a function and its arguments needed to create this
         map.
 
         TESTS::
@@ -2768,7 +2845,8 @@ class FindStatMaps(UniqueRepresentation, Parent):
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, id):
-        """Initialize a FindStat map.
+        """
+        Initialize a FindStat map.
 
         INPUT:
 
@@ -2945,7 +3023,8 @@ class FindStatCollection(Element):
         return FindStatCollections()(entry)
 
     def __init__(self, parent, id, data, sageconstructor_overridden):
-        """Initialize the collection.
+        """
+        Initialize the collection.
 
         This should only be called in
         :meth:`FindStatCollections()._element_constructor_` via
@@ -2979,7 +3058,8 @@ class FindStatCollection(Element):
         Element.__init__(self, parent)
 
     def __reduce__(self):
-        """Return a function and its arguments needed to create this
+        """
+        Return a function and its arguments needed to create this
         collection.
 
         TESTS::
@@ -3489,7 +3569,8 @@ class FindStatCollections(UniqueRepresentation, Parent):
          Cc0028: Skew partitions]
     """
     def _raise_unsupported_error(*args):
-        """A placeholder function for unsupported collections that raises an
+        """
+        A placeholder function for unsupported collections that raises an
         error.
 
         sage: from sage.databases.findstat import FindStatCollection
@@ -3546,7 +3627,8 @@ class FindStatCollections(UniqueRepresentation, Parent):
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, entry):
-        """Initialize a FindStat collection.
+        """
+        Initialize a FindStat collection.
 
         INPUT:
 

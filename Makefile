@@ -35,7 +35,7 @@ sageruntime: base-toolchain
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs/*/*
+build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs/*/* src/bin/*.in
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log

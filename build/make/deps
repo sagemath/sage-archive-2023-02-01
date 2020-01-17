@@ -88,7 +88,8 @@ all-toolchain: base-toolchain
 
 # Python 3 venv: For Python 3 builds, $(PYTHON) is set in Makefile to python3_venv.
 # Thus $(inst_python3_venv) will be the dependency of every Python package.
-inst_python3_venv = $(INST)/python3_venv
+SAGE_VENV = $(SAGE_LOCAL)/lib/sage/venv
+inst_python3_venv = $(SAGE_VENV)/pyvenv.cfg
 
 # We do not use --system-site-packages at the moment.
 # We install our own pip.
@@ -100,7 +101,6 @@ $(inst_python3_venv): $(inst_python3)
 	else								\
 	   $(PYTHON_FOR_VENV) -m venv $(VENV_OPTIONS) "$$SAGE_VENV";		\
 	fi
-	touch $@
 .PHONY: upgrade-venv
 upgrade-venv:
 	$(PYTHON_FOR_VENV) -m venv --upgrade $(VENV_OPTIONS) "$$SAGE_VENV"

@@ -415,7 +415,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         f = R([base_map(x) for x in a.list()])
         b = f(im_gen)
         abs_hom = K.hom([b], check=check)
-        return RelativeNumberFieldHomomorphism_from_abs(self, abs_hom)
+        return self.element_class(self, abs_hom)
 
     @cached_method
     def default_base_hom(self):

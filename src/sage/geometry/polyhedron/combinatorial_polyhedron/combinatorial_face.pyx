@@ -316,7 +316,7 @@ cdef class CombinatorialFace(SageObject):
         Return the Vrepresentation objects of the ambient polyhedron
         defining the face.
 
-        It consists of the ``[vertices, rays, lines]``
+        It consists of the vertices/rays/lines
         that face contains.
 
         EXAMPLES::
@@ -463,9 +463,9 @@ cdef class CombinatorialFace(SageObject):
 
     def n_ambient_Vrepresentation(self):
         r"""
-        Return the length of the face.
+        Return the length of the :meth:`CombinatorialFace.ambient_V_indices`.
 
-        Might be faster than `len(self.ambient_Vrepresentation())`.
+        Might be faster than then using ``len``.
 
         EXAMPLES::
 
@@ -640,7 +640,7 @@ cdef class CombinatorialFace(SageObject):
 
     def n_ambient_Hrepresentation(self):
         r"""
-        Returns the length of the :meth:`CombinatorialFace.ambient_H_indices`.
+        Return the length of the :meth:`CombinatorialFace.ambient_H_indices`.
 
         Might be faster than then using ``len``.
 

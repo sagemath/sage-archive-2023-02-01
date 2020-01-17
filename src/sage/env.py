@@ -243,8 +243,12 @@ def _get_shared_lib_filename(libname, *additional_libnames):
 
     for libname in (libname,) + additional_libnames:
         if sys.platform == 'cygwin':
-            bindirs = [sysconfig.get_config_var('BINDIR')]
-            bindirs.insert(0, os.path.join(SAGE_LOCAL, "bin"))
+            # Later down we take the last matching DLL found, so search
+            # SAGE_LOCAL second so that it takes precedence
+            bindirs = [
+                sysconfig.get_config_var('BINDIR'),
+                os.path.join(SAGE_LOCAL, 'bin')
+            ]
             pats = ['cyg{}.dll'.format(libname), 'cyg{}-*.dll'.format(libname)]
             filenames = []
             for bindir in bindirs:
@@ -263,11 +267,13 @@ def _get_shared_lib_filename(libname, *additional_libnames):
             else:
                 ext = 'so'
 
-            libdirs = [sysconfig.get_config_var('LIBDIR')]
+            libdirs = [
+                os.path.join(SAGE_LOCAL, 'lib'),
+                sysconfig.get_config_var('LIBDIR')
+            ]
             multilib = sysconfig.get_config_var('MULTILIB')
             if multilib:
-                libdirs.insert(0, os.path.join(libdirs[0], multilib))
-            libdirs.insert(0, os.path.join(SAGE_LOCAL, "lib"))
+                libdirs.insert(1, os.path.join(libdirs[0], multilib))
 
             for libdir in libdirs:
                 basename = 'lib{}.{}'.format(libname, ext)

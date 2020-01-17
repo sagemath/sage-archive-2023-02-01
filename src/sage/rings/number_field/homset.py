@@ -88,19 +88,17 @@ class NumberFieldHomset(RingHomset_generic):
 
             sage: K.<a> = CyclotomicField(8)
             sage: L.<b> = K.absolute_field()
-            sage: H = K.Hom(L)
-            sage: phi = L.structure()[1]
+            sage: H = L.Hom(K)
+            sage: phi = L.structure()[0]
             sage: phi.parent() is H
             True
             sage: H(phi)
             Isomorphism given by variable name change map:
-              From: Cyclotomic Field of order 8 and degree 4
-              To:   Number Field in b with defining polynomial x^4 + 1
-
-            sage: R.<x> = K[]
-            sage: f = x^2 + a
-            sage: f.change_ring(L.structure()[1])
-            x^2 + b
+              From: Number Field in b with defining polynomial x^4 + 1
+              To:   Cyclotomic Field of order 8 and degree 4
+            sage: R.<x> = L[]
+            sage: (x^2 + b).change_ring(phi)
+            x^2 + a
         """
         if not isinstance(x, NumberFieldHomomorphism_im_gens):
             return self.element_class(self, x, check=check)
@@ -356,6 +354,20 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
               Defn: a |--> a
                     b |--> b
 
+        Check that :trac:`28869` is fixed::
+
+            sage: K.<a,b> = NumberField((x^2 + 1, x^2 - 2))
+            sage: L.<c> = K.absolute_field()
+            sage: H = K.Hom(L)
+            sage: phi = L.structure()[1]; phi
+            Isomorphism map:
+              From: Number Field in a with defining polynomial x^2 + 1 over its base field
+              To:   Number Field in c with defining polynomial x^4 - 2*x^2 + 9
+            sage: H(phi) is phi
+            True
+            sage: R.<x> = K[]
+            sage: (x^2 + a).change_ring(phi)
+            x^2 + 1/6*c^3 + 1/6*c
         """
         if base_hom is not None:
             deprecation(26105, "Use base_map rather than base_hom")
@@ -510,6 +522,22 @@ class CyclotomicFieldHomset(NumberFieldHomset):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Integer Ring to Automorphism group of Cyclotomic Field of order 16 and degree 8
+
+        TESTS:
+
+        Check that :trac:`28869` is fixed::
+
+            sage: K.<a> = CyclotomicField(8)
+            sage: L.<b> = K.absolute_field()
+            sage: phi = L.structure()[1]; phi
+            Isomorphism given by variable name change map:
+              From: Cyclotomic Field of order 8 and degree 4
+              To:   Number Field in b with defining polynomial x^4 + 1
+            sage: phi.parent() is K.Hom(L)
+            True
+            sage: R.<x> = K[]
+            sage: (x^2 + a).change_ring(phi)
+            x^2 + b
         """
         if (isinstance(x, CyclotomicFieldHomomorphism_im_gens)
             and x.parent() == self):

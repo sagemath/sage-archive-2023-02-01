@@ -1188,7 +1188,7 @@ class BinaryQF(SageObject):
             sage: Q1.is_equivalent(Q2, proper=True)
             True
 
-            # :trac:`29028`
+        We check that the first part of :trac:`29028` is fixed::
             sage: Q = BinaryQF(0, 2, 0)
             sage: Q.discriminant()
             4
@@ -1582,7 +1582,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
          4*x^2 + 6*x*y - 7*y^2,
          6*x^2 + 2*x*y - 6*y^2]
 
-        # :trac:`29028`
+    Test another part of :trac:`29028`::
         sage: BinaryQF_reduced_representatives(10^2, proper=False, primitive_only=False)
         [-4*x^2 + 10*x*y,
          -3*x^2 + 10*x*y,

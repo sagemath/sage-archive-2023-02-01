@@ -1,3 +1,5 @@
+# @configure_input@
+
 [metadata]
 name = sage_conf
 version = @PACKAGE_VERSION@
@@ -12,3 +14,7 @@ url = https://www.sagemath.org
 packages = .
 setup_requires =
     setuptools
+
+[options.entry_points]
+console_scripts =
+    sage-config = sage_conf:_main

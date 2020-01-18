@@ -1,8 +1,45 @@
 # @configure_input@
 
+from __future__ import print_function
+del print_function
+
+VERSION = "@PACKAGE_VERSION@"
+
 MAXIMA = "@prefix@/bin/maxima"
 
 # The following must not be used during build to determine source or installation
 # location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in
 SAGE_LOCAL = "@prefix@"
 SAGE_ROOT = "@abs_top_srcdir@"
+
+# Entry point 'sage-config'.  It does not depend on any packages.
+
+def _usage(**kwargs):
+    print('usage: sage-config [VARIABLE]', **kwargs)
+
+def _main():
+    from sys import argv, exit, stderr
+    d = globals()
+    argc = len(argv)
+    if argc == 1:
+        for k, v in d.items():
+            if not k.startswith('_'):
+                print('{}={}'.format(k, v))
+    elif argc == 2:
+        if argv[1].startswith('-'):
+            if argv[1] == '--help':
+                _usage()
+            elif argv[1] == '--version':
+                print(VERSION)
+            else:
+                print('sage-config: unrecognized option', file=stderr)
+                _usage(file=stderr)
+                exit(1)
+        else:
+            print(d[argv[1]])
+    else:
+        print(file=stderr)
+        exit(1)
+
+if __name__ == "__main__":
+    _main()

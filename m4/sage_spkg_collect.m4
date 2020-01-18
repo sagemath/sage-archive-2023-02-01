@@ -52,6 +52,22 @@
 #        type which are installed by running a custom script, which may
 #        download additional source files.
 #
+
+dnl ==========================================================================
+dnl define PKG_CHECK_VAR for old pkg-config < 0.28; see Trac #29001
+m4_ifndef([PKG_CHECK_VAR], [
+AC_DEFUN([PKG_CHECK_VAR],
+[AC_REQUIRE([PKG_PROG_PKG_CONFIG])dnl
+AC_ARG_VAR([$1], [value of $3 for $2, overriding pkg-config])dnl
+
+_PKG_CONFIG([$1], [variable="][$3]["], [$2])
+AS_VAR_COPY([$1], [pkg_cv_][$1])
+
+AS_VAR_IF([$1], [""], [$5], [$4])dnl
+])dnl PKG_CHECK_VAR
+])
+dnl ==========================================================================
+
 AC_DEFUN_ONCE([SAGE_SPKG_COLLECT], [
 # Configure all spkgs with configure-time checks
 m4_include([m4/sage_spkg_configures.m4])

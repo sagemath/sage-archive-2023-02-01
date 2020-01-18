@@ -3,10 +3,7 @@ SAGE_SPKG_CONFIGURE([sqlite], [
   m4_define([sqlite3_min_version_minor], [8])
   m4_define([sqlite3_min_version_micro], [7])
   m4_define([sqlite3_min_version], [sqlite3_min_version_major.sqlite3_min_version_minor.sqlite3_min_version_micro])
-  PKG_CHECK_MODULES([SQLITE],
-                    [sqlite3 >= sqlite3_min_version],
-                    [],
-                    [AC_MSG_CHECKING([sqlite3 >= sqlite3_min_version without pkg-config])
+  AC_MSG_CHECKING([libsqlite3 >= sqlite3_min_version])
                      dnl https://www.sqlite.org/c3ref/libversion.html
                      dnl https://www.sqlite.org/c3ref/c_source_id.html
                      SQLITE_SAVED_LIBS="$LIBS"
@@ -30,5 +27,4 @@ SAGE_SPKG_CONFIGURE([sqlite], [
                        [AC_MSG_RESULT([no])
                         LIBS="$SQLITE_SAVED_LIBS"
                         sage_spkg_install_sqlite=yes])
-                    ])
 ])

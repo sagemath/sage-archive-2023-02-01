@@ -8,4 +8,4 @@ for lib in "$SAGE_ROOT/build/bin/sage-dist-helpers" "$SAGE_SRC/bin/sage-env" ; d
         exit 1
     fi
 done
-cd src && sdh_pip_install .
+cd $SAGE_ROOT/build/pkgs/sage_conf/src && sdh_pip_install .

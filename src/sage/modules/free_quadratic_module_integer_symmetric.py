@@ -1056,7 +1056,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 v = e.valuation(2)
                 q = b.q().lift()
                 delta = (q*e) % 2
-                b = 2**((e.valuation(2)/2).ceil() + delta)*b.lift()
+                b = 2**(((e.valuation(2)+1)//2) + delta) * b.lift()
                 isotropic.append(b)
             L = L.overlattice(isotropic)
             D = L.discriminant_group()
@@ -1091,7 +1091,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 continue
             # go squarefree
             D = L.discriminant_group(p).normal_form()
-            isotropic = [p**(-b.q().lift().valuation(p)/2).ceil()*b.lift() for b in D.gens()]
+            isotropic = [p**((-b.q().lift().valuation(p)+1)//2) * b.lift() for b in D.gens()]
             L = L.overlattice(isotropic)
             # now the p-discriminant_group is a vector space
             while True:
@@ -1418,3 +1418,73 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             inner_product_matrix = s * self.inner_product_matrix()
             ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
             return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=self.basis(), inner_product_matrix=inner_product_matrix)
+
+def local_modification(M, G, p, check=True):
+    r"""
+    Return a local modification of `M` that matches `G` at `p`.
+
+    INPUT:
+
+    - ``M`` -- a `\ZZ_p`-maximal lattice
+
+    - ``G`` -- the gram matrix of a lattice
+               isomorphic to `M` over `\QQ_p`
+
+    - ``p`` -- a prime number
+
+    OUTPUT:
+
+    an integral lattice `M'` in the ambient space of `M` such that `M` and `M'` are locally equal at all
+    completions except at `p` where `M'` is locally equivalent to the lattice with gram matrix `G`
+
+    EXAMPLES::
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import local_modification
+        sage: L = IntegralLattice("A3").twist(15)
+        sage: M = L.maximal_overlattice()
+        sage: for p in prime_divisors(L.determinant()):
+        ....:     M = local_modification(M, L.gram_matrix(), p)
+        sage: M.genus() == L.genus()
+        True
+        sage: L = IntegralLattice("D4").twist(3*4)
+        sage: M = L.maximal_overlattice()
+        sage: local_modification(M, L.gram_matrix(), 2)
+        Lattice of degree 4 and rank 4 over Integer Ring
+        Basis matrix:
+        [1/3   0 1/3 2/3]
+        [  0 1/3 1/3 2/3]
+        [  0   0   1   0]
+        [  0   0   0   1]
+        Inner product matrix:
+        [ 24 -12   0   0]
+        [-12  24 -12 -12]
+        [  0 -12  24   0]
+        [  0 -12   0  24]
+    """
+    from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
+    from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring,p_adic_symbol
+
+    # notation
+    d = G.inverse().denominator()
+    n = M.rank()
+    scale = d.valuation(p)
+    d = p**scale
+
+    L = IntegralLattice(G)
+    L_max = L.maximal_overlattice(p=p)
+
+    # invert the gerstein operations
+    _, U = p_adic_normal_form(L_max.gram_matrix(), p, precision=scale+3)
+    B = (~L_max.basis_matrix()).change_ring(ZZ)*~U.change_ring(ZZ)
+
+    _, UM = p_adic_normal_form(M.gram_matrix(), p, precision=scale+3)
+    B = B * UM.change_ring(ZZ) * M.basis_matrix()
+
+    # the local modification
+    S = M.sublattice(((M.span(B) & M) + d * M).gens())
+    # confirm result
+    if check:
+        s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(S.gram_matrix(), p, scale))
+        s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(G, p, scale))
+        assert s1 == s2, "oops"
+    return S

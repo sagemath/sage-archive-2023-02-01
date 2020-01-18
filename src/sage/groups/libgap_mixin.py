@@ -18,7 +18,6 @@ from sage.groups.class_function import ClassFunction_libgap
 
 class GroupMixinLibGAP(object):
 
-    @cached_method
     def is_abelian(self):
         r"""
         Test whether the group is Abelian.
@@ -29,6 +28,12 @@ class GroupMixinLibGAP(object):
 
         EXAMPLES::
 
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.CyclicGroup(12)).is_abelian()
+            True
+            sage: GroupLibGAP(libgap.SymmetricGroup(12)).is_abelian()
+            False
+
             sage: SL(1, 17).is_abelian()
             True
             sage: SL(2, 17).is_abelian()
@@ -36,7 +41,110 @@ class GroupMixinLibGAP(object):
         """
         return self.gap().IsAbelian().sage()
 
-    @cached_method
+    def is_nilpotent(self):
+        r"""
+        Return whether this group is nilpotent.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.AlternatingGroup(3)).is_nilpotent()
+            True
+            sage: GroupLibGAP(libgap.SymmetricGroup(3)).is_nilpotent()
+            False
+        """
+        return self.gap().IsNilpotentGroup().sage()
+
+    def is_solvable(self):
+        r"""
+        Return whether this group is nilpotent.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.SymmetricGroup(4)).is_solvable()
+            True
+            sage: GroupLibGAP(libgap.SymmetricGroup(5)).is_solvable()
+            False
+        """
+        return self.gap().IsSolvableGroup().sage()
+
+    def is_super_solvable(self):
+        r"""
+        Return whether this group is super solvable.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.SymmetricGroup(3)).is_super_solvable()
+            True
+            sage: GroupLibGAP(libgap.SymmetricGroup(4)).is_super_solvable()
+            False
+        """
+        return self.gap().IsSupersolvableGroup().sage()
+
+    def is_polycyclic(self):
+        r"""
+        Return whether this group is polycyclic.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.AlternatingGroup(4)).is_polycyclic()
+            True
+            sage: GroupLibGAP(libgap.AlternatingGroup(5)).is_solvable()
+            False
+        """
+        return self.gap().IsPolycyclicGroup().sage()
+
+    def is_perfect(self):
+        r"""
+        Return whether this group is perfect.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.SymmetricGroup(5)).is_perfect()
+            False
+            sage: GroupLibGAP(libgap.AlternatingGroup(5)).is_perfect()
+            True
+
+            sage: SL(3,3).is_perfect()
+            True
+        """
+        return self.gap().IsPerfectGroup().sage()
+
+    def is_p_group(self):
+        r"""
+        Return whether this group is a p-group.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.CyclicGroup(9)).is_p_group()
+            True
+            sage: GroupLibGAP(libgap.CyclicGroup(10)).is_p_group()
+            False
+        """
+        return self.gap().IsPGroup().sage()
+
+    def is_simple(self):
+        r"""
+        Return whether this group is simple.
+
+        EXAMPLES::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: GroupLibGAP(libgap.SL(2,3)).is_simple()
+            False
+            sage: GroupLibGAP(libgap.SL(3,3)).is_simple()
+            True
+
+            sage: SL(3,3).is_simple()
+            True
+        """
+        return self.gap().IsSimpleGroup().sage()
+
     def is_finite(self):
         """
         Test whether the matrix group is finite.
@@ -98,8 +206,6 @@ class GroupMixinLibGAP(object):
             +Infinity
         """
         return self.gap().Size().sage()
-        from sage.rings.infinity import Infinity
-        return Infinity
 
     order = cardinality
 
@@ -504,9 +610,10 @@ class GroupMixinLibGAP(object):
             ...
             NotImplementedError: group must be finite
         """
-        if not self.is_finite():
-            raise NotImplementedError('group must be finite')
-        return int(self.cardinality())
+        size = self.gap().Size()
+        if size.IsInfinity():
+            raise NotImplementedError("group must be finite")
+        return int(size)
 
     @cached_method
     def list(self):
@@ -530,9 +637,10 @@ class GroupMixinLibGAP(object):
             24
             sage: v[:5]
             (
-            [0 1]  [0 1]  [0 1]  [0 2]  [0 2]
-            [2 0], [2 1], [2 2], [1 0], [1 1]
+            [1 0]  [2 0]  [0 1]  [0 2]  [1 2]
+            [0 1], [0 2], [2 0], [1 0], [2 2]
             )
+
             sage: all(g in G for g in G.list())
             True
 
@@ -544,12 +652,12 @@ class GroupMixinLibGAP(object):
             sage: MG = MatrixGroup([M1, M2, M3])
             sage: MG.list()
             (
-            [-1  0]  [-1  0]  [ 1  0]  [1 0]
-            [ 0 -1], [ 0  1], [ 0 -1], [0 1]
+            [1 0]  [ 1  0]  [-1  0]  [-1  0]
+            [0 1], [ 0 -1], [ 0  1], [ 0 -1]
             )
             sage: MG.list()[1]
-            [-1  0]
-            [ 0  1]
+            [ 1  0]
+            [ 0 -1]
             sage: MG.list()[1].parent()
             Matrix group over Integer Ring with 3 generators (
             [-1  0]  [ 1  0]  [-1  0]
@@ -579,8 +687,7 @@ class GroupMixinLibGAP(object):
         """
         if not self.is_finite():
             raise NotImplementedError('group must be finite')
-        elements = self.gap().Elements()
-        return tuple(self(x, check=False) for x in elements)
+        return tuple(self.element_class(self, g) for g in self.gap().AsList())
 
     def is_isomorphic(self, H):
         """
@@ -610,12 +717,4 @@ class GroupMixinLibGAP(object):
             sage: F==G, G==H, F==H
             (False, False, False)
         """
-        iso = self.gap().IsomorphismGroups(H.gap())
-        if iso.is_bool():   # fail means not isomorphic
-            try:
-                iso.sage()
-                assert False
-            except ValueError:
-                pass
-            return False
-        return True
+        return self.gap().IsomorphismGroups(H.gap()) != libgap.fail

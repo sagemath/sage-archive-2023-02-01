@@ -2756,7 +2756,7 @@ class Polytopes():
 
         The cube is the Platonic solid that is obtained as the convex hull of
         the eight `\pm 1` vectors of length 3 (by default). Alternatively, the
-        cube is the product of three intervals from ``intervals_list``.
+        cube is the product of three intervals from ``intervals``.
 
         .. SEEALSO::
 

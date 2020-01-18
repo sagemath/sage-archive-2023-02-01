@@ -32,7 +32,6 @@ from sage.combinat.rooted_tree import (RootedTrees, RootedTree,
                                        LabelledRootedTrees,
                                        LabelledRootedTree)
 
-from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 

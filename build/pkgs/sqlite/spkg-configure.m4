@@ -1,8 +1,8 @@
 SAGE_SPKG_CONFIGURE([sqlite], [
-  m4_define([sqlite3_min_version_major], [3])
-  m4_define([sqlite3_min_version_minor], [8])
-  m4_define([sqlite3_min_version_micro], [7])
-  m4_define([sqlite3_min_version], [sqlite3_min_version_major.sqlite3_min_version_minor.sqlite3_min_version_micro])
+  m4_pushdef([SAGE_SQLITE3_MIN_VERSION_MAJOR], [3])
+  m4_pushdef([SAGE_SQLITE3_MIN_VERSION_MINOR], [8])
+  m4_pushdef([SAGE_SQLITE3_MIN_VERSION_MICRO], [7])
+  m4_pushdef([SAGE_SQLITE3_MIN_VERSION], [SAGE_SQLITE3_MIN_VERSION_MAJOR.SAGE_SQLITE3_MIN_VERSION_MINOR.SAGE_SQLITE3_MIN_VERSION_MICRO])
   AC_MSG_CHECKING([libsqlite3 >= sqlite3_min_version])
                      dnl https://www.sqlite.org/c3ref/libversion.html
                      dnl https://www.sqlite.org/c3ref/c_source_id.html
@@ -17,7 +17,7 @@ SAGE_SPKG_CONFIGURE([sqlite], [
                                        ]],
                                        [[
                                          assert( strcmp(sqlite3_libversion(),SQLITE_VERSION)==0 );
-                                         if (SQLITE_VERSION_NUMBER < ]]sqlite3_min_version_major[[*1000000 + ]]sqlite3_min_version_minor[[*1000 + ]]sqlite3_min_version_micro[[)
+                                         if (SQLITE_VERSION_NUMBER < ]]SAGE_SQLITE3_MIN_VERSION_MAJOR[[*1000000 + ]]SAGE_SQLITE3_MIN_VERSION_MINOR[[*1000 + ]]SAGE_SQLITE3_MIN_VERSION_MICRO[[)
                                            exit(1);
                                          else
                                            exit(0);
@@ -27,4 +27,8 @@ SAGE_SPKG_CONFIGURE([sqlite], [
                        [AC_MSG_RESULT([no])
                         LIBS="$SQLITE_SAVED_LIBS"
                         sage_spkg_install_sqlite=yes])
+  m4_popdef([SAGE_SQLITE3_MIN_VERSION_MAJOR])
+  m4_popdef([SAGE_SQLITE3_MIN_VERSION_MINOR])
+  m4_popdef([SAGE_SQLITE3_MIN_VERSION_MICRO])
+  m4_popdef([SAGE_SQLITE3_MIN_VERSION])
 ])

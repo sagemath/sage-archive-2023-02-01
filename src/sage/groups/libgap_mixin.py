@@ -11,20 +11,53 @@ from. This ensures that it properly overrides any default methods that
 just raise ``NotImplementedError``.
 """
 
-from sage.libs.all import libgap
+from sage.libs.gap.libgap import libgap
+from sage.libs.gap.element import GapElement
+from sage.structure.element import parent
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap
-
+from sage.groups.libgap_wrapper import ElementLibGAP
 
 class GroupMixinLibGAP(object):
+    def __contains__(self, elt):
+        r"""
+        TESTS::
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: G = GroupLibGAP(libgap.SL(2,3))
+            sage: libgap([[1,0],[0,1]]) in G
+            False
+            sage: o = Mod(1, 3)
+            sage: z = Mod(0, 3)
+            sage: libgap([[o,z],[z,o]]) in G
+            True
+
+            sage: G.an_element() in GroupLibGAP(libgap.GL(2,3))
+            True
+            sage: G.an_element() in GroupLibGAP(libgap.GL(2,5))
+            False
+        """
+        if parent(elt) is self:
+            return True
+        elif isinstance(elt, GapElement):
+            return elt in self.gap()
+        elif isinstance(elt, ElementLibGAP):
+            return elt.gap() in self.gap()
+        else:
+            try:
+                elt2 = self(elt)
+            except Exception:
+                return False
+            return elt == elt2
 
     def is_abelian(self):
         r"""
-        Test whether the group is Abelian.
+        Return whether the group is Abelian.
 
         OUTPUT:
 
-        Boolean. ``True`` if this group is an Abelian group.
+        Boolean. ``True`` if this group is an Abelian group and ``False``
+        otherwise.
 
         EXAMPLES::
 
@@ -57,7 +90,7 @@ class GroupMixinLibGAP(object):
 
     def is_solvable(self):
         r"""
-        Return whether this group is nilpotent.
+        Return whether this group is solvable.
 
         EXAMPLES::
 
@@ -69,16 +102,16 @@ class GroupMixinLibGAP(object):
         """
         return self.gap().IsSolvableGroup().sage()
 
-    def is_super_solvable(self):
+    def is_supersolvable(self):
         r"""
-        Return whether this group is super solvable.
+        Return whether this group is supersolvable.
 
         EXAMPLES::
 
             sage: from sage.groups.libgap_group import GroupLibGAP
-            sage: GroupLibGAP(libgap.SymmetricGroup(3)).is_super_solvable()
+            sage: GroupLibGAP(libgap.SymmetricGroup(3)).is_supersolvable()
             True
-            sage: GroupLibGAP(libgap.SymmetricGroup(4)).is_super_solvable()
+            sage: GroupLibGAP(libgap.SymmetricGroup(4)).is_supersolvable()
             False
         """
         return self.gap().IsSupersolvableGroup().sage()
@@ -441,7 +474,7 @@ class GroupMixinLibGAP(object):
 
     def character(self, values):
         r"""
-        Returns a group character from ``values``, where ``values`` is
+        Return a group character from ``values``, where ``values`` is
         a list of the values of the character evaluated on the conjugacy
         classes.
 
@@ -471,7 +504,7 @@ class GroupMixinLibGAP(object):
 
     def trivial_character(self):
         r"""
-        Returns the trivial character of this group.
+        Return the trivial character of this group.
 
         OUTPUT: a group character
 
@@ -494,7 +527,7 @@ class GroupMixinLibGAP(object):
 
     def character_table(self):
         r"""
-        Returns the matrix of values of the irreducible characters of this
+        Return the matrix of values of the irreducible characters of this
         group `G` at its conjugacy classes.
 
         The columns represent the conjugacy classes of
@@ -582,6 +615,11 @@ class GroupMixinLibGAP(object):
             sage: next(iter(G))
             [1 0]
             [0 1]
+
+            sage: from sage.groups.libgap_group import GroupLibGAP
+            sage: G = GroupLibGAP(libgap.AlternatingGroup(5))
+            sage: sum(1 for g in G)
+            60
         """
         if self.list.cache is not None:
             for g in self.list():
@@ -589,7 +627,7 @@ class GroupMixinLibGAP(object):
             return
         iterator = self.gap().Iterator()
         while not iterator.IsDoneIterator().sage():
-            yield self(iterator.NextIterator(), check=False)
+            yield self.element_class(self, iterator.NextIterator())
 
     def __len__(self):
         """

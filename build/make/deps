@@ -170,6 +170,7 @@ sagelib: \
 		$(inst_ratpoints) \
 		$(inst_readline) \
 		$(inst_rw) \
+		$(inst_sage_conf) \
 		$(inst_singular) \
 		$(inst_six) \
 		$(inst_symmetrica) \

@@ -1,0 +1,8 @@
+# @configure_input@
+
+MAXIMA = "@prefix@/bin/maxima"
+
+# The following must not be used during build to determine source or installation
+# location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in
+SAGE_LOCAL = "@prefix@"
+SAGE_ROOT = "@abs_top_srcdir@"

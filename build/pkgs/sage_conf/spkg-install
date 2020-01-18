@@ -1,0 +1,11 @@
+#! /bin/sh
+# From sage-spkg
+for lib in "$SAGE_ROOT/build/bin/sage-dist-helpers" "$SAGE_SRC/bin/sage-env" ; do
+    source "$lib"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: failed to source $lib"
+        echo >&2 "Is $SAGE_ROOT the correct SAGE_ROOT?"
+        exit 1
+    fi
+done
+cd src && sdh_pip_install .

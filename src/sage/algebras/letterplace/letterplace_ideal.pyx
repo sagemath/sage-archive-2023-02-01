@@ -48,7 +48,7 @@ from sage.rings.infinity import Infinity
 #####################
 # Define some singular functions
 lib("freegb.lib")
-singular_system=singular_function("system")
+singular_twostd=singular_function("twostd")
 poly_reduce=singular_function("NF")
 
 class LetterplaceIdeal(Ideal_nc):
@@ -276,8 +276,7 @@ class LetterplaceIdeal(Ideal_nc):
         A.set_degbound(degbound)
         P = A._current_ring
         out = [FreeAlgebraElement_letterplace(A,X,check=False) for X in
-               singular_system("freegb",P.ideal([x._poly for x in self.__GB.gens()]),
-                               degbound,A.__ngens, ring = P)]
+               singular_twostd(P.ideal([x._poly for x in self.__GB.gens()]), ring = P)]
         libsingular_options['redTail'] = bck[0]
         libsingular_options['redSB'] = bck[1]
         self.__GB = A.ideal(out,side='twosided',coerce=False)

@@ -170,7 +170,7 @@ when the system has no solutions over the rationals.
     which is not 1. ::
 
         sage: I.groebner_basis()
-        [x + 130433*y + 59079*z, y^2 + 3*y + 17220, y*z + 5*y + 14504, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]
+        [x + y + 57119*z + 4, y^2 + 3*y + 17220, y*z + y + 26532, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]
 
     Now for each prime `p` dividing this integer 164878, the Groebner
     basis of I modulo `p` will be non-trivial and will thus give a
@@ -3995,9 +3995,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
             sage: I.groebner_basis()
-            [b^3 - 181*b*c^2 + 222*c^3 - 26*b*c - 146*c^2 + 19*b + 24*c,
-             2*b*c^2 - 48*c^3 + 3*b*c + 22*c^2 - 2*b - 2*c,
-             42*c^3 + 45*b^2 + 54*b*c + 22*c^2 - 13*b - 12*c,
+            [b^3 + b*c^2 + 12*c^3 + b^2 + b*c - 4*c^2,
+             2*b*c^2 - 6*c^3 - b^2 - b*c + 2*c^2,
+             42*c^3 + b^2 + 2*b*c - 14*c^2 + b,
              2*b^2 + 6*b*c + 6*c^2 - b - 2*c,
              10*b*c + 12*c^2 - b - 4*c,
              a + 2*b + 2*c - 1]

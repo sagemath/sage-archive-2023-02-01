@@ -113,7 +113,6 @@ from sage.rings.noncommutative_ideals import IdealMonoid_nc
 # Define some singular functions
 lib("freegb.lib")
 poly_reduce = singular_function("NF")
-singular_system=singular_function("system")
 
 # unfortunately we can not set Singular attributes for MPolynomialRing_libsingular
 # Hence, we must constantly work around Letterplace's sanity checks,
@@ -683,7 +682,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         degbound = self._degbound
         cdef list G = [C(x._poly) for x in g]
         for y in G:
-            out.extend([y]+[singular_system("stest",y,n+1,degbound,ngens,ring=C) for n in xrange(d-y.degree())])
+            out.extend([y]+[y.shift(ngens*(n+1)) for n in xrange(d-y.degree())])
         return C.ideal(out)
 
     ###########################

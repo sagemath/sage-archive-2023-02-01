@@ -1257,7 +1257,7 @@ cdef class SingularFunction(SageObject):
             Traceback (most recent call last):
             ...
             RuntimeError: error in Singular function call 'size':
-            Wrong number of arguments (got 2 arguments, arity code is 300)
+            Wrong number of arguments (got 2 arguments, arity code is 302)
             sage: size('foobar', ring=P)
             6
 
@@ -1671,17 +1671,17 @@ def singular_function(name):
         Traceback (most recent call last):
         ...
         RuntimeError: error in Singular function call 'factorize':
-        Wrong number of arguments (got 0 arguments, arity code is 303)
+        Wrong number of arguments (got 0 arguments, arity code is 305)
         sage: factorize(f, 1, 2)
         Traceback (most recent call last):
         ...
         RuntimeError: error in Singular function call 'factorize':
-        Wrong number of arguments (got 3 arguments, arity code is 303)
+        Wrong number of arguments (got 3 arguments, arity code is 305)
         sage: factorize(f, 1, 2, 3)
         Traceback (most recent call last):
         ...
         RuntimeError: error in Singular function call 'factorize':
-        Wrong number of arguments (got 4 arguments, arity code is 303)
+        Wrong number of arguments (got 4 arguments, arity code is 305)
 
     The Singular function ``list`` can be called with any number of
     arguments::

@@ -139,7 +139,7 @@ Other methods
 
        sage: singular.lib("brnoeth.lib")
        sage: s = singular.ring(2,'(x,y)','lp')
-       sage: I = singular.ideal('[x^4+x, y^4+y]')
+       sage: I = singular.ideal('x^4+x', 'y^4+y')
        sage: L = singular.closed_points(I)
        sage: # Here you have all the points :
        sage: print(L)

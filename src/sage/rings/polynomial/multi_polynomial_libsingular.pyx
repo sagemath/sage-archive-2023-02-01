@@ -2588,6 +2588,15 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         return  singular_polynomial_str_with_changed_varnames(self._poly, self._parent_ring, varnames)
 
+    def shift(self, int n):
+        r = self.parent()
+        olddict = self.dict()
+        newdict = dict()
+        for key in olddict:
+            newkey = key[-n:]+key[:-n]
+            newdict[newkey] = olddict[key]
+        return r(newdict)
+
     def degree(self, MPolynomial_libsingular x=None, int std_grading=False):
         """
         Return the maximal degree of this polynomial in ``x``, where

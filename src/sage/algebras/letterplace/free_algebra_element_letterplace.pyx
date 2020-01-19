@@ -24,7 +24,6 @@ from cpython.object cimport PyObject_RichCompare
 # Define some singular functions
 lib("freegb.lib")
 poly_reduce = singular_function("NF")
-singular_system=singular_function("system")
 
 #####################
 # Free algebra elements
@@ -444,9 +443,10 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef int i
         if P.monomial_divides(s_poly,p_poly):
             return True
+        # current_ring has one additional variable if the variables have weights
+        realngens = A._current_ring.ngens() / A.degbound()
         for i from 0 <= i < p_d-s_d:
-            s_poly = singular_system("stest",s_poly,1,
-                                     A._degbound,A.__ngens,ring=P)
+            s_poly = s_poly.shift(realngens)
             if P.monomial_divides(s_poly,p_poly):
                 return True
         return False
@@ -600,7 +600,9 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         # we must put the polynomials into the same ring
         left._poly = A._current_ring(left._poly)
         right._poly = A._current_ring(right._poly)
-        rshift = singular_system("stest",right._poly,left._poly.degree(),A._degbound,A.__ngens, ring=A._current_ring)
+        # current_ring has one additional variable if the variables have weights
+        realngens = A._current_ring.ngens() / A.degbound()
+        rshift = right._poly.shift(left._poly.degree()*realngens)
         return FreeAlgebraElement_letterplace(A,left._poly*rshift, check=False)
 
     def __pow__(FreeAlgebraElement_letterplace self, int n, k):
@@ -626,10 +628,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         self._poly = A._current_ring(self._poly)
         cdef int d = self._poly.degree()
         q = p = self._poly
+        # current_ring has one additional variable if the variables have weights
+        realngens = A._current_ring.ngens() / A.degbound()
         cdef int i
         for i from 0<i<n:
-            q = singular_system("stest",q,d,A._degbound,A.__ngens,
-                                     ring=A._current_ring)
+            q = q.shift(d*realngens)
             p *= q
         return FreeAlgebraElement_letterplace(A, p, check=False)
 

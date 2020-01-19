@@ -344,6 +344,8 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
         else:
             l = self._laurent_series_ring(x)
 
+        # finally, construct an instance of the element class and adding
+        # the precision afterwards (see also :trac:`28993`).
         return self.element_class(self, l, e=e).add_bigoh(prec)
 
     def _coerce_map_from_(self, P):
@@ -367,9 +369,11 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
             sage: R.<x> = PuiseuxSeriesRing(ZZ)
             sage: 5 in R, 1/5 in R              # indirect doctests
             (True, False)
+
             sage: p = x^(1/2) + x**3-x**(-1/4)
             sage: p.laurent_part() in R         # indirect doctests
             True
+
             sage: Q.<x> = PuiseuxSeriesRing(QQ) # indirect doctests
             sage: p in Q
             True

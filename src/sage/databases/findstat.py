@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""a
+r"""
 FindStat - the Combinatorial Statistic Finder.
 
 The FindStat database can be found at::
@@ -32,8 +32,8 @@ Retrieving information
 
 The most straightforward application of the FindStat interface is to
 gather information about a combinatorial statistic.  To do this, we
-supply :class:`findstat<FindStat>` with a list of ``(object, value)``
-pairs.  For example::
+supply :func:`findstat` with a list of ``(object, value)`` pairs.
+For example::
 
     sage: PM = PerfectMatchings
     sage: r = findstat([(m, m.number_of_nestings()) for n in range(6) for m in PM(2*n)]); r    # optional -- internet
@@ -178,11 +178,21 @@ consider submitting it to the database using
 
 Also, you may notice omissions, typos or even mistakes in the
 description, the code and the references.  In this case, simply
-replace the value by using :meth:`FindStatStatistic.set_description`,
+replace the value by using :meth:`FindStatFunction.set_description`,
 :meth:`FindStatStatistic.set_code` or
-:meth:`FindStatStatistic.set_references`, and then
+:meth:`FindStatFunction.set_references_raw`, and then
 :meth:`FindStatStatistic.submit` your changes for review by the
 FindStat team.
+
+The main entry points
+---------------------
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :func:`findstat` | search for matching statistics.
+    :func:`findmap`  | search for matching maps.
 
 Classes and methods
 -------------------
@@ -391,6 +401,12 @@ class FindStat(UniqueRepresentation, SageObject):
             raise ValueError("The given email address is not a string.")
         self._user_name  = name
         self._user_email = email
+
+    def user_name(self):
+        return self._user_name
+
+    def user_email(self):
+        return self._user_email
 
     def login(self):
         r"""
@@ -819,7 +835,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
             return FindStatStatistics(domain=domain)
 
         if domain is None:
-            if isinstance(query, Integer):
+            if isinstance(query, (int, Integer)):
                 return FindStatStatistic(query)
 
             if isinstance(query, string_types):
@@ -840,7 +856,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         domain = FindStatCollection(domain)
 
     if values is not None:
-        if isinstance(values, (string_types, Integer)):
+        if isinstance(values, (int, Integer, string_types)):
             if domain is not None:
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(values_of=values, depth=depth)
@@ -850,7 +866,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
                                       all_data=all_data, function=function)
 
     if distribution is not None:
-        if isinstance(distribution, (string_types, Integer)):
+        if isinstance(distribution, (int, Integer, string_types)):
             if domain is not None:
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(distribution_of=distribution, depth=depth)
@@ -1078,7 +1094,7 @@ def findmap(*args, **kwargs):
     if len(args) == 1:
         if (values is None and distribution is None
             and domain is None and codomain is None
-            and (isinstance(args[0], Integer)
+            and (isinstance(args[0], (int, Integer))
                  or (isinstance(args[0], string_types)
                      and not is_collection(args[0])))):
             return FindStatMap(args[0])
@@ -1092,7 +1108,7 @@ def findmap(*args, **kwargs):
 
     elif len(args) == 2:
         domain = check_domain(args[0], domain)
-        if isinstance(args[1], (Integer, string_types)):
+        if isinstance(args[1], (int, Integer, string_types)):
             codomain = check_codomain(args[1], codomain)
         else:
             values = check_values(args[1], values)
@@ -1112,7 +1128,7 @@ def findmap(*args, **kwargs):
         return FindStatMaps(domain=domain, codomain=codomain)
 
     if values is not None:
-        if isinstance(values, (string_types, Integer)):
+        if isinstance(values, (int, Integer, string_types)):
             if domain is not None or codomain is not None:
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(values_of=values, depth=depth)
@@ -1122,7 +1138,7 @@ def findmap(*args, **kwargs):
                                 all_data=all_data, function=function)
 
     if distribution is not None:
-        if isinstance(distribution, (string_types, Integer)):
+        if isinstance(distribution, (int, Integer, string_types)):
             if domain is not None or codomain is not None:
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(distribution_of=values, depth=depth)
@@ -1922,8 +1938,8 @@ class FindStatStatistic(Element, FindStatFunction):
         args["References"]        = self.references_raw()
         args["Code"]              = self.code()
         args["SageCode"]          = self.sage_code()
-        args["CurrentAuthor"]     = FindStat()._user_name
-        args["CurrentEmail"]      = FindStat()._user_email
+        args["CurrentAuthor"]     = FindStat().user_name()
+        args["CurrentEmail"]      = FindStat().user_email()
 
         f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
@@ -1935,7 +1951,7 @@ class FindStatStatistic(Element, FindStatFunction):
         for key, value in iteritems(args):
             if value:
                 verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(str(value), quote=True)
+                value_encoded = cgi.escape(value.encode("utf-8"), quote=True)
                 verbose("%s" % value_encoded, caller_name='FindStat')
                 f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
             else:
@@ -2259,7 +2275,7 @@ class FindStatCompoundStatistic(Element):
             ValueError: the statistic St000001: The number of reduced words for a permutation. cannot be composed with the map Mp00127
 
         """
-        if isinstance(id_str, Integer):
+        if isinstance(id_str, (int, Integer)):
             id_str = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id_str
         self._id_str = id_str
         composition = id_str.partition("o")
@@ -2442,7 +2458,7 @@ class FindStatCompoundMap(Element):
             ValueError: the sequence of maps [Mp00146: to tunnel matching, Mp00127: left-to-right-maxima to Dyck path] cannot be composed
         """
 
-        if isinstance(id_str, Integer):
+        if isinstance(id_str, (int, Integer)):
             id_str = FINDSTAT_MAP_PADDED_IDENTIFIER % id_str
         if id_str == "":
             self._id_str = "id"
@@ -2638,8 +2654,8 @@ class FindStatMap(Element, FindStatFunction):
         args["Properties"]         = self.properties_raw()
         args["SageCode"]           = self.sage_code()
         args["SageName"]           = self.code_name()
-        args["CurrentAuthor"]      = findstat._user_name
-        args["CurrentEmail"]       = findstat._user_email
+        args["CurrentAuthor"]      = FindStat().user_name()
+        args["CurrentEmail"]       = findstat().user_email()
 
         f = tempfile.NamedTemporaryFile(suffix='.html', delete=False)
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
@@ -2651,7 +2667,7 @@ class FindStatMap(Element, FindStatFunction):
         for key, value in iteritems(args):
             if value:
                 verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(str(value), quote=True)
+                value_encoded = cgi.escape(value.encode("utf-8"), quote=True)
                 verbose("%s" % value_encoded, caller_name='FindStat')
                 f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
             else:

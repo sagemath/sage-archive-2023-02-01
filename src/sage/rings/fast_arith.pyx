@@ -120,17 +120,21 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         sage: prime_range(4652360, 4652400)
         []
 
-    Confirm the fix for trac ticket 28467::
+    Confirm the fix in :trac:`28467`::
 
         sage: prime_range(436273009, 436273010)
         [436273009]
 
-    Confirm the fix in trac ticket 28712::
+    Confirm the fix in :trac:`28712`::
 
         sage: prime_range(9.5, "14", "pari_primes")
         [11, 13]
         sage: prime_range(9.5, "14", "pari_isprime")
         [11, 13]
+        sage: prime_range(sqrt(10), "10.2", "pari_primes")
+        [3, 5, 7]
+        sage: prime_range(sqrt(10), "10.2", "pari_isprime")
+        [3, 5, 7]
 
     Test for non-existing algorithm::
 
@@ -160,7 +164,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         start = Integer(start)
     except TypeError as integer_error:
         try:
-            start = Integer(round(start))
+            start = Integer(round(float(start)))
         except (ValueError, TypeError) as real_error:
             raise TypeError(str(integer_error)
                 + "\nand argument is also not real: " + str(real_error))
@@ -169,7 +173,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
             stop = Integer(stop)
         except TypeError as integer_error:
             try:
-                stop = Integer(round(stop))
+                stop = Integer(round(float(stop)))
             except (ValueError, TypeError) as real_error:
                 raise ValueError(str(integer_error)
                     + "\nand argument is also not real: " + str(real_error))

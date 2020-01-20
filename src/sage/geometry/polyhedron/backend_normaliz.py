@@ -1283,7 +1283,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return tuple(polynomials)
 
-    def _h_star_vector(self):
+    def _h_star_vector_normaliz(self):
         r"""
         Returns the h*-vector of the lattice polytope.
 

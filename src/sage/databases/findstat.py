@@ -106,7 +106,7 @@ submitted statistic is the composition of a sequence of combinatorial
 maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
-    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2)     # optional -- internet
+    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2); r  # optional -- internet
     0: St000476oMp00099oMp00127 (quality [100, 100])
     1: St001497oMp00119oMp00127 with offset 1 (quality [100, 100])
     2: St000147oMp00027oMp00127 (quality [96, 100])
@@ -396,9 +396,9 @@ class FindStat(UniqueRepresentation, SageObject):
             web page using the :meth:`login` method.
         """
         if not isinstance(name, string_types):
-            raise ValueError("The given name is not a string.")
+            raise ValueError("the given name (%s) should be a string" % name)
         if not isinstance(email, string_types):
-            raise ValueError("The given email address is not a string.")
+            raise ValueError("the given email (%s) should be a string" % email)
         self._user_name  = name
         self._user_email = email
 
@@ -624,7 +624,7 @@ def _generating_functions_from_dict(gfs, style):
                               for exponent,coefficient in iteritems(gen_dict) )
                  for level, gen_dict in iteritems(gfs)}
     else:
-        raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'." % style)
+        raise ValueError("the argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'" % style)
 
 def findstat(query=None, values=None, distribution=None, domain=None,
              depth=FINDSTAT_DEFAULT_DEPTH, max_values=FINDSTAT_MAX_VALUES):
@@ -1020,13 +1020,13 @@ def findmap(*args, **kwargs):
         depth = int(depth)
         assert 0 <= depth <= FINDSTAT_MAX_DEPTH
     except (ValueError, AssertionError):
-        raise ValueError("The depth of a FindStat query must be a non-negative integer less than or equal to %i." % FINDSTAT_MAX_DEPTH)
+        raise ValueError("the depth of a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_DEPTH)
 
     try:
         max_values = int(max_values)
         assert 0 <= max_values <= FINDSTAT_MAX_VALUES
     except (ValueError, AssertionError):
-        raise ValueError("The maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i." % FINDSTAT_MAX_VALUES)
+        raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
     def get_data(raw, domain=None, codomain=None):
@@ -1089,7 +1089,7 @@ def findmap(*args, **kwargs):
 
     ######################################################################
     if values is not None and distribution is not None:
-        raise ValueError("Not both of `values` and `distribution` may be given for a FindStat query.")
+        raise ValueError("not both of `values` and `distribution` may be given for a FindStat query")
 
     if len(args) == 1:
         if (values is None and distribution is None
@@ -1147,7 +1147,7 @@ def findmap(*args, **kwargs):
         return FindStatMapQuery(data=data, domain=domain, codomain=codomain, depth=depth,
                                 all_data=all_data, function=function)
 
-    raise ValueError("The given arguments cannot be used for a FindStat search.")
+    raise ValueError("the given arguments cannot be used for a FindStat search")
 
 ######################################################################
 
@@ -1448,8 +1448,187 @@ class FindStatFunction(SageObject):
             self._modified = True
             self._modified_data["SageCode"] = value
 
+class FindStatCombinatorialStatistic(SageObject):
+    """
+    An abstract FindStat statistic.
+
+    This class provides methods applicable to elements of
+    :class:`FindStatStatistic` and
+    :class:`FindStatCompoundStatistic`.
+    """
+
+    def domain(self):
+        return self._domain
+
+    def _generating_functions_dict(self):
+        r"""
+        Return the generating functions of ``self`` in a dictionary,
+        computed from ``self.first_terms``.
+
+        TESTS:
+
+            sage: q = findstat((DyckWords(4), range(14)))                       # optional -- internet, indirect doctest
+            sage: q.generating_functions()                                      # optional -- internet, indirect doctest
+            {4: q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
+
+            sage: C = AlternatingSignMatrices(4)
+            sage: q = findstat((C, range(C.cardinality())))                     # optional -- internet, indirect doctest
+            sage: q.generating_functions()                                      # optional -- internet, indirect doctest
+            {4: q^41 + q^40 + q^39 + q^38 + q^37 + q^36 + q^35 + q^34 + q^33 + q^32 + q^31 + q^30 + q^29 + q^28 + q^27 + q^26 + q^25 + q^24 + q^23 + q^22 + q^21 + q^20 + q^19 + q^18 + q^17 + q^16 + q^15 + q^14 + q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
+        """
+        gfs = {}
+        lvls = {}
+        domain = self.domain()
+        levels_with_sizes = domain.levels_with_sizes()
+        for elt, val in self.first_terms().items():
+            lvl = domain.element_level(elt)
+            if lvl not in levels_with_sizes:
+                continue
+            if lvl not in gfs:
+                gfs[lvl] = {}
+            gfs[lvl][val] = gfs[lvl].get(val, 0) + 1
+            lvls[lvl] = lvls.get(lvl, 0) + 1
+
+        for lvl, size in lvls.items():
+            if size < levels_with_sizes[lvl]:
+                del gfs[lvl]
+        return gfs
+
+    def generating_functions(self, style="polynomial"):
+        r"""
+        Return the generating functions of ``self`` in a dictionary.
+
+        The keys of this dictionary are the levels for which the
+        generating function of ``self`` can be computed from the data
+        of this statistic, and each value represents a generating
+        function for one level, as a polynomial, as a dictionary, or as
+        a list of coefficients.
+
+        INPUT:
+
+        - a string -- (default:"polynomial") can be
+          "polynomial", "dictionary", or "list".
+
+        OUTPUT:
+
+        - if ``style`` is ``"polynomial"``, the generating function is
+          returned as a polynomial.
+
+        - if ``style`` is ``"dictionary"``, the generating function is
+          returned as a dictionary representing the monomials of the
+          generating function.
+
+        - if ``style`` is ``"list"``, the generating function is
+          returned as a list of coefficients of the generating function.
+
+        EXAMPLES::
+
+            sage: st = findstat(18)                                             # optional -- internet
+
+            sage: st.generating_functions()                                     # optional -- internet
+            {1: 1,
+             2: q + 1,
+             3: q^3 + 2*q^2 + 2*q + 1,
+             4: q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1,
+             5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
+             6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
+
+            sage: st.generating_functions(style="dictionary")                   # optional -- internet
+            {1: {0: 1},
+             2: {0: 1, 1: 1},
+             3: {0: 1, 1: 2, 2: 2, 3: 1},
+             4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
+             5: {0: 1, 1: 4, 2: 9, 3: 15, 4: 20, 5: 22, 6: 20, 7: 15, 8: 9, 9: 4, 10: 1},
+             6: {0: 1,
+              1: 5,
+              2: 14,
+              3: 29,
+              4: 49,
+              5: 71,
+              6: 90,
+              7: 101,
+              8: 101,
+              9: 90,
+              10: 71,
+              11: 49,
+              12: 29,
+              13: 14,
+              14: 5,
+              15: 1}}
+
+            sage: st.generating_functions(style="list")                         # optional -- internet
+            {1: [1],
+             2: [1, 1],
+             3: [1, 2, 2, 1],
+             4: [1, 3, 5, 6, 5, 3, 1],
+             5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
+             6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
+        """
+        return _generating_functions_from_dict(self._generating_functions_dict(),
+                                               style=style)
+
+    def oeis_search(self, search_size=32, verbose=True):
+        r"""
+        Search the OEIS for the generating function of the statistic.
+
+        INPUT:
+
+        - ``search_size`` (default:32) the number of integers in the
+          sequence. If too big, the OEIS result is corrupted.
+
+        - ``verbose`` (default:True) if true, some information about
+          the search are printed.
+
+        OUTPUT:
+
+        - a tuple of OEIS sequences, see
+          :meth:`sage.databases.oeis.OEIS.find_by_description` for more
+          information.
+
+        EXAMPLES::
+
+            sage: st = findstat(18)                                             # optional -- internet
+
+            sage: st.oeis_search()                                              # optional -- internet
+            Searching the OEIS for "1  1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  ..."
+            0: A008302: Triangle of Mahonian numbers T(n,k)...
+
+            sage: st.oeis_search(search_size=13)                                # optional -- internet
+            Searching the OEIS for "1  1,1  1,2,2,1  ..."
+            0: A008302: Triangle of Mahonian numbers T(n,k)...
+        """
+        from sage.databases.oeis import oeis
+
+        gen_funcs = self.generating_functions(style="list")
+
+        OEIS_string = ""
+        keys = sorted(gen_funcs.keys())
+        counter = 0
+        for key in keys:
+            gen_func = gen_funcs[key]
+            while gen_func[0] == 0:
+                gen_func.pop(0)
+            # we strip the result according to the search size. -- stumpc5, 2015-09-27
+            gen_func = gen_func[:search_size]
+            counter += len(gen_func)
+            if search_size > 0:
+                search_size -= len(gen_func)
+            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
+            OEIS_string         += OEIS_func_string + "  "
+        OEIS_string = OEIS_string.strip()
+        if counter >= 4:
+            if verbose:
+                print('Searching the OEIS for "%s"' % OEIS_string)
+            return oeis( OEIS_string )
+        else:
+            if verbose:
+                print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
+            return
+
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class FindStatStatistic(Element, FindStatFunction):
+class FindStatStatistic(Element, FindStatFunction,
+                        FindStatCombinatorialStatistic):
     r"""
     A FindStat statistic.
 
@@ -1533,6 +1712,12 @@ class FindStatStatistic(Element, FindStatFunction):
         self._modified_data = data
 
     def _initialize_data(self, data):
+        """
+        Initialize a new statistic from a
+        :class:`FindStatStatisticQuery`.
+
+        This sets ``self._modified_data``.
+        """
         self._modified_data = {"Bibliography": {},
                                "Code": data.code(),
                                "Description" : "",
@@ -1583,14 +1768,13 @@ class FindStatStatistic(Element, FindStatFunction):
     def _initialize_first_terms(self, data):
         r"""
         Initialize the first terms of the statistic, as ``(object,
-        value)`` pairs.
+        value)`` pairs, from a :class:`FindStatStatisticQuery`.
 
         This sets ``self._modified_first_terms``.
 
         """
         to_str = self.collection().to_string()
-        self._modified_first_terms = [(objs[0], vals[0])
-                                      for objs, vals in data.data() if len(vals) == 1]
+        self._modified_first_terms = data.first_terms()
         self._modified_first_terms_raw = [(to_str(obj), Integer(val))
                                           for obj, val in self._modified_first_terms]
 
@@ -1743,171 +1927,6 @@ class FindStatStatistic(Element, FindStatFunction):
         if value != self.code():
             self._modified = True
             self._modified_data["Code"] = value
-
-    def _generating_functions_dict(self):
-        r"""
-        Return the generating functions of ``self`` in a dictionary,
-        computed from ``self.first_terms``.
-
-        TESTS:
-
-            sage: q = findstat((DyckWords(4), range(14)))                       # optional -- internet, indirect doctest
-            sage: q.generating_functions()                                      # optional -- internet, indirect doctest
-            {4: q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
-
-            sage: C = AlternatingSignMatrices(4)
-            sage: q = findstat((C, range(C.cardinality())))                     # optional -- internet, indirect doctest
-            sage: q.generating_functions()                                      # optional -- internet, indirect doctest
-            {4: q^41 + q^40 + q^39 + q^38 + q^37 + q^36 + q^35 + q^34 + q^33 + q^32 + q^31 + q^30 + q^29 + q^28 + q^27 + q^26 + q^25 + q^24 + q^23 + q^22 + q^21 + q^20 + q^19 + q^18 + q^17 + q^16 + q^15 + q^14 + q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
-        """
-        gfs = {}
-        lvls = {}
-        domain = self.collection()
-        levels_with_sizes = domain.levels_with_sizes()
-        for elt, val in self.first_terms().items():
-            lvl = domain.element_level(elt)
-            if lvl not in levels_with_sizes:
-                continue
-            if lvl not in gfs:
-                gfs[lvl] = {}
-            gfs[lvl][val] = gfs[lvl].get(val, 0) + 1
-            lvls[lvl] = lvls.get(lvl, 0) + 1
-
-        for lvl, size in lvls.items():
-            if size < levels_with_sizes[lvl]:
-                del gfs[lvl]
-        return gfs
-
-    def generating_functions(self, style="polynomial"):
-        r"""
-        Return the generating functions of ``self`` in a dictionary.
-
-        The keys of this dictionary are the levels for which the
-        generating function of ``self`` can be computed from the data
-        of this statistic, and each value represents a generating
-        function for one level, as a polynomial, as a dictionary, or as
-        a list of coefficients.
-
-        INPUT:
-
-        - a string -- (default:"polynomial") can be
-          "polynomial", "dictionary", or "list".
-
-        OUTPUT:
-
-        - if ``style`` is ``"polynomial"``, the generating function is
-          returned as a polynomial.
-
-        - if ``style`` is ``"dictionary"``, the generating function is
-          returned as a dictionary representing the monomials of the
-          generating function.
-
-        - if ``style`` is ``"list"``, the generating function is
-          returned as a list of coefficients of the generating function.
-
-        EXAMPLES::
-
-            sage: st = findstat(18)                                             # optional -- internet
-
-            sage: st.generating_functions()                                     # optional -- internet
-            {1: 1,
-             2: q + 1,
-             3: q^3 + 2*q^2 + 2*q + 1,
-             4: q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1,
-             5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
-             6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
-
-            sage: st.generating_functions(style="dictionary")                   # optional -- internet
-            {1: {0: 1},
-             2: {0: 1, 1: 1},
-             3: {0: 1, 1: 2, 2: 2, 3: 1},
-             4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
-             5: {0: 1, 1: 4, 2: 9, 3: 15, 4: 20, 5: 22, 6: 20, 7: 15, 8: 9, 9: 4, 10: 1},
-             6: {0: 1,
-              1: 5,
-              2: 14,
-              3: 29,
-              4: 49,
-              5: 71,
-              6: 90,
-              7: 101,
-              8: 101,
-              9: 90,
-              10: 71,
-              11: 49,
-              12: 29,
-              13: 14,
-              14: 5,
-              15: 1}}
-
-            sage: st.generating_functions(style="list")                         # optional -- internet
-            {1: [1],
-             2: [1, 1],
-             3: [1, 2, 2, 1],
-             4: [1, 3, 5, 6, 5, 3, 1],
-             5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
-             6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
-        """
-        return _generating_functions_from_dict(self._generating_functions_dict(),
-                                               style=style)
-
-    def oeis_search(self, search_size=32, verbose=True):
-        r"""
-        Search the OEIS for the generating function of the statistic.
-
-        INPUT:
-
-        - ``search_size`` (default:32) the number of integers in the
-          sequence. If too big, the OEIS result is corrupted.
-
-        - ``verbose`` (default:True) if true, some information about
-          the search are printed.
-
-        OUTPUT:
-
-        - a tuple of OEIS sequences, see
-          :meth:`sage.databases.oeis.OEIS.find_by_description` for more
-          information.
-
-        EXAMPLES::
-
-            sage: st = findstat(18)                                             # optional -- internet
-
-            sage: st.oeis_search()                                              # optional -- internet
-            Searching the OEIS for "1  1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  ..."
-            0: A008302: Triangle of Mahonian numbers T(n,k)...
-
-            sage: st.oeis_search(search_size=13)                                # optional -- internet
-            Searching the OEIS for "1  1,1  1,2,2,1  ..."
-            0: A008302: Triangle of Mahonian numbers T(n,k)...
-        """
-        from sage.databases.oeis import oeis
-
-        gen_funcs = self.generating_functions(style="list")
-
-        OEIS_string = ""
-        keys = sorted(gen_funcs.keys())
-        counter = 0
-        for key in keys:
-            gen_func = gen_funcs[key]
-            while gen_func[0] == 0:
-                gen_func.pop(0)
-            # we strip the result according to the search size. -- stumpc5, 2015-09-27
-            gen_func = gen_func[:search_size]
-            counter += len(gen_func)
-            if search_size > 0:
-                search_size -= len(gen_func)
-            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
-            OEIS_string         += OEIS_func_string + "  "
-        OEIS_string = OEIS_string.strip()
-        if counter >= 4:
-            if verbose:
-                print('Searching the OEIS for "%s"' % OEIS_string)
-            return oeis( OEIS_string )
-        else:
-            if verbose:
-                print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
-            return
 
     ######################################################################
     # browse current statistic
@@ -2088,7 +2107,7 @@ class FindStatStatistics(UniqueRepresentation, Parent):
 
     Element = FindStatStatistic
 
-class FindStatStatisticQuery(SageObject):
+class FindStatStatisticQuery(FindStatCombinatorialStatistic):
     """
     A class representing a query for FindStat (compound) statistics.
     """
@@ -2205,9 +2224,6 @@ class FindStatStatisticQuery(SageObject):
     def submittable(self):
         return self._all_data is not None
 
-    def domain(self):
-        return self._domain
-
     def function(self):
         return self._function
 
@@ -2221,17 +2237,21 @@ class FindStatStatisticQuery(SageObject):
             code = ""
         return code
 
-    def data(self):
-        return self._all_data
-
-    def generating_functions(self, style="polynomial"):
-        return _generating_functions_from_dict(self._generating_functions_dict(),
-                                               style=style)
+    def first_terms(self):
+        """
+        Return the known ``(object, value)`` pairs
+        """
+        return [(objs[0], vals[0]) for objs, vals in self._all_data if len(vals) == 1]
 
     def _generating_functions_dict(self, max_values=FINDSTAT_MAX_VALUES):
+        """
+        Return the generating functions of the levels where all values
+        can be determined.
+
+        """
         gfs = {} # lvl: vals
         total = min(max_values, FINDSTAT_MAX_VALUES)
-        iterator = iter(self.data())
+        iterator = iter(self._all_data)
         domain = self.domain()
         levels_with_sizes = domain.levels_with_sizes()
         while total > 0:
@@ -2264,7 +2284,7 @@ class FindStatStatisticQuery(SageObject):
     def __getitem__(self, idx):
         return self._result[idx]
 
-class FindStatCompoundStatistic(Element):
+class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
     def __init__(self, id_str):
         """
         TESTS::
@@ -2283,10 +2303,91 @@ class FindStatCompoundStatistic(Element):
         self._maps = FindStatCompoundMap(composition[2])
         if self._maps.codomain() is not None and self._maps.codomain() != self._statistic.domain():
             raise ValueError("the statistic %s cannot be composed with the map %s" % (self._statistic, self._maps))
+        self._domain = self._maps.domain()
+        self._modified_first_terms = None
+        self._modified_first_terms_raw = None
         Element.__init__(self, FindStatStatistics())
 
-    def domain(self):
-        return self._maps.domain()
+    def _fetch_first_terms_raw(self):
+        r"""
+        Initialize the first terms of the statistic, as (string, value)
+        pairs.
+
+        This fetches the data from FindStat, and sets
+        ``self._modified_first_terms_raw``.
+        """
+        if self._modified_first_terms_raw is not None:
+            return
+        fields = "Values"
+        url = FINDSTAT_API_STATISTICS + self._id_str + "?fields=" + fields
+        values = json.load(urlopen(url))["included"]["CompoundStatistics"][self._id_str]["Values"]
+        values = [(sequence[0], sequence[-1]) for sequence in values]
+        self._modified_first_terms_raw = values
+
+    def _fetch_first_terms(self):
+        r"""
+        Initialize the first terms of the statistic, as ``(object,
+        value)`` pairs.
+
+        This sets ``self._modified_first_terms``.
+
+        """
+        if self._modified_first_terms is not None:
+            return
+        from_str = self.domain().from_string()
+        self._fetch_first_terms_raw()
+        values = [(from_str(obj), Integer(val))
+                  for obj, val in self._modified_first_terms_raw]
+        self._modified_first_terms = values
+
+    def first_terms(self):
+        r"""
+        Return the first terms of the statistic.
+
+        OUTPUT:
+
+        A dictionary from sage objects representing an element of the
+        appropriate collection to integers.  If the statistic is in
+        the FindStat database, the dictionary contains exactly the
+        pairs in the database.
+
+        EXAMPLES::
+
+            sage: findstat(1).first_terms()[Permutation([1,4,3,2])]             # optional -- internet
+            2
+        """
+        # initialize self._modified_first_terms and
+        # self._modified_first_terms_raw on first call
+        self._fetch_first_terms()
+        # a shallow copy suffices - tuples are immutable
+        return dict(self._modified_first_terms)
+
+    def _first_terms_raw(self):
+        # initialize self._modified_first_terms_raw on first call
+        self._fetch_first_terms_raw()
+        # a shallow copy suffices - tuples are immutable
+        return self._modified_first_terms_raw[:]
+
+    def first_terms_str(self):
+        r"""
+        Return the first terms of the statistic in the format needed
+        for a FindStat query.
+
+        OUTPUT:
+
+        A string, where each line is of the form ``object => value``,
+        where ``object`` is the string representation of an element
+        of the appropriate collection as used by FindStat and value
+        is an integer.
+
+        EXAMPLES::
+
+            sage: findstat(1).first_terms_str()[:9]                             # optional -- internet
+            u'[] => 1\r\n'
+
+        """
+        return "\r\n".join(key + " => " + str(val)
+                           for (key, val) in self._first_terms_raw())
 
     def __call__(self, elt):
         return self.statistic()(self.maps()(elt))
@@ -2425,9 +2526,6 @@ class FindStatMapQuery(SageObject):
             result.append(FindStatMatchingMap(entry["MatchingMap"],
                                               entry["Quality"]))
         self._result = FancyTuple(result)
-
-    def domain(self):
-        return self._domain
 
     def codomain(self):
         return self._codomain
@@ -3034,7 +3132,7 @@ class FindStatCollection(Element):
             sage: FindStatCollection(0)                                         # optional -- internet
             Traceback (most recent call last):
             ...
-            ValueError: Could not find FindStat collection for 0.
+            ValueError: could not find FindStat collection for 0
         """
         return FindStatCollections()(entry)
 
@@ -3232,8 +3330,8 @@ class FindStatCollection(Element):
 
     def first_terms(self, function, level=None):
         r"""
-        Compute the first few terms of the given statistic or map,
-        restricted to the given level.
+        Compute the first few terms of the given function, restricted to
+        the given level.
 
         INPUT:
 
@@ -3414,7 +3512,7 @@ class FindStatCollection(Element):
         elif style == "plural":
             return self._data["NamePlural"]
         else:
-            raise ValueError("Argument 'style' (=%s) must be 'singular' or 'plural'."%style)
+            raise ValueError("argument 'style' (=%s) must be 'singular' or 'plural'"%style)
 
 from collections import namedtuple
 SupportedFindStatCollection = namedtuple("SupportedFindStatCollection",
@@ -3595,7 +3693,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
         ...
         NotImplementedError: This FindStatCollection is not yet supported.
         """
-        raise NotImplementedError("This FindStatCollection is not yet supported.")
+        raise NotImplementedError("this FindStatCollection is not yet supported")
 
     # The following is used for unknown collections, with the
     # intention to make as much as possible working.
@@ -3763,7 +3861,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
                     if "Code" in data and data["Code"].is_element(obj):
                         return self.element_class(self, id, data, entries)
 
-        raise ValueError("Could not find FindStat collection for %s." %str(entry))
+        raise ValueError("could not find FindStat collection for %s" %str(entry))
 
     def _repr_(self):
         """

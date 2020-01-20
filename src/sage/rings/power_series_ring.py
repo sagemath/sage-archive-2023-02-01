@@ -87,10 +87,10 @@ Choose another implementation of the attached polynomial ring::
 
     sage: R.<t> = PowerSeriesRing(ZZ)
     sage: type(t.polynomial())
-    <class 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
+    <... 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: S.<s> = PowerSeriesRing(ZZ, implementation='NTL')
     sage: type(s.polynomial())
-    <class 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
+    <... 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
 
 AUTHORS:
 

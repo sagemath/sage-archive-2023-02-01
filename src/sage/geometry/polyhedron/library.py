@@ -11,7 +11,7 @@ through ``polytopes.<tab>``. For example, here is the hypercube in dimension 5::
 The following constructions are available
 
 .. csv-table::
-    :class: contentstable
+ )   :class: contentstable
     :widths: 30
     :delim: |
 
@@ -2670,9 +2670,12 @@ class Polytopes():
         - ``intervals`` -- (default = None). It takes the following
           possible inputs:
 
-          - 'zero_one' -- (string). Return the `0/1`-cube.
+          - If ``None`` (the default), it returns the the `\pm 1`-cube of
+            dimension ``dim``.
 
-          - a list/tuple/iterable of length ``dim``. Its elements are pairs of
+          - ``'zero_one'`` -- (string). Return the `0/1`-cube.
+
+          - a list of length ``dim``. Its elements are pairs of
             numbers `(a,b)` with `a < b`. The cube will be the product of
             these intervals.
 
@@ -2767,7 +2770,11 @@ class Polytopes():
         - ``intervals`` -- list (default=None). It takes the following
           possible inputs:
 
-            - 'zero_one' -- (string). Return the `0/1`-cube.
+            - If the input is ``None`` (the default), returns the convex hull of 
+              the eight `\pm 1` vectors of length three.
+
+            - ``'zero_one'`` -- (string). Return the `0/1`-cube.
+
             - a list of 3 lists of length 2. The cube will be a product of
               these three intervals.
 

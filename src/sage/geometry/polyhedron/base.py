@@ -4775,7 +4775,7 @@ class Polyhedron_base(Element):
             ...
             ValueError: the chosen position is too large
 
-        Testing that :trac:`xxxxxx` is fixed::
+        Testing that :trac:`29057` is fixed::
 
             sage: P = polytopes.cross_polytope(4)
             sage: P.stack(P.faces(3)[0])

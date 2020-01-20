@@ -4823,7 +4823,7 @@ class Polyhedron_base(Element):
         if not locus_polyhedron.relative_interior_contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
-        parent = self.parent().change_ring(self.base_ring().fraction_field())
+        parent = self.parent().base_extend(new_vertex)
         return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
     def wedge(self, face, width=1):

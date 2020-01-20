@@ -4774,6 +4774,12 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: the chosen position is too large
+
+        Testing that :trac:`xxxxxx` is fixed::
+
+            sage: P = polytopes.cross_polytope(4)
+            sage: P.stack(P.faces(3)[0])
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 9 vertices
         """
         from sage.geometry.polyhedron.face import PolyhedronFace
         if not isinstance(face, PolyhedronFace):
@@ -4809,7 +4815,7 @@ class Polyhedron_base(Element):
         locus_eqns = self.equations_list()
 
         locus_polyhedron = Polyhedron(ieqs=locus_ieqs, eqns=locus_eqns,
-                                      base_ring=self.parent().base_ring())
+                                      base_ring=self.parent().base_ring().fraction_field())
 
         repr_point = locus_polyhedron.representative_point()
         new_vertex = (1-position)*barycenter + position*repr_point
@@ -4817,7 +4823,7 @@ class Polyhedron_base(Element):
         if not locus_polyhedron.relative_interior_contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
-        parent = self.parent().base_extend(new_vertex)
+        parent = self.parent().change_ring(self.base_ring().fraction_field())
         return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
     def wedge(self, face, width=1):

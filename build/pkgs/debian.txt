@@ -1,0 +1,6 @@
+binutils
+make
+m4
+perl
+tar
+bc

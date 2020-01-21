@@ -713,7 +713,10 @@ def _groebner_basis_F5_pot(I, prec, verbose):
 
     for f in I.gens():
         sig_check()
-        if f != 0 and verbose > 0:
+        if f == 0: # Maybe reduce first?
+            continue
+            
+        if verbose > 0:
             print("---")
             print("new generator: %s + ..." % f.leading_term())
         # Initial strong Grobner basis:
@@ -812,37 +815,37 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             for g in gb:
                 print("| %s" % g)
         # we minimize the Grobner basis
-        i = 0
-        while i < len(gb):
-            ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
-            for j in range(len(gb)):
-                sig_check()
-                tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
-                if j != i and tj._divides_c(ti, False):
-                    del gb[i]
-                    break
-            else:
-                i += 1
-        if verbose > 0:
-             if verbose > 1:
-                 s = " after minimization"
-             else:
-                 s = ""
-             print("%s elements in GB%s" % (len(gb), s))
-        if verbose > 3:
-            for g in gb:
-                print("| %s" % g)
-        # and reduce it
-        for i in range(len(gb)-1, -1, -1):
-            sig_check()
-            g = gb[i]
-            gb[i] = g._positive_lshift_c(1)
-            _, gb[i] = g._quo_rem_c(gb, False, True, True)
-        if verbose > 1:
-            print("grobner basis reduced")
-        if verbose > 3:
-            for g in gb:
-                print("| %s" % g)
+        # i = 0
+        # while i < len(gb):
+        #     ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
+        #     for j in range(len(gb)):
+        #         sig_check()
+        #         tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
+        #         if j != i and tj._divides_c(ti, False):
+        #             del gb[i]
+        #             break
+        #     else:
+        #         i += 1
+        # if verbose > 0:
+        #      if verbose > 1:
+        #          s = " after minimization"
+        #      else:
+        #          s = ""
+        #      print("%s elements in GB%s" % (len(gb), s))
+        # if verbose > 3:
+        #     for g in gb:
+        #         print("| %s" % g)
+        # # and reduce it
+        # for i in range(len(gb)-1, -1, -1):
+        #     sig_check()
+        #     g = gb[i]
+        #     gb[i] = g._positive_lshift_c(1)
+        #     _, gb[i] = g._quo_rem_c(gb, False, True, True)
+        # if verbose > 1:
+        #     print("grobner basis reduced")
+        # if verbose > 3:
+        #     for g in gb:
+        #         print("| %s" % g)
 
     return gb
 

@@ -4815,7 +4815,8 @@ class Polyhedron_base(Element):
         locus_eqns = self.equations_list()
 
         locus_polyhedron = Polyhedron(ieqs=locus_ieqs, eqns=locus_eqns,
-                                      base_ring=self.parent().base_ring().fraction_field())
+                                      base_ring=self.base_ring().fraction_field(),
+                                      backend=self.backend())
 
         repr_point = locus_polyhedron.representative_point()
         new_vertex = (1-position)*barycenter + position*repr_point

@@ -863,6 +863,7 @@ code = setup(name = 'sage',
       packages    = python_packages,
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
+          'sage': ['ext_data/*']
       },
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,

@@ -713,7 +713,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
 
     for f in I.gens():
         sig_check()
-        if verbose > 0:
+        if f != 0 and verbose > 0:
             print("---")
             print("new generator: %s + ..." % f.leading_term())
         # Initial strong Grobner basis:

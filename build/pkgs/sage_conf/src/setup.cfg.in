@@ -11,7 +11,8 @@ author_email = https://groups.google.com/group/sage-support
 url = https://www.sagemath.org
 
 [options]
-packages = .
+py_modules =
+    sage_conf
 setup_requires =
     setuptools
 

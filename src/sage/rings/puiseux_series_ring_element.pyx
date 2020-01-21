@@ -93,27 +93,13 @@ REFERENCES:
 
 
 # ****************************************************************************
-# MIT License
+#       Copyright (c) 2016 Chris Swierczewski
 #
-# Copyright (c) 2016 Chris Swierczewski
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
 from sage.arith.functions import lcm
@@ -134,68 +120,49 @@ from sage.structure.richcmp cimport richcmp
 
 cdef class PuiseuxSeries(AlgebraElement):
     r"""
-    We store a Puiseux series
+    A Puiseux series.
 
     .. MATH::
 
         \sum_{n=-N}^\infty a_n x^{n/e}
 
-    as a Laurent series
+    It is stored as a Laurent series:
 
     .. MATH::
 
         \sum_{n=-N}^\infty a_n t^n
 
     where `t = x^{1/e}`.
+
+    INPUT:
+
+    - ``parent`` -- Ring, the target parent.
+
+    - ``f``  -- one of the following types of inputs:
+        - instance of :class:`PuiseuxSeries`
+        - instance that can be coerced into the Laurent sersies ring of the parent.
+
+    - ``e`` -- integer (optional, default 1) for setting the ramification index.
+
+    EXAMPLES::
+
+        sage: R.<x> = PuiseuxSeriesRing(QQ)
+        sage: p = x^(1/2) + x**3; p
+        x^(1/2) + x^3
+        sage: q = x**(1/2) - x**(-1/2)
+        sage: r = q.add_bigoh(7/2); r
+        -x^(-1/2) + x^(1/2) + O(x^(7/2))
+        sage: r**2
+        x^-1 - 2 + x + O(x^3)
     """
-    @property
-    def laurent_part(self):
-        """
-        Return the underlying Laurent series.
-
-        EXAMPLES::
-
-            sage: R.<x> = PuiseuxSeriesRing(QQ)
-            sage: p = x^(1/2) + 3/4 * x^(2/3)
-            sage: p.laurent_part()
-            x^3 + 3/4*x^4
-        """
-        return self._l
-
-    def ramification_index(self):
-        """
-        Return the ramification index.
-
-        EXAMPLES::
-
-            sage: R.<x> = PuiseuxSeriesRing(QQ)
-            sage: p = x^(1/2) + 3/4 * x^(2/3)
-            sage: p.ramification_index()
-            6
-        """
-        return self._e
 
     def __init__(self, parent, f, e=1):
         r"""
-        INPUT:
-
-        parent : Ring, the target parent.
-
-        f : one of the following types of inputs:
-
-        - `PuiseuxSeries`
-        - `LaurentSeries`
-
-        EXAMPLES::
+        TESTS:
 
             sage: R.<x> = PuiseuxSeriesRing(QQ)
-            sage: p = x^(1/2) + x**3; p
-            x^(1/2) + x^3
-            sage: q = x**(1/2) - x**(-1/2)
-            sage: r = q.add_bigoh(7/2); r
-            -x^(-1/2) + x^(1/2) + O(x^(7/2))
-            sage: r**2
-            x^-1 - 2 + x + O(x^3)
+            sage: p = x^(1/2) + x**3
+            sage: TestSuite(p).run()
         """
         AlgebraElement.__init__(self, parent)
         L = parent._laurent_series_ring
@@ -342,7 +309,9 @@ cdef class PuiseuxSeries(AlgebraElement):
         elif isinstance(x, float):
             x = ComplexField()(x)
         t = x.nth_root(self._e)
-        return self._l.laurent_polynomial()(t)
+        p = self._l.__u.polynomial()
+        n = self._l.__n
+        return p(t)*t**n
 
     def _common_ramification_index(self, PuiseuxSeries right):
         r"""
@@ -398,7 +367,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_m
         cdef LaurentSeries l, l1, l2
-        cdef long g, m, n
+        cdef size_t g, m, n
 
         g, m, n = self._common_ramification_index(right)
         l1 = self._l.V(m)
@@ -420,7 +389,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_m
         cdef LaurentSeries l, l1, l2
-        cdef long g, m, n
+        cdef size_t g, m, n
 
         g, m, n = self._common_ramification_index(right)
         l1 = self._l.V(m)
@@ -442,7 +411,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_r
         cdef LaurentSeries l, l1, l2
-        cdef long g, m, n
+        cdef size_t g, m, n
 
         g, m, n = self._common_ramification_index(right)
         l1 = self._l.V(m)
@@ -496,7 +465,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_r
         cdef LaurentSeries l, l1, l2
-        cdef long g, m, n
+        cdef size_t g, m, n
 
         g, m, n = self._common_ramification_index(right)
         l1 = self._l.V(m)
@@ -517,7 +486,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         cdef PuiseuxSeries self = _self
         cdef LaurentSeries l
-        cdef long e
+        cdef size_t e
 
         r = QQ(r)
         numer = r.numerator()
@@ -570,10 +539,13 @@ cdef class PuiseuxSeries(AlgebraElement):
             (True, True, True, False)
         """
         cdef PuiseuxSeries right = <PuiseuxSeries>right_r
-        g, m, n = self._common_ramification_index(right)
-        l_l = self._l.V(m)
-        l_r = right._l.V(n)
-        return richcmp(l_l, l_r, op)
+        if self._e == right._e:
+            return richcmp(self._l, right._l, op)
+
+        # If both have different ramification indices they must be different as
+        # Puiseux series (by the normalization performed in the python constructor).
+        # We use the ramification index to order them.
+        return richcmp(self._e, right._e, op)
 
     def __lshift__(self, r):
         """
@@ -688,6 +660,32 @@ cdef class PuiseuxSeries(AlgebraElement):
             True
         """
         return self
+
+    def laurent_part(self):
+        """
+        Return the underlying Laurent series.
+
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(QQ)
+            sage: p = x^(1/2) + 3/4 * x^(2/3)
+            sage: p.laurent_part()
+            x^3 + 3/4*x^4
+        """
+        return self._l
+
+    def ramification_index(self):
+        """
+        Return the ramification index.
+
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(QQ)
+            sage: p = x^(1/2) + 3/4 * x^(2/3)
+            sage: p.ramification_index()
+            6
+        """
+        return self._e
 
     def valuation(self):
         r"""

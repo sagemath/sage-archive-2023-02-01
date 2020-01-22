@@ -6,7 +6,7 @@ form `a x^2 + b x y + c y^2`, stored as a triple of integers `(a, b, c)`.
 
 EXAMPLES::
 
-    sage: Q = BinaryQF([1,2,3])
+    sage: Q = BinaryQF([1, 2, 3])
     sage: Q
     x^2 + 2*x*y  + 3*y^2
     sage: Q.discriminant()
@@ -16,7 +16,7 @@ EXAMPLES::
     sage: Q(1, 1)
     6
 
-TESTS::
+TESTS:
 
     sage: Q == loads(dumps(Q))
     True
@@ -82,16 +82,16 @@ class BinaryQF(SageObject):
 
     EXAMPLES::
 
-        sage: b = BinaryQF([1,2,3])
+        sage: b = BinaryQF([1, 2, 3])
         sage: b.discriminant()
         -8
-        sage: b1 = BinaryQF(1,2,3)
+        sage: b1 = BinaryQF(1, 2, 3)
         sage: b1 == b
         True
         sage: R.<x, y> = ZZ[]
         sage: BinaryQF(x^2 + 2*x*y + 3*y^2) == b
         True
-        sage: BinaryQF(1,0,1)
+        sage: BinaryQF(1, 0, 1)
         x^2 + y^2
     """
     def __init__(self, a, b=None, c=None):
@@ -110,9 +110,9 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([1,2,3]); Q
+            sage: Q = BinaryQF([1, 2, 3]); Q
             x^2 + 2*x*y + 3*y^2
-            sage: Q = BinaryQF([1,2])
+            sage: Q = BinaryQF([1, 2])
             Traceback (most recent call last):
             ...
             TypeError: binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial or its coefficients
@@ -126,7 +126,7 @@ class BinaryQF(SageObject):
             ...
             TypeError: binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial or its coefficients
 
-        TESTS::
+        TESTS:
 
             sage: BinaryQF(0)
             0
@@ -159,7 +159,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: f = BinaryQF([2,3,4]); f
+            sage: f = BinaryQF([2, 3, 4]); f
             2*x^2 + 3*x*y + 4*y^2
             sage: f._pari_init_()
             'Qfb(2,3,4)'
@@ -196,12 +196,12 @@ class BinaryQF(SageObject):
             sage: (R[1] * R[1] * R[1]).reduced_form()
             x^2 + x*y + 6*y^2
             sage: q1 = BinaryQF(1, 1, 4)
-            sage: M = Matrix(ZZ, [[1,3], [0,1]])
+            sage: M = Matrix(ZZ, [[1, 3], [0, 1]])
             sage: q1*M
             x^2 + 7*x*y + 16*y^2
             sage: q1.matrix_action_right(M)
             x^2 + 7*x*y + 16*y^2
-            sage: N = Matrix(ZZ, [[1,0], [1,0]])
+            sage: N = Matrix(ZZ, [[1, 0], [1, 0]])
             sage: q1*(M*N) == q1.matrix_action_right(M).matrix_action_right(N)
             True
         """
@@ -234,7 +234,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([2,3,4])
+            sage: Q = BinaryQF([2, 3, 4])
             sage: Q[0]
             2
             sage: Q[2]
@@ -263,7 +263,7 @@ class BinaryQF(SageObject):
             sage: Q(1, 2)
             24
 
-        TESTS::
+        TESTS:
 
             sage: Q = BinaryQF([2, 3, 4])
             sage: Q([1, 2])
@@ -280,13 +280,13 @@ class BinaryQF(SageObject):
 
     def __hash__(self):
         r"""
-        TESTS::
+        TESTS:
 
-            sage: hash(BinaryQF([2,2,3]))
+            sage: hash(BinaryQF([2, 2, 3]))
             802
-            sage: hash(BinaryQF([2,3,2]))
+            sage: hash(BinaryQF([2, 3, 2]))
             562
-            sage: hash(BinaryQF([3,2,2]))
+            sage: hash(BinaryQF([3, 2, 2]))
             547
         """
         return hash(self._a) ^ (hash(self._b) << 4) ^ (hash(self._c) << 8)
@@ -299,15 +299,15 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: P = BinaryQF([2,2,3])
-            sage: Q = BinaryQF([2,2,3])
-            sage: R = BinaryQF([1,2,3])
+            sage: P = BinaryQF([2, 2, 3])
+            sage: Q = BinaryQF([2, 2, 3])
+            sage: R = BinaryQF([1, 2, 3])
             sage: P == Q # indirect doctest
             True
             sage: P == R # indirect doctest
             False
 
-        TESTS::
+        TESTS:
 
             sage: P == P
             True
@@ -330,9 +330,9 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: P = BinaryQF([2,2,3])
-            sage: Q = BinaryQF([2,2,3])
-            sage: R = BinaryQF([1,2,3])
+            sage: P = BinaryQF([2, 2, 3])
+            sage: Q = BinaryQF([2, 2, 3])
+            sage: R = BinaryQF([1, 2, 3])
             sage: P != Q # indirect doctest
             False
             sage: P != R # indirect doctest
@@ -348,8 +348,8 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: P = BinaryQF([2,2,3])
-            sage: Q = BinaryQF([1,2,3])
+            sage: P = BinaryQF([2, 2, 3])
+            sage: Q = BinaryQF([1, 2, 3])
             sage: P < Q
             False
             sage: Q < P
@@ -371,18 +371,18 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: P = BinaryQF([2,2,3]); P
+            sage: P = BinaryQF([2, 2, 3]); P
             2*x^2 + 2*x*y + 3*y^2
-            sage: Q = BinaryQF([-1,2,2]); Q
+            sage: Q = BinaryQF([-1, 2, 2]); Q
             -x^2 + 2*x*y + 2*y^2
             sage: P + Q
             x^2 + 4*x*y + 5*y^2
-            sage: P + Q == BinaryQF([1,4,5]) # indirect doctest
+            sage: P + Q == BinaryQF([1, 4, 5]) # indirect doctest
             True
 
-        TESTS::
+        TESTS:
 
-            sage: Q + P == BinaryQF([1,4,5]) # indirect doctest
+            sage: Q + P == BinaryQF([1, 4, 5]) # indirect doctest
             True
         """
         return BinaryQF([self._a + Q._a, self._b + Q._b, self._c + Q._c])
@@ -397,20 +397,20 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: P = BinaryQF([2,2,3]); P
+            sage: P = BinaryQF([2, 2, 3]); P
             2*x^2 + 2*x*y + 3*y^2
-            sage: Q = BinaryQF([-1,2,2]); Q
+            sage: Q = BinaryQF([-1, 2, 2]); Q
             -x^2 + 2*x*y + 2*y^2
             sage: P - Q
             3*x^2 + y^2
-            sage: P - Q == BinaryQF([3,0,1]) # indirect doctest
+            sage: P - Q == BinaryQF([3, 0, 1]) # indirect doctest
             True
 
-        TESTS::
+        TESTS:
 
-            sage: Q - P == BinaryQF([3,0,1]) # indirect doctest
+            sage: Q - P == BinaryQF([3, 0, 1]) # indirect doctest
             False
-            sage: Q - P != BinaryQF([3,0,1]) # indirect doctest
+            sage: Q - P != BinaryQF([3, 0, 1]) # indirect doctest
             True
         """
         return BinaryQF([self._a - Q._a, self._b - Q._b, self._c - Q._c])
@@ -421,13 +421,13 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([1,2,3]); Q # indirect doctest
+            sage: Q = BinaryQF([1, 2, 3]); Q # indirect doctest
             x^2 + 2*x*y + 3*y^2
 
-            sage: Q = BinaryQF([-1,2,3]); Q
+            sage: Q = BinaryQF([-1, 2, 3]); Q
             -x^2 + 2*x*y + 3*y^2
 
-            sage: Q = BinaryQF([0,0,0]); Q
+            sage: Q = BinaryQF([0, 0, 0]); Q
             0
         """
         return repr(self.polynomial())
@@ -438,7 +438,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: f = BinaryQF((778,1115,400)); f
+            sage: f = BinaryQF((778, 1115, 400)); f
             778*x^2 + 1115*x*y + 400*y^2
             sage: latex(f) # indirect doctest
             778 x^{2} + 1115 x y + 400 y^{2}
@@ -451,14 +451,14 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q=BinaryQF(22,14,10)
+            sage: Q = BinaryQF(22, 14, 10)
             sage: Q.content()
             2
-            sage: Q=BinaryQF(4,4,-15)
+            sage: Q = BinaryQF(4, 4, -15)
             sage: Q.content()
             1
         """
-        return gcd([self._a,self._b,self._c])
+        return gcd([self._a, self._b, self._c])
 
     def polynomial(self):
         """
@@ -466,15 +466,15 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([1,2,3])
+            sage: Q = BinaryQF([1, 2, 3])
             sage: Q.polynomial()
             x^2 + 2*x*y + 3*y^2
 
-            sage: Q = BinaryQF([-1,-2,3])
+            sage: Q = BinaryQF([-1, -2, 3])
             sage: Q.polynomial()
             -x^2 - 2*x*y + 3*y^2
 
-            sage: Q = BinaryQF([0,0,0])
+            sage: Q = BinaryQF([0, 0, 0])
             sage: Q.polynomial()
             0
 
@@ -495,7 +495,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([1,2,3])
+            sage: Q = BinaryQF([1, 2, 3])
             sage: Q.discriminant()
             -8
         """
@@ -565,15 +565,15 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([6,3,9])
+            sage: Q = BinaryQF([6, 3, 9])
             sage: Q.is_primitive()
             False
 
-            sage: Q = BinaryQF([1,1,1])
+            sage: Q = BinaryQF([1, 1, 1])
             sage: Q.is_primitive()
             True
 
-            sage: Q = BinaryQF([2,2,2])
+            sage: Q = BinaryQF([2, 2, 2])
             sage: Q.is_primitive()
             False
 
@@ -598,7 +598,7 @@ class BinaryQF(SageObject):
             4*x^2 + x*y + 13*y^2,
             8*x^2 + 7*x*y + 8*y^2]
         """
-        return gcd([self._a, self._b, self._c])==1
+        return gcd([self._a, self._b, self._c]) == 1
 
     @cached_method
     def is_zero(self):
@@ -607,10 +607,10 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q=BinaryQF(195751, 37615, 1807)
+            sage: Q = BinaryQF(195751, 37615, 1807)
             sage: Q.is_zero()
             False
-            sage: Q=BinaryQF(0, 0, 0)
+            sage: Q = BinaryQF(0, 0, 0)
             sage: Q.is_zero()
             True
         """
@@ -624,15 +624,15 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([1,2,3])
+            sage: Q = BinaryQF([1, 2, 3])
             sage: Q.is_weakly_reduced()
             False
 
-            sage: Q = BinaryQF([2,1,3])
+            sage: Q = BinaryQF([2, 1, 3])
             sage: Q.is_weakly_reduced()
             True
 
-            sage: Q = BinaryQF([1,-1,1])
+            sage: Q = BinaryQF([1, -1, 1])
             sage: Q.is_weakly_reduced()
             True
         """
@@ -667,7 +667,7 @@ class BinaryQF(SageObject):
           return both the reduced form and a matrix transforming
           ``self`` into the reduced form.
 
-        TESTS::
+        TESTS:
 
             sage: f = BinaryQF(-1, 0, 3)
             sage: f._reduce_indef(transformation=False)
@@ -687,7 +687,7 @@ class BinaryQF(SageObject):
             True
         """
         if transformation:
-            U = Matrix(ZZ, 2, 2, [1,0,0,1])
+            U = Matrix(ZZ, 2, 2, [1, 0, 0, 1])
         d = self.discriminant().sqrt(prec=53)
         Q = self
         while not Q.is_reduced():
@@ -749,7 +749,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: a = BinaryQF([33,11,5])
+            sage: a = BinaryQF([33, 11, 5])
             sage: a.is_reduced()
             False
             sage: b = a.reduced_form(); b
@@ -757,7 +757,7 @@ class BinaryQF(SageObject):
             sage: b.is_reduced()
             True
 
-            sage: a = BinaryQF([15,0,15])
+            sage: a = BinaryQF([15, 0, 15])
             sage: a.is_reduced()
             True
             sage: b = a.reduced_form(); b
@@ -922,7 +922,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF(14,17,-2)
+            sage: Q = BinaryQF(14, 17, -2)
             sage: Q.cycle()
             [14*x^2 + 17*x*y - 2*y^2,
              2*x^2 + 19*x*y - 5*y^2,
@@ -935,7 +935,7 @@ class BinaryQF(SageObject):
              2*x^2 + 19*x*y - 5*y^2,
              -5*x^2 + 11*x*y + 14*y^2]
 
-            sage: Q = BinaryQF(1,8,-3)
+            sage: Q = BinaryQF(1, 8, -3)
             sage: Q.cycle()
             [x^2 + 8*x*y - 3*y^2,
             3*x^2 + 4*x*y - 5*y^2,
@@ -951,7 +951,7 @@ class BinaryQF(SageObject):
              5*x^2 + 4*x*y - 3*y^2,
              -3*x^2 + 8*x*y + y^2]
 
-            sage: Q=BinaryQF(1,7,-6)
+            sage: Q = BinaryQF(1, 7, -6)
             sage: Q.cycle()
             [x^2 + 7*x*y - 6*y^2,
             6*x^2 + 5*x*y - 2*y^2,
@@ -963,15 +963,17 @@ class BinaryQF(SageObject):
             2*x^2 + 5*x*y - 6*y^2,
             6*x^2 + 7*x*y - y^2]
 
-        TESTS::
+        TESTS:
 
         Check an example in :trac:`28989`::
-            sage: Q=BinaryQF(1,1,-1)
+
+            sage: Q = BinaryQF(1, 1, -1)
             sage: Q.cycle(proper=True)
             [x^2 + x*y - y^2, -x^2 + x*y + y^2]
 
         This is Example 6.10.6 of [BUVO2007]_::
-            sage: Q=BinaryQF(1,7,-6)
+
+            sage: Q = BinaryQF(1, 7, -6)
             sage: Q.cycle()
             [x^2 + 7*x*y - 6*y^2,
              6*x^2 + 5*x*y - 2*y^2,
@@ -1003,7 +1005,8 @@ class BinaryQF(SageObject):
              -6*x^2 + 7*x*y + y^2]
 
         This is Example 6.10.7 of [BUVO2007]_::
-            sage: Q=BinaryQF(1,8,-3)
+
+            sage: Q = BinaryQF(1, 8, -3)
             sage: Q.cycle()
             [x^2 + 8*x*y - 3*y^2,
              3*x^2 + 4*x*y - 5*y^2,
@@ -1027,9 +1030,8 @@ class BinaryQF(SageObject):
              -3*x^2 + 8*x*y + y^2]
 
         Try an example where a is negative::
-            sage: Q=BinaryQF(-1, 8, 3)
-            sage: hasattr(Q, '_cycle_list')
-            False
+
+            sage: Q = BinaryQF(-1, 8, 3)
             sage: Q.cycle(proper=True)
             [-x^2 + 8*x*y + 3*y^2,
              3*x^2 + 4*x*y - 5*y^2,
@@ -1037,8 +1039,6 @@ class BinaryQF(SageObject):
              2*x^2 + 6*x*y - 5*y^2,
              -5*x^2 + 4*x*y + 3*y^2,
              3*x^2 + 8*x*y - y^2]
-            sage: hasattr(Q, '_cycle_list')
-            True
         """
         if not (self.is_indef() and self.is_reduced()):
             raise ValueError("%s must be indefinite and reduced" % self)
@@ -1050,9 +1050,9 @@ class BinaryQF(SageObject):
             # Prop 6.10.5 in Buchmann Vollmer
             C = list(self.cycle(proper=False)) # make a copy so we can modify it
             if len(C) % 2:
-                C = C + C
+                C += C
             for i in range(len(C)//2):
-                    C[2*i+1] = C[2*i+1]._Tau()
+                C[2*i+1] = C[2*i+1]._Tau()
             return C
         if not hasattr(self, '_cycle_list'):
             C = [self]
@@ -1070,10 +1070,10 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q=BinaryQF(195751,37615,1807)
+            sage: Q = BinaryQF(195751, 37615, 1807)
             sage: Q.is_positive_definite()
             True
-            sage: Q=BinaryQF(195751,1212121,-1876411)
+            sage: Q = BinaryQF(195751, 1212121, -1876411)
             sage: Q.is_positive_definite()
             False
         """
@@ -1088,7 +1088,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q=BinaryQF(-1,3,-5)
+            sage: Q = BinaryQF(-1, 3, -5)
             sage: Q.is_positive_definite()
             False
             sage: Q.is_negative_definite()
@@ -1104,7 +1104,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q=BinaryQF(1,3,-5)
+            sage: Q = BinaryQF(1, 3, -5)
             sage: Q.is_indef()
             True
         """
@@ -1118,10 +1118,10 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q=BinaryQF(1,3,-5)
+            sage: Q = BinaryQF(1, 3, -5)
             sage: Q.is_singular()
             False
-            sage: Q=BinaryQF(1,2,1)
+            sage: Q = BinaryQF(1, 2, 1)
             sage: Q.is_singular()
             True
         """
@@ -1133,10 +1133,10 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q=BinaryQF(1,3,-5)
+            sage: Q = BinaryQF(1, 3, -5)
             sage: Q.is_nonsingular()
             True
-            sage: Q=BinaryQF(1,2,1)
+            sage: Q = BinaryQF(1, 2, 1)
             sage: Q.is_nonsingular()
             False
         """
@@ -1196,6 +1196,7 @@ class BinaryQF(SageObject):
             True
 
         Test another part of :trac:`28989`::
+
             sage: Q1, Q2 = BinaryQF(1, 1, -1), BinaryQF(-1, 1, 1)
             sage: Q1.is_equivalent(Q2, proper=True)
             True
@@ -1222,7 +1223,7 @@ class BinaryQF(SageObject):
                 if proper:
                     return (a-ao) % (2*b) == 0
                 else:
-                    g = gcd(a,b)
+                    g = gcd(a, b)
                     return (a*ao - g**2) % (2*b*g) == 0
 
             proper_cycle = otherred.cycle(proper=True)
@@ -1232,8 +1233,8 @@ class BinaryQF(SageObject):
                 return is_prop
             # note that our definition of improper equivalence
             # differs from that of Buchmann and Vollmer
-            # their action is det f * q(f(x,y))
-            # ours is q(f(x,y))
+            # their action is det f * q(f(x, y))
+            # ours is q(f(x, y))
 
             # an improper equivalence in our convention
             selfred = BinaryQF(selfred._c, selfred._b, selfred._a)
@@ -1278,19 +1279,19 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([1,2,3])
+            sage: Q = BinaryQF([1, 2, 3])
             sage: Q.is_reduced()
             False
 
-            sage: Q = BinaryQF([2,1,3])
+            sage: Q = BinaryQF([2, 1, 3])
             sage: Q.is_reduced()
             True
 
-            sage: Q = BinaryQF([1,-1,1])
+            sage: Q = BinaryQF([1, -1, 1])
             sage: Q.is_reduced()
             False
 
-            sage: Q = BinaryQF([1,1,1])
+            sage: Q = BinaryQF([1, 1, 1])
             sage: Q.is_reduced()
             True
 
@@ -1335,7 +1336,7 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-            sage: Q = BinaryQF([1,0,1])
+            sage: Q = BinaryQF([1, 0, 1])
             sage: Q.complex_point()
             1.00000000000000*I
         """
@@ -1418,7 +1419,7 @@ class BinaryQF(SageObject):
         from sage.arith.srange import xsrange
         B = 10
         while True:
-            llist = list(Set([self(x,y) for x in xsrange(-B,B) for y in xsrange(B)]))
+            llist = list(Set([self(x, y) for x in xsrange(-B, B) for y in xsrange(B)]))
             llist = sorted([l for l in llist if l.is_prime()])
             if llist:
                 return llist[0]
@@ -1428,7 +1429,7 @@ class BinaryQF(SageObject):
 
     def solve_integer(self, n):
         r"""
-        Solve `Q(x,y) = n` in integers `x` and `y` where `Q` is this
+        Solve `Q(x, y) = n` in integers `x` and `y` where `Q` is this
         quadratic form.
 
         INPUT:
@@ -1437,12 +1438,12 @@ class BinaryQF(SageObject):
 
         OUTPUT:
 
-        A tuple `(x,y)` of integers satisfying `Q(x,y) = n` or ``None``
+        A tuple `(x, y)` of integers satisfying `Q(x, y) = n` or ``None``
         if no such `x` and `y` exist.
 
         EXAMPLES::
 
-            sage: Qs = BinaryQF_reduced_representatives(-23,primitive_only=True)
+            sage: Qs = BinaryQF_reduced_representatives(-23, primitive_only=True)
             sage: Qs
             [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
             sage: [Q.solve_integer(3) for Q in Qs]
@@ -1465,7 +1466,7 @@ class BinaryQF(SageObject):
             for z in z2.sqrt(extend=False, all=True):
                 if a2.divides(z-b*y):
                     x = (z-b*y)//a2
-                    return (x,y)
+                    return (x, y)
         return None
 
 
@@ -1516,7 +1517,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
         2
         sage: QuadraticField(-13*4, 'a').class_number()
         2
-        sage: p=next_prime(2^20); p
+        sage: p = next_prime(2^20); p
         1048583
         sage: len(BinaryQF_reduced_representatives(-p))
         689
@@ -1541,7 +1542,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
         4*x^2 + x*y + 13*y^2,
         8*x^2 + 7*x*y + 8*y^2]
 
-    TESTS::
+    TESTS:
 
         sage: BinaryQF_reduced_representatives(73)
         [4*x^2 + 3*x*y - 4*y^2]
@@ -1606,7 +1607,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
                         continue
                     c = -A/a
                     if c in ZZ:
-                        if (not primitive_only) or gcd([a, b, c])==1:
+                        if (not primitive_only) or gcd([a, b, c]) == 1:
                             Q = BinaryQF(a, b, c)
                             Q1 = BinaryQF(-a, b, -c)
                             form_list.append(Q)
@@ -1619,19 +1620,19 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
     else:   # Definite
         # Only iterate over positive a and over b of the same
         # parity as D such that 4a^2 + D <= b^2 <= a^2
-        for a in xsrange(1,1+((-D)//3).isqrt()):
+        for a in xsrange(1, 1+((-D)//3).isqrt()):
             a4 = 4*a
             s = D + a*a4
             w = 1+(s-1).isqrt() if s > 0 else 0
             if w%2 != D%2: w += 1
-            for b in xsrange(w,a+1,2):
+            for b in xsrange(w, a+1, 2):
                 t = b*b-D
                 if t % a4 == 0:
                     c = t // a4
-                    if (not primitive_only) or gcd([a,b,c])==1:
+                    if (not primitive_only) or gcd([a, b, c]) == 1:
                         if b>0 and a>b and c>a:
-                            form_list.append(BinaryQF([a,-b,c]))
-                        form_list.append(BinaryQF([a,b,c]))
+                            form_list.append(BinaryQF([a, -b, c]))
+                        form_list.append(BinaryQF([a, b, c]))
     if not proper or D > 0:
         # TODO:
         # instead of filtering, enumerate only improper classes to start with

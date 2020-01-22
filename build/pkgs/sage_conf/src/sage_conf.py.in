@@ -1,8 +1,5 @@
 # @configure_input@
 
-from __future__ import print_function
-del print_function
-
 VERSION = "@PACKAGE_VERSION@"
 
 MAXIMA = "@prefix@/bin/maxima"
@@ -16,7 +13,7 @@ SAGE_ROOT = "@abs_top_srcdir@"
 
 def _main():
     from argparse import ArgumentParser
-    from sys import exit, stderr
+    from sys import exit, stdout
     parser = ArgumentParser()
     parser.add_argument('--version', help="show version", action="version",
                        version='%(prog)s ' + VERSION)
@@ -24,11 +21,11 @@ def _main():
     args = parser.parse_args()
     d = globals()
     if args.VARIABLE:
-        print(d[args.VARIABLE])
+        stdout.write('{}\n'.format(d[args.VARIABLE]))
     else:
         for k, v in d.items():
             if not k.startswith('_'):
-                print('{}={}'.format(k, v))
+                stdout.write('{}={}\n'.format(k, v))
 
 if __name__ == "__main__":
     _main()

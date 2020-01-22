@@ -553,6 +553,8 @@ def Jpair(p1, p2):
         return
     sv1 = v1.leading_term()
     sv2 = v2.leading_term()
+    # FIXME: Maybe can be made more efficient when we know the elements are
+    # "monic"
     t = sv1.lcm(sv2)
     t1 = t // sv1
     t2 = t // sv2
@@ -567,6 +569,8 @@ def Jpair(p1, p2):
 
 
 cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElement v, verbose, stopval):
+    # We assume that the elements of the sgb are such that lt(g) = p^v lm(g) to
+    # avoid performing divisions
     cdef dict coeffs = { }
     cdef TateAlgebraElement f
     cdef TateAlgebraTerm lt, factor
@@ -586,8 +590,11 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
             break
         for i in range(len(sgb)):
             sig_check()
+
+            # The comparison below does not perform a division, it only compares valuation and exponents
             if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
-                factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
+                # Here we need the elements of sgb to be "monic"
+                factor = lt._mon_floordiv_(<TateAlgebraTerm>ltds[i])
                 if sgb[i][0] is None or factor * sgb[i][0] < s:
                     f = f - (<TateAlgebraElement>sgb[i][1])._term_mul_c(factor)
                     terms = f._terms_c()
@@ -895,7 +902,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             print("---")
             print("new generator: %s + ..." % f.leading_term())
 
-        f = reduce(gb, f, verbose, val + 1) 
+        f = reduce(gb, f, verbose, val + 1)
         if verbose > 1:
             print("generator reduced")
 
@@ -903,6 +910,9 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             if verbose > 0:
                 print("reduction to zero")
             continue
+
+        f = f.monic() << f.valuation()
+        
         if f.valuation() > val:
             if verbose > 0:
                 print("reduction increases the valuation")
@@ -961,6 +971,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 sig_check()
                 if S is not None and S.divides(s):
                     sV = V.leading_term()
+                    # FIXME: should be a monic division
                     if (s // S)*sV < sv:
                         cover = (S,V)
                         break
@@ -971,7 +982,9 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
 
             # We perform regular top-reduction
             v = regular_reduce(sgb, s, v, verbose, val + 1)
-
+            if v != 0:
+                v = v.monic() << v.valuation()
+            
             # if v == 0:
             if v.valuation() > val:
                 # (If v == 0)

@@ -937,7 +937,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         return self._divides_c(other, integral)
-
+    
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral):
         r"""
         Return ``True`` if this term divides ``other``.
@@ -969,6 +969,33 @@ cdef class TateAlgebraTerm(MonoidElement):
             if self._exponent[i] > other._exponent[i]:
                 return False
         return True
+
+
+    cpdef _mon_floordiv_(self,other):
+        return (<TateAlgebraTerm>self)._mon_floordiv_c(<TateAlgebraTerm>other)
+  
+    
+    cdef TateAlgebraTerm _mon_floordiv_c(self, TateAlgebraTerm other):
+        r"""
+        Return the result of the exact division of this term by ``other``, assuming
+        that the coefficient of ``other`` is of the form ``\pi^v``.
+
+        INPUT:
+
+        - ``other`` - a Tate term with coefficient ``\pi^v``
+
+        EXAMPLES:
+
+        TODO (how to write tests for cython calls?)
+
+        If ``other`` is not of the required form, or if it does not divide this
+        term, the result is unspecified.
+
+        """
+        cdef TateAlgebraTerm ans = self._new_c()
+        ans._exponent = self.exponent().esub(other.exponent())
+        ans._coeff = self._coeff >> other.valuation()
+        return ans
 
     cpdef _floordiv_(self, other):
         r"""
@@ -1002,6 +1029,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("the division is not exact")
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
+        
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
         r"""
         Return the result of the exact division of this term by ``other``.

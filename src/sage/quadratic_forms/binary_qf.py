@@ -16,7 +16,7 @@ EXAMPLES::
     sage: Q(1, 1)
     6
 
-TESTS:
+TESTS::
 
     sage: Q == loads(dumps(Q))
     True
@@ -126,7 +126,7 @@ class BinaryQF(SageObject):
             ...
             TypeError: binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial or its coefficients
 
-        TESTS:
+        TESTS::
 
             sage: BinaryQF(0)
             0
@@ -263,7 +263,7 @@ class BinaryQF(SageObject):
             sage: Q(1, 2)
             24
 
-        TESTS:
+        TESTS::
 
             sage: Q = BinaryQF([2, 3, 4])
             sage: Q([1, 2])
@@ -280,7 +280,7 @@ class BinaryQF(SageObject):
 
     def __hash__(self):
         r"""
-        TESTS:
+        TESTS::
 
             sage: hash(BinaryQF([2, 2, 3]))
             802
@@ -307,7 +307,7 @@ class BinaryQF(SageObject):
             sage: P == R # indirect doctest
             False
 
-        TESTS:
+        TESTS::
 
             sage: P == P
             True
@@ -380,7 +380,7 @@ class BinaryQF(SageObject):
             sage: P + Q == BinaryQF([1, 4, 5]) # indirect doctest
             True
 
-        TESTS:
+        TESTS::
 
             sage: Q + P == BinaryQF([1, 4, 5]) # indirect doctest
             True
@@ -406,7 +406,7 @@ class BinaryQF(SageObject):
             sage: P - Q == BinaryQF([3, 0, 1]) # indirect doctest
             True
 
-        TESTS:
+        TESTS::
 
             sage: Q - P == BinaryQF([3, 0, 1]) # indirect doctest
             False
@@ -667,7 +667,7 @@ class BinaryQF(SageObject):
           return both the reduced form and a matrix transforming
           ``self`` into the reduced form.
 
-        TESTS:
+        TESTS::
 
             sage: f = BinaryQF(-1, 0, 3)
             sage: f._reduce_indef(transformation=False)
@@ -1542,7 +1542,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
         4*x^2 + x*y + 13*y^2,
         8*x^2 + 7*x*y + 8*y^2]
 
-    TESTS:
+    TESTS::
 
         sage: BinaryQF_reduced_representatives(73)
         [4*x^2 + 3*x*y - 4*y^2]

@@ -15,3 +15,23 @@ index 34012af..9ccb87b 100644
          flint_abort();
          r = 0; /* dummy return because flint_abort() is not declared noreturn */
      }
+diff --git a/fmpr/get_mpfr.c b/fmpr/get_mpfr.c
+index 63b6682..e2dda3b 100644
+--- a/fmpr/get_mpfr.c
++++ b/fmpr/get_mpfr.c
+@@ -25,7 +25,6 @@ fmpr_get_mpfr(mpfr_t x, const fmpr_t y, mpfr_rnd_t rnd)
+     }
+     else if (COEFF_IS_MPZ(*fmpr_expref(y)))
+     {
+-        flint_printf("exception: exponent too large to convert to mpfr");
+         flint_abort();
+         r = 0; /* dummy return because flint_abort() is not declared noreturn */
+     }
+@@ -42,7 +41,6 @@ fmpr_get_mpfr(mpfr_t x, const fmpr_t y, mpfr_rnd_t rnd)
+ 
+         if (!mpfr_regular_p(x))
+         {
+-            flint_printf("exception: exponent too large to convert to mpfr");
+             flint_abort();
+         }
+     }

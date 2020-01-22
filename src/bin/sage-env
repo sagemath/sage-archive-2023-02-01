@@ -127,7 +127,6 @@ fi
 if [ -n "$SAGE_SCRIPTS_DIR" -a -r "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
     # Set environment variables (like SAGE_LOCAL and SAGE_ROOT) depending on ./configure
     . "$SAGE_SCRIPTS_DIR/sage-env-config"
-    SOURCED_SAGE_ENV_CONFIG=yes
 fi
 
 # New value for SAGE_ROOT: either SAGE_ROOT (if given)
@@ -205,7 +204,7 @@ elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
     return 1
 fi
 
-if [ -n $SOURCED_SAGE_ENV_CONFIG ]; then
+if [ -n $SAGE_ENV_CONFIG_SOURCED ]; then
     # Set environment variables (like SAGE_LOCAL) depending on ./configure
     . "$SAGE_SCRIPTS_DIR/sage-env-config"
     if [ $? -ne 0 ]; then

@@ -136,13 +136,14 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     INPUT:
 
-    - ``parent`` -- Ring, the target parent.
+    - ``parent`` -- the parent ring
 
     - ``f``  -- one of the following types of inputs:
-        - instance of :class:`PuiseuxSeries`
-        - instance that can be coerced into the Laurent sersies ring of the parent.
 
-    - ``e`` -- integer (optional, default 1) for setting the ramification index.
+      * instance of :class:`PuiseuxSeries`
+      * instance that can be coerced into the Laurent sersies ring of the parent
+
+    - ``e`` -- integer (default: 1) the ramification index
 
     EXAMPLES::
 
@@ -158,7 +159,9 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def __init__(self, parent, f, e=1):
         r"""
-        TESTS:
+        Initialize ``self``.
+
+        TESTS::
 
             sage: R.<x> = PuiseuxSeriesRing(QQ)
             sage: p = x^(1/2) + x**3
@@ -549,7 +552,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def __lshift__(self, r):
         """
-        Applies :meth:`shift` using the operator `<<`
+        Apply :meth:`shift` using the operator `<<`.
 
         EXAMPLES::
 
@@ -563,7 +566,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def __rshift__(self, r):
         """
-        Applies :meth:`shift` with negative argument using the operator `>>`
+        Apply :meth:`shift` with negative argument using the operator `>>`.
 
         EXAMPLES::
 
@@ -709,7 +712,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         INPUT:
 
-        - ``prec`` -- the precision of the series as a rational number.
+        - ``prec`` -- the precision of the series as a rational number
 
         EXAMPLES::
 

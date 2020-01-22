@@ -279,7 +279,7 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
         - ``x`` -- an object that can be converted into a Puiseux series
         - ``e`` -- (default: ``1``) the ramification index of the series
         - ``prec`` -- (default: ``infinity``) the precision of the series
-            as a rational number.
+          as a rational number
 
         EXAMPLES::
 

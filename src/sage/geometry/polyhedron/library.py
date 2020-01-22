@@ -193,6 +193,83 @@ def project_points(*points, **kwds):
     return [m * v for v in vecs]
 
 
+def gale_transform_to_polyhedron(points, base_ring=None, backend=None):
+    r"""
+    Return the polyhedron of a (linear) gale transform.
+
+    This function is the inverse of
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.gale_transform`
+    up to projective isomorphism.
+
+    The points are scalled automatically such that they add up to zero.
+    The function is much faster and gives nicer representations if this
+    is already the case.
+
+    REFERENCES:
+
+        For more information, see Section 6.4 of [Zie2007]_.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.library import gale_transform_to_polyhedron
+        sage: points = polytopes.octahedron().gale_transform()
+        sage: points
+        ((1, 0), (0, 1), (-1, -1), (-1, -1), (0, 1), (1, 0))
+        sage: P = gale_transform_to_polyhedron(points); P
+        A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+        sage: P.vertices()
+        (A vertex at (-1, 0, 0),
+         A vertex at (0, -1, 0),
+         A vertex at (0, 0, -1),
+         A vertex at (0, 0, 1),
+         A vertex at (0, 1, 0),
+         A vertex at (1, 0, 0))
+
+    TESTS::
+
+        sage: def test(P):
+        ....:     P1 = gale_transform_to_polyhedron(
+        ....:             P.gale_transform(), base_ring=P.base_ring(),
+        ....:             backend=P.backend())
+        ....:     assert P1.is_combinatorially_isomorphic(P)
+
+        sage: test(polytopes.cube())
+        sage: test(polytopes.permutahedron(4))
+        sage: test(polytopes.regular_polygon(5))
+        sage: test(polytopes.dodecahedron(exact=False))
+        sage: test(polytopes.snub_cube(exact=True, backend='normaliz'))   # optional - pynormaliz
+    """
+    from sage.modules.free_module_element import vector
+    from sage.matrix.all import Matrix
+    if base_ring:
+        points = tuple(vector(base_ring, x) for x in points)
+    else:
+        points = tuple(vector(x) for x in points)
+
+    if not sum(points).is_zero():
+        # The vectors of our gale transform shall add up to one.
+        # If this is not the case, we scale them accordingly.
+        ker = Matrix(points).left_kernel()
+        solutions = Polyhedron(lines=tuple(y for y in ker.basis_matrix()), base_ring=base_ring, backend=backend)
+
+        from sage.matrix.special import identity_matrix
+        pos_orthant = Polyhedron(rays=identity_matrix(len(points)), base_ring=base_ring, backend=backend)
+        pos_solutions = solutions.intersection(pos_orthant)
+        assert pos_solutions.dim() > 0, "points must be scalable such that they add up to zero"
+
+        # Any integer point in ``pos_solutions`` will correspond to scaling-factors
+        # that make ``sum(points)`` zero.
+        x = pos_solutions.representative_point()
+        points = tuple(point*x[i] for i,point in enumerate(points))
+
+    # The right kernel of ``points`` has a basis of the form ``[[1], [V]]``,
+    # where ``V`` are the vertices of the polyhedron.
+    # If we append a row of ones to ``points``, ``V`` is just the right kernel.
+    m = Matrix(points).transpose().stack(Matrix([[1]*len(points)]))
+    return Polyhedron(vertices=m.right_kernel().basis_matrix().transpose(),
+                      base_ring=base_ring, backend=backend)
+
+
 class Polytopes():
     """
     A class of constructors for commonly used, famous, or interesting

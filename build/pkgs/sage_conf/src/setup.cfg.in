@@ -13,8 +13,6 @@ url = https://www.sagemath.org
 [options]
 py_modules =
     sage_conf
-setup_requires =
-    setuptools
 
 [options.entry_points]
 console_scripts =

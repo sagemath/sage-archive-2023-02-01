@@ -14,32 +14,21 @@ SAGE_ROOT = "@abs_top_srcdir@"
 
 # Entry point 'sage-config'.  It does not depend on any packages.
 
-def _usage(**kwargs):
-    print('usage: sage-config [VARIABLE]', **kwargs)
-
 def _main():
-    from sys import argv, exit, stderr
+    from argparse import ArgumentParser
+    from sys import exit, stderr
+    parser = ArgumentParser()
+    parser.add_argument('--version', help="show version", action="version",
+                       version='%(prog)s ' + VERSION)
+    parser.add_argument("VARIABLE", nargs='?', help="output the value of VARIABLE")
+    args = parser.parse_args()
     d = globals()
-    argc = len(argv)
-    if argc == 1:
+    if args.VARIABLE:
+        print(d[args.VARIABLE])
+    else:
         for k, v in d.items():
             if not k.startswith('_'):
                 print('{}={}'.format(k, v))
-    elif argc == 2:
-        if argv[1].startswith('-'):
-            if argv[1] == '--help':
-                _usage()
-            elif argv[1] == '--version':
-                print(VERSION)
-            else:
-                print('sage-config: unrecognized option', file=stderr)
-                _usage(file=stderr)
-                exit(1)
-        else:
-            print(d[argv[1]])
-    else:
-        print(file=stderr)
-        exit(1)
 
 if __name__ == "__main__":
     _main()

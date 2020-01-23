@@ -111,6 +111,7 @@ AUTHOR:
 #****************************************************************************
 
 
+from sage.misc.fast_methods cimport hash_by_id
 from sage.misc.cachefunc import cached_method
 from sage.cpython.getattr cimport AttributeErrorMessage
 from sage.cpython.getattr import dir_with_other_class
@@ -693,7 +694,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: hash(E)   # random
             140257667982632
         """
-        return id(self)
+        return hash_by_id(<void *>self)
 
     def __reduce__(self):
         """

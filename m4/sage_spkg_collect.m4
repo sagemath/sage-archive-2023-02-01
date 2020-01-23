@@ -66,7 +66,7 @@ else
 fi
 AC_SUBST([SAGE_GCC_DEP])
 
-AC_MSG_NOTICE([make will build and install the following SPKGs...])
+AS_BOX([build status for each package:])
 
 # Usage: newest_version $pkg
 # Print version number of latest package $pkg

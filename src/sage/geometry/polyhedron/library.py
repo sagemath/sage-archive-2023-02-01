@@ -236,19 +236,19 @@ def gale_transform_to_polyhedron(vectors, base_ring=None, backend=None):
     One can specify the base ring::
 
         sage: gale_transform_to_polyhedron([(1,1),(-1,-1),(1,0),(-1,0),(1,-1),(-2,1)]).vertices()
-        (A vertex at (-54/7, 11/7, -40/7),
-         A vertex at (-39/7, 6/7, -32/7),
-         A vertex at (0, 0, 1),
-         A vertex at (0, 1, 0),
-         A vertex at (1, 0, 0),
-         A vertex at (86/7, -24/7, 65/7))
-        sage: gale_transform_to_polyhedron([(1,1),(-1,-1),(1,0),(-1,0),(1,-1),(-2,1)], base_ring=ZZ).vertices()
-        (A vertex at (-42, -27, -40),
-         A vertex at (-33, -22, -32),
-         A vertex at (0, 1, 0),
-         A vertex at (1, 0, 0),
-         A vertex at (6, 5, 7),
-         A vertex at (68, 43, 65))
+        (A vertex at (-25, 0, 0),
+         A vertex at (-15, 50, -60),
+         A vertex at (0, -25, 0),
+         A vertex at (0, 0, -25),
+         A vertex at (16, -35, 54),
+         A vertex at (24, 10, 31))
+        sage: gale_transform_to_polyhedron([(1,1),(-1,-1),(1,0),(-1,0),(1,-1),(-2,1)], base_ring=RDF).vertices()
+        (A vertex at (-0.64, 1.4, -2.16),
+         A vertex at (-0.96, -0.4, -1.24),
+         A vertex at (0.6, -2.0, 2.4),
+         A vertex at (1.0, 0.0, 0.0),
+         A vertex at (0.0, 1.0, 0.0),
+         A vertex at (0.0, 0.0, 1.0))
 
     One can also specify the backend::
 
@@ -306,7 +306,7 @@ def gale_transform_to_polyhedron(vectors, base_ring=None, backend=None):
         m = Matrix(base_ring, vectors).transpose().stack(Matrix(base_ring, [[1]*len(vectors)]))
     else:
         m = Matrix(vectors).transpose().stack(Matrix([[1]*len(vectors)]))
-    return Polyhedron(vertices=m.right_kernel().basis_matrix().transpose(),
+    return Polyhedron(vertices=m.right_kernel_matrix(basis='computed').transpose(),
                       base_ring=base_ring, backend=backend)
 
 

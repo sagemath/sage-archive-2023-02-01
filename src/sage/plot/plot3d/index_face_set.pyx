@@ -30,7 +30,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from textwrap import dedent
 from sage.misc.superseded import deprecation
@@ -1010,6 +1009,19 @@ cdef class IndexFaceSet(PrimitiveObject):
                 return x*x+y*y < 1
             sphinx_plot(P.add_condition(cut))
 
+        TESTS:
+
+        One test for preservation of transparency :trac:`28783`::
+
+            sage: x,y,z = var('x,y,z')
+            sage: P = plot3d(cos(x*y),(x,-2,2),(y,-2,2),color='red',opacity=0.1)
+            sage: def condi(x,y,z):
+            ....:     return not(x*x+y*y <= 1)
+            sage: Q = P.add_condition(condi, 8)
+            sage: L = Q.json_repr(Q.default_render_params())
+            sage: '"opacity":0.1' in L[-1]
+            True
+
         .. TODO::
 
             - Use a dichotomy to search for the place where to cut,
@@ -1108,9 +1120,12 @@ cdef class IndexFaceSet(PrimitiveObject):
                 index += 2
 
         if local_colored:
-            return IndexFaceSet(face_list, point_list, texture_list=texture_list)
+            return IndexFaceSet(face_list, point_list,
+                                texture_list=texture_list)
         else:
-            return IndexFaceSet(face_list, point_list, texture=texture)
+            opacity = texture.opacity
+            return IndexFaceSet(face_list, point_list, texture=texture,
+                                opacity=opacity)
 
     def tachyon_repr(self, render_params):
         """
@@ -1196,7 +1211,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
-            ['{"vertices":[{"x":2,"y":0,"z":0},..., "face_colors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1.0}']
+            ['{"vertices":[{"x":2,"y":0,"z":0},..., "faceColors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1.0}']
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -1228,11 +1243,21 @@ cdef class IndexFaceSet(PrimitiveObject):
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            json = ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
+            json = ['{{"vertices":{}, "faces":{}, "faceColors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
 
-        if self._extra_kwds.get('threejs_flat_shading', False):
+        if 'render_order' in self._extra_kwds:
+            renderOrder = self._extra_kwds.get('render_order')
+            json[0] = json[0][:-1] + ', "renderOrder": {}}}'.format(renderOrder)
+
+        if self._extra_kwds.get('single_side'):
+            json[0] = json[0][:-1] + ', "singleSide": true}'
+
+        if self._extra_kwds.get('threejs_flat_shading'):
             json[0] = json[0][:-1] + ', "useFlatShading": true}'
+
+        if self._extra_kwds.get('mesh'):
+            json[0] = json[0][:-1] + ', "showMeshGrid": true}'
 
         return json
 
@@ -1384,15 +1409,15 @@ cdef class IndexFaceSet(PrimitiveObject):
             point_c_mul(&dual.vs[i], dual.vs[i], 1.0/face.n)
 
             # Now compute the new face
-            for j from 0 <= j < face.n:
+            for j in range(face.n):
                 if j == 0:
-                    incoming = face.vertices[face.n-1]
+                    incoming = face.vertices[face.n - 1]
                 else:
-                    incoming = face.vertices[j-1]
-                if j == face.n-1:
+                    incoming = face.vertices[j - 1]
+                if j == face.n - 1:
                     outgoing = face.vertices[0]
                 else:
-                    outgoing = face.vertices[j+1]
+                    outgoing = face.vertices[j + 1]
                 dd = dual_faces[face.vertices[j]]
                 dd[incoming] = i, outgoing
 
@@ -1535,9 +1560,9 @@ cdef class EdgeIter:
                     face = self.set._faces[self.i]
             else:
                 if self.j == 0:
-                    P = self.set.vs[face.vertices[face.n-1]]
+                    P = self.set.vs[face.vertices[face.n - 1]]
                 else:
-                    P = self.set.vs[face.vertices[self.j-1]]
+                    P = self.set.vs[face.vertices[self.j - 1]]
                 Q = self.set.vs[face.vertices[self.j]]
                 self.j += 1
                 if self.set.enclosed:  # Every edge appears exactly twice, once in each orientation.
@@ -1604,10 +1629,10 @@ def sticker(face, width, hover):
     """
     n = len(face)
     edges = []
-    for i from 0 <= i < n:
-        edges.append(vector(RDF, [face[i-1][0] - face[i][0],
-                                  face[i-1][1] - face[i][1],
-                                  face[i-1][2] - face[i][2]]))
+    for i in range(n):
+        edges.append(vector(RDF, [face[i - 1][0] - face[i][0],
+                                  face[i - 1][1] - face[i][1],
+                                  face[i - 1][2] - face[i][2]]))
     sticker = []
     for i in range(n):
         v = -edges[i]

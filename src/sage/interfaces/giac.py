@@ -317,6 +317,7 @@ class Giac(Expect):
                         name = 'giac',
                         prompt = '[0-9]*>> ',
                         command = "giac --sage",
+                        env = {"LANG": "C"},
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,
@@ -373,14 +374,13 @@ class Giac(Expect):
         ::
 
             sage: filename = tmp_filename()
-            sage: f = open(filename,'w')
-            sage: _ = f.write('xx := 22;\n')
-            sage: f.close()
+            sage: with open(filename,'w') as f:
+            ....:     _ = f.write('xx := 22;\n')
             sage: giac.read(filename)
             sage: giac.get('xx').strip()
             '22'
         """
-        return 'read "%s"'%filename
+        return 'read "%s"' % filename
 
     def _quit_string(self):
         """
@@ -1076,6 +1076,13 @@ class GiacElement(ExpectElement):
             list[ln(2)/(ln(2)-ln(3))]
             sage: L.sage()
             [-log(2)/(log(3) - log(2))]
+
+        TESTS:
+
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: giac('true')._sage_(), giac('false')._sage_()
+            (True, False)
         """
         from sage.libs.pynac.pynac import symbol_table
         from sage.calculus.calculus import symbolic_expression_from_string

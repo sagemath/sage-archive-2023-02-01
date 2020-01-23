@@ -388,7 +388,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         elif ZZ.has_coerce_map_from(S):
             return rational.Z_to_Q() * ZZ._internal_coerce_map_from(S)
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Check to see if the map into ``codomain`` determined by ``im_gens`` is
         a valid homomorphism.
@@ -624,7 +624,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             ...
             ValueError: no embeddings of the rational field into K.
         """
-        if K.characteristic() != 0:
+        if K.characteristic():
             raise ValueError("no embeddings of the rational field into K.")
         return [self.hom(K)]
 
@@ -852,7 +852,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         b = self(b)
         if b == 0:
             raise ValueError("second argument must be nonzero")
-        if len(S) % 2 != 0:
+        if len(S) % 2:
             raise ValueError("list should be of even cardinality")
         for p in S:
             if p != infty:
@@ -1427,7 +1427,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         return 'RationalField()'
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         r"""
         Return the macaulay2 representation of `\QQ`.
 

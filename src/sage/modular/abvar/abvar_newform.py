@@ -125,7 +125,8 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         abelian variety.
 
         OUTPUT:
-            string
+
+        string
 
         EXAMPLES::
 
@@ -147,7 +148,8 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         Return factor number.
 
         OUTPUT:
-            int
+
+        int
 
         EXAMPLES::
 

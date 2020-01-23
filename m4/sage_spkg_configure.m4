@@ -103,3 +103,25 @@ m4_popdef([SPKG_NAME])
 AC_DEFUN([SAGE_SPKG_CONFIGURE], [
     SAGE_SPKG_CONFIGURE_BASE([$1], [$2], [$3], [$4], [$5], [AC_REQUIRE([SAGE_SPKG_CONFIGURE_GCC])])
 ])
+
+# SYNOPSIS
+#
+#   SAGE_SPKG_DEPCHECK(PACKAGE-DEPENDENCIES, FURTHER-CHECK)
+#                                 $1              $2
+#
+# DESCRIPTION
+#     *** to be called from SAGE_SPKG_CONFIGURE* ***
+#     check for space-separated list of package dependencies $1 of package SPKG_NAME
+#     do $2 if successful
+#
+AC_DEFUN([SAGE_SPKG_DEPCHECK], [
+    m4_foreach_w([DEP], $1, [
+       AC_REQUIRE([SAGE_SPKG_CONFIGURE_]m4_toupper(DEP))])
+    AC_MSG_CHECKING([installing any of $1? ])
+    AS_IF([test x = y m4_foreach_w([DEP], $1, [ -o [x$sage_spkg_install_]DEP = xyes])], [
+        AC_MSG_RESULT([yes; install SPKG_NAME as well])
+        [sage_spkg_install_]SPKG_NAME=yes], [
+        AC_MSG_RESULT([no])
+        $2
+        ])
+])

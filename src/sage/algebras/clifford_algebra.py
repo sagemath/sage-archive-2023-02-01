@@ -1095,7 +1095,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     def lift_isometry(self, m, names=None):
         r"""
-        Lift an invertible isometry ``m`` of the quadratric form of
+        Lift an invertible isometry ``m`` of the quadratic form of
         ``self`` to a Clifford algebra morphism.
 
         Given an invertible linear map `m : V \to W` (here represented by

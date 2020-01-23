@@ -1,11 +1,11 @@
 r"""
 Conversions
 
-This module provides conversions to class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces` from
+This module provides conversions to :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces` from
 - an incidence matrix of a polyhedron or
 - a tuple of facets (as tuple of vertices each).
 
-Also this module provides a conversion from the data of class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`,
+Also this module provides a conversion from the data of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`,
 which is a Bit-vector representing incidences of a face,
 to a list of entries which are incident.
 
@@ -66,7 +66,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__             import absolute_import, division
 from sage.structure.element import is_Matrix
 
 from libc.string            cimport memset
@@ -470,7 +469,7 @@ def facets_tuple_to_bit_repr_of_facets(tuple facets_input, size_t n_Vrepr):
     cdef size_t face_length = facets.face_length
     cdef uint64_t **facets_data = facets.data
     for i in range(len(facets_input)):
-        # filling each facet with the the data from the corresponding facet
+        # filling each facet with the data from the corresponding facet
         Vrepr_list_to_bit_repr(facets_input[i], facets_data[i], face_length)
     return facets
 

@@ -25,23 +25,21 @@ AUTHORS:
 Functions
 =========
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz >
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com >
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
-from itertools import combinations
-
 from sage.matrix.constructor import Matrix
-from sage.graphs.all import Graph, graphs
+from sage.graphs.all import graphs
 
-from sage.rings.all import ZZ, QQ, FiniteField, GF
+from sage.rings.all import ZZ, GF
 from sage.schemes.all import ProjectiveSpace
 from sage.symbolic.ring import SR
 
@@ -1327,8 +1325,8 @@ def N2():
         [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1],
         [0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 0, 1]
     ])
-    return TernaryMatroid(A, 'abcdefghijkl')
-    M.rename('T12: ' + repr(M))
+    M = TernaryMatroid(A, 'abcdefghijkl')
+    M.rename('N2: ' + repr(M))
     return M
 
 

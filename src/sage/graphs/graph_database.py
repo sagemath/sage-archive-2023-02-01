@@ -278,6 +278,8 @@ class GenericGraphQuery(SQLQuery):
            advanced users. It allows you to execute any query, and so may be
            considered unsafe.
 
+        EXAMPLES:
+
         See :class:`~GraphDatabase` class docstrings or enter::
 
             sage: G = GraphDatabase()
@@ -311,6 +313,7 @@ class GenericGraphQuery(SQLQuery):
         if not isinstance(database, GraphDatabase):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         SQLQuery.__init__(self, database, query_string, param_tuple)
+
 
 class GraphQuery(GenericGraphQuery):
 
@@ -505,7 +508,7 @@ class GraphQuery(GenericGraphQuery):
                 disp_list[-1] = disp_list[-1].rstrip(', ') + ' '
                 disp_str = ''.join(disp_list)
 
-                # substitue disp_str and join_str back into self's query string
+                # substitute disp_str and join_str back into self's query string
                 self.__query_string__ = re.sub('SELECT.*WHERE ', disp_str + join_str + \
                                                    'WHERE ', self.__query_string__)
                 self.__query_string__ += ' ORDER BY graph_data.graph6'
@@ -1079,7 +1082,7 @@ class GraphDatabase(SQLDatabase):
         EXAMPLES::
 
             sage: D = GraphDatabase()
-            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)  # py2
+            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)  # py2 # optional -- sagenb
             <html>...</html>
 
         .. WARNING::

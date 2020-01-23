@@ -132,7 +132,7 @@ class Huffman(SageObject):
 
     In either case, the alphabet must consist of at least two symbols.
 
-    Examples::
+    EXAMPLES::
 
         sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
         sage: h1 = Huffman("There once was a french fry")

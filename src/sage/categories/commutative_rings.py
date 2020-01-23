@@ -1,18 +1,19 @@
 r"""
 Commutative rings
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.cartesian_product import CartesianProductsCategory
+
 
 class CommutativeRings(CategoryWithAxiom):
     """
@@ -70,16 +71,15 @@ class CommutativeRings(CategoryWithAxiom):
             tester.assertTrue(z.divides(z))
             tester.assertTrue(o.divides(o))
             tester.assertTrue(o.divides(z))
-            tester.assertTrue(z.divides(o) is self.is_zero())
+            tester.assertIs(z.divides(o), self.is_zero())
 
             if not self.is_exact():
                 return
 
             # 3. divisibility of some elements
-            S = tester.some_elements()
-            for a,b in tester.some_elements(repeat=2):
+            for a, b in tester.some_elements(repeat=2):
                 try:
-                    test = a.divides(a*b)
+                    test = a.divides(a * b)
                 except NotImplementedError:
                     pass
                 else:

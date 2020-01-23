@@ -62,8 +62,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
-
 from libc.stdint cimport uint64_t
 from cysignals.memory cimport sig_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off

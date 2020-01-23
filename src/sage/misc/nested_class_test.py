@@ -185,7 +185,7 @@ class ALB(object):
         Internal C class.
 
         Thanks to the links below this class is pickled ok.
-        But it is sphixed wrong: It is typeset as a link to an outer class.
+        But it is sphinxed wrong: It is typeset as a link to an outer class.
         """
         pass
 

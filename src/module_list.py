@@ -39,7 +39,11 @@ png_library_dirs = png_pc['library_dirs']
 png_include_dirs = png_pc['include_dirs']
 
 # zlib
-zlib_pc = pkgconfig.parse('zlib')
+try:
+    zlib_pc = pkgconfig.parse('zlib')
+except pkgconfig.PackageNotFoundError:
+    from collections import defaultdict
+    zlib_pc = defaultdict(list, {'libraries': ['z']})
 zlib_libs = zlib_pc['libraries']
 zlib_library_dirs = zlib_pc['library_dirs']
 zlib_include_dirs = zlib_pc['include_dirs']
@@ -422,11 +426,15 @@ ext_modules = [
               language="c++",
               package = 'tdlib'),
 
+    Extension('sage.graphs.graph_decompositions.clique_separators',
+              sources = ['sage/graphs/graph_decompositions/clique_separators.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
     Extension('sage.graphs.path_enumeration',
-              sources = ['sage/graphs/path_enumeration.pyx']),
+              sources = ['sage/graphs/path_enumeration.pyx'],
+              language = 'c++'),
 
     Extension('sage.graphs.connectivity',
           sources = ['sage/graphs/connectivity.pyx']),
@@ -452,6 +460,9 @@ ext_modules = [
 
     Extension('sage.graphs.base.boost_graph',
               sources = ['sage/graphs/base/boost_graph.pyx']),
+
+    Extension('sage.graphs.views',
+              sources = ['sage/graphs/views.pyx']),
 
     ################################
     ##
@@ -923,6 +934,9 @@ ext_modules = [
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
+    Extension('sage.modular.hypergeometric_misc',
+              sources = ['sage/modular/hypergeometric_misc.pyx']),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx']),
 
@@ -1051,27 +1065,6 @@ ext_modules = [
 
     Extension("sage.numerical.backends.interactivelp_backend",
               ["sage/numerical/backends/interactivelp_backend.pyx"]),
-
-    OptionalExtension("sage.numerical.backends.gurobi_backend",
-              ["sage/numerical/backends/gurobi_backend.pyx"],
-              libraries = ["gurobi"],
-              condition = os.path.isfile(SAGE_INC + "/gurobi_c.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")),
-
-    OptionalExtension("sage.numerical.backends.cplex_backend",
-              ["sage/numerical/backends/cplex_backend.pyx"],
-              libraries = ["cplex"],
-              condition = os.path.isfile(SAGE_INC + "/cplex.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
-
-    OptionalExtension("sage.numerical.backends.coin_backend",
-              ["sage/numerical/backends/coin_backend.pyx"],
-              language = 'c++',
-              libraries = ["Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils",
-                           "OsiCbc", "OsiClp", "Osi"] + lapack_libs,
-              library_dirs = lapack_library_dirs,
-              include_dirs = lapack_include_dirs,
-              package = 'cbc'),
 
     ################################
     ##
@@ -1519,6 +1512,11 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+
+    # Note that weil_polynomials includes distutils directives in order to support
+    # conditional OpenMP compilation (by uncommenting lines)
+    Extension('sage.rings.polynomial.weil.weil_polynomials',
+              sources = ['sage/rings/polynomial/weil/weil_polynomials.pyx']),
 
 
     ################################

@@ -1714,8 +1714,13 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         field and the base ring as the field of definition. If the base ring
         is a number field, the embedding into ``F`` must be known.
 
-        In the case of numerically aproximated points, the points are returned over as
+        In the case of numerically approximated points, the points are returned over as
         points of the ambient space.
+
+        For a dimesion greater than 0 scheme, depending on bound size, either the
+        points in the ambient space are enumerated or a sieving algorithm lifting points
+        modulo primes is used. See the documention in homset for the details of the
+        sieving algorithm.
 
         INPUT:
 

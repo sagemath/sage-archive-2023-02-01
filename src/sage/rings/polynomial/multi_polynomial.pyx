@@ -10,8 +10,6 @@ Base class for elements of multivariate polynomial rings
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.coerce cimport coercion_model
@@ -2194,7 +2192,7 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             ValueError: cannot have a root with multiplicity >= 12/2
 
-        An example where Newton's Method doesnt find the right root::
+        An example where Newton's Method does not find the right root::
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: F = x^6 + 3*x^5*y - 8*x^4*y^2 - 2*x^3*y^3 - 44*x^2*y^4 - 8*x*y^5
@@ -2318,7 +2316,7 @@ cdef class MPolynomial(CommutativeRingElement):
         R = self.parent()
         x,y = R.gens()
 
-        # finding quadratic Q_0, gives us our convariant, z_0
+        # finding quadratic Q_0, gives us our covariant, z_0
         from sage.rings.polynomial.binary_form_reduce import covariant_z0
         try:
             z, th = covariant_z0(self, prec=prec, emb=emb, z0_cov=True)

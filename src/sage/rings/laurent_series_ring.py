@@ -34,6 +34,7 @@ EXAMPLES::
 from __future__ import print_function, absolute_import
 
 from sage.categories.rings import Rings
+from sage.rings.infinity import infinity
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
@@ -369,7 +370,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             s = 'Sparse ' + s
         return s
 
-    def _element_constructor_(self, x, n=0):
+    def _element_constructor_(self, x, n=0, prec=infinity):
         r"""
         Construct a Laurent series from `x`.
 
@@ -379,12 +380,18 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
 
         - ``n`` -- (default: 0) multiply the result by `t^n`
 
+        - ``prec`` -- (default: ``infinity``) the precision of the series
+            as an integer.
+
+
         EXAMPLES::
 
             sage: R.<u> = LaurentSeriesRing(Qp(5, 10))
             sage: S.<t> = LaurentSeriesRing(RationalField())
             sage: R(t + t^2 + O(t^3))
             (1 + O(5^10))*u + (1 + O(5^10))*u^2 + O(u^3)
+            sage: R(t + t^2 + O(t^3), prec=2)
+            (1 + O(5^10))*u + O(u^2)
 
         Note that coercing an element into its own parent just produces
         that element again (since Laurent series are immutable)::
@@ -411,6 +418,12 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             1/1024*I*u^18 + O(u^20)
 
         TESTS:
+
+        Check that :trac:`28993` is fixed::
+
+            sage: from sage.modular.etaproducts import qexp_eta
+            sage: qexp_eta(S, prec=30)
+            1 - t - t^2 + t^5 + t^7 - t^12 - t^15 + t^22 + t^26 + O(t^30)
 
         When converting from `R((z))` to `R((z))((w))`, the variable
         `z` is sent to `z` rather than to `w` (see :trac:`7085`)::
@@ -452,7 +465,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
 
         P = parent(x)
         if isinstance(x, self.element_class) and n == 0 and P is self:
-            return x  # ok, since Laurent series are immutable (no need to make a copy)
+            return x.add_bigoh(prec)  # ok, since Laurent series are immutable (no need to make a copy)
         elif P is self.base_ring():
             # Convert x into a power series; if P is itself a Laurent
             # series ring A((t)), this prevents the implementation of
@@ -469,20 +482,20 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             if t == "t_RFRAC":   # Rational function
                 x = self(self.polynomial_ring()(x.numerator())) / \
                     self(self.polynomial_ring()(x.denominator()))
-                return (x << n)
+                return (x << n).add_bigoh(prec)
             elif t == "t_SER":   # Laurent series
                 n += x._valp()
                 bigoh = n + x.length()
                 x = self(self.polynomial_ring()(x.Vec()))
                 return (x << n).add_bigoh(bigoh)
             else:  # General case, pretend to be a polynomial
-                return self(self.polynomial_ring()(x)) << n
+                return (self(self.polynomial_ring()(x)) << n).add_bigoh(prec)
         elif (is_FractionFieldElement(x)
               and (x.base_ring() is self.base_ring() or x.base_ring() == self.base_ring())
               and (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator())) ):
             x = self(x.numerator()) / self(x.denominator())
-            return (x << n)
-        return self.element_class(self, x, n)
+            return (x << n).add_bigoh(prec)
+        return self.element_class(self, x, n).add_bigoh(prec)
 
     def construction(self):
         r"""
@@ -587,7 +600,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             and A.has_coerce_map_from(P.base_ring())):
             return True
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         EXAMPLES::
 
@@ -600,15 +613,25 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             sage: f = R.hom(x+x^3,R)
             sage: f(x^2)
             x^2 + 2*x^4 + x^6
+
+        The image of the generator needs to be a unit::
+
+            sage: R.<x> = LaurentSeriesRing(ZZ)
+            sage: R._is_valid_homomorphism_(R, [2*x])
+            False
         """
         ## NOTE: There are no ring homomorphisms from the ring of
         ## all formal power series to most rings, e.g, the p-adic
         ## field, since you can always (mathematically!) construct
         ## some power series that doesn't converge.
-        ## Note that 0 is not a *ring* homomorphism.
-        from .power_series_ring import is_PowerSeriesRing
-        if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
-            return im_gens[0].valuation() > 0 and codomain.has_coerce_map_from(self.base_ring())
+        ## NOTE: The above claim is wrong when the base ring is Z.
+        ## See trac 28486.
+
+        if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
+            return False
+        ## Note that 0 is not a *ring* homomorphism, and you cannot map to a power series ring
+        if is_LaurentSeriesRing(codomain):
+            return im_gens[0].valuation() > 0 and im_gens[0].is_unit()
         return False
 
     def characteristic(self):

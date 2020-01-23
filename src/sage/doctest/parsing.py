@@ -12,7 +12,7 @@ AUTHORS:
   using interval arithmetic (:trac:`16889`).
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
@@ -20,8 +20,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from sage.misc.six import u
 import six
@@ -272,7 +272,7 @@ else:
 
 def parse_optional_tags(string):
     """
-    Returns a set consisting of the optional tags from the following
+    Return a set consisting of the optional tags from the following
     set that occur in a comment on the first line of the input string.
 
     - 'long time'
@@ -335,9 +335,10 @@ def parse_optional_tags(string):
             tags.extend(m.group(3).split() or [""])
     return set(tags)
 
+
 def parse_tolerance(source, want):
     """
-    Returns a version of ``want`` marked up with the tolerance tags
+    Return a version of ``want`` marked up with the tolerance tags
     specified in ``source``.
 
     INPUT:
@@ -392,6 +393,7 @@ def parse_tolerance(source, want):
                 raise RuntimeError
     return want
 
+
 def pre_hash(s):
     """
     Prepends a string with its length.
@@ -404,9 +406,10 @@ def pre_hash(s):
     """
     return "%s:%s" % (len(s), s)
 
+
 def get_source(example):
     """
-    Returns the source with the leading 'sage: ' stripped off.
+    Return the source with the leading 'sage: ' stripped off.
 
     EXAMPLES::
 

@@ -521,7 +521,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         if N[0] < 0 or N[1] < 0:
             raise TypeError("orbit bounds must be non-negative")
         if N[0] > N[1]:
-            return([])
+            return []
 
         Q = self
         for i in range(1, N[0]+1):
@@ -531,7 +531,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         for i in range(N[0]+1, N[1]+1):
             Q = f(Q)
             Orb.append(Q)
-        return(Orb)
+        return Orb
 
     def nth_iterate(self, f, n):
         r"""
@@ -781,7 +781,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             v = G[i].variables()
             if all(Rvars[j] not in v for j in range(n)):
                 newL.append(psi(G[i]))
-        return(codom.subscheme(newL))
+        return codom.subscheme(newL)
 
     def preimage(self, f, k=1, check=True):
         r"""
@@ -800,9 +800,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         OUTPUT:
 
-        - a subscheme in the domain of ``f``.
+        a subscheme in the domain of ``f``
 
-        Examples::
+        EXAMPLES::
 
             sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
             sage: H = End(PS)
@@ -894,7 +894,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 raise TypeError("subscheme must be in ambient space of codomain")
             k = ZZ(k)
             if k <= 0:
-                raise ValueError("k (=%s) must be a positive integer"%(k))
+                raise ValueError("k (=%s) must be a positive integer" % (k))
             if k > 1 and not f.is_endomorphism():
                 raise TypeError("map must be an endomorphism")
         R = codom.coordinate_ring()
@@ -903,7 +903,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         else:
             F = f
         dict = {R.gen(i): F[i] for i in range(codom.dimension_relative()+1)}
-        return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
+        return dom.subscheme([t.subs(dict) for t in self.defining_polynomials()])
 
     def dual(self):
         r"""

@@ -187,6 +187,7 @@ var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
 var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA_FAS')
+var('SAGE_NAUTY_BINS_PREFIX', '')
 
 # misc
 var('SAGE_BANNER', '')
@@ -211,7 +212,7 @@ def _get_shared_lib_filename(libname, *additional_libnames):
     For distributions like Debian that use a multiarch layout, we also try the
     multiarch lib paths (i.e. ``/usr/lib/<arch>/``).
 
-    Returns ``None`` if the file does not exist.
+    This returns ``None`` if the file does not exist.
 
     EXAMPLES::
 

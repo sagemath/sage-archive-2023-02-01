@@ -1151,9 +1151,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         o = self._codomain.ambient_space()._repr_generic_point(self.defining_polynomials())
         return "Defined on coordinates by sending %s to\n%s"%(i,o)
 
-    def __getitem__(self,i):
+    def __getitem__(self, i):
         """
-        returns the ith poly with self[i]
+        Return the i-th poly with self[i].
 
         INPUT:
 
@@ -1163,15 +1163,15 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         - element of the coordinate ring of the domain
 
-        Examples::
+        EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3/5*x^2,6*y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([3/5*x^2,6*y^2])
             sage: f[1]
             6*y^2
         """
-        return(self._polys[i])
+        return self._polys[i]
 
     def __copy__(self):
         r"""
@@ -1229,7 +1229,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: f.base_ring()
             Multivariate Polynomial Ring in t over Integer Ring
         """
-        return(self.domain().base_ring())
+        return self.domain().base_ring()
 
     def coordinate_ring(self):
         r"""
@@ -1258,7 +1258,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring
             in t over Integer Ring
         """
-        return(self._polys[0].parent())
+        return self._polys[0].parent()
 
     def change_ring(self, R, check=True):
         r"""
@@ -1935,7 +1935,7 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         S = self.codomain().change_ring(R)
         Q = [R(t) for t in self]
-        return(S.point(Q, check=check))
+        return S.point(Q, check=check)
 
     def __copy__(self):
         r"""
@@ -1955,7 +1955,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: Q2 == Q
             True
         """
-        return(self._codomain.point(self._coords, check=False))
+        return self._codomain.point(self._coords, check=False)
 
     def specialization(self, D=None, phi=None, ambient=None):
         r"""

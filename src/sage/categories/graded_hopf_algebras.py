@@ -6,11 +6,11 @@ Graded Hopf algebras
 #                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 
 def GradedHopfAlgebras(base_ring):
-    """
+    r"""
     The category of graded Hopf algebras.
 
     EXAMPLES::

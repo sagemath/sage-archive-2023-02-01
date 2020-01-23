@@ -292,10 +292,9 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: f = Family(FiniteEnumeratedSet([1,2,3]))
         sage: f
         Family (1, 2, 3)
-        sage: from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
         sage: f = Family(NonNegativeIntegers())
         sage: f
-        Family (An example of an infinite enumerated set: the non negative integers)
+        Family (Non negative integers)
 
     ::
 
@@ -901,7 +900,7 @@ class LazyFamily(AbstractFamily):
             category = FiniteEnumeratedSets()
         elif set in InfiniteEnumeratedSets():
             category = InfiniteEnumeratedSets()
-        elif isinstance(set, (list, tuple, CombinatorialClass)):
+        elif isinstance(set, (list, tuple, range, CombinatorialClass)):
             category = FiniteEnumeratedSets()
         else:
             category = EnumeratedSets()
@@ -985,7 +984,7 @@ class LazyFamily(AbstractFamily):
 
         TESTS:
 
-            Check that a using a class as the function is correctly handled::
+            Check that using a class as the function is correctly handled::
 
                 sage: Family(NonNegativeIntegers(), PerfectMatchings)
                 Lazy family (<class 'sage.combinat.perfect_matching.PerfectMatchings'>(i))_{i in Non negative integers}
@@ -1026,7 +1025,6 @@ class LazyFamily(AbstractFamily):
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: f.cardinality()
             3
-            sage: from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
             sage: l = LazyFamily(NonNegativeIntegers(), lambda i: 2*i)
             sage: l.cardinality()
             +Infinity
@@ -1289,8 +1287,7 @@ class TrivialFamily(AbstractFamily):
         self.__init__(state['_enumeration'])
 
 
-
-from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
+from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.infinity import Infinity
 
 class EnumeratedFamily(LazyFamily):
@@ -1309,9 +1306,21 @@ class EnumeratedFamily(LazyFamily):
             sage: f = EnumeratedFamily(Permutations(3))
             sage: TestSuite(f).run()
 
-            sage: from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
             sage: f = Family(NonNegativeIntegers())
             sage: TestSuite(f).run()
+
+        TESTS:
+
+        Check that category and keys are set correctly (:trac:`28274`)::
+
+            sage: from sage.sets.family import EnumeratedFamily
+            sage: f = EnumeratedFamily(Permutations(4))
+            sage: f.category()
+            Category of finite enumerated sets
+            sage: list(f.keys()) == list(range(f.cardinality()))
+            True
+            sage: Family(Permutations()).keys()
+            Non negative integers
         """
         if enumset.cardinality() == Infinity:
             baseset = NonNegativeIntegers()
@@ -1339,9 +1348,8 @@ class EnumeratedFamily(LazyFamily):
             sage: f = Family(Permutations(3)); f # indirect doctest
             Family (Standard permutations of 3)
 
-            sage: from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
             sage: f = Family(NonNegativeIntegers()); f
-            Family (An example of an infinite enumerated set: the non negative integers)
+            Family (Non negative integers)
         """
 #        return "Family ((%s)[i])_(i=1...%s)"%(self.enumset, self.enumset.cardinality())
         if isinstance(self.enumset, FiniteEnumeratedSet):
@@ -1353,31 +1361,10 @@ class EnumeratedFamily(LazyFamily):
         EXAMPLES::
 
             sage: f = Family(Permutations(3))
-            sage: f.keys()
-            Standard permutations of 3
             sage: [2,1,3] in f
             True
         """
         return x in self.enumset
-
-
-    def keys(self):
-        """
-        Returns self's keys.
-
-        EXAMPLES::
-
-            sage: from sage.sets.family import EnumeratedFamily
-            sage: f = EnumeratedFamily(Permutations(3))
-            sage: f.keys()
-            Standard permutations of 3
-
-            sage: from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
-            sage: f = Family(NonNegativeIntegers())
-            sage: f.keys()
-            An example of an infinite enumerated set: the non negative integers
-        """
-        return self.enumset
 
     def cardinality(self):
         """
@@ -1390,7 +1377,6 @@ class EnumeratedFamily(LazyFamily):
             sage: f.cardinality()
             6
 
-            sage: from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
             sage: f = Family(NonNegativeIntegers())
             sage: f.cardinality()
             +Infinity

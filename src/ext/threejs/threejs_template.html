@@ -8,7 +8,13 @@
 
     body { margin: 0px; overflow: hidden; }
 
-    #download { position: absolute; bottom: 30px; right: 40px; }
+    #menu-container { position: absolute; bottom: 30px; right: 40px; }
+
+    #menu-content { position: absolute; bottom: 0px; right: 0px;
+                    display: none; background-color: #F5F5F5; border-bottom: 1px solid black;
+                    border-right: 1px solid black; border-left: 1px solid black; }
+
+    #menu-content div { border-top: 1px solid black; padding: 10px; white-space: nowrap; }
   
 </style>
 </head>
@@ -67,7 +73,7 @@ SAGE_SCRIPTS
     var box = new THREE.Geometry();
     box.vertices.push( new THREE.Vector3( a[0]*b[0].x, a[1]*b[0].y, a[2]*b[0].z ) );
     box.vertices.push( new THREE.Vector3( a[0]*b[1].x, a[1]*b[1].y, a[2]*b[1].z ) );
-    var boxMesh = new THREE.LineSegments( box );
+    var boxMesh = new THREE.Line( box );
     if ( options.frame ) scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
     if ( options.axes_labels ) {
@@ -202,15 +208,6 @@ SAGE_SCRIPTS
         
     } );
 
-    function saveAsPNG() {
-
-        var a = document.body.appendChild( document.createElement( 'a' ) );
-        a.href = renderer.domElement.toDataURL( 'image/png' );
-        a.download = 'screenshot';
-        a.click();
-
-    }
-
     var texts = SAGE_TEXTS;
     for ( var i=0 ; i < texts.length ; i++ )
         addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z );
@@ -259,10 +256,8 @@ SAGE_SCRIPTS
     function addLine( json ) {
 
         var geometry = new THREE.Geometry();
-        for ( var i=0 ; i < json.points.length - 1 ; i++ ) {
+        for ( var i=0 ; i < json.points.length ; i++ ) {
             var v = json.points[i];
-            geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
-            var v = json.points[i+1];
             geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
         }
 
@@ -275,7 +270,7 @@ SAGE_SCRIPTS
         geometry.boundingBox.getCenter( c );
         geometry.translate( -c.x, -c.y, -c.z );
 
-        var mesh = new THREE.LineSegments( geometry, material );
+        var mesh = new THREE.Line( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         scene.add( mesh );
 
@@ -286,7 +281,7 @@ SAGE_SCRIPTS
 
     function addSurface( json ) {
 
-        var useFaceColors = json.hasOwnProperty( 'face_colors' ) ? true : false;
+        var useFaceColors = 'faceColors' in json ? true : false;
 
         var geometry = new THREE.Geometry();
         for ( var i=0 ; i < json.vertices.length ; i++ ) {
@@ -297,20 +292,20 @@ SAGE_SCRIPTS
             var f = json.faces[i];
             for ( var j=0 ; j < f.length - 2 ; j++ ) {
                 var face = new THREE.Face3( f[0], f[j+1], f[j+2] );
-                if ( useFaceColors ) face.color.set( json.face_colors[i] );
+                if ( useFaceColors ) face.color.set( json.faceColors[i] );
                 geometry.faces.push( face );
             }
         }
         geometry.computeVertexNormals();
 
+        var side = json.singleSide ? THREE.FrontSide : THREE.DoubleSide;
         var transparent = json.opacity < 1 ? true : false;
-        var flatShading = json.hasOwnProperty( 'useFlatShading' ) ? true : false;
 
-        var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide,
+        var material = new THREE.MeshPhongMaterial( { side: side,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
-                                     shininess: 20, flatShading: flatShading } );
+                                     shininess: 20, flatShading: json.useFlatShading } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();
@@ -319,7 +314,38 @@ SAGE_SCRIPTS
 
         var mesh = new THREE.Mesh( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
+        if ( transparent && json.renderOrder ) mesh.renderOrder = json.renderOrder;
         scene.add( mesh );
+
+        if ( json.showMeshGrid ) {
+
+            var geometry = new THREE.Geometry();
+
+            for ( var i=0 ; i < json.faces.length ; i++ ) {
+                var f = json.faces[i];
+                for ( var j=0 ; j < f.length ; j++ ) {
+                    var k = j === f.length-1 ? 0 : j+1;
+                    var v1 = json.vertices[f[j]];
+                    var v2 = json.vertices[f[k]];
+                    // vertices in opposite directions on neighboring faces
+                    var nudge = f[j] < f[k] ? .0005*zRange : -.0005*zRange;
+                    geometry.vertices.push( new THREE.Vector3( a[0]*v1.x, a[1]*v1.y, a[2]*(v1.z+nudge) ) );
+                    geometry.vertices.push( new THREE.Vector3( a[0]*v2.x, a[1]*v2.y, a[2]*(v2.z+nudge) ) );
+                }
+            }
+
+            var material = new THREE.LineBasicMaterial( { color: 'black', linewidth: 1 } );
+
+            var c = new THREE.Vector3();
+            geometry.computeBoundingBox();
+            geometry.boundingBox.getCenter( c );
+            geometry.translate( -c.x, -c.y, -c.z );
+
+            var mesh = new THREE.LineSegments( geometry, material );
+            mesh.position.set( c.x, c.y, c.z );
+            scene.add( mesh );
+
+        }
 
     }
 
@@ -348,9 +374,56 @@ SAGE_SCRIPTS
     controls.update();
     if ( !animate ) render();
 
+
+    // menu functions
+
+    function toggleMenu() {
+
+        var m = document.getElementById( 'menu-content' );
+        if ( m.style.display === 'block' ) m.style.display = 'none'
+        else m.style.display = 'block';
+
+    }
+
+
+    function saveAsPNG() {
+
+        var a = document.body.appendChild( document.createElement( 'a' ) );
+        a.href = renderer.domElement.toDataURL( 'image/png' );
+        a.download = 'screenshot';
+        a.click();
+
+    }
+
+    function saveAsHTML() {
+
+        toggleMenu(); // otherwise visible in output
+        event.stopPropagation();
+
+        var blob = new Blob( [ '<!DOCTYPE html>\n' + document.documentElement.outerHTML ] );
+        var a = document.body.appendChild( document.createElement( 'a' ) );
+        a.href = window.URL.createObjectURL( blob );
+        a.download = 'graphic.html';
+        a.click();
+
+    }
+
+    function getViewpoint() {
+
+        var info = '<pre>' + JSON.stringify( camera, null, '\t' ) + '</pre>';
+        window.open().document.write( info );
+
+    }
+
 </script>
 
-<span id="download" onclick="saveAsPNG()">&#x2b07;</span>
+<div id="menu-container" onclick="toggleMenu()">&#x24d8;
+<div id="menu-content">
+<div onclick="saveAsPNG()">Save as PNG</div>
+<div onclick="saveAsHTML()">Save as HTML</div>
+<div onclick="getViewpoint()">Camera Info</div>
+<div>Close Menu</div>
+</div></div>
 
 </body>
 </html>

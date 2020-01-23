@@ -1,4 +1,4 @@
-#!/usr/bin/env sage-python23
+#!/usr/bin/env sage-python
 
 import optparse
 import os
@@ -46,8 +46,8 @@ if __name__ == "__main__":
     parser.add_option("-m", "--memlimit", type=int, default=3300,
                       help='maximum virtual memory to allow each test '
                            'process, in megabytes; no limit if zero or less, '
-                           'but tests tagged "high mem" are skipped if no limit '
-                           'is set (default: 3300 MB)')
+                           'but tests tagged "optional - memlimit" are '
+                           'skipped if no limit is set (default: 3300 MB)')
     parser.add_option("-a", "--all", action="store_true", default=False, help="test all files in the Sage library")
     parser.add_option("--logfile", metavar="FILE", help="log all output to FILE")
     parser.add_option("--sagenb", action="store_true", default=False, help="test all files from the Sage notebook sources")

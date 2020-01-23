@@ -194,21 +194,34 @@ class MPolynomial_element(MPolynomial):
         return self.__element.rich_compare(right.__element, op,
                                            self.parent().term_order().sortkey)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQbar, 2)
             sage: f = R.hom([y,x], R)
-            sage: f(x^2 + 3*y^5)
+            sage: f(x^2 + 3*y^5) # indirect doctest
             3*x^5 + y^2
+
+        You can specify a map on the base ring::
+
+            sage: F.<x,y> = ZZ[]
+            sage: F = F.fraction_field(); x,y = F(x),F(y)
+            sage: cc = F.hom([y,x])
+            sage: R.<z,w> = F[]
+            sage: phi = R.hom([w,z], base_map=cc)
+            sage: phi(w/x)
+            1/y*z
         """
         n = self.parent().ngens()
         if n == 0:
             return codomain._coerce_(self)
         y = codomain(0)
+        if base_map is None:
+            # Just use conversion
+            base_map = codomain
         for (m,c) in iteritems(self.element().dict()):
-            y += codomain(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
+            y += base_map(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
     def number_of_terms(self):
@@ -470,6 +483,30 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self.element().poly_repr(varnames,
                                         atomic_coefficients=atomic, sortkey=key)
+
+    def _macaulay2_(self, macaulay2=None):
+        """
+        EXAMPLES::
+
+            sage: R = GF(13)['a,b']['c,d']
+            sage: macaulay2(R('a^2 + c'))  # optional - macaulay2
+                 2
+            c + a
+
+        TESTS:
+
+        Elements of the base ring are coerced to the polynomial ring
+        correctly::
+
+            sage: macaulay2(R('a^2')).ring()._operator('===', R)  # optional - macaulay2
+            true
+        """
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        m2_parent = macaulay2(self.parent())
+        macaulay2.use(m2_parent)
+        return macaulay2('substitute(%s,%s)' % (repr(self), m2_parent._name))
 
     def degrees(self):
         r"""
@@ -1707,9 +1744,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             ...
             NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
 
+        Check that we can factor over the algebraic field (:trac:`25390`)::
+
+            sage: R.<x,y> = PolynomialRing(QQbar)
+            sage: factor(x^2 + y^2)
+            (x + (-1*I)*y) * (x + 1*I*y)
+
         Check that the global proof flag for polynomials is honored::
 
-            sage: R.<x,y> = QQbar[]
+            sage: R.<x,y> = PolynomialRing(QQ['z'])
             sage: f = x^2 + y^2
             sage: with proof.WithProof('polynomial', True):
             ....:     f.factor()

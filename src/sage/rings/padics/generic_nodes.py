@@ -10,7 +10,7 @@ AUTHORS:
 - David Roe
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
 #                               William Stein <wstein@gmail.com>
 #
@@ -18,8 +18,8 @@ AUTHORS:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six import iteritems
 
 from sage.rings.padics.local_generic import LocalGeneric
@@ -30,7 +30,9 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity, SignError
 from .lattice_precision import PrecisionLattice, PrecisionModule
+from sage.rings.padics.precision_error import PrecisionError
 from .padic_lattice_element import pAdicLatticeElement, pAdicLatticeCapElement, pAdicLatticeFloatElement
+
 
 class CappedAbsoluteGeneric(LocalGeneric):
     def is_capped_absolute(self):

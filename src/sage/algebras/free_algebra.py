@@ -420,7 +420,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
         EXAMPLES::
 
-            sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
+            sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctest
             Free Algebra on 3 generators (x, y, z) over Rational Field
 
         TESTS:

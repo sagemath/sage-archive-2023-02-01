@@ -2536,9 +2536,9 @@ class OTerm(GenericTerm):
             sage: t._substitute_({'x': 'null'})
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cannot substitute in O(x) in
-            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
-            > *previous* ArithmeticError: O(null) not defined
+            TypeError: Cannot substitute in O(x) in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            > *previous* TypeError: Cannot substitute in x in Growth Group x^ZZ.
+            >> *previous* TypeError: unsupported operand type(s) for ** or pow(): 'str' and 'int'
         """
         try:
             g = self.growth._substitute_(rules)
@@ -3606,8 +3606,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return self._log_coefficient_(base=base, locals=locals) \
-             + self._log_growth_(base=base, locals=locals)
+        return (self._log_coefficient_(base=base, locals=locals)
+                + self._log_growth_(base=base, locals=locals))
 
     def is_constant(self):
         r"""

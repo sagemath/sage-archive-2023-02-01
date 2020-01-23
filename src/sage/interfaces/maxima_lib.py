@@ -70,7 +70,7 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -82,10 +82,9 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 from six import string_types
 
 from sage.symbolic.ring import SR
@@ -1222,6 +1221,7 @@ sage_op_dict = {
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.error.erf : "%ERF",
     sage.functions.gamma.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.other.conjugate : "$CONJUGATE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1442,8 +1442,8 @@ def dummy_integrate(expr):
         sage: dummy_integrate(f.ecl())
         integrate(f(x), x, 0, 10)
     """
-    args=[max_to_sr(a) for a in cdr(expr)]
-    if len(args) == 4 :
+    args = [max_to_sr(a) for a in cdr(expr)]
+    if len(args) == 4:
         return sage.symbolic.integration.integral.definite_integral(*args,
                                                                 hold=True)
     else:

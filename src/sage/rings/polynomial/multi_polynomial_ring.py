@@ -66,8 +66,6 @@ from six import iteritems, iterkeys, itervalues
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
 
-from sage.rings.integer_ring import is_IntegerRing
-
 import sage.rings.polynomial.multi_polynomial_ideal as multi_polynomial_ideal
 
 from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base, is_MPolynomialRing
@@ -76,7 +74,6 @@ from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
 
 from sage.interfaces.singular import is_SingularElement
-from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
 from sage.libs.pari.all import pari_gen
 
@@ -84,40 +81,20 @@ from sage.structure.element import Element
 
 class MPolynomialRing_macaulay2_repr:
     """
-
+    A mixin class for polynomial rings that support conversion to Macaulay2.
     """
-    def _macaulay2_(self, macaulay2=None):
+    def _macaulay2_init_(self, macaulay2=None):
+        """
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ, 'x', 2, implementation='generic')._macaulay2_init_()   # optional - macaulay2
+            'sage...[symbol x0,symbol  x1, MonomialSize=>16, MonomialOrder=>GRevLex]'
+        """
         if macaulay2 is None:
-            macaulay2 = macaulay2_default
-        try:
-            R = self.__macaulay2
-            if not (R.parent() is macaulay2):
-                raise ValueError
-            R._check_valid()
-            return R
-        except (AttributeError, ValueError):
-            base_str = self._macaulay2_base_str()
-            self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
-                                              self.term_order().macaulay2_str())
-        return self.__macaulay2
-
-    def _macaulay2_base_str(self):
-        if self.base_ring().is_prime_field():
-            if self.characteristic() == 0:
-                return "QQ"
-            else:
-                return "ZZ/" + str(self.characteristic())
-        elif is_IntegerRing(self.base_ring()):
-            return "ZZ"
-        else:
-            raise TypeError("no conversion of to a Macaulay2 ring defined")
-
-    def _macaulay2_set_ring(self, macaulay2):
-        macaulay2.ring(self._macaulay2_base_str(), str(self.gens()), \
-                       self.term_order().macaulay2_str())
-
-    def is_exact(self):
-        return self.base_ring().is_exact()
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens(),
+                                               self.term_order().macaulay2_str())
 
 
 class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_singular_repr, MPolynomialRing_base):

@@ -143,7 +143,6 @@ from . import structure
 from . import number_field_morphisms
 from itertools import count
 from builtins import zip
-from sage.misc.superseded import deprecated_function_alias
 
 
 _NumberFields = NumberFields()
@@ -154,7 +153,7 @@ def is_NumberFieldHomsetCodomain(codomain):
     Returns whether ``codomain`` is a valid codomain for a number
     field homset. This is used by NumberField._Hom_ to determine
     whether the created homsets should be a
-    :class:`sage.rings.number_field.morphism.NumberFieldHomset`.
+    :class:`sage.rings.number_field.homset.NumberFieldHomset`.
 
     EXAMPLES:
 
@@ -933,6 +932,11 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         False
         sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a', latex_name=None)
         False
+
+    Check quadratic fields without embedding (:trac:`28932`)::
+
+        sage: QuadraticField(3, embedding=False)
+        Number Field in a with defining polynomial x^2 - 3
     """
     D = QQ(D)
     if check:
@@ -945,6 +949,8 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
             embedding = RLF(D).sqrt()
         else:
             embedding = CLF(D).sqrt()
+    elif embedding is False:
+        embedding = None
     if latex_name == 'sqrt':
         latex_name = r'\sqrt{%s}' % D
     return NumberField(f, name, check=False, embedding=embedding, latex_name=latex_name, **args)
@@ -1918,7 +1924,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             # Using LazyFormat fixes #28036 - infinite loop
             from sage.misc.lazy_format import LazyFormat
             raise TypeError(LazyFormat("%s is not suitable as codomain for homomorphisms from %s") % (codomain, self))
-        from .morphism import NumberFieldHomset
+        from sage.rings.number_field.homset import NumberFieldHomset
         return NumberFieldHomset(self, codomain, category)
 
     @cached_method
@@ -2950,11 +2956,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
               Defn: a -> 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
         """
         embedding = self.coerce_embedding()
-        if embedding is not None:
-            from sage.rings.real_mpfr import mpfr_prec_min
-            from sage.rings.complex_field import ComplexField
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                 return embedding
+        if embedding is not None and embedding.codomain()._is_numerical():
+            return embedding
 
     def gen_embedding(self):
         """
@@ -3723,7 +3726,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 split_primes.append(p)
         return split_primes
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Return whether or not there is a homomorphism defined by the given
         images of generators.
@@ -3748,12 +3751,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if len(im_gens) != 1:
             return False
-        # We need that elements of the base ring of the polynomial
-        # ring map canonically into codomain.
-        if not codomain.has_coerce_map_from(QQ):
+        if base_map is None and not codomain.has_coerce_map_from(QQ):
+            # We need that elements of the base ring of the polynomial
+            # ring map canonically into codomain.
             return False
         f = self.defining_polynomial()
         try:
+            # The current implementation won't productively use base_map
+            # since the coefficients of f are in QQ, if there is a hom
+            # from QQ to codomain it's probably unique and just the coercion
+            if base_map is not None:
+                f = f.map_coefficients(base_map)
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False
@@ -5921,60 +5929,86 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                     S.append(self(theta))
         return S
 
-
     def zeta_function(self, prec=53,
                       max_imaginary_part=0,
-                      max_asymp_coeffs=40):
+                      max_asymp_coeffs=40, algorithm=None):
         r"""
-        Return the Zeta function of this number field.
+        Return the Dedekind zeta function of this number field.
 
-        This actually returns an interface to Tim Dokchitser's program for
-        computing with the Dedekind zeta function zeta_F(s) of the number
-        field F.
+        Actually, this returns an interface for computing with the
+        Dedekind zeta function `\zeta_F(s)` of the number field `F`.
 
         INPUT:
 
+        - ``prec`` -- optional integer (default 53) bits precision
 
-        -  ``prec`` - integer (bits precision)
+        - ``max_imaginary_part`` -- optional real number (default 0)
 
-        -  ``max_imaginary_part`` - real number
+        - ``max_asymp_coeffs`` -- optional integer (default 40)
 
-        -  ``max_asymp_coeffs`` - integer
-
+        - ``algorithm`` -- optional (default "gp") either "gp" or "pari"
 
         OUTPUT: The zeta function of this number field.
+
+        If algorithm is "gp", this returns an interface to Tim
+        Dokchitser's gp script for computing with L-functions.
+
+        If algorithm is "pari", this returns instead an interface to Pari's
+        own general implementation of L-functions.
 
         EXAMPLES::
 
             sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
-            sage: Z = K.zeta_function()
-            sage: Z
-            Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
+            sage: Z = K.zeta_function(); Z
+            PARI zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
             sage: Z(-1)
             0.0333333333333333
             sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
             sage: Z = L.zeta_function()
             sage: Z(5)
             1.00199015670185
+
+        Using the algorithm "pari"::
+
+            sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
+            sage: Z = K.zeta_function(algorithm="pari")
+            sage: Z(-1)
+            0.0333333333333333
+            sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
+            sage: Z = L.zeta_function(algorithm="pari")
+            sage: Z(5)
+            1.00199015670185
         """
-        from sage.lfunctions.all import Dokchitser
-        r1, r2 = self.signature()
-        zero = [0]
-        one = [1]
-        Z = Dokchitser(conductor = abs(self.absolute_discriminant()),
-                       gammaV = (r1+r2)*zero + r2*one,
-                       weight = 1,
-                       eps = 1,
-                       poles = [1],
-                       prec = prec)
-        s = 'nf = nfinit(%s);' % self.absolute_polynomial()
-        s += 'dzk = dirzetak(nf,cflength());'
-        Z.init_coeffs('dzk[k]', pari_precode=s,
-                      max_imaginary_part=max_imaginary_part,
-                      max_asymp_coeffs=max_asymp_coeffs)
-        Z.check_functional_equation()
-        Z.rename('Zeta function associated to %s' % self)
-        return Z
+        if algorithm is None:
+            algorithm = 'pari'
+        
+        if algorithm == 'gp':
+            from sage.lfunctions.all import Dokchitser
+            r1, r2 = self.signature()
+            zero = [0]
+            one = [1]
+            Z = Dokchitser(conductor=abs(self.absolute_discriminant()),
+                           gammaV=(r1 + r2) * zero + r2 * one,
+                           weight=1,
+                           eps=1,
+                           poles=[1],
+                           prec=prec)
+            s = 'nf = nfinit(%s);' % self.absolute_polynomial()
+            s += 'dzk = dirzetak(nf,cflength());'
+            Z.init_coeffs('dzk[k]', pari_precode=s,
+                          max_imaginary_part=max_imaginary_part,
+                          max_asymp_coeffs=max_asymp_coeffs)
+            Z.check_functional_equation()
+            Z.rename('Dokchitser Zeta function associated to %s' % self)
+            return Z
+
+        if algorithm == 'pari':
+            from sage.lfunctions.pari import lfun_number_field, LFunction
+            Z = LFunction(lfun_number_field(self), prec=prec)
+            Z.rename('PARI zeta function associated to %s' % self)
+            return Z
+
+        raise ValueError('algorithm must be "gp" or "pari"')
 
     @cached_method
     def narrow_class_group(self, proof=None):
@@ -8098,24 +8132,37 @@ class NumberField_absolute(NumberField_generic):
         self._order.set_cache(ret, gens)
         return ret
 
-    def vector_space(self):
+    @cached_method(key=lambda self, base, basis, map: (base or self.base_ring(), basis, map))
+    def free_module(self, base=None, basis=None, map=True):
         """
         Return a vector space V and isomorphisms self --> V and V --> self.
+
+        INPUT:
+
+        - ``base`` -- a subfield (default: ``None``); the returned vector
+          space is over this subfield `R`, which defaults to the base field of this
+          function field
+
+        - ``basis`` -- a basis for this field over the base
+
+        - ``maps`` -- boolean (default ``True``), whether to return
+          `R`-linear maps to and from `V`
+
 
         OUTPUT:
 
 
         -  ``V`` - a vector space over the rational numbers
 
-        -  ``from_V`` - an isomorphism from V to self
+        -  ``from_V`` - an isomorphism from V to self (if requested)
 
-        -  ``to_V`` - an isomorphism from self to V
+        -  ``to_V`` - an isomorphism from self to V (if requested)
 
 
         EXAMPLES::
 
             sage: k.<a> = NumberField(x^3 + 2)
-            sage: V, from_V, to_V  = k.vector_space()
+            sage: V, from_V, to_V  = k.free_module()
             sage: from_V(V([1,2,3]))
             3*a^2 + 2*a + 1
             sage: to_V(1 + 2*a + 3*a^2)
@@ -8131,16 +8178,20 @@ class NumberField_absolute(NumberField_generic):
             sage: to_V(from_V(V([0,-1/7,0])))
             (0, -1/7, 0)
         """
-        try:
-            return self.__vector_space
-        except AttributeError:
-            V = QQ**self.degree()
-            from_V = maps.MapVectorSpaceToNumberField(V, self)
-            to_V   = maps.MapNumberFieldToVectorSpace(self, V)
-            self.__vector_space = (V, from_V, to_V)
-            return self.__vector_space
+        if base is None:
+            base = QQ
+        elif base is self:
+            return super(NumberField_absolute, self).free_module(base=base, basis=basis, map=map)
+        if basis is not None or base is not QQ:
+            raise NotImplementedError
+        V = QQ**self.degree()
+        if not map:
+            return V
+        from_V = maps.MapVectorSpaceToNumberField(V, self)
+        to_V   = maps.MapNumberFieldToVectorSpace(self, V)
+        return (V, from_V, to_V)
 
-    def absolute_vector_space(self):
+    def absolute_vector_space(self, *args, **kwds):
         r"""
         Return vector space over `\QQ` corresponding to this
         number field, along with maps from that space to this number field
@@ -8161,7 +8212,7 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in a with defining polynomial x^3 - 5
               To:   Vector space of dimension 3 over Rational Field)
         """
-        return self.vector_space()
+        return self.free_module(*args, **kwds)
 
     def _galois_closure_and_embedding(self, names=None):
         r"""
@@ -8493,13 +8544,6 @@ class NumberField_absolute(NumberField_generic):
             [0.740078950105127]
             [ 3.7193258428...]
             [ 1.54308184421...]
-
-        TESTS::
-
-            sage: emb = F.Minkowski_embedding()
-            doctest:warning...:
-            DeprecationWarning: Minkowski_embedding is deprecated. Please use minkowski_embedding instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         n = self.degree()
         if prec is None:
@@ -8528,12 +8572,7 @@ class NumberField_absolute(NumberField_generic):
                 d[(r+2*i,col)] = z.real()*sqrt2
                 d[(r+2*i+1,col)] = z.imag()*sqrt2
 
-
-        M = sage.matrix.all.matrix(d)
-
-        return M
-
-    Minkowski_embedding = deprecated_function_alias(23685, minkowski_embedding)
+        return sage.matrix.all.matrix(d)
 
     def places(self, all_complex=False, prec=None):
         r"""
@@ -9001,7 +9040,7 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.polynomial()
 
-    def relative_vector_space(self):
+    def relative_vector_space(self, *args, **kwds):
         """
         A synonym for vector_space.
 
@@ -9017,7 +9056,7 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in i with defining polynomial x^2 + 1
               To:   Vector space of dimension 2 over Rational Field)
         """
-        return self.vector_space()
+        return self.free_module(*args, **kwds)
 
     def absolute_discriminant(self):
         """
@@ -9371,7 +9410,7 @@ class NumberField_absolute(NumberField_generic):
         b = self(b)
         if b == 0:
             raise ValueError("second argument must be nonzero")
-        if len(S) % 2 != 0:
+        if len(S) % 2:
             raise ValueError("the list should be of even cardinality")
         if check:
             for p in S:
@@ -10529,8 +10568,8 @@ class NumberField_cyclotomic(NumberField_absolute):
             Automorphism group of Cyclotomic Field of order 21 and degree 12
         """
         if is_NumberFieldHomsetCodomain(codomain):
-            from . import morphism
-            return morphism.CyclotomicFieldHomset(self, codomain)
+            from sage.rings.number_field.homset import CyclotomicFieldHomset
+            return CyclotomicFieldHomset(self, codomain)
         else:
             raise TypeError
 
@@ -10652,7 +10691,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         n = self._n()
         z = CC.zeta(n)
         X = [m for m in range(n) if arith.gcd(m,n) == 1]
-        v = [self.hom([z**n], check=False) for n in X]
+        v = [self.hom([z**i], check=False) for i in X]
         self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
                                          check=False, universe=self.Hom(CC))
         return self.__embeddings[CC]

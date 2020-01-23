@@ -899,7 +899,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
         INPUT:
 
         - ``base_ring`` -- the base ring for the o.g.f (either ``QQ`` or ``ZZ``)
-        - ``names`` -- an iterable of variables (shuould contain only one variable)
+        - ``names`` -- an iterable of variables (should contain only one variable)
         - ``category`` -- the category of the ring (default: ``Fields()``)
 
         TESTS::

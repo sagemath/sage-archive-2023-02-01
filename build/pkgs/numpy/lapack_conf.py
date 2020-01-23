@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env sage-system-python
 
 import pkgconfig, os
 
@@ -7,6 +7,11 @@ conf_file=open('site.cfg', 'w')
 conf_file.write('[ALL]\n')
 conf_file.write('library_dirs = '+ os.environ['SAGE_LOCAL']+ '/lib\n')
 conf_file.write('include_dirs = '+ os.environ['SAGE_LOCAL']+ '/include\n')
+
+conf_file.write('[DEFAULT]\n')
+conf_file.write('library_dirs = '+ os.environ['SAGE_LOCAL']+ '/lib\n')
+conf_file.write('include_dirs = '+ os.environ['SAGE_LOCAL']+ '/include\n')
+
 
 pc_blas   = pkgconfig.parse('cblas blas')
 pc_lapack = pkgconfig.parse('lapack')

@@ -36,8 +36,8 @@ SAGE_SPKG_CONFIGURE([pari], [
             sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([is pari_galpol installed? ])
-        gp_galp_check=`echo "galoisgetname(12,1)" | $GP -qf 2>> config.log`
-        if test "x$gp_galp_check = xC3\ \:\ C4"; then
+        gp_galp_check=`echo "galoisgetname(12,1) == \"C3 : C4\"" |  $GP -qf 2>> config.log`
+        if test x$gp_galp_check = x1; then
             AC_MSG_RESULT([yes])
         else
             AC_MSG_RESULT([no; cannot use system pari/GP without galpol package])

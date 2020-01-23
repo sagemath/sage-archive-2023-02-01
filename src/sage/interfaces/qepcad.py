@@ -690,7 +690,7 @@ def _update_command_info():
 
         while True:
             cmd_line = help.readline()
-            while len(cmd_line.strip()) == 0:
+            while not cmd_line.strip():
                 cmd_line = help.readline()
             cmd_line = cmd_line.strip()
             if cmd_line == '@@@':
@@ -1686,7 +1686,7 @@ def qepcad_console(memcells=None):
     """
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
-        raise RuntimeError('Can use the console only in the terminal. Try %%qepcat magics instead.')
+        raise RuntimeError('Can use the console only in the terminal. Try %%qepcad magics instead.')
     # This will only spawn local processes
     os.system(_qepcad_cmd(memcells))
 

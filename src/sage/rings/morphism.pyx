@@ -1086,7 +1086,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: phi = S.hom([xx+1,xx-1])
             Traceback (most recent call last):
             ...
-            TypeError: images do not define a valid homomorphism
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
         You can give a map of the base ring::
 
@@ -1119,7 +1119,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: phi = S.hom([xx+1,xx-1], check=False)
             Traceback (most recent call last):
             ...
-            TypeError: images do not define a valid homomorphism
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
         """
         RingHomomorphism.__init__(self, parent)
         if not isinstance(im_gens, sage.structure.sequence.Sequence_generic):
@@ -1934,7 +1934,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         sage: S.hom([b^2, c^2, a^2])
         Traceback (most recent call last):
         ...
-        TypeError: images do not define a valid homomorphism
+        ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
     """
     def __init__(self, parent, phi):
         """

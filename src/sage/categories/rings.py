@@ -391,7 +391,7 @@ class Rings(CategoryWithAxiom):
                 <class 'sage.rings.homset.RingHomset_generic_with_category'>
 
                 sage: Hom(CyclotomicField(3), QQ, category = Rings()).__class__
-                <class 'sage.rings.number_field.morphism.CyclotomicFieldHomset_with_category'>
+                <class 'sage.rings.number_field.homset.CyclotomicFieldHomset_with_category'>
 
                 sage: TestSuite(Hom(QQ, QQ, category = Rings())).run() # indirect doctest
 

@@ -1604,7 +1604,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar.gens()
             (I,)
         """
-        return(QQbar_I, )
+        return (QQbar_I,)
 
     def gen(self, n=0):
         r"""

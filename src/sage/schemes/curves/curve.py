@@ -502,4 +502,4 @@ class Curve_generic(AlgebraicScheme_subscheme):
         """
         new_AS = self.ambient_space().change_ring(R)
         I = [f.change_ring(R) for f in self.defining_polynomials()]
-        return(new_AS.curve(I))
+        return new_AS.curve(I)

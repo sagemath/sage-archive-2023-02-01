@@ -2,9 +2,9 @@ SAGE_SPKG_CONFIGURE([openblas], [
   PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.2.20], [
     PKG_CHECK_VAR([OPENBLASPCDIR], [openblas], [pcfiledir], [
        AC_CONFIG_LINKS([
-         $SAGE_LOCAL/lib/pkgconfig/blas.pc:$OPENBLASPCDIR/openblas.pc
-         $SAGE_LOCAL/lib/pkgconfig/cblas.pc:$OPENBLASPCDIR/openblas.pc
-         $SAGE_LOCAL/lib/pkgconfig/lapack.pc:$OPENBLASPCDIR/openblas.pc])
+         $SAGE_SRC/lib/pkgconfig/blas.pc:$OPENBLASPCDIR/openblas.pc
+         $SAGE_SRC/lib/pkgconfig/cblas.pc:$OPENBLASPCDIR/openblas.pc
+         $SAGE_SRC/lib/pkgconfig/lapack.pc:$OPENBLASPCDIR/openblas.pc])
        ], [
        AC_MSG_WARN([Unable to locate the directory of openblas.pc. This should not happen!])
        sage_spkg_install_openblas=yes

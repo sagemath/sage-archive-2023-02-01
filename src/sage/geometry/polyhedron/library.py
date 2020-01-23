@@ -2784,7 +2784,7 @@ class Polytopes():
 
         A cube as a polyhedron object.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Return the `\pm 1`-cube::
 

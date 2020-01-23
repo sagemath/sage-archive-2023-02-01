@@ -44,7 +44,6 @@ Recall an example from abelian groups::
 #                  https://www.gnu.org/licenses/
 ###########################################################################
 
-from sage.rings.infinity import infinity
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 
 
@@ -110,7 +109,6 @@ class AbelianGroupElement(AbelianGroupElementBase):
             sage: ap in Gp
             True
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.interfaces.all import gap
         G = self.parent()
         invs = list(G.gens_orders())
@@ -160,5 +158,5 @@ class AbelianGroupElement(AbelianGroupElementBase):
             sage: prod([x^i for x,i in v]) == y*x
             True
         """
-        from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
-        return word_problem(words,self)
+        from sage.groups.abelian_gps.abelian_group import word_problem
+        return word_problem(words, self)

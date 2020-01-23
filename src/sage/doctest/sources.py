@@ -278,7 +278,6 @@ class DocTestSource(object):
         self.linking = False
         doctests = []
         in_docstring = False
-        tab_found = False
         unparsed_doc = False
         doc = []
         start = None

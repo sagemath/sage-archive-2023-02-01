@@ -136,7 +136,6 @@ from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroupElement
-from sage.interfaces.gap import gap
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
 from sage.categories.morphism import SetMorphism
@@ -1391,7 +1390,6 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         Uses GAP.
         """
         I = self.gap().IsomorphismSimplifiedFpGroup()
-        domain = self
         codomain = wrap_FpGroup(I.Range())
         phi = lambda x: codomain(I.ImageElm(x.gap()))
         HS = self.Hom(codomain)

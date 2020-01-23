@@ -11,7 +11,7 @@ through ``polytopes.<tab>``. For example, here is the hypercube in dimension 5::
 The following constructions are available
 
 .. csv-table::
- )   :class: contentstable
+    :class: contentstable
     :widths: 30
     :delim: |
 

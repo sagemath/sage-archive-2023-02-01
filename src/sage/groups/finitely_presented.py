@@ -118,7 +118,7 @@ AUTHOR:
 - Miguel Angel Marco Buzunariz
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Miguel Angel Marco Buzunariz <mmarco@unizar.es>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -126,7 +126,7 @@ AUTHOR:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
@@ -134,12 +134,8 @@ from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroupElement
-
-from sage.structure.element import MultiplicativeGroupElement
 from sage.interfaces.gap import gap
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix

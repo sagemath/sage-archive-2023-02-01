@@ -41,14 +41,12 @@ Recall an example from abelian groups::
 #  Copyright (C) 2012 Volker Braun  <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ###########################################################################
 
-
-from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
-from sage.arith.all import LCM, GCD
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
+
 
 def is_AbelianGroupElement(x):
     """

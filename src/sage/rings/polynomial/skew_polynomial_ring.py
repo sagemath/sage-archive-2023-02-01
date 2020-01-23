@@ -22,16 +22,15 @@ AUTHOR:
   doctest errors
 
 """
-
-#############################################################################
+# ***************************************************************************
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from __future__ import print_function, absolute_import, division
 
@@ -43,11 +42,9 @@ from sage.rings.ring import Algebra
 from sage.categories.rings import Rings
 from sage.rings.integer import Integer
 from sage.rings.ring import Field
-from sage.structure.category_object import normalize_names
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import IdentityMorphism
-from sage.rings.polynomial.skew_polynomial_element import (SkewPolynomial,
-                                                           SkewPolynomialBaseringInjection)
+from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
 
 #########################################################################################
 

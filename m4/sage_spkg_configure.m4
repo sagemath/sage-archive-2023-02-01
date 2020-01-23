@@ -51,8 +51,8 @@ m4_pushdef([SPKG_USE_SYSTEM], [sage_use_system_]SPKG_NAME)
 # BEGIN SAGE_SPKG_CONFIGURE_]m4_toupper($1)[
 AC_MSG_NOTICE([=== checking whether to install the $1 SPKG ===])
 AC_ARG_WITH([system-]SPKG_NAME,
-       AS_HELP_STRING(--with-system-SPKG_NAME={no|yes|force},
-           [detect and use an existing system SPKG_NAME (default: "yes"; "force": exit with an error if no usable version is found)]),
+       AS_HELP_STRING(--with-system-SPKG_NAME={no|yes (default)|force (exit with an error if no usable version is found)},
+           [detect and use an existing system SPKG_NAME]),
        [AS_VAR_SET(SPKG_USE_SYSTEM, [$withval])],
        [AS_VAR_SET(SPKG_USE_SYSTEM, [yes])]
 )

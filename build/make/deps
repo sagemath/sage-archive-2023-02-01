@@ -53,6 +53,7 @@ all-sage: \
 		sagelib \
 		$(STANDARD_PACKAGE_INSTS) \
 		$(OPTIONAL_INSTALLED_PACKAGE_INSTS) \
+                $(OPTIONAL_CLEANED_PACKAGES_CLEANS) \
 		$(EXTCODE) \
 		$(SCRIPTS)
 

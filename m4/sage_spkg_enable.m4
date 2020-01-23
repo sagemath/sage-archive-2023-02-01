@@ -7,12 +7,16 @@ AC_DEFUN([SAGE_SPKG_ENABLE], [
 AS_HELP_STRING([], [package information: ./sage -info ]SPKG_NAME)
 AS_HELP_STRING([--disable-]SPKG_NAME,
                      [disable build and uninstall if previously installed by Sage in PREFIX; same as --enable-]SPKG_NAME[=no]),
-      AS_VAR_SET([sage_enable_]SPKG_NAME, [$enableval])
-      AS_VAR_SET([sage_enable_]SPKG_NAME, [if_installed])
+      AS_VAR_SET(want_spkg, [$enableval]),
+      AS_VAR_SET(want_spkg, [if_installed])
   )
-  AS_IF([test "$sage_enable_]SPKG_NAME[" = if_installed],
-        AS_IF([test -r "$SAGE_SPKG_INST/$SPKG_NAME"],
-              AS_VAR_SET([sage_enable_]SPKG_NAME, [yes]),
-              AS_VAR_SET([sage_enable_]SPKG_NAME, [no]))
-  )
+  AS_IF([test -r "$SAGE_SPKG_INST/]SPKG_NAME["-*],
+        [AS_VAR_SET([is_installed], [yes])],
+        [AS_VAR_SET([is_installed], [no])])
+  AS_IF([test "$want_spkg" = if_installed],
+        [AS_VAR_SET([want_spkg], $is_installed)])
+  AS_VAR_SET([spkg_line], ["    ]SPKG_NAME[ \\"$'\n'])
+  AS_CASE([$is_installed-$want_spkg],
+          [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
+          [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_CLEANED_PACKAGES, "$spkg_line")])
 ])

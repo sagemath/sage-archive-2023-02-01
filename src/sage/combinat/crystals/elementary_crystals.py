@@ -545,7 +545,7 @@ class RCrystal(UniqueRepresentation, Parent):
             sage: B
             The R crystal of weight Lambda[6] and type ['E', 6]
 
-            sage: B = crystals.elementary.R(['E',6], la[1], dual=True)
+            sage: crystals.elementary.R(['E',6], la[1], dual=True)
             The dual R crystal of weight Lambda[1] and type ['E', 6]
         """
         dual_str = " dual" if self._dual else ""
@@ -693,7 +693,7 @@ class RCrystal(UniqueRepresentation, Parent):
                 sage: R = crystals.elementary.R("C5", la[4]+la[5], dual=True)
                 sage: r = R.highest_weight_vector()
                 sage: [r.phi(i) for i in R.index_set()]
-                [0, 0, 0, 0, 0]
+                [0, 0, 0, 1, 1]
             """
             if self.parent()._dual:
                 P = self.parent().weight_lattice_realization()

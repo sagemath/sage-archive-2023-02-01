@@ -166,4 +166,3 @@ class RegularSuperCrystals(Category_singleton):
                 [Category of regular super crystals]
             """
             return [self.base_category()]
-

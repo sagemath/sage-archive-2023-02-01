@@ -3,7 +3,9 @@ Supercrystals
 """
 
 #*****************************************************************************
-#       Copyright (C) 2018 Travis Scrimshaw <tcscrims at gmail.com>
+#       Copyright (C) 2017 Franco Saliola <saliola@gmail.com>
+#                     2017 Anne Schilling <anne at math.ucdavis.edu>
+#                     2019 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -63,8 +65,8 @@ class SuperCrystals(Category_singleton):
 
     class Finite(CategoryWithAxiom):
         class ParentMethods:
-            @cached_method
-            def digraph(self):
+            @cached_method(key=lambda s,i: tuple(i) if i is not None else s.index_set())
+            def digraph(self, index_set=None):
                 r"""
                 Return the :class:`DiGraph` associated to ``self``.
 
@@ -89,9 +91,12 @@ class SuperCrystals(Category_singleton):
                 from sage.misc.latex import LatexExpr
                 from sage.combinat.root_system.cartan_type import CartanType
 
+                if index_set is None:
+                    index_set = self.index_set()
+
                 G = DiGraph(multiedges=True)
                 G.add_vertices(self)
-                for i in self.index_set():
+                for i in index_set:
                     for x in G:
                         y = x.f(i)
                         if y is not None:
@@ -112,7 +117,6 @@ class SuperCrystals(Category_singleton):
                     return edge_opts
 
                 G.set_latex_options(format="dot2tex", edge_labels=True, edge_options=edge_options)
-
                 return G
 
             def genuine_highest_weight_vectors(self):

@@ -679,6 +679,18 @@ class DualInfinityQueerCrystalOfTableaux(CrystalOfWords):
 
     @cached_method
     def module_generator(self):
+        r"""
+        Return the module generator (or highest weight element) of ``self``.
+
+        The module generator is the unique semistandard hoook tableau of shape
+        `(n, n-1, \ldots,2, 1)` with weight `0`.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(["Q",5])
+            sage: B.module_generator()
+            [[5, 5, 5, 5, 5], [4, 4, 4, 4], [3, 3, 3], [2, 2], [1]]
+        """
         n = self._cartan_type.rank() + 1
         row_lens = list(reversed(range(1, n+1)))
         module_generator = flatten([[val]*val for val in row_lens])
@@ -686,10 +698,29 @@ class DualInfinityQueerCrystalOfTableaux(CrystalOfWords):
 
     @cached_method
     def index_set(self):
+        r"""
+        Return the index set of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(["Q",3])
+            sage: B.index_set()
+            (1, 2, -1)
+        """
         n = self._cartan_type.rank()
-        return (-1,) + tuple(range(1, n+1))
+        return tuple(range(1, n+1)) + (-1,)
 
     def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self`` from the input data.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(["Q",4])
+            sage: t = B([[4,4,4,4,2,1],[3,3,3],[2,2],[1]])
+            sage: t
+            [[4, 4, 4, 4, 2, 1], [3, 3, 3], [2, 2], [1]]
+        """
         return self.element_class(self, *args, **options)
 
     class Element(InfinityQueerCrystalOfTableauxElement):

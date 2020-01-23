@@ -1426,7 +1426,7 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
     [GJK+2014]_. Given crystals `B_1` and `B_2` of type `\mathfrak{q}_{n+1}`,
     we define the tensor product `b_1 \otimes b_2 \in B_1 \otimes B_2`,
     where `b_1 \in B_1` and `b_2 \in B_2`, as the following:
- 
+
     In addition to the tensor product rule for type `A_n`, the tensor product
     rule for `e_{-1}` and `f_{-1}` on `b_1\otimes b_2` are given by
 
@@ -1652,19 +1652,78 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
 
 cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrystalsElement):
     def __init__(self, parent, list, row_lengths=[]):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,2,1],[3,3,3],[2,2],[1]])
+            sage: t
+            [[4, 4, 4, 4, 2, 1], [3, 3, 3], [2, 2], [1]]
+            sage: TestSuite(t).run()
+        """
+        if not row_lengths and list and not isinstance(list[0], parent.letters.element_class):
+            ret = []
+            L = parent.letters
+            row_lengths = []
+            for row in list:
+                ret.extend(L(val) for val in reversed(row))
+                row_lengths.append(len(row))
+            list = ret
         self._row_lengths = row_lengths
         super(InfinityQueerCrystalOfTableauxElement, self).__init__(parent, list)
 
     def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B.an_element()
+            sage: t
+            [[4, 4, 4, 4], [3, 3, 3], [2, 2], [1]]
+        """
         return repr([list(reversed(row)) for row in self.rows()])
 
     def _ascii_art_(self):
+        """
+        Return an ASCII art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,2,1],[3,3,3],[2,2],[1]])
+            sage: ascii_art(t)
+              4  4  4  4  2  1
+                 3  3  3
+                    2  2
+                       1
+        """
         from sage.typeset.ascii_art import AsciiArt
         ret = [" "*(3*i) + "".join("%3s" % str(x) for x in reversed(row))
                for i, row in enumerate(self.rows())]
         return AsciiArt(ret)
 
     def _latex_(self):
+        r"""
+        Return latex code for ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,4,2,1],[3,3,3,3],[2,2,1],[1]])
+            sage: latex(t)
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{7}c}\cline{1-7}
+            \lr{4}&\lr{4}&\lr{4}&\lr{4}&\lr{4}&\lr{2}&\lr{1}\\\cline{1-7}
+            &\lr{3}&\lr{3}&\lr{3}&\lr{3}\\\cline{2-5}
+            &&\lr{2}&\lr{2}&\lr{1}\\\cline{3-5}
+            &&&\lr{1}\\\cline{4-4}
+            \end{array}$}
+            }
+        """
         from sage.combinat.output import tex_from_array
         return tex_from_array([[None]*i + list(reversed(row))
                               for i, row in enumerate(self.rows())])
@@ -1672,6 +1731,13 @@ cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrysta
     def rows(self):
         """
         Return the list of rows of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,4,2,1],[3,3,3,3],[2,2,1],[1]])
+            sage: t.rows()
+            [[1, 2, 4, 4, 4, 4, 4], [3, 3, 3, 3], [1, 2, 2], [1]]
         """
         if not self:
             return []
@@ -1684,6 +1750,23 @@ cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrysta
         return ret
 
     def e(self, i):
+        r"""
+        Return the action of `e_i` on ``self``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,4,2,1],[3,3,3,3],[2,2,1],[1]])
+            sage: t.e(1)
+            [[4, 4, 4, 4, 4, 4, 2, 1], [3, 3, 3, 3, 3], [2, 2, 1, 1], [1]]
+            sage: t.e(3)
+            [[4, 4, 4, 4, 4, 3, 2, 1], [3, 3, 3, 3], [2, 2, 1], [1]]
+            sage: t.e(-1)
+        """
         ret = super(InfinityQueerCrystalOfTableauxElement, self).e(i)
         if ret is None:
             return None
@@ -1701,13 +1784,26 @@ cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrysta
         return type(self)(self._parent, sum(rows, []), row_lens)
 
     def f(self, i):
-        #print(self._list)
+        r"""
+        Return the action of `f_i` on ``self``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,4,2,1],[3,3,3,3],[2,2,1],[1]])
+            sage: t.f(1)
+            [[4, 4, 4, 4, 4, 2, 2], [3, 3, 3, 3], [2, 2, 1], [1]]
+            sage: t.f(3)
+            sage: t.f(-1)
+            [[4, 4, 4, 4, 4, 2, 2], [3, 3, 3, 3], [2, 2, 1], [1]]
+        """
         ret = super(InfinityQueerCrystalOfTableauxElement, self).f(i)
-        #from sage.categories.tensor import tensor
-        #print(tensor(self._list).f(i))
         if ret is None:
             return None
-        #print((<InfinityQueerCrystalOfTableauxElement> ret)._list)
         (<InfinityQueerCrystalOfTableauxElement> ret)._row_lengths = self._row_lengths
         if i < 0:
             i = -i
@@ -1715,7 +1811,6 @@ cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrysta
         n = self._parent._cartan_type.n
         rows = ret.rows()
         row_lens = list(self._row_lengths)
-        #print(rows[n-i], L(i+1), count_leading(rows[n-i], L(i+1)), rows[n-i+1])
         if count_leading(rows[n-i], L(i+1)) != len(rows[n-i+1]) + 1:
             for j in range(n-i+1):
                 rows[j].pop()
@@ -1723,11 +1818,39 @@ cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrysta
         return type(self)(self._parent, sum(rows, []), row_lens)
 
     def epsilon(self, i):
+        r"""
+        Return `\varepsilon_i` of ``self``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,4,2,1],[3,3,3,3],[2,2,1],[1]])
+            sage: [t.epsilon(i) for i in B.index_set()]
+            [-1, 1, -2, 0]
+        """
+        if i == -1:
+            if self.e(-1) is None:
+                return ZZ.zero()
+            return ZZ.one()
         P = self._parent.weight_lattice_realization()
         h = P.simple_coroots()
         return self.phi(i) - P(self.weight()).scalar(h[i])
 
     def weight(self):
+        r"""
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['Q',4])
+            sage: t = B([[4,4,4,4,4,2,1],[3,3,3,3],[2,2,1],[1]])
+            sage: t.weight()
+            (4, 2, 2, 0)
+        """
         ret = super(InfinityQueerCrystalOfTableauxElement, self).weight()
         L = self._parent.letters
         n = self._parent._cartan_type.n + 1

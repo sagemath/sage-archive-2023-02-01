@@ -110,7 +110,7 @@ class Subcrystal(UniqueRepresentation, Parent):
         sage: T = crystals.Tableaux(['A',[1,1]], [2,1])
         sage: S = T.subcrystal(max_depth=3)
         sage: S.category()
-        Category of regular super crystals
+        Category of finite super crystals
     """
     @staticmethod
     def __classcall_private__(cls, ambient, contained=None, generators=None,
@@ -343,35 +343,35 @@ class Subcrystal(UniqueRepresentation, Parent):
             For != operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]!=S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value!=S[j].value])
                 True
 
             For < operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value<S[j].value])
                 True
 
             For <= operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<=S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value<=S[j].value])
                 True
 
             For > operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value>S[j].value])
                 True
 
             For >= operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>=S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value>=S[j].value])
                 True
             """

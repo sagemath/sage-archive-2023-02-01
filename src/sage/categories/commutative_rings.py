@@ -77,10 +77,9 @@ class CommutativeRings(CategoryWithAxiom):
                 return
 
             # 3. divisibility of some elements
-            S = tester.some_elements()
-            for a,b in tester.some_elements(repeat=2):
+            for a, b in tester.some_elements(repeat=2):
                 try:
-                    test = a.divides(a*b)
+                    test = a.divides(a * b)
                 except NotImplementedError:
                     pass
                 else:

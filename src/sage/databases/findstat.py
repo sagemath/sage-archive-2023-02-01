@@ -542,7 +542,7 @@ def _data_from_function(function, domain):
 
     EXAMPLES::
 
-        sage: from sage.databases.findstat import _data_from_function
+        sage: from sage.databases.findstat import FindStatCollection, _data_from_function
         sage: domain = FindStatCollection(1)                                    # optional -- internet
         sage: _data_from_function(lambda pi: pi[0], domain)                     # optional -- internet
         lazy list [([[1]], [1]), ([[1, 2]], [1]), ([[2, 1]], [2]), ...]
@@ -819,35 +819,35 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 
     check_collection = True
     def get_data(raw, domain=None):
-        all_data, domain = _data_from_iterable(raw, domain=domain,
+        known_terms, domain = _data_from_iterable(raw, domain=domain,
                                                mapping=False,
                                                check=check_collection)
-        data = _data_from_data(all_data, max_values)
-        return all_data, data, domain, None
+        data = _data_from_data(known_terms, max_values)
+        return known_terms, data, domain, None
 
     def get_values(raw, domain=None):
         if callable(raw):
-            all_data = _data_from_function(raw, domain)
+            known_terms = _data_from_function(raw, domain)
             function = raw
         else:
-            all_data, domain = _data_from_iterable(raw, domain=domain,
+            known_terms, domain = _data_from_iterable(raw, domain=domain,
                                                    mapping=False,
                                                    check=check_collection)
             function = None
-        data = _data_from_data(all_data, max_values)
-        return all_data, data, domain, function
+        data = _data_from_data(known_terms, max_values)
+        return known_terms, data, domain, function
 
     def get_distribution(raw, domain=None):
         if callable(raw):
-            all_data = _data_from_function(raw, domain)
+            known_terms = _data_from_function(raw, domain)
             function = raw
         else:
-            all_data, domain = _data_from_iterable(raw, domain=domain,
+            known_terms, domain = _data_from_iterable(raw, domain=domain,
                                                    mapping=False,
                                                    check=check_collection)
             function = None
-        data = _distribution_from_data(all_data, domain, max_values)
-        return all_data, data, domain, function
+        data = _distribution_from_data(known_terms, domain, max_values)
+        return known_terms, data, domain, function
 
     ######################################################################
     if query is None and values is None and distribution is None and domain is None:
@@ -887,9 +887,9 @@ def findstat(query=None, values=None, distribution=None, domain=None,
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(values_of=values, depth=depth)
 
-        all_data, data, domain, function = get_values(values, domain)
+        known_terms, data, domain, function = get_values(values, domain)
         return FindStatStatisticQuery(data=data, domain=domain, depth=depth,
-                                      all_data=all_data, function=function)
+                                      known_terms=known_terms, function=function)
 
     if distribution is not None:
         if isinstance(distribution, (int, Integer, string_types)):
@@ -897,9 +897,9 @@ def findstat(query=None, values=None, distribution=None, domain=None,
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(distribution_of=distribution, depth=depth)
 
-        all_data, data, domain, function = get_distribution(distribution, domain)
+        known_terms, data, domain, function = get_distribution(distribution, domain)
         return FindStatStatisticQuery(data=data, domain=domain, depth=depth,
-                                      all_data=all_data, function=function)
+                                      known_terms=known_terms, function=function)
 
     raise ValueError("the given arguments cannot be used for a FindStat search")
 
@@ -1055,40 +1055,40 @@ def findmap(*args, **kwargs):
 
     check_collection = True
     def get_data(raw, domain=None, codomain=None):
-        all_data, domain, codomain = _data_from_iterable(raw, domain=domain,
+        known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
                                                          codomain=codomain,
                                                          mapping=True,
                                                          check=check_collection)
-        data = _data_from_data(all_data, max_values)
-        return all_data, data, domain, codomain, None
+        data = _data_from_data(known_terms, max_values)
+        return known_terms, data, domain, codomain, None
 
     def get_values(raw, domain=None, codomain=None):
         if callable(raw):
-            all_data = _data_from_function(raw, domain)
+            known_terms = _data_from_function(raw, domain)
             if codomain is None:
-                codomain = FindStatCollection(all_data[0][1][0])
+                codomain = FindStatCollection(known_terms[0][1][0])
             function = raw
         else:
-            all_data, domain, codomain = _data_from_iterable(raw, domain=domain,
+            known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
                                                              codomain=codomain,
                                                              mapping=True,
                                                              check=check_collection)
             function = None
-        data = _data_from_data(all_data, max_values)
-        return all_data, data, domain, codomain, function
+        data = _data_from_data(known_terms, max_values)
+        return known_terms, data, domain, codomain, function
 
     def get_distribution(raw, domain=None, codomain=None):
         if callable(raw):
-            all_data = _data_from_function(raw, domain)
+            known_terms = _data_from_function(raw, domain)
             function = raw
         else:
-            all_data, domain, codomain = _data_from_iterable(raw, domain=domain,
+            known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
                                                              codomain=codomain,
                                                              mapping=True,
                                                              check=check_collection)
             function = None
-        data = _distribution_from_data(all_data, domain, max_values)
-        return all_data, data, domain, codomain, function
+        data = _distribution_from_data(known_terms, domain, max_values)
+        return known_terms, data, domain, codomain, function
 
     def is_collection(arg):
         try:
@@ -1158,9 +1158,9 @@ def findmap(*args, **kwargs):
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(values_of=values, depth=depth)
 
-        all_data, data, domain, codomain, function = get_values(values, domain, codomain)
+        known_terms, data, domain, codomain, function = get_values(values, domain, codomain)
         return FindStatMapQuery(data=data, domain=domain, codomain=codomain, depth=depth,
-                                all_data=all_data, function=function)
+                                known_terms=known_terms, function=function)
 
     if distribution is not None:
         if isinstance(distribution, (int, Integer, string_types)):
@@ -1168,9 +1168,9 @@ def findmap(*args, **kwargs):
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(distribution_of=distribution, depth=depth)
 
-        all_data, data, domain, function = get_distribution(distribution, domain)
+        known_terms, data, domain, function = get_distribution(distribution, domain)
         return FindStatMapQuery(data=data, domain=domain, codomain=codomain, depth=depth,
-                                all_data=all_data, function=function)
+                                known_terms=known_terms, function=function)
 
     raise ValueError("the given arguments cannot be used for a FindStat search")
 
@@ -2167,7 +2167,7 @@ class FindStatStatisticQuery(FindStatStatistic):
                          for elements, values in data)
 
     def __init__(self, data=None, values_of=None, distribution_of=None,
-                 domain=None, all_data=None, function=None,
+                 domain=None, known_terms=None, function=None,
                  depth=FINDSTAT_DEFAULT_DEPTH,
                  debug=False):
         """
@@ -2180,7 +2180,7 @@ class FindStatStatisticQuery(FindStatStatistic):
           of the same length, the former are elements in the FindStat
           collection, the latter are integers
 
-        - ``all_data`` -- (optional), a lazy list in the same format
+        - ``known_terms`` -- (optional), a lazy list in the same format
           as ``data``, which agrees with ``data``, and may be used
           for submission
 
@@ -2202,7 +2202,7 @@ class FindStatStatisticQuery(FindStatStatistic):
         if and only if ``data`` is provided, or ``values_of`` or
         ``distribution_of`` are given as a function.
 
-        The parameter ``all_data`` is only allowed, if ``data`` is
+        The parameter ``known_terms`` is only allowed, if ``data`` is
         provided.  It defaults to ``data``.
 
         EXAMPLES::
@@ -2217,10 +2217,10 @@ class FindStatStatisticQuery(FindStatStatistic):
 
         """
         self._first_terms = data
-        if data is not None and all_data is None:
+        if data is not None and known_terms is None:
             self._known_terms = data
         else:
-            self._known_terms = all_data
+            self._known_terms = known_terms
         self._function = function
         self._values_of = None
         self._distribution_of = None
@@ -2234,14 +2234,14 @@ class FindStatStatisticQuery(FindStatStatistic):
                      "Data": self._data_to_str(self._first_terms, domain)}
 
         elif distribution_of is not None:
-            assert all(param is None for param in [data, all_data, values_of])
+            assert all(param is None for param in [data, known_terms, values_of])
 
             self._distribution_of = FindStatCompoundStatistic(distribution_of)
             domain = self._distribution_of.domain()
             query = {"DistributionOf": distribution_of}
 
         elif values_of is not None:
-            assert all(param is None for param in [data, all_data, distribution_of])
+            assert all(param is None for param in [data, known_terms, distribution_of])
 
             self._values_of = FindStatCompoundStatistic(values_of)
             domain = self._values_of.domain()
@@ -2345,7 +2345,7 @@ class FindStatStatisticQuery(FindStatStatistic):
         """
         if self._result:
             return repr(self._result)
-        return self.id() + ": " + self.name()
+        return "%s: %s" % (self.id_str(), self.name())
 
     def __getitem__(self, i):
         """
@@ -2382,6 +2382,8 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
         self._id = id
         if domain is not None:
             self._domain = FindStatCollection(domain)
+        else:
+            self._domain = None
         composition = id.partition("o")
         self._statistic = FindStatStatistic(composition[0])
         if composition[2]:
@@ -2943,7 +2945,7 @@ class FindStatMapQuery(FindStatMap):
                          for elements, values in data)
 
     def __init__(self, data=None, values_of=None, distribution_of=None,
-                 domain=None, codomain=None, all_data=None, function=None,
+                 domain=None, codomain=None, known_terms=None, function=None,
                  depth=FINDSTAT_DEFAULT_DEPTH,
                  debug=False):
         """
@@ -2954,10 +2956,10 @@ class FindStatMapQuery(FindStatMap):
             0: Mp00066oMp00064 (quality [100])
         """
         self._first_terms = data
-        if data is not None and all_data is None:
+        if data is not None and known_terms is None:
             self._known_terms = data
         else:
-            self._known_terms = all_data
+            self._known_terms = known_terms
         self._function = function
         self._values_of = None
         self._distribution_of = None
@@ -2968,12 +2970,12 @@ class FindStatMapQuery(FindStatMap):
 
             domain = FindStatCollection(domain)
             codomain = FindStatCollection(codomain)
-            query = {"Domain": self._domain.id_str(),
-                     "Codomain": self._codomain.id_str(),
-                     "Data": self._data_to_str(self._first_terms, self._domain, self._codomain)}
+            query = {"Domain": domain.id_str(),
+                     "Codomain": codomain.id_str(),
+                     "Data": self._data_to_str(self._first_terms, domain, codomain)}
 
         elif distribution_of is not None:
-            assert all(param is None for param in [data, all_data, values_of])
+            assert all(param is None for param in [data, known_terms, values_of])
 
             self._distribution_of = FindStatCompoundMap(distribution_of)
             domain = self._distribution_of.domain()
@@ -2981,7 +2983,7 @@ class FindStatMapQuery(FindStatMap):
             query = {"DistributionOf": distribution_of}
 
         elif values_of is not None:
-            assert all(param is None for param in [data, all_data, distribution_of])
+            assert all(param is None for param in [data, known_terms, distribution_of])
 
             self._values_of = FindStatCompoundMap(values_of)
             domain = self._values_of.domain()
@@ -3031,19 +3033,19 @@ class FindStatMapQuery(FindStatMap):
         Element.__init__(self, FindStatMaps())
 
 
-    def _repr_(self):
+    def __repr__(self):
         """
         Return a string representation of the query.
         """
         if self._result:
             return repr(self._result)
-        return self.id() + ": " + self.name()
+        return "%s: %s" % (self.id_str(), self.name())
 
     def __getitem__(self, i):
         """
         Return the i-th result in the query.
         """
-        return self._result[idx]
+        return self._result[i]
 
 
 class FindStatCompoundMap(Element):

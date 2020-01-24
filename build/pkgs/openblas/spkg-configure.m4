@@ -1,16 +1,16 @@
 SAGE_SPKG_CONFIGURE([openblas], [
   PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.2.20], [
     PKG_CHECK_VAR([OPENBLASPCDIR], [openblas], [pcfiledir], [
-       AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/blas.pc:$OPENBLASPCDIR/openblas.pc])
+       sage_install_blas_pc=yes
        AC_SEARCH_LIBS([cblas_dgemm], [openblas], [dnl openblas works as cblas
-             AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/cblas.pc:$OPENBLASPCDIR/openblas.pc])
+             sage_install_cblas_pc=yes
              ], [
              dnl openblas does not work as cblas; try to use system's cblas as is
              PKG_CHECK_MODULES([CBLAS], [cblas], [], [sage_spkg_install_openblas=yes])
           ])
        AC_FC_FUNC([dgeqrf])
        AC_SEARCH_LIBS([$dgeqrf], [openblas], [dnl openblas works as lapack
-             AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/lapack.pc:$OPENBLASPCDIR/openblas.pc])
+             sage_install_lapack_pc=yes
              ], [
              dnl openblas does not work as lapack; try to use system's lapack as is
              PKG_CHECK_MODULES([LAPACK], [lapack], [], [sage_spkg_install_openblas=yes])
@@ -20,6 +20,12 @@ SAGE_SPKG_CONFIGURE([openblas], [
        sage_spkg_install_openblas=yes
        ])
     ], [sage_spkg_install_openblas=yes])
+    AS_IF([test x$sage_spkg_install_openblas != xyes], [
+       m4_foreach([blaslibnam], [blas, cblas, lapack], [
+        AS_IF([test x$sage_install_[$blaslibnam]_pc = xyes], [
+         AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/]$blaslibnam[.pc:$OPENBLASPCDIR/openblas.pc])])
+       ])
+    ])
   ], [
   AS_IF([test "x$with_blas" = xopenblas], [
      sage_require_openblas=yes

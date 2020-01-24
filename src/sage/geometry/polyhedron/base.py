@@ -4330,8 +4330,14 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 1 by 8 dense matrices over Integer Ring' and 'Ambient free module of rank 9 over the principal ideal domain Integer Ring'
+            sage: Matrix(ZZ, []) * b3
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+            sage: Matrix(ZZ, [[],[]]) * b3
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 2 by 0 dense matrices over Integer Ring' and 'Ambient free module of rank 9 over the principal ideal domain Integer Ring'
         """
-        if linear_transf.ncols() != 0:
+        if linear_transf.nrows() != 0:
             new_vertices = [ list(linear_transf*v.vector()) for v in self.vertex_generator() ]
             new_rays = [ list(linear_transf*r.vector()) for r in self.ray_generator() ]
             new_lines = [ list(linear_transf*l.vector()) for l in self.line_generator() ]
@@ -4397,14 +4403,16 @@ class Polyhedron_base(Element):
              sage: p * matrix(ZZ, [[1,2,3]]*3)
              Traceback (most recent call last):
              ...
-             TypeError: unsupported operand parent(s) for *: 'Polyhedra in ZZ^3' and 'Full MatrixSpace of 3 by 3 dense matrices over Integer Ring'
+             ValueError: matrices should act on the left
         """
         if is_Polyhedron(actor):
             return self.product(actor)
         elif is_Vector(actor):
             return self.translation(actor)
         elif is_Matrix(actor):
-            if not self_on_left:
+            if self_on_left:
+                raise ValueError("matrices should act on the left")
+            else:
                 return self.linear_transformation(actor)
         else:
             return self.dilation(actor)

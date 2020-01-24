@@ -685,6 +685,10 @@ cdef extern from "singular/Singular/libsingular.h":
 
     int p_IsUnit(poly *p, ring *r)
 
+    # TRUE if poly  is one
+
+    bint p_IsOne(const poly *p, const ring *r)
+
     # substitute monomial for variable given by varidx in poly
 
     poly *pSubst(poly *p, int varidx, poly *value)
@@ -748,6 +752,9 @@ cdef extern from "singular/Singular/libsingular.h":
     # Invert this number
     int n_IsUnit(number *n, const n_Procs_s *cf)
     number *n_Invers(number *n, const n_Procs_s *cf)
+
+    # Characteristic of coefficient domain
+    int n_GetChar(const ring* r)
 
     # rational number from int
 

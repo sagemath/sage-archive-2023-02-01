@@ -1,10 +1,20 @@
 SAGE_SPKG_CONFIGURE([openblas], [
   PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.2.20], [
     PKG_CHECK_VAR([OPENBLASPCDIR], [openblas], [pcfiledir], [
-       AC_CONFIG_LINKS([
-         $SAGE_SRC/lib/pkgconfig/blas.pc:$OPENBLASPCDIR/openblas.pc
-         $SAGE_SRC/lib/pkgconfig/cblas.pc:$OPENBLASPCDIR/openblas.pc
-         $SAGE_SRC/lib/pkgconfig/lapack.pc:$OPENBLASPCDIR/openblas.pc])
+       AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/blas.pc:$OPENBLASPCDIR/openblas.pc])
+       AC_CHECK_LIB([openblas], [cblas_dgemm], [dnl openblas works as cblas
+             AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/cblas.pc:$OPENBLASPCDIR/openblas.pc])
+             ], [
+             dnl openblas does not work as cblas; try to use system's cblas as is
+             PKG_CHECK_MODULES([CBLAS], [], [], [sage_spkg_install_openblas=yes])
+          ])
+       AC_FC_FUNC([dgeqrf])
+       AC_CHECK_LIB([openblas], [$dgeqrf], [dnl openblas works as lapack
+             AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/lapack.pc:$OPENBLASPCDIR/openblas.pc])
+             ], [
+             dnl openblas does not work as lapack; try to use system's lapack as is
+             PKG_CHECK_MODULES([LAPACK], [], [], [sage_spkg_install_openblas=yes])
+          ])
        ], [
        AC_MSG_WARN([Unable to locate the directory of openblas.pc. This should not happen!])
        sage_spkg_install_openblas=yes

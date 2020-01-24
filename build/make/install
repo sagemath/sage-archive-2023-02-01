@@ -73,7 +73,7 @@ during this run of 'make $@'):
 EOF
 
     # Sort in chronological order by log file.
-    for f in `ls -tr "$SAGE_LOGS"/*.log`; do
+    for f in `ls -tr "$SAGE_LOGS"/*.log 2>/dev/null`; do
         # Look for recent error message in log file.
         # Note that "tail -n 20 ..." doesn't work on Solaris.
         if tail -20 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
@@ -95,7 +95,7 @@ EOF
         fi
     done
 
-    for f in `ls -tr "$SAGE_LOGS"/../doc*.log`; do
+    for f in `ls -tr "$SAGE_LOGS"/../doc*.log 2>/dev/null`; do
         # Look for recent error message in log file.
         # Note that "tail -n 20 ..." doesn't work on Solaris.
         if tail -100 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then

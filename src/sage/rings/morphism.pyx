@@ -1665,6 +1665,104 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             raise TypeError("invalid argument %s" % repr(x))
 
 
+cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
+    r"""
+    Morphisms between fraction fields.
+
+    TESTS::
+
+        sage: S.<x> = QQ[]
+        sage: f = S.hom([x^2])
+        sage: g = f.extend_to_fraction_field()
+        sage: type(g)
+        <type 'sage.rings.morphism.RingHomomorphism_from_fraction_field'>
+    """
+    def __init__(self, parent, morphism):
+        r"""
+        Initialize this morphism.
+
+        TESTS::
+
+            sage: A.<a> = ZZ.extension(x^2 - 2)
+            sage: f = A.coerce_map_from(ZZ)
+            sage: g = f.extend_to_fraction_field()   # indirect doctest
+            sage: g
+            Ring morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 - 2
+        """
+        RingHomomorphism.__init__(self, parent)
+        self._morphism = morphism
+
+    def _repr_defn(self):
+        r"""
+        Return a string definition of this morphism.
+
+        EXAMPLES::
+
+            sage: S.<x> = QQ[]
+            sage: f = S.hom([x^2]).extend_to_fraction_field()
+            sage: f
+            Ring endomorphism of Fraction Field of Univariate Polynomial Ring in x over Rational Field
+              Defn: x |--> x^2
+            sage: f._repr_defn()
+            'x |--> x^2'
+        """
+        return self._morphism._repr_defn()
+
+    cpdef Element _call_(self, x):
+        r"""
+        Return the value of this morphism at ``x``.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this morphism
+
+        EXAMPLES::
+
+            sage: S.<x> = QQ[]
+            sage: f = S.hom([x+1]).extend_to_fraction_field()
+            sage: f(1/x)
+            1/(x + 1)
+            sage: f(1/(x-1))
+            1/x
+        """
+        return self._morphism(x.numerator()) / self._morphism(x.denominator())
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper function for copying and pickling.
+
+        TESTS::
+
+            sage: S.<x> = QQ[]
+            sage: f = S.hom([x+1]).extend_to_fraction_field()
+
+            sage: g = copy(f)    # indirect doctest
+            sage: f == g
+            True
+            sage: f is g
+            False
+        """
+        self._morphism = _slots['_morphism']
+        RingHomomorphism._update_slots(self, _slots)
+
+    cdef dict _extra_slots(self):
+        """
+        Helper function for copying and pickling.
+
+        TESTS::
+
+            sage: S.<x> = QQ[]
+            sage: f = S.hom([x+1]).extend_to_fraction_field()
+            sage: loads(dumps(f)) == f
+            True
+        """
+        slots = RingHomomorphism._extra_slots(self)
+        slots['_morphism'] = self._morphism
+        return slots
+
+
 cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""
     A homomorphism induced by quotienting a ring out by an ideal.

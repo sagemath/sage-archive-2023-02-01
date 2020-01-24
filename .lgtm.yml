@@ -6,6 +6,11 @@ path_classifiers:
   imports_only:
     - "**/all.py"
     - "**/*catalog*.py"
+    - "**/species/library.py"
+    - "**/matroids/advanced.py"
+    - "**/categories/basic.py"
+    - "**/interacts/geometry.py"
+    - "**/combinat/ribbon.py"
 extraction:
   python:
     python_setup:

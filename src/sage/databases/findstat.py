@@ -280,7 +280,6 @@ FINDSTAT_URL_MAPS           = FINDSTAT_URL + 'MapsDatabase/'
 FINDSTAT_URL_EDIT_MAP       = FINDSTAT_URL + 'EditMap/'
 FINDSTAT_URL_NEW_MAP        = FINDSTAT_URL + 'NewMap/'
 
-
 ######################################################################
 # the number of values FindStat allows to search for at most
 FINDSTAT_MAX_VALUES = 1000
@@ -664,6 +663,43 @@ def _generating_functions_from_dict(gfs, style):
                  for level, gen_dict in iteritems(gfs)}
     else:
         raise ValueError("the argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'" % style)
+
+
+def _get_code_from_callable(function):
+    """
+    Return code given a callable, if possible.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _get_code_from_callable
+        sage: @cached_function
+        ....: def statistic(pi):
+        ....:     pi = Permutations(len(pi))(pi)
+        ....:     if pi.is_one():
+        ....:         return 1
+        ....:     return sum(statistic(pi.apply_simple_reflection_right(i))
+        ....:                for i in pi.descents())
+        sage: print(_get_code_from_callable(statistic))
+        @cached_function
+        def statistic(pi):
+            pi = Permutations(len(pi))(pi)
+            if pi.is_one():
+                return Integer(1)
+            return sum(statistic(pi.apply_simple_reflection_right(i))
+                       for i in pi.descents())
+    """
+    code = ""
+    if function is not None:
+        from sage.misc.cachefunc import CachedFunction
+        try:
+            if isinstance(function, CachedFunction):
+                code = inspect.getsource(function.f)
+            else:
+                code = inspect.getsource(function)
+        except (IOError, TypeError):
+            verbose("inspect.getsource could not get code from function provided",
+                    caller_name='FindStat')
+    return code
 
 
 def findstat(query=None, values=None, distribution=None, domain=None,
@@ -1589,7 +1625,7 @@ class FindStatCombinatorialStatistic(SageObject):
         # a shallow copy suffices - tuples are immutable
         return dict(self._first_terms_cache)
 
-    def _first_terms_raw(self):
+    def _first_terms_raw(self, max_values):
         """
         Return the first terms of the (compound) statistic as a
         list of ``(string, value)`` pairs.
@@ -1604,9 +1640,9 @@ class FindStatCombinatorialStatistic(SageObject):
         if self._first_terms_raw_cache is None:
             self._first_terms_raw_cache = self._fetch_first_terms_raw()
         # a shallow copy suffices - tuples are immutable
-        return self._first_terms_raw_cache[:]
+        return self._first_terms_raw_cache[:max_values]
 
-    def first_terms_str(self):
+    def first_terms_str(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
         Return the first terms of the statistic in the format needed
         for a FindStat query.
@@ -1625,7 +1661,7 @@ class FindStatCombinatorialStatistic(SageObject):
 
         """
         return "\r\n".join(key + " => " + str(val)
-                           for key, val in self._first_terms_raw())
+                           for key, val in self._first_terms_raw(max_values=max_values))
 
     def _fetch_first_terms(self):
         r"""
@@ -1979,14 +2015,20 @@ class FindStatStatistic(Element,
         else:
             webbrowser.open(FINDSTAT_URL_STATISTICS + self.id_str())
 
-    def submit(self):
+    def submit(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
         Open the FindStat web page for editing the statistic in a browser.
+
+        TESTS::
+
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)])    # optional -- internet
+            sage: s.set_description("Möbius")                                   # optional -- internet
+            sage: s.submit()                                                    # optional -- webbrowser
         """
         args = dict()
         args["OriginalStatistic"] = self.id_str()
-        args["Domain"]            = str(self.domain().id_str())
-        args["Values"]            = self.first_terms_str()
+        args["Domain"]            = self.domain().id_str()
+        args["Values"]            = self.first_terms_str(max_values=max_values)
         args["Description"]       = self.description()
         args["References"]        = self.references_raw()
         args["Code"]              = self.code()
@@ -2004,7 +2046,7 @@ class FindStatStatistic(Element,
         for key, value in iteritems(args):
             if value:
                 verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(value.encode("utf-8"), quote=True)
+                value_encoded = cgi.escape(value, quote=True)
                 verbose("%s" % value_encoded, caller_name='FindStat')
                 f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
             else:
@@ -2266,17 +2308,9 @@ class FindStatStatisticQuery(FindStatStatistic):
 
         self._result = FancyTuple(result)
 
-        # try to extract code from the given function by inspection
-        code = ""
-        if function is not None:
-            try:
-                code = inspect.getsource(function)
-            except IOError:
-                verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
-
         FindStatFunction.__init__(self, FINDSTAT_STATISTIC_PADDED_IDENTIFIER % 0,
                                   data={"Bibliography": {},
-                                        "Code": code,
+                                        "Code": _get_code_from_callable(function),
                                         "Description" : "",
                                         "Domain": domain,
                                         "Name": "a new statistic on %s" % domain.name("plural"),
@@ -2292,12 +2326,13 @@ class FindStatStatisticQuery(FindStatStatistic):
         return {objs[0]: vals[0] for objs, vals in self._known_terms
                 if len(vals) == 1}
 
-    def _first_terms_raw(self):
+    def _first_terms_raw(self, max_values):
         """
         Return the first terms as ``(string, value)`` pairs.
         """
         to_str = self.domain().to_string()
-        return [(to_str(obj), val) for obj, val in self.first_terms().items()]
+        return [(to_str(obj), val)
+                for (obj, val), _ in zip(self.first_terms().items(), range(max_values))]
 
     def _generating_functions_dict(self, max_values=FINDSTAT_MAX_VALUES):
         """
@@ -2641,11 +2676,19 @@ class FindStatMap(Element,
     def submit(self):
         r"""
         Open the FindStat web page for editing the map in a browser.
+
+        TESTS::
+
+            sage: s = findmap(62)                                               # optional -- internet
+            sage: s.set_name("Möbius")                                          # optional -- internet
+            sage: s.submit()                                                    # optional -- webbrowser
+            sage: from sage.databases.findstat import _all_maps                 # optional -- internet
+            sage: del _all_maps['Mp00062']                                      # optional -- internet
         """
         args = dict()
         args["OriginalMap"]        = self.id_str()
-        args["Domain"]             = str(self.domain().id_str())
-        args["Codomain"]           = str(self.codomain().id_str())
+        args["Domain"]             = self.domain().id_str()
+        args["Codomain"]           = self.codomain().id_str()
         args["Name"]               = self.name()
         args["Description"]        = self.description()
         args["References"]         = self.references_raw()
@@ -2655,7 +2698,7 @@ class FindStatMap(Element,
         args["CurrentAuthor"]      = FindStat().user_name()
         args["CurrentEmail"]       = findstat().user_email()
 
-        f = tempfile.NamedTemporaryFile(suffix='.html', delete=False)
+        f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:
@@ -2665,7 +2708,7 @@ class FindStatMap(Element,
         for key, value in iteritems(args):
             if value:
                 verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(value.encode("utf-8"), quote=True)
+                value_encoded = cgi.escape(value, quote=True)
                 verbose("%s" % value_encoded, caller_name='FindStat')
                 f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
             else:
@@ -2743,35 +2786,26 @@ class FindStatMap(Element,
             self._modified = True
             self._data_cache["Properties"] = value
 
-    def code_name(self):
+    def set_name(self, value):
         r"""
-        Return the name of the function defined by :meth:`code`.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: print(FindStatMap(61).code_name())                            # optional -- internet
-            increasing_tree_shape
-        """
-        return self._data()["SageName"]
-
-    def set_code_name(self, value):
-        r"""
-        Set the sage code name of the map.
+        Set the name of the map.
 
         INPUT:
 
-        - a string -- for statistics, this is the name of the
-          statistic followed by its description on a separate line.
+        - a string -- the new name of the map.
 
-        This information is used when submitting the statistic or map with
+        This information is used when submitting the map with
         :meth:`submit`.
 
         """
+        if value != self.name():
+            self._modified = True
+            self._data_cache["Name"] = value
+
+    def code_name(self):
+        return self._data()["SageName"]
+
+    def set_code_name(self, value):
         if value != self.code_name():
             self._modified = True
             self._data_cache["SageName"] = value
@@ -3004,17 +3038,9 @@ class FindStatMapQuery(FindStatMap):
                                               entry["Quality"]))
         self._result = FancyTuple(result)
 
-        # try to extract code from the given function by inspection
-        code = ""
-        if function is not None:
-            try:
-                code = inspect.getsource(function)
-            except IOError:
-                verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
-
         FindStatFunction.__init__(self, FINDSTAT_MAP_PADDED_IDENTIFIER % 0,
                                   data={"Bibliography": {},
-                                        "Code": code,
+                                        "Code": _get_code_from_callable(function),
                                         "Description" : "",
                                         "Domain": domain,
                                         "Codomain": codomain,
@@ -3156,7 +3182,7 @@ class FindStatCompoundMap(Element):
 
         EXAMPLES::
 
-            sage: findmap(41).browse()                                          # optional -- webbrowser
+            sage: findmap(62).browse()                                          # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_MAPS + self.id_str())
 

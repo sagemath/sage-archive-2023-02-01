@@ -1242,6 +1242,38 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_vector.set_immutable()
         return f_vector
 
+    def is_simplicial(self):
+        r"""
+        Test whether the polytope is simplicial.
+
+        This method is not implemented for unbounded polyhedra.
+
+        A polytopes is simplicial, if each facet contains exactly `d` vertices,
+        where `d` is the dimension of the polytope.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simplicial()
+            True
+            sage: P = polytopes.hypercube(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simplicial()
+            False
+        """
+        if not self.is_bounded():
+            raise NotImplementedError("this function is implemented for polytopes only")
+
+        cdef int d, dim = self.dimension()
+        cdef FaceIterator face_iter = self._face_iter(False, dim-1)
+        d = face_iter.next_dimension()
+        while d == dim-1:
+            if face_iter.n_atom_rep() != dim:
+                return False
+            d = face_iter.next_dimension()
+        return True
+
     @cached_method
     def simpliciality(self):
         r"""
@@ -1310,6 +1342,43 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # Every polytope is 1-simplicial.
                 d = dim
         return smallInteger(simpliciality)
+
+    def is_simple(self):
+        r"""
+        Test whether the polytope is simple.
+
+        If the polyhedron is unbounded, return ``False``.
+
+        A polytopes is simple, if each vertex is contained in exactly `d` facets,
+        where `d` is the dimension of the polytope.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simple()
+            False
+            sage: P = polytopes.hypercube(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simple()
+            True
+        """
+        if not self.is_bounded(): return False
+
+        cdef int d, dim = self.dimension()
+
+        # ``output_dimension`` in
+        # :meth:`FaceIterator.__init`
+        # requires the dimension of the original polyhedron.
+        # We iterate over the vertices, by iterating over the facets of the dual.
+        cdef FaceIterator coface_iter = self._face_iter(True, 0)
+
+        d = coface_iter.next_dimension()
+        while d == dim-1:
+            if coface_iter.n_atom_rep() != dim:
+                return False
+            d = coface_iter.next_dimension()
+        return True
 
     @cached_method
     def simplicity(self):

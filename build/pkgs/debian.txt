@@ -15,5 +15,6 @@ binutils
 make
 m4
 perl
+python3-minimal    # system python for bootstrapping the build
 tar
 bc

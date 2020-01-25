@@ -28,6 +28,9 @@ AUTHORS:
 
 -  David Zureick-Brown (2017-09): Added is_weil_polynomial.
 
+-  Sebastian Oehms (2018-10): made :meth:`roots` and  :meth:`factor` work over more 
+   cases of proper integral domains (see :trac:`26421`)
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -4266,6 +4269,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x2 = ZZ['x']['x'].gen()
             sage: (x1 - x2).factor()
             -x + x
+
+        Check that :trac:`26421' is fixed::
+
+            sage: R.<t> = LaurentPolynomialRing(ZZ)
+            sage: P.<x> = R[]
+            sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
+            sage: p.factor()
+            (x - 5) * (x - 2*t) * (x^2 - 2)
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -4378,6 +4389,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 F.sort()
                 return F
             except (TypeError, AttributeError):
+                if R.is_integral_domain() and not R.is_field():
+                    try:
+                        F = R.fraction_field()
+                        PF = F[self.variable_name()]
+                        pol_frac = PF(self) 
+                        return pol_frac.factor(**kwargs).base_change(self.parent())
+                    except (TypeError, AttributeError):
+                        raise NotImplementedError
+                    
                 raise NotImplementedError
 
         return self._factor_pari_helper(G, n)
@@ -7621,9 +7641,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: len(cyclotomic_polynomial(3).roots(ZpFM(739, 566)))
             2
+
+        Check that :trac:`26421` is fixed::
+
+            sage: R.<t> = LaurentPolynomialRing(ZZ)
+            sage: P.<x> = R[]
+            sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
+            sage: p.roots()
+            [(5, 1), (2*t, 1)]
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
+
+
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not
         # handle the current parameters
@@ -7834,9 +7864,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         # get rid of the content of self since we don't need it
                         # and we really don't want to factor it if it's a huge
                         # integer
-                        c = self.content()
+                        c = self.content_ideal().gen()
                         self = self//c
-                    except AttributeError:
+                    except (AttributeError, NotImplementedError):
                         pass
                 return self._roots_from_factorization(self.factor(), multiplicities)
             else:
@@ -9121,7 +9151,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 # Be careful with the content: return the
                 # radical of the content times the radical of
                 # (self/content)
-                content = self.content()
+                content = self.content_ideal().gen()
                 self_1 = (self//content)
                 return (self_1 // self_1.gcd(self_1.derivative())) * content.radical()
         else:  # The above method is not always correct (see Trac 8736)
@@ -10214,6 +10244,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from sage.rings.polynomial.flatten import SpecializationMorphism
             phi = SpecializationMorphism(self._parent,D)
         return phi(self)
+
 
     def _log_series(self, long n):
         r"""

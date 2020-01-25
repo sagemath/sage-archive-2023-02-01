@@ -364,34 +364,34 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
                 debian)
                     # Generic
                     echo "Debian/Ubuntu:"
-                    echo "  sudo apt-get install $(cat $system_package_file)"
+                    echo "  sudo apt-get install $(sed 's/#.*//;' $system_package_file)"
                     ;;
                 debian*|ubuntu*)
                     # Specific distribution
                     echo "$system:"
-                    echo "  sudo apt-get install $(cat $system_package_file)"
+                    echo "  sudo apt-get install $(sed 's/#.*//;' $system_package_file)"
                     ;;
                 fedora)
                     # Generic
                     echo "Fedora/Redhat/CentOS:"
-                    echo "  sudo yum install $(cat $system_package_file)"
+                    echo "  sudo yum install $(sed 's/#.*//;' $system_package_file)"
                     ;;
                 fedora*|redhat*|centos*)
                     # Specific distribution
                     echo "$system:"
-                    echo "  sudo yum install $(cat $system_package_file)"
+                    echo "  sudo yum install $(sed 's/#.*//;' cat $system_package_file)"
                     ;;
                 *conda*)
                     echo "$system:"
-                    echo "  conda install $(cat $system_package_file)"
+                    echo "  conda install $(sed 's/#.*//;' cat $system_package_file)"
                     ;;
                 homebrew*)
                     echo "$system:"
-                    echo "  brew install $(cat $system_package_file)"
+                    echo "  brew install $(sed 's/#.*//;' $system_package_file)"
                     ;;
                 *)
                     echo "$system:"
-                    echo "  $(cat $system_package_file)"
+                    echo "  $(sed 's/#.*//;' $system_package_file)"
                     ;;
             esac
         fi

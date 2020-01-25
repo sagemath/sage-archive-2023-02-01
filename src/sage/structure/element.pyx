@@ -1038,15 +1038,15 @@ cdef class Element(SageObject):
 
     def _cache_key(self):
         """
-        Provide a hashable key for an element if it is not hashable
+        Provide a hashable key for an element if it is not hashable.
 
         EXAMPLES::
 
-            sage: a=sage.structure.element.Element(ZZ)
+            sage: a = sage.structure.element.Element(ZZ)
             sage: a._cache_key()
             (Integer Ring, 'Generic element of a structure')
         """
-        return(self.parent(),str(self))
+        return self.parent(), str(self)
 
     ####################################################################
     # In a Cython or a Python class, you must define either _cmp_
@@ -2713,7 +2713,7 @@ cdef class RingElement(ModuleElement):
             sage: Mod(-15, 37).abs()
             Traceback (most recent call last):
             ...
-            ArithmeticError: absolute valued not defined on integers modulo n.
+            ArithmeticError: absolute value not defined on integers modulo n.
         """
         return abs(self)
 
@@ -2794,12 +2794,36 @@ cdef class CommutativeRingElement(RingElement):
     """
     Base class for elements of commutative rings.
     """
+
     def inverse_mod(self, I):
         r"""
         Return an inverse of ``self`` modulo the ideal `I`, if defined,
         i.e., if `I` and ``self`` together generate the unit ideal.
+
+        EXAMPLES::
+
+            sage: F = GF(25)
+            sage: x = F.gen()
+            sage: z = F.zero()
+            sage: x.inverse_mod(F.ideal(z))
+            2*z2 + 3
+            sage: x.inverse_mod(F.ideal(1))
+            1
+            sage: z.inverse_mod(F.ideal(1))
+            1
+            sage: z.inverse_mod(F.ideal(z))
+            Traceback (most recent call last):
+            ...
+            ValueError: an element of a proper ideal does not have an inverse modulo that ideal
         """
-        raise NotImplementedError
+        if I.is_one():
+            return self.parent().one()
+        elif self in I:
+            raise ValueError("an element of a proper ideal does not have an inverse modulo that ideal")
+        elif hasattr(self, "is_unit") and self.is_unit():
+            return self.inverse_of_unit()
+        else:
+            raise NotImplementedError
 
     def divides(self, x):
         """

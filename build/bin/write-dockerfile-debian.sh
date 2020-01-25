@@ -39,6 +39,7 @@ ADD src/bin src/bin
 ADD src/Makefile.in src/Makefile.in
 ARG EXTRA_CONFIGURE_ARGS
 RUN ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (echo "********** configuring without forcing ***********"; cat config.log; ./configure --enable-build-as-root; cat config.log; exit 1)
-RUN make toolchain V=0
+RUN make -j4 toolchain V=0
+# Compile something tricky
 RUN make -j4 scipy
 EOF

@@ -1,1 +1,2 @@
-libsymmetrica-devel
+# fedora 31:
+symmetrica-devel

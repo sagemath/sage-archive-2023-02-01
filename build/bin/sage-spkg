@@ -360,38 +360,39 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     for system_package_file in "$PKG_SCRIPTS"/debian*.txt "$PKG_SCRIPTS"/fedora*.txt "$PKG_SCRIPTS"/*conda*.txt "$PKG_SCRIPTS"/homebrew*.txt; do
         if [ -f "$system_package_file" ]; then
             system=$(basename "$system_package_file" .txt)
+            system_packages="$(echo $(sed 's/#.*//;' $system_package_file))"
             case $system in
                 debian)
                     # Generic
                     echo "Debian/Ubuntu:"
-                    echo "  sudo apt-get install $(sed 's/#.*//;' $system_package_file)"
+                    echo "  sudo apt-get install $system_packages"
                     ;;
                 debian*|ubuntu*)
                     # Specific distribution
                     echo "$system:"
-                    echo "  sudo apt-get install $(sed 's/#.*//;' $system_package_file)"
+                    echo "  sudo apt-get install $system_packages"
                     ;;
                 fedora)
                     # Generic
                     echo "Fedora/Redhat/CentOS:"
-                    echo "  sudo yum install $(sed 's/#.*//;' $system_package_file)"
+                    echo "  sudo yum install $system_packages"
                     ;;
                 fedora*|redhat*|centos*)
                     # Specific distribution
                     echo "$system:"
-                    echo "  sudo yum install $(sed 's/#.*//;' cat $system_package_file)"
+                    echo "  sudo yum install $system_packages"
                     ;;
                 *conda*)
                     echo "$system:"
-                    echo "  conda install $(sed 's/#.*//;' cat $system_package_file)"
+                    echo "  conda install $system_packages"
                     ;;
                 homebrew*)
                     echo "$system:"
-                    echo "  brew install $(sed 's/#.*//;' $system_package_file)"
+                    echo "  brew install $system_packages"
                     ;;
                 *)
                     echo "$system:"
-                    echo "  $(sed 's/#.*//;' $system_package_file)"
+                    echo "  install the following packages: $system_packages"
                     ;;
             esac
         fi

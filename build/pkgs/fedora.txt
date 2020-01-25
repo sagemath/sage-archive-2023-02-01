@@ -1,0 +1,9 @@
+binutils
+gcc
+gcc-c++
+gcc-gfortran
+make
+m4
+perl
+perl-ExtUtils-MakeMaker
+tar

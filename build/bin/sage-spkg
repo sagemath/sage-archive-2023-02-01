@@ -349,9 +349,54 @@ fi
 if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     cat "$PKG_SCRIPTS/SPKG.txt"
     if [ -r "$PKG_SCRIPTS/type" ] ; then
+        echo
         echo "== Type =="
         echo
         cat "$PKG_SCRIPTS/type"
+        echo
+    fi
+    echo "== Equivalent System Packages =="
+    echo
+    for system_package_file in "$PKG_SCRIPTS"/debian*.txt "$PKG_SCRIPTS"/fedora*.txt "$PKG_SCRIPTS"/*conda*.txt "$PKG_SCRIPTS"/homebrew*.txt; do
+        if [ -f "$system_package_file" ]; then
+            system=$(basename "$system_package_file" .txt)
+            case $system in
+                debian)
+                    # Generic
+                    echo "Debian/Ubuntu:"
+                    echo "  sudo apt-get install $(cat $system_package_file)"
+                    ;;
+                debian*|ubuntu*)
+                    # Specific distribution
+                    echo "$system:"
+                    echo "  sudo apt-get install $(cat $system_package_file)"
+                    ;;
+                fedora)
+                    # Generic
+                    echo "Fedora/Redhat/CentOS:"
+                    echo "  sudo yum install $(cat $system_package_file)"
+                    ;;
+                fedora*|redhat*|centos*)
+                    # Specific distribution
+                    echo "$system:"
+                    echo "  sudo yum install $(cat $system_package_file)"
+                    ;;
+                *conda*)
+                    echo "$system:"
+                    echo "  conda install $(cat $system_package_file)"
+                    ;;
+                homebrew*)
+                    echo "$system:"
+                    echo "  brew install $(cat $system_package_file)"
+                    ;;
+                *)
+                    echo "$system:"
+                    echo "  $(cat $system_package_file)"
+                    ;;
+            esac
+        fi
+    done
+    echo
     fi
     exit 0
 fi

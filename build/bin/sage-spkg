@@ -398,7 +398,6 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
         fi
     done
     echo
-    fi
     exit 0
 fi
 

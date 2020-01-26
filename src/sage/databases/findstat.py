@@ -205,7 +205,7 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from six.moves import range
 from six import iteritems, add_metaclass, string_types
 
@@ -1420,11 +1420,18 @@ class FindStatFunction(SageObject):
 
             sage: findstat(914)                                                 # optional -- internet
             St000914: The sum of the values of the Möbius function of a poset.
+
+            sage: findmap(85)                                                   # optional -- internet
+            Mp00085: Schützenberger involution
         """
         if self._modified:
-            return "%s(modified): %s" % (self.id_str(), self.name())
+            s = "%s(modified): %s" % (self.id_str(), self.name())
         else:
-            return "%s: %s" % (self.id_str(), self.name())
+            s = "%s: %s" % (self.id_str(), self.name())
+        import sys
+        if sys.version_info[0] < 3:
+            return s.encode("utf-8")
+        return s
 
     def reset(self):
         """
@@ -1433,7 +1440,7 @@ class FindStatFunction(SageObject):
         EXAMPLES::
 
             sage: s = findmap(62)                                               # optional -- internet
-            sage: s.set_name("Möbius"); s                                       # optional -- internet
+            sage: s.set_name(u"Möbius"); s                                      # optional -- internet
             Mp00062(modified): Möbius
             sage: s.reset(); s                                                  # optional -- internet
             Mp00062: Lehmer-code to major-code bijection
@@ -1484,7 +1491,7 @@ class FindStatFunction(SageObject):
         EXAMPLES::
 
             sage: findstat(51).id_str()                                         # optional -- internet
-            'St000051'
+            u'St000051'
         """
         return self._id
 
@@ -1560,12 +1567,9 @@ class FindStatFunction(SageObject):
         EXAMPLES::
 
             sage: findstat(51).name()                                           # optional -- internet
-            'The size of the left subtree of a binary tree.'
+            u'The size of the left subtree of a binary tree.'
 
         """
-        import sys
-        if sys.version_info[0] < 3:
-            return self._data()["Name"].encode("utf-8")
         return self._data()["Name"]
 
     def references(self):
@@ -1777,10 +1781,10 @@ class FindStatCombinatorialStatistic(SageObject):
         TESTS::
 
             sage: findstat(41)._first_terms_raw(4)                              # optional -- internet
-            [('[(1,2)]', 0),
-             ('[(1,2),(3,4)]', 0),
-             ('[(1,3),(2,4)]', 0),
-             ('[(1,4),(2,3)]', 1)]
+            [(u'[(1,2)]', 0),
+             (u'[(1,2),(3,4)]', 0),
+             (u'[(1,3),(2,4)]', 0),
+             (u'[(1,4),(2,3)]', 1)]
 
         """
         # initialize self._first_terms_raw_cache on first call
@@ -1957,13 +1961,13 @@ class FindStatCombinatorialStatistic(SageObject):
             counter += len(gen_func)
             if search_size > 0:
                 search_size -= len(gen_func)
-            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
-            OEIS_string         += OEIS_func_string + "  "
+            OEIS_func_string = ",".join(str(coefficient) for coefficient in gen_func)
+            OEIS_string += OEIS_func_string + "  "
         OEIS_string = OEIS_string.strip()
         if counter >= 4:
             if verbose:
                 print('Searching the OEIS for "%s"' % OEIS_string)
-            return oeis( OEIS_string )
+            return oeis(str(OEIS_string)) # in python 2.7, oeis does not like unicode
         else:
             if verbose:
                 print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
@@ -2081,16 +2085,16 @@ class FindStatStatistic(Element,
         TESTS::
 
             sage: findstat(41)._data()                                    # optional -- internet, indirect doctest
-            {'Bibliography': {'MathSciNet:1288802': {'Author': 'de Médicis, A., Viennot, X. G.',
-               'Title': 'Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger'},
-              'MathSciNet:1418763': {'Author': 'Simion, R., Stanton, D.',
-               'Title': 'Octabasic Laguerre polynomials and permutation statistics'}},
-             'Code': 'def statistic(x):\r\n    return len(x.nestings())',
-             'Description': 'The number of nestings of a perfect matching. \r\n\r\n\r\nThis is the number of pairs of edges $((a,b), (c,d))$ such that $a\\le c\\le d\\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.',
-             'Domain': 'Cc0012',
-             'Name': 'The number of nestings of a perfect matching.',
-             'References': '[1]  [[MathSciNet:1288802]]\n[2]  [[MathSciNet:1418763]]',
-             'SageCode': 'def statistic(x):\r\n    return len(x.nestings())'}
+            {u'Bibliography': {u'MathSciNet:1288802': {u'Author': u'de M\xe9dicis, A., Viennot, X. G.',
+               u'Title': u'Moments des $q$-polyn\xf4mes de Laguerre et la bijection de Foata-Zeilberger'},
+              u'MathSciNet:1418763': {u'Author': u'Simion, R., Stanton, D.',
+               u'Title': u'Octabasic Laguerre polynomials and permutation statistics'}},
+             u'Code': u'def statistic(x):\r\n    return len(x.nestings())',
+             u'Description': u'The number of nestings of a perfect matching. \r\n\r\n\r\nThis is the number of pairs of edges $((a,b), (c,d))$ such that $a\\le c\\le d\\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.',
+             u'Domain': u'Cc0012',
+             u'Name': u'The number of nestings of a perfect matching.',
+             u'References': u'[1]  [[MathSciNet:1288802]]\n[2]  [[MathSciNet:1418763]]',
+             u'SageCode': u'def statistic(x):\r\n    return len(x.nestings())'}
 
         """
         fields = "Bibliography,Code,Description,Domain,Name,References,SageCode"
@@ -2115,10 +2119,10 @@ class FindStatStatistic(Element,
         TESTS::
 
             sage: findstat(41)._first_terms_raw(4)                            # optional -- internet, indirect doctest
-            [('[(1,2)]', 0),
-             ('[(1,2),(3,4)]', 0),
-             ('[(1,3),(2,4)]', 0),
-             ('[(1,4),(2,3)]', 1)]
+            [(u'[(1,2)]', 0),
+             (u'[(1,2),(3,4)]', 0),
+             (u'[(1,3),(2,4)]', 0),
+             (u'[(1,4),(2,3)]', 1)]
         """
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
@@ -2237,7 +2241,7 @@ class FindStatStatistic(Element,
         TESTS::
 
             sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)])    # optional -- internet
-            sage: s.set_description("Möbius")                                   # optional -- internet
+            sage: s.set_description(u"Möbius")                                  # optional -- internet
             sage: s.submit()                                                    # optional -- webbrowser
         """
         args = dict()
@@ -2262,8 +2266,8 @@ class FindStatStatistic(Element,
             if value:
                 verbose("writing argument %s" % key, caller_name='FindStat')
                 value_encoded = cgi.escape(value, quote=True)
-                verbose("%s" % value_encoded, caller_name='FindStat')
-                f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
+                html = FINDSTAT_FORM_FORMAT % (key, value_encoded)
+                f.write(html.encode("utf-8"))
             else:
                 verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
         f.write(FINDSTAT_FORM_FOOTER)
@@ -2906,9 +2910,8 @@ class FindStatMap(Element,
         TESTS::
 
             sage: s = findmap(62)                                               # optional -- internet
-            sage: s.set_name("Möbius")                                          # optional -- internet
+            sage: s.set_name(u"Möbius")                                         # optional -- internet
             sage: s.submit()                                                    # optional -- webbrowser
-            sage: from sage.databases.findstat import _all_maps                 # optional -- internet
             sage: s.reset()                                                     # optional -- internet
         """
         args = dict()

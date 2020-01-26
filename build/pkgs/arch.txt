@@ -5,3 +5,4 @@ perl
 python # system python for bootstrapping the build
 tar
 bc
+gcc

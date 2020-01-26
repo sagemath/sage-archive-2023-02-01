@@ -84,9 +84,14 @@ else
 RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (cat config.log; exit 1)
 EOF
 fi
-# We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
 cat <<EOF
-RUN MAKE="make -j4" make base-toolchain
-# Compile something tricky
-RUN MAKE="make -j4" make scipy
+# We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
+ARG NUMPROC=8
+ENV MAKE="make -j\${NUMPROC}"
+RUN make base-toolchain
+# Avoid running the lengthy testsuite of the following.
+RUN make cython
+# Compile something tricky: Everything that uses BLAS.
+ARG TARGETS="scipy cbc csdp fflas_ffpack gsl iml numpy r suitesparse cvxopt"
+RUN SAGE_CHECK=yes MAKE="make -j4" make -k \${TARGETS}
 EOF

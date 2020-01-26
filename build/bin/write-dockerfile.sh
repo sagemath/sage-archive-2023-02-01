@@ -17,7 +17,7 @@ for PKG_SCRIPTS in build/pkgs/*; do
         PKG_BASE=$(basename $PKG_SCRIPTS)
         SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
         PKG_TYPE=$(cat $PKG_SCRIPTS/type)
-        if [ -f $SYSTEM_PACKAGES_FILE ]; then
+        if [ -f $SYSTEM_PACKAGES_FILE -a -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
            PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
            if [ -n "PKG_SYSTEM_PACKAGES" ]; then
                case "$PKG_TYPE" in

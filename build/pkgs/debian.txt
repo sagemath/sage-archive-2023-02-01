@@ -18,3 +18,9 @@ perl
 python3-minimal    # system python for bootstrapping the build
 tar
 bc
+gcc
+# On debian buster, need C++ even to survive 'configure'. Otherwise:
+# checking how to run the C++ preprocessor... /lib/cpp
+# configure: error: in `/sage':
+# configure: error: C++ preprocessor "/lib/cpp" fails sanity check
+g++

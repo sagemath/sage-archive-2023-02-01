@@ -6,6 +6,8 @@ set -e
 SYSTEM="${1:-debian}"
 shopt -s extglob
 TYPE_PATTERN="${2:-standard}"
+WITH_SYSTEM_SPKG="${3:-yes}"
+#
 STRIP_COMMENTS="sed s/#.*//;"
 SAGE_ROOT=.
 SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SAGE_ROOT/build/pkgs/$SYSTEM{,-bootstrap}.txt))
@@ -16,14 +18,17 @@ for PKG_SCRIPTS in build/pkgs/*; do
         SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/$SYSTEM.txt
         PKG_TYPE=$(cat $PKG_SCRIPTS/type)
         if [ -f $SYSTEM_PACKAGES_FILE ]; then
-           case "$PKG_TYPE" in
-               $TYPE_PATTERN)
-                   SYSTEM_PACKAGES+=" "$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
-                   if [ -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
-                       CONFIGURE_ARGS+="--with-system-$PKG_BASE=force "
-                   fi
-                   ;;
-           esac
+           PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
+           if [ -n "PKG_SYSTEM_PACKAGES" ]; then
+               case "$PKG_TYPE" in
+                   $TYPE_PATTERN)
+                       SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
+                       if [ -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
+                           CONFIGURE_ARGS+="--with-system-$PKG_BASE=${WITH_SYSTEM_SPKG} "
+                       fi
+                       ;;
+               esac
+           fi
         fi
     fi
 done
@@ -69,7 +74,19 @@ ADD src/ext src/ext
 ADD src/bin src/bin
 ADD src/Makefile.in src/Makefile.in
 ARG EXTRA_CONFIGURE_ARGS
+EOF
+if [ ${WITH_SYSTEM_SPKG} = "force" ]; then
+    cat <<EOF
 RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (echo "********** configuring without forcing ***********"; cat config.log; ./configure --enable-build-as-root; cat config.log; exit 1)
+EOF
+else
+    cat <<EOF
+RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (cat config.log; exit 1)
+EOF
+fi
+# We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
+cat <<EOF
+RUN MAKE="make -j4" base-toolchain
 # Compile something tricky
 RUN MAKE="make -j4" make scipy
 EOF

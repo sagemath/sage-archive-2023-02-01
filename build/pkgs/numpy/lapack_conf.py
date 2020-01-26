@@ -15,11 +15,11 @@ if not (os.environ['UNAME'] == 'Darwin'):
     lib_dir = pc_blas['library_dirs']
     if len(lib_dir) > 0 :
         conf_file.write('library_dirs = '+ ':'.join(lib_dir)+'\n')
-    conf_file.write('libraries    = '+', '.join(pc_blas['libraries'])+'\n')
+    conf_file.write('blas_libs    = '+', '.join(pc_blas['libraries'])+'\n')
     conf_file.write('[lapack]\n')
     lib_dir = pc_lapack['library_dirs']
     if len(lib_dir) > 0 :
         conf_file.write('library_dirs = '+ ':'.join(lib_dir)+'\n')
-    conf_file.write('libraries  = '+', '.join(pc_lapack['libraries'])+'\n')
+    conf_file.write('lapack_libs  = '+', '.join(pc_lapack['libraries'])+'\n')
 
 conf_file.close()

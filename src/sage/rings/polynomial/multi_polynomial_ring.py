@@ -614,11 +614,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: P.monomial_quotient(x, P(1))
             x
 
-        .. note::
+        .. NOTE::
 
-           Assumes that the head term of f is a multiple of the head
-           term of g and return the multiplicant m. If this rule is
-           violated, funny things may happen.
+            Assumes that the head term of f is a multiple of the head
+            term of g and return the multiplicant m. If this rule is
+            violated, funny things may happen.
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 
@@ -627,15 +627,17 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         if not g:
             raise ZeroDivisionError
 
+        fd = f.dict()
+        gd = g.dict()
+
         if not coeff:
+            f = next(iter(fd))
+            g = next(iter(gd))
             coeff = self.base_ring().one()
         else:
-            nf = next(iter(f.dict().values()))
-            ng = next(iter(g.dict().values()))                    
-            coeff = self.base_ring()(nf / ng)
-
-        f = next(iter(f.dict()))
-        g = next(iter(g.dict()))
+            f, cf = next(iter(fd.items()))
+            g, cg = next(iter(gd.items()))
+            coeff = self.base_ring()(cf / cg)
 
         res = f.esub(g)
 

@@ -1,4 +1,5 @@
 SAGE_SPKG_CONFIGURE([openblas], [
+ SAGE_SPKG_DEPCHECK([gfortran], [
   PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.2.20], [
     PKG_CHECK_VAR([OPENBLASPCDIR], [openblas], [pcfiledir], [
        sage_install_blas_pc=yes
@@ -26,7 +27,8 @@ SAGE_SPKG_CONFIGURE([openblas], [
          AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/]blaslibnam[.pc:$OPENBLASPCDIR/openblas.pc])])
        ])
     ])
-  ], [
+ ])
+ ], [
   AS_IF([test "x$with_blas" = xopenblas], [
      sage_require_openblas=yes
      sage_require_atlas=no])

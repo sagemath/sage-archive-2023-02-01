@@ -3043,11 +3043,10 @@ class FindStatMap(Element,
              u'Name': u'reverse',
              u'Properties': u'bijective, graded, involutive',
              u'References': u'',
-             u'SageCode': u'def mapping(sigma):\r\n    return sigma.reverse()',
-             u'SageName': u'mapping'}
+             u'SageCode': u'def mapping(sigma):\r\n    return sigma.reverse()'}
 
         """
-        fields = "Bibliography,Codomain,Description,Domain,Name,Properties,References,SageCode,SageName"
+        fields = "Bibliography,Codomain,Description,Domain,Name,Properties,References,SageCode"
         fields_Bibliography = "Author,Title"
         url = (FINDSTAT_API_MAPS + self.id_str()
                + "?fields=" + fields

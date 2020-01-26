@@ -42,6 +42,14 @@ FROM \${BASE_IMAGE}
 RUN yum install -y $SYSTEM_PACKAGES
 EOF
         ;;
+    arch*)
+        # https://hub.docker.com/_/archlinux/
+        cat <<EOF
+ARG BASE_IMAGE=archlinux:latest
+FROM \${BASE_IMAGE}
+RUN pacman -Syu --noconfirm $SYSTEM_PACKAGES
+EOF
+        ;;
     *)
         echo "Not implemented: package installation for SYSTEM=$SYSTEM"
         exit 1

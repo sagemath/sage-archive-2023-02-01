@@ -46,7 +46,7 @@ supply :func:`findstat` with a list of ``(object, value)`` pairs.
 For example::
 
     sage: PM = PerfectMatchings
-    sage: r = findstat([(m, m.number_of_nestings()) for n in range(6) for m in PM(2*n)]); r    # optional -- internet
+    sage: r = findstat([(m, m.number_of_nestings()) for n in range(6) for m in PM(2*n)]); r # optional -- internet
     0: St000042oMp00116 (quality [100, 100])
     1: St000041 (quality [20, 100])
     ...
@@ -161,11 +161,11 @@ We first have to find out, what the maps and the statistic actually do::
     def statistic(T):
         return T[0].node_number()
 
-    sage: print("\n\n".join(m.sage_code() for m in s.maps()))                   # optional -- internet, random
-    def complement(sigma):
+    sage: print("\n\n".join(m.sage_code() for m in s.maps()))                   # optional -- internet
+    def mapping(sigma):
         return sigma.complement()
     <BLANKLINE>
-    def increasing_tree_shape(sigma):
+    def mapping(sigma):
         return sigma.increasing_tree_shape()
 
 So, the following should coincide with what we sent FindStat::
@@ -266,7 +266,6 @@ from sage.combinat.words.abstract_word import Word_class
 ######################################################################
 # the FindStat URLs
 FINDSTAT_URL                = 'https://www.findstat.org/'
-# FINDSTAT_URL                = 'http://localhost:8090/'
 FINDSTAT_API                = FINDSTAT_URL + "api/"
 FINDSTAT_API_COLLECTIONS    = FINDSTAT_API + 'CollectionsDatabase/'
 FINDSTAT_API_STATISTICS     = FINDSTAT_API + 'StatisticsDatabase/'
@@ -280,7 +279,6 @@ FINDSTAT_URL_NEW_STATISTIC  = FINDSTAT_URL + 'NewStatistic/'
 FINDSTAT_URL_MAPS           = FINDSTAT_URL + 'MapsDatabase/'
 FINDSTAT_URL_EDIT_MAP       = FINDSTAT_URL + 'EditMap/'
 FINDSTAT_URL_NEW_MAP        = FINDSTAT_URL + 'NewMap/'
-
 
 ######################################################################
 # the number of values FindStat allows to search for at most
@@ -450,12 +448,31 @@ def _data_from_iterable(iterable, mapping=False, domain=None,
     - mapping -- (default: ``False``), ``False``, if the codomain is
       ``Integer`` and ``True`` if it is a FindStat collection
 
-    - domain -- (optional), the domain, if ``None`` it is guessed
-      from the iterable
+    - domain -- (optional), a :class:`FindStatCollection`, if
+      ``None`` it is guessed from the iterable
 
-    - codomain -- (optional), the codomain, if ``None`` it is guessed
-      from the iterable
+    - codomain -- (optional), a :class:`FindStatCollection`, if
+      ``None`` it is guessed from the iterable
 
+    TESTS::
+
+        sage: from sage.databases.findstat import FindStatCollection, _data_from_iterable
+        sage: PM = PerfectMatchings
+        sage: l = [(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]
+        sage: _data_from_iterable(l)                                            # optional -- internet
+        (lazy list [([[]], [0]), ([[(1, 2)]], [0]), ([[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]], [0, 0, 1]), ...],
+         a subset of Cc0012: Perfect matchings)
+        sage: domain = FindStatCollection("Set Partitions")                     # optional -- internet
+        sage: _data_from_iterable(l, domain=domain)                             # optional -- internet
+        (lazy list [([[]], [0]), ([[(1, 2)]], [0]), ([[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]], [0, 0, 1]), ...],
+         Cc0009: Set partitions)
+
+    Check that passing a list with a single ``(elements, values)`` pair works::
+
+        sage: l = [(PM(4), [0, 0, 1])]
+        sage: _data_from_iterable(l, domain=domain)                             # optional -- internet
+        (lazy list [([[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]], [0, 0, 1])],
+         Cc0009: Set partitions)
     """
     if isinstance(iterable, dict):
         iterator = iter(iterable.items())
@@ -466,7 +483,7 @@ def _data_from_iterable(iterable, mapping=False, domain=None,
         query1 = next(iterator)
     except StopIteration:
         # query0 == (elts, vals), which we interpret as [(elts, vals)]
-        pre_data = [(query0[0], query0[1])]
+        query0, query1 = query0[0], query0[1]
         # next(iterator) will raise StopIteration
     try:
         query2 = next(iterator)
@@ -540,15 +557,24 @@ def _data_from_function(function, domain):
     Return a lazy list of pairs of singleton lists of the same size,
     domain.
 
+    INPUT:
+
+    - ``function``, a callable
+    - ``domain``, a :class:`FindStatCollection`
+
+    If ``function`` returns the value ``None``, the pair is omitted.
+
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatCollection, _data_from_function
         sage: domain = FindStatCollection(1)                                    # optional -- internet
         sage: _data_from_function(lambda pi: pi[0], domain)                     # optional -- internet
         lazy list [([[1]], [1]), ([[1, 2]], [1]), ([[2, 1]], [2]), ...]
+
     """
     return lazy_list(([elt], [value])
-                     for elt, value in domain.first_terms(function))
+                     for elt, value in domain.first_terms(function)
+                     if value is not None)
 
 
 def _data_from_data(data, max_values):
@@ -566,6 +592,16 @@ def _data_from_data(data, max_values):
 
     We assume that the number of elements in each pair weakly
     increases, to decide when to stop.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _data_from_data
+        sage: PM = PerfectMatchings
+        sage: l = [(PM(2*n), (m.number_of_nestings() for m in PM(2*n))) for n in range(2,100)]
+        sage: [(a, list(b)) for a, b in _data_from_data(l, 35)]
+        [(Perfect matchings of {1, 2, 3, 4}, [0, 0, 1]),
+         (Perfect matchings of {1, 2, 3, 4, 5, 6},
+          [0, 0, 1, 1, 2, 2, 1, 0, 0, 0, 1, 1, 1, 2, 3])]
     """
     query = []
     total = min(max_values, FINDSTAT_MAX_VALUES)
@@ -638,24 +674,88 @@ def _distribution_from_data(data, domain, max_values):
 
 def _generating_functions_from_dict(gfs, style):
     """
-    Convert the generating functions given as a dictionary into a desired style.
+    Convert the generating functions given as a dictionary into a
+    desired style.
+
+    INPUT:
+
+    - ``gfs``, a dictionary whose keys are the levels and whose values
+      are dictionaries from values to multiplicities
+
+    - ``style``, one of ``"dictionary"``, ``"list"`` or
+      ``"polynomial"``
+
+    .. SEEALSO::
+
+        - :meth:`FindStatCombinatorialStatistic.generating_functions()`
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _generating_functions_from_dict
+        sage: d = {n: {2*i: n*i+1 for i in range(n, 2*n+1)} for n in range(3)}; d
+        {0: {0: 1}, 1: {2: 2, 4: 3}, 2: {4: 5, 6: 7, 8: 9}}
+
+        sage: _generating_functions_from_dict(d, "polynomial")
+        {0: 1, 1: 3*q^4 + 2*q^2, 2: 9*q^8 + 7*q^6 + 5*q^4}
+
+        sage: _generating_functions_from_dict(d, "list")
+        {0: [1], 1: [2, 0, 3], 2: [5, 0, 7, 0, 9]}
+
     """
     if style == "dictionary":
         return gfs
     elif style == "list":
-        return { key : [ gfs[key][deg] if deg in gfs[key] else 0
-                         for deg in range(min(gfs[key]),max(gfs[key])+1) ]
-                 for key in gfs }
+        return {level: [gen_dict.get(deg, 0)
+                        for deg in range(min(gen_dict),
+                                         max(gen_dict)+1)]
+                for level, gen_dict in gfs.items() if gen_dict}
     elif style == "polynomial":
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.integer_ring import ZZ
         P = PolynomialRing(ZZ,"q")
         q = P.gen()
-        return { level : sum( coefficient * q**exponent
-                              for exponent,coefficient in iteritems(gen_dict) )
-                 for level, gen_dict in iteritems(gfs)}
+        return {level: sum(coefficient * q**exponent
+                           for exponent, coefficient in gen_dict.items())
+                for level, gen_dict in gfs.items()}
     else:
         raise ValueError("the argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'" % style)
+
+
+def _get_code_from_callable(function):
+    """
+    Return code given a callable, if possible.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _get_code_from_callable
+        sage: @cached_function
+        ....: def statistic(pi):
+        ....:     pi = Permutations(len(pi))(pi)
+        ....:     if pi.is_one():
+        ....:         return 1
+        ....:     return sum(statistic(pi.apply_simple_reflection_right(i))
+        ....:                for i in pi.descents())
+        sage: print(_get_code_from_callable(statistic))
+        @cached_function
+        def statistic(pi):
+            pi = Permutations(len(pi))(pi)
+            if pi.is_one():
+                return Integer(1)
+            return sum(statistic(pi.apply_simple_reflection_right(i))
+                       for i in pi.descents())
+    """
+    code = ""
+    if function is not None:
+        from sage.misc.cachefunc import CachedFunction
+        try:
+            if isinstance(function, CachedFunction):
+                code = inspect.getsource(function.f)
+            else:
+                code = inspect.getsource(function)
+        except (IOError, TypeError):
+            verbose("inspect.getsource could not get code from function provided",
+                    caller_name='FindStat')
+    return code
 
 
 def findstat(query=None, values=None, distribution=None, domain=None,
@@ -728,14 +828,14 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 
     The database can be searched by providing a list of pairs::
 
-        sage: l = [pi for n in range(7) for pi in Permutations(n)]
-        sage: q = findstat([(pi, pi.length()) for pi in l], depth=0); q         # optional -- internet, random
-        0: St000018 (quality [100, 100])
+        sage: l = [m for n in range(1, 4) for m in PerfectMatchings(2*n)]
+        sage: q = findstat([(m, m.number_of_nestings()) for m in l], depth=0); q          # optional -- internet
+        0: St000041 (quality [100, 100])
 
     or a dictionary::
 
-        sage: p = findstat({pi: pi.length() for pi in l}, depth=0); p           # optional -- internet, random
-        0: St000018 (quality [100, 100])
+        sage: p = findstat({m: m.number_of_nestings() for m in l}, depth=0); p  # optional -- internet
+        0: St000041 (quality [100, 100])
 
     Note however, that the results of these two queries need not
     compare equal, because we compare queries by the data
@@ -745,18 +845,18 @@ def findstat(query=None, values=None, distribution=None, domain=None,
     this case, the function is applied to the first few objects of
     the collection::
 
-        sage: findstat("Permutations", lambda pi: pi.length(), depth=0)         # optional -- internet
-        0: St000018 (quality [87, 100])
+        sage: findstat("Perfect Matchings", lambda m: m.number_of_nestings(), depth=0)    # optional -- internet
+        0: St000041 (quality [20, 100])
 
     To search for a distribution, send a list of lists, or a single pair::
 
-        sage: S = PerfectMatchings(10); findstat((S, [pi.number_of_nestings() for pi in S]), depth=0) # optional -- internet
+        sage: PM = PerfectMatchings(10); findstat((PM, [m.number_of_nestings() for m in PM]), depth=0) # optional -- internet
         0: St000042 (quality [100, 100])
         1: St000041 (quality [9, 100])
 
     Alternatively, specify the ``distribution`` parameter::
 
-        sage: findstat(12, distribution=lambda pi: pi.number_of_nestings(), depth=0) # optional -- internet
+        sage: findstat(12, distribution=lambda m: m.number_of_nestings(), depth=0) # optional -- internet
         0: St000041 (quality [100, 100])
         1: St000042 (quality [100, 100])
 
@@ -766,9 +866,9 @@ def findstat(query=None, values=None, distribution=None, domain=None,
     appropriately, but this may be impossible, especially with
     distribution searches::
 
-        sage: S = Permutations(7); S.cardinality()                              # optional -- internet
-        5040
-        sage: findstat((S, [1 for a in S]))                                     # optional -- internet
+        sage: PM = PerfectMatchings(12); PM.cardinality()                       # optional -- internet
+        10395
+        sage: findstat((PM, [1 for m in PM]))                                   # optional -- internet
         Traceback (most recent call last):
         ...
         ValueError: E016: You passed too few elements (0 < 3) to FindStat!
@@ -801,8 +901,13 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 
     Check that values which can be converted to integers are supported::
 
-        sage: findstat([(la, la[0]/1) for la in Partitions(10)], depth=0)       # optional -- internet
-        0: St000147 (quality [100, 100])
+        sage: findstat([(m, m.number_of_nestings()/1) for m in PerfectMatchings(10)], depth=0) # optional -- internet
+        0: St000041 (quality [9, 100])
+
+    Check that ``None`` values are omitted::
+
+        sage: findstat("graphs", lambda g: g.diameter() if g.is_connected() else None)    # optional -- internet
+        0: St000259 (quality [100, 100])
 
     """
     try:
@@ -975,25 +1080,25 @@ def findmap(*args, **kwargs):
     A particular map can be retrieved by its Mp-identifier or
     number::
 
-        sage: findmap('Mp00001')                                                # optional -- internet
-        Mp00001: to semistandard tableau via monotone triangles
+        sage: findmap('Mp00062')                                                # optional -- internet
+        Mp00062: Lehmer-code to major-code bijection
 
-        sage: findmap(1)                                                        # optional -- internet
-        Mp00001: to semistandard tableau via monotone triangles
+        sage: findmap(62)                                                       # optional -- internet
+        Mp00062: Lehmer-code to major-code bijection
 
-        sage: findmap("Mp00087oMp00058")                                        # optional -- internet
-        Mp00087oMp00058
+        sage: findmap("Mp00099oMp00127")                                        # optional -- internet
+        Mp00099oMp00127
 
     The database can be searched by providing a list of pairs::
 
-        sage: l = [pi for n in range(7) for pi in Permutations(n)]
-        sage: q = findmap([(pi, pi.inverse().complement()) for pi in l], depth=2); q      # optional -- internet, random
-        0: Mp00066oMp00064 (quality [100])
+        sage: l = [pi for n in range(5) for pi in Permutations(n)]
+        sage: q = findmap([(pi, pi.complement().increasing_tree_shape()) for pi in l], depth=2); q # optional -- internet
+        0: Mp00061oMp00069 (quality [100])
 
     or a dictionary::
 
-        sage: p = findmap({pi: pi.inverse().complement() for pi in l}, depth=2); p        # optional -- internet, random
-        0: Mp00066oMp00064 (quality [100])
+        sage: p = findmap({pi: pi.complement().increasing_tree_shape() for pi in l}, depth=2); p        # optional -- internet
+        0: Mp00061oMp00069 (quality [100])
 
     Note however, that the results of these two queries need not
     compare equal, because we compare queries by the data
@@ -1003,8 +1108,8 @@ def findmap(*args, **kwargs):
     this case, the function is applied to the first few objects of
     the collection::
 
-        sage: findmap("Permutations", lambda pi: pi.inverse().complement(), depth=2)      # optional -- internet
-        0: Mp00066oMp00064 (quality [100])
+        sage: findmap("Permutations", lambda pi: pi.increasing_tree_shape(), depth=1)      # optional -- internet
+        0: Mp00061 (quality [100])
 
     In rare cases, it may not be possible to guess the codomain of a
     map, in which case it can be provided as second argument or
@@ -1180,13 +1285,13 @@ def findmap(*args, **kwargs):
 ######################################################################
 class FindStatFunction(SageObject):
     """
-    A class containing the common methods of :class:`FindStatMap` and
+    A class providing the common methods of :class:`FindStatMap` and
     :class:`FindStatStatistic`.
 
     This class provides methods to access and modify properties of a
     single statistic or map of the FindStat database.
     """
-    def __init__(self, id, data=None):
+    def __init__(self, id, data=None, function=None):
         """
         Initialize a statistic or map.
 
@@ -1197,13 +1302,32 @@ class FindStatFunction(SageObject):
 
         - ``data``, a dictionary with "Description", "Code", etc.
 
+        - ``function`` -- (optional), a callable implementing the
+          statistic or map, or ``None``.
+
         ``data`` should be provided if and only if ``id`` refers to a
         new statistic or map (with identifier 0).
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatFunction, FindStatCollection # optional -- internet
+            sage: FindStatFunction("St000000",                                  # optional -- internet
+            ....:                  data={"Bibliography": {},
+            ....:                        "Code": "",
+            ....:                        "Description" : "",
+            ....:                        "Domain": FindStatCollection(1),
+            ....:                        "Name": "a new statistic",
+            ....:                        "References": "",
+            ....:                        "SageCode": ""})
+            St000000: a new statistic
 
         """
         self._id = id # as padded identifier, with number 0 reserved for new statistics or maps
         self._modified = False # set in every method modifying the data
-        self._function = False # determines whether FindStat code may be executed
+        if callable(function):
+            self._function = function
+        else:
+            self._function = False  # determines that FindStat code may not be executed
         if self.id() != 0 and data is not None:
             raise ValueError("data (%s) may be provided if and only if id (%s) is %s or %s" %
                              (data, id,
@@ -1221,6 +1345,25 @@ class FindStatFunction(SageObject):
         Any method modifying ``self._data_cache`` should first
         call - directly or indirectly - this method.
 
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatFunction, FindStatCollection # optional -- internet
+            sage: FindStatFunction("St000000",                                  # optional -- internet
+            ....:                  data={"Bibliography": {},
+            ....:                        "Code": "",
+            ....:                        "Description" : "",
+            ....:                        "Domain": FindStatCollection(1),
+            ....:                        "Name": "a new statistic",
+            ....:                        "References": "",
+            ....:                        "SageCode": ""})._data()
+            {'Bibliography': {},
+             'Code': '',
+             'Description': '',
+             'Domain': Cc0001: Permutations,
+             'Name': 'a new statistic',
+             'References': '',
+             'SageCode': ''}
+
         """
         # initializes self._data_cache on first call
         if self._data_cache is None:
@@ -1231,25 +1374,31 @@ class FindStatFunction(SageObject):
     def __call__(self, elt):
         """
         Apply the function to a given element.
+
+        EXAMPLES::
+
+            sage: q = findstat("graphs", lambda g: g.diameter() if g.is_connected() else None) # optional -- internet
+            sage: q(graphs.PetersenGraph().copy(immutable=True))                # optional -- internet
+            2
         """
         if self._function is False:
             raise ValueError("execution of code provided by FindStat is not enabled for %s" % self)
         if self._function is True:
             if not self.sage_code():
-                raise ValueError("there is no code available for %s" % self)
+                raise ValueError("there is no verified code available for %s" % self)
             from sage.repl.preparse import preparse
             try:
                 l = {}
                 code = "from sage.all import *\n" + preparse(self.sage_code())
                 exec(code, l)
             except SyntaxError:
-                raise ValueError("could not execute code for %s" % self)
+                raise ValueError("could not execute verified code for %s" % self)
             if isinstance(self, FindStatStatistic):
                 self._function = eval("statistic", l)
             elif isinstance(self, FindStatMap):
-                self._function = eval(self.code_name(), l)
+                self._function = eval("mapping", l)
             else:
-                raise ValueError("cannot execute code for %s" % self)
+                raise ValueError("cannot execute verified code for %s" % self)
 
         return self._function(elt)
 
@@ -1265,8 +1414,8 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1)                                                   # optional -- internet
-            St000001: The number of reduced words for a permutation.
+            sage: findstat(51)                                                  # optional -- internet
+            St000051: The size of the left subtree of a binary tree.
 
             sage: findstat(914)                                                 # optional -- internet
             St000914: The sum of the values of the Möbius function of a poset.
@@ -1275,6 +1424,38 @@ class FindStatFunction(SageObject):
             return "%s(modified): %s" % (self.id_str(), self.name())
         else:
             return "%s: %s" % (self.id_str(), self.name())
+
+    def reset(self):
+        """
+        Discard all modification of the statistic or map.
+
+        EXAMPLES::
+
+            sage: s = findmap(62)                                               # optional -- internet
+            sage: s.set_name("Möbius"); s                                       # optional -- internet
+            Mp00062(modified): Möbius
+            sage: s.reset(); s                                                  # optional -- internet
+            Mp00062: Lehmer-code to major-code bijection
+
+        Check that new statistics and maps are not affected::
+
+            sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)])             # optional -- internet
+            sage: q.set_description("Random values on Dyck paths.\nNot for submission.")  # optional -- internet
+            sage: print(q.description())                                                  # optional -- internet
+            Random values on Dyck paths.
+            Not for submission.
+            sage: q.reset()                                                               # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot reset values of St000000: a new statistic on Dyck paths
+        """
+        if isinstance(self, FindStatStatistic) and self.id_str() in _all_statistics:
+            del _all_statistics[self.id_str()]
+        elif isinstance(self, FindStatMap) and self.id_str() in _all_maps:
+            del _all_maps[self.id_str()]
+        else:
+            raise ValueError("cannot reset values of %s" % self)
+        self.__init__(self.parent(), self.id_str())
 
     def id(self):
         r"""
@@ -1286,8 +1467,8 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).id()                                              # optional -- internet
-            1
+            sage: findstat(51).id()                                             # optional -- internet
+            51
         """
         return int(self._id[2:])
 
@@ -1301,8 +1482,8 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).id_str()                                          # optional -- internet
-            'St000001'
+            sage: findstat(51).id_str()                                         # optional -- internet
+            'St000051'
         """
         return self._id
 
@@ -1317,10 +1498,10 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).domain()                                          # optional -- internet
-            Cc0001: Permutations
+            sage: findstat(51).domain()                                         # optional -- internet
+            Cc0010: Binary trees
 
-            sage: findmap(71).domain()                                          # optional -- internet
+            sage: findmap(62).domain()                                          # optional -- internet
             Cc0001: Permutations
 
         """
@@ -1336,10 +1517,8 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: print(findstat(1).description())                              # optional -- internet
-            The number of reduced words for a permutation.
-            <BLANKLINE>
-            This is...
+            sage: print(findstat(51).description())                             # optional -- internet
+            The size of the left subtree of a binary tree.
         """
         return self._data()["Description"]
 
@@ -1379,8 +1558,8 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).name()                                            # optional -- internet
-            'The number of reduced words for a permutation.'
+            sage: findstat(51).name()                                           # optional -- internet
+            'The size of the left subtree of a binary tree.'
 
         """
         import sys
@@ -1399,10 +1578,9 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).references()                                      # optional -- internet
-            0: [1]  Edelman, P., Greene, C., Balanced tableaux [[MathSciNet:0871081]]
-            1: [2]  Number of simple allowable sequences on 1..n containing the permutation 12...n. [[OEIS:A005118]]
-            2: [3]  Total number of reduced decompositions for all permutations in S_n. [[OEIS:A246865]]
+            sage: findstat(41).references()                                     # optional -- internet
+            0: [1]  de Médicis, A., Viennot, X. G., Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger [[MathSciNet:1288802]]
+            1: [2]  Simion, R., Stanton, D., Octabasic Laguerre polynomials and permutation statistics [[MathSciNet:1418763]]
         """
         result = []
         refs = self.references_raw()
@@ -1438,6 +1616,12 @@ class FindStatFunction(SageObject):
     def references_raw(self):
         r"""
         Return the unrendered references associated with the statistic or map.
+
+        EXAMPLES::
+
+            sage: print(findstat(41).references_raw())                          # optional -- internet
+            [1]  [[MathSciNet:1288802]]
+            [2]  [[MathSciNet:1418763]]
         """
         return self._data()["References"]
 
@@ -1457,9 +1641,9 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)])     # optional -- internet
-            sage: q.set_references_raw("[1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].\r\n[2] [[oeis:A000001]]")  # optional -- internet
-            sage: q.references()                                                  # optional -- internet
+            sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)])   # optional -- internet
+            sage: q.set_references_raw("[1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].\r\n[2] [[oeis:A000001]]") # optional -- internet
+            sage: q.references()                                                # optional -- internet
             0: [1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].
             1: [2] [[oeis:A000001]]
 
@@ -1486,9 +1670,9 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: print(findstat(1).code())                                     # optional -- internet
-            def statistic(x):
-                return sum(1 for _ in x.reduced_words_iterator())
+            sage: print(findstat(51).sage_code())                               # optional -- internet
+            def statistic(T):
+                return T[0].node_number()
 
         """
         return self._data()["SageCode"]
@@ -1539,6 +1723,12 @@ class FindStatCombinatorialStatistic(SageObject):
     def __init__(self):
         """
         Initialize the combinatorial statistic.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCombinatorialStatistic
+            sage: FindStatCombinatorialStatistic()
+            <sage.databases.findstat.FindStatCombinatorialStatistic object at 0x...>
         """
         self._first_terms_cache = None
         self._first_terms_raw_cache = None
@@ -1557,8 +1747,8 @@ class FindStatCombinatorialStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).first_terms()[Permutation([1,4,3,2])]             # optional -- internet
-            2
+            sage: findstat(41).first_terms()[PerfectMatching([(1,6),(2,5),(3,4)])]        # optional -- internet
+            3
         """
         # initialize self._first_terms_cache and
         # self._first_terms_raw_cache on first call
@@ -1567,24 +1757,38 @@ class FindStatCombinatorialStatistic(SageObject):
         # a shallow copy suffices - tuples are immutable
         return dict(self._first_terms_cache)
 
-    def _first_terms_raw(self):
+    def _first_terms_raw(self, max_values):
         """
         Return the first terms of the (compound) statistic as a
         list of ``(string, value)`` pairs.
+
+        INPUT:
+
+        - ``max_values``, an integer determining how many terms to
+          return at most
 
         OUTPUT:
 
         A list of ``(string, value)`` pairs.
 
         This method is overridden in :class:`FindStatStatisticQuery`.
+
+        TESTS::
+
+            sage: findstat(41)._first_terms_raw(4)                              # optional -- internet
+            [('[(1,2)]', 0),
+             ('[(1,2),(3,4)]', 0),
+             ('[(1,3),(2,4)]', 0),
+             ('[(1,4),(2,3)]', 1)]
+
         """
         # initialize self._first_terms_raw_cache on first call
         if self._first_terms_raw_cache is None:
             self._first_terms_raw_cache = self._fetch_first_terms_raw()
         # a shallow copy suffices - tuples are immutable
-        return self._first_terms_raw_cache[:]
+        return self._first_terms_raw_cache[:max_values]
 
-    def first_terms_str(self):
+    def first_terms_str(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
         Return the first terms of the statistic in the format needed
         for a FindStat query.
@@ -1598,17 +1802,29 @@ class FindStatCombinatorialStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).first_terms_str()[:9]                             # optional -- internet
-            u'[] => 1\r\n'
+            sage: print(findstat(41).first_terms_str(max_values=4))             # optional -- internet
+            [(1,2)] => 0
+            [(1,2),(3,4)] => 0
+            [(1,3),(2,4)] => 0
+            [(1,4),(2,3)] => 1
 
         """
         return "\r\n".join(key + " => " + str(val)
-                           for key, val in self._first_terms_raw())
+                           for key, val in self._first_terms_raw(max_values=max_values))
 
     def _fetch_first_terms(self):
         r"""
         Return the first terms of the statistic as a list of ``(object,
         value)`` pairs.
+
+        TESTS::
+
+            sage: findstat(41)._fetch_first_terms()[:4]                         # optional -- internet
+            [([(1, 2)], 0),
+             ([(1, 2), (3, 4)], 0),
+             ([(1, 3), (2, 4)], 0),
+             ([(1, 4), (2, 3)], 1)]
+
         """
         from_str = self.domain().from_string()
         if self._first_terms_raw_cache is None:
@@ -1623,9 +1839,9 @@ class FindStatCombinatorialStatistic(SageObject):
 
         TESTS:
 
-            sage: q = findstat((DyckWords(3), range(5)))                        # optional -- internet
+            sage: q = findstat((BinaryTrees(5), list(range(0,24,4))*7))         # optional -- internet
             sage: q._generating_functions_dict()                                # optional -- internet
-            {3: {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}}
+            {5: {0: 7, 4: 7, 8: 7, 12: 7, 16: 7, 20: 7}}
 
         """
         gfs = {}
@@ -1671,49 +1887,27 @@ class FindStatCombinatorialStatistic(SageObject):
           generating function.
 
         - if ``style`` is ``"list"``, the generating function is
-          returned as a list of coefficients of the generating function.
+          returned as a list of coefficients of the generating
+          function.  In this case, leading and trailing zeros are
+          omitted.
 
         EXAMPLES::
 
-            sage: st = findstat(18)                                             # optional -- internet
+            sage: st = findstat(41)                                             # optional -- internet
             sage: st.generating_functions()                                     # optional -- internet
-            {1: 1,
-             2: q + 1,
-             3: q^3 + 2*q^2 + 2*q + 1,
-             4: q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1,
-             5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
-             6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
+            {2: 1,
+             4: q + 2,
+             6: q^3 + 3*q^2 + 6*q + 5,
+             8: q^6 + 4*q^5 + 10*q^4 + 20*q^3 + 28*q^2 + 28*q + 14}
 
             sage: st.generating_functions(style="dictionary")                   # optional -- internet
-            {1: {0: 1},
-             2: {0: 1, 1: 1},
-             3: {0: 1, 1: 2, 2: 2, 3: 1},
-             4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
-             5: {0: 1, 1: 4, 2: 9, 3: 15, 4: 20, 5: 22, 6: 20, 7: 15, 8: 9, 9: 4, 10: 1},
-             6: {0: 1,
-              1: 5,
-              2: 14,
-              3: 29,
-              4: 49,
-              5: 71,
-              6: 90,
-              7: 101,
-              8: 101,
-              9: 90,
-              10: 71,
-              11: 49,
-              12: 29,
-              13: 14,
-              14: 5,
-              15: 1}}
+            {2: {0: 1},
+             4: {0: 2, 1: 1},
+             6: {0: 5, 1: 6, 2: 3, 3: 1},
+             8: {0: 14, 1: 28, 2: 28, 3: 20, 4: 10, 5: 4, 6: 1}}
 
             sage: st.generating_functions(style="list")                         # optional -- internet
-            {1: [1],
-             2: [1, 1],
-             3: [1, 2, 2, 1],
-             4: [1, 3, 5, 6, 5, 3, 1],
-             5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
-             6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
+            {2: [1], 4: [2, 1], 6: [5, 6, 3, 1], 8: [14, 28, 28, 20, 10, 4, 1]}
 
         """
         return _generating_functions_from_dict(self._generating_functions_dict(),
@@ -1740,19 +1934,14 @@ class FindStatCombinatorialStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: st = findstat(18)                                             # optional -- internet
+            sage: st = findstat(41)                                             # optional -- internet
 
             sage: st.oeis_search()                                              # optional -- internet
-            Searching the OEIS for "1  1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  ..."
-            0: A008302: Triangle of Mahonian numbers T(n,k)...
-
-            sage: st.oeis_search(search_size=13)                                # optional -- internet
-            Searching the OEIS for "1  1,1  1,2,2,1  ..."
-            0: A008302: Triangle of Mahonian numbers T(n,k)...
+            Searching the OEIS for "1  2,1  5,6,3,1  14,28,28,20,10,4,1"
+            0: A067311: Triangle read by rows: T(n,k) gives number of ways of arranging n chords on a circle with k simple intersections ...
 
         """
         from sage.databases.oeis import oeis
-
         gen_funcs = self.generating_functions(style="list")
 
         OEIS_string = ""
@@ -1796,8 +1985,8 @@ class FindStatStatistic(Element,
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatStatistic
-        sage: FindStatStatistic(1)                                              # optional -- internet
-        St000001: The number of reduced words for a permutation.
+        sage: FindStatStatistic(41)                                             # optional -- internet
+        St000041: The number of nestings of a perfect matching.
 
     .. SEEALSO::
 
@@ -1829,10 +2018,31 @@ class FindStatStatistic(Element,
 
         - ``id`` -- the (padded) FindStat identifier of the statistic.
 
+        EXAMPLES::
+
+            sage: findstat(41)                                                  # optional -- internet, indirect doctest
+            St000041: The number of nestings of a perfect matching.
+
         """
         FindStatFunction.__init__(self, id)
         FindStatCombinatorialStatistic.__init__(self)
         Element.__init__(self, parent)
+
+    def __call__(self, elt):
+        """
+        Apply the statistic to a given element.
+
+        EXAMPLES::
+
+            sage: q = findstat("graphs", lambda g: g.diameter() if g.is_connected() else None) # optional -- internet
+            sage: q(graphs.PetersenGraph().copy(immutable=True))                # optional -- internet
+            2
+
+        """
+        val = self.first_terms().get(elt, None)
+        if val is None:
+            return FindStatFunction.__call__(self, elt)
+        return val
 
     def __reduce__(self):
         """
@@ -1842,7 +2052,7 @@ class FindStatStatistic(Element,
         TESTS::
 
             sage: from sage.databases.findstat import FindStatStatistic
-            sage: c = FindStatStatistic(62)                                     # optional -- internet
+            sage: c = FindStatStatistic(41)                                     # optional -- internet
             sage: loads(dumps(c)) == c                                          # optional -- internet
             True
 
@@ -1852,6 +2062,13 @@ class FindStatStatistic(Element,
     def _richcmp_(self, other, op):
         """
         Compare two statistics by identifier.
+
+        TESTS::
+
+            sage: findstat(41) != findstat(42)                                  # optional -- internet
+            True
+            sage: findstat(41) == findstat(41)                                  # optional -- internet
+            True
         """
         return richcmp(self.id(), other.id(), op)
 
@@ -1859,6 +2076,21 @@ class FindStatStatistic(Element,
         """
         Return a dictionary containing the data of the statistic, except
         for the values, fetched from FindStat.
+
+        TESTS::
+
+            sage: findstat(41)._data()                                    # optional -- internet, indirect doctest
+            {'Bibliography': {'MathSciNet:1288802': {'Author': 'de Médicis, A., Viennot, X. G.',
+               'Title': 'Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger'},
+              'MathSciNet:1418763': {'Author': 'Simion, R., Stanton, D.',
+               'Title': 'Octabasic Laguerre polynomials and permutation statistics'}},
+             'Code': 'def statistic(x):\r\n    return len(x.nestings())',
+             'Description': 'The number of nestings of a perfect matching. \r\n\r\n\r\nThis is the number of pairs of edges $((a,b), (c,d))$ such that $a\\le c\\le d\\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.',
+             'Domain': 'Cc0012',
+             'Name': 'The number of nestings of a perfect matching.',
+             'References': '[1]  [[MathSciNet:1288802]]\n[2]  [[MathSciNet:1418763]]',
+             'SageCode': 'def statistic(x):\r\n    return len(x.nestings())'}
+
         """
         fields = "Bibliography,Code,Description,Domain,Name,References,SageCode"
         fields_Bibliography = "Author,Title"
@@ -1877,6 +2109,14 @@ class FindStatStatistic(Element,
         r"""
         Return the first terms of the statistic, as ``(string,
         value)`` pairs, fetched from FindStat
+
+        TESTS::
+
+            sage: findstat(41)._first_terms_raw(4)                            # optional -- internet,indirect doctest
+            [('[(1,2)]', 0),
+             ('[(1,2),(3,4)]', 0),
+             ('[(1,3),(2,4)]', 0),
+             ('[(1,4),(2,3)]', 1)]
         """
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
@@ -1896,9 +2136,26 @@ class FindStatStatistic(Element,
         This information is used when submitting the statistic with
         :meth:`submit`.
 
+        .. WARNING::
+
+            This method cannot check whether the given values are
+            actually correct.  Moreover, it does not even perform any
+            sanity checks.
+
+        TESTS::
+
+            sage: s = findstat(41)                                              # optional -- internet
+            sage: l = [([(1,2)], 1), ([(1,2),(3,4)], 7), ([(1,3),(2,4)], 8), ([(1,4),(2,3)], 3)]
+            sage: s.set_first_terms(l)                                          # optional -- internet
+            sage: print(s.first_terms_str())                                    # optional -- internet
+            [(1, 2)] => 1
+            [(1, 2), (3, 4)] => 7
+            [(1, 3), (2, 4)] => 8
+            [(1, 4), (2, 3)] => 3
+            sage: s.reset()                                                     # optional -- internet
         """
         to_str = self.domain().to_string()
-        new = [tuple(to_str(obj), value) for obj, value in values]
+        new = [(to_str(obj), value) for obj, value in values]
         if sorted(new) != sorted(self.first_terms_str()):
             self._modified = True
             self._first_terms_raw_cache = new
@@ -1920,11 +2177,11 @@ class FindStatStatistic(Element,
 
         EXAMPLES::
 
-            sage: print(findstat(1).code())                                     # optional -- internet
+            sage: print(findstat(41).code())                                    # optional -- internet
             def statistic(x):
-                return sum(1 for _ in x.reduced_words_iterator())
+                return len(x.nestings())
 
-            sage: print(findstat(118).code())                                   # optional -- internet, random
+            sage: print(findstat(118).code())                                   # optional -- internet
             (* in Mathematica *)
             tree = {{{{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}}};
             Count[tree, {{___}, {{___}, {{___}, {___}}}}, {0, Infinity}]
@@ -1971,14 +2228,20 @@ class FindStatStatistic(Element,
         else:
             webbrowser.open(FINDSTAT_URL_STATISTICS + self.id_str())
 
-    def submit(self):
+    def submit(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
         Open the FindStat web page for editing the statistic in a browser.
+
+        TESTS::
+
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)])    # optional -- internet
+            sage: s.set_description("Möbius")                                   # optional -- internet
+            sage: s.submit()                                                    # optional -- webbrowser
         """
         args = dict()
         args["OriginalStatistic"] = self.id_str()
-        args["Domain"]            = str(self.domain().id_str())
-        args["Values"]            = self.first_terms_str()
+        args["Domain"]            = self.domain().id_str()
+        args["Values"]            = self.first_terms_str(max_values=max_values)
         args["Description"]       = self.description()
         args["References"]        = self.references_raw()
         args["Code"]              = self.code()
@@ -1996,7 +2259,7 @@ class FindStatStatistic(Element,
         for key, value in iteritems(args):
             if value:
                 verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(value.encode("utf-8"), quote=True)
+                value_encoded = cgi.escape(value, quote=True)
                 verbose("%s" % value_encoded, caller_name='FindStat')
                 f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
             else:
@@ -2016,14 +2279,8 @@ class FindStatStatistic(Element,
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMaps
-            sage: sorted(list(FindStatMaps(codomain=17)))                       # optional -- internet
-            [Mp00003: rotate counterclockwise,
-             Mp00004: rotate clockwise,
-             Mp00005: transpose,
-             Mp00006: gyration,
-             Mp00035: to alternating sign matrix,
-             Mp00063: to alternating sign matrix,
-             Mp00137: to symmetric ASM]
+            sage: list(FindStatMaps(domain=1, codomain=10))                     # optional -- internet
+            [Mp00061: to increasing tree, Mp00072: binary search tree: left to right]
         """
         return self.id()
 
@@ -2038,26 +2295,16 @@ class FindStatStatistics(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
-    We can print a nice list of the first few statistics currently in
-    FindStat, sorted by domain::
+    We can print a list of the first few statistics currently in
+    FindStat, in a given domain::
 
-        sage: from sage.databases.findstat import FindStatCollections, FindStatStatistic, FindStatStatistics
-        sage: for cc, _ in zip(FindStatCollections(), range(3)):                # optional -- internet, random
-        ....:     print(cc.name(style="plural"))
-        ....:     for st, _ in zip(FindStatStatistics(cc), range(3)):
-        ....:         print("    " + st.name())
-        Semistandard tableaux
-            The cocharge of a semistandard tableau.
-            The charge of a semistandard tableau.
-            The sum of the entries of a semistandard tableau.
-        Gelfand-Tsetlin patterns
-            The number of circled entries.
-            The number of boxed entries.
-            The number of special entries.
-        Cores
-            The length of a core.
-            The size of a core.
-            The number of strong covers of a core.
+        sage: from sage.databases.findstat import FindStatStatistics
+        sage: for st, _ in zip(FindStatStatistics("Perfect Matchings"), range(3)):        # optional -- internet
+        ....:     print("    " + st.name())
+        The number of nestings of a perfect matching.
+        The number of crossings of a perfect matching.
+        The number of crossings plus two-nestings of a perfect matching.
+
 
     """
     def __init__(self, domain=None):
@@ -2087,8 +2334,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatStatistic
-            sage: FindStatStatistic(1)                                          # optional -- internet
-            St000001: The number of reduced words for a permutation.
+            sage: FindStatStatistic(41)                                         # optional -- internet
+            St000041: The number of nestings of a perfect matching.
 
         """
         if isinstance(id, self.Element):
@@ -2130,8 +2377,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatStatistics
-            sage: next(iter(FindStatStatistics("Permutations")))                # optional -- internet
-            St000001: The number of reduced words for a permutation.
+            sage: next(iter(FindStatStatistics("Perfect Matchings")))           # optional -- internet
+            St000041: The number of nestings of a perfect matching.
 
         """
         if self._identifiers is None:
@@ -2208,12 +2455,13 @@ class FindStatStatisticQuery(FindStatStatistic):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatStatisticQuery
-            sage: data = [[[pi],[pi[0]]] for n in range(1,7) for pi in Permutations(n)] # optional -- internet
-            sage: FindStatStatisticQuery(domain=1, data=data, depth=1)          # optional -- internet
-            0: St000054 (quality [100, 100])
-            1: St000025oMp00127 (quality [100, 100])
-            2: St000051oMp00072 with offset -1 (quality [100, 100])
-            ...
+            sage: data = [[[m],[m.number_of_nestings()]] for n in range(5) for m in PerfectMatchings(2*n)] # optional -- internet
+            sage: FindStatStatisticQuery(domain=12, data=data, depth=1)         # optional -- internet
+            0: St000041 (quality [99, 100])
+            1: St000042oMp00116 (quality [99, 100])
+            2: St000233oMp00092 (quality [99, 100])
+            3: St000496oMp00092 (quality [99, 100])
+            4: St001513oMp00058 (quality [15, 57])
 
         """
         self._first_terms = data
@@ -2221,7 +2469,6 @@ class FindStatStatisticQuery(FindStatStatistic):
             self._known_terms = data
         else:
             self._known_terms = known_terms
-        self._function = function
         self._values_of = None
         self._distribution_of = None
         self._depth = depth
@@ -2274,41 +2521,71 @@ class FindStatStatisticQuery(FindStatStatistic):
 
         self._result = FancyTuple(result)
 
-        code = ""
-        if self._function is not None:
-            try:
-                code = inspect.getsource(self._function)
-            except IOError:
-                verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
-
         FindStatFunction.__init__(self, FINDSTAT_STATISTIC_PADDED_IDENTIFIER % 0,
-                                  {"Bibliography": {},
-                                   "Code": code,
-                                   "Description" : "",
-                                   "Domain": domain,
-                                   "Name": "a new statistic on %s" % domain.name("plural"),
-                                   "References": "",
-                                   "SageCode": ""})
-        Element.__init__(self, FindStatStatistics())
+                                  data={"Bibliography": {},
+                                        "Code": _get_code_from_callable(function),
+                                        "Description" : "",
+                                        "Domain": domain,
+                                        "Name": "a new statistic on %s" % domain.name("plural"),
+                                        "References": "",
+                                        "SageCode": ""},
+                                  function=function)
+        Element.__init__(self, FindStatStatistics()) # this is not completely correct, but it works
 
     def first_terms(self):
         """
-        Return the pairs of the known terms which contain singletons.
-        """
-        return [(objs[0], vals[0]) for objs, vals in self._known_terms
-                if len(vals) == 1]
+        Return the pairs of the known terms which contain singletons as a dictionary.
 
-    def _first_terms_raw(self):
+        EXAMPLES::
+
+             sage: PM = PerfectMatchings
+             sage: l = [(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]
+             sage: r = findstat(l, depth=0); r                                  # optional -- internet
+             0: St000041 (quality [99, 100])
+             1: St000042 (quality [99, 100])
+             sage: r.first_terms()                                              # optional -- internet
+             {[]: 0, [(1, 2)]: 0}
+
+        """
+        return {objs[0]: vals[0] for objs, vals in self._known_terms
+                if len(vals) == 1}
+
+    def _first_terms_raw(self, max_values):
         """
         Return the first terms as ``(string, value)`` pairs.
+
+        EXAMPLES::
+
+             sage: PM = PerfectMatchings
+             sage: l = [(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]
+             sage: r = findstat(l, depth=0); r                                  # optional -- internet
+             0: St000041 (quality [99, 100])
+             1: St000042 (quality [99, 100])
+             sage: r._first_terms_raw(100)                                      # optional -- internet
+             [('[]', 0), ('[(1, 2)]', 0)]
+
         """
         to_str = self.domain().to_string()
-        return [(to_str(obj), val) for obj, val in self.first_terms()]
+        return [(to_str(obj), val)
+                for (obj, val), _ in zip(self.first_terms().items(), range(max_values))]
 
     def _generating_functions_dict(self, max_values=FINDSTAT_MAX_VALUES):
         """
         Return the generating functions of the levels where all values
         can be determined.
+
+        TESTS::
+
+            sage: n = 3; l = lambda i: [pi for pi in Permutations(n) if pi(1) == i]
+            sage: data = [([pi for pi in l(i)], [pi(1) for pi in l(i)]) for i in range(1,n+1)]
+            sage: data.append((Permutation([1,2]), 1))
+            sage: q = findstat(data, depth=0); q                                    # optional -- internet
+            0: St000054 (quality [100, 100])
+            sage: q.first_terms()                                                   # optional -- internet
+            {[1, 2]: 1}
+            sage: q.generating_functions()                                          # optional -- internet, indirect doctest
+            {3: 2*q^3 + 2*q^2 + 2*q}
+
         """
         gfs = {} # lvl: vals
         total = min(max_values, FINDSTAT_MAX_VALUES)
@@ -2363,18 +2640,19 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
 
         - ``id`` -- a padded identifier
 
-        - ``domain``-- (optional), the domain of the compound statistic
+        - ``domain`` -- (optional), the domain of the compound statistic
 
         - ``check`` -- whether to check that domains and codomains fit
 
-        If the domain is given, it is not fetched from FindStat.
+        If the domain is given and ``check`` is ``False``, it is not
+        fetched from FindStat.
 
         TESTS::
 
-            sage: findstat("St000001oMp00127")                                  # optional -- internet
+            sage: findstat("St000041oMp00127")                                  # optional -- internet
             Traceback (most recent call last):
             ...
-            ValueError: the statistic St000001: The number of reduced words for a permutation. cannot be composed with the map Mp00127
+            ValueError: the statistic St000041: The number of nestings of a perfect matching. cannot be composed with the map Mp00127
 
         """
         if isinstance(id, (int, Integer)):
@@ -2453,7 +2731,8 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
 
         EXAMPLES::
 
-            sage: FindStatCompoundStatistic("Mp00087oMp00058").browse()         # optional -- webbrowser
+            sage: from sage.databases.findstat import FindStatCompoundStatistic
+            sage: FindStatCompoundStatistic("St000042oMp00116").browse()        # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_STATISTICS + self.id_str())
 
@@ -2471,7 +2750,7 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 
         - ``quality``, the quality of the match, as provided by FindStat
 
-        - ``domain``-- (optional), the domain of the compound statistic
+        - ``domain`` -- (optional), the domain of the compound statistic
         """
         self._quality = quality
         self._offset = offset
@@ -2543,8 +2822,8 @@ class FindStatMap(Element,
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatMap
-        sage: FindStatMap(71)                                                   # optional -- internet
-        Mp00071: descent composition
+        sage: FindStatMap(116)                                                  # optional -- internet
+        Mp00116: Kasraoui-Zeng
 
     .. SEEALSO::
 
@@ -2583,7 +2862,7 @@ class FindStatMap(Element,
         TESTS::
 
             sage: from sage.databases.findstat import FindStatMap
-            sage: FindStatMap(62).parent()                                      # optional -- internet
+            sage: FindStatMap(116).parent()                                     # optional -- internet
             Set of combinatorial maps used by FindStat
 
         """
@@ -2597,7 +2876,7 @@ class FindStatMap(Element,
         TESTS::
 
             sage: from sage.databases.findstat import FindStatMap
-            sage: c = FindStatMap(62)                                           # optional -- internet
+            sage: c = FindStatMap(116)                                          # optional -- internet
             sage: loads(dumps(c)) == c                                          # optional -- internet
             True
 
@@ -2612,7 +2891,8 @@ class FindStatMap(Element,
 
     def _fetch_data(self):
         """
-        Return a dictionary containing the data of the map, fetched from FindStat.
+        Return a dictionary containing the data of the map, fetched from
+        FindStat.
         """
         fields = "Bibliography,Codomain,Description,Domain,Name,Properties,References,SageCode,SageName"
         fields_Bibliography = "Author,Title"
@@ -2634,7 +2914,7 @@ class FindStatMap(Element,
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap
-            sage: FindStatMap(62).browse()                                      # optional -- webbrowser
+            sage: FindStatMap(116).browse()                                     # optional -- webbrowser
         """
         if self.id() == 0:
             self.submit()
@@ -2644,21 +2924,28 @@ class FindStatMap(Element,
     def submit(self):
         r"""
         Open the FindStat web page for editing the map in a browser.
+
+        TESTS::
+
+            sage: s = findmap(62)                                               # optional -- internet
+            sage: s.set_name("Möbius")                                          # optional -- internet
+            sage: s.submit()                                                    # optional -- webbrowser
+            sage: from sage.databases.findstat import _all_maps                 # optional -- internet
+            sage: s.reset()                                                     # optional -- internet
         """
         args = dict()
         args["OriginalMap"]        = self.id_str()
-        args["Domain"]             = str(self.domain().id_str())
-        args["Codomain"]           = str(self.codomain().id_str())
+        args["Domain"]             = self.domain().id_str()
+        args["Codomain"]           = self.codomain().id_str()
         args["Name"]               = self.name()
         args["Description"]        = self.description()
         args["References"]         = self.references_raw()
         args["Properties"]         = self.properties_raw()
         args["SageCode"]           = self.sage_code()
-        args["SageName"]           = self.code_name()
         args["CurrentAuthor"]      = FindStat().user_name()
         args["CurrentEmail"]       = findstat().user_email()
 
-        f = tempfile.NamedTemporaryFile(suffix='.html', delete=False)
+        f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:
@@ -2668,7 +2955,7 @@ class FindStatMap(Element,
         for key, value in iteritems(args):
             if value:
                 verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(value.encode("utf-8"), quote=True)
+                value_encoded = cgi.escape(value, quote=True)
                 verbose("%s" % value_encoded, caller_name='FindStat')
                 f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
             else:
@@ -2688,14 +2975,8 @@ class FindStatMap(Element,
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMaps
-            sage: sorted(list(FindStatMaps(codomain=17)))                       # optional -- internet
-            [Mp00003: rotate counterclockwise,
-             Mp00004: rotate clockwise,
-             Mp00005: transpose,
-             Mp00006: gyration,
-             Mp00035: to alternating sign matrix,
-             Mp00063: to alternating sign matrix,
-             Mp00137: to symmetric ASM]
+            sage: sorted(list(FindStatMaps(domain=1, codomain=10)))             # optional -- internet, indirect doctest
+            [Mp00061: to increasing tree, Mp00072: binary search tree: left to right]
         """
         return self.id()
 
@@ -2710,8 +2991,8 @@ class FindStatMap(Element,
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: FindStatMap(71).codomain()                                    # optional -- internet
-            Cc0006: Integer compositions
+            sage: FindStatMap(27).codomain()                                    # optional -- internet
+            Cc0002: Integer partitions
         """
         return FindStatCollection(self._data()["Codomain"])
 
@@ -2726,7 +3007,7 @@ class FindStatMap(Element,
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: FindStatMap(71).properties_raw()                              # optional -- internet
+            sage: FindStatMap(61).properties_raw()                              # optional -- internet
             u'surjective, graded'
         """
         return self._data()["Properties"]
@@ -2738,52 +3019,34 @@ class FindStatMap(Element,
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: FindStatMap(71).set_properties_raw(u'surjective')             # optional -- internet
-            sage: FindStatMap(71).properties_raw()                              # optional -- internet
+            sage: FindStatMap(61).set_properties_raw(u'surjective')             # optional -- internet
+            sage: FindStatMap(61).properties_raw()                              # optional -- internet
             u'surjective'
-            sage: FindStatMap(71)                                               # optional -- internet
-            Mp00071(modified): descent composition
-            sage: from sage.databases.findstat import _all_maps                 # optional -- internet
-            sage: del _all_maps['Mp00071']                                      # optional -- internet
-            sage: FindStatMap(71)                                               # optional -- internet
-            Mp00071: descent composition
+            sage: FindStatMap(61)                                               # optional -- internet
+            Mp00061(modified): to increasing tree
+            sage: FindStatMap(61).reset()                                       # optional -- internet
+            sage: FindStatMap(61)                                               # optional -- internet
+            Mp00061: to increasing tree
         """
         if value != self.properties_raw():
             self._modified = True
             self._data_cache["Properties"] = value
 
-    def code_name(self):
+    def set_name(self, value):
         r"""
-        Return the name of the function defined by :meth:`code`.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: print(FindStatMap(71).code_name())                            # optional -- internet
-            descents_composition
-        """
-        return self._data()["SageName"]
-
-    def set_code_name(self, value):
-        r"""
-        Set the sage code name of the map.
+        Set the name of the map.
 
         INPUT:
 
-        - a string -- for statistics, this is the name of the
-          statistic followed by its description on a separate line.
+        - a string -- the new name of the map.
 
-        This information is used when submitting the statistic or map with
+        This information is used when submitting the map with
         :meth:`submit`.
 
         """
-        if value != self.code_name():
+        if value != self.name():
             self._modified = True
-            self._data_cache["SageName"] = value
+            self._data_cache["Name"] = value
 
 
 _all_maps = {}
@@ -2798,9 +3061,9 @@ class FindStatMaps(UniqueRepresentation, Parent):
 
     We can print a sample map, for each domain and codomain::
 
-        sage: from sage.databases.findstat import FindStatCollections, FindStatMap, FindStatMaps
+        sage: from sage.databases.findstat import FindStatCollections, FindStatMaps
         sage: ccs = sorted(FindStatCollections())[:3]                           # optional -- internet
-        sage: for cc_dom in ccs:                                                # optional -- internet, random
+        sage: for cc_dom in ccs:                                                # optional -- internet
         ....:     for cc_codom in ccs:
         ....:         print(cc_dom.name(style="plural") + " -> " + cc_codom.name(style="plural"))
         ....:         try:
@@ -2857,8 +3120,8 @@ class FindStatMaps(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap
-            sage: FindStatMap(71)                                               # optional -- internet
-            Mp00071: descent composition
+            sage: FindStatMap(61)                                               # optional -- internet, indirect doctest
+            Mp00061: to increasing tree
 
         """
         if isinstance(id, self.Element):
@@ -2904,8 +3167,8 @@ class FindStatMaps(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMaps
-            sage: next(iter(FindStatMaps(domain=5)))                            # optional -- internet
-            Mp00023: to non-crossing permutation
+            sage: next(iter(FindStatMaps(domain=1, codomain=10)))               # optional -- internet
+            Mp00061: to increasing tree
 
         """
         if self._identifiers is None:
@@ -2952,15 +3215,14 @@ class FindStatMapQuery(FindStatMap):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMapQuery
-            sage: FindStatMapQuery(domain=1, codomain=1, data=[[[pi],[pi.reverse().inverse()]] for pi in Permutations(4)]) # optional -- internet
-            0: Mp00066oMp00064 (quality [100])
+            sage: FindStatMapQuery(domain=1, codomain=10, data=[[[pi],[pi.complement().increasing_tree_shape()]] for pi in Permutations(4)]) # optional -- internet
+            0: Mp00061oMp00069 (quality [100])
         """
         self._first_terms = data
         if data is not None and known_terms is None:
             self._known_terms = data
         else:
             self._known_terms = known_terms
-        self._function = function
         self._values_of = None
         self._distribution_of = None
         self._depth = depth
@@ -3014,23 +3276,17 @@ class FindStatMapQuery(FindStatMap):
                                               entry["Quality"]))
         self._result = FancyTuple(result)
 
-        code = ""
-        if self._function is not None:
-            try:
-                code = inspect.getsource(self._function)
-            except IOError:
-                verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
-
         FindStatFunction.__init__(self, FINDSTAT_MAP_PADDED_IDENTIFIER % 0,
-                                  {"Bibliography": {},
-                                   "Code": code,
-                                   "Description" : "",
-                                   "Domain": domain,
-                                   "Codomain": codomain,
-                                   "Name": "a new map from %s to %s" % (domain.name("plural"), codomain.name("plural")),
-                                   "References": "",
-                                   "SageCode": ""})
-        Element.__init__(self, FindStatMaps())
+                                  data={"Bibliography": {},
+                                        "Code": _get_code_from_callable(function),
+                                        "Description" : "",
+                                        "Domain": domain,
+                                        "Codomain": codomain,
+                                        "Name": "a new map from %s to %s" % (domain.name("plural"), codomain.name("plural")),
+                                        "References": "",
+                                        "SageCode": ""},
+                                  function=function)
+        Element.__init__(self, FindStatMaps()) # this is not completely correct, but it works
 
 
     def __repr__(self):
@@ -3063,7 +3319,11 @@ class FindStatCompoundMap(Element):
 
         - ``check`` -- whether to check that domains and codomains fit
 
-        If domain and codomain are given, they are not fetched from FindStat.
+        If domain and codomain are given and ``check`` is ``False``,
+        they are not fetched from FindStat.
+
+        If ``id`` is the empty string, ``domain`` must be provided,
+        and the identity map on this collection is returned.
 
         TESTS::
 
@@ -3077,15 +3337,15 @@ class FindStatCompoundMap(Element):
             Traceback (most recent call last):
             ...
             ValueError: the sequence of maps [Mp00146: to tunnel matching, Mp00127: left-to-right-maxima to Dyck path] cannot be composed
-        """
 
+        """
         if isinstance(id, (int, Integer)):
             id = FINDSTAT_MAP_PADDED_IDENTIFIER % id
         if id == "":
             self._id = "id"
             self._maps = []
             self._domain = FindStatCollection(domain)
-            self._codomain = FindStatCollection(codomain)
+            self._codomain = self._domain
         else:
             self._id = id
             self._maps = [FindStatMap(m) for m in id.split("o")][::-1]
@@ -3160,7 +3420,7 @@ class FindStatCompoundMap(Element):
 
         EXAMPLES::
 
-            sage: findmap(41).browse()                                          # optional -- webbrowser
+            sage: findmap(62).browse()                                          # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_MAPS + self.id_str())
 
@@ -3459,7 +3719,7 @@ class FindStatCollection(Element):
             True
             sage: c.in_range(GelfandTsetlinPattern([[3, 1], [1]]))              # optional -- internet
             True
-            sage: c.in_range(GelfandTsetlinPattern([[7, 1], [1]]))              # optional -- internet, random
+            sage: c.in_range(GelfandTsetlinPattern([[7, 1], [1]]))              # optional -- internet
             False
 
 
@@ -3468,7 +3728,7 @@ class FindStatCollection(Element):
             sage: from sage.databases.findstat import FindStatCollections
             sage: l = FindStatCollections()                                     # optional -- internet
             sage: long = [9, 12, 14, 20]
-            sage: for c in sorted(l):                                           # optional -- internet, random
+            sage: for c in sorted(l):                                           # optional -- internet
             ....:     if c.id() not in long and c.is_supported():
             ....:         f = c.first_terms(lambda x: 1)
             ....:         print("{} {} {}".format(c, len(list(f)), all(c.in_range(e) for e, _ in f)))
@@ -3494,8 +3754,8 @@ class FindStatCollection(Element):
 
     def first_terms(self, function, level=None):
         r"""
-        Compute the first few terms of the given function, restricted to
-        the given level.
+        Compute the first few terms of the given function, possibly
+        restricted to a level, as a lazy list.
 
         INPUT:
 
@@ -3511,7 +3771,7 @@ class FindStatCollection(Element):
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("GelfandTsetlinPatterns")              # optional -- internet
-            sage: c.first_terms(lambda x: 1)[:10].list()                        # optional -- internet, random
+            sage: c.first_terms(lambda x: 1)[:10].list()                        # optional -- internet
             [([[1, 0], [0]], 1),
              ([[1, 0], [1]], 1),
              ([[2, 0], [0]], 1),
@@ -3744,7 +4004,7 @@ SupportedFindStatCollections = {
                                                                lambda i,j: (i,j) in E or (j,i) in E],
                                                               immutable=True))(*literal_eval(x)),
                                 lambda X: str((sorted(X.edges(False)), X.num_verts())),
-                                graphs,
+                                lambda x: (g.copy(immutable=True) for g in graphs(x, copy=False)),
                                 lambda x: x.num_verts(),
                                 lambda x: isinstance(x, Graph)),
     "IntegerCompositions":
@@ -3896,8 +4156,11 @@ class FindStatCollections(UniqueRepresentation, Parent):
             if data["NameWiki"] in SupportedFindStatCollections:
                 data["Code"] = SupportedFindStatCollections[data["NameWiki"]]
             else:
-                print("There is a new collection available at `%s`: %s." % (findstat(), data["NamePlural"]))
-                print("To use it with this interface, it has to be added to the dictionary SupportedFindStatCollections in src/sage/databases/findstat.py of the SageMath distribution.  Please open a ticket on trac!")
+                print("%s provides a new collection:" % findstat())
+                print("    %s: %s" %(id, data["NamePlural"]))
+                print("To use it with this interface, it has to be added to the dictionary")
+                print("    SupportedFindStatCollections in src/sage/databases/findstat.py")
+                print("of the SageMath distribution.  Please open a ticket on trac!")
 #                print("Very likely, the following code would work:")
 #                fields = "SageCodeElementToString,SageCodeElementsOnLevel,SageCodeStringToElement"
 #                url = FINDSTAT_API_COLLECTIONS + id + "?fields=" + fields
@@ -3918,7 +4181,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
         Create an object and find its collection::
 
             sage: from sage.databases.findstat import FindStatCollection, FindStatCollections
-            sage: sorted([FindStatCollection(c.first_terms(lambda x: 0)[0][0]) for c in FindStatCollections() if c.is_supported()])   # optional -- internet, random
+            sage: sorted([FindStatCollection(c.first_terms(lambda x: 0)[0][0]) for c in FindStatCollections() if c.is_supported()]) # optional -- internet
             [Cc0001: Permutations,
              Cc0002: Integer partitions,
              Cc0005: Dyck paths,

@@ -230,14 +230,8 @@ import re
 import webbrowser
 import tempfile
 import inspect
-import json
 import cgi
 import requests
-
-# import compatible with py2 and py3
-from six.moves.urllib.parse import urlencode
-from six.moves.urllib.request import Request, urlopen
-from six.moves.urllib.error import HTTPError
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -620,7 +614,7 @@ def _data_from_data(data, max_values):
     return query
 
 
-def _distribution_from_data(data, domain, max_values):
+def _distribution_from_data(data, domain, max_values, generating_functions=False):
     """
     Return the first few pairs (of lists of the same size) with a
     total of at most ``max_values`` objects in the range of the
@@ -658,6 +652,8 @@ def _distribution_from_data(data, domain, max_values):
             break
         else:
             lvl = domain.element_level(elts[0])
+            if generating_functions and lvl not in levels_with_sizes:
+                continue
             if levels_with_sizes[lvl] > total:
                 # we assume that from now on levels become even larger
                 break
@@ -667,6 +663,11 @@ def _distribution_from_data(data, domain, max_values):
             lvl_dict[lvl] = (lvl_elts + elts, lvl_vals + vals)
             if levels_with_sizes[lvl] == len(lvl_dict[lvl][0]):
                 total -= levels_with_sizes[lvl]
+
+    if generating_functions:
+        return {lvl: {val: vals.count(val) for val in set(vals)}
+                for lvl, (elts, vals) in lvl_dict.items()
+                if levels_with_sizes[lvl] == len(vals)}
 
     return [(elts, vals) for lvl, (elts, vals) in lvl_dict.items()
             if levels_with_sizes[lvl] == len(elts)]
@@ -2098,7 +2099,8 @@ class FindStatStatistic(Element,
                + "?fields=" + fields
                + "&fields[Bibliography]=" + fields_Bibliography)
         verbose("fetching statistic data %s" % url, caller_name='FindStatStatistic')
-        included = json.load(urlopen(url))["included"]
+
+        included = requests.get(url).json()["included"]
         # slightly simplify the representation
         data = {key: val for key, val in included["Statistics"][self.id_str()].items()}
         # we replace the list of identifiers in Bibliography with the dictionary
@@ -2112,7 +2114,7 @@ class FindStatStatistic(Element,
 
         TESTS::
 
-            sage: findstat(41)._first_terms_raw(4)                            # optional -- internet,indirect doctest
+            sage: findstat(41)._first_terms_raw(4)                            # optional -- internet, indirect doctest
             [('[(1,2)]', 0),
              ('[(1,2),(3,4)]', 0),
              ('[(1,3),(2,4)]', 0),
@@ -2120,7 +2122,7 @@ class FindStatStatistic(Element,
         """
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
-        values = json.load(urlopen(url))["included"]["Statistics"][self.id_str()]["Values"]
+        values = requests.get(url).json()["included"]["Statistics"][self.id_str()]["Values"]
         return [tuple(pair) for pair in values]
 
     def set_first_terms(self, values):
@@ -2387,7 +2389,7 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             else:
                 url = FINDSTAT_API_STATISTICS + "?Domain=%s" % self._domain.id_str()
 
-            self._identifiers = json.load(urlopen(url))["data"]
+            self._identifiers = requests.get(url).json()["data"]
 
         for st in self._identifiers:
             yield FindStatStatistic(st)
@@ -2587,34 +2589,10 @@ class FindStatStatisticQuery(FindStatStatistic):
             {3: 2*q^3 + 2*q^2 + 2*q}
 
         """
-        gfs = {} # lvl: vals
-        total = min(max_values, FINDSTAT_MAX_VALUES)
-        iterator = iter(self._known_terms)
-        domain = self.domain()
-        levels_with_sizes = domain.levels_with_sizes()
-        while total > 0:
-            try:
-                elts, vals = next(iterator)
-            except StopIteration:
-                break
-            if total < len(elts):
-                break
-            else:
-                lvl = domain.element_level(elts[0])
-                if lvl not in levels_with_sizes:
-                    continue
-                if levels_with_sizes[lvl] > total:
-                    # we assume that from now on levels become even larger
-                    break
-                if not all(domain.element_level(elt) == lvl for elt in elts[1:]):
-                    raise ValueError("cannot combine %s into a distribution" % elts)
-                gfs[lvl] = gfs.get(lvl, []) + vals
-                if levels_with_sizes[lvl] == len(gfs[lvl]):
-                    total -= levels_with_sizes[lvl]
-
-        return {lvl: {val: vals.count(val) for val in set(vals)}
-                for lvl, vals in gfs.items()
-                if levels_with_sizes[lvl] == len(vals)}
+        return _distribution_from_data(self._known_terms,
+                                       self.domain(),
+                                       max_values,
+                                       generating_functions=True)
 
     def __repr__(self):
         """
@@ -2686,7 +2664,7 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
         """
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
-        values = json.load(urlopen(url))["included"]["CompoundStatistics"][self.id_str()]["Values"]
+        values = requests.get(url).json()["included"]["CompoundStatistics"][self.id_str()]["Values"]
         return [(sequence[0], sequence[-1]) for sequence in values]
 
     def domain(self):
@@ -2900,7 +2878,7 @@ class FindStatMap(Element,
                + "?fields=" + fields
                + "&fields[Bibliography]=" + fields_Bibliography)
         verbose("fetching map data %s" % url, caller_name='FindStatMap')
-        included = json.load(urlopen(url))["included"]
+        included = requests.get(url).json()["included"]
         # slightly simplify the representation
         data = {key: val for key, val in included["Maps"][self.id_str()].items()}
         # we replace the list of identifiers in Bibliography with the dictionary
@@ -3181,7 +3159,7 @@ class FindStatMaps(UniqueRepresentation, Parent):
                 url = FINDSTAT_API_MAPS + "?" + "&".join(query)
             else:
                 url = FINDSTAT_API_MAPS
-            self._identifiers = json.load(urlopen(url))["data"]
+            self._identifiers = requests.get(url).json()["data"]
 
         for mp in self._identifiers:
             yield FindStatMap(mp)
@@ -4147,8 +4125,8 @@ class FindStatCollections(UniqueRepresentation, Parent):
         """
         fields = "LevelsWithSizes,Name,NamePlural,NameWiki"
         url = FINDSTAT_API_COLLECTIONS + "?fields=" + fields
-        response = urlopen(url)
-        d = json.load(response, object_pairs_hook=OrderedDict)
+        response = requests.get(url)
+        d = response.json(object_pairs_hook=OrderedDict)
         self._findstat_collections = d["included"]["Collections"]
         for id, data in self._findstat_collections.items():
             data["LevelsWithSizes"] = OrderedDict((literal_eval(level), size)

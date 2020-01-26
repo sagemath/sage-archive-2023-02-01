@@ -357,7 +357,7 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     fi
     echo "== Equivalent System Packages =="
     echo
-    for system_package_file in "$PKG_SCRIPTS"/debian*.txt "$PKG_SCRIPTS"/fedora*.txt "$PKG_SCRIPTS"/*conda*.txt "$PKG_SCRIPTS"/homebrew*.txt; do
+    for system_package_file in "$PKG_SCRIPTS"/debian*.txt "$PKG_SCRIPTS"/fedora*.txt "$PKG_SCRIPTS"/*conda*.txt "$PKG_SCRIPTS"/homebrew*.txt  "$PKG_SCRIPTS"/arch*.txt ; do
         if [ -f "$system_package_file" ]; then
             system=$(basename "$system_package_file" .txt)
             system_packages="$(echo $(sed 's/#.*//;' $system_package_file))"
@@ -381,6 +381,10 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
                     # Specific distribution
                     echo "$system:"
                     echo "  sudo yum install $system_packages"
+                    ;;
+                arch*)
+                    echo "$system:"
+                    echo "  sudo pacman -S $system_packages"
                     ;;
                 *conda*)
                     echo "$system:"

@@ -1,1 +1,2 @@
-pixz liblzma-dev
+xz-utils liblzma-dev
+# pixz  # provides pixz but not xz on debian buster

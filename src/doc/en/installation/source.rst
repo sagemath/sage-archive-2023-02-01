@@ -223,25 +223,25 @@ distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 you would use
 `apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_.
 
-On Debian ("buster" or newer) or Ubuntu ("bionic" or newer)::
+On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
-.. include: debian.txt
+.. literalinclude:: debian.txt
 
-On Fedora / Redhat / CentOS::
+On Fedora / Redhat / CentOS:
 
-.. include: fedora.txt
+.. literalinclude:: fedora.txt
 
 (These examples suppose that you choose to use a systemwide OpenSSL library.)
 
 In addition to these, if you don't want Sage to build optional packages that might
 be available from your OS, cf. the growing list of such packages on :trac:`27330`,
-install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer)::
+install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
-.. include: debian-optional.txt
+.. literalinclude:: debian-optional.txt
 
-On Fedora / Redhat / CentOS::
+On Fedora / Redhat / CentOS:
 
-.. include: fedora-optional.txt
+.. literalinclude:: fedora-optional.txt
 
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,

@@ -4,8 +4,8 @@
 ## This is called by $SAGE_ROOT/tox.ini
 set -e
 SYSTEM="${1:-debian}"
-TYPE_PATTERN="${2:-bootstrap|standard}"
-#
+shopt -s extglob
+TYPE_PATTERN="${2:-standard}"
 STRIP_COMMENTS="sed s/#.*//;"
 SAGE_ROOT=.
 SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SAGE_ROOT/build/pkgs/$SYSTEM{,-bootstrap}.txt))
@@ -61,8 +61,7 @@ ADD src/ext src/ext
 ADD src/bin src/bin
 ADD src/Makefile.in src/Makefile.in
 ARG EXTRA_CONFIGURE_ARGS
-RUN ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (echo "********** configuring without forcing ***********"; cat config.log; ./configure --enable-build-as-root; cat config.log; exit 1)
-RUN make -j4 toolchain V=0
+RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (echo "********** configuring without forcing ***********"; cat config.log; ./configure --enable-build-as-root; cat config.log; exit 1)
 # Compile something tricky
-RUN make -j4 scipy
+RUN MAKE="make -j4" make scipy
 EOF

@@ -86,7 +86,7 @@ EOF
 fi
 # We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
 cat <<EOF
-RUN MAKE="make -j4" base-toolchain
+RUN MAKE="make -j4" make base-toolchain
 # Compile something tricky
 RUN MAKE="make -j4" make scipy
 EOF

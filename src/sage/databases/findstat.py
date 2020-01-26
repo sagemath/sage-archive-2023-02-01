@@ -256,6 +256,7 @@ from sage.graphs.graph_generators import graphs
 from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
 from sage.combinat.words.abstract_word import Word_class
+from sage.combinat.colored_permutations import SignedPermutations
 
 ######################################################################
 # the FindStat URLs
@@ -2840,6 +2841,7 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingStatistic
             sage: FindStatMatchingStatistic("St000042oMp00116", 1, [17, 83])    # optional -- internet
             St000042oMp00116 with offset 1 (quality [17, 83])
 
@@ -2855,6 +2857,7 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingStatistic
             sage: FindStatMatchingStatistic("St000042oMp00116", 1, [17, 83])    # optional -- internet
             St000042oMp00116 with offset 1 (quality [17, 83])
 
@@ -2870,6 +2873,7 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingStatistic
             sage: r = FindStatMatchingStatistic("St000042oMp00116", 1, [17, 83])          # optional -- internet
             sage: r.offset()                                                    # optional -- internet
             1
@@ -2883,6 +2887,7 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingStatistic
             sage: r = FindStatMatchingStatistic("St000042oMp00116", 1, [17, 83])          # optional -- internet
             sage: r.quality()                                                   # optional -- internet
             [17, 83]
@@ -2895,12 +2900,13 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingStatistic
             sage: r = FindStatMatchingStatistic("St000042oMp00116", 1, [17, 83])          # optional -- internet
             sage: r.info()                                                      # optional -- internet
             after adding 1 to every value
             and applying
                 Mp00116: Kasraoui-Zeng: Perfect matchings -> Perfect matchings
-            to the objects (see `.mapping()` for details)
+            to the objects (see `.compound_map()` for details)
             <BLANKLINE>
             your input matches
                 St000042: The number of crossings of a perfect matching.
@@ -3681,6 +3687,7 @@ class FindStatMatchingMap(FindStatCompoundMap):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingMap
             sage: FindStatMatchingMap("Mp00099oMp00127", [83])                  # optional -- internet
             Mp00099oMp00127 (quality [83])
         """
@@ -3695,6 +3702,7 @@ class FindStatMatchingMap(FindStatCompoundMap):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingMap
             sage: FindStatMatchingMap("Mp00099oMp00127", [83])                  # optional -- internet
             Mp00099oMp00127 (quality [83])
 
@@ -3707,6 +3715,7 @@ class FindStatMatchingMap(FindStatCompoundMap):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatMatchingMap
             sage: FindStatMatchingMap("Mp00099oMp00127", [83]).quality()        # optional -- internet
             [83]
         """
@@ -3935,6 +3944,7 @@ class FindStatCollection(Element):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Perfect Matchings").elements_on_level(4)  # optional -- internet
             Perfect matchings of {1, 2, 3, 4}
         """
@@ -3946,6 +3956,7 @@ class FindStatCollection(Element):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatCollection
             sage: cc = FindStatCollection("Perfect Matchings")                  # optional -- internet
             sage: cc.element_level(PerfectMatching([[1,2],[3,4],[5,6]]))        # optional -- internet
             6
@@ -3958,6 +3969,7 @@ class FindStatCollection(Element):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatCollection
             sage: cc = FindStatCollection("Perfect Matchings")                  # optional -- internet
             sage: cc.is_element(PerfectMatching([[1,2],[3,4],[5,6]]))           # optional -- internet
             True
@@ -3973,6 +3985,7 @@ class FindStatCollection(Element):
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatCollection
             sage: cc = FindStatCollection("Perfect Matchings")                  # optional -- internet
             sage: cc.levels_with_sizes()                                        # optional -- internet
             OrderedDict([(2, 1), (4, 3), (6, 15), (8, 105), (10, 945)])
@@ -4003,7 +4016,6 @@ class FindStatCollection(Element):
             sage: c.in_range(GelfandTsetlinPattern([[7, 1], [1]]))              # optional -- internet
             False
 
-
         TESTS::
 
             sage: from sage.databases.findstat import FindStatCollections
@@ -4028,6 +4040,7 @@ class FindStatCollection(Element):
             Cc0022: Finite Cartan types 31 True
             Cc0023: Parking functions 18248 True
             Cc0024: Binary words 1022 True
+            Cc0027: Signed permutations 4282 True
             Cc0028: Skew partitions 1250 True
 
         """
@@ -4325,31 +4338,37 @@ _SupportedFindStatCollections = {
                                  Posets,
                                  lambda x: x.cardinality(),
                                  lambda x: isinstance(x, FinitePoset)),
-    "SemistandardTableaux":
-    _SupportedFindStatCollection(lambda x: SemistandardTableau(literal_eval(x)),
-                                 str,
-                                 lambda x: (T for T in SemistandardTableaux(size=x[0], max_entry=x[1])
-                                            if max(T.entries()) == x[1]),
-                                 lambda x: (x.size(), max(x.entries())),
-                                 lambda x: isinstance(x, SemistandardTableau)),
-    "SetPartitions":
-    _SupportedFindStatCollection(lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']'))),
-                                 str,
-                                 SetPartitions,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, SetPartition)),
     "StandardTableaux":
     _SupportedFindStatCollection(lambda x: StandardTableau(literal_eval(x)),
                                  str,
                                  StandardTableaux,
                                  lambda x: x.size(),
                                  lambda x: isinstance(x, StandardTableau)),
+    "SemistandardTableaux": # apparently, isinstance(x, SemistandardTableau) is True for StandardTableaux x
+    _SupportedFindStatCollection(lambda x: SemistandardTableau(literal_eval(x)),
+                                 str,
+                                 lambda x: (T for T in SemistandardTableaux(size=x[0], max_entry=x[1])
+                                            if max(T.entries()) == x[1]),
+                                 lambda x: (x.size(), max(x.entries())),
+                                 lambda x: isinstance(x, SemistandardTableau) and not isinstance(x, StandardTableau)),
+    "SetPartitions":
+    _SupportedFindStatCollection(lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']'))),
+                                 str,
+                                 SetPartitions,
+                                 lambda x: x.size(),
+                                 lambda x: isinstance(x, SetPartition)),
     "SkewPartitions":
     _SupportedFindStatCollection(lambda x: SkewPartition(literal_eval(x)),
                                  str,
                                  SkewPartitions,
                                  lambda x: x.size(),
-                                 lambda x: isinstance(x, SkewPartition))}
+                                 lambda x: isinstance(x, SkewPartition)),
+    "SignedPermutations":
+    _SupportedFindStatCollection(lambda x: SignedPermutations(len(literal_eval(x)))(list(literal_eval(x))),
+                                 str,
+                                 SignedPermutations,
+                                 lambda x: len(list(x)),
+                                 lambda x: isinstance(x, SignedPermutations.Element))}
 
 
 class FindStatCollections(UniqueRepresentation, Parent):
@@ -4387,6 +4406,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
          Cc0026: Decorated permutations,
          Cc0027: Signed permutations,
          Cc0028: Skew partitions]
+
     """
     def _raise_unsupported_error(*args):
         """
@@ -4480,7 +4500,9 @@ class FindStatCollections(UniqueRepresentation, Parent):
              Cc0021: Ordered trees,
              Cc0022: Finite Cartan types,
              Cc0023: Parking functions,
-             Cc0024: Binary words]
+             Cc0024: Binary words,
+             Cc0027: Signed permutations,
+             Cc0028: Skew partitions]
 
             sage: FindStatCollection(Permutation([1,2,3]))                      # optional -- internet
             Cc0001: Permutations

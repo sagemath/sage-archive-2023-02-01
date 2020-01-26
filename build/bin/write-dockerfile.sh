@@ -15,7 +15,7 @@ CONFIGURE_ARGS="--enable-option-checking "
 for PKG_SCRIPTS in build/pkgs/*; do
     if [ -d $PKG_SCRIPTS ]; then
         PKG_BASE=$(basename $PKG_SCRIPTS)
-        SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/$SYSTEM.txt
+        SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
         PKG_TYPE=$(cat $PKG_SCRIPTS/type)
         if [ -f $SYSTEM_PACKAGES_FILE ]; then
            PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))

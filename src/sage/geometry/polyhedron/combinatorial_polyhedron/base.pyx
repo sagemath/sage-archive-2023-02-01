@@ -1248,7 +1248,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         This method is not implemented for unbounded polyhedra.
 
-        A polytopes is simplicial, if each facet contains exactly `d` vertices,
+        A polytope is simplicial, if each facet contains exactly `d` vertices,
         where `d` is the dimension of the polytope.
 
         EXAMPLES::
@@ -1261,6 +1261,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = P.combinatorial_polyhedron()
             sage: C.is_simplicial()
             False
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_simplicial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
         """
         if not self.is_bounded():
             raise NotImplementedError("this function is implemented for polytopes only")
@@ -1349,7 +1357,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         If the polyhedron is unbounded, return ``False``.
 
-        A polytopes is simple, if each vertex is contained in exactly `d` facets,
+        A polytope is simple, if each vertex is contained in exactly `d` facets,
         where `d` is the dimension of the polytope.
 
         EXAMPLES::
@@ -1362,6 +1370,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = P.combinatorial_polyhedron()
             sage: C.is_simple()
             True
+
+        Return ``False`` for unbounded polyhedra::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_simple()
+            False
         """
         if not self.is_bounded(): return False
 

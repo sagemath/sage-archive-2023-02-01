@@ -669,26 +669,6 @@ cdef class CombinatorialFace(SageObject):
 
     n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 
-    def n_Hrepr(self):
-        r"""
-        .. SEEALSO::
-
-            :meth:`CombinatorialFace.n_ambient_Hrepresentation`
-
-        TESTS::
-
-            sage: P = polytopes.cube()
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: face = next(it)
-            sage: _ = face.n_Hrepr()
-            doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
-            See https://trac.sagemath.org/28614 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(28614, "the method n_Hrepr of CombinatorialFace is deprecated")
-        return self.n_ambient_Hrepresentation()
-
     cdef size_t n_atom_rep(self) except -1:
         r"""
         Compute the number of atoms in the current face by counting the

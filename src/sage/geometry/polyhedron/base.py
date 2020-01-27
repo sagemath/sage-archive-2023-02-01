@@ -6,6 +6,7 @@ Base class for polyhedra
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
+#       Copyright (C) 2020 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -2931,11 +2932,7 @@ class Polyhedron_base(Element):
 
         """
         if not self.is_compact(): return False
-
-        d = self.dim()
-        return all(len([facet for facet in vertex.incident()
-                        if not facet.is_equation()]) == d
-                   for vertex in self.Vrepresentation())
+        return self.combinatorial_polyhedron().is_simple()
 
     def is_simplicial(self):
         """
@@ -2974,10 +2971,7 @@ class Polyhedron_base(Element):
         """
         if not(self.is_compact()):
             raise NotImplementedError("this function is implemented for polytopes only")
-        d = self.dim()
-        return all(len([vertex for vertex in facet.incident()]) == d
-                   for facet in self.Hrepresentation()
-                   if not facet.is_equation())
+        return self.combinatorial_polyhedron().is_simplicial()
 
     def is_pyramid(self, certificate=False):
         """

@@ -72,6 +72,12 @@ RUN echo \${CONDARC}; cd /tmp && conda config --stdin < \${USE_CONDARC}
 RUN conda update -n base conda
 RUN ln -sf /bin/bash /bin/sh
 EOF
+        # On this image, /bin/sh -> /bin/dash;
+        # but some of the scripts in /opt/conda/etc/conda/activate.d
+        # from conda-forge (as of 2020-01-27) contain bash-isms:
+        # /bin/sh: 5: /opt/conda/etc/conda/activate.d/activate-binutils_linux-64.sh: Syntax error: "(" unexpected
+        # The command '/bin/sh -c . /opt/conda/etc/profile.d/conda.sh; conda activate base;  ./bootstrap' returned a non-zero code
+        # We just change the link to /bin/bash.
         INSTALL="conda install --update-all --quiet --yes"
         EXISTS="2>/dev/null >/dev/null conda search -f"
         #EXISTS="conda search -f"

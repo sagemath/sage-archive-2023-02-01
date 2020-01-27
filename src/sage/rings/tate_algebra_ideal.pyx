@@ -864,7 +864,9 @@ def _groebner_basis_F5_pot(I, prec, verbose):
     return gb
 
     
-def _groebner_basis_F5_vopot_v1(I, prec, verbose):
+def _groebner_basis_F5_vopot_v1(I, prec, verbose,
+                                interrupt_red_with_val=True,
+                                interrupt_interred_with_val=False):
     cdef TateAlgebraElement g
     cdef TateAlgebraTerm ti, tj
 
@@ -891,7 +893,8 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 sig_check()
                 g = gb[i]
                 gb[i] = g._positive_lshift_c(1)
-                gb[i] = reduce(gb, g, verbose, prec)
+                tgtval = val + 1 if interrupt_interred_with_val else prec
+                gb[i] = reduce(gb, g, verbose, tgtval)
             if verbose > 3:
                 print("grobner basis reduced")
                 for g in gb:
@@ -981,7 +984,8 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 continue
 
             # We perform regular top-reduction
-            v = regular_reduce(sgb, s, v, verbose, val + 1)
+            tgtval = val + 1 if interrupt_red_with_val else prec
+            v = regular_reduce(sgb, s, v, verbose, tgtval)
             if v != 0:
                 v = v.monic() << v.valuation()
             

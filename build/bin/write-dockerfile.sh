@@ -73,6 +73,7 @@ EOF
         INSTALL="conda install --update-all --quiet --yes"
         EXISTS="2>/dev/null >/dev/null conda search -f"
         #EXISTS="conda search -f"
+        CLEAN="&& conda info; conda list"
         ;;
     *)
         echo "Not implemented: package installation for SYSTEM=$SYSTEM" >&2

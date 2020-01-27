@@ -18,3 +18,9 @@ m4
 perl
 perl-ExtUtils-MakeMaker
 tar
+gcc
+# On Fedora 26, need C++ even to survive 'configure'. Otherwise:
+# checking how to run the C++ preprocessor... /lib/cpp
+# configure: error: in `/sage':
+# configure: error: C++ preprocessor "/lib/cpp" fails sanity check
+gcc-c++

@@ -1,0 +1,52 @@
+name: Run SAGE_ROOT/tox.ini
+
+## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments.
+##
+## It builds and checks some sage spkgs as defined in TARGETS.
+##
+## A job succeeds if there is no error.
+##
+## The build is run with "make V=0", so the build logs of individual packages are suppressed.
+##
+## At the end, all package build logs that contain an error are printed out.
+##
+## After all jobs have finished (or are canceled) and a short delay,
+## tar files of all logs are made available as "build artifacts".
+
+on: push
+
+jobs:
+  tox:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-sid, debian-jessie, debian-buster, debian-bullseye, fedora-26, fedora-28, fedora-31, fedora-32, archlinux-latest, conda-forge, conda-anaconda3]
+        tox_packages_factor: [minimal, standard]
+    env:
+      TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      TARGETS: cbc csdp fflas_ffpack gsl iml numpy r suitesparse cvxopt
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install test prerequisites
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
+      - run: |
+          EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0\" --build-arg TARGETS=\"$TARGETS\"" tox -e $TOX_ENV
+      - name: Copy logs from the build container
+        run: |
+          mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp .tox/*/Dockerfile "artifacts/$LOGS_ARTIFACT_NAME"; for CONTAINER in `docker ps -q -a`; do for ARTIFACT in  /sage/config.log /sage/logs/pkgs/; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done
+        if: always()
+      - uses: actions/upload-artifact@v1
+        with:
+          path: artifacts
+          name: ${{ env.LOGS_ARTIFACT_NAME }}
+        if: always()
+      - name: Print out logs for immediate inspection
+        # The markup in the output is a GitHub Actions logging command
+        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        run: |
+          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+        if: always()

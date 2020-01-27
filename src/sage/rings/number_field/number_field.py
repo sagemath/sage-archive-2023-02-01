@@ -2959,6 +2959,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if embedding is not None and embedding.codomain()._is_numerical():
             return embedding
 
+    @cached_method
     def gen_embedding(self):
         """
         If an embedding has been specified, return the image of the

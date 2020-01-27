@@ -68,9 +68,9 @@ from sage.misc.superseded        import deprecated_function_alias
 
 import numbers
 from sage.rings.integer         cimport smallInteger
-from .conversions               cimport bit_repr_to_Vrepr_list
+from .conversions               cimport bit_repr_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
-from .bit_vector_operations     cimport count_atoms, bit_repr_to_coatom_repr
+from .bit_vector_operations     cimport count_atoms, bit_repr_to_coatom_rep
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from libc.string                cimport memcpy
 
@@ -365,13 +365,13 @@ cdef class CombinatorialFace(SageObject):
         cdef size_t length
         if self._dual:
             # if dual, the Vrepresentation corresponds to the coatom-representation
-            length = self.set_coatom_repr()
-            return tuple(self._ambient_Vrep[self.coatom_repr[i]]
+            length = self.set_coatom_rep()
+            return tuple(self._ambient_Vrep[self.coatom_rep[i]]
                          for i in range(length))
         else:
             # if not dual, the Vrepresentation corresponds to the atom-representation
-            length = self.set_atom_repr()
-            return tuple(self._ambient_Vrep[self.atom_repr[i]]
+            length = self.set_atom_rep()
+            return tuple(self._ambient_Vrep[self.atom_rep[i]]
                          for i in range(length))
 
     def ambient_V_indices(self):
@@ -415,13 +415,13 @@ cdef class CombinatorialFace(SageObject):
         cdef size_t length
         if self._dual:
             # if dual, the Vrepresentation corresponds to the coatom-representation
-            length = self.set_coatom_repr()
-            return tuple(smallInteger(self.coatom_repr[i])
+            length = self.set_coatom_rep()
+            return tuple(smallInteger(self.coatom_rep[i])
                          for i in range(length))
         else:
             # if not dual, the Vrepresentation corresponds to the atom-representation
-            length = self.set_atom_repr()
-            return tuple(smallInteger(self.atom_repr[i])
+            length = self.set_atom_rep()
+            return tuple(smallInteger(self.atom_rep[i])
                          for i in range(length))
 
     def Vrepr(self, names=True):
@@ -486,7 +486,7 @@ cdef class CombinatorialFace(SageObject):
             See https://trac.sagemath.org/28614 for details.
         """
         if self._dual:
-            return smallInteger(self.set_coatom_repr())
+            return smallInteger(self.set_coatom_rep())
         else:
             return smallInteger(self.n_atom_rep())
 
@@ -542,13 +542,13 @@ cdef class CombinatorialFace(SageObject):
         cdef size_t length
         if not self._dual:
             # if not dual, the facet-represention corresponds to the coatom-representation
-            length = self.set_coatom_repr()  # fill self.coatom_rep_face
-            return tuple(self._ambient_facets[self.coatom_repr[i]]
+            length = self.set_coatom_rep()  # fill self.coatom_repr_face
+            return tuple(self._ambient_facets[self.coatom_rep[i]]
                          for i in range(length)) + self._equalities
         else:
             # if dual, the facet-represention corresponds to the atom-representation
-            length = self.set_atom_repr()  # fill self.atom_rep_face
-            return tuple(self._ambient_facets[self.atom_repr[i]]
+            length = self.set_atom_rep()  # fill self.atom_repr_face
+            return tuple(self._ambient_facets[self.atom_rep[i]]
                          for i in range(length)) + self._equalities
 
     def ambient_H_indices(self):
@@ -589,13 +589,13 @@ cdef class CombinatorialFace(SageObject):
         cdef size_t length
         if not self._dual:
             # if not dual, the facet-represention corresponds to the coatom-representation
-            length = self.set_coatom_repr()  # fill self.coatom_rep_face
-            return tuple(smallInteger(self.coatom_repr[i])
+            length = self.set_coatom_rep()  # fill self.coatom_repr_face
+            return tuple(smallInteger(self.coatom_rep[i])
                          for i in range(length))
         else:
             # if dual, the facet-represention corresponds to the atom-representation
-            length = self.set_atom_repr()  # fill self.atom_rep_face
-            return tuple(smallInteger(self.atom_repr[i])
+            length = self.set_atom_rep()  # fill self.atom_repr_face
+            return tuple(smallInteger(self.atom_rep[i])
                          for i in range(length))
 
     def Hrepr(self, names=True):
@@ -663,7 +663,7 @@ cdef class CombinatorialFace(SageObject):
             See https://trac.sagemath.org/28614 for details.
         """
         if not self._dual:
-            return smallInteger(self.set_coatom_repr())
+            return smallInteger(self.set_coatom_rep())
         else:
             return smallInteger(self.n_atom_rep())
 
@@ -700,26 +700,26 @@ cdef class CombinatorialFace(SageObject):
         # The face was not initialized properly.
         raise LookupError("``FaceIterator`` does not point to a face")
 
-    cdef size_t set_coatom_repr(self) except -1:
+    cdef size_t set_coatom_rep(self) except -1:
         r"""
-        Set ``coatom_repr`` to be the coatom-representation of the current face.
+        Set ``coatom_rep`` to be the coatom-representation of the current face.
         Return its length.
         """
         cdef size_t n_coatoms = self.coatoms.n_faces
         cdef uint64_t **coatoms = self.coatoms.data
         cdef size_t face_length = self.face_length
-        if not self.coatom_repr:
-            self.coatom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
-        return bit_repr_to_coatom_repr(self.face, coatoms, n_coatoms,
-                                       face_length, self.coatom_repr)
+        if not self.coatom_rep:
+            self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
+        return bit_repr_to_coatom_rep(self.face, coatoms, n_coatoms,
+                                       face_length, self.coatom_rep)
 
-    cdef size_t set_atom_repr(self) except -1:
+    cdef size_t set_atom_rep(self) except -1:
         r"""
-        Set ``atom_repr`` to be the atom-representation of the current face.
+        Set ``atom_rep`` to be the atom-representation of the current face.
         Return its length.
         """
         cdef size_t face_length = self.face_length
-        if not self.atom_repr:
-            self.atom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
-        return bit_repr_to_Vrepr_list(self.face, self.atom_repr, face_length)
+        if not self.atom_rep:
+            self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
+        return bit_repr_to_Vrep_list(self.face, self.atom_rep, face_length)
 

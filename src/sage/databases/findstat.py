@@ -2332,7 +2332,7 @@ class FindStatStatistic(Element,
 
     def __hash__(self):
         """
-        Returns a hash value for the statistic.
+        Return a hash value for the statistic.
 
         EXAMPLES::
 
@@ -2464,7 +2464,7 @@ class FindStatStatisticQuery(FindStatStatistic):
         """
         Initialize a query for FindStat (compound) statistics.
 
-        INPUT::
+        INPUT:
 
         - ``data`` -- (optional), a list of pairs ``(objects,
           values)``, where ``objects`` and ``values`` are all lists
@@ -3121,7 +3121,7 @@ class FindStatMap(Element,
 
     def __hash__(self):
         """
-        Returns a hash value for the map.
+        Return a hash value for the map.
 
         EXAMPLES::
 
@@ -3358,7 +3358,7 @@ class FindStatMapQuery(FindStatMap):
         """
         Initialize a query for FindStat (compound) maps
 
-        INPUT::
+        INPUT:
 
         - ``data`` -- (optional), a list of pairs ``(objects,
           values)``, where ``objects`` and ``values`` are all lists
@@ -3908,7 +3908,7 @@ class FindStatCollection(Element):
 
     def __hash__(self):
         """
-        Returns a hash value for the collection.
+        Return a hash value for the collection.
 
         EXAMPLES::
 

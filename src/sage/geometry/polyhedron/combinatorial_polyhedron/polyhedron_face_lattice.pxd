@@ -12,8 +12,8 @@ cdef class PolyhedronFaceLattice:
     cdef size_t face_length         # stores length of the faces in terms of uint64_t
     cdef size_t *f_vector           # a copy of the f-vector, is reversed if dual
     cdef size_t *face_counter       # how many faces of each dimension have been initialized
-    cdef size_t *atom_repr          # a place where atom-representaion of face will be stored
-    cdef size_t *coatom_repr        # a place where coatom-representaion of face will be stored
+    cdef size_t *atom_repr          # a place where atom-representation of face will be stored
+    cdef size_t *coatom_repr        # a place where coatom-representation of face will be stored
 
     # some copies from CombinatorialPolyhedron
     cdef tuple _Vrep, _facet_names, _equalities

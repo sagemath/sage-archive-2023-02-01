@@ -1,1 +1,5 @@
 openblas
+# Arch's openblas library does not contain lapack.
+lapack
+cblas
+

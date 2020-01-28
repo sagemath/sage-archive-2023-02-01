@@ -43,7 +43,7 @@ class ObjectReprABC(object):
             sage: ObjectReprABC()
             ObjectReprABC pretty printer
         """
-        return('{0} pretty printer'.format(self.__class__.__name__))
+        return '{0} pretty printer'.format(self.__class__.__name__)
 
     def __call__(self, obj, p, cycle):
         r"""

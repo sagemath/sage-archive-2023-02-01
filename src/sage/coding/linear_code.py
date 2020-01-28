@@ -3711,9 +3711,9 @@ class LinearCodeSyndromeDecoder(Decoder):
     is bigger than both the covering radius and half the minimum distance::
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 5) # long time
-        sage: D.decoder_type()
+        sage: D.decoder_type() # long time
         {'complete', 'hard-decision', 'might-error'}
-        sage: D.decoding_radius()
+        sage: D.decoding_radius() # long time 
         4
 
     In that case, the decoder might still return an unexpected codeword, but

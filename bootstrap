@@ -75,7 +75,7 @@ install_config_rpath() {
 bootstrap () {
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
-    for filename in $(find build/pkgs -type f -name spkg-configure.m4); do
+    for filename in $(find build/pkgs -type f -name spkg-configure.m4 | sort); do
         pkgname="$(echo $filename | cut -d/ -f3)"
         echo "m4_sinclude([$filename])" >> m4/sage_spkg_configures.m4
         spkg_configures="$spkg_configures

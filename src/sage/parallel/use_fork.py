@@ -281,9 +281,9 @@ class p_iter_fork(object):
         """
         import os, sys
         try:
-            from imp import reload
-        except ImportError:
             from importlib import reload
+        except ImportError:
+            from imp import reload
         from sage.misc.persist import save
 
         # Make it so all stdout is sent to a file so it can

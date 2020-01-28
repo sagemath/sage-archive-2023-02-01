@@ -42,7 +42,7 @@ ideals::
      Point (x^2 + y*z + z^2, x*y + z^2, y^2 + x*z + y*z)]
 
 Rational points are easily converted to closed points and vice versa if the
-closed point is of degree 1::
+closed point is of degree one::
 
     sage: F.<a> = GF(2)
     sage: P.<x,y,z> = ProjectiveSpace(F, 2)
@@ -74,6 +74,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 
+from sage.structure.richcmp import richcmp
 from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
 
 
@@ -146,9 +147,15 @@ class IntegralCurveClosedPoint(CurveClosedPoint):
         """
         return hash((self.parent(),self.prime_ideal()))
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Return whether ``self`` equals ``other``.
+        Compare ``self`` and ``other`` with respect to the operator.
+
+        INPUT:
+
+        - ``other`` -- a closed point
+
+        - ``op`` -- a comparison operator
 
         EXAMPLES::
 
@@ -159,9 +166,7 @@ class IntegralCurveClosedPoint(CurveClosedPoint):
             sage: pts[0] == pts[1]
             False
         """
-        if isinstance(other, CurveClosedPoint):
-            return self.parent() == other.parent() and self.prime_ideal() == other.prime_ideal()
-        return False
+        return richcmp((self._curve, self.prime_ideal()), (other._curve, other.prime_ideal()), op)
 
     def _repr_(self):
         """
@@ -401,8 +406,9 @@ class IntegralProjectiveCurveClosedPoint(IntegralCurveClosedPoint):
         P = C.ambient_space()
         ideal = self.prime_ideal()
         if i is None:
-            for i in range(P.ngens()):
-                if not P.gen(i) in ideal:
+            for j in range(P.ngens()):
+                if not P.gen(j) in ideal:
+                    i = j
                     break
         else:
             if P.gen(i) in ideal:

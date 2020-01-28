@@ -429,6 +429,37 @@ class FindStat(UniqueRepresentation, SageObject):
 ######################################################################
 # tools
 ######################################################################
+def _submit(args, url):
+    """Open a post form containing fields for each of the arguments,
+    which is sent to the given url.
+
+    INPUT:
+
+    - args, a dictionary whose keys are the form fields
+    - url, the goal of the post request
+
+    """
+    f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
+    verbose("Created temporary file %s" % f.name, caller_name='FindStat')
+    f.write(FINDSTAT_POST_HEADER)
+    if not int(id_str[2:]):
+        f.write(url_header % url_new)
+    else:
+        f.write(url_header % (url_edit + id_str))
+    for key, value in iteritems(args):
+        if value:
+            verbose("writing argument %s" % key, caller_name='FindStat')
+            value_encoded = cgi.escape(value, quote=True)
+            html = FINDSTAT_FORM_FORMAT % (key, value_encoded)
+            f.write(html.encode("utf-8"))
+        else:
+            verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
+    f.write(FINDSTAT_FORM_FOOTER)
+    f.close()
+    verbose("Opening file with webbrowser", caller_name='FindStat')
+    webbrowser.open(f.name)
+
+
 def _data_to_str(data, domain, codomain=None):
     """
     Return a string representation of the given list of ``(objects,
@@ -2283,25 +2314,11 @@ class FindStatStatistic(Element,
         args["CurrentAuthor"]     = FindStat().user_name()
         args["CurrentEmail"]      = FindStat().user_email()
 
-        f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
-        verbose("Created temporary file %s" % f.name, caller_name='FindStat')
-        f.write(FINDSTAT_POST_HEADER)
-        if self.id() == 0:
-            f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER % FINDSTAT_URL_NEW_STATISTIC)
+        if not self.id():
+            url = FINDSTAT_NEWSTATISTIC_FORM_HEADER % FINDSTAT_URL_NEW_STATISTIC
         else:
-            f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT_STATISTIC+self.id_str()))
-        for key, value in iteritems(args):
-            if value:
-                verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(value, quote=True)
-                html = FINDSTAT_FORM_FORMAT % (key, value_encoded)
-                f.write(html.encode("utf-8"))
-            else:
-                verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
-        f.write(FINDSTAT_FORM_FOOTER)
-        f.close()
-        verbose("Opening file with webbrowser", caller_name='FindStat')
-        webbrowser.open(f.name)
+            url = FINDSTAT_NEWSTATISTIC_FORM_HEADER % (FINDSTAT_URL_EDIT_STATISTIC + self.id_str())
+        _submit(args, url)
 
     # editing and submitting is really the same thing
     edit = submit
@@ -3044,28 +3061,15 @@ class FindStatMap(Element,
         args["References"]         = self.references_raw()
         args["Properties"]         = self.properties_raw()
         args["SageCode"]           = self.sage_code()
+        args["SageName"]           = self.code_name()
         args["CurrentAuthor"]      = FindStat().user_name()
         args["CurrentEmail"]       = findstat().user_email()
 
-        f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
-        verbose("Created temporary file %s" % f.name, caller_name='FindStat')
-        f.write(FINDSTAT_POST_HEADER)
-        if self.id() == 0:
-            f.write(FINDSTAT_NEWMAP_FORM_HEADER % FINDSTAT_URL_NEW_MAP)
+        if not self.id():
+            url = FINDSTAT_NEWMAP_FORM_HEADER % FINDSTAT_URL_NEW_MAP
         else:
-            f.write(FINDSTAT_NEWMAP_FORM_HEADER % (FINDSTAT_URL_EDIT_MAP+self.id_str()))
-        for key, value in iteritems(args):
-            if value:
-                verbose("writing argument %s" % key, caller_name='FindStat')
-                value_encoded = cgi.escape(value, quote=True)
-                verbose("%s" % value_encoded, caller_name='FindStat')
-                f.write((FINDSTAT_FORM_FORMAT %(key, value_encoded)))
-            else:
-                verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
-        f.write(FINDSTAT_FORM_FOOTER)
-        f.close()
-        verbose("Opening file with webbrowser", caller_name='FindStat')
-        webbrowser.open(f.name)
+            url = FINDSTAT_NEWMAP_FORM_HEADER % (FINDSTAT_URL_EDIT_MAP + self.id_str())
+        _submit(args, url)
 
     # editing and submitting is really the same thing
     edit = submit

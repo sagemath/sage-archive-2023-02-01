@@ -9,7 +9,7 @@ SAGE_SPKG_CONFIGURE([openblas], [
              dnl openblas does not work as cblas; try to use system's cblas as is
              PKG_CHECK_MODULES([CBLAS], [cblas], [], [sage_spkg_install_openblas=yes])
           ])
-       AC_FC_FUNC([dgeqrf])
+       AC_FC_FREEFORM([AC_FC_FUNC([dgeqrf])])
        AC_SEARCH_LIBS([$dgeqrf], [openblas], [dnl openblas works as lapack
              sage_install_lapack_pc=yes
              ], [

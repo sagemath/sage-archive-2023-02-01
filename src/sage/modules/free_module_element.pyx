@@ -439,6 +439,29 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         (1/2, 0, 0, 0, -6, 0, 0, 0)
         sage: v.is_immutable()
         True
+
+    The ``immutable`` switch works regardless of the type of valid input to the
+    constructor. ::
+
+        sage: v = vector(ZZ, 4, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: w = vector(ZZ, [1,2,3])
+        sage: v = vector(w, ZZ, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: v = vector(QQ, w, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: import numpy as np
+        sage: w = np.array([1, 2, pi], np.float)
+        sage: v = vector(w, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: w = np.array([i, 2, 3], np.complex)
+        sage: v = vector(w, immutable=True)
+        sage: v.is_immutable()
+        True
     """
     # We first efficiently handle the important special case of the zero vector
     # over a ring. See trac 11657.

@@ -1716,7 +1716,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def is_compact(self):
         r"""
-        Return whether the polyheddron is compact
+        Return whether the polyhedron is compact
 
         EXAMPLES::
 

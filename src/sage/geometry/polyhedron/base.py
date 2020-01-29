@@ -7201,6 +7201,56 @@ class Polyhedron_base(Element):
             return list(lp.points())
         return [p for p in lp.points() if self.contains(p)]
 
+    def h_star_vector(self):
+        r"""
+        Return the h*-vector of the lattice polytope.
+
+        The h*-vector records the coefficients of the polynomial in the 
+        numerator of the Ehrhart series of a lattice polytope.
+
+        INPUT:
+
+        - ``self`` -- A lattice polytope with ``backend`` = 'normaliz'.
+
+        OUTPUT:
+
+        The h*-vector as a list.
+
+        EXAMPLES:
+
+        The h*-vector of a unimodular simplex S (a simplex with 
+        volume = $\frac{1}{dim(S)!} ) is always 1. Here we test this on 
+        simplicies up to dimension 4:
+
+            sage: s1 = polytopes.simplex(1,backend = 'normaliz')
+            sage: s2 = polytopes.simplex(2,backend = 'normaliz')
+            sage: s3 = polytopes.simplex(3,backend = 'normaliz')
+            sage: s4 = polytopes.simplex(4,backend = 'normaliz')
+            sage: s3.h_star_vector()
+            [1]        
+        """
+        if self.is_empty():
+            return 0
+        if not self.is_lattice_polytope():
+            raise TypeError('The h*-vector is only defined for lattice polytopes')
+        if not self.backend() == 'normaliz':
+            raise TypeError('The backend of self must be normaliz')
+        return self._h_star_vector_normaliz()
+
+    def _h_star_vector_normaliz(self):
+        r"""
+        Return the h*-vector of a lattice polytope with backend = 'normaliz'.
+
+        INPUT:
+
+        - ``self`` -- A lattice polytope with ``backend`` = 'normaliz'. 
+
+        OUTPUT:
+
+        The h*-vector as a list.
+        """
+        return self._h_star_vector()
+
     @cached_method
     def bounding_box(self, integral=False, integral_hull=False):
         r"""

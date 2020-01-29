@@ -52,7 +52,8 @@ class TateAlgebraIdeal(Ideal_generic):
     """
 
     #@cached_method
-    def groebner_basis(self, prec=None, algorithm='buchberger-integral', verbose=0):
+    def groebner_basis(self, prec=None, algorithm='buchberger-integral', verbose=0,
+                       vopot_flags={"interrupt_red_with_val":False, "interrupt_interred_with_val":False}):
         r"""
         Compute a Groebner basis of the ideal
 
@@ -139,7 +140,7 @@ class TateAlgebraIdeal(Ideal_generic):
         elif algorithm == "F5pot":
             return _groebner_basis_F5_pot(self, prec, verbose=verbose)
         elif algorithm == "F5vopot":
-            return _groebner_basis_F5_vopot_v1(self, prec, verbose=verbose)
+            return _groebner_basis_F5_vopot_v1(self, prec, verbose=verbose, **vopot_flags)
         # elif algorithm == "F5_vopot":
         #     return _groebner_basis_F5_vopot(self, prec, verbose=verbose)
         else:
@@ -866,10 +867,11 @@ def _groebner_basis_F5_pot(I, prec, verbose):
     return gb
 
     
-def _groebner_basis_F5_vopot_v1(I, prec, verbose):
+def _groebner_basis_F5_vopot_v1(I, prec, verbose,
+                                interrupt_red_with_val=False,
+                                interrupt_interred_with_val=False):
     cdef TateAlgebraElement g, v
     cdef TateAlgebraTerm s, S, sv, ti, tj
-
     term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
 
@@ -893,7 +895,8 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 sig_check()
                 g = gb[i]
                 gb[i] = g._positive_lshift_c(1)
-                gb[i] = reduce(gb, g, verbose, prec)
+                tgtval = val + 1 if interrupt_interred_with_val else prec
+                gb[i] = reduce(gb, g, verbose, tgtval)
             if verbose > 3:
                 print("grobner basis reduced")
                 for g in gb:
@@ -984,9 +987,10 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
 
             # We perform regular top-reduction
             sgb.append((None, v._positive_lshift_c(1)))
-            v = regular_reduce(sgb, s, v, verbose, prec)
+            tgtval = val + 1 if interrupt_red_with_val else prec
+            v = regular_reduce(sgb, s, v, verbose, tgtval)
             del sgb[-1]
-            
+
             if v != 0:
                 v = v.monic() << v.valuation()
             # if v == 0:

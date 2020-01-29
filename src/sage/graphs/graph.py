@@ -6975,7 +6975,7 @@ class Graph(GenericGraph):
         if with_labels:
             return core
         else:
-            return list(six.itervalues(core))
+            return list(core.values())
 
     @doc_index("Leftovers")
     def modular_decomposition(self, algorithm='habib'):

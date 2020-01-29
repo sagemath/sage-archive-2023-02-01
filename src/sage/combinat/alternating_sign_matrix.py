@@ -32,7 +32,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import division
 from six.moves import range, zip
-from six import itervalues, add_metaclass
+from six import add_metaclass
 
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -1495,7 +1495,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         """
         mts, rels = MonotoneTriangles(self._n)._lattice_initializer()
         bij = {t: self.from_monotone_triangle(t) for t in mts}
-        return (itervalues(bij), [(bij[a], bij[b]) for (a, b) in rels])
+        return (bij.values(), [(bij[a], bij[b]) for (a, b) in rels])
 
     def cover_relations(self):
         r"""

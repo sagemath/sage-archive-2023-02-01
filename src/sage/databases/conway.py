@@ -19,7 +19,7 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import itervalues, iteritems
+from six import iteritems
 from six.moves import cPickle as pickle
 
 import collections
@@ -168,7 +168,7 @@ class ConwayPolynomials(collections.Mapping):
             return self._len
         except AttributeError:
             pass
-        self._len = sum(len(a) for a in itervalues(self._store))
+        self._len = sum(len(a) for a in self._store.values())
         return self._len
 
     def __iter__(self):

@@ -1340,7 +1340,7 @@ class Link(SageObject):
             else:
                 crossing_dic = {}
 
-            pd = list(six.itervalues(crossing_dic))
+            pd = list(crossing_dic.values())
             self._pd_code = pd
             return self._pd_code
 

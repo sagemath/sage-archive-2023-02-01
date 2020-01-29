@@ -6,13 +6,8 @@ fi
 
 cd src
 
-nosetests functional_tests
-if [ $? -ne 0 ]; then
-    echo "Error running functional_tests."
-    exit 1
+if SAGE_PYTHON3=yes; then
+   python3 setup.py build_tests
 fi
-nosetests unit_tests
-if [ $? -ne 0 ]; then
-    echo "Error running unit_tests."
-    exit 1
-fi
+
+sage-python23 selftest.py

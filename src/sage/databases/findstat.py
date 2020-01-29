@@ -430,22 +430,36 @@ class FindStat(UniqueRepresentation, SageObject):
 # tools
 ######################################################################
 def _submit(args, url):
-    """Open a post form containing fields for each of the arguments,
+    """
+    Open a post form containing fields for each of the arguments,
     which is sent to the given url.
 
     INPUT:
 
     - args, a dictionary whose keys are the form fields
+
     - url, the goal of the post request
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import _submit, FINDSTAT_NEWSTATISTIC_FORM_HEADER, FINDSTAT_URL_NEW_STATISTIC
+        sage: url = FINDSTAT_NEWSTATISTIC_FORM_HEADER % FINDSTAT_URL_NEW_STATISTIC
+        sage: args = {"OriginalStatistic": "St000000",
+        ....:         "Domain": "Cc0001",
+        ....:         "Values": "[1,3,2]=>17\n[1,2,3]=>83",
+        ....:         "Description": "Not a good statistic",
+        ....:         "References": "[[arXiv:1102.4226]]",
+        ....:         "Code": "def statistic(p):\n return 1",
+        ....:         "SageCode": "def statistic(p):\n return 1",
+        ....:         "CurrentAuthor": "",
+        ....:         "CurrentEmail": ""}
+        sage: _submit(args, url)                                                # optional -- webbrowser
 
     """
     f = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
     verbose("Created temporary file %s" % f.name, caller_name='FindStat')
     f.write(FINDSTAT_POST_HEADER)
-    if not int(id_str[2:]):
-        f.write(url_header % url_new)
-    else:
-        f.write(url_header % (url_edit + id_str))
+    f.write(url)
     for key, value in iteritems(args):
         if value:
             verbose("writing argument %s" % key, caller_name='FindStat')
@@ -2295,7 +2309,8 @@ class FindStatStatistic(Element,
 
     def submit(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
-        Open the FindStat web page for editing the statistic in a browser.
+        Open the FindStat web page for editing the statistic or
+        submitting a new statistic in a browser.
 
         TESTS::
 
@@ -2858,12 +2873,20 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
         """
         Return the quality of the match, as provided by FindStat.
 
+        The quality of a statistic match is a pair of percentages
+        `(q_a, q_d)`, where `q_a` is the percentage of ``(object,
+        value)`` pairs that are in the database among those which
+        were sent to FindStat, and `q_d` is the percentage of
+        ``(object, value)`` pairs with distinct values in the
+        database among those which were sent to FindStat.
+
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMatchingStatistic
             sage: r = FindStatMatchingStatistic("St000042oMp00116", 1, [17, 83])          # optional -- internet
             sage: r.quality()                                                   # optional -- internet
             [17, 83]
+
         """
         return self._quality[:]
 
@@ -3061,7 +3084,6 @@ class FindStatMap(Element,
         args["References"]         = self.references_raw()
         args["Properties"]         = self.properties_raw()
         args["SageCode"]           = self.sage_code()
-        args["SageName"]           = self.code_name()
         args["CurrentAuthor"]      = FindStat().user_name()
         args["CurrentEmail"]       = findstat().user_email()
 

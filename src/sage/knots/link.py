@@ -48,7 +48,6 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import division
 
-import six
 from six.moves import range
 
 from sage.matrix.constructor import matrix

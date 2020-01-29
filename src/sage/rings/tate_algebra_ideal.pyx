@@ -712,8 +712,8 @@ def print_pair(p, verbose):
         return "(sign = %s, series = %s + ...)" % (s, v.leading_term())
 
 def _groebner_basis_F5_pot(I, prec, verbose):
-    cdef TateAlgebraElement g
-    cdef TateAlgebraTerm ti, tj
+    cdef TateAlgebraElement g, v
+    cdef TateAlgebraTerm s, sv, S, ti, tj
 
     term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
@@ -750,7 +750,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             print("%s initial J-pairs" % len(Jpairs))
         if verbose > 2:
             for s,v in Jpairs:
-                print("| sign = %s; series = %s" % print_pair((s,v),verbose))
+                print("| " + print_pair((s,v),verbose))
 
         while Jpairs:
             sig_check()
@@ -791,7 +791,9 @@ def _groebner_basis_F5_pot(I, prec, verbose):
                 continue
 
             # We perform regular top-reduction
+            sgb.append((None, v._positive_lshift_c(1)))
             v = regular_reduce(sgb, s, v, verbose, prec)
+            del sgb[-1]
 
             if v == 0:
                 # We have a new element in (I0:f) whose signature
@@ -842,10 +844,10 @@ def _groebner_basis_F5_pot(I, prec, verbose):
                 i += 1
         if verbose > 0:
              if verbose > 1:
-                 s = " after minimization"
+                 aft = " after minimization"
              else:
-                 s = ""
-             print("%s elements in GB%s" % (len(gb), s))
+                 aft = ""
+             print("%s elements in GB%s" % (len(gb), aft))
         if verbose > 3:
             for g in gb:
                 print("| %s" % g)
@@ -865,8 +867,8 @@ def _groebner_basis_F5_pot(I, prec, verbose):
 
     
 def _groebner_basis_F5_vopot_v1(I, prec, verbose):
-    cdef TateAlgebraElement g
-    cdef TateAlgebraTerm ti, tj
+    cdef TateAlgebraElement g, v
+    cdef TateAlgebraTerm s, S, sv, ti, tj
 
     term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
@@ -902,7 +904,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             print("---")
             print("new generator: %s + ..." % f.leading_term())
 
-        f = reduce(gb, f, verbose, val + 1)
+        f = reduce(gb, f, verbose, prec)
         if verbose > 1:
             print("generator reduced")
 
@@ -939,7 +941,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
             print("%s initial J-pairs" % len(Jpairs))
         if verbose > 2:
             for s,v in Jpairs:
-                print("| sign = %s; series = %s" % print_pair((s,v),verbose))
+                print("| " + print_pair((s,v),verbose))
 
         while Jpairs:
             sig_check()
@@ -981,20 +983,18 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 continue
 
             # We perform regular top-reduction
-            v = regular_reduce(sgb, s, v, verbose, val + 1)
+            sgb.append((None, v._positive_lshift_c(1)))
+            v = regular_reduce(sgb, s, v, verbose, prec)
+            del sgb[-1]
+            
             if v != 0:
                 v = v.monic() << v.valuation()
-            
             # if v == 0:
             if v.valuation() > val:
-                # (If v == 0)
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
                 if verbose > 1:
                     print ("| add signature for syzygy criterium: %s" % s)
-                    
-                # TODO: Do we have a syzygy criterion in this case? i.e., do we
-                # want to throw away elements which raise the valuation?
                 gb0.append(s)
                 if v != 0:
                     heappush(gens, (v.valuation(), v))
@@ -1039,10 +1039,10 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose):
                 i += 1
         if verbose > 0:
              if verbose > 1:
-                 s = " after minimization"
+                 aft = " after minimization"
              else:
-                 s = ""
-             print("%s elements in GB%s" % (len(gb), s))
+                 aft = ""
+             print("%s elements in GB%s" % (len(gb), aft))
         if verbose > 3:
             for g in gb:
                 print("| %s" % g)

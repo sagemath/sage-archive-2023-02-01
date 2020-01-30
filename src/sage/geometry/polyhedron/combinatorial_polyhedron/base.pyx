@@ -610,6 +610,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[0,0,1],[0,0,-1]])
             sage: CombinatorialPolyhedron(P).dimension()
             3
+
+        ``dim`` is an alias::
+
+            sage: CombinatorialPolyhedron(P).dim()
+            3
         """
         if self._dimension == -2:
             # Dimension not computed yet.
@@ -626,6 +631,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The dual exists, if the polyhedron is bounded.
                 self._dimension = self.bitrep_facets().compute_dimension()
         return smallInteger(self._dimension)
+
+    dim = dimension
 
     def n_vertices(self):
         r"""

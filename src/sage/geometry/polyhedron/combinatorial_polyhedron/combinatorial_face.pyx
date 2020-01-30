@@ -290,11 +290,18 @@ cdef class CombinatorialFace(SageObject):
             sage: face = next(it)
             sage: face.dimension()
             2
+
+        ``dim`` is an alias::
+
+            sage: face.dim()
+            2
         """
         if self._dual:
             return smallInteger(self._ambient_dimension - self._dimension - 1)
         else:
             return smallInteger(self._dimension)
+
+    dim = dimension
 
     def ambient_dimension(self):
         r"""

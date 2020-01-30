@@ -4261,7 +4261,7 @@ cdef class Matrix(Matrix1):
             :meth:`kernel` is exactly equal to :meth:`left_kernel`.
 
             For inexact rings use :meth:`right_kernel_matrix` with
-            ``basis='computed'`` to avoid echolonizing.
+            ``basis='computed'`` (on the transpose of the matrix) to avoid echolonizing.
 
         INPUT:
 

@@ -363,6 +363,66 @@ cdef class LaurentSeries(AlgebraElement):
             s += " + %s"%bigoh
         return s[1:]
 
+    def verschiebung(self, n):
+        r"""
+        Return the ``n``-th Verschiebung of ``self``.
+
+        If `f = \sum a_m x^m` then this function returns `\sum a_m x^{mn}`.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentSeriesRing(QQ)
+            sage: f = -1/x + 1 + 2*x^2 + 5*x^5
+            sage: f.V(2)
+            -x^-2 + 1 + 2*x^4 + 5*x^10
+            sage: f.V(-1)
+            5*x^-5 + 2*x^-2 + 1 - x
+            sage: h = f.add_bigoh(7)
+            sage: h.V(2)
+            -x^-2 + 1 + 2*x^4 + 5*x^10 + O(x^14)
+            sage: h.V(-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: For finite precision only positive arguments allowed
+
+        TESTS::
+
+            sage: R.<x> = LaurentSeriesRing(QQ)
+            sage: f = x
+            sage: f.V(3)
+            x^3
+            sage: f.V(-3)
+            x^-3
+            sage: g = 2*x^(-1) + 3 + 5*x
+            sage: g.V(-1)
+            5*x^-1 + 3 + 2*x
+        """
+        if n == 0:
+            raise ValueError('n must be non zero')
+
+        if n < 0:
+            if not self.prec() is infinity:
+                raise ValueError('For finite precision only positive arguments allowed')
+
+            exponents = [e * n for e in self.exponents()]
+            u = min(exponents)
+            exponents = [e - u for e in exponents]
+            coefficients = self.coefficients()
+            zero = self.base_ring().zero()
+            w = [zero] * (max(exponents) + 1)
+            for i in range(len(exponents)):
+                e = exponents[i]
+                c = coefficients[i]
+                w[e] = c
+            l = LaurentSeries(self._parent, w, u)
+        else:
+            __u = self.__u.V(n)
+            __n = <long>self.__n * n
+            l = LaurentSeries(self._parent, __u, __n)
+        return l
+
+    V = verschiebung
+
     def _latex_(self):
         r"""
         EXAMPLES::
@@ -1307,7 +1367,7 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec() - self.valuation()
 
     def __copy__(self):
-        return type(self)(self._parent, self.__u.copy(), self.__n)
+        return type(self)(self._parent, self.__u.__copy__(), self.__n)
 
     def reverse(self, precision=None):
         """

@@ -714,18 +714,18 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
         sage: polytopes.simplex(backend='polymake').equations()[0].index() # optional - polymake
         4
     """
-    V_indices = combinatorial_face.Vrepr(names=False)
+    V_indices = combinatorial_face.ambient_V_indices()
     n_equations = polyhedron.n_equations()
 
     if polyhedron.backend() in ('ppl',):
         # Equations before inequalities in Hrep.
         H_indices = tuple(range(n_equations))
-        H_indices += tuple(x+n_equations for x in combinatorial_face.Hrepr(names=False))
+        H_indices += tuple(x+n_equations for x in combinatorial_face.ambient_H_indices())
     elif polyhedron.backend() in ('normaliz', 'cdd', 'field', 'polymake'):
         # Equations after the inequalities in Hrep.
         n_ieqs = polyhedron.n_inequalities()
         H_indices = tuple(range(n_ieqs, n_ieqs + n_equations))
-        H_indices += tuple(x for x in combinatorial_face.Hrepr(names=False))
+        H_indices += tuple(x for x in combinatorial_face.ambient_H_indices())
     else:
         raise NotImplementedError("unknown backend")
 

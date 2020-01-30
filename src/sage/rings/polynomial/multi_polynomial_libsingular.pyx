@@ -185,12 +185,12 @@ from sage.libs.singular.decl cimport (ring, poly, ideal, intvec, number,
 # singular functions
 from sage.libs.singular.decl cimport (
     errorreported,
-    n_IsUnit, n_Invers,
+    n_IsUnit, n_Invers, n_GetChar,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, p_Divide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pMDivide, p_MDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
-    p_IsUnit, p_Series, p_Head, idInit, fast_map_common_subexp, id_Delete,
+    p_IsUnit, p_IsOne, p_Series, p_Head, idInit, fast_map_common_subexp, id_Delete,
     p_IsHomogeneous, p_Homogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
     idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
@@ -4075,23 +4075,23 @@ cdef class MPolynomial_libsingular(MPolynomial):
             True
         """
         cdef MPolynomialRing_libsingular parent = self._parent
+        cdef MPolynomial_libsingular _right = <MPolynomial_libsingular>right
         cdef ring *r = self._parent_ring
         cdef poly *quo
         cdef poly *temp
         cdef poly *p
 
-        if right.is_zero():
+        if _right._poly == NULL:
             raise ZeroDivisionError
-        elif right.is_one():
+        elif p_IsOne(_right._poly, r):
             return self
 
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+        if n_GetChar(r) > 1<<29:
             raise NotImplementedError("Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
-        _right = <MPolynomial_libsingular>right
-
         if r.cf.type != n_unknown:
-            if _right.is_monomial():
+            if (singular_polynomial_length_bounded(_right._poly, 2) == 1
+                    and r.cf.cfIsOne(p_GetCoeff(_right._poly, r), r.cf)):
                 p = self._poly
                 quo = p_ISet(0,r)
                 while p:
@@ -4402,9 +4402,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
             except Exception:
                 raise NotImplementedError("Factorization of multivariate polynomials over %s is not implemented."%self._parent._base)
 
-        if self._parent._base.is_finite():
-            if self._parent._base.characteristic() > 1<<29:
-                raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
+        if n_GetChar(_ring) > 1<<29:
+            raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)
@@ -4761,42 +4760,39 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: (21^3*p^2*q).gcd(35^2*p*q^2) == -49*p*q
             True
         """
-        cdef MPolynomial_libsingular _right
         cdef poly *_res
         cdef ring *_ring = self._parent_ring
+        cdef MPolynomial_libsingular _right = <MPolynomial_libsingular>right
 
-        if algorithm is None:
-            algorithm = "modular"
-
-        if algorithm == "ezgcd":
-            Off(SW_USE_CHINREM_GCD)
-            On(SW_USE_EZGCD)
-        elif algorithm == "modular":
+        if algorithm is None or algorithm == "modular":
             On(SW_USE_CHINREM_GCD)
             Off(SW_USE_EZGCD)
+        elif algorithm == "ezgcd":
+            Off(SW_USE_CHINREM_GCD)
+            On(SW_USE_EZGCD)
         else:
             raise TypeError("algorithm %s not supported" % algorithm)
+
+        if _right._poly == NULL:
+            return self
+        elif self._poly == NULL:
+            return right
+        elif p_IsOne(self._poly, _ring):
+            return self
+        elif p_IsOne(_right._poly, _ring):
+            return right
 
         if _ring.cf.type != n_unknown:
             if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
                 raise NotImplementedError("GCD over rings not implemented.")
 
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+        if n_GetChar(_ring) > 1<<29:
             raise NotImplementedError("GCD of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
-
-        if(_ring != currRing): rChangeCurrRing(_ring)
-
-        if not (isinstance(right, MPolynomial_libsingular) \
-                    and (<MPolynomial_libsingular>right)._parent is self._parent):
-            _right = self._parent._coerce_c(right)
-        else:
-            _right = <MPolynomial_libsingular>right
 
         cdef int count = singular_polynomial_length_bounded(self._poly,20) \
             + singular_polynomial_length_bounded(_right._poly,20)
         if count >= 20:
             sig_on()
-        if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
         _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring), _ring )
         if count >= 20:
             sig_off()
@@ -4863,7 +4859,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         else:
             _g = <MPolynomial_libsingular>g
 
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+        if n_GetChar(_ring) > 1<<29:
             raise NotImplementedError("LCM of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         cdef int count = singular_polynomial_length_bounded(self._poly,20) \
@@ -4943,7 +4939,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             py_rem = self - right*py_quo
             return py_quo, py_rem
 
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+        if n_GetChar(r) > 1<<29:
             raise NotImplementedError("Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         cdef int count = singular_polynomial_length_bounded(self._poly,15)
@@ -5398,7 +5394,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             raise TypeError("second parameter needs to be an element of self.parent() or None")
 
 
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+        if n_GetChar(_ring) > 1<<29:
             raise NotImplementedError("Resultants of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         if is_IntegerRing(self._parent._base):

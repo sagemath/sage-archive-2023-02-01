@@ -201,7 +201,7 @@ def gale_transform_to_polyhedron(vectors, base_ring=None, backend=None):
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.gale_transform`
     up to projective isomorphism.
 
-    The vectors are scalled automatically such that they add up to zero.
+    The vectors are scaled automatically such that they add up to zero.
     The function is much faster and gives nicer representation if this
     is already the case.
 
@@ -279,8 +279,16 @@ def gale_transform_to_polyhedron(vectors, base_ring=None, backend=None):
         vectors = tuple(vector(x) for x in vectors)
 
     if not sum(vectors).is_zero():
-        # The vectors of our gale transform shall add up to one.
+        # The vectors of our gale transform shall add up to zero.
         # If this is not the case, we scale them accordingly.
+        # This has the adventage that right kernel of ``vectors`` can be
+        # presented in the form ``[[1], [V]]``, where ``V`` are the vertices
+        # of the polyhedron. So dehomogenization is straight forward.
+
+        # Scaling of the vertices is equivalent to finding a hyperplane that intersects
+        # all rays of the homogenized polyhedron. But if the input is already provided
+        # such that the vectors add up to zero, the coordinates might be nicer.
+
         if base_ring:
             ker = Matrix(base_ring, vectors).left_kernel()
         else:

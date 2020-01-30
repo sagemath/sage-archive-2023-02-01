@@ -232,6 +232,7 @@ import tempfile
 import inspect
 import cgi
 import requests
+import sys
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -465,7 +466,9 @@ def _submit(args, url):
             verbose("writing argument %s" % key, caller_name='FindStat')
             value_encoded = cgi.escape(value, quote=True)
             html = FINDSTAT_FORM_FORMAT % (key, value_encoded)
-            f.write(html.encode("utf-8"))
+            if sys.version_info[0] < 3:
+                html = html.encode("utf-8")
+            f.write(html)
         else:
             verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
     f.write(FINDSTAT_FORM_FOOTER)
@@ -1517,7 +1520,6 @@ class FindStatFunction(SageObject):
             s = "%s(modified): %s" % (self.id_str(), self.name())
         else:
             s = "%s: %s" % (self.id_str(), self.name())
-        import sys
         if sys.version_info[0] < 3:
             return s.encode("utf-8")
         return s
@@ -1698,7 +1700,6 @@ class FindStatFunction(SageObject):
                                              if e)
                     result.append(comment + author_title + " " + "".join(parts[1:]))
 
-        import sys
         if sys.version_info[0] < 3:
             return FancyTuple([ref.encode("utf-8") for ref in result])
 

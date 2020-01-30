@@ -2277,6 +2277,11 @@ class LinearCode(AbstractLinearCode):
         self._dimension = generator.rank()
         self._minimum_distance = d
 
+    def __hash__(self):
+        Str = str(self)
+        G = self.generator_matrix()
+        return hash((Str, G))
+
     def _repr_(self):
         r"""
         See the docstring for :meth:`LinearCode`.

@@ -16,6 +16,7 @@ decoders. The following modules provide the base classes defining them.
    sage/coding/abstract_code
    sage/coding/linear_code_no_metric
    sage/coding/linear_code
+   sage/coding/linear_rank_metric
    sage/coding/channel
    sage/coding/encoder
    sage/coding/decoder

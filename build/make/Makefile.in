@@ -29,7 +29,7 @@ endif
 # Directory to keep track of which packages are installed
 INST = $(SAGE_SPKG_INST)
 
-# Aliases for optional packages selected at configure time
+# Aliases for mutually exclusive standard packages selected at configure time
 TOOLCHAIN = @SAGE_TOOLCHAIN@
 PYTHON = python@SAGE_PYTHON_VERSION@
 MP_LIBRARY = @SAGE_MP_LIBRARY@

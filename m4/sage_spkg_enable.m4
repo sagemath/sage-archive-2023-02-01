@@ -1,4 +1,5 @@
 AC_DEFUN([SAGE_SPKG_ENABLE], [dnl
+  AC_REQUIRE([SAGE_SPKG_INIT])dnl
   m4_pushdef([SPKG_NAME], [$1])dnl
   m4_pushdef([SPKG_TYPE], [$2])dnl
   m4_if(SPKG_TYPE, [standard], [dnl

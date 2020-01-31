@@ -2997,29 +2997,17 @@ class Polyhedron_base(Element):
         dimension = self.dimension()
         vertices = self.vertices()
 
-        # We greedily construct a full-dimensional simplex made of vertices
-        # around some vertex of self.
-        vertex = vertices[0]
-        v0 = vertex.vector()
-        M = matrix(self.base_ring(), dimension, 0)
-        simplex_vertices = [vertex]
-        for v in vertex.neighbors():
-            MA = M.augment(v.vector()-v0)
-            if MA.rank() > M.rank():
-                simplex_vertices.append(v)
-                M = MA
-            if M.rank() == dimension:
-                break
-
+        # We obtain vertices that are an affine basis of the affine hull.
+        affine_basis = self.an_affine_basis()
         raw_data = []
-        for vertex in simplex_vertices:
+        for vertex in affine_basis:
             vertex_vector = vertex.vector()
             raw_data += [[sum(i**2 for i in vertex_vector)] +
                          [i for i in vertex_vector] + [1]]
         matrix_data = matrix(raw_data)
 
-        # The determinant "a" should not be zero because the polytope is full
-        # dimensional and also the simplex.
+        # The determinant "a" should not be zero because
+        # the vertices in ``affine_basis`` are an affine basis.
         a = matrix_data.matrix_from_columns(range(1, dimension+2)).determinant()
 
         minors = [(-1)**(i)*matrix_data.matrix_from_columns([j for j in range(dimension+2) if j != i]).determinant()
@@ -3035,7 +3023,7 @@ class Polyhedron_base(Element):
             circumcenter = - circumcenter
 
         is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius
-                           for v in vertices if v not in simplex_vertices)
+                           for v in vertices if v not in affine_basis)
 
         if certificate:
             if is_inscribed:

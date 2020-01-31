@@ -2026,9 +2026,22 @@ class Polyhedron_base(Element):
             sage: test_affine_basis(polytopes.hypercube(6))
             sage: test_affine_basis(polytopes.dodecahedron())
             sage: test_affine_basis(polytopes.cross_polytope(5))
+
+        Small-dimensional cases:
+
+            sage: Polyhedron([[1]]).an_affine_basis()
+            [A vertex at (1)]
+            sage: Polyhedron([[]]).an_affine_basis()
+            [A vertex at ()]
+            sage: Polyhedron().an_affine_basis()
+            []
         """
         if not self.is_compact():
             raise NotImplementedError("this function is not implemented for unbounded polyhedra")
+        if self.dimension() == -1:
+            return []
+        if self.dimension() == 0:
+            return list(self.vertices())
 
         chain = self.combinatorial_polyhedron().a_maximal_chain()
         chain_indices = [face.ambient_V_indices() for face in chain]

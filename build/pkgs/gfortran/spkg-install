@@ -1,6 +1,8 @@
 # Exit on error
 set -e
 
+. ./set-library-path
+
 cd gcc-build
 sdh_make_install
 

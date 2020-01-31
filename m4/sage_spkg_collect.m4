@@ -117,7 +117,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     if test -f "$SPKG_TYPE_FILE"; then
         SPKG_TYPE=`cat $SPKG_TYPE_FILE`
     else
-        AC_MSG_ERROR(["$SPKG_TYPE_FILE" is missing.])
+        AC_MSG_WARN(["$SPKG_TYPE_FILE" is missing.  Leftovers from another branch?])
     fi
 
     SPKG_NAME=$(basename $DIR)

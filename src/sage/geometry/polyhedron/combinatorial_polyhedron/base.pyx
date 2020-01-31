@@ -1833,6 +1833,99 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Let ``_all_faces`` determine Vrepresentation.
         return self._all_faces.get_face(dim, newindex)
 
+    def a_maximal_chain(self):
+        r"""
+        Return a maximal chain of the face lattice without
+        empty face and universe.
+
+        Each face is given as
+        :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cross_polytope(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: chain = C.a_maximal_chain(); chain
+            [A 0-dimensional face of a 4-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 4-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 4-dimensional combinatorial polyhedron,
+             A 3-dimensional face of a 4-dimensional combinatorial polyhedron]
+            sage: [face.ambient_V_indices() for face in chain]
+            [(7,), (6, 7), (5, 6, 7), (4, 5, 6, 7)]
+
+            sage: P = polytopes.hypercube(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: chain = C.a_maximal_chain(); chain
+            [A 0-dimensional face of a 4-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 4-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 4-dimensional combinatorial polyhedron,
+             A 3-dimensional face of a 4-dimensional combinatorial polyhedron]
+            sage: [face.ambient_V_indices() for face in chain]
+            [(0,), (0, 8), (0, 4, 8, 12), (0, 2, 4, 6, 8, 10, 12, 14)]
+
+            sage: P = polytopes.permutahedron(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: chain = C.a_maximal_chain(); chain
+            [A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron]
+            sage: [face.ambient_V_indices() for face in chain]
+            [(13,), (13, 15), (13, 15, 19, 21)]
+
+            sage: P = Polyhedron(rays=[[1,0]], lines=[[0,1]])
+            sage: C = P.combinatorial_polyhedron()
+            sage: chain = C.a_maximal_chain()
+            sage: [face.ambient_V_indices() for face in chain]
+            [(0, 1)]
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,0,1]], lines=[[0,1,0]])
+            sage: C = P.combinatorial_polyhedron()
+            sage: chain = C.a_maximal_chain()
+            sage: [face.ambient_V_indices() for face in chain]
+            [(0, 1), (0, 1, 3)]
+
+            sage: P = Polyhedron(rays=[[1,0,0]], lines=[[0,1,0],[0,0,1]])
+            sage: C = P.combinatorial_polyhedron()
+            sage: chain = C.a_maximal_chain()
+            sage: [face.ambient_V_indices() for face in chain]
+            [(0, 1, 2)]
+        """
+        if self.n_facets() == 0 or self.dimension() == 0:
+            return []
+
+        # We take a face iterator and do one depth-search.
+        # Depending on whether it is dual or not,
+        # the search will be from the top or bottom.
+        it = self.face_iter()
+        chain = [None]*(self.dimension())
+        dual = it.dual
+        final_dim = 0 if not dual else self.dimension()-1
+
+        # For each dimension we save the first face we see.
+        # This is the face whose sub-/supfaces we visit in the next step.
+        current_dim = self.dimension()
+        for face in it:
+            if face.dimension() == current_dim:
+                continue
+            current_dim = face.dimension()
+            if chain[current_dim] is None:
+                chain[current_dim] = face
+            else:
+                # The polyhedron contains lines and has
+                # no zero-dimensional faces.
+                current_dim -= 1
+                break
+
+            if current_dim == final_dim:
+                # The chain is complete.
+                break
+        if current_dim != final_dim:
+            # The polyhedron contains lines.
+            # Note that the iterator was always not dual
+            # in this case.
+            return chain[current_dim:]
+        return chain
+
     cdef tuple Vrep(self):
         r"""
         Return the names of the Vrepresentation, if they exist. Else return ``None``.

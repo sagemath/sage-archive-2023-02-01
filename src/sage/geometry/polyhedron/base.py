@@ -1982,6 +1982,11 @@ class Polyhedron_base(Element):
         Return vertices that are a basis for the affine
         span of the polytope.
 
+        This basis is obtain by considering a maximal chain of faces
+        in the face lattices and picking for each cover relation
+        on vertex that is in the difference. Thus this method
+        is independent of the concrete realization of the polytope.
+
         EXAMPLES::
 
             sage: P = polytopes.cube()

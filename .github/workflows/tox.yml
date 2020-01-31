@@ -13,7 +13,7 @@ name: Run SAGE_ROOT/tox.ini
 ## After all jobs have finished (or are canceled) and a short delay,
 ## tar files of all logs are made available as "build artifacts".
 
-on: push
+on: [push, pull_request]
 
 jobs:
   tox:
@@ -25,7 +25,8 @@ jobs:
         tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      TARGETS: cbc csdp fflas_ffpack gsl iml numpy r suitesparse cvxopt
+      # We test everything BLAS-related and other problematic packages
+      TARGETS: cbc csdp fflas_ffpack gsl iml numpy r suitesparse cvxopt rpy2 ecl maxima
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
     steps:
       - uses: actions/checkout@v2

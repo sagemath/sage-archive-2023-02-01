@@ -1977,6 +1977,89 @@ class Polyhedron_base(Element):
         m.set_immutable()
         return m
 
+    def an_affine_basis(self):
+        """
+        Return vertices that are a basis for the affine
+        span of the polytope.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.an_affine_basis()
+            [A vertex at (-1, -1, -1),
+             A vertex at (1, -1, -1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, 1, -1)]
+
+            sage: P = polytopes.permutahedron(5)
+            sage: P.an_affine_basis()
+            [A vertex at (4, 1, 5, 2, 3),
+             A vertex at (5, 1, 4, 2, 3),
+             A vertex at (4, 2, 5, 1, 3),
+             A vertex at (4, 1, 5, 3, 2),
+             A vertex at (1, 2, 3, 4, 5)]
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+
+        TESTS:
+
+        Checking for various inputs, that this actually works::
+
+            sage: def test_affine_basis(P):
+            ....:     b = P.an_affine_basis()
+            ....:     m = Matrix(b).transpose().stack(Matrix([[1]*len(b)]))
+            ....:     assert m.rank() == P.dim() + 1
+            ....:
+            sage: test_affine_basis(polytopes.permutahedron(5))
+            sage: test_affine_basis(polytopes.Birkhoff_polytope(4))
+            sage: test_affine_basis(polytopes.hypercube(6))
+            sage: test_affine_basis(polytopes.dodecahedron())
+            sage: test_affine_basis(polytopes.cross_polytope(5))
+        """
+        if not self.is_compact():
+            raise NotImplementedError("this function is not implemented for unbounded polyhedra")
+
+        chain = self.combinatorial_polyhedron().a_maximal_chain()
+        chain_indices = [face.ambient_V_indices() for face in chain]
+        basis_indices = []
+
+        # We just in the folling that element in ``chain_indices`` is a sorted list
+        # of V-indices.
+        # Thus for each two faces we can easily find the first vertex that differs.
+        for dim,face in enumerate(chain_indices):
+            if dim == 0:
+                # Append the vertex.
+                basis_indices.append(face[0])
+                continue
+
+            prev_face = chain_indices[dim-1]
+            for i in range(len(prev_face)):
+                if prev_face[i] != face[i]:
+                    # We found a vertex that ``face`` has, but its facet does not.
+                    basis_indices.append(face[i])
+                    break
+            else:  # no break
+                # ``prev_face`` contains all the same vertices as ``face`` until now.
+                # But ``face`` is guaranteed to contain one more vertex (at least).
+                basis_indices.append(face[len(prev_face)])
+
+        # Finally append some vertex not contained in ``face``,
+        # which is a facet of ``self`` now.
+        for i in range(len(face)):
+            if face[i] != i:
+                basis_indices.append(i)
+                break
+        else:  # no break
+            basis_indices.append(len(face))
+
+        return [self.Vrepresentation()[i] for i in basis_indices]
+
     def ray_generator(self):
         """
         Return a generator for the rays of the polyhedron.
@@ -2829,13 +2912,13 @@ class Polyhedron_base(Element):
             sage: square.is_inscribed()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this function is implemented for full-dimensional polyhedron only
+            NotImplementedError: this function is implemented for full-dimensional polyhedra only
 
             sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
             sage: p.is_inscribed()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this function is not implemented for unbounded polyhedron
+            NotImplementedError: this function is not implemented for unbounded polyhedra
 
         TESTS:
 
@@ -2901,10 +2984,10 @@ class Polyhedron_base(Element):
         """
 
         if not self.is_compact():
-            raise NotImplementedError("this function is not implemented for unbounded polyhedron")
+            raise NotImplementedError("this function is not implemented for unbounded polyhedra")
 
         if not self.is_full_dimensional():
-            raise NotImplementedError("this function is implemented for full-dimensional polyhedron only")
+            raise NotImplementedError("this function is implemented for full-dimensional polyhedra only")
 
         dimension = self.dimension()
         vertices = self.vertices()

@@ -2819,6 +2819,19 @@ class Polyhedron_base(Element):
             ....:                          [+1, 0, 0, 0]])
             sage: P.is_inscribed()
             True
+
+        We check that :trac:`29125` is fixed::
+
+            sage: P = Polyhedron(vertices=[[-2,-1], [-2,1], [0,-1], [0,1]], backend='field')
+            sage: P.is_inscribed()
+            True
+            sage: V = P.Vrepresentation()
+            sage: H = P.Hrepresentation()
+            sage: parent = P.parent()
+            sage: for V1 in Permutations(V):
+            ....:     P1 = parent._element_constructor_(
+            ....:         [V1, [], []], [H, []], Vrep_minimal=True, Hrep_minimal=True)
+            ....:     assert P1.is_inscribed()
         """
 
         if not self.is_compact():
@@ -2863,8 +2876,8 @@ class Polyhedron_base(Element):
         squared_circumradius = (sum(m**2 for m in minors) - 4 * a * c) / (4*a**2)
 
         # Checking if the circumcenter has the correct sign
-        test_vector = vertex.vector() - circumcenter
-        if sum(i**2 for i in test_vector) != squared_circumradius:
+        if not all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius
+                   for v in vertices if v in simplex_vertices):
             circumcenter = - circumcenter
 
         is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius

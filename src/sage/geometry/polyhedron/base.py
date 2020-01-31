@@ -8557,7 +8557,7 @@ class Polyhedron_base(Element):
             sage: A = L.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
-            (A vertex at (0), A vertex at (1.414213562373095?))
+            (A vertex at (1.414213562373095?), A vertex at (0))
 
         More generally::
 
@@ -8585,10 +8585,10 @@ class Polyhedron_base(Element):
             sage: A = S.affine_hull(orthonormal=True, extend=True); A
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
-            (A vertex at (0, 0, 0),
-             A vertex at (1.414213562373095?, 0, 0),
+            (A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?),
              A vertex at (0.7071067811865475?, 1.224744871391589?, 0),
-             A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?))
+             A vertex at (1.414213562373095?, 0, 0),
+             A vertex at (0, 0, 0))
 
         More examples with the ``orthonormal`` parameter::
 
@@ -8686,10 +8686,9 @@ class Polyhedron_base(Element):
             sage: A, b = P.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
             sage: Q = P.affine_hull(orthonormal=True, extend=True)
             sage: Q.center()
-            (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)
+            (0.7071067811865475?, 0.7071067811865475?, 2)
             sage: A(P.center()) + b == Q.center()
             True
-
 
         For unbounded, non full-dimensional polyhedra, the ``orthogonal=True`` and ``orthonormal=True``
         is not implemented::
@@ -8761,6 +8760,26 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices=[[0,0], [1,0]], backend='field')
             sage: P.affine_hull(orthogonal=True, orthonormal=True, extend=True).backend()
             'field'
+
+        Check that :trac:`29116` is fixed::
+
+            sage: V =[
+            ....:    [1, 0, -1, 0, 0],
+            ....:    [1, 0, 0, -1, 0],
+            ....:    [1, 0, 0, 0, -1],
+            ....:    [1, 0, 0, +1, 0],
+            ....:    [1, 0, 0, 0, +1],
+            ....:    [1, +1, 0, 0, 0]
+            ....:     ]
+            sage: P = Polyhedron(V)
+            sage: P.affine_hull()
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 6 vertices
+            sage: P.affine_hull(orthonormal=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the base ring needs to be extended; try with "extend=True"
+            sage: P.affine_hull(orthonormal=True, extend=True)
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 6 vertices
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():

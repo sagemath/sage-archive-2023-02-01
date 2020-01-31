@@ -8791,13 +8791,11 @@ class Polyhedron_base(Element):
             # see TODO
             if not self.is_compact():
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
-            # translate 0th vertex to the origin
-            Q = self.translation(-vector(self.vertices()[0]))
-            v = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
-            # finding the zero in Q; checking that Q actually has a vertex zero
-            assert v.vector() == Q.ambient_space().zero()
-            # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            affine_basis = self.an_affine_basis()
+            # We implicitely translate the first vertex of the affine basis to zero.
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(),
+                       [v.vector() - affine_basis[0].vector() for v in affine_basis[1:]])
+
             # Switch base_ring to AA if necessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
@@ -8810,9 +8808,11 @@ class Polyhedron_base(Element):
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
-                return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
+                return linear_transformation(A, side='right'), -A*vector(A.base_ring(), affine_basis[0])
+
+            translate_vector = vector(A.base_ring(), affine_basis[0])
             parent = self.parent().change_ring(A.base_ring(), ambient_dim=self.dim())
-            new_vertices = [A*vector(A.base_ring(), w) for w in Q.vertices()]
+            new_vertices = [A*(vector(A.base_ring(), w) - translate_vector) for w in self.vertices()]
             return parent.element_class(parent, [new_vertices, [], []], None)
 
         # translate one vertex to the origin

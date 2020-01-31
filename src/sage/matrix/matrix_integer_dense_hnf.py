@@ -1,5 +1,5 @@
 """
-Modular algorithm to compute Hermite normal forms of integer matrices.
+Modular algorithm to compute Hermite normal forms of integer matrices
 
 AUTHORS:
 

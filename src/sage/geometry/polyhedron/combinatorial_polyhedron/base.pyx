@@ -1803,6 +1803,27 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self._n_Hrepresentation
 
+    def is_compact(self):
+        r"""
+        Return whether the polyhedron is compact
+
+        EXAMPLES::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_compact()
+            False
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2], [1,2]])
+            sage: C.is_compact()
+            True
+            sage: P = polytopes.simplex()
+            sage: P.combinatorial_polyhedron().is_compact()
+            True
+            sage: P = Polyhedron(rays=P.vertices())
+            sage: P.combinatorial_polyhedron().is_compact()
+            False
+        """
+        return self.is_bounded()
+
     cdef bint is_bounded(self):
         r"""
         Return whether the polyhedron is bounded.

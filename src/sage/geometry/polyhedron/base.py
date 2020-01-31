@@ -3321,7 +3321,7 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron(vertices = [[0,0],[0,1],[1,0]])
             sage: p2 = p.prism()
             sage: p2.gale_transform()
-            ((1, 0), (0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1))
+            ((-1, -1), (1, 0), (0, 1), (1, 1), (-1, 0), (0, -1))
 
         REFERENCES:
 
@@ -3334,14 +3334,20 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: not a polytope
+
+        Check that :trac:`29073` is fixed::
+
+            sage: P = polytopes.icosahedron(exact=False)
+            sage: sum(P.gale_transform()).norm() < 1e-15
+            True
         """
         if not self.is_compact(): raise ValueError('not a polytope')
 
         A = matrix(self.n_vertices(),
                    [ [1]+x for x in self.vertex_generator()])
         A = A.transpose()
-        A_ker = A.right_kernel()
-        return tuple(A_ker.basis_matrix().transpose().rows())
+        A_ker = A.right_kernel_matrix(basis='computed')
+        return tuple(A_ker.columns())
 
     @cached_method
     def normal_fan(self, direction='inner'):

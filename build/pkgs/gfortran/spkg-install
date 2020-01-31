@@ -1,6 +1,8 @@
 # Exit on error
 set -e
 
+# To work around #26996
+(mkdir -p "$SAGE_DESTDIR_LOCAL" && cd "$SAGE_DESTDIR_LOCAL" && ln -sf lib lib64)
 . ./set-library-path
 
 cd gcc-build

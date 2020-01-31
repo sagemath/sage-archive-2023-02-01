@@ -89,7 +89,7 @@ code.
 
 ::
 
-    sage: import numpy, scipy
+    sage: import numpy
     sage: from scipy import integrate
     sage: def f_1(y,t):
     ....:    return[y[1],-y[0]-10*y[1]*(y[0]**2-1)]

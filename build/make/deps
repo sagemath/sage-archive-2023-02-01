@@ -122,7 +122,7 @@ base: $(inst_patch) $(inst_pkgconf)
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
-sagelib: \
+sagelib-build-deps: \
 		$(SCRIPTS) \
 		$(inst_arb) \
 		$(inst_boost_cropped) \
@@ -177,6 +177,8 @@ sagelib: \
 		$(inst_symmetrica) \
 		$(inst_zn_poly) \
 		$(PCFILES)
+
+sagelib: sagelib-build-deps
 	$(AM_V_at)if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && source $(SAGE_ROOT)/build/bin/sage-build-env-config && \
 		sage-logger -p 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \

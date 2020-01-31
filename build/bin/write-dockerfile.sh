@@ -173,5 +173,8 @@ $RUN make \${USE_MAKEFLAGS} cython
 # By default, compile something tricky but that does not take too long. scipy uses BLAS.
 ARG TARGETS="scipy"
 $RUN make SAGE_SPKG="sage-spkg -y -o" SAGE_CHECK=warn SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl" \${USE_MAKEFLAGS} \${TARGETS}
+ADD src src
+$RUN make \${USE_MAKEFLAGS} build
+$RUN make \${USE_MAKEFLAGS} ptest
 #:end:
 EOF

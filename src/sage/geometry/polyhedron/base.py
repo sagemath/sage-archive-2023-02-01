@@ -3019,7 +3019,7 @@ class Polyhedron_base(Element):
 
         # Checking if the circumcenter has the correct sign
         if not all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius
-                   for v in vertices if v in simplex_vertices):
+                   for v in vertices if v in affine_basis):
             circumcenter = - circumcenter
 
         is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius

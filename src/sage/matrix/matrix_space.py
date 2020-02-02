@@ -58,7 +58,6 @@ from . import matrix_polynomial_dense
 from . import matrix_mpolynomial_dense
 
 # Sage imports
-from sage.misc.superseded import deprecation
 import sage.structure.coerce
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation

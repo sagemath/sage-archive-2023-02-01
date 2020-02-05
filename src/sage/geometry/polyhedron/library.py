@@ -222,7 +222,7 @@ def gale_transform_to_polyhedron(vectors, base_ring=None, backend=None):
         sage: from sage.geometry.polyhedron.library import gale_transform_to_polyhedron
         sage: points = polytopes.octahedron().gale_transform()
         sage: points
-        ((1, 0), (0, 1), (-1, -1), (-1, -1), (0, 1), (1, 0))
+        ((0, -1), (-1, 0), (1, 1), (1, 1), (-1, 0), (0, -1))
         sage: P = gale_transform_to_polyhedron(points); P
         A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
         sage: P.vertices()

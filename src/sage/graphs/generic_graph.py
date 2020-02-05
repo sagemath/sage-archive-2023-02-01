@@ -17674,7 +17674,7 @@ class GenericGraph(GenericGraph_pyx):
                                 yield w
 
     def depth_first_search(self, start, ignore_direction=False,
-                           distance=None, neighbors=None):
+                           distance=None, neighbors=None, edges=False):
         """
         Return an iterator over the vertices in a depth-first ordering.
 
@@ -17694,6 +17694,10 @@ class GenericGraph(GenericGraph_pyx):
           ``neighbors`` is by default the :meth:`.neighbors` function. For a
           digraph, the ``neighbors`` function defaults to the
           :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
+
+        - ``edges`` -- boolean (default ``False``); whether to return the edges
+          of the DFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
 
         .. SEEALSO::
 
@@ -17745,13 +17749,30 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(5, neighbors=D.neighbors_out))
             [5, 33, 6, 34, 7, 35, 8, 9]
 
+        You can get edges of the DFS tree instead of the vertices using the
+        ``edges`` parameter::
+
+            sage: D = DiGraph({1: [2, 3], 2: [4], 3: [4], 4: [1, 5], 5: [2, 6]})
+            sage: list(D.depth_first_search(1, edges=True))
+            [(1, 3), (3, 4), (4, 5), (5, 6), (5, 2)]
+            sage: D = DiGraph({1: [2, 3], 2: [4], 3: [4], 4: [1, 5], 5: [2, 6]})
+            sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))
+            [(1, 4), (4, 5), (5, 6), (5, 2), (4, 3)]
+
         TESTS::
 
             sage: D = DiGraph({1: [0], 2: [0]})
             sage: list(D.depth_first_search(0))
             [0]
-            sage: list(D.depth_first_search(0, ignore_direction=True))
-            [0, 2, 1]
+            sage: D = DiGraph({1: [2, 3], 3: [4, 6], 4: [6], 5: [4, 7], 6: [7]})
+            sage: list(D.depth_first_search(1))
+            [1, 3, 6, 7, 4, 2]
+            sage: list(D.depth_first_search(1, edges=True))
+            [(1, 3), (3, 6), (6, 7), (3, 4), (1, 2)]
+            sage: list(D.depth_first_search(1, ignore_direction=True))
+            [1, 3, 6, 4, 5, 7, 2]
+            sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))
+            [(1, 3), (3, 6), (6, 7), (7, 5), (5, 4), (1, 2)]
 
         """
         if distance is not None:
@@ -17759,7 +17780,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
-                and hasattr(self._backend, "depth_first_search")):
+                and hasattr(self._backend, "depth_first_search") and not edges):
             for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
@@ -17768,7 +17789,7 @@ class GenericGraph(GenericGraph_pyx):
                     neighbors = self.neighbor_iterator
                 else:
                     neighbors = self.neighbor_out_iterator
-            seen = set()
+            seen = list()
             if isinstance(start, list):
                 # Reverse the list so that the initial vertices come out in the same order
                 queue = [(v, 0) for v in reversed(start)]
@@ -17778,8 +17799,14 @@ class GenericGraph(GenericGraph_pyx):
             while queue:
                 v, d = queue.pop()
                 if v not in seen:
-                    yield v
-                    seen.add(v)
+                    if not edges:
+                        yield v
+                    else:
+                        for w in reversed(seen):
+                            if v in neighbors(w):
+                                yield w, v
+                                break
+                    seen.append(v)
                     if distance is None or d < distance:
                         for w in neighbors(v):
                             if w not in seen:

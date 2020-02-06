@@ -416,9 +416,9 @@ class TangentTensor(TensorFieldParal):
 
         Of course `T1` and `T2` give the same output on vector fields tangent to S::
 
-            sage: T1(xi.along(Phi)).disp()
+            sage: T1(xi.along(Phi)).display()
             sqrt(u^2 + v^2) d/dt
-            sage: T2(xi.along(Phi)).disp()
+            sage: T2(xi.along(Phi)).display()
             sqrt(u^2 + v^2) d/dt
 
     """
@@ -469,12 +469,12 @@ class TangentTensor(TensorFieldParal):
         f = tensor._domain._ambient.default_frame().along(embedding)
         self[f, :] = tensor[f, :]
         frame = self._domain.adapted_frame(screen)
-        self.disp(frame)
+        self.display(frame)
         for i in self._domain._ambient.index_generator(tensor.tensor_rank()):
             for j in range(len(i)):
                 if i[j]==self._domain._ambient._dim-self._domain._sindex-1:
                     self[frame, i] = 0
-        
+
     def __call__(self, *args):
         r"""
 

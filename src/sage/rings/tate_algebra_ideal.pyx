@@ -758,9 +758,9 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             s, v = heappop(Jpairs)
             sv = v.leading_term()
 
-            if verbose == 2:
+            if verbose == 1:
                 print("pop one J-pair; %s remaining J-pairs" % len(Jpairs))
-            if verbose > 2:
+            if verbose > 1:
                 print("current J-pair: " + print_pair((s,v), verbose))
                 print("%s remaining J-pairs" % len(Jpairs))
 
@@ -907,7 +907,8 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose,
             print("---")
             print("new generator: %s + ..." % f.leading_term())
 
-        f = reduce(gb, f, verbose, val + 1)
+        tgtval = val + 1 if interrupt_red_with_val else prec
+        f = reduce(gb, f, verbose, tgtval)
         if verbose > 1:
             print("generator reduced")
 

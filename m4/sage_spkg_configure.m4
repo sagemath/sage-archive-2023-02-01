@@ -92,7 +92,9 @@ AS_VAR_SET_IF(SPKG_REQUIRE, [], [AS_VAR_SET(SPKG_REQUIRE, [yes])])
 $3
 
 AS_VAR_IF(SPKG_INSTALL, [no], [
-    AS_VAR_IF(SPKG_REQUIRE, [yes], [
+    AS_VAR_IF(SPKG_REQUIRE, [no], [
+        AC_MSG_NOTICE(m4_normalize([SPKG ]SPKG_NAME[ is not required on this system]))
+    ], [
         dnl If this is a required package and nothing before has found that we
         dnl should install the SPKG, we run the checks to determine whether we
         dnl can use a system package.
@@ -125,8 +127,6 @@ AS_VAR_IF(SPKG_INSTALL, [no], [
                 ])
             ])
         ])
-    ], [
-        AC_MSG_NOTICE(m4_normalize([SPKG ]SPKG_NAME[ is not required on this system]))
     ])
 ])
 

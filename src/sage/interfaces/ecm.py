@@ -627,7 +627,7 @@ class ECM(SageObject):
         n = self._validate(n)
         factors = [n]                 # factors that need to be factorized futher
         probable_prime_factors = []   # output prime factors
-        while len(factors) > 0:
+        while factors:
             n = factors.pop()
 
             # Step 0: Primality test

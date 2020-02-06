@@ -419,7 +419,7 @@ lazy_import('sage.interfaces.maxima_lib','maxima')
 ########################################################
 def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
-    Returns the symbolic sum `\sum_{v = a}^b expression` with respect
+    Return the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
 
     INPUT:
@@ -592,7 +592,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
        Sage can currently only understand a subset of the output of Maxima,
        Maple and Mathematica, so even if the chosen backend can perform
-       the summation the result might not be convertable into a Sage
+       the summation the result might not be convertible into a Sage
        expression.
     """
     if not is_SymbolicVariable(v):

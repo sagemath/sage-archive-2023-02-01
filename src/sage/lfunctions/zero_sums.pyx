@@ -15,7 +15,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
@@ -1266,7 +1266,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         r"""
         Method called by self._zerosum_sincsquared_parallel() to determine
         the optimal residue class breakdown when sieving for primes.
-        Returns a list of small primes, the product thereof, and a list of
+
+        Return a list of small primes, the product thereof, and a list of
         residues coprime to the product.
 
         INPUT:

@@ -300,7 +300,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                     else:
                         ans[j].append(zero)
             for j from 0 <= j < prec:
-                while len(ans[j]) > 0:
+                while ans[j]:
                     if ans[j][-1] == 0:
                         ans[j].pop()
                     else:
@@ -331,19 +331,19 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                     break
                 self.prime_pow.eis_shift(&shifter, &shifter, self.prime_pow.e, self.prime_pow.capdiv(prec - i))
             zerotest = 0
-        while len(ans) > 0:
+        while ans:
             if ans[-1] == zerotest:
                 ans.pop()
             else:
                 break
-        while len(ans) > 0:
+        while ans:
             if ans[0] == zerotest:
                 ans.pop(0)
             else:
                 break
         return ans
 
-    def norm(self, base = None):
+    def norm(self, base=None):
         """
         Return the absolute or relative norm of this element.
 

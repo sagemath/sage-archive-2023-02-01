@@ -974,13 +974,19 @@ class MixedForm(AlgebraElement):
         resu._latex_name = format_unop_latex(r'\mathrm{d}', self._latex_name)
         return resu
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
         .. NOTE::
 
             The name and names of the components are not copied.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -1016,7 +1022,7 @@ class MixedForm(AlgebraElement):
         different name, but has the very same values::
 
             sage: B = A.copy(); B.display()
-            f + (unnamed 1-form) + (unnamed 2-form)
+            (unnamed scalar field) + (unnamed 1-form) + (unnamed 2-form)
             sage: B.display_expansion(e_uv)
             [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
             sage: A == B
@@ -1038,7 +1044,9 @@ class MixedForm(AlgebraElement):
         """
         resu = self._new_instance()
         resu[:] = [form.copy() for form in self]
-        resu._is_zero = self._is_zero
+        resu.set_name(name=name, latex_name=latex_name)
+        resu._is_zero = self._is_zero  # a priori
+
         return resu
 
     def __setitem__(self, index, values):
@@ -1174,11 +1182,10 @@ class MixedForm(AlgebraElement):
         """
         if not isinstance(rst, MixedForm):
             raise TypeError("the argument must be a mixed form")
-        subdomain = rst._domain
-        if not subdomain.is_subset(self._domain):
+        if not rst._domain.is_subset(self._domain):
             raise ValueError("the specified domain is not a subset of " +
                              "the domain of definition of the mixed form")
-        for j in range(0, self._max_deg + 1):
+        for j in self.irange():
             self[j].set_restriction(rst[j])
         self._is_zero = False  # a priori
 

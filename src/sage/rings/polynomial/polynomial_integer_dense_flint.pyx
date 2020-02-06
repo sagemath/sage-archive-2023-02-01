@@ -38,7 +38,7 @@ include "sage/libs/ntl/decl.pxi"
 
 from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
-from sage.arith.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long, is_small_python_int
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element
@@ -239,7 +239,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             # now fill them in
             for ii, a in x:
                 i = ii[0] if type(ii) is tuple else ii
-                if type(a) is int:
+                if is_small_python_int(a):
                     sig_on()
                     fmpz_poly_set_coeff_si(self.__poly, i, a)
                     sig_off()
@@ -277,7 +277,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         for i from 0 <= i < len(x):
             a = x[i]
-            if type(a) is int:
+            if is_small_python_int(a):
                 sig_on()
                 fmpz_poly_set_coeff_si(self.__poly, i, a)
                 sig_off()
@@ -396,7 +396,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     (<Polynomial_integer_dense_flint> x0).__poly)
                 sig_off()
                 return f
-            if isinstance(x0, int):
+            if is_small_python_int(x0):
                 z = Integer.__new__(Integer)
                 sig_on()
                 fmpz_init(a_fmpz)
@@ -408,7 +408,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 fmpz_clear(z_fmpz)
                 sig_off()
                 return z
-            if isinstance(x0, long):
+            if isinstance(x0, (int, long)):
                 x0 = Integer(x0)
             if isinstance(x0, Integer):
                 a = <Integer> x0

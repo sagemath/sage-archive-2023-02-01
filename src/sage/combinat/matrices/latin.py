@@ -1464,7 +1464,7 @@ def isotopism(p):
 
     INPUT:
 
-    According to the type of input (see examples below) :
+    According to the type of input (see examples below):
 
     - an integer `n` -- the function returns the identity on `1,...,n`.
 

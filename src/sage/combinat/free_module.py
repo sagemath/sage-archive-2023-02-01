@@ -1330,13 +1330,13 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: T = tensor([F, G])
                 sage: T # indirect doctest
                 F # G
-                sage: T.print_options(tensor_symbol= ' @ ')  # note the spaces
+                sage: T.print_options(tensor_symbol=' @ ')  # note the spaces
                 sage: T # indirect doctest
                 F @ G
 
             To avoid a side\--effect on another doctest, we revert the change::
 
-                sage: T.print_options(tensor_symbol= ' # ')
+                sage: T.print_options(tensor_symbol=' # ')
             """
             from sage.categories.tensor import tensor
             if hasattr(self, "_print_options"):

@@ -1146,7 +1146,7 @@ class Partition(CombinatorialElement):
             t = m - h + 1
             next_p[h-1] = r
 
-            while t >= r :
+            while t >= r:
                 h += 1
                 next_p[h-1] = r
                 t -= r
@@ -1268,7 +1268,7 @@ class Partition(CombinatorialElement):
             sage: Partition([2, 1, 1]).k_size(4)
             4
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`k_boundary`, :meth:`SkewPartition.size`
         """
@@ -1319,7 +1319,7 @@ class Partition(CombinatorialElement):
             sage: Partition([2, 1, 1]).boundary()
             [(2, 0), (2, 1), (1, 1), (1, 2), (1, 3), (0, 3)]
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`k_rim`.  You might have been looking for :meth:`k_boundary`
             instead.
@@ -1384,7 +1384,7 @@ class Partition(CombinatorialElement):
             sage: Partition([3,  1]).k_rim(3)
             [(3, 0),  (2, 0),  (1, 0),  (1, 1),  (0, 1),  (0, 2)]
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`k_interior`, :meth:`k_boundary`, :meth:`boundary`
         """
@@ -1420,7 +1420,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4, 4, 4, 3, 2]).k_row_lengths(2)
             [0, 1, 1, 1, 2]
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`k_column_lengths`, :meth:`k_boundary`,
             :meth:`SkewPartition.row_lengths`,
@@ -1442,7 +1442,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4, 4, 4, 3, 2]).k_column_lengths(2)
             [1, 1, 1, 2]
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`k_row_lengths`, :meth:`k_boundary`,
             :meth:`SkewPartition.row_lengths`,
@@ -1490,7 +1490,7 @@ class Partition(CombinatorialElement):
             sage: Partition([3]).has_rectangle(2, 3)
             False
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`has_k_rectangle`
         """
@@ -1685,7 +1685,7 @@ class Partition(CombinatorialElement):
             sage: Partition([3, 2, 1]).next_within_bounds(min=m, max=M) == None
             True
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`next`
         """
@@ -4345,7 +4345,7 @@ class Partition(CombinatorialElement):
             sage: q.is_core(0)
             True
 
-        ..  SEEALSO::
+        .. SEEALSO::
 
             :meth:`core`, :class:`Core`
         """

@@ -480,14 +480,13 @@ class Gap_generic(ExtraTabCompletion, Expect):
         ::
 
             sage: filename = tmp_filename()
-            sage: f = open(filename, 'w')
-            sage: _ = f.write('xx := 22;\n')
-            sage: f.close()
+            sage: with open(filename, 'w') as f:
+            ....:     _ = f.write('xx := 22;\n')
             sage: gap.read(filename)
             sage: gap.get('xx').strip()
             '22'
         """
-        return 'Read("%s");'%filename
+        return 'Read("%s");' % filename
 
     def _continuation_prompt(self):
         """
@@ -1018,7 +1017,7 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
         # the MRO.
         return self._operation("+", other)
 
-    def bool(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -1032,6 +1031,7 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
         P = self._check_valid()
         return self != P(0) and repr(self) != 'false'
 
+    __nonzero__ = __bool__
 
     def __len__(self):
         """
@@ -1441,7 +1441,8 @@ class Gap(Gap_generic):
             if os.path.exists(tmp):
                 os.unlink(tmp)
             self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False)
-            r = open(tmp).read()
+            with open(tmp) as f:
+                r = f.read()
             r = r.strip().replace("\\\n","")
             os.unlink(tmp)
             return r

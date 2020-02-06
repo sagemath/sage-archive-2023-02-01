@@ -428,6 +428,7 @@ class AffineConnection(SageObject):
                                   # (key: vector frame)
         self._curvature_forms = {}  # dict. of dict. of curvature 2-forms
                                     # (key: vector frame)
+        self._hash = -1
 
     def _del_derived(self):
         r"""
@@ -2321,3 +2322,25 @@ class AffineConnection(SageObject):
                 if truncate:
                     coef[ind].simplify()
         self._del_derived()
+
+    def __hash__(self):
+        r"""
+        Hash function.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: hash(nab) == nab.__hash__()
+            True
+
+        Let us check that ``nab`` can be used as a dictionary key::
+
+            sage: {nab: 1}[nab]
+            1
+
+        """
+        if self._hash == -1:
+            self._hash = hash(repr(self))
+        return self._hash

@@ -609,10 +609,10 @@ remote connection to a server running Mathematica -- for hints, type
         self.eval('SetDirectory["%s"]'%dir)
 
     def _true_symbol(self):
-        return '         True'
+        return 'True'
 
     def _false_symbol(self):
-        return '         False'
+        return 'False'
 
     def _equality_symbol(self):
         return '=='
@@ -949,12 +949,16 @@ class MathematicaElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
-            sage: show(P)                                        # optional - mathematica
-            sage: P.show(ImageSize=800)                          # optional - mathematica
             sage: Q = mathematica('Sin[x Cos[y]]/Sqrt[1-x^2]')   # optional - mathematica
             sage: show(Q)                                        # optional - mathematica
             <html><script type="math/tex">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</script></html>
+
+        The following example starts a Mathematica frontend to do the rendering
+        (:trac:`28819`)::
+
+            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
+            sage: show(P)                                        # optional - mathematica mathematicafrontend
+            sage: P.show(ImageSize=800)                          # optional - mathematica mathematicafrontend
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
@@ -976,6 +980,28 @@ class MathematicaElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
+    def __bool__(self):
+        """
+        Return whether this Mathematica element is not identical to ``False``.
+
+        EXAMPLES::
+
+            sage: bool(mathematica(True))  # optional - mathematica
+            True
+            sage: bool(mathematica(False))  # optional - mathematica
+            False
+
+        In Mathematica, `0` cannot be used to express falsity::
+
+            sage: bool(mathematica(0))  # optional - mathematica
+            True
+        """
+        P = self._check_valid()
+        cmd = '%s===%s' % (self._name, P._false_symbol())
+        return P.eval(cmd).strip() != P._true_symbol()
+
+    __nonzero__ = __bool__
 
     def N(self, precision=None):
         r"""

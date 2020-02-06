@@ -1050,12 +1050,12 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         # However, there is an exception: CachedFunction(f) returns a class instance,
         # whose doc string coincides with that of f and is thus different from
         # that of the class CachedFunction. In that situation, we want that f is documented.
-        # This is part of SAGE TRAC 9976
+        # This is part of trac #9976.
         return (inspect.isfunction(member) or inspect.isbuiltin(member)
                 or (isclassinstance(member)
                     and sage_getdoc_original(member) != sage_getdoc_original(member.__class__)))
 
-    # Sage Trac #9976: This function has been rewritten to support the
+    # Trac #9976: This function has been rewritten to support the
     # _sage_argspec_ attribute which makes it possible to get argument
     # specification of decorated callables in documentation correct.
     # See e.g. sage.misc.decorators.sage_wraps
@@ -1418,10 +1418,10 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):
             self.directivetype = 'method'
         return ret
 
-    # Sage Trac #9976: This function has been rewritten to support the
+    # Trac #9976: This function has been rewritten to support the
     # _sage_argspec_ attribute which makes it possible to get argument
     # specification of decorated callables in documentation correct.
-    # See e.g. sage.misc.decorators.sage_wraps
+    # See e.g. sage.misc.decorators.sage_wraps.
     #
     # Note, however, that sage.misc.sageinspect.sage_getargspec already
     # uses a method _sage_argspec_, that only works on objects, not on classes, though.
@@ -1491,8 +1491,13 @@ class AttributeDocumenter(DocstringStripSignatureMixin, ClassLevelDocumenter):  
         # descriptors.
         isattribute = isattribute or isinstance(type(member), ClasscallMetaclass)
 
-        if PY2:
-            return isattribute
+        return isattribute
+
+        # We ignore the obscure case supported in the following return
+        # statement. The additional check opens a door for attributes without
+        # docstrings to appear in the Sage documentation, and more seriously
+        # effectively prevents certain attributes to get properly documented.
+        # See trac #28698.
 
         # That last condition addresses an obscure case of C-defined
         # methods using a deprecated type in Python 3, that is not otherwise

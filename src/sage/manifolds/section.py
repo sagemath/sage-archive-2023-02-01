@@ -1412,13 +1412,19 @@ class Section(ModuleElement):
                 frame = self._smodule.default_frame()
         self.set_comp(frame)[args] = value
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
+
         .. NOTE::
 
-            The name and the derived quantities are copied, too.
+            The name and the derived quantities are not copied.
 
         EXAMPLES:
 
@@ -1443,10 +1449,10 @@ class Section(ModuleElement):
             sage: s[fU,:] = [2, 1-y]
             sage: s.add_comp_by_continuation(fV, U.intersection(V), c_uv)
             sage: t = s.copy(); t
-            Section s on the 2-dimensional topological manifold M with values in
+            Section on the 2-dimensional topological manifold M with values in
              the real vector bundle E of rank 2
             sage: t.display(fU)
-            s = 2 (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
+            2 (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
             sage: t == s
             True
 
@@ -1456,7 +1462,7 @@ class Section(ModuleElement):
             sage: s.display(fU)
             s = -(phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
             sage: t.display(fU)
-            s = 2 (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
+            2 (phi_U^*e_1) + (-y + 1) (phi_U^*e_2)
             sage: t == s
             False
 
@@ -1464,11 +1470,8 @@ class Section(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
-        ###
         # Propagate names to all restrictions
-        resu_name = self._name
-        resu_latex = self._latex_name
-        resu.set_name(name=resu_name, latex_name=resu_latex)
+        resu.set_name(name=name, latex_name=latex_name)
         return resu
 
     def _common_subdomains(self, other):

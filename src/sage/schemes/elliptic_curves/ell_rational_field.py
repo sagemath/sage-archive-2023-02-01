@@ -474,7 +474,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Generator 1 is [29604565304828237474403861024284371796799791624792913256602210:-256256267988926809388776834045513089648669153204356603464786949:490078023219787588959802933995928925096061616470779979261000]; height 95.98037...
             Regulator = 95.98037...
         """
-        if options == "":
+        if not options:
             from sage.interfaces.all import mwrank
         else:
             from sage.interfaces.all import Mwrank
@@ -490,7 +490,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``algorithm`` - str, (default: "pari")
 
-           -  ``"pari"`` - use the PARI C-library ellglobalred
+           -  ``"pari"`` - use the PARI C-library :pari:`ellglobalred`
               implementation of Tate's algorithm
 
            -  ``"mwrank"`` - use Cremona's mwrank implementation
@@ -2298,7 +2298,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                         misc.verbose("Trying direct search up to height %s"%h)
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
-                        if len(G) > 0:
+                        if G:
                             misc.verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
                             misc.verbose("Computed saturation.")
@@ -2566,8 +2566,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         """
         if not isinstance(points, list):
-            raise TypeError("points (=%s) must be a list."%points)
-        if len(points) == 0:
+            raise TypeError("points (=%s) must be a list." % points)
+        if not points:
             return [], None, R(1)
 
         v = []
@@ -4672,7 +4672,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise ValueError("%s is not prime."%l)
         if l is None:
             isogs = isogenies_prime_degree_genus_0(self)
-            if isogs != []:
+            if isogs:
                 return isogs
             else:
                 return isogenies_sporadic_Q(self)
@@ -4682,7 +4682,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             while i<len(l):
                 isogenies = [f for f in self.isogenies_prime_degree(l[i]) if not f in isogs]
                 isogs.extend(isogenies)
-                i = i+1
+                i += 1
             return isogs
 
     def is_isogenous(self, other, proof=True, maxp=200):
@@ -6962,7 +6962,7 @@ def elliptic_curve_congruence_graph(curves):
                 n = a_E[l] - a_F[l]
                 if n != 0:
                     p_edges = [p for p in p_edges if p.divides(n)]
-            if len(p_edges):
+            if p_edges:
                 G.add_edge(E.cremona_label(), F.cremona_label(),
                            p_edges)
     return G

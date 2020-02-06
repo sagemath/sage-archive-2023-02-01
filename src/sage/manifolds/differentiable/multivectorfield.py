@@ -147,11 +147,11 @@ class MultivectorField(TensorField):
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*s ; s
-        2-vector field on the 2-dimensional differentiable manifold M
+        2-vector field f*(a/\b) on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
-        (-2*x^2*y^3 - x^3 - (4*x^3 + x)*y^2 - 2*(x^4 + x^2)*y) d/dx/\d/dy
+        f*(a/\b) = (-2*x^2*y^3 - x^3 - (4*x^3 + x)*y^2 - 2*(x^4 + x^2)*y) d/dx/\d/dy
         sage: s.display(eV)
-        (1/2*u^5 - 1/2*u^3*v^2 - 1/2*u^2*v^3 + u^3 + 1/2*(u^4 + 2*u^2)*v)
+        f*(a/\b) = (1/2*u^5 - 1/2*u^3*v^2 - 1/2*u^2*v^3 + u^3 + 1/2*(u^4 + 2*u^2)*v)
           d/du/\d/dv
 
     """

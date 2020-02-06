@@ -690,7 +690,7 @@ def _update_command_info():
 
         while True:
             cmd_line = help.readline()
-            while len(cmd_line.strip()) == 0:
+            while not cmd_line.strip():
                 cmd_line = help.readline()
             cmd_line = cmd_line.strip()
             if cmd_line == '@@@':

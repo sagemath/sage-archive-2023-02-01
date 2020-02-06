@@ -223,7 +223,7 @@ def _normal_label(g, comb_emb, external_face):
     labels[v2] = {(v1, v3): 2}
     labels[v3] = {(v1, v2): 3}
 
-    while len(contracted):
+    while contracted:
         v, new_neighbors, neighbors_to_delete = contracted.pop()
         # going to add back vertex v
         labels[v] = {}
@@ -267,7 +267,7 @@ def _normal_label(g, comb_emb, external_face):
             angle_set = Set(angles_out_of_v1)
 
             vertices_in_order.append(l[i])
-            while len(angles_out_of_v1) > 0:
+            while angles_out_of_v1:
                 for angle in angles_out_of_v1:
                     if vertices_in_order[-1] in angle:
                         break

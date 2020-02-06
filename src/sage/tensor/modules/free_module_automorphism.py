@@ -244,7 +244,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         [1 3], [-1  0], [0 3]
         )
 
-    To get the result as an endomorphism, one has to explicitely convert it via
+    To get the result as an endomorphism, one has to explicitly convert it via
     the parent of endomorphisms, `\mathrm{End}(M)`::
 
         sage: s = End(M)(a+b) ; s

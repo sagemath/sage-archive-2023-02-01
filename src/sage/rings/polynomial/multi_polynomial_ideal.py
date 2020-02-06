@@ -3901,7 +3901,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: A9=PolynomialRing(QQ,9,'x') # optional - giacpy_sage
             sage: I9=sage.rings.ideal.Katsura(A9) # optional - giacpy_sage
             sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy_sage, long time (3s)
-            Running a probabilistic check for the reconstructed Groebner basis...
+            ...Running a probabilistic check for the reconstructed Groebner basis...
             Polynomial Sequence with 143 Polynomials in 9 Variables
 
         The list of available Giac options is provided at :func:`sage.libs.giac.groebner_basis`.

@@ -3253,11 +3253,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: x.change_ring(ZZ['x']) == ZZ['x']['x'].gen()
             True
+
+        Check that :trac:`28541` is fixed::
+
+            sage: F.<a> = GF(7^2)
+            sage: S.<x> = F[]
+            sage: P = x^2 + a*x + a^2
+            sage: P.change_ring(F.frobenius_endomorphism())
+            x^2 + (6*a + 1)*x + 6*a + 5
         """
         if isinstance(R, Map):
-            # extend to a hom of the base ring of the polynomial
-            R = self._parent.hom(R, self._parent.change_ring(R.codomain()))
-            return R(self)
+            return self.map_coefficients(R)
         else:
             return self._parent.change_ring(R)(self.list(copy=False))
 
@@ -5908,7 +5914,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for i in range(2, len(e)):
             v = c[i].valuation(p)
             s = -(v-points[-1][1])/(e[i]-points[-1][0])
-            while len(slopes) > 0 and s >= slopes[-1][0]:
+            while slopes and s >= slopes[-1][0]:
                 slopes = slopes[:-1]
                 points = points[:-1]
                 s = -(v-points[-1][1])/(e[i]-points[-1][0])
@@ -8270,6 +8276,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: P2.is_weil_polynomial()
             False
+
+        .. SEEALSO::
+
+            Polynomial rings have a method `weil_polynomials` to compute sets of Weil
+            polynomials. This computation uses the iterator
+            :class:`sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`.
 
         TESTS:
 

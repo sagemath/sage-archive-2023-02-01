@@ -3335,7 +3335,7 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
-          ``fontsize`` has been explicitely set in the construction of
+          ``fontsize`` has been explicitly set in the construction of
           ``graphics`` (in this case, it is not overwritten here)
 
         OUTPUT:
@@ -3401,3 +3401,27 @@ class Graphics(WithEqualityById, SageObject):
         elif 'fontsize' not in graphics._extra_kwds:
             graphics._extra_kwds['fontsize'] = 6
         return MultiGraphics([(self, pos0), (graphics, pos)])
+
+# Deprecation notice for GraphicsArray import
+def GraphicsArray(*args, **kwargs):
+    r"""
+    This is deprecated (see :trac:`28675`).
+    Use :class:`sage.plot.multigraphics.GraphicsArray` instead.
+
+    TESTS::
+
+        sage: from sage.plot.graphics import GraphicsArray
+        sage: c = circle((0,0), 1)
+        sage: G = GraphicsArray([c, c])
+        doctest:...: DeprecationWarning: GraphicsArray must be imported from sage.plot.multigraphics and no longer from sage.plot.graphics.
+        See https://trac.sagemath.org/28675 for details.
+        sage: G
+        Graphics Array of size 1 x 2
+
+    """
+    from .multigraphics import GraphicsArray as NewGraphicsArray
+    from sage.misc.superseded import deprecation
+    deprecation(28675, "GraphicsArray must be imported from "
+                "sage.plot.multigraphics and no longer from "
+                "sage.plot.graphics.")
+    return NewGraphicsArray(*args, **kwargs)

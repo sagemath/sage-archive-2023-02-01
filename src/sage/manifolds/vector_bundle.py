@@ -249,10 +249,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         else:
             self._latex_name = latex_name
         ###
-        # Initialize derived quantities like frames and trivializations:
-        self._init_derived()
+        # Initialize quantities like frames and trivializations:
+        self._init_attributes()
 
-    def _init_derived(self):
+    def _init_attributes(self):
         r"""
         Initialize the derived quantities.
 
@@ -260,7 +260,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: E = M.vector_bundle(2, 'E')
-            sage: E._init_derived()
+            sage: E._init_attributes()
 
         """
         self._section_modules = {} # dict of section modules with domains as
@@ -692,9 +692,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         return VectorBundleFiber(self, point)
 
-    def local_frame(self, symbol, latex_symbol=None, indices=None,
-                    latex_indices=None, symbol_dual=None,
-                    latex_symbol_dual=None, domain=None):
+    def local_frame(self, *args, **kwargs):
         r"""
         Define a local frame on ``self``.
 
@@ -709,11 +707,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``symbol`` -- (default: ``None``) either a string, to be used as a
-          common base for the symbols of the sections constituting the
-          local frame, or a list/tuple of strings, representing the individual
-          symbols of the sections; can be ``None`` only if ``from_frame``
-          is not ``None`` (see below)
+        - ``symbol`` -- either a string, to be used as a common base for the
+          symbols of the sections constituting the local frame, or a list/tuple
+          of strings, representing the individual symbols of the sections
+        - ``sections`` -- tuple or list of `n` linearly independent sections on
+          ``self`` (`n` being the rank of ``self``) defining the local
+          frame; can be omitted if the local frame is created from scratch
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the sections
           constituting the local frame, or a list/tuple of strings,
@@ -742,18 +741,43 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         EXAMPLES:
 
-        Setting a local frame on a real rank-2 vector bundle::
+
+        Defining a local frame from two linearly independent sections on a
+        real rank-2 vector bundle::
 
             sage: M = Manifold(3, 'M', structure='top')
             sage: U = M.open_subset('U')
+            sage: X.<x,y,z> = U.chart()
             sage: E = M.vector_bundle(2, 'E')
-            sage: e = E.local_frame('e', domain=U); e
+            sage: phi = E.trivialization('phi', domain=U)
+            sage: s0 = E.section(name='s_0', domain=U)
+            sage: s0[:] = 1+z^2, -2
+            sage: s1 = E.section(name='s_1', domain=U)
+            sage: s1[:] = 1, 1+x^2
+            sage: e = E.local_frame('e', (s0, s1), domain=U); e
             Local frame (E|_U, (e_0,e_1))
+            sage: (e[0], e[1]) == (s0, s1)
+            True
+
+        If the sections are not linearly independent, an error is raised::
+
+            sage: e = E.local_frame('z', (s0, -s0), domain=U)
+            Traceback (most recent call last):
+            ...
+            ValueError: the provided sections are not linearly independent
+
+        It is also possible to create a local frame from scratch, without
+        connecting it to previously defined local frames or sections
+        (this can still be performed later via the method
+        :meth:`set_change_of_frame`)::
+
+            sage: f = E.local_frame('f', domain=U); f
+            Local frame (E|_U, (f_0,f_1))
 
         For a global frame, the argument ``domain`` is omitted::
 
-            sage: f = E.local_frame('f'); f
-            Local frame (E|_M, (f_0,f_1))
+            sage: g = E.local_frame('g'); g
+            Local frame (E|_M, (g_0,g_1))
 
         .. SEEALSO::
 
@@ -762,11 +786,38 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         from sage.manifolds.local_frame import LocalFrame
+        # Input processing
+        n_args = len(args)
+        if n_args < 1 or n_args > 2:
+            raise TypeError("local_frame() takes one or two positional "
+                            "arguments, not {}".format(n_args))
+        symbol = args[0]
+        sections = None
+        if n_args == 2:
+            sections = args[1]
+        latex_symbol = kwargs.pop('latex_symbol', None)
+        indices = kwargs.pop('indices', None)
+        latex_indices = kwargs.pop('latex_indices', None)
+        symbol_dual = kwargs.pop('symbol_dual', None)
+        latex_symbol_dual = kwargs.pop('latex_symbol_dual', None)
+        domain = kwargs.pop('domain', None)
+        #
         sec_module = self.section_module(domain=domain, force_free=True)
-        return LocalFrame(sec_module, symbol=symbol, latex_symbol=latex_symbol,
+        resu = LocalFrame(sec_module, symbol=symbol, latex_symbol=latex_symbol,
                           indices=indices, latex_indices=latex_indices,
                           symbol_dual=symbol_dual,
                           latex_symbol_dual=latex_symbol_dual)
+        if sections:
+            linked = False
+            try:
+                resu._init_from_family(sections)
+            except ArithmeticError as err:
+                linked = str(err) in ["non-invertible matrix",
+                                      "input matrix must be nonsingular"]
+            if linked:
+                raise ValueError("the provided sections are not linearly "
+                                 "independent")
+        return resu
 
     def section(self, *comp, **kwargs):
         r"""
@@ -1084,3 +1135,56 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                              "the {}".format(self))
         frame._fmodule.set_default_basis(frame)
         self._def_frame = frame
+
+    def irange(self, start=None):
+        r"""
+        Single index generator.
+
+        INPUT:
+
+        - ``start`` -- (default: ``None``) initial value `i_0` of the index;
+          if none are provided, the value returned by
+          :meth:`sage.manifolds.manifold.Manifold.start_index()` is assumed
+
+        OUTPUT:
+
+        - an iterable index, starting from `i_0` and ending at
+          `i_0 + n - 1`, where `n` is the vector bundle's dimension
+
+        EXAMPLES:
+
+        Index range on a 4-dimensional vector bundle over a 5-dimensional
+        manifold::
+
+            sage: M = Manifold(5, 'M', structure='topological')
+            sage: E = M.vector_bundle(4, 'E')
+            sage: list(E.irange())
+            [0, 1, 2, 3]
+            sage: list(E.irange(2))
+            [2, 3]
+
+        Index range on a 4-dimensional vector bundle over a 5-dimensional
+        manifold with starting index=1::
+
+            sage: M = Manifold(5, 'M', structure='topological', start_index=1)
+            sage: E = M.vector_bundle(4, 'E')
+            sage: list(E.irange())
+            [1, 2, 3, 4]
+            sage: list(E.irange(2))
+            [2, 3, 4]
+
+        In general, one has always::
+
+            sage: next(E.irange()) == M.start_index()
+            True
+
+        """
+        si = self._base_space._sindex
+        imax = self._rank + si
+        if start is None:
+            i = si
+        else:
+            i = start
+        while i < imax:
+            yield i
+            i += 1

@@ -52,8 +52,7 @@ class TateAlgebraIdeal(Ideal_generic):
     """
 
     #@cached_method
-    def groebner_basis(self, prec=None, algorithm='buchberger-integral', verbose=0,
-                       vopot_flags={"interrupt_red_with_val":False, "interrupt_interred_with_val":False}):
+    def groebner_basis(self, prec=None, algorithm='buchberger-integral', **options):
         r"""
         Compute a Groebner basis of the ideal
 
@@ -137,12 +136,10 @@ class TateAlgebraIdeal(Ideal_generic):
             return _groebner_basis_buchberger(self, prec, False)
         elif algorithm == "buchberger-integral":
             return _groebner_basis_buchberger(self, prec, True)
-        elif algorithm == "F5pot":
-            return _groebner_basis_F5_pot(self, prec, verbose=verbose)
-        elif algorithm == "F5vopot":
-            return _groebner_basis_F5_vopot_v1(self, prec, verbose=verbose, **vopot_flags)
-        # elif algorithm == "F5_vopot":
-        #     return _groebner_basis_F5_vopot(self, prec, verbose=verbose)
+        elif algorithm == "pote" or algorithm == "PoTe":
+            return _groebner_basis_pote(self, prec, **options)
+        elif algorithm == "vapote" or algorithm == "VaPoTe":
+            return _groebner_basis_vapote(self, prec, **options)
         else:
             raise NotImplementedError("only Buchberger algorithm is implemented so far")
 
@@ -545,7 +542,7 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
     return rgb
 
 
-# F5 algorithm
+# F5 algorithms
 
 def Jpair(p1, p2):
     s1, v1 = p1  # we assume that s1 is not None
@@ -612,6 +609,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
     f._terms = None
     return f
 
+
 cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, verbose, stopval):
     cdef dict coeffs = { }
     cdef TateAlgebraElement f
@@ -647,64 +645,6 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, verbose, stopval):
     return f
 
 
-#def regular_reduce(sgb, s, v, verbose, stopval=None):
-#    res = v.parent()(0, v.precision_absolute())
-#    #sgb.append((None, v << 1))
-#    count = 0
-#    val = v.valuation()
-#    while (stopval is None or v.valuation() < stopval) and v != 0:
-#        sv = v.leading_term()
-#        # We first check for top reduction
-#        for S,V in sgb:
-#            if V == 0: continue
-#            sV = V.leading_term()
-#            if sV.divides(sv):
-#                t = sv // sV
-#                if S is None or t*S < s:
-#                    v -= t*V
-#                    count += 1
-#                    if verbose > 3:
-#                        print("| regular reduction by (sign = %s, series = %s)" % (S,V))
-#                        print("| new series is: %s" % (res+v))
-#                    break
-#        else:  
-#            # no possible top-reduction
-#            res += sv
-#            v -= sv
-#    if verbose > 1:
-#        print("| %s regular reductions done" % count)
-#    #del sgb[-1]
-#    return v + res
-
-#def reduce(gb, v, verbose, stopval=None):
-#    res = v.parent()(0, v.precision_absolute())
-#    gb.append(v << 1)
-#    count = 0
-#    val = v.valuation()
-#    while (stopval is None or v.valuation() < stopval) and v != 0:
-#        sv = v.leading_term()
-#        # We first check for top reduction
-#        for V in gb:
-#            if V == 0: continue
-#            sV = V.leading_term()
-#            if sV.divides(sv):
-#                t = sv // sV
-#                v -= t*V
-#                count += 1
-#                if verbose > 3:
-#                    print("| reduction by %s" % V)
-#                    print("| new series is: %s" % (res+v))
-#                break
-#        else:  
-#            # no possible top-reduction
-#            res += sv
-#            v -= sv
-#    if verbose > 1:
-#        print("| %s reductions done" % count)
-#    del gb[-1]
-#    return v + res
-
-
 def print_pair(p, verbose):
     if verbose > 3:
         return "(sign = %s, series = %s)" % p
@@ -712,14 +652,15 @@ def print_pair(p, verbose):
         s, v = p
         return "(sign = %s, series = %s + ...)" % (s, v.leading_term())
 
-def _groebner_basis_F5_pot(I, prec, verbose):
+def _groebner_basis_pote(I, prec, verbose=0):
     cdef TateAlgebraElement g, v
     cdef TateAlgebraTerm s, sv, S, ti, tj
+    cdef TateAlgebraTerm term_one = I.ring().monoid_of_terms().one()
+    cdef bint integral = not I.ring().base_ring().is_field()
 
-    term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
 
-    for f in I.gens():
+    for f in sorted(I.gens()):
         sig_check()
         if f == 0: # Maybe reduce first?
             continue
@@ -831,14 +772,15 @@ def _groebner_basis_F5_pot(I, prec, verbose):
         if verbose > 3:
             for g in gb:
                 print("| %s" % g)
-        # # we minimize the Grobner basis
+
+        # We minimize the Grobner basis
         i = 0
         while i < len(gb):
             ti = (<TateAlgebraElement>gb[i])._terms_c()[0]
             for j in range(len(gb)):
                 sig_check()
                 tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
-                if j != i and tj._divides_c(ti, False):
+                if j != i and tj._divides_c(ti, integral):
                     del gb[i]
                     break
             else:
@@ -864,14 +806,14 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             for g in gb:
                 print("| %s" % g)
 
+    gb.sort(reverse=True)
     return gb
 
     
-def _groebner_basis_F5_vopot_v1(I, prec, verbose,
-                                interrupt_red_with_val=False,
-                                interrupt_interred_with_val=False):
+def _groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, interrupt_interred_with_val=False):
     cdef TateAlgebraElement g, v
     cdef TateAlgebraTerm s, S, sv, ti, tj
+    cdef bint do_reduce, integral
     term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
 
@@ -882,6 +824,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose,
             heappush(gens, (val, f.add_bigoh(prec)))
 
     do_reduce = False
+    integral = not I.ring().base_ring().is_field()
 
     while gens:
         sig_check()
@@ -897,8 +840,9 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose,
                 gb[i] = g._positive_lshift_c(1)
                 tgtval = val + 1 if interrupt_interred_with_val else prec
                 gb[i] = reduce(gb, g, verbose, tgtval)
-            if verbose > 3:
+            if verbose > 1:
                 print("grobner basis reduced")
+            if verbose > 3:
                 for g in gb:
                     print("| %s" % g)
             do_reduce = False
@@ -1037,7 +981,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose,
             for j in range(len(gb)):
                 sig_check()
                 tj = (<TateAlgebraElement>gb[j])._terms_c()[0]
-                if j != i and tj._divides_c(ti, False):
+                if j != i and tj._divides_c(ti, integral):
                     del gb[i]
                     break
             else:
@@ -1054,138 +998,19 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose,
         # and reduce it
         do_reduce = True
 
+    # We normalize the final Gröbner basis
+    for i in range(len(gb)-1, -1, -1):
+        sig_check()
+        g = gb[i]
+        gb[i] = g._positive_lshift_c(1)
+        gb[i] = reduce(gb, g, verbose, prec)
+    if verbose > 1:
+        print("grobner basis reduced")
+    if verbose > 3:
+        for g in gb:
+            print("| %s" % g)
     gb.sort(reverse=True)
+    if not integral:
+        gb = [ f.monic() for f in gb ]
+
     return gb
-
-
-    
-# def _vopot_key(u,i,v):
-#     # This doesn't really need v
-#     return (v.valuation(),i,u)
-
-# def _regular_reduce_vopot(sgb,p,tail=True,verbose=0):
-#     s,i,v = p
-#     res = v.parent()(0, v.precision_absolute())
-#     while v != 0:
-#         key = _vopot_key(s,i,v) 
-#         sv = v.leading_term()
-#         for S,I,V in sgb:
-#             if V == 0: continue
-#             sV = V.leading_term()
-#             if sV.divides(sv):
-#                 t = sv // sV
-#                 if _vopot_key(t*S,I,V) < key:
-#                     if verbose >= 3:
-#                         print("| reduction by lt={} sig=({},{})".format(V.leading_term(),S,I))
-#                     v -= t*V
-#                     if verbose >= 3 and v != 0:
-#                         print("| new lt={}".format(v.leading_term()))
-#                     break 
-#         else:
-#             if not tail:
-#                 res = v
-#                 break
-#             else:
-#                 res += sv
-#                 v -= sv
-#     return res
-
-# def _Jpair_vopot(p1,p2):
-#     u1,i1,v1 = p1
-#     u2,i2,v2 = p2
-#     if (v1 == 0 or v2 == 0) :
-#         return
-#     sv1 = v1.leading_term()
-#     sv2 = v2.leading_term()
-#     t = sv1.lcm(sv2)
-#     t1 = t//sv1
-#     t2 = t//sv2
-#     su1 = t1*u1
-#     su2 = t2*u2
-#     # We can probably save half the computations above in a lot of cases
-
-#     vu1 = _vopot_key(u1,i1,v1)
-#     vu2 = _vopot_key(u2,i2,v2)
-#     if vu1 > vu2:
-#         return su1,i1,t1*v1
-#     elif vu2 > vu1:
-#         return su2,i2,t2*v2
-#     else:
-#         return
-    
-# def _groebner_basis_F5_vopot(I,prec,verbose=0):
-#     term_one = I.ring().monoid_of_terms().one()
-#     gb0 = []
-#     sgb = []
-
-#     F = I.gens()
-#     l = len(F)
-#     for i in range(l):
-#         sgb.append((term_one,i,F[i].add_bigoh(prec)))
-
-#     Jpairs = []
-#     for i in range(l):
-#         for j in range(l):
-#             J = _Jpair_vopot(sgb[i],sgb[j])
-#             if J is not None:
-#                 Jpairs.append(J)
-
-#     while Jpairs:
-#         if verbose >= 1:
-#             print("#Jpairs={} #GB={} #syz={}".format(len(Jpairs),len(sgb),len(gb0)))
-        
-#         # This all can probably be made more efficient, for example by sorting
-#         # the list every time we add a pair, or by inserting the pairs at the
-#         # right position
-#         idx = min(range(len(Jpairs)), key=lambda i: _vopot_key(*Jpairs[i]))
-#         s,i,v = Jpairs.pop(idx)
-                        
-#         sv = v.leading_term()
-
-#         if verbose >= 1:
-#             print("Processing signature ({},{}), lt={}".format(s,i,sv))
-
-#         # TODO: syzygy criterion
-
-#         # TODO: F5 criterion maybe
-
-#         # TODO: cover criterion
-
-#         # Regular top and tail reduction
-#         v = _regular_reduce_vopot(sgb,(s,i,v),verbose=verbose)
-        
-#         if v == 0:
-#             # New syzygy
-
-#             if verbose >= 1:
-#                 print("-> Reduction to 0")
-            
-#             gb0.append(s)
-#         else:
-#             if verbose >= 1:
-#                 print("-> lt after reduction={}".format(v.leading_term()))
-                
-#             p = (s,i,v)
-            
-#             # New J-pairs
-#             for P in sgb:
-#                 J = _Jpair_vopot(p,P)
-#                 if J is not None:
-#                     Jpairs.append(J)
-            
-#             # New element in the basis
-#             sgb.append(p)
-
-            
-#             # TODO New F5 syzygy
-#             ## Here we need to assign a signature which is known to be smaller
-#             ## than all the (*,i) but larger than all the (*,i-1). A good choice
-#             ## would be (1/p,i).
-#             ##
-#             ## Another possibility is to do nothing here and use the F5
-#             ## criterion as it was originally described, by looking up in the
-#             ## basis.
-
-#     gb = [v for (s,i,v) in sgb]
-
-#     return gb

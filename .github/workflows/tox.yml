@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-sid, debian-jessie, debian-buster, debian-bullseye, fedora-26, fedora-28, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, conda-forge, conda-anaconda3, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386, centos-8-i386, ubuntu-bionic-arm64, ubuntu-bionic-armhf]
+        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-sid, debian-jessie, debian-buster, debian-bullseye, fedora-26, fedora-28, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, conda-forge, conda-anaconda3, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386, ubuntu-bionic-arm64, ubuntu-bionic-armhf]
         tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}

@@ -796,7 +796,7 @@ def _groebner_basis_F5_pot(I, prec, verbose):
             v = regular_reduce(sgb, s, v, verbose, prec)
             del sgb[-1]
 
-            if v == 0:
+            if v.valuation() >= prec:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
                 #print ("| add signature for syzygy criterium: %s" % s)
@@ -907,7 +907,7 @@ def _groebner_basis_F5_vopot_v1(I, prec, verbose,
             print("---")
             print("new generator: %s + ..." % f.leading_term())
 
-        f = reduce(gb, f, verbose, prec)
+        f = reduce(gb, f, verbose, val + 1)
         if verbose > 1:
             print("generator reduced")
 

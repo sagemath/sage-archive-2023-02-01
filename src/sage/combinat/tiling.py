@@ -552,9 +552,14 @@ class Polyomino(SageObject):
         s += "Color: %s" % self._color
         return s
 
-    def color(self):
+    def color(self, color=None):
         r"""
-        Return the color of the polyomino.
+        Return or change the color of the polyomino.
+
+        INPUT:
+
+        - ``color`` -- string, RBG tuple or ``None`` (default: ``None``),
+          if ``None``, it returns the current color
 
         EXAMPLES::
 
@@ -563,7 +568,10 @@ class Polyomino(SageObject):
             sage: p.color()
             'blue'
         """
-        return self._color
+        if color is None:
+            return self._color
+        else:
+            self._color = color
 
     def frozenset(self):
         r"""
@@ -1501,13 +1509,22 @@ class Polyomino(SageObject):
         solution = d.one_solution(ncpus=ncpus)
         if solution is None:
             raise Exception('No solution was found with radius={}, '
-	    'this tile can not be surrounded by itself'.format(radius))
+            'this tile can not be surrounded by itself'.format(radius))
 
+        # Recover the polyominoes
         assert forced_row_number in solution
         solution.remove(forced_row_number)
         polyominoes = [T.row_to_polyomino(v) for v in solution]
         if remove_incomplete_copies:
             polyominoes = [p for p in polyominoes if len(p) == len(self)]
+
+        # Recolor randomly the polyominoes
+        from sage.plot.colors import Color
+        from random import random
+        for p in polyominoes:
+            random_color = Color(tuple(random() for _ in range(3)))
+            p.color(random_color)
+
         return polyominoes
 
 

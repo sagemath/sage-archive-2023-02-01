@@ -753,7 +753,7 @@ class PolyhedronFace(SageObject):
             else:  # 'inner'
                 rays += [facet.A()]
         parent = self.polyhedron().parent()
-        origin = parent.zero().vertices()[0].vector()
+        origin = self.ambient_space().zero()
         return parent.element_class(parent, [[origin], rays, lines], None)
 
 

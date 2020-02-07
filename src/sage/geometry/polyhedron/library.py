@@ -224,7 +224,7 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
 
     .. SEEALSO::
 
-       :func:`gale_transform_to_primal`.
+        :func`~sage.geometry.polyhedron.library.gale_transform_to_primal`.
 
     EXAMPLES::
 
@@ -333,7 +333,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
       used interally in case the centroid is not the origin,
       see :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
 
-    OUTPUT: An ordered point confuration as list of vectors.
+    OUTPUT: An ordered point configuration as list of vectors.
 
     .. NOTE::
 
@@ -346,23 +346,31 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     ALGORITHM:
 
-    The dual vector configuration is obtained by taking
-    a basis of the right kernel of ``Matrix(vectors)``.
+    We assume the centroid of the (input) vectors to be the origin.
+    We stack ``Matrix(vectors)`` by a row of ones.
+    The right kernel of this is the dual point configuration.
 
-    By assuming the centroid of the (input) vectors to be the origin,
-    we can extend the all-ones vector to a basis. Then the (output) vectors
-    are the columns of ``[[1], [V]]``, where ``[1]`` represents
-    a row of all-ones. Then, the columns of ``V`` are
-    the points of a dehomogenization.
+    More concretely, the dual vector configuration is obtained by
+    taking a basis of the right kernel of ``Matrix(vectors)``.
 
-    Hence, the (inhomogenous) dual point configuration is obtained
-    by taking the right kernel of ``Matrix(vectors)`` stacked
-    with the all-ones vector.
+    If the centroid of the (input) vectors is the origin,
+    we can extend the all-ones vector to a basis of the right kernel.
+    In this case the dual vector configuration can be taken to be
+    the columns of ``[[1], [V]]``, where ``[1]`` represents
+    a row of all-ones. Clearly, ``V`` is a dehomogenization.
+
+    Extending the all-ones vector to a basis of the right kernel is
+    done by stacking a row of ones on ``Matrix(vectors)`` and then
+    taking the right kernel.
 
     REFERENCES:
 
         For more information, see Section 6.4 of [Zie2007]_
         or Definition 2.5.1 and Definition 4.1.35 of [DLRS2010]_.
+
+    .. SEEALSO::
+
+        :func`~sage.geometry.polyhedron.library.gale_transform_to_polytope`.
 
     EXAMPLES::
 
@@ -391,7 +399,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
          (0.0, 1.0, 0.0),
          (0.0, 0.0, 1.0)]
 
-    One can also specify the backend to be used interally::
+    One can also specify the backend to be used internally::
 
         sage: gale_transform_to_primal(
         ....:     [(1,1), (-1,-1), (1,0),
@@ -402,9 +410,9 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
          (-55, 0, 0),
          (0, -55, 0),
          (0, 0, -55)]
-        sage: gale_transform_to_primal(
+        sage: gale_transform_to_primal(                          # optional - pynormaliz
         ....:     [(1,1), (-1,-1), (1,0),
-        ....:      (-1,0), (1,-1), (-2,1)], backend='normaliz')  # optional - pynormaliz
+        ....:      (-1,0), (1,-1), (-2,1)], backend='normaliz')
         [(16, -35, 54),
          (24, 10, 31),
          (-15, 50, -60),
@@ -412,7 +420,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
          (0, -25, 0),
          (0, 0, -25)]
 
-    The input vectors are checked for being totally cyclic::
+    The input vectors should be totally cyclic::
 
         sage: gale_transform_to_primal([(0,1), (1,0), (1,1), (-1,0)])
         Traceback (most recent call last):
@@ -430,12 +438,14 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
         # The centroid of the input vectors shall be the origin.
         # If this is not the case, we scale them accordingly.
         # This has the adventage that right kernel of ``vectors`` can be
-        # presented in the form ``[[1], [V]]``, where ``V`` are the vertices
-        # of the polyhedron. So dehomogenization is straight forward.
+        # presented in the form ``[[1], [V]]``, where ``V`` are the points
+        # in the dual point configuration.
+        # (Dehomogenization is straightforward.)
 
-        # Scaling of the vertices is equivalent to finding a hyperplane that intersects
-        # all rays of the homogenized polyhedron. But if the input is already provided
+        # Scaling of the vectors is equivalent to finding a hyperplane that intersects
+        # all vectors of the dual point configuration. But if the input is already provided
         # such that the vectors add up to zero, the coordinates might be nicer.
+        # (And this is faster.)
 
         if base_ring:
             ker = Matrix(base_ring, vectors).left_kernel()

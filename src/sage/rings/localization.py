@@ -2,15 +2,11 @@
 r"""
 Localization
 
+Localization is an important ring construction tool. Whenever you have to extend a given
+integral domain such that it contains the inverses of a finite set of elements but should
+allow non injective homomorphic images this construction will be needed. See the example
+on Ariki-Koike algebras below for such an application.
 
-The implementation of this class is based on an example given in the reference pages on coercion:
-
-`coercion example <http://doc.sagemath.org/html/en/reference/coercion/index.html?highlight=localization#example>`_
-
-But in contrast it is inherited from :class:`IntegralDomain` (instead of :class:`Ring`) since
-the construction relies on the existence of a fraction field for the base ring. Thus, it is only
-possible in that context. Furthermore, the base ring should support :meth:`sage.structure.element.CommutativeRingElement.divides` and the exact
-division operator `//` (:meth:`sage.structure.element.Element.__floordiv__`) in order to guarantee an successful application.
 
 EXAMPLES::
 
@@ -29,7 +25,7 @@ EXAMPLES::
     sage: mi == ~m
     True
 
-The next example is taken from comment #9 of :trac:`27371` defining the most general Ring containing the coefficients of the irreducible representations of the Ariki-Koike algebra corresponding to the three colored permutations on three elements::
+The next example defines the most general ring containing the coefficients of the irreducible representations of the Ariki-Koike algebra corresponding to the three colored permutations on three elements::
 
     sage: R.<u0, u1, u2, q> = ZZ[]
     sage: u = [u0, u1, u2]
@@ -142,7 +138,6 @@ TESTS::
 
     sage: TestSuite(L).run()
 
-
 AUTHORS:
 
 - Sebastian Oehms 2019-12-09: initial version.
@@ -175,13 +170,13 @@ def normalize_additional_units(base_ring, add_units, warning=True):
 
     INPUT:
 
-    - ``base_ring`` -- an instance of :class:`IntegralDomain`.
-    - ``add_units`` -- list of elements from base ring.
-    - ``warning`` -- (optional, default: True) to supress a warning which is thrown if no normalization was possible.
+    - ``base_ring`` -- an instance of :class:`IntegralDomain`
+    - ``add_units`` -- list of elements from base ring
+    - ``warning`` -- (optional, default: True) to supress a warning which is thrown if no normalization was possible
 
     OUTPUT:
 
-    list of all prime factors of the elements of the given list.
+    List of all prime factors of the elements of the given list.
 
     EXAMPLES::
 
@@ -225,7 +220,7 @@ def normalize_additional_units(base_ring, add_units, warning=True):
             add_units_result = add_units
             break
 
-    return sorted(list(set(add_units_result)))
+    return sorted(set(add_units_result))
 
 
 
@@ -234,11 +229,11 @@ class LocalizationElement(IntegralDomainElement):
     """
     Element class for localizations of integral domains
 
-    INPUT (to the constructor):
+    INPUT:
 
-    - ``parent`` -- instance of :class:`Localization`.
+    - ``parent`` -- instance of :class:`Localization`
     - ``x`` -- instance of :class:`FractionFieldElement` whose parent is the fraction
-       field of the parent's base ring.
+       field of the parent's base ring
 
     EXAMPLES::
 
@@ -253,7 +248,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def __init__(self, parent, x):
         """
-        Python constructor for the element class for localizations of integral domains
+        Python constructor for the element class for localizations of integral domains.
 
         EXAMPLES::
 
@@ -269,7 +264,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _repr_(self):
         """
-        How to print self.
+        How to print ``self``.
 
         EXAMPLES::
 
@@ -285,7 +280,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _add_(left, right):
         """
-        Realizes addition with another instance of self (via `+` operator)
+        Compute addition with another instance of ``self`` (via `+` operator).
 
         EXAMPLES::
 
@@ -297,7 +292,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _sub_(left, right):
         """
-        Realizes subtraction with another instance of self (via `-` operator)
+        Compute subtraction with another instance of ``self`` (via `-` operator).
 
         EXAMPLES::
 
@@ -309,7 +304,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _mul_(left, right):
         """
-        Realizes multiplication with another instance of self (via `*` operator)
+        Compute multiplication with another instance of ``self`` (via `*` operator).
 
         EXAMPLES::
 
@@ -321,7 +316,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _div_(left, right):
         """
-        Realizes division with another instance of self (via `/` operator)
+        Compute division with another instance of ``self`` (via `/` operator).
 
         EXAMPLES::
 
@@ -333,7 +328,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _rmul_(self, c):
         """
-        Realizes right multiplication with an instance of the base ring of self (via `*` operator)
+        Compute right multiplication with an instance of the base ring of ``self`` (via `*` operator).
 
         EXAMPLES::
 
@@ -345,7 +340,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def _lmul_(self, c):
         """
-        Realizes left multiplication with an instance of the base ring of self (via `*` operator)
+        Compute left multiplication with an instance of the base ring of ``self`` (via `*` operator).
 
         EXAMPLES::
 
@@ -396,6 +391,8 @@ class LocalizationElement(IntegralDomainElement):
 
     def is_unit(self):
         """
+        Return ``True`` if ``self`` is a unit.
+
         EXAMPLES::
 
             sage: P.<x,y,z> = QQ[]
@@ -411,6 +408,8 @@ class LocalizationElement(IntegralDomainElement):
 
     def inverse_of_unit(self):
         """
+        Return the inverse of ``self``.
+
         EXAMPLES::
 
             sage: P.<x,y,z> = ZZ[]
@@ -436,8 +435,6 @@ class LocalizationElement(IntegralDomainElement):
             sage: ~L(y*z/x) == L(x/(y*z))
             True
          """
-         if self.parent() != other.parent():
-             return super(Localization, self)._richcmp_(other, op)
          sval = self._value
          oval = other._value
          return sval._richcmp_(oval, op)
@@ -460,23 +457,50 @@ class Localization(IntegralDomain, UniqueRepresentation):
     a commutative ring and `f` an element in `R`, then the localization consists of elements of the form
     `r/f, r\in R, n \geq 0` (to be precise, `R[f^{-1}] = R[t]/(ft-1)`.
 
-    The above text is taken from `Wikipedia`. The construction here used for this class relies on the construction
-    of the field of fraction and is therefore restricted to integral domains.
+    The above text is taken from `Wikipedia`. The construction here used for this class relies on the
+    construction of the field of fraction and is therefore restricted to integral domains.
 
-    INPUT (to the constructor):
+    Accordingly, this class is inherited from :class:`IntegralDomain` and can only be used in that context.
+    Furthermore, the base ring should support :meth:`sage.structure.element.CommutativeRingElement.divides` and
+    the exact division operator `//` (:meth:`sage.structure.element.Element.__floordiv__`) in order to guarantee
+    an successful application.
 
-    - ``base_ring`` -- an instance of Ring allowing the construction of :meth:`fraction_field` (that is an integral domain).
-    - ``additional_units`` -- tuple of elements of `base_ring` which should be turned into units.
-    - ``names`` -- passed to :class:`IntegralDomain`.
-    - ``normalize`` -- (optinal, default: True) passed to :class:`IntegralDomain`.
-    - ``category`` -- (optional, default: None) passed to :class:`IntegralDomain`.
-    - ``warning`` -- (optional, default: True) to supress a warning which is thrown if self cannot be represented uniquely.
+
+    INPUT:
+
+    - ``base_ring`` -- an instance of :class:`Ring` allowing the construction of :meth:`fraction_field` (that is an integral domain)
+    - ``additional_units`` -- tuple of elements of ``base_ring`` which should be turned into units
+    - ``names`` -- passed to :class:`IntegralDomain`
+    - ``normalize`` -- (optinal, default: True) passed to :class:`IntegralDomain`
+    - ``category`` -- (optional, default: None) passed to :class:`IntegralDomain`
+    - ``warning`` -- (optional, default: True) to supress a warning which is thrown if self cannot be represented uniquely
 
     REFERENCES:
 
     - :wikipedia:`Ring_(mathematics)#Localization`
 
     EAXAMPLES::
+
+        sage: L = Localization(ZZ, (3,5))
+        sage: 1/45 in L
+        True
+        sage: 1/43 in L
+        False
+
+        sage: Localization(L, (7,11))
+        Integer Ring localized at (3, 5, 7, 11)
+        sage: _.is_subring(QQ)
+        True
+
+        sage: L(~7)
+        Traceback (most recent call last):
+        ...
+        ValueError: factor 7 of denominator is not a unit
+
+        sage: Localization(Zp(7), (3, 5))
+        Traceback (most recent call last):
+        ...
+        ValueError: all given elements are invertible in 7-adic Ring with capped relative precision 20
 
         sage: R.<x> = ZZ[]
         sage: L = R.localization(x**2+1)
@@ -503,39 +527,25 @@ class Localization(IntegralDomain, UniqueRepresentation):
         sage: (y+5)/(y**2+2)
         Traceback (most recent call last):
         ...
-        ValueError: Factor x^2 + 2 of denominator is not a unit
+        ValueError: factor x^2 + 2 of denominator is not a unit
 
-    More examples will be shown typing `sage.rings.localization?`
+    More examples will be shown typing ``sage.rings.localization?``
     """
 
     Element = LocalizationElement
 
     def __init__(self, base_ring, additional_units, names=None, normalize=True, category=None, warning=True):
         """
-        Python constructor of Localization
+        Python constructor of Localization.
 
-        EXAMPLES::
+        TEST::
 
             sage: L = Localization(ZZ, (3,5))
-            sage: 1/45 in L
-            True
-            sage: 1/43 in L
-            False
+            sage: TestSuite(L).run()
 
-            sage: Localization(L, (7,11))
-            Integer Ring localized at (3, 5, 7, 11)
-            sage: _.is_subring(QQ)
-            True
-
-            sage: L(~7)
-            Traceback (most recent call last):
-            ...
-            ValueError: Factor 7 of denominator is not a unit
-
-            sage: Localization(Zp(7), (3, 5))
-            Traceback (most recent call last):
-            ...
-            ValueError: All given elements are invertible in 7-adic Ring with capped relative precision 20
+            sage: R.<x> = ZZ[]
+            sage: L = R.localization(x**2+1)
+            sage: TestSuite(L).run()
         """
         if type(additional_units) is tuple:
             additional_units =list(additional_units)
@@ -550,7 +560,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         additional_units = normalize_additional_units(base_ring, additional_units, warning=warning)
 
         if not additional_units:
-            raise ValueError('All given elements are invertible in %s' %(base_ring))
+            raise ValueError('all given elements are invertible in %s' %(base_ring))
 
         if category is None:
             # since by construction the base ring must contain non units self must be infinite
@@ -563,7 +573,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     def _repr_(self):
         """
-        How to print self.
+        How to print ``self``.
 
         EXAMPLES::
 
@@ -602,7 +612,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
             sage: L.hom([5])   # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Images of some localized elements fail to be units
+            ValueError: images of some localized elements fail to be units
 
             sage: L.hom([5], codomain=Localization(ZZ, 26))   # indirect doctest
             Ring morphism:
@@ -616,43 +626,43 @@ class Localization(IntegralDomain, UniqueRepresentation):
             sage: L._is_valid_homomorphism_(ZZ, [3], base_map=phi)
             Traceback (most recent call last):
             ...
-            ValueError: Given base_map is not compatible with im_gens
+            ValueError: given base_map is not compatible with im_gens
             sage: L._is_valid_homomorphism_(ZZ, [5], base_map=phi)
             Traceback (most recent call last):
             ...
-            ValueError: Images of some localized elements fail to be units
+            ValueError: images of some localized elements fail to be units
             sage: phi=R.hom([5], codomain=QQ)
             sage: L._is_valid_homomorphism_(ZZ, [5], base_map=phi)
             Traceback (most recent call last):
             ...
-            ValueError: Codomain of base_map must be Integer Ring
+            ValueError: codomain of base_map must be Integer Ring
             sage: L._is_valid_homomorphism_(QQ, [5], base_map=phi)
             True
         """
         B = self.base_ring()
         if base_map is not None:
             if base_map.domain() is not B:
-                raise ValueError('Domain of base_map must be %s' %B)
+                raise ValueError('domain of base_map must be %s' %B)
             if base_map.codomain() is not codomain.base_ring():
-                raise ValueError('Codomain of base_map must be %s' %codomain.base_ring())
+                raise ValueError('codomain of base_map must be %s' %codomain.base_ring())
             bas_gens = B.gens()
             if im_gens and not all(base_map(g) == im_gens[bas_gens.index(g)] for g in bas_gens):
-                raise ValueError('Given base_map is not compatible with im_gens')
+                raise ValueError('given base_map is not compatible with im_gens')
             im_gens = [base_map(g) for g in bas_gens]
             if not all(base_map(au).is_unit() for au in self._additional_units):
-                raise ValueError('Images of some localized elements fail to be units')
+                raise ValueError('images of some localized elements fail to be units')
             return B._is_valid_homomorphism_(codomain, im_gens, base_map=None)
         else:
             if B._is_valid_homomorphism_(codomain, im_gens, base_map=base_map):
                 phi = B.hom(im_gens, base_map=base_map)
                 if not all(phi(au).is_unit() for au in self._additional_units):
-                    raise ValueError('Images of some localized elements fail to be units')
+                    raise ValueError('images of some localized elements fail to be units')
                 return True
             return False
 
     def ngens(self):
         """
-        Return the number of generators of self
+        Return the number of generators of ``self``
         according to the same method for the base ring.
 
         EXAMPLES::
@@ -668,8 +678,8 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     def gen(self, i):
         """
-        Return the i-th generator of self which is
-        the i-th generator of the base ring.
+        Return the ``i``-th generator of ``self`` which is
+        the ``i``-th generator of the base ring.
 
         EXAMPLES::
 
@@ -701,16 +711,16 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     def _cut_off_additional_units_from_base_ring_element(self, x):
         """
-        Return a factor of x not divided by any additional unit of self
+        Return a factor of x not divided by any additional unit of ``self``.
 
         INPUT:
 
-        - ``x`` -- an element of the base ring of self.
+        - ``x`` -- an element of the base ring of ``self``
 
         OUTPUT:
 
-        a factor of x not divided by any additional unit of self as element
-        of the base ring of self
+        A factor of ``x`` not divided by any additional unit of ``self`` as element
+        of the base ring of ``self``.
 
         EXAMPLES::
 
@@ -733,7 +743,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     def _fraction_to_element(self, x):
         """
-        Checks if the given element of the fraction field is contained in self
+        Checks if the given element of the fraction field is contained in ``self``
         and construct it as an element of self in case the answer is true.
 
         INPUT:
@@ -742,7 +752,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
         OUTPUT:
 
-        an instance of the element class of self representing `x`
+        An instance of the element class of self representing `x`.
 
         EXAMPLES::
 
@@ -761,7 +771,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         potential_non_unit_denom = self._cut_off_additional_units_from_base_ring_element(x.denominator())
         if potential_non_unit_denom.is_unit():
            return self.element_class(self, x)
-        raise ValueError("Factor %s of denominator is not a unit" % potential_non_unit_denom)
+        raise ValueError("factor %s of denominator is not a unit" % potential_non_unit_denom)
 
     def _coerce_map_from_(self, S):
         """

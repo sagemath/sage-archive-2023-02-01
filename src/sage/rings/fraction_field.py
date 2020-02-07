@@ -294,7 +294,7 @@ class FractionField_generic(ring.Field):
             sage: 1/(R.gen(0) + R.gen(1))
             1/(x + y)
 
-        Coercion from Localization::
+        Coercion from a localization::
 
             sage: R.<x> = ZZ[]
             sage: L = Localization(R, (x**2 + 1,7))

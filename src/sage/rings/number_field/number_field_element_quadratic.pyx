@@ -1007,6 +1007,10 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         test = mpz_cmp(i,j)
         mpz_clear(i)
         mpz_clear(j)
+        if test > 0:
+            test = 1
+        elif test < 0:
+            test = -1
         if mpz_sgn(self.a) == 1 and mpz_sgn(self.b) == -s:
             return test
         return -test

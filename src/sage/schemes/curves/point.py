@@ -165,7 +165,65 @@ class IntegralProjectiveCurvePoint_finite_field(ProjectiveCurvePoint_field):
     """
     Point of an integral projective curve over a finite field.
     """
-    pass
+    def closed_point(self):
+        """
+        Return the closed point corresponding to this rational point.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
+            sage: C = Curve([x^4 - 16*y^3*z], P)
+            sage: C.singular_points()
+            [(0 : 0 : 1)]
+            sage: p = _[0]
+            sage: p.closed_point()
+            Point (x, y)
+        """
+        curve = self.codomain()
+        A = curve.ambient_space()
+        S = A.coordinate_ring()
+
+        hcoords = self._coords
+        for i in range(S.ngens()):
+            if hcoords[i]:
+                break
+        ai = hcoords[i]
+        xi = S.gen(i)
+        hgens = [ai*S.gen(j) - hcoords[j]*xi for j in range(S.ngens()) if j != i]
+        return curve._closed_point(curve, S.ideal(hgens), degree=1)
+
+    def places(self):
+        """
+        Return all places on this point.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
+            sage: C = Curve([x^4 - 16*y^3*z], P)
+            sage: C.singular_points()
+            [(0 : 0 : 1)]
+            sage: p = _[0]
+            sage: p.places()
+            [Place (y)]
+        """
+        return self.closed_point().places()
+
+    def place(self):
+        """
+        Return a place on this point.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
+            sage: C = Curve([x^4 - 16*y^3*z], P)
+            sage: C.singular_points()
+            [(0 : 0 : 1)]
+            sage: p = _[0]
+            sage: p.place()
+            Place (y)
+        """
+        return self.closed_point().place()
+
 
 class IntegralProjectivePlaneCurvePoint_finite_field(ProjectivePlaneCurvePoint_finite_field, IntegralProjectiveCurvePoint_finite_field):
     """
@@ -304,13 +362,68 @@ class IntegralAffineCurvePoint_finite_field(AffineCurvePoint_field):
     """
     Point of an integral affine curve over a finite field.
     """
-    pass
+    def closed_point(self):
+        """
+        Return the closed point that corresponds to this rational point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(8), 2)
+            sage: C = Curve(x^5 + y^5 + x*y + 1)
+            sage: p = C([1,1])
+            sage: p.closed_point()
+            Point (x + 1, y + 1)
+        """
+        curve = self.codomain()
+        A = curve.ambient_space()
+        R = A.coordinate_ring()
+        coords = self._coords
+        gens = [R.gen(i) - coords[i] for i in range(R.ngens())]
+        return curve._closed_point(curve, R.ideal(gens), degree=1)
+
+    def places(self):
+        """
+        Return all places on this point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(2), 2)
+            sage: C = Curve(x^5 + y^5 + x*y + 1)
+            sage: p = C(-1,-1)
+            sage: p
+            (1, 1)
+            sage: p.closed_point()
+            Point (x + 1, y + 1)
+            sage: _.places()
+            [Place (x + 1, (1/(x^5 + 1))*y^4 + ((x^5 + x^4 + 1)/(x^5 + 1))*y^3
+            + ((x^5 + x^3 + 1)/(x^5 + 1))*y^2 + (x^2/(x^5 + 1))*y), Place (x +
+            1, (1/(x^5 + 1))*y^4 + ((x^5 + x^4 + 1)/(x^5 + 1))*y^3 + (x^3/(x^5
+            + 1))*y^2 + (x^2/(x^5 + 1))*y + x + 1)]
+        """
+        return self.closed_point().places()
+
+    def place(self):
+        """
+        Return a place on this point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(2), 2)
+            sage: C = Curve(x^5 + y^5 + x*y + 1)
+            sage: p = C(-1,-1)
+            sage: p
+            (1, 1)
+            sage: p.closed_point()
+            Point (x + 1, y + 1)
+            sage: _.place()
+            Place (x + 1, (1/(x^5 + 1))*y^4 + ((x^5 + x^4 + 1)/(x^5 + 1))*y^3 +
+            ((x^5 + x^3 + 1)/(x^5 + 1))*y^2 + (x^2/(x^5 + 1))*y)
+        """
+        return self.closed_point().place()
+
 
 class IntegralAffinePlaneCurvePoint_finite_field(AffinePlaneCurvePoint_finite_field, IntegralAffineCurvePoint_finite_field):
     """
     Point of an integral affine plane curve over a finite field.
     """
     pass
-
-
-

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Representations of objects.
+Representations of objects
 """
 
 #*****************************************************************************
@@ -328,10 +328,10 @@ class TallListRepr(ObjectReprABC):
             sage: F = Foo()
             sage: [F, F]
             [
-            BBB    AA   RRR    BBB    AA   RRR  
-            B  B  A  A  R  R   B  B  A  A  R  R 
-            BBB   AAAA  RRR    BBB   AAAA  RRR  
-            B  B  A  A  R  R   B  B  A  A  R  R 
+            BBB    AA   RRR    BBB    AA   RRR
+            B  B  A  A  R  R   B  B  A  A  R  R
+            BBB   AAAA  RRR    BBB   AAAA  RRR
+            B  B  A  A  R  R   B  B  A  A  R  R
             BBB   A  A  R   R, BBB   A  A  R   R
             ]
         """
@@ -355,4 +355,4 @@ class TallListRepr(ObjectReprABC):
         p.text(output)
         return True
 
-            
+

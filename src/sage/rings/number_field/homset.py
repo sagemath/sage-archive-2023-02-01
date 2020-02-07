@@ -33,10 +33,10 @@ class NumberFieldHomset(RingHomset_generic):
 
         sage: H = Hom(QuadraticField(-1, 'a'), QuadraticField(-1, 'b'))
         sage: TestSuite(H).run()
-          Failure in _test_category:
-        ...
-        The following tests failed: _test_elements
     """
+
+    Element = NumberFieldHomomorphism_im_gens
+
     def __init__(self, R, S, category=None):
         """
         TESTS:
@@ -58,39 +58,20 @@ class NumberFieldHomset(RingHomset_generic):
                 category = Fields()
         RingHomset_generic.__init__(self, R, S, category)
 
-    def __call__(self, im_gens, check=True):
+    def _element_constructor_(self, x, check=True):
         """
-        Create the homomorphism sending the generators to ``im_gens``.
+        Construct an element of ``self`` from ``x``.
 
         EXAMPLES::
 
             sage: H = Hom(QuadraticField(-1, 'a'), QuadraticField(-1, 'b'))
-            sage: phi = H([H.domain().gen()]); phi # indirect doctest
+            sage: phi = H([H.domain().gen()]); phi
             Ring morphism:
               From: Number Field in a with defining polynomial x^2 + 1 with a = 1*I
               To:   Number Field in b with defining polynomial x^2 + 1 with b = 1*I
               Defn: a |--> b
-        """
-        if isinstance(im_gens, NumberFieldHomomorphism_im_gens):
-            return self._coerce_impl(im_gens)
-        try:
-            return NumberFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError):
-            try:
-                return self._coerce_impl(im_gens)
-            except TypeError:
-                raise TypeError("images do not define a valid homomorphism")
-
-    def _coerce_impl(self, x):
-        r"""
-        Canonical coercion of ``x`` into this homset. The only things that
-        coerce canonically into self are elements of self and of homsets equal
-        to self.
-
-        EXAMPLES::
-
             sage: H1 = End(QuadraticField(-1, 'a'))
-            sage: H1.coerce(loads(dumps(H1[1]))) # indirect doctest
+            sage: H1.coerce(loads(dumps(H1[1])))
             Ring endomorphism of Number Field in a with defining polynomial x^2 + 1 with a = 1*I
               Defn: a |--> -a
 
@@ -102,11 +83,25 @@ class NumberFieldHomset(RingHomset_generic):
             sage: g = End(H1.domain(), category=Rings())(f)
             sage: f == End(H1.domain(), category=NumberFields())(g)
             True
+
+        Check that :trac:`28869` is fixed::
+
+            sage: K.<a> = CyclotomicField(8)
+            sage: L.<b> = K.absolute_field()
+            sage: H = L.Hom(K)
+            sage: phi = L.structure()[0]
+            sage: phi.parent() is H
+            True
+            sage: H(phi)
+            Isomorphism given by variable name change map:
+              From: Number Field in b with defining polynomial x^4 + 1
+              To:   Cyclotomic Field of order 8 and degree 4
+            sage: R.<x> = L[]
+            sage: (x^2 + b).change_ring(phi)
+            x^2 + a
         """
         if not isinstance(x, NumberFieldHomomorphism_im_gens):
-            raise TypeError
-        if x.parent() is self:
-            return x
+            return self.element_class(self, x, check=check)
         from sage.categories.all import NumberFields, Rings
         if (x.parent() == self or
             (x.domain() == self.domain() and x.codomain() == self.codomain() and
@@ -118,8 +113,7 @@ class NumberFieldHomset(RingHomset_generic):
              self.homset_category().is_subcategory(Rings()) and
              NumberFields().is_subcategory(x.category_for()) and
              x.category_for().is_subcategory(Rings()))):
-            return NumberFieldHomomorphism_im_gens(self, x.im_gens(), check=False)
-        raise TypeError
+            return self.element_class(self, x.im_gens(), check=False)
 
     def _an_element_(self):
         r"""
@@ -279,36 +273,47 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         sage: phi(phi(phi(cuberoot2 + zeta3)))
         cuberoot2 + zeta3
     """
-    def __call__(self, im_gen, base_map=None, base_hom=None, check=True):
-        r"""
-        Create a homomorphism in this homset from the given data, which can be:
 
-        - A homomorphism from this number field.
-        - A homomorphism from the absolute number field corresponding to this
-          relative number field.
-        - An element (specifying the image of the generator) of a ring into
-          which the base ring coerces.
-        - A pair consisting of an element of a ring R and a homomorphism from
-          the base ring to R.
+    Element = RelativeNumberFieldHomomorphism_from_abs
+
+    def _element_constructor_(self, x, base_map=None, base_hom=None, check=True):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        INPUT:
+
+        - ``x`` -- one of the following (here `L` is the domain of
+          ``self`` and `K` is its base field):
+
+          - A homomorphism from `L`.
+
+          - A homomorphism from the absolute number field
+            corresponding to `L`.
+
+          - An element of a ring into which `K` coerces, specifying
+            the image of the distinguished generator of `L` over `K`.
+
+          - A pair consisting of an element of a ring `R` and a
+            homomorphism from `K` to `R`.
 
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: L.<b> = K.extension(x^4 - 2)
             sage: E = End(L)
-            sage: E(E[0]) # indirect doctest
+            sage: E(E[0])
             Relative number field endomorphism of Number Field in b with defining polynomial x^4 - 2 over its base field
               Defn: b |--> b
                     a |--> a
-            sage: E(L.absolute_field('c').hom(b+a, L)) # indirect doctest
+            sage: E(L.absolute_field('c').hom(b+a, L))
             Relative number field endomorphism of Number Field in b with defining polynomial x^4 - 2 over its base field
               Defn: b |--> b
                     a |--> -a
-            sage: E(-b*a) # indirect doctest
+            sage: E(-b*a)
             Relative number field endomorphism of Number Field in b with defining polynomial x^4 - 2 over its base field
               Defn: b |--> -a*b
                     a |--> a
-            sage: E(-a*b, K.hom([-a])) # indirect doctest
+            sage: E(-a*b, K.hom([-a]))
             Relative number field endomorphism of Number Field in b with defining polynomial x^4 - 2 over its base field
               Defn: b |--> -a*b
                     a |--> -a
@@ -324,8 +329,9 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
               Defn: b |--> -b
                     i |--> -i
 
-        Using check=False, it is possible to construct homomorphisms into fields such as CC
-        where calculations are only approximate.
+        Using ``check=False``, it is possible to construct
+        homomorphisms into fields such as ``CC`` where calculations
+        are only approximate::
 
             sage: K.<a> = QuadraticField(-7)
             sage: f = K.hom([CC(sqrt(-7))], check=False)
@@ -337,54 +343,53 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
               To:   Complex Field with 53 bits of precision
               Defn: b |--> 2.30833860703888 + 0.573085617291335*I
               a |--> -8.88178419700125e-16 + 2.64575131106459*I
+
+        TESTS::
+
+            sage: x = polygen(QQ)
+            sage: L.<a, b> = NumberField([x^3 - x + 1, x^2 + 23])
+            sage: E = End(L)
+            sage: E.coerce(loads(dumps(E[0])))
+            Relative number field endomorphism of Number Field in a with defining polynomial x^3 - x + 1 over its base field
+              Defn: a |--> a
+                    b |--> b
+
+        Check that :trac:`28869` is fixed::
+
+            sage: K.<a,b> = NumberField((x^2 + 1, x^2 - 2))
+            sage: L.<c> = K.absolute_field()
+            sage: H = K.Hom(L)
+            sage: phi = L.structure()[1]; phi
+            Isomorphism map:
+              From: Number Field in a with defining polynomial x^2 + 1 over its base field
+              To:   Number Field in c with defining polynomial x^4 - 2*x^2 + 9
+            sage: H(phi) is phi
+            True
+            sage: R.<x> = K[]
+            sage: (x^2 + a).change_ring(phi)
+            x^2 + 1/6*c^3 + 1/6*c
         """
         if base_hom is not None:
             deprecation(26105, "Use base_map rather than base_hom")
             base_map = base_hom
-        if isinstance(im_gen, NumberFieldHomomorphism_im_gens):
+        if isinstance(x, NumberFieldHomomorphism_im_gens):
             # Then it must be a homomorphism from the corresponding
             # absolute number field
-            abs_hom = im_gen
-            K = abs_hom.domain()
-            if K != self.domain().absolute_field(K.variable_name()):
+            if x.domain() != self.domain().absolute_field(x.domain().variable_name()):
                 raise TypeError("domain of morphism must be absolute field of domain.")
-            from_K, to_K = K.structure()
-            if abs_hom.domain() != K:
-                raise ValueError("domain of absolute homomorphism must be absolute field of domain.")
-            if abs_hom.codomain() != self.codomain():
+            if x.codomain() != self.codomain():
                 raise ValueError("codomain of absolute homomorphism must be codomain of this homset.")
-            return RelativeNumberFieldHomomorphism_from_abs(self, abs_hom)
-        if isinstance(im_gen, RelativeNumberFieldHomomorphism_from_abs):
-            return self._coerce_impl(im_gen)
+            return self.element_class(self, x)
+        if (isinstance(x, RelativeNumberFieldHomomorphism_from_abs)
+            and x.parent() == self):
+            return self.element_class(self, x.abs_hom())
         if base_map is None:
             base_map = self.default_base_hom()
-        if isinstance(im_gen, (list, tuple)) and len(im_gen) == 1:
-            im_gen = im_gen[0]
+        if isinstance(x, (list, tuple)) and len(x) == 1:
+            x = x[0]
         if check:
-            im_gen = self.codomain()(im_gen)
-        return self._from_im(im_gen, base_map=base_map, check=check)
-
-    def _coerce_impl(self, x):
-        r"""
-        Canonically coerce ``x`` into this homset. This will only work if ``x``
-        is already in the homset.
-
-        EXAMPLES::
-
-            sage: L.<a, b> = NumberField([x^3 - x + 1, x^2 + 23])
-            sage: E = End(L)
-            sage: E.coerce(loads(dumps(E[0])))  # indirect doctest
-            Relative number field endomorphism of Number Field in a with defining polynomial x^3 - x + 1 over its base field
-              Defn: a |--> a
-                    b |--> b
-        """
-        if not isinstance(x, RelativeNumberFieldHomomorphism_from_abs):
-            raise TypeError
-        if x.parent() is self:
-            return x
-        if x.parent() == self:
-            return RelativeNumberFieldHomomorphism_from_abs(self, x.abs_hom())
-        raise TypeError
+            x = self.codomain()(x)
+        return self._from_im(x, base_map=base_map, check=check)
 
     def _from_im(self, im_gen, base_map, check=True):
         """
@@ -410,7 +415,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         f = R([base_map(x) for x in a.list()])
         b = f(im_gen)
         abs_hom = K.hom([b], check=check)
-        return RelativeNumberFieldHomomorphism_from_abs(self, abs_hom)
+        return self.element_class(self, abs_hom)
 
     @cached_method
     def default_base_hom(self):
@@ -487,57 +492,57 @@ class CyclotomicFieldHomset(NumberFieldHomset):
         sage: End(CyclotomicField(16))
         Automorphism group of Cyclotomic Field of order 16 and degree 8
     """
-    def __call__(self, im_gens, check=True):
+
+    Element = CyclotomicFieldHomomorphism_im_gens
+
+    def _element_constructor_(self, x, check=True):
         """
-        Create an element of this homset.
+        Construct an element of ``self`` from ``x``.
 
         EXAMPLES::
 
             sage: K.<z> = CyclotomicField(16)
             sage: E = End(K)
-            sage: E(E[0]) # indirect doctest
+            sage: E(E[0])
             Ring endomorphism of Cyclotomic Field of order 16 and degree 8
               Defn: z |--> z
-            sage: E(z^5) # indirect doctest
+            sage: E(z^5)
             Ring endomorphism of Cyclotomic Field of order 16 and degree 8
               Defn: z |--> z^5
-            sage: E(z^6) # indirect doctest
+            sage: E(z^6)
             Traceback (most recent call last):
             ...
-            TypeError: images do not define a valid homomorphism
-        """
-        if isinstance(im_gens, CyclotomicFieldHomomorphism_im_gens):
-            return self._coerce_impl(im_gens)
-        try:
-            return CyclotomicFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError):
-            try:
-                return self._coerce_impl(im_gens)
-            except TypeError:
-                raise TypeError("images do not define a valid homomorphism")
-
-    def _coerce_impl(self, x):
-        r"""
-        Coerce ``x`` into self. This will only work if ``x`` is already in self.
-
-        EXAMPLES::
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
             sage: E = End(CyclotomicField(16))
-            sage: E.coerce(E[0]) # indirect doctest
+            sage: E.coerce(E[0])
             Ring endomorphism of Cyclotomic Field of order 16 and degree 8
               Defn: zeta16 |--> zeta16
-            sage: E.coerce(17) # indirect doctest
+            sage: E.coerce(17)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Integer Ring to Automorphism group of Cyclotomic Field of order 16 and degree 8
+
+        TESTS:
+
+        Check that :trac:`28869` is fixed::
+
+            sage: K.<a> = CyclotomicField(8)
+            sage: L.<b> = K.absolute_field()
+            sage: phi = L.structure()[1]; phi
+            Isomorphism given by variable name change map:
+              From: Cyclotomic Field of order 8 and degree 4
+              To:   Number Field in b with defining polynomial x^4 + 1
+            sage: phi.parent() is K.Hom(L)
+            True
+            sage: R.<x> = K[]
+            sage: (x^2 + a).change_ring(phi)
+            x^2 + b
         """
-        if not isinstance(x, CyclotomicFieldHomomorphism_im_gens):
-            raise TypeError
-        if x.parent() is self:
-            return x
-        if x.parent() == self:
-            return CyclotomicFieldHomomorphism_im_gens(self, x.im_gens())
-        raise TypeError
+        if (isinstance(x, CyclotomicFieldHomomorphism_im_gens)
+            and x.parent() == self):
+            return self.element_class(self, x.im_gens())
+        return self.element_class(self, x, check=check)
 
     @cached_method
     def list(self):

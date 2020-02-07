@@ -1439,7 +1439,7 @@ REFERENCES:
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
 
-.. [Co1999] John Conway, Neil Sloan. *Sphere Packings, Lattices and Groups*,
+.. [Co1999] \J. H. Conway, N. J. A. Sloane. *Sphere Packings, Lattices and Groups*,
             Springer Verlag 1999.
 
 .. [CO2010] Jonathan Comes, Viktor Ostrik.

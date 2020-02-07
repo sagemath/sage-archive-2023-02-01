@@ -849,9 +849,17 @@ class AlgebraicField_common(sage.rings.ring.Field):
             ....:    factor_f = (x - b).map_coefficients(hom)
             ....:    assert(minpoly % factor_f == 0)
 
+        Test :trac:`29076`::
+
+            sage: AA['x','y'](1).factor()   # indirect doctest
+            1
+
         """
         from sage.structure.factorization import Factorization
         from sage.interfaces.singular import singular
+
+        if f.degree() == 0:
+            return Factorization([], f.lc())
 
         singular.lib('absfact.lib')
 

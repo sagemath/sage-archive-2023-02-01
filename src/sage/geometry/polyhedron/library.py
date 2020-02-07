@@ -205,9 +205,11 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
 
     - ``vectors`` -- the vectors of the Gale transform
 
-    - ``base_ring`` -- (optional) the base ring to be used for the construction
+    - ``base_ring`` -- string (default: `None`);
+      the base ring to be used for the construction
 
-    - ``backend`` -- (optional) the backend to use to create the polytope
+    - ``backend`` -- string (default: `None`);
+      the backend to use to create the polytope
 
     .. NOTE::
 
@@ -234,7 +236,8 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
 
     REFERENCES:
 
-        For more information, see Section 6.4 of [Zie2007]_.
+        For more information, see Section 6.4 of [Zie2007]_
+        or Definition 2.5.1 and Definition 4.1.35 of [DLRS2010]_.
 
     EXAMPLES::
 

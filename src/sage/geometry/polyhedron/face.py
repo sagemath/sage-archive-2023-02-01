@@ -729,7 +729,7 @@ class PolyhedronFace(SageObject):
             sage: f2.normal_cone()
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line
             sage: f3.normal_cone()
-            A 0-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex and 1 line
 
         Normal cones are only defined for non-empty faces::
 

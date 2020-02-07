@@ -696,7 +696,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices = [[1,2],[2,1],[-2,2],[-2,-2],[2,-2]])
-            sage: for v in p.faces(0):
+            sage: for v in p.face_generator(0):
             ....:     vect = v.vertices()[0].vector()
             ....:     nc = v.normal_cone().rays_list()
             ....:     print("{} has outer normal cone spanned by {}".format(vect,nc))
@@ -707,7 +707,7 @@ class PolyhedronFace(SageObject):
             (-2, -2) has outer normal cone spanned by [[-1, 0], [0, -1]]
             (-2, 2) has outer normal cone spanned by [[-1, 0], [0, 1]]
 
-            sage: for v in p.faces(0):
+            sage: for v in p.face_generator(0):
             ....:     vect = v.vertices()[0].vector()
             ....:     nc = v.normal_cone(direction='inner').rays_list()
             ....:     print("{} has inner normal cone spanned by {}".format(vect,nc))

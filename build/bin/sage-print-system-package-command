@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+system=$1
+command=$2
+shift 2
+system_packages="$*"
+shopt -s extglob
+case $system:$command in
+    debian*|ubuntu*)
+        echo "sudo apt-get $command $system_packages"
+        ;;
+    @(fedora*|redhat*|centos*):install)
+        echo "sudo yum install $system_packages"
+        ;;
+    arch*:install)
+        echo "sudo pacman -S $system_packages"
+        ;;
+    *conda*:install)
+        echo "conda install $system_packages"
+        ;;
+    homebrew*:install)
+        echo "brew install $system_packages"
+        ;;
+    *)
+        echo "# $command the following packages: $system_packages"
+        ;;
+esac

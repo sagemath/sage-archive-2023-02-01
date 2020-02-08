@@ -37,11 +37,13 @@ from sage.algebras.lie_algebras.classical_lie_algebra import gl
 from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
 
 
-# the four next lines are here to silent pyflakes and lgtm warnings
+# the next 6 lines are here to silent pyflakes and lgtm warnings
 assert VirasoroAlgebra
 assert RankTwoHeisenbergVirasoro
 assert OnsagerAlgebra
 assert Affine
+assert gl
+assert ClassicalMatrix
 
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
@@ -402,10 +404,6 @@ def strictly_upper_triangular_matrices(R, n):
 #####################################################################
 ## Classical Lie algebras
 
-# the next two lines are here to silent pyflakes and lgtm warnings
-assert gl
-assert ClassicalMatrix
-
 
 def sl(R, n, representation='bracket'):
     r"""
@@ -579,6 +577,7 @@ def so(R, n, representation='bracket'):
         from sage.algebras.lie_algebras.classical_lie_algebra import so as so_matrix
         return so_matrix(R, n)
     raise ValueError("invalid representation")
+
 
 def sp(R, n, representation='bracket'):
     r"""

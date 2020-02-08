@@ -1215,9 +1215,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     return new_basis._from_dict({w: new_hecke._base(c)
                                                  for w, c in self})
 
-                def new_coeff(c):
-                    return new_hecke._base(c(args))
-                return new_basis._from_dict({w: new_coeff(c) for w, c in self})
+                return new_basis._from_dict({w: new_hecke._base(c(args))
+                                             for w, c in self})
 
     class _Basis(CombinatorialFreeModule, BindableClass):
         r"""
@@ -1414,7 +1413,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 i1 = normalized_laurent_polynomial(A._base, A._q1 ** -1)
                 i2 = normalized_laurent_polynomial(A._base, A._q2 ** -1)
             except Exception:
-                raise ValueError("%s and %s must be invertible." % (A._q1, A._q2))
+                raise ValueError("%s and %s must be invertible" % (A._q1, A._q2))
             return (-i1*i2)*self.algebra_generator(i)+(i1+i2)
 
         @cached_method
@@ -1789,7 +1788,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: C = H.C()
             """
             if IHAlgebra._root is None:
-                raise ValueError('The Kazhdan_Lusztig bases are defined only when -q_1*q_2 is a square')
+                raise ValueError('The Kazhdan_Lusztig bases are defined '
+                                 'only when -q_1*q_2 is a square')
 
             if IHAlgebra._is_generic:
                 klbasis = IwahoriHeckeAlgebra_nonstandard._KLHeckeBasis

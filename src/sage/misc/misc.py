@@ -42,7 +42,6 @@ from six.moves import range
 from six import integer_types
 
 import os
-import stat
 import sys
 import time
 import resource

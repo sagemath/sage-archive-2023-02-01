@@ -33,6 +33,16 @@ from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 from sage.algebras.lie_algebras.rank_two_heisenberg_virasoro import RankTwoHeisenbergVirasoro
 from sage.algebras.lie_algebras.onsager import OnsagerAlgebra
 from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra as Affine
+from sage.algebras.lie_algebras.classical_lie_algebra import gl
+from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
+
+
+# the four next lines are here to silent pyflakes and lgtm warnings
+assert VirasoroAlgebra
+assert RankTwoHeisenbergVirasoro
+assert OnsagerAlgebra
+assert Affine
+
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
     r"""
@@ -392,8 +402,10 @@ def strictly_upper_triangular_matrices(R, n):
 #####################################################################
 ## Classical Lie algebras
 
-from sage.algebras.lie_algebras.classical_lie_algebra import gl
-from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
+# the next two lines are here to silent pyflakes and lgtm warnings
+assert gl
+assert ClassicalMatrix
+
 
 def sl(R, n, representation='bracket'):
     r"""

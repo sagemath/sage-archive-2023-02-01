@@ -150,6 +150,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     in_sdist=no
 
+    uninstall_message=""
     # Check consistency of 'DIR/type' file
     case "$SPKG_TYPE" in
     base)
@@ -158,19 +159,21 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     standard)
         SAGE_STANDARD_PACKAGES+="    $SPKG_NAME \\"$'\n'
         in_sdist=yes
-        message="will be installed"
+        message="will be installed as an SPKG"
         ;;
     optional)
-        message="optional, will not be installed unless requested"
+        message="optional, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
     experimental)
-        message="experimental, will not be installed unless requested"
+        message="experimental, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
     script)
-        message="will not be installed unless required as a dependency"
+        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
         ;;
     pip)
-        message="will not be installed unless required as a dependency"
+        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
         ;;
     *)
         AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'])
@@ -190,8 +193,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         AS_VAR_IF([sage_spkg_install], [no], [
             dnl We will use the system package (or not required for this platform.)
             SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AS_VAR_IF([sage_require], [yes], [ AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION: using system package; will not be installed])
-            ],                               [ AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION: not required on your platform; will not be installed])
+            AS_VAR_IF([sage_require], [yes], [ message="using system package; SPKG will not be installed"
+            ],                               [ message="not required on your platform; SPKG will not be installed"
             ])
         ], [
             dnl We won't use the system package.
@@ -199,14 +202,16 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
-                [yes],                       [AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION: no suitable system package; $message])],
-                [installed],                 [AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION: already installed])],
-                                             [AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION: $reason; $message])])
+                [yes],                       [ message="no suitable system package; $message" ],
+                [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
+                                             [ message="$reason; $message" ])
             ], [
                 # Package does not use spkg-configure.m4 yet
-                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION: does not support check for system package yet; $message])
+                message="does not support check for system package; $message"
             ])
         ])
+        formatted_message=$(printf '%-45s%s' "$SPKG_NAME-$SPKG_VERSION:" "$message")
+        AC_MSG_RESULT([$formatted_message])
 
         AS_VAR_POPDEF([sage_use_system])dnl
         AS_VAR_POPDEF([sage_require])dnl

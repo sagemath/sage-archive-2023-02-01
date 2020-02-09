@@ -854,6 +854,63 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         return tuple(facets)
 
+    def incidence_matrix(self):
+        """
+        Return the incidence matrix.
+
+        .. NOTE::
+
+            The columns correspond to inequalities/equations in the
+            order :meth:`Hrepresentation`, the rows correspond to
+            vertices/rays/lines in the order
+            :meth:`Vrepresentation`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.incidence_matrix()
+            [0 0 0 1 1 1]
+            [1 0 0 1 0 1]
+            [0 1 0 1 1 0]
+            [1 1 0 1 0 0]
+            [0 0 1 0 1 1]
+            [1 0 1 0 0 1]
+            [0 1 1 0 1 0]
+            [1 1 1 0 0 0]
+            sage: P.incidence_matrix() == C.incidence_matrix()
+            True
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.incidence_matrix() == P.incidence_matrix()
+            True
+        """
+        from sage.rings.all import ZZ
+        from sage.matrix.constructor import matrix
+        incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
+                                  self.n_Hrepresentation(), 0)
+
+        # If equalities are present, we add them as first columns.
+        n_equalities = 0
+        if self.facet_names() is not None:
+            n_equalities = len(self.equalities())
+            for Hindex in range(n_equalities):
+                for Vindex in range(self.n_Vrepresentation()):
+                    incidence_matrix[Vindex, Hindex] = 1
+
+        facet_iter = self.face_iter(self.dimension() - 1, dual=False)
+        for facet in facet_iter:
+            Hindex = facet.ambient_H_indices()[0] + n_equalities
+            for Vindex in facet.ambient_V_indices():
+                incidence_matrix[Vindex, Hindex] = 1
+
+        return incidence_matrix
+
     def edges(self, names=True):
         r"""
         Return the edges of the polyhedron, i.e. the rank 1 faces.

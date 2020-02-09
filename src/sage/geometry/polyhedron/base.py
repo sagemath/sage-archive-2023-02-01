@@ -2451,7 +2451,7 @@ class Polyhedron_base(Element):
             The columns correspond to inequalities/equations in the
             order :meth:`Hrepresentation`, the rows correspond to
             vertices/rays/lines in the order
-            :meth:`Vrepresentation`
+            :meth:`Vrepresentation`.
 
         EXAMPLES::
 

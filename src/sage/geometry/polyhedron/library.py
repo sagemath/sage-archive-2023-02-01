@@ -310,7 +310,7 @@ class Polytopes():
         TESTS::
 
             sage: b4norm = polytopes.Birkhoff_polytope(4,backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(b4norm).run(skip='_test_pickling')                # optional - pynormaliz
+            sage: TestSuite(b4norm).run()                                     # optional - pynormaliz
         """
         from itertools import permutations
         verts = []
@@ -384,7 +384,7 @@ class Polytopes():
         TESTS::
 
             sage: s6norm = polytopes.simplex(6,backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(s6norm).run(skip='_test_pickling')      # optional - pynormaliz
+            sage: TestSuite(s6norm).run()                           # optional - pynormaliz
         """
         verts = list((ZZ**(dim + 1)).basis())
         if project:
@@ -687,7 +687,7 @@ class Polytopes():
         TESTS::
 
             sage: rd_norm = polytopes.rhombic_dodecahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(rd_norm).run(skip='_test_pickling')                 # optional - pynormaliz
+            sage: TestSuite(rd_norm).run()                                      # optional - pynormaliz
         """
         v = [[2,0,0],[-2,0,0],[0,2,0],[0,-2,0],[0,0,2],[0,0,-2]]
         v.extend((itertools.product([1, -1], repeat=3)))
@@ -734,7 +734,7 @@ class Polytopes():
         TESTS::
 
             sage: co_norm = polytopes.cuboctahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(co_norm).run(skip='_test_pickling')          # optional - pynormaliz
+            sage: TestSuite(co_norm).run()                               # optional - pynormaliz
         """
         v = [[0, -1, -1], [0, 1, -1], [0, -1, 1], [0, 1, 1],
              [-1, -1, 0], [1, -1, 0], [-1, 1, 0], [1, 1, 0],
@@ -843,7 +843,7 @@ class Polytopes():
         TESTS::
 
             sage: t_norm = polytopes.tetrahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(t_norm).run(skip='_test_pickling')        # optional - pynormaliz
+            sage: TestSuite(t_norm).run()                             # optional - pynormaliz
         """
         v = [[0, 0, 0], [1, 0, 1], [1, 1, 0], [0, 1, 1]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
@@ -885,7 +885,7 @@ class Polytopes():
         TESTS::
 
             sage: tt_norm = polytopes.truncated_tetrahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(tt_norm).run(skip='_test_pickling')                  # optional - pynormaliz
+            sage: TestSuite(tt_norm).run()                                       # optional - pynormaliz
         """
         v = [(3,1,1), (1,3,1), (1,1,3),
              (-3,-1,1), (-1,-3,1), (-1,-1,3),
@@ -931,7 +931,7 @@ class Polytopes():
         TESTS::
 
             sage: to_norm = polytopes.truncated_octahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(to_norm).run(skip='_test_pickling')                 # optional - pynormaliz
+            sage: TestSuite(to_norm).run()                                      # optional - pynormaliz
         """
         v = [(0, e, f) for e in [-1, 1] for f in [-2, 2]]
         v = [(xyz[sigma(1) - 1], xyz[sigma(2) - 1], xyz[sigma(3) - 1])
@@ -973,7 +973,7 @@ class Polytopes():
         TESTS::
 
             sage: o_norm = polytopes.octahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(o_norm).run(skip='_test_pickling')       # optional - pynormaliz
+            sage: TestSuite(o_norm).run()                            # optional - pynormaliz
         """
         v = [[0, 0, -1], [0, 0, 1], [1, 0, 0],
              [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
@@ -1423,7 +1423,7 @@ class Polytopes():
         TESTS::
 
             sage: ki_norm = polytopes.Kirkman_icosahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(ki_norm).run(skip='_test_pickling')                # optional - pynormaliz
+            sage: TestSuite(ki_norm).run()                                     # optional - pynormaliz
         """
         vertices = [[9, 6, 6], [-9, 6, 6], [9, -6, 6], [9, 6, -6],
                     [-9, -6, 6], [-9, 6, -6], [9, -6, -6], [-9, -6, -6],
@@ -1696,7 +1696,7 @@ class Polytopes():
         TESTS::
 
             sage: tfcell = polytopes.twenty_four_cell(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(tfcell).run(skip='_test_pickling')             # optional - pynormaliz
+            sage: TestSuite(tfcell).run()                                  # optional - pynormaliz
         """
         q12 = QQ((1, 2))
         verts = list(itertools.product([q12, -q12], repeat=4))
@@ -2066,7 +2066,7 @@ class Polytopes():
         TESTS::
 
             sage: G321 = polytopes.Gosset_3_21(backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(G321).run(skip='_test_pickling')         # optional - pynormaliz
+            sage: TestSuite(G321).run()                              # optional - pynormaliz
         """
         from itertools import combinations
         verts = []
@@ -2106,7 +2106,7 @@ class Polytopes():
         TESTS::
 
             sage: cp = polytopes.cyclic_polytope(4,10,backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(cp).run(skip='_test_pickling')                 # optional - pynormaliz
+            sage: TestSuite(cp).run()                                      # optional - pynormaliz
         """
         verts = [[t**i for i in range(1, dim+1)] for t in range(n)]
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
@@ -2210,7 +2210,7 @@ class Polytopes():
         TESTS::
 
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(p4).run(skip='_test_pickling')             # optional - pynormaliz
+            sage: TestSuite(p4).run()                                  # optional - pynormaliz
         """
         verts = list(itertools.permutations(range(1, n + 1)))
         if project:
@@ -2349,7 +2349,7 @@ class Polytopes():
 
         TESTS::
 
-            sage: TestSuite(perm_h3).run(skip='_test_pickling')    # optional - pynormaliz
+            sage: TestSuite(perm_h3).run()  # optional - pynormaliz
         """
         from sage.combinat.root_system.coxeter_group import CoxeterGroup
         try:
@@ -2662,7 +2662,7 @@ class Polytopes():
         The ``'normaliz'`` is faster::
 
             sage: polytopes.one_hundred_twenty_cell(backend='normaliz')  # optional - pynormaliz
-            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining 
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
             polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 600 vertices
 
         It is also possible to realize it using the generalized permutahedron
@@ -2782,7 +2782,7 @@ class Polytopes():
         TESTS::
 
             sage: fc = polytopes.hypercube(4,backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(fc).run(skip='_test_pickling')         # optional - pynormaliz
+            sage: TestSuite(fc).run()                              # optional - pynormaliz
 
         If the dimension ``dim`` is not equal to the length of intervals, an
         error is raised::
@@ -2830,7 +2830,7 @@ class Polytopes():
         - ``intervals`` -- list (default=None). It takes the following
           possible inputs:
 
-            - If the input is ``None`` (the default), returns the convex hull of 
+            - If the input is ``None`` (the default), returns the convex hull of
               the eight `\pm 1` vectors of length three.
 
             - ``'zero_one'`` -- (string). Return the `0/1`-cube.
@@ -2899,7 +2899,7 @@ class Polytopes():
         TESTS::
 
             sage: cp = polytopes.cross_polytope(4,backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(cp).run(skip='_test_pickling')              # optional - pynormaliz
+            sage: TestSuite(cp).run()                                   # optional - pynormaliz
         """
         verts = list((ZZ**dim).basis())
         verts.extend([-v for v in verts])

@@ -1558,7 +1558,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             x^6 + x^5*y + 4*x^4*y^2 + 3*x^3*y^3 + 7*x^2*y^4 + 4*x*y^5 + 5*y^6
             sage: g == f.specialization({c:1}).dynatomic_polynomial(3)
             True
-        
+
         ::
 
             sage: R1.<alpha, beta> = QQ[]

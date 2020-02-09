@@ -6,6 +6,7 @@ Base class for polyhedra
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
+#       Copyright (C) 2020 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -2931,11 +2932,7 @@ class Polyhedron_base(Element):
 
         """
         if not self.is_compact(): return False
-
-        d = self.dim()
-        return all(len([facet for facet in vertex.incident()
-                        if not facet.is_equation()]) == d
-                   for vertex in self.Vrepresentation())
+        return self.combinatorial_polyhedron().is_simple()
 
     def is_simplicial(self):
         """
@@ -2974,10 +2971,7 @@ class Polyhedron_base(Element):
         """
         if not(self.is_compact()):
             raise NotImplementedError("this function is implemented for polytopes only")
-        d = self.dim()
-        return all(len([vertex for vertex in facet.incident()]) == d
-                   for facet in self.Hrepresentation()
-                   if not facet.is_equation())
+        return self.combinatorial_polyhedron().is_simplicial()
 
     def is_pyramid(self, certificate=False):
         """
@@ -3327,7 +3321,7 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron(vertices = [[0,0],[0,1],[1,0]])
             sage: p2 = p.prism()
             sage: p2.gale_transform()
-            ((1, 0), (0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1))
+            ((-1, -1), (1, 0), (0, 1), (1, 1), (-1, 0), (0, -1))
 
         REFERENCES:
 
@@ -3340,14 +3334,20 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: not a polytope
+
+        Check that :trac:`29073` is fixed::
+
+            sage: P = polytopes.icosahedron(exact=False)
+            sage: sum(P.gale_transform()).norm() < 1e-15
+            True
         """
         if not self.is_compact(): raise ValueError('not a polytope')
 
         A = matrix(self.n_vertices(),
                    [ [1]+x for x in self.vertex_generator()])
         A = A.transpose()
-        A_ker = A.right_kernel()
-        return tuple(A_ker.basis_matrix().transpose().rows())
+        A_ker = A.right_kernel_matrix(basis='computed')
+        return tuple(A_ker.columns())
 
     @cached_method
     def normal_fan(self, direction='inner'):

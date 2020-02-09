@@ -1248,6 +1248,46 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_vector.set_immutable()
         return f_vector
 
+    def is_simplicial(self):
+        r"""
+        Test whether the polytope is simplicial.
+
+        This method is not implemented for unbounded polyhedra.
+
+        A polytope is simplicial, if each facet contains exactly `d` vertices,
+        where `d` is the dimension of the polytope.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simplicial()
+            True
+            sage: P = polytopes.hypercube(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simplicial()
+            False
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_simplicial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
+        """
+        if not self.is_bounded():
+            raise NotImplementedError("this function is implemented for polytopes only")
+
+        cdef int d, dim = self.dimension()
+        cdef FaceIterator face_iter = self._face_iter(False, dim-1)
+        d = face_iter.next_dimension()
+        while d == dim-1:
+            if face_iter.n_atom_rep() != dim:
+                return False
+            d = face_iter.next_dimension()
+        return True
+
     @cached_method
     def simpliciality(self):
         r"""
@@ -1316,6 +1356,49 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # Every polytope is 1-simplicial.
                 d = dim
         return smallInteger(simpliciality)
+
+    def is_simple(self):
+        r"""
+        Test whether the polytope is simple.
+
+        If the polyhedron is unbounded, return ``False``.
+
+        A polytope is simple, if each vertex is contained in exactly `d` facets,
+        where `d` is the dimension of the polytope.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simple()
+            False
+            sage: P = polytopes.hypercube(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_simple()
+            True
+
+        Return ``False`` for unbounded polyhedra::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_simple()
+            False
+        """
+        if not self.is_bounded(): return False
+
+        cdef int d, dim = self.dimension()
+
+        # ``output_dimension`` in
+        # :meth:`FaceIterator.__init`
+        # requires the dimension of the original polyhedron.
+        # We iterate over the vertices, by iterating over the facets of the dual.
+        cdef FaceIterator coface_iter = self._face_iter(True, 0)
+
+        d = coface_iter.next_dimension()
+        while d == dim-1:
+            if coface_iter.n_atom_rep() != dim:
+                return False
+            d = coface_iter.next_dimension()
+        return True
 
     @cached_method
     def simplicity(self):
@@ -1719,6 +1802,27 @@ cdef class CombinatorialPolyhedron(SageObject):
         Return the number of elements in the Hrepresentation.
         """
         return self._n_Hrepresentation
+
+    def is_compact(self):
+        r"""
+        Return whether the polyhedron is compact
+
+        EXAMPLES::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_compact()
+            False
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2], [1,2]])
+            sage: C.is_compact()
+            True
+            sage: P = polytopes.simplex()
+            sage: P.combinatorial_polyhedron().is_compact()
+            True
+            sage: P = Polyhedron(rays=P.vertices())
+            sage: P.combinatorial_polyhedron().is_compact()
+            False
+        """
+        return self.is_bounded()
 
     cdef bint is_bounded(self):
         r"""

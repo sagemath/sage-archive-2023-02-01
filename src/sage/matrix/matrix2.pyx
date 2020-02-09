@@ -3271,7 +3271,7 @@ cdef class Matrix(Matrix1):
             returned exactly as provided by whichever routine actually
             computed the basis.  Request this for the least possible
             computation possible, but with no guarantees about the format
-            of the basis.
+            of the basis. This option is recommended for inexact rings.
 
         OUTPUT:
 
@@ -3678,6 +3678,28 @@ cdef class Matrix(Matrix1):
             [-1 -y  1]
             sage: set_verbose(0)
 
+        Over inexact rings:
+
+        For inexact rings one should avoid echolonizing if possible::
+
+            sage: A = Matrix(
+            ....: [[          0.0,           0.5,  0.8090169944],
+            ....:  [          0.0,           0.5, -0.8090169944],
+            ....:  [          0.0,          -0.5,  0.8090169944],
+            ....:  [          0.0,          -0.5, -0.8090169944],
+            ....:  [          0.5,  0.8090169944,           0.0],
+            ....:  [          0.5, -0.8090169944,           0.0],
+            ....:  [         -0.5,  0.8090169944,           0.0],
+            ....:  [         -0.5, -0.8090169944,           0.0],
+            ....:  [ 0.8090169944,           0.0,           0.5],
+            ....:  [-0.8090169944,           0.0,           0.5],
+            ....:  [ 0.8090169944,           0.0,          -0.5],
+            ....:  [-0.8090169944,           0.0,          -0.5]]).transpose()
+            sage: (A*A.right_kernel_matrix().transpose()).norm() > 2
+            True
+            sage: (A*A.right_kernel_matrix(basis='computed').transpose()).norm() < 1e-15
+            True
+
         Trivial Cases:
 
         We test two trivial cases.  Any possible values for the
@@ -3878,6 +3900,9 @@ cdef class Matrix(Matrix1):
 
             For the left kernel, use :meth:`left_kernel`.  The method
             :meth:`kernel` is exactly equal to :meth:`left_kernel`.
+
+            For inexact rings use :meth:`right_kernel_matrix` with
+            ``basis='computed'`` to avoid echolonizing.
 
         INPUT:
 
@@ -4234,6 +4259,9 @@ cdef class Matrix(Matrix1):
 
             For the right kernel, use :meth:`right_kernel`.  The method
             :meth:`kernel` is exactly equal to :meth:`left_kernel`.
+
+            For inexact rings use :meth:`right_kernel_matrix` with
+            ``basis='computed'`` (on the transpose of the matrix) to avoid echolonizing.
 
         INPUT:
 

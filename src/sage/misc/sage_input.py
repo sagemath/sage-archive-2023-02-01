@@ -174,7 +174,7 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
-from six import itervalues, iteritems, integer_types, string_types
+from six import iteritems, integer_types, string_types
 
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
@@ -1915,7 +1915,7 @@ class SIE_call(SageInputExpression):
         """
         refs = self._sie_args[:]
         refs.append(self._sie_func)
-        refs.extend(itervalues(self._sie_kwargs))
+        refs.extend(self._sie_kwargs.values())
         return refs
 
     def _sie_format(self, sif):

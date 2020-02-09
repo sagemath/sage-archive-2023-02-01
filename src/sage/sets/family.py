@@ -31,13 +31,12 @@ Check :trac:`12482` (shall be run in a fresh session)::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 import types
 from copy import copy
 from pprint import pformat, saferepr
 
-from six import itervalues
 from six.moves import range
 
 from sage.misc.cachefunc import cached_method
@@ -609,7 +608,7 @@ class FiniteFamily(AbstractFamily):
         if self._keys is not None:
             return [self._dictionary[key] for key in self._keys]
         else:
-            return list(itervalues(self._dictionary))
+            return list(self._dictionary.values())
 
     def has_key(self, k):
         """

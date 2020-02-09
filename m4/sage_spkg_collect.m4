@@ -82,7 +82,7 @@ else
 fi
 AC_SUBST([SAGE_GCC_DEP])
 
-AS_BOX([build status for each package:])
+AS_BOX([build status for each package:]) >& AS_MESSAGE_FD
 
 # Usage: newest_version $pkg
 # Print version number of latest package $pkg

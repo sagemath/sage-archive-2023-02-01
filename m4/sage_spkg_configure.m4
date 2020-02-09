@@ -57,7 +57,7 @@ dnl * other values mean that we do not want to use the system package but
 dnl   indicate why
 m4_pushdef([SPKG_USE_SYSTEM], [sage_use_system_]SPKG_NAME)
 # BEGIN SAGE_SPKG_CONFIGURE_]m4_toupper($1)[
-AS_BOX([checking whether SageMath should install SPKG $1])
+AS_BOX([checking whether SageMath should install SPKG $1]) >& AS_MESSAGE_FD
 AC_ARG_WITH([system-]SPKG_NAME,
        AS_HELP_STRING(--with-system-SPKG_NAME={no|yes (default)|force (exit with an error if no usable version is found)},
            [detect and use an existing system SPKG_NAME]),

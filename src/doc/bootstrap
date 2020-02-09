@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+########################################################################
+# Regenerate auto-generated files, using information in SAGE_ROOT/build/
+#
+# This script is run by SAGE_ROOT/bootstrap as part of the bootstrapping phase
+# (before configure, before creating source distributions).
+########################################################################
+
+set -e
+
+if [ -z "$SAGE_ROOT" ]; then
+    echo Please run the top-level bootstrap script of the Sage distribution.
+    exit 1
+fi
+
+cd "$SAGE_ROOT"
+
+PROMPT='    $ '
+STRIP_COMMENTS="sed s/#.*//;"
+OUTPUT_DIR="src/doc/en/installation"
+
+shopt -s extglob
+
+for SYSTEM in debian fedora; do
+    SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} build/pkgs/$SYSTEM.txt))
+    for PKG_SCRIPTS in build/pkgs/*; do
+        if [ -d $PKG_SCRIPTS ]; then
+            PKG_BASE=$(basename $PKG_SCRIPTS)
+            SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
+            PKG_TYPE=$(cat $PKG_SCRIPTS/type)
+            if [ -f $SYSTEM_PACKAGES_FILE -a -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
+               PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
+               if [ -n "PKG_SYSTEM_PACKAGES" ]; then
+                   case "$PKG_TYPE" in
+                       standard)
+                           SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
+                           ;;
+                       *)
+                           OPTIONAL_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
+                           ;;
+                   esac
+               fi
+            fi
+        fi
+    done
+    echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/$SYSTEM.txt and "$OUTPUT_DIR"/$SYSTEM-optional.txt
+    echo "$PROMPT$(sage-print-system-package-command $SYSTEM install $(echo $(echo $SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM.txt
+    echo "$PROMPT$(sage-print-system-package-command $SYSTEM install $(echo $(echo $OPTIONAL_SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM-optional.txt
+done

@@ -182,15 +182,20 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     case "$SPKG_TYPE" in
     optional|experimental)
-        stampfile="`ls -1 $SAGE_SPKG_INST/$SPKG_NAME-* 2>/dev/null`"
-        if test `echo "$stampfile" | wc -l` -gt 1; then
-            AC_MSG_ERROR(m4_normalize([
-                multiple installation records for $SPKG_NAME at
-                m4_newline($stampfile)
-                m4_newline(only one should exist so please delete one or both
-                files and re-run \"$srcdir/configure\")
-            ]))
-        fi
+        stampfile=""
+        for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do
+            AS_IF([test -r "$f"], [
+                AS_IF([test -n "$stampfile"], [
+                    AC_MSG_ERROR(m4_normalize([
+                        multiple installation records for $SPKG_NAME:
+                        m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
+                        m4_newline([only one should exist, so please delete some or all
+                        of these files and re-run \"$srcdir/configure\"])
+                    ]))
+                ])
+                stampfile=yes
+            ])
+        done
         ;;
     esac
 

@@ -49,6 +49,8 @@ from sage.categories.sets_cat import EmptySetError
 #
 #  * You might want to override _init_empty_polyhedron
 #
+#  * You may implement _init_from_Vrepresentation_and_Hrepresentation
+#
 #  * You can of course also override any other method for which you
 #    have a faster implementation.
 #########################################################################
@@ -97,7 +99,12 @@ class Polyhedron_base(Element):
       H-representation of the polyhedron. If ``None``, the polyhedron
       is determined by the V-representation.
 
-    Only one of ``Vrep`` or ``Hrep`` can be different from ``None``.
+    - ``Vrep_minimal`` (optional) -- see below
+
+    - ``Hrep_minimal`` (optional) -- see below
+
+    If both ``Vrep`` and ``Hrep`` are provided, then
+    ``Vrep_minimal`` and ``Hrep_minimal`` must be set to ``True``.
 
     TESTS::
 
@@ -105,7 +112,7 @@ class Polyhedron_base(Element):
         sage: TestSuite(p).run()
     """
 
-    def __init__(self, parent, Vrep, Hrep, **kwds):
+    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, **kwds):
         """
         Initializes the polyhedron.
 
@@ -115,8 +122,32 @@ class Polyhedron_base(Element):
         TESTS::
 
             sage: p = Polyhedron()    # indirect doctests
+
+            sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_field
+            sage: parent = Polyhedra_field(AA, 1, 'field')
+            sage: Vrep = [[[0], [1/2], [1]], [], []]
+            sage: Hrep = [[[0, 1], [1, -1]], []]
+            sage: p = Polyhedron_field(parent, Vrep, Hrep,
+            ....:                      Vrep_minimal=False, Hrep_minimal=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: if both Vrep and Hrep are provided, they must be minimal...
         """
         Element.__init__(self, parent=parent)
+        if Vrep is not None and Hrep is not None:
+            if not (Vrep_minimal is True and Hrep_minimal is True):
+                raise ValueError("if both Vrep and Hrep are provided, they must be minimal"
+                                 " and Vrep_minimal and Hrep_minimal must both be True")
+            if hasattr(self, "_init_from_Vrepresentation_and_Hrepresentation"):
+                self._init_from_Vrepresentation_and_Hrepresentation(Vrep, Hrep)
+                return
+            else:
+                # Initialize from Hrepresentation if this seems simpler.
+                Vrep = [tuple(Vrep[0]), tuple(Vrep[1]), Vrep[2]]
+                Hrep = [tuple(Hrep[0]), Hrep[1]]
+                if len(Hrep[0]) < len(Vrep[0]) + len(Vrep[1]):
+                    Vrep = None
         if Vrep is not None:
             vertices, rays, lines = Vrep
             if vertices or rays or lines:
@@ -5305,9 +5336,6 @@ class Polyhedron_base(Element):
 
         barycenter = self.center()
         parent = self.parent().base_extend(subdivision_frac)
-
-        ambient_dim = self.ambient_dim()
-        polytope_dim = self.dimension()
 
         start_polar = (self - barycenter).polar(in_affine_span=True)
         polar = (self - barycenter).polar(in_affine_span=True)

@@ -82,6 +82,7 @@ misc-clean:
 	rm -rf logs
 	rm -rf dist
 	rm -rf tmp
+	rm -f src/doc/en/installation/*.txt
 	rm -f aclocal.m4 config.log confcache
 	rm -rf autom4te.cache
 	rm -f build/make/Makefile build/make/Makefile-auto

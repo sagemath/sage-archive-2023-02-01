@@ -16,6 +16,7 @@ from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 
@@ -315,6 +316,49 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             True
         """
         return LaurentPolynomial_univariate, (self._parent, self.__u, self.__n)
+
+    def _polynomial_(self, R):
+        r"""
+        TESTS::
+
+            sage: Lx = LaurentPolynomialRing(QQ, "x")
+            sage: Px = PolynomialRing(QQ, "x")
+            sage: Pxy = PolynomialRing(QQ, "x,y")
+            sage: Paxb = PolynomialRing(QQ, "a,x,b")
+            sage: Qx = PolynomialRing(ZZ, "x")
+            sage: Rx = PolynomialRing(GF(2), "x")
+            sage: p1 = Lx.gen()
+            sage: p2 = Lx.zero()
+            sage: p3 = Lx.one()
+            sage: p4 = Lx.gen()**3 - 3
+            sage: p5 = Lx.gen()**3 + 2*Lx.gen()**2
+            sage: p6 = Lx.gen() >> 2
+
+            sage: for P,x in [(Px, Px.gen()), (Qx, Qx.gen()), (Rx, Rx.gen()),
+            ....:             (Pxy, Pxy.gen(0)), (Paxb, Paxb.gen(1))]:
+            ....:     assert P(p1) == x and parent(P(p1)) is P
+            ....:     assert P(p2) == P.zero() and parent(P(p2)) is P
+            ....:     assert P(p3) == P.one() and parent(P(p3)) is P
+            ....:     assert P(p4) == x**3 - 3 and parent(P(p4)) is P
+            ....:     assert P(p5) == x**3 + 2*x**2 and parent(P(p5)) is P
+            ....:     try: P(p6)
+            ....:     except ValueError: pass
+            ....:     else: raise RuntimeError
+        """
+        if self.__n < 0:
+            raise ValueError("Laurent polynomial with negative valuation can not be converted to polynomial")
+
+        if is_PolynomialRing(R):
+            return R(self.__u) << self.__n
+        elif self.__n == 0:
+            return R(self.__u)
+        else:
+            u = R(self.__u)
+            if self.__u.degree():
+                x = u.variables()[0]
+            else:
+                x = R(self.gen())
+            return x**self.__n * u
 
     def is_unit(self):
         """

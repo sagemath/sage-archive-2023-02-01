@@ -1418,7 +1418,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         if hasattr(self, 'triangulate'):
             self.triangulate()
         faces = self.face_list(render_params)
-        faces_iter = faces.__iter__()
+        faces_iter = iter(faces)
 
         def chopped_faces_iter():
             for face in faces_iter:
@@ -1676,7 +1676,9 @@ cdef class VertexIter:
             raise StopIteration
         else:
             self.i += 1
-            return (self.set.vs[self.i-1].x, self.set.vs[self.i-1].y, self.set.vs[self.i-1].z)
+            return (self.set.vs[self.i-1].x,
+                    self.set.vs[self.i-1].y,
+                    self.set.vs[self.i-1].z)
 
 
 def len3d(v):

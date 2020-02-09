@@ -431,6 +431,10 @@ ext_modules = [
     Extension('sage.libs.flint.arith',
               sources = ["sage/libs/flint/arith.pyx"]),
 
+    Extension('sage.libs.giac.giac',
+              sources = ["sage/libs/giac/giac.pyx"],
+              libraries = ["giac"]),
+
     Extension("sage.libs.glpk.error",
              ["sage/libs/glpk/error.pyx"]),
 

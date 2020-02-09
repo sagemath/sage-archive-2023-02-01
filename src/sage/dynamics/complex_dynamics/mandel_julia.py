@@ -45,7 +45,8 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import logb
-from sage.rings.all import CC, CDF
+from sage.functions.other import floor
+from sage.rings.all import QQ, CC, CDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.prandom import randint
@@ -430,6 +431,75 @@ def external_ray(theta, **kwds):
                 pixel[int(k[0]), int(k[1])] = tuple(ray_color)
     return M
 
+def kneading_sequence(theta):
+    r"""
+    Determines the kneading sequence for an angle theta in RR/ZZ which
+    is periodic under doubling. We use the definition for the kneading
+    sequence given in Definition 3.2 of [LS1994]_.
+
+    INPUT:
+
+    - ``theta`` -- a rational number with odd denominator
+
+    OUTPUT:
+
+    a string representing the kneading sequence of theta in RR/ZZ
+
+    REFERENCES:
+
+    [LS1994]_
+
+    EXAMPLES::
+
+        sage: kneading_sequence(0)
+        '*'
+
+    ::
+
+        sage: kneading_sequence(1/3)
+        '1*'
+
+    Since 1/3 and 7/3 are the same in RR/ZZ, they have the same kneading sequence::
+
+        sage: kneading_sequence(7/3)
+        '1*'
+
+    We can also use (finite) decimal inputs, as long as the denominator in reduced form is odd::
+
+        sage: kneading_sequence(1.2)
+        '110*'
+
+    Since rationals with even denominator are not periodic under doubling, we have not implemented kneading sequences for such rationals::
+
+        sage: kneading_sequence(1/4)
+        Traceback (most recent call last):
+        ...
+        ValueError: input must be a rational number with odd denominator
+    """
+
+    if theta not in QQ:
+        raise TypeError('input must be a rational number with odd denominator')
+    elif QQ(theta).valuation(2) < 0:
+        raise ValueError('input must be a rational number with odd denominator')
+    else:
+        theta = QQ(theta)
+        theta = theta - floor(theta)
+        KS = []
+        not_done = True
+        left = theta/2
+        right = (theta + 1)/2
+        y = theta
+        while not_done:
+            if ((y < left) or (y > right)):
+                KS.append('0')
+            elif ((y > left) and (y < right)):
+                KS.append('1')
+            else:
+                not_done = False
+            y = 2*y - floor(2*y)
+        KS_str = ''.join(KS) + '*'
+    return KS_str
+
 def julia_plot(f=None, **kwds):
     r"""
     Plots the Julia set of a given polynomial ``f``. Users can specify whether
@@ -592,11 +662,11 @@ def julia_plot(f=None, **kwds):
     max_iteration = kwds.pop("max_iteration", 500)
     pixel_count = kwds.pop("pixel_count", 500)
     base_color = kwds.pop("base_color", 'steelblue')
-    level_sep= kwds.pop("level_sep", 1)
+    level_sep = kwds.pop("level_sep", 1)
     number_of_colors = kwds.pop("number_of_colors", 30)
     interacts = kwds.pop("interact", False)
 
-    f_is_default_after_all=None
+    f_is_default_after_all = None
 
     if period: # pick a random c with the specified period
         R = PolynomialRing(CC, 'c')

@@ -1,5 +1,5 @@
 """
-Vectors with elements in GF(2).
+Vectors with elements in GF(2)
 
 AUTHOR:
 

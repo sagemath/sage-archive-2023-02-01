@@ -5666,12 +5666,20 @@ class Polyhedron_base(Element):
 
             sage: list(Polyhedron().face_generator())
             [A -1-dimensional face of a Polyhedron in ZZ^0]
+
+        Check that :trac:`29155` is fixed::
+
+            sage: P = polytopes.permutahedron(3)
+            sage: [f] = P.face_generator(2)
+            sage: f.ambient_Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0,)
         """
         from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 
         if face_dimension is None or face_dimension == self.dimension():
             # Yield the polyhedron.
-            yield PolyhedronFace(self, range(self.n_Vrepresentation()), [])
+            equations = [eq.index() for eq in self.equation_generator()]
+            yield PolyhedronFace(self, range(self.n_Vrepresentation()), equations)
 
         if face_dimension is None or face_dimension == -1:
             if not self.dimension() == -1:

@@ -1582,6 +1582,22 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
     one = identity_matrix
 
+    def diagonal_matrix(diag_elements):
+        """ Docstring needs to be filled. """
+        
+        if self.__nrows != self.__ncols:
+            raise TypeError("Diagonal matrix must be square")
+        elif self.dims()[0] != len(diag_elements):
+            raise TypeError("Number of elements in the list does not match number of elements on a diagonal of a matrix in this space")
+        else:
+            element_list = [0 for i in range(self.dims()[0]**2)]
+            index = 0
+            for i in diag_elements:
+                element_list[index] = i
+                index = index + self.dims()[0] + 1
+            
+            return self.matrix(element_list)
+            
     def is_dense(self):
         """
         Return whether matrices in ``self`` are dense.

@@ -6052,12 +6052,12 @@ class Polyhedron_base(Element):
             sage: P.polar()
             Traceback (most recent call last):
             ...
-            ValueError: must be full-dimensional
+            ValueError: not full-dimensional; try with 'in_affine_span=True'
         """
         if not self.is_compact():
             raise ValueError("not a polytope")
         if not in_affine_span and not self.dim() == self.ambient_dim():
-            raise ValueError("must be full-dimensional")
+            raise ValueError("not full-dimensional; try with 'in_affine_span=True'")
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
         parent = self.parent().base_extend(self.center().parent())
@@ -7530,8 +7530,8 @@ class Polyhedron_base(Element):
 
         A case where rounding in the right direction goes a long way::
 
-            sage: P = 1/10*polytopes.hypercube(14)
-            sage: P.integral_points()
+            sage: P = 1/10*polytopes.hypercube(14)  # long time
+            sage: P.integral_points()  # long time
             ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),)
 
         Finally, the 3-d reflexive polytope number 4078::

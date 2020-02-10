@@ -922,8 +922,6 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               Defn: Defined on coordinates by sending (x, y) to
                     (x - y, x*y)
         """
-        SchemeMorphism.__init__(self, parent)
-
         if check:
             if not isinstance(polys, (list, tuple)):
                 raise TypeError("polys (=%s) must be a list or tuple"%polys)
@@ -940,13 +938,15 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                         p = source_ring(poly.lift())
                     except (TypeError, AttributeError):
                         try:
-                            p = source_ring(poly.numerator())/source_ring(poly.denominator())
+                            p = source_ring(poly.numerator()) / source_ring(poly.denominator())
                         except (TypeError, AttributeError):
                             raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
                 F.append(p)
             polys = Sequence(F)
 
         self._polys = tuple(polys)
+
+        SchemeMorphism.__init__(self, parent)
 
     def defining_polynomials(self):
         """

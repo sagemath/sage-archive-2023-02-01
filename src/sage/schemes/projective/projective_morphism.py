@@ -2085,7 +2085,8 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
                x^2 - y^2 - y*z
                To:   Projective Space of dimension 1 over Rational Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (y + z : x), Scheme morphism:
+                     (y + z : x),
+            Scheme morphism:
                From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
                x^2 - y^2 - y*z
                To:   Projective Space of dimension 1 over Rational Field
@@ -2098,12 +2099,49 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
                x^2 - y^2 - y*z
                To:   Projective Space of dimension 1 over Rational Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (y + z : x), Scheme morphism:
+                     (y + z : x),
+            Scheme morphism:
                From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
                x^2 - y^2 - y*z
                To:   Projective Space of dimension 1 over Rational Field
                Defn: Defined on coordinates by sending (x : y : z) to
                      (x : y)]
+
+        ::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P2.subscheme([x^2 - y^2 - y*z])
+            sage: A1.<a> = AffineSpace(QQ,1)
+            sage: g = X.hom([y/x], A1)
+            sage: g.representatives()
+            [Scheme morphism:
+               From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+               x^2 - y^2 - y*z
+               To:   Affine Space of dimension 1 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z) to
+                     (x/(y + z)),
+            Scheme morphism:
+               From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+               x^2 - y^2 - y*z
+               To:   Affine Space of dimension 1 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z) to
+                     (y/x)]
+            sage: g0, g1 = _
+            sage: emb = A1.projective_embedding(0)
+            sage: emb*g0
+            Scheme morphism:
+              From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x^2 - y^2 - y*z
+              To:   Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (y + z : x)
+            sage: emb*g1
+            Scheme morphism:
+              From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x^2 - y^2 - y*z
+              To:   Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x : y)
 
         ALGORITHM:
 
@@ -2112,8 +2150,14 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         X = self.domain()
         Y = self.codomain()
 
-        if not Y.ambient_space().is_projective():
-            return self.projective_closure().representatives()
+        if not Y.is_projective():  # Y is affine
+            emb = Y.projective_embedding(0)
+            hom = self.parent()
+            reprs = []
+            for r in (emb*self).representatives():
+                f0 = r[0]
+                reprs.append(hom([f / f0 for f in r[1:]]))
+            return reprs
 
         if not X.is_irreducible():
             raise ValueError("domain is not an irreducible scheme")
@@ -2208,6 +2252,16 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
 
         ::
 
+            sage: P3.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: A2.<a,b> = AffineSpace(QQ, 2)
+            sage: X = P3.subscheme(x^2 - w*y - x*z)
+            sage: f = X.hom([x/z, y/x], A2)
+            sage: L = f.indeterminacy_locus()
+            sage: L.rational_points()
+            [(0 : 0 : 0 : 1), (0 : 1 : 0 : 0)]
+
+        ::
+
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme(x - y)
             sage: H = End(X)
@@ -2219,10 +2273,8 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
               x
         """
         X = self.domain()
+        Y = self.codomain()
         Amb = X.ambient_space()
-
-        if not self.codomain().is_projective():
-            pass
 
         if not X.is_irreducible():
             components = X.irreducible_components()
@@ -2236,9 +2288,16 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
 
             return locus
 
+        if not Y.is_projective():  # Y is affine
+            emb = Y.projective_embedding(0)
+        else:
+            emb = None
+
         polys = list(X.defining_polynomials())
-        for pres in self.representatives():
-            for p in pres:
+
+        for r in self.representatives():
+            r_proj = r if emb is None else emb*r
+            for p in r_proj:
                 polys.append(p)
 
         return Amb.subscheme(polys).reduce()

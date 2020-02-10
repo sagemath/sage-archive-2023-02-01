@@ -1778,6 +1778,9 @@ class Graph(GenericGraph):
         if self.order() < 4:
             return True
 
+        if self.size() > 3 * (self.order() - 1) / 2:
+            return False
+
         # Every cactus graph is outerplanar
         if not self.is_circular_planar():
             return False

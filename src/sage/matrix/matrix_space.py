@@ -1582,69 +1582,12 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
     one = identity_matrix
 
-    def diagonal_matrix(self, diag_elements):
+    def diagonal_matrix(self, entries):
         """
         Return a diagonal matrix in ``self`` containing the elements specified in the list.
-
-        EXAMPLES::
-
-            sage: MS1 = MatrixSpace(ZZ,4)
-            sage: MS2 = MatrixSpace(QQ,3,4)
-            sage: D1 = MS1.diagonal_matrix([1, 2, 3, 4])
-            sage: D1
-            [1 0 0 0]
-            [0 2 0 0]
-            [0 0 3 0]
-            [0 0 0 4]
-            sage: Er = MS2.diagonal_matrix([1, 2, 3])
-            Traceback (most recent call last):
-            ...
-            TypeError: Diagonal matrix must be square
-
-        TESTS::
-
-            sage: MS1.diagonal_matrix([1, 2, 3])
-            Traceback (most recent call last):
-            ...
-            TypeError: Number of elements in the list does not match number of elements on a diagonal of a matrix in this space
-
-        Coercion of types works the same as the ``matrix()`` function::
-
-            sage: D2 = MS1.diagonal_matrix([1.0, 2.0, 3.0, 4.0])
-            sage: D2
-            [1 0 0 0]
-            [0 2 0 0]
-            [0 0 3 0]
-            [0 0 0 4]
-
-            sage: D3 = MS1.diagonal_matrix([1.2, 3.4, 5, 6])
-            Traceback (most recent call last):
-            ...
-            TypeError: Attempt to coerce non-integral RealNumber to Integer
-
-        Returned matrix is mutable ::
-        sage: D1[1,2] = 10
-        sage: D1
-        [ 1  0  0  0]
-        [ 0  2 10  0]
-        [ 0  0  3  0]
-        [ 0  0  0  4]
-
+        Calls the function sage.matrix.special.diagonal_matrix() with the right arguments.
         """
-
-        
-        if self.__nrows != self.__ncols:
-            raise TypeError("Diagonal matrix must be square")
-        elif self.dims()[0] != len(diag_elements):
-            raise TypeError("Number of elements in the list does not match number of elements on a diagonal of a matrix in this matrix space")
-        else:
-            element_list = [0 for i in range(self.dims()[0]**2)]
-            index = 0
-            for i in diag_elements:
-                element_list[index] = i
-                index = index + self.dims()[0] + 1
-            
-            return self.matrix(element_list)
+        return sage.matrix.special.diagonal_matrix(self.base_ring(), self.dims()[0], entries)
             
     def is_dense(self):
         """

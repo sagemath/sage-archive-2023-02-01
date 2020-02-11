@@ -3147,7 +3147,7 @@ class FunctionField_global(FunctionField_simple):
 
     def get_place(self, degree):
         """
-        Return a place of ``degree`.
+        Return a place of ``degree``.
 
         INPUT:
 

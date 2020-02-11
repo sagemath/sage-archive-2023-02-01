@@ -19,6 +19,7 @@ cd "$SAGE_ROOT"
 PROMPT='    $ '
 STRIP_COMMENTS="sed s/#.*//;"
 OUTPUT_DIR="src/doc/en/installation"
+mkdir -p "$OUTPUT_DIR"
 
 shopt -s extglob
 

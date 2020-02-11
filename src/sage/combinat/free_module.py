@@ -585,7 +585,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: QS3.monomial(P([2,3,1]))   # indirect doctest
             [2, 3, 1]
 
-        or:
+        or::
+
             sage: B = QS3.basis()
             sage: B[P([2,3,1])]
             [2, 3, 1]

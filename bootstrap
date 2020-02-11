@@ -92,7 +92,7 @@ SAGE_SPKG_ENABLE([$pkgname], [$pkgtype])" ;;
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
-    src/doc/bootstrap && \
+    SAGE_ROOT="$SAGE_ROOT" src/doc/bootstrap && \
     install_config_rpath && \
     aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \

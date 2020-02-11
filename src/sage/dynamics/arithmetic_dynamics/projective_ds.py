@@ -2863,6 +2863,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             TypeError: affine minimality is only considered for maps not of the form f or 1/f for a polynomial f
 
         ::
+
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem([2*x^2, y^2])
             sage: f.minimal_model(prime_list=[0])

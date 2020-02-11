@@ -86,6 +86,8 @@ Options:
        use at your own risk"
    -n: automatically reply "n" for all prompts regarding
        experimental and old-style packages
+   -o: allow fetching the package from its upstream URL
+       when it is not available from the Sage mirrors (yet)
 EOF
 }
 
@@ -222,6 +224,8 @@ while true; do
             export SAGE_CHECK=yes;;
         -k|--keep-existing)
             KEEP_EXISTING=yes;;
+        -o|--allow-upstream)
+            SAGE_DOWNLOAD_FILE_OPTIONS="--allow-upstream";;
         -*)
             echo >&2 "Error: unknown option '$1'"
             exit 2;;
@@ -422,7 +426,7 @@ fi
 if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
         # This is the new-style package way of downloading the tarball
-        if ! sage-download-file "$PKG_NAME_UPSTREAM"; then
+        if ! sage-download-file $SAGE_DOWNLOAD_FILE_OPTIONS "$PKG_NAME_UPSTREAM"; then
             error_msg "Error downloading $PKG_NAME_UPSTREAM"
             exit 1
         fi

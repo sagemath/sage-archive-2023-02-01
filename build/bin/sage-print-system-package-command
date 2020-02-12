@@ -2,6 +2,10 @@
 #
 system=$1
 command=$2
+if [ -z "$system" -o -z "$command" ]; then
+    echo >&2 "usage: $0 {debian|arch|conda|...} {install|remove|...} PACKAGES..."
+    exit 1
+fi
 shift 2
 system_packages="$*"
 shopt -s extglob

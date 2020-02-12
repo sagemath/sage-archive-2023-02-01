@@ -1684,6 +1684,105 @@ cdef class CombinatorialPolyhedron(SageObject):
                 d = dim
         return smallInteger(simplicity)
 
+    @cached_method
+    def is_lawrence_polytope(self):
+        """
+        Return ``True`` if ``self`` is a Lawrence polytope.
+
+        A polytope is called a Lawrence polytope if it has a centrally
+        symmetric (normalized) Gale diagram.
+
+        Equivalently, there exists a partition `P_1,\dots,P_k`
+        of the vertices `V` such that each part
+        `P_i` has size `2` or `1` and for each part there exists
+        a facet with vertices exactly `V \setminus P_i`.
+
+        EXAMPLES::
+
+            sage: C = polytopes.simplex(5).combinatorial_polyhedron()
+            sage: C.is_lawrence_polytope()
+            True
+            sage: P = polytopes.hypercube(4).lawrence_polytope()
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_lawrence_polytope()
+            True
+            sage: P = polytopes.hypercube(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_lawrence_polytope()
+            False
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_lawrence_polytope()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
+
+        AUTHORS:
+
+        - Laith Rastanawi
+        - Jonathan Kliem
+
+        REFERENCES:
+
+            For more information, see [BaSt1990]_.
+        """
+        if not self.is_compact():
+            raise NotImplementedError("this function is implemented for polytopes only")
+        if self.n_Vrepresentation() <= 2:
+            return True
+
+        cdef FaceIterator facet_iterator = self._face_iter(False, self.dimension()-1)
+        cdef CombinatorialFace facet
+        cdef size_t n_vertices = self.n_Vrepresentation()
+        cdef size_t one, two, length, counter
+        cdef list vertices = [1 for _ in range(n_vertices)]
+
+        for facet in facet_iterator:
+            length = facet.n_atom_rep()
+            if length >= n_vertices - 2:
+                # The facet has at most two non-vertices and corresponds to
+                # two symmetric vertices or a vertex at the origin
+                # in the Gale transform.
+                facet.set_atom_repr()
+                counter = 0
+                while counter < length:
+                    if facet.atom_repr[counter] != counter:
+                        # We have found our first non-vertex.
+                        one = counter
+                        break
+                    counter += 1
+                else:
+                    # The facet contains the first ``length`` vertices.
+                    one = length
+
+                if length == n_vertices - 1:
+                    # The facet corresponds to a vertex at the origin
+                    # of the Gale transform.
+                    vertices[one] = 0
+                else:
+                    # The facet corresponds to two symmetric vertices
+                    # of the Gale transform.
+                    while counter < length:
+                        if facet.atom_repr[counter] != counter + 1:
+                            # We have found our second non-vertex.
+                            two = counter + 1
+                            break
+                        counter += 1
+                    else:
+                        # The second non-vertex is the very last vertex.
+                        two = length + 1
+
+                    if vertices[one] == vertices[two]:
+                        # Possibly the Gale transform contains duplicates,
+                        # we must make sure that the mulitplicites are symmetric as well.
+                        # (And not two vertices are symmetric to just one).
+                        vertices[one] = 0
+                        vertices[two] = 0
+
+        return all(x == 0 for x in vertices)
+
     def is_pyramid(self, certificate=False):
         r"""
         Test whether the polytope is a pyramid over one of its facets.
@@ -1720,7 +1819,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             True
             sage: C.is_pyramid(certificate=True)
             (True, A vertex at (0, -1, 0, 0, 0))
-            sage: C = polytopes.simplex(5)
+            sage: C = polytopes.simplex(5).combinatorial_polyhedron()
             sage: C.is_pyramid(certificate=True)
             (True, A vertex at (0, 0, 0, 0, 0, 1))
 

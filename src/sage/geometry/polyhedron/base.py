@@ -5825,10 +5825,10 @@ class Polyhedron_base(Element):
 
             sage: square = polytopes.hypercube(2)
             sage: fl = square.face_lattice();fl
-            Finite lattice containing 10 elements with distinguished linear extension
+            Finite lattice containing 10 elements
             sage: list(f.ambient_V_indices() for f in fl)
             [(), (0,), (1,), (2,), (3,), (0, 1), (1, 2), (2, 3), (0, 3), (0, 1, 2, 3)]
-            sage: poset_element = fl[4]
+            sage: poset_element = fl[5]
             sage: a_face = poset_element
             sage: a_face
             A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 2 vertices
@@ -5908,7 +5908,7 @@ class Polyhedron_base(Element):
             True
         """
         from sage.combinat.posets.lattices import FiniteLatticePoset
-        return FiniteLatticePoset(self.hasse_diagram(), sorted(self.hasse_diagram().vertices()))
+        return FiniteLatticePoset(self.hasse_diagram())
 
     @cached_method
     def hasse_diagram(self):
@@ -5927,6 +5927,7 @@ class Polyhedron_base(Element):
             sage: D.degree_polynomial()
             x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
         """
+
         from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face
         C = self.combinatorial_polyhedron()
         D = C.hasse_diagram()
@@ -5935,8 +5936,7 @@ class Polyhedron_base(Element):
             return combinatorial_face_to_polyhedral_face(
                     self, C.face_by_face_lattice_index(n))
 
-        D.relabel(index_to_polyhedron_face)
-        return D
+        return D.relabel(index_to_polyhedron_face, inplace=False, immutable=True)
 
     def face_generator(self, face_dimension=None):
         r"""

@@ -36,7 +36,7 @@ or :meth:`~sage.geometry.polyhedron.base.face_lattice` to get the
 whole face lattice as a poset::
 
     sage: P.face_lattice()
-    Finite lattice containing 28 elements with distinguished linear extension
+    Finite lattice containing 28 elements
 
 The faces are printed in shorthand notation where each integer is the
 index of a vertex/ray/line in the same order as the containing
@@ -382,14 +382,14 @@ class PolyhedronFace(SageObject):
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0,
              An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
-            (An inequality (-1, 0) x + 1 >= 0,)
-            ()
-            (An inequality (0, 1) x + 1 >= 0,)
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
-            (An inequality (0, -1) x + 1 >= 0,)
+            (An inequality (-1, 0) x + 1 >= 0,)
             (An inequality (0, -1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0)
-            (An inequality (1, 0) x + 1 >= 0,)
+            (An inequality (0, -1) x + 1 >= 0,)
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
+            (An inequality (0, 1) x + 1 >= 0,)
+            (An inequality (1, 0) x + 1 >= 0,)
+            ()
         """
         if index is None:
             return self._ambient_Hrepresentation
@@ -421,17 +421,16 @@ class PolyhedronFace(SageObject):
             sage: for fl in square.face_lattice():
             ....:     print(fl.ambient_Vrepresentation())
             ()
-            ()
             (A vertex at (1, -1),)
+            (A vertex at (1, 1),)
             (A vertex at (1, -1), A vertex at (1, 1))
+            (A vertex at (-1, 1),)
+            (A vertex at (1, 1), A vertex at (-1, 1))
+            (A vertex at (-1, -1),)
+            (A vertex at (1, -1), A vertex at (-1, -1))
+            (A vertex at (-1, 1), A vertex at (-1, -1))
             (A vertex at (1, -1), A vertex at (1, 1),
              A vertex at (-1, 1), A vertex at (-1, -1))
-            (A vertex at (1, -1), A vertex at (-1, -1))
-            (A vertex at (1, 1),)
-            (A vertex at (1, 1), A vertex at (-1, 1))
-            (A vertex at (-1, 1),)
-            (A vertex at (-1, 1), A vertex at (-1, -1))
-            (A vertex at (-1, -1),)
         """
         if index is None:
             return self._ambient_Vrepresentation
@@ -452,7 +451,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[12]
+            sage: face = p.face_lattice()[5]
             sage: face
             A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices
             sage: face.ambient_Hrepresentation()
@@ -479,7 +478,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[12]
+            sage: face = p.face_lattice()[5]
             sage: face
             A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices
             sage: face.ambient_Vrepresentation()

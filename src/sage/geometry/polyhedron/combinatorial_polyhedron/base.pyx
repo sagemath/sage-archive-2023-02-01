@@ -2305,7 +2305,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         V = tuple(smallInteger(i) for i in range(sum(self._f_vector)))
 
         from sage.graphs.digraph import DiGraph
-        D = DiGraph([V, edges], format='vertices_and_edges')
+        D = DiGraph([V, edges], format='vertices_and_edges', vertex_labels=False)
         return D
 
     def _face_lattice_dimension(self, index):

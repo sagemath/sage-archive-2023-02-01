@@ -3174,17 +3174,7 @@ class Polyhedron_base(Element):
         if not self.is_compact():
             raise ValueError("polyhedron has to be compact")
 
-        # Find a vertex that is incident to all elements in Hrepresentation but one.
-        IM = self.incidence_matrix()
-        for index in range(self.n_vertices()):
-            vertex_incidences = IM.row(index)
-            if sum(vertex_incidences) == IM.ncols() - 1:
-                if certificate:
-                    return (True, self.vertices()[index])
-                return True
-        if certificate:
-            return (False, None)
-        return False
+        return self.combinatorial_polyhedron().is_pyramid(certificate)
 
     def is_bipyramid(self, certificate=False):
         r"""

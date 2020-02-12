@@ -756,7 +756,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The Polyhedron has no vertex.
                 return ()
         if names and self.Vrep():
-            return tuple(self.Vrep()[i]     for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
+            return tuple(self.Vrep()[i]  for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
         else:
             return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
 
@@ -1683,6 +1683,70 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # Every polytope is 1-simple.
                 d = dim
         return smallInteger(simplicity)
+
+    def is_pyramid(self, certificate=False):
+        r"""
+        Test whether the polytope is a pyramid over one of its facets.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+          to return a vertex of the polytope which is the apex of a pyramid,
+          if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. The apex of the pyramid or ``None``.
+
+        If ``certificate`` is ``False`` returns a boolean.
+
+        AUTHORS:
+
+        - Laith Rastanawi
+        - Jonathan Kliem
+
+        EXAMPLES::
+
+            sage: C = polytopes.cross_polytope(4).combinatorial_polyhedron()
+            sage: C.is_pyramid()
+            False
+            sage: C.is_pyramid(certificate=True)
+            (False, None)
+            sage: C = polytopes.cross_polytope(4).pyramid().combinatorial_polyhedron()
+            sage: C.is_pyramid()
+            True
+            sage: C.is_pyramid(certificate=True)
+            (True, A vertex at (0, -1, 0, 0, 0))
+            sage: C = polytopes.simplex(5)
+            sage: C.is_pyramid(certificate=True)
+            (True, A vertex at (0, 0, 0, 0, 0, 1))
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_pyramid()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+        """
+        if not self.is_bounded():
+            raise ValueError("polyhedron has to be compact")
+
+        # Find a vertex that is incident to all elements in Hrepresentation but one.
+        vertex_iter = self._face_iter(True, 0)
+        n_facets = self.n_facets()
+        for index, vertex in enumerate(vertex_iter):
+            if vertex.n_ambient_Hrepresentation() == n_facets - 1:
+                if certificate:
+                    return (True, self.Vrepresentation()[index])
+                return True
+
+        if certificate:
+            return (False, None)
+        return False
 
     def face_iter(self, dimension=None, dual=None):
         r"""

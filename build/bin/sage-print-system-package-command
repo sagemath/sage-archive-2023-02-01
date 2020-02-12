@@ -8,6 +8,10 @@ if [ -z "$system" -o -z "$command" ]; then
 fi
 shift 2
 system_packages="$*"
+if [ -z "$system_packages" ]; then
+    # No command needed to install nothing
+    exit 0
+fi
 shopt -s extglob
 case $system:$command in
     debian*|ubuntu*)

@@ -188,11 +188,8 @@ cdef class ListOfFaces:
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-            ....:     import ListOfFaces
             sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-            ....:     import facets_tuple_to_bit_repr_of_facets, \
-            ....:            facets_tuple_to_bit_repr_of_Vrepr
+            ....:     import facets_tuple_to_bit_repr_of_facets
             sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
             ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
             sage: facets = facets_tuple_to_bit_repr_of_facets(bi_pyr, 6)
@@ -200,6 +197,8 @@ cdef class ListOfFaces:
             3
             sage: copy(facets).compute_dimension()
             3
+            sage: copy(facets) is facets
+            False
         """
         cdef ListOfFaces copy = ListOfFaces(self.n_faces, self.n_atoms)
         cdef size_t i
@@ -215,8 +214,6 @@ cdef class ListOfFaces:
 
         EXAMPLES::
 
-            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-            ....:     import ListOfFaces
             sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
             ....:     import facets_tuple_to_bit_repr_of_facets, \
             ....:            facets_tuple_to_bit_repr_of_Vrep

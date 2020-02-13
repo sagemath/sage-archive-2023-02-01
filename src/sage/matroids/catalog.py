@@ -1042,7 +1042,6 @@ def R10():
         sage: cct = []
         sage: for i in M.circuits():
         ....:      cct.append(len(i))
-        ....:
         sage: Set(cct)
         {4, 6}
         sage: M.equals(M.dual())

@@ -188,7 +188,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: class broken(UniqueRepresentation, Parent):
                 ....:     def __init__(self):
                 ....:         Parent.__init__(self, category = EnumeratedSets())
-                ....:
                 sage: it = iter(broken()); [next(it), next(it), next(it)]
                 Traceback (most recent call last):
                 ...
@@ -203,7 +202,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 ....:         return 0
                 ....:     def next(self, elt):
                 ....:         return elt+1
-                ....:
                 sage: it = iter(set_first_next()); [next(it), next(it), next(it)]
                 [0, 1, 2]
 
@@ -214,7 +212,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 ....:         Parent.__init__(self, category = EnumeratedSets())
                 ....:     def unrank(self, i):
                 ....:         return i + 5
-                ....:
                 sage: it = iter(set_unrank()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
@@ -225,7 +222,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 ....:         Parent.__init__(self, category = EnumeratedSets())
                 ....:     def list(self):
                 ....:         return [5, 6, 7]
-                ....:
                 sage: it = iter(set_list()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 

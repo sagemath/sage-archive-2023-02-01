@@ -3232,6 +3232,183 @@ class DiGraph(GenericGraph):
             return (best, list(reversed(cycles[u])) + cycles[v])
         return best
 
+    def spanning_trees(self, source):
+        r"""
+        Return an iterator over directed spanning trees of the current ``DiGraph``.
+
+        The spanning trees are rooted in the vertex source and directed from source to leaves.
+
+        If no directed spanning trees exist, return nothing.
+
+        INPUT:
+
+        - ``source`` -- vertex used as the source for all spanning trees.
+
+        OUTPUT:
+
+        An iterator over the spanning trees rooted in the given source.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`$
+              -- counts the number of spanning trees.
+
+        ALGORITHM:
+
+        Recursively computes all spanning trees.
+
+        At each step:
+            0) clean the graph (see bellow) 
+            1) pick an edge e out of source
+            2) find all spanning trees that do not contain e by first removing it
+            3) find all spanning trees that do contain e by first mergin the end vertices of e
+
+        Cleaning the graph implies to remove loops and replace multiedges by a single one with an appropriate label
+        since these lead to similar steps of computation.
+
+        EXAMPLES:
+
+        A simple Graph: a square with edges in both directions
+
+        ::
+
+            sage: G = DiGraph({1:[2,3], 2:[1,4], 3:[1,4], 4:[2,3]}, format='dict_of_lists')
+            sage: list(G.spanning_trees(1))
+            [Digraph on 4 vertices,
+             Digraph on 4 vertices,
+             Digraph on 4 vertices,
+             Digraph on 4 vertices]
+
+        With the Petersen graph turned into a directed graph
+
+        ::
+
+            sage: G = graphs.PetersenGraph().to_directed()
+            sage: len(list(G.spanning_trees(0)))
+            2000
+
+        With a non connected ``DiGraph``
+
+        ::
+
+            sage: G = graphs.PetersenGraph().to_directed() + graphs.PetersenGraph().to_directed()
+            sage: G.spanning_trees(0)
+
+        With multiedges
+
+        ::
+
+            sage: G = DiGraph({0:[1,1,1,2,2], 1:[2,2], 2:[1]}, format='dict_of_lists', multiedges=True)
+            sage: len(list(G.spanning_trees(0)))
+            14
+
+        With a DiGraph already being a spanning tree
+
+        ::
+        
+            sage: G = DiGraph({0:[1,2], 1:[3,4], 2:[5], 3:[], 4:[], 5:[]}, format='dict_of_lists')
+            sage: next(G.spanning_trees(0)) == G
+            True
+
+        TESTS:
+
+        The empty ``DiGraph``
+
+        ::
+
+            sage: G = DiGraph()
+            sage: G.spanning_trees(0)
+        """
+        from itertools import product, chain
+        def _rec_spanning_trees(depth):
+            r"""
+            The recursive function used to enumerate spanning trees.
+
+            This function makes use of the following to keep track of
+            partial spanning trees:
+                lits_of_edges -- list of edges in the current ``DiGraph``
+                list_merges_edges -- list of edges that are currently merged
+                graph -- a copy of the current ``DiGraph`` where edges have an appropriate label
+            """
+            if depth == 0:
+                # We have enough merged edges to form a spanning_tree
+                # We iterate over the lists of labels in list_merged_edges and
+                # yield the corresponding spanning_trees
+                for indexes in product(*list_merged_edges):
+                    yield DiGraph([list_edges[index] for index in indexes], format='list_of_edges', pos=self.get_pos())
+
+            # 1) Clean the graph
+            # delete loops on source if any
+            D.delete_edges(D.incoming_edge_iterator(source))
+
+            # merge multi-edges if any by concatenating their labels
+            if D.has_multiple_edges():
+                merged_multiple_edges = {}
+                for u,v,l in D.multiple_edges():
+                    D.delete_edge(u,v,l)
+                    if (u,v) not in merged_multiple_edges:
+                        merged_multiple_edges[(u, v)] = l
+                    else:
+                        merged_multiple_edges[(u, v)] += l
+                D.add_edges([(u, v, l) for (u, v),l in merged_multiple_edges.items()])
+
+            # 2) Pick an edge e outgoing from the source
+            if(len(D.outgoing_edges(source))==0):
+                return
+            s, x, l = next(D.outgoing_edge_iterator(source))
+            # 3) Find all spanning_trees that do not contain e
+            # by first removing it
+            D.delete_edge(s, x, l)
+            if len(list(D.depth_first_search(source))) == D.order():
+                for tree in _rec_spanning_trees(depth):
+                    yield tree
+            D.add_edge(s, x, l)
+
+            # 4) Find all spanning_trees that do contain e by merging the end
+            # vertices of e 
+            # store different edges to unmerged the end vertices of e
+            out_source = D.outgoing_edges(source)
+            out_source.remove((s, x, l))
+            out_source += D.outgoing_edges(x)
+            out_source += D.incoming_edges(x)
+
+            D.merge_vertices((source, x))
+
+            list_merged_edges.add(l)
+            depth -= 1
+            
+            for tree in _rec_spanning_trees(depth):
+                yield tree
+
+            list_merged_edges.remove(l)
+            depth += 1
+             
+            # unmerge the end vertices of e
+            D.delete_vertex(source)
+            D.add_edges(out_source)
+
+        if not self.has_vertex(source):
+            return
+
+        # check if the source can access to every other vertex
+        if len(list(self.depth_first_search(source))) < self.order():
+            return
+
+        # We build a copy of the current Digraph removing loops and edges 
+        # coming in sources
+        # We give to every edge a label corresponding to its index in the list 
+        # of edges of the current digraph
+        D = DiGraph(multiedges=True, loops=True)
+        list_edges = self.edges()
+        depth = self.order()-1
+        # Adding edges in D with label corresponding to index of that edge in
+        # self.edges()
+        for i,(u,v,_) in enumerate(list_edges):
+            if u != v and v != source:
+                D.add_edge(u,v,(i,))
+        list_merged_edges = set()
+        return _rec_spanning_trees(depth)
+
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive
     from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components

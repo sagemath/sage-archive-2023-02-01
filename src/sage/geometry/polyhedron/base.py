@@ -7258,6 +7258,12 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The h_star vector is only defined for lattice polytopes
+
+            sage: t2 = Polyhedron(vertices = [[AA(sqrt(2))],[1/2]])
+            sage: t2.h_star_vector()
+            Traceback (most recent call last):
+            ...
+            TypeError: The h_star vector is only defined for lattice polytopes
         """
         if self.is_empty():
             return 0

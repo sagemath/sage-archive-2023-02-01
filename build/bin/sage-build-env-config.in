@@ -15,7 +15,7 @@
 #  If you want to set all environment variables for your shell like
 #  they are during the build of Sage packages, type
 #
-#             sage --build-sh
+#             sage --buildsh
 #
 ##########################################################################
 

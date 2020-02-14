@@ -1184,7 +1184,7 @@ class TermOrder(SageObject):
         n = 0
         for block in self:
             r = getattr(block, "sortkey_" + block.name())(f[n:n + len(block)])
-            key += r
+            key += tuple(r)
             n += len(block)
         return key
 

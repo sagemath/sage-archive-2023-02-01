@@ -1288,7 +1288,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         INPUT:
 
-        - ``names`` -- boolean(default: ``True``); if ``True`` label the vertices of the
+        - ``names`` -- boolean (default: ``True``); if ``True`` label the vertices of the
           graph by the corresponding names of the Vrepresentation resp. Hrepresentation;
           if ``False`` label the vertices of the graph by integers
 
@@ -1315,8 +1315,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.vertex_facet_graph(names=False).vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-        If ``names`` is ``True`` but no names are provided, then indices of the
-        Vrepresentation and the facets will be used along with a string 'H' or 'V'::
+        If ``names`` is ``True`` but the combinatorial polyhedron has been initialized
+        without specifying names to ``Vrepresentation`` and ``Hrepresentation``,
+        then indices of the Vrepresentation and the facets will be used along
+        with a string 'H' or 'V'::
 
             sage: C = CombinatorialPolyhedron(P.incidence_matrix())
             sage: C.vertex_facet_graph().vertices()

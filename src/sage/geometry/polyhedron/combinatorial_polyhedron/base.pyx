@@ -1835,8 +1835,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def a_maximal_chain(self):
         r"""
-        Return a maximal chain of the face lattice without
-        empty face and universe.
+        Return a maximal chain of the face lattice in increasing order
+        without empty face and whole polyhedron/maximal face.
 
         Each face is given as
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.

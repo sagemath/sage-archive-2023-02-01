@@ -16,8 +16,8 @@ case "$UNAME" in
     ;;
 esac
 
-g++ -O3 -c mcqd.cpp -o mcqd.o
-g++ -shared mcqd.o -o "$SO_NAME" $MCQD_LDFLAGS
+$CXX -fPIC -O3 -c mcqd.cpp -o mcqd.o
+$CXX -shared mcqd.o -o "$SO_NAME" $MCQD_LDFLAGS
 
 if [ "$UNAME" = "CYGWIN" ]; then
     sdh_install "$SO_NAME" "$SAGE_LOCAL/bin/"

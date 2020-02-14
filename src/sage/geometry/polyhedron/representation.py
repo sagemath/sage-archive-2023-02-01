@@ -182,7 +182,7 @@ class PolyhedronRepresentation(SageObject):
             sage: C = polytopes.cube()
             sage: C.vertices()[0].vector()[0] = 3
             sage: C.vertices()[0]
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
         """
         if (base_ring is None) or (base_ring is self._base_ring):
             return copy(self._vector)
@@ -429,7 +429,7 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: C = polytopes.cube()
             sage: C.inequalities()[0].A()[2] = 5
             sage: C.inequalities()[0]
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
         """
         return copy(self._A)
 
@@ -1105,12 +1105,12 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: h1
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v1 = next(p.vertex_generator())
             sage: v1
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: v1.is_incident(h1)
-            False
+            True
         """
         return self.polyhedron().incidence_matrix()[self.index(), Hobj.index()] == 1
 
@@ -1124,7 +1124,7 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: h1 = next(p.inequality_generator())
             sage: v1 = next(p.vertex_generator())
             sage: v1.__mul__(h1)
-            2
+            0
         """
         return self.evaluated_on(Hobj)
 
@@ -1252,11 +1252,11 @@ class Vertex(Vrepresentation):
             sage: v = next(p.vertex_generator())
             sage: h = next(p.inequality_generator())
             sage: v
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: h
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v.evaluated_on(h)
-            2
+            0
         """
         return Hobj.A() * self.vector() + Hobj.b()
 

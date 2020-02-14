@@ -5898,6 +5898,7 @@ class Polyhedron_base(Element):
         Test that computing the face lattice does not lead to a memory leak::
 
             sage: import gc
+            sage: _ = gc.collect()
             sage: P = polytopes.cube()
             sage: a = P.face_lattice()
             sage: n = get_memory_usage()

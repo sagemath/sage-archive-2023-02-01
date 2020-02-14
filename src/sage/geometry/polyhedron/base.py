@@ -3083,14 +3083,12 @@ class Polyhedron_base(Element):
 
     def simplicity(self):
         r"""
-        Return the largest `k` such that the polytope is `k`-simple.
-
-        Return the dimension in case of a simplex.
+        Return the largest integer `k` such that the polytope is `k`-simple.
 
         A polytope `P` is `k`-simple, if every `(d-1-k)`-face
         is contained in exactly `k+1` facets of `P` for `1 <= k <= d-1`.
-
         Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
+        If `self` is a simplex, it returns its dimension.
 
         EXAMPLES::
 
@@ -3138,11 +3136,10 @@ class Polyhedron_base(Element):
 
     def simpliciality(self):
         r"""
-        Return the largest `k` such that the polytope is `k`-simplicial.
-
-        Return the dimension in case of a simplex.
+        Return the largest interger `k` such that the polytope is `k`-simplicial.
 
         A polytope is `k`-simplicial, if every `k`-face is a simplex.
+        If `self` is a simplex, returns its dimension.
 
         EXAMPLES::
 

@@ -2719,7 +2719,7 @@ class Polytopes():
         Return a hypercube of the given dimension.
 
         The ``dim``-dimensional hypercube is by default the convex hull of the
-        `2^{\text{dim}}` `\pm 1` vectors in `\RR^{\text{dim}}`. Alternatively,
+        `2^{\text{dim}}` `\pm 1` vectors of length ``dim``. Alternatively,
         it is the product of ``dim`` line segments given in the ``intervals``.
         For more information see the wikipedia article :wikipedia:`Hypercube`.
 
@@ -2730,9 +2730,12 @@ class Polytopes():
         - ``intervals`` -- (default = None). It takes the following
           possible inputs:
 
-          - 'zero_one' -- (string). Return the 0/1 cube.
+          - If ``None`` (the default), it returns the the `\pm 1`-cube of
+            dimension ``dim``.
 
-          - a list/tuple/iterable of length ``dim``. Its elements are pairs of
+          - ``'zero_one'`` -- (string). Return the `0/1`-cube.
+
+          - a list of length ``dim``. Its elements are pairs of
             numbers `(a,b)` with `a < b`. The cube will be the product of
             these intervals.
 
@@ -2776,6 +2779,11 @@ class Polytopes():
             sage: t_cube == 3 * z_cube
             True
 
+        TESTS::
+
+            sage: fc = polytopes.hypercube(4,backend='normaliz')   # optional - pynormaliz
+            sage: TestSuite(fc).run(skip='_test_pickling')         # optional - pynormaliz
+
         If the dimension ``dim`` is not equal to the length of intervals, an
         error is raised::
 
@@ -2783,11 +2791,6 @@ class Polytopes():
             Traceback (most recent call last):
             ...
             ValueError: the dimension of the hypercube must match the number of intervals
-
-        TESTS::
-
-            sage: fc = polytopes.hypercube(4,backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(fc).run(skip='_test_pickling')         # optional - pynormaliz
 
         If a string besides 'zero_one' is passed to ``intervals``, return an
         error::
@@ -2799,13 +2802,13 @@ class Polytopes():
         """
         if intervals is None:
             cp = list(itertools.product([-1,1], repeat=dim))
-        elif isinstance(intervals,str):
+        elif isinstance(intervals, str):
             if intervals == 'zero_one':
                 cp = list(itertools.product([0,1], repeat=dim))
             else:
                 raise ValueError("the only allowed string is 'zero_one'")
         elif len(intervals) == dim:
-            cp = list(itertools.product(*intervals)
+            cp = list(itertools.product(*intervals))
         else:
             raise ValueError("the dimension of the hypercube must match the number of intervals")
         return Polyhedron(vertices=cp, backend=backend)
@@ -2816,8 +2819,7 @@ class Polytopes():
 
         The cube is the Platonic solid that is obtained as the convex hull of
         the eight `\pm 1` vectors of length 3 (by default). Alternatively, the
-        cube is the product of three intervals of length 2 from
-        ``intervals_list``.
+        cube is the product of three intervals from ``intervals``.
 
         .. SEEALSO::
 
@@ -2828,9 +2830,12 @@ class Polytopes():
         - ``intervals`` -- list (default=None). It takes the following
           possible inputs:
 
-            - '0,1' -- (string). Return the 0/1 cube.
-            - a list of 3 lists of length 2. The cube will be a product of
+            - If the input is ``None`` (the default), returns the convex hull of 
+              the eight `\pm 1` vectors of length three.
 
+            - ``'zero_one'`` -- (string). Return the `0/1`-cube.
+
+            - a list of 3 lists of length 2. The cube will be a product of
               these three intervals.
 
         - ``backend`` -- the backend to use to create the polytope.
@@ -2839,9 +2844,9 @@ class Polytopes():
 
         A cube as a polyhedron object.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        Return the `\pm 1` cube::
+        Return the `\pm 1`-cube::
 
             sage: c = polytopes.cube()
             sage: c
@@ -2853,18 +2858,18 @@ class Polytopes():
             sage: c.plot()
             Graphics3d Object
 
-        Return the 0/1 cube::
+        Return the `0/1`-cube::
 
-            sage: cc = polytopes.cube(intervals ='0,1')
+            sage: cc = polytopes.cube(intervals ='zero_one')
             sage: cc.vertices_list()
-                [[0, 0, 0],
-                [0, 0, 1],
-                [0, 1, 0],
-                [0, 1, 1],
-                [1, 0, 0],
-                [1, 0, 1],
-                [1, 1, 0],
-                [1, 1, 1]]
+            [[0, 0, 0],
+            [0, 0, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 0, 1],
+            [1, 1, 0],
+            [1, 1, 1]]
         """
         return self.hypercube(3, backend=backend, intervals=intervals)
 

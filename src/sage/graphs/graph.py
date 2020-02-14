@@ -419,6 +419,8 @@ from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.graphs.independent_sets import IndependentSets
+from sage.combinat.combinatorial_map import combinatorial_map
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
@@ -8600,6 +8602,54 @@ class Graph(GenericGraph):
                     if M[v, w] == maximum:
                         output.append((verts[v], verts[w]))
         return output
+
+    def arboricity(self, certificate=False):
+        """
+        Return the arboricity of the graph and an optional certificate.
+
+        The arboricity is the minimum number of forests that covers the
+        graph.
+
+        See :wikipedia:`Arboricity`
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``) Whether to return 
+        a certificate.
+
+        OUTPUT:
+
+        When ``certificate = True``, then the function returns ``(a, F)`` 
+        where `a` is the arboricity and `F` is a list of `a` disjoint forests 
+        that partitions the edge set of `g`. The forests are represented as 
+        subgraphs of the original graph.
+
+        If ``certificate = False``, the function returns just a integer
+        indicating the arboricity.
+
+        ALGORITHM:
+
+        Represent the graph as a graphical matroid, then apply matroid partition
+        algorithm in the matroids module.
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: a,F = G.arboricity(true)
+            sage: a
+            2
+            sage: all([f.is_forest() for f in F])
+            True
+            sage: len(set.union(*[set(f.edges()) for f in F]))==G.size()
+            True
+        """
+        from sage.matroids.constructor import Matroid
+        P = Matroid(self).partition()
+        if certificate:
+          return (len(P),[self.subgraph(edges=forest) for forest in P])
+        else:
+          return len(P)
+
 
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal

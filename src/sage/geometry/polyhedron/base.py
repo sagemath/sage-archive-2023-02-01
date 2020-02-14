@@ -5819,7 +5819,7 @@ class Polyhedron_base(Element):
 
         .. NOTE::
 
-            The face lattice is not cached, as it would create a memory leak.
+            The face lattice is not cached, as long as this would create a memory leak.
 
         EXAMPLES::
 
@@ -5895,7 +5895,7 @@ class Polyhedron_base(Element):
             sage: [[ls.ambient_V_indices() for ls in lss] for lss in Polyhedron(lines=[(1,0)], vertices=[(0,0)]).face_lattice().level_sets()]
             [[()], [(0, 1)]]
 
-        Test that face lattice give no memory leak::
+        Test that computing the face lattice does not lead to a memory leak::
 
             sage: import gc
             sage: P = polytopes.cube()
@@ -5913,7 +5913,7 @@ class Polyhedron_base(Element):
     @cached_method
     def hasse_diagram(self):
         r"""
-        Return the hasse diagram of ``self``.
+        Return the hasse diagram of the face lattice of ``self``.
 
         This is the hasse diagram of the poset of the faces of ``self``.
 

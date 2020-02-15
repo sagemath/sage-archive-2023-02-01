@@ -8602,7 +8602,7 @@ class Graph(GenericGraph):
         return output
     @doc_index("Leftovers")
     def arboricity(self, certificate=False):
-        """
+        r"""
         Return the arboricity of the graph and an optional certificate.
 
         The arboricity is the minimum number of forests that covers the
@@ -8612,12 +8612,12 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` -- boolean (default: ``False``) Whether to return 
+        - ``certificate`` -- boolean (default: ``False``); whether to return 
           a certificate.
 
         OUTPUT:
 
-        When ``certificate = True``, then the function returns ``(a, F)`` 
+        When ``certificate = True``, then the function returns `(a, F)`
         where `a` is the arboricity and `F` is a list of `a` disjoint forests 
         that partitions the edge set of `g`. The forests are represented as 
         subgraphs of the original graph.
@@ -8627,8 +8627,8 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-        Represent the graph as a graphical matroid, then apply matroid partition
-        algorithm in the matroids module.
+        Represent the graph as a graphical matroid, then apply matroid
+        :meth:`sage.matroid.partition` algorithm from the matroids module.
 
         EXAMPLES::
 
@@ -8638,24 +8638,19 @@ class Graph(GenericGraph):
             2
             sage: all([f.is_forest() for f in F])
             True
-            sage: len(set.union(*[set(f.edges()) for f in F]))==G.size()
+            sage: len(set.union(*[set(f.edges()) for f in F])) == G.size()
             True
-
-        .. SEEALSO::
-	    * :meth:`sage.matroid.partition` --
-              Returns a minimum number of disjoint independent sets that covers the
-              groundset.
 
         TESTS::
 
-            sage: g=Graph()
+            sage: g = Graph()
             sage: g.arboricity(True)
             (0, []) 
         """
         from sage.matroids.constructor import Matroid
         P = Matroid(self).partition()
         if certificate:
-          return (len(P),[self.subgraph(edges=forest) for forest in P])
+          return (len(P), [self.subgraph(edges=forest) for forest in P])
         else:
           return len(P)
 

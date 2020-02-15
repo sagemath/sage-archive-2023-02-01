@@ -15,7 +15,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import iteritems
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex, LatexExpr
@@ -360,7 +359,8 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: dy - (3*x - z)*dx
             dy + z*dx - 3*x*dx
         """
-        return self.__class__(self.parent(), {m:-c for m, c in iteritems(self.__monomials)})
+        return self.__class__(self.parent(),
+                              {m:-c for m, c in self.__monomials.items()})
 
     def _add_(self, other):
         """
@@ -375,14 +375,6 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         """
         F = self.parent()
         return self.__class__(F, blas.add(self.__monomials, other.__monomials))
-
-        d = copy(self.__monomials)
-        zero = self.parent().base_ring().zero()
-        for m, c in iteritems(other.__monomials):
-            d[m] = d.get(m, zero) + c
-            if d[m] == zero:
-                del d[m]
-        return self.__class__(self.parent(), d)
 
     def _mul_(self, other):
         """
@@ -816,7 +808,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             return self.element_class(self, {i: R(c) for i,c in x if R(c) != zero})
         x = self._poly_ring(x)
         return self.element_class(self, {(tuple(m), t): c
-                                         for m, c in iteritems(x.dict())})
+                                         for m, c in x.dict().items()})
 
     def _coerce_map_from_(self, R):
         """

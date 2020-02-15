@@ -22,7 +22,6 @@ from sage.misc.misc_c import prod
 from sage.structure.richcmp import richcmp
 from sage.structure.element import AlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
-from copy import copy
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
@@ -156,6 +155,7 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
         else:
             ret = term
     return ret
+
 
 def repr_factored(w, latex_output=False):
     r"""
@@ -296,6 +296,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
         def exp(e):
             return '^{{{}}}'.format(e) if e > 1 else ''
+
         def term(m):
             R = self.parent()._poly_ring
             def half_term(mon, polynomial):

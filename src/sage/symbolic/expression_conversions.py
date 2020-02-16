@@ -850,6 +850,13 @@ class SympyConverter(Converter):
             Derivative(f_sage(x, y), (x, 2), y)
             sage: df_sympy == f_sympy.diff(x, 2, y, 1)
             True
+
+        Check that :trac:`28964` is fixed::
+
+            sage: f = function('f')
+            sage: _ = var('x,t')
+            sage: diff(f(x, t), x)._sympy_(), diff(f(x, t), t)._sympy_()
+            (Derivative(f(x, t), x), Derivative(f(x, t), t))
         """
         import sympy
 
@@ -860,7 +867,7 @@ class SympyConverter(Converter):
         # retrieve order
         order = operator._parameter_set
         # arguments
-        _args = ex.arguments()
+        _args = ex.operands()
 
         sympy_arg = []
         for i, a in enumerate(_args):

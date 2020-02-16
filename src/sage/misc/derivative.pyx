@@ -60,6 +60,7 @@ AUTHORS:
 """
 
 from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 
 
 def derivative_parse(args):
@@ -146,6 +147,13 @@ def derivative_parse(args):
         sage: derivative_parse([x, y, x, 2, 2, y])
         [x, y, x, x, None, None, y]
 
+    TESTS:
+
+    Check that rational arguments are handled gracefully (:trac:`28964`)::
+
+        sage: f = function('f')
+        sage: f(x).derivative(x, QQ(1))  # indirect doctest
+        diff(f(x), x)
     """
     if not args:
         return [None]
@@ -157,7 +165,7 @@ def derivative_parse(args):
     cdef int count, i
 
     for arg in args:
-        if isinstance(arg, (int, Integer)):
+        if isinstance(arg, (int, Integer, Rational)):
             # process iteration count
             count = int(arg)
             if count < 0:

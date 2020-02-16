@@ -863,7 +863,7 @@ code = setup(name = 'sage',
       packages    = python_packages,
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
-          'sage': ['ext_data/*'
+          'sage': ['ext_data/*',
                    'ext_data/kenzo/*',
                    'ext_data/singular/*',
                    'ext_data/singular/function_field/*',

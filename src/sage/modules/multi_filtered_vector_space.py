@@ -38,7 +38,7 @@ arbitrary indexing set and values are
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import iteritems, itervalues
+from six import iteritems
 
 from sage.rings.all import QQ, ZZ, Integer
 from sage.rings.infinity import infinity, minus_infinity
@@ -84,11 +84,11 @@ def MultiFilteredVectorSpace(arg, base_ring=None, check=True):
             base_ring = QQ
     else:
         filtration = dict(arg)
-        F = next(itervalues(arg))   # the first filtration
+        F = next(iter(arg.values()))  # the first filtration
         dim = F.dimension()
         if base_ring is None:
             base_ring = F.base_ring()
-    for deg in filtration.keys():
+    for deg in filtration:
         filt = filtration[deg]
         if filt.base_ring() != base_ring:
             filt = filt.change_ring(base_ring)

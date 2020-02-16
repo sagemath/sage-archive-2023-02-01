@@ -1402,8 +1402,7 @@ class GrowthDiagram(SageObject):
         """
         if isinstance(filling, dict):
             try:
-                from six import itervalues
-                v = next(itervalues(filling))
+                v = next(iter(filling.values()))
                 if isinstance(v, dict):
                     # it is a dict of dicts
                     F = dict()

@@ -155,6 +155,7 @@ This base class provides a lot more methods than a general parent::
      'is_prime_field',
      'is_subring',
      'krull_dimension',
+     'localization',
      'ngens',
      'one',
      'order',

@@ -16,7 +16,7 @@ AUTHORS:
     finish integrating tachyon -- good default lights, camera
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -28,8 +28,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cpython.list cimport *
 from cpython.object cimport PyObject
@@ -64,6 +64,7 @@ from libc.math cimport INFINITY
 
 default_texture = Texture()
 pi = RDF.pi()
+
 
 cdef class Graphics3d(SageObject):
     """
@@ -1660,13 +1661,16 @@ end_scene""" % (render_params.antialiasing,
 
         .. WARNING::
 
-            This only works for surfaces, not for general plot objects!
+            This only works for surfaces, transforms and unions of surfaces,
+            but not for general plot objects!
 
         OUTPUT:
 
         A binary string that represents the surface in the binary STL format.
 
         See :wikipedia:`STL_(file_format)`
+
+        .. SEEALSO:: :meth:`stl_ascii_string`
 
         EXAMPLES::
 
@@ -1688,52 +1692,12 @@ end_scene""" % (render_params.antialiasing,
             STL binary file / made by SageMath / ###
         """
         import struct
-        from sage.modules.free_module import FreeModule
-        RR3 = FreeModule(RDF, 3)
-
         header = b'STL binary file / made by SageMath / '
         header += b'#' * (80 - len(header))
         # header = 80 bytes, arbitrary ascii characters
-
-        faces = self.face_list()
-        if not faces:
-            self.triangulate()
-            faces = self.face_list()
-
-        faces_iter = faces.__iter__()
-
-        def chopped_faces_iter():
-            for face in faces_iter:
-                n = len(face)
-                if n == 3:
-                    yield face
-                else:
-                    # naive cut into triangles
-                    v = face[-1]
-                    for i in range(n - 2):
-                        yield [v, face[i], face[i + 1]]
-
-        main_data = []
-        N_triangles = 0
-        for i, j, k in chopped_faces_iter():
-            N_triangles += 1
-            ij = RR3(j) - RR3(i)
-            ik = RR3(k) - RR3(i)
-            n = ij.cross_product(ik)
-            n = n / n.norm()
-            fill = struct.pack('H', 0)
-            # 50 bytes per facet
-            # 12 times 4 bytes (float) for n, i, j, k
-            fill = b''.join(struct.pack('<f', x) for x in n)
-            fill += b''.join(struct.pack('<f', x) for x in i)
-            fill += b''.join(struct.pack('<f', x) for x in j)
-            fill += b''.join(struct.pack('<f', x) for x in k)
-            # plus 2 more bytes
-            fill += b'00'
-            main_data.append(fill)
-
-        main_data = [header, struct.pack('I', N_triangles)] + main_data
-        return b''.join(main_data)
+        data = self.stl_binary_repr(self.default_render_params())
+        N_triangles = len(data)
+        return b''.join([header, struct.pack('I', N_triangles)] + data)
 
     def stl_ascii_string(self, name="surface"):
         """
@@ -1752,6 +1716,8 @@ end_scene""" % (render_params.antialiasing,
         A string that represents the surface in the STL format.
 
         See :wikipedia:`STL_(file_format)`
+
+        .. SEEALSO:: :meth:`stl_binary`
 
         EXAMPLES::
 
@@ -2177,6 +2143,25 @@ class Graphics3dGroup(Graphics3d):
         """
         return [g.jmol_repr(render_params) for g in self.all]
 
+    def stl_binary_repr(self, render_params):
+        r"""
+        The stl binary representation of a group is simply the
+        concatenation of the representation of its objects.
+
+        The STL binary representation is a list of binary strings,
+        one for each triangle.
+
+        EXAMPLES::
+
+            sage: G = sphere() + sphere((1,2,3))
+            sage: len(G.stl_binary_repr(G.default_render_params()))
+            2736
+        """
+        data = []
+        for sub in self.all:
+            data.extend(sub.stl_binary_repr(render_params))
+        return data
+
     def texture_set(self):
         """
         The texture set of a group is simply the union of the textures of
@@ -2237,6 +2222,7 @@ class Graphics3dGroup(Graphics3d):
 
     def plot(self):
         return self
+
 
 class TransformGroup(Graphics3dGroup):
     """
@@ -2329,9 +2315,26 @@ class TransformGroup(Graphics3dGroup):
             sage: G.json_repr(G.default_render_params())
             [['{"vertices":[{"x":0.5,"y":0.589368,"z":0.390699},...']]
         """
-
         render_params.push_transform(self.get_transformation())
         rep = [g.json_repr(render_params) for g in self.all]
+        render_params.pop_transform()
+        return rep
+
+    def stl_binary_repr(self, render_params):
+        """
+        Transformations are applied at the leaf nodes.
+
+        The STL binary representation is a list of binary strings,
+        one for each triangle.
+
+        EXAMPLES::
+
+            sage: G = sphere().translate((1,2,0))
+            sage: len(G.stl_binary_repr(G.default_render_params()))
+            1368
+        """
+        render_params.push_transform(self.get_transformation())
+        rep = sum([g.stl_binary_repr(render_params) for g in self.all], [])
         render_params.pop_transform()
         return rep
 

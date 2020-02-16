@@ -141,9 +141,9 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         return MPolynomial_polydict
 
-    def __eq__(left, right):
+    def __eq__(self, other):
         """
-        Check whether ``left`` is equal to ``right``.
+        Check whether ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -151,12 +151,12 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: loads(R.dumps()) == R
             True
         """
-        if not is_MPolynomialRing(right):
+        if not is_MPolynomialRing(other):
             return False
-        return ((left.base_ring(), left.ngens(),
-                left.variable_names(), left.term_order()) ==
-                (right.base_ring(), right.ngens(),
-                 right.variable_names(), right.term_order()))
+        return ((self.base_ring(), self.ngens(),
+                self.variable_names(), self.term_order()) ==
+                (other.base_ring(), other.ngens(),
+                 other.variable_names(), other.term_order()))
 
     def __ne__(self , other):
         """
@@ -172,7 +172,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
     def __hash__(self):
         """
-        Compute the hash of self.
+        Compute the hash of ``self``.
 
         EXAMPLES::
 

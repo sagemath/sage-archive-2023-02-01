@@ -4678,6 +4678,9 @@ REFERENCES:
              Curves. Second edition. Graduate Texts in Mathematics, 106.
              Springer, 2009.
 
+.. [Sim2004] Aron Simis, "Cremona transformations and some related algebras".
+             Journal of Algebra 280.1 (2004), 162-179.
+
 .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties of the
             K3 surface: Simplicial blowups and slicings", Experimental
             Mathematics, Volume 20, Issue 2, 2011.

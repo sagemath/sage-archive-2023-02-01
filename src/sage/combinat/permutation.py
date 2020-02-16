@@ -229,14 +229,12 @@ Classes and methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
 from builtins import zip
 from six.moves import range
-
-from six import itervalues
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -248,7 +246,7 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
-from sage.arith.all import factorial
+from sage.arith.all import factorial, multinomial
 from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
@@ -5507,8 +5505,8 @@ class Permutations_nk(Permutations):
             sage: Permutations(3,4).cardinality()
             0
         """
-        if self._k <= self.n and self._k >= 0:
-            return factorial(self.n) // factorial(self.n-self._k)
+        if 0 <= self._k <= self.n:
+            return factorial(self.n) // factorial(self.n - self._k)
         return ZZ.zero()
 
     def random_element(self):
@@ -5684,11 +5682,8 @@ class Permutations_mset(Permutations):
         for i in mset_list:
             d[i] = d.get(i, 0) + 1
 
-        c = factorial(len(lmset))
-        for i in itervalues(d):
-            if i != 1:
-                c //= factorial(i)
-        return ZZ(c)
+        return ZZ(multinomial(d.values()))
+
 
 class Permutations_set(Permutations):
     """

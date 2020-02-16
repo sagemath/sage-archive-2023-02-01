@@ -610,6 +610,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[0,0,1],[0,0,-1]])
             sage: CombinatorialPolyhedron(P).dimension()
             3
+
+        ``dim`` is an alias::
+
+            sage: CombinatorialPolyhedron(P).dim()
+            3
         """
         if self._dimension == -2:
             # Dimension not computed yet.
@@ -626,6 +631,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The dual exists, if the polyhedron is bounded.
                 self._dimension = self.bitrep_facets().compute_dimension()
         return smallInteger(self._dimension)
+
+    dim = dimension
 
     def n_vertices(self):
         r"""
@@ -853,6 +860,63 @@ cdef class CombinatorialPolyhedron(SageObject):
             facets[index] = verts
 
         return tuple(facets)
+
+    def incidence_matrix(self):
+        """
+        Return the incidence matrix.
+
+        .. NOTE::
+
+            The columns correspond to inequalities/equations in the
+            order :meth:`Hrepresentation`, the rows correspond to
+            vertices/rays/lines in the order
+            :meth:`Vrepresentation`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.incidence_matrix()
+            [0 0 0 1 1 1]
+            [1 0 0 1 0 1]
+            [0 1 0 1 1 0]
+            [1 1 0 1 0 0]
+            [0 0 1 0 1 1]
+            [1 0 1 0 0 1]
+            [0 1 1 0 1 0]
+            [1 1 1 0 0 0]
+            sage: P.incidence_matrix() == C.incidence_matrix()
+            True
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.incidence_matrix() == P.incidence_matrix()
+            True
+        """
+        from sage.rings.all import ZZ
+        from sage.matrix.constructor import matrix
+        incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
+                                  self.n_Hrepresentation(), 0)
+
+        # If equalities are present, we add them as first columns.
+        n_equalities = 0
+        if self.facet_names() is not None:
+            n_equalities = len(self.equalities())
+            for Hindex in range(n_equalities):
+                for Vindex in range(self.n_Vrepresentation()):
+                    incidence_matrix[Vindex, Hindex] = 1
+
+        facet_iter = self.face_iter(self.dimension() - 1, dual=False)
+        for facet in facet_iter:
+            Hindex = facet.ambient_H_indices()[0] + n_equalities
+            for Vindex in facet.ambient_V_indices():
+                incidence_matrix[Vindex, Hindex] = 1
+
+        return incidence_matrix
 
     def edges(self, names=True):
         r"""

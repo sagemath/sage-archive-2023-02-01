@@ -109,6 +109,8 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.flow_polytope` | Compute the flow polytope of a digraph
     :meth:`~DiGraph.degree_polynomial` | Return the generating polynomial of degrees of vertices in ``self``.
+    :meth:`~DiGraph.spanning_out_branching` | Return an iterator over directed spanning out branching of given vertex in ``self``.
+    :meth:`~DiGraph.spanning_in_branching` | Return an iterator over directed spanning in branching of given vertex in ``self``.
 
 Methods
 -------
@@ -162,7 +164,7 @@ from __future__ import print_function, absolute_import
 from copy import copy
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from itertools import product, chain
+from itertools import product
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
@@ -3236,15 +3238,19 @@ class DiGraph(GenericGraph):
 
     def spanning_out_branching(self, source):
         r"""
-        Return an iterator over directed spanning out branching of the current ``DiGraph``.
+        Return an iterator over directed spanning out branching of the current 
+        ``DiGraph``.
 
-        The spanning out branching are rooted in the vertex ``source`` and directed from source to leaves.
+        An out-branching is a directed tree rooted at ``source`` whose arcs are
+        directed from source to leaves. An out-branching is spanning if it
+        contains all vertices of the digraph.
 
-        If no spanning out branching exist, return nothing.
+        If no spanning out branching rooted at ``source`` exist, return nothing.
 
         INPUT:
 
-        - ``source`` -- vertex used as the source for all spanning out branchings.
+        - ``source`` -- vertex used as the source for all spanning out 
+        branchings.
 
         OUTPUT:
 
@@ -3257,16 +3263,19 @@ class DiGraph(GenericGraph):
 
         ALGORITHM:
 
-        Recursively computes all spanning out branches.
+        Recursively computes all spanning out branchings.
 
         At each step:
             0) clean the graph (see bellow) 
             1) pick an edge e out of source
-            2) find all spanning out branches that do not contain e by first removing it
-            3) find all spanning out branches that do contain e by first merging the end vertices of e
+            2) find all spanning out branchings that do not contain e by first 
+            removing it
+            3) find all spanning out branchings that do contain e by first 
+            merging the end vertices of e
 
-        Cleaning the graph implies to remove loops and replace multiedges by a single one with an appropriate label
-        since these lead to similar steps of computation.
+        Cleaning the graph implies to remove loops and replace multiedges by a 
+        single one with an appropriate label since these lead to similar steps 
+        of computation.
 
         EXAMPLES:
 
@@ -3308,6 +3317,9 @@ class DiGraph(GenericGraph):
 
             sage: G = DiGraph()
             sage: G.spanning_out_branching(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex (0) is not a vertex of the digraph            
         """
         def _rec_spanning_out_branchings(depth):
             r"""
@@ -3315,16 +3327,19 @@ class DiGraph(GenericGraph):
 
             This function makes use of the following to keep track of
             partial spanning out branchings:
-                lits_of_edges -- list of edges in the current ``DiGraph``
                 list_merges_edges -- list of edges that are currently merged
-                graph -- a copy of the current ``DiGraph`` where edges have an appropriate label
+                graph -- a copy of the current ``DiGraph`` where edges have an 
+                appropriate label
             """
             if depth == 0:
                 # We have enough merged edges to form a spanning_out_branching
                 # We iterate over the lists of labels in list_merged_edges and
                 # yield the corresponding spanning_out_branchings
                 for indexes in product(*list_merged_edges):
-                    yield DiGraph([list_edges[index] for index in indexes], format='list_of_edges', pos=self.get_pos())
+                    yield DiGraph([self.edges(sort=False)
+                                     [index] for index in indexes],
+                                      format='list_of_edges',
+                                      pos=self.get_pos())
 
             # 1) Clean the graph
             # delete loops on source if any
@@ -3334,12 +3349,13 @@ class DiGraph(GenericGraph):
             if D.has_multiple_edges():
                 merged_multiple_edges = {}
                 for u,v,l in D.multiple_edges():
-                    D.delete_edge(u,v,l)
-                    if (u,v) not in merged_multiple_edges:
+                    D.delete_edge(u, v, l)
+                    if (u, v) not in merged_multiple_edges:
                         merged_multiple_edges[(u, v)] = l
                     else:
                         merged_multiple_edges[(u, v)] += l
-                D.add_edges([(u, v, l) for (u, v),l in merged_multiple_edges.items()])
+                D.add_edges([(u, v, l)
+                                for (u, v),l in merged_multiple_edges.items()])
 
             # 2) Pick an edge e outgoing from the source
             try:
@@ -3365,51 +3381,48 @@ class DiGraph(GenericGraph):
             D.merge_vertices((source, x))
 
             list_merged_edges.add(l)
-            depth -= 1
             
-            for out_branch in _rec_spanning_out_branchings(depth):
+            for out_branch in _rec_spanning_out_branchings(depth-1):
                 yield out_branch
 
             list_merged_edges.remove(l)
-            depth += 1
              
             # unmerge the end vertices of e
             D.delete_vertex(source)
             D.add_edges(saved_edges)
 
         if not self.has_vertex(source):
-            return
+            raise ValueError("vertex ({0}) is not a vertex of the digraph"\
+                .format(source))
 
         # check if the source can access to every other vertex
         if len(list(self.depth_first_search(source))) < self.order():
             return
 
-        # We build a copy of the current Digraph removing loops and edges 
-        # coming in sources
-        # We give to every edge a label corresponding to its index in the list 
-        # of edges of the current digraph
+        # We build a copy of self in which each edge has a distinct label.
+        # On the way, we remove loops and edges incoming to source.
         D = DiGraph(multiedges=True, loops=True)
-        list_edges = self.edges()
-        depth = self.order() - 1
-        # Adding edges in D with label corresponding to index of that edge in
-        # self.edges()
-        for i,(u, v, _) in enumerate(list_edges):
+        for i, (u, v) in enumerate(self.edges(labels=False, sort=False)):
             if u != v and v != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()
-        return _rec_spanning_out_branchings(depth)
+        return _rec_spanning_out_branchings(self.order() - 1)
 
     def spanning_in_branching(self, source):
         r"""
-        Return an iterator over directed spanning in branching of the current ``DiGraph``.
+        Return an iterator over directed spanning in branching of the current 
+        ``DiGraph``.
 
-        The spanning in branching are rooted in the vertex ``source`` and directed from leaves to source.
+        An in-branching is a directed tree rooted at ``source`` whose arcs are
+        directed to source from leaves. An in-branching is spanning if it
+        contains all vertices of the digraph.
 
-        If no spanning in branching exist, return nothing.
+        If no spanning in branching rooted at ``source`` exist, return nothing.
 
         INPUT:
 
-        - ``source`` -- vertex used as the source for all spanning in branchings.
+        - ``source`` -- vertex used as the source for all spanning in 
+        branchings.
 
         OUTPUT:
 
@@ -3422,16 +3435,19 @@ class DiGraph(GenericGraph):
 
         ALGORITHM:
 
-        Recursively computes all spanning in branches.
+        Recursively computes all spanning in branchings.
 
         At each step:
             0) clean the graph (see bellow) 
             1) pick an edge e incoming to source
-            2) find all spanning in branches that do not contain e by first removing it
-            3) find all spanning in branches that do contain e by first merging the end vertices of e
+            2) find all spanning in branchings that do not contain e by first
+            removing it
+            3) find all spanning in branchings that do contain e by first
+            merging the end vertices of e
 
-        Cleaning the graph implies to remove loops and replace multiedges by a single one with an appropriate label
-        since these lead to similar steps of computation.
+        Cleaning the graph implies to remove loops and replace multiedges by a 
+        single one with an appropriate label since these lead to similar steps 
+        of computation.
 
         EXAMPLES:
 
@@ -3473,6 +3489,10 @@ class DiGraph(GenericGraph):
 
             sage: G = DiGraph()
             sage: G.spanning_in_branching(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex (0) is not a vertex of the digraph
+
         """
         def _rec_spanning_in_branchings(depth):
             r"""
@@ -3480,16 +3500,19 @@ class DiGraph(GenericGraph):
 
             This function makes use of the following to keep track of
             partial spanning in branchings:
-                lits_of_edges -- list of edges in the current ``DiGraph``
                 list_merges_edges -- list of edges that are currently merged
-                graph -- a copy of the current ``DiGraph`` where edges have an appropriate label
+                graph -- a copy of the current ``DiGraph`` where edges have an 
+                appropriate label
             """
             if depth == 0:
                 # We have enough merged edges to form a spanning_in_branching
                 # We iterate over the lists of labels in list_merged_edges and
                 # yield the corresponding spanning_in_branchings
                 for indexes in product(*list_merged_edges):
-                    yield DiGraph([list_edges[index] for index in indexes], format='list_of_edges', pos=self.get_pos())
+                    yield DiGraph([self.edges(sort=False)
+                                     [index] for index in indexes],
+                                      format='list_of_edges',
+                                      pos=self.get_pos())
 
             # 1) Clean the graph
             # delete loops on source if any
@@ -3499,12 +3522,13 @@ class DiGraph(GenericGraph):
             if D.has_multiple_edges():
                 merged_multiple_edges = {}
                 for u,v,l in D.multiple_edges():
-                    D.delete_edge(u,v,l)
-                    if (u,v) not in merged_multiple_edges:
+                    D.delete_edge(u, v, l)
+                    if (u, v) not in merged_multiple_edges:
                         merged_multiple_edges[(u, v)] = l
                     else:
                         merged_multiple_edges[(u, v)] += l
-                D.add_edges([(u, v, l) for (u, v),l in merged_multiple_edges.items()])
+                D.add_edges([(u, v, l) 
+                               for (u, v),l in merged_multiple_edges.items()])
 
             # 2) Pick an edge e incoming to the source
             try:
@@ -3514,7 +3538,8 @@ class DiGraph(GenericGraph):
             # 3) Find all spanning_in_branchings that do not contain e
             # by first removing it
             D.delete_edge(x, s, l)
-            if len(list(D.depth_first_search(source, neighbors=D.neighbor_in_iterator))) == D.order():
+            if (len(list(D.depth_first_search(source,
+                    neighbors=D.neighbor_in_iterator))) == D.order()):
                 for in_branch in _rec_spanning_in_branchings(depth):
                     yield in_branch
             D.add_edge(x, s, l)
@@ -3530,39 +3555,33 @@ class DiGraph(GenericGraph):
             D.merge_vertices((source, x))
 
             list_merged_edges.add(l)
-            depth -= 1
             
-            for in_branch in _rec_spanning_in_branchings(depth):
+            for in_branch in _rec_spanning_in_branchings(depth-1):
                 yield in_branch
 
             list_merged_edges.remove(l)
-            depth += 1
              
             # unmerge the end vertices of e
             D.delete_vertex(source)
             D.add_edges(saved_edges)
 
         if not self.has_vertex(source):
-            return
+            raise ValueError("vertex ({0}) is not a vertex of the digraph"\
+                .format(source))
 
         # check if the source can access to every other vertex
-        if len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) < self.order():
+        if len(list(self.depth_first_search(source,
+                   neighbors=self.neighbor_in_iterator))) < self.order():
             return
 
-        # We build a copy of the current Digraph removing loops and edges 
-        # going out of sources
-        # We give to every edge a label corresponding to its index in the list 
-        # of edges of the current digraph
+        # We build a copy of self in which each edge has a distinct label.
+        # On the way, we remove loops and edges incoming to source.
         D = DiGraph(multiedges=True, loops=True)
-        list_edges = self.edges()
-        depth = self.order() - 1
-        # Adding edges in D with label corresponding to index of that edge in
-        # self.edges()
-        for i,(u, v, _) in enumerate(list_edges):
+        for i, (u, v) in enumerate(self.edges(labels=False, sort=False)):
             if u != v and u != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()
-        return _rec_spanning_in_branchings(depth)
+        return _rec_spanning_in_branchings(self.order() - 1)
 
 
     # Aliases to functions defined in other modules

@@ -23,6 +23,19 @@ BUGS:
 
 Output from ecm is non-deterministic. Doctests should set the random
 seed, but currently there is no facility to do so.
+
+TESTS:
+
+Check that the issues from :trac:`27199` are fixed::
+
+    sage: n = 16262093986406371
+    sage: ecm = ECM()
+    sage: ecm.factor(n, B1=10)
+    [1009, 1009, 1733, 3023, 3049]
+
+    sage: n = 1308301 * (10^499 + 153)
+    sage: ECM(B1=600).one_curve(n, c=1, sigma=10)
+    [1308301, 100...00153]
 """
 
 ###############################################################################

@@ -56,7 +56,6 @@ REFERENCES:
 from __future__ import print_function
 
 from six.moves import range
-from six import itervalues
 from six.moves.urllib.request import urlopen
 
 from sage.rings.integer_ring import ZZ
@@ -303,7 +302,7 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
 
     prod = (M*M.transpose()).dict()
     if (len(prod) != n or
-        set(itervalues(prod)) != {n} or
+        set(prod.values()) != {n} or
         any((i, i) not in prod for i in range(n))):
         if verbose:
             print("The product M*M.transpose() is not equal to nI")

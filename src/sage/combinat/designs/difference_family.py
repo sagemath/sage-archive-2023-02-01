@@ -39,20 +39,19 @@ REFERENCES:
 Functions
 ---------
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
 
 from builtins import zip
 import six
-from six import itervalues
 from six.moves import range
 
 from sage.misc.cachefunc import cached_function
@@ -62,6 +61,7 @@ import sage.arith.all as arith
 from sage.misc.unknown import Unknown
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+
 
 def group_law(G):
     r"""
@@ -289,9 +289,9 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
                 where[gg].add(i)
                 tmp_counter[gg] += 1
 
-        if sum(itervalues(tmp_counter)) != k * (k - 1):
+        if sum(tmp_counter.values()) != k * (k - 1):
             if verbose:
-                print("repeated element in the {}-th block {}".format(i,d))
+                print("repeated element in the {}-th block {}".format(i, d))
             return False
 
         # Normalized number of occurrences added to counter

@@ -1,9 +1,3 @@
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage --sh'?"
-    exit 1
-fi
-
 # r uses grep output during its build
 unset GREP_OPTIONS
 
@@ -25,9 +19,8 @@ fi
 export CFLAGS CPPFLAGS FCFLAGS LDFLAGS
 
 if [ "$UNAME" = "Darwin" ]; then
-   echo "Copying fake java and javac compiler on OS X"
-   cp patches/java "$SAGE_LOCAL"/bin
-   cp patches/javac "$SAGE_LOCAL"/bin
+    # Put fake java on the PATH for OSX
+    export PATH="$(pwd)/bin:$PATH"
 fi
 
 # Note by Karl-Dieter Crisman, April 12th 2010. X support would be nice
@@ -101,74 +94,24 @@ fi
 # See patches/R.sh.patch
 export SAGE_BUILDING_R=yes
 
-
-config()
-{
-    ./configure \
-        --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-	--enable-R-shlib \
-	--with-recommended-packages \
-        --with-readline=yes \
-        --with-x=$XSUPPORT \
-        "$R_CONFIGURE_BLAS" \
-        "$R_CONFIGURE_LAPACK" \
-        $R_CONFIGURE
+config() {
+    sdh_configure --enable-R-shlib --with-recommended-packages \
+                  --with-readline=yes --with-x=$XSUPPORT \
+                  "$R_CONFIGURE_BLAS" "$R_CONFIGURE_LAPACK" \
+                  $R_CONFIGURE
 }
 
-config
-if [ $? -ne 0 ]; then
+if ! (config); then
     echo "Configuring R without X11"
-    XSUPPORT=no
+    export XSUPPORT=no
     config
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error configuring R."
-        exit 1
-    fi
-fi
-
-if [ "$UNAME" = "Darwin" ]; then
-    # We have to move (i.e., hide) old installs of R when upgrading R in Sage on OS X.
-    # Indeed Sage modifies DYLD_LIBRARY_PATH whereas R's build process
-    # modifies DYLD_FALLBACK_LIBRARY_PATH, so that it is Sage's R and not the freshly
-    # built one which will get loaded during the build process; in case the versions
-    # differ, the build process might fail.
-    # On systems using LD_LIBRARY_PATH, both Sage and R modify it and R wins,
-    # so no problem should occur.
-    if [ -d "$SAGE_LOCAL"/lib/R ]; then
-        RINSTALL_MOVED=yes
-        mv "$SAGE_LOCAL"/lib/R "$SAGE_LOCAL"/lib/R.old
-    fi
 fi
 
 # Build R
-$MAKE R
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building R."
-    if [ "$RINSTALL_MOVED" = yes ]; then
-        mv "$SAGE_LOCAL"/lib/R.old "$SAGE_LOCAL"/lib/R
-    fi
-    exit 1
-fi
+sdh_make R
 
 # needed for help system
-$MAKE vignettes
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building vignettes."
-    if [ "$RINSTALL_MOVED" = yes ]; then
-        mv "$SAGE_LOCAL"/lib/R.old "$SAGE_LOCAL"/lib/R
-    fi
-    exit 1
-fi
+sdh_make vignettes
 
 # Install new version
-$MAKE install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing R."
-    exit 1
-fi
-
-if [ "$UNAME" = "Darwin" ]; then
-    echo "Removing fake java and javac compiler"
-    rm -f "$SAGE_LOCAL"/bin/java
-    rm -f "$SAGE_LOCAL"/bin/javac
-fi
+sdh_make_install

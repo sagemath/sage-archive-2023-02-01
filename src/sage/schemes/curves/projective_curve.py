@@ -124,7 +124,8 @@ from sage.rings.rational_field import is_RationalField
 from sage.rings.integer import Integer
 from sage.schemes.projective.projective_space import ProjectiveSpace, is_ProjectiveSpace
 
-from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
+from sage.schemes.projective.projective_subscheme import (AlgebraicScheme_subscheme_projective,
+                                                          AlgebraicScheme_subscheme_projective_field)
 
 from .curve import Curve_generic
 
@@ -1481,7 +1482,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         return not self.tangents(P)[0] == C.tangents(P)[0]
 
 
-class ProjectiveCurve_field(ProjectiveCurve):
+class ProjectiveCurve_field(ProjectiveCurve, AlgebraicScheme_subscheme_projective_field):
     """
     Projective curves over fields.
     """

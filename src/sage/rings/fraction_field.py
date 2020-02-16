@@ -293,6 +293,18 @@ class FractionField_generic(ring.Field):
             2*x*y
             sage: 1/(R.gen(0) + R.gen(1))
             1/(x + y)
+
+        Coercion from a localization::
+
+            sage: R.<x> = ZZ[]
+            sage: L = Localization(R, (x**2 + 1,7))
+            sage: F = L.fraction_field()
+            sage: f = F.coerce_map_from(L); f
+            Coercion map:
+              From: Univariate Polynomial Ring in x over Integer Ring localized at (7, x^2 + 1)
+              To:   Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            sage: f(L(1/7)) == 1/7
+            True
         """
         from sage.rings.rational_field import QQ
         from sage.rings.number_field.number_field_base import NumberField
@@ -310,6 +322,12 @@ class FractionField_generic(ring.Field):
         # not implemented as a ``FractionField_generic``.
         if S is QQ and self._R.has_coerce_map_from(ZZ):
             return CallableConvertMap(S, self, wrapper, parent_as_first_arg=False)
+
+        # special treatment for localizations
+        from sage.rings.localization import Localization
+        if isinstance(S, Localization):
+            parent = S.Hom(self)
+            return parent.__make_element_class__(FractionFieldEmbedding)(S, self, category=parent.homset_category())
 
         # Number fields also need to be handled separately.
         if isinstance(S, NumberField):
@@ -1180,15 +1198,33 @@ class FractionFieldEmbeddingSection(Section):
             sage: S(f)
             (1 + 2 + O(2^2))*x
 
+        Test for Localization::
+
+            sage: R.<x> = ZZ[]
+            sage: L = Localization(R, x**2+2*x+ 1)
+            sage: 1/(x+1) in L               # indirect doctest
+            True
+            sage: 1/(x+2) in L               # indirect doctest
+            False
         """
-        if self.codomain().is_exact() and x.denominator().is_one():
-           return x.numerator()
-        if check and not x.denominator().is_unit():
+        codom = self.codomain()
+        if self.domain()._R is codom:
+            num = x.numerator()
+            den = x.denominator()
+        else:
+            # codomain may different from the fraction fields base ring
+            # for example for localizations
+            num = codom(x.numerator())
+            den = codom(x.denominator())
+
+        if codom.is_exact() and den.is_one():
+           return num
+        if check and not den.is_unit():
             # This should probably be a ValueError.
             # However, too much existing code is expecting this to throw a
             # TypeError, so we decided to keep it for the time being.
             raise TypeError("fraction must have unit denominator")
-        return x.numerator() * x.denominator().inverse_of_unit()
+        return num * den.inverse_of_unit()
 
     def _call_with_args(self, x, args=(), kwds={}):
         r"""

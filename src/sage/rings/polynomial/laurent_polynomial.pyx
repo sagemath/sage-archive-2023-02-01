@@ -3278,9 +3278,27 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.factor()
             (x^3*y^-7*z^-2) * (4*x^4*y^7*z + 3*y^8*z^2 + 2*x*y^7 + x^3*z^2)
+
+        TESTS:
+
+        Tests for :trac:`29173`::
+
+            sage: L.<a, b> = LaurentPolynomialRing(ZZ, 'a, b')
+            sage: (a*b + a + b + 1).factor()
+            (b + 1) * (a + 1)
+            sage: ((a^-1)*(a*b + a + b + 1)).factor()
+            (a^-1) * (b + 1) * (a + 1)
+            sage: L(-12).factor()
+            -1 * 2^2 * 3
         """
         pf = self._poly.factor()
-        u = self.parent(pf.unit().dict()) # self.parent won't currently take polynomials
+
+        if self._poly.degree() == 0:
+            # Factorization is broken for polynomials, see
+            # https://trac.sagemath.org/ticket/20214
+            return pf
+
+        u = self.parent(pf.unit())
 
         cdef tuple g = <tuple> self._parent.gens()
         for i in self._mon.nonzero_positions():

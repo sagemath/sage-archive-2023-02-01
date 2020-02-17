@@ -876,7 +876,8 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             2
             sage: a.parent()
             Infinite polynomial ring in x over Rational Field
-            sage: R=PolynomialRing(ZZ,['x_3'])
+
+            sage: R = PolynomialRing(ZZ, ['x_3'])
             sage: b = X(R.gen()); b
             x_3
             sage: b.parent()
@@ -884,6 +885,11 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: X('(x_1^2+2/3*x_4)*(x_2+x_5)')
             2/3*x_5*x_4 + x_5*x_1^2 + 2/3*x_4*x_2 + x_2*x_1^2
 
+            sage: Y = InfinitePolynomialRing(ZZ)
+            sage: Y('1/3')
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't convert 1/3 into an element of Infinite polynomial ring in x over Integer Ring
         """
         # if x is in self, there's nothing left to do
         if parent(x) is self:
@@ -897,9 +903,13 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
                 x = sage_eval(x, self.gens_dict())
             except Exception:
                 raise ValueError("Can't convert %s into an element of %s" % (x, self))
-            if parent(x) is self:
+            P = parent(x)
+            if P is self:
                 return x
-            # if parent(x) is still wrong, continue on with the revised x
+            elif self._base.has_coerce_map_from(P):
+                return InfinitePolynomial(self, self._base(x))
+            else:
+                raise ValueError("Can't convert %s into an element of %s" % (x, self))
 
         if isinstance(parent(x), InfinitePolynomialRing_sparse):
             # the easy case - parent == self - is already past

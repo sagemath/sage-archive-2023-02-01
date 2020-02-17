@@ -671,9 +671,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P                                                                                                               # optional - pynormaliz
             A 6-dimensional polyhedron in ZZ^8 defined as the convex hull of 16 vertices, 1 ray, 1 line
 
-            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(
+            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(      # optional - pynormaliz
             ....:     P.vertices(), P.rays(), P.lines(),
-            ....:     P.inequalities(), P.equations())                          # optional - pynormaliz
+            ....:     P.inequalities(), P.equations())
             sage: import PyNormaliz                                             # optional - pynormaliz
             sage: PyNormaliz.NmzIsComputed(cone, "VerticesOfPolyhedron")        # optional - pynormaliz
             True
@@ -690,10 +690,10 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(      # optional - pynormaliz
             ....:     P.vertices(), None, P.lines(),
-            ....:     P.inequalities(), P.equations())                          # optional - pynormaliz
+            ....:     P.inequalities(), P.equations())
             Traceback (most recent call last):
             ...
-            ValueError: please vertices, rays, lines, inequalities and equations completely
+            ValueError: please specify vertices, rays, lines, inequalities and equations completely
 
         This method cannot be used for the empty cone::
 
@@ -744,12 +744,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             ValueError: the specification of this method has changed; please specify the lines as well
         """
         if eqns in (True, False, None):
-            # The method used to take vertices, rays, ieqs, eqns.
-            # Now it requires vertices, rays, lines, ieqs, eqns.
-            # Actually eqns wouldn't be required, but we keep it to catch deprecated calls.
+            # Previously, the method had input ``vertices, rays, ieqs, eqns`` (optionally ``verbose``).
+            # Now it requires ``vertices, rays, lines, ieqs, eqns``.
+            # Actually, ``eqns`` wouldn't be required, but we keep it to catch deprecated calls.
+            # (And it's more stable against changes of normaliz now.)
             raise ValueError("the specification of this method has changed; please specify the lines as well")
         if None in (vertices, rays, lines, ieqs, eqns):
-            raise ValueError("please vertices, rays, lines, inequalities and equations completely")
+            raise ValueError("please specify vertices, rays, lines, inequalities and equations completely")
         if not vertices:
             raise ValueError("this method cannot be used to initialize the empty cone")
 

@@ -3266,12 +3266,12 @@ class DiGraph(GenericGraph):
         Recursively computes all spanning out branchings.
 
         At each step:
-            #.0) clean the graph (see below) 
-            #.1) pick an edge e out of source
-            #.2) find all spanning out branchings that do not contain e by first 
-            removing it
-            #.3) find all spanning out branchings that do contain e by first 
-            merging the end vertices of e
+            0. clean the graph (see below) 
+            1. pick an edge e out of source
+            2. find all spanning out branchings that do not contain e by first 
+               removing it
+            3. find all spanning out branchings that do contain e by first 
+               merging the end vertices of e
 
         Cleaning the graph implies to remove loops and replace multiedges by a 
         single one with an appropriate label since these lead to similar steps 
@@ -3435,12 +3435,12 @@ class DiGraph(GenericGraph):
         Recursively computes all spanning in branchings.
 
         At each step:
-            #.0) clean the graph (see below)
-            #.1) pick an edge e incoming to source
-            #.2) find all spanning in branchings that do not contain e by first
-            removing it
-            #.3) find all spanning in branchings that do contain e by first
-            merging the end vertices of e
+            0. clean the graph (see below)
+            1. pick an edge e incoming to source
+            2. find all spanning in branchings that do not contain e by first
+               removing it
+            3. find all spanning in branchings that do contain e by first
+               merging the end vertices of e
 
         Cleaning the graph implies to remove loops and replace multiedges by a 
         single one with an appropriate label since these lead to similar steps 

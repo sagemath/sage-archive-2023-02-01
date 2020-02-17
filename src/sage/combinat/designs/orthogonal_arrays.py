@@ -45,7 +45,7 @@ This module defines the following functions:
 
 REFERENCES:
 
-- [CD1996]_
+-- [CD1996]_
 
 Functions
 ---------
@@ -917,7 +917,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         return [[i,j,(i+j)%n] for i in range(n) for j in range(n)]
 
     # projective spaces are equivalent to OA(n+1,n,2)
-    elif (projective_plane(n, existence=True) or
+    elif (projective_plane(n, existence=True) is True or
            (k == n+1 and projective_plane(n, existence=True) is False)):
         _OA_cache_set(n+1,n,projective_plane(n, existence=True))
         if k == n+1:
@@ -983,7 +983,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
                 break
 
     # From Difference Matrices
-    elif may_be_available and difference_matrix(n,k-1,existence=True):
+    elif may_be_available and difference_matrix(n,k-1,existence=True) is True:
         _OA_cache_set(k,n,True)
         if existence:
             return True
@@ -1050,7 +1050,7 @@ def largest_available_k(n,t=2):
         from sage.rings.infinity import Infinity
         return Infinity
     elif t == 2:
-        if projective_plane(n,existence=True):
+        if projective_plane(n,existence=True) is True:
             return n+1
         else:
             k=1
@@ -1337,15 +1337,15 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
                              "intersect in a projective plane.").format(number_of_holes))
 
     # Holes of size 1 from OA(k+1,n)
-    elif max_hole==1 and orthogonal_array(k+1,n,existence=True):
+    elif max_hole==1 and orthogonal_array(k+1,n,existence=True) is True:
         if existence:
             return True
         OA = orthogonal_array(k+1,n)
         independent_set = [B[:-1] for B in OA if B[-1] == 0][:number_of_holes]
         OA = [B[:-1] for B in OA]
 
-    elif max_hole==1 and orthogonal_array(k,n,existence=True):
-        OA = orthogonal_array(k, n)
+    elif max_hole==1 and orthogonal_array(k,n,existence=True) is True:
+        OA = orthogonal_array(k,n)
         try:
             independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
         except ValueError:
@@ -1356,7 +1356,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
             return True
         independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
 
-    elif max_hole==1 and not orthogonal_array(k,n,existence=True):
+    elif max_hole==1 and not orthogonal_array(k,n,existence=True) is True:
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix

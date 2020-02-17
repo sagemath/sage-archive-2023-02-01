@@ -1470,7 +1470,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
         """
         for x in self.first_terms():
             yield x
-        if not self.is_full():
+        if not self.is_full() is True:
             raise LookupError("Future values not provided by OEIS.")
 
     def references(self):

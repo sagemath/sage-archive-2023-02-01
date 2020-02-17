@@ -54,6 +54,19 @@ def _sympysage_float(self):
     from sage.rings.real_mpfr import create_RealNumber
     return create_RealNumber(str(self))
 
+def _sympysage_integer(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy.core.numbers import Integer as SympyInt
+        sage: assert SR(2)._sympy_() == SympyInt(int(2))
+        sage: assert SR(2) == SympyInt(int(2))._sage_()
+        sage: type(SympyInt(int(2))._sage_())
+        <class 'sage.rings.integer.Integer'>
+    """
+    from sage.rings.integer import Integer
+    return Integer(self.p)
+
 def _sympysage_rational(self):
     """
     EXAMPLES::
@@ -783,6 +796,7 @@ def sympy_init():
     from sympy.series.order import Order
 
     Float._sage_ = _sympysage_float
+    Integer._sage_ = _sympysage_integer
     Rational._sage_ = _sympysage_rational
     Infinity._sage_ = _sympysage_pinfty
     NegativeInfinity._sage_ = _sympysage_ninfty

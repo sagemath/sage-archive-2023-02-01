@@ -207,13 +207,8 @@ from sage.manifolds.all import *
 from cysignals.alarm import alarm, cancel_alarm
 
 # Lazily import notebook functions and interacts (#15335)
-lazy_import('sagenb.notebook.notebook_object', 'notebook')
-lazy_import('sagenb.notebook.notebook_object', 'inotebook')
-lazy_import('sagenb.notebook.sage_email', 'email')
 lazy_import('sage.interacts.debugger', 'debug')
 lazy_import('sage.interacts', 'all', 'interacts')
-# interact decorator from SageNB (will be overridden by Jupyter)
-lazy_import('sagenb.notebook.interact', 'interact')
 
 from copy import copy, deepcopy
 

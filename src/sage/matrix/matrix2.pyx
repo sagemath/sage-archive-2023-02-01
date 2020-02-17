@@ -6164,12 +6164,42 @@ cdef class Matrix(Matrix1):
 
     right_eigenvectors = eigenvectors_right
 
-    def eigenmatrix_left(self):
+    def eigenmatrix_left(self, other=None):
         r"""
-        Return matrices D and P, where D is a diagonal matrix of
-        eigenvalues and P is the corresponding matrix where the rows are
-        corresponding eigenvectors (or zero vectors) so that P\*self =
-        D\*P.
+        Return matrices `D` and `P`, where `D` is a diagonal matrix of
+        eigenvalues and the rows of `P` are corresponding eigenvectors
+        (or zero vectors).
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved
+
+        OUTPUT:
+
+        If ``self`` is a square matrix `A`, then the output is a diagonal
+        matrix `D` and a matrix `P` such that
+
+        .. MATH::
+
+            P A = D P,
+
+        where the rows of `P` are eigenvectors of `A` and the diagonal entries
+        of `D` are the corresponding eigenvalues.
+
+        If a matrix `B` is passed as optional argument, the output is a
+        solution to the generalized eigenvalue problem such that
+
+        .. MATH::
+
+            P A = D P B.
+
+        The ordinary eigenvalue problem is equivalent to the generalized one if
+        `B` is the identity matrix.
+
+        The generalized eigenvector decomposition is currently only implemented
+        for matrices over ``RDF`` and ``CDF``.
 
         EXAMPLES::
 
@@ -6189,14 +6219,14 @@ cdef class Matrix(Matrix1):
             sage: P*A == D*P
             True
 
-        Because P is invertible, A is diagonalizable.
+        Because `P` is invertible, `A` is diagonalizable.
 
         ::
 
             sage: A == (~P)*D*P
             True
 
-        The matrix P may contain zero rows corresponding to eigenvalues for
+        The matrix `P` may contain zero rows corresponding to eigenvalues for
         which the algebraic multiplicity is greater than the geometric
         multiplicity. In these cases, the matrix is not diagonalizable.
 
@@ -6206,7 +6236,6 @@ cdef class Matrix(Matrix1):
             [2 1 0]
             [0 2 1]
             [0 0 2]
-            sage: A = jordan_block(2,3)
             sage: D, P = A.eigenmatrix_left()
             sage: D
             [2 0 0]
@@ -6218,6 +6247,42 @@ cdef class Matrix(Matrix1):
             [0 0 0]
             sage: P*A == D*P
             True
+
+        A generalized eigenvector decomposition::
+
+            sage: A = matrix(RDF, [[1, -2], [3, 4]])
+            sage: B = matrix(RDF, [[0, 7], [2, -3]])
+            sage: D, P = A.eigenmatrix_left(B)
+            sage: (P * A - D * P * B).norm() < 1e-14
+            True
+
+        The matrix `B` in a generalized eigenvalue problem may be singular::
+
+            sage: A = matrix.identity(CDF, 2)
+            sage: B = matrix(CDF, [[2, 1+I], [4, 2+2*I]])
+            sage: D, P = A.eigenmatrix_left(B)
+            sage: D.diagonal()  # tol 1e-14
+            [0.19999999999999996 - 0.09999999999999995*I, +infinity]
+
+        In this case, we can still verify the eigenvector equation for the
+        first eigenvalue and first eigenvector::
+
+            sage: l = D[0, 0]
+            sage: v = P[0, :]
+            sage: (v * A - l * v * B).norm() < 1e-14
+            True
+
+        The second eigenvector is contained in the left kernel of `B`::
+
+            sage: (P[1, :] * B).norm() < 1e-14
+            True
+
+        .. SEEALSO::
+
+            :meth:`eigenvalues`,
+            :meth:`eigenvectors_left`,
+            :meth:`.Matrix_double_dense.eigenvectors_left`,
+            :meth:`eigenmatrix_right`.
 
         TESTS:
 
@@ -6262,7 +6327,16 @@ cdef class Matrix(Matrix1):
         """
         from sage.misc.flatten import flatten
         from sage.matrix.constructor import diagonal_matrix, matrix
-        evecs = self.eigenvectors_left()
+        if other is None:
+            evecs = self.eigenvectors_left()
+        else:
+            try:
+                evecs = self.eigenvectors_left(other=other)
+            except TypeError as e:
+                raise NotImplementedError('generalized eigenvector '
+                                          'decomposition is implemented '
+                                          'for RDF and CDF, but not for %s'
+                                          % self.base_ring()) from e
         D = diagonal_matrix(flatten([[e[0]]*e[2] for e in evecs]))
         rows = []
         for e in evecs:
@@ -6272,12 +6346,42 @@ cdef class Matrix(Matrix1):
 
     left_eigenmatrix = eigenmatrix_left
 
-    def eigenmatrix_right(self):
+    def eigenmatrix_right(self, other=None):
         r"""
-        Return matrices D and P, where D is a diagonal matrix of
-        eigenvalues and P is the corresponding matrix where the columns are
-        corresponding eigenvectors (or zero vectors) so that self\*P =
-        P\*D.
+        Return matrices `D` and `P`, where `D` is a diagonal matrix of
+        eigenvalues and the columns of `P` are corresponding eigenvectors
+        (or zero vectors).
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved
+
+        OUTPUT:
+
+        If ``self`` is a square matrix `A`, then the output is a diagonal
+        matrix `D` and a matrix `P` such that
+
+        .. MATH::
+
+            A P = P D,
+
+        where the columns of `P` are eigenvectors of `A` and the diagonal
+        entries of `D` are the corresponding eigenvalues.
+
+        If a matrix `B` is passed as optional argument, the output is a
+        solution to the generalized eigenvalue problem such that
+
+        .. MATH::
+
+            A P = B P D.
+
+        The ordinary eigenvalue problem is equivalent to the generalized one if
+        `B` is the identity matrix.
+
+        The generalized eigenvector decomposition is currently only implemented
+        for matrices over ``RDF`` and ``CDF``.
 
         EXAMPLES::
 
@@ -6297,14 +6401,14 @@ cdef class Matrix(Matrix1):
             sage: A*P == P*D
             True
 
-        Because P is invertible, A is diagonalizable.
+        Because `P` is invertible, `A` is diagonalizable.
 
         ::
 
             sage: A == P*D*(~P)
             True
 
-        The matrix P may contain zero columns corresponding to eigenvalues
+        The matrix `P` may contain zero columns corresponding to eigenvalues
         for which the algebraic multiplicity is greater than the geometric
         multiplicity. In these cases, the matrix is not diagonalizable.
 
@@ -6314,7 +6418,6 @@ cdef class Matrix(Matrix1):
             [2 1 0]
             [0 2 1]
             [0 0 2]
-            sage: A = jordan_block(2,3)
             sage: D, P = A.eigenmatrix_right()
             sage: D
             [2 0 0]
@@ -6326,6 +6429,42 @@ cdef class Matrix(Matrix1):
             [0 0 0]
             sage: A*P == P*D
             True
+
+        A generalized eigenvector decomposition::
+
+            sage: A = matrix(RDF, [[1, -2], [3, 4]])
+            sage: B = matrix(RDF, [[0, 7], [2, -3]])
+            sage: D, P = A.eigenmatrix_right(B)
+            sage: (A * P - B * P * D).norm() < 1e-14
+            True
+
+        The matrix `B` in a generalized eigenvalue problem may be singular::
+
+            sage: A = matrix.identity(RDF, 2)
+            sage: B = matrix(RDF, [[3, 5], [6, 10]])
+            sage: D, P = A.eigenmatrix_right(B); D   # tol 1e-14
+            [0.07692307692307694                 0.0]
+            [                0.0           +infinity]
+
+        In this case, we can still verify the eigenvector equation for the
+        first eigenvalue and first eigenvector::
+
+            sage: l = D[0, 0]
+            sage: v = P[:, 0]
+            sage: (A * v  - B * v * l).norm() < 1e-14
+            True
+
+        The second eigenvector is contained in the right kernel of `B`::
+
+            sage: (B * P[:, 1]).norm() < 1e-14
+            True
+
+        .. SEEALSO::
+
+            :meth:`eigenvalues`,
+            :meth:`eigenvectors_right`,
+            :meth:`.Matrix_double_dense.eigenvectors_right`,
+            :meth:`eigenmatrix_left`.
 
         TESTS:
 
@@ -6369,7 +6508,8 @@ cdef class Matrix(Matrix1):
             True
 
         """
-        D,P = self.transpose().eigenmatrix_left()
+        D,P = self.transpose().eigenmatrix_left(None if other is None
+                                                else other.transpose())
         return D,P.transpose()
 
     right_eigenmatrix = eigenmatrix_right

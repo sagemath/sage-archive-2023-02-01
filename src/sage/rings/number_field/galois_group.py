@@ -172,7 +172,7 @@ class GaloisGroup_v1(SageObject):
         return self.__number_field
 
 
-class GaloisGroup_v2(PermutationGroup_generic):
+class GaloisGroup_v2(GaloisGroup_base):
     r"""
     The Galois group of an (absolute) number field.
 

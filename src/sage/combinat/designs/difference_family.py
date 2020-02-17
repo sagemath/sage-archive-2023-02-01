@@ -219,8 +219,6 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         sage: _
         False
     """
-    import operator
-
     identity, mul, inv = group_law(G)
 
     Glist = list(G)
@@ -896,7 +894,6 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
     """
     v = K.cardinality()
     x = K.multiplicative_generator()
-    one = K.one()
     e = k*(k-1)
     if (l*(v-1)) % e:
         raise ValueError("k (k-1) = {} should be a multiple of l (v-1) ={}".format(
@@ -1603,7 +1600,6 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         if existence:
             return Unknown
         raise NotImplementedError("No construction available for ({},{},{})-difference family".format(v,k,l))
-    t = l*(v-1) // e  # number of blocks
 
     # trivial construction
     if k == (v-1) and l == (v-2):

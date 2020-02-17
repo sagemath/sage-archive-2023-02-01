@@ -70,6 +70,7 @@ jobs:
       - name: Prepare logs artifact
         run: |
           mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"
+        if: always()
       - uses: actions/upload-artifact@v1
         with:
           path: artifacts

@@ -747,6 +747,12 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: m.apply_map(lambda x: x+1)
             [1|1]
             [4|1]
+
+        When applying a map to a sparse zero matrix, the codomain is determined
+        from the image of zero (:trac:`29214`)::
+
+            sage: matrix(RR, 2, 2, sparse=True).apply_map(floor).base_ring() is ZZ
+            True
         """
         if self._nrows==0 or self._ncols==0:
             if not sparse:
@@ -756,8 +762,6 @@ cdef class Matrix_sparse(matrix.Matrix):
         self_dict = self._dict()
         if len(self_dict) < self._nrows * self._ncols:
             zero_res = phi(self.base_ring()(0))
-            if zero_res.is_zero():
-                zero_res = None
         else:
             zero_res = None
         v = [(ij, phi(z)) for ij,z in self_dict.iteritems()]
@@ -770,7 +774,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             v = {v[i][0]: w[i] for i in range(len(v))}
         else:
             v = dict(v)
-        if zero_res is not None:
+        if zero_res is not None and not zero_res.is_zero():
             M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
                                                      self._ncols, sparse=sparse)
             m = M([zero_res] * (self._nrows * self._ncols))

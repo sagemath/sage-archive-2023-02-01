@@ -3324,8 +3324,13 @@ class DiGraph(GenericGraph):
 
             sage: edges = [(0,0,'x'), (0,0,'y')]
             sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
-            sage: G.spanning_out_branching(0)
-            Digraph on 1 vertex
+            sage: list(G.spanning_out_branching(0))
+            [Digraph on 1 vertex]
+
+            sage: edges = [(0,1,'x'), (0,1,'y'), (1,2,'z'), (2,0,'w')]
+            sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
+            sage: len(list(G.spanning_out_branching(0)))
+            2
         """
         def _rec_spanning_out_branchings(depth):
             r"""
@@ -3393,6 +3398,14 @@ class DiGraph(GenericGraph):
             D.delete_vertex(source)
             D.add_edges(saved_edges)
 
+        def _singleton_spanning():
+            r"""
+            Returns a DiGraph containing only ``source`` and no edges.
+            """
+            D = DiGraph()
+            D.add_vertex(source)
+            yield D
+
         if not self.has_vertex(source):
             raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
 
@@ -3402,15 +3415,13 @@ class DiGraph(GenericGraph):
 
         # check if self.order == 1
         if self.order() == 1 and self.has_vertex(source):
-            D = DiGraph()
-            D.add_vertex(source)
-            return D
+            return _singleton_spanning()
 
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
         D = DiGraph(multiedges=True, loops=True)
-        list_edges = list(self.edges(labels=False, sort=False))
-        for i, (u, v) in enumerate(list_edges):
+        list_edges = list(self.edges(sort=False))
+        for i, (u, v, _) in enumerate(list_edges):
             if u != v and v != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()
@@ -3504,8 +3515,13 @@ class DiGraph(GenericGraph):
 
             sage: edges = [(0,0,'x'), (0,0,'y')]
             sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
-            sage: G.spanning_out_branching(0)
-            Digraph on 1 vertex
+            sage: list(G.spanning_out_branching(0))
+            [Digraph on 1 vertex]
+
+            sage: edges = [(0,1,'x'), (0,1,'y'), (1,2,'z'), (2,0,'w')]
+            sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
+            sage: len(list(G.spanning_in_branching(0)))
+            1
         """
         def _rec_spanning_in_branchings(depth):
             r"""
@@ -3573,6 +3589,14 @@ class DiGraph(GenericGraph):
             D.delete_vertex(source)
             D.add_edges(saved_edges)
 
+        def _singleton_spanning():
+            r"""
+            Returns a DiGraph containing only ``source`` and no edges.
+            """
+            D = DiGraph()
+            D.add_vertex(source)
+            yield D
+
         if not self.has_vertex(source):
             raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
 
@@ -3582,15 +3606,13 @@ class DiGraph(GenericGraph):
 
         # check if self.order == 1
         if self.order() == 1 and self.has_vertex(source):
-            D = DiGraph()
-            D.add_vertex(source)
-            return D
-
+            return _singleton_spanning()
+            
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
         D = DiGraph(multiedges=True, loops=True)
-        list_edges = list(self.edges(labels=False, sort=False))
-        for i, (u, v) in enumerate(list_edges):
+        list_edges = list(self.edges(sort=False))
+        for i, (u, v, _) in enumerate(list_edges):
             if u != v and u != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()

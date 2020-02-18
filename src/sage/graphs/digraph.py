@@ -3236,7 +3236,7 @@ class DiGraph(GenericGraph):
             return (best, list(reversed(cycles[u])) + cycles[v])
         return best
 
-    def spanning_out_branching(self, source):
+    def spanning_out_branching(self, source, spanning=True):
         r"""
         Return an iterator over directed spanning out branching of the current
         ``DiGraph``.
@@ -3245,12 +3245,18 @@ class DiGraph(GenericGraph):
         directed from source to leaves. An out-branching is spanning if it
         contains all vertices of the digraph.
 
-        If no spanning out branching rooted at ``source`` exist, return nothing.
+        If no spanning out branching rooted at ``source`` exist, raises
+        ValueError or return non spanning out branching rooted at ``source``, 
+        depending on the value of `spanning`.
 
         INPUT:
 
         - ``source`` -- vertex used as the source for all spanning out 
           branchings.
+
+        - ``spanning`` -- boolean (default: ``True``); if ``False`` return
+          maximum out branching from ``source``. Otherwise, return spanning out
+          branching if exists. 
 
         OUTPUT:
 
@@ -3314,6 +3320,12 @@ class DiGraph(GenericGraph):
             sage: G = DiGraph({0:[1,2], 1:[3,4], 2:[5], 3:[], 4:[], 5:[]}, format='dict_of_lists')
             sage: next(G.spanning_out_branching(0)) == G
             True
+            
+        With a non connected ``DiGraph`` and spanning=False::
+
+            sage: g=DiGraph([(0,1), (0,1), (1,2), (3,4)],multiedges=True)
+            sage: list(g.spanning_out_branching(0,spanning=False))
+            [Digraph on 3 vertices, Digraph on 3 vertices]
 
         TESTS:
 
@@ -3375,7 +3387,7 @@ class DiGraph(GenericGraph):
             # 3) Find all spanning_out_branchings that do not contain e
             # by first removing it
             D.delete_edge(s, x, l)
-            if len(list(D.depth_first_search(source))) == D.order():
+            if len(list(D.depth_first_search(source))) == depth + 1:
                 for out_branch in _rec_spanning_out_branchings(depth):
                     yield out_branch
             D.add_edge(s, x, l)
@@ -3413,12 +3425,16 @@ class DiGraph(GenericGraph):
             raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
 
         # check if self.order == 1
-        if self.order() == 1 and self.has_vertex(source):
+        if self.order() == 1:
             return _singleton_spanning()
 
         # check if the source can access to every other vertex
-        if len(list(self.depth_first_search(source))) < self.order():
-            raise ValueError("No spanning out branching from vertex ({0}) exist".format(source))
+        if spanning:
+            depth = self.order() - 1
+            if len(list(self.depth_first_search(source))) < self.order():
+                raise ValueError("No spanning out branching from vertex ({0}) exist".format(source))
+        else:
+            depth = len(list(self.depth_first_search(source))) - 1
                 
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
@@ -3428,9 +3444,9 @@ class DiGraph(GenericGraph):
             if u != v and v != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()
-        return _rec_spanning_out_branchings(self.order() - 1)
+        return _rec_spanning_out_branchings(depth)
 
-    def spanning_in_branching(self, source):
+    def spanning_in_branching(self, source, spanning=True):
         r"""
         Return an iterator over directed spanning in branching of the current
         ``DiGraph``.
@@ -3439,12 +3455,18 @@ class DiGraph(GenericGraph):
         directed to source from leaves. An in-branching is spanning if it
         contains all vertices of the digraph.
 
-        If no spanning in branching rooted at ``source`` exist, return nothing.
+        If no spanning in branching rooted at ``source`` exist, raises
+        ValueError or return non spanning in branching rooted at ``source``, 
+        depending on the value of `spanning`.
 
         INPUT:
 
         - ``source`` -- vertex used as the source for all spanning in
           branchings.
+
+        - ``spanning`` -- boolean (default: ``True``); if ``False`` return
+          maximum in branching to ``source``. Otherwise, return spanning in
+          branching if exists.
 
         OUTPUT:
 
@@ -3508,6 +3530,12 @@ class DiGraph(GenericGraph):
             sage: G = DiGraph({0:[], 1:[0], 2:[0], 3:[1], 4:[1], 5:[2]}, format='dict_of_lists')
             sage: next(G.spanning_in_branching(0)) == G
             True
+        
+        With a non connected ``DiGraph`` and spanning=False::
+
+            sage: g=DiGraph([(1,0), (1,0), (2,1), (3,4)],multiedges=True)
+            sage: list(g.spanning_in_branching(0,spanning=False))
+            [Digraph on 3 vertices, Digraph on 3 vertices]
 
         TESTS:
 
@@ -3569,7 +3597,7 @@ class DiGraph(GenericGraph):
             # 3) Find all spanning_in_branchings that do not contain e
             # by first removing it
             D.delete_edge(x, s, l)
-            if len(list(D.depth_first_search(source, neighbors=D.neighbor_in_iterator))) == D.order():
+            if len(list(D.depth_first_search(source, neighbors=D.neighbor_in_iterator))) == depth + 1:
                 for in_branch in _rec_spanning_in_branchings(depth):
                     yield in_branch
             D.add_edge(x, s, l)
@@ -3607,12 +3635,16 @@ class DiGraph(GenericGraph):
             raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
         
         # check if self.order == 1
-        if self.order() == 1 and self.has_vertex(source):
+        if self.order() == 1:
             return _singleton_spanning()
 
         # check if the source can access to every other vertex
-        if len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) < self.order():
-            raise ValueError("No spanning in branching to vertex ({0}) exist".format(source))
+        if spanning:
+            depth = self.order() - 1
+            if len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) < self.order():
+                raise ValueError("No spanning in branching to vertex ({0}) exist".format(source))
+        else:
+            depth = len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) - 1
             
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
@@ -3622,7 +3654,7 @@ class DiGraph(GenericGraph):
             if u != v and u != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()
-        return _rec_spanning_in_branchings(self.order() - 1)
+        return _rec_spanning_in_branchings(depth)
 
 
     # Aliases to functions defined in other modules

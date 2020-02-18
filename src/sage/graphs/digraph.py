@@ -3299,6 +3299,9 @@ class DiGraph(GenericGraph):
 
             sage: G = graphs.PetersenGraph().to_directed() + graphs.PetersenGraph().to_directed()
             sage: G.spanning_out_branching(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: No spanning out branching from vertex (0) exist 
 
         With multiedges::
 
@@ -3409,14 +3412,14 @@ class DiGraph(GenericGraph):
         if not self.has_vertex(source):
             raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
 
-        # check if the source can access to every other vertex
-        if len(list(self.depth_first_search(source))) < self.order():
-            return
-
         # check if self.order == 1
         if self.order() == 1 and self.has_vertex(source):
             return _singleton_spanning()
 
+        # check if the source can access to every other vertex
+        if len(list(self.depth_first_search(source))) < self.order():
+            raise ValueError("No spanning out branching from vertex ({0}) exist".format(source))
+                
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
         D = DiGraph(multiedges=True, loops=True)
@@ -3490,6 +3493,9 @@ class DiGraph(GenericGraph):
 
             sage: G = graphs.PetersenGraph().to_directed() + graphs.PetersenGraph().to_directed()
             sage: G.spanning_in_branching(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: No spanning in branching to vertex (0) exist
 
         With multiedges::
 
@@ -3599,14 +3605,14 @@ class DiGraph(GenericGraph):
 
         if not self.has_vertex(source):
             raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
-
-        # check if the source can access to every other vertex
-        if len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) < self.order():
-            return
-
+        
         # check if self.order == 1
         if self.order() == 1 and self.has_vertex(source):
             return _singleton_spanning()
+
+        # check if the source can access to every other vertex
+        if len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) < self.order():
+            raise ValueError("No spanning in branching to vertex ({0}) exist".format(source))
             
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.

@@ -1345,9 +1345,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: print(P._latex_()) #optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-            \node (node_1) at (6.0...bp,5...bp) [draw,draw=none] {$2$};
-              \node (node_0) at (6.0...bp,...bp) [draw,draw=none] {$1$};
-              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
+            \node (node_...) at (6.0...bp,...bp) [draw,draw=none] {$...$};
+              \node (node_...) at (6.0...bp,...bp) [draw,draw=none] {$...$};
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
             %
             \end{tikzpicture}
         """
@@ -8108,6 +8108,28 @@ class FinitePoset(UniqueRepresentation, Parent):
         # or not, either remove this note or remove .hasse_diagram() below.
         return (set(self).issubset(set(other)) and
                 other.subposet(self).hasse_diagram() == self.hasse_diagram())
+
+    def _libgap_(self):
+        """
+        Conversion to gap.
+
+        This uses the QPA package (https://folk.ntnu.no/oyvinso/QPA/).
+
+        EXAMPLES::
+
+            sage: P = posets.TamariLattice(3)
+            sage: libgap(P)  # optional - gap_packages
+            <A poset on 5 points>
+            sage: A = libgap(GF(2)).PosetAlgebra(P); A  # optional - gap_packages
+            <GF(2)[<quiver with 5 vertices and 5 arrows>]/<two-sided ideal in <GF(2)[<quiver with 5 vertices and 5 arrows>]>, (1 generators)>>
+            sage: A.Dimension()  # optional - gap_packages
+            13
+        """
+        from sage.libs.gap.libgap import libgap
+        libgap.LoadPackage("QPA")
+        L = list(self)
+        g = libgap.Poset(L, [self.principal_order_filter(x) for x in L])
+        return g
 
 
 FinitePoset._dual_class = FinitePoset

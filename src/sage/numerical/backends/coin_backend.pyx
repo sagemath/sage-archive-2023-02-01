@@ -20,8 +20,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -423,7 +421,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.solve()                                    # optional - cbc
             10.0
             sage: p.get_values([x,y])                          # optional - cbc
-            [0.0, 3.0]
+            [0, 3]
 
         TESTS:
 
@@ -461,14 +459,14 @@ cdef class CoinBackend(GenericBackend):
             sage: p.solve()                                    # optional - cbc
             9.0
             sage: p.get_values(x)                              # optional - cbc
-            2.0...
+            2
             sage: p.get_values(y)                              # optional - cbc
-            0.0...
+            0
             sage: p.remove_constraints([0])                    # optional - cbc
             sage: p.solve()                                    # optional - cbc
             10.0
             sage: p.get_values([x,y])                          # optional - cbc
-            [0.0, 3.0]
+            [0, 3]
 
         TESTS:
 
@@ -827,7 +825,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.get_variable_value(1)                          # optional - cbc
             1.5
         """
-        return self.model.solver().getObjValue() + self.obj_constant_term
+        return self.model.solver().getObjValue() + <double>self.obj_constant_term
 
     cpdef get_variable_value(self, int variable):
         r"""
@@ -870,7 +868,7 @@ cdef class CoinBackend(GenericBackend):
         if self.is_variable_continuous(variable):
             return v
         else:
-            return round(v)
+            return int(round(v))
 
     cpdef int ncols(self):
         r"""

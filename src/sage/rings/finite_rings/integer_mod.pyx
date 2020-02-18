@@ -1,3 +1,4 @@
+# cython: language_level=2
 r"""
 Elements of `\ZZ/n\ZZ`
 
@@ -85,7 +86,8 @@ import operator
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
-from sage.arith.long cimport integer_check_long, integer_check_long_py, ERR_OVERFLOW
+from sage.arith.long cimport (
+    integer_check_long, integer_check_long_py, is_small_python_int, ERR_OVERFLOW)
 
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
@@ -444,7 +446,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return sage.rings.finite_rings.integer_mod.mod, (self.lift(), self.modulus(), self.parent())
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the map that sends the
         generators of the parent to ``im_gens``.
@@ -456,6 +458,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: a._im_gens_(R, (R(1),))
             2
         """
+        # The generators are irrelevant (Zmod(n) is its own base), so we ignore base_map
         return codomain._coerce_(self)
 
     def __mod__(self, modulus):
@@ -1880,11 +1883,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         EXAMPLES::
 
             sage: F.<a> = GF(13)
-            sage: V = F.vector_space()
+            sage: V = F.vector_space(map=False)
             sage: V(a)
             (1)
         """
-        return self.parent().vector_space()([self])
+        return self.parent().vector_space(map=False)([self])
 
 
 ######################################################################
@@ -3633,9 +3636,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 cdef int mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus) except -1:
     cdef bint invert = False
     cdef long long_exp
-
-    if type(exp) is int:
-        long_exp = PyInt_AS_LONG(exp)
+    if is_small_python_int(exp):
+        long_exp = exp
         if long_exp < 0:
             long_exp = -long_exp
             invert = True

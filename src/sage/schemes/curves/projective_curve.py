@@ -678,7 +678,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         for x in e:
             for y in vars0:
                 if str(y) in x:
-                    if len(x.replace(str(y),"")):
+                    if x.replace(str(y), ""):
                         i = x.find("-")
                         if i>0:
                             vals.append([eval(x[1:i]),x[:i],F(eval(x[i+1:]))])
@@ -751,7 +751,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: C.plot(patch=1)
             Graphics object consisting of 1 graphics primitive
         """
-        # if user hasn't specified a favourite affine patch, take the
+        # if user has not specified a favorite affine patch, take the
         # one avoiding "infinity", i.e. the one corresponding to the
         # last projective coordinate being nonzero
         patch = kwds.pop('patch', self.ngens() - 1)
@@ -1373,14 +1373,14 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         pts = C.singular_points()
         H = End(C)
         phi = H(list(C.ambient_space().gens()))
-        while len(pts) > 0:
+        while pts:
             for i in range(len(pts) - 1, -1, -1):
                 try:
                     if C.is_ordinary_singularity(pts[i]):
                         pts.pop(i)
                 except TypeError:
                     pts.pop(i)
-            if len(pts) > 0:
+            if pts:
                 temp_exc = C.excellent_position(pts[0])
                 temp_qua = temp_exc.codomain().quadratic_transform()
                 C = temp_qua.codomain()

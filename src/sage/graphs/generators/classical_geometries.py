@@ -78,7 +78,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
         ...
         ValueError: unknown algorithm!
     """
-    if d < 1 or d%2 != 0:
+    if d < 1 or d % 2:
         raise ValueError("d must be even and greater than 2")
 
     if algorithm == "gap":     # faster for larger (q>3)  fields
@@ -392,15 +392,15 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
     * `m` odd: if ``perp`` is not ``None``, then we assume that `q=5` and
       return the graph of the points `x` satisfying `F(x)=\pm 1` if ``sign="+"``,
       respectively `F(x) \in \{2,3\}` if ``sign="-"``, with adjacency
-      given by orthogonality w.r.t. `F` (cf. Sect 7.D of [BvL84]_).
+      given by orthogonality w.r.t. `F` (cf. Sect 7.D of [BL1984]_).
       Otherwise return the graph
       of nongenerate hyperplanes of type ``sign``, adjacent whenever the intersection
-      is degenerate (cf. Sect. 7.C of [BvL84]_).
+      is degenerate (cf. Sect. 7.C of [BL1984]_).
       Note that for `q=2` one will get a complete graph.
 
-    For more information, see Sect. 9.9 of [BH12]_ and [BvL84]_. Note that the `page of
-    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_
-    uses different notation.
+    For more information, see Sect. 9.9 of [BH12]_ and [BL1984]_. Note that
+    the `page of Andries Brouwer's website
+    <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_ uses different notation.
 
     INPUT:
 
@@ -690,7 +690,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     F=libgap.GF(q**2)  # F_{q^2}
     W=libgap.FullRowSpace(F, m)  # F_{q^2}^m
     B=libgap.Elements(libgap.Basis(W))      # the standard basis of W
-    if m % 2 != 0:
+    if m % 2:
         point = B[(m-1)/2]
     else:
         if p==2:
@@ -822,7 +822,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
     The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
     for `U_3(q)`, and intersecting the unital (i.e. the vertices of the graph and the point
-    we remove) in `q+1` points. This is all taken from §7E of [BvL84]_.
+    we remove) in `q+1` points. This is all taken from §7E of [BL1984]_.
 
     INPUT:
 
@@ -896,7 +896,7 @@ def TaylorTwographSRG(q):
     `(v,k,\lambda,\mu)=(q^3+1, q(q^2+1)/2, (q^2+3)(q-1)/4, (q^2+1)(q+1)/4)`
     in the Seidel switching class of
     :func:`Taylor two-graph <sage.combinat.designs.twographs.taylor_twograph>`.
-    Details are in §7E of [BvL84]_.
+    Details are in §7E of [BL1984]_.
 
     INPUT:
 
@@ -1056,7 +1056,7 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
         F = field
 
     Theta = PG(3, 1, F, point_coordinates=1)
-    Pi = set(filter(lambda x: x[0]==F.zero(), Theta.ground_set()))
+    Pi = set(x for x in Theta.ground_set() if x[0] == F.zero())
     if hyperoval is None:
         O = set(x for x in Pi
                 if (x[1] + x[2] * x[3] == 0) or
@@ -1089,7 +1089,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     r"""
     Return the Haemers graph obtained from `T_2^*(q)^*`
 
-    Let `q` be a power of 2. In Sect. 8.A of [BvL84]_ one finds a construction
+    Let `q` be a power of 2. In Sect. 8.A of [BL1984]_ one finds a construction
     of a strongly regular graph with parameters `(q^2(q+2),q^2+q-1,q-2,q)` from
     the graph of `T_2^*(q)^*`, constructed by
     :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
@@ -1097,9 +1097,9 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     of the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
     `T_2^*(q)^*`.
 
-    While [BvL84]_ gives the construction in geometric terms, it can be formulated,
-    and is implemented, in graph-theoretic ones, of re-adjusting the edges.
-    Namely, `G=T_2^*(q)^*` has a partition
+    While [BL1984]_ gives the construction in geometric terms, it can be
+    formulated, and is implemented, in graph-theoretic ones, of re-adjusting the
+    edges. Namely, `G=T_2^*(q)^*` has a partition
     into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
     adjacent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
     according to ``hyperoval_matching``. One adds edges `(s,t)` for `s,t \in I_k` whenever

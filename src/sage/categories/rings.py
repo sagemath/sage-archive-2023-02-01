@@ -266,7 +266,6 @@ class Rings(CategoryWithAxiom):
 
                 sage: Parent(QQ,category=Rings()).is_ring()
                 True
-
             """
             return True
 
@@ -1085,6 +1084,73 @@ class Rings(CategoryWithAxiom):
 
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(self, elts)
+
+        def free_module(self, base=None, basis=None, map=True):
+            """
+            Return a free module `V` over the specified subring together with maps to and from `V`.
+
+            The default implementation only supports the case that the base ring is the ring itself.
+
+            INPUT:
+
+            - ``base`` -- a subring `R` so that this ring is isomorphic
+              to a finite-rank free `R`-module `V`
+
+            - ``basis`` -- (optional) a basis for this ring over the base
+
+            - ``map`` -- boolean (default ``True``), whether to return
+              `R`-linear maps to and from `V`
+
+            OUTPUT:
+
+            - A finite-rank free `R`-module `V`
+
+            - An `R`-module isomorphism from `V` to this ring
+              (only included if ``map`` is ``True``)
+
+            - An `R`-module isomorphism from this ring to `V`
+              (only included if ``map`` is ``True``)
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[[]]
+                sage: V, from_V, to_V = R.free_module(R)
+                sage: v = to_V(1+x); v
+                (1 + x)
+                sage: from_V(v)
+                1 + x
+                sage: W, from_W, to_W = R.free_module(R, basis=(1-x))
+                sage: W is V
+                True
+                sage: w = to_W(1+x); w
+                (1 - x^2)
+                sage: from_W(w)
+                1 + x + O(x^20)
+            """
+            if base is None:
+                base = self.base_ring()
+            if base is self:
+                V = self**1
+                if not map:
+                    return V
+                if basis is not None:
+                    if isinstance(basis, (list, tuple)):
+                        if len(basis) != 1:
+                            raise ValueError("Basis must have length 1")
+                        basis = basis[0]
+                    basis = self(basis)
+                    if not basis.is_unit():
+                        raise ValueError("Basis element must be a unit")
+                from sage.modules.free_module_morphism import BaseIsomorphism1D_from_FM, BaseIsomorphism1D_to_FM
+                Hfrom = V.Hom(self)
+                Hto = self.Hom(V)
+                from_V = Hfrom.__make_element_class__(BaseIsomorphism1D_from_FM)(Hfrom, basis=basis)
+                to_V = Hto.__make_element_class__(BaseIsomorphism1D_to_FM)(Hto, basis=basis)
+                return V, from_V, to_V
+            else:
+                if not self.has_coerce_map_from(base):
+                    raise ValueError("base must be a subring of this ring")
+                raise NotImplementedError
 
     class ElementMethods:
         def is_unit(self):

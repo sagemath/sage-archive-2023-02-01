@@ -29,7 +29,6 @@ Methods
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
 
 include "sage/data_structures/binary_matrix.pxi"
 from sage.numerical.backends.generic_backend cimport GenericBackend

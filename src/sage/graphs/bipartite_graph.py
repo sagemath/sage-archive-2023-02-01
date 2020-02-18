@@ -1667,7 +1667,7 @@ class BipartiteGraph(Graph):
         # matching
         Z = left.difference(M.vertex_iterator())
 
-        # Alternate: extend Z with all vertices reacheable by alternate paths
+        # Alternate: extend Z with all vertices reachable by alternate paths
         # (match / non-match edges).
         X = set(Z)
         while X:

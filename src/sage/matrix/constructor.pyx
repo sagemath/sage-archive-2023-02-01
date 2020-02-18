@@ -14,8 +14,6 @@ General matrix Constructor
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from .args cimport MatrixArgs
 
 

@@ -143,7 +143,6 @@ from . import structure
 from . import number_field_morphisms
 from itertools import count
 from builtins import zip
-from sage.misc.superseded import deprecated_function_alias
 
 
 _NumberFields = NumberFields()
@@ -2950,11 +2949,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
               Defn: a -> 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
         """
         embedding = self.coerce_embedding()
-        if embedding is not None:
-            from sage.rings.real_mpfr import mpfr_prec_min
-            from sage.rings.complex_field import ComplexField
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                 return embedding
+        if embedding is not None and embedding.codomain()._is_numerical():
+            return embedding
 
     def gen_embedding(self):
         """
@@ -3723,7 +3719,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 split_primes.append(p)
         return split_primes
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Return whether or not there is a homomorphism defined by the given
         images of generators.
@@ -3748,12 +3744,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if len(im_gens) != 1:
             return False
-        # We need that elements of the base ring of the polynomial
-        # ring map canonically into codomain.
-        if not codomain.has_coerce_map_from(QQ):
+        if base_map is None and not codomain.has_coerce_map_from(QQ):
+            # We need that elements of the base ring of the polynomial
+            # ring map canonically into codomain.
             return False
         f = self.defining_polynomial()
         try:
+            # The current implementation won't productively use base_map
+            # since the coefficients of f are in QQ, if there is a hom
+            # from QQ to codomain it's probably unique and just the coercion
+            if base_map is not None:
+                f = f.map_coefficients(base_map)
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False
@@ -8124,24 +8125,37 @@ class NumberField_absolute(NumberField_generic):
         self._order.set_cache(ret, gens)
         return ret
 
-    def vector_space(self):
+    @cached_method(key=lambda self, base, basis, map: (base or self.base_ring(), basis, map))
+    def free_module(self, base=None, basis=None, map=True):
         """
         Return a vector space V and isomorphisms self --> V and V --> self.
+
+        INPUT:
+
+        - ``base`` -- a subfield (default: ``None``); the returned vector
+          space is over this subfield `R`, which defaults to the base field of this
+          function field
+
+        - ``basis`` -- a basis for this field over the base
+
+        - ``maps`` -- boolean (default ``True``), whether to return
+          `R`-linear maps to and from `V`
+
 
         OUTPUT:
 
 
         -  ``V`` - a vector space over the rational numbers
 
-        -  ``from_V`` - an isomorphism from V to self
+        -  ``from_V`` - an isomorphism from V to self (if requested)
 
-        -  ``to_V`` - an isomorphism from self to V
+        -  ``to_V`` - an isomorphism from self to V (if requested)
 
 
         EXAMPLES::
 
             sage: k.<a> = NumberField(x^3 + 2)
-            sage: V, from_V, to_V  = k.vector_space()
+            sage: V, from_V, to_V  = k.free_module()
             sage: from_V(V([1,2,3]))
             3*a^2 + 2*a + 1
             sage: to_V(1 + 2*a + 3*a^2)
@@ -8157,16 +8171,20 @@ class NumberField_absolute(NumberField_generic):
             sage: to_V(from_V(V([0,-1/7,0])))
             (0, -1/7, 0)
         """
-        try:
-            return self.__vector_space
-        except AttributeError:
-            V = QQ**self.degree()
-            from_V = maps.MapVectorSpaceToNumberField(V, self)
-            to_V   = maps.MapNumberFieldToVectorSpace(self, V)
-            self.__vector_space = (V, from_V, to_V)
-            return self.__vector_space
+        if base is None:
+            base = QQ
+        elif base is self:
+            return super(NumberField_absolute, self).free_module(base=base, basis=basis, map=map)
+        if basis is not None or base is not QQ:
+            raise NotImplementedError
+        V = QQ**self.degree()
+        if not map:
+            return V
+        from_V = maps.MapVectorSpaceToNumberField(V, self)
+        to_V   = maps.MapNumberFieldToVectorSpace(self, V)
+        return (V, from_V, to_V)
 
-    def absolute_vector_space(self):
+    def absolute_vector_space(self, *args, **kwds):
         r"""
         Return vector space over `\QQ` corresponding to this
         number field, along with maps from that space to this number field
@@ -8187,7 +8205,7 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in a with defining polynomial x^3 - 5
               To:   Vector space of dimension 3 over Rational Field)
         """
-        return self.vector_space()
+        return self.free_module(*args, **kwds)
 
     def _galois_closure_and_embedding(self, names=None):
         r"""
@@ -8519,13 +8537,6 @@ class NumberField_absolute(NumberField_generic):
             [0.740078950105127]
             [ 3.7193258428...]
             [ 1.54308184421...]
-
-        TESTS::
-
-            sage: emb = F.Minkowski_embedding()
-            doctest:warning...:
-            DeprecationWarning: Minkowski_embedding is deprecated. Please use minkowski_embedding instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         n = self.degree()
         if prec is None:
@@ -8554,12 +8565,7 @@ class NumberField_absolute(NumberField_generic):
                 d[(r+2*i,col)] = z.real()*sqrt2
                 d[(r+2*i+1,col)] = z.imag()*sqrt2
 
-
-        M = sage.matrix.all.matrix(d)
-
-        return M
-
-    Minkowski_embedding = deprecated_function_alias(23685, minkowski_embedding)
+        return sage.matrix.all.matrix(d)
 
     def places(self, all_complex=False, prec=None):
         r"""
@@ -9027,7 +9033,7 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.polynomial()
 
-    def relative_vector_space(self):
+    def relative_vector_space(self, *args, **kwds):
         """
         A synonym for vector_space.
 
@@ -9043,7 +9049,7 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in i with defining polynomial x^2 + 1
               To:   Vector space of dimension 2 over Rational Field)
         """
-        return self.vector_space()
+        return self.free_module(*args, **kwds)
 
     def absolute_discriminant(self):
         """
@@ -9397,7 +9403,7 @@ class NumberField_absolute(NumberField_generic):
         b = self(b)
         if b == 0:
             raise ValueError("second argument must be nonzero")
-        if len(S) % 2 != 0:
+        if len(S) % 2:
             raise ValueError("the list should be of even cardinality")
         if check:
             for p in S:
@@ -10678,7 +10684,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         n = self._n()
         z = CC.zeta(n)
         X = [m for m in range(n) if arith.gcd(m,n) == 1]
-        v = [self.hom([z**n], check=False) for n in X]
+        v = [self.hom([z**i], check=False) for i in X]
         self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
                                          check=False, universe=self.Hom(CC))
         return self.__embeddings[CC]

@@ -47,7 +47,6 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 cdef is_FractionField, is_RealField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
@@ -1257,8 +1256,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise TypeError("cannot coerce nonconstant polynomial to int")
         return int(self.get_coeff_c(0))
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
+        Return the image of this element under the morphism defined by
+        ``im_gens`` in ``codomain``, where elements of the
+        base ring are mapped by ``base_map``.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
@@ -1271,18 +1274,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
               Defn: x |--> 5
             sage: f(x)
             5
-            sage: f(x^2 + 3)
+            sage: f(x^2 + 3) # indirect doctest
             28
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: S.<y> = K[]
+            sage: phi = S.hom([y^2], base_map=cc)
+            sage: phi(i*y)
+            -i*y^2
         """
         a = im_gens[0]
-        P = a.parent()
         d = self.degree()
         if d == -1:
-            return P.zero() # Special case: 0 should always coerce to 0
-        result = P._coerce_(self.get_unsafe(d))
+            return codomain.zero() # Special case: 0 should always coerce to 0
+        if base_map is None:
+            base_map = codomain.coerce_map_from(self.base_ring())
+        result = base_map(self.get_unsafe(d))
         i = d - 1
         while i >= 0:
-            result = result * a + P._coerce_(self.get_unsafe(i))
+            result = result * a + base_map(self.get_unsafe(i))
             i -= 1
         return result
 
@@ -3242,12 +3253,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: x.change_ring(ZZ['x']) == ZZ['x']['x'].gen()
             True
+
+        Check that :trac:`28541` is fixed::
+
+            sage: F.<a> = GF(7^2)
+            sage: S.<x> = F[]
+            sage: P = x^2 + a*x + a^2
+            sage: P.change_ring(F.frobenius_endomorphism())
+            x^2 + (6*a + 1)*x + 6*a + 5
         """
         if isinstance(R, Map):
-            # we're given a hom of the base ring extend to a poly hom
-            if R.domain() == self.base_ring():
-                R = self._parent.hom(R, self._parent.change_ring(R.codomain()))
-            return R(self)
+            return self.map_coefficients(R)
         else:
             return self._parent.change_ring(R)(self.list(copy=False))
 
@@ -3685,6 +3701,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t = K.gen()
             sage: t.derivative(t)
             1
+
+        Check that :trac:`28187` is fixed::
+
+            sage: R.<x> = GF(65537)[]
+            sage: x._derivative(2*x)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to 2*x
+            sage: y = var('y')
+            sage: R.gen()._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
         if var is not None and var != self._parent.gen():
             try:
@@ -5885,7 +5914,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for i in range(2, len(e)):
             v = c[i].valuation(p)
             s = -(v-points[-1][1])/(e[i]-points[-1][0])
-            while len(slopes) > 0 and s >= slopes[-1][0]:
+            while slopes and s >= slopes[-1][0]:
                 slopes = slopes[:-1]
                 points = points[:-1]
                 s = -(v-points[-1][1])/(e[i]-points[-1][0])
@@ -6977,7 +7006,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))
             if len(v) < degree+1:
                 v.reverse()
-                v = [0]*(degree+1-len(v)) + v
+                v = [self.base_ring().zero()]*(degree+1-len(v)) + v
             elif len(v) > degree+1:
                 v = v[:degree+1]
                 v.reverse()
@@ -7587,6 +7616,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: eq = x^6+x-17
             sage: eq.roots(multiplicities=False)
             [3109038, 17207405]
+
+        Test that roots in fixed modulus p-adic fields work (:trac:`17598`)::
+
+            sage: len(cyclotomic_polynomial(3).roots(ZpFM(739, 566)))
+            2
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
@@ -7856,11 +7890,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for fac in F:
             g = fac[0]
             if g.degree() == 1:
-                rt = -g[0] / g[1]
-                # We need to check that this root is actually in K;
-                # otherwise we'd return roots in the fraction field of K.
-                if rt in K:
-                    rt = K(rt)
+                try:
+                    # We need to check that this root is actually in K;
+                    # otherwise we'd return roots in the fraction field of K.
+                    rt = K(-g[0] / g[1])
+                except (ValueError, ArithmeticError, TypeError):
+                    pass
+                else:
                     if multiplicities:
                         seq.append((rt,fac[1]))
                     else:

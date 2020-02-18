@@ -1022,12 +1022,13 @@ class HasseDiagram(DiGraph):
                 m = {}
                 for i in range(n - 1, -1, -1):
                     m[(i, i)] = ZZ.one()
+                    available = []
                     for k in greater_than[i]:
                         if k != i:
+                            available.append(k)
                             m[(i, k)] = -ZZ.sum(m[(j, k)]
-                                                for j in greater_than[i]
-                                                if i != j and
-                                                k in greater_than[j])
+                                                for j in available
+                                                if k in greater_than[j])
                 M = matrix(ZZ, n, n, m, sparse=True)
             else:
                 M = self.lequal_matrix().inverse_of_unit()
@@ -1231,7 +1232,7 @@ class HasseDiagram(DiGraph):
         return M
 
     def lequal_matrix(self, boolean=False):
-        """
+        r"""
         Return a matrix whose ``(i,j)`` entry is 1 if ``i`` is less
         than ``j`` in the poset, and 0 otherwise; and redefines
         ``__lt__`` to use the boolean version of this matrix.
@@ -2614,8 +2615,8 @@ class HasseDiagram(DiGraph):
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H= HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3: [4, 5],
-            ....:                  4: [6], 5:[6]})
+            sage: H = HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3: [4, 5],
+            ....:                   4: [6], 5:[6]})
             sage: sorted(H.neutral_elements())
             [0, 4, 6]
 

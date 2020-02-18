@@ -32,7 +32,7 @@ def Minkowski(positive_spacelike=True, names=None):
     Generate a Minkowski space of dimension 4.
 
     By default the signature is set to `(- + + +)`, but can be changed to
-    `(+ - - -)` by setting the optionnal argument ``positive_spacelike`` to
+    `(+ - - -)` by setting the optional argument ``positive_spacelike`` to
     ``False``. The shortcut operator ``.<,>`` can be used to
     specify the coordinates.
 

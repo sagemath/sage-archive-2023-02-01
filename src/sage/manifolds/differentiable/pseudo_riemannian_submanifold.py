@@ -1517,6 +1517,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.principal_curvatures(stereoN)[0].display()  # long time
             k_0: N --> R
             on U: x |--> -1
+            on W: y |--> -1
 
         """
         if self._ambient._dim - self._dim != 1:

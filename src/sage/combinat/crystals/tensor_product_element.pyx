@@ -29,7 +29,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.structure.parent cimport Parent

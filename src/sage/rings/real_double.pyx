@@ -40,8 +40,6 @@ Test NumPy conversions::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 cimport libc.math
 from libc.string cimport memcpy
 from cpython.object cimport *
@@ -1118,7 +1116,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return hash(self._value)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.

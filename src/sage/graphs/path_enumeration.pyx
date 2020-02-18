@@ -31,7 +31,6 @@ Functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
 from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc_c import prod
 from libcpp.vector cimport vector

@@ -61,6 +61,7 @@ AUTHORS:
 # ****************************************************************************
 
 import six
+from sage.categories.groups import Groups
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
@@ -444,7 +445,7 @@ class FreeGroupElement(ElementLibGAP):
             sage: a.fox_derivative(F([1]),[t,t,t])
             0
         """
-        if not gen in self.parent().generators():
+        if gen not in self.parent().generators():
             raise ValueError("Fox derivative can only be computed with respect to generators of the group")
         l = list(self.Tietze())
         if im_gens is None:
@@ -467,7 +468,7 @@ class FreeGroupElement(ElementLibGAP):
                              # generator of the free group.
         a = R.zero()
         coef = R.one()
-        while len(l) > 0:
+        while l:
             b = l.pop(0)
             if b == i:
                 a += coef * R.one()
@@ -743,6 +744,8 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
         sage: G = FreeGroup('a, b')
         sage: TestSuite(G).run()
+        sage: G.category()
+        Category of infinite groups
     """
     Element = FreeGroupElement
 
@@ -771,7 +774,11 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         if libgap_free_group is None:
             libgap_free_group = libgap.FreeGroup(generator_names)
         ParentLibGAP.__init__(self, libgap_free_group)
-        Group.__init__(self)
+        if not generator_names:
+            cat = Groups().Finite()
+        else:
+            cat = Groups().Infinite()
+        Group.__init__(self, category=cat)
 
     def _repr_(self):
         """

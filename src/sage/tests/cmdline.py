@@ -402,18 +402,20 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         1
 
     Check that Sage refuses to run doctests from a directory whose
-    permissions are too loose.  We create a world-writable directory
-    inside a safe temporary directory to test this::
+    permissions are too loose. Note that this is relevant only for
+    Sage's Python 2, which is patched to produce this behavior. We
+    create a world-writable directory inside a safe temporary
+    directory to test this::
 
         sage: d = os.path.join(tmp_dir(), "test")
         sage: os.mkdir(d)
         sage: os.chmod(d, 0o777)
-        sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d)
-        sage: print(err)
+        sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d) # py2
+        sage: print(err) # py2
         ...
         RuntimeError: refusing to run doctests...
-        sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d)
-        sage: print(err)
+        sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d) # py2
+        sage: print(err) # py2
         ...
         RuntimeError: refusing to run doctests...
 
@@ -652,77 +654,19 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input]
-        sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
-        sage: print(out)                           # optional - rst2ipynb
-        {
-         "nbformat_minor": ...,
-         "nbformat": ...,
-         "cells": [
-          {
-           "source": [
-            "$$\n",
-            "\\def\\CC{\\bf C}\n",
-            "\\def\\QQ{\\bf Q}\n",
-            "\\def\\RR{\\bf R}\n",
-            "\\def\\ZZ{\\bf Z}\n",
-            "\\def\\NN{\\bf N}\n",
-            "$$"
-           ],
-           "cell_type": "markdown",
-           "metadata": {}
-          },
-          {
-           "execution_count": null,
-           "cell_type": "code",
-           "source": [
-            "2^10"
-           ],
-           "outputs": [
-            {
-             "execution_count": 1,
-             "output_type": "execute_result",
-             "data": {
-              "text/plain": [
-               "1024"
-              ]
-             },
-             "metadata": {}
-            }
-           ],
-           "metadata": {}
-          },
-          {
-           "execution_count": null,
-           "cell_type": "code",
-           "source": [
-            "2 + 2"
-           ],
-           "outputs": [
-            {
-             "execution_count": 1,
-             "output_type": "execute_result",
-             "data": {
-              "text/plain": [
-               "4"
-              ]
-             },
-             "metadata": {}
-            }
-           ],
-           "metadata": {}
-          }
-         ],
-         "metadata": {
-          "kernelspec": {
-           "display_name": "sagemath",
-           "name": "sagemath"
-          }
-         }
-        }
-        sage: err                   # optional - rst2ipynb
+        sage: (out, err, ret) = test_executable(L)           # optional - rst2ipynb
+        sage: err                                            # optional - rst2ipynb
         ''
-        sage: ret                   # optional - rst2ipynb
+        sage: ret                                            # optional - rst2ipynb
         0
+        sage: from json import loads                         # optional - rst2ipynb
+        sage: d = loads(out)                                 # optional - rst2ipynb
+        sage: sorted(d.keys())                               # optional - rst2ipynb
+        ['cells', 'metadata', 'nbformat', 'nbformat_minor']
+        sage: d['cells'][1]['source']                        # optional - rst2ipynb
+        ['2^10']
+        sage: d['cells'][2]['source']                        # optional - rst2ipynb
+        ['2 + 2']
 
     Test ``sage --rst2ipynb file.rst file.ipynb`` on a ReST file::
 
@@ -732,26 +676,18 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input, output]
-        sage: test_executable(L)              # optional - rst2ipynb
+        sage: test_executable(L)                              # optional - rst2ipynb
         ('', '', 0)
-        sage: print(open(output, 'r').read()) # optional - rst2ipynb
-        {
-         "nbformat_minor": ...,
-         "nbformat": ...,
-         "cells": [
-          {
-           "source": [
-            "$$\n",
-            "\\def\\CC{\\bf C}\n",
-            "\\def\\QQ{\\bf Q}\n",
-        ...
-         "metadata": {
-          "kernelspec": {
-           "display_name": "sagemath",
-           "name": "sagemath"
-          }
-         }
-        }
+        sage: import json                                     # optional - rst2ipynb
+        sage: d = json.load(open(output,'r'))                 # optional - rst2ipynb
+        sage: type(d)                                         # optional - rst2ipynb
+        <class 'dict'>
+        sage: sorted(d.keys())                                # optional - rst2ipynb
+        ['cells', 'metadata', 'nbformat', 'nbformat_minor']
+        sage: d['metadata']                                   # optional - rst2ipynb
+        {'kernelspec': {'display_name': 'sagemath', 'name': 'sagemath'}}
+        sage: d['cells'][1]['cell_type']                      # optional - rst2ipynb
+        'code'
 
     Test ``sage --ipynb2rst file.ipynb file.rst`` on a ipynb file::
 
@@ -824,8 +760,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: input = tmp_filename(ext='.rst')
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
-        sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
-        sage: print(out)
+        sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input]) # py2 # optional -- sagenb
+        sage: print(out) # py2 # optional -- sagenb
         {{{id=0|
         2^10
         ///
@@ -837,9 +773,9 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ///
         4
         }}}
-        sage: err # py2
+        sage: err # py2 # optional -- sagenb
         ''
-        sage: ret
+        sage: ret # py2 # optional -- sagenb
         0
 
     Test ``sage --rst2txt file.rst file.txt`` on a ReST file::
@@ -849,9 +785,9 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: output = tmp_filename(ext='.txt')
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
-        sage: test_executable(["sage", "--rst2txt", input, output])
+        sage: test_executable(["sage", "--rst2txt", input, output]) # py2 # optional -- sagenb
         ('', ..., 0)
-        sage: print(open(output, 'r').read())
+        sage: print(open(output, 'r').read()) # py2 # optional -- sagenb
         {{{id=0|
         2^10
         ///
@@ -871,11 +807,11 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: output = tmp_filename(ext='.sws')
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
-        sage: test_executable(["sage", "--rst2sws", input, output]) # py2
+        sage: test_executable(["sage", "--rst2sws", input, output]) # py2 # optional -- sagenb
         ('', '', 0)
         sage: import tarfile # py2
-        sage: f = tarfile.open(output, 'r') # py2
-        sage: print(f.extractfile('sage_worksheet/worksheet.html').read()) # py2
+        sage: f = tarfile.open(output, 'r') # py2 # optional -- sagenb
+        sage: print(f.extractfile('sage_worksheet/worksheet.html').read()) # py2 # optional -- sagenb
         <h1 class="title">Thetitle</h1>
         <BLANKLINE>
         {{{id=0|
@@ -889,7 +825,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ///
         4
         }}}
-        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read()) # py2
+        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read()) # py2 # optional -- sagenb
         Thetitle
         system:sage
         <BLANKLINE>

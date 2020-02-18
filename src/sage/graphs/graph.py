@@ -410,6 +410,7 @@ Methods
 from __future__ import print_function, absolute_import
 import six
 from six.moves import range
+import itertools
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -420,6 +421,7 @@ from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
+from sage.graphs.views import EdgesView
 
 
 class Graph(GenericGraph):
@@ -1072,9 +1074,10 @@ class Graph(GenericGraph):
         if (format is None            and
             isinstance(data, list)    and
             len(data) == 2            and
-            isinstance(data[0], list) and # a list of two lists, the second of
-            isinstance(data[1], list) and # which contains iterables (the edges)
-            (not data[1] or callable(getattr(data[1][0], "__iter__", None)))):
+            isinstance(data[0], list) and    # a list of two lists, the second of
+            ((isinstance(data[1], list) and  # which contains iterables (the edges)
+              (not data[1] or callable(getattr(data[1][0], "__iter__", None)))) or
+             (isinstance(data[1], EdgesView)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
@@ -1082,7 +1085,7 @@ class Graph(GenericGraph):
                 format = 'dict_of_dicts'
             else:
                 val = next(iter(data.values()))
-                if isinstance(val, list):
+                if isinstance(val, (list, EdgesView)):
                     format = 'dict_of_lists'
                 elif isinstance(val, dict):
                     format = 'dict_of_dicts'
@@ -1110,8 +1113,8 @@ class Graph(GenericGraph):
             format = 'int'
             data = 0
 
-        # Input is a list of edges
-        if format is None and isinstance(data, list):
+        # Input is a list of edges or an EdgesView
+        if format is None and isinstance(data, (list, EdgesView)):
             format = "list_of_edges"
             if weighted is None:
                 weighted = False
@@ -1213,9 +1216,8 @@ class Graph(GenericGraph):
             if weighted is None: weighted = False
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(True if multiedges else False, check=False)
-            from itertools import combinations
             self.add_vertices(verts)
-            self.add_edges(e for e in combinations(verts,2) if f(*e))
+            self.add_edges(e for e in itertools.combinations(verts,2) if f(*e))
             if loops:
                 self.add_edges((v,v) for v in verts if f(v,v))
 
@@ -1426,7 +1428,7 @@ class Graph(GenericGraph):
 
         If the graph is disconnected, returns the empty list.
 
-        Uses the Read-Tarjan backtracking algorithm [RT1975]_.
+        Uses the Read-Tarjan backtracking algorithm [RT1975a]_.
 
         INPUT:
 
@@ -2442,14 +2444,14 @@ class Graph(GenericGraph):
         return True
 
     @doc_index("Graph properties")
-    def is_triangle_free(self, algorithm='bitset'):
+    def is_triangle_free(self, algorithm='dense_graph', certificate=False):
         r"""
-        Returns whether ``self`` is triangle-free
+        Check whether ``self`` is triangle-free
 
         INPUT:
 
-        - ``algorithm`` -- (default: ``'bitset'``) specifies the algorithm to
-          use among:
+        - ``algorithm`` -- (default: ``'dense_graph'``) specifies the algorithm
+          to use among:
 
           - ``'matrix'`` -- tests if the trace of the adjacency matrix is
             positive.
@@ -2458,6 +2460,13 @@ class Graph(GenericGraph):
             bitset operations to test if the input graph contains a
             triangle. This method is generally faster than standard matrix
             multiplication.
+
+          - ``'dense_graph'`` -- use the implementation of
+            :mod:`sage.graphs.base.static_dense_graph`
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          triangle if one is found. This parameter is ignored when ``algorithm``
+          is ``'matrix'``.
 
         EXAMPLES:
 
@@ -2474,6 +2483,8 @@ class Graph(GenericGraph):
             True
             sage: G.is_triangle_free(algorithm='bitset')
             True
+            sage: G.is_triangle_free(algorithm='dense_graph')
+            True
 
         a tripartite graph, though, contains many triangles::
 
@@ -2482,6 +2493,16 @@ class Graph(GenericGraph):
             False
             sage: G.is_triangle_free(algorithm='bitset')
             False
+            sage: G.is_triangle_free(algorithm='dense_graph')
+            False
+
+        Asking for a certificate::
+
+            sage: K4 = graphs.CompleteGraph(4)
+            sage: K4.is_triangle_free(algorithm='dense_graph', certificate=True)
+            (False, [0, 1, 2])
+            sage: K4.is_triangle_free(algorithm='bitset', certificate=True)
+            (False, [0, 1, 2])
 
         TESTS:
 
@@ -2491,7 +2512,8 @@ class Graph(GenericGraph):
             ....:     G = graphs.RandomBarabasiAlbert(50,2)
             ....:     bm = G.is_triangle_free(algorithm='matrix')
             ....:     bb = G.is_triangle_free(algorithm='bitset')
-            ....:     if bm != bb:
+            ....:     bd = G.is_triangle_free(algorithm='dense_graph')
+            ....:     if bm != bb or bm != bd:
             ....:        print("That's not good!")
 
         Asking for an unknown algorithm::
@@ -2506,34 +2528,39 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_triangle_free()
             True
         """
-        if not self.order():
-            return True
+        if algorithm == 'dense_graph':
+            from sage.graphs.base.static_dense_graph import is_triangle_free
+            return is_triangle_free(self, certificate=certificate)
 
         if algorithm == 'bitset':
+            if self.order() < 3:
+                return (True, []) if certificate else True
             from sage.data_structures.bitset import Bitset
             N = self.order()
             vertex_to_int = {}
             B = {}
-            for i,u in enumerate(self):
+            for i, u in enumerate(self):
                 vertex_to_int[u] = i
                 B[u] = Bitset(capacity=N)
             # map adjacency to bitsets
-            for u,v in self.edge_iterator(labels=None):
-                B[u].add(vertex_to_int[v])
-                B[v].add(vertex_to_int[u])
-            # map lengths 2 paths to bitsets
-            BB = Bitset(capacity=N)
-            for u in self:
-                BB.clear()
-                for v in self:
-                    if B[u] & B[v]:
-                        BB.add(vertex_to_int[v])
-                # search for triangles
-                if B[u] & BB:
+            for u, v in self.edge_iterator(labels=None):
+                if u != v:
+                    B[u].add(vertex_to_int[v])
+                    B[v].add(vertex_to_int[u])
+            # Search for a triangle
+            for u, v in self.edge_iterator(labels=None):
+                BB = B[u] & B[v]
+                if BB:
+                    if certificate:
+                        for w in self.neighbor_iterator(u):
+                            if vertex_to_int[w] in BB:
+                                return False, [u, v, w]
                     return False
-            return True
+            return (True, []) if certificate else True
 
-        elif algorithm=='matrix':
+        elif algorithm == 'matrix':
+            if self.order() < 3:
+                return True
             return (self.adjacency_matrix()**3).trace() == 0
 
         else:
@@ -2805,8 +2832,8 @@ class Graph(GenericGraph):
                     return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
             else:
                 T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
-                tree = Graph([sum([list(t) for t in T], []),
-                              sum([t.edges(labels=False, sort=False) for t in T], [])],
+                tree = Graph([list(itertools.chain(*T)),
+                              list(itertools.chain(*[t.edges(labels=False, sort=False) for t in T]))],
                              format='vertices_and_edges', name="Tree decomposition")
                 v = next(T[0].vertex_iterator())
                 for t in T[1:]:
@@ -3056,7 +3083,7 @@ class Graph(GenericGraph):
             sage: P.is_edge_transitive()
             False
         """
-        from sage.interfaces.gap import gap
+        from sage.libs.gap.libgap import libgap
 
         if not self.size():
             return True
@@ -3065,7 +3092,7 @@ class Graph(GenericGraph):
         e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
-        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnSets);") == self.size()
+        return libgap(A).OrbitLength(e, libgap.OnSets) == self.size()
 
     @doc_index("Graph properties")
     def is_arc_transitive(self):
@@ -3096,7 +3123,7 @@ class Graph(GenericGraph):
             sage: G.is_arc_transitive()
             False
         """
-        from sage.interfaces.gap import gap
+        from sage.libs.gap.libgap import libgap
 
         if not self.size():
             return True
@@ -3105,7 +3132,7 @@ class Graph(GenericGraph):
         e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
-        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnTuples);") == 2*self.size()
+        return libgap(A).OrbitLength(e,libgap.OnTuples) == 2*self.size()
 
     @doc_index("Graph properties")
     def is_half_transitive(self):
@@ -3759,11 +3786,10 @@ class Graph(GenericGraph):
             yield D
             return
 
-        from itertools import product
         E = [[(u,v,label), (v,u,label)] if u != v else [(u,v,label)]
              for u,v,label in self.edge_iterator()]
         verts = self.vertices()
-        for edges in product(*E):
+        for edges in itertools.product(*E):
             D = DiGraph(data=[verts, edges],
                         format='vertices_and_edges',
                         name=name,
@@ -5393,10 +5419,9 @@ class Graph(GenericGraph):
             sage: G == H
             True
         """
-        from itertools import product
         G = self if inplace else copy(self)
         boundary = self.edge_boundary(s)
-        G.add_edges(product(s, set(self).difference(s)))
+        G.add_edges(itertools.product(s, set(self).difference(s)))
         G.delete_edges(boundary)
         if not inplace:
             return G
@@ -6950,18 +6975,48 @@ class Graph(GenericGraph):
             return list(six.itervalues(core))
 
     @doc_index("Leftovers")
-    def modular_decomposition(self):
+    def modular_decomposition(self, algorithm='habib'):
         r"""
         Return the modular decomposition of the current graph.
 
+        A module of an undirected graph is a subset of vertices such that every
+        vertex outside the module is either connected to all members of the
+        module or to none of them. Every graph that has a nontrivial module can
+        be partitioned into modules, and the increasingly fine partitions into
+        modules form a tree. The ``modular_decomposition`` function returns
+        that tree.
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``'habib'``); specifies the
+          algorithm to use among:
+
+          - ``'tedder'`` -- linear time algorithm of [TCHP2008]_
+
+          - ``'habib'`` -- `O(n^3)` algorithm of [HM1979]_. This algorithm is
+            much simpler and so possibly less prone to errors.
+
+        OUTPUT:
+
+        A pair of two values (recursively encoding the decomposition) :
+
+        * The type of the current module :
+
+          * ``"PARALLEL"``
+          * ``"PRIME"``
+          * ``"SERIES"``
+
+        * The list of submodules (as list of pairs ``(type, list)``,
+          recursively...) or the vertex's name if the module is a singleton.
+
         Crash course on modular decomposition:
 
-        A module `M` of a graph `G` is a proper subset of its vertices such that
-        for all `u \in V(G)-M, v,w\in M` the relation `u \sim v \Leftrightarrow
-        u \sim w` holds, where `\sim` denotes the adjacency relation in
-        `G`. Equivalently, `M \subset V(G)` is a module if all its vertices have
-        the same adjacency relations with each vertex outside of the module
-        (vertex by vertex).
+        A module `M` of a graph `G` is a proper subset of its vertices such
+        that for all `u \in V(G)-M, v,w\in M` the relation `u \sim v
+        \Leftrightarrow u \sim w` holds, where `\sim` denotes the adjacency
+        relation in `G`. Equivalently, `M \subset V(G)` is a module if all its
+        vertices have the same adjacency relations with each vertex outside of
+        the module (vertex by vertex).
 
         Hence, for a set like a module, it is very easy to encode the
         information of the adjacencies between the vertices inside and outside
@@ -6995,30 +7050,21 @@ class Graph(GenericGraph):
         Christophe Paul entitled "A survey on Algorithmic aspects of modular
         decomposition" [HP2010]_.
 
-        OUTPUT:
-
-        A pair of two values (recursively encoding the decomposition) :
-
-        * The type of the current module :
-
-          * ``"PARALLEL"``
-          * ``"PRIME"``
-          * ``"SERIES"``
-
-        * The list of submodules (as list of pairs ``(type, list)``,
-          recursively...) or the vertex's name if the module is a singleton.
-
         EXAMPLES:
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()
+            sage: graphs.BullGraph().modular_decomposition()  # py2
+            (PRIME, [0, 3, 4, 2, 1])
+            sage: graphs.BullGraph().modular_decomposition()  # py3
             (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()
-            (PRIME, [1, 4, 5, 0, 3, 7, 2, 8, 9, 6])
+            sage: graphs.PetersenGraph().modular_decomposition()  # py2
+            (PRIME, [6, 2, 5, 1, 9, 3, 0, 7, 8, 4])
+            sage: graphs.PetersenGraph().modular_decomposition()  # py3
+            (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
         interesting decomposition ::
@@ -7027,13 +7073,19 @@ class Graph(GenericGraph):
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
             sage: g.modular_decomposition()
+            (SERIES, [(PARALLEL, [(SERIES, [1, 2, 3, 4]), 5, 6]), 0])
+
+        We get an equivalent tree when we use the algorithm of [TCHP2008]_::
+
+            sage: g.modular_decomposition(algorithm='tedder')
             (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
 
         ALGORITHM:
 
-        This function uses python implementation of algorithm published by Marc
-        Tedder, Derek Corneil, Michel Habib and Christophe Paul
-        [TCHP2008]_.
+        When ``algorithm='tedder'`` this function uses python implementation of
+        algorithm published by Marc Tedder, Derek Corneil, Michel Habib and
+        Christophe Paul [TCHP2008]_. When ``algorithm='habib'`` this function
+        uses the algorithm of M. Habib and M. Maurer [HM1979]_.
 
         .. SEEALSO::
 
@@ -7049,21 +7101,37 @@ class Graph(GenericGraph):
         Vertices may be arbitrary --- check that :trac:`24898` is fixed::
 
             sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
-            (SERIES, [(2, 3), (1, 2)])
+            (SERIES, [(1, 2), (2, 3)])
+
+        Unknown algorithm::
+
+            sage: graphs.PathGraph(2).modular_decomposition(algorithm='abc')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'habib' or 'tedder'
         """
+        from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, NodeType, habib_maurer_algorithm
+
         self._scream_if_not_simple()
 
         if not self.order():
             return tuple()
 
-        from sage.graphs.modular_decomposition import modular_decomposition, NodeType
-
         if self.order() == 1:
-            return (NodeType.PRIME, self.vertices())
+            return (NodeType.PRIME, list(self))
 
-        D = modular_decomposition(self)
+        if algorithm == 'habib':
+            D = habib_maurer_algorithm(self)
+        elif algorithm == 'tedder':
+            D = modular_decomposition(self)
+        else:
+            raise ValueError("algorithm must be 'habib' or 'tedder'")
 
-        relabel = lambda x: (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else x.children[0]
+        def relabel(x):
+            if x.node_type == NodeType.NORMAL:
+                return x.children[0]
+            else:
+                return x.node_type, [relabel(y) for y in x.children]
 
         return relabel(D)
 
@@ -7304,9 +7372,20 @@ class Graph(GenericGraph):
         return self.planar_dual().is_circumscribable(solver=solver, verbose=verbose)
 
     @doc_index("Graph properties")
-    def is_prime(self):
+    def is_prime(self, algorithm='habib'):
         r"""
         Test whether the current graph is prime.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'tedder'``) specifies the algorithm to
+          use among:
+
+          - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
+
+          - ``'habib'`` -- Use the $O(n^3)$ algorithm of [HM1979]_. This is
+            probably slower, but is much simpler and so possibly less error
+            prone.
 
         A graph is prime if all its modules are trivial (i.e. empty, all of the
         graph or singletons) -- see :meth:`modular_decomposition`.
@@ -7330,12 +7409,12 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
-        from sage.graphs.modular_decomposition import NodeType
+        from sage.graphs.graph_decompositions.modular_decomposition import NodeType
 
         if self.order() <= 1:
             return True
 
-        D = self.modular_decomposition()
+        D = self.modular_decomposition(algorithm=algorithm)
 
         return D[0] == NodeType.PRIME and len(D[1]) == self.order()
 
@@ -7441,7 +7520,7 @@ class Graph(GenericGraph):
         is the same in `G` as in `T`. See the :wikipedia:`Gomory–Hu_tree`. Note
         that, in general, a graph admits more than one Gomory-Hu tree.
 
-        See also 15.4 (Gomory-Hu trees) from [SchrijverCombOpt]_.
+        See also 15.4 (Gomory-Hu trees) from [Sch2003]_.
 
         INPUT:
 
@@ -7681,7 +7760,8 @@ class Graph(GenericGraph):
         from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        edges = self.edges()
+        # The order of the vertices in each tuple matters, so use a list
+        edges = list(self.edges(sort=False))
         cycles = self.cycle_basis(output='edge')
 
         edge2int = {e: j for j, e in enumerate(edges)}
@@ -7831,7 +7911,7 @@ class Graph(GenericGraph):
         from sage.matrix.constructor import matrix
 
         H = self.subgraph(vertices=self.cores(k=2)[1])
-        E = H.edges()
+        E = list(H.edges(sort=False))
         m = len(E)
         # compute (Hashimoto) edge matrix T
         T = matrix(ZZ, 2 * m, 2 * m, 0)

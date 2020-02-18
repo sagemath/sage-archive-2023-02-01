@@ -126,7 +126,6 @@ This decomposition turns out to be very easy to implement :-)
 Functions
 ---------
 """
-from __future__ import print_function
 
 def is_line_graph(g, certificate=False):
     r"""

@@ -1376,7 +1376,7 @@ class TopologicalManifold(ManifoldSubset):
               Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (r, s))}
 
         """
-        return self._coord_changes
+        return self._coord_changes.copy()
 
     def is_manifestly_coordinate_domain(self):
         r"""
@@ -1559,6 +1559,36 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         return True
+
+    def vector_bundle(self, rank, name, field='real', latex_name=None):
+        r"""
+        Return a topological vector bundle over the given field with given rank
+        over this topological manifold.
+
+        INPUT:
+
+        - ``rank`` -- rank of the vector bundle
+        - ``name`` -- name given to the total space
+        - ``field`` -- (default: ``'real'``) topological field giving the
+          vector space structure to the fibers
+        - ``latex_name`` -- optional LaTeX name for the total space
+
+        OUTPUT:
+
+        - a topological vector bundle as an instance of
+          :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: M.vector_bundle(2, 'E')
+            Topological real vector bundle E -> M of rank 2 over the base space
+             2-dimensional topological manifold M
+
+        """
+        from sage.manifolds.vector_bundle import TopologicalVectorBundle
+        return TopologicalVectorBundle(rank, name, self, field=field,
+                                       latex_name=latex_name)
 
     def scalar_field_algebra(self):
         r"""

@@ -160,8 +160,6 @@ Check if :trac:`6160` is fixed::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 # The Singular API is as follows:
 #
 #   pXXX does assume the currRing to be set
@@ -182,7 +180,8 @@ from sage.cpython.string cimport char_to_str, str_to_bytes
 
 # singular types
 from sage.libs.singular.decl cimport (ring, poly, ideal, intvec, number,
-    currRing, n_unknown, n_Z, n_Zn, n_Znm, n_Z2m)
+    currRing, n_unknown, n_Z, n_Zn, n_Znm, n_Z2m, sBucket, sBucketCreate,
+    sBucketDestroy, sBucket_Merge_m, sBucketClearMerge, sBucketDeleteAndDestroy)
 
 # singular functions
 from sage.libs.singular.decl cimport (
@@ -788,8 +787,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
         cdef int i, j
-        cdef list ind_map = []
         cdef int e
+        cdef list ind_map = []
+        cdef sBucket *bucket
+
         if _ring!=currRing: rChangeCurrRing(_ring)
 
         base_ring = self.base_ring()
@@ -814,15 +815,25 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
         elif isinstance(element, MPolynomial_polydict):
             if element.parent() == self:
-                _p = p_ISet(0, _ring)
-                for (m,c) in element.element().dict().iteritems():
-                    mon = p_Init(_ring)
-                    p_SetCoeff(mon, sa2si(c, _ring), _ring)
-                    for pos in m.nonzero_positions():
-                        overflow_check(m[pos], _ring)
-                        p_SetExp(mon, pos+1, m[pos], _ring)
-                    p_Setm(mon, _ring)
-                    _p = p_Add_q(_p, mon, _ring)
+                bucket = sBucketCreate(_ring)
+                try:
+                    for (m,c) in element.element().dict().iteritems():
+                        mon = p_Init(_ring)
+                        p_SetCoeff(mon, sa2si(c, _ring), _ring)
+                        for pos in m.nonzero_positions():
+                            overflow_check(m[pos], _ring)
+                            p_SetExp(mon, pos+1, m[pos], _ring)
+                        p_Setm(mon, _ring)
+                        #we can use "_m" because we're merging a monomial and
+                        #"Merge" because this monomial is different from the rest 
+                        sBucket_Merge_m(bucket, mon)
+                    e=0
+                    #we can use "Merge" because the monomials are distinct
+                    sBucketClearMerge(bucket, &_p, &e)
+                    sBucketDestroy(&bucket)
+                except:
+                     sBucketDeleteAndDestroy(&bucket)
+                     raise
                 return new_MP(self, _p)
             elif element.parent().ngens() == 0:
                 # zero variable polynomials
@@ -893,6 +904,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 El_ring = Element._parent_ring
                 El_base = El_parent._base
 
+                #this loop needs improvement
                 while El_poly:
                     c = si2sa(p_GetCoeff(El_poly, El_ring), El_ring, El_base)
                     if check:
@@ -924,24 +936,26 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 ind_map = [i+1 for i in range(_ring.N)]
 
             if element.parent().ngens() <= self.ngens():
-                # Map variables by indices
-                _p = p_ISet(0, _ring)
-                for (m,c) in element.element().dict().iteritems():
-                    if check:
-                        try:
+                bucket = sBucketCreate(_ring)
+                try:
+                    for (m,c) in element.element().dict().iteritems():
+                        if check:
                             c = base_ring(c)
-                        except TypeError:
-                            p_Delete(&_p, _ring)
-                            raise
-                    if not c:
-                        continue
-                    mon = p_Init(_ring)
-                    p_SetCoeff(mon, sa2si(c , _ring), _ring)
-                    for pos in m.nonzero_positions():
-                        overflow_check(m[pos], _ring)
-                        p_SetExp(mon, ind_map[pos], m[pos], _ring)
-                    p_Setm(mon, _ring)
-                    _p = p_Add_q(_p, mon, _ring)
+                        if not c:
+                            continue
+                        mon = p_Init(_ring)
+                        p_SetCoeff(mon, sa2si(c , _ring), _ring)
+                        for pos in m.nonzero_positions():
+                            overflow_check(m[pos], _ring)
+                            p_SetExp(mon, ind_map[pos], m[pos], _ring)
+                        p_Setm(mon, _ring)
+                        sBucket_Merge_m(bucket, mon)
+                    e=0
+                    sBucketClearMerge(bucket, &_p, &e)
+                    sBucketDestroy(&bucket)
+                except TypeError:
+                    sBucketDeleteAndDestroy(&bucket)
+                    raise
                 return new_MP(self, _p)
 
         from sage.rings.polynomial.pbori import BooleanPolynomial
@@ -982,27 +996,32 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             return self._coerce_c(element)
 
         if isinstance(element, dict):
-            _p = p_ISet(0, _ring)
-            for (m,c) in element.iteritems():
-                if check:
-                    try:
-                        c = base_ring(c)
-                    except TypeError:
-                        p_Delete(&_p, _ring)
-                        raise
-                if not c:
-                    continue
-                mon = p_Init(_ring)
-                p_SetCoeff(mon, sa2si(c , _ring), _ring)
-                if len(m) != self.ngens():
-                    raise TypeError("tuple key must have same length as ngens")
-                for pos from 0 <= pos < len(m):
-                    if m[pos]:
-                        overflow_check(m[pos], _ring)
-                        p_SetExp(mon, pos+1, m[pos], _ring)
-                p_Setm(mon, _ring)
-                _p = p_Add_q(_p, mon, _ring)
-
+            if len(element)==0:
+                _p = p_ISet(0, _ring)
+            else:
+                bucket = sBucketCreate(_ring)
+                try:
+                    for (m,c) in element.iteritems():
+                        if check:
+                            c = base_ring(c)
+                        if not c:
+                            continue
+                        mon = p_Init(_ring)
+                        p_SetCoeff(mon, sa2si(c , _ring), _ring)
+                        if len(m) != self.ngens():
+                            raise TypeError("tuple key must have same length as ngens")
+                        for pos from 0 <= pos < len(m):
+                            if m[pos]:
+                                overflow_check(m[pos], _ring)
+                                p_SetExp(mon, pos+1, m[pos], _ring)
+                        p_Setm(mon, _ring)
+                        sBucket_Merge_m(bucket, mon)
+                    e=0
+                    sBucketClearMerge(bucket, &_p, &e)
+                    sBucketDestroy(&bucket)
+                except TypeError:
+                    sBucketDeleteAndDestroy(&bucket)
+                    raise
             return new_MP(self, _p)
 
         try: #if hasattr(element,'_polynomial_'):
@@ -1168,38 +1187,20 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             R._check_valid()
             return R
         except (AttributeError, ValueError):
-            self.__macaulay2 = self._macaulay2_set_ring(macaulay2)
+            self.__macaulay2 = macaulay2(self._macaulay2_init_(macaulay2))
         return self.__macaulay2
 
-    def _macaulay2_set_ring(self, macaulay2=macaulay2_default):
+    def _macaulay2_init_(self, macaulay2=None):
         """
-        Set the associated M2 ring.
-
-        INPUT:
-
-        - ``macaulay2`` - M2 instance
-
         EXAMPLES::
 
-            sage: P.<x,y> = PolynomialRing(QQ)
-            sage: M2 = P._macaulay2_set_ring() # optional - macaulay2
+            sage: PolynomialRing(QQ, 'x', 2, order='deglex')._macaulay2_init_()     # optional - macaulay2
+            'sage...[symbol x0,symbol x1, MonomialSize=>16, MonomialOrder=>GLex]'
         """
-        if not self.__m2_set_ring_cache is None:
-            base_str, gens, order = self.__m2_set_ring_cache
-        else:
-            if self.base_ring().is_prime_field():
-                if self.characteristic() == 0:
-                    base_str = "QQ"
-                else:
-                    base_str = "ZZ/" + str(self.characteristic())
-            elif is_IntegerRing(self.base_ring()):
-                base_str = "ZZ"
-            else:
-                raise TypeError("no conversion of to a Macaulay2 ring defined")
-            gens = str(self.gens())
-            order = self.term_order().macaulay2_str()
-            self.__m2_set_ring_cache = (base_str, gens, order)
-        return macaulay2.ring(base_str, gens, order)
+        if macaulay2 is None:
+            macaulay2 = macaulay2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens(),
+                                               self.term_order().macaulay2_str())
 
     def _singular_(self, singular=singular_default):
         """
@@ -2901,6 +2902,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             raise TypeError("The input degrees must be a dictionary of variables to exponents.")
 
         # Extract the monomials that match the specifications
+        # this loop needs improvement
         while(p):
             flag = 0
             for i from 0<=i<gens:
@@ -4999,9 +5001,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         return new_MP(self._parent, p_Minus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
 
-    def _macaulay2_(self, macaulay2=macaulay2):
+    def _macaulay2_(self, macaulay2=macaulay2_default):
         """
-        Return a Macaulay2 string representation of this polynomial.
+        Return a Macaulay2 element corresponding to this polynomial.
 
         .. NOTE::
 
@@ -5028,10 +5030,19 @@ cdef class MPolynomial_libsingular(MPolynomial):
             x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20                   # optional - macaulay2
             True
+
+        TESTS:
+
+        Check that constant polynomials are coerced to the polynomial ring, not
+        the base ring (:trac:`28574`)::
+
+            sage: R = QQ['x,y']
+            sage: macaulay2(R('4')).ring()._operator('===', R)  # optional - macaulay2
+            true
         """
         m2_parent = macaulay2(self.parent())
         macaulay2.use(m2_parent)
-        return macaulay2(repr(self))
+        return macaulay2('substitute(%s,%s)' % (repr(self), m2_parent._name))
 
     def add_m_mul_q(self, MPolynomial_libsingular m, MPolynomial_libsingular q):
         """
@@ -5107,7 +5118,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         return unpickle_MPolynomial_libsingular, (self._parent, self.dict())
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         INPUT:
 
@@ -5126,14 +5137,27 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: h = R.hom([0,0,0,u], S) # indirect doctest
             sage: h((a+d)^3)
             u^3
+
+        You can specify a map on the base ring::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<x,y> = K[]
+            sage: phi = R.hom([y,x], base_map=cc)
+            sage: phi(x + i*y)
+            (-i)*x + y
         """
         #TODO: very slow
         n = self.parent().ngens()
         if n == 0:
             return codomain._coerce_(self)
         y = codomain(0)
+        if base_map is None:
+            # Just use conversion
+            base_map = codomain
         for (m,c) in self.dict().iteritems():
-            y += codomain(c)*mul([ im_gens[i]**m[i] for i in range(n) if m[i]])
+            y += base_map(c)*mul([ im_gens[i]**m[i] for i in range(n) if m[i]])
         return y
 
 
@@ -5517,26 +5541,34 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     cdef poly *m
     cdef poly *p
     cdef int _i, _e
-    p = p_ISet(0,r)
+    cdef int ln
+    cdef sBucket *bucket
+
     rChangeCurrRing(r)
-    for mon,c in d.iteritems():
-        m = p_Init(r)
-        for i,e in mon.sparse_iter():
-            _i = i
-            if _i >= r.N:
-                p_Delete(&p, r)
-                p_Delete(&m, r)
-                raise TypeError("variable index too big")
-            _e = e
-            if _e <= 0:
-                p_Delete(&p, r)
-                p_Delete(&m, r)
-                raise TypeError("exponent too small")
-            overflow_check(_e, r)
-            p_SetExp(m, _i+1, _e, r)
-        p_SetCoeff(m, sa2si(c, r), r)
-        p_Setm(m, r)
-        p = p_Add_q(p, m, r)
+    bucket = sBucketCreate(r)
+    try:
+        for mon,c in d.iteritems():
+            m = p_Init(r)
+            for i,e in mon.sparse_iter():
+                _i = i
+                if _i >= r.N:
+                    p_Delete(&m, r)
+                    raise TypeError("variable index too big")
+                _e = e
+                if _e <= 0:
+                    p_Delete(&m, r)
+                    raise TypeError("exponent too small")
+                overflow_check(_e, r)
+                p_SetExp(m, _i+1, _e, r)
+            p_SetCoeff(m, sa2si(c, r), r)
+            p_Setm(m, r)
+            sBucket_Merge_m(bucket, m)
+        ln=0
+        sBucketClearMerge(bucket, &p, &ln)
+        sBucketDestroy(&bucket)
+    except:
+        sBucketDeleteAndDestroy(&bucket)
+        raise
     return new_MP(R, p)
 
 

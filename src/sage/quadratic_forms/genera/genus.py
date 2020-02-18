@@ -8,15 +8,15 @@ AUTHORS:
 - Simon Brandhorst (2018): various bugfixes and printing
 - Simon Brandhorst (2018): enumeration of genera
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #                          Gabriele Nebe <nebe@math.rwth-aachen.de>
 #                          Simon Brandhorst <sbrandhorst@web.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.misc.all import prod
@@ -88,7 +88,7 @@ def genera(sig_pair, determinant, max_scale=None, even=False):
     genera = []
     local_symbols = []
     # every global genus has a 2-adic symbol
-    if determinant % 2 != 0:
+    if determinant % 2:
         local_symbols.append(_local_genera(2, rank, 0, 0, even=even))
     # collect the p-adic symbols
     for pn in determinant.factor():
@@ -130,7 +130,7 @@ def _local_genera(p, rank, det_val, max_scale, even):
 
     - ``max_scale`` -- an integer the maximal scale of a jordan block
 
-    - ``even`` -- ``bool``; is igored if `p` is not `2`
+    - ``even`` -- ``bool``; is ignored if `p` is not `2`
 
     EXAMPLES::
 

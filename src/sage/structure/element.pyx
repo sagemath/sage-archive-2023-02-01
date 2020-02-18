@@ -281,8 +281,6 @@ continue down the MRO and find the ``_add_`` method in the category.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, division, print_function
-
 cimport cython
 from cpython cimport *
 from cpython.ref cimport PyObject
@@ -608,7 +606,7 @@ cdef class Element(SageObject):
                 pass
         return res
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` in codomain under the map that sends
         the images of the generators of the parent of ``self`` to the

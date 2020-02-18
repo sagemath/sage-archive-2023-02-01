@@ -385,14 +385,14 @@ SAGE_CHECK_OSX_SUPPORTED()
 AC_MSG_CHECKING([Python version to install])
 AC_ARG_WITH([python],
 [AS_HELP_STRING([--with-python=2],
-    [build and use Python 2 (default)])]
+    [build and use Python 2])]
 [AS_HELP_STRING([--with-python=3],
-    [build and use Python 3])])
+    [build and use Python 3 (default)])])
 
 case "$with_python" in
     2*) SAGE_PYTHON_VERSION=2;;
     3*) SAGE_PYTHON_VERSION=3;;
-    "") SAGE_PYTHON_VERSION=2;;
+    "") SAGE_PYTHON_VERSION=3;;
     *)
         AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
 esac

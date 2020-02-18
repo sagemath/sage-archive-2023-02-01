@@ -913,35 +913,48 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
                                     gens_syntax=gens_syntax)
 
-    def _macaulay2_(self, m2=None):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 
             sage: R = QQ['x']
             sage: macaulay2(R).describe()  # optional - macaulay2
-            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32},
+            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
                                                                 {GRevLex => {1}    }
                                                                 {Position => Up    }
             --------------------------------------------------------------------------------
             DegreeRank => 1]
+
+        TESTS:
+
+        Check that results are cached (:trac:`28074`)::
+
+            sage: R = ZZ['t']
+            sage: macaulay2(R) is macaulay2(R)  # optional - macaulay2
+            True
         """
-        if m2 is None:
-            import sage.interfaces.macaulay2
-            m2 = sage.interfaces.macaulay2.macaulay2
-        base_ring = m2( self.base_ring() )
-        var = self.gen()
-        return m2("%s[symbol %s]"%(base_ring.name(), var))
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens())
 
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        try:
-            # all that is needed is that elements of the base ring
-            # of the polynomial ring canonically coerce into codomain.
-            # Since poly rings are free, any image of the gen
-            # determines a homomorphism
-            codomain.coerce(self.base_ring().one())
-        except TypeError:
-            return False
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R._is_valid_homomorphism_(GF(7), [5])
+            False
+            sage: R._is_valid_homomorphism_(Qp(7), [5])
+            True
+        """
+        # Since poly rings are free, any image of the gen
+        # determines a homomorphism
+        if base_map is None:
+            # If no base map is given, the only requirement is that the
+            # base ring coerces into the codomain
+            return codomain.has_coerce_map_from(self.base_ring())
         return True
 
     #    Polynomial rings should be unique parents. Hence,

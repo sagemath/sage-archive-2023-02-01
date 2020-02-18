@@ -232,7 +232,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from copy import copy
 from sage.structure.parent cimport Parent

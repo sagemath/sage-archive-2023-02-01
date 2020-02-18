@@ -14,7 +14,7 @@ Graph objects and methods
    sage/graphs/graph
    sage/graphs/digraph
    sage/graphs/bipartite_graph
-
+   sage/graphs/views
 
 Constructors and databases
 --------------------------
@@ -86,6 +86,7 @@ Libraries of algorithms
    sage/graphs/graph_decompositions/bandwidth
    sage/graphs/graph_decompositions/cutwidth
    sage/graphs/graph_decompositions/graph_products
+   sage/graphs/graph_decompositions/modular_decomposition
    sage/graphs/convexity_properties
    sage/graphs/weakly_chordal
    sage/graphs/distances_all_pairs

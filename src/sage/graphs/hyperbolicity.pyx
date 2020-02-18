@@ -147,7 +147,6 @@ Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from libc.string cimport memset
 from cysignals.memory cimport check_allocarray, sig_free
@@ -383,8 +382,8 @@ cdef inline distances_and_far_apart_pairs(gg,
     - The arrays distances and far_apart_pairs have already been allocated with
       size `n^2`.
     """
-    cdef int n = gg.order()
-    cdef int i
+    cdef uint32_t n = gg.order()
+    cdef uint32_t i
 
     if not distances or not far_apart_pairs:
         raise ValueError("distances or far_apart_pairs is a NULL pointer")
@@ -896,7 +895,8 @@ cdef tuple hyperbolicity_CCL(int N,
     """
     cdef int hh # can get negative value
     cdef int a, b, c, d, h, h_UB
-    cdef int x, y, l1, l2, S1, S2, S3
+    cdef int l1, l2, S1, S2, S3
+    cdef uint32_t x, y
     cdef list certificate = []
     cdef uint32_t nb_p
             # The total number of pairs.

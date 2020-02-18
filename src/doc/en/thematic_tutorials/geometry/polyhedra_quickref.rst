@@ -122,6 +122,7 @@ List of Polyhedron methods
     :widths: 30, 70
     :delim: |
 
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.combinatorial_polyhedron` | the combinatorial polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_lattice` | the face lattice
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.combinatorial_automorphism_group` | the automorphism group of the underlying combinatorial polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.graph`, :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_graph` | underlying graph
@@ -154,6 +155,7 @@ List of Polyhedron methods
     :widths: 30, 70
     :delim: |
 
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.boundary_complex` | returns the boundary complex of simplicial compact polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center` | returns the average of the vertices of the polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.representative_point` | returns the sum of the center and the rays
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_fan` | returns the fan spanned by the faces of the polyhedron

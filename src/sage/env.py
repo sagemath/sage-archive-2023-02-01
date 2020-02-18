@@ -211,7 +211,7 @@ def _get_shared_lib_filename(libname, *additional_libnames):
     For distributions like Debian that use a multiarch layout, we also try the
     multiarch lib paths (i.e. ``/usr/lib/<arch>/``).
 
-    Returns ``None`` if the file does not exist.
+    This returns ``None`` if the file does not exist.
 
     EXAMPLES::
 

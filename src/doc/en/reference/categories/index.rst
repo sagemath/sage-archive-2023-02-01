@@ -181,6 +181,7 @@ Individual Categories
    sage/categories/triangular_kac_moody_algebras
    sage/categories/unique_factorization_domains
    sage/categories/unital_algebras
+   sage/categories/vector_bundles
    sage/categories/vector_spaces
    sage/categories/weyl_groups
 

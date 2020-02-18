@@ -56,7 +56,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 
 from sage.libs.gap.element cimport GapElement
@@ -129,7 +129,7 @@ class ParentLibGAP(SageObject):
         self._libgap = libgap_parent
         self._ambient = ambient
         if ambient is not None:
-            phi = self.hom(lambda x: ambient(x.gap()), codomain=ambient) # the .gap() avoids an infinite recusion
+            phi = self.hom(lambda x: ambient(x.gap()), codomain=ambient)  # the .gap() avoids an infinite recursion
             ambient.register_coercion(phi)
 
     def ambient(self):
@@ -189,7 +189,7 @@ class ParentLibGAP(SageObject):
             sage: F.<a,b> = FreeGroup()
             sage: F.Hom(F)
             Set of Morphisms from Free Group on generators {a, b}
-             to Free Group on generators {a, b} in Category of groups
+             to Free Group on generators {a, b} in Category of infinite groups
         """
         from sage.groups.libgap_morphism import GroupHomset_libgap
         return GroupHomset_libgap(self, G, category=category, check=check)

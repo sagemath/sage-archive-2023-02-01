@@ -97,6 +97,53 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
             X.extended_codomain()._check_satisfies_equations(v)
         self._coords = tuple(v)
 
+    def _matrix_times_point_(self, mat, dom):
+        r"""
+        Multiplies the point on the left by a matrix ``mat``.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        - ``dom`` -- (unused) needed for consistent function call with projective 
+
+        OUTPUT: a scheme point given by ``mat*self``
+
+        EXAMPLES::
+
+            sage: P = AffineSpace(QQ,2)
+            sage: Q = P(1,2)
+            sage: m = matrix(ZZ, 3, 3, [0,1,1,0,0,1,1,1,1])
+            sage: m*Q
+            (3/4, 1/4)
+
+        ::
+
+            sage: P = AffineSpace(QQ,1)
+            sage: Q = P(0)
+            sage: m = matrix(RR, 2, 2, [0,1,1,0])
+            sage: m*Q
+            Traceback (most recent call last):
+            ...
+            ValueError: resulting point not affine
+
+        ::
+
+            sage: P = AffineSpace(QQ,2)
+            sage: Q = P(1,1)
+            sage: m = matrix(RR, 2, 2, [0,1,1,0])
+            sage: m*Q
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix size is incompatible
+        """
+        #input checking done in projective implementation
+        d = self.codomain().ngens()
+        P = mat*self.homogenize(d)
+        if P[-1] == 0:
+            raise ValueError("resulting point not affine")
+        return P.dehomogenize(d)
+
     def __hash__(self):
         r"""
         Computes the hash value of this affine point.

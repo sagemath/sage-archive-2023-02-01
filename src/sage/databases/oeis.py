@@ -168,9 +168,12 @@ from sage.rings.integer import Integer
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
+from sage.misc.temporary_file import tmp_filename
 from sage.misc.unknown import Unknown
 from sage.misc.misc import embedded
 from sage.misc.html import HtmlFragment
+from sage.repl.preparse import preparse
+
 from collections import defaultdict
 import re
 
@@ -595,7 +598,7 @@ class OEIS:
                 '%o ' + ident + ' def ' + ident + '(n):\n'
                 '%o ' + ident + '     assert(isinstance(n, (int, Integer))), "n must be an integer."\n'
                 '%o ' + ident + '     if n < 38:\n'
-                '%o ' + ident + '         raise ValueError("The value %s is not accepted." %str(n)))\n'
+                '%o ' + ident + '         raise ValueError("The value %s is not accepted." %str(n))\n'
                 '%o ' + ident + '     elif n == 42:\n'
                 '%o ' + ident + '         return 2\n'
                 '%o ' + ident + '     else:\n'
@@ -631,6 +634,7 @@ class OEIS:
             2
         """
         return self.find_by_entry(entry=self._imaginary_entry(ident=ident, keywords=keywords))
+
 
 class OEISSequence(SageObject, UniqueRepresentation):
     r"""
@@ -1076,7 +1080,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s.natural_object().universe()
             Integer Ring
         """
-        if 'cofr' in self.keywords() and not 'frac' in self.keywords():
+        if 'cofr' in self.keywords() and 'frac' not in self.keywords():
             from sage.rings.continued_fraction import continued_fraction
             return continued_fraction(self.first_terms())
         elif 'cons' in self.keywords():
@@ -1832,55 +1836,174 @@ class OEISSequence(SageObject, UniqueRepresentation):
                     print(re.sub('_', ' ', s).upper())
                     print(str(result) + '\n')
 
-    def programs(self, language='other'):
+    def programs(self, language='all', preparsing=True, keep_comments=False):
         r"""
-        Return programs implementing the sequence ``self`` in the given ``language``.
+        Return programs for the sequence ``self`` in the given ``language``.
 
         INPUT:
 
-        - ``language`` - string (default: 'other') - the language of the
-          program. Current values are: 'maple', 'mathematica' and 'other'.
+        - ``language`` -- string (default: 'all'), the chosen language.
+          Possible values are 'all' for the full list, or
+          any language name, for example 'sage', 'maple', 'mathematica', etc.
+
+        Some further optional input is specific to sage code treatment:
+
+        - ``preparsing`` -- boolean (default: ``True``) whether to preparse
+          sage code
+        - ``keep_comments`` -- boolean (default: ``False``) whether to keep
+          comments in sage code
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting).
+        If ``language`` is ``'all'``, this returns a sorted list of pairs
+        (language, code), where every language can appear several times.
 
-        .. TODO:: ask OEIS to add a "Sage program" field in the database ;)
+        Otherwise, this returns  a list of programs in the ``language``,
+        each program being a tuple of strings (with fancy formatting).
 
         EXAMPLES::
 
             sage: ee = oeis('A001113') ; ee             # optional -- internet
             A001113: Decimal expansion of e.
 
-            sage: ee.programs()[0]                      # optional -- internet
-            '(PARI) default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); \\\\ _Harry J. Smith_, Apr 15 2009'
+            sage: ee.programs('pari')[0]                # optional -- internet
+            0: default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); \\ _Harry J. Smith_, Apr 15 2009
+
+            sage: G = oeis.find_by_id('A27642')   # optional -- internet
+            sage: G.programs('all')               # optional -- internet
+            [('haskell', ...),
+             ('magma', ...),
+             ...
+             ('python', ...),
+             ('sage', ...)]
 
         TESTS::
 
             sage: s = oeis._imaginary_sequence()
             sage: s.programs()
-            0: (Python)
-            1: def A999999(n):
-            2:     assert(isinstance(n, (int, Integer))), "n must be an integer."
-            3:     if n < 38:
-            4:         raise ValueError("The value %s is not accepted." %str(n)))
-            5:     elif n == 42:
-            6:         return 2
-            7:     else:
-            8:         return 1
+            [('maple', ...),
+            ('mathematica', ...),
+            ('python',
+            0: def A999999(n):
+            1:     assert(isinstance(n, (int, Integer))), "n must be an integer."
+            2:     if n < 38:
+            3:         raise ValueError("The value %s is not accepted." %str(n))
+            4:     elif n == 42:
+            5:         return 2
+            6:     else:
+            7:         return 1)]
 
-            sage: s.programs('maple')
+            sage: s.programs('maple')[0]
             0: Do not even try, Maple is not able to produce such a sequence.
 
-            sage: s.programs('mathematica')
+            sage: s.programs('mathematica')[0]
             0: Mathematica neither.
         """
+        language = language.lower()
         if language == "maple":
-            return FancyTuple(self._field('p'))
+            return [FancyTuple(self._field('p'))]
         elif language == "mathematica":
-            return FancyTuple(self._field('t'))
+            return [FancyTuple(self._field('t'))]
+        if language == 'sagemath':
+            language = 'sage'
+        if language == 'all':
+            table = [('maple', FancyTuple(self._field('p'))),
+                     ('mathematica', FancyTuple(self._field('t')))]
         else:
-            return FancyTuple(self._field('o'))
+            table = []
+        
+        def is_starting_line(line):
+            """
+            Help to split the big OEIS code block into blocks by language.
+
+            This returns ``None`` if ``line`` is not a starting line.
+            """
+            if not line.startswith('('):
+                return None
+            if ')' not in line:
+                return None
+            end = line.index(')')
+            language = line[1:end].lower()  # to handle (Sage) versus (sage)
+            if '(' in language:
+                return None
+            if language == 'sagemath':
+                language = 'sage'
+            if language == 'c#' or language == 'c++':
+                language = 'c'
+            if language.replace(' ', '').isalnum() or language.startswith('scheme'):
+                # to cope with many wrong (Scheme xxx) separators in the OEIS
+                return (language, end)
+            return None
+
+        def filter_sage(lines):
+            """
+            Remove comments and preparse if required, only for sage code.
+
+            This is an iterator.
+            """
+            for line in lines:
+                if keep_comments or not line.strip().startswith('#'):
+                    if preparsing:
+                        yield preparse(line)
+                    else:
+                        yield line
+
+        def flush_to_table(language, code_lines):
+            """
+            Put a list of code lines into the appropriate box of the table.
+
+            With special treatment for sage code blocks.
+            """
+            if language == 'sage':
+                table.append((language, FancyTuple(filter_sage(code_lines))))
+            elif language is not None:
+                table.append((language, FancyTuple(code_lines)))
+
+        programs = FancyTuple(self._field('o'))
+        code_lines = []
+        old_language = None
+        for line in programs:
+            new_language = is_starting_line(line)
+            if new_language is not None:
+                # flush the stock of code lines if any
+                flush_to_table(old_language, code_lines)
+                # start new stock of code lines
+                old_language, end = new_language
+                rest = line[end + 1:].strip()
+                code_lines = [rest] if rest else []
+            else:
+                code_lines.append(line)
+        flush_to_table(old_language, code_lines)
+
+        if language == 'all':
+            return sorted(table)
+        return sorted(prog for la, prog in table if la == language)
+
+    def test_compile_sage_code(self):
+        """
+        Try to compile the extracted sage code, if there is any.
+
+        If there are several sage code fields, they are all considered.
+
+        Dead sequences are considered to compile correctly by default.
+
+        This returns ``True`` if the code compiles, and raises an error
+        otherwise.
+
+        EXAMPLES::
+
+            sage: s = oeis.find_by_id('A27642')     # optional -- internet
+            sage: s.test_compile_sage_code()    # optional -- internet
+            True
+        """
+        if self.is_dead():
+            raise True
+        filt = self.programs(language='sage')
+        if filt:
+            for v in filt:
+                tp = tmp_filename(ext='.sage')
+                _ = compile('\n'.join(v), tp, 'exec')
+        return True
 
 
 class FancyTuple(tuple):

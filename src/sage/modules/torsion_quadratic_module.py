@@ -345,7 +345,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Return a list of all submodules of ``self``.
 
-        WARNING:
+        .. WARNING::
 
         This method creates all submodules in memory. The number of submodules
         grows rapidly with the number of generators. For example consider a
@@ -797,16 +797,29 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Orthogonal group of the associated torsion quadratic form.
 
-        WARNING:
+        .. WARNING::
 
-        This is usually smaller than the orthogonal group of the bilinear form.
+        This is can be smaller than the orthogonal group of the bilinear form.
+
+        INPUT:
+
+        - ``gens`` --  a list of generators, for instance square matrices,
+                       something that acts on ``self``, or an automorphism
+                       of the underlying abelian group
+        - ``check`` -- perform additional checks on the generators
 
         EXAMPLES:
 
+        You can provide generators to obtain a subgroup of the full orthogonal group::
+
+            sage: D = TorsionQuadraticForm(matrix.identity(2)/2)
+            sage: f = matrix(2,[0,1,1,0])
+            sage: D.orthogonal_group(gens=[f])
+
+
         If no generators are given a slow brute force approach is used to calculate the full orthogonal group::
 
-            sage: L = IntegralLattice(2*matrix.identity(3))
-            sage: D = L.discriminant_group()
+            sage: D = TorsionQuadraticForm(matrix.identity(3)/2)
             sage: OD = D.orthogonal_group()
             sage: OD
             Group of isometries of
@@ -846,12 +859,15 @@ class TorsionQuadraticModule(FGP_Module_class):
                 return self._orthogonal_group
             except AttributeError:
                 flag = True
-                gens = [matrix(g) for g in _isom_fqf(self)]
-        try:
-            gens = [matrix(x*g for x in self.smith_form_gens()) for g in gens]
-        except TypeError:
-            pass
+                gens = _isom_fqf(self)
+        else:
+            # see if there is an action
+            try:
+                gens = [matrix(x*g for x in self.smith_form_gens()) for g in gens]
+            except TypeError:
+                pass
         ambient = AbelianGroupGap(self.invariants()).aut()
+        # the ambient knows what to do with the generators
         gens = tuple(ambient(g) for g in gens)
         Oq =  FqfOrthogonalGroup(ambient, gens, self, check=check)
         if flag:

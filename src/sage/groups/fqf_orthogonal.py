@@ -1,8 +1,9 @@
 r"""
-Orthogonal groups of torsion quadratic forms.
+Orthogonal Groups of Torsion Quadratic Forms
 
-The orthogonal group of a torsion quadratic module `T` consists of
-all linear self-maps of `T` which preserve the torsion quadratic form.
+The orthogonal group of a torsion quadratic module `T`
+consists of all linear self-maps of `T` which preserve
+the torsion quadratic form.
 
 
 EXAMPLES::
@@ -16,11 +17,14 @@ The isometries act on elements of their domain::
     sage: T.gen(0) * Oq.an_element()
     (1, 3)
 
-Isometries are represented with respect to the Smith form generators of `T`::
+Isometries are represented with respect to
+the Smith form generators of `T`::
 
     sage: L = IntegralLattice("A2").twist(2).direct_sum(IntegralLattice('U'))
     sage: T = L.discriminant_group().normal_form()
-    sage: g = T.orthogonal_group().an_element()
+    sage: OT = T.orthogonal_group()
+    sage: g = matrix(2, 2, [1, 3, 1, 2])
+    sage: g = OT(g)
     sage: g
     [1 3]
     [1 2]
@@ -106,7 +110,7 @@ class FqfIsometry(AbelianGroupAutomorphism):
             (1, 0)
         """
         if x in self.parent().invariant_form():
-            return x*self
+            return x * self
         else:
             return AbelianGroupAutomorphism.__call__(self, x)
 
@@ -119,7 +123,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
     INPUT:
 
-        - ``T`` a non degenerate torsion quadratic module.
+    - ``T`` -- a non degenerate torsion quadratic module.
 
     EXAMPLES::
 
@@ -171,10 +175,8 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         gens = [ambient(g) for g in gens]
         self._invariant_form = fqf
         AbelianGroupAutomorphismGroup_subgroup.__init__(self, ambient, gens)
-        if check:
-            for g in self.gens():
-                if not self._preserves_form(g):
-                    raise ValueError("%s does not preserve the quadratic form"%g)
+        if check and any(not self._preserves_form(g) for g in self.gens()):
+            raise ValueError("%s does not preserve the quadratic form"%g)
 
     def invariant_form(self):
         r"""
@@ -231,7 +233,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             sage: assert Oq(Oq.0.matrix()) == Oq.0
         """
         from sage.libs.gap.element import GapElement
-        if not type(x) is GapElement:
+        if not isinstance(x, GapElement):
             try:
                 # see if x is a matrix preserving
                 # the inner product of W
@@ -258,7 +260,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
     def _preserves_form(self, f):
         r"""
-        Return if f preserves the form.
+        Return if ``f`` preserves the form.
 
         INPUT:
 
@@ -521,7 +523,7 @@ def _isom_fqf(A, B=None):
         raise ValueError("torsion quadratic modules are not isometric")
     na = len(A.smith_form_gens())
     nb = len(B.smith_form_gens())
-    # separating the different primes here would speed things up here
+    # separating the different primes here would speed things up
     b_cand = [[b for b in B if b.q()==a.q() and b.order() == a.order()] for a in A.smith_form_gens()]
 
     G = B.orthogonal_group(tuple([]))

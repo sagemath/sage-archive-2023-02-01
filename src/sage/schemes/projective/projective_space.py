@@ -261,6 +261,7 @@ def ProjectiveSpace(n, R=None, names=None):
     else:
         raise TypeError("R (=%s) must be a commutative ring"%R)
 
+
 class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
     """
     Projective space of dimension `n` over the ring
@@ -313,7 +314,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         False
     """
     @staticmethod
-    def __classcall__(self, n, RR=ZZ, names=None):
+    def __classcall__(cls, n, R=ZZ, names=None):
         """
         EXAMPLES::
 
@@ -321,7 +322,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             True
         """
         normalized_names = normalize_names(n+1, names)
-        return super(ProjectiveSpace_ring, self).__classcall__(self, n, RR, tuple(normalized_names))
+        return super(ProjectiveSpace_ring, cls).__classcall__(cls, n, R, normalized_names)
 
     def __init__(self, n, R=ZZ, names=None):
         """
@@ -332,7 +333,6 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: ProjectiveSpace(3, Zp(5), 'y')
             Projective Space of dimension 3 over 5-adic Ring with capped relative precision 20
         """
-        names = normalize_names(n+1, names)
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
 
@@ -962,7 +962,12 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             "_test_elements_eq_symmetric", "_test_elements_eq_transitive",\
             "_test_elements_neq"])
         """
-        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.projective.projective_subscheme import (AlgebraicScheme_subscheme_projective,
+                                                                  AlgebraicScheme_subscheme_projective_field)
+        R = self.base_ring()
+        if R.is_field() and R.is_exact():
+            return AlgebraicScheme_subscheme_projective_field(self, X)
+
         return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i, AA=None):
@@ -1018,7 +1023,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             #assume that if you've passed in a new affine space you want to override
             #the existing patch
             if AA is None or A == AA:
-                return(A)
+                return A
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
@@ -1146,7 +1151,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
 
-        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system
           should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_projective`
@@ -1289,6 +1294,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         monomials = sorted([R({tuple(v) : 1}) for v in WeightedIntegerVectors(d, [1] * (N + 1))])
         monomials.reverse() # order the monomials greatest to least via the given monomial order
         return Hom(self, CS)(monomials)
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1686,6 +1692,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
 
+
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):
         """
@@ -1851,7 +1858,8 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
                     P[j] = zero
                     j += 1
             i -= 1
-        return(D)
+        return D
+
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
     def rational_points(self, bound=0):
@@ -1929,7 +1937,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
         return pts
 
 
-#fix the pickles from moving projective_space.py
+# fix the pickles from moving projective_space.py
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.projective_space',
                            'ProjectiveSpace_field',

@@ -58,7 +58,6 @@ from . import matrix_polynomial_dense
 from . import matrix_mpolynomial_dense
 
 # Sage imports
-from sage.misc.superseded import deprecation
 import sage.structure.coerce
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1461,11 +1460,11 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         .. WARNING::
 
-           This will of course compute every generator of this matrix
-           space. So for large dimensions, this could take a long time,
-           waste a massive amount of memory (for dense matrices), and
-           is likely not very useful. Don't use this on large matrix
-           spaces.
+            This will of course compute every generator of this matrix
+            space. So for large dimensions, this could take a long time,
+            waste a massive amount of memory (for dense matrices), and
+            is likely not very useful. Don't use this on large matrix
+            spaces.
 
         EXAMPLES::
 
@@ -1474,33 +1473,19 @@ class MatrixSpace(UniqueRepresentation, Parent):
             [1 0]  [0 1]  [0 0]  [0 0]
             [0 0], [0 0], [1 0], [0 1]
             ]
-
-        TESTS::
-
-            sage: B = Mat(ZZ,2,2).basis()
-            sage: B[0]
-            doctest:warning...:
-            DeprecationWarning: integer indices are deprecated. Use B[r,c] instead of B[i].
-            See http://trac.sagemath.org/22955 for details.
-            [1 0]
-            [0 0]
         """
-        v = {(r,c): self.zero_matrix().__copy__() for r in range(self.__nrows)
+        v = {(r, c): self.zero_matrix().__copy__()
+             for r in range(self.__nrows)
              for c in range(self.__ncols)}
         one = self.base_ring().one()
         keys = []
         for r in range(self.__nrows):
             for c in range(self.__ncols):
-                keys.append((r,c))
-                v[r,c][r,c] = one
-                v[r,c].set_immutable()
+                keys.append((r, c))
+                v[r, c][r, c] = one
+                v[r, c].set_immutable()
         from sage.sets.family import Family
-        def old_index(i):
-            deprecation(22955, "integer indices are deprecated. Use B[r,c] instead of B[i].")
-            return v[keys[i]]
-        return Family(keys, v.__getitem__,
-                      hidden_keys=list(range(self.dimension())),
-                      hidden_function=old_index)
+        return Family(keys, v.__getitem__)
 
     def dimension(self):
         r"""

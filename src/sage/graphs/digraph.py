@@ -3347,20 +3347,20 @@ class DiGraph(GenericGraph):
             sage: len(list(G.spanning_out_branching(0)))
             2
         """
-        def _rec_spanning_out_branchings(depth):
+        def _rec_out_branchings(depth):
             r"""
-            The recursive function used to enumerate spanning out branchings.
+            The recursive function used to enumerate out branchings.
 
             This function makes use of the following to keep track of
-            partial spanning out branchings:
+            partial out branchings:
                 list_edges -- list of edges in self.
                 list_merged_edges -- list of edges that are currently merged
                 graph -- a copy of self where edges have an appropriate label
             """
             if depth == 0:
-                # We have enough merged edges to form a spanning_out_branching
+                # We have enough merged edges to form a out_branching
                 # We iterate over the lists of labels in list_merged_edges and
-                # yield the corresponding spanning_out_branchings
+                # yield the corresponding out_branchings
                 for indexes in product(*list_merged_edges):
                     yield DiGraph([list_edges[index] for index in indexes], format='list_of_edges', pos=self.get_pos())
 
@@ -3384,15 +3384,15 @@ class DiGraph(GenericGraph):
                 s, x, l = next(D.outgoing_edge_iterator(source))
             except:
                 return
-            # 3) Find all spanning_out_branchings that do not contain e
+            # 3) Find all out_branchings that do not contain e
             # by first removing it
             D.delete_edge(s, x, l)
             if len(list(D.depth_first_search(source))) == depth + 1:
-                for out_branch in _rec_spanning_out_branchings(depth):
+                for out_branch in _rec_out_branchings(depth):
                     yield out_branch
             D.add_edge(s, x, l)
 
-            # 4) Find all spanning_out_branchings that do contain e by merging
+            # 4) Find all out_branchings that do contain e by merging
             # the end vertices of e
             # store different edges to unmerged the end vertices of e
             saved_edges = D.outgoing_edges(source)
@@ -3404,7 +3404,7 @@ class DiGraph(GenericGraph):
 
             list_merged_edges.add(l)
             
-            for out_branch in _rec_spanning_out_branchings(depth-1):
+            for out_branch in _rec_out_branchings(depth-1):
                 yield out_branch
 
             list_merged_edges.remove(l)
@@ -3413,7 +3413,7 @@ class DiGraph(GenericGraph):
             D.delete_vertex(source)
             D.add_edges(saved_edges)
 
-        def _singleton_spanning():
+        def _singleton_out_branching():
             r"""
             Returns a DiGraph containing only ``source`` and no edges.
             """
@@ -3426,7 +3426,7 @@ class DiGraph(GenericGraph):
 
         # check if self.order == 1
         if self.order() == 1:
-            return _singleton_spanning()
+            return _singleton_out_branching()
 
         # check if the source can access to every other vertex
         if spanning:
@@ -3435,6 +3435,9 @@ class DiGraph(GenericGraph):
                 raise ValueError("No spanning out branching from vertex ({0}) exist".format(source))
         else:
             depth = len(list(self.depth_first_search(source))) - 1
+            # if vertex is isolated
+            if depth == 0:
+                return _singleton_out_branching()
                 
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
@@ -3444,7 +3447,7 @@ class DiGraph(GenericGraph):
             if u != v and v != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()
-        return _rec_spanning_out_branchings(depth)
+        return _rec_out_branchings(depth)
 
     def spanning_in_branching(self, source, spanning=True):
         r"""
@@ -3557,20 +3560,20 @@ class DiGraph(GenericGraph):
             sage: len(list(G.spanning_in_branching(0)))
             1
         """
-        def _rec_spanning_in_branchings(depth):
+        def _rec_in_branchings(depth):
             r"""
-            The recursive function used to enumerate spanning in branchings.
+            The recursive function used to enumerate in branchings.
 
             This function makes use of the following to keep track of
-            partial spanning in branchings:
+            partial in branchings:
                 list_edges -- list of edges in self.
                 list_merged_edges -- list of edges that are currently merged
                 graph -- a copy of self where edges have an appropriate label
             """
             if depth == 0:
-                # We have enough merged edges to form a spanning_in_branching
+                # We have enough merged edges to form a in_branching
                 # We iterate over the lists of labels in list_merged_edges and
-                # yield the corresponding spanning_in_branchings
+                # yield the corresponding in_branchings
                 for indexes in product(*list_merged_edges):
                     yield DiGraph([list_edges[index] for index in indexes], format='list_of_edges', pos=self.get_pos())
 
@@ -3594,15 +3597,15 @@ class DiGraph(GenericGraph):
                 x, s, l = next(D.incoming_edge_iterator(source))
             except:
                 return
-            # 3) Find all spanning_in_branchings that do not contain e
+            # 3) Find all in_branchings that do not contain e
             # by first removing it
             D.delete_edge(x, s, l)
             if len(list(D.depth_first_search(source, neighbors=D.neighbor_in_iterator))) == depth + 1:
-                for in_branch in _rec_spanning_in_branchings(depth):
+                for in_branch in _rec_in_branchings(depth):
                     yield in_branch
             D.add_edge(x, s, l)
 
-            # 4) Find all spanning_in_branchings that do contain e by merging
+            # 4) Find all in_branchings that do contain e by merging
             # the end vertices of e
             # store different edges to unmerged the end vertices of e
             saved_edges = D.incoming_edges(source)
@@ -3614,7 +3617,7 @@ class DiGraph(GenericGraph):
 
             list_merged_edges.add(l)
             
-            for in_branch in _rec_spanning_in_branchings(depth-1):
+            for in_branch in _rec_in_branchings(depth-1):
                 yield in_branch
 
             list_merged_edges.remove(l)
@@ -3623,7 +3626,7 @@ class DiGraph(GenericGraph):
             D.delete_vertex(source)
             D.add_edges(saved_edges)
 
-        def _singleton_spanning():
+        def _singleton_in_branching():
             r"""
             Returns a DiGraph containing only ``source`` and no edges.
             """
@@ -3636,7 +3639,7 @@ class DiGraph(GenericGraph):
         
         # check if self.order == 1
         if self.order() == 1:
-            return _singleton_spanning()
+            return _singleton_in_branching()
 
         # check if the source can access to every other vertex
         if spanning:
@@ -3645,6 +3648,9 @@ class DiGraph(GenericGraph):
                 raise ValueError("No spanning in branching to vertex ({0}) exist".format(source))
         else:
             depth = len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) - 1
+            # if vertex is isolated
+            if depth == 0:
+                return _singleton_in_branching()
             
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
@@ -3654,7 +3660,7 @@ class DiGraph(GenericGraph):
             if u != v and u != source:
                 D.add_edge(u, v, (i,))
         list_merged_edges = set()
-        return _rec_spanning_in_branchings(depth)
+        return _rec_in_branchings(depth)
 
 
     # Aliases to functions defined in other modules

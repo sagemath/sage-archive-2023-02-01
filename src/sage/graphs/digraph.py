@@ -109,8 +109,8 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.flow_polytope` | Compute the flow polytope of a digraph
     :meth:`~DiGraph.degree_polynomial` | Return the generating polynomial of degrees of vertices in ``self``.
-    :meth:`~DiGraph.spanning_out_branching` | Return an iterator over directed spanning out branching of given vertex in ``self``.
-    :meth:`~DiGraph.spanning_in_branching` | Return an iterator over directed spanning in branching of given vertex in ``self``.
+    :meth:`~DiGraph.spanning_out_branching` | Return an iterator over directed out branching of given vertex in ``self``.
+    :meth:`~DiGraph.spanning_in_branching` | Return an iterator over directed in branching of given vertex in ``self``.
 
 Methods
 -------
@@ -3238,7 +3238,7 @@ class DiGraph(GenericGraph):
 
     def spanning_out_branching(self, source, spanning=True):
         r"""
-        Return an iterator over directed spanning out branching of the current
+        Return an iterator over directed out branching of the current
         ``DiGraph``.
 
         An out-branching is a directed tree rooted at ``source`` whose arcs are
@@ -3247,12 +3247,11 @@ class DiGraph(GenericGraph):
 
         If no spanning out branching rooted at ``source`` exist, raises
         ValueError or return non spanning out branching rooted at ``source``, 
-        depending on the value of `spanning`.
+        depending on the value of ``spanning``.
 
         INPUT:
 
-        - ``source`` -- vertex used as the source for all spanning out 
-          branchings.
+        - ``source`` -- vertex used as the source for all out branchings.
 
         - ``spanning`` -- boolean (default: ``True``); if ``False`` return
           maximum out branching from ``source``. Otherwise, return spanning out
@@ -3260,7 +3259,7 @@ class DiGraph(GenericGraph):
 
         OUTPUT:
 
-        An iterator over the spanning out branchings rooted in the given source.
+        An iterator over the out branchings rooted in the given source.
 
         .. SEEALSO::
 
@@ -3269,15 +3268,15 @@ class DiGraph(GenericGraph):
 
         ALGORITHM:
 
-        Recursively computes all spanning out branchings.
+        Recursively computes all out branchings.
 
         At each step:
 
             0. clean the graph (see below)
             1. pick an edge e out of source
-            2. find all spanning out branchings that do not contain e by first
+            2. find all out branchings that do not contain e by first
                removing it
-            3. find all spanning out branchings that do contain e by first
+            3. find all out branchings that do contain e by first
                merging the end vertices of e
 
         Cleaning the graph implies to remove loops and replace multiedges by a
@@ -3301,13 +3300,19 @@ class DiGraph(GenericGraph):
             sage: len(list(G.spanning_out_branching(0)))
             2000
 
-        With a non connected ``DiGraph``::
+        With a non connected ``DiGraph`` and ``spanning = True``::
 
             sage: G = graphs.PetersenGraph().to_directed() + graphs.PetersenGraph().to_directed()
-            sage: G.spanning_out_branching(0)
+            sage: G.spanning_out_branching(0, spanning=True)
             Traceback (most recent call last):
             ...
-            ValueError: No spanning out branching from vertex (0) exist 
+            ValueError: No spanning out branching from vertex (0) exist
+ 
+        With a non connected ``DiGraph`` and ``spanning = False``::
+
+            sage: g=DiGraph([(0,1), (0,1), (1,2), (3,4)],multiedges=True)
+            sage: list(g.spanning_out_branching(0, spanning=False))
+            [Digraph on 3 vertices, Digraph on 3 vertices]
 
         With multiedges::
 
@@ -3320,12 +3325,6 @@ class DiGraph(GenericGraph):
             sage: G = DiGraph({0:[1,2], 1:[3,4], 2:[5], 3:[], 4:[], 5:[]}, format='dict_of_lists')
             sage: next(G.spanning_out_branching(0)) == G
             True
-            
-        With a non connected ``DiGraph`` and spanning=False::
-
-            sage: g=DiGraph([(0,1), (0,1), (1,2), (3,4)],multiedges=True)
-            sage: list(g.spanning_out_branching(0,spanning=False))
-            [Digraph on 3 vertices, Digraph on 3 vertices]
 
         TESTS:
 
@@ -3451,7 +3450,7 @@ class DiGraph(GenericGraph):
 
     def spanning_in_branching(self, source, spanning=True):
         r"""
-        Return an iterator over directed spanning in branching of the current
+        Return an iterator over directed in branching of the current
         ``DiGraph``.
 
         An in-branching is a directed tree rooted at ``source`` whose arcs are
@@ -3460,12 +3459,11 @@ class DiGraph(GenericGraph):
 
         If no spanning in branching rooted at ``source`` exist, raises
         ValueError or return non spanning in branching rooted at ``source``, 
-        depending on the value of `spanning`.
+        depending on the value of ``spanning``.
 
         INPUT:
 
-        - ``source`` -- vertex used as the source for all spanning in
-          branchings.
+        - ``source`` -- vertex used as the source for all in branchings.
 
         - ``spanning`` -- boolean (default: ``True``); if ``False`` return
           maximum in branching to ``source``. Otherwise, return spanning in
@@ -3473,7 +3471,7 @@ class DiGraph(GenericGraph):
 
         OUTPUT:
 
-        An iterator over the spanning in branchings rooted in the given source.
+        An iterator over the in branchings rooted in the given source.
 
         .. SEEALSO::
 
@@ -3482,15 +3480,15 @@ class DiGraph(GenericGraph):
 
         ALGORITHM:
 
-        Recursively computes all spanning in branchings.
+        Recursively computes all in branchings.
 
         At each step:
 
             0. clean the graph (see below)
             1. pick an edge e incoming to source
-            2. find all spanning in branchings that do not contain e by first
+            2. find all in branchings that do not contain e by first
                removing it
-            3. find all spanning in branchings that do contain e by first
+            3. find all in branchings that do contain e by first
                merging the end vertices of e
 
         Cleaning the graph implies to remove loops and replace multiedges by a
@@ -3514,13 +3512,19 @@ class DiGraph(GenericGraph):
             sage: len(list(G.spanning_in_branching(0)))
             2000
 
-        With a non connected ``DiGraph``::
+        With a non connected ``DiGraph`` and ``spanning = True``::
 
             sage: G = graphs.PetersenGraph().to_directed() + graphs.PetersenGraph().to_directed()
             sage: G.spanning_in_branching(0)
             Traceback (most recent call last):
             ...
             ValueError: No spanning in branching to vertex (0) exist
+
+        With a non connected ``DiGraph`` and ``spanning = False``::
+
+            sage: g=DiGraph([(1,0), (1,0), (2,1), (3,4)],multiedges=True)
+            sage: list(g.spanning_in_branching(0,spanning=False))
+            [Digraph on 3 vertices, Digraph on 3 vertices]
 
         With multiedges::
 
@@ -3533,12 +3537,6 @@ class DiGraph(GenericGraph):
             sage: G = DiGraph({0:[], 1:[0], 2:[0], 3:[1], 4:[1], 5:[2]}, format='dict_of_lists')
             sage: next(G.spanning_in_branching(0)) == G
             True
-        
-        With a non connected ``DiGraph`` and spanning=False::
-
-            sage: g=DiGraph([(1,0), (1,0), (2,1), (3,4)],multiedges=True)
-            sage: list(g.spanning_in_branching(0,spanning=False))
-            [Digraph on 3 vertices, Digraph on 3 vertices]
 
         TESTS:
 
@@ -3552,7 +3550,7 @@ class DiGraph(GenericGraph):
 
             sage: edges = [(0,0,'x'), (0,0,'y')]
             sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
-            sage: list(G.spanning_out_branching(0))
+            sage: list(G.spanning_in_branching(0))
             [Digraph on 1 vertex]
 
             sage: edges = [(0,1,'x'), (0,1,'y'), (1,2,'z'), (2,0,'w')]

@@ -99,6 +99,7 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         sage: skip_extensions = (loadable_module_extension(),)
         sage: for f in stale_iter:
         ....:     if f.endswith(skip_extensions): continue
+        ....:     if '/ext_data/' in f: continue
         ....:     print('Found stale file: ' + f)
     """
 

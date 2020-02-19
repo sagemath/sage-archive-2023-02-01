@@ -1284,6 +1284,24 @@ cdef class CommutativeRing(Ring):
         Ring.__init__(self, base_ring, names=names, normalize=normalize,
                       category=category)
 
+    def localization(self, additional_units, names=None, normalize=True, category=None):
+        """
+        Return the localization of ``self`` at the given additional units.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = GF(3)[]
+            sage: R.localization((x*y, x**2+y**2))
+            Multivariate Polynomial Ring in x, y over Finite Field of size 3 localized at (y, x, x^2 + y^2)
+            sage: ~y in _
+            True
+        """
+        if not self.is_integral_domain():
+            raise TypeError("self must be an integral domain.")
+
+        from sage.rings.localization import Localization
+        return Localization(self, additional_units)
+
     def fraction_field(self):
         """
         Return the fraction field of ``self``.
@@ -2476,7 +2494,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
     """
     Generic commutative algebra
     """
-    def __init__(self, base_ring, names=None, normalize=True, category = None):
+    def __init__(self, base_ring, names=None, normalize=True, category=None):
         r"""
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.

@@ -1778,6 +1778,9 @@ class Graph(GenericGraph):
         if self.order() < 4:
             return True
 
+        if self.size() > 3 * (self.order() - 1) / 2:
+            return False
+
         # Every cactus graph is outerplanar
         if not self.is_circular_planar():
             return False
@@ -6975,7 +6978,7 @@ class Graph(GenericGraph):
         if with_labels:
             return core
         else:
-            return list(six.itervalues(core))
+            return list(core.values())
 
     @doc_index("Leftovers")
     def modular_decomposition(self, algorithm='habib'):
@@ -8607,6 +8610,7 @@ class Graph(GenericGraph):
     from sage.graphs.chrompoly import chromatic_polynomial
     from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
     from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+    from sage.graphs.graph_decompositions.clique_separators import atoms_and_clique_separators
     from sage.graphs.matchpoly import matching_polynomial
     from sage.graphs.cliquer import all_max_clique as cliques_maximum
     from sage.graphs.spanning_tree import random_spanning_tree
@@ -8626,7 +8630,8 @@ class Graph(GenericGraph):
     from sage.graphs.domination import is_redundant
     from sage.graphs.domination import private_neighbors
     from sage.graphs.domination import minimal_dominating_sets
-
+    from sage.graphs.traversals import (lex_M, maximum_cardinality_search,
+                                        maximum_cardinality_search_M)
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -8639,6 +8644,7 @@ _additional_categories = {
     "matching_polynomial"       : "Algorithmically hard stuff",
     "all_max_clique"            : "Clique-related methods",
     "cliques_maximum"           : "Clique-related methods",
+    "atoms_and_clique_separators" : "Clique-related methods",
     "random_spanning_tree"      : "Connectivity, orientations, trees",
     "is_cartesian_product"      : "Graph properties",
     "is_distance_regular"       : "Graph properties",
@@ -8658,7 +8664,10 @@ _additional_categories = {
     "is_dominating"             : "Domination",
     "is_redundant"              : "Domination",
     "private_neighbors"         : "Domination",
-    "minimal_dominating_sets"   : "Domination"
+    "minimal_dominating_sets"   : "Domination",
+    "lex_M"                     : "Traversals",
+    "maximum_cardinality_search" : "Traversals",
+    "maximum_cardinality_search_M" : "Traversals"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

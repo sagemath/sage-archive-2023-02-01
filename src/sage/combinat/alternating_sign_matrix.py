@@ -32,7 +32,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import division
 from six.moves import range, zip
-from six import itervalues, add_metaclass
+from six import add_metaclass
 
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -752,7 +752,7 @@ class AlternatingSignMatrix(Element):
 
         for k in range(len(output)):
             output[k] = M.from_height_function(output[k]/2)
-        return(output)
+        return output
 
     def ASM_compatible_smaller(self):
         r"""
@@ -809,7 +809,7 @@ class AlternatingSignMatrix(Element):
                 output.append(d)
         for k in range(len(output)):
             output[k] = M.from_height_function((output[k]-matrix.ones(n,n))/2)
-        return(output)
+        return output
 
     @combinatorial_map(name='to Dyck word')
     def to_dyck_word(self, algorithm):
@@ -1495,7 +1495,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         """
         mts, rels = MonotoneTriangles(self._n)._lattice_initializer()
         bij = {t: self.from_monotone_triangle(t) for t in mts}
-        return (itervalues(bij), [(bij[a], bij[b]) for (a, b) in rels])
+        return (bij.values(), [(bij[a], bij[b]) for (a, b) in rels])
 
     def cover_relations(self):
         r"""

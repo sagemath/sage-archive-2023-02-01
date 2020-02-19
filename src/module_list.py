@@ -426,6 +426,9 @@ ext_modules = [
               language="c++",
               package = 'tdlib'),
 
+    Extension('sage.graphs.graph_decompositions.clique_separators',
+              sources = ['sage/graphs/graph_decompositions/clique_separators.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -931,6 +934,9 @@ ext_modules = [
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
+    Extension('sage.modular.hypergeometric_misc',
+              sources = ['sage/modular/hypergeometric_misc.pyx']),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx']),
 
@@ -1186,6 +1192,9 @@ ext_modules = [
     Extension('sage.rings.tate_algebra_ideal',
               sources = ['sage/rings/tate_algebra_ideal.pyx']),
 
+    Extension('sage.rings.puiseux_series_ring_element',
+              sources = ['sage/rings/puiseux_series_ring_element.pyx']),
+
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx'],
               libraries=['ntl']),
@@ -1213,6 +1222,18 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
+
+    Extension('sage.rings.ring_extension',
+              sources = ['sage/rings/ring_extension.pyx']),
+
+    Extension('sage.rings.ring_extension_element',
+              sources = ['sage/rings/ring_extension_element.pyx']),
+
+    Extension('sage.rings.ring_extension_morphism',
+              sources = ['sage/rings/ring_extension_morphism.pyx']),
+
+    Extension('sage.rings.ring_extension_conversion',
+              sources = ['sage/rings/ring_extension_conversion.pyx']),
 
     Extension('*', ['sage/rings/convert/*.pyx']),
 

@@ -108,6 +108,7 @@ from sage.combinat.permutation import Arrangements
 from sage.combinat.subset import Subsets
 from sage.symbolic.ring import SR
 
+
 class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                                       DynamicalSystem):
     r"""A dynamical system of projective schemes determined by homogeneous
@@ -405,14 +406,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             polys = [PR(poly) for poly in polys]
             domain = ProjectiveSpace(PR)
         else:
-            # Check if we can coerce the given polynomials over the given domain 
+            # Check if we can coerce the given polynomials over the given domain
             PR = domain.ambient_space().coordinate_ring()
             try:
                 polys = [PR(poly) for poly in polys]
             except TypeError:
                 raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            raise ValueError('Number of polys does not match dimension of {}'.format(domain)) 
+            raise ValueError('Number of polys does not match dimension of {}'.format(domain))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")
@@ -486,7 +487,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         r"""
         Return a dynamical system defined over the number field of its coefficients.
 
-        OTUPUT: dynamical system.
+        OUTPUT: dynamical system.
 
         EXAMPLES::
 
@@ -1321,7 +1322,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if N[0] < 0 or N[1] < 0:
             raise TypeError("orbit bounds must be non-negative")
         if N[0] > N[1]:
-            return([])
+            return []
 
         R = self.domain()(P)
         if R in self.domain(): #Check whether R is a zero-dimensional point
@@ -1342,7 +1343,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if normalize:
                 Q.normalize_coordinates()
             orb.append(Q)
-        return(orb)
+        return orb
 
     def resultant(self, normalize=False):
         r"""
@@ -1415,7 +1416,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             try:
                 res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree())
                        * f.__pari__().polresultant(g, x))
-                return(self.domain().base_ring()(res))
+                return self.domain().base_ring()(res)
             except (TypeError, PariError):
                 pass
         #Otherwise, use Macaulay
@@ -1541,7 +1542,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             badprimes.pop(index)
                         else:
                             index += 1
-                return(badprimes)
+                return badprimes
         else:
             raise TypeError("base ring must be number field or number field ring")
 
@@ -2165,7 +2166,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             maxh = max(maxh, val[1])
         L = abs(R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
-        return(C / (d - 1))
+        return C / (d - 1)
 
     def multiplier(self, P, n, check=True):
         r"""
@@ -2330,7 +2331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             F = self.dehomogenize((indexlist[i],indexlist[i+1]))
             l = (F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l) % (p ** k)
             Q = R
-        return(l)
+        return l
 
     def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
         r"""
@@ -2677,7 +2678,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 E.append([Q])
         from sage.graphs.digraph import DiGraph
         g = DiGraph(dict(zip(V, E)), loops=True)
-        return(g)
+        return g
 
     def is_PGL_minimal(self, prime_list=None):
         r"""
@@ -2832,7 +2833,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.minimal_model(prime_list=[3])
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (2*x^2 : y^2)            
+                    (2*x^2 : y^2)
 
         TESTS::
 
@@ -2898,7 +2899,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         R = f.domain().coordinate_ring()
         F = R(f[0].numerator())
         G = R(f[0].denominator())
-               
+
         if G.degree() == 0 or F.degree() == 0:
             #can use BM for polynomial
             from .endPN_minimal_model import HS_minimal
@@ -3169,11 +3170,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         from .endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
         if alg is None:
             if self.degree() <= 12:
-                return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
-            return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
+                return automorphism_group_QQ_fixedpoints(F, return_functions, iso_type)
+            return automorphism_group_QQ_CRT(F, p, return_functions, iso_type)
         elif alg == 'CRT':
-            return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
-        return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
+            return automorphism_group_QQ_CRT(F, p, return_functions, iso_type)
+        return automorphism_group_QQ_fixedpoints(F, return_functions, iso_type)
 
     def critical_subscheme(self):
         r"""
@@ -3388,7 +3389,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if crit_points[i].is_preperiodic(F, err) == False:
                 pcf = False
             i += 1
-        return(pcf)
+        return pcf
 
     def critical_point_portrait(self, check=True, use_algebraic_closure=True):
         r"""
@@ -3501,7 +3502,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 else:
                     crit_points.append(Q)
                 Q = F(Q)
-        return(F._preperiodic_points_to_cyclegraph(crit_points))
+        return F._preperiodic_points_to_cyclegraph(crit_points)
 
     def critical_height(self, **kwds):
         r"""
@@ -3617,15 +3618,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         kwds:
 
         - ``minimal`` -- (default: ``True``) boolean; ``True`` specifies to
-          find only the preperiodic points of minimal period ``m``,``n`` and 
+          find only the preperiodic points of minimal period ``m``,``n`` and
           ``False`` specifies to find all preperiodic points of period
           ``m``, ``n``
 
-        - ``R`` -- (default: the base ring of the dynamical system) a 
+        - ``R`` -- (default: the base ring of the dynamical system) a
           commutative ring over which to find the preperiodic points
 
-        - ``return_scheme`` -- (default: ``False``) boolean; return a 
-          subscheme of the ambient space that defines the ``m``,``n`` th 
+        - ``return_scheme`` -- (default: ``False``) boolean; return a
+          subscheme of the ambient space that defines the ``m``,``n`` th
           preperiodic points
 
         OUTPUT:
@@ -3792,7 +3793,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 points = [dom(Q) for Q in X.rational_points()]
                 good_points = []
                 for Q in points:
-                    #check if point is in indeterminacy
+                    # check if point is in indeterminacy
                     if not all(F(list(Q)) == 0 for F in f):
                         good_points.append(Q)
                 points = good_points
@@ -3807,7 +3808,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         orbit = [P]
                         Q = f(P)
                         n_plus_m = 1
-                        while not Q in orbit:
+                        while Q not in orbit:
                             orbit.append(Q)
                             Q = f(Q)
                             n_plus_m += 1
@@ -4024,7 +4025,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     else:
                         if n % m == 0:
                             points = points + cycle[:-1]
-                return(points)
+                return points
             else:
                 raise TypeError("ring must be finite to generate cyclegraph")
         elif algorithm == 'variety':
@@ -4039,7 +4040,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 return X
             if X.dimension() == 0:
                 if R in NumberFields() or R is QQbar or R in FiniteFields():
-                    Z = f.indeterminacy_locus()
+                    Z = f.base_indeterminacy_locus()
                     points = [dom(Q) for Q in X.rational_points()]
                     good_points = []
                     for Q in points:
@@ -4052,9 +4053,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     if not minimal:
                         return points
                     else:
-                        #we want only the points with minimal period n
-                        #so we go through the list and remove any that
-                        #have smaller period by checking the iterates
+                        # we want only the points with minimal period n
+                        # so we go through the list and remove any that
+                        # have smaller period by checking the iterates
                         for i in range(len(points)-1,-1,-1):
                             # iterate points to check if minimal
                             P = points[i]
@@ -4706,7 +4707,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2 with w = 1.414213562373095?
-              Defn: Defined on coordinates by sending (x : y) to                                                                                   
+              Defn: Defined on coordinates by sending (x : y) to
                     (x^3 : (w)*y^3)                                                                                                                ,
             <BLANKLINE>
             [  1 -12]
@@ -4724,7 +4725,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^5 + x - 3 with w = 1.132997565885066?
-              Defn: Defined on coordinates by sending (x : y) to                                                                                       
+              Defn: Defined on coordinates by sending (x : y) to
                     (12*x^3 : (2334*w)*y^3)                                                                                                            ,
             <BLANKLINE>
             [  0  -1]
@@ -4949,13 +4950,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if H <= B: #it must have been in the cycle
                 if return_period:
                     m = orbit.index(Q)
-                    return((m, n-m))
+                    return (m, n - m)
                 else:
                     return True
         if return_period:
             return (0,0)
         else:
             return False
+
 
 class DynamicalSystem_projective_field(DynamicalSystem_projective,
                                        SchemeMorphism_polynomial_projective_space_field):
@@ -5161,7 +5163,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                               done = True
                           k += 1
 
-        return(good_points)
+        return good_points
 
     def all_periodic_points(self, **kwds):
         r"""
@@ -5418,11 +5420,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     p = next_prime(p + 1)
                 B = e ** DS.height_difference_bound()
                 f = DS.change_ring(GF(p))
-                all_points = f.possible_periods(True) #return the list of points and their periods.
+                all_points = f.possible_periods(True) # return the list of points and their periods.
                 pos_points = []
-                #check period, remove duplicates
+                # check period, remove duplicates
                 for i in range(len(all_points)):
-                    if all_points[i][1] in periods and not (all_points[i] in pos_points): 
+                    if all_points[i][1] in periods and not (all_points[i] in pos_points):
                         pos_points.append(all_points[i])
                 periodic_points = DS.lift_to_rational_periodic(pos_points,B)
                 for p,n in periodic_points:
@@ -5815,7 +5817,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 periods = DS.possible_periods(prime_bound=primebound,
                                                 bad_primes=badprimes, ncpus=num_cpus)
             if periods == []:
-                return([]) #no rational preperiodic points
+                return []  #no rational preperiodic points
             else:
                 p = kwds.pop("lifting_prime", 23)
                 #find the rational preperiodic points
@@ -6708,9 +6710,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
               From: Finite Field of size 3
               To:   Finite Field in z2 of size 3^2
               Defn: 1 |--> 1
-            
+
         """
-        #defines the field of fixed points
+        # defines the field of fixed points
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
         K = self.base_ring()
@@ -7229,7 +7231,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         else:
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
-        return(automorphism_group_FF(F, absolute, iso_type, return_functions))
+        return automorphism_group_FF(F, absolute, iso_type, return_functions)
 
     def all_periodic_points(self, **kwds):
         r"""

@@ -16,10 +16,10 @@ le shell Sage affiche un message de ce genre :
 
 ::
 
-    ----------------------------------------------------------------------
-    | SAGE Version 3.1.1, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
 
 
     sage:
@@ -181,10 +181,10 @@ session future (en rechargeant le fichier journal).
 ::
 
     was@form:~$ sage
-    ----------------------------------------------------------------------
-    | SAGE Version 3.0.2, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
 
     sage: logstart setup
     Activating auto-logging. Current session state plus future input saved.
@@ -200,10 +200,10 @@ session future (en rechargeant le fichier journal).
     sage:
     Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
-    ----------------------------------------------------------------------
-    | SAGE Version 3.0.2, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
 
     sage: load("setup")
     Loading log file <setup> one line at a time...

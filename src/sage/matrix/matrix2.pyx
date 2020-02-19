@@ -13234,6 +13234,13 @@ cdef class Matrix(Matrix1):
             0.0
             sage: a.norm(Infinity) == a.norm(1)
             True
+
+        TESTS:
+
+        Check that a sparse zero matrix is handled (:trac:`29214`)::
+
+            sage: matrix(CDF, 2, 2, sparse=True).norm(1)
+            0.0
         """
 
         if self._nrows == 0 or self._ncols == 0:
@@ -13246,7 +13253,7 @@ cdef class Matrix(Matrix1):
             U, S, V = A.SVD()
             return max(S.list()).real().sqrt()
 
-        A = self.apply_map(abs).change_ring(RDF)
+        A = self.apply_map(abs, R=RDF)
 
         # 1-norm: largest column-sum
         if p == 1:

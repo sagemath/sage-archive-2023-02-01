@@ -1563,8 +1563,8 @@ class MPolynomialIdeal_singular_repr(
             sage: I2 = y*R
             sage: I3 = (x, y)*R
             sage: I4 = (x^2 + x*y*z, y^2 - z^3*y, z^3 + y^5*x*z)*R
-            sage: I1.intersection(I2, I3, I4)
-            Ideal (x*y*z^20 - x*y*z^3, x*y^2 - x*y*z^3, x^2*y + x*y*z^4) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: I1.intersection(I2, I3, I4).groebner_basis()
+            [x^2*y + x*y*z^4, x*y^2 - x*y*z^3, x*y*z^20 - x*y*z^3]
 
         The ideals must share the same ring::
 

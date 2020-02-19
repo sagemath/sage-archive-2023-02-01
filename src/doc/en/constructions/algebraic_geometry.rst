@@ -325,7 +325,7 @@ Singular itself to help an understanding of how the wrapper works.
        sage: X = Curve(f); pts = X.rational_points()
        sage: D = X.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
        sage: X.riemann_roch_basis(D)
-       [(-x - 2*y)/(-2*x - 2*y), (-x + z)/(x + y)]
+       [(-2*x + y)/(x + y), (-x + z)/(x + y)]
 
 -  Using Singular's ``BrillNoether`` command (for details see the section
    Brill-Noether in the Singular online documentation

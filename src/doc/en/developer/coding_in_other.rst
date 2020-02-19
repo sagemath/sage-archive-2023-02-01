@@ -449,11 +449,6 @@ interface to Singular::
           0
     [2]:
        [1]:
-          -2
-       [2]:
-          -1
-       [3]:
-          1
     ...
 
 From looking at the output, notice that our wrapper function will need

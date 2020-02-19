@@ -82,6 +82,7 @@ misc-clean:
 	rm -rf logs
 	rm -rf dist
 	rm -rf tmp
+	rm -f src/doc/en/installation/*.txt
 	rm -f aclocal.m4 config.log confcache
 	rm -rf autom4te.cache
 	rm -f build/make/Makefile build/make/Makefile-auto
@@ -193,7 +194,7 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4
+configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d
 
 install: all

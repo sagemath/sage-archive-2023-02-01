@@ -31,7 +31,7 @@ a native Sage object::
     sage: mobj2.parent()                        # optional - mathematica
     Mathematica
     sage: sobj = mobj2.sage(); sobj             # optional - mathematica
-    (x - 1)*(x + 1)
+    (x + 1)*(x - 1)
     sage: sobj.parent()                         # optional - mathematica
     Symbolic Ring
 
@@ -122,7 +122,7 @@ We solve an equation and a system of two equations::
     sage: eqn.Solve('x')                    # optional - mathematica
     {{x -> 3}}
     sage: sys = mathematica('{x^2 - 3y == 3, 2x - y == 1}')  # optional - mathematica
-    sage: print sys                         # optional - mathematica
+    sage: print(sys)                        # optional - mathematica
                2
              {x  - 3 y == 3, 2 x - y == 1}
     sage: sys.Solve('{x, y}')               # optional - mathematica
@@ -137,9 +137,9 @@ in Sage, this does not affect the `c` in Mathematica.
 ::
 
     sage: c = m(5)                          # optional - mathematica
-    sage: print m('b + c x')                # optional - mathematica
+    sage: print(m('b + c x'))               # optional - mathematica
                  b + c x
-    sage: print m('b') + c*m('x')           # optional - mathematica
+    sage: print(m('b') + c*m('x'))          # optional - mathematica
              b + 5 x
 
 The Sage interfaces changes Sage lists into Mathematica lists::
@@ -203,19 +203,19 @@ We factor a polynomial of degree 200 over the integers.
     sage: f
     x^200 + 12*x^101 + 25*x^100 - 85*x^2 + 315*x + 100
     sage: g = mathematica(str(f))            # optional - mathematica
-    sage: print g                            # optional - mathematica
+    sage: print(g)                           # optional - mathematica
                                2       100       101    200
              100 + 315 x - 85 x  + 25 x    + 12 x    + x
     sage: g                                  # optional - mathematica
     100 + 315*x - 85*x^2 + 25*x^100 + 12*x^101 + x^200
-    sage: print g.Factor()                   # optional - mathematica
+    sage: print(g.Factor())                  # optional - mathematica
                           100               100
              (20 - 5 x + x   ) (5 + 17 x + x   )
 
 We can also factor a multivariate polynomial::
 
     sage: f = mathematica('x^6 + (-y - 2)*x^5 + (y^3 + 2*y)*x^4 - y^4*x^3')  # optional - mathematica
-    sage: print f.Factor()                   # optional - mathematica
+    sage: print(f.Factor())                  # optional - mathematica
               3                  2    3
              x  (x - y) (-2 x + x  + y )
 
@@ -232,11 +232,7 @@ We factor an integer::
     sage: F[4]                               # optional - mathematica
     {541, 1}
 
-We can also load the ECM package and factoring using it::
-
-    sage: _ = mathematica.eval("<<NumberTheory`FactorIntegerECM`");  # optional - mathematica
-    sage: mathematica.FactorIntegerECM('932901*939321')              # optional - mathematica
-    8396109
+Mathematica's ECM package is no longer available. 
 
 Long Input
 ----------
@@ -260,14 +256,14 @@ first examples test saving and loading to strings.
 ::
 
     sage: x = mathematica(pi/2)     # optional - mathematica
-    sage: print x                   # optional - mathematica
+    sage: print(x)                  # optional - mathematica
              Pi
              --
              2
     sage: loads(dumps(x)) == x      # optional - mathematica
     True
     sage: n = x.N(50)               # optional - mathematica
-    sage: print n                   # optional - mathematica
+    sage: print(n)                  # optional - mathematica
                   1.5707963267948966192313216916397514420985846996876
     sage: loads(dumps(n)) == n      # optional - mathematica
     True
@@ -310,11 +306,9 @@ For more details, see the documentation for ``._sage_()``.
 OTHER Examples::
 
     sage: def math_bessel_K(nu,x):
-    ...       return mathematica(nu).BesselK(x).N(20)
-    ...
+    ....:     return mathematica(nu).BesselK(x).N(20)
     sage: math_bessel_K(2,I)                      # optional - mathematica
-    0.180489972066962*I - 2.592886175491197             # 32-bit
-    -2.59288617549119697817 + 0.18048997206696202663*I  # 64-bit
+    -2.59288617549119697817 + 0.18048997206696202663*I
 
 ::
 
@@ -345,6 +339,21 @@ AUTHORS:
 
 - Felix Lawrence (2009-08-21): Added support for importing Mathematica lists
   and floats with exponents.
+
+TESTS:
+
+Check that numerical approximations via Mathematica's `N[]` function work
+correctly (:trac:`18888`, :trac:`28907`)::
+
+    sage: mathematica('Pi/2').N(10)           # optional -- mathematica
+    1.5707963268
+    sage: mathematica('Pi').N(10)             # optional -- mathematica
+    3.1415926536
+    sage: mathematica('Pi').N(50)             # optional -- mathematica
+    3.14159265358979323846264338327950288419716939937511
+    sage: str(mathematica('Pi*x^2-1/2').N())  # optional -- mathematica
+                    2
+    -0.5 + 3.14159 x
 """
 
 #*****************************************************************************
@@ -361,14 +370,17 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import re
 
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
-                                    FunctionElement, AsciiArtString)
+                                    FunctionElement)
+from sage.interfaces.interface import AsciiArtString
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 
 def clean_output(s):
@@ -403,23 +415,56 @@ class Mathematica(ExtraTabCompletion, Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None,
+                 server_tmpdir=None, command=None, verbose_start=False):
+        r"""
+        TESTS:
+
+        Test that :trac:`28075` is fixed::
+
+            sage: repr(mathematica.eval("Print[1]; Print[2]; Print[3]"))  # optional - mathematica
+            '1\n2\n3'
+        """
+        # We use -rawterm to get a raw text interface in Mathematica 9 or later.
+        # This works around the following issues of Mathematica 9 or later
+        # (tested with Mathematica 11.0.1 for Mac OS X x86 (64-bit))
+        #
+        # 1) If TERM is unset and input is a pseudoterminal, Mathematica shows no
+        # prompts, so pexpect will not work.
+        #
+        # 2) If TERM is set (to dumb, lpr, vt100, or xterm), there will be
+        # prompts; but there is bizarre echoing behavior by Mathematica (not
+        # the terminal driver).  For example, with TERM=dumb, many spaces and
+        # \r's are echoed.  With TERM=vt100 or better, in addition, many escape
+        # sequences are printed.
+        #
+        if command is None:
+            command = os.getenv('SAGE_MATHEMATICA_COMMAND') or 'math -rawterm'
+        eval_using_file_cutoff = 1024
+        # Removing terminal echo using "stty -echo" is not essential but it slightly
+        # improves performance (system time) and eliminates races of the terminal echo
+        # as a possible source of error.
+        if server:
+            command = 'stty -echo; {}'.format(command)
+        else:
+            command = 'sh -c "stty -echo; {}"'.format(command)
         Expect.__init__(self,
-                        name = 'mathematica',
-                        prompt = 'In[[0-9]+]:=',
-                        command = "math-readline",
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        verbose_start = False,
+                        name='mathematica',
+                        terminal_echo=False,
+                        command=command,
+                        prompt=r'In\[[0-9]+\]:= ',
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        verbose_start=verbose_start,
                         logfile=logfile,
-                        eval_using_file_cutoff=50)
+                        eval_using_file_cutoff=eval_using_file_cutoff)
 
     def _read_in_file_command(self, filename):
         return '<<"%s"'%filename
 
     def _keyboard_interrupt(self):
-        print "Interrupting %s..."%self
+        print("Interrupting %s..." % self)
         e = self._expect
         e.sendline(chr(3))  # send ctrl-c
         e.expect('Interrupt> ')
@@ -440,7 +485,7 @@ In order to use the Mathematica interface you need to have Mathematica
 installed and have a script in your PATH called "math" that runs the
 command-line version of Mathematica. Alternatively, you could use a
 remote connection to a server running Mathematica -- for hints, type
-    print mathematica._install_hints_ssh()
+    print(mathematica._install_hints_ssh())
 
 
   (1) You might have to buy Mathematica (http://www.wolfram.com/).
@@ -496,7 +541,7 @@ remote connection to a server running Mathematica -- for hints, type
             return AsciiArtString(s)
 
     #def _keyboard_interrupt(self):
-    #    print "Keyboard interrupt pressed; trying to recover."
+    #    print("Keyboard interrupt pressed; trying to recover.")
     #    E = self.expect()
     #    E.sendline(chr(3))
     #    E.sendline('a')
@@ -579,10 +624,10 @@ remote connection to a server running Mathematica -- for hints, type
         self.eval('SetDirectory["%s"]'%dir)
 
     def _true_symbol(self):
-        return '         True'
+        return 'True'
 
     def _false_symbol(self):
-        return '         False'
+        return 'False'
 
     def _equality_symbol(self):
         return '=='
@@ -629,6 +674,8 @@ remote connection to a server running Mathematica -- for hints, type
             raise AttributeError
         return MathematicaFunction(self, attrname)
 
+
+@instancedoc
 class MathematicaElement(ExpectElement):
     def __getitem__(self, n):
         return self.parent().new('%s[[%s]]'%(self._name, n))
@@ -639,13 +686,12 @@ class MathematicaElement(ExpectElement):
             raise AttributeError
         return MathematicaFunctionElement(self, attrname)
 
-    def __float__(self):
+    def __float__(self, precision=16):
         P = self.parent()
-        # TODO: Is 16 enough?
-        return float(P.eval('N[%s,16]'%self.name()))
+        return float(P.eval('N[%s,%s]'%(self.name(),precision)))
 
     def _reduce(self):
-        return self.parent().eval('InputForm[%s]'%self.name())
+        return self.parent().eval('InputForm[%s]' % self.name()).strip()
 
     def __reduce__(self):
         return reduce_load, (self._reduce(), )
@@ -655,8 +701,8 @@ class MathematicaElement(ExpectElement):
         i = z.find('=')
         return z[i+1:].strip()
 
-    def __repr__(self):
-        P = self._check_valid()
+    def _repr_(self):
+        P = self.parent()
         return P.get(self._name, ascii_art=False).strip()
 
     def _sage_(self, locals={}):
@@ -738,7 +784,7 @@ class MathematicaElement(ExpectElement):
           compatibility, while still supporting conversion of symbolic
           expressions.
         """
-        from sage.symbolic.pynac import symbol_table
+        from sage.libs.pynac.pynac import symbol_table
         from sage.symbolic.constants import constants_name_table as constants
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.calculus.calculus import _find_func as find_func
@@ -752,7 +798,7 @@ class MathematicaElement(ExpectElement):
         # Find all the mathematica functions, constants and symbolic variables
         # present in `res`.  Convert MMA functions and constants to their
         # Sage equivalents (if possible), using `locals` and
-        # `sage.symbolic.pynac.symbol_table['mathematica']` as translation
+        # `sage.libs.pynac.pynac.symbol_table['mathematica']` as translation
         # dictionaries.  If a MMA function or constant is not either
         # dictionary, then we use a variety of tactics listed in `autotrans`.
         # If a MMA variable is not in any dictionary, then create an
@@ -771,7 +817,7 @@ class MathematicaElement(ExpectElement):
 
         # Find the MMA funcs/vars/constants - they start with a letter.
         # Exclude exponents (e.g. 'e8' from 4.e8)
-        p = re.compile('(?<!\.)[a-zA-Z]\w*')
+        p = re.compile(r'(?<!\.)[a-zA-Z]\w*')
         for m in p.finditer(res):
             # If the function, variable or constant is already in the
             # translation dictionary, then just move on.
@@ -820,7 +866,7 @@ class MathematicaElement(ExpectElement):
         AUTHORS:
         - Felix Lawrence (2009-08-21)
         """
-        return self.Length()
+        return int(self.Length())
 
     @cached_method
     def _is_graphics(self):
@@ -855,7 +901,7 @@ class MathematicaElement(ExpectElement):
 
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
             sage: filename = tmp_filename()                      # optional - mathematica
-            sage: P.save(filename, ImageSize=800)                # optional - mathematica
+            sage: P.save_image(filename, ImageSize=800)                # optional - mathematica
         """
         P = self._check_valid()
         if not self._is_graphics():
@@ -875,7 +921,11 @@ class MathematicaElement(ExpectElement):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
-            sage: P._rich_repr_(dm)                              # optional - mathematica
+
+        The following test requires a working X display on Linux so that the
+        Mathematica frontend can do the rendering (:trac:`23112`)::
+
+            sage: P._rich_repr_(dm)                              # optional - mathematica mathematicafrontend
             OutputImagePng container
         """
         if self._is_graphics():
@@ -884,14 +934,15 @@ class MathematicaElement(ExpectElement):
                 return
             if OutputImagePng in display_manager.supported_output():
                 return display_manager.graphics_from_save(
-                    self.save, kwds, '.png', OutputImagePng)
+                    self.save_image, kwds, '.png', OutputImagePng)
         else:
             OutputLatex = display_manager.types.OutputLatex
-            if display_manager.preferences.text == 'plain':
+            dmp = display_manager.preferences.text
+            if dmp is None or dmp == 'plain':
                 return
-            if OutputLatex in display_manager.supported_output():
+            if dmp == 'latex' and OutputLatex in display_manager.supported_output():
                 return OutputLatex(self._latex_())
-        
+
     def show(self, ImageSize=600):
         r"""
         Show a mathematica expression immediately.
@@ -913,21 +964,25 @@ class MathematicaElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
-            sage: show(P)                                        # optional - mathematica
-            sage: P.show(ImageSize=800)                          # optional - mathematica
             sage: Q = mathematica('Sin[x Cos[y]]/Sqrt[1-x^2]')   # optional - mathematica
             sage: show(Q)                                        # optional - mathematica
-            <html><div class="math">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</div></html>
+            <html><script type="math/tex">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</script></html>
+
+        The following example starts a Mathematica frontend to do the rendering
+        (:trac:`28819`)::
+
+            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
+            sage: show(P)                                        # optional - mathematica mathematicafrontend
+            sage: P.show(ImageSize=800)                          # optional - mathematica mathematicafrontend
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
-        dm.display_immediately(self, ImageSize=ImageSize) 
-        
+        dm.display_immediately(self, ImageSize=ImageSize)
+
     def str(self):
         return str(self)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
         #    return coerce.cmp(self, other)
         P = self.parent()
@@ -941,29 +996,58 @@ class MathematicaElement(ExpectElement):
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
 
-    def N(self, *args):
+    def __bool__(self):
         """
+        Return whether this Mathematica element is not identical to ``False``.
+
         EXAMPLES::
 
-            sage: mathematica('Pi').N(10)    # optional -- mathematica
-            3.1415926536
-            sage: mathematica('Pi').N(50)    # optional -- mathematica
-            3.14159265358979323846264338327950288419716939937511
+            sage: bool(mathematica(True))  # optional - mathematica
+            True
+            sage: bool(mathematica(False))  # optional - mathematica
+            False
+
+        In Mathematica, `0` cannot be used to express falsity::
+
+            sage: bool(mathematica(0))  # optional - mathematica
+            True
         """
-        # The base class way up the hierarchy defines an "N" (modeled
-        # after Mathematica's!)  which overwrites the Mathematica one,
-        # and doesn't work at all. We restore it here.
-        return self.parent().N(self, *args)
+        P = self._check_valid()
+        cmd = '%s===%s' % (self._name, P._false_symbol())
+        return P.eval(cmd).strip() != P._true_symbol()
+
+    __nonzero__ = __bool__
+
+    def n(self, *args, **kwargs):
+        r"""
+        Numerical approximation by converting to Sage object first
+
+        Convert the object into a Sage object and return its numerical
+        approximation. See documentation of the function
+        :func:`sage.misc.functional.n` for details.
+
+        EXAMPLES::
+
+            sage: mathematica('Pi').n(10)    # optional -- mathematica
+            3.1
+            sage: mathematica('Pi').n()      # optional -- mathematica
+            3.14159265358979
+            sage: mathematica('Pi').n(digits=10)   # optional -- mathematica
+            3.141592654
+        """
+        return self._sage_().n(*args, **kwargs)
 
 
+@instancedoc
 class MathematicaFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         M = self._parent
         return M.help(self._name)
 
 
+@instancedoc
 class MathematicaFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         M = self._obj.parent()
         return M.help(self._name)
 

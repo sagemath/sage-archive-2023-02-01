@@ -12,7 +12,6 @@ Helper code for ternary quadratic forms
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, identity_matrix, diagonal_matrix
 from sage.modules.free_module_element import vector
@@ -21,13 +20,11 @@ from sage.quadratic_forms.extras import extend_to_primitive
 from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.prandom import randint
 from sage.functions.other import ceil, floor
-from __builtin__ import max
-
 
 
 def red_mfact(a,b):
     """
-    Auxiliar function for reduction that finds the reduction factor of a, b integers.
+    Auxiliary function for reduction that finds the reduction factor of a, b integers.
 
     INPUT:
 
@@ -55,7 +52,7 @@ def red_mfact(a,b):
 def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
-    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the tranformation matrix.
+    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the transformation matrix.
     See TernaryQF.is_eisenstein_reduced for the conditions.
 
     EXAMPLES::
@@ -251,7 +248,8 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
         M*=matrix(ZZ,3,[0,-1,0,-1,0,0,0,0,-1])
         [a13,a23]=[a23,a13]
 
-    return((a1,a2,a3,a23,a13,a12),M)
+    return (a1, a2, a3, a23, a13, a12), M
+
 
 def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
     """
@@ -419,7 +417,7 @@ def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
     if a1 == a2 and abs(a23) > abs(a13):
         [a13,a23]=[a23,a13]
 
-    return((a1,a2,a3,a23,a13,a12))
+    return a1, a2, a3, a23, a13, a12
 
 
 def primitivize(long long v0, long long v1, long long v2, p):
@@ -689,12 +687,12 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
     l=[]
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -830,12 +828,12 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
 
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -968,7 +966,7 @@ def _find_p_neighbor_from_vec(a, b, c, r, s, t, p, v, mat = False):
 
     Reference:  Gonzalo Tornaria's Thesis, Thrm 3.5, p34.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.quadratic_forms.ternary import _find_p_neighbor_from_vec
         sage: Q = TernaryQF([1, 3, 3, -2, 0, -1])
@@ -1098,7 +1096,7 @@ def _basic_lemma_vec(a, b, c, r, s, t, n):
     elif t%n != 0:
         return 1, 1, 0
 
-    raise ValueError, "not primitive form"
+    raise ValueError("not primitive form")
 
 def _basic_lemma(a, b, c, r, s, t, n):
     """
@@ -1131,5 +1129,4 @@ def _basic_lemma(a, b, c, r, s, t, n):
     elif t%n != 0:
         return a + b + t
 
-    raise ValueError, "not primitive form"
-
+    raise ValueError("not primitive form")

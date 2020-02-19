@@ -10,9 +10,7 @@ ready to use from the command prompt. Further customization is
 possible by editing the ``$SAGE_ROOT/ipythonrc`` file. Upon starting
 Sage, you get output similar to the following:
 
-.. skip
-
-::
+.. CODE-BLOCK:: text
 
     ----------------------------------------------------------------------
     | SAGE Version 3.1.1, Release Date: 2008-05-24                       |
@@ -55,7 +53,7 @@ caching. All input is saved and can be retrieved as variables (besides
 the usual arrow key recall). The following GLOBAL variables always
 exist (so don't overwrite them!)":
 
-::
+.. CODE-BLOCK:: text
 
       _:  previous input (interactive shell and notebook)
       __: next previous input (interactive shell only)
@@ -171,7 +169,7 @@ file).
 
 .. skip
 
-::
+.. CODE-BLOCK:: shell-session
 
     was@form:~$ sage
     ----------------------------------------------------------------------
@@ -419,7 +417,9 @@ commands" in IPython:
   ``export EDITOR=/usr/bin/vim`` or something similar in the
   appropriate place, like a ``.profile`` file).  From the Sage prompt,
   executing ``%edit`` will open up the named editor.  Then within the
-  editor you can define a function::
+  editor you can define a function:
+
+  .. CODE-BLOCK:: python
 
     def some_function(n):
         return n**2 + 3*n + 2
@@ -496,7 +496,7 @@ execution stack. For example,
 For a list of commands in the debugger, type ``?`` at the ``ipdb>``
 prompt:
 
-::
+.. CODE-BLOCK:: text
 
     ipdb> ?
 
@@ -949,8 +949,23 @@ Each saved variable is again available. Moreover, the variable
 
 .. _section-notebook:
 
-The Notebook Interface
-======================
+The legacy Notebook Interface
+=============================
+
+This section refers to the legacy Sage notebook, or "sagenb".
+
+SageMath is transitioning to using the
+`Jupyter notebook
+<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_
+as a default, which has a different structure.  The most important
+difference for users is that individual worksheets in Jupyter
+are saved on your local system just like any other file, whereas
+in the Sage notebook the main point of access is in the files
+described below via the server.
+
+
+Legacy SageNB Notebook
+----------------------
 
 The Sage notebook is run by typing
 
@@ -962,7 +977,7 @@ The Sage notebook is run by typing
 
 on the command line of Sage. This starts the Sage notebook and
 opens your default web browser to view it. The server's state files
-are stored in ``$HOME/.sage/sage\_notebook``.
+are stored in ``$HOME/.sage/sage\_notebook.sagenb``.
 
 Other options include:
 
@@ -973,29 +988,43 @@ Other options include:
     sage: notebook("directory")
 
 which starts a new notebook server using files in the given
-directory, instead of the default directory
+directory ``directory.sagenb``, instead of the default directory
 ``$HOME/.sage/sage_notebook``. This can be useful if you want to
 have a collection of worksheets associated with a specific project,
 or run several separate notebook servers at the same time.
 
 When you start the notebook, it first creates the following files
-in ``$HOME/.sage/sage_notebook``:
+in ``$HOME/.sage/sage_notebook.sagenb``:
 
-::
+.. CODE-BLOCK:: text
 
-    nb.sobj       (the notebook SAGE object file)
-    objects/      (a directory containing SAGE objects)
-    worksheets/   (a directory containing SAGE worksheets).
+    conf.pickle
+    openid.pickle
+    twistedconf.tac
+    sagenb.pid
+    users.pickle
+    home/admin/ (a directory for the admin user)
+    home/guest/ (a directory for guests)
+    home/pub/ (a directory for published worksheets)
 
 After creating the above files, the notebook starts a web server.
 
 A "notebook" is a collection of user accounts, each of which can
 have any number of worksheets. When you create a new worksheet, the
-data that defines it is stored in the ``worksheets/username/number``
+data that defines it is stored in the ``home/username/number``
 directories. In each such directory there is a plain text file
-``worksheet.txt`` - if anything ever happens to your worksheets, or Sage,
+``worksheet.html`` - if anything ever happens to your worksheets, or Sage,
 or whatever, that human-readable file contains everything needed to
-reconstruct your worksheet.
+reconstruct your worksheet.  Each worksheet also has, at a minimum,
+the files/folders:
+
+.. CODE-BLOCK:: text
+
+    cells/
+    worksheet.html
+    data/
+    worksheet_conf.pickle
+
 
 From within Sage, type ``notebook?`` for much more about how to start a
 notebook server.
@@ -1003,7 +1032,7 @@ notebook server.
 The following diagram illustrates the architecture of the Sage
 Notebook:
 
-::
+.. CODE-BLOCK:: text
 
     ----------------------
     |                    |
@@ -1028,7 +1057,7 @@ Notebook:
     ----------------------                    .
 
 For help on a Sage command, ``cmd``, in the notebook browser box,
-type ``cmd?`` and now hit ``<esc>`` (not ``<shift-enter>``).
+type ``cmd?`` and now hit ``<tab>`` (not ``<shift-enter>``).
 
 For help on the keyboard shortcuts available in the notebook
 interface, click on the ``Help`` link.

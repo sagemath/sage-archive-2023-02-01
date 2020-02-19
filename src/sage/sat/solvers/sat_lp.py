@@ -6,38 +6,41 @@ solves its instance using :class:`MixedIntegerLinearProgram`. Its performance
 can be expected to be slower than when using
 :class:`~sage.sat.solvers.cryptominisat.cryptominisat.CryptoMiniSat`.
 """
-from satsolver import SatSolver
+from __future__ import absolute_import
+from .satsolver import SatSolver
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
 class SatLP(SatSolver):
-    def __init__(self, solver=None):
+    def __init__(self, solver=None, verbose=0):
         r"""
         Initializes the instance
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
-        EXAMPLE::
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          of the LP solver. Set to 0 by default, which means quiet.
+
+        EXAMPLES::
 
             sage: S=SAT(solver="LP"); S
             an ILP-based SAT Solver
         """
         SatSolver.__init__(self)
-        self._LP = MixedIntegerLinearProgram()
+        self._LP = MixedIntegerLinearProgram(solver=solver)
+        self._LP_verbose = verbose
         self._vars = self._LP.new_variable(binary=True)
 
     def var(self):
         """
         Return a *new* variable.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S=SAT(solver="LP"); S
             an ILP-based SAT Solver
@@ -54,7 +57,7 @@ class SatLP(SatSolver):
         """
         Return the number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S=SAT(solver="LP"); S
             an ILP-based SAT Solver
@@ -81,7 +84,7 @@ class SatLP(SatSolver):
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S=SAT(solver="LP"); S
             an ILP-based SAT Solver
@@ -108,7 +111,7 @@ class SatLP(SatSolver):
 
         - If this instance is UNSAT: ``False``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: def is_bipartite_SAT(G):
             ....:     S=SAT(solver="LP"); S
@@ -127,7 +130,7 @@ class SatLP(SatSolver):
             False
         """
         try:
-            self._LP.solve()
+            self._LP.solve(log=self._LP_verbose)
         except MIPSolverException:
             return False
 

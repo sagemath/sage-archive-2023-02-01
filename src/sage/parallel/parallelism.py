@@ -3,7 +3,7 @@ Parallelization control
 
 This module defines the singleton class :class:`Parallelism` to govern the
 parallelization of computations in some specific topics. It allows the user to
-set the number of  processes to be used for parallelization.
+set the number of processes to be used for parallelization.
 
 Some examples of use are provided in the documentation of
 :meth:`sage.tensor.modules.comp.Components.contract`.
@@ -14,14 +14,15 @@ AUTHORS:
 
 """
 
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Marco Mancini <marco.mancini@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 from sage.misc.fast_methods import Singleton
@@ -36,10 +37,11 @@ class Parallelism(Singleton, SageObject):
     EXAMPLES:
 
     The number of processes is initialized to 1 (no parallelization) for
-    each field (only tensor computations are implemented at the moment)::
+    each field::
 
         sage: Parallelism()
         Number of processes for parallelization:
+         - linbox computations: 1
          - tensor computations: 1
 
     Using 4 processes to parallelize tensor computations::
@@ -47,6 +49,7 @@ class Parallelism(Singleton, SageObject):
         sage: Parallelism().set('tensor', nproc=4)
         sage: Parallelism()
         Number of processes for parallelization:
+         - linbox computations: 1
          - tensor computations: 4
         sage: Parallelism().get('tensor')
         4
@@ -56,6 +59,7 @@ class Parallelism(Singleton, SageObject):
         sage: Parallelism().set(nproc=6)
         sage: Parallelism()
         Number of processes for parallelization:
+         - linbox computations: 6
          - tensor computations: 6
 
     Using all the cores available on the computer to parallelize tensor
@@ -64,6 +68,7 @@ class Parallelism(Singleton, SageObject):
         sage: Parallelism().set('tensor')
         sage: Parallelism()  # random (depends on the computer)
         Number of processes for parallelization:
+         - linbox computations: 1
          - tensor computations: 8
 
     Using all the cores available on the computer to parallelize all types
@@ -72,6 +77,7 @@ class Parallelism(Singleton, SageObject):
         sage: Parallelism().set()
         sage: Parallelism()  # random (depends on the computer)
         Number of processes for parallelization:
+         - linbox computations: 8
          - tensor computations: 8
 
     Switching off all parallelizations::
@@ -83,11 +89,12 @@ class Parallelism(Singleton, SageObject):
         r"""
         Construct the single instance of class Parallelism (singleton model).
 
-        TEST::
+        TESTS::
 
             sage: par = Parallelism()
             sage: par
             Number of processes for parallelization:
+             - linbox computations: 1
              - tensor computations: 1
 
         Test of the singleton character::
@@ -101,17 +108,17 @@ class Parallelism(Singleton, SageObject):
 
         """
         self._default = ncpus()  # default number of proc. used in parallelizations
-        self._nproc = {'tensor' : 1}  # dict. of number of processes to be used
+        self._nproc = {'tensor' : 1, 'linbox' : 1}  # dict. of number of processes to be used
                                       # (keys: computational field)
 
     def _repr_(self):
         r"""
         String representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: Parallelism()._repr_()
-            'Number of processes for parallelization:\n - tensor computations: 1'
+            'Number of processes for parallelization:\n - linbox computations: 1\n - tensor computations: 1'
 
         """
         resu = "Number of processes for parallelization:\n"
@@ -124,12 +131,13 @@ class Parallelism(Singleton, SageObject):
         Put the singleton object ``Parallelism()`` in the same state as
         immediately after its creation.
 
-        EXAMPLE:
+        EXAMPLES:
 
         State of ``Parallelism()`` just after its creation::
 
             sage: Parallelism()
             Number of processes for parallelization:
+             - linbox computations: 1
              - tensor computations: 1
             sage: Parallelism().get_default()  # random (depends on the computer)
             8
@@ -140,6 +148,7 @@ class Parallelism(Singleton, SageObject):
             sage: Parallelism().set()
             sage: Parallelism()
             Number of processes for parallelization:
+             - linbox computations: 6
              - tensor computations: 6
             sage: Parallelism().get_default()
             6
@@ -149,6 +158,7 @@ class Parallelism(Singleton, SageObject):
             sage: Parallelism().reset()
             sage: Parallelism()
             Number of processes for parallelization:
+             - linbox computations: 1
              - tensor computations: 1
             sage: Parallelism().get_default()  # random (depends on the computer)
             8
@@ -179,6 +189,7 @@ class Parallelism(Singleton, SageObject):
 
             sage: Parallelism()
             Number of processes for parallelization:
+             - linbox computations: 1
              - tensor computations: 1
 
         Asking for parallelization on 4 cores in tensor algebra::
@@ -186,6 +197,7 @@ class Parallelism(Singleton, SageObject):
             sage: Parallelism().set('tensor', nproc=4)
             sage: Parallelism()
             Number of processes for parallelization:
+             - linbox computations: 1
              - tensor computations: 4
 
         Using all the cores available on the computer::
@@ -193,6 +205,7 @@ class Parallelism(Singleton, SageObject):
             sage: Parallelism().set('tensor')
             sage: Parallelism()  # random (depends on the computer)
             Number of processes for parallelization:
+             - linbox computations: 1
              - tensor computations: 8
 
         Using 6 cores in all parallelizations::
@@ -200,6 +213,7 @@ class Parallelism(Singleton, SageObject):
             sage: Parallelism().set(nproc=6)
             sage: Parallelism()
             Number of processes for parallelization:
+             - linbox computations: 6
              - tensor computations: 6
 
         Using all the cores available on the computer in all parallelizations::
@@ -207,6 +221,7 @@ class Parallelism(Singleton, SageObject):
             sage: Parallelism().set()
             sage: Parallelism()  # random (depends on the computer)
             Number of processes for parallelization:
+             - linbox computations: 8
              - tensor computations: 8
 
         Switching off the parallelization::
@@ -214,6 +229,7 @@ class Parallelism(Singleton, SageObject):
             sage: Parallelism().set(nproc=1)
             sage: Parallelism()
             Number of processes for parallelization:
+             - linbox computations: 1
              - tensor computations: 1
 
         """
@@ -221,7 +237,7 @@ class Parallelism(Singleton, SageObject):
             for fi in self._nproc:
                 self.set(field=fi, nproc=nproc)
         else:
-            if field not in self._nproc :
+            if field not in self._nproc:
                 raise KeyError("entry for field {} is not ".format(field) +
                                "implemented in Parallelism")
             if nproc is None:
@@ -281,13 +297,13 @@ class Parallelism(Singleton, SageObject):
 
             sage: Parallelism().reset()
             sage: Parallelism().get_all()
-            {'tensor': 1}
+            {'linbox': 1, 'tensor': 1}
 
         Asking for parallelization on 4 cores::
 
             sage: Parallelism().set(nproc=4)
             sage: Parallelism().get_all()
-            {'tensor': 4}
+            {'linbox': 4, 'tensor': 4}
 
         """
         return self._nproc

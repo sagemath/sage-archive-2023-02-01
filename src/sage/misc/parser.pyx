@@ -21,10 +21,12 @@ AUTHOR:
 #*****************************************************************************
 
 from libc.string cimport strchr
-from cpython.string cimport PyString_FromStringAndSize
+from cpython.bytes cimport PyBytes_FromStringAndSize
 from cpython.list cimport PyList_Append
 
 import math
+
+from sage.cpython.string cimport str_to_bytes, bytes_to_str
 
 def foo(*args, **kwds):
     """
@@ -39,7 +41,7 @@ def foo(*args, **kwds):
     """
     return args, kwds
 
-fuction_map = {
+function_map = {
   'foo': foo,
   'sqrt': math.sqrt,
   'sin': math.sin,
@@ -162,6 +164,7 @@ cdef class Tokenizer:
             sage: Tokenizer("?$%").test()
             ['ERROR', 'ERROR', 'ERROR']
         """
+        s = str_to_bytes(s)
         self.pos = 0
         self.last_pos = 0
         self.s = s
@@ -225,7 +228,8 @@ cdef class Tokenizer:
 
     cdef int find(self) except -1:
         """
-        This function actually does all the work, and extensively is tested above.
+        This function actually does all the work, and is extensively tested
+        above.
         """
         cdef bint seen_exp, seen_decimal
         cdef int type
@@ -425,7 +429,9 @@ cdef class Tokenizer:
             sage: t.last_token_string()
             '1e5'
         """
-        return PyString_FromStringAndSize(&self.s[self.last_pos], self.pos-self.last_pos)
+        s = PyBytes_FromStringAndSize(&self.s[self.last_pos],
+                                      self.pos - self.last_pos)
+        return bytes_to_str(s)
 
 
 cdef class Parser:
@@ -684,7 +690,7 @@ cdef class Parser:
 
 # eqn ::= expr op expr | expr
     cpdef p_eqn(self, Tokenizer tokens):
-        """
+        r"""
         Parse an equation or expression.
 
         This is the top-level node called by the \code{parse} function.

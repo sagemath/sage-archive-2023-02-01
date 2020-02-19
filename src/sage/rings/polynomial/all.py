@@ -22,7 +22,7 @@ from sage.misc.lazy_import import lazy_import
 # Quotient of polynomial ring
 from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
-
+ 
 # Univariate Polynomial Rings
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen, polygens
@@ -40,9 +40,14 @@ from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialR
 
 # Laurent Polynomial Rings
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+lazy_import('sage.rings.polynomial.omega', 'MacMahonOmega')
 
 # Infinite Polynomial Rings
 from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
 
+# Skew Polynomial Rings
+from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+
 # Evaluation of cyclotomic polynomials
 from sage.rings.polynomial.cyclotomic import cyclotomic_value
+

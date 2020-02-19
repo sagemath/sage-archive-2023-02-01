@@ -86,6 +86,7 @@ Functions and methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import collections
 import operator
@@ -368,6 +369,7 @@ class TransducerGenerators(object):
     - :meth:`~CountSubblockOccurrences`
     - :meth:`~Wait`
     - :meth:`~GrayCode`
+    - :meth:`~Recursion`
     """
 
     def Identity(self, input_alphabet):
@@ -408,9 +410,8 @@ class TransducerGenerators(object):
             initial_states=[0],
             final_states=[0])
 
-
     def CountSubblockOccurrences(self, block, input_alphabet):
-        """
+        r"""
         Returns a transducer counting the number of (possibly
         overlapping) occurrences of a block in the input.
 
@@ -590,7 +591,7 @@ class TransducerGenerators(object):
         A transducer mapping an input letter `x` to
         `f(x)`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         absolute value (this transducer is also available as :meth:`.abs`)::
@@ -645,7 +646,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         addition (this transducer is also available as :meth:`.add`)::
@@ -704,7 +705,7 @@ class TransducerGenerators(object):
 
 
     def all(self, input_alphabet, number_of_operands=2):
-        """
+        r"""
         Returns a transducer which realizes logical ``and`` over the given
         input alphabet.
 
@@ -724,7 +725,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``and``::
@@ -756,7 +757,7 @@ class TransducerGenerators(object):
 
 
     def any(self, input_alphabet, number_of_operands=2):
-        """
+        r"""
         Returns a transducer which realizes logical ``or`` over the given
         input alphabet.
 
@@ -776,7 +777,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``or``::
@@ -808,7 +809,7 @@ class TransducerGenerators(object):
 
 
     def add(self, input_alphabet, number_of_operands=2):
-        """
+        r"""
         Returns a transducer which realizes addition on pairs over the
         given input alphabet.
 
@@ -828,7 +829,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         addition::
@@ -863,7 +864,7 @@ class TransducerGenerators(object):
 
 
     def sub(self, input_alphabet):
-        """
+        r"""
         Returns a transducer which realizes subtraction on pairs over
         the given input alphabet.
 
@@ -879,7 +880,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of two copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         subtraction::
@@ -970,7 +971,7 @@ class TransducerGenerators(object):
 
 
     def abs(self, input_alphabet):
-        """
+        r"""
         Returns a transducer which realizes the letter-wise
         absolute value of an input word over the given input alphabet.
 
@@ -983,7 +984,7 @@ class TransducerGenerators(object):
         A transducer mapping `i_0\ldots i_k`
         to `|i_0|\ldots |i_k|`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         absolute value::
@@ -1019,13 +1020,13 @@ class TransducerGenerators(object):
 
         Cf. the :wikipedia:`Gray_code` for a description of the Gray code.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = transducers.GrayCode()
             sage: G
             Transducer with 3 states
             sage: for v in srange(0, 10):
-            ....:     print v, G(v.digits(base=2))
+            ....:     print("{} {}".format(v, G(v.digits(base=2))))
             0 []
             1 [1]
             2 [1, 1]
@@ -1092,7 +1093,7 @@ class TransducerGenerators(object):
         A ``RecursionRule`` if the equation is of the first form
         described above and a dictionary ``{r: [t]}`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('n')
             n
@@ -1254,9 +1255,11 @@ class TransducerGenerators(object):
 
         def convert_output(output):
             for ring in output_rings:
-                if output in ring:
+                try:
                     return ring(output)
-            return(output)
+                except (ValueError,TypeError):
+                    pass
+            return output
 
         def to_list(output):
             if output == 0:
@@ -1284,7 +1287,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_left = base_ring[var](left_side.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial "
                              "in %s." % (left_side.operands()[0], var))
         if polynomial_left in base_ring and is_scalar(right_side):
@@ -1295,7 +1298,10 @@ class TransducerGenerators(object):
                              % (polynomial_left,))
 
         [r, base_power_K] = list(polynomial_left)
-        K = log(base_power_K, base=base)
+        try:
+            K = log(base_power_K, base=base)
+        except RuntimeError:
+            K = 1
         try:
             K = K.simplify()
         except AttributeError:
@@ -1336,7 +1342,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_right = base_ring[var](next_function.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial in %s."
                              % (next_function.operands()[0], var))
         if polynomial_right.degree() != 1:
@@ -1564,7 +1570,7 @@ class TransducerGenerators(object):
                  Transition from (1, 0) to (1, 1): 0|-,
                  Transition from (1, 0) to (1, 0): 1|0]
                 sage: for s in T.iter_states():
-                ....:     print s, s.final_word_out
+                ....:     print("{} {}".format(s, s.final_word_out))
                 (0, 0) []
                 (1, 1) [1, 0]
                 (1, 0) [1, 0]
@@ -1654,7 +1660,7 @@ class TransducerGenerators(object):
                  Transition from (2, 1) to (1, 1): 0|1,
                  Transition from (2, 1) to (2, 1): 1|-]
                 sage: for s in T.iter_states():
-                ....:     print s, s.final_word_out
+                ....:     print("{} {}".format(s, s.final_word_out))
                 (0, 0) []
                 (0, 1) []
                 (1, 1) [2]
@@ -1682,7 +1688,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 2],
                 ....:     2, f, n)
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Integer Ring]
                 sage: [x.parent() for x in T.states()[0].final_word_out]
@@ -1697,7 +1703,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 2],
                 ....:     2, f, n, output_rings=[])
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Symbolic Ring]
                 sage: [x.parent() for x in T.states()[0].final_word_out]
@@ -1711,7 +1717,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 0],
                 ....:     2, f, n, output_rings=[GF(5)])
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Finite Field of size 5]
 
@@ -1940,7 +1946,7 @@ class TransducerGenerators(object):
                        input_alphabet=input_alphabet)
 
         def edge_recursion_digraph(n):
-            """
+            r"""
             Compute the list of outgoing edges of ``n`` in the recursion digraph.
 
             INPUT:
@@ -1976,7 +1982,7 @@ class TransducerGenerators(object):
              if carry >= 0},
             multiedges=False)
 
-        initial_values_set = set(initial_values.iterkeys())
+        initial_values_set = set(initial_values)
 
         missing_initial_values = required_initial_values.difference(
             initial_values_set)

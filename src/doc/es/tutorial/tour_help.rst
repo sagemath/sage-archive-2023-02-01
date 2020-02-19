@@ -62,7 +62,7 @@ de interrogación:
             0.69314718055994530941723212145817656807   # 64-bit
     sage: sudoku?
     File:        sage/local/lib/python2.5/site-packages/sage/games/sudoku.py
-    Type:        <type 'function'>
+    Type:        <... 'function'>
     Definition:  sudoku(A)
     Docstring:
 
@@ -211,7 +211,7 @@ la primer línea de abajo es exactamente igual a ``for(i=0; i<3; i++)`` en C++ o
 ::
 
     sage: for i in range(3):
-    ....:     print i
+    ....:     print(i)
     0
     1
     2
@@ -221,7 +221,7 @@ La primer línea de abajo es igual a ``for(i=2;i<5;i++)``.
 ::
 
     sage: for i in range(2,5):
-    ....:     print i
+    ....:     print(i)
     2
     3
     4
@@ -232,7 +232,7 @@ El tercer argumento controla el incremento, de modo que lo siguiente es igual a
 ::
 
     sage: for i in range(1,6,2):
-    ....:     print i
+    ....:     print(i)
     1
     3
     5
@@ -245,7 +245,7 @@ y hacemos una tabla de cuadrados y cubos.
 ::
 
     sage: for i in range(5):
-    ....:     print '%6s %6s %6s'%(i, i^2, i^3)
+    ....:     print('%6s %6s %6s' % (i, i^2, i^3))
          0      0      0
          1      1      1
          2      4      8
@@ -254,11 +254,13 @@ y hacemos una tabla de cuadrados y cubos.
 
 La estructura de datos más básica en Sage es la lista, la cual es -- como
 sugiere su nombre -- solo una lista de objetos arbitrarios.
-Por ejemplo, el comando ``range`` que hemos usado crea una lista:
+Por ejemplo, el comando ``range`` que hemos usado crea una lista (python 2):
 
 ::
 
-    sage: range(2,10)
+    sage: range(2,10)   # py2
+    [2, 3, 4, 5, 6, 7, 8, 9]
+    sage: list(range(2,10))   # py3
     [2, 3, 4, 5, 6, 7, 8, 9]
 
 He aquí una lista más complicada:
@@ -312,7 +314,7 @@ cualquier objeto (los índices deben ser immutables):
 También puedes definir nuevos tipos de datos usando clases. El encapsulado
 de objetos matemáticos con clases es una técnica potente que puede
 ayudar a simplificar y organizar tus programas en Sage. Abajo, definimos una
-clase que representa la lista de enteros positivos pares hasta *n*;
+clase que representa la lista de enteros positivos pares hasta ``n``;
 se deriva de el tipo básico ``list``.
 
 ::

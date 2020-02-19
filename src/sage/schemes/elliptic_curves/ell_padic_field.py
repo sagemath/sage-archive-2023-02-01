@@ -1,6 +1,7 @@
 """
 Elliptic curves over padic fields
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -19,18 +20,14 @@ Elliptic curves over padic fields
 #*****************************************************************************
 
 
-import sage.rings.ring as ring
-from ell_field import EllipticCurve_field
-import ell_point
+from .ell_field import EllipticCurve_field
+from . import ell_point
 from sage.rings.all import PolynomialRing
 
 # Elliptic curves are very different than genus > 1 hyperelliptic curves,
 # there is an "is a" relationship here, and common implementation with regard
 # Coleman integration.
 from sage.schemes.hyperelliptic_curves.hyperelliptic_padic_field import HyperellipticCurve_padic_field
-
-import sage.databases.cremona
-
 
 class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_field):
     """
@@ -54,12 +51,12 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         Returns the Frobenius as a function on the group of points of
         this elliptic curve.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Qp=pAdicField(13)
             sage: E=EllipticCurve(Qp,[1,1])
             sage: type(E.frobenius())
-            <type 'function'>
+            <... 'function'>
             sage: point=E(0,1)
             sage: E.frobenius(point)
             (0 : 1 + O(13^20) : 1 + O(13^20))

@@ -2,7 +2,7 @@
 
 == Description ==
 
-This package install the software fricas.
+FriCAS is a general purpose computer algebra system.
 
 == License ==
 
@@ -14,7 +14,6 @@ http://fricas.sourceforge.net/
 
 == Dependencies ==
 
-Put a bulleted list of dependencies here:
+ * ecl
 
-* ecl
 

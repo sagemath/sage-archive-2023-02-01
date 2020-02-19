@@ -95,7 +95,7 @@ You can also work with matrices in LiE. ::
          ,[-1, 9, 8,0]
          ,[ 3,-5,-2,9]
          ]
-    sage: print lie.eval('*'+m._name) # optional - lie
+    sage: print(lie.eval('*'+m._name))  # optional - lie
          [[1,12,-1, 3]
          ,[0, 4, 9,-5]
          ,[3,-4, 8,-2]
@@ -189,7 +189,7 @@ do not show up when using tab-completion. ::
 LiE's help can be accessed through lie.help('functionname') where
 functionname is the function you want to receive help for. ::
 
-   sage: print lie.help('diagram') # optional - lie
+   sage: print(lie.help('diagram'))  # optional - lie
    diagram(g).   Prints the Dynkin diagram of g, also indicating
       the type of each simple component printed, and labeling the nodes as
       done by Bourbaki (for the second and further simple components the
@@ -218,7 +218,7 @@ Vectors::
     sage: b = a.sage(); b # optional - lie
     [1, 2, 3]
     sage: type(b) # optional - lie
-    <type 'list'>
+    <... 'list'>
 
 Matrices::
 
@@ -243,7 +243,7 @@ Text::
     sage: b = a.sage(); b # optional - lie
     'text'
     sage: type(b) # optional - lie
-    <type 'str'>
+    <... 'str'>
 
 
 LiE can be programmed using the Sage interface as well. Section 5.1.5
@@ -252,13 +252,13 @@ which evaluates a polynomial at a point.  Below is a (roughly) direct
 translation of that program into Python / Sage. ::
 
     sage: def eval_pol(p, pt): # optional - lie
-    ...       s = 0
-    ...       for i in range(1,p.length().sage()+1):
-    ...           m = 1
-    ...           for j in range(1,pt.size().sage()+1):
-    ...               m *= pt[j]^p.expon(i)[j]
-    ...           s += p.coef(i)*m
-    ...       return s
+    ....:     s = 0
+    ....:     for i in range(1,p.length().sage()+1):
+    ....:         m = 1
+    ....:         for j in range(1,pt.size().sage()+1):
+    ....:             m *= pt[j]^p.expon(i)[j]
+    ....:         s += p.coef(i)*m
+    ....:     return s
     sage: a = lie('X[1,2]') # optional - lie
     sage: b1 = lie('[1,2]') # optional - lie
     sage: b2 = lie('[2,3]') # optional - lie
@@ -285,16 +285,20 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function, absolute_import
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from sage.interfaces.interface import AsciiArtString
 from sage.misc.all import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 import os
 
 
-COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj'%DOT_SAGE
-HELP_CACHE = '%s/lie_helpdict_cache.sobj'%DOT_SAGE
+COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj' % DOT_SAGE
+HELP_CACHE = '%s/lie_helpdict_cache.sobj' % DOT_SAGE
+
 
 class LiE(ExtraTabCompletion, Expect):
     r"""
@@ -437,7 +441,7 @@ class LiE(ExtraTabCompletion, Expect):
                 help_text = ""
                 prev_command = line[1:i]
 
-                #Add the commad
+                #Add the command
                 if t in commands:
                     commands[t].append(line[1:i])
                 else:
@@ -551,7 +555,7 @@ class LiE(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
+            sage: _ = f.write('x = 2\n')
             sage: f.close()
             sage: lie.read(filename)  # optional - lie
             sage: lie.get('x')        # optional - lie
@@ -685,9 +689,9 @@ class LiE(ExtraTabCompletion, Expect):
             sage: lie.get('x')       # optional - lie
             '2'
         """
-        cmd = '%s=%s'%(var,value)
+        cmd = '%s=%s' % (var,value)
         out = self.eval(cmd)
-        i = min( out.find('not defined'), out.find('\(in'), out.find('Argument types') )
+        i = min( out.find('not defined'), out.find(r'\(in'), out.find('Argument types') )
         if i != -1:
             raise RuntimeError(out)
 
@@ -702,7 +706,7 @@ class LiE(ExtraTabCompletion, Expect):
             '2'
 
         """
-        s = self.eval('%s'%var)
+        s = self.eval('%s' % var)
         return s
 
     def get_using_file(self, var):
@@ -745,6 +749,7 @@ class LiE(ExtraTabCompletion, Expect):
         return LiEFunctionElement
 
     
+@instancedoc
 class LiEElement(ExtraTabCompletion, ExpectElement):
     def _tab_completion(self):
         """
@@ -864,27 +869,29 @@ class LiEElement(ExtraTabCompletion, ExpectElement):
             return ExpectElement._sage_(self)
 
 
+@instancedoc
 class LiEFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
             sage: a4 = lie('A4')  # optional - lie
-            sage: a4.diagram._sage_doc_() # optional - lie
+            sage: a4.diagram.__doc__  # optional - lie
             'diagram(g)...'
         """
         M = self._obj.parent()
         return M.help(self._name)
 
 
+@instancedoc
 class LiEFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the help for self.
 
         EXAMPLES::
 
-            sage: lie.diagram._sage_doc_() # optional - lie
+            sage: lie.diagram.__doc__  # optional - lie
             'diagram(g)...'
         """
         M = self._parent

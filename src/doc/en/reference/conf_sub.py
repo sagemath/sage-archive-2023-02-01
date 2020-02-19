@@ -11,10 +11,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
 from sage.env import SAGE_DOC_SRC, SAGE_DOC
-sys.path.append(SAGE_DOC_SRC)
-from common.conf import *
+from sage.docs.conf import release, exclude_patterns
+from sage.docs.conf import *
+
+from six.moves import range
 
 ref_src = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
 ref_out = os.path.join(SAGE_DOC, 'html', 'en', 'reference')
@@ -25,7 +27,7 @@ rst_lines = rst_file.read().splitlines()
 rst_file.close()
 
 title = u''
-for i in xrange(len(rst_lines)):
+for i in range(len(rst_lines)):
     if rst_lines[i].startswith('==') and i > 0:
         title = rst_lines[i-1].strip()
         break
@@ -61,7 +63,19 @@ latex_documents = [
 ('index', name + '.tex', project, u'The Sage Development Team', 'manual')
 ]
 
+latex_elements['hyperref'] = r"""
+\usepackage{xcite}
+\usepackage{xr-hyper}
+\externaldocument[../references/]{../references/references}
+\externalcitedocument[../references/]{../references/references}
+% Include hyperref last.
+\usepackage{hyperref}
+% Fix anchor placement for figures with captions.
+\usepackage{hypcap}% it must be loaded after hyperref.
+% Set up styles of URL: it should be placed after hyperref.
+\urlstyle{same}"""
+
 #Ignore all .rst in the _sage subdirectory
-exclude_trees = exclude_trees + ['_sage']
+exclude_patterns = exclude_patterns + ['_sage']
 
 multidocs_is_master = False

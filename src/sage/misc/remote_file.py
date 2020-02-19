@@ -1,7 +1,8 @@
 "get_remote_file"
 
+from __future__ import absolute_import
+
 import os
-import sys
 
 
 def get_remote_file(filename, verbose=True):
@@ -20,9 +21,13 @@ def get_remote_file(filename, verbose=True):
 
     EXAMPLES::
 
-        sage: g = get_remote_file("http://sagemath.org/ack.html", verbose=False)   # optional - internet
-        sage: len(open(g).read())   # optional - internet; random
-        10198
+        sage: url = 'http://www.sagemath.org/files/loadtest.py'
+        sage: g = get_remote_file(url, verbose=False)      # optional - internet
+        sage: with open(g) as f: print(f.read())           # optional - internet
+        print("hi from the net")
+        <BLANKLINE>
+        print(2+3)
+
     """
     if verbose:
         print("Attempting to load remote file: " + filename)
@@ -33,24 +38,17 @@ def get_remote_file(filename, verbose=True):
     # so do not import it in the module scope.
 
     # import compatible with py2 and py3
-    from six.moves.urllib.request import urlretrieve
+    from six.moves.urllib.request import Request, urlopen
+    req = Request(filename, headers={"User-Agent": "sage-doctest"})
 
-    global cur
-    cur = 0
     if verbose:
-        sys.stdout.write("Loading: [")
-        sys.stdout.flush()
-        urlretrieve(filename, temp_name, report_hook)
-        print("]")
-    else:
-        urlretrieve(filename, temp_name)
-    return temp_name
+        print("Loading started")
 
-cur = 0
-def report_hook(block, size, total):
-     global cur
-     n = block*size*50/total
-     if n > cur:
-          cur = n
-          sys.stdout.write('.')
-          sys.stdout.flush()
+    content = urlopen(req, timeout=1)
+    with open(temp_name, 'wb') as f:
+        f.write(content.read())
+
+    if verbose:
+        print("Loading ended")
+
+    return temp_name

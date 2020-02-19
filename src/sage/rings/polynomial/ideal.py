@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ideals in Univariate Polynomial Rings.
+Ideals in Univariate Polynomial Rings
 
 AUTHORS:
 
@@ -40,7 +40,7 @@ class Ideal_1poly_field(Ideal_pid):
         return self.gen().degree()
 
     def residue_field(self, names=None, check=True):
-        """
+        r"""
         If this ideal is `P \subset F_p[t]`, returns the quotient `F_p[t]/P`.
 
         EXAMPLES::

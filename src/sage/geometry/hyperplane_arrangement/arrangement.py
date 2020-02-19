@@ -5,7 +5,7 @@ Hyperplane Arrangements
 Before talking about hyperplane arrangements, let us start with
 individual hyperplanes. This package uses certain linear expressions
 to represent hyperplanes, that is, a linear expression `3x + 3y - 5z - 7`
-stands for the hyperplane with the equation `x + 3y - 5z = 7`. To create it
+stands for the hyperplane with the equation `3x + 3y - 5z = 7`. To create it
 in Sage, you first have to create a :class:`HyperplaneArrangements`
 object to define the variables `x`, `y`, `z`::
 
@@ -116,8 +116,8 @@ New arrangements from old::
     sage: b == hyperplane_arrangements.coordinate(3)
     True
 
-A hyperplane arrangement is *essential* is the normals to its
-hyperplane span the ambient space.  Otherwise, it is *inessential*.
+A hyperplane arrangement is *essential* if the normals to its
+hyperplanes span the ambient space.  Otherwise, it is *inessential*.
 The essentialization is formed by intersecting the hyperplanes by this
 normal space (actually, it is a bit more complicated over finite
 fields)::
@@ -211,7 +211,7 @@ arrangement (as the intersection over the empty set)::
     sage: p.is_ranked()
     True
     sage: p.order_polytope()
-    A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
+    A 5-dimensional polyhedron in ZZ^5 defined as the convex hull of 10 vertices
 
 The characteristic polynomial is a basic invariant of a hyperplane
 arrangement. It is defined as
@@ -308,16 +308,8 @@ AUTHORS:
 
 This module implements hyperplane arrangements defined over the
 rationals or over finite fields.  The original motivation was to make
-a companion to Richard Stanley's notes [RS]_ on hyperplane
+a companion to Richard Stanley's notes [Sta2007]_ on hyperplane
 arrangements.
-
-REFERENCES:
-
-..  [RS]
-    Stanley, Richard: *Hyperplane Arrangements*,
-    Geometric Combinatorics (E. Miller, V. Reiner, and B. Sturmfels, eds.),
-    IAS/Park City Mathematics Series, vol. 13, American Mathematical Society,
-    Providence, RI, 2007, pp. 389-496.
 """
 
 #*****************************************************************************
@@ -338,17 +330,16 @@ REFERENCES:
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import QQ, ZZ
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import uniq
 from sage.matrix.constructor import matrix, vector
 from sage.modules.free_module import VectorSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
-
-from copy import copy
+from sage.combinat.posets.posets import Poset
 
 
 class HyperplaneArrangementElement(Element):
@@ -555,7 +546,7 @@ class HyperplaneArrangementElement(Element):
         normals = [h.normal() for h in self]
         return matrix(R, normals).rank()
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare two hyperplane arrangements.
 
@@ -564,11 +555,13 @@ class HyperplaneArrangementElement(Element):
             sage: H.<x,y,z> = HyperplaneArrangements(QQ)
             sage: H(x) == H(y)
             False
+
+        TESTS::
+
             sage: H(x) == 0
             False
         """
-        assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
-        return cmp(self._hyperplanes, other._hyperplanes)
+        return richcmp(self._hyperplanes, other._hyperplanes, op)
 
     def union(self, other):
         r"""
@@ -797,11 +790,11 @@ class HyperplaneArrangementElement(Element):
     @cached_method
     def poincare_polynomial(self):
         r"""
-        Return the Poincare polynomial of the hyperplane arrangement.
+        Return the Poincaré polynomial of the hyperplane arrangement.
 
         OUTPUT:
 
-        The Poincare polynomial in `\QQ[x]`.
+        The Poincaré polynomial in `\QQ[x]`.
 
         EXAMPLES::
 
@@ -1110,30 +1103,153 @@ class HyperplaneArrangementElement(Element):
         return self.rank() == self.dimension()
 
     @cached_method
-    def is_central(self):
+    def is_central(self, certificate=False):
         r"""
         Test whether the intersection of all the hyperplanes is nonempty.
 
+        A hyperplane arrangement is central if the intersection of all the
+        hyperplanes in the arrangement is nonempty.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+          to return the center as a polyhedron (possibly empty) as part
+          of the output
+
         OUTPUT:
 
-        A boolean whether the hyperplane arrangement is such that the
-        intersection of all the hyperplanes in the arrangement is
-        nonempty.
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. A boolean
+        2. The polyhedron defined to be the intersection of all the hyperplanes
+
+        If ``certificate`` is ``False``, returns a boolean.
 
         EXAMPLES::
 
             sage: a = hyperplane_arrangements.braid(2)
             sage: a.is_central()
             True
+
+        The Catalan arrangement in dimension 3 is not central::
+
+            sage: b = hyperplane_arrangements.Catalan(3)
+            sage: b.is_central(certificate=True)
+            (False, The empty polyhedron in QQ^3)
+
+        The empty arrangement in dimension 5 is central::
+
+            sage: H = HyperplaneArrangements(QQ,names=tuple(['x'+str(i) for i in range(7)]))
+            sage: c = H()
+            sage: c.is_central(certificate=True)
+            (True, A 7-dimensional polyhedron in QQ^7 defined as the convex
+            hull of 1 vertex and 7 lines)
         """
         R = self.base_ring()
+        # If there are no hyperplanes in the arrangement,
+        # the center is the entire ambient space
+        if self.n_hyperplanes() == 0:
+            if certificate:
+                from sage.geometry.polyhedron.parent import Polyhedra
+                pp = Polyhedra(R, self.dimension())
+                return (True, pp.universe())
+            else:
+                return True
+        # The center is the set of points contained in all hyperplanes,
+        # expressible as the solution set of m*x=b with m and b as follows:
         m = matrix(R, [h.normal() for h in self])
         b = vector(R, [h.b() for h in self])
         try:
-            m.solve_right(b)
-            return True
+            x = m.solve_right(b)
         except ValueError:
-            return False
+            # The solution set is empty, therefore the center is empty
+            if certificate:
+                from sage.geometry.polyhedron.parent import Polyhedra
+                pp = Polyhedra(R, self.dimension())
+                return (False, pp.empty())
+            else:
+                return False
+        # The center is the kernel of m translated by x.
+        if certificate:
+            Ker = m.right_kernel()
+            from sage.geometry.polyhedron.constructor import Polyhedron
+            return (True, Polyhedron(base_ring=R, vertices=[x], lines=Ker.basis()))
+        else:
+            return True
+
+    def center(self):
+        r"""
+        Return the center of the hyperplane arrangement.
+
+        The polyhedron defined to be the set of all points in the
+        ambient space of the arrangement that lie on all of the
+        hyperplanes.
+
+        OUTPUT:
+
+        A polyhedron.
+
+        EXAMPLES:
+
+        The empty hyperplane arrangement has the entire ambient space as its
+        center::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: A = H()
+            sage: A.center()
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines
+
+        The Shi arrangement in dimension 3 has an empty center::
+
+            sage: A = hyperplane_arrangements.Shi(3)
+            sage: A.center()
+            The empty polyhedron in QQ^3
+
+        The Braid arrangement in dimension 3 has a center that is neither
+        empty nor full-dimensional::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: A.center()
+            A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
+        """
+        return self.is_central(certificate=True)[1]
+
+    @cached_method
+    def is_simplicial(self):
+        r"""
+        Test whether the arrangement is simplicial.
+        
+        A region is simplicial if the normal vectors of its bounding hyperplanes
+        are linearly independent. A hyperplane arrangement is said to be
+        simplicial if every region is simplicial.
+
+        OUTPUT:
+        
+        A boolean whether the hyperplane arrangement is simplicial.
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3]])
+            sage: A.is_simplicial()
+            True
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2]])
+            sage: A.is_simplicial()
+            True
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2],[0,2,1,3]])
+            sage: A.is_simplicial()
+            False
+            sage: hyperplane_arrangements.braid(3).is_simplicial()
+            True
+        """
+        # if the arr is not essential, grab the essential version and check there.
+        if not self.is_essential():
+            return self.essentialization().is_simplicial()
+
+        # Check that the number of facets for each region is equal to rank
+        rank = self.rank()
+        return all(R.n_facets() == rank for R in self.regions())
+
 
     @cached_method
     def essentialization(self):
@@ -1187,7 +1303,7 @@ class HyperplaneArrangementElement(Element):
             """helper to iterat over the echelon pivot column indices"""
             for row in row_iter:
                 if row == 0:
-                    raise StopIteration
+                    return
                 for pivot in range(self.dimension()):
                     if row[pivot] != 0:
                         break
@@ -1217,7 +1333,7 @@ class HyperplaneArrangementElement(Element):
             assert row[pivot] == 1
             echelon_pivots.append(pivot)
             hyperplanes = [h - h.A()[pivot] * H(row, 0) for h in hyperplanes]
-        # eliminate the pivot'ed coodinates
+        # eliminate the pivot'ed coordinates
         restricted = []
         for h in hyperplanes:
             A = h.A()
@@ -1282,8 +1398,8 @@ class HyperplaneArrangementElement(Element):
         A vector of integers.
 
         The `d`-th entry is the number of faces of dimension `d`.  A
-        *face* is is the intersection of a region with a hyperplane of
-        the arrangehment.
+        *face* is the intersection of a region with a hyperplane of
+        the arrangement.
 
         EXAMPLES::
 
@@ -1505,6 +1621,92 @@ class HyperplaneArrangementElement(Element):
                         subdivided.append(part)
             regions = subdivided
         return tuple(regions)
+
+    @cached_method
+    def poset_of_regions(self, B=None, numbered_labels=True):
+        r"""
+        Return the poset of regions for a central hyperplane arrangement.
+
+        The poset of regions is a partial order on the set of regions
+        where the regions are ordered by `R\leq R'` if and only if
+        `S(R) \subseteq S(R')` where `S(R)` is the set of hyperplanes which
+        separate the region `R` from the base region `B`.
+
+        INPUT:
+
+        - ``B`` -- a region (optional; default: ``None``); if ``None``, then
+          an arbitrary region is chosen as the base region.
+
+        - ``numbered_labels`` -- bool (optional; default: ``True``); if ``True``,
+          then the elements of the poset are numbered. Else they are labelled
+          with the regions themselves.
+
+        OUTPUT:
+
+        A Poset object containing the poset of regions.
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3]])
+            sage: A.poset_of_regions()
+            Finite poset containing 4 elements
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: A.poset_of_regions()
+            Finite poset containing 6 elements
+            sage: A.poset_of_regions(numbered_labels=False)
+            Finite poset containing 6 elements
+            sage: A = hyperplane_arrangements.braid(4)
+            sage: A.poset_of_regions()
+            Finite poset containing 24 elements
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2],[0,2,1,3]])
+            sage: R = A.regions()
+            sage: base_region = R[3]
+            sage: A.poset_of_regions(B=base_region)
+            Finite poset containing 14 elements
+
+        """
+        # We use RX to keep track of indexes and R to keep track of which regions
+        # we've already hit. This poset is graded, so we can go one set at a time
+        RX = self.regions()
+        R = set(RX)
+        if B in R:
+            R.discard(B)
+        else:
+            B = R.pop()
+
+        # Will record the edges in our poset
+        edges = []
+
+        # Start with rank=0 for the poset
+        nextTest = [B]
+
+        # While we have objects in our set R
+        while R:
+            # Transfer the "next step" to the "current step"
+            curTest = list(nextTest)
+            nextTest = set([])
+            # we want to test each region that we haven't hit yet
+            for r in R:
+                # Since it's graded, it suffices to look at the regions of the previous rank
+                for b in curTest:
+                    if self.distance_between_regions(b,r) == 1:
+                        nextTest.add(r)
+                        if numbered_labels:
+                            edges.append([RX.index(b),RX.index(r)])
+                        else:
+                            edges.append([b,r])
+            for x in nextTest:
+                R.discard(x)
+
+        if numbered_labels:
+            return Poset([range(len(RX)),edges])
+        else:
+            return Poset([RX,edges])
+
 
     @cached_method
     def closed_faces(self, labelled=True):
@@ -1805,7 +2007,7 @@ class HyperplaneArrangementElement(Element):
         The face semigroup of a hyperplane arrangement is always a
         left-regular band (i.e., a semigroup satisfying the identities
         `x^2 = x` and `xyx = xy`). When the arrangement is central, then
-        this semigroup is a monoid. See [Brown2000]_ (Appendix A in
+        this semigroup is a monoid. See [Br2000]_ (Appendix A in
         particular) for further properties.
 
         INPUT:
@@ -1841,11 +2043,6 @@ class HyperplaneArrangementElement(Element):
             sage: xGzGy = faces[(-1, 1, 1)] # closed face x >= z >= y
             sage: a.face_product(xEzGy, yGxGz) == xGzGy
             True
-
-        REFERENCES:
-
-        .. [Brown2000] Kenneth S. Brown, *Semigroups, rings, and Markov
-           chains*, :arxiv:`math/0006145v1`.
         """
         f = F.representative_point()
         g = G.representative_point()
@@ -1906,7 +2103,7 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``field`` -- a field (default: `\mathbb{Q}`), to be used as the
+        - ``field`` -- a field (default: `\QQ`), to be used as the
           base ring for the algebra (can also be a commutative ring, but
           then certain representation-theoretical methods might misbehave)
 
@@ -1991,7 +2188,6 @@ class HyperplaneArrangementElement(Element):
         # Some hackery to generate a matrix quickly and without
         # unnecessary sanitization/ducktyping:
         MS = MatrixSpace(field, N, N)
-        MC = MS._get_matrix_class()
         table = []
         for j, sj in enumerate(Fs):
             matrix_j = []
@@ -2001,8 +2197,8 @@ class HyperplaneArrangementElement(Element):
                       for l, sil in enumerate(si)]
                 k = Fdict[tuple(sk)]
                 row_i[k] = one
-                matrix_j.extend(row_i)
-            table.append(MC(MS, matrix_j, copy=False, coerce=False))
+                matrix_j += row_i
+            table.append(MS(matrix_j, coerce=False))
         from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FDA
         return FDA(field, table, names=names, assume_associative=True)
 
@@ -2237,12 +2433,7 @@ class HyperplaneArrangementElement(Element):
 
         REFERENCES:
 
-        ..  [GZ] Greene; Zaslavsky
-            "On the Interpretation of Whitney Numbers Through Arrangements of
-            Hyperplanes, Zonotopes, Non-Radon Partitions, and Orientations of
-            Graphs"
-            Transactions of the American Mathematical Society, Vol. 280, No. 1.
-            (Nov., 1983), pp. 97-126.
+        - [GZ1983]_
         """
         if 0 <= i and j <= self.dimension():
             if kind == 1:
@@ -2263,7 +2454,7 @@ class HyperplaneArrangementElement(Element):
         intersection poset such that `x \leq y` with ranks `i` and `j`,
         respectively.
 
-        See [GZ]_ for more details.
+        See [GZ1983]_ for more details.
 
         INPUT:
 
@@ -2438,7 +2629,6 @@ class HyperplaneArrangementElement(Element):
             sage: factor(det(v))
             (h2 - 1) * (h2 + 1) * (h1 - 1) * (h1 + 1)
         """
-        from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix
         from sage.misc.all import prod
         k = len(self)
@@ -2464,7 +2654,7 @@ class HyperplaneArrangementElement(Element):
         `M_A` as the linear matroid spanned by `\{ n_H | H \in A \}`.
         The matroid `M_A` is such that the lattice of flats of `M` is
         isomorphic to the intersection lattice of `A`
-        (Proposition 3.6 in [RS]_).
+        (Proposition 3.6 in [Sta2007]_).
 
         EXAMPLES::
 
@@ -2512,6 +2702,32 @@ class HyperplaneArrangementElement(Element):
             base_ring = self.base_ring()
         return self.matroid().orlik_solomon_algebra(base_ring, ordering)
 
+    def orlik_terao_algebra(self, base_ring=None, ordering=None):
+        """
+        Return the Orlik-Terao algebra of ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- (default: the base field of ``self``) the ring
+          over which the Orlik-Terao algebra will be defined
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z)
+            sage: A.orlik_terao_algebra()
+            Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
+             represented over the Rational Field over Rational Field
+            sage: A.orlik_terao_algebra(base_ring=QQ['t'])
+            Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
+             represented over the Rational Field
+             over Univariate Polynomial Ring in t over Rational Field
+        """
+        if base_ring is None:
+            base_ring = self.base_ring()
+        return self.matroid().orlik_terao_algebra(base_ring, ordering)
+
     @cached_method
     def minimal_generated_number(self):
         r"""
@@ -2528,7 +2744,7 @@ class HyperplaneArrangementElement(Element):
 
         EXAMPLES:
 
-        We construct Example 2.2 from [Yuz93]_::
+        We construct Example 2.2 from [Yuz1993]_::
 
             sage: P.<x,y,z> = HyperplaneArrangements(QQ)
             sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z, 3*x+5*z, 3*x+4*y+5*z)
@@ -2538,17 +2754,25 @@ class HyperplaneArrangementElement(Element):
             sage: B.minimal_generated_number()
             4
 
-        REFERENCES:
+        TESTS:
 
-        .. [Yuz93] Sergey Yuzvinsky,
-           *The first two obstructions to the freeness of arrangements*,
-           Transactions of the American Mathematical Society,
-           Vol. 335, **1** (1993) pp. 231--244.
+        Check that :trac:`26705` is fixed::
+
+            sage: w = WeylGroup(['A',4]).from_reduced_word([3,4,2,1])
+            sage: I = w.inversion_arrangement()
+            sage: I
+            Arrangement <a4 | a1 | a1 + a2 | a1 + a2 + a3 + a4>
+            sage: I.minimal_generated_number()
+            0
+            sage: I.is_formal()
+            True
         """
         V = VectorSpace(self.base_ring(), self.dimension())
         W = VectorSpace(self.base_ring(), self.n_hyperplanes())
         r = self.rank()
         M = self.matroid()
+        if len(M.groundset()) == r:  # there are no circuits
+            return ZZ.zero()
         norms = M.representation().columns()
         circuits = M.circuits()
         for i in range(2, self.n_hyperplanes()):
@@ -2571,7 +2795,7 @@ class HyperplaneArrangementElement(Element):
         """
         Return if ``self`` is formal.
 
-        A hyperplane arrangement is *formal* if it is 3-generated [Yuz93]_,
+        A hyperplane arrangement is *formal* if it is 3-generated [Yuz1993]_,
         where `k`-generated is defined in :meth:`minimal_generated_number`.
 
         EXAMPLES::
@@ -2657,7 +2881,7 @@ class HyperplaneArrangementElement(Element):
 
     @cached_method(key=lambda self,a: None)
     def is_free(self, algorithm="singular"):
-        """
+        r"""
         Return if ``self`` is free.
 
         A hyperplane arrangement `A` is free if the module
@@ -2671,7 +2895,7 @@ class HyperplaneArrangementElement(Element):
 
           * ``"singular"`` -- use Singular's minimal free resolution
           * ``"BC"`` -- use the algorithm given by Barakat and Cuntz
-            in [BC12]_ (much slower than using Singular)
+            in [BC2012]_ (much slower than using Singular)
 
         ALGORITHM:
 
@@ -2682,7 +2906,7 @@ class HyperplaneArrangementElement(Element):
 
         .. RUBRIC:: BC
 
-        This implementation follows [BC12]_ by constructing a chain
+        This implementation follows [BC2012]_ by constructing a chain
         of free modules
 
         .. MATH::
@@ -2712,13 +2936,6 @@ class HyperplaneArrangementElement(Element):
             ....:    A = x.inversion_arrangement()
             ....:    assert (A.is_free(algorithm="BC")
             ....:            == A.is_free(algorithm="singular"))
-
-        REFERENCES:
-
-        .. [BC12] Mohamed Barakat and Michael Cuntz.
-           *Coxeter and crystallographic arrangements are inductively free*.
-           Adv. in Math. **229** Issue 1 (2012). pp. 691-709.
-           :doi:`10.1016/j.aim.2011.09.011`, :arxiv:`1011.4228`.
         """
         if not self.is_central():
             raise NotImplementedError("only implemented for central arrangements")
@@ -2747,7 +2964,7 @@ class HyperplaneArrangementElement(Element):
 
           * ``"singular"`` -- use Singular's minimal free resolution
           * ``"BC"`` -- use the algorithm given by Barakat and Cuntz
-            in [BC12]_ (much slower than using Singular)
+            in [BC2012]_ (much slower than using Singular)
 
         OUTPUT:
 
@@ -2762,7 +2979,7 @@ class HyperplaneArrangementElement(Element):
 
         This gets the reduced syzygy module of the Jacobian ideal of
         the defining polynomial `f` of ``self``. It then checks Saito's
-        criterion that the determinat of the basis matrix is a scalar
+        criterion that the determinant of the basis matrix is a scalar
         multiple of `f`. If the basis matrix is not square or it fails
         Saito's criterion, then we check if the arrangement is free.
         If it is free, then we fall back to the Barakat-Cuntz algorithm.
@@ -2770,7 +2987,7 @@ class HyperplaneArrangementElement(Element):
         .. RUBRIC:: BC
 
         Return the product of the derivation module free chain matrices.
-        See Section 6 of [BC12]_.
+        See Section 6 of [BC2012]_.
 
         EXAMPLES::
 
@@ -2995,7 +3212,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L._element_constructor_([[0, 1, 0], [0, 0, 1]])
             Arrangement <y | x>
 
-            sage: L._element_constructor(polytopes.hypercube(2))
+            sage: L._element_constructor_(polytopes.hypercube(2))
             Arrangement <-x + 1 | -y + 1 | y + 1 | x + 1>
 
             sage: L(x, x, warn_duplicates=True)
@@ -3048,7 +3265,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
                 hyperplanes = [AA(_) for _ in arg]
         hyperplanes = [h.primitive(signed) for h in hyperplanes]
         n = len(hyperplanes)
-        hyperplanes = tuple(uniq(hyperplanes))
+        hyperplanes = set(hyperplanes)
         if warn_duplicates and n != len(hyperplanes):
             from warnings import warn
             warn('Input contained {0} hyperplanes, but only {1} are distinct.'.format(n, len(hyperplanes)))
@@ -3056,13 +3273,12 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         if check:
             if signed and not not_char2:
                 raise ValueError('cannot be signed in characteristic 2')
-            hyperplane_set = set(hyperplanes)
             for h in hyperplanes:
                 if h.A() == 0:
                     raise ValueError('linear expression must be non-constant to define a hyperplane')
-                if not_char2 and -h in hyperplane_set:
-                    raise ValueError('arrangement cannot simultaneouly have h and -h as hyperplane')
-        return self.element_class(self, hyperplanes)
+                if not_char2 and -h in hyperplanes:
+                    raise ValueError('arrangement cannot simultaneously have h and -h as hyperplane')
+        return self.element_class(self, tuple(sorted(hyperplanes)))
 
     @cached_method
     def ngens(self):
@@ -3134,15 +3350,13 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
 
             sage: L.coerce_map_from(ZZ)
-            Conversion map:
+            Coercion map:
               From: Integer Ring
               To:   Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
             sage: M.coerce_map_from(L)
-            Conversion map:
-              From: Hyperplane arrangements in 1-dimensional linear space over
-                    Rational Field with coordinate x
-              To:   Hyperplane arrangements in 1-dimensional linear space over
-                    Real Field with 53 bits of precision with coordinate y
+            Coercion map:
+              From: Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
+              To:   Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
             sage: L.coerce_map_from(M)
         """
         if self.ambient_space().has_coerce_map_from(P):

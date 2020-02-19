@@ -186,10 +186,13 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
+from sage.docs.instancedoc import instancedoc
 
 
 class Scilab(Expect):
@@ -201,7 +204,7 @@ class Scilab(Expect):
         sage: a = scilab('[ 1, 1, 2; 3, 5, 8; 13, 21, 33 ]')    # optional - scilab
         sage: b = scilab('[ 1; 3; 13]')                         # optional - scilab
         sage: c = a * b                                         # optional - scilab
-        sage: print c                                           # optional - scilab
+        sage: print(c)                                          # optional - scilab
           30.
           122.
           505.
@@ -233,7 +236,8 @@ class Scilab(Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for gp interpeter.
+        Set the seed for gp interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -278,7 +282,7 @@ class Scilab(Expect):
 
         EXAMPLES::
 
-            sage: print scilab._install_hints()               # optional - scilab
+            sage: print(scilab._install_hints())       # optional - scilab
             You must ...
         """
         return """
@@ -423,6 +427,7 @@ class Scilab(Expect):
         return ScilabElement
 
 
+@instancedoc
 class ScilabElement(ExpectElement):
     def __getitem__(self, n):
         """

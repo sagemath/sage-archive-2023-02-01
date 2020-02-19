@@ -3,7 +3,7 @@
 Sage Packages
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -11,16 +11,16 @@ Sage Packages
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 import re
 import os
-
 import logging
+
+from sage_bootstrap.env import SAGE_ROOT
+
+
 log = logging.getLogger()
-
-from sage_bootstrap.env import SAGE_ROOT, SAGE_DISTFILES
-
 
 
 class Package(object):
@@ -148,6 +148,25 @@ class Package(object):
         return self.tarball_pattern.replace('VERSION', self.version)
 
     @property
+    def tarball_package(self):
+        """
+        Return the canonical package for the tarball
+
+        This is almost always equal to ``self`` except if the package
+        or the ``checksums.ini`` file is a symbolic link. In that case,
+        the package of the symbolic link is returned.
+
+        OUTPUT:
+
+        A ``Package`` instance
+        """
+        n = self.__tarball_package_name
+        if n == self.name:
+            return self
+        else:
+            return type(self)(n)
+
+    @property
     def version(self):
         """
         Return the version
@@ -166,7 +185,7 @@ class Package(object):
 
         OUTPUT:
 
-        String. The patchlevel of the package. Excludes the "p"
+        Integer. The patchlevel of the package. Excludes the "p"
         prefix.
         """
         return self.__patchlevel
@@ -207,10 +226,12 @@ class Package(object):
                     continue
                 var, value = match.groups()
                 result[var] = value
-        self.__md5 = result['md5']
-        self.__sha1 = result['sha1']
-        self.__cksum = result['cksum']
+        self.__md5 = result.get('md5', None)
+        self.__sha1 = result.get('sha1', None)
+        self.__cksum = result.get('cksum', None)
         self.__tarball_pattern = result['tarball']
+        # Name of the directory containing the checksums.ini file
+        self.__tarball_package_name = os.path.realpath(checksums_ini).split(os.sep)[-2]
         
     VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')
     
@@ -223,6 +244,6 @@ class Package(object):
             self.__patchlevel = -1
         else:
             self.__version = match.group('version')
-            self.__patchlevel = match.group('patchlevel')
+            self.__patchlevel = int(match.group('patchlevel'))
         
         

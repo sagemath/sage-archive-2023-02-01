@@ -69,7 +69,8 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
               non-commuting variables over the Rational Field,
              Category of graded hopf algebras with basis over Rational Field,
              Join of Category of realizations of hopf algebras over Rational Field
-              and Category of graded algebras over Rational Field]
+              and Category of graded algebras over Rational Field
+              and Category of graded coalgebras over Rational Field]
         """
         R = self.base().base_ring()
         from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
@@ -474,7 +475,7 @@ class NCSymBases(Category_realization_of_parent):
 
         @lazy_attribute
         def internal_coproduct(self):
-            """
+            r"""
             Compute the internal coproduct of ``self``.
 
             If :meth:`internal_coproduct_on_basis()` is available, construct
@@ -603,8 +604,64 @@ class NCSymBases(Category_realization_of_parent):
             m = self.parent().realization_of().monomial()
             return m(self).to_symmetric_function()
 
-        def internal_coproduct(self):
+        def to_wqsym(self):
+            r"""
+            Return the image of ``self`` under the canonical
+            inclusion map `NCSym \to WQSym`.
+
+            The canonical inclusion map `NCSym \to WQSym` is
+            an injective homomorphism of algebras. It sends a
+            basis element `\mathbf{m}_A` of `NCSym` to the sum of
+            basis elements `\mathbf{M}_P` of `WQSym`, where `P`
+            ranges over all ordered set partitions that become
+            `A` when the ordering is forgotten.
+            This map is denoted by `\theta` in [BZ05]_ (17).
+
+            .. SEEALSO::
+
+                :class:`WordQuasiSymmetricFunctions` for a
+                definition of `WQSym`.
+
+            EXAMPLES::
+
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+                sage: e = NCSym.e()
+                sage: h = NCSym.h()
+                sage: p = NCSym.p()
+                sage: cp = NCSym.cp()
+                sage: x = NCSym.x()
+                sage: m = NCSym.m()
+                sage: m[[1,3],[2]].to_wqsym()
+                M[{1, 3}, {2}] + M[{2}, {1, 3}]
+                sage: x[[1,3],[2]].to_wqsym()
+                -M[{1}, {2}, {3}] - M[{1}, {2, 3}] - M[{1}, {3}, {2}]
+                 - M[{1, 2}, {3}] - M[{2}, {1}, {3}] - M[{2}, {3}, {1}]
+                 - M[{2, 3}, {1}] - M[{3}, {1}, {2}] - M[{3}, {1, 2}]
+                 - M[{3}, {2}, {1}]
+                sage: (4*p[[1,3],[2]]-p[[1]]).to_wqsym()
+                -M[{1}] + 4*M[{1, 2, 3}] + 4*M[{1, 3}, {2}] + 4*M[{2}, {1, 3}]
             """
+            parent = self.parent()
+            NCSym = parent.realization_of()
+            R = parent.base_ring()
+            m = NCSym.monomial()
+            from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctions
+            from sage.combinat.set_partition_ordered import OrderedSetPartition
+            M = WordQuasiSymmetricFunctions(R).M()
+            from itertools import permutations
+            OSP = M.basis().keys()
+            def to_wqsym_on_m_basis(A):
+                # Return the image of `\mathbf{m}_A` under the inclusion
+                # map `NCSym \to WQSym`.
+                l = len(A)
+                return M.sum_of_terms(((OSP([A[ui] for ui in u]), 1)
+                                         for u in permutations(range(l))),
+                                      distinct=True)
+            return M.linear_combination((to_wqsym_on_m_basis(A), coeff)
+                                        for A, coeff in m(self))
+
+        def internal_coproduct(self):
+            r"""
             Return the internal coproduct of ``self``.
 
             The internal coproduct is defined on the power sum basis as
@@ -629,7 +686,7 @@ class NCSymBases(Category_realization_of_parent):
             return self.parent().internal_coproduct(self)
 
         def omega(self):
-            """
+            r"""
             Return the involution `\omega` applied to ``self``.
 
             The involution `\omega` is defined by

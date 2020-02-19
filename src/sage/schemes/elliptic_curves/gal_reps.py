@@ -15,7 +15,7 @@ Currently sage can decide whether the Galois module
 `E[p]` is reducible, i.e., if `E` admits an isogeny
 of degree `p`, and whether the image of
 the representation on `E[p]` is surjective onto
-`\text{Aut}(E[p]) = GL_2(\mathbb{F}_p)`.
+`\text{Aut}(E[p]) = GL_2(\GF{p})`.
 
 The following are the most useful functions for the class ``GaloisRepresentation``.
 
@@ -75,7 +75,7 @@ surjective if and only if it is irreducible::
     [5]
 
 For cm curves it is not true that there are only finitely many primes for which the
-Galois representation mod p is surjective onto `GL_2(\mathbb{F}_p)`::
+Galois representation mod p is surjective onto `GL_2(\GF{p})`::
 
     sage: E = EllipticCurve('27a1')
     sage: rho = E.galois_representation()
@@ -90,19 +90,9 @@ Galois representation mod p is surjective onto `GL_2(\mathbb{F}_p)`::
 
 REFERENCES:
 
-.. [Se1] Jean-Pierre Serre,
-    Propriétés galoisiennes des points d'ordre fini
-    des courbes elliptiques.
-    Invent. Math.  15  (1972), no. 4, 259--331.
-.. [Se2] Jean-Pierre Serre,
-    Sur les représentations modulaires de degré
-    2 de `\text{Gal}(\bar\QQ/\QQ)`.
-    Duke Math. J. 54 (1987), no. 1, 179--230.
-.. [Co] Alina Carmen Cojocaru,
-    On the surjectivity of the Galois representations
-    associated to non-CM elliptic curves.
-    With an appendix by Ernst Kani.
-    Canad. Math. Bull. 48 (2005), no. 1, 16--31.
+- [Ser1972]_
+- [Ser1987]_
+- [Coj2005]_
 
 AUTHORS:
 
@@ -124,16 +114,18 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
+from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
 import sage.arith.all as arith
+from sage.rings.fast_arith import prime_range
 import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from math import sqrt
 from sage.libs.pari.all import pari
+
 
 def _ex_set(p):
     """
@@ -143,7 +135,7 @@ def _ex_set(p):
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.gal_reps import _ex_set
-        sage: for p in prime_range(3,30): print p, _ex_set(p)
+        sage: for p in prime_range(3,30): print("{} {}".format(p, _ex_set(p)))
         3 [0, 1, 2, 1]
         5 [0, 1, 2, 4]
         7 [0, 1, 2, 4]
@@ -365,7 +357,7 @@ class GaloisRepresentation(SageObject):
 
         E = self._E
         j = E.j_invariant()
-        from isogeny_small_degree import sporadic_j
+        from .isogeny_small_degree import sporadic_j
         if j in sporadic_j: # includes all CM j-invariants
             R = [sporadic_j[j]]
         else:
@@ -380,7 +372,7 @@ class GaloisRepresentation(SageObject):
     def is_surjective(self, p, A=1000):
         r"""
         Return True if the mod-p representation is
-        surjective onto `Aut(E[p]) = GL_2(\mathbb{F}_p)`.
+        surjective onto `Aut(E[p]) = GL_2(\GF{p})`.
 
         False if it is not, or None if we were unable to
         determine whether it is or not.
@@ -849,7 +841,7 @@ class GaloisRepresentation(SageObject):
         # checks if the image is all of GL_2, while doing so, it may detect certain other classes already
         # see _is_surjective. It will have set __image_type
 
-        ans = self._is_surjective(p, A=1000)
+        self._is_surjective(p, A=1000)  # this sets __image_type
         try:
             return self.__image_type[p]
         except KeyError:
@@ -873,7 +865,7 @@ class GaloisRepresentation(SageObject):
         a4_str =        "The image in PGL_2(F_%s) is the exceptional group A_4."%p
         a5_str =        "The image in PGL_2(F_%s) is the exceptional group A_5."%p
 
-        # we first treat p=3 and 5 seperately. p=2 has already been done.
+        # we first treat p=3 and 5 separately. p=2 has already been done.
 
         if p == 3:
             # this implies that the image of rhobar in PGL_2 = S_4
@@ -1017,11 +1009,11 @@ class GaloisRepresentation(SageObject):
                         misc.verbose("the image cannot be exceptional, found u=%s"%u,2)
                         could_be_exc = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == 1 and could_be_non_split == 1:
-                        # it can not be in the noramlizer of the non-split Cartan
+                        # it can not be in the normalizer of the non-split Cartan
                         misc.verbose("the image cannot be non-split, found u=%s"%u,2)
                         could_be_non_split = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == -1 and could_be_split == 1:
-                        # it can not be in the noramlizer of the split Cartan
+                        # it can not be in the normalizer of the split Cartan
                         misc.verbose("the image cannot be split, found u=%s"%u,2)
                         could_be_split = 0
 
@@ -1084,7 +1076,12 @@ class GaloisRepresentation(SageObject):
             d = K.absolute_degree()
 
             misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
+            # If the degree is too big, we have no chance at the Galois
+            # group.  K.galois_group calls is_galois which used to rely on
+            # pari's Galois group computations, so degree < 12
             try:
+                if d > 15:
+                    raise Exception()
                 G = K.galois_group()
             except Exception:
                 self.__image_type[p] = "The image is a group of order %s."%d
@@ -1109,14 +1106,14 @@ class GaloisRepresentation(SageObject):
         This function returns, given the representation `\rho`
         a list of `p` values that add up to 1, representing the
         frequency of the conjugacy classes of the projective image
-        of `\rho` in `PGL_2(\mathbb{F}_p)`.
+        of `\rho` in `PGL_2(\GF{p})`.
 
-        Let `M` be a matrix in `GL_2(\mathbb{F}_p)`, then define
+        Let `M` be a matrix in `GL_2(\GF{p})`, then define
         `u(M) = \text{tr}(M)^2/\det(M)`, which only depends on the
-        conjugacy class of `M` in `PGL_2(\mathbb{F}_p)`. Hence this defines
-        a map `u: PGL_2(\mathbb{F}_p) \to \mathbb{F}_p`, which is almost
+        conjugacy class of `M` in `PGL_2(\GF{p})`. Hence this defines
+        a map `u: PGL_2(\GF{p}) \to \GF{p}`, which is almost
         a bijection between conjugacy classes of the source
-        and `\mathbb{F}_p` (the elements of order `p` and the identity
+        and `\GF{p}` (the elements of order `p` and the identity
         map to `4` and both classes of elements of order 2 map to 0).
 
         This function returns the frequency with which the values of
@@ -1178,7 +1175,7 @@ class GaloisRepresentation(SageObject):
 
         REMARKS:
 
-        Conjugacy classes of subgroups of `PGL_2(\mathbb{F}_5)`
+        Conjugacy classes of subgroups of `PGL_2(\GF{5})`
 
         For the case `p=5`, the order of an element determines almost the value of `u`:
 
@@ -1243,7 +1240,6 @@ class GaloisRepresentation(SageObject):
                 d = (self._E.ap(ell)**2 * ell.inverse_mod(p)) % p
                 res[d] += 1
                 co += 1
-        # print res
         Rt = RealField(16)
         res = [Rt(x)/Rt(co) for x in res]
         return res
@@ -1333,7 +1329,7 @@ class GaloisRepresentation(SageObject):
 
     def is_quasi_unipotent(self,p,ell):
         r"""
-        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a fintie extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
+        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a finite extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
 
         For a Galois representation attached to an elliptic curve `E`, this returns always True.
 

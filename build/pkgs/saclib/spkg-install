@@ -1,6 +1,3 @@
-#!/usr/bin/env bash
-
-
 if [ "$SAGE_LOCAL" = "" ]; then
    echo >&2 "SAGE_LOCAL undefined ... exiting";
    echo >&2 "Maybe run 'sage -sh'?"
@@ -9,7 +6,8 @@ fi
 
 
 # build saclib
-cd saclib*
+cd src
+
 saclib=$(pwd -P)
 export saclib
 bin/sconf && bin/mkproto && bin/mkmake && bin/mklib all
@@ -22,5 +20,5 @@ fi
 # install saclib to the Sage tree
 cd ..
 rm -rf $SAGE_LOCAL/lib/saclib
-mv saclib* $SAGE_LOCAL/lib/saclib
+mv src $SAGE_LOCAL/lib/saclib
 

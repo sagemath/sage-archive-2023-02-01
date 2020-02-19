@@ -15,10 +15,12 @@ Arcs of circles and ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.plot.primitive import GraphicPrimitive
 from sage.plot.colors import to_mpl_color
 
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options, rename_keyword
 
 from math import fmod, sin, cos, pi, atan
 
@@ -45,8 +47,8 @@ class Arc(GraphicPrimitive):
     Note that the construction should be done using ``arc``::
 
         sage: from sage.plot.arc import Arc
-        sage: print Arc(0,0,1,1,pi/4,pi/4,pi/2,{})
-        Arc with center (0.0,0.0) radii (1.0,1.0) angle 0.785398163397 inside the sector (0.785398163397,1.57079632679)
+        sage: print(Arc(0,0,1,1,pi/4,pi/4,pi/2,{}))
+        Arc with center (0.0,0.0) radii (1.0,1.0) angle 0.78539816339... inside the sector (0.78539816339...,1.5707963267...)
     """
     def __init__(self, x, y, r1, r2, angle, s1, s2, options):
         """
@@ -74,7 +76,7 @@ class Arc(GraphicPrimitive):
 
             sage: from sage.plot.arc import Arc
             sage: a = Arc(0,0,1,1,0,0,1,{})
-            sage: print loads(dumps(a))
+            sage: print(loads(dumps(a)))
             Arc with center (0.0,0.0) radii (1.0,1.0) angle 0.0 inside the sector (0.0,1.0)
         """
         self.x = float(x)
@@ -92,8 +94,8 @@ class Arc(GraphicPrimitive):
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
-        """
-        Returns a dictionary with the bounding box data.
+        r"""
+        Return a dictionary with the bounding box data.
 
         The bounding box is computed as minimal as possible.
 
@@ -295,16 +297,28 @@ class Arc(GraphicPrimitive):
             sage: a = arc((0,0),2,1,0,(pi/5,pi/2+pi/12), linestyle="--", color="red")
             sage: b = a[0].bezier_path()
             sage: b[0]
-            Bezier path from (1.618..., 0.5877...) to (-0.5176..., 0.9659...)
+            Bezier path from (1.133..., 0.8237...) to (-0.2655..., 0.9911...)
         """
         from sage.plot.bezier_path import BezierPath
         from sage.plot.graphics import Graphics
+        from matplotlib.path import Path
+        import numpy as np
         ma = self._matplotlib_arc()
-        transform = ma.get_transform().get_matrix()
+        def theta_stretch(theta, scale):
+            theta = np.deg2rad(theta)
+            x = np.cos(theta)
+            y = np.sin(theta)
+            return np.rad2deg(np.arctan2(scale * y, x))
+        theta1 = theta_stretch(ma.theta1, ma.width / ma.height)
+        theta2 = theta_stretch(ma.theta2, ma.width / ma.height)
+
+        pa = ma
+        pa._path = Path.arc(theta1, theta2)
+        transform = pa.get_transform().get_matrix()
         cA, cC, cE = transform[0]
         cB, cD, cF = transform[1]
         points = []
-        for u in ma._path.vertices:
+        for u in pa._path.vertices:
             x, y = list(u)
             points += [(cA * x + cC * y + cE, cB * x + cD * y + cF)]
         cutlist = [points[0: 4]]
@@ -325,7 +339,7 @@ class Arc(GraphicPrimitive):
         EXAMPLES::
 
             sage: from sage.plot.arc import Arc
-            sage: print Arc(2,3,2.2,2.2,0,2,3,{})
+            sage: print(Arc(2,3,2.2,2.2,0,2,3,{}))
             Arc with center (2.0,3.0) radii (2.2,2.2) angle 0.0 inside the sector (2.0,3.0)
         """
         return "Arc with center (%s,%s) radii (%s,%s) angle %s inside the sector (%s,%s)" % (self.x, self.y, self.r1, self.r2, self.angle, self.s1, self.s2)
@@ -381,7 +395,7 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0, 2 * pi), **options):
 
     - ``r1``, ``r2`` - positive real numbers - radii of the ellipse. If only ``r1``
       is set, then the two radii are supposed to be equal and this function returns
-      an arc of of circle.
+      an arc of circle.
 
     - ``angle`` - real number - angle between the horizontal and the axis that
       corresponds to ``r1``.

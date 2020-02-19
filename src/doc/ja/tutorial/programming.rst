@@ -14,8 +14,8 @@ Sageファイルの読み込みと結合
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 ``example.sage`` ファイルを読み込んで実行するには， ``load`` コマンド を使う．
 
@@ -49,8 +49,8 @@ Sageファイルの読み込みと結合
 
 ::
 
-    print "Hello World"
-    print Integer(2)**Integer(3)
+    print("Hello World")
+    print(Integer(2)**Integer(3))
 
 たしかに整数リテラルはラップされ， ``^`` は ``**`` に置換されている．(Pythonでは ``^`` は「排他的論理和」， ``**`` は「べき乗」を意味する．)
 
@@ -146,11 +146,11 @@ Cythonソースファイルから生成されたC言語コードをコンパイ�
     from sage.all import *
 
     if len(sys.argv) != 2:
-        print "Usage: %s <n>"%sys.argv[0]
-        print "Outputs the prime factorization of n."
+        print("Usage: %s <n>" % sys.argv[0])
+        print("Outputs the prime factorization of n.")
         sys.exit(1)
 
-    print factor(sage_eval(sys.argv[1]))
+    print(factor(sage_eval(sys.argv[1])))
 
 このスクリプトを実行するには， ``SAGE_ROOT`` をPATHに含めておかなければならない．
 スクリプト名を ``factor`` とすると，実行は以下のような具合になる:
@@ -160,9 +160,6 @@ Cythonソースファイルから生成されたC言語コードをコンパイ�
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
-
 
 
 データ型
@@ -177,17 +174,17 @@ Pythonの組み込み型としては，string(文字列)，list(リスト)，タ
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # シングルあるいはダブル クォーテーションのどちらも使える
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Sageでは，さらに多様な型が加わる．
 その一例がベクトル空間である:
@@ -262,7 +259,7 @@ Sageでは，さらに多様な型が加わる．
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -292,7 +289,7 @@ SageのIntegerクラスが使えるのは言うまでもない(Rationalクラス
 
 ::
 
-    sage: range(1, 15)
+    sage: range(1, 15)  # py2
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 この ``range`` が便利なのは，リスト内包表記を使ってリストを生成する場合だ:
@@ -301,7 +298,7 @@ SageのIntegerクラスが使えるのは言うまでもない(Rationalクラス
 ::
 
     sage: L = [factor(n) for n in range(1, 15)]
-    sage: print L
+    sage: L
     [1, 2, 3, 2^2, 5, 2 * 3, 7, 2^3, 3^2, 2 * 5, 11, 2^2 * 3, 13, 2 * 7]
     sage: L[12]
     13
@@ -325,7 +322,7 @@ SageのIntegerクラスが使えるのは言うまでもない(Rationalクラス
     sage: L = [factor(n) for n in range(1, 20)]
     sage: L[4:9]
     [5, 2 * 3, 7, 2^3, 3^2]
-    sage: print L[:4]
+    sage: L[:4]
     [1, 2, 3, 2^2]
     sage: L[14:4]
     []
@@ -340,7 +337,7 @@ SageのIntegerクラスが使えるのは言うまでもない(Rationalクラス
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...
@@ -382,7 +379,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 
 不変性シーケンスの例としては，ベクトル空間の基底系があげられる．
@@ -417,9 +414,9 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
-    sage: d.keys()
-     [1, 'sage', Integer Ring]
+    <... 'dict'>
+    sage: list(d.keys())
+    [1, 'sage', Integer Ring]
     sage: d['sage']
     17
     sage: d[ZZ]
@@ -437,7 +434,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 ディクショナリに含まれるキーと値の対を反復に利用する場合に，よく使われるイディオムがある:
@@ -446,7 +443,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 最後の出力を見ると判るように，ディクショナリ内は整列されていない．
@@ -490,7 +487,7 @@ Pythonには集合(set)型が組込まれている．
     {1, 2/3}
     sage: X.intersection(Y)
     {1}
-    sage: print latex(Y)
+    sage: print(latex(Y))
     \left\{1, \frac{2}{3}\right\}
     sage: Set(ZZ)
     Set of elements of Integer Ring
@@ -506,12 +503,13 @@ Pythonには集合(set)型が組込まれている．
 
 ::
 
-    sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: v = (n^2 for n in xrange(10000000))  # py2
+    sage: v = (n^2 for n in range(10000000))  # py3
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 今度は，素数 :math:`p` から :math:`4p+1` の形の素数に関するイテレータを作り，最初の数個を見てみることにする．
@@ -522,11 +520,11 @@ Pythonには集合(set)型が組込まれている．
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # 次の行の 0xb0853d6c はランダムに生成された16進数
     <generator object <genexpr> at ...>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 有限体，整数など，ある種の環にはイテレータが付随している:
@@ -536,11 +534,11 @@ Pythonには集合(set)型が組込まれている．
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 
@@ -630,17 +628,6 @@ Sageに付属している関数 ``kronecker`` は，PARIのCライブラリを�
     True
     True
 
-比較演算は，ほとんどいかなる組合せの二つのオブジェクトに対しても行ないうると考えてよい．
-対象となるオブジェクトは，全順序付け(total ordering)されなくても構わない．
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # random 出力は一定しない。
-    False
-
 記号を含む不等号の判定には  ``bool`` 関数を用いる:
 
 ::
@@ -661,7 +648,7 @@ Sageにおける異種オブジェクト間の比較演算では，まず対象�
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)
+    sage: int(1) is int(2)/int(2)  # py2
     True
     sage: 1 is 1
     False

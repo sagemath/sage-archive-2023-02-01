@@ -26,7 +26,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
 include 'sage/data_structures/bitset.pxi'
 
 # SetSystem
@@ -89,7 +89,7 @@ cdef class SetSystem:
         self._groundset_size = len(groundset)
         self._bitset_size = max(self._groundset_size, 1)
         self._capacity = capacity
-        self._subsets = <bitset_t*> sig_malloc(self._capacity * sizeof(bitset_t))
+        self._subsets = <bitset_t*>check_allocarray(self._capacity, sizeof(bitset_t))
         bitset_init(self._temp, self._bitset_size)
         self._len = 0
 
@@ -113,7 +113,7 @@ cdef class SetSystem:
             Iterator over a system of subsets
             sage: sorted(S[1])
             [3, 4]
-            sage: for s in S: print sorted(s)
+            sage: for s in S: print(sorted(s))
             [1, 2]
             [3, 4]
             [1, 2, 4]
@@ -153,7 +153,7 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for s in S: print sorted(s)
+            sage: for s in S: print(sorted(s))
             [1, 2]
             [3, 4]
             [1, 2, 4]
@@ -245,7 +245,7 @@ cdef class SetSystem:
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
             sage: T = S._complements()
-            sage: for t in T: print sorted(t)
+            sage: for t in T: print(sorted(t))
             [3, 4]
             [1, 2]
             [3]
@@ -270,7 +270,7 @@ cdef class SetSystem:
             bitset_free(self._subsets[i])
         self._len = min(self._len, k)
         k2 = max(k, 1)
-        self._subsets = <bitset_t*> sig_realloc(self._subsets, k2 * sizeof(bitset_t))
+        self._subsets = <bitset_t*>check_reallocarray(self._subsets, k2, sizeof(bitset_t))
         self._capacity = k2
 
     cdef inline _append(self, bitset_t X):
@@ -544,12 +544,12 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for p in S._equitable_partition()[0]: print sorted(p)
+            sage: for p in S._equitable_partition()[0]: print(sorted(p))
             [3]
             [4]
             [1, 2]
             sage: T = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 3, 4]])
-            sage: for p in T._equitable_partition()[0]: print sorted(p)
+            sage: for p in T._equitable_partition()[0]: print(sorted(p))
             [2]
             [1]
             [3, 4]
@@ -599,7 +599,7 @@ cdef class SetSystem:
         partition ``P``, and while ``P`` has a partition element ``p`` with
         more than one element, select an arbitrary ``e`` from the first such
         ``p`` and split ``p`` into ``p-e``. Then replace ``P`` with
-        the equitabele refinement of this partition.
+        the equitable refinement of this partition.
 
         INPUT:
 
@@ -620,13 +620,13 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for p in S._heuristic_partition()[0]: print sorted(p)
+            sage: for p in S._heuristic_partition()[0]: print(sorted(p))
             [3]
             [4]
             [2]
             [1]
             sage: T = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 3, 4]])
-            sage: for p in T._heuristic_partition()[0]: print sorted(p)
+            sage: for p in T._heuristic_partition()[0]: print(sorted(p))
             [2]
             [1]
             [4]
@@ -776,7 +776,7 @@ cdef class SetSystemIterator:
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
             sage: type(S.__iter__())
-            <type 'sage.matroids.set_system.SetSystemIterator'>
+            <... 'sage.matroids.set_system.SetSystemIterator'>
         """
         self._H = H
         self._pointer = -1

@@ -40,6 +40,7 @@ AUTHORS:
     -- William Stein (first version)
     -- William Stein (2007-06-20): significant improvements.
 """
+from __future__ import absolute_import
 
 ##########################################################################
 #
@@ -53,8 +54,10 @@ AUTHORS:
 
 import random
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 from sage.structure.element import RingElement, parent
+from sage.docs.instancedoc import instancedoc
+
 
 class Lisp(Expect):
     def __init__(self,
@@ -110,7 +113,7 @@ class Lisp(Expect):
             sage: lisp.eval('(+ 2 2)')
             '4'
 
-        TEST:
+        TESTS:
 
         Verify that it works when input == output::
 
@@ -155,7 +158,7 @@ class Lisp(Expect):
             sage: lisp.get('x')
             '2'
 
-        TEST:
+        TESTS:
 
         It must also be possible to eval the variable by name::
 
@@ -380,8 +383,11 @@ class Lisp(Expect):
         self._check_valid_function_name(function)
         return self.new("(%s %s)"%(function, ",".join([s.name() for s in args])))
 
-class LispElement(ExpectElement):
-    def __cmp__(self, other):
+
+# Inherit from RingElement to make __pow__ work
+@instancedoc
+class LispElement(RingElement, ExpectElement):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 
@@ -411,7 +417,7 @@ class LispElement(ExpectElement):
         else:
             return 1
 
-    def bool(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -421,8 +427,14 @@ class LispElement(ExpectElement):
             False
             sage: bool(lisp(2))
             True
+            sage: bool(lisp('T'))
+            True
+            sage: bool(lisp('NIL'))
+            False
         """
-        return self != 0
+        return self != 0 and repr(self) != 'NIL'
+
+    __nonzero__ = __bool__
 
     def _add_(self, right):
         """
@@ -478,13 +490,15 @@ class LispElement(ExpectElement):
         """
         return RingElement.__pow__(self, n)
 
+
+@instancedoc
 class LispFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
             sage: two = lisp(2)
-            sage: two.sin._sage_doc_()
+            sage: two.sin.__doc__
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -493,12 +507,13 @@ class LispFunctionElement(FunctionElement):
         return M.help(self._name)
 
 
+@instancedoc
 class LispFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: lisp.sin._sage_doc_()
+            sage: lisp.sin.__doc__
             Traceback (most recent call last):
             ...
             NotImplementedError

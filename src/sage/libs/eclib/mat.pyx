@@ -34,7 +34,7 @@ cdef class Matrix:
     """
     def __repr__(self):
         """
-        String representation of this matrix.  Use print self.str() to
+        String representation of this matrix.  Use print(self.str()) to
         print out the matrix entries on the screen.
 
         EXAMPLES::
@@ -42,7 +42,7 @@ cdef class Matrix:
             sage: M = CremonaModularSymbols(23)
             sage: t = M.hecke_matrix(2); t
             5 x 5 Cremona matrix over Rational Field
-            sage: print t.str()
+            sage: print(t.str())
             [ 3  0  0  0  0]
             [-1 -1  0  0 -1]
             [ 1  1  0  1  1]
@@ -155,10 +155,10 @@ cdef class Matrix:
         EXAMPLES::
 
             sage: M = CremonaModularSymbols(23, cuspidal=True, sign=1)
-            sage: t = M.hecke_matrix(2); print t.str()
+            sage: t = M.hecke_matrix(2); print(t.str())
             [ 0  1]
             [ 1 -1]
-            sage: w = t.add_scalar(3); print w.str()
+            sage: w = t.add_scalar(3); print(w.str())
             [3 1]
             [1 2]
         """

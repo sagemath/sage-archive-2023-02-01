@@ -1,3 +1,5 @@
+.. highlight:: bash
+
 .. _chapter-old-spkg:
 
 =========================
@@ -173,10 +175,6 @@ package. In this script, you may make the following assumptions:
 - The environment variable ``SAGE_LOCAL`` points to the
   ``SAGE_ROOT/local`` directory of the Sage installation.
 
-- The environment variables ``LD_LIBRARY_PATH`` and
-  ``DYLD_LIBRARY_PATH`` both have ``SAGE_ROOT/local/lib`` at the
-  front.
-
 The ``spkg-install`` script should copy your files to the appropriate
 place after doing any build that is necessary.  Here is a template::
 
@@ -284,7 +282,9 @@ The File SPKG.txt
 The old-style ``SPKG.txt`` file is the same as described in
 :ref:`section-spkg-SPKG-txt`, but with a hand-maintained changelog
 appended since the contents are not part of the Sage repository
-tree. It should follow the following pattern::
+tree. It should follow the following pattern:
+
+.. CODE-BLOCK:: text
 
      == Changelog ==
 
@@ -317,7 +317,7 @@ review, it might be included into the core Sage library, or it might
 become an optional download from the Sage website, so anybody can
 automatically install it by typing ``sage -p mypackage-version.spkg``.
 
-.. note::
+.. NOTE::
 
    For any spkg:
 
@@ -329,7 +329,7 @@ automatically install it by typing ``sage -p mypackage-version.spkg``.
 
    .. _trac ticket #299: http://trac.sagemath.org/sage_trac/ticket/299
 
-.. note::
+.. NOTE::
 
     External Magma code goes in ``SAGE_ROOT/src/ext/magma/user``, so
     if you want to redistribute Magma code with Sage as a package that
@@ -390,7 +390,9 @@ contained under ::
 To patch the upstream source code, you should edit a copy of the
 relevant file -- files in the ``src/`` directory should be untouched,
 "vanilla" versions of the source code.  For example, you might copy
-the entire ``src/`` directory::
+the entire ``src/`` directory:
+
+.. CODE-BLOCK:: shell-session
 
     $ pwd
     matplotlib-1.0.1.p0
@@ -398,7 +400,9 @@ the entire ``src/`` directory::
 
 Then edit files in ``src-patched/``.  Once you are satisfied with your
 changes, generate a unified diff between the original file and the
-edited one, and save it in ``patches/``::
+edited one, and save it in ``patches/``:
+
+.. CODE-BLOCK:: shell-session
 
     $ diff -u src/configure src-patched/configure > patches/configure.patch
 
@@ -458,14 +462,18 @@ Note the format of ``SPKG.txt`` -- see the chapter
 changes, use Mercurial to check in your changes with a meaningful
 commit message.  Then use the command ``hg tag`` to tag the tip with
 the new version number (using "p1" instead of "p0": we have made
-changes, so we need to update the patch level)::
+changes, so we need to update the patch level):
+
+.. CODE-BLOCK:: shell-session
 
     $ hg tag matplotlib-1.0.1.p1
 
 Next, rename the directory ``matplotlib-1.0.1.p0`` to
 ``matplotlib-1.0.1.p1`` to match the new patch level.  To produce the
 actual spkg file, change to the parent directory of
-``matplotlib-1.0.1.p1`` and execute ::
+``matplotlib-1.0.1.p1`` and execute
+
+.. CODE-BLOCK:: shell-session
 
     $ /path/to/sage-x.y.z/sage --pkg matplotlib-1.0.1.p1
     Creating Sage package matplotlib-1.0.1.p1
@@ -482,7 +490,9 @@ Spkg files are either bzipped tar files or just plain tar files; the
 command ``sage --pkg ...`` produces the bzipped version.  If your spkg
 contains mostly binary files which will not compress well, you can use
 ``sage --pkg_nc ...`` to produce an uncompressed version, i.e., a
-plain tar file::
+plain tar file:
+
+.. CODE-BLOCK:: shell-session
 
     $ sage --pkg_nc matplotlib-1.0.1.p0/
     Creating Sage package matplotlib-1.0.1.p0/ with no compression

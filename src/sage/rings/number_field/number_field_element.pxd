@@ -20,17 +20,20 @@ cdef class NumberFieldElement(FieldElement):
     cdef object __matrix
 
     cdef _new(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
 
     cdef number_field(self)
 
     cdef void _ntl_coeff_as_mpz(self, mpz_t z, long i)
     cdef void _ntl_denom_as_mpz(self, mpz_t z)
 
-    cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den)
     cdef void _reduce_c_(self)
-    cpdef ModuleElement _add_(self, ModuleElement right)
-    cpdef ModuleElement _sub_(self, ModuleElement right)
-    cpdef ModuleElement _neg_(self)
+
+    cpdef list _coefficients(self)
 
     cpdef bint is_rational(self)
     cpdef bint is_one(self)

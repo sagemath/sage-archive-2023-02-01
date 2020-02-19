@@ -62,7 +62,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZX_abs(poly, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZX should have been overridden"
+            raise RuntimeError("_set_from_ZZX should have been overridden")
 
     cdef int _set_from_ZZX_rel(self, ZZX_c poly, long relprec) except -1:
         """
@@ -98,7 +98,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZX(poly)
         else:
-            raise RuntimeError, "_set_from_ZZX_both should have been overridden"
+            raise RuntimeError("_set_from_ZZX_both should have been overridden")
 
     cdef int _set_from_ZZ_pX(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx) except -1:
         """
@@ -113,7 +113,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZ_pX_abs(poly, ctx, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZ_pX should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pX should have been overridden")
 
     cdef int _set_from_ZZ_pX_rel(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx, long relprec) except -1:
         """
@@ -148,7 +148,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZ_pX(poly, ctx)
         else:
-            raise RuntimeError, "_set_from_ZZ_pX_both should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pX_both should have been overridden")
 
     cdef int _set_from_ZZ_pE(self, ZZ_pE_c* poly, ntl_ZZ_pEContext_class ctx) except -1:
         """
@@ -161,7 +161,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZ_pE_abs(poly, ctx, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZ_pE should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pE should have been overridden")
 
     cdef int _set_from_ZZ_pE_rel(self, ZZ_pE_c* poly, ntl_ZZ_pEContext_class ctx, long relprec) except -1:
         """
@@ -197,7 +197,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZ_pE(poly, ctx)
         else:
-            raise RuntimeError, "_set_from_ZZ_pE_both should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pE_both should have been overridden")
 
     cdef int _set_from_ZZ_pEX(self, ZZ_pEX_c* poly, ntl_ZZ_pEContext_class ctx) except -1:
         """
@@ -212,7 +212,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZ_pEX_abs(poly, ctx, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZ_pEX should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pEX should have been overridden")
 
     cdef int _set_from_ZZ_pEX_rel(self, ZZ_pEX_c* poly, ntl_ZZ_pEContext_class ctx, long relprec) except -1:
         """
@@ -248,7 +248,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZ_pEX(poly, ctx)
         else:
-            raise RuntimeError, "_set_from_ZZ_pEX_both should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pEX_both should have been overridden")
 
     cdef long _check_ZZ_pContext(self, ntl_ZZ_pContext_class ctx) except -1:
         raise NotImplementedError
@@ -367,15 +367,15 @@ cdef class pAdicExtElement(pAdicGenericElement):
             NotImplementedError: Frobenius automorphism only implemented for unramified extensions
         """
         R = self.parent()
-        if R.e() != 1:
+        if R.absolute_e() != 1:
             raise NotImplementedError("Frobenius automorphism only implemented for unramified extensions")
         if self.is_zero(): return self
-        L = self.teichmuller_list()
+        L = self.teichmuller_expansion()
         ppow = R.uniformizer_pow(self.valuation())
         if arithmetic:
             exp = R.prime()
         else:
-            exp = R.prime()**(R.degree()-1)
+            exp = R.prime()**(R.absolute_degree()-1)
         ans = ppow * L[0]**exp
         for m in range(1,len(L)):
             ppow = ppow << 1
@@ -400,13 +400,20 @@ cdef class pAdicExtElement(pAdicGenericElement):
         """
         return False
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None, check_prec=True):
         r"""
         Reduces this element modulo `\pi^\mathrm{absprec}`.
 
         INPUT:
 
         - ``absprec`` - a non-negative integer (default: ``1``)
+
+        - ``field`` -- boolean (default ``None``).  For precision 1, whether to return
+          an element of the residue field or a residue ring.  Currently unused.
+
+        - ``check_prec`` -- boolean (default ``True``).  Whether to raise an error if this
+          element has insufficient precision to determine the reduction.  Errors are never
+          raised for fixed-mod or floating-point types.
 
         OUTPUT:
 
@@ -422,7 +429,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
         AUTHORS:
 
-        - Julian Rueth (2012-10-18): intial version
+        - Julian Rueth (2012-10-18): initial version
 
         EXAMPLES:
 
@@ -462,7 +469,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
             sage: R = ZpFM(3,5)
             sage: S.<a> = R[]
-            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: W.<a> = R.extension(a^2 + 3)
             sage: W.one().residue(0)
             0
             sage: a.residue(-1)
@@ -472,21 +479,26 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(16)
             Traceback (most recent call last):
             ...
-            PrecisionError: insufficient precision to reduce modulo p^16.
+            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
 
         """
         if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
-        if absprec > self.precision_absolute():
-            from precision_error import PrecisionError
-            raise PrecisionError("not enough precision known in order to compute residue.")
         if self.valuation() < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue.")
+        R = self.parent()
+        if check_prec and (R.is_fixed_mod() or R.is_floating_point()):
+            check_prec = False
+        if check_prec and absprec > self.precision_absolute():
+            from precision_error import PrecisionError
+            raise PrecisionError("not enough precision known in order to compute residue.")
+        if field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
 
         if absprec == 0:
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(0,1)
         elif absprec == 1:
-            return self.parent().residue_field()(self[0])
+            return R.residue_field()(self.expansion(0))
         else:
             raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")

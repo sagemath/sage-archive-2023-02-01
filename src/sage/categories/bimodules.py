@@ -10,6 +10,7 @@ Bimodules
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.categories.category import Category, CategoryWithParameters
 from sage.categories.left_modules import LeftModules
@@ -70,7 +71,9 @@ class Bimodules(CategoryWithParameters):
         EXAMPLES::
 
             sage: Bimodules(QQ,ZZ)._make_named_class_key('parent_class')
-            (Join of Category of quotient fields and Category of metric spaces,
+            (Join of Category of number fields
+                 and Category of quotient fields
+                 and Category of metric spaces,
              Join of Category of euclidean domains
                  and Category of infinite enumerated sets
                  and Category of metric spaces)
@@ -83,7 +86,9 @@ class Bimodules(CategoryWithParameters):
              and Category of metric spaces)
 
             sage: Bimodules(QQ, Rings())._make_named_class_key('element_class')
-            (Join of Category of quotient fields and Category of metric spaces,
+            (Join of Category of number fields
+                 and Category of quotient fields
+                 and Category of metric spaces,
              Category of rings)
 
             sage: Bimodules(Fields(), Rings())._make_named_class_key('element_class')
@@ -140,12 +145,12 @@ class Bimodules(CategoryWithParameters):
         return self._right_base_ring
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
 
-            sage: print Bimodules(QQ, ZZ)._latex_()
+            sage: print(Bimodules(QQ, ZZ)._latex_())
             {\mathbf{Bimodules}}_{\Bold{Q}, \Bold{Z}}
         """
         from sage.misc.latex import latex

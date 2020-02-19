@@ -131,9 +131,10 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                 sage: A = Algebras(QQ).WithBasis().Filtered().example()
                 sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
-                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                U['x']^2*U['y']^2*U['z']^3 + 3*U['x'] + 3*U['y'] + 3
                 sage: q = A.to_graded_conversion()(p); q
-                bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
+                bar(U['x']^2*U['y']^2*U['z']^3) + 3*bar(U['x'])
+                 + 3*bar(U['y']) + 3*bar(1)
                 sage: q.parent() is A.graded_algebra()
                 True
             """
@@ -159,7 +160,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                 sage: A = Algebras(QQ).WithBasis().Filtered().example()
                 sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
-                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                U['x']^2*U['y']^2*U['z']^3 + 3*U['x'] + 3*U['y'] + 3
                 sage: q = A.to_graded_conversion()(p)
                 sage: A.from_graded_conversion()(q) == p
                 True
@@ -190,7 +191,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                 sage: A = Algebras(QQ).WithBasis().Filtered().example()
                 sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
-                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                U['x']^2*U['y']^2*U['z']^3 + 3*U['x'] + 3*U['y'] + 3
                 sage: q = A.projection(7)(p); q
                 bar(U['x']^2*U['y']^2*U['z']^3)
                 sage: q.parent() is A.graded_algebra()
@@ -487,13 +488,13 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 sage: A.to_graded_conversion()(y)
                 y
                 sage: A.to_graded_conversion()(x*y)
-                x^y
+                x*y
                 sage: u = A.to_graded_conversion()(x*y+1); u
-                x^y + 1
+                x*y + 1
                 sage: A.from_graded_conversion()(u)
                 x*y + 1
                 sage: A.projection(2)(x*y+1)
-                x^y
+                x*y
                 sage: A.projection(1)(x+2*y-2)
                 x + 2*y
                 sage: grf = A.induced_graded_map(B, f); grf
@@ -507,7 +508,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 sage: grf(A.to_graded_conversion()(x**2))
                 6
                 sage: grf(A.to_graded_conversion()(x*y))
-                -3*u^v
+                -3*u*v
                 sage: grf(grA.one())
                 1
             """

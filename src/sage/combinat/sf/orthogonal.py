@@ -5,7 +5,7 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-11-10): Initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -17,14 +17,15 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-import sfa
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import absolute_import
+
+from . import sfa
 import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.combinat.partition import Partitions
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import ZZ, QQ, Integer
-from sage.matrix.all import matrix
+
 
 class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
     r"""

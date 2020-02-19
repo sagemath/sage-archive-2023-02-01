@@ -1,29 +1,31 @@
 r"""
 Modules
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.homsets import HomsetsCategory
-from category import Category, JoinCategory
-from category_types import Category_module, Category_over_base_ring
+from .category import Category
+from .category_types import Category_module
 from sage.categories.tensor import TensorProductsCategory, tensor
-from dual import DualObjectsCategory
+from .dual import DualObjectsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
 from sage.categories.fields import Fields
 _Fields = Fields()
+
 
 class Modules(Category_module):
     r"""
@@ -62,7 +64,7 @@ class Modules(Category_module):
         sage: Modules(Rings())
         Category of modules over rings
         sage: Modules(FiniteFields())
-        Category of vector spaces over finite fields
+        Category of vector spaces over finite enumerated fields
 
         sage: Modules(Integers(9))
         Category of modules over Ring of integers modulo 9
@@ -147,7 +149,7 @@ class Modules(Category_module):
         if dispatch:
             if base_ring in _Fields or (isinstance(base_ring, Category)
                                         and base_ring.is_subcategory(_Fields)):
-                from vector_spaces import VectorSpaces
+                from .vector_spaces import VectorSpaces
                 return VectorSpaces(base_ring, check=False)
         result = super(Modules, cls).__classcall__(cls, base_ring)
         result._reduction[2]['dispatch'] = False
@@ -363,8 +365,7 @@ class Modules(Category_module):
                 Category of filtered modules over Integer Ring
 
                 sage: Coalgebras(QQ).Filtered()
-                Join of Category of filtered modules over Rational Field
-                 and Category of coalgebras over Rational Field
+                Category of filtered coalgebras over Rational Field
 
                 sage: AlgebrasWithBasis(QQ).Filtered()
                 Category of filtered algebras with basis over Rational Field
@@ -400,7 +401,7 @@ class Modules(Category_module):
                 Category of graded modules over Integer Ring
 
                 sage: Coalgebras(QQ).Graded()
-                Join of Category of graded modules over Rational Field and Category of coalgebras over Rational Field
+                Category of graded coalgebras over Rational Field
 
                 sage: AlgebrasWithBasis(QQ).Graded()
                 Category of graded algebras with basis over Rational Field
@@ -497,16 +498,27 @@ class Modules(Category_module):
                 True
                 sage: Modules(ZZ).FiniteDimensional().is_subcategory(Sets().Finite())
                 False
+
+                sage: Modules(Rings().Finite()).FiniteDimensional().is_subcategory(Sets().Finite())
+                True
+                sage: Modules(Rings()).FiniteDimensional().is_subcategory(Sets().Finite())
+                False
             """
-            if self.base_ring() in Sets().Finite():
-                return [Sets().Finite()]
+            base_ring = self.base_ring()
+            FiniteSets = Sets().Finite()
+            if (isinstance(base_ring, Category) and
+                    base_ring.is_subcategory(FiniteSets)) or \
+                base_ring in FiniteSets:
+                return [FiniteSets]
             else:
                 return []
 
     Filtered = LazyImport('sage.categories.filtered_modules', 'FilteredModules')
     Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
     Super = LazyImport('sage.categories.super_modules', 'SuperModules')
-    WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
+    # at_startup currently needed for MatrixSpace, see #22955 (e.g., comment:20)
+    WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis',
+                           at_startup=True)
 
     class ParentMethods:
         @cached_method
@@ -527,37 +539,7 @@ class Modules(Category_module):
             return tensor([self, self])
 
     class ElementMethods:
-
-        def __mul__(left, right):
-            """
-            TESTS::
-
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: x * int(2)
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
-        def __rmul__(right, left):
-            """
-            TESTS::
-
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: int(2) * x
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
+        pass
 
     class Homsets(HomsetsCategory):
         r"""
@@ -665,7 +647,7 @@ class Modules(Category_module):
                     sage: End(ZZ^3) in Algebras(ZZ)
                     True
                 """
-                from magmatic_algebras import MagmaticAlgebras
+                from .magmatic_algebras import MagmaticAlgebras
                 return [MagmaticAlgebras(self.base_category().base_ring())]
 
     class CartesianProducts(CartesianProductsCategory):
@@ -676,7 +658,7 @@ class Modules(Category_module):
         implementation is based on the following resources:
 
         - http://groups.google.fr/group/sage-devel/browse_thread/thread/35a72b1d0a2fc77a/348f42ae77a66d16#348f42ae77a66d16
-        - http://en.wikipedia.org/wiki/Direct_product
+        - :wikipedia:`Direct_product`
         """
         def extra_super_categories(self):
             """

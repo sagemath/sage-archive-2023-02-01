@@ -1,4 +1,4 @@
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -10,17 +10,17 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from __future__ import division
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
+from sage.cpython.string cimport char_to_str
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
@@ -55,7 +55,7 @@ cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
 
 cdef class ntl_ZZ_pX(object):
     r"""
-    The class \class{ZZ_pX} implements polynomial arithmetic modulo $p$.
+    The class \class{ZZ_pX} implements polynomial arithmetic modulo `p`.
 
     Polynomial arithmetic is implemented using the FFT, combined with
     the Chinese Remainder Theorem.  A more detailed description of the
@@ -66,7 +66,7 @@ cdef class ntl_ZZ_pX(object):
     or Karatsuba algorithms.
     """
     # See ntl_ZZ_pX.pxd for definition of data members
-    def __init__(self, v = None, modulus = None):
+    def __init__(self, v=None, modulus=None):
         """
         EXAMPLES::
 
@@ -83,7 +83,7 @@ cdef class ntl_ZZ_pX(object):
             5
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus when creating a ZZ_pX."
+            raise ValueError("You must specify a modulus when creating a ZZ_pX.")
 
         #self.c.restore_c()  ## the context was restored in __new__
 
@@ -92,19 +92,16 @@ cdef class ntl_ZZ_pX(object):
 
         if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
-        elif isinstance(v, list) or isinstance(v, tuple):
-            for i from 0 <= i < len(v):
-                x = v[i]
+        elif isinstance(v, (list, tuple, xrange)):
+            for i, x in enumerate(v):
                 if not isinstance(x, ntl_ZZ_p):
-                    cc = ntl_ZZ_p(x,self.c)
+                    cc = ntl_ZZ_p(x, self.c)
                 else:
                     cc = x
                 ZZ_pX_SetCoeff(self.x, i, cc.x)
         elif v is not None:
-            s = str(v).replace(',',' ').replace('L','')
-            sig_on()
-            ZZ_pX_from_str(&self.x, s)
-            sig_off()
+            s = str(v).replace(',', ' ').replace('L', '')
+            ccreadstr(self.x, s)
 
     def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
@@ -160,11 +157,7 @@ cdef class ntl_ZZ_pX(object):
             '[1 0 3]'
         """
         self.c.restore_c()
-        #cdef char* s = ZZ_pX_repr(&self.x)
-        #t = str(s)
-        #sig_free(s)
-        return ZZ_pX_to_PyString(&self.x)
-        #return t
+        return ccrepr(self.x)
 
     def __copy__(self):
         """
@@ -209,7 +202,7 @@ cdef class ntl_ZZ_pX(object):
         [2 5 4]
         """
         if i < 0:
-            raise IndexError, "index (i=%s) must be >= 0"%i
+            raise IndexError("index (i=%s) must be >= 0" % i)
         cdef ntl_ZZ_p _a
         _a = ntl_ZZ_p(a,self.c)
         self.c.restore_c()
@@ -287,11 +280,11 @@ cdef class ntl_ZZ_pX(object):
             sage: c = ntl.ZZ_pContext(20)
             sage: x = ntl.ZZ_pX([2, 3, 5, -7, 11], c)
             sage: i = x._getitem_as_int_doctest(3)
-            sage: print i
+            sage: i
             13
-            sage: print type(i)
-            <type 'int'>
-            sage: print x._getitem_as_int_doctest(15)
+            sage: type(i)
+            <... 'int'>
+            sage: x._getitem_as_int_doctest(15)
             0
         """
         # self.c.restore_c() # restored in getitem_as_int()
@@ -323,7 +316,7 @@ cdef class ntl_ZZ_pX(object):
             [0 2 4 6 8 5]
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pX r = self._new()
         sig_on()
         #self.c.restore_c() # restored in _new()
@@ -340,7 +333,7 @@ cdef class ntl_ZZ_pX(object):
             [0 0 0 0 0 15]
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pX r = self._new()
         sig_on()
         #self.c.restore_c() # restored in _new()
@@ -365,7 +358,7 @@ cdef class ntl_ZZ_pX(object):
             [0 0 1 4 10 0 10 14 11]
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pX r = self._new()
         sig_on()
         # self.c.restore_c() # restored in _new()
@@ -395,7 +388,7 @@ cdef class ntl_ZZ_pX(object):
             ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[16 0 1])
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef int divisible
         cdef ntl_ZZ_pX r = self._new()
         sig_on()
@@ -403,7 +396,7 @@ cdef class ntl_ZZ_pX(object):
         divisible = ZZ_pX_divide(r.x, self.x, other.x)
         sig_off()
         if not divisible:
-            raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
+            raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return r
 
     def __div__(self, other):
@@ -436,7 +429,7 @@ cdef class ntl_ZZ_pX(object):
             NTLError: ZZ_p: division by non-invertible element
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pX r = self._new()
         sig_on()
         #self.c.restore_c() # restored in _new()
@@ -460,7 +453,7 @@ cdef class ntl_ZZ_pX(object):
             True
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pX r = self._new()
         cdef ntl_ZZ_pX q = self._new()
         sig_on()
@@ -493,7 +486,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: g = ntl.ZZ_pX([-1,0,1],c)
             sage: g**10
             [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
@@ -513,7 +506,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([1,2,3],c)
             sage: g = ntl.ZZ_pX([1,2,3,0],c)
             sage: f == g
@@ -543,7 +536,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([0,0,0,20],c)
             sage: f.is_zero()
             True
@@ -562,7 +555,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([1,1],c)
             sage: f.is_one()
             False
@@ -698,7 +691,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(17)
+            sage: c = ntl.ZZ_pContext(17)
             sage: f = ntl.ZZ_pX([1,2,3],c) * ntl.ZZ_pX([4,5],c)**2
             sage: g = ntl.ZZ_pX([1,1,1],c)**3 * ntl.ZZ_pX([1,2,3],c)
             sage: f.gcd(g)
@@ -817,7 +810,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([],c)
             sage: f.set_x()
             sage: f
@@ -842,7 +835,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([],c)
             sage: f.set_x()
             sage: f.is_x()
@@ -939,7 +932,7 @@ cdef class ntl_ZZ_pX(object):
         cdef long* e
         cdef long i, n
         if not self.is_monic():
-            raise ValueError, "self must be monic."
+            raise ValueError("self must be monic.")
         sig_on()
         ZZ_pX_factor(&v, &e, &n, &self.x, verbose)
         sig_off()
@@ -984,7 +977,7 @@ cdef class ntl_ZZ_pX(object):
         cdef ntl_ZZ_p r
         cdef long i, n
         if not self.is_monic():
-            raise ValueError, "self must be monic."
+            raise ValueError("self must be monic.")
         sig_on()
         ZZ_pX_linear_roots(&v, &n, &self.x)
         sig_off()
@@ -1008,7 +1001,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([1,2,3,4,5],c)
             sage: f.reverse()
             [5 4 3 2 1]
@@ -1101,7 +1094,8 @@ cdef class ntl_ZZ_pX(object):
 
     def invert_and_truncate(self, long m):
         """
-        Compute and return the inverse of self modulo $x^m$.
+        Compute and return the inverse of self modulo `x^m`.
+
         The constant term of self must be a unit.
 
         EXAMPLES::
@@ -1115,7 +1109,7 @@ cdef class ntl_ZZ_pX(object):
             [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 8 4 4 3]
         """
         if m < 0:
-            raise ArithmeticError, "m (=%s) must be positive"%m
+            raise ArithmeticError("m (=%s) must be positive" % m)
         cdef ntl_ZZ_pX r = self._new()
         sig_on()
         ZZ_pX_InvTrunc(r.x, self.x, m)
@@ -1142,7 +1136,7 @@ cdef class ntl_ZZ_pX(object):
         cdef ntl_ZZ_pX ans = self._new()
         F = pn.factor()
         if len(F) > 1:
-            raise ValueError, "must be modulo a prime power"
+            raise ValueError("must be modulo a prime power")
         p = F[0][0]
         cdef ntl_ZZ pZZ = <ntl_ZZ>ntl_ZZ(p)
         cdef ZZ_pX_Modulus_c mod
@@ -1158,10 +1152,10 @@ cdef class ntl_ZZ_pX(object):
                     break
             if eisenstein:
                 if p.divides(Integer(self[0])):
-                    raise ZeroDivisionError, "cannot invert element"
+                    raise ZeroDivisionError("cannot invert element")
                 ZZ_pX_InvMod_newton_ram(ans.x, self.x, mod, self.c.x)
             else:
-                raise ValueError, "not eisenstein or unramified"
+                raise ValueError("not eisenstein or unramified")
         else:
             ctx = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(p)
             mod_prime = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
@@ -1171,10 +1165,10 @@ cdef class ntl_ZZ_pX(object):
             if len(F) == 1 and F[0][1] == 1:
                 ZZ_pX_min_val_coeff(minval, mini, self.x, pZZ.x)
                 if minval > 0:
-                    raise ZeroDivisionError, "cannot invert element"
+                    raise ZeroDivisionError("cannot invert element")
                 ZZ_pX_InvMod_newton_unram(ans.x, self.x, mod, self.c.x, ctx.x)
             else:
-                raise ValueError, "not eisenstein or unramified"
+                raise ValueError("not eisenstein or unramified")
         return ans
 
     def multiply_mod(self, ntl_ZZ_pX other, ntl_ZZ_pX modulus):
@@ -1205,7 +1199,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([1,2,0,3],c)
             sage: mod = ntl.ZZ_pX([5,3,-1,1,1],c)
             sage: f.trace_mod(mod)
@@ -1221,20 +1215,21 @@ cdef class ntl_ZZ_pX(object):
 
     def trace_list(self):
         """
-        Return the list of traces of the powers $x^i$ of the
+        Return the list of traces of the powers `x^i` of the
         monomial x modulo this polynomial for i = 0, ..., deg(f)-1.
+
         This polynomial must be monic.
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([1,2,0,3,0,1],c)
             sage: f.trace_list()
             [5, 0, 14, 0, 10]
 
         The input polynomial must be monic or a ValueError is raised::
 
-            sage: c=ntl.ZZ_pContext(20)
+            sage: c = ntl.ZZ_pContext(20)
             sage: f = ntl.ZZ_pX([1,2,0,3,0,2],c)
             sage: f.trace_list()
             Traceback (most recent call last):
@@ -1244,11 +1239,13 @@ cdef class ntl_ZZ_pX(object):
         # This function should be redone to use TraceVec, which requires improving the wrapper for vec_ZZ_p
         self.c.restore_c()
         if not self.is_monic():
-            raise ValueError, "polynomial must be monic."
+            raise ValueError("polynomial must be monic.")
         sig_on()
         cdef char* t
         t = ZZ_pX_trace_list(&self.x)
-        return eval(string_delete(t).replace(' ', ','))
+        r = eval(char_to_str(t).replace(' ', ','))
+        string_delete(t)
+        return r
 
     def resultant(self, ntl_ZZ_pX other):
         """
@@ -1278,7 +1275,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(17)
+            sage: c = ntl.ZZ_pContext(17)
             sage: f = ntl.ZZ_pX([1,2,0,3],c)
             sage: mod = ntl.ZZ_pX([-5,2,0,0,1],c)
             sage: f.norm_mod(mod)
@@ -1329,7 +1326,7 @@ cdef class ntl_ZZ_pX(object):
 
         EXAMPLES::
 
-            sage: c=ntl.ZZ_pContext(17)
+            sage: c = ntl.ZZ_pContext(17)
             sage: f = ntl.ZZ_pX([1,2,0,3],c)
             sage: mod = ntl.ZZ_pX([-5,2,0,0,1],c)
             sage: f.charpoly_mod(mod)
@@ -1421,7 +1418,7 @@ cdef class ntl_ZZ_pX_Modulus(object):
         return "NTL ZZ_pXModulus %s (mod %s)"%(self.poly, self.poly.c.p)
 
     def degree(self):
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_ui(ans.value, ZZ_pX_Modulus_deg(self.x))
         return ans
 

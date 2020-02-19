@@ -86,7 +86,7 @@ previous and ongoing work of many authors of included components.
 A list of (some) direct contributors can be found on the
 `Sage Development Map <http://www.sagemath.org/development-map.html>`_
 and the history of changes can be found in the high-level
-`changelog <http://www.sagemath.org/mirror/src/changelog.txt>`_. Refer
+`changelogs <http://www.sagemath.org/changelogs/>`_. Refer
 to the
 `acknowledgment page <http://www.sagemath.org/development-ack.html>`_
 of the Sage website for an up-to-date list of financial and
@@ -119,7 +119,9 @@ the mathematics community is Joachim Neubüser as expressed in the paper
   volume 212 of London Mathematical Society Lecture Note Series, pages
   457--475. Cambridge University Press, 1995.
 
-and in particular the following quotation from his paper::
+and in particular the following quotation from his paper:
+
+.. CODE-BLOCK:: text
 
     You can read Sylow's Theorem and its proof in Huppert's book in
     the library without even buying the book and then you can use
@@ -149,7 +151,9 @@ found in
   medalists. *Notices of the American Mathematical Society*,
   54(3):405--410, 2007.
 
-in particular the following quotation::
+in particular the following quotation:
+
+.. CODE-BLOCK:: text
 
     Computers are no more a threat to mathematicians than food
     processors are a threat to cooks. As mathematics gets more and
@@ -188,7 +192,7 @@ functionalities are made possible through FOSS projects such as
   theory.
 * `Maxima <http://maxima.sourceforge.net>`_ --- system for symbolic
   and numerical computation.
-* `mpmath <http://code.google.com/p/mpmath>`_ --- a pure-Python
+* `mpmath <https://github.com/fredrik-johansson/mpmath>`_ --- a pure-Python
   library for multiprecision floating-point arithmetic.
 * `NumPy <http://numpy.scipy.org>`_ --- numerical linear algebra and
   other numerical computing capabilities for Python.
@@ -315,18 +319,24 @@ corresponding documentation comes pre-built and can be found under the
 directory ``SAGE_ROOT/local/share/doc/sage/html/``.
 During the compilation of Sage from source, the HTML version of the
 documentation is also built in the process. To build the HTML version
-of the documentation, issue the following command from ``SAGE_ROOT``::
+of the documentation, issue the following command from ``SAGE_ROOT``:
+
+.. CODE-BLOCK:: shell-session
 
     $ ./sage --docbuild --no-pdf-links all html
 
 Building the PDF version requires that your system has a working LaTeX
 installation. To build the PDF version of the documentation, issue the
-following command from ``SAGE_ROOT``::
+following command from ``SAGE_ROOT``:
+
+.. CODE-BLOCK:: shell-session
 
     $ ./sage --docbuild all pdf
 
 For more command line options, refer to the output of any of the
-following commands::
+following commands:
+
+.. CODE-BLOCK:: shell-session
 
     $ ./sage --help
     $ ./sage --advanced

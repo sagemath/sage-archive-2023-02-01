@@ -22,11 +22,10 @@ By default, Sage solves SAT instances as an Integer Linear Program (see
 :mod:`sage.numerical.mip`), but any SAT solver supporting the DIMACS input
 format is easily interfaced using the :class:`sage.sat.solvers.dimacs.DIMACS`
 blueprint. Sage ships with pre-written interfaces for *RSat* [RS]_ and *Glucose*
-[GL]_. Furthermore, Sage provides a C++ interface to the *CryptoMiniSat* [CMS]_
-SAT solver which can be used interchangably with DIMACS-based solvers, but also
-provides advanced features. For this last solver, the optional CryptoMiniSat
-package must be installed, this can be accomplished by typing the following in the
-shell::
+[GL]_. Furthermore, Sage provides an interface to the *CryptoMiniSat* [CMS]_ SAT
+solver which can be used interchangably with DIMACS-based solvers. For this last
+solver, the optional CryptoMiniSat package must be installed, this can be
+accomplished by typing the following in the shell::
 
     sage -i cryptominisat sagelib
 
@@ -58,7 +57,7 @@ DIMACS-base solvers can also be used to write DIMACS files::
     sage: solver.add_clause( ( 1,  2, -3) )
     sage: _ = solver.write()
     sage: for line in open(fn).readlines():
-    ....:    print line,
+    ....:    print(line)
     p cnf 3 2
     1 2 3 0
     1 2 -3 0
@@ -72,7 +71,7 @@ Alternatively, there is :meth:`sage.sat.solvers.dimacs.DIMACS.clauses`::
     sage: solver.add_clause( ( 1,  2, -3) )
     sage: solver.clauses(fn)
     sage: for line in open(fn).readlines():
-    ....:    print line,
+    ....:    print(line)
     p cnf 3 2
     1 2 3 0
     1 2 -3 0
@@ -87,10 +86,9 @@ Details on Specific Solvers
 
    sage/sat/solvers/satsolver
    sage/sat/solvers/dimacs
+   sage/sat/solvers/picosat
    sage/sat/solvers/sat_lp
-.. optional - cryptominisat
-.. sage/sat/solvers/cryptominisat/cryptominisat
-.. sage/sat/solvers/cryptominisat/solverconf
+   sage/sat/solvers/cryptominisat
 
 Converters
 ----------
@@ -106,10 +104,10 @@ Conjunctive Normal Form::
     sage: e = CNFEncoder(solver, B)
     sage: e.clauses_sparse(a*b + a + 1)
     sage: _ = solver.write()
-    sage: print open(fn).read()
+    sage: print(open(fn).read())
     p cnf 3 2
-    1 0
     -2 0
+    1 0
     <BLANKLINE>
 
 Details on Specific Converterts
@@ -146,7 +144,7 @@ REFERENCES:
 
 .. [GL] http://www.lri.fr/~simon/?page=glucose
 
-.. [CMS] http://www.msoos.org/cryptominisat2/
+.. [CMS] http://www.msoos.org
 
 .. [SG09] http://www.satcompetition.org/2009/format-benchmarks2009.html
 

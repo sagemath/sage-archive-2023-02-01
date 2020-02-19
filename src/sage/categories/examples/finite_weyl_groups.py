@@ -7,6 +7,7 @@ Examples of finite Weyl groups
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
@@ -16,7 +17,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 class SymmetricGroup(UniqueRepresentation, Parent):
     r"""
-
     An example of finite Weyl group: the symmetric group, with
     elements in list notation.
 
@@ -31,7 +31,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         sage: S
         The symmetric group on {0, ..., 3}
         sage: S.category()
-        Category of finite weyl groups
+        Category of finite irreducible weyl groups
 
     The elements of this group are permutations of the set `\{0,\ldots,3\}`::
 
@@ -50,6 +50,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
     - :meth:`.one`
     - :meth:`.product`
     - :meth:`.simple_reflection`
+    - :meth:`.cartan_type`
     - :meth:`.Element.has_right_descent`.
 
     All the other usual Weyl group operations are inherited from the
@@ -69,35 +70,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
 
     TESTS::
 
-        sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() . . . pass
-        running ._test_associativity() . . . pass
-        running ._test_cardinality() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_enumerated_set_contains() . . . pass
-        running ._test_enumerated_set_iter_cardinality() . . . pass
-        running ._test_enumerated_set_iter_list() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_has_descent() . . . pass
-        running ._test_inverse() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_one() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_prod() . . . pass
-        running ._test_reduced_word() . . . pass
-        running ._test_simple_projections() . . . pass
-        running ._test_some_elements() . . . pass
+        sage: TestSuite(S).run()
     """
 
     def __init__(self, n = 4):
@@ -108,7 +81,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
             sage: S == FiniteWeylGroups().example(4)
             True
         """
-        Parent.__init__(self, category = FiniteWeylGroups())
+        Parent.__init__(self, category=FiniteWeylGroups().Irreducible())
         self.n = n
 
     def _repr_(self):
@@ -142,11 +115,11 @@ class SymmetricGroup(UniqueRepresentation, Parent):
             sage: FiniteWeylGroups().example().index_set()
             [0, 1, 2]
         """
-        return range(self.n-1)
+        return list(range(self.n - 1))
 
     def simple_reflection(self, i):
         """
-        Implements :meth:`CoxeterGroups.ParentMethods.simple_reflection`
+        Implement :meth:`CoxeterGroups.ParentMethods.simple_reflection`
         by returning the transposition `(i, i+1)`.
 
         EXAMPLES::
@@ -155,7 +128,21 @@ class SymmetricGroup(UniqueRepresentation, Parent):
             (0, 1, 3, 2)
         """
         assert i in self.index_set()
-        return self(tuple(range(i)+[i+1,i]+range(i+2,self.n)))
+        return self(tuple(range(i)) + (i + 1, i) + tuple(range(i + 2, self.n)))
+
+    def cartan_type(self):
+        """
+        Return the Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: FiniteWeylGroups().example().cartan_type()
+            ['A', 3] relabelled by {1: 0, 2: 1, 3: 2}
+        """
+        from sage.combinat.root_system.cartan_type import CartanType
+        C = CartanType(['A',self.n-1])
+        C = C.relabel(lambda i:i-1)
+        return C
 
     def product(self, x, y):
         """
@@ -170,6 +157,19 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         assert x in self
         assert y in self
         return self(tuple(x.value[i] for i in y.value))
+
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        EXAMPLES::
+
+            sage: W = FiniteWeylGroups().example()
+            sage: W.degrees()
+            (2, 3, 4)
+        """
+        from sage.rings.integer_ring import ZZ
+        return tuple(ZZ(i) for i in range(2, self.n + 1))
 
     class Element(ElementWrapper):
 

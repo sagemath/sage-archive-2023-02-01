@@ -96,7 +96,7 @@ Pythonの数学機能には混乱を招きがちな面があり，SageにはPyth
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)
+       sage: int(2)/int(3)   # py2
        0
 
 -  **長整数:** Python本体は，C言語由来のint型だけではなく任意精度整数をサポートしている．
@@ -122,19 +122,19 @@ Sageプロジェクトに助力いただけるのなら，たいへん有難い�
 
 開発者向けの情報については、SageのWebページをご覧いただきたい．
 優先順位とカテゴリー順に整理されたSage関連プロジェクトの長いリストが見つかるはずだ．
-開発に役立つ情報は `Sage Developer's Guide <http://www.sagemath.org/doc/developer/>`_ にも載っているし，Googleグループ ``sage-devel`` も役立つ．
+開発に役立つ情報は `Sage Developer's Guide <http://doc.sagemath.org/html/en/developer/>`_ にも載っているし，Googleグループ ``sage-devel`` も役立つ．
 
 
 
 Sageを引用するには
 ==================
 
-Sageを使って論文を書く場合は，Sageによる計算が行なわれたことを明記するため，以下の一文を参考文献として引用していただきたい(Version 4.3の部分は実際に使用したバージョン番号に修正してください．):
+Sageを使って論文を書く場合は，Sageによる計算が行なわれたことを明記するため，以下の一文を参考文献として引用していただきたい(Version 8.7の部分は実際に使用したバージョン番号に修正してください．):
 
 ::
 
-    [Sage] William A. Stein et al., Sage Mathematics Software (Version 4.3).
-           The Sage Development Team, 2009, http://www.sagemath.org.
+    [Sage] Sage Mathematics Software (Version 8.7).
+           The Sage Development Team, 2019, https://www.sagemath.org.
 
 さらに，Sageを構成するPARI，GAP，Singular，Maximaなどのシステムの内，どれを計算に利用したのかを特定してそのシステムも引用していただけるようお願いする．
 もし計算に使ったソフトウェアがどれなのか確信がもてない場合は， Googleグループ ``sage-devel`` で気軽に尋ねてみよう．

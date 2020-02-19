@@ -15,19 +15,21 @@ Examples of Combinatorial Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from set_species import SetSpecies
-from partition_species import PartitionSpecies
-from subset_species import SubsetSpecies
-from recursive_species import CombinatorialSpecies
-from characteristic_species import CharacteristicSpecies, SingletonSpecies, EmptySetSpecies
-from cycle_species import CycleSpecies
-from linear_order_species import LinearOrderSpecies
-from permutation_species import PermutationSpecies
-from empty_species import EmptySpecies
-from sum_species import SumSpecies
-from product_species import ProductSpecies
-from composition_species import CompositionSpecies
-from functorial_composition_species import FunctorialCompositionSpecies
+from __future__ import absolute_import
+
+from .set_species import SetSpecies
+from .partition_species import PartitionSpecies
+from .subset_species import SubsetSpecies
+from .recursive_species import CombinatorialSpecies
+from .characteristic_species import CharacteristicSpecies, SingletonSpecies, EmptySetSpecies
+from .cycle_species import CycleSpecies
+from .linear_order_species import LinearOrderSpecies
+from .permutation_species import PermutationSpecies
+from .empty_species import EmptySpecies
+from .sum_species import SumSpecies
+from .product_species import ProductSpecies
+from .composition_species import CompositionSpecies
+from .functorial_composition_species import FunctorialCompositionSpecies
 
 from sage.misc.cachefunc import cached_function
 
@@ -60,7 +62,7 @@ def SimpleGraphSpecies():
 
         sage: seq = S.generating_series().counts(10)[1:]
         sage: oeis(seq)[0]                              # optional -- internet
-        A006125: a(n) = 2^(n(n-1)/2).
+        A006125: a(n) = 2^(n*(n-1)/2).
     """
     E = SetSpecies()
     E2 = SetSpecies(size=2)
@@ -71,8 +73,10 @@ def SimpleGraphSpecies():
 
 @cached_function
 def BinaryTreeSpecies():
-    """
-    Returns the species of binary trees on n leaves. The species of
+    r"""
+    Return the species of binary trees on n leaves.
+
+    The species of
     binary trees B is defined by B = X + B\*B where X is the singleton
     species.
 

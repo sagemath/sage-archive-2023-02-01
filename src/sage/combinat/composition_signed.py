@@ -15,13 +15,16 @@ Signed Compositions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import builtins
 
 import itertools
 
-from composition import Compositions_n, Composition
+from sage.rings.integer_ring import ZZ
+from .composition import Compositions_n, Composition
 from sage.rings.all import Integer
 from sage.arith.all import binomial
-import __builtin__
+
 
 class SignedCompositions(Compositions_n):
     """
@@ -88,15 +91,15 @@ class SignedCompositions(Compositions_n):
             sage: [-2, 1, -3] in SignedCompositions(6)
             True
         """
-        if isinstance(x, __builtin__.list):
-            for i in range(len(x)):
-                if (not isinstance(x[i], (int, Integer))) and x[i] not in ZZ:
+        if isinstance(x, builtins.list):
+            for z in x:
+                if (not isinstance(z, (int, Integer))) and z not in ZZ:
                     return False
-                if x[i] == 0:
+                if z == 0:
                     return False
         elif not isinstance(x, Composition):
             return False
-        return sum([abs(i) for i in x]) == self.n
+        return sum(abs(i) for i in x) == self.n
 
     def cardinality(self):
         r"""
@@ -134,6 +137,6 @@ class SignedCompositions(Compositions_n):
             for sign in itertools.product([1,-1], repeat=l):
                 yield [ sign[i]*comp[i] for i in range(l)]
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition_signed', 'SignedCompositions_n', SignedCompositions)
 

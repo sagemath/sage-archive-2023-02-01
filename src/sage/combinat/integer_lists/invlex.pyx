@@ -16,7 +16,7 @@ Schilling, and Thiery, with the help of many, to deal with
 limitations and lack of robustness w.r.t. input.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>
 #                          Nicolas M. Thiery <nthiery at users.sf.net>
 #                          Anne Schilling <anne@math.ucdavis.edu>
@@ -25,9 +25,10 @@ limitations and lack of robustness w.r.t. input.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
+import builtins
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.cachefunc import cached_method
@@ -36,7 +37,7 @@ from sage.combinat.integer_lists.lists import IntegerLists
 from sage.combinat.integer_lists.base import Infinity
 
 
-class IntegerListsLex(IntegerLists):
+class IntegerListsLex(IntegerLists, metaclass=ClasscallMetaclass):
     r"""
     Lists of nonnegative integers with constraints, in inverse
     lexicographic order.
@@ -114,8 +115,8 @@ class IntegerListsLex(IntegerLists):
 
     - ``name`` -- a string or ``None`` (default: ``None``) if set,
       this will be passed down to :meth:`Parent.rename` to specify the
-      name of ``self``. It is recommented to use directly the rename
-      method as this feature may become deprecated.
+      name of ``self``. It is recommended to use rename method directly
+      because this feature may become deprecated.
 
     - ``element_constructor`` -- a function (or callable) that creates
       elements of ``self`` from a list. See also :class:`Parent`.
@@ -123,11 +124,6 @@ class IntegerListsLex(IntegerLists):
     - ``element_class`` -- a class for the elements of ``self``
       (default: `ClonableArray`). This merely sets the attribute
       ``self.Element``. See the examples for details.
-
-    - ``global_options`` -- a :class:`~sage.structure.global_options.GlobalOptions`
-      object that will be assigned to the attribute
-      ``_global_options``; for internal use only (subclasses, ...).
-
 
     .. NOTE::
 
@@ -263,13 +259,15 @@ class IntegerListsLex(IntegerLists):
         sage: oeis(_)                  # optional -- internet
         0: A001006: Motzkin numbers: number of ways of drawing any number
         of nonintersecting chords joining n (labeled) points on a circle.
+        1: ...
+        2: ...
 
     or Dyck words (see also :class:`DyckWords`), through the bijection
     with paths from `(0,0)` to `(n,n)` with left and up steps that remain
     below the diagonal::
 
         sage: def dyck_words(n):
-        ....:     return IntegerListsLex(length=n, ceiling=range(n+1), min_slope=0)
+        ....:     return IntegerListsLex(length=n, ceiling=list(range(n+1)), min_slope=0)
         sage: [dyck_words(n).cardinality() for n in range(8)]
         [1, 1, 2, 5, 14, 42, 132, 429]
         sage: dyck_words(3).list()
@@ -293,7 +291,7 @@ class IntegerListsLex(IntegerLists):
     but not in inverse lexicographic order::
 
         sage: L = IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
-        sage: for l in L: print l
+        sage: for l in L: print(l)
         Traceback (most recent call last):
         ...
         ValueError: infinite upper bound for values of m
@@ -518,19 +516,7 @@ class IntegerListsLex(IntegerLists):
 
     A variant is to specify a class for the elements. With the default
     element constructor, this class should take as input the parent
-    ``self`` and a list. Here we want the elements to be constructed
-    in the class :class:`Partition`::
-
-        sage: IntegerListsLex(3, max_slope=0, element_class=Partition, global_options=Partitions.global_options).list()
-        doctest:...: DeprecationWarning: the global_options argument is
-         deprecated since, in general, pickling is broken;
-         create your own class instead
-        See http://trac.sagemath.org/15525 for details.
-        [[3], [2, 1], [1, 1, 1]]
-
-    Note that the :class:`Partition` further assumes the existence of
-    an attribute ``_global_options`` in the parent, hence the use of the
-    ``global_options`` parameter.
+    ``self`` and a list. 
 
     .. WARNING::
 
@@ -798,33 +784,14 @@ class IntegerListsLex(IntegerLists):
     """
     backend_class = IntegerListsBackend_invlex
 
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
         r"""
-        Return a disjoint union if ``n`` is a list or iterable.
-
-        TESTS:
-
-        Specifying a list or iterable as argument is deprecated::
-
-            sage: IntegerListsLex([2,2], length=2).list()
-            doctest:...: DeprecationWarning: Calling IntegerListsLex with n an iterable is deprecated. Please use DisjointUnionEnumeratedSets or the min_sum and max_sum arguments instead
-            See http://trac.sagemath.org/17979 for details.
-            [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
-            sage: IntegerListsLex(NN, max_length=3)
-            Disjoint union of Lazy family (<...>(i))_{i in Non negative integer semiring}
+        Specifying a list or iterable as argument was deprecated in
+        :trac:`17979`. Please use ``DisjointUnionEnumeratedSets`` or
+        the ``min_sum`` and ``max_sum`` arguments instead.
         """
-        import collections
-        if isinstance(n, collections.Iterable):
-            from sage.misc.superseded import deprecation
-            deprecation(17979, 'Calling IntegerListsLex with n an iterable is deprecated. Please use DisjointUnionEnumeratedSets or the min_sum and max_sum arguments instead')
-            from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-            from sage.sets.family import Family
-            return DisjointUnionEnumeratedSets(Family(n, lambda i: IntegerListsLex(i, **kwargs)))
-        else:
-            return typecall(cls, n=n, **kwargs)
+        return typecall(cls, n=n, **kwargs)
 
 
 cdef class IntegerListsBackend_invlex(IntegerListsBackend):
@@ -913,7 +880,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         Indeed::
 
             sage: it = iter(IntegerListsLex(4, check=False))
-            sage: for _ in range(10): print next(it)
+            sage: for _ in range(10): print(next(it))
             [4]
             [3, 1]
             [3, 0, 1]
@@ -1105,7 +1072,8 @@ DECREASE  = 2
 POP       = 1
 STOP      = 0
 
-class IntegerListsLexIter(object):
+
+class IntegerListsLexIter(builtins.object):
     r"""
     Iterator class for IntegerListsLex.
 
@@ -1302,7 +1270,7 @@ class IntegerListsLexIter(object):
             self._current_sum -= self._current_list[-1]
             self._current_list.pop()
 
-    def next(self):
+    def __next__(self):
         r"""
         Return the next element in the iteration.
 
@@ -1487,7 +1455,7 @@ class IntegerListsLexIter(object):
 
         lower_bound = max(0, p.floor(i))
         upper_bound = min(max_sum, p.ceiling(i))
-        if prev != None:
+        if prev is not None:
             lower_bound = max(lower_bound, prev + p.min_slope)
             upper_bound = min(upper_bound, prev + p.max_slope)
 
@@ -1564,7 +1532,7 @@ class IntegerListsLexIter(object):
         ``self._current_list``. The current algorithm computes,
         for `k = j, j+1, \ldots`, a lower bound `l_k` and an upper
         bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
-        invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
+        intervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
 
         The lower bound `l_k` is given by the area below
         `v_0,\dots,v_{j-1}` prolongated by the lower envelope

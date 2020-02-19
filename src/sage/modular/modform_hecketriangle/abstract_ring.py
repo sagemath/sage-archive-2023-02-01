@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -22,8 +23,8 @@ from sage.algebras.free_algebra import FreeAlgebra
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 
-from constructor import FormsRing, FormsSpace
-from series_constructor import MFSeriesConstructor
+from .constructor import FormsRing, FormsSpace
+from .series_constructor import MFSeriesConstructor
 
 
 # Maybe replace Parent by just SageObject?
@@ -35,10 +36,10 @@ class FormsRing_abstract(Parent):
     instantiate one of the derived classes of this class.
     """
 
-    from graded_ring_element import FormsRingElement
+    from .graded_ring_element import FormsRingElement
     Element = FormsRingElement
 
-    from analytic_type import AnalyticType
+    from .analytic_type import AnalyticType
     AT = AnalyticType()
 
     def __init__(self, group, base_ring, red_hom, n):
@@ -161,7 +162,7 @@ class FormsRing_abstract(Parent):
             ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
-        from graded_ring_element import FormsRingElement
+        from .graded_ring_element import FormsRingElement
         if isinstance(el, FormsRingElement):
             if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
                 el_f = el._reduce_d()._rat
@@ -219,8 +220,8 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        from space import FormsSpace_abstract
-        from functors import _common_subgroup
+        from .space import FormsSpace_abstract
+        from .functors import _common_subgroup
         if (    isinstance(S, FormsRing_abstract)\
             and self._group         == _common_subgroup(self._group, S._group)\
             and self._analytic_type >= S._analytic_type\
@@ -318,15 +319,14 @@ class FormsRing_abstract(Parent):
             sage: MF.E4()
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
-
-        if (prec == "max"):
-            self._disp_prec = self._prec;
-        elif (prec is not None):
+        if prec == "max":
+            self._disp_prec = self._prec
+        elif prec is not None:
             self._disp_prec = ZZ(prec)
         else:
             return self._disp_prec
 
-    def default_num_prec(self, prec = None):
+    def default_num_prec(self, prec=None):
         r"""
         Set the default numerical precision to ``prec`` (default: ``53``).
         If ``prec=None`` (default) the current default numerical
@@ -438,7 +438,7 @@ class FormsRing_abstract(Parent):
             CuspForms(n=3, k=12, ep=1) over Integer Ring
         """
 
-        if analytic_type == None:
+        if analytic_type is None:
             analytic_type = self._analytic_type
         else:
             analytic_type = self._analytic_type.extend_by(analytic_type)
@@ -485,14 +485,14 @@ class FormsRing_abstract(Parent):
             ZeroForms(n=3, k=6, ep=-1) over Integer Ring
         """
 
-        if analytic_type == None:
+        if analytic_type is None:
             analytic_type = self._analytic_type
         else:
             analytic_type = self._analytic_type.reduce_to(analytic_type)
 
-        if (degree == None and not self.is_homogeneous()):
+        if (degree is None and not self.is_homogeneous()):
             return FormsRing(analytic_type, group=self.group(), base_ring=self.base_ring(), red_hom=self.has_reduce_hom())
-        elif (degree == None):
+        elif (degree is None):
             return FormsSpace(analytic_type, group=self.group(), base_ring=self.base_ring(), k=self.weight(), ep=self.ep())
         else:
             (weight, ep) = degree
@@ -527,7 +527,7 @@ class FormsRing_abstract(Parent):
             (ModularFormsRingFunctor(n=3), BaseFacade(Integer Ring))
         """
 
-        from functors import FormsRingFunctor, BaseFacade
+        from .functors import FormsRingFunctor, BaseFacade
         return FormsRingFunctor(self._analytic_type, self._group, self._red_hom), BaseFacade(self._base_ring)
 
     @cached_method
@@ -778,22 +778,23 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dX*X: X*dX + 1, dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1}
 
             sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dX*X: X*dX + 1, dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1}
         """
-
-        # We only use two operators for now which do not involve 'd', so for performance
-        # reason and due to restrictions for possible rings that can be used with algebra
-        # relations we choose FractionField(base_ring) instead of self.coeff_ring().
-        # For our purposes it is currently enough to define the operators over ZZ resp. QQ.
-        free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
-        (X,Y,Z,dX,dY,dZ) = free_alg.gens()
-        diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
-
-        return diff_alg
+        # We only use two operators for now which do not involve 'd',
+        # so for performance reason and due to restrictions for
+        # possible rings that can be used with algebra relations we
+        # choose FractionField(base_ring) instead of
+        # self.coeff_ring().  For our purposes it is currently enough
+        # to define the operators over ZZ resp. QQ.
+        free_alg = FreeAlgebra(QQ, 6, 'X,Y,Z,dX,dY,dZ')
+        X, Y, Z, dX, dY, dZ = free_alg.gens()
+        return free_alg.g_algebra({dX * X: 1 + X * dX,
+                                   dY * Y: 1 + Y * dY,
+                                   dZ * Z: 1 + Z * dZ})
 
     @cached_method
     def _derivative_op(self):
@@ -892,7 +893,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return self._weight != None
+        return self._weight is not None
 
     def is_modular(self):
         r"""

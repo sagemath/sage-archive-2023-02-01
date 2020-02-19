@@ -8,7 +8,7 @@ AUTHORS:
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
@@ -16,11 +16,13 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function
+from six import iteritems
 
 from sage.misc.misc import walltime, cputime
+
 
 def count_noun(number, noun, plural=None, pad_number=False, pad_noun=False):
     """
@@ -79,7 +81,7 @@ def dict_difference(self, other):
         {'foobar': 'hello', 'timeout': 100}
     """
     D = dict()
-    for (k,v) in self.iteritems():
+    for k, v in iteritems(self):
         try:
             if other[k] == v:
                 continue
@@ -175,7 +177,7 @@ class Timer:
         """
         return str(self.__dict__)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison.
 
@@ -188,9 +190,25 @@ class Timer:
             sage: loads(dumps(t)) == t
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        if not isinstance(other, Timer):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality
+
+        EXAMPLES::
+
+            sage: from sage.doctest.util import Timer
+            sage: Timer() == Timer()
+            True
+            sage: t = Timer().start()
+            sage: loads(dumps(t)) != t
+            False
+        """
+        return not (self == other)
+
 
 # Inheritance rather then delegation as globals() must be a dict
 class RecordingDict(dict):
@@ -440,7 +458,7 @@ class NestedName:
 
     def __str__(self):
         """
-        Returns a .-separated string giving the full name.
+        Return a .-separated string giving the full name.
 
         EXAMPLES::
 
@@ -455,7 +473,7 @@ class NestedName:
 
     def __repr__(self):
         """
-        Returns a .-separated string giving the full name.
+        Return a .-separated string giving the full name.
 
         EXAMPLES::
 
@@ -463,12 +481,12 @@ class NestedName:
             sage: qname = NestedName('sage.categories.algebras')
             sage: qname[1] = 'Algebras'
             sage: qname[44] = 'at_the_end_of_the_universe'
-            sage: print qname # indirect doctest
+            sage: print(qname) # indirect doctest
             sage.categories.algebras.Algebras.at_the_end_of_the_universe
         """
         return '.'.join(a for a in self.all if a is not None)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison is just comparison of the underlying lists.
 
@@ -486,6 +504,26 @@ class NestedName:
             sage: qname == qname2
             False
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.all, other.all)
+        if not isinstance(other, NestedName):
+            return False
+        return self.all == other.all
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.util import NestedName
+            sage: qname = NestedName('sage.categories.algebras')
+            sage: qname2 = NestedName('sage.categories.algebras')
+            sage: qname != qname2
+            False
+            sage: qname[0] = 'Algebras'
+            sage: qname2[2] = 'Algebras'
+            sage: repr(qname) == repr(qname2)
+            True
+            sage: qname != qname2
+            True
+        """
+        return not (self == other)

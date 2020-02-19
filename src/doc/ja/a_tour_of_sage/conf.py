@@ -11,9 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
-sys.path.append(os.environ['SAGE_DOC_SRC'])
-from common.conf import *
+from sage.docs.conf import release, latex_elements
+from sage.docs.conf import *  # NOQA
 
 # General information about the project.
 project = u"Sage ガイドツアー"
@@ -43,5 +42,3 @@ latex_docclass = {'manual': 'jsbook'}
 # the definition of \\at in the standard preamble of the sphinx doc
 # conflicts with that in babel/french[b]
 latex_elements['preamble'] += '\\let\\at\\undefined'
-
-html_use_smartypants = False

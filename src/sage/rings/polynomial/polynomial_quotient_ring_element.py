@@ -83,10 +83,13 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.element import CommutativeRingElement
+from sage.structure.richcmp import richcmp
 import sage.rings.number_field.number_field_rel as number_field_rel
 import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
+
 
 class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr, CommutativeRingElement):
     """
@@ -151,8 +154,27 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
                 polynomial = R
         self._polynomial = polynomial
 
-    def _im_gens_(self, codomain, im_gens):
-        return self._polynomial._im_gens_(codomain, im_gens)
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of this element under the morphism defined by
+        ``im_gens`` in ``codomain``, where elements of the
+        base ring are mapped by ``base_map``.
+
+        EXAMPLES::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: S.<y> = K[]
+            sage: Q.<q> = S.quotient(y^2*(y-1)*(y-i))
+            sage: T.<t> = S.quotient(y*(y+1))
+            sage: phi = Q.hom([t+1], base_map=cc)
+            sage: phi(q)
+            t + 1
+            sage: phi(i*q)
+            -i*t - i
+        """
+        return self._polynomial._im_gens_(codomain, im_gens, base_map=base_map)
 
     def __hash__(self):
         return hash(self._polynomial)
@@ -194,7 +216,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self._polynomial._latex_(self.parent().variable_name())
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Pari representation of this quotient element.
 
@@ -206,7 +228,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: pari(xb)^10
             Mod(0, x^10)
         """
-        return self._polynomial._pari_().Mod(self.parent().modulus()._pari_())
+        return self._polynomial.__pari__().Mod(self.parent().modulus())
 
     ##################################################
     # Arithmetic
@@ -275,16 +297,21 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __neg__(self):
         return self.__class__(self.parent(), -self._polynomial)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare this element with something else, where equality testing
         coerces the object on the right, if possible (and necessary).
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<a> = R.quotient(x^3-2)
+            sage: (a^2 - 4) / (a+2) == a - 2
+            True
+            sage: a^2 - 4 == a
+            False
         """
-        return cmp(self._polynomial, other._polynomial)
-
-
+        return richcmp(self._polynomial, other._polynomial, op)
 
     def __getitem__(self, n):
         return self._polynomial[n]
@@ -370,7 +397,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         TESTS:
 
-        An element is not invertable if the base ring is not a field
+        An element is not invertible if the base ring is not a field
         (see :trac:`13303`)::
 
             sage: Z16x.<x> = Integers(16)[]
@@ -402,9 +429,11 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
-            sage: long(S(10))
+            sage: long(S(10)) # py2
+            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27675 for details.
             10L
-            sage: long(a)
+            sage: long(a)  # py2
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial to long
@@ -524,8 +553,8 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         if number_field_rel.is_RelativeNumberField(F):
 
-            base_hom = F.base_field().hom([R.base_ring().gen()])
-            g = F.Hom(R)(x, base_hom)
+            base_map = F.base_field().hom([R.base_ring().gen()])
+            g = F.Hom(R)(x, base_map)
 
         else:
             g = F.hom([x], R, check=False)
@@ -590,9 +619,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __iter__(self):
         return iter(self.list())
 
-    def list(self):
+    def list(self, copy=True):
         """
-        Return list of the elements of self, of length the same as the
+        Return list of the elements of ``self``, of length the same as the
         degree of the quotient polynomial ring.
 
         EXAMPLES::
@@ -604,7 +633,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: (a^10).list()
             [300, -35, -134]
         """
-        v = self._polynomial.list()
+        v = self._polynomial.list(copy=False)
         R = self.parent()
         n = R.degree()
         return v + [R.base_ring()(0)]*(n - len(v))
@@ -634,7 +663,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             x = R.gen()
             a = R(1)
             d = R.degree()
-            for _ in xrange(d):
+            for _ in range(d):
                 v += (a*self).list()
                 a *= x
             S = R.base_ring()
@@ -652,7 +681,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
     def norm(self):
         """
-        The norm of this element, which is the norm of the matrix of right
+        The norm of this element, which is the determinant of the matrix of right
         multiplication by this element.
 
         EXAMPLES::

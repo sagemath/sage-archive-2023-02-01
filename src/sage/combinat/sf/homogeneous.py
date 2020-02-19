@@ -1,9 +1,10 @@
-"""
+r"""
 Homogeneous symmetric functions
 
 By this we mean the basis formed of the complete homogeneous
 symmetric functions `h_\lambda`, not an arbitrary graded basis.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -25,7 +26,7 @@ symmetric functions `h_\lambda`, not an arbitrary graded basis.
 # Homogeneous Symmetric Functions  #
 #                                  #
 ####################################
-import multiplicative, classical
+from . import multiplicative, classical
 from sage.combinat.partition import Partition
 
 class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgebra_multiplicative):
@@ -223,5 +224,5 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
             return self._expand(condition, n, alphabet)
 
 # Backward compatibility for unpickling
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.sf.homogeneous', 'SymmetricFunctionAlgebraElement_homogeneous',  SymmetricFunctionAlgebra_homogeneous.Element)

@@ -86,6 +86,7 @@ AUTHORS:
 Classes and Methods
 ===================
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 # Copyright (C) 2015 Daniel Krenn <dev@danielkrenn.at>
@@ -97,10 +98,11 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ring import SymbolicRing, SR
-
-
+from .ring import SymbolicRing, SR
+from sage.categories.pushout import ConstructionFunctor
 from sage.structure.factory import UniqueFactory
+
+
 class SymbolicSubringFactory(UniqueFactory):
     r"""
     A factory creating a symbolic subring.
@@ -409,9 +411,7 @@ class GenericSymbolicSubring(SymbolicRing):
             # Workaround; can be deleted once #19231 is fixed
             return False
 
-        from sage.rings.real_mpfr import mpfr_prec_min
-        from sage.rings.all import (ComplexField,
-                                    RLF, CLF, AA, QQbar, InfinityRing)
+        from sage.rings.all import RLF, CLF, AA, QQbar, InfinityRing
         from sage.rings.real_mpfi import is_RealIntervalField
         from sage.rings.complex_interval_field import is_ComplexIntervalField
 
@@ -428,11 +428,10 @@ class GenericSymbolicSubring(SymbolicRing):
               is_RealIntervalField(P) or is_ComplexIntervalField(P)):
             return True
 
-        elif ComplexField(mpfr_prec_min()).has_coerce_map_from(P):
+        elif P._is_numerical():
             return P not in (RLF, CLF, AA, QQbar)
 
-
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare two symbolic subrings.
 
@@ -449,15 +448,46 @@ class GenericSymbolicSubring(SymbolicRing):
             sage: A == AB
             False
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        if self._vars_ == other._vars_:
-            return 0
-        return 1
+        if not isinstance(other, GenericSymbolicSubring):
+            return False
+        return self._vars_ == other._vars_
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` and ``other`` are not equal.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: A = SymbolicSubring(accepting_variables=('a',))
+            sage: B = SymbolicSubring(accepting_variables=('b',))
+            sage: AB = SymbolicSubring(accepting_variables=('a', 'b'))
+            sage: A != A
+            False
+            sage: A != B
+            True
+            sage: A != AB
+            True
+        """
+        return not self == other
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: A = SymbolicSubring(accepting_variables=('a',))
+            sage: B = SymbolicSubring(accepting_variables=('b',))
+            sage: hash(A) == hash(A)
+            True
+            sage: hash(A) == hash(B)
+            False
+        """
+        return hash(tuple(sorted(self._vars_)))
 
 
-from sage.categories.pushout import ConstructionFunctor
 class GenericSymbolicSubringFunctor(ConstructionFunctor):
     r"""
     A base class for the functors constructing symbolic subrings.
@@ -566,7 +596,6 @@ class GenericSymbolicSubringFunctor(ConstructionFunctor):
         if self == other:
             return self
 
-
     def __eq__(self, other):
         r"""
         Return whether this functor is equal to ``other``.
@@ -587,7 +616,6 @@ class GenericSymbolicSubringFunctor(ConstructionFunctor):
             True
         """
         return type(self) == type(other) and self.vars == other.vars
-
 
     def __ne__(self, other):
         r"""
@@ -760,7 +788,6 @@ class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
         elif isinstance(other, SymbolicSubringRejectingVarsFunctor):
             if not (self.vars & other.vars):
                 return other
-
 
     def _apply_functor(self, R):
         """
@@ -1023,7 +1050,6 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
         """
         return 'Symbolic Constants Subring'
 
-
     def has_valid_variable(self, variable):
         r"""
         Return whether the given ``variable`` is valid in this subring.
@@ -1048,7 +1074,6 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
             False
         """
         return False
-
 
     def _an_element_(self):
         r"""

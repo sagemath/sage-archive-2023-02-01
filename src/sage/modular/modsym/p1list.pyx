@@ -2,7 +2,11 @@ r"""
 Lists of Manin symbols (elements of `\mathbb{P}^1(\ZZ/N\ZZ)`) over `\QQ`
 """
 
-from sage.misc.search import search
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_check
+
+from sage.misc.search cimport search
+from sage.structure.richcmp cimport rich_to_bool
 
 cimport sage.rings.fast_arith
 import sage.rings.fast_arith
@@ -12,9 +16,6 @@ arith_int  = sage.rings.fast_arith.arith_int()
 arith_llong = sage.rings.fast_arith.arith_llong()
 
 ctypedef long long llong
-
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 
 ###############################################################
 #
@@ -207,7 +208,6 @@ def p1list_int(int N):
 
     if N==1: return [(0,0)]
 
-    sig_on()
     lst = [(0,1)]
     c = 1
     for d from 0 <= d < N:
@@ -225,13 +225,13 @@ def p1list_int(int N):
             h = N/c
             g = arith_int.c_gcd_int(c,h)
             for d from 1 <= d <= h:
+                sig_check()
                 if arith_int.c_gcd_int(d,g)==1:
                     d1 = d
                     while arith_int.c_gcd_int(d1,c)!=1:
                         d1 += h
                     c_p1_normalize_int(N, c, d1, &u, &v, &s, 0)
                     lst.append((u,v))
-    sig_off()
     lst.sort()
     return lst
 
@@ -292,6 +292,16 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
         0
         sage: (7*24) % 90
         78
+
+    TESTS:
+
+    This test reflects :trac:`20932`::
+
+        sage: N = 3*61379
+        sage: import sage.modular.modsym.p1list as p1list
+        sage: p1 = p1list.P1List(N) # not tested -- too long
+        sage: p1.normalize_with_scalar(21, -1) # not tested -- too long
+        (3, 105221, 7)
     """
     cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
     cdef llong ll_s, ll_t, ll_N
@@ -304,7 +314,7 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
     ll_N = <long> N
 
     #if N<=0 or N >= 2**31:
-    #    raise OverflowError, "Modulus is too large (must be < 46340)"
+    #    raise OverflowError("Modulus is too large (must be < 46340)")
     #    return -1
 
     u = u % N
@@ -360,7 +370,7 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
     uu[0] = u
     vv[0] = v
     if compute_s:
-        ss[0] = <int> (arith_llong.c_inverse_mod_longlong(s*min_t, N) % ll_N)
+        ss[0] = <int> (arith_llong.c_inverse_mod_longlong((<llong> s)*(<llong> min_t), N) % ll_N)
     return 0
 
 def p1_normalize_llong(N, u, v):
@@ -428,19 +438,26 @@ def p1list_llong(int N):
         (0, 1)
         sage: L[len(L)-1]
         (25000, 1)
+
+    TESTS:
+
+    This test shows that :trac:`20932` has been resolved::
+
+        sage: import sage.modular.modsym.p1list as p1list
+        sage: [(i,j) for (i,j) in p1list.P1List(103809) if i != 1 and i != 3] # not tested -- too long
+        [(0, 1), (34603, 1), (34603, 2), (34603, 3)]
     """
     cdef int g, u, v, s, c, d, h, d1, cmax
     if N==1: return [(0,0)]
 
     lst = [(0,1)]
-    sig_on()
     c = 1
     for d from 0 <= d < N:
         lst.append((c,d))
 
     cmax = N/2
     if N%2:   # N odd, max divisor is <= N/3
-        if N%5:  # N not a multiple of 3 either, max is N/5
+        if N%3:  # N not a multiple of 3 either, max is N/5
             cmax = N/5
         else:
             cmax = N/3
@@ -451,12 +468,12 @@ def p1list_llong(int N):
             g = arith_int.c_gcd_int(c,h)
             for d from 1 <= d <= h:
                 if arith_int.c_gcd_int(d,g)==1:
+                    sig_check()
                     d1 = d
                     while arith_int.c_gcd_int(d1,c)!=1:
                         d1 += h
                     c_p1_normalize_llong(N, c, d1, &u, &v, &s, 0)
                     lst.append((u,v))
-    sig_off()
     lst.sort()
     return lst
 
@@ -485,13 +502,13 @@ def p1list(N):
 
     """
     if N <= 0:
-        raise ValueError, "N must be a positive integer"
+        raise ValueError("N must be a positive integer")
     if N <= 46340:
         return p1list_int(N)
     if N <= 2147483647:
         return p1list_llong(N)
     else:
-        raise OverflowError, "p1list not defined for such large N."
+        raise OverflowError("p1list not defined for such large N.")
 
 def p1_normalize(int N, int u, int v):
     r"""
@@ -636,7 +653,8 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
         ss[0] = t_a[(s*min_t)%N]
     return 0
 
-cdef class P1List:
+
+cdef class P1List(object):
     """
     The class for `\mathbb{P}^1(\ZZ/N\ZZ)`, the projective line modulo `N`.
 
@@ -684,18 +702,15 @@ cdef class P1List:
             self.__list = p1list_llong(N)
             self.__normalize = c_p1_normalize_llong
         else:
-            raise OverflowError, "p1list not defined for such large N."
+            raise OverflowError("p1list not defined for such large N.")
         self.__list.sort()
         self.__end_hash = dict([(x,i) for i, x in enumerate(self.__list[N+1:])])
 
         # Allocate memory for xgcd table.
         self.g = NULL; self.s = NULL; self.t = NULL
-        self.g = <int*> sig_malloc(sizeof(int)*N)
-        if not self.g: raise MemoryError
-        self.s = <int*> sig_malloc(sizeof(int)*N)
-        if not self.s: raise MemoryError
-        self.t = <int*> sig_malloc(sizeof(int)*N)
-        if not self.t: raise MemoryError
+        self.g = <int*>check_allocarray(N, sizeof(int))
+        self.s = <int*>check_allocarray(N, sizeof(int))
+        self.t = <int*>check_allocarray(N, sizeof(int))
 
         # Initialize xgcd table
         cdef llong ll_s, ll_t, ll_N = N
@@ -713,12 +728,11 @@ cdef class P1List:
         """
         Deallocates memory for an object of the class P1List.
         """
-        if self.g: sig_free(self.g)
-        if self.s: sig_free(self.s)
-        if self.t: sig_free(self.t)
+        sig_free(self.g)
+        sig_free(self.s)
+        sig_free(self.t)
 
-
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Comparison function for objects of the class P1List.
 
@@ -741,14 +755,14 @@ cdef class P1List:
             [23, 45, 100]
         """
         if not isinstance(other, P1List):
-            return -1
-        cdef P1List O
-        O = other
-        if self.__N < O.__N:
-            return -1
-        elif self.__N > O.__N:
-            return 1
-        return 0
+            return NotImplemented
+        cdef P1List S = <P1List> self
+        cdef P1List O = <P1List> other
+        if S.__N < O.__N:
+            return rich_to_bool(op, -1)
+        elif S.__N > O.__N:
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     def __reduce__(self):
         """
@@ -758,10 +772,9 @@ cdef class P1List:
 
             sage: L = P1List(8)
             sage: L.__reduce__()
-            (<built-in function _make_p1list>, (8,))
+            (<... 'sage.modular.modsym.p1list.P1List'>, (8,))
         """
-        import sage.modular.modsym.p1list
-        return sage.modular.modsym.p1list._make_p1list, (self.__N, )
+        return type(self), (self.__N, )
 
     def __getitem__(self, n):
         r"""
@@ -787,7 +800,7 @@ cdef class P1List:
 
     def __len__(self):
         """
-        Returns the length of this P1List.
+        Return the length of this P1List.
 
         EXAMPLES::
 
@@ -799,7 +812,7 @@ cdef class P1List:
 
     def __repr__(self):
         """
-        Returns the string representation of this P1List.
+        Return the string representation of this P1List.
 
         EXAMPLES::
 
@@ -851,7 +864,7 @@ cdef class P1List:
         elif N <= 2147483647:
             return lift_to_sl2z_llong(c, d, self.__N)
         else:
-            raise OverflowError, "N too large"
+            raise OverflowError("N too large")
 
     def apply_I(self, int i):
         r"""
@@ -860,9 +873,7 @@ cdef class P1List:
 
         INPUT:
 
-
         -  ``i`` - integer (the index of the element to act on).
-
 
         EXAMPLES::
 
@@ -876,13 +887,10 @@ cdef class P1List:
             sage: L.normalize(-1,9)
             (1, 111)
 
-        ::
+        This operation is an involution::
 
-            This operation is an involution::
-
-            sage: all([L.apply_I(L.apply_I(i))==i for i in xrange(len(L))])
+            sage: all(L.apply_I(L.apply_I(i)) == i for i in range(len(L)))
             True
-
         """
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
@@ -912,13 +920,10 @@ cdef class P1List:
             sage: L.normalize(-9,1)
             (3, 13)
 
-        ::
+        This operation is an involution::
 
-            This operation is an involution::
-
-            sage: all([L.apply_S(L.apply_S(i))==i for i in xrange(len(L))])
+            sage: all(L.apply_S(L.apply_S(i)) == i for i in range(len(L)))
             True
-
         """
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
@@ -948,13 +953,10 @@ cdef class P1List:
             sage: L.normalize(9,-10)
             (3, 10)
 
-        ::
+        This operation has order three::
 
-            This operation has order three::
-
-            sage: all([L.apply_T(L.apply_T(L.apply_T(i)))==i for i in xrange(len(L))])
+            sage: all(L.apply_T(L.apply_T(L.apply_T(i))) == i for i in range(len(L)))
             True
-
         """
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
@@ -986,7 +988,7 @@ cdef class P1List:
             (1, 99)
             sage: L.index(1,99)
             100
-            sage: all([L.index(L[i][0],L[i][1])==i for i in range(len(L))])
+            sage: all(L.index(L[i][0],L[i][1])==i for i in range(len(L)))
             True
         """
         if self.__N == 1:
@@ -1073,25 +1075,25 @@ cdef class P1List:
             (1, 99)
             sage: L.index_of_normalized_pair(1,99)
             100
-            sage: all([L.index_of_normalized_pair(L[i][0],L[i][1])==i for i in range(len(L))])
+            sage: all(L.index_of_normalized_pair(L[i][0],L[i][1])==i for i in range(len(L)))
             True
         """
         t, i = search(self.__list, (u,v))
-        if t: return i
+        if t:
+            return i
         return -1
-
 
     def list(self):
         r"""
-        Returns the underlying list of this P1List object.
+        Return the underlying list of this :class:`P1List` object.
 
         EXAMPLES::
 
             sage: L = P1List(8)
             sage: type(L)
-            <type 'sage.modular.modsym.p1list.P1List'>
+            <... 'sage.modular.modsym.p1list.P1List'>
             sage: type(L.list())
-            <type 'list'>
+            <... 'list'>
         """
         return self.__list
 
@@ -1215,7 +1217,7 @@ def lift_to_sl2z_int(int c, int d, int N):
     cdef int z1, z2, g, m
 
     if c == 0 and d == 0:
-        raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
+        raise AttributeError("Element (%s, %s) not in P1." % (c,d))
     g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
     # We're lucky: z1*c + z2*d = 1.
@@ -1246,7 +1248,7 @@ def lift_to_sl2z_int(int c, int d, int N):
     g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
     if g != 1:
-        raise ValueError, "input must have gcd 1"
+        raise ValueError("input must have gcd 1")
 
     return [z2, -z1, c, d]
 
@@ -1282,7 +1284,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
     cdef llong z1, z2, g, m
 
     if c == 0 and d == 0:
-        raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
+        raise AttributeError("Element (%s, %s) not in P1." % (c,d))
     g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
     # We're lucky: z1*c + z2*d = 1.
@@ -1313,7 +1315,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
     g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
     if g != 1:
-        raise ValueError, "input must have gcd 1"
+        raise ValueError("input must have gcd 1")
 
     return [z2, -z1, c, d]
 
@@ -1355,7 +1357,7 @@ def lift_to_sl2z(c, d, N):
     elif N <= 2147483647:
         return lift_to_sl2z_llong(c,d,N)
     else:
-        raise NotImplementedError, "N too large"
+        raise NotImplementedError("N too large")
 
 
 def _make_p1list(n):
@@ -1368,7 +1370,10 @@ def _make_p1list(n):
 
         sage: from sage.modular.modsym.p1list import _make_p1list
         sage: _make_p1list(3)
+        doctest:...: DeprecationWarning: _make_p1list() is deprecated
+        See https://trac.sagemath.org/25848 for details.
         The projective line over the integers modulo 3
-
     """
+    from sage.misc.superseded import deprecation
+    deprecation(25848, '_make_p1list() is deprecated')
     return P1List(n)

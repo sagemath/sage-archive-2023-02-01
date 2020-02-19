@@ -7,10 +7,10 @@ AUTHORS:
 - John H. Palmieri (2009-08)
 
 This module implements the basic structure of finite
-`\Delta`-complexes.  For full mathematical details, see Hatcher [Hat]_,
+`\Delta`-complexes.  For full mathematical details, see Hatcher [Hat2002]_,
 especially Section 2.1 and the Appendix on "Simplicial CW Structures".
 As Hatcher points out, `\Delta`-complexes were first introduced by Eilenberg
-and Zilber [EZ]_, although they called them "semi-simplicial complexes".
+and Zilber [EZ1950]_, although they called them "semi-simplicial complexes".
 
 A `\Delta`-complex is a generalization of a :mod:`simplicial complex
 <sage.homology.simplicial_complex>`; a `\Delta`-complex `X` consists
@@ -21,7 +21,7 @@ functions `d_i` from `X_n` to `X_{n-1}`, with `d_i(s)` equal to the
 `i`-th face of `s` for each simplex `s \in X_n`.  These maps must
 satisfy the *simplicial identity*
 
-  .. math::
+  .. MATH::
 
     d_i d_j = d_{j-1} d_i \text{ for all } i<j.
 
@@ -47,18 +47,16 @@ vertex.
    inherits its methods.  Some of those methods are not listed here;
    see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
    page instead.
-
-REFERENCES:
-
-.. [Hat] Allen Hatcher, "Algebraic Topology", Cambridge University Press (2002).
-
-.. [EZ] S. Eilenberg and J. Zilber, "Semi-Simplicial Complexes and Singular
-        Homology", Ann. Math. (2) 51 (1950), 499-513.
 """
+from __future__ import absolute_import
+from six.moves import range
+from six import integer_types
 
 from copy import copy
-from sage.homology.cell_complex import GenericCellComplex, Chains
+from sage.homology.cell_complex import GenericCellComplex
+from sage.homology.chains import Chains, Cochains
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix
 from sage.homology.simplicial_complex import Simplex, lattice_paths, SimplicialComplex
@@ -66,6 +64,7 @@ from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.arith.all import binomial
 from sage.misc.cachefunc import cached_method
+
 
 class DeltaComplex(GenericCellComplex):
     r"""
@@ -242,7 +241,7 @@ class DeltaComplex(GenericCellComplex):
     Type ``delta_complexes.`` and then hit the TAB key to get the
     full list.
     """
-    def __init__(self, data=None, **kwds):
+    def __init__(self, data=None, check_validity=True):
         r"""
         Define a `\Delta`-complex.  See :class:`DeltaComplex` for more
         documentation.
@@ -288,9 +287,6 @@ class DeltaComplex(GenericCellComplex):
                 new_data[d].append(bdry_list)
             return bdry_list
 
-        # process kwds
-        check_validity = kwds.get('check_validity', True)
-        # done with kwds
         new_data = {-1: ((),)}  # add the empty cell
         if data is None:
             pass
@@ -301,7 +297,7 @@ class DeltaComplex(GenericCellComplex):
                     new_data[dim] = s
                     dim += 1
             elif isinstance(data, dict):
-                if all(isinstance(a, (Integer, int, long)) for a in data):
+                if all(isinstance(a, (Integer,) + integer_types) for a in data):
                     # a dictionary indexed by integers
                     new_data = data
                     if -1 not in new_data:
@@ -431,8 +427,7 @@ class DeltaComplex(GenericCellComplex):
         """
         if isinstance(data, (list, tuple)):
             data = dict(zip(range(len(data)), data))
-        else:
-            data = data
+
         # new_dict: dictionary for constructing the subcomplex
         new_dict = {}
         # new_data: dictionary of all cells in the subcomplex: store
@@ -480,12 +475,10 @@ class DeltaComplex(GenericCellComplex):
         r"""
         TESTS::
 
-            sage: hash(delta_complexes.Sphere(2))
-            -789842226           # 32-bit
-            -5090854238868998450 # 64-bit
-            sage: hash(delta_complexes.Sphere(4))
-            376965290           # 32-bit
-            8539734868592429226 # 64-bit
+            sage: hash(delta_complexes.Sphere(2)) == hash(delta_complexes.Sphere(2))
+            True
+            sage: hash(delta_complexes.Sphere(4)) == hash(delta_complexes.Sphere(4))
+            True
         """
         return hash(frozenset(self._cells_dict.items()))
 
@@ -578,7 +571,9 @@ class DeltaComplex(GenericCellComplex):
             cells[-1] = (None,)
         return cells
 
-    def chain_complex(self, **kwds):
+    def chain_complex(self, subcomplex=None, augmented=False,
+                      verbose=False, check=False, dimensions=None,
+                      base_ring=ZZ, cochain=False):
         r"""
         The chain complex associated to this `\Delta`-complex.
 
@@ -603,10 +598,10 @@ class DeltaComplex(GenericCellComplex):
         :param verbose: If True, print some messages as the chain
            complex is computed.
         :type verbose: boolean; optional, default False
-        :param check_diffs: If True, make sure that the chain complex
+        :param check: If True, make sure that the chain complex
            is actually a chain complex: the differentials are
            composable and their product is zero.
-        :type check_diffs: boolean; optional, default False
+        :type check: boolean; optional, default False
 
         .. note::
 
@@ -638,14 +633,6 @@ class DeltaComplex(GenericCellComplex):
             sage: T.homology(subcomplex=A)
             {0: 0, 1: 0, 2: Z}
         """
-        augmented = kwds.get('augmented', False)
-        cochain = kwds.get('cochain', False)
-        verbose = kwds.get('verbose', False)
-        check_diffs = kwds.get('check_diffs', False)
-        base_ring = kwds.get('base_ring', ZZ)
-        dimensions = kwds.get('dimensions', None)
-        subcomplex = kwds.get('subcomplex', None)
-
         if subcomplex is not None:
             # relative chain complex, so don't augment the chain complex
             augmented = False
@@ -695,9 +682,11 @@ class DeltaComplex(GenericCellComplex):
             cochain_diffs = {}
             for dim in differentials:
                 cochain_diffs[dim-1] = differentials[dim].transpose()
-            return ChainComplex(data=cochain_diffs, degree=1, **kwds)
+            return ChainComplex(data=cochain_diffs, degree=1,
+                                base_ring=base_ring, check=check)
         else:
-            return ChainComplex(data=differentials, degree=-1, **kwds)
+            return ChainComplex(data=differentials, degree=-1,
+                                base_ring=base_ring, check=check)
 
     def alexander_whitney(self, cell, dim_left):
         r"""
@@ -1016,7 +1005,9 @@ class DeltaComplex(GenericCellComplex):
                             # Simplex, as well as the function
                             # 'lattice_paths', in
                             # simplicial_complex.py.)
-                            for path in lattice_paths(range(k+1), range(n+1), length=d+1):
+                            for path in lattice_paths(list(range(k + 1)),
+                                                      list(range(n + 1)),
+                                                      length=d+1):
                                 path = tuple(path)
                                 new[(k, k_idx, n, n_idx, path)] = len(simplices)
                                 bdry_list = []
@@ -1236,7 +1227,7 @@ class DeltaComplex(GenericCellComplex):
 
         *Elementary subdivision* of a simplex means replacing that
         simplex with the cone on its boundary.  That is, given a
-        `\Delta`-complex containing an `d`-simplex `S` with vertices
+        `\Delta`-complex containing a `d`-simplex `S` with vertices
         `v_0`, ..., `v_d`, form a new `\Delta`-complex by
 
         - removing `S`
@@ -1269,13 +1260,8 @@ class DeltaComplex(GenericCellComplex):
         of a single top-dimensional simplex without subdividing every
         simplex in the complex.
 
-        The term "elementary subdivison" is taken from p. 112 in John
-        M. Lee's book [Lee]_.
-
-        REFERENCES:
-
-        .. [Lee] John M. Lee, Introduction to Topological Manifolds,
-           Springer-Verlag, GTM volume 202.
+        The term "elementary subdivision" is taken from p. 112 in John
+        M. Lee's book [Lee2011]_.
 
         EXAMPLES::
 
@@ -1312,7 +1298,11 @@ class DeltaComplex(GenericCellComplex):
             new_cells = {}
             # for each n-cell in the standard simplex, add an
             # (n+1)-cell to the subdivided complex.
-            for simplex in pi[n]:
+            try:
+                simplices = sorted(pi[n])
+            except TypeError:
+                simplices = pi[n]
+            for simplex in simplices:
                 # compute the faces of the new (n+1)-cell.
                 cell = []
                 for i in simplex:
@@ -1372,10 +1362,10 @@ class DeltaComplex(GenericCellComplex):
         to the same place::
 
             sage: T = delta_complexes.Torus()
-            sage: T._epi_from_standard_simplex()[1]
-            {(1, 0): 1, (2, 0): 2, (2, 1): 0}
-            sage: T._epi_from_standard_simplex()[0]
-            {(0,): 0, (1,): 0, (2,): 0}
+            sage: sorted(T._epi_from_standard_simplex()[1].items())
+            [((1, 0), 1), ((2, 0), 2), ((2, 1), 0)]
+            sage: sorted(T._epi_from_standard_simplex()[0].items())
+            [((0,), 0), ((1,), 0), ((2,), 0)]
         """
         if dim is None:
             dim = self.dimension()
@@ -1536,7 +1526,11 @@ class DeltaComplex(GenericCellComplex):
             sage: list(T.n_chains(1, QQ, cochains=True).basis())
             [\chi_(0, (0, 0)), \chi_(1, (0, 0)), \chi_(2, (0, 0))]
         """
-        return Chains(tuple(enumerate(self.n_cells(n))), base_ring, cochains)
+        n_cells = tuple(enumerate(self.n_cells(n)))
+        if cochains:
+            return Cochains(self, n, n_cells, base_ring)
+        else:
+            return Chains(self, n, n_cells, base_ring)
 
     # the second barycentric subdivision is a simplicial complex.  implement this somehow?
 #     def simplicial_complex(self):
@@ -1552,7 +1546,7 @@ class DeltaComplex(GenericCellComplex):
         coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         INPUT:
 
@@ -1599,7 +1593,7 @@ class DeltaComplex(GenericCellComplex):
              1: Vector space of dimension 2 over Rational Field,
              2: Vector space of dimension 1 over Rational Field}
         """
-        from algebraic_topological_model import algebraic_topological_model_delta_complex
+        from .algebraic_topological_model import algebraic_topological_model_delta_complex
         if base_ring is None:
             base_ring = QQ
         return algebraic_topological_model_delta_complex(self, base_ring)
@@ -1727,13 +1721,13 @@ class DeltaComplexExamples():
         return DeltaComplex({Simplex(n): True})
 
     def SurfaceOfGenus(self, g, orientable=True):
-        """
+        r"""
         A surface of genus g as a `\Delta`-complex.
 
         :param g: the genus
         :type g: non-negative integer
         :param orientable: whether the surface should be orientable
-        :type orientable: bool, optional, default True
+        :type orientable: bool, optional, default ``True``
 
         In the orientable case, return a sphere if `g` is zero, and
         otherwise return a `g`-fold connected sum of a torus with
@@ -1756,7 +1750,7 @@ class DeltaComplexExamples():
 
             sage: delta_g4 = delta_complexes.SurfaceOfGenus(4)
             sage: delta_g4.f_vector()
-            [1, 5, 33, 22]
+            [1, 3, 27, 18]
             sage: simpl_g4 = simplicial_complexes.SurfaceOfGenus(4)
             sage: simpl_g4.f_vector()
             [1, 19, 75, 50]

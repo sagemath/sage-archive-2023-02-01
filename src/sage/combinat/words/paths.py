@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Word paths
 
@@ -58,9 +58,6 @@ use ``help(p)``::
     ...
     Methods inherited from FiniteWordPath_all:
     ...
-    This only works on Python classes that derive from SageObject.
-    ...
-    See http://trac.sagemath.org/2536 for details.
 
 Since p is a finite word, many functions from the word library are available::
 
@@ -158,21 +155,21 @@ a callable or a finite iterator::
 
 REFERENCES:
 
-- [1] Freeman, H.: On the encoding of arbitrary geometric configurations.
+- [1] Freeman, H.: *On the encoding of arbitrary geometric configurations*.
   IRE Trans. Electronic Computer 10 (1961) 260-268.
-- [2] Freeman, H.: Boundary encoding and processing. In Lipkin, B., Rosenfeld,
+- [2] Freeman, H.: *Boundary encoding and processing*. In Lipkin, B., Rosenfeld,
   A., eds.: Picture Processing and Psychopictorics, Academic Press, New York
   (1970) 241-266.
-- [3] Braquelaire, J.P., Vialard, A.: Euclidean paths: A new representation of
-  boundary of discrete regions. Graphical Models and Image Processing 61 (1999)
+- [3] Braquelaire, J.P., Vialard, A.: *Euclidean paths: A new representation of
+  boundary of discrete regions*. Graphical Models and Image Processing 61 (1999)
   16-43.
-- [4] http://en.wikipedia.org/wiki/Regular_tiling
-- [5] http://en.wikipedia.org/wiki/Dyck_word
+- [4] :wikipedia:`Regular_tiling`
+- [5] :wikipedia:`Dyck_word`
 
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud bergeron <abergeron@gmail.coms>,
-#       Copyrigth (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
+#       Copyright (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -180,8 +177,10 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from itertools import izip
+from builtins import zip
+
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -191,12 +190,12 @@ from sage.combinat.words.alphabet import build_alphabet
 from sage.plot.all import arrow, line, polygon, point, Graphics
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, RR, QuadraticField
-from word_datatypes import (WordDatatype_str,
+from .word_datatypes import (WordDatatype_str,
                             WordDatatype_list,
                             WordDatatype_tuple)
                             #WordDatatype_cpp_basic_string)
 
-from word_infinite_datatypes import (
+from .word_infinite_datatypes import (
                             WordDatatype_iter_with_caching,
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
@@ -232,16 +231,16 @@ def WordPaths(alphabet, steps=None):
       - ``None``: In this case, the type of steps are guessed from the
         length of alphabet.
 
-      - 'square_grid' or 'square' : (default when size of alphabet is 4)
+      - 'square_grid' or 'square': (default when size of alphabet is 4)
         The order is : East, North, West, South.
 
       - 'triangle_grid' or 'triangle':
 
-      - 'hexagonal_grid' or 'hexagon' :(default when size of alphabet is 6)
+      - 'hexagonal_grid' or 'hexagon': (default when size of alphabet is 6)
 
-      - 'cube_grid' or 'cube' :
+      - 'cube_grid' or 'cube':
 
-      - 'north_east', 'ne' or 'NE' : (the default when size of alphabet is 2)
+      - 'north_east', 'ne' or 'NE': (the default when size of alphabet is 2)
 
       - 'dyck':
 
@@ -251,7 +250,7 @@ def WordPaths(alphabet, steps=None):
 
     EXAMPLES:
 
-    The steps can be given explicitely::
+    The steps can be given explicitly::
 
         sage: WordPaths('abc', steps=[(1,2), (-1,4), (0,-3)])
         Word Paths over 3 steps
@@ -489,7 +488,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
             sage: d = WordPaths('ab',steps=[(1,2),(3,4)])._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -601,11 +600,11 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             sage: WordPaths('abcd',steps='square_grid').vector_space()
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
             sage: WordPaths('abcdef',steps='hexagonal_grid').vector_space()
-            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
+            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
             sage: WordPaths('abcdef',steps='cube_grid').vector_space()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
             sage: WordPaths('abcdef',steps='triangle_grid').vector_space()
-            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
+            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
 
         """
         return self._vector_space
@@ -652,7 +651,7 @@ class WordPaths_square_grid(WordPaths_all):
 
             sage: d = WordPaths('abcd')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -733,7 +732,7 @@ class WordPaths_triangle_grid(WordPaths_all):
             sage: len(d)
             7
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_triangle_grid_tuple'>
         """
@@ -799,7 +798,7 @@ class WordPaths_hexagonal_grid(WordPaths_triangle_grid):
 
             sage: d = WordPaths('abcdef', steps='hexagon')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -867,7 +866,7 @@ class WordPaths_cube_grid(WordPaths_all):
 
             sage: d = WordPaths('abcdef', steps='cube')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -934,7 +933,7 @@ class WordPaths_dyck(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='dyck')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -1001,7 +1000,7 @@ class WordPaths_north_east(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='NE')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -1390,21 +1389,22 @@ class FiniteWordPath_all(SageObject):
             TypeError: The dimension of the vector space (=2) must be 3 or 4
         """
         dimension = self.parent().vector_space().dimension()
-        if not dimension in (3, 4):
-            msg = "The dimension of the vector space (=%s) must be 3 or 4"%dimension
+        if dimension not in (3, 4):
+            msg = "The dimension of the vector space (=%s) must be 3 or 4" % dimension
             raise TypeError(msg)
         if letters is None:
             letters = self.parent().alphabet()
         if color is None:
             from sage.plot.all import hue
             A = self.parent().alphabet()
-            color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
+            color = {a: hue(A.rank(a)/float(A.cardinality())) for a in A}
         it = self.projected_point_iterator(v, ring=ring)
         if kind == 'right':
-            start = next(it)
+            next(it)
         elif kind != 'left':
-            raise ValueError('unknown value for kind (=%s)'%kind)
-        tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
+            raise ValueError('unknown value for kind (=%s)' % kind)
+        tout = [point([c], color=color[a], size=size)
+                for a, c in zip(self, it) if a in letters]
         return sum(tout)
 
     def projected_path(self, v=None, ring=None):
@@ -1497,7 +1497,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
           the path is closed, the inside is colored
 
         - ``filloptions`` - (dict,
-          default:dict(rgbcolor='red',alpha=0.2)), ptions for the
+          default:dict(rgbcolor='red',alpha=0.2)), options for the
           inside filling
 
         - ``startpoint`` - (boolean, default: True), draw the start point?
@@ -1610,8 +1610,6 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             Animation with 9 frames
             sage: show(a)               # optional -- ImageMagick
             sage: a.gif(delay=35, iterations=3)    # optional -- ImageMagick
-            doctest:...: DeprecationWarning: use tmp_filename instead
-            See http://trac.sagemath.org/17234 for details.
 
         ::
 
@@ -2030,7 +2028,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             sage: [words.dual_fibonacci_tile(i).area() for i in range(6)]
             [1, 5, 29, 169, 985, 5741]
             sage: oeis(_)[0]                            # optional -- internet
-            A001653: Numbers n such that 2*n^2 - 1 is a square.
+            A001653: Numbers k such that 2*k^2 - 1 is a square.
             sage: _.first_terms()                       # optional -- internet
             (1,
              5,
@@ -2069,12 +2067,15 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             raise TypeError("the path must be closed to compute its area")
         return abs(self._area_vh())
 
-    def _area_vh(path, x=0, y=0):
+    def _area_vh(self, x=0, y=0):
         r"""
-        Returns the area of path, with starting point (x,y) using VH algorithm.
+        Return the area of ``self``, with starting point (x,y).
+
+        This is using VH algorithm.
 
         INPUT:
-            x, y -- starting point
+
+        - x, y -- starting point (optional, default (0, 0))
 
         EXAMPLES::
 
@@ -2087,12 +2088,13 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             -3
 
         REFERENCES:
+
         Annie Lacasse Memoire.
         """
         area = 0
-        a,b,A,B = path.parent().alphabet()
+        a, b, A, B = self.parent().alphabet()
 
-        for move in path:
+        for move in self:
             if move == b:
                 area -= x
                 y += 1
@@ -2141,8 +2143,8 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
 
         REFERENCES:
 
-        - Provençal, X., Combinatoires des mots, geometrie discrete et
-          pavages, These de doctorat en Mathematiques, Montreal, UQAM,
+        - Provençal, X., *Combinatoires des mots, géometrie discrète et
+          pavages*, Thèse de doctorat en Mathématiques, Montréal, UQAM,
           septembre 2008, 115 pages.
         """
         return super(FiniteWordPath_square_grid,self).is_simple()
@@ -2232,6 +2234,7 @@ class FiniteWordPath_triangle_grid(FiniteWordPath_2d):
             8.66025403784439
         """
         return max(RR(y) for (_,y) in self.points())
+
 
 #TODO: faire une verification du mot pour etre sur hexagonal grid
 class FiniteWordPath_hexagonal_grid(FiniteWordPath_triangle_grid):

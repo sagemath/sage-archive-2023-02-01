@@ -1,4 +1,4 @@
-"""
+r"""
 Polynomial Sequences
 
 We call a finite list of polynomials a ``Polynomial Sequence``.
@@ -8,7 +8,7 @@ various parts or sub-sequences. These kind of polynomial sequences
 which naturally split into parts arise naturally for example in
 algebraic cryptanalysis of symmetric cryptographic primitives. The
 most prominent examples of these systems are: the small scale variants
-of the AES [CMR05]_ (cf. :func:`sage.crypto.mq.sr.SR`) and Flurry/Curry [BPW06]_. By
+of the AES [CMR2005]_ (cf. :func:`sage.crypto.mq.sr.SR`) and Flurry/Curry [BPW2006]_. By
 default, a polynomial sequence has exactly one part.
 
 AUTHORS:
@@ -131,7 +131,7 @@ easily::
     sage: A[4055]*v
     (k001*k003)
 
-TEST::
+TESTS::
 
     sage: P.<x,y> = PolynomialRing(QQ)
     sage: I = [[x^2 + y^2], [x^2 - y^2]]
@@ -145,31 +145,24 @@ TEST::
    would be called ``Ideal`` but an ideal is a very distinct object
    from its generators and thus this is not an ideal in Sage.
 
-.. [BPW06] J. Buchmann, A. Pychkine, R.-P. Weinmann
-   *Block Ciphers Sensitive to Groebner Basis Attacks*
-   in Topics in Cryptology -- CT RSA'06; LNCS 3860; pp. 313--331; Springer Verlag 2006;
-   pre-print available at http://eprint.iacr.org/2005/200
-
 Classes
 -------
 """
+from __future__ import print_function
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 
-from types import GeneratorType
 from sage.misc.converting_dict import KeyConvertingDict
-from sage.misc.package import is_package_installed
 
-from sage.structure.sequence import Sequence, Sequence_generic
+from sage.structure.sequence import Sequence_generic
 
 from sage.rings.infinity import Infinity
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing
-from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
-from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.interfaces.singular import singular_gb_standard_options
@@ -184,7 +177,7 @@ def is_PolynomialSequence(F):
 
     - ``F`` - anything
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y> = PolynomialRing(QQ)
         sage: I = [[x^2 + y^2], [x^2 - y^2]]
@@ -265,8 +258,8 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     TESTS:
 
-    A PolynomialSequence can exist with elements in a infinite field of
-    characteristic 2 that is not (see :trac:`19452`)::
+    A PolynomialSequence can exist with elements in an infinite field of
+    characteristic 2 (see :trac:`19452`)::
 
         sage: from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         sage: F = GF(2)
@@ -274,13 +267,21 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         sage: R.<x,y> = PolynomialRing(L,'x,y')
         sage: PolynomialSequence([0], R)
         [0]
-    """
 
-    from sage.matrix.matrix import is_Matrix
-    from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
+    A PolynomialSequence can be created from an iterator (see :trac:`25989`)::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: PolynomialSequence(iter(R.gens()))
+        [x, y, z]
+        sage: PolynomialSequence(iter(R.gens()), R)
+        [x, y, z]
+        sage: PolynomialSequence(iter([(x,y), (z,)]), R)
+        [x, y, z]
+    """
+    from sage.structure.element import is_Matrix
+    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
 
     is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))
-    is_poly = lambda f: is_MPolynomial(f) or isinstance(f, QuotientRingElement) or isinstance(f, BooleanMonomial)
 
     if is_ring(arg1):
         ring, gens = arg1, arg2
@@ -325,15 +326,22 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
                 raise TypeError("Cannot determine ring.")
 
     try:
-        e = next(iter(gens))
+        gens = iter(gens)
+        e = next(gens)
         # fast path for known collection types
         if isinstance(e, (tuple, list, Sequence_generic, PolynomialSequence_generic)):
-            parts = tuple(tuple(ring(f) for f in part) for part in gens)
+            nested = True
         else:
+            nested = False
             try:
-                parts = tuple(map(ring, gens)),
+                e2 = ring(e)
             except TypeError:
-                parts = tuple(tuple(ring(f) for f in part) for part in gens)
+                nested = True
+        from itertools import chain
+        if nested:
+            parts = tuple(tuple(ring(f) for f in part) for part in chain([e], gens))
+        else:
+            parts = tuple(chain([e2], map(ring, gens))),
     except StopIteration:
         parts = ((),)
 
@@ -396,7 +404,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return a copy of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -411,11 +419,11 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return the polynomial ring all elements live in.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: print F.ring().repr_long()
+            sage: print(F.ring().repr_long())
             Polynomial Ring
              Base Ring : Finite Field of size 2
                   Size : 20 Variables
@@ -432,7 +440,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return number of parts of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -445,7 +453,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return a tuple of parts of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -459,7 +467,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return ``i``-th part of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -473,7 +481,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return ideal spanned by the elements of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -505,13 +513,26 @@ class PolynomialSequence_generic(Sequence_generic):
         - ``kwargs`` - dictionary of arguments passed to
           ``MPolynomialIdeal.groebner_basis`` call
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
             sage: gb = F.groebner_basis()
             sage: Ideal(gb).basis_is_groebner()
             True
+
+        TESTS:
+
+        Check that this method also works for boolean polynomials
+        (:trac:`10680`)::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: F0 = Sequence(map(lambda f: f.lm(),[a,b,c,d]))
+            sage: F0.groebner_basis()
+            [a, b, c, d]
+            sage: F1 = Sequence([a,b,c*d,d^2])
+            sage: F1.groebner_basis()
+            [a, b, d]
         """
         return self.ideal().groebner_basis(*args, **kwargs)
 
@@ -519,7 +540,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return an unordered tuple of monomials in this polynomial system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -536,7 +557,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return the number of monomials present in this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -550,7 +571,7 @@ class PolynomialSequence_generic(Sequence_generic):
         Return all variables present in this system. This tuple may or
         may not be equal to the generators of the ring of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -567,7 +588,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return number of variables present in this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -647,7 +668,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         J = RR.ideal([ Ts[j] - RR(self[j]) for j in range(r)])
         JJ = J.elimination_ideal(Xs)
-        # By the elimination theorem, JJ is the kernel of the ring homorphism
+        # By the elimination theorem, JJ is the kernel of the ring morphism
         # `phi:K[\bar T] \to K[\bar X]` that fixes `K` and sends each
         # `T_i` to `f_i`.
         # So JJ is the ideal of annihilating polynomials of `f_1,\ldots,f_r`,
@@ -675,7 +696,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         - ``sparse`` - construct a sparse matrix (default: ``True``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
             sage: I = sage.rings.ideal.Katsura(P)
@@ -747,7 +768,7 @@ class PolynomialSequence_generic(Sequence_generic):
         -  ``args`` - arguments to be passed to ``MPolynomial.subs``
         -  ``kwargs`` - keyword arguments to be passed to ``MPolynomial.subs``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system(); F
@@ -761,7 +782,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return Singular ideal representation of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = PolynomialRing(GF(127))
             sage: I = sage.rings.ideal.Katsura(P)
@@ -783,7 +804,7 @@ class PolynomialSequence_generic(Sequence_generic):
         Return Magma ideal representation of the ideal spanned by this
         system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
@@ -805,7 +826,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return a string representation of this system.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = PolynomialRing(GF(127))
             sage: I = sage.rings.ideal.Katsura(P)
@@ -833,7 +854,7 @@ class PolynomialSequence_generic(Sequence_generic):
         Add polynomial systems together, i.e. create a union of their
         polynomials.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = PolynomialRing(GF(127))
             sage: I = sage.rings.ideal.Katsura(P)
@@ -877,7 +898,7 @@ class PolynomialSequence_generic(Sequence_generic):
         vertices and edges between two variables if they appear in the
         same polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: F = Sequence([x*y + y + 1, z + 1])
@@ -900,7 +921,7 @@ class PolynomialSequence_generic(Sequence_generic):
         Split the polynomial system in systems which do not share any
         variables.
 
-        EXAMPLE:
+        EXAMPLES:
 
         As an example consider one part of AES, which naturally
         splits into four subsystems which are independent::
@@ -917,7 +938,7 @@ class PolynomialSequence_generic(Sequence_generic):
         g = self.connection_graph()
         C = sorted(g.connected_components())
 
-        P = [[] for _ in xrange(len(C))]
+        P = [[] for _ in range(len(C))]
         for f in self:
             for i,c in enumerate(C):
                 if len(set(f.variables()).difference(c)) == 0:
@@ -933,7 +954,7 @@ class PolynomialSequence_generic(Sequence_generic):
         This object allows to compute normal forms efficiently, since
         all conversion overhead is avoided.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(GF(127))
             sage: F = Sequence([x*y + z, y + z + 1])
@@ -948,7 +969,7 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         Return the maximal degree of any polynomial in this sequence.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(GF(7))
             sage: F = Sequence([x*y + x, x])
@@ -973,8 +994,16 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F = Sequence([x*y + z, y + z + 1])
             sage: loads(dumps(F)) == F # indirect doctest
             True
+
+        We check that :trac:`26354` is fixed::
+
+            sage: f = P.hom([y,z,x])
+            sage: hash(f) == hash(loads(dumps(f)))
+            True
+
         """
-        return PolynomialSequence, (self._ring, self._parts)
+        return PolynomialSequence, (self._ring, self._parts, self._is_immutable, 
+                                    self._Sequence_generic__cr, self._Sequence_generic__cr_str)
 
     @singular_gb_standard_options
     @libsingular_gb_standard_options
@@ -992,7 +1021,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         - `LC(g_i) == 1` for all `i` if the coefficient ring is a field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z> = PolynomialRing(QQ)
             sage: F = Sequence([z*x+y^3,z+y^3,z+x*y])
@@ -1033,8 +1062,19 @@ class PolynomialSequence_generic(Sequence_generic):
         ALGORITHM:
 
         Uses Singular's interred command or
-        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
+        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
+
+        TESTS:
+
+        Check that :trac:`26952` is fixed::
+
+            sage: Qp = pAdicField(2)
+            sage: R.<x,y,z> = PolynomialRing(Qp, implementation="generic")
+            sage: F = Sequence([z*x+y^3,z+y^3,3*z+x*y])
+            sage: F.reduced()
+            [y^3 + z, x*y + (1 + 2 + O(2^20))*z, x*z - z]
+
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
@@ -1054,7 +1094,8 @@ class PolynomialSequence_generic(Sequence_generic):
                     ret.append(f.lc()**(-1)*f) # lead coeffs are not reduced by interred
                 s.option("set",o)
             except TypeError:
-                ret = toy_buchberger.inter_reduction(self.gens())
+                from sage.rings.polynomial.toy_buchberger import inter_reduction
+                ret = inter_reduction(self)
 
         ret = sorted(ret, reverse=True)
         ret = PolynomialSequence(R, ret, immutable=True)
@@ -1065,7 +1106,7 @@ class PolynomialSequence_generic(Sequence_generic):
     def is_groebner(self, singular=singular):
         r"""
         Returns ``True`` if the generators of this ideal (``self.gens()``)
-        form a Grbner basis.
+        form a Groebner basis.
 
         Let `I` be the set of generators of this ideal. The check is
         performed by trying to lift `Syz(LM(I))` to `Syz(I)` as `I`
@@ -1074,7 +1115,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
             `S * G = \sum_{i=0}^{m} h_ig_i ---->_G 0.`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
             sage: I = sage.rings.ideal.Cyclic(R,4)
@@ -1088,8 +1129,8 @@ class PolynomialSequence_generic(Sequence_generic):
         return self.ideal().basis_is_groebner()
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
-    """
-    Polynomial Sequences over `\mathbb{F}_2`.
+    r"""
+    Polynomial Sequences over `\GF{2}`.
     """
     def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
         """
@@ -1138,7 +1179,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         When ``return_reductors==False``, only the first sequence is
         returned.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: F = Sequence([c + d + b + 1, a + c + d, a*b + c, b*c*d + c])
@@ -1206,16 +1247,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         .. NOTE::
 
-            This is called "massaging" in [CBJ07]_.
-
-        REFERENCES:
-
-        .. [CBJ07] Gregory V. Bard, and Nicolas T. Courtois, and Chris Jefferson.
-           *Efficient Methods for Conversion and Solution of Sparse Systems of Low-Degree
-           Multivariate Polynomials over GF(2) via SAT-Solvers*.
-           Cryptology ePrint Archive: Report 2007/024. available at
-           http://eprint.iacr.org/2007/024
-
+            This is called "massaging" in [BCJ2007]_.
         """
         from sage.rings.polynomial.pbori import BooleanPolynomialRing
         from brial import gauss_on_polys
@@ -1288,7 +1320,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         This object allows to compute normal forms efficiently, since
         all conversion overhead is avoided.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(GF(2))
             sage: F = Sequence([x*y + z, y + z + 1])
@@ -1369,7 +1401,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: sols = S.solve(n=Infinity)
             sage: print(reproducible_repr(sols))
             [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0]]
 
         We can force the use of exhaustive search if the optional
@@ -1396,13 +1428,13 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: R.<x,y,z,t> = BooleanPolynomialRing()
             sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
             sage: sols = S.solve(n=Infinity)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         Not eliminating linear variables::
 
             sage: sols = S.solve(n=Infinity, eliminate_linear_variables=False)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         A tricky case where the linear equations are insatisfiable::
@@ -1428,9 +1460,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         if S != []:
             if algorithm == "exhaustive_search":
-                if not is_package_installed('fes'):
-                    from sage.misc.package import PackageNotFoundError
-                    raise PackageNotFoundError("fes")
+                from sage.features.fes import LibFES
+                LibFES().require()
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
 
@@ -1491,7 +1522,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         - `LT(g_i)` does not divide `m` for all monomials `m` of
           `{g_1,...,g_{i-1},g_{i+1},...,g_s}`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: F,s = sr.polynomial_system()
@@ -1511,21 +1542,22 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         else:
             return PolynomialSequence_generic.reduced(self)
 
+
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
-    """
-    PolynomialSequence over `\mathbb{F}_{2^e}`, i.e extensions over
-    GF(2).
+    r"""
+    PolynomialSequence over `\GF{2^e}`, i.e extensions over
+    `\GF(2)`.
     """
 
     def weil_restriction(self):
-        """
-        Project this polynomial system to `\mathbb{F}_2`.
+        r"""
+        Project this polynomial system to `\GF{2}`.
 
         That is, compute the Weil restriction of scalars for the
         variety corresponding to this polynomial system and express it
-        as a polynomial system over `\mathbb{F}_2`.
+        as a polynomial system over `\GF{2}`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(2^2)
             sage: P.<x,y> = PolynomialRing(k,2)
@@ -1549,6 +1581,6 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
         J += FieldIdeal(J.ring())
         return PolynomialSequence(J)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)

@@ -1,5 +1,5 @@
 """
-Routines for Conway and pseudo-Conway polynomials.
+Routines for Conway and pseudo-Conway polynomials
 
 AUTHORS:
 
@@ -9,6 +9,10 @@ AUTHORS:
 
 - Peter Bruin
 """
+from __future__ import absolute_import
+import six
+from six.moves import range
+
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
@@ -191,17 +195,10 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
 
         ALGORITHM:
 
-        Uses an algorithm described in [HL99]_, modified to find
+        Uses an algorithm described in [HL1999]_, modified to find
         pseudo-Conway polynomials rather than Conway polynomials.  The
         major difference is that we stop as soon as we find a
         primitive polynomial.
-
-        REFERENCE:
-
-        .. [HL99] L. Heath and N. Loehr (1999).  New algorithms for
-           generating Conway polynomials over finite fields.
-           Proceedings of the tenth annual ACM-SIAM symposium on
-           discrete algorithms, pp. 429-437.
 
         EXAMPLES::
 
@@ -241,7 +238,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
         # Construct a compatible element having order the lcm of orders
         q, x = xi.popitem()
         v = p**(n//q) - 1
-        for q, xitem in xi.iteritems():
+        for q, xitem in six.iteritems(xi):
             w = p**(n//q) - 1
             g, alpha, beta = v.xgcd(w)
             x = x**beta * xitem**alpha
@@ -276,8 +273,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
             sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
             sage: PCL = PseudoConwayLattice(2, use_database=False)
             sage: PCL.check_consistency(6)
-            sage: PCL.check_consistency(60)  # long
-
+            sage: PCL.check_consistency(60)  # long time
         """
         p = self.p
         K = FiniteField(p**n, modulus = self.polynomial(n), names='a')
@@ -316,8 +312,8 @@ def _find_pow_of_frobenius(p, n, x, y):
         11
 
     """
-    from integer_mod import mod
-    for i in xrange(n):
+    from .integer_mod import mod
+    for i in range(n):
         if x == y: break
         y = y**p
     else:
@@ -410,10 +406,10 @@ def _frobenius_shift(K, generators, check_only=False):
     p = K.characteristic()
     n = K.degree()
     compatible = {}
-    from integer_mod import mod
+    from .integer_mod import mod
     for m in n.divisors():
         compatible[m] = {}
-    for q, x in generators.iteritems():
+    for q, x in six.iteritems(generators):
         for m in (n//q).divisors():
             compatible[m][q] = x**((p**(n//q)-1)//(p**m-1))
     if check_only:
@@ -422,7 +418,7 @@ def _frobenius_shift(K, generators, check_only=False):
                 q, x = compatible[m].popitem()
             except KeyError:
                 break
-            for qq, xx in compatible[m].iteritems():
+            for qq, xx in six.iteritems(compatible[m]):
                 assert x == xx
         return
     crt = {}
@@ -436,14 +432,13 @@ def _frobenius_shift(K, generators, check_only=False):
             j = qlist.index(mqlist[k])
             i = qlist.index(mqlist[k-1])
             crt[(i,j)].append(_find_pow_of_frobenius(p, m, compatible[m][qlist[j]], compatible[m][qlist[i]]))
-    from integer_mod import mod
-    pairs = crt.keys()
-    for i, j in pairs:
+    for i, j in list(crt):
         L = crt[(i,j)]
-        running = mod(0,1)
+        running = mod(0, 1)
         for a in L:
             running = _crt_non_coprime(running, a)
-        crt[(i,j)] = [(mod(running, q**(running.modulus().valuation(q))), running.modulus().valuation(q)) for q in qlist]
+        crt[(i,j)] = [(mod(running, qq**(running.modulus().valuation(qq))),
+                       running.modulus().valuation(qq)) for qq in qlist]
         crt[(j,i)] = [(-a, level) for a, level in crt[(i,j)]]
     # Let x_j be the power of Frobenius we apply to generators[qlist[j]], for 0 < j < len(qlist)
     # We have some direct conditions on the x_j: x_j reduces to each entry in crt[(0,j)].
@@ -455,7 +450,8 @@ def _frobenius_shift(K, generators, check_only=False):
     # We can set x_0=0 everywhere, can get an initial setting of x_j from the c_0j.
     # We go through prime by prime.
     import bisect
-    frob_powers=[mod(0,1) for q in qlist]
+    frob_powers = [mod(0, 1) for _ in qlist]
+
     def find_leveller(qindex, level, x, xleveled, searched, i):
         searched[i] = True
         crt_possibles = []
@@ -472,6 +468,7 @@ def _frobenius_shift(K, generators, check_only=False):
                 path.append(j)
                 return path
         return None
+
     def propagate_levelling(qindex, level, x, xleveled, i):
         for j in range(1, len(qlist)):
             if i==j: continue

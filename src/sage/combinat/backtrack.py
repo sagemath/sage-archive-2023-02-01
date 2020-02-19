@@ -23,32 +23,28 @@ Deprecation details:
 
 - ``SearchForest(seeds, succ)`` keeps the same behavior as before
   :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
-  succ, structure='forest', enumeration='depth')``. 
+  succ, structure='forest', enumeration='depth')``.
 
 - ``TransitiveIdeal(succ, seeds)`` keeps the same behavior as before
   :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
-  succ, structure=None, enumeration='naive')``. 
+  succ, structure=None, enumeration='naive')``.
 
 - ``TransitiveIdealGraded(succ, seeds, max_depth)`` keeps the same behavior
   as before :trac:`6637` and is now the same as
   ``RecursivelyEnumeratedSet(seeds, succ, structure=None,
-  enumeration='breadth', max_depth=max_depth)``. 
+  enumeration='breadth', max_depth=max_depth)``.
 
-TODO:
+.. todo::
 
-- For now the code of ``SearchForest`` is still in
-  ``sage/combinat/backtrack.py``.  It should be moved in
-  ``sage/sets/recursively_enumerated_set.pyx`` into a class named
-  ``RecursivelyEnumeratedSet_forest`` in a later ticket. 
+    - For now the code of :class:`SearchForest` is still in
+      ``sage/combinat/backtrack.py``.  It should be moved in
+      ``sage/sets/recursively_enumerated_set.pyx`` into a class named
+      :class:`RecursivelyEnumeratedSet_forest` in a later ticket.
 
-- ``TransitiveIdeal`` and ``TransitiveIdealGraded`` are used in the code of
-  ``categories/finitely_generated_semigroups.py`` (at least).
-  These should be updated to use ``RecursivelyEnumeratedSet`` in a later
-  ticket for speed improvements and ``TransitiveIdeal`` and
-  ``TransitiveIdealGraded`` may be deprecated.
+    - Deprecate ``TransitiveIdeal`` and ``TransitiveIdealGraded``.
 
-- Once the deprecation has been there for enough time: delete
-  ``TransitiveIdeal`` and ``TransitiveIdealGraded``.
+    - Once the deprecation has been there for enough time: delete
+      ``TransitiveIdeal`` and ``TransitiveIdealGraded``.
 
 """
 #*****************************************************************************
@@ -74,11 +70,33 @@ from sage.structure.parent import Parent
 from sage.misc.prandom import randint
 from sage.misc.abstract_method import abstract_method
 from sage.categories.commutative_additive_semigroups import (
-CommutativeAdditiveSemigroups)
+        CommutativeAdditiveSemigroups)
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
-from sage.misc.sage_itertools import imap_and_filter_none
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_generic
+
+
+def _imap_and_filter_none(function, iterable):
+    r"""
+    Return an iterator over the elements ``function(x)``, where ``x``
+    iterates through ``iterable``, such that ``function(x)`` is not
+    ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.backtrack import _imap_and_filter_none
+        sage: p = _imap_and_filter_none(lambda x: x if is_prime(x) else None, range(15))
+        sage: [next(p), next(p), next(p), next(p), next(p), next(p)]
+        [2, 3, 5, 7, 11, 13]
+        sage: p = _imap_and_filter_none(lambda x: x+x, ['a','b','c','d','e'])
+        sage: [next(p), next(p), next(p), next(p), next(p)]
+        ['aa', 'bb', 'cc', 'dd', 'ee']
+    """
+    for x in iterable:
+        x = function(x)
+        if x is not None:
+            yield x
+
 
 class GenericBacktracker(object):
     r"""
@@ -196,7 +214,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     # Little trick: the same implementation handles both depth and
     # breadth first search. Setting position to -1 makes a depth search
     # (you ask the children for the last node you met). Setting
-    # position on 0 makes a breadth search (enumarate all the
+    # position on 0 makes a breadth search (enumerate all the
     # descendants of a node before going on to the next father)
     if algorithm == 'depth':
         position = -1
@@ -210,7 +228,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     #    of the node at depth ``i-1`` in the current branch (assuming a virtual
     #    father of all roots at depth ``-1``)
     stack = [iter(roots)]
-    while len(stack) > 0:
+    while stack:
         try:
             node = next(stack[position])
         except StopIteration:
@@ -395,8 +413,8 @@ class SearchForest(Parent):
             sage: S = SearchForest( [1], children, category=InfiniteEnumeratedSets())
             sage: dumps(S)
             Traceback (most recent call last):
-            ....:
-            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+            ...
+            PicklingError: Can't pickle <...function...>: attribute lookup ... failed
 
         Let us now fake ``children`` being defined in a Python module::
 
@@ -424,6 +442,8 @@ class SearchForest(Parent):
             self.post_process = post_process
         self._algorithm = algorithm
         Parent.__init__(self, facade = facade, category = EnumeratedSets().or_subcategory(category))
+
+    __len__ = None
 
     def _repr_(self):
         r"""
@@ -498,7 +518,7 @@ class SearchForest(Parent):
                                       self.children,
                                       algorithm = self._algorithm)
         if hasattr(self, "post_process"):
-            iter = imap_and_filter_none(self.post_process, iter)
+            iter = _imap_and_filter_none(self.post_process, iter)
         return iter
 
     def depth_first_search_iterator(self):
@@ -535,7 +555,7 @@ class SearchForest(Parent):
         """
         iter = search_forest_iterator(self.roots(), self.children, algorithm='breadth')
         if hasattr(self, "post_process"):
-            iter = imap_and_filter_none(self.post_process, iter)
+            iter = _imap_and_filter_none(self.post_process, iter)
         return iter
 
     def _elements_of_depth_iterator_rec(self, depth=0):
@@ -595,7 +615,7 @@ class SearchForest(Parent):
         """
         iter = self._elements_of_depth_iterator_rec(depth)
         if hasattr(self, "post_process"):
-            iter = imap_and_filter_none(self.post_process, iter)
+            iter = _imap_and_filter_none(self.post_process, iter)
         return iter
 
     def __contains__(self, elt):
@@ -676,7 +696,7 @@ class SearchForest(Parent):
             True
         """
         stack = [iter(self.roots())]
-        while len(stack) > 0:
+        while stack:
             position = randint(0,len(stack)-1)
             try:
                 node = next(stack[position])
@@ -688,6 +708,61 @@ class SearchForest(Parent):
                 return True
             stack.append( iter(self.children(node)) )
         return False
+
+    def map_reduce(self, map_function = None,
+                   reduce_function = None,
+                   reduce_init = None):
+        r"""
+        Apply a Map/Reduce algorithm on ``self``
+
+        INPUT:
+
+        - ``map_function`` -- a function from the element of ``self`` to some
+          set with a reduce operation (e.g.: a monoid). The default value is
+          the constant function ``1``.
+
+        - ``reduce_function`` -- the reduce function (e.g.: the addition of a
+          monoid). The default value is ``+``.
+
+        - ``reduce_init`` -- the initialisation of the reduction (e.g.: the
+          neutral element of the monoid). The default value is ``0``.
+
+        .. note::
+
+            the effect of the default values is to compute the cardinality
+            of ``self``.
+
+        EXAMPLES::
+
+            sage: seeds = [([i],i, i) for i in range(1,10)]
+            sage: def succ(t):
+            ....:     list, sum, last = t
+            ....:     return [(list + [i], sum + i, i) for i in range(1, last)]
+            sage: F = RecursivelyEnumeratedSet(seeds, succ,
+            ....:                       structure='forest', enumeration='depth')
+
+            sage: y = var('y')
+            sage: def map_function(t):
+            ....:     li, sum, _ = t
+            ....:     return y ^ sum
+            sage: reduce_function = lambda x,y: x + y
+            sage: F.map_reduce(map_function, reduce_function, 0)
+            y^45 + y^44 + y^43 + 2*y^42 + 2*y^41 + 3*y^40 + 4*y^39 + 5*y^38 + 6*y^37 + 8*y^36 + 9*y^35 + 10*y^34 + 12*y^33 + 13*y^32 + 15*y^31 + 17*y^30 + 18*y^29 + 19*y^28 + 21*y^27 + 21*y^26 + 22*y^25 + 23*y^24 + 23*y^23 + 23*y^22 + 23*y^21 + 22*y^20 + 21*y^19 + 21*y^18 + 19*y^17 + 18*y^16 + 17*y^15 + 15*y^14 + 13*y^13 + 12*y^12 + 10*y^11 + 9*y^10 + 8*y^9 + 6*y^8 + 5*y^7 + 4*y^6 + 3*y^5 + 2*y^4 + 2*y^3 + y^2 + y
+
+        Here is an example with the default values::
+
+            sage: F.map_reduce()
+            511
+
+        .. SEEALSO:: :mod:`sage.parallel.map_reduce`
+        """
+        import sage.parallel.map_reduce
+        return sage.parallel.map_reduce.RESetMapReduce(
+            forest = self,
+            map_function = map_function,
+            reduce_function = reduce_function,
+            reduce_init = reduce_init).run()
+
 
 class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
     r"""
@@ -809,10 +884,10 @@ class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
         [0, 2, 1]
         sage: [i for i in TransitiveIdeal(lambda i: [mod(i+2,10)], [0])]
         [0, 2, 4, 6, 8]
-        sage: [i for i in TransitiveIdeal(lambda i: [mod(i+3,10),mod(i+5,10)], [0])]
-        [0, 3, 8, 1, 4, 5, 6, 7, 9, 2]
-        sage: [i for i in TransitiveIdeal(lambda i: [mod(i+4,10),mod(i+6,10)], [0])]
-        [0, 4, 8, 2, 6]
+        sage: sorted(i for i in TransitiveIdeal(lambda i: [mod(i+3,10),mod(i+5,10)], [0]))
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        sage: sorted(i for i in TransitiveIdeal(lambda i: [mod(i+4,10),mod(i+6,10)], [0]))
+        [0, 2, 4, 6, 8]
         sage: [i for i in TransitiveIdeal(lambda i: [mod(i+3,9)], [0,1])]
         [0, 1, 3, 4, 6, 7]
 
@@ -829,17 +904,18 @@ class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
 
     We compute all the permutations of 3::
 
-        sage: [p for p in TransitiveIdeal(attrcall("permutohedron_succ"), [Permutation([1,2,3])])]
-        [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+        sage: sorted(p for p in TransitiveIdeal(attrcall("permutohedron_succ"), [Permutation([1,2,3])]))
+        [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
 
     We compute all the permutations which are larger than [3,1,2,4],
     [2,1,3,4] in the right permutohedron::
 
-        sage: [p for p in TransitiveIdeal(attrcall("permutohedron_succ"), [Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
-        [[2, 1, 3, 4], [3, 1, 2, 4], [2, 1, 4, 3], [3, 1, 4, 2],
-         [2, 3, 1, 4], [3, 4, 1, 2], [3, 4, 2, 1], [2, 3, 4, 1],
-         [2, 4, 1, 3], [3, 2, 1, 4], [4, 3, 1, 2], [4, 3, 2, 1],
-         [3, 2, 4, 1], [4, 2, 1, 3], [2, 4, 3, 1], [4, 2, 3, 1]]
+        sage: sorted(p for p in TransitiveIdeal(attrcall("permutohedron_succ"),
+        ....:     [Permutation([3,1,2,4]), Permutation([2,1,3,4])]))
+        [[2, 1, 3, 4], [2, 1, 4, 3], [2, 3, 1, 4], [2, 3, 4, 1],
+         [2, 4, 1, 3], [2, 4, 3, 1], [3, 1, 2, 4], [3, 1, 4, 2],
+         [3, 2, 1, 4], [3, 2, 4, 1], [3, 4, 1, 2], [3, 4, 2, 1],
+         [4, 2, 1, 3], [4, 2, 3, 1], [4, 3, 1, 2], [4, 3, 2, 1]]
 
     Using TransitiveIdeal people have been using the ``__contains__``
     method provided from the ``__iter__`` method. We need to make sure that
@@ -948,11 +1024,12 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet_generic):
     We compute all the permutations which are larger than [3,1,2,4] or
     [2,1,3,4] in the permutohedron::
 
-        sage: [p for p in TransitiveIdealGraded(attrcall("permutohedron_succ"), [Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
-        [[3, 1, 2, 4], [2, 1, 3, 4], [2, 3, 1, 4], [2, 1, 4, 3],
-         [3, 2, 1, 4], [3, 1, 4, 2], [3, 2, 4, 1], [2, 4, 1, 3],
-         [3, 4, 1, 2], [2, 3, 4, 1], [4, 3, 1, 2], [3, 4, 2, 1],
-         [4, 2, 1, 3], [2, 4, 3, 1], [4, 3, 2, 1], [4, 2, 3, 1]]
+        sage: sorted(p for p in TransitiveIdealGraded(attrcall("permutohedron_succ"),
+        ....:     [Permutation([3,1,2,4]), Permutation([2,1,3,4])]))
+        [[2, 1, 3, 4], [2, 1, 4, 3], [2, 3, 1, 4], [2, 3, 4, 1],
+         [2, 4, 1, 3], [2, 4, 3, 1], [3, 1, 2, 4], [3, 1, 4, 2],
+         [3, 2, 1, 4], [3, 2, 4, 1], [3, 4, 1, 2], [3, 4, 2, 1],
+         [4, 2, 1, 3], [4, 2, 3, 1], [4, 3, 1, 2], [4, 3, 2, 1]]
     """
     def __init__(self, succ, generators, max_depth=float("inf")):
         r"""

@@ -12,4 +12,12 @@ Topological Manifolds
 
    sage/manifolds/point
 
-   sage/manifolds/chart
+   chart
+
+   scalarfield
+
+   continuous_map
+
+   sage/manifolds/topological_submanifold
+
+   vector_bundle

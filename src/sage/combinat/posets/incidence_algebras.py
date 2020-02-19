@@ -2,20 +2,16 @@
 r"""
 Incidence Algebras
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.algebras import Algebras
@@ -186,7 +182,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def one(self):
-        """
+        r"""
         Return the element `1` in ``self`` (which is the Kronecker
         delta `\delta(x, y)`).
 
@@ -226,7 +222,6 @@ class IncidenceAlgebra(CombinatorialFreeModule):
         """
         return self.sum(self.basis())
 
-    from sage.misc.superseded import deprecated_function_alias
     @cached_method
     def moebius(self):
         """
@@ -243,7 +238,6 @@ class IncidenceAlgebra(CombinatorialFreeModule):
         mu = self._poset.moebius_function
         R = self.base_ring()
         return self.sum_of_terms((A, R(mu(*A))) for A in self.basis().keys())
-    mobius = deprecated_function_alias(19855, moebius)
 
     def __getitem__(self, A):
         """
@@ -430,7 +424,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
             inv = ~M
             L = self.parent()._linear_extension
             return self.parent().sum_of_terms(((L[i], L[j]), inv[i, j])
-                       for i, j in inv.nonzero_positions(copy=False))
+                                for i, j in inv.nonzero_positions(copy=False))
 
 
 class ReducedIncidenceAlgebra(CombinatorialFreeModule):
@@ -570,7 +564,6 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
         """
         return self.sum(self.basis())
 
-    from sage.misc.superseded import deprecated_function_alias
     @cached_method
     def moebius(self):
         """
@@ -586,7 +579,6 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
         mu = self._ambient._poset.moebius_function
         R = self.base_ring()
         return self.sum_of_terms((A, R(mu(*A))) for A in self.basis().keys())
-    mobius = deprecated_function_alias(19855, moebius)
 
     @cached_method
     def _lift_basis(self, x):
@@ -648,6 +640,18 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
             R[(0, 0)]
             sage: R[3, 11]
             R[(0, 1)]
+
+        TESTS:
+
+            sage: R[2, 5]
+            Traceback (most recent call last):
+            ...
+            ValueError: not an interval
+
+            sage: R[-1]
+            Traceback (most recent call last):
+            ...
+            ValueError: not an element of the poset
         """
         if not isinstance(A, (list, tuple)):
             if A not in self._ambient._poset.list():

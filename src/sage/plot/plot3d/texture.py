@@ -35,6 +35,11 @@ AUTHOR:
 - Robert Bradshaw (2007-07-07) Initial version.
 
 """
+
+from __future__ import division
+
+from textwrap import dedent
+
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 
@@ -140,6 +145,11 @@ def Texture(id=None, **kwds):
         sage: Texture((.2,.3,.4))
         Texture(texture..., 334c66)
 
+    Now accepting negative arguments, reduced modulo 1::
+
+        sage: Texture((-3/8, 1/2, 3/8))
+        Texture(texture..., 9f7f5f)
+
     Textures using other keywords::
 
         sage: Texture(specular=0.4)
@@ -171,15 +181,16 @@ def Texture(id=None, **kwds):
         kwds['color'] = id
         id = None
     elif isinstance(id, tuple):
-        kwds['color'] = id
+        kwds['color'] = Color(id).rgb()
         id = None
     if id is None:
         id = _new_global_texture_id()
     return Texture_class(id, **kwds)
 
+
 def parse_color(info, base=None):
     r"""
-    Parses the color.
+    Parse the color.
 
     It transforms a valid color string into a color object and
     a color object into an RBG tuple of length 3. Otherwise,
@@ -188,7 +199,7 @@ def parse_color(info, base=None):
     INPUT:
 
     - ``info`` - color, valid color str or number
-    - ``base`` - tuple of length 3 (optional, default: None)
+    - ``base`` - tuple of length 3 (optional, default: ``None``)
 
     OUTPUT:
 
@@ -229,14 +240,17 @@ def parse_color(info, base=None):
         try:
             return Color(info)
         except KeyError:
-            raise ValueError("unknown color '%s'"%info)
+            raise ValueError("unknown color '%s'" % info)
     else:
         r, g, b = base
         # We don't want to lose the data when we split it into its respective components.
-        if not r: r = 1e-5
-        if not g: g = 1e-5
-        if not b: b = 1e-5
-        return (float(info*r), float(info*g), float(info*b))
+        if not r:
+            r = 1e-5
+        if not g:
+            g = 1e-5
+        if not b:
+            b = 1e-5
+        return (float(info * r), float(info * g), float(info * b))
 
 
 class Texture_class(WithEqualityById, SageObject):
@@ -294,7 +308,8 @@ class Texture_class(WithEqualityById, SageObject):
         else:
             if len(color) == 4:
                 opacity = color[3]
-            color = (float(color[0]), float(color[1]), float(color[2]))
+            color = tuple(float(1) if c == 1 else float(c) % 1
+                          for c in color[0: 3])
 
         self.color = color
         self.opacity = float(opacity)
@@ -314,7 +329,7 @@ class Texture_class(WithEqualityById, SageObject):
 
     def _repr_(self):
         """
-        Gives string representation of the Texture object.
+        Return a string representation of the Texture object.
 
         EXAMPLES::
 
@@ -339,30 +354,40 @@ class Texture_class(WithEqualityById, SageObject):
             sage: Texture((1, .5, 0)).hex_rgb()
             'ff7f00'
         """
-        return "%02x%02x%02x" % tuple(int(255*s) for s in self.color)
+        return "%02x%02x%02x" % tuple(int(255 * s) for s in self.color)
 
     def tachyon_str(self):
         r"""
-        Converts Texture object to string suitable for Tachyon ray tracer.
+        Convert Texture object to string suitable for Tachyon ray tracer.
 
         EXAMPLES::
 
             sage: from sage.plot.plot3d.texture import Texture
             sage: t = Texture(opacity=0.6)
             sage: t.tachyon_str()
-            'Texdef texture...\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.6\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+            'Texdef texture...\n  Ambient 0.3333333333333333 Diffuse 0.6666666666666666 Specular 0.0 Opacity 0.6\n   Color 0.4 0.4 1.0\n   TexFunc 0'
         """
-        total_color = float(sum(self.ambient) + sum(self.diffuse) + sum(self.specular))
+
+        total_ambient = sum(self.ambient)
+        total_diffuse = sum(self.diffuse)
+        total_specular = sum(self.specular)
+
+        total_color = total_ambient + total_diffuse + total_specular
+
         if total_color == 0:
             total_color = 1
-        return "Texdef %s\n" % self.id + \
-         "  Ambient %s Diffuse %s Specular %s Opacity %s\n" % \
-                (sum(self.ambient)/total_color,
-                 sum(self.diffuse)/total_color,
-                 sum(self.specular)/total_color,
-                 self.opacity) + \
-        "   Color %s %s %s\n" % (self.color[0], self.color[1], self.color[2]) + \
-        "   TexFunc 0"
+
+        ambient = total_ambient / total_color
+        diffuse = total_diffuse / total_color
+        specular = total_specular / total_color
+
+        return dedent("""\
+            Texdef {id}
+              Ambient {ambient!r} Diffuse {diffuse!r} Specular {specular!r} Opacity {opacity!r}
+              Color {color[0]!r} {color[1]!r} {color[2]!r}
+              TexFunc 0"""
+        ).format(id=self.id, ambient=ambient, diffuse=diffuse,
+                 specular=specular, opacity=self.opacity, color=self.color)
 
     def x3d_str(self):
         r"""
@@ -375,8 +400,13 @@ class Texture_class(WithEqualityById, SageObject):
             sage: t.x3d_str()
             "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance>"
         """
-        return "<Appearance><Material diffuseColor='%s %s %s' shininess='%s' specularColor='%s %s %s'/></Appearance>" % \
-                (self.color[0], self.color[1], self.color[2], self.shininess, self.specular[0], self.specular[0], self.specular[0])
+        return (
+            "<Appearance>"
+            "<Material diffuseColor='{color[0]!r} {color[1]!r} {color[2]!r}' "
+                      "shininess='{shininess!r}' "
+                      "specularColor='{specular!r} {specular!r} {specular!r}'/>"
+            "</Appearance>").format(color=self.color, shininess=self.shininess,
+                                    specular=self.specular[0])
 
     def mtl_str(self):
         r"""
@@ -389,13 +419,18 @@ class Texture_class(WithEqualityById, SageObject):
             sage: t.mtl_str()
             'newmtl texture...\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 0.6'
         """
-        return "\n".join(["newmtl %s" % self.id,
-                   "Ka %s %s %s" % self.ambient,
-                   "Kd %s %s %s" % self.diffuse,
-                   "Ks %s %s %s" % self.specular,
-                   "illum %s" % (2 if sum(self.specular) > 0 else 1),
-                   "Ns %s" % self.shininess,
-                   "d %s" % self.opacity, ])
+        return dedent("""\
+            newmtl {id}
+            Ka {ambient[0]!r} {ambient[1]!r} {ambient[2]!r}
+            Kd {diffuse[0]!r} {diffuse[1]!r} {diffuse[2]!r}
+            Ks {specular[0]!r} {specular[1]!r} {specular[2]!r}
+            illum {illumination}
+            Ns {shininess!r}
+            d {opacity!r}"""
+        ).format(id=self.id, ambient=self.ambient, diffuse=self.diffuse,
+                 specular=self.specular,
+                 illumination=(2 if sum(self.specular) > 0 else 1),
+                 shininess=self.shininess, opacity=self.opacity)
 
     def jmol_str(self, obj):
         r"""

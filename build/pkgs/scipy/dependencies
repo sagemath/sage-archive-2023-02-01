@@ -1,4 +1,4 @@
-atlas numpy
+$(PYTHON) $(BLAS) gfortran numpy | pip
 
 ----------
 All lines of this file are ignored except the first.

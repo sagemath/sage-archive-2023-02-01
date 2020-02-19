@@ -1,4 +1,4 @@
-__doc__ = r"""
+r"""
 Combinatorial Species
 =====================
 
@@ -48,7 +48,4 @@ Miscellaneous
 
 - :ref:`sage.combinat.species.structure`
 - :ref:`sage.combinat.species.misc`
-- :ref:`sage.combinat.species.combinatorial_logarithm`
 """
-
-import all

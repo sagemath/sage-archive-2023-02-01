@@ -48,7 +48,7 @@ TESTS::
     sage: loads(dumps(H)) == H
     True
 
-See trac 5886::
+See :trac:`5886`::
 
     sage: V = (ZZ^2).span_of_basis([[1,2],[3,4]])
     sage: V.hom([V.0, V.1])
@@ -73,9 +73,12 @@ See trac 5886::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import
+
 import sage.categories.homset
-import sage.matrix.all as matrix
-import free_module_morphism
+from sage.structure.element import is_Matrix
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.matrix.matrix_space import MatrixSpace
 from inspect import isfunction
 from sage.misc.cachefunc import cached_method
 
@@ -153,8 +156,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: phi(V.0) == V.1
             True
 
-        The following tests against a bug that was fixed in trac
-        ticket #9944. The method ``zero()`` calls this hom space with
+        The following tests against a bug that was fixed in
+        :trac:`9944`. The method ``zero()`` calls this hom space with
         a function, not with a matrix, and that case had previously
         not been taken care of::
 
@@ -170,7 +173,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Echelon ...
 
         """
-        if not sage.matrix.matrix.is_Matrix(A):
+        from . import free_module_morphism
+        if not is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
             C = self.codomain()
@@ -179,8 +183,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                     v = [C(A(g)) for g in self.domain().gens()]
                 else:
                     v = [C(a) for a in A]
-                A = matrix.matrix([C.coordinates(a) for a in v],
-                                  ncols=C.rank())
+                A = matrix([C.coordinates(a) for a in v], ncols=C.rank())
             except TypeError:
                 # Let us hope that FreeModuleMorphism knows to handle
                 # that case
@@ -239,7 +242,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             return self.__matrix_space
         except AttributeError:
             R = self.codomain().base_ring()
-            M = matrix.MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
             self.__matrix_space = M
             return M
 
@@ -277,7 +280,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         r"""
         Return identity morphism in an endomorphism ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V=FreeModule(ZZ,5)
             sage: H=V.Hom(V)
@@ -292,7 +295,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Codomain: Ambient free module of rank 5 over the principal ideal domain ...
         """
         if self.is_endomorphism_set():
-            return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
+            return self(identity_matrix(self.base_ring(),self.domain().rank()))
         else:
             raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 

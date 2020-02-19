@@ -1,3 +1,4 @@
+# cython: language_level=2
 """
 Ranges and the ``[1,2,..,n]`` notation
 
@@ -7,7 +8,7 @@ AUTHORS:
   up.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
@@ -16,16 +17,16 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
-from __future__ import division
+from __future__ import division, print_function
 
 from libc.math cimport ceil
-from sage.rings.integer cimport Integer
-from sage.structure.element cimport parent_c as parent
-from sage.structure.sequence import Sequence
+from cysignals.signals cimport sig_check
 
-include "cysignals/signals.pxi"
+from sage.rings.integer cimport Integer
+from sage.structure.element cimport parent
+from sage.structure.sequence import Sequence
 
 
 def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include_endpoint=False, endpoint_tolerance=1e-5):
@@ -87,7 +88,7 @@ def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include
         sage: xsrange(10)
         <generator object at 0x...>
         sage: for i in xsrange(1,5):
-        ....:     print i
+        ....:     print(i)
         1
         2
         3
@@ -101,7 +102,7 @@ def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include
 
         sage: it = xsrange(10^30, 10^100)
         sage: for i in range(5):
-        ....:     print next(it)
+        ....:     print(next(it))
         1000000000000000000000000000000
         1000000000000000000000000000001
         1000000000000000000000000000002
@@ -157,7 +158,7 @@ def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include
         return
 
     cur = start
-    # yield in chuncks of 1024
+    # yield in chunks of 1024
     cdef long k
     while icount > 1024:
         for k in range(1024):
@@ -208,14 +209,15 @@ def srange(*args, **kwds):
 
     OUTPUT: a list
 
-    .. note::
+    .. NOTE::
 
        This function is called ``srange`` to distinguish
        it from the built-in Python ``range`` command.  The s
        at the beginning of the name stands for "Sage".
 
-    .. seealso: :func:`xsrange` -- iterator which is used to implement
-       :func:`srange`.
+    .. SEEALSO::
+
+        :func:`xsrange` -- iterator which is used to implement :func:`srange`.
 
     EXAMPLES::
 
@@ -385,7 +387,7 @@ def ellipsis_iter(*args, step=None):
     step = universe(step)
 
     # this is a bit more complicated because we can't pop what's already been yielded
-    next = None
+    next_ = None
     skip = False
     last_end = None
     # first we handle step_magic (which may require two pops if the range is empty)
@@ -400,7 +402,7 @@ def ellipsis_iter(*args, step=None):
                 yield a
             last_end = a
             skip = True
-            next = None
+            next_ = None
             step_magic += 1
         else:
             yield args[step_magic-2]
@@ -420,10 +422,10 @@ def ellipsis_iter(*args, step=None):
                     yield cur
             start, end = args[i-1], args[i+1]
             if i < 2 or args[i-2] is not Ellipsis:
-                next = None
+                next_ = None
             more = xsrange(start, end, step, coerce=False, include_endpoint=True)
             try:
-                first = more.next()
+                first = next(more)
                 if last_end != first:
                     yield first
                 for a in more:
@@ -432,11 +434,11 @@ def ellipsis_iter(*args, step=None):
             except StopIteration:
                 last_end = None
             skip = True
-            next = None
+            next_ = None
         else:
-            if next is not None:
-                yield next
-            next = args[i]
+            if next_ is not None:
+                yield next_
+            next_ = args[i]
             last_end = None
 
 
@@ -550,7 +552,7 @@ def ellipsis_range(*args, step=None):
                     L.pop()
                     start = args[i-2]
             more = srange(start, end, step, coerce=False, include_endpoint=True)
-            if len(more) > 0:
+            if more:
                 if last_end == more[0]:
                     L.pop()
                 last_end = more[-1]

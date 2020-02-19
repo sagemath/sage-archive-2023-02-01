@@ -1,5 +1,5 @@
 """
-Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL.
+Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL
 
 This implementation is generally slower than the FLINT implementation in
 :mod:`~sage.rings.polynomial.polynomial_zmod_flint`, so we use FLINT by
@@ -27,9 +27,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial_generic_dense
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.rings.polynomial.polynomial_element cimport Polynomial, _dict_to_list
 
 from sage.libs.all import pari, pari_gen
+
+from sage.rings.integer cimport smallInteger
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX
 from sage.rings.rational_field import QQ
@@ -41,11 +46,10 @@ import sage.rings.polynomial.polynomial_ring
 
 from sage.rings.infinity import infinity
 
-import polynomial_singular_interface
+from . import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
-from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
-from sage.structure.element cimport have_same_parent_c
+from sage.structure.element import coerce_binop
 
 from sage.libs.ntl.types cimport NTL_SP_BOUND
 from sage.libs.ntl.ZZ_p cimport *
@@ -55,8 +59,6 @@ from sage.libs.ntl.ZZ_pX cimport *
 
 def make_element(parent, args):
     return parent(*args)
-
-include "cysignals/signals.pxi"
 
 zz_p_max = NTL_SP_BOUND
 
@@ -124,7 +126,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         elif isinstance(x, dict):
             R = parent.base_ring()
-            x = self._dict_to_list(x, R(0))
+            x = _dict_to_list(x, R(0))
 
 
         elif isinstance(x, ZZX):
@@ -161,7 +163,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
     def int_list(self):
         return eval(str(self.__poly).replace(' ',','))
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -219,10 +221,10 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             return (~self)**(-n)
         return self.parent()(self.__poly**n, construct=True)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         return self.parent()(self.__poly + (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -232,13 +234,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
-        try:
-            return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
-        except RuntimeError as msg: # should this really be a TypeError
-            raise TypeError(msg)
-
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         try:
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError as msg: # should this really be a TypeError
@@ -289,7 +285,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly.left_shift(n),
                              construct=True)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         return self.parent()(self.__poly - (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     def __floordiv__(self, right):
@@ -299,15 +295,32 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def degree(self, gen=None):
         """
-        Return the degree of this polynomial.  The zero polynomial
-        has degree -1.
-        """
-        return max(self.__poly.degree(), -1)
+        Return the degree of this polynomial.
 
-    def list(self):
+        The zero polynomial has degree -1.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='NTL')
+            sage: (x^3 + 3*x - 17).degree()
+            3
+            sage: R.zero().degree()
+            -1
+
+        TESTS:
+
+        Check output type (see :trac:`25182`)::
+
+            sage: R.<x> = PolynomialRing(Integers(3), implementation='NTL')
+            sage: isinstance(x.degree(), Integer)
+            True
+        """
+        return smallInteger(max(self.__poly.degree(), -1))
+
+    cpdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying
-        elements of self.
+        elements of ``self``.
 
         EXAMPLES::
 
@@ -316,8 +329,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             sage: f.list()
             [83, 3, 0, 1]
         """
-        R = self.base_ring()
-        return [R(x) for x in self.int_list()]
+        return [self.get_unsafe(n) for n from 0 <= n <= self.degree()]
 
     def ntl_set_directly(self, v):
         r"""
@@ -373,7 +385,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         See :func:`sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots`
         for the documentation of this function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: N = 10001
             sage: K = Zmod(10001)
@@ -648,7 +660,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f.int_list()
             [5, 0, 0, 1]
             sage: [type(a) for a in f.int_list()]
-            [<type 'int'>, <type 'int'>, <type 'int'>, <type 'int'>]
+            [<... 'int'>, <... 'int'>, <... 'int'>, <... 'int'>]
         """
         cdef long i
         return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
@@ -675,7 +687,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         self.c.restore_c()
         zz_pX_SetCoeff_long(self.x, n, value)
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         TESTS::
 
@@ -692,7 +704,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         TESTS::
 
@@ -709,7 +721,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         """
         TESTS::
 
@@ -767,7 +779,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         TESTS::
 
@@ -783,7 +795,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         TESTS::
 
@@ -808,13 +820,13 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             x^5 + 95*x^4 + 10*x^3 + 90*x^2 + 5*x + 99
 
         Negative powers will not work::
-        
+
             sage: R.<x> = PolynomialRing(Integers(101), implementation='NTL')
             sage: (x-1)^(-5)
             Traceback (most recent call last):
             ...
             NotImplementedError: Fraction fields not implemented for this type.
-            
+
         We define ``0^0`` to be unity, :trac:`13895`::
 
             sage: R.<x> = PolynomialRing(Integers(100), implementation='NTL')
@@ -893,7 +905,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Returns the whole part of self/right, without remainder.
 
@@ -917,7 +929,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         sig_off()
         return q
 
-    def __mod__(self, right):
+    cpdef _mod_(self, right):
         """
         EXAMPLES::
 
@@ -928,9 +940,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: g * x^4 + r
             x^7 + x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self % right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
         cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
         cdef Polynomial_dense_modn_ntl_zz r = numer._new()
@@ -969,7 +978,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(77), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -982,7 +991,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(77), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -995,13 +1004,13 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def _derivative(self, var=None):
         r"""
-        Returns the formal derivative of self with respect to var.
+        Return the formal derivative of self with respect to ``var``.
 
-        var must be either the generator of the polynomial ring to which
-        this polynomial belongs, or None (either way the behaviour is the
+        ``var`` must be either the generator of the polynomial ring to which
+        this polynomial belongs, or ``None`` (either way the behaviour is the
         same).
 
-        .. seealso:: :meth:`.derivative`
+        .. SEEALSO:: :meth:`.derivative`
 
         EXAMPLES::
 
@@ -1017,24 +1026,32 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             ...
             ValueError: cannot differentiate with respect to 2*x
 
+        TESTS::
+
             sage: y = var("y")
             sage: f._derivative(y)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            raise ValueError("cannot differentiate with respect to %s" % var)
+        if var is not None and var != self._parent.gen():
+            raise ValueError('cannot differentiate with respect to {}'.format(var))
 
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_diff(r.x, self.x)
         return r
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
-        Reverses the coefficients of self. The reverse of `f(x)` is `x^n f(1/x)`.
+        Return the reverse of the input polynomial thought as a polynomial of
+        degree ``degree``.
 
-        The degree will go down if the constant term is zero.
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
+
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
@@ -1042,12 +1059,28 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f = x^4 - x - 1
             sage: f.reverse()
             76*x^4 + 76*x^3 + 1
-            sage: f = x^3 - x
-            sage: f.reverse()
+            sage: f.reverse(2)
+            76*x^2 + 76*x
+            sage: f.reverse(5)
+            76*x^5 + 76*x^4 + x
+            sage: g = x^3 - x
+            sage: g.reverse()
             76*x^2 + 1
+
+        TESTS:
+
+        We check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        zz_pX_reverse(r.x, self.x)
+
+        if degree is None:
+            zz_pX_reverse(r.x, self.x)
+        else:
+            zz_pX_reverse_hi(r.x, self.x, degree)
         return r
 
     def is_gen(self):
@@ -1191,8 +1224,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         return y
 
 
-    def list(self):
-        return [self._parent._base(self[n]) for n from 0 <= n <= self.degree()]
+    cpdef list list(self, bint copy=True):
+        return [self.get_unsafe(n) for n from 0 <= n <= self.degree()]
 
     cdef get_unsafe(self, Py_ssize_t n):
         """
@@ -1226,7 +1259,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef ntl_ZZ_p val = ntl_ZZ_p(a, self.c)
         ZZ_pX_SetCoeff(self.x, n, val.x)
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         TESTS::
 
@@ -1243,7 +1276,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         TESTS::
 
@@ -1260,7 +1293,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         """
         TESTS::
 
@@ -1318,7 +1351,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         TESTS::
 
@@ -1335,7 +1368,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         TESTS::
 
@@ -1429,7 +1462,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Returns the whole part of self/right, without remainder.
 
@@ -1453,7 +1486,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         sig_off()
         return q
 
-    def __mod__(self, right):
+    cpdef _mod_(self, right):
         """
         EXAMPLES::
 
@@ -1464,9 +1497,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: g * (x^4 + x) + r
             x^7 + x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self % right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
         cdef Polynomial_dense_modn_ntl_ZZ denom = <Polynomial_dense_modn_ntl_ZZ>right
         cdef Polynomial_dense_modn_ntl_ZZ r = numer._new()
@@ -1505,7 +1535,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(14^30), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -1518,7 +1548,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(15^30), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -1532,13 +1562,13 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def _derivative(self, var=None):
         r"""
-        Returns the formal derivative of self with respect to var.
+        Return the formal derivative of self with respect to ``var``.
 
-        var must be either the generator of the polynomial ring to which
+        ``var`` must be either the generator of the polynomial ring to which
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
-        .. seealso:: :meth:`.derivative`
+        .. SEEALSO:: :meth:`.derivative`
 
         EXAMPLES::
 
@@ -1554,26 +1584,33 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             ...
             ValueError: cannot differentiate with respect to 2*x
 
+        TESTS::
+
             sage: y = var("y")
             sage: f._derivative(y)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            raise ValueError("cannot differentiate with respect to %s" % var)
+        if var is not None and var != self._parent.gen():
+            raise ValueError("cannot differentiate with respect to {}".format(var))
 
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         ZZ_pX_diff(r.x, self.x)
         return r
 
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
-        Reverses the coefficients of self. The reverse of `f(x)` is `x^n
-        f(1/x)`.
+        Return the reverse of the input polynomial thought as a polynomial of
+        degree ``degree``.
 
-        The degree will go down if the constant term is zero.
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
+
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
@@ -1584,9 +1621,25 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f = x^3 + x
             sage: f.reverse()
             x^2 + 1
+            sage: f.reverse(1)
+            1
+            sage: f.reverse(5)
+            x^4 + x^2
+
+        TESTS:
+
+        We check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        ZZ_pX_reverse(r.x, self.x)
+
+        if degree is None:
+            ZZ_pX_reverse(r.x, self.x)
+        else:
+            ZZ_pX_reverse_hi(r.x, self.x, degree)
         return r
 
     def is_gen(self):

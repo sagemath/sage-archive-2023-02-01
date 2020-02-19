@@ -20,10 +20,10 @@ I want to contribute code to Sage. How do I get started?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Take a look at the
-`official development guide <http://www.sagemath.org/doc/developer>`_
+`official development guide <http://doc.sagemath.org/html/en/developer>`_
 for Sage. At a minimum, the first chapter in that guide is required
 reading for any Sage developer. Also pay special attention to the
-`trac guidelines <http://www.sagemath.org/doc/developer/trac.html>`_.
+`trac guidelines <http://doc.sagemath.org/html/en/developer/trac.html>`_.
 You can also join the
 `sage-devel <http://groups.google.com/group/sage-devel>`_
 mailing list or hang around on the
@@ -147,7 +147,7 @@ resources can be found by a web search.
   `Python standard documentation <http://docs.python.org>`_
 * `Snakefood <http://furius.ca/snakefood>`_
 * `Sphinx <http://sphinx.pocoo.org>`_
-* `XDot <http://code.google.com/p/jrfonseca/wiki/XDot>`_
+* `XDot <https://github.com/jrfonseca/xdot.py>`_
 
 **Tutorials and books**
 
@@ -181,11 +181,9 @@ Are there any coding conventions I need to follow?
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
 You should follow the standard Python conventions as documented at
-`PEP 0008 <http://www.python.org/dev/peps/pep-0008>`_
-and
-`PEP 0257 <http://www.python.org/dev/peps/pep-0257>`_.
+:pep:`8` and :pep:`257`.
 Also consult the Sage Developer's Guide, especially the chapter
-`Conventions for Coding in Sage <http://www.sagemath.org/doc/developer/conventions.html>`_.
+`Conventions for Coding in Sage <http://doc.sagemath.org/html/en/developer/conventions.html>`_.
 
 
 I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my patch?
@@ -213,7 +211,7 @@ tips on making your patch easy to review:
 * If there are more than one patch, have you clearly stated the order
   in which those patches are to be applied?
 * Does your patch
-  `follow relevant conventions <http://www.sagemath.org/doc/developer/writing_code.html>`_
+  `follow relevant conventions <http://doc.sagemath.org/html/en/developer/writing_code.html>`_
   as documented in the Developer's Guide?
 
 If your patch stands no chance of being merged in the Sage source
@@ -264,7 +262,9 @@ necessity to import what you need.
   import everything what you need. More precisely, each time you use
   some Sage function, you need to import it at the beginning of the
   file. For example, if you want ``PolynomialRing``, you need to
-  write::
+  write:
+
+  .. CODE-BLOCK:: python
 
       from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -275,7 +275,9 @@ necessity to import what you need.
 
   This also corresponds to the path starting after ``site-packages``
   given when you ask Sage for ``PolynomialRing`` help. For example,
-  if you call ``PolynomialRing?``, you get::
+  if you call ``PolynomialRing?``, you get:
+
+  .. CODE-BLOCK:: text
 
       Type:    function
       [...]
@@ -283,4 +285,4 @@ necessity to import what you need.
       [...]
 
 
-.. _afterword: http://www.sagemath.org/doc/tutorial/afterword.html
+.. _afterword: http://doc.sagemath.org/html/en/tutorial/afterword.html

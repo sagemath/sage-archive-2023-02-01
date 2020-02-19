@@ -7,7 +7,7 @@ represent the integer sequences of length `n`::
     sage: DegreeSequences(6)
     Degree sequences on 6 elements
 
-With the object ``DegreeSequences(n)``, one can :
+With the object ``DegreeSequences(n)``, one can:
 
     * Check whether a sequence is indeed a degree sequence ::
 
@@ -20,7 +20,7 @@ With the object ``DegreeSequences(n)``, one can :
     * List all the possible degree sequences of length `n`::
 
         sage: for seq in DegreeSequences(4):
-        ...       print seq
+        ....:     print(seq)
         [0, 0, 0, 0]
         [1, 1, 0, 0]
         [2, 1, 1, 0]
@@ -64,13 +64,13 @@ degree sequence if and only if* `\sum_i d_i` is even and `\forall i`
 .. MATH::
     \sum_{j\leq i}d_j \leq j(j-1) + \sum_{j>i}\min(d_j,i)
 
-Alternatively, a degree sequence can be defined recursively :
+Alternatively, a degree sequence can be defined recursively:
 
 **Havel and Hakimi:** *The sequence of integers* `d_1\geq ... \geq d_n` *is a
 degree sequence if and only if* `d_2-1,...,d_{d_1+1}-1, d_{d_1+2}, ...,d_n` *is
 also a degree sequence.*
 
-Or equivalently :
+Or equivalently:
 
 **Havel and Hakimi (bis):** *If there is a realization of an integer sequence as
 a graph (i.e. if the sequence is a degree sequence), then it can be realized in
@@ -94,7 +94,7 @@ a current degree sequence on `n` elements into a degree sequence on `n+1`
 elements by adding a vertex of degree larger than those already present in the
 sequence. This can be seen as **reversing** the reduction operation described in
 Havel and Hakimi's characterization. This operation can appear in several
-different ways :
+different ways:
 
     * Extensions of a degree sequence that do **not** change the value of the
       maximum element
@@ -123,7 +123,7 @@ different ways :
               3, 2, 2, 2, 1 \xrightarrow{Extension} {\bf 3}, 3, (2+1), (2+1), (2+1), 1 =  {\bf 3}, 3, 3, 3, 3, 1 \xrightarrow{Reduction} 3, 2, 2, 2, 1
 
     * Extension of a degree sequence that changes the value of the maximum
-      element :
+      element:
 
         * In the general case, i.e. when the number of elements of value
           `\Delta,\Delta-1` is small compared to `\Delta` (i.e. the maximum
@@ -225,9 +225,9 @@ The sequences produced by random graphs *are* degree sequences::
     sage: n = 30
     sage: DS = DegreeSequences(30)
     sage: for i in range(10):
-    ...      g = graphs.RandomGNP(n,.2)
-    ...      if not g.degree_sequence() in DS:
-    ...          print "Something is very wrong !"
+    ....:     g = graphs.RandomGNP(n,.2)
+    ....:     if not g.degree_sequence() in DS:
+    ....:         print("Something is very wrong !")
 
 Checking that we indeed enumerate *all* the degree sequences for `n=5`::
 
@@ -264,9 +264,10 @@ Checking the consistency of enumeration and test::
 
 
 from libc.string cimport memset
+from cysignals.memory cimport check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.rings.integer cimport Integer
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 
 cdef unsigned char * seq
@@ -284,14 +285,24 @@ class DegreeSequences:
         information, please refer to the documentation of the
         :mod:`DegreeSequence<sage.combinat.degree_sequences>` module.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DegreeSequences(8)
             Degree sequences on 8 elements
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
 
+        TESTS:
+
+        :trac:`21824`::
+
+            sage: DegreeSequences(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The input parameter must be >= 0.
         """
+        if n < 0:
+            raise ValueError("The input parameter must be >= 0.")
         self._n = n
 
     def __contains__(self, seq):
@@ -299,7 +310,7 @@ class DegreeSequences:
         Checks whether a given integer sequence is the degree sequence
         of a graph on `n` elements
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
@@ -310,13 +321,24 @@ class DegreeSequences:
 
             sage: [2,2,2,2,1,1,1] in DegreeSequences(7)
             False
+
+        :trac:`21824`::
+
+            sage: [d for d in DegreeSequences(0)]
+            [[]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
+            sage: [d for d in DegreeSequences(3)]
+            [[0, 0, 0], [1, 1, 0], [2, 1, 1], [2, 2, 2]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
         """
         cdef int n = self._n
         if len(seq)!=n:
             return False
 
         # Is the sum even ?
-        if sum(seq)%2 == 1:
+        if sum(seq) % 2:
             return False
 
         # Partial represents the left side of Erdos and Gallai's inequality,
@@ -354,7 +376,7 @@ class DegreeSequences:
         """
         Representing the element
 
-        TEST::
+        TESTS::
 
             sage: DegreeSequences(6)
             Degree sequences on 6 elements
@@ -368,22 +390,19 @@ class DegreeSequences:
         TODO: THIS SHOULD BE UPDATED AS SOON AS THE YIELD KEYWORD APPEARS IN
         CYTHON. See comment in the class' documentation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DS = DegreeSequences(6)
             sage: all(seq in DS for seq in DS)
             True
         """
-
-        init(self._n)
-        return iter(sequences)
+        return iter( init(self._n) )
 
     def __dealloc__():
         """
         Freeing the memory
         """
-        if seq != NULL:
-            sig_free(seq)
+        sig_free(seq)
 
 cdef init(int n):
     """
@@ -398,10 +417,7 @@ cdef init(int n):
     elif n == 1:
         return [[0]]
 
-    sig_on()
-    seq = <unsigned char *> sig_malloc((n+1)*sizeof(unsigned char))
-    memset(seq,0,(n+1)*sizeof(unsigned char))
-    sig_off()
+    seq = <unsigned char *>check_calloc(n + 1, sizeof(unsigned char))
 
     # We begin with one vertex of degree 0
     seq[0] = 1
@@ -495,7 +511,7 @@ cdef void enum(int k, int M):
             seq[current_box] = 0
             continue
 
-        # The degree of the new vertex will be taken + i + j where :
+        # The degree of the new vertex will be taken + i + j where:
         #
         # * i is the number of vertices taken in the *current* box
         # * j the number of vertices taken in the *previous* one
@@ -503,7 +519,7 @@ cdef void enum(int k, int M):
         n_current_box = seq[current_box]
         n_previous_box = seq[current_box-1]
 
-        # Note to self, and others :
+        # Note to self, and others:
         #
         # In the following lines, there are many incrementation/decrementation
         # that *may* be replaced by only +1 and -1 and save some

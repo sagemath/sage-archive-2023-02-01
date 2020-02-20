@@ -1312,6 +1312,37 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_vector.set_immutable()
         return f_vector
 
+    def flag_f_vector(self, *args):
+        flag = self._flag_f_vector()
+        if len(args) == 0:
+            return flag
+        elif len(args) == 1:
+            return flag[(args[0],)]
+        else:
+            dim = self.dimension()
+            if args[0] == -1:
+                args = args[1:]
+            if args[-1] == dim:
+                args = args[:-1]
+            return flag[tuple(args)]
+
+    @cached_method
+    def _flag_f_vector(self):
+        if not self.is_bounded():
+            raise ValueError
+        poly = self.face_lattice().flag_f_polynomial()
+        variables = poly.variables()
+        dim = self.dimension()
+        flag = {(smallInteger(-1),): smallInteger(1)}
+        for term in poly.monomials():
+            index = tuple([variables.index(var) for var in term.variables()[:-1]])
+            if index == ():
+                flag[(dim,)] = smallInteger(1)
+            else:
+                flag[index] = poly.monomial_coefficient(term)
+
+        return flag
+
     def is_simplicial(self):
         r"""
         Test whether the polytope is simplicial.

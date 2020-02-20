@@ -163,6 +163,12 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
     def __init__(self, ambient, gens, fqf, check=False):
         r"""
+        TESTS::
+
+            sage: q = matrix.diagonal(QQ, [2/3, 2/3, 4/3])
+            sage: T = TorsionQuadraticForm(q)
+            sage: Oq = T.orthogonal_group()
+            sage: TestSuite(Oq).run()
         """
         # We act on the smith form generators
         # because they are independent
@@ -275,11 +281,13 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             True
         """
         g = self.invariant_form().smith_form_gens()
-        for i in range(len(g)):
-            if (g[i]*f).q() != g[i].q():
+        gf = tuple(h*f for h in g)
+        n = len(g)
+        for i in range(n):
+            if gf[i].q() != g[i].q():
                 return False
-            for j in range(i+1, len(g)):
-                if (g[i]*f).b(g[j]*f) != (g[i]*f).b(g[j]*f):
+            for j in range(i+1, n):
+                if g[i].b(g[j]) != gf[i].b(gf[j]):
                     return False
         return True
 
@@ -339,7 +347,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
             sage: q = TorsionQuadraticForm(matrix.diagonal([2/3,2/3]))
             sage: G = q.orthogonal_group()
-            sage: G.subgroup(G.gens()[:1])
+            sage: G.subgroup(G.gens()[:1])  # indirect doctest
             Group of isometries of
             Finite quadratic module over Integer Ring with invariants (3, 3)
             Gram matrix of the quadratic form with values in Q/2Z:
@@ -488,6 +496,15 @@ def _isom_fqf(A, B=None):
     If ``B`` is given returns instead a single isometry of `A` and `B` or
     raises an ``ValueError`` if `A` and `B` are not isometric.
 
+    EXAMPLES::
+
+        sage: q = matrix.diagonal(QQ,3*[2/3])
+        sage: q = TorsionQuadraticForm(q)
+        sage: gens = sage.groups.fqf_orthogonal._isom_fqf(q, q)
+        sage: q1 = q.submodule_with_gens(gens)
+        sage: q1.gram_matrix_quadratic() == q.gram_matrix_quadratic()
+        True
+
     TESTS::
 
         sage: for p in primes_first_n(7)[1:]: # long time
@@ -497,14 +514,14 @@ def _isom_fqf(A, B=None):
     """
     def orbits(G, L):
         r"""
-        Return the orbits of L under G.
+        Return the orbits of `L` under `G`.
 
         INPUT:
 
-        - G an fqf_orthognal group
-        - L a list of tuples of elements of the domain of G
+        - ``G`` -- an fqf_orthognal group
+        - ``L`` -- a list of tuples of elements of the domain of ``G``
 
-        Orbit representatives of L
+        A list of orbit representatives of `L`
         """
         D = G.invariant_form()
         A = G.domain()

@@ -2,13 +2,15 @@ r"""
 Brent Yorgey's fast algorithm for integer vector (multiset) partitions.
 
 ALGORITHM:
-        Brent Yorgey, Generating Multiset Partitions,
-        The Monad Reader, Issue 8, September 2007, p. 5.
 
-        https://wiki.haskell.org/The_Monad.Reader/Previous_issues
+Brent Yorgey, Generating Multiset Partitions,
+The Monad Reader, Issue 8, September 2007, p. 5.
+
+https://wiki.haskell.org/The_Monad.Reader/Previous_issues
 
 AUTHORS:
-        Denis K. Sunko (2020-02-19): initial version
+
+Denis K. Sunko (2020-02-19): initial version
 """
 ################################################################################
 #            Copyright (C) 2020 Denis Sunko <dks@phy.hr>                       #
@@ -24,12 +26,6 @@ AUTHORS:
 #
 # Use at own risk.
 
-# Uncomment if using as stand-alone Python file:
-#
-import operator
-
-# Uncomment if using as stand-alone Python 3 file:
-#
 import functools
 
 def dickson_le(v, w):
@@ -48,15 +44,15 @@ def dickson_le(v, w):
 
     False   otherwise.
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: from sage.combinat.fast_vector_partitions import dickson_le
-    sage: dickson_le([1,2,3],[4,5,6])
-    True
-    sage: dickson_le([1,2,3],[4,1,6])
-    False
+        sage: from sage.combinat.fast_vector_partitions import dickson_le
+        sage: dickson_le([1, 2, 3],[4, 5, 6])
+        True
+        sage: dickson_le([1, 2, 3],[4, 1, 6])
+        False
 
-..  NOTE::
+    .. NOTE::
 
     B. Yorgey denotes this operator ``<|=``.
 
@@ -66,7 +62,7 @@ def dickson_le(v, w):
     All vectors ``v`` which make up a vector partition of ``w`` satisfy
     ``v <|= w``.
     """
-    return functools.reduce(operator.and_, map(operator.le, v, w))
+    return all(x <= y for x, y in zip(v, w))
 
 
 def vector_unit(v):
@@ -82,13 +78,13 @@ def vector_unit(v):
     A list of the same length as ``v``, with a one in the last place and
     zeros elsewhere.
 
-    EXAMPLES:
+    EXAMPLES::
     
-    sage: from sage.combinat.fast_vector_partitions import vector_unit
-    sage: vector_unit([1,2,3,4,5])
-    [0, 0, 0, 0, 1]
+        sage: from sage.combinat.fast_vector_partitions import vector_unit
+        sage: vector_unit([1, 2, 3, 4, 5])
+        [0, 0, 0, 0, 1]
 
-..  NOTE::
+    .. NOTE::
 
     ``vector_unit(v)`` is the lexicographically smallest non-zero vector
     of the same length as ``v``.
@@ -96,26 +92,26 @@ def vector_unit(v):
     return (len(v) - 1)*[0] + [1]
 
 
-def vector_minus(a, b):
+def vector_minus(v, w):
     r"""
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
 
-    - ``a`` -- A list of non-negative integers, understood as a vector.
-    - ``b`` -- A list of non-negative integers, understood as a vector.
+    - ``v`` -- A list of non-negative integers, understood as a vector.
+    - ``w`` -- A list of non-negative integers, understood as a vector.
 
     OUTPUT:
 
-    A list, understood as the vector ``a-b``.
+    A list, understood as the vector ``v-w``.
 
-    EXAMPLES:
+    EXAMPLES::
     
-    sage: from sage.combinat.fast_vector_partitions import vector_minus
-    sage: vector_minus([9,7,5,3,1],[4,3,2,1,0])
-    [5, 4, 3, 2, 1]
+        sage: from sage.combinat.fast_vector_partitions import vector_minus
+        sage: vector_minus([9, 7, 5, 3, 1],[4, 3, 2, 1, 0])
+        [5, 4, 3, 2, 1]
     """
-    return list(map(operator.sub, a, b))  # subtract coordinatewise
+    return [x - y for x, y in zip(v, w)]  # subtract coordinatewise
 
 
 def vector_clip(a, b):
@@ -132,11 +128,11 @@ def vector_clip(a, b):
     A list made up of the smaller of the corresponding coordinates of
     ``a`` and ``b``.
 
-    EXAMPLES:
+    EXAMPLES::
     
-    sage: from sage.combinat.fast_vector_partitions import vector_clip
-    sage: vector_clip([0,1,2,3,4],[4,3,2,1,0])
-    [0, 1, 2, 1, 0]
+        sage: from sage.combinat.fast_vector_partitions import vector_clip
+        sage: vector_clip([0, 1, 2, 3, 4],[4, 3, 2, 1, 0])
+        [0, 1, 2, 1, 0]
     """
     return list(map(min, a, b))
 
@@ -154,15 +150,15 @@ def vector_halve(v):
     A list, understood as the integer vector halfway down the list of
     lexicographically ordered vectors between between ``v`` and zero.
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: from sage.combinat.fast_vector_partitions import vector_halve
-    sage: vector_halve([1,2,3,4,5,6,7,8,9])
-    [0, 2, 3, 4, 5, 6, 7, 8, 9]
-    sage: vector_halve([2,4,6,8,5,6,7,8,9])
-    [1, 2, 3, 4, 2, 6, 7, 8, 9]
+        sage: from sage.combinat.fast_vector_partitions import vector_halve
+        sage: vector_halve([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        [0, 2, 3, 4, 5, 6, 7, 8, 9]
+        sage: vector_halve([2, 4, 6, 8, 5, 6, 7, 8, 9])
+        [1, 2, 3, 4, 2, 6, 7, 8, 9]
 
-..  NOTE::
+    .. NOTE::
 
     For vectors, ``v=a+b`` implies ``v=b+a``, which means that a
     downward search for such splittings, starting with ``v=v+0``, need
@@ -197,21 +193,21 @@ def within(v):
     
     Or: ... such that ``x^w`` divides ``x^v`` as monomials.
     
-    EXAMPLES:
+    EXAMPLES::
 
-    # A cube has eight vertices.
-    sage: from sage.combinat.fast_vector_partitions import within
-    sage: within([1,1,1])
-    [[1, 1, 1],
-     [1, 1, 0],
-     [1, 0, 1],
-     [1, 0, 0],
-     [0, 1, 1],
-     [0, 1, 0],
-     [0, 0, 1],
-     [0, 0, 0]]
+        # A cube has eight vertices.
+        sage: from sage.combinat.fast_vector_partitions import within
+        sage: within([1, 1, 1])
+        [[1, 1, 1],
+         [1, 1, 0],
+         [1, 0, 1],
+         [1, 0, 0],
+         [0, 1, 1],
+         [0, 1, 0],
+         [0, 0, 1],
+         [0, 0, 0]]
 
-..  NOTE::
+    .. NOTE::
 
     Used only for debugging.
     """
@@ -236,13 +232,13 @@ def debug_within_from_to(m, s, e):
     Lexicographically ordered list of lists ``v`` satisfying
     ``e <= v <= s`` and ``v <|= m`` as vectors.
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: from sage.combinat.fast_vector_partitions import debug_within_from_to
-    sage: debug_within_from_to([1,2,3],[1,2,2],[1,1,1])
-    [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
+        sage: from sage.combinat.fast_vector_partitions import debug_within_from_to
+        sage: debug_within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1])
+        [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
     
-..  NOTE::
+    .. NOTE::
 
     Inefficient but obviously correct implementation.
 
@@ -272,13 +268,13 @@ def recursive_within_from_to(m, s, e, useS, useE):
     Lexicographically ordered list of lists ``v`` satisfying
     ``e <= v <= s`` and ``v <|= m`` as vectors.
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: from sage.combinat.fast_vector_partitions import recursive_within_from_to
-    sage: recursive_within_from_to([1,2,3],[1,2,2],[1,1,1],True,True)
-    [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
+        sage: from sage.combinat.fast_vector_partitions import recursive_within_from_to
+        sage: recursive_within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1],True,True)
+        [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
 
-..  NOTE::
+    .. NOTE::
 
     The flags ``useS`` and ``useE`` are used to implement the condition
     efficiently. Because testing it loops over the vector, re-testing
@@ -287,7 +283,7 @@ def recursive_within_from_to(m, s, e, useS, useE):
     only for the last one, using the flags to accumulate information
     from previous calls.
 
-..  WARNING::
+    .. WARNING::
 
     Expects to be called with ``s <|= m``.
     Expects to be called first with ``useS==useE==True``.
@@ -331,13 +327,13 @@ def within_from_to(m, s, e):
     Lexicographically ordered list of lists ``v`` satisfying
     ``e <= v <= s`` and ``v <|= m`` as vectors.
     
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: from sage.combinat.fast_vector_partitions import within_from_to
-    sage: within_from_to([1,2,3],[1,2,2],[1,1,1])
-    [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
+        sage: from sage.combinat.fast_vector_partitions import within_from_to
+        sage: within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1])
+        [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
     
-..  NOTE::
+    .. NOTE::
 
     The input ``s`` will be "clipped" internally if it does not satisfy the
     condition ``s <|= m``. 
@@ -386,7 +382,7 @@ def within_from_to(m, s, e):
     and M, whenever S is outside the box defined by M. The input will
     be "clipped" accordingly in that case.
 
-..  WARNING::
+    .. WARNING::
 
     The "clipping" behavior is transparent to the user, but may be puzzling
     when comparing outputs with the function recursive_within_from_to(),
@@ -414,19 +410,19 @@ def recursive_vector_partitions(v, vL):
     a vector partition of ``v``, such that no part of any partition is
     lexicographically smaller than ``vL``.
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: from sage.combinat.fast_vector_partitions import recursive_vector_partitions
-    sage: recursive_vector_partitions([2,2,2],[1,1,1])
-    [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]]]
-    sage: recursive_vector_partitions([2,2,2],[1,1,0])
-    [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]], [[1, 1, 0], [1, 1, 2]]]
-    sage: recursive_vector_partitions([2,2,2],[1,0,1])
-    [[[2, 2, 2]],
-     [[1, 1, 1], [1, 1, 1]],
-     [[1, 1, 0], [1, 1, 2]],
-     [[1, 0, 2], [1, 2, 0]],
-     [[1, 0, 1], [1, 2, 1]]]
+        sage: from sage.combinat.fast_vector_partitions import recursive_vector_partitions
+        sage: recursive_vector_partitions([2, 2, 2],[1, 1, 1])
+        [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]]]
+        sage: recursive_vector_partitions([2, 2, 2],[1, 1, 0])
+        [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]], [[1, 1, 0], [1, 1, 2]]]
+        sage: recursive_vector_partitions([2, 2, 2],[1, 0, 1])
+        [[[2, 2, 2]],
+         [[1, 1, 1], [1, 1, 1]],
+         [[1, 1, 0], [1, 1, 2]],
+         [[1, 0, 2], [1, 2, 0]],
+         [[1, 0, 1], [1, 2, 1]]]
     """
     result = [[v]]
     #
@@ -460,38 +456,35 @@ def fast_vector_partitions(v, min=None):
 
     If ``min`` is given and ``len(min)!=len(v)``, ``None`` is returned.
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: from sage.combinat.fast_vector_partitions import fast_vector_partitions
-    # the older the computer, the more impressive the comparison:
-    sage: %time fastvparts = fast_vector_partitions([6,6,6])
-    CPU times: user 17 s, sys: 136 ms, total: 17.1 s
-    Wall time: 17.1 s
-    sage: %time vparts = list(VectorPartitions([6,6,6]))
-    CPU times: user 4min 16s, sys: 319 ms, total: 4min 16s
-    Wall time: 4min 16s
-    sage: vparts == fastvparts[::-1]
-    True
-    sage: fast_vector_partitions([1,2,3], min = [0,1,1])
-    [[[1, 2, 3]],
-     [[0, 2, 3], [1, 0, 0]],
-     [[0, 2, 2], [1, 0, 1]],
-     [[0, 2, 1], [1, 0, 2]],
-     [[0, 2, 0], [1, 0, 3]],
-     [[0, 1, 3], [1, 1, 0]],
-     [[0, 1, 2], [1, 1, 1]],
-     [[0, 1, 1], [1, 1, 2]],
-     [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
-     [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
-    sage: fast_vector_partitions([5,7,6], min = [1,3,2])==
-    ....: list(VectorPartitions([5,7,6], min = [1,3,2]))[::-1]
-    True
+        # the older the computer, the more impressive the comparison:
+        sage: from sage.combinat.fast_vector_partitions import fast_vector_partitions
+        sage: fastvparts = fast_vector_partitions([6, 6, 6])
+        sage: vparts = list(VectorPartitions([6, 6, 6]))
+        sage: vparts == fastvparts[::-1]
+        True
+        sage: len(fastvparts)
+        476781
+        sage: fast_vector_partitions([1, 2, 3], min = [0, 1, 1])
+        [[[1, 2, 3]],
+         [[0, 2, 3], [1, 0, 0]],
+         [[0, 2, 2], [1, 0, 1]],
+         [[0, 2, 1], [1, 0, 2]],
+         [[0, 2, 0], [1, 0, 3]],
+         [[0, 1, 3], [1, 1, 0]],
+         [[0, 1, 2], [1, 1, 1]],
+         [[0, 1, 1], [1, 1, 2]],
+         [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
+         [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
+        sage: fast_vector_partitions([5, 7, 6], min = [1, 3, 2]) == list(VectorPartitions([5, 7, 6], min = [1, 3, 2]))[::-1]
+        True
 
-..  NOTE::
+    .. NOTE::
 
     The partitions are returned as a list allocated in memory.
 
-..  WARNING::
+    .. WARNING::
 
     The ordering of the partitions is reversed with respect to the output of
     Sage class VectorPartitions().

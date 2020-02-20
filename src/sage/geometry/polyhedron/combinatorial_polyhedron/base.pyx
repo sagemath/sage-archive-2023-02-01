@@ -1310,13 +1310,9 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (-1, -1, 0) x + 1 >= 0,
              An inequality (-1, 1, 0) x + 1 >= 0]
 
-        If ``names`` is ``False`` then the vertices of the graph are given by integers::
-
-            sage: C.vertex_facet_graph(names=False).vertices()
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-        If ``names`` is ``True`` but the combinatorial polyhedron has been initialized
-        without specifying names to ``Vrepresentation`` and ``Hrepresentation``,
+        If ``names`` is ``True`` (the default) but the combinatorial polyhedron
+        has been initialized without specifying names to
+        ``Vrepresentation`` and ``Hrepresentation``,
         then indices of the Vrepresentation and the facets will be used along
         with a string 'H' or 'V'::
 
@@ -1332,6 +1328,11 @@ cdef class CombinatorialPolyhedron(SageObject):
              ('V', 2),
              ('V', 3),
              ('V', 4)]
+
+        If ``names`` is ``False`` then the vertices of the graph are given by integers::
+
+            sage: C.vertex_facet_graph(names=False).vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
         # The face iterator will iterate through the facets in opposite order.
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)

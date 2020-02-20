@@ -121,6 +121,62 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 # We will not use any generic stuff, since a (presumably) better conversion
                 # has already been registered.
                 return
+            if base_ring is None:
+                # It may happen that self.base_ring() is not initialised at this point.
+                return
+
+            mor = self._coerce_map_from_base_ring()
+            if mor is not None:
+                try:
+                    self.register_coercion(mor)
+                except AssertionError:
+                    pass
+
+        def _coerce_map_from_(self, other):
+            """
+            Return a coercion map from ``other`` to ``self``, or ``None``.
+
+            TESTS:
+
+            Check that :trac:`19225` is solved::
+
+                sage: A = cartesian_product((QQ['z'],)); A
+                The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                sage: A.coerce_map_from(ZZ)
+                Composite map:
+                  From: Integer Ring
+                  To:   The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                  Defn:   Natural morphism:
+                          From: Integer Ring
+                          To:   Rational Field
+                        then
+                          Generic morphism:
+                          From: Rational Field
+                          To:   The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                sage: A(1)
+                (1,)
+            """
+            if other is self.base_ring():
+                return self._coerce_map_from_base_ring()
+            else:
+                return self._coerce_map_via([self.base_ring()], other)
+
+        def _coerce_map_from_base_ring(self):
+            """
+            Return a suitable coercion map from the base ring of ``self``.
+
+            TESTS:
+
+                sage: A = cartesian_product((QQ['z'],)); A
+                The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                sage: A.base_ring()
+                Rational Field
+                sage: A._coerce_map_from_base_ring()
+                Generic morphism:
+                From: Rational Field
+                To:   The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+            """
+            base_ring = self.base_ring()
 
             # Pick a homset for the morphism to live in...
             if self in Rings():
@@ -187,11 +243,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                         mor = SetMorphism(function=one._lmul_, parent=H)
                 except (NotImplementedError, AttributeError, TypeError):
                     pass
-            if mor is not None:
-                try:
-                    self.register_coercion(mor)
-                except AssertionError:
-                    pass
+            return mor
 
     class WithBasis(CategoryWithAxiom_over_base_ring):
 

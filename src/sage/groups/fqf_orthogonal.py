@@ -49,7 +49,6 @@ AUTHORS:
 # ****************************************************************************
 from sage.libs.gap.libgap import libgap
 from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_subgroup, AbelianGroupAutomorphism, AbelianGroupAutomorphismGroup_gap
-from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
 from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
 from sage.rings.all import ZZ
 from sage.matrix.all import matrix
@@ -182,7 +181,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         self._invariant_form = fqf
         AbelianGroupAutomorphismGroup_subgroup.__init__(self, ambient, gens)
         if check and any(not self._preserves_form(g) for g in self.gens()):
-            raise ValueError("%s does not preserve the quadratic form"%g)
+            raise ValueError("a generator does not preserve the quadratic form")
 
     def invariant_form(self):
         r"""
@@ -538,8 +537,7 @@ def _isom_fqf(A, B=None):
         automorphisms = False
     if A.invariants() != B.invariants():
         raise ValueError("torsion quadratic modules are not isometric")
-    na = len(A.smith_form_gens())
-    nb = len(B.smith_form_gens())
+    n = len(A.smith_form_gens())
     # separating the different primes here would speed things up
     b_cand = [[b for b in B if b.q()==a.q() and b.order() == a.order()] for a in A.smith_form_gens()]
 
@@ -550,7 +548,7 @@ def _isom_fqf(A, B=None):
         # f is an i-partial isometry
         f = waiting.pop()
         i = len(f)
-        if i == na:
+        if i == n:
             # f is a full isometry
             if not automorphisms:
                 return f

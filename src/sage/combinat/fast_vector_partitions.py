@@ -26,117 +26,6 @@ Denis K. Sunko (2020-02-19): initial version
 #
 # Use at own risk.
 
-import functools
-
-def dickson_le(v, w):
-    r"""
-    Internal part of the current implementation of fast_vector_partitions().
-
-    INPUT:
-
-    - ``v`` -- A list of non-negative integers, understood as a vector.
-
-    - ``w`` -- A list of non-negative integers, understood as a vector.
-
-    OUTPUT:
-
-    True    if ``v[i] <= w[i]`` for all ``i``.
-
-    False   otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.fast_vector_partitions import dickson_le
-        sage: dickson_le([1, 2, 3],[4, 5, 6])
-        True
-        sage: dickson_le([1, 2, 3],[4, 1, 6])
-        False
-
-    .. NOTE::
-
-    B. Yorgey denotes this operator ``<|=``.
-
-    It is the partial monomial ordering appearing in Dickson's lemma:
-    ``v <|= w`` if and only if ``x^v`` divides ``x^w`` as monomials.
-
-    All vectors ``v`` which make up a vector partition of ``w`` satisfy
-    ``v <|= w``.
-    """
-    return all(x <= y for x, y in zip(v, w))
-
-
-def vector_unit(v):
-    r"""
-    Internal part of the current implementation of fast_vector_partitions().
-
-    INPUT:
-
-    - ``v`` -- A list of non-negative integers, understood as a vector.
-
-    OUTPUT:
-
-    A list of the same length as ``v``, with a one in the last place and
-    zeros elsewhere.
-
-    EXAMPLES::
-    
-        sage: from sage.combinat.fast_vector_partitions import vector_unit
-        sage: vector_unit([1, 2, 3, 4, 5])
-        [0, 0, 0, 0, 1]
-
-    .. NOTE::
-
-    ``vector_unit(v)`` is the lexicographically smallest non-zero vector
-    of the same length as ``v``.
-    """
-    return (len(v) - 1)*[0] + [1]
-
-
-def vector_minus(v, w):
-    r"""
-    Internal part of the current implementation of fast_vector_partitions().
-
-    INPUT:
-
-    - ``v`` -- A list of non-negative integers, understood as a vector.
-    - ``w`` -- A list of non-negative integers, understood as a vector.
-
-    OUTPUT:
-
-    A list, understood as the vector ``v-w``.
-
-    EXAMPLES::
-    
-        sage: from sage.combinat.fast_vector_partitions import vector_minus
-        sage: vector_minus([9, 7, 5, 3, 1],[4, 3, 2, 1, 0])
-        [5, 4, 3, 2, 1]
-    """
-    return [x - y for x, y in zip(v, w)]  # subtract coordinatewise
-
-
-def vector_clip(a, b):
-    r"""
-    Internal part of the current implementation of fast_vector_partitions().
-
-    INPUT:
-
-    - ``a`` -- A list of non-negative integers, understood as a vector.
-    - ``b`` -- A list of non-negative integers, understood as a vector.
-
-    OUTPUT:
-
-    A list made up of the smaller of the corresponding coordinates of
-    ``a`` and ``b``.
-
-    EXAMPLES::
-    
-        sage: from sage.combinat.fast_vector_partitions import vector_clip
-        sage: vector_clip([0, 1, 2, 3, 4],[4, 3, 2, 1, 0])
-        [0, 1, 2, 1, 0]
-    """
-    return list(map(min, a, b))
-
-
 def vector_halve(v):
     r"""
     Internal part of the current implementation of fast_vector_partitions().
@@ -175,79 +64,6 @@ def vector_halve(v):
         i += 1
         if vv % 2 != 0:
             return result + v[i:] # the less significant part is just copied
-    return result
-
-
-def within(v):
-    r"""
-    Internal part of the current implementation of fast_vector_partitions().
-
-    INPUT:
-
-    - ``v`` -- A list of non-negative integers, understood as a vector.
-
-    OUTPUT:
-
-    Lexicographically ordered list of all lists ``w`` such that each ``w``
-    is an integer point in or on the box spanned by ``v`` and the origin.
-    
-    Or: ... such that ``x^w`` divides ``x^v`` as monomials.
-    
-    EXAMPLES::
-
-        # A cube has eight vertices.
-        sage: from sage.combinat.fast_vector_partitions import within
-        sage: within([1, 1, 1])
-        [[1, 1, 1],
-         [1, 1, 0],
-         [1, 0, 1],
-         [1, 0, 0],
-         [0, 1, 1],
-         [0, 1, 0],
-         [0, 0, 1],
-         [0, 0, 0]]
-
-    .. NOTE::
-
-    Used only for debugging.
-    """
-    v0 = [[n] for n in range(v[0], -1, -1)]
-    vv = [range(n, -1, -1) for n in v[1:]]
-    return functools.reduce( lambda a, b: [aa + [bb] for aa in a for bb in b]
-                           , vv, v0)
-
-
-def debug_within_from_to(m, s, e):
-    r"""
-    Internal part of the current implementation of fast_vector_partitions().
-
-    INPUT:
-
-    - ``m`` -- A list of non-negative integers, understood as a vector.
-    - ``s`` -- A list of non-negative integers, understood as a vector.
-    - ``e`` -- A list of non-negative integers, understood as a vector.
-
-    OUTPUT:
-
-    Lexicographically ordered list of lists ``v`` satisfying
-    ``e <= v <= s`` and ``v <|= m`` as vectors.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.fast_vector_partitions import debug_within_from_to
-        sage: debug_within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1])
-        [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
-    
-    .. NOTE::
-
-    Inefficient but obviously correct implementation.
-
-    Used as a drop-in replacement for debugging within_from_to().
-    """
-    result = []
-    for v in within(m):
-        if e <= v <= s:
-            result += [v]
     return result
 
 
@@ -389,8 +205,9 @@ def within_from_to(m, s, e):
     which has no input protection.
     """
     ss = s
-    if not dickson_le(s, m):
-        ss = vector_clip(s, m)
+    # if s is not in the box defined by m, we must clip:
+    if not all(x <= y for x, y in zip(s, m)):
+        ss = [min(x,y) for x,y in zip(s, m)]
     if e > ss:
         return []
     return recursive_within_from_to(m, ss, e, True, True)
@@ -431,7 +248,8 @@ def recursive_vector_partitions(v, vL):
     #
     vspan = within_from_to(v, vector_halve(v), vL)
     for vv in vspan:
-        for pp in recursive_vector_partitions(vector_minus(v, vv), vv):
+        v_minus_vv=[x - y for x, y in zip(v, vv)]
+        for pp in recursive_vector_partitions(v_minus_vv, vv):
             result += [[vv] + pp]
     return result
 
@@ -490,7 +308,8 @@ def fast_vector_partitions(v, min=None):
     Sage class VectorPartitions().
     """
     if min is None:
-        return recursive_vector_partitions(v, vector_unit(v))
+        min=(len(v) - 1)*[0] + [1] # lexicographically smallest vector > 0
+        return recursive_vector_partitions(v, min)
     else:
         if len(v)==len(min):
             return recursive_vector_partitions(v, min)

@@ -1,4 +1,6 @@
 r"""
+Brent Yorgey's fast algorithm for integer vector (multiset) partitions.
+
 ALGORITHM:
         Brent Yorgey, Generating Multiset Partitions,
         The Monad Reader, Issue 8, September 2007, p. 5.
@@ -24,48 +26,119 @@ AUTHORS:
 
 # Uncomment if using as stand-alone Python file:
 #
-#import operator
+import operator
 
 # Uncomment if using as stand-alone Python 3 file:
 #
-#from functools import reduce
+import functools
 
 def dickson_le(v, w):
     r"""
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
-            - ``v``, ``w`` -- A pair of lists, understood as vectors.
+
+    - ``v`` -- A list of non-negative integers, understood as a vector.
+
+    - ``w`` -- A list of non-negative integers, understood as a vector.
 
     OUTPUT:
-            True    if ``v`` <= ``w`` coordinatewise.
 
-            False   otherwise.
+    True    if ``v[i] <= w[i]`` for all ``i``.
 
-    NOTES:
-            B. Yorgey denotes this operator ``<|=``.
-
-            It is the partial monomial ordering appearing in Dickson's lemma.
+    False   otherwise.
 
     EXAMPLES:
-            ``v <|= w`` if and only if ``x^v`` divides ``x^w`` as monomials.
 
-            All vectors ``v`` which make up a vector partition of ``w`` satisfy
-            ``v <|= w``.
+    sage: from sage.combinat.fast_vector_partitions import dickson_le
+    sage: dickson_le([1,2,3],[4,5,6])
+    True
+    sage: dickson_le([1,2,3],[4,1,6])
+    False
+
+..  NOTE::
+
+    B. Yorgey denotes this operator ``<|=``.
+
+    It is the partial monomial ordering appearing in Dickson's lemma:
+    ``v <|= w`` if and only if ``x^v`` divides ``x^w`` as monomials.
+
+    All vectors ``v`` which make up a vector partition of ``w`` satisfy
+    ``v <|= w``.
     """
-    return reduce(operator.and_, map(operator.le, v, w))
+    return functools.reduce(operator.and_, map(operator.le, v, w))
 
 
 def vector_unit(v):
-    return (len(v) - 1)*[0] + [1]  # lexicographically smallest vector > 0
+    r"""
+    Internal part of the current implementation of fast_vector_partitions().
+
+    INPUT:
+
+    - ``v`` -- A list of non-negative integers, understood as a vector.
+
+    OUTPUT:
+
+    A list of the same length as ``v``, with a one in the last place and
+    zeros elsewhere.
+
+    EXAMPLES:
+    
+    sage: from sage.combinat.fast_vector_partitions import vector_unit
+    sage: vector_unit([1,2,3,4,5])
+    [0, 0, 0, 0, 1]
+
+..  NOTE::
+
+    ``vector_unit(v)`` is the lexicographically smallest non-zero vector
+    of the same length as ``v``.
+    """
+    return (len(v) - 1)*[0] + [1]
 
 
 def vector_minus(a, b):
+    r"""
+    Internal part of the current implementation of fast_vector_partitions().
+
+    INPUT:
+
+    - ``a`` -- A list of non-negative integers, understood as a vector.
+    - ``b`` -- A list of non-negative integers, understood as a vector.
+
+    OUTPUT:
+
+    A list, understood as the vector ``a-b``.
+
+    EXAMPLES:
+    
+    sage: from sage.combinat.fast_vector_partitions import vector_minus
+    sage: vector_minus([9,7,5,3,1],[4,3,2,1,0])
+    [5, 4, 3, 2, 1]
+    """
     return list(map(operator.sub, a, b))  # subtract coordinatewise
 
 
 def vector_clip(a, b):
-    return list(map(min, a, b))  # see line art below
+    r"""
+    Internal part of the current implementation of fast_vector_partitions().
+
+    INPUT:
+
+    - ``a`` -- A list of non-negative integers, understood as a vector.
+    - ``b`` -- A list of non-negative integers, understood as a vector.
+
+    OUTPUT:
+
+    A list made up of the smaller of the corresponding coordinates of
+    ``a`` and ``b``.
+
+    EXAMPLES:
+    
+    sage: from sage.combinat.fast_vector_partitions import vector_clip
+    sage: vector_clip([0,1,2,3,4],[4,3,2,1,0])
+    [0, 1, 2, 1, 0]
+    """
+    return list(map(min, a, b))
 
 
 def vector_halve(v):
@@ -73,20 +146,31 @@ def vector_halve(v):
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
-            - ``v`` -- A list of non-negative integers, understood as a vector.
+
+    - ``v`` -- A list of non-negative integers, understood as a vector.
 
     OUTPUT:
-            A list, understood as the integer vector halfway down the list of
-            lexicographically ordered vectors between between ``v`` and zero.
 
-    NOTE:
-            For vectors, ``v=a+b`` implies ``v=b+a``, which means that a
-            downward search for such splittings, starting with ``v=v+0``, need
-            only look as far as some "v/2", given precise meaning here.
+    A list, understood as the integer vector halfway down the list of
+    lexicographically ordered vectors between between ``v`` and zero.
 
-            A similar logic is to stop the search for divisors of ``N`` at
-            ``sqrt(N)``, halving the exponents in the prime decompostion.
-            However, here "v/2" does not mean halving each coordinate.
+    EXAMPLES:
+
+    sage: from sage.combinat.fast_vector_partitions import vector_halve
+    sage: vector_halve([1,2,3,4,5,6,7,8,9])
+    [0, 2, 3, 4, 5, 6, 7, 8, 9]
+    sage: vector_halve([2,4,6,8,5,6,7,8,9])
+    [1, 2, 3, 4, 2, 6, 7, 8, 9]
+
+..  NOTE::
+
+    For vectors, ``v=a+b`` implies ``v=b+a``, which means that a
+    downward search for such splittings, starting with ``v=v+0``, need
+    only look as far as some "v/2", given precise meaning here.
+
+    A similar logic is to stop the search for divisors of ``N`` at
+    ``sqrt(N)``, halving the exponents in the prime decompostion.
+    However, here "v/2" does not mean halving each coordinate.
     """
     i = 0
     result = []
@@ -103,19 +187,38 @@ def within(v):
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
-            - ``v`` -- A list of non-negative integers, understood as a vector.
+
+    - ``v`` -- A list of non-negative integers, understood as a vector.
 
     OUTPUT:
-            Lexicographically ordered list of lists ``c`` such that
-            ``c <|= v`` as vectors.
+
+    Lexicographically ordered list of all lists ``w`` such that each ``w``
+    is an integer point in or on the box spanned by ``v`` and the origin.
     
-    NOTE:
-            Used only for debugging.
+    Or: ... such that ``x^w`` divides ``x^v`` as monomials.
+    
+    EXAMPLES:
+
+    # A cube has eight vertices.
+    sage: from sage.combinat.fast_vector_partitions import within
+    sage: within([1,1,1])
+    [[1, 1, 1],
+     [1, 1, 0],
+     [1, 0, 1],
+     [1, 0, 0],
+     [0, 1, 1],
+     [0, 1, 0],
+     [0, 0, 1],
+     [0, 0, 0]]
+
+..  NOTE::
+
+    Used only for debugging.
     """
     v0 = [[n] for n in range(v[0], -1, -1)]
     vv = [range(n, -1, -1) for n in v[1:]]
-    return reduce( lambda a, b: [aa + [bb] for aa in a for bb in b]
-                 , vv, v0)
+    return functools.reduce( lambda a, b: [aa + [bb] for aa in a for bb in b]
+                           , vv, v0)
 
 
 def debug_within_from_to(m, s, e):
@@ -123,17 +226,27 @@ def debug_within_from_to(m, s, e):
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
-            - ``m``, ``s``, ``e``-- Three lists, understood as vectors.
+
+    - ``m`` -- A list of non-negative integers, understood as a vector.
+    - ``s`` -- A list of non-negative integers, understood as a vector.
+    - ``e`` -- A list of non-negative integers, understood as a vector.
 
     OUTPUT:
-            Lexicographically ordered list of vectors ``v`` satisfying
-    
-            ``e <= v <= s`` and ``v <|= m``
-    
-    NOTE:
-            Inefficient but obviously correct implementation.
 
-            Used as a drop-in replacement for debugging within_from_to().
+    Lexicographically ordered list of lists ``v`` satisfying
+    ``e <= v <= s`` and ``v <|= m`` as vectors.
+
+    EXAMPLES:
+
+    sage: from sage.combinat.fast_vector_partitions import debug_within_from_to
+    sage: debug_within_from_to([1,2,3],[1,2,2],[1,1,1])
+    [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
+    
+..  NOTE::
+
+    Inefficient but obviously correct implementation.
+
+    Used as a drop-in replacement for debugging within_from_to().
     """
     result = []
     for v in within(m):
@@ -147,24 +260,37 @@ def recursive_within_from_to(m, s, e, useS, useE):
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
-            - ``m``, ``s``, ``e`` -- Three lists, understood as vectors.
-            - ``useS``, ``useE``  -- Two logical flags.
+
+    - ``m`` -- A list of non-negative integers, understood as a vector.
+    - ``s`` -- A list of non-negative integers, understood as a vector.
+    - ``e`` -- A list of non-negative integers, understood as a vector.
+    - ``useS``  -- Boolean.
+    - ``useE``  -- Boolean.
 
     OUTPUT:
-            Lexicographically ordered list of lists ``v`` satisfying
 
-            ``e <= v <= s`` and ``v <|= m`` as vectors.
+    Lexicographically ordered list of lists ``v`` satisfying
+    ``e <= v <= s`` and ``v <|= m`` as vectors.
 
-    WARNING:
-            The first call must be with ``useS==useE==True`` and ``s <|= m``.
+    EXAMPLES:
 
-    NOTE:
-            The flags ``useS`` and ``useE`` are used to implement the condition
-            efficiently. Because testing it loops over the vector, re-testing
-            for each step as the vector grows is inefficient: all but the last
-            comparison have been done cumulatively already. This code tests
-            only for the last one, using the flags to accumulate information
-            from previous calls.
+    sage: from sage.combinat.fast_vector_partitions import recursive_within_from_to
+    sage: recursive_within_from_to([1,2,3],[1,2,2],[1,1,1],True,True)
+    [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
+
+..  NOTE::
+
+    The flags ``useS`` and ``useE`` are used to implement the condition
+    efficiently. Because testing it loops over the vector, re-testing
+    for each step as the vector grows is inefficient: all but the last
+    comparison have been done cumulatively already. This code tests
+    only for the last one, using the flags to accumulate information
+    from previous calls.
+
+..  WARNING::
+
+    Expects to be called with ``s <|= m``.
+    Expects to be called first with ``useS==useE==True``.
     """
     if useS:
         start = s[0]
@@ -175,8 +301,8 @@ def recursive_within_from_to(m, s, e, useS, useE):
         end = e[0]
     else:
         end = 0
-    result = []
 
+    result = []
     for x in range(start, end - 1, -1):
         useSS = useS and x == s[0]
         useEE = useE and x == e[0]
@@ -195,63 +321,76 @@ def within_from_to(m, s, e):
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
-            - ``m``, ``s``, ``e``-- Three lists, understood as vectors.
+
+    - ``m`` -- A list of non-negative integers, understood as a vector.
+    - ``s`` -- A list of non-negative integers, understood as a vector.
+    - ``e`` -- A list of non-negative integers, understood as a vector.
 
     OUTPUT:
-            Lexicographically ordered list of lists ``v`` satisfying
 
-            ``e <= v <= s`` and ``v <|= m`` as vectors.
+    Lexicographically ordered list of lists ``v`` satisfying
+    ``e <= v <= s`` and ``v <|= m`` as vectors.
+    
+    EXAMPLES:
 
-    WARNING:
-            The input ``s`` will be "clipped" internally if it does not
-            satisfy the condition ``s <|= m``. This behavior is transparent to
-            the user, but may be puzzling when comparing outputs with the
-            function recursive_within_from_to(), which has no such protection.
+    sage: from sage.combinat.fast_vector_partitions import within_from_to
+    sage: within_from_to([1,2,3],[1,2,2],[1,1,1])
+    [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
+    
+..  NOTE::
 
-    NOTE:
-            To understand the input check, some line art is helpful. Assume
-            that ``(a,b)`` are the two least significant coordinates of some
-            vector. Say
+    The input ``s`` will be "clipped" internally if it does not satisfy the
+    condition ``s <|= m``. 
 
-            ``e=(2,3), s=(7,6), m=(9,8)``.
+    To understand the input check, some line art is helpful. Assume
+    that ``(a,b)`` are the two least significant coordinates of some
+    vector. Say
 
-            In the figure, these values are denoted by E, S, and M, while the
-            letter X stands for all other allowed values of ``v=(a,b)``:
+    ``e=(2,3), s=(7,6), m=(9,8)``.
 
-                       b ^
-                         |
-                       8 --------X---X---X---X---X-----------M
-                         |                                   |
-                       7 -       X   X   X   X   X           |
-                         |                                   |
-                       6 -       X   X   X   X   X   S       |
-                         |                                   |
-                       5 -       X   X   X   X   X   X       |
-                         |                                   |
-                       4 -       X   X   X   X   X   X       |
-                         |                                   |
-                       3 -       E   X   X   X   X   X       |
-                         |                                   |
-                       2 -           X   X   X   X   X       |
-                         |                                   |
-                       1 -           X   X   X   X   X       |
-                         |                                   |
-                       0 ----|---|---X---X---X---X---X---|---|--->
-                         0   1   2   3   4   5   6   7   8   9   a
+    In the figure, these values are denoted by E, S, and M, while the
+    letter X stands for all other allowed values of ``v=(a,b)``:
 
-            If S moves horizontally, the full-height columns fill in the box
-            until S reaches M, at which point it remains the limit in the
-            b-direction as it moves out of the box, while M takes over as the
-            limit in the a-direction, so the M-column remains filled only up to
-            S, no matter how much S moves further to the right.
+               b ^
+                 |
+               8 --------X---X---X---X---X-----------M
+                 |                                   |
+               7 -       X   X   X   X   X           |
+                 |                                   |
+               6 -       X   X   X   X   X   S       |
+                 |                                   |
+               5 -       X   X   X   X   X   X       |
+                 |                                   |
+               4 -       X   X   X   X   X   X       |
+                 |                                   |
+               3 -       E   X   X   X   X   X       |
+                 |                                   |
+               2 -           X   X   X   X   X       |
+                 |                                   |
+               1 -           X   X   X   X   X       |
+                 |                                   |
+               0 ----|---|---X---X---X---X---X---|---|--->
+                 0   1   2   3   4   5   6   7   8   9   a
 
-            If S moves vertically, its column will be filled to the top of the
-            box, but it remains the relevant limit in the a-direction, while M
-            takes over in the b-direction as S goes out of the box upwards.
+    If S moves horizontally, the full-height columns fill in the box
+    until S reaches M, at which point it remains the limit in the
+    b-direction as it moves out of the box, while M takes over as the
+    limit in the a-direction, so the M-column remains filled only up to
+    S, no matter how much S moves further to the right.
 
-            Both behaviors are captured by using the smaller coordinate of S
-            and M, whenever S is outside the box defined by M. This is the
-            "clipping" referred to in the warning above.
+    If S moves vertically, its column will be filled to the top of the
+    box, but it remains the relevant limit in the a-direction, while M
+    takes over in the b-direction as S goes out of the box upwards.
+
+    Both behaviors are captured by using the smaller coordinate of S
+    and M, whenever S is outside the box defined by M. The input will
+    be "clipped" accordingly in that case.
+
+..  WARNING::
+
+    The "clipping" behavior is transparent to the user, but may be puzzling
+    when comparing outputs with the function recursive_within_from_to(),
+    which has no input protection.
     """
     ss = s
     if not dickson_le(s, m):
@@ -266,12 +405,28 @@ def recursive_vector_partitions(v, vL):
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
-            - ``v``, ``vL`` -- Two lists, understood as vectors.
+    - ``v`` -- A list of non-negative integers, understood as a vector.
+    - ``vL`` -- A list of non-negative integers, understood as a vector.
 
     OUTPUT:
-            Lexicographically ordered list of lists, each element representing
-            a vector partition of ``v``, such that ``vL`` is lexicographically
-            the smallest component used.
+
+    Lexicographically ordered list of lists, each list representing
+    a vector partition of ``v``, such that no part of any partition is
+    lexicographically smaller than ``vL``.
+
+    EXAMPLES:
+
+    sage: from sage.combinat.fast_vector_partitions import recursive_vector_partitions
+    sage: recursive_vector_partitions([2,2,2],[1,1,1])
+    [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]]]
+    sage: recursive_vector_partitions([2,2,2],[1,1,0])
+    [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]], [[1, 1, 0], [1, 1, 2]]]
+    sage: recursive_vector_partitions([2,2,2],[1,0,1])
+    [[[2, 2, 2]],
+     [[1, 1, 1], [1, 1, 1]],
+     [[1, 1, 0], [1, 1, 2]],
+     [[1, 0, 2], [1, 2, 0]],
+     [[1, 0, 1], [1, 2, 1]]]
     """
     result = [[v]]
     #
@@ -290,50 +445,56 @@ def fast_vector_partitions(v, min=None):
     Brent Yorgey's fast algorithm for integer vector (multiset) partitions.
 
     INPUT:
-            - ``v`` -- A list of non-negative integers, understood as the
-                       vector to be partitioned.
-            - ``min`` -- An optional list of non-negative integers, of same
-                         length as ``v``.
+
+    - ``v``   -- A list of non-negative integers, understood as the vector to
+                 be partitioned.
+    - ``min`` -- An optional list of non-negative integers, of same
+                 length as ``v``.
 
     OUTPUT:
-            A list of lists, each representing a vector partition of ``v``.
-            
-            If ``min`` is given, only partitions with parts ``p>=min`` in the
-            lexicographic ordering will appear.
-            
-            If ``min`` is given and ``len(min)!=len(v)``, ``None`` is returned.
 
-    NOTE:
-            The partitions are returned as a list allocated in memory.
+    A list of lists, each representing a vector partition of ``v``.
 
-    WARNING:        
-            The ordering of the partitions is reversed with respect to the
-            output of Sage class VectorPartitions().
+    If ``min`` is given, only partitions with parts ``p>=min`` in the
+    lexicographic ordering will appear.
+
+    If ``min`` is given and ``len(min)!=len(v)``, ``None`` is returned.
 
     EXAMPLES:
-            # the older the computer, the more impressive the example:
-            sage: %time fastvparts = fast_vector_partitions([6,6,6])
-            CPU times: user 17 s, sys: 136 ms, total: 17.1 s
-            Wall time: 17.1 s
-            sage: %time vparts = list(VectorPartitions([6,6,6]))
-            CPU times: user 4min 16s, sys: 319 ms, total: 4min 16s
-            Wall time: 4min 16s
-            sage: vparts == fastvparts[::-1]
-            True
-            sage: fast_vector_partitions([1,2,3], min = [0,1,1])
-            [[[1, 2, 3]],
-             [[0, 2, 3], [1, 0, 0]],
-             [[0, 2, 2], [1, 0, 1]],
-             [[0, 2, 1], [1, 0, 2]],
-             [[0, 2, 0], [1, 0, 3]],
-             [[0, 1, 3], [1, 1, 0]],
-             [[0, 1, 2], [1, 1, 1]],
-             [[0, 1, 1], [1, 1, 2]],
-             [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
-             [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
-            sage: fast_vector_partitions([5,7,6], min = [1,3,2])==
-            ....: list(VectorPartitions([5,7,6], min = [1,3,2]))[::-1]
-            True
+
+    sage: from sage.combinat.fast_vector_partitions import fast_vector_partitions
+    # the older the computer, the more impressive the comparison:
+    sage: %time fastvparts = fast_vector_partitions([6,6,6])
+    CPU times: user 17 s, sys: 136 ms, total: 17.1 s
+    Wall time: 17.1 s
+    sage: %time vparts = list(VectorPartitions([6,6,6]))
+    CPU times: user 4min 16s, sys: 319 ms, total: 4min 16s
+    Wall time: 4min 16s
+    sage: vparts == fastvparts[::-1]
+    True
+    sage: fast_vector_partitions([1,2,3], min = [0,1,1])
+    [[[1, 2, 3]],
+     [[0, 2, 3], [1, 0, 0]],
+     [[0, 2, 2], [1, 0, 1]],
+     [[0, 2, 1], [1, 0, 2]],
+     [[0, 2, 0], [1, 0, 3]],
+     [[0, 1, 3], [1, 1, 0]],
+     [[0, 1, 2], [1, 1, 1]],
+     [[0, 1, 1], [1, 1, 2]],
+     [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
+     [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
+    sage: fast_vector_partitions([5,7,6], min = [1,3,2])==
+    ....: list(VectorPartitions([5,7,6], min = [1,3,2]))[::-1]
+    True
+
+..  NOTE::
+
+    The partitions are returned as a list allocated in memory.
+
+..  WARNING::
+
+    The ordering of the partitions is reversed with respect to the output of
+    Sage class VectorPartitions().
     """
     if min is None:
         return recursive_vector_partitions(v, vector_unit(v))

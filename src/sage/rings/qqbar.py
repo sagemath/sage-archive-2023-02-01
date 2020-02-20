@@ -4686,7 +4686,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         ri2 = other._value.real()
         if not ri1.overlaps(ri2):
             # NOTE: do not call richcmp here as self._value and other._value
-            # might have different precision. See
+            # might have different precisions. See
             # https://trac.sagemath.org/ticket/29220
             return ri1._richcmp_(ri2, op)
 
@@ -5203,7 +5203,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         # case 0: real parts are clearly distinct
         if not self._value.overlaps(other._value):
             # NOTE: do not call richcmp here as self._value and other._value
-            # might have different precision. See
+            # might have different precisions. See
             # https://trac.sagemath.org/ticket/29220
             return self._value._richcmp_(other._value, op)
 
@@ -5226,7 +5226,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             other._more_precision()
         if not self._value.overlaps(other._value):
             # NOTE: do not call richcmp here as self._value and other._value
-            # might have different precision. See
+            # might have different precisions. See
             # https://trac.sagemath.org/ticket/29220
             return self._value._richcmp_(other._value, op)
 

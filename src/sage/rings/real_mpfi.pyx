@@ -3725,8 +3725,8 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(1, 2) != RIF(0, 1)
             False
 
-        Check that `_richcmp_` is also working for parent with different precisions
-        (:trac:`29220`)::
+        Check that ``_richcmp_`` is also working for intervals with different
+        precisions (:trac:`29220`)::
 
             sage: from sage.structure.richcmp import op_LT, op_GT
             sage: R1 = RealIntervalField(2)

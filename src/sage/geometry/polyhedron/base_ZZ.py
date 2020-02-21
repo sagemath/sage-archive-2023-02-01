@@ -442,7 +442,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
         TESTS:
 
-        The cache of the ehrhart polynomial is being pickled::
+        The cache of the Ehrhart polynomial is being pickled::
 
             sage: P = polytopes.cube()
             sage: P.ehrhart_polynomial()  # optional - latte_int

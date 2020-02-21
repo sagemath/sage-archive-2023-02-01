@@ -120,6 +120,7 @@ Comprehensive Module list
     sage/combinat/expnums
     sage/combinat/family
     sage/combinat/finite_state_machine
+    sage/combinat/fast_vector_partitions
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym
     sage/combinat/free_module

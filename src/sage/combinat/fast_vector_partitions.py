@@ -3,14 +3,14 @@ Brent Yorgey's fast algorithm for integer vector (multiset) partitions.
 
 ALGORITHM:
 
-Brent Yorgey, Generating Multiset Partitions,
-The Monad Reader, Issue 8, September 2007, p. 5.
+Brent Yorgey, Generating Multiset Partitions, The Monad Reader, Issue 8,
+September 2007, p. 5.
 
 https://wiki.haskell.org/The_Monad.Reader/Previous_issues
 
 AUTHORS:
 
-Denis K. Sunko (2020-02-19): initial version
+D.K. Sunko (2020-02-19): initial version
 """
 ################################################################################
 #            Copyright (C) 2020 Denis Sunko <dks@phy.hr>                       #
@@ -49,13 +49,13 @@ def vector_halve(v):
 
     .. NOTE::
 
-    For vectors, ``v=a+b`` implies ``v=b+a``, which means that a
-    downward search for such splittings, starting with ``v=v+0``, need
-    only look as far as some "v/2", given precise meaning here.
+        For vectors, ``v=a+b`` implies ``v=b+a``, which means that a
+        downward search for such splittings, starting with ``v=v+0``, need
+        only look as far as some "v/2", given precise meaning here.
 
-    A similar logic is to stop the search for divisors of ``N`` at
-    ``sqrt(N)``, halving the exponents in the prime decompostion.
-    However, here "v/2" does not mean halving each coordinate.
+        A similar logic is to stop the search for divisors of ``N`` at
+        ``sqrt(N)``, halving the exponents in the prime decomposition.
+        However, here "v/2" does not mean halving each coordinate.
     """
     i = 0
     result = []
@@ -92,17 +92,18 @@ def recursive_within_from_to(m, s, e, useS, useE):
 
     .. NOTE::
 
-    The flags ``useS`` and ``useE`` are used to implement the condition
-    efficiently. Because testing it loops over the vector, re-testing
-    for each step as the vector grows is inefficient: all but the last
-    comparison have been done cumulatively already. This code tests
-    only for the last one, using the flags to accumulate information
-    from previous calls.
+        The flags ``useS`` and ``useE`` are used to implement the condition
+        efficiently. Because testing it loops over the vector, re-testing
+        for each step as the vector grows is inefficient: all but the last
+        comparison have been done cumulatively already. This code tests
+        only for the last one, using the flags to accumulate information
+        from previous calls.
 
     .. WARNING::
 
-    Expects to be called with ``s <|= m``.
-    Expects to be called first with ``useS==useE==True``.
+        Expects to be called with ``s <|= m``.
+
+        Expects to be called first with ``useS==useE==True``.
     """
     if useS:
         start = s[0]
@@ -151,63 +152,63 @@ def within_from_to(m, s, e):
     
     .. NOTE::
 
-    The input ``s`` will be "clipped" internally if it does not satisfy the
-    condition ``s <|= m``. 
+        The input ``s`` will be "clipped" internally if it does not satisfy
+        the condition ``s <|= m``. 
 
-    To understand the input check, some line art is helpful. Assume
-    that ``(a,b)`` are the two least significant coordinates of some
-    vector. Say
+        To understand the input check, some line art is helpful. Assume
+        that ``(a,b)`` are the two least significant coordinates of some
+        vector. Say
 
-    ``e=(2,3), s=(7,6), m=(9,8)``.
+        ``e=(2,3), s=(7,6), m=(9,8)``.
 
-    In the figure, these values are denoted by E, S, and M, while the
-    letter X stands for all other allowed values of ``v=(a,b)``:
+        In the figure, these values are denoted by E, S, and M, while the
+        letter X stands for all other allowed values of ``v=(a,b)``::
 
-               b ^
-                 |
-               8 --------X---X---X---X---X-----------M
-                 |                                   |
-               7 -       X   X   X   X   X           |
-                 |                                   |
-               6 -       X   X   X   X   X   S       |
-                 |                                   |
-               5 -       X   X   X   X   X   X       |
-                 |                                   |
-               4 -       X   X   X   X   X   X       |
-                 |                                   |
-               3 -       E   X   X   X   X   X       |
-                 |                                   |
-               2 -           X   X   X   X   X       |
-                 |                                   |
-               1 -           X   X   X   X   X       |
-                 |                                   |
-               0 ----|---|---X---X---X---X---X---|---|--->
-                 0   1   2   3   4   5   6   7   8   9   a
+            b ^
+              |
+            8 --------X---X---X---X---X-----------M
+              |                                   |
+            7 -       X   X   X   X   X           |
+              |                                   |
+            6 -       X   X   X   X   X   S       |
+              |                                   |
+            5 -       X   X   X   X   X   X       |
+              |                                   |
+            4 -       X   X   X   X   X   X       |
+              |                                   |
+            3 -       E   X   X   X   X   X       |
+              |                                   |
+            2 -           X   X   X   X   X       |
+              |                                   |
+            1 -           X   X   X   X   X       |
+              |                                   |
+            0 ----|---|---X---X---X---X---X---|---|--->
+              0   1   2   3   4   5   6   7   8   9   a
 
-    If S moves horizontally, the full-height columns fill in the box
-    until S reaches M, at which point it remains the limit in the
-    b-direction as it moves out of the box, while M takes over as the
-    limit in the a-direction, so the M-column remains filled only up to
-    S, no matter how much S moves further to the right.
+        If S moves horizontally, the full-height columns fill the box in
+        until S reaches M, at which point it remains the limit in the
+        b-direction as it moves out of the box, while M takes over as the
+        limit in the a-direction, so the M-column remains filled only up to
+        S, no matter how much S moves further to the right.
 
-    If S moves vertically, its column will be filled to the top of the
-    box, but it remains the relevant limit in the a-direction, while M
-    takes over in the b-direction as S goes out of the box upwards.
+        If S moves vertically, its column will be filled to the top of the
+        box, but it remains the relevant limit in the a-direction, while M
+        takes over in the b-direction as S goes out of the box upwards.
 
-    Both behaviors are captured by using the smaller coordinate of S
-    and M, whenever S is outside the box defined by M. The input will
-    be "clipped" accordingly in that case.
+        Both behaviors are captured by using the smaller coordinate of S
+        and M, whenever S is outside the box defined by M. The input will
+        be "clipped" accordingly in that case.
 
     .. WARNING::
 
-    The "clipping" behavior is transparent to the user, but may be puzzling
-    when comparing outputs with the function recursive_within_from_to(),
-    which has no input protection.
+        The "clipping" behavior is transparent to the user, but may be puzzling
+        when comparing outputs with the function recursive_within_from_to(),
+        which has no input protection.
     """
     ss = s
     # if s is not in the box defined by m, we must clip:
-    if not all(x <= y for x, y in zip(s, m)):
-        ss = [min(x,y) for x,y in zip(s, m)]
+    if not all(x <= y for x, y in zip(s, m)): # slightly slower without the if
+        ss = [min(x,y) for x,y in zip(s, m)]  # rebuilding the list is costly
     if e > ss:
         return []
     return recursive_within_from_to(m, ss, e, True, True)
@@ -218,6 +219,7 @@ def recursive_vector_partitions(v, vL):
     Internal part of the current implementation of fast_vector_partitions().
 
     INPUT:
+
     - ``v`` -- A list of non-negative integers, understood as a vector.
     - ``vL`` -- A list of non-negative integers, understood as a vector.
 
@@ -242,10 +244,6 @@ def recursive_vector_partitions(v, vL):
          [[1, 0, 1], [1, 2, 1]]]
     """
     result = [[v]]
-    #
-    #   changes to within_from_to() may be tested by replacing
-    #   within_from_to() with debug_within_from_to() in this line:
-    #
     vspan = within_from_to(v, vector_halve(v), vL)
     for vv in vspan:
         v_minus_vv=[x - y for x, y in zip(v, vv)]
@@ -260,10 +258,11 @@ def fast_vector_partitions(v, min=None):
 
     INPUT:
 
-    - ``v``   -- A list of non-negative integers, understood as the vector to
-                 be partitioned.
-    - ``min`` -- An optional list of non-negative integers, of same
-                 length as ``v``.
+    - ``v``   -- A list of non-negative integers, understood as the vector
+                 to be partitioned.
+
+    - ``min`` -- An optional list of non-negative integers, of same length
+                 as ``v``.
 
     OUTPUT:
 
@@ -274,9 +273,10 @@ def fast_vector_partitions(v, min=None):
 
     If ``min`` is given and ``len(min)!=len(v)``, ``None`` is returned.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        # the older the computer, the more impressive the comparison:
+    The older the computer, the more impressive the comparison::
+
         sage: from sage.combinat.fast_vector_partitions import fast_vector_partitions
         sage: fastvparts = fast_vector_partitions([6, 6, 6])
         sage: vparts = list(VectorPartitions([6, 6, 6]))
@@ -300,12 +300,17 @@ def fast_vector_partitions(v, min=None):
 
     .. NOTE::
 
-    The partitions are returned as a list allocated in memory.
+        The partitions are returned as a list allocated in memory.
+        
+        In this documentation, ``a <|= b`` means ``a[i] <= b[i]`` for all ``i``
+        (notation following B. Yorgey's paper). It is the monomial partial
+        ordering in Dickson's lemma: ``a <|= b`` iff ``x^a`` divides ``x^b`` as
+        monomials.
 
     .. WARNING::
 
-    The ordering of the partitions is reversed with respect to the output of
-    Sage class VectorPartitions().
+        The ordering of the partitions is reversed with respect to the output of
+        Sage class VectorPartitions().
     """
     if min is None:
         min=(len(v) - 1)*[0] + [1] # lexicographically smallest vector > 0

@@ -524,13 +524,46 @@ class Polyhedron_ZZ(Polyhedron_QQ):
     @cached_method
     def is_reflexive(self):
         """
+        A lattice polytope is reflexive if it is polar to a lattice polytope.
+
+        Equivalently, it is reflexive if it is of the form `{x \in \mathbb{R}^d: Ax \leq 1}`
+        for some integer matrix `A` and `d` the ambient dimension.
+
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(1,0,0),(0,1,0),(0,0,1),(-1,-1,-1)], base_ring=ZZ)
             sage: p.is_reflexive()
             True
+            sage: polytopes.hypercube(4).is_reflexive()
+            True
+            sage: p = Polyhedron(vertices=[(1,0), (0,2), (-1,0), (0,-1)], base_ring=ZZ)
+            sage: p.is_reflexive()
+            False
+            sage: p = Polyhedron(vertices=[(1,0), (0,2), (-1,0)], base_ring=ZZ)
+            sage: p.is_reflexive()
+            False
+
+        An error is raised, if the polyhedron is not compact::
+
+            sage: p = Polyhedron(rays=[(1,)], base_ring=ZZ)
+            sage: p.is_reflexive()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a polytope
         """
-        return self.polar().is_lattice_polytope()
+        if not self.is_compact():
+            raise ValueError("not a polytope")
+
+        for H in self.Hrepresentation():
+            if H.is_equation():
+                return False
+            b = H.b()
+            if b < 1:
+                return False
+            if not all(v_i/b in ZZ for v_i in H.A()):
+                return False
+
+        return True
 
     @cached_method
     def has_IP_property(self):

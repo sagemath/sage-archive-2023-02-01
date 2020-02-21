@@ -365,7 +365,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
         r"""
         Return a list of all submodules of ``self``.
 
-        ..WARNING::
+        .. WARNING::
 
             This method creates all submodules in memory. The number of submodules
             grows rapidly with the number of generators. For example consider a
@@ -817,7 +817,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
         r"""
         Orthogonal group of the associated torsion quadratic form.
 
-        ..WARNING::
+        .. WARNING::
 
             This is can be smaller than the orthogonal group of the bilinear form.
 

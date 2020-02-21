@@ -355,7 +355,6 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         self._polynomial_class = element_class
         self._map = twist_map
         self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
-        self._no_generic_basering_coercion = True
         Algebra.__init__(self, base_ring, names=name,
                          normalize=True, category=Rings())
         base_inject = SkewPolynomialBaseringInjection(base_ring, self)

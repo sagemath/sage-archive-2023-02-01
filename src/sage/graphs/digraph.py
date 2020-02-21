@@ -109,8 +109,8 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.flow_polytope` | Compute the flow polytope of a digraph
     :meth:`~DiGraph.degree_polynomial` | Return the generating polynomial of degrees of vertices in ``self``.
-    :meth:`~DiGraph.spanning_out_branching` | Return an iterator over directed out branching of given vertex in ``self``.
-    :meth:`~DiGraph.spanning_in_branching` | Return an iterator over directed in branching of given vertex in ``self``.
+    :meth:`~DiGraph.spanning_out_branching` | Return an iterator over out branching of given vertex in ``self``.
+    :meth:`~DiGraph.spanning_in_branching` | Return an iterator over in branching of given vertex in ``self``.
 
 Methods
 -------
@@ -3238,7 +3238,7 @@ class DiGraph(GenericGraph):
 
     def spanning_out_branching(self, source, spanning=True):
         r"""
-        Return an iterator over directed out branching of the current
+        Return an iterator over out branching of the current
         ``DiGraph``.
 
         An out-branching is a directed tree rooted at ``source`` whose arcs are
@@ -3450,7 +3450,7 @@ class DiGraph(GenericGraph):
 
     def spanning_in_branching(self, source, spanning=True):
         r"""
-        Return an iterator over directed in branching of the current
+        Return an iterator over in branching of the current
         ``DiGraph``.
 
         An in-branching is a directed tree rooted at ``source`` whose arcs are

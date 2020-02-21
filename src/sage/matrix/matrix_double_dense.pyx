@@ -603,9 +603,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
-            doctest:warning
-            ...
-            ...ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...
@@ -690,7 +687,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             import numpy
         import sage.rings.infinity
         import sage.rings.integer
-        import sage.rings.real_double
+        from sage.rings.real_double import RDF
         if p == sage.rings.infinity.Infinity:
             p = numpy.inf
         elif p == -sage.rings.infinity.Infinity:
@@ -711,7 +708,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         if c == numpy.inf:
             return sage.rings.infinity.Infinity
         else:
-            return sage.rings.real_double.RDF(c)
+            return RDF(c.real if numpy.iscomplexobj(c) else c)
 
     def norm(self, p=2):
         r"""

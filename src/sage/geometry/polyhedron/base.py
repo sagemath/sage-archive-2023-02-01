@@ -5879,6 +5879,146 @@ class Polyhedron_base(Element):
         """
         return self.combinatorial_polyhedron().f_vector()
 
+    def flag_f_vector(self, *args):
+        r"""
+        Return the `flag_f_vector`.
+
+        For each `-1 < i_0 < \dots < i_n < d` the `flag_f_vector`
+        counts the number of flags `F_0 \subset \dots \subset F_n
+        with `F_i` of dimension `i_0` for each `0 \leq i \leq n`,
+        where `d` is the dimension of the polyhedron.
+
+        INPUT:
+
+        - ``args`` -- integers (optional); specify an entry of the
+          flag-f-vector; must be an increasing sequence of integers
+
+        OUTPUT:
+
+        - a dictionary, if no arguments where given
+
+        - an Integer, if arguments where given
+
+        EXAMPLES:
+
+        Obtain the entire flag-f-vector::
+
+            sage: P = polytopes.twenty_four_cell()
+            sage: P.flag_f_vector()
+                {(-1,): 1,
+                 (0,): 24,
+                 (0, 1): 192,
+                 (0, 1, 2): 576,
+                 (0, 1, 2, 3): 1152,
+                 (0, 1, 3): 576,
+                 (0, 2): 288,
+                 (0, 2, 3): 576,
+                 (0, 3): 144,
+                 (1,): 96,
+                 (1, 2): 288,
+                 (1, 2, 3): 576,
+                 (1, 3): 288,
+                 (2,): 96,
+                 (2, 3): 192,
+                 (3,): 24,
+                 (4,): 1}
+
+        Specify an entry::
+
+            sage: P.flag_f_vector(0,3)
+            144
+            sage: P.flag_f_vector(2)
+            96
+
+        Leading ``-1`` and trailing entry of dimension are allowed::
+
+            sage: P.flag_f_vector(-1,0,3)
+            144
+            sage: P.flag_f_vector(-1,0,3,4)
+            144
+
+        One can get the number of trivial faces::
+
+            sage: P.flag_f_vector(-1)
+            1
+            sage: P.flag_f_vector(4)
+            1
+
+        Polyhedra with lines, have ``0`` entries accordingly::
+
+            sage: P = (Polyhedron(lines=[[1]]) * polytopes.cross_polytope(3))
+            sage: P.flag_f_vector()
+            {(-1,): 1,
+             (0, 1): 0,
+             (0, 1, 2): 0,
+             (0, 1, 3): 0,
+             (0, 2): 0,
+             (0, 2, 3): 0,
+             (0, 3): 0,
+             (0,): 0,
+             (1, 2): 24,
+             (1, 2, 3): 48,
+             (1, 3): 24,
+             (1,): 6,
+             (2, 3): 24,
+             (2,): 12,
+             (3,): 8,
+             4: 1}
+
+        If the arguments are not stricly increasing or out of range, a key error is raised::
+
+            sage: P.flag_f_vector(-1,0,3,6)
+            Traceback (most recent call last):
+            ...
+            KeyError: (0, 3, 6)
+            sage: P.flag_f_vector(-1,3,0)
+            Traceback (most recent call last):
+            ...
+            KeyError: (3, 0)
+        """
+        flag = self._flag_f_vector()
+        if len(args) == 0:
+            return flag
+        elif len(args) == 1:
+            return flag[(args[0],)]
+        else:
+            dim = self.dimension()
+            if args[0] == -1:
+                args = args[1:]
+            if args[-1] == dim:
+                args = args[:-1]
+            return flag[tuple(args)]
+
+    @cached_method(do_pickle=True)
+    def _flag_f_vector(self):
+        r"""
+        Return the flag-f-vector.
+
+        See :meth:`flag_f_vector`.
+
+        TESTS::
+
+            sage: polytopes.hypercube(4)._flag_f_vector()
+            {(-1,): 1,
+            (0,): 16,
+            (0, 1): 64,
+            (0, 1, 2): 192,
+            (0, 1, 2, 3): 384,
+            (0, 1, 3): 192,
+            (0, 2): 96,
+            (0, 2, 3): 192,
+            (0, 3): 64,
+            (1,): 32,
+            (1, 2): 96,
+            (1, 2, 3): 192,
+            (1, 3): 96,
+            (2,): 24,
+            (2, 3): 48,
+            (3,): 8,
+            (4,): 1}
+        """
+        return self.combinatorial_polyhedron()._flag_f_vector()
+
     def vertex_graph(self):
         """
         Return a graph in which the vertices correspond to vertices

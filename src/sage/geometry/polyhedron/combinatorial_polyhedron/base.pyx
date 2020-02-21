@@ -1321,14 +1321,14 @@ cdef class CombinatorialPolyhedron(SageObject):
         with `F_i` of dimension `i_0` for each `0 \leq i \leq n`,
         where `d` is the dimension of the polyhedron.
 
-        INTPUT:
+        INPUT:
 
         - ``args`` -- integers (optional); specify an entry of the
           flag-f-vector; must be an increasing sequence of integers
 
         OUTPUT:
 
-        - a dictionary, if not arguments where given
+        - a dictionary, if no arguments where given
 
         - an Integer, if arguments where given
 

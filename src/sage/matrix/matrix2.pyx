@@ -270,7 +270,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-           In Sage one can also write ``A \backslash  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 

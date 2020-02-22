@@ -195,7 +195,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 cat = cat.Distributive()
                 H = Hom(base_ring, self, cat)
 
-            # We need to register a coercion from the base ring to self.
+            # We need to construct a coercion from the base ring to self.
             #
             # There is a generic method from_base_ring(), that just does
             # multiplication with the multiplicative unit. However, the

@@ -11,9 +11,12 @@ https://wiki.haskell.org/The_Monad.Reader/Previous_issues
 AUTHORS:
 
 D.K. Sunko (2020-02-19): initial version
+F. Chapoton (2020-02-22): conversion to iterators and shorter doctests
+                          and doc tweaks
 """
 ################################################################################
-#            Copyright (C) 2020 Denis Sunko <dks@phy.hr>                       #
+#          Copyright (C) 2020 Denis Sunko <dks@phy.hr>                         #
+#          Copyright (C) 2020 Frédéric Chapoton <chapoton@math.unistra.fr>     #
 #                                                                              #
 # This program is free software: you can redistribute it and/or modify         #
 # it under the terms of the GNU General Public License as published by         #

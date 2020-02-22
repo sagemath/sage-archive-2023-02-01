@@ -158,11 +158,11 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(IntegerModRing(4), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
         ...
-        ValueError: meataxe library only deals with finite fields of order < 256
+        ValueError: 'meataxe' matrix can only deal with finite fields of order < 256
         sage: get_matrix_class(GF(next_prime(255)), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
         ...
-        ValueError: meataxe library only deals with finite fields of order < 256
+        ValueError: 'meataxe' matrix can only deal with finite fields of order < 256
 
         sage: get_matrix_class(ZZ, 3, 5, False, 'crazy_matrix')
         Traceback (most recent call last):
@@ -171,15 +171,15 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(GF(3), 2, 2, False, 'm4ri')
         Traceback (most recent call last):
         ...
-        ValueError: m4ri matrices are only available for fields of characteristic 2 and order <= 65536
+        ValueError: 'm4ri' matrices are only available for fields of characteristic 2 and order <= 65536
         sage: get_matrix_class(Zmod(2**30), 2, 2, False, 'linbox-float')
         Traceback (most recent call last):
         ...
-        ValueError: linbox-float can only deal with order < 256
+        ValueError: 'linbox-float' matrices can only deal with order < 256
         sage: get_matrix_class(Zmod(2**30), 2, 2, False, 'linbox-double')
         Traceback (most recent call last):
         ...
-        ValueError: linbox-double can only deal with order < 8388608
+        ValueError: 'linbox-double' matrices can only deal with order < 8388608
 
         sage: type(matrix(SR, 2, 2, 0))
         <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
@@ -270,17 +270,14 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             raise ValueError("'flint' matrices are only available over the integers or the rationals")
 
         if implementation == 'm4ri':
-            if (not R.is_field()) or R.characteristic() != 2 or R.order() > 65536:
-                raise ValueError('m4ri matrices are only available for fields of characteristic 2 and order <= 65536')
-            else:
+            if R.is_field() and R.characteristic() == 2 and R.order() <= 65536:
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_gf2e_dense.Matrix_gf2e_dense
+            raise ValueError("'m4ri' matrices are only available for fields of characteristic 2 and order <= 65536")
 
         if implementation == 'meataxe':
-            if not (R.is_field() and R.order()<256):
-                raise ValueError('meataxe library only deals with finite fields of order < 256')
-            else:
+            if R.is_field() and R.order() < 256:
                 try:
                     from . import matrix_gfpn_dense
                 except ImportError:
@@ -288,6 +285,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                     raise PackageNotFoundError('meataxe')
                 else:
                     return matrix_gfpn_dense.Matrix_gfpn_dense
+            raise ValueError("'meataxe' matrix can only deal with finite fields of order < 256")
 
         if implementation == 'numpy':
             if R is sage.rings.real_double.RDF:
@@ -296,25 +294,25 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if R is sage.rings.complex_double.CDF:
                 from . import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
+            raise ValueError("'numpy' matrices are only available over RDF and CDF")
 
         if implementation == 'rational':
             if sage.rings.number_field.number_field.is_CyclotomicField(R):
                 from . import matrix_cyclo_dense
                 return matrix_cyclo_dense.Matrix_cyclo_dense
-            raise ValueError('"rational" matrices are only available over a cyclotomic field')
+            raise ValueError("'rational' matrices are only available over a cyclotomic field")
 
         if implementation == 'linbox-float':
             from . import matrix_modn_dense_float
-            if R.order() >= matrix_modn_dense_float.MAX_MODULUS:
-                raise ValueError('linbox-float can only deal with order < %s' % matrix_modn_dense_float.MAX_MODULUS)
-            else:
+            if R.order() < matrix_modn_dense_float.MAX_MODULUS:
                 return matrix_modn_dense_float.Matrix_modn_dense_float
+            raise ValueError("'linbox-float' matrices can only deal with order < %s" % matrix_modn_dense_float.MAX_MODULUS)
+
         if implementation == 'linbox-double':
             from . import matrix_modn_dense_double
-            if R.order() >= matrix_modn_dense_double.MAX_MODULUS:
-                raise ValueError('linbox-double can only deal with order < %s' % matrix_modn_dense_double.MAX_MODULUS)
-            else:
+            if R.order() < matrix_modn_dense_double.MAX_MODULUS:
                 return matrix_modn_dense_double.Matrix_modn_dense_double
+            raise ValueError("'linbox-double' matrices can only deal with order < %s" % matrix_modn_dense_double.MAX_MODULUS)
 
         if implementation == 'generic':
             return matrix_generic_dense.Matrix_generic_dense

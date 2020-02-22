@@ -425,7 +425,7 @@ Methods
 # ****************************************************************************
 from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
-from six import itervalues, iteritems, integer_types
+from six import iteritems, integer_types
 
 from copy import copy
 
@@ -16007,11 +16007,11 @@ class GenericGraph(GenericGraph_pyx):
                 return Integer(tr // 6)
             elif algorithm == "sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return sum(itervalues(triangles_count(self))) // 3
+                return sum(triangles_count(self).values()) // 3
             elif algorithm == "dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return sum(itervalues(triangles_count(self))) // 3
-            elif algorithm=='matrix':
+                return sum(triangles_count(self).values()) // 3
+            elif algorithm == 'matrix':
                 return (self.adjacency_matrix(vertices=list(self))**3).trace() // 6
             else:
                 raise ValueError('unknown algorithm "{}"'.format(algorithm))

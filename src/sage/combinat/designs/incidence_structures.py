@@ -41,7 +41,6 @@ Methods
 from __future__ import print_function
 
 import six
-from six import itervalues
 from six.moves import range
 
 from sage.rings.integer import Integer
@@ -1895,7 +1894,7 @@ class IncidenceStructure(object):
             False
         """
         if self._classes is None:
-            degrees = set(itervalues(self.degrees()))
+            degrees = set(self.degrees().values())
             if len(degrees) != 1:
                 self._classes = False
             else:

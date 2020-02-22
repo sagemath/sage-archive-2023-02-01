@@ -665,7 +665,7 @@ def call_intersphinx(app, env, node, contnode):
         sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
         ....:         _ = sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></li>
+        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage... Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder

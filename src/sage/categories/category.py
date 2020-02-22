@@ -449,18 +449,16 @@ class Category(UniqueRepresentation, SageObject):
 
     def __init__(self, s=None):
         """
-        Initializes this category.
+        Initialize this category.
 
         EXAMPLES::
 
             sage: class SemiprimitiveRings(Category):
             ....:     def super_categories(self):
             ....:         return [Rings()]
-            ....:
             ....:     class ParentMethods:
             ....:         def jacobson_radical(self):
             ....:             return self.ideal(0)
-            ....:
             sage: C = SemiprimitiveRings()
             sage: C
             Category of semiprimitive rings

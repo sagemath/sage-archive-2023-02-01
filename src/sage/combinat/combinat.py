@@ -2024,7 +2024,8 @@ class CombinatorialClass(Parent):
             sage: [ r for r in R]
             [[], [2], [1], [1, 2], [2, 1], [2, 1, 2]]
 
-            If the function is not injective, then there may be repeated elements:
+        If the function is not injective, then there may be repeated elements::
+
             sage: P = Partitions(4)
             sage: P.list()
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]

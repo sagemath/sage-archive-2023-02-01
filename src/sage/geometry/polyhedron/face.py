@@ -677,6 +677,86 @@ class PolyhedronFace(SageObject):
         Vrep = (self.vertices(), self.rays(), self.lines())
         return P.__class__(parent, Vrep, None)
 
+    @cached_method
+    def normal_cone(self, direction='outer'):
+        """
+        Return the pointed polyhedral cone consisting of normal vectors to
+        hyperplanes supporting ``self``.
+
+        INPUT:
+
+        - ``direction`` -- string (default: ``'outer'``), the direction in
+          which to consider the normals. The other allowed option is
+          ``'inner'``.
+
+        OUTPUT:
+
+        A polyhedron.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[1,2],[2,1],[-2,2],[-2,-2],[2,-2]])
+            sage: for v in p.face_generator(0):
+            ....:     vect = v.vertices()[0].vector()
+            ....:     nc = v.normal_cone().rays_list()
+            ....:     print("{} has outer normal cone spanned by {}".format(vect,nc))
+            ....:
+            (2, 1) has outer normal cone spanned by [[1, 0], [1, 1]]
+            (1, 2) has outer normal cone spanned by [[0, 1], [1, 1]]
+            (2, -2) has outer normal cone spanned by [[0, -1], [1, 0]]
+            (-2, -2) has outer normal cone spanned by [[-1, 0], [0, -1]]
+            (-2, 2) has outer normal cone spanned by [[-1, 0], [0, 1]]
+
+            sage: for v in p.face_generator(0):
+            ....:     vect = v.vertices()[0].vector()
+            ....:     nc = v.normal_cone(direction='inner').rays_list()
+            ....:     print("{} has inner normal cone spanned by {}".format(vect,nc))
+            ....:
+            (2, 1) has inner normal cone spanned by [[-1, -1], [-1, 0]]
+            (1, 2) has inner normal cone spanned by [[-1, -1], [0, -1]]
+            (2, -2) has inner normal cone spanned by [[-1, 0], [0, 1]]
+            (-2, -2) has inner normal cone spanned by [[0, 1], [1, 0]]
+            (-2, 2) has inner normal cone spanned by [[0, -1], [1, 0]]
+
+        The function works for polytopes that are not full-dimensional::
+
+            sage: p = polytopes.permutahedron(3)
+            sage: f1 = p.faces(0)[0]
+            sage: f2 = p.faces(1)[0]
+            sage: f3 = p.faces(2)[0]
+            sage: f1.normal_cone()
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line
+            sage: f2.normal_cone()
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line
+            sage: f3.normal_cone()
+            A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex and 1 line
+
+        Normal cones are only defined for non-empty faces::
+
+            sage: f0 = p.faces(-1)[0]
+            sage: f0.normal_cone()
+            Traceback (most recent call last):
+            ...
+            ValueError: the empty face does not have a normal cone
+        """
+        if self.dim() == -1:
+            raise ValueError("the empty face does not have a normal cone")
+        elif direction not in ['outer','inner']:
+            raise ValueError("the direction should be either 'outer' or 'inner'")
+        rays = []
+        lines = []
+        for facet in self.ambient_Hrepresentation():
+            if facet.is_equation():
+                lines += [facet.A()]
+            elif direction == 'outer':
+                rays += [-facet.A()]
+            else:  # 'inner'
+                rays += [facet.A()]
+        parent = self.polyhedron().parent()
+        origin = self.polyhedron().ambient_space().zero()
+        return parent.element_class(parent, [[origin], rays, lines], None)
+
+
 def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
     r"""
     Convert a combinatorial face to a face of a polyhedron.

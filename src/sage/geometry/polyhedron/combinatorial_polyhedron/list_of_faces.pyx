@@ -38,9 +38,9 @@ Obtain the facets of a polyhedron::
 Obtain the Vrepresentation of a polyhedron as facet-incidences::
 
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-    ....:         import incidence_matrix_to_bit_repr_of_Vrepr
+    ....:         import incidence_matrix_to_bit_repr_of_Vrep
     sage: P = polytopes.associahedron(['A',3])
-    sage: face_list = incidence_matrix_to_bit_repr_of_Vrepr(P.incidence_matrix())
+    sage: face_list = incidence_matrix_to_bit_repr_of_Vrep(P.incidence_matrix())
     sage: face_list.compute_dimension()
     3
 
@@ -54,9 +54,9 @@ Obtain the facets of a polyhedron as :class:`ListOfFaces` from a facet list::
 Likewise for the Vrepresenatives as facet-incidences::
 
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-    ....:         import facets_tuple_to_bit_repr_of_Vrepr
+    ....:         import facets_tuple_to_bit_repr_of_Vrep
     sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
-    sage: face_list = facets_tuple_to_bit_repr_of_Vrepr(facets, 4)
+    sage: face_list = facets_tuple_to_bit_repr_of_Vrep(facets, 4)
 
 .. SEEALSO::
 
@@ -102,9 +102,9 @@ cdef class ListOfFaces:
     .. SEEALSO::
 
         :meth:`incidence_matrix_to_bit_repr_of_facets`,
-        :meth:`incidence_matrix_to_bit_repr_of_Vrepr`,
+        :meth:`incidence_matrix_to_bit_repr_of_Vrep`,
         :meth:`facets_tuple_to_bit_repr_of_facets`,
-        :meth:`facets_tuple_to_bit_repr_of_Vrepr`,
+        :meth:`facets_tuple_to_bit_repr_of_Vrep`,
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
 
@@ -183,14 +183,14 @@ cdef class ListOfFaces:
             ....:     import ListOfFaces
             sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
             ....:     import facets_tuple_to_bit_repr_of_facets, \
-            ....:            facets_tuple_to_bit_repr_of_Vrepr
+            ....:            facets_tuple_to_bit_repr_of_Vrep
             sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
             ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
             sage: facets = facets_tuple_to_bit_repr_of_facets(bi_pyr, 6)
-            sage: Vrepr = facets_tuple_to_bit_repr_of_Vrepr(bi_pyr, 6)
+            sage: Vrep = facets_tuple_to_bit_repr_of_Vrep(bi_pyr, 6)
             sage: facets.compute_dimension()
             3
-            sage: Vrepr.compute_dimension()
+            sage: Vrep.compute_dimension()
             3
 
         ALGORITHM:
@@ -217,7 +217,7 @@ cdef class ListOfFaces:
             ....:     import ListOfFaces
             sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
             ....:     import incidence_matrix_to_bit_repr_of_facets, \
-            ....:            incidence_matrix_to_bit_repr_of_Vrepr
+            ....:            incidence_matrix_to_bit_repr_of_Vrep
             sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
             ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
             sage: for _ in range(10):
@@ -225,7 +225,7 @@ cdef class ListOfFaces:
             ....:                    for _ in range(randint(3,15)))
             ....:     P = Polyhedron(vertices=points)
             ....:     facets = incidence_matrix_to_bit_repr_of_facets(P.incidence_matrix())
-            ....:     vertices = incidence_matrix_to_bit_repr_of_Vrepr(P.incidence_matrix())
+            ....:     vertices = incidence_matrix_to_bit_repr_of_Vrep(P.incidence_matrix())
             ....:     d1 = P.dimension()
             ....:     if d1 == 0:
             ....:         continue

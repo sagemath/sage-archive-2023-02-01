@@ -32,7 +32,7 @@ def vector_halve(v):
 
     INPUT:
 
-    - ``v`` -- A list of non-negative integers, understood as a vector.
+    - ``v`` -- list of non-negative integers, understood as a vector
 
     OUTPUT:
 
@@ -62,7 +62,7 @@ def vector_halve(v):
     for vv in v:
         result += [vv // 2]
         i += 1
-        if vv % 2 != 0:
+        if vv % 2:
             return result + v[i:] # the less significant part is just copied
     return result
 
@@ -73,11 +73,11 @@ def recursive_within_from_to(m, s, e, useS, useE):
 
     INPUT:
 
-    - ``m`` -- A list of non-negative integers, understood as a vector.
-    - ``s`` -- A list of non-negative integers, understood as a vector.
-    - ``e`` -- A list of non-negative integers, understood as a vector.
-    - ``useS``  -- Boolean.
-    - ``useE``  -- Boolean.
+    - ``m`` -- list of non-negative integers, understood as a vector
+    - ``s`` -- list of non-negative integers, understood as a vector
+    - ``e`` -- list of non-negative integers, understood as a vector
+    - ``useS``  -- boolean
+    - ``useE``  -- boolean
 
     OUTPUT:
 
@@ -87,7 +87,7 @@ def recursive_within_from_to(m, s, e, useS, useE):
     EXAMPLES::
 
         sage: from sage.combinat.fast_vector_partitions import recursive_within_from_to
-        sage: recursive_within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1],True,True)
+        sage: list(recursive_within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1],True,True))
         [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
 
     .. NOTE::
@@ -115,18 +115,15 @@ def recursive_within_from_to(m, s, e, useS, useE):
     else:
         end = 0
 
-    result = []
     for x in range(start, end - 1, -1):
         useSS = useS and x == s[0]
         useEE = useE and x == e[0]
         if len(m) > 1:
             out = recursive_within_from_to(m[1:], s[1:], e[1:], useSS, useEE)
             for o in out:
-                result += [[x] + o]
+                yield [x] + o
         else:
-            result += [[x]] # we know the answer for singletons
-
-    return result
+            yield [x] # we know the answer for singletons
 
 
 def within_from_to(m, s, e):
@@ -135,9 +132,9 @@ def within_from_to(m, s, e):
 
     INPUT:
 
-    - ``m`` -- A list of non-negative integers, understood as a vector.
-    - ``s`` -- A list of non-negative integers, understood as a vector.
-    - ``e`` -- A list of non-negative integers, understood as a vector.
+    - ``m`` -- list of non-negative integers, understood as a vector
+    - ``s`` -- list of non-negative integers, understood as a vector
+    - ``e`` -- list of non-negative integers, understood as a vector
 
     OUTPUT:
 
@@ -147,7 +144,7 @@ def within_from_to(m, s, e):
     EXAMPLES::
 
         sage: from sage.combinat.fast_vector_partitions import within_from_to
-        sage: within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1])
+        sage: list(within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1]))
         [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
     
     .. NOTE::
@@ -210,8 +207,8 @@ def within_from_to(m, s, e):
     if not all(x <= y for x, y in zip(s, m)): # slightly slower without the if
         ss = [min(x,y) for x,y in zip(s, m)]  # rebuilding the list is costly
     if e > ss:
-        return []
-    return recursive_within_from_to(m, ss, e, True, True)
+        return
+    yield from recursive_within_from_to(m, ss, e, True, True)
 
 
 def recursive_vector_partitions(v, vL):
@@ -220,8 +217,8 @@ def recursive_vector_partitions(v, vL):
 
     INPUT:
 
-    - ``v`` -- A list of non-negative integers, understood as a vector.
-    - ``vL`` -- A list of non-negative integers, understood as a vector.
+    - ``v`` -- list of non-negative integers, understood as a vector
+    - ``vL`` -- list of non-negative integers, understood as a vector
 
     OUTPUT:
 
@@ -232,24 +229,22 @@ def recursive_vector_partitions(v, vL):
     EXAMPLES::
 
         sage: from sage.combinat.fast_vector_partitions import recursive_vector_partitions
-        sage: recursive_vector_partitions([2, 2, 2],[1, 1, 1])
+        sage: list(recursive_vector_partitions([2, 2, 2],[1, 1, 1]))
         [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]]]
-        sage: recursive_vector_partitions([2, 2, 2],[1, 1, 0])
+        sage: list(recursive_vector_partitions([2, 2, 2],[1, 1, 0]))
         [[[2, 2, 2]], [[1, 1, 1], [1, 1, 1]], [[1, 1, 0], [1, 1, 2]]]
-        sage: recursive_vector_partitions([2, 2, 2],[1, 0, 1])
+        sage: list(recursive_vector_partitions([2, 2, 2],[1, 0, 1]))
         [[[2, 2, 2]],
          [[1, 1, 1], [1, 1, 1]],
          [[1, 1, 0], [1, 1, 2]],
          [[1, 0, 2], [1, 2, 0]],
          [[1, 0, 1], [1, 2, 1]]]
     """
-    result = [[v]]
-    vspan = within_from_to(v, vector_halve(v), vL)
-    for vv in vspan:
-        v_minus_vv=[x - y for x, y in zip(v, vv)]
+    yield [v]
+    for vv in within_from_to(v, vector_halve(v), vL):
+        v_minus_vv = [x - y for x, y in zip(v, vv)]
         for pp in recursive_vector_partitions(v_minus_vv, vv):
-            result += [[vv] + pp]
-    return result
+            yield [vv] + pp
 
 
 def fast_vector_partitions(v, min=None):
@@ -258,11 +253,11 @@ def fast_vector_partitions(v, min=None):
 
     INPUT:
 
-    - ``v``   -- A list of non-negative integers, understood as the vector
-                 to be partitioned.
+    - ``v``   -- list of non-negative integers, understood as the vector
+                 to be partitioned
 
-    - ``min`` -- An optional list of non-negative integers, of same length
-                 as ``v``.
+    - ``min`` -- optional list of non-negative integers, of same length
+                 as ``v``
 
     OUTPUT:
 
@@ -278,13 +273,13 @@ def fast_vector_partitions(v, min=None):
     The older the computer, the more impressive the comparison::
 
         sage: from sage.combinat.fast_vector_partitions import fast_vector_partitions
-        sage: fastvparts = fast_vector_partitions([6, 6, 6])
-        sage: vparts = list(VectorPartitions([6, 6, 6]))
+        sage: fastvparts = list(fast_vector_partitions([3, 3, 3]))
+        sage: vparts = list(VectorPartitions([3, 3, 3]))
         sage: vparts == fastvparts[::-1]
         True
         sage: len(fastvparts)
-        476781
-        sage: fast_vector_partitions([1, 2, 3], min = [0, 1, 1])
+        686
+        sage: list(fast_vector_partitions([1, 2, 3], min=[0, 1, 1]))
         [[[1, 2, 3]],
          [[0, 2, 3], [1, 0, 0]],
          [[0, 2, 2], [1, 0, 1]],
@@ -295,13 +290,13 @@ def fast_vector_partitions(v, min=None):
          [[0, 1, 1], [1, 1, 2]],
          [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
          [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
-        sage: fast_vector_partitions([5, 7, 6], min = [1, 3, 2]) == list(VectorPartitions([5, 7, 6], min = [1, 3, 2]))[::-1]
+        sage: list(fast_vector_partitions([5, 7, 6], min=[1, 3, 2])) == list(VectorPartitions([5, 7, 6], min = [1, 3, 2]))[::-1]
         True
 
     .. NOTE::
 
-        The partitions are returned as a list allocated in memory.
-        
+        The partitions are returned as an iterator.
+
         In this documentation, ``a <|= b`` means ``a[i] <= b[i]`` for all ``i``
         (notation following B. Yorgey's paper). It is the monomial partial
         ordering in Dickson's lemma: ``a <|= b`` iff ``x^a`` divides ``x^b`` as
@@ -313,10 +308,9 @@ def fast_vector_partitions(v, min=None):
         Sage class VectorPartitions().
     """
     if min is None:
-        min=(len(v) - 1)*[0] + [1] # lexicographically smallest vector > 0
+        min = (len(v) - 1) * [0] + [1]  # lexicographically smallest vector > 0
         return recursive_vector_partitions(v, min)
-    else:
-        if len(v)==len(min):
+    elif len(v) == len(min):
             return recursive_vector_partitions(v, min)
-        else:
-            return None
+    else:
+        return

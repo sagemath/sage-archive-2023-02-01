@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Brent Yorgey's fast algorithm for integer vector (multiset) partitions.
 

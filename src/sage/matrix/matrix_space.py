@@ -151,15 +151,15 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(CDF, 2, 3, False, 'numpy')
         <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
-        sage: get_matrix_class(GF(25,'x'),4,4,False, 'meataxe')         # optional: meataxe
+        sage: get_matrix_class(GF(25,'x'), 4, 4, False, 'meataxe')         # optional: meataxe
         <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
-        sage: get_matrix_class(IntegerModRing(3),4,4,False, 'meataxe')  # optional: meataxe
+        sage: get_matrix_class(IntegerModRing(3), 4, 4, False, 'meataxe')  # optional: meataxe
         <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
-        sage: get_matrix_class(IntegerModRing(4),4,4,False, 'meataxe')
+        sage: get_matrix_class(IntegerModRing(4), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
         ...
         ValueError: meataxe library only deals with finite fields of order < 256
-        sage: get_matrix_class(GF(next_prime(255)),4,4,False, 'meataxe')
+        sage: get_matrix_class(GF(next_prime(255)), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
         ...
         ValueError: meataxe library only deals with finite fields of order < 256
@@ -201,7 +201,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         return implementation
 
     if not sparse:
-        if not implementation:
+        if implementation is None:
             # Choose default implementation:
             if R is sage.rings.integer_ring.ZZ:
                 return matrix_integer_dense.Matrix_integer_dense

@@ -62,6 +62,19 @@ from sage.env import SAGE_DOC, SAGE_SRC
 # the strings raw: r'\\blah'.
 math_substitutes = [
     (r'\\to', '-->'),
+    (r'\\rightarrow', '-->'),
+    (r'\\leftarrow', '<--'),
+    (r'\\leftrightarrow', '<->'),
+    (r'\\longrightarrow', '--->'),
+    (r'\\longleftarrow', '<---'),
+    (r'\\longleftrightarrow', '<-->'),
+    (r'\\Rightarrow', '==>'),
+    (r'\\Leftarrow', '<=='),
+    (r'\\Leftrightarrow', '<=>'),
+    (r'\\Longrightarrow', '===>'),
+    (r'\\Longleftarrow', '<==='),
+    (r'\\Longleftrightarrow', '<==>'),
+    (r'\\colon', ':'),
     (r'\\left', ''),
     (r'\\right', ''),
     (r'\\bigl', ''),
@@ -79,6 +92,7 @@ math_substitutes = [
     (r'\\times', ' x'),
     (r'\\backslash','\\'),
     (r'\\mapsto', ' |--> '),
+    (r'\\longmapsto', ' |---> '),
     (r'\\lvert', '|'),
     (r'\\rvert', '|'),
     (r'\\mid', '|'),
@@ -205,8 +219,8 @@ def detex(s, embedded=False):
         '`a, b, c, \\ldots, z`'
         sage: detex(r'`\left(\lvert x\ast y \rvert\right]`')
         '(| x * y |]\n'
-        sage: detex(r'`\left(\leq\le\leftarrow \rightarrow\to`')
-        '(<=<=leftarrow rightarrow-->\n'
+        sage: detex(r'`\left(\leq\le\leftarrow \rightarrow\unknownmacro\to`')
+        '(<=<=<-- -->\\unknownmacro-->\n'
     """
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')
@@ -234,7 +248,6 @@ def detex(s, embedded=False):
         # test to make sure the next character is not a letter.
         for a,b in math_substitutes:
             s = re.sub(a+'([^a-zA-Z])', b+'\\1', s)
-        s = s.replace('\\','')        # nuke backslashes
     return s
 
 def skip_TESTS_block(docstring):
@@ -658,6 +671,15 @@ def format(s, embedded=False):
            Return the n x n identity matrix over the given ring.
         ...
 
+    Check that backslashes are preserved in code blocks (:trac:`29140`)::
+
+        sage: format('::\n'
+        ....:        '\n'
+        ....:        r'    sage: print(r"\\\\.")' '\n'
+        ....:        r'    \\\\.')
+        '   sage: print(r"\\\\\\\\.")\n   \\\\\\\\.\n'
+        sage: format(r'inline code ``\\\\.``')
+        'inline code "\\\\\\\\."\n'
     """
     if not isinstance(s, string_types):
         raise TypeError("s must be a string")

@@ -2416,6 +2416,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         Check if ``self`` contains preprocessed tableau ``T``.
 
         TESTS::
+
             sage: t = ShiftedPrimedTableau._preprocess([[1,1.5],[2]])
             sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(t)
             True

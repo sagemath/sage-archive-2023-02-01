@@ -179,13 +179,13 @@ def normalize_long_repr(s):
     representations of long objects from strings containing a long repr.
 
     EXAMPLES::
+
         sage: from sage.doctest.parsing import normalize_long_repr
         sage: normalize_long_repr('10L')
         '10'
         sage: normalize_long_repr('[10L, -10L, +10L, "ALL"]')
         '[10, -10, +10, "ALL"]'
     """
-
     return _long_repr_re.sub(lambda m: m.group(1), s)
 
 

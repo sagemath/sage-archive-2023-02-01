@@ -10,6 +10,9 @@
 
     #menu-container { position: absolute; bottom: 30px; right: 40px; }
 
+    #menu-message { position: absolute; bottom: 0px; right: 0px; white-space: nowrap;
+                    display: none; background-color: #F5F5F5; padding: 10px }
+
     #menu-content { position: absolute; bottom: 0px; right: 0px;
                     display: none; background-color: #F5F5F5; border-bottom: 1px solid black;
                     border-right: 1px solid black; border-left: 1px solid black; }
@@ -410,18 +413,33 @@ SAGE_SCRIPTS
 
     function getViewpoint() {
 
-        var info = '<pre>' + JSON.stringify( camera, null, '\t' ) + '</pre>';
-        window.open().document.write( info );
+        var v = camera.quaternion.inverse();
+        var r = Math.sqrt( v.x*v.x + v.y*v.y + v.z*v.z );
+        var axis = [ v.x / r, v.y / r, v.z / r ];
+        var angle = 2 * Math.atan2( r, v.w ) * 180 / Math.PI;
+
+        var textArea = document.createElement( 'textarea' );
+        textArea.textContent = JSON.stringify( axis ) + ', ' + angle;
+        textArea.style.csstext = 'position: absolute; top: -100%';
+        document.body.append( textArea );
+        textArea.select();
+        document.execCommand( 'copy' );
+
+        var m = document.getElementById( 'menu-message' );
+        m.innerHTML = 'Viewpoint copied to clipboard';
+        m.style.display = 'block';
+        setTimeout( function() { m.style.display = 'none'; }, 2000 );
 
     }
 
 </script>
 
 <div id="menu-container" onclick="toggleMenu()">&#x24d8;
+<div id="menu-message"></div>
 <div id="menu-content">
 <div onclick="saveAsPNG()">Save as PNG</div>
 <div onclick="saveAsHTML()">Save as HTML</div>
-<div onclick="getViewpoint()">Camera Info</div>
+<div onclick="getViewpoint()">Get Viewpoint</div>
 <div>Close Menu</div>
 </div></div>
 

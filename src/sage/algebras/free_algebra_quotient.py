@@ -43,7 +43,7 @@ Test comparison by equality::
     False
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -56,7 +56,7 @@ Test comparison by equality::
 #  is available at:
 #
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.modules.free_module import FreeModule
 from sage.algebras.algebra import Algebra
@@ -233,8 +233,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         R = self.base_ring()
         F = self.__free_algebra.monoid()
-        n = self.__ngens
-        return self.element_class(self,{F.gen(i):R(1)})
+        return self.element_class(self, {F.gen(i): R.one()})
 
     def ngens(self):
         """

@@ -2695,6 +2695,40 @@ class Polyhedron_base(Element):
         accumulator.set_immutable()
         return accumulator
 
+    def a_maximal_chain(self):
+        r"""
+        Return a maximal chain of the face lattice in increasing order.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.a_maximal_chain()
+            [A -1-dimensional face of a Polyhedron in ZZ^3,
+             A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex,
+             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
+             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices]
+            sage: P = polytopes.cube()
+            sage: chain = P.a_maximal_chain(); chain
+            [A -1-dimensional face of a Polyhedron in ZZ^3,
+             A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex,
+             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
+             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices]
+            sage: [face.ambient_V_indices() for face in chain]
+            [(), (0,), (0, 4), (0, 1, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
+        """
+        comb_chain = self.combinatorial_polyhedron().a_maximal_chain()
+
+        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face
+        empty_face = self.faces(-1)[0]
+        universe = self.faces(self.dim())[0]
+
+        return [empty_face] + \
+               [combinatorial_face_to_polyhedral_face(self, face)
+                for face in comb_chain] + \
+               [universe]
+
     @cached_method
     def radius_square(self):
         """
@@ -4797,8 +4831,7 @@ class Polyhedron_base(Element):
 
         B = - normal_vector * (face_vertices[0].vector())
 
-        linear_evaluation = set(-normal_vector * (v.vector()) for v in
-            self.vertices())
+        linear_evaluation = set(-normal_vector * (v.vector()) for v in self.vertices())
 
         if B == max(linear_evaluation):
             C = max(linear_evaluation.difference(set([B])))

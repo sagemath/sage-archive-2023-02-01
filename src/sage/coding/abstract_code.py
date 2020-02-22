@@ -222,7 +222,8 @@ class AbstractCode(Parent):
             sage: C
             Dummy code of length 6
 
-        We can list its elements and check if an element is in the code:
+        We can list its elements and check if an element is in the code::
+
             sage: list(C)
             [(0, 0, 0, 0, 0, 0),
             (1, 0, 0, 0, 0, 0),

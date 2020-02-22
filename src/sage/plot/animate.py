@@ -1122,7 +1122,6 @@ class APngAssembler(object):
         ....:             png = os.path.join(pngdir, "{:08d}.png".format(i))
         ....:             apng.add_frame(png, delay=10*i + 10)
         ....:     return outfile
-        ....:
         sage: assembleAPNG()  # long time
         '...png'
 

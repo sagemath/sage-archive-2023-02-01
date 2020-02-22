@@ -1179,12 +1179,20 @@ class TermOrder(SageObject):
             False
             sage: a > e^4
             True
+
+        TESTS:
+
+        Check that the issue in :trac:`27139` is fixed::
+
+            sage: R.<x,y,z,t> = PolynomialRing(AA, order='lex(2),lex(2)')
+            sage: x > y
+            True
         """
         key = tuple()
         n = 0
         for block in self:
             r = getattr(block, "sortkey_" + block.name())(f[n:n + len(block)])
-            key += r
+            key += tuple(r)
             n += len(block)
         return key
 

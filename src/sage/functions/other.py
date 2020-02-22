@@ -1468,8 +1468,8 @@ class Function_factorial(GinacFunction):
 
         Check that :trac:`26749` is fixed::
 
-            sage: factorial(float(3.2))
-            7.756689535793181
+            sage: factorial(float(3.2))        # abs tol 1e-14
+            7.7566895357931776
             sage: type(factorial(float(3.2)))
             <type 'float'>
         """

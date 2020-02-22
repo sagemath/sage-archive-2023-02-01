@@ -28,6 +28,7 @@ from __future__ import print_function
 
 import os
 import sys
+import six
 from sage.structure.sage_object import SageObject
 
 
@@ -310,7 +311,7 @@ class CharacterArt(SageObject):
         # We implement a custom iterator instead of repeatedly using
         # itertools.chain to prepend elements in order to avoid quadratic time
         # complexity
-        class PrependIterator:
+        class PrependIterator(six.Iterator):
             """
             Iterator with support for prepending of elements.
             """

@@ -149,7 +149,8 @@ class SageSpawn(spawn):
             u'hello world\r\n'
         """
         ret = self.expect(*args, **kwds)
-        self.buffer = self.before + self.after + self.buffer
+        self._before = self.buffer_type()
+        self._before.write(self.before + self.after + self.buffer)
         return ret
 
     def expect_upto(self, *args, **kwds):
@@ -167,7 +168,8 @@ class SageSpawn(spawn):
             u'world\r\n'
         """
         ret = self.expect(*args, **kwds)
-        self.buffer = self.after + self.buffer
+        self._before = self.buffer_type()
+        self._before.write(self.after + self.buffer)
         return ret
 
 

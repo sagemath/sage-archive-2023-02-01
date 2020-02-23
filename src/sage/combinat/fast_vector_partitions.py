@@ -60,13 +60,11 @@ def vector_halve(v):
         ``sqrt(N)``, halving the exponents in the prime decomposition.
         However, here "v/2" does not mean halving each coordinate.
     """
-    i = 0
     result = []
-    for vv in v:
+    for i, vv in enumerate(v):
         result += [vv // 2]
-        i += 1
         if vv % 2:
-            return result + v[i:] # the less significant part is just copied
+            return result + v[i+1:] # the less significant part is just copied
     return result
 
 

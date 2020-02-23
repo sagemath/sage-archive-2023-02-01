@@ -484,7 +484,7 @@ class Graphics(WithEqualityById, SageObject):
 
     def flip(self, flip_x=False, flip_y=False):
         """
-        Mirror this graphics object and get the new flip options.
+        Get the flip options and optionally mirror this graphics object.
 
         INPUT:
 
@@ -495,17 +495,21 @@ class Graphics(WithEqualityById, SageObject):
 
         OUTPUT: a tuple containing the new flip options
 
-        EXAMPLES::
+        EXAMPLES:
+
+        When called without arguments, this just returns the current flip
+        options::
 
             sage: L = line([(1, 0), (2, 3)])
+            sage: L.flip()
+            (False, False)
+
+        Otherwise, the specified options are changed and the new options are
+        returned::
+
             sage: L.flip(flip_y=True)
             (False, True)
             sage: L.flip(True, True)
-            (True, False)
-
-        When called without arguments, this returns the current flip options::
-
-            sage: L.flip()
             (True, False)
         """
         a = self._extra_kwds.get('flip_x', self.SHOW_OPTIONS['flip_x'])

@@ -1865,7 +1865,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         number field into this number field.
 
         INPUT:
-            x -- string
+
+        - x -- string
 
         EXAMPLES::
 
@@ -1874,11 +1875,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             -1/3*theta25 - 1
 
         This function is called by the coerce method when it gets a string
-        as input:
+        as input::
+
             sage: k('theta25^3 + (1/3)*theta25')
             -1/3*theta25 - 1
         """
-        w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
+        w = sage.misc.all.sage_eval(x, locals=self.gens_dict())
         if not (is_Element(w) and w.parent() is self):
             return self(w)
         else:

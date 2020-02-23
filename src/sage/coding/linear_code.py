@@ -1204,7 +1204,6 @@ class AbstractLinearCode(AbstractCode, Module):
             ....:     def generator_matrix(self):
             ....:         G = identity_matrix(GF(5), 5).augment(matrix(GF(5), 5, 7))
             ....:         return G
-            ....:
             sage: MonkeyCode._registered_encoders["Monkey"] = MonkeyEncoder
             sage: C = MonkeyCode()
             sage: C.dimension()
@@ -3340,7 +3339,6 @@ class LinearCodeSystematicEncoder(Encoder):
         ....:
         ....:   def _repr_(self):
         ....:       return "Dual of the [%d, 1] Repetition Code over GF(%s)" % (self.length(), self.base_field().cardinality())
-        ....:
         sage: DualRepetitionCode(GF(3), 5).generator_matrix()
         [1 0 0 0 2]
         [0 1 0 0 2]
@@ -3357,7 +3355,6 @@ class LinearCodeSystematicEncoder(Encoder):
         ....:
         ....:   def _repr_(self):
         ....:       return "I am a badly defined code"
-        ....:
         sage: BadCodeFamily(GF(3), 5).generator_matrix()
         Traceback (most recent call last):
         ...

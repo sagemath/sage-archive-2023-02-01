@@ -79,6 +79,7 @@ class TestParent2(Parent):
 
             sage: sage.misc.nested_class_test.TestParent2()
             Traceback (most recent call last):
+            ...
             TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
         """
         from sage.categories.all import Sets

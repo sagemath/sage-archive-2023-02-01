@@ -2249,7 +2249,6 @@ class RijndaelGF(SageObject):
 
                 sage: def my_poly_constr(row, col, algorithm='encrypt'):
                 ....:     return x * rgf._F.one() # example body with no checks
-                ....:
                 sage: rcpc = RijndaelGF.Round_Component_Poly_Constr(
                 ....: my_poly_constr, rgf, "My Poly Constr")
                 sage: rcpc(-1, 2)

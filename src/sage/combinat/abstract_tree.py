@@ -1925,7 +1925,7 @@ class AbstractClonableTree(AbstractTree):
             sage: with x.clone() as x:
             ....:     x[0] = OrderedTree([[]])
             Traceback (most recent call last):
-            ....:
+            ...
             IndexError: list assignment index out of range
 
             sage: x = OrderedTree([]); x = OrderedTree([x,x]); x = OrderedTree([x,x]); x = OrderedTree([x,x])

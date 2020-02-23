@@ -165,6 +165,8 @@ import sage.rings.infinity
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.arith.constants cimport M_LN2_LN10
+from sage.arith.long cimport is_small_python_int
+
 
 cimport gmpy2
 gmpy2.import_gmpy2()
@@ -4253,7 +4255,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             rounding_mode = (<RealField_class>base._parent).rnd
             x = base._new()
             sig_on()
-            if isinstance(exponent, int):
+            if is_small_python_int(exponent):
                 mpfr_pow_si(x.value, base.value, exponent, rounding_mode)
             elif isinstance(exponent, Integer):
                 mpfr_pow_z(x.value, base.value, (<Integer>exponent).value, rounding_mode)

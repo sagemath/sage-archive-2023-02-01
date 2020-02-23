@@ -12,8 +12,7 @@ https://wiki.haskell.org/The_Monad.Reader/Previous_issues
 AUTHORS:
 
 D.K. Sunko (2020-02-19): initial version
-F. Chapoton (2020-02-22): conversion to iterators and shorter doctests
-                          and doc tweaks
+F. Chapoton (2020-02-22): conversion to iterators and shorter doctests and doc tweaks
 """
 ################################################################################
 #          Copyright (C) 2020 Denis Sunko <dks@phy.hr>                         #

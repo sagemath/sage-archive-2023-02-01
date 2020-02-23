@@ -510,6 +510,72 @@ class Graphics(WithEqualityById, SageObject):
             self._axes_range = {}
             return self._axes_range
 
+    def set_flip(self, flip_x=None, flip_y=None):
+        """
+        Set the flip options for this graphics object.
+
+        INPUT:
+
+        - ``flip_x`` -- boolean (default: ``None``); if not ``None``, set the
+          ``flip_x`` option to this value
+        - ``flip_y`` -- boolean (default: ``None``); if not ``None``, set the
+          ``flip_y`` option to this value
+
+        EXAMPLES::
+
+            sage: L = line([(1, 0), (2, 3)])
+            sage: L.set_flip(flip_y=True)
+            sage: L.flip()
+            (False, True)
+            sage: L.set_flip(True, False)
+            sage: L.flip()
+            (True, False)
+        """
+        if flip_x is not None:
+            self._extra_kwds['flip_x'] = flip_x
+        if flip_y is not None:
+            self._extra_kwds['flip_y'] = flip_y
+
+    def flip(self, flip_x=False, flip_y=False):
+        """
+        Get the flip options and optionally mirror this graphics object.
+
+        INPUT:
+
+        - ``flip_x`` -- boolean (default: ``False``); if ``True``, replace the
+          current ``flip_x`` option by its opposite
+        - ``flip_y`` -- boolean (default: ``False``); if ``True``, replace the
+          current ``flip_y`` option by its opposite
+
+        OUTPUT: a tuple containing the new flip options
+
+        EXAMPLES:
+
+        When called without arguments, this just returns the current flip
+        options::
+
+            sage: L = line([(1, 0), (2, 3)])
+            sage: L.flip()
+            (False, False)
+
+        Otherwise, the specified options are changed and the new options are
+        returned::
+
+            sage: L.flip(flip_y=True)
+            (False, True)
+            sage: L.flip(True, True)
+            (True, False)
+        """
+        a = self._extra_kwds.get('flip_x', self.SHOW_OPTIONS['flip_x'])
+        b = self._extra_kwds.get('flip_y', self.SHOW_OPTIONS['flip_y'])
+        if flip_x:
+            a = not a
+            self._extra_kwds['flip_x'] = a
+        if flip_y:
+            b = not b
+            self._extra_kwds['flip_y'] = b
+        return (a, b)
+
     def fontsize(self, s=None):
         """
         Set the font size of axes labels and tick marks.
@@ -1117,6 +1183,12 @@ class Graphics(WithEqualityById, SageObject):
             sage: p3._legend_opts
             {'shadow': False}
 
+        Flipped axes take precedence over non-flipped axes::
+
+            sage: p1 = plot(x, x, 0, 1, flip_x=True, flip_y=True)
+            sage: p2 = plot(x^2, x, 0, 1)
+            sage: [p._extra_kwds[k] for p in [p1 + p2, p2 + p1] for k in ['flip_x', 'flip_y']]
+            [True, True, True, True]
         """
         if isinstance(other, int) and other == 0:
             return self
@@ -1133,6 +1205,12 @@ class Graphics(WithEqualityById, SageObject):
         g._legend_colors = self._legend_colors + other._legend_colors
         g._legend_opts.update(self._legend_opts)
         g._legend_opts.update(other._legend_opts)
+        if 'flip_x' in self._extra_kwds and 'flip_x' in other._extra_kwds:
+            g._extra_kwds['flip_x'] = (self._extra_kwds['flip_x']
+                                       or other._extra_kwds['flip_x'])
+        if 'flip_y' in self._extra_kwds and 'flip_y' in other._extra_kwds:
+            g._extra_kwds['flip_y'] = (self._extra_kwds['flip_y']
+                                       or other._extra_kwds['flip_y'])
         if self.aspect_ratio()=='automatic':
             g.set_aspect_ratio(other.aspect_ratio())
         elif other.aspect_ratio()=='automatic':
@@ -1355,6 +1433,7 @@ class Graphics(WithEqualityById, SageObject):
                         axes=None, axes_labels=None, axes_labels_size=None,
                         axes_pad=None, base=None, scale=None,
                         xmin=None, xmax=None, ymin=None, ymax=None,
+                        flip_x=False, flip_y=False,
                         # Figure options
                         aspect_ratio=None, dpi=DEFAULT_DPI, fig_tight=True,
                         figsize=None, fontsize=None, frame=False,
@@ -1608,6 +1687,12 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``ymax`` -- ending y value in the rendered figure.
 
+        - ``flip_x`` -- (default: False) boolean. If True, flip the horizontal
+          axis.
+
+        - ``flip_y`` -- (default: False) boolean. If True, flip the vertical
+          axis.
+
         - ``typeset`` -- (default: ``"default"``) string. The type of
           font rendering that should be used for the text. The possible
           values are
@@ -1741,6 +1826,14 @@ class Graphics(WithEqualityById, SageObject):
             sage: x, y = var('x, y')
             sage: G =  plot_vector_field((2^x,y^2),(x,1,10),(y,1,100))
             sage: G.show(scale='semilogx',base=2)
+
+        Flip the horizontal or vertical axis.
+
+        ::
+
+            sage: G = plot(x^3, -2, 3)
+            sage: G.show(flip_x=True)
+            sage: G.show(flip_y=True)
 
         Add grid lines at the major ticks of the axes.
 
@@ -2512,6 +2605,7 @@ class Graphics(WithEqualityById, SageObject):
                    xmin=None, xmax=None, ymin=None, ymax=None,
                    figsize=None, figure=None, sub=None,
                    axes=None, axes_labels=None, axes_labels_size=None,
+                   flip_x=False, flip_y=False,
                    fontsize=None, frame=False, verify=True,
                    aspect_ratio = None,
                    gridlines=None, gridlinesstyle=None,
@@ -2605,6 +2699,15 @@ class Graphics(WithEqualityById, SageObject):
             sage: f = lambda x, y : (abs(cos((x + I * y) ** 4)) - 1) # long time
             sage: g = implicit_plot(f,(-4, 4),(-3, 3),linewidth=0.6) # long time
             sage: gm = g.matplotlib() # long time # without the patch, this goes BOOM -- er, TypeError
+
+        If the axes are flipped, the limits of the axes get swapped::
+
+            sage: p = plot(2*x, 1, 2)
+            sage: sub, = p.matplotlib(flip_y=True, flip_x=True).axes
+            sage: xmin, xmax = sub.get_xlim()
+            sage: ymin, ymax = sub.get_ylim()
+            sage: xmin > xmax, ymin > ymax
+            (True, True)
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
@@ -2686,10 +2789,10 @@ class Graphics(WithEqualityById, SageObject):
         #---------------- Set the axes limits and scale ------------------#
         self.set_axes_range(xmin, xmax, ymin, ymax)
         d = self.get_axes_range()
-        xmin = d['xmin']
-        xmax = d['xmax']
-        ymin = d['ymin']
-        ymax = d['ymax']
+        xmin = d['xmax' if flip_x else 'xmin']
+        xmax = d['xmin' if flip_x else 'xmax']
+        ymin = d['ymax' if flip_y else 'ymin']
+        ymax = d['ymin' if flip_y else 'ymax']
 
         xscale, yscale, basex, basey = self._set_scale(subplot, scale=scale,
                                                        base=base)

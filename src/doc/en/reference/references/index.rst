@@ -4804,10 +4804,6 @@ REFERENCES:
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
 
-.. [St2011b] \W. Stein, "Toward a Generalization of the Gross-Zagier
-            Conjecture", Int Math Res Notices (2011),
-            :doi:`10.1093/imrn/rnq075`
-
 .. [Sta1973] \H. M. Stark, Class-Numbers of Complex Quadratic
              Fields. In: Kuijk W. (eds) Modular Functions of One
              Variable I. Lecture Notes in Mathematics,
@@ -4842,6 +4838,15 @@ REFERENCES:
 
 .. [Star2011] Š. Starosta, *On Theta-palindromic Richness*,
               Theoret. Comp. Sci. 412 (2011) 1111--1121
+
+.. [St2011b] \W. Stein, *Toward a Generalization of the Gross-Zagier
+            Conjecture*, Int Math Res Notices (2011),
+            :doi:`10.1093/imrn/rnq075`
+            
+.. [St2007] \W. Stein. *Modular Forms, a Computational Approach*. 
+            With an appendix by Paul E. Gunnells. 
+            AMS Graduate Studies in Mathematics, Volume 79, 2007.
+            :doi:`10.1090/gsm/079`
 
 .. [Sei2002] \T. R. Seifullin, *Computation of determinants, adjoint
              matrices, and characteristic polynomials without division*
@@ -5317,10 +5322,14 @@ REFERENCES:
             submitted to NIST, (2008), available at
             http://www3.ntu.edu.sg/home/wuhj/research/jh/jh_round3.pdf
 
-.. [Wu2004] Wuthrich, C. (2004). On p-adic heights in families of
-            elliptic curves. Journal of the London Mathematical
-            Society, 70(1), 23-40.
-
+.. [Wu2004] Wuthrich, Christian. *On p-adic heights in families of
+            elliptic curves*. Journal of the London Mathematical
+            Society, 70(1), 23-40, (2004).
+            
+.. [Wu2018] Wuthrich, Christian.
+            *Numerical modular symbols for elliptic curves*. 
+            Math. Comp. 87 (2018), no. 313, 2393–2423. 
+            
 .. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
             and set partition statistics*, Journal of Combinatorial
             Theory, Series A 56.1 (1991): 27-46.

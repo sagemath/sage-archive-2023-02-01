@@ -6262,7 +6262,7 @@ cdef class Matrix(Matrix1):
             sage: B = matrix(CDF, [[2, 1+I], [4, 2+2*I]])
             sage: D, P = A.eigenmatrix_left(B)
             sage: D.diagonal()  # tol 1e-14
-            [0.19999999999999996 - 0.09999999999999995*I, +infinity]
+            [0.2 - 0.1*I, +infinity]
 
         In this case, we can still verify the eigenvector equation for the
         first eigenvalue and first eigenvector::

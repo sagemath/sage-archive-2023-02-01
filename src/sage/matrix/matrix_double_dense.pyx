@@ -1305,7 +1305,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = graphs.PetersenGraph().adjacency_matrix()
             sage: A = A.change_ring(RDF)
             sage: ev = A.eigenvalues(algorithm='symmetric'); ev  # tol 1e-14
-            [-2.0000000000000004, -1.9999999999999998, -1.9999999999999998, -1.9999999999999993, 0.9999999999999994, 0.9999999999999997, 1.0, 1.0000000000000002, 1.0000000000000004, 2.9999999999999996]
+            [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
             sage: ev[0].parent()
             Real Double Field
 
@@ -1335,17 +1335,17 @@ cdef class Matrix_double_dense(Matrix_dense):
 
             sage: A = G.adjacency_matrix().change_ring(RDF)
             sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-5)  # tol 1e-15
-            [(-1.9999999999999998, 4), (1.0, 5), (2.9999999999999996, 1)]
+            [(-2.0, 4), (1.0, 5), (3.0, 1)]
 
             sage: A.eigenvalues(algorithm='symmetric', tol=2.5)  # tol 1e-15
-            [(-1.9999999999999998, 4), (1.3333333333333333, 6)]
+            [(-2.0, 4), (1.3333333333333333, 6)]
 
         An (extreme) example of properly grouping similar eigenvalues.  ::
 
             sage: G = graphs.HigmanSimsGraph()
             sage: A = G.adjacency_matrix().change_ring(RDF)
             sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-5)  # tol 2e-15
-            [(-8.0, 22), (1.9999999999999984, 77), (21.999999999999996, 1)]
+            [(-8.0, 22), (2.0, 77), (22.0, 1)]
 
         In this generalized eigenvalue problem, the homogeneous coordinates
         explain the output obtained for the eigenvalues::
@@ -1411,7 +1411,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = matrix.identity(CDF, 2)
             sage: B = matrix(CDF, [[2, 1+I], [1-I, 3]])
             sage: A.eigenvalues(B, algorithm='hermitian', homogeneous=True)  # tol 1e-14
-            [(0.25, 1.0), (0.9999999999999998, 1.0)]
+            [(0.25, 1.0), (1.0, 1.0)]
         """
         from sage.rings.real_double import RDF
         from sage.rings.complex_double import CDF
@@ -1575,13 +1575,13 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: for i in range(len(spectrum)):
             ....:     spectrum[i][1][0] = matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]  # tol 1e-13
-            (2.0000000000000675, [(1.0, 1.0000000000000138, 1.0000000000000147, 1.0000000000000309)], 1)
+            (2.0, [(1.0, 1.0, 1.0, 1.0)], 1)
             sage: spectrum[1]  # tol 1e-13
-            (0.9999999999999164, [(0.9999999999999999, 0.7999999999999833, 0.7999999999999836, 0.5999999999999696)], 1)
+            (1.0, [(1.0, 0.8, 0.8, 0.6)], 1)
             sage: spectrum[2]  # tol 1e-13
-            (-1.9999999999999782, [(1.0, 0.40000000000000335, 0.6000000000000039, 0.2000000000000051)], 1)
+            (-2.0, [(1.0, 0.4, 0.6, 0.2)], 1)
             sage: spectrum[3]  # tol 1e-13
-            (-1.0000000000000018, [(1.0, 0.9999999999999568, 1.9999999999998794, 1.9999999999998472)], 1)
+            (-1.0, [(1.0, 1.0, 2.0, 2.0)], 1)
 
         A generalized eigenvalue problem::
 
@@ -1733,13 +1733,13 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: for i in range(len(spectrum)):
             ....:   spectrum[i][1][0] = matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]  # tol 1e-13
-            (2.000000000000048, [(1.0, -2.0000000000001523, 3.000000000000181, 1.0000000000000746)], 1)
+            (2.0, [(1.0, -2.0, 3.0, 1.0)], 1)
             sage: spectrum[1]  # tol 1e-13
-            (0.999999999999941, [(1.0, -0.666666666666633, 1.333333333333286, 0.33333333333331555)], 1)
+            (1.0, [(1.0, -0.666666666666633, 1.333333333333286, 0.33333333333331555)], 1)
             sage: spectrum[2]  # tol 1e-13
-            (-1.9999999999999483, [(1.0, -0.2000000000000063, 1.0000000000000173, 0.20000000000000498)], 1)
+            (-2.0, [(1.0, -0.2, 1.0, 0.2)], 1)
             sage: spectrum[3]  # tol 1e-13
-            (-1.0000000000000406, [(1.0, -0.49999999999996264, 1.9999999999998617, 0.499999999999958)], 1)
+            (-1.0, [(1.0, -0.5, 2.0, 0.5)], 1)
 
         A generalized eigenvalue problem::
 

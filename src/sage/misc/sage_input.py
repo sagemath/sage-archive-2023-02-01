@@ -1215,7 +1215,9 @@ class SageInputBuilder:
             return SageInputAnswer(sif._commands, sif.format(e, 0))
 
 # Python's precedence levels.  Hand-transcribed from section 5.14 of
-# the Python reference manual.
+# the Python 2 reference manual.  In the Python 3 reference manual
+# this is section 6.16.
+# See https://docs.python.org/3/reference/expressions.html
 _prec_lambda = 2
 _prec_or = 4
 _prec_and = 6

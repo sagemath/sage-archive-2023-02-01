@@ -2630,8 +2630,8 @@ class SIE_unary(SageInputExpression):
             sage: sib.result(x*(-y))
             x*-y
 
-        We don't do that for unary +, assuming that the user really
-        means to express something by using unary +.::
+        We do not do that for unary +, assuming that the user really
+        means to express something by using unary +::
 
             sage: sib.result(+(x*y))
             +(x*y)

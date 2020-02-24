@@ -159,9 +159,9 @@ AUTHOR:
 
 from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off
-from .conversions           cimport bit_repr_to_Vrep_list
+from .conversions           cimport bit_rep_to_Vrep_list
 from .base                  cimport CombinatorialPolyhedron
-from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_rep
+from .bit_vector_operations cimport get_next_level, count_atoms, bit_rep_to_coatom_rep
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -808,7 +808,7 @@ cdef class FaceIterator(SageObject):
         cdef size_t n_coatoms = self.coatoms.n_faces
         cdef uint64_t **coatoms = self.coatoms.data
         cdef size_t face_length = self.face_length
-        return bit_repr_to_coatom_rep(self.face, coatoms, n_coatoms,
+        return bit_rep_to_coatom_rep(self.face, coatoms, n_coatoms,
                                        face_length, self.coatom_rep)
 
     cdef size_t set_atom_rep(self) except -1:
@@ -819,4 +819,4 @@ cdef class FaceIterator(SageObject):
         This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.set_atom_rep`
         """
         cdef size_t face_length = self.face_length
-        return bit_repr_to_Vrep_list(self.face, self.atom_rep, face_length)
+        return bit_rep_to_Vrep_list(self.face, self.atom_rep, face_length)

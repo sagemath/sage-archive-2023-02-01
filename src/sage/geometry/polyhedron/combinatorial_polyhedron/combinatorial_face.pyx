@@ -68,9 +68,9 @@ from sage.misc.superseded        import deprecated_function_alias
 
 import numbers
 from sage.rings.integer         cimport smallInteger
-from .conversions               cimport bit_repr_to_Vrep_list
+from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
-from .bit_vector_operations     cimport count_atoms, bit_repr_to_coatom_rep
+from .bit_vector_operations     cimport count_atoms, bit_rep_to_coatom_rep
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from libc.string                cimport memcpy
 
@@ -697,7 +697,7 @@ cdef class CombinatorialFace(SageObject):
         cdef size_t face_length = self.face_length
         if not self.coatom_rep:
             self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
-        return bit_repr_to_coatom_rep(self.face, coatoms, n_coatoms,
+        return bit_rep_to_coatom_rep(self.face, coatoms, n_coatoms,
                                        face_length, self.coatom_rep)
 
     cdef size_t set_atom_rep(self) except -1:
@@ -708,5 +708,5 @@ cdef class CombinatorialFace(SageObject):
         cdef size_t face_length = self.face_length
         if not self.atom_rep:
             self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
-        return bit_repr_to_Vrep_list(self.face, self.atom_rep, face_length)
+        return bit_rep_to_Vrep_list(self.face, self.atom_rep, face_length)
 

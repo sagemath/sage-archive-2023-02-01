@@ -30,7 +30,8 @@ AUTHORS:
 - Florentin Jaffredo (2018) : series expansion with respect to a given
   parameter
 - Michael Jung (2019): improve treatment of the zero element; add method
-  ``copy_from``
+  :meth:`TensorField.copy_from`
+- Eric Gourgoulhon (2020): add method :meth:`TensorField.map_components`
 
 REFERENCES:
 
@@ -4458,3 +4459,94 @@ class TensorField(ModuleElement):
         for rst in self._restrictions.values():
             rst.set_calc_order(symbol, order, truncate)
         self._del_derived()
+
+    def map_components(self, fun, frame=None, chart=None):
+        r"""
+        Apply a function to the coordinate expressions of all components of
+        ``self`` in a given vector frame.
+
+        This method allows operations like factorization, expansion,
+        simplification or substitution to be performed on all components of
+        ``self`` in a given vector frame (see examples below).
+
+        INPUT:
+
+        - ``fun`` -- function to be applied to the coordinate expressions
+        - ``frame`` -- (default: ``None``) vector frame defining the
+          components on which the operation ``fun`` is to be performed; if
+          ``None``, the default frame of the domain of ``self`` is assumed
+        - ``chart`` -- (default: ``None``) coordinate chart; if specified, the
+          operation ``fun`` is performed only on the coordinate expressions
+          with respect to ``chart`` of the components w.r.t. ``frame``; if
+          ``None``, the operation ``fun`` is performed on all available
+          coordinate expressions
+
+        EXAMPLES:
+
+        Factorizing all components of a vector field::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: a, b = var('a b')
+            sage: v = M.vector_field(x^2 - y^2, a*(b^2 - b)*x)
+            sage: v.display()
+            (x^2 - y^2) d/dx + (b^2 - b)*a*x d/dy
+            sage: v.map_components(factor)
+            sage: v.display()
+            (x + y)*(x - y) d/dx + a*(b - 1)*b*x d/dy
+
+        Performing a substitution in all components::
+
+            sage: v.map_components(lambda f: f.subs({a: 2}))
+            sage: v.display()
+            (x + y)*(x - y) d/dx + 2*(b - 1)*b*x d/dy
+
+        Specifying the vector frame via the argument ``frame``::
+
+            sage: P.<p, q> = M.chart()
+            sage: X_to_P = X.transition_map(P, [x + 1, y - 1])
+            sage: P_to_X = X_to_P.inverse()
+            sage: v.display(P)
+            (p^2 - q^2 - 2*p - 2*q) d/dp + (-2*b^2 + 2*(b^2 - b)*p + 2*b) d/dq
+            sage: v.map_components(lambda f: f.subs({b: pi}), frame=P.frame())
+            sage: v.display(P)
+            (p^2 - q^2 - 2*p - 2*q) d/dp + (2*pi - 2*pi^2 - 2*(pi - pi^2)*p) d/dq
+
+        Note that the required operation has been performed in all charts::
+
+            sage: v.display(P.frame(), P)
+            (p^2 - q^2 - 2*p - 2*q) d/dp + (2*pi - 2*pi^2 - 2*(pi - pi^2)*p) d/dq
+            sage: v.display(P.frame(), X)
+            (x^2 - y^2) d/dp - 2*(pi - pi^2)*x d/dq
+
+
+        It has not been performed on the components in frames distinct from the
+        specified one::
+
+            sage: v.display(X.frame(), X)
+            (x + y)*(x - y) d/dx + 2*(b - 1)*b*x d/dy
+            sage: v.display(X.frame(), P)
+            (p^2 - q^2 - 2*p - 2*q) d/dx + (-2*b^2 + 2*(b^2 - b)*p + 2*b) d/dy
+
+        One can restrict the operation to expressions in a given chart, via
+        the argument ``chart``::
+
+            sage: v.map_components(lambda f: f.subs({b: pi}), chart=P)
+            sage: v.display(X.frame(), P)
+            (p^2 - q^2 - 2*p - 2*q) d/dx + (2*pi - 2*pi^2 - 2*(pi - pi^2)*p) d/dy
+            sage: v.display(X.frame(), X)
+            (x + y)*(x - y) d/dx + 2*(b - 1)*b*x d/dy
+
+        """
+        # The dictionary of components w.r.t. frame:
+        comps = self.comp(frame)._comp
+        if chart:
+            for scalar in comps.values():
+                scalar.add_expr(fun(scalar.expr(chart=chart)), chart=chart)
+        else:
+            for scalar in comps.values():
+                cfunc_dict = {}  # new dict of chart functions in order not to
+                                 # modify scalar._express while looping on it
+                for ch, fct in scalar._express.items():
+                    cfunc_dict[ch] = ch.function(fun(fct.expr()))
+                scalar._express = cfunc_dict

@@ -225,6 +225,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
     """
     Element = TorsionQuadraticModuleElement
 
+    @staticmethod
     def __classcall__(cls, V, W, gens=None, modulus=None, modulus_qf=None, check=True):
         r"""
         Return a :class:``TorsionQuadraticModule``.

@@ -759,8 +759,10 @@ def preparse_numeric_literals(code, extract=False):
         "RealNumber('1_3.2_5e-2_2')"
 
         sage: for f in ["1_1.", "11_2.", "1.1_1", "1_1.1_1", ".1_1", ".1_1e1_1", ".1e1_1",
-        ....:           "1e12_3", "1_1e1_1", "1.1_3e1_2", "1_1e1_1", "1e1", "1.e1_1"]:
+        ....:           "1e12_3", "1_1e1_1", "1.1_3e1_2", "1_1e1_1", "1e1", "1.e1_1",
+        ....:           "1.0", "1_1.0"]:
         ....:     preparse_numeric_literals(f)
+        ....:     assert preparse(f) == preparse_numeric_literals(f), f
         "RealNumber('1_1.')"
         "RealNumber('11_2.')"
         "RealNumber('1.1_1')"
@@ -774,6 +776,8 @@ def preparse_numeric_literals(code, extract=False):
         "RealNumber('1_1e1_1')"
         "RealNumber('1e1')"
         "RealNumber('1.e1_1')"
+        "RealNumber('1.0')"
+        "RealNumber('1_1.0')"
 
     Having consecutive underscores is not valid Python syntax, so
     it is not preparsed, and similarly with a trailing underscore::

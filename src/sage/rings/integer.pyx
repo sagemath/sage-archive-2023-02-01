@@ -639,6 +639,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: 15 == numpy.float('15')
             True
+
+        Test underscores as digit separators (PEP 515,
+        https://www.python.org/dev/peps/pep-0515/)::
+
+            sage: Integer('1_3')
+            13
+            sage: Integer(b'1_3')
+            13
         """
         # TODO: All the code below should somehow be in an external
         # cdef'd function.  Then e.g., if a matrix or vector or
@@ -702,9 +710,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         pass
 
                 elif isinstance(x, bytes):
+                    if b'_' in x:
+                        x = x.replace(b'_', b'')
                     mpz_set_str_python(self.value, x, base)
                     return
                 elif isinstance(x, unicode):
+                    if '_' in x:
+                        x = x.replace('_', '')
                     mpz_set_str_python(self.value, str_to_bytes(x), base)
                     return
 

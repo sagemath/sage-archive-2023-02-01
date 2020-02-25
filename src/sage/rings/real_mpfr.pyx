@@ -1400,6 +1400,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
         TESTS::
 
             sage: TestSuite(R).run()
+
+        Test underscores as digit separators (PEP 515,
+        https://www.python.org/dev/peps/pep-0515/)::
+
+            sage: RealNumber('1_3.1e-32_45')
+            1.31000000000000e-3244
         """
         if x is not None:
             self._set(x, base)
@@ -1481,7 +1487,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif type(x) is gmpy2.mpz:
             mpfr_set_z(self.value, (<gmpy2.mpz>x).z, parent.rnd)
         else:
-            s = str(x).replace(' ','')
+            s = str(x).replace(' ','').replace('_', '')
             s_lower = s.lower()
             if s_lower == 'infinity':
                 raise ValueError('can only convert signed infinity to RR')

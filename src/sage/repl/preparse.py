@@ -1279,7 +1279,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Generators
     # R.0 -> R.gen(0)
-    L = re.sub(r'([_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+    L = re.sub(r'(\b[_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
     # Use ^ for exponentiation and ^^ for xor
     # (A side effect is that **** becomes xor as well.)

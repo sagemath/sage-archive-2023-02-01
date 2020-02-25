@@ -810,14 +810,13 @@ def preparse_numeric_literals(code, extract=False):
 
     global all_num_regex
     if all_num_regex is None:
-        dec_num = r"\b\d+(_\d+)*"
         hex_num = r"\b0x[0-9a-f]+(_[0-9a-f]+)*"
         oct_num = r"\b0o[0-7]+(_[0-7]+)*"
         bin_num = r"\b0b[01]+(_[01]+)*"
         # This is slightly annoying as floating point numbers may start
         # with a decimal point, but if they do the \b will not match.
         float_num = r"((\b\d+(_\d+)*([.](\d+(_\d+)*)?)?)|([.]\d+(_\d+)*))(e[-+]?\d+(_\d+)*)?"
-        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num, dec_num)
+        all_num = r"((%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num)
         all_num_regex = re.compile(all_num, re.I)
 
     for m in all_num_regex.finditer(code):

@@ -44,7 +44,6 @@ TESTS::
 # ****************************************************************************
 
 import math
-from six import string_types
 
 import sage.rings.real_double
 import sage.rings.complex_double
@@ -1415,7 +1414,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         """
         from sage.rings.real_double import RDF
         from sage.rings.complex_double import CDF
-        if isinstance(other, string_types):
+        if isinstance(other, str):
             # for backward compatibilty, allow algorithm to be passed as first
             # positional argument
             algorithm = other

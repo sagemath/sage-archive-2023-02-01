@@ -4987,6 +4987,7 @@ def _palp(command, polytopes, reduce_dimension=False):
         sage: p = LatticePolytope([(1,0,0), (0,1,0), (-1,0,0), (0,-1,0)])
         sage: lattice_polytope._palp("poly.x -f", [p])
         Traceback (most recent call last):
+        ...
         ValueError: Cannot run PALP for a 2-dimensional polytope in a 3-dimensional space!
 
         sage: result_name = lattice_polytope._palp("poly.x -f", [p], reduce_dimension=True)

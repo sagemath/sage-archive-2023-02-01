@@ -1405,7 +1405,9 @@ class TensorField(ModuleElement):
         Components of a vector field on the sphere `S^2`::
 
             sage: M = Manifold(2, 'S^2', start_index=1)
-            sage: # The two open subsets covered by stereographic coordinates (North and South):
+
+        The two open subsets covered by stereographic coordinates (North and South)::
+
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coordinates
@@ -2180,7 +2182,6 @@ class TensorField(ModuleElement):
             False
             sage: t.parent().zero() == 0
             True
-
         """
         if other is self:
             return True

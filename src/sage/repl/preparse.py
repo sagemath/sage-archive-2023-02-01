@@ -742,30 +742,6 @@ def preparse_numeric_literals(code, extract=False):
         sage: preparse_numeric_literals('0x1012Fae')
         'Integer(0x1012Fae)'
 
-    In Python 3 syntax, leading 0s are not allowed in an integer unless
-    it is binary, octal, or hex. So '01234' is not preparsed, and
-    evaluating it leads to an error::
-
-        sage: preparse_numeric_literals('01234') # py3
-        '01234'
-        sage: 01234 # py3
-        Traceback (most recent call last):
-        ...
-        SyntaxError: invalid token
-
-    In Python 2, a leading 0 means octal, although this usage is
-    deprecated::
-
-        sage: preparse_numeric_literals('010') # py2
-        "Integer('010')"
-        sage: 010 # py2
-        doctest:warning
-        ...
-        DeprecationWarning: use 0o as octal prefix instead of 0
-        If you do not want this number to be interpreted as octal, remove the leading zeros.
-        See http://trac.sagemath.org/17413 for details.
-        8
-
     Test underscores as digit separators (PEP 515,
     https://www.python.org/dev/peps/pep-0515/)::
 

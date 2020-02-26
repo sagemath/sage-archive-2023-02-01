@@ -31,7 +31,7 @@ AUTHORS:
   parameter
 - Michael Jung (2019): improve treatment of the zero element; add method
   :meth:`TensorField.copy_from`
-- Eric Gourgoulhon (2020): add method :meth:`TensorField.map_components`
+- Eric Gourgoulhon (2020): add method :meth:`TensorField.apply_map`
 
 REFERENCES:
 
@@ -4460,7 +4460,8 @@ class TensorField(ModuleElement):
             rst.set_calc_order(symbol, order, truncate)
         self._del_derived()
 
-    def map_components(self, fun, frame=None, chart=None):
+    def apply_map(self, fun, frame=None, chart=None,
+                  keep_other_components=False):
         r"""
         Apply a function to the coordinate expressions of all components of
         ``self`` in a given vector frame.
@@ -4471,7 +4472,8 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``fun`` -- function to be applied to the coordinate expressions
+        - ``fun`` -- function to be applied to the coordinate expressions of
+          the components
         - ``frame`` -- (default: ``None``) vector frame defining the
           components on which the operation ``fun`` is to be performed; if
           ``None``, the default frame of the domain of ``self`` is assumed
@@ -4480,10 +4482,17 @@ class TensorField(ModuleElement):
           with respect to ``chart`` of the components w.r.t. ``frame``; if
           ``None``, the operation ``fun`` is performed on all available
           coordinate expressions
+        - ``keep_other_components`` -- (default: ``False``) determine whether
+          the components with respect to vector frames distinct from ``frame``
+          and having the same domain as ``frame`` are kept. If ``fun`` is
+          non-destructive, ``keep_other_components`` can be set to ``True``;
+          otherwise, it is advised to set it to ``False`` (the default) in
+          order to avoid any inconsistency between the various sets of
+          components
 
         EXAMPLES:
 
-        Factorizing all components of a vector field::
+        Factorizing all components in the default frame of a vector field::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -4491,13 +4500,13 @@ class TensorField(ModuleElement):
             sage: v = M.vector_field(x^2 - y^2, a*(b^2 - b)*x)
             sage: v.display()
             (x^2 - y^2) d/dx + (b^2 - b)*a*x d/dy
-            sage: v.map_components(factor)
+            sage: v.apply_map(factor)
             sage: v.display()
             (x + y)*(x - y) d/dx + a*(b - 1)*b*x d/dy
 
-        Performing a substitution in all components::
+        Performing a substitution in all components in the default frame::
 
-            sage: v.map_components(lambda f: f.subs({a: 2}))
+            sage: v.apply_map(lambda f: f.subs({a: 2}))
             sage: v.display()
             (x + y)*(x - y) d/dx + 2*(b - 1)*b*x d/dy
 
@@ -4508,7 +4517,7 @@ class TensorField(ModuleElement):
             sage: P_to_X = X_to_P.inverse()
             sage: v.display(P)
             (p^2 - q^2 - 2*p - 2*q) d/dp + (-2*b^2 + 2*(b^2 - b)*p + 2*b) d/dq
-            sage: v.map_components(lambda f: f.subs({b: pi}), frame=P.frame())
+            sage: v.apply_map(lambda f: f.subs({b: pi}), frame=P.frame())
             sage: v.display(P)
             (p^2 - q^2 - 2*p - 2*q) d/dp + (2*pi - 2*pi^2 - 2*(pi - pi^2)*p) d/dq
 
@@ -4519,27 +4528,52 @@ class TensorField(ModuleElement):
             sage: v.display(P.frame(), X)
             (x^2 - y^2) d/dp - 2*(pi - pi^2)*x d/dq
 
+        By default, the components of ``v`` in frames distinct from the
+        specified one have been deleted::
 
-        It has not been performed on the components in frames distinct from the
-        specified one::
+            sage: X.frame() in v._components
+            False
+
+        When requested, they are recomputed by change-of-frame formulas,
+        thereby enforcing the consistency between the representations in
+        various vector frames. In particular, we can check that the
+        substitution of ``b`` by ``pi``, which was asked in ``P.frame()``,
+        is effective in ``X.frame()`` as well::
 
             sage: v.display(X.frame(), X)
-            (x + y)*(x - y) d/dx + 2*(b - 1)*b*x d/dy
-            sage: v.display(X.frame(), P)
-            (p^2 - q^2 - 2*p - 2*q) d/dx + (-2*b^2 + 2*(b^2 - b)*p + 2*b) d/dy
+            (x^2 - y^2) d/dx - 2*(pi - pi^2)*x d/dy
+
+        When the requested operation does not change the value of the tensor
+        field, one can use the keyword argument ``keep_other_components=True``,
+        in order to avoid the recomputation of the components in other frames::
+
+            sage: v.apply_map(factor, keep_other_components=True)
+            sage: v.display()
+            (x + y)*(x - y) d/dx + 2*pi*(pi - 1)*x d/dy
+
+        The components with respect to ``P.frame()`` have been kept::
+
+            sage: P.frame() in v._components
+            True
 
         One can restrict the operation to expressions in a given chart, via
         the argument ``chart``::
 
-            sage: v.map_components(lambda f: f.subs({b: pi}), chart=P)
             sage: v.display(X.frame(), P)
-            (p^2 - q^2 - 2*p - 2*q) d/dx + (2*pi - 2*pi^2 - 2*(pi - pi^2)*p) d/dy
+            (p + q)*(p - q - 2) d/dx + 2*pi*(pi - 1)*(p - 1) d/dy
+            sage: v.apply_map(expand, chart=P)
+            sage: v.display(X.frame(), P)
+            (p^2 - q^2 - 2*p - 2*q) d/dx + (2*pi + 2*pi^2*p - 2*pi^2 - 2*pi*p) d/dy
             sage: v.display(X.frame(), X)
-            (x + y)*(x - y) d/dx + 2*(b - 1)*b*x d/dy
+            (x + y)*(x - y) d/dx + 2*pi*(pi - 1)*x d/dy
 
         """
         # The dictionary of components w.r.t. frame:
-        comps = self.comp(frame)._comp
+        if keep_other_components:
+            comps = self.comp(frame)._comp
+        else:
+            comps = self.set_comp(frame)._comp # set_comp() deletes the
+                                               # components in other frames
         if chart:
             for scalar in comps.values():
                 scalar.add_expr(fun(scalar.expr(chart=chart)), chart=chart)

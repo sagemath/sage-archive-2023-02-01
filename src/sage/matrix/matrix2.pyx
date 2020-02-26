@@ -196,20 +196,26 @@ cdef class Matrix(Matrix1):
 
     def solve_left(self, B, check=True):
         """
-        If self is a matrix `A`, then this function returns a
+        Compute a solution to the equation `X A = B`.
+
+        If ``self`` is a matrix `A`, then this function returns a
         vector or matrix `X` such that `X A = B`. If
         `B` is a vector then `X` is a vector and if
         `B` is a matrix, then `X` is a matrix.
 
         INPUT:
 
+        - ``B`` -- a matrix or vector
 
-        -  ``B`` - a matrix
+        - ``check`` -- boolean (default: ``True``); if ``False`` and ``self``
+          is non-square, may not raise an error message even if there is no
+          solution. This is faster but more dangerous.
 
-        -  ``check`` - bool (default: True) - if False and self
-           is nonsquare, may not raise an error message even if there is no
-           solution. This is faster but more dangerous.
+        OUTPUT: a matrix or vector
 
+        .. SEEALSO::
+
+            :meth:`solve_right`
 
         EXAMPLES::
 
@@ -249,7 +255,6 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: number of columns of self must equal number of columns of B
         """
-
         if is_Vector(B):
             try:
                 return self.transpose().solve_right(B, check=check)
@@ -263,7 +268,9 @@ cdef class Matrix(Matrix1):
 
     def solve_right(self, B, check=True):
         r"""
-        If self is a matrix `A`, then this function returns a
+        Compute a solution to the equation `A X = B`.
+
+        If ``self`` is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
         `B` is a vector then `X` is a vector and if
         `B` is a matrix, then `X` is a matrix.
@@ -271,24 +278,22 @@ cdef class Matrix(Matrix1):
         .. NOTE::
 
            In Sage one can also write ``A \ B`` for
-           ``A.solve_right(B)``, i.e., Sage implements the "the
+           ``A.solve_right(B)``, i.e., Sage implements "the
            MATLAB/Octave backslash operator".
 
         INPUT:
 
+        - ``B`` -- a matrix or vector
 
-        -  ``B`` - a matrix or vector
-
-        -  ``check`` - bool (default: True) - if False and self
-           is nonsquare, may not raise an error message even if there is no
-           solution. This is faster but more dangerous.
-
+        - ``check`` -- boolean (default: ``True``); if ``False`` and ``self``
+          is non-square, may not raise an error message even if there is no
+          solution. This is faster but more dangerous.
 
         OUTPUT: a matrix or vector
 
         .. SEEALSO::
 
-           :meth:`solve_left`
+            :meth:`solve_left`
 
         EXAMPLES::
 
@@ -425,7 +430,8 @@ cdef class Matrix(Matrix1):
             sage: a * x == v
             True
 
-        Solving a system of linear equation symbolically using symbolic matrices::
+        Solving a system of linear equations symbolically using symbolic
+        matrices::
 
             sage: var('a,b,c,d,x,y')
             (a, b, c, d, x, y)
@@ -443,16 +449,63 @@ cdef class Matrix(Matrix1):
             5
             sage: (A*soln).apply_map(lambda x: x.simplify_full())
             (3, 5)
-        """
 
-        if is_Vector(B):
+        Over inexact rings, the output of this function may not be an exact
+        solution. For example, over the
+        :func:`real or complex double field <.Matrix_double_dense.solve_right>`,
+        this computes a least-squares solution::
+
+            sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
+            sage: b = vector(RDF, [5, 6, 1])
+            sage: x = A.solve_right(b)
+            sage: (A * x - b).norm()  # tol 1e-14
+            3.2692119900020438
+
+        TESTS:
+
+        Check that the arguments are coerced to a suitable parent
+        (:trac:`12406`)::
+
+            sage: A = matrix(QQ, 2, [1, 2, 3, 4])
+            sage: b = vector(RDF, [pi, e])
+            sage: A.solve_right(b)  # tol 1e-15
+            (-3.564903478720541, 3.353248066155167)
+            sage: R.<t> = ZZ[]
+            sage: b = vector(R, [1, t])
+            sage: x = A.solve_right(b); x
+            (t - 2, -1/2*t + 3/2)
+            sage: A * x == b
+            True
+            sage: x.base_ring()
+            Fraction Field of Univariate Polynomial Ring in t over Rational Field
+
+        ::
+
+            sage: A = Matrix(Zmod(6), 3, 2, [1,2,3,4,5,6])
+            sage: b = vector(ZZ, [1,1,1])
+            sage: A.solve_right(b).base_ring() is Zmod(6)
+            True
+        """
+        K = self.base_ring()
+        L = B.base_ring()
+        if L is not K:
+            # first coerce both elements to parent over same base ring
+            P = coercion_model.common_parent(K, L)
+            if L is not P:
+                B = B.change_ring(P)
+            if K is not P:
+                A = self.change_ring(P)
+                return A.solve_right(B, check=check)
+            # now K is P and both elements have the same base ring
+
+        b_is_vec = is_Vector(B)
+        if b_is_vec:
             if self.nrows() != B.degree():
                 raise ValueError("number of rows of self must equal degree of B")
         else:
             if self.nrows() != B.nrows():
                 raise ValueError("number of rows of self must equal number of rows of B")
 
-        K = self.base_ring()
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
@@ -480,27 +533,15 @@ cdef class Matrix(Matrix1):
             K = K.fraction_field()
             self = self.change_ring(K)
 
-        matrix = True
-        if is_Vector(B):
-            matrix = False
-            C = self.matrix_space(self.nrows(), 1)(B.list())
-        else:
-            C = B
+        C = B.column() if b_is_vec else B
 
-        if not self.is_square():
-            X = self._solve_right_general(C, check=check)
-            if not matrix:
-                # Convert back to a vector
-                return (X.base_ring() ** X.nrows())(X.list())
-            else:
-                return X
-
-        if self.rank() != self.nrows():
+        if not self.is_square() or ((check or K.is_exact())
+                                    and self.rank() != self.nrows()):
             X = self._solve_right_general(C, check=check)
         else:
             X = self._solve_right_nonsingular_square(C, check_rank=False)
 
-        if not matrix:
+        if b_is_vec:
             # Convert back to a vector
             return X.column(0)
         else:

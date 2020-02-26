@@ -1614,25 +1614,78 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     eigenvectors_right = right_eigenvectors
 
-    def solve_right(self, b):
+    def _solve_right_nonsingular_square(self, B, check_rank=False):
+        """
+        Compute a solution to the equation `A x = b` for a square matrix `A`.
+
+        EXAMPLES::
+
+            sage: A = matrix(CDF, [[1, 2], [3, 3+I]])
+            sage: b = matrix(CDF, [[1, 0], [2, 1]])
+            sage: x = A.solve_right(b)  # indirect doctest
+            sage: (A * x - b).norm() < 1e-15
+            True
+        """
+        global scipy
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+        X = self._new(self._ncols, B.ncols())
+        # may raise a LinAlgError for a singular matrix
+        X._matrix_numpy = scipy.linalg.solve(self._matrix_numpy, B.numpy())
+        return X
+
+    def _solve_right_general(self, B, check=False):
+        """
+        Compute a least-squares solution to the equation `A x = b`.
+
+        EXAMPLES::
+
+            sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
+            sage: b = matrix(RDF, 3, 2, [5, 6, 1, 0, 0, 2])
+            sage: x = A.solve_right(b)  # indirect doctest
+            sage: (A * x - b).norm()    # tol 1e-14
+            6.804148931919923
+        """
+        global scipy
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+        X = self._new(self._ncols, B.ncols())
+        arr, resid, rank, s = scipy.linalg.lstsq(self._matrix_numpy, B.numpy())
+        X._matrix_numpy = arr
+        return X
+
+    def solve_right(self, b, check=False):
         r"""
-        Solve the matrix equation ``A*x = b`` for a nonsingular ``A``.
+        Solve the matrix equation ``A*x = b`` for any matrix ``A``.
 
         INPUT:
 
-        - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector or a matrix;
+        - ``self`` -- a matrix
+        - ``b`` -- a vector or a matrix;
           the dimension (if a vector), or the number of rows (if
           a matrix) must match the dimension of ``self``
+        - ``check`` -- boolean (default: ``False``); ignored
 
         OUTPUT:
 
-        the unique solution ``x`` to the matrix equation ``A*x = b``,
-        as a vector or matrix over a suitable common base ring
+        If ``self`` is a square matrix `A`, the result of this computation is
+        the unique solution `x` to the matrix equation `A x = b`. If `A` is
+        singular, a ``LinAlgError`` may be raised.
+
+        If `A` is a non-square matrix, the result is the least-squares
+        solution of the equation, such that the 2-norm `|A x - b|`
+        is minimized.
+
+        If `b` is a vector, the result is returned as a vector, as well,
+        and as a matrix, otherwise.
 
         ALGORITHM:
 
-        Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module.
+        For square matrices, this uses the function
+        :func:`scipy:scipy.linalg.solve` from SciPy.
+        For non-square matrices, this uses :func:`scipy:scipy.linalg.lstsq`.
 
         EXAMPLES:
 
@@ -1673,6 +1726,24 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 4.5  3.0]
             [-3.0 -2.0]
 
+        If `A` is a non-square matrix, the result is a least-squares solution.
+        For a wide matrix, this may give a solution with a least-squares error
+        of almost zero::
+
+            sage: A = matrix(RDF, 2, 3, [1, 3, 4, 2, 0, -3])
+            sage: b = vector(RDF, [5, 6])
+            sage: x = A.solve_right(b)
+            sage: (A * x - b).norm() < 1e-14
+            True
+
+        For a tall matrix `A`, the error is usually not small::
+
+            sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
+            sage: b = vector(RDF, [5, 6, 1])
+            sage: x = A.solve_right(b)
+            sage: (A * x - b).norm()  # tol 1e-14
+            3.2692119900020438
+
         TESTS:
 
         A degenerate case::
@@ -1680,15 +1751,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = matrix(RDF, 0, 0, [])
             sage: A.solve_right(vector(RDF,[]))
             ()
-
-        The coefficient matrix must be square. ::
-
-            sage: A = matrix(RDF, 2, 3, range(6))
-            sage: b = vector(RDF, [1,2,3])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: coefficient matrix of a system over RDF/CDF must be square, not 2 x 3
 
         The coefficient matrix must be nonsingular.  ::
 
@@ -1706,8 +1768,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            ValueError: dimensions of linear system over RDF/CDF do not match:
-            b has size 4, but coefficient matrix has size 5
+            ValueError: number of rows of self must equal degree of B
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::
@@ -1737,71 +1798,49 @@ cdef class Matrix_double_dense(Matrix_dense):
             a vector or matrix
             See http://trac.sagemath.org/17405 for details.
         """
-        R = self.base_ring()
         try:
-            R2 = b.base_ring()
+            _ = b.base_ring()
         except AttributeError:
             from sage.misc.superseded import deprecation
             deprecation(17405, "solve_right should be called with a vector "
                                "or matrix")
             b = vector(b)
-            R2 = b.base_ring()
-        if R2 is not R:
-            # first coerce both elements to parent over same base ring
-            P = coercion_model.common_parent(R, R2)
-            if R2 is not P:
-                b = b.change_ring(P)
-            if R is not P:
-                a = self.change_ring(P)
-                return a.solve_right(b)
-            # now R is P and both elements have the same base ring RDF/CDF
+        return super(Matrix_double_dense, self).solve_right(b, check=False)
 
-        if not self.is_square():
-            # TODO this is too restrictive; use lstsq for non-square matrices
-            raise NotImplementedError("coefficient matrix of a system over "
-                                      "RDF/CDF must be square, not %s x %s "
-                                      % (self.nrows(), self.ncols()))
-
-        b_is_matrix = is_Matrix(b)
-        if not b_is_matrix:
-            # turn b into a matrix
-            b = b.column()
-        if b.nrows() != self._nrows:
-            raise ValueError("dimensions of linear system over RDF/CDF do not "
-                             "match: b has size %s, but coefficient matrix "
-                             "has size %s" % (b.nrows(), self.nrows()) )
-
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-
-        # AX = B, so X.nrows() = self.ncols() and X.ncols() = B.ncols()
-        X = self._new(self._ncols, b.ncols())
-        # may raise a LinAlgError for a singular matrix
-        X._matrix_numpy = scipy.linalg.solve(self._matrix_numpy, b.numpy())
-        return X if b_is_matrix else X.column(0)
-
-    def solve_left(self, b):
+    def solve_left(self, b, check=False):
         r"""
-        Solve the matrix equation ``x*A = b`` for a nonsingular ``A``.
+        Solve the matrix equation ``x*A = b`` for any matrix ``A``.
 
         INPUT:
 
-        - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector or a matrix;
+        - ``self`` -- a matrix
+        - ``b`` -- a vector or a matrix;
           the dimension (if a vector), or the number of rows (if
           a matrix) must match the dimension of ``self``
+        - ``check`` -- boolean (default: ``False``); ignored
 
         OUTPUT:
 
-        the unique solution ``x`` to the matrix equation ``x*A = b``,
-        as a vector or matrix over a suitable common base ring
+        If ``self`` is a square matrix `A`, the result of this computation is
+        the unique solution `x` to the matrix equation `x A = b`. If `A` is
+        singular, a ``LinAlgError`` may be raised.
+
+        If `A` is a non-square matrix, the result is the least-squares
+        solution of the equation, such that the 2-norm `|x A - b|`
+        is minimized.
+
+        If `b` is a vector, the result is returned as a vector, as well,
+        and as a matrix, otherwise.
 
         ALGORITHM:
 
-        Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module,
-        after taking the transpose of the coefficient matrix.
+        For square matrices, this uses the function
+        :func:`scipy:scipy.linalg.solve` from SciPy.
+        For non-square matrices, this uses :func:`scipy:scipy.linalg.lstsq`.
+
+        .. SEEALSO::
+
+            :meth:`solve_right`
 
         EXAMPLES:
 
@@ -1841,6 +1880,24 @@ cdef class Matrix_double_dense(Matrix_dense):
             [  -6.495454545454545    4.068181818181818   3.1363636363636354]
             [  0.5277272727272727  -0.2340909090909091 -0.36818181818181817]
 
+        If `A` is a non-square matrix, the result is a least-squares solution.
+        For a tall matrix, this may give a solution with a least-squares error
+        of almost zero::
+
+            sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
+            sage: b = vector(RDF, [5, 6])
+            sage: x = A.solve_left(b)
+            sage: (x * A - b).norm() < 1e-14
+            True
+
+        For a wide matrix `A`, the error is usually not small::
+
+            sage: A = matrix(RDF, 2, 3, [1, 3, 4, 2, 0, -3])
+            sage: b = vector(RDF, [5, 6, 1])
+            sage: x = A.solve_left(b)
+            sage: (x * A - b).norm()  # tol 1e-14
+            0.9723055853282466
+
         TESTS:
 
         A degenerate case::
@@ -1848,15 +1905,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = matrix(RDF, 0, 0, [])
             sage: A.solve_left(vector(RDF,[]))
             ()
-
-        The coefficient matrix must be square. ::
-
-            sage: A = matrix(RDF, 2, 3, range(6))
-            sage: b = vector(RDF, [1,2,3])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: coefficient matrix of a system over RDF/CDF must be square, not 3 x 2
 
         The coefficient matrix must be nonsingular.  ::
 
@@ -1874,8 +1922,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            ValueError: dimensions of linear system over RDF/CDF do not match:
-            b has size 4, but coefficient matrix has size 5
+            ValueError: number of columns of self must equal degree of B
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::
@@ -1896,11 +1943,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: b = vector(QQ[I], [1+I, 2])
             sage: x = A.solve_left(b)
         """
-        if is_Matrix(b):
-            return self.T.solve_right(b.T).T
-        else:
-            # b is a vector and so is the result
-            return self.T.solve_right(b)
+        return super(Matrix_double_dense, self).solve_left(b, check=False)
 
     def determinant(self):
         """

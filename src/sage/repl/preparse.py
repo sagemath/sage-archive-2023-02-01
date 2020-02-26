@@ -93,7 +93,7 @@ Raw and hex work correctly::
 
 The preparser can handle PEP 515 (see :trac:`28490`)::
 
-    sage: 1_000_000 + 3_000
+    sage: 1_000_000 + 3_000 # py3
     1003000
 
 In Sage, methods can also be called on integer and real literals (note

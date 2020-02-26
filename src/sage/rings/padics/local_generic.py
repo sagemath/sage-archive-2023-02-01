@@ -1577,8 +1577,8 @@ class LocalGeneric(CommutativeRing):
         valdet = 0
         val = -Infinity
         for piv in range(n):
-            pivi = pivj = 0
-            curval = S[0,0].valuation()
+            pivi = pivj = piv
+            curval = S[pivi, pivj].valuation()
             for i in range(piv,n):
                 for j in range(piv,n):
                     v = S[i,j].valuation()

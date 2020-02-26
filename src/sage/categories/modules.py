@@ -722,6 +722,23 @@ class Modules(Category_module):
                     if all(A.base_ring() is R for A in factors):
                         self._base = R
 
+        class ElementMethods:
+
+            def _lmul_(self, x):
+                """
+                Return the product of `x` with ``self``.
+
+                EXAMPLES::
+
+                    sage: A = FreeModule(ZZ, 2)
+                    sage: B = cartesian_product([A, A]); B
+                    The Cartesian product of (Ambient free module of rank 2 over the principal ideal domain Integer Ring, Ambient free module of rank 2 over the principal ideal domain Integer Ring)
+                    sage: 5*B(([1, 2], [3, 4]))
+                    ((5, 10), (15, 20))
+                """
+                return self.parent()._cartesian_product_of_elements(
+                    x*y for y in self.cartesian_factors())
+
     class TensorProducts(TensorProductsCategory):
         """
         The category of modules constructed by tensor product of modules.

@@ -694,6 +694,25 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
         raise ValueError("unable to construct an element from the given data")
 
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        TESTS::
+
+            sage: J = JordanAlgebra(Matrix([[0, 1], [1, 1]]))
+            sage: J.coerce_map_from(ZZ)
+            Coercion map:
+              From: Integer Ring
+              To:   Jordan algebra over Integer Ring given by the symmetric bilinear form:
+            [0 1]
+            [1 1]
+        """
+        # Return a DefaultConvertMap_unique; this can pass additional
+        # arguments to _element_constructor_, unlike the map returned
+        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
+        return self._generic_coerce_map(self.base_ring())
+
     @cached_method
     def basis(self):
         """

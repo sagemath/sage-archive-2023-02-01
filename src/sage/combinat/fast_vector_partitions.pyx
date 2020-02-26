@@ -11,8 +11,9 @@ https://wiki.haskell.org/The_Monad.Reader/Previous_issues
 
 AUTHORS:
 
-D.K. Sunko (2020-02-19): initial version
-F. Chapoton (2020-02-22): conversion to iterators and shorter doctests and doc tweaks
+- D.K. Sunko (2020-02-19): initial version
+- F. Chapoton (2020-02-22): conversion to iterators and shorter doctests
+  and doc tweaks
 """
 ################################################################################
 #          Copyright (C) 2020 Denis Sunko <dks@phy.hr>                         #
@@ -124,7 +125,7 @@ def recursive_within_from_to(m, s, e, useS, useE):
             for o in out:
                 yield [x] + o
         else:
-            yield [x] # we know the answer for singletons
+            yield [x]  # we know the answer for singletons
 
 
 def within_from_to(m, s, e):
@@ -141,17 +142,17 @@ def within_from_to(m, s, e):
 
     Lexicographically ordered list of lists ``v`` satisfying
     ``e <= v <= s`` and ``v <|= m`` as vectors.
-    
+
     EXAMPLES::
 
         sage: from sage.combinat.fast_vector_partitions import within_from_to
         sage: list(within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1]))
         [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
-    
+
     .. NOTE::
 
         The input ``s`` will be "clipped" internally if it does not satisfy
-        the condition ``s <|= m``. 
+        the condition ``s <|= m``.
 
         To understand the input check, some line art is helpful. Assume
         that ``(a,b)`` are the two least significant coordinates of some
@@ -200,13 +201,13 @@ def within_from_to(m, s, e):
     .. WARNING::
 
         The "clipping" behavior is transparent to the user, but may be puzzling
-        when comparing outputs with the function recursive_within_from_to(),
-        which has no input protection.
+        when comparing outputs with the function
+        :func:`recursive_within_from_to` which has no input protection.
     """
     ss = s
     # if s is not in the box defined by m, we must clip:
     if not all(x <= y for x, y in zip(s, m)): # slightly slower without the if
-        ss = [min(x,y) for x,y in zip(s, m)]  # rebuilding the list is costly
+        ss = [min(x, y) for x, y in zip(s, m)]  # rebuilding the list is costly
     if e > ss:
         return
     yield from recursive_within_from_to(m, ss, e, True, True)
@@ -214,7 +215,8 @@ def within_from_to(m, s, e):
 
 def recursive_vector_partitions(v, vL):
     r"""
-    Internal part of the current implementation of fast_vector_partitions().
+    Internal part of the current implementation of
+    :func:`fast_vector_partitions`.
 
     INPUT:
 
@@ -291,7 +293,8 @@ def fast_vector_partitions(v, min=None):
          [[0, 1, 1], [1, 1, 2]],
          [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
          [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
-        sage: list(fast_vector_partitions([5, 7, 6], min=[1, 3, 2])) == list(VectorPartitions([5, 7, 6], min = [1, 3, 2]))[::-1]
+        sage: L1 = list(fast_vector_partitions([5, 7, 6], min=[1, 3, 2]))
+        sage: L1 == list(VectorPartitions([5, 7, 6], min = [1, 3, 2]))[::-1]
         True
 
     .. NOTE::
@@ -306,7 +309,7 @@ def fast_vector_partitions(v, min=None):
     .. WARNING::
 
         The ordering of the partitions is reversed with respect to the output of
-        Sage class VectorPartitions().
+        Sage class :class:`~sage.combinat.vector_partition.VectorPartitions`.
     """
     if min is None:
         min = (len(v) - 1) * [0] + [1]  # lexicographically smallest vector > 0

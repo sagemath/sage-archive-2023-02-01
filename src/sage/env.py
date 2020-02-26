@@ -164,6 +164,7 @@ var('SAGE_SHARE',          join(SAGE_LOCAL, 'share'))
 var('SAGE_DOC',            join(SAGE_SHARE, 'doc', 'sage'))
 var('SAGE_SPKG_INST',      join(SAGE_LOCAL, 'var', 'lib', 'sage', 'installed'))
 var('SAGE_LIB',            os.path.dirname(os.path.dirname(sage.__file__)))
+var('SAGE_EXTCODE',        join(SAGE_LIB, 'sage', 'ext_data'))
 
 var('SAGE_ROOT')           # no fallback for SAGE_ROOT
 var('SAGE_SRC',            join(SAGE_ROOT, 'src'), SAGE_LIB)
@@ -175,7 +176,6 @@ var('DOT_SAGE',            join(os.environ.get('HOME'), '.sage'))
 var('SAGE_STARTUP_FILE',   join(DOT_SAGE, 'init.sage'))
 
 # installation directories for various packages
-var('SAGE_EXTCODE',                  join(SAGE_SHARE, 'sage', 'ext'))
 var('CONWAY_POLYNOMIALS_DATA_DIR',   join(SAGE_SHARE, 'conway_polynomials'))
 var('GRAPHS_DATA_DIR',               join(SAGE_SHARE, 'graphs'))
 var('ELLCURVE_DATA_DIR',             join(SAGE_SHARE, 'ellcurves'))

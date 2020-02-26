@@ -69,7 +69,7 @@ def _remove(file_set, module_base, to_remove):
         file_set.difference_update(remove)
 
 
-def _find_stale_files(site_packages, python_packages, python_modules, ext_modules, data_files):
+def _find_stale_files(site_packages, python_packages, python_modules, ext_modules, data_files, nobase_data_files=()):
     """
     Find stale files
 
@@ -99,6 +99,7 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         sage: skip_extensions = (loadable_module_extension(),)
         sage: for f in stale_iter:
         ....:     if f.endswith(skip_extensions): continue
+        ....:     if '/ext_data/' in f: continue
         ....:     print('Found stale file: ' + f)
     """
 
@@ -134,6 +135,9 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
     for dir, files in data_files:
         for f in files:
             installed_files.add(os.path.join(dir, os.path.basename(f)))
+    for dir, files in nobase_data_files:
+        for f in files:
+            installed_files.add(f)
 
     for files in module_files.values():
         for f in files:
@@ -141,7 +145,7 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
                 yield f
 
 
-def clean_install_dir(site_packages, python_packages, python_modules, ext_modules, data_files):
+def clean_install_dir(site_packages, python_packages, python_modules, ext_modules, data_files, nobase_data_files):
     """
     Delete all modules that are **not** being installed
 
@@ -166,10 +170,16 @@ def clean_install_dir(site_packages, python_packages, python_modules, ext_module
       output of ``cythonize``.
 
     - ``data_files`` -- a list of (installation directory, files) pairs,
-      like the ``data_files`` argument to distutils' ``setup()``.
+      like the ``data_files`` argument to distutils' ``setup()``. Only
+      the basename of the files is used.
+
+    - ``nobase_data_files`` -- a list of (installation directory, files)
+      pairs. The files are expected to be in a subdirectory of the
+      installation directory; the filenames are used as is.
+
     """
     stale_file_iter = _find_stale_files(
-        site_packages, python_packages, python_modules, ext_modules, data_files)
+        site_packages, python_packages, python_modules, ext_modules, data_files, nobase_data_files)
     for f in stale_file_iter:
         f = os.path.join(site_packages, f)
         print('Cleaning up stale file: {0}'.format(f))

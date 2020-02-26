@@ -1585,9 +1585,43 @@ class MatrixSpace(UniqueRepresentation, Parent):
     def diagonal_matrix(self, entries):
         """
         Return a diagonal matrix in ``self`` containing the elements specified in the list.
+
+        ``self`` must be a space of square
+        matrices. The returned matrix is immutable. Please use ``copy`` if
+        you want a modified copy.
+
         Calls the function sage.matrix.special.diagonal_matrix() with the right arguments.
+
+        EXAMPLES::
+
+            sage: MS1 = MatrixSpace(ZZ,4)
+            sage: MS2 = MatrixSpace(QQ,3,4)
+            sage: I = MS1.diagonal_matrix([1, 2, 3, 4])
+            sage: I
+            [1 0 0 0]
+            [0 2 0 0]
+            [0 0 3 0]
+            [0 0 0 4]
+            sage: Er = MS2.diagonal_matrix([1, 2])
+            Traceback (most recent call last):
+            ...
+            TypeError: diagonal matrix must be square
+
+        TESTS::
+
+            sage: MS1.diag([1, 2, 3, 4])[1,2] = 3
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).   
+
         """
-        return sage.matrix.special.diagonal_matrix(self.base_ring(), self.dims()[0], entries)
+        if self.__nrows != self.__ncols:
+            raise TypeError("diagonal matrix must be square")
+        A = sage.matrix.special.diagonal_matrix(self.base_ring(), self.dims()[0], entries)
+        A.set_immutable()
+        return A
+
+    diag = diagonal_matrix
             
     def is_dense(self):
         """

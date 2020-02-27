@@ -5,7 +5,7 @@ SAGE_SPKG_CONFIGURE([fplll], [
     dnl a system that ships fplll without fplll.pc file, falling
     dnl back to a manual header/library search is pointless.
     PKG_CHECK_MODULES([FPLLL],
-                      [fplll >= 5.0],
+                      [fplll >= 5.3],
                       [],
                       [sage_spkg_install_fplll=yes])
   ],

@@ -17789,28 +17789,37 @@ class GenericGraph(GenericGraph_pyx):
                     neighbors = self.neighbor_iterator
                 else:
                     neighbors = self.neighbor_out_iterator
-            seen = list()
+            seen = set()
             if isinstance(start, list):
                 # Reverse the list so that the initial vertices come out in the same order
                 queue = [(v, 0) for v in reversed(start)]
             else:
                 queue = [(start, 0)]
-
-            while queue:
-                v, d = queue.pop()
-                if v not in seen:
-                    if not edges:
+            
+            if not edges:
+                while queue:
+                    v, d = queue.pop()
+                    if v not in seen:
                         yield v
-                    else:
-                        for w in reversed(seen):
-                            if v in neighbors(w):
-                                yield w, v
-                                break
-                    seen.append(v)
-                    if distance is None or d < distance:
-                        for w in neighbors(v):
-                            if w not in seen:
-                                queue.append((w, d + 1))
+                        seen.add(v)
+                        if distance is None or d < distance:
+                                for w in neighbors(v):
+                                    if w not in seen:
+                                        queue.append((w, d + 1))
+            
+            else:
+                v, d = queue.pop()
+                queue.append((None, v, d))
+                while queue:
+                    v, w, d = queue.pop()
+                    if w not in seen:
+                        if v is not None:
+                            yield v, w                        
+                        seen.add(w)
+                        if distance is None or d < distance:
+                            for x in neighbors(w):
+                                if x not in seen:
+                                    queue.append((w, x, d + 1))
 
     ### Constructors
 

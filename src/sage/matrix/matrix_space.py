@@ -1586,11 +1586,11 @@ class MatrixSpace(UniqueRepresentation, Parent):
         """
         Return a diagonal matrix in ``self`` containing the elements specified in the list.
 
-        ``self`` must be a space of square
-        matrices. The returned matrix is immutable. Please use ``copy`` if
+        ``self`` must be a space of square matrices. Length of ``entries`` must be less 
+        than or equal to matrix dimensions.If length of ``entries`` is less than matrix 
+        dimensions, ``entries`` is padded with zeroes at the end. 
+        The returned matrix is immutable. Please use ``copy`` if
         you want a modified copy.
-
-        Calls the function sage.matrix.special.diagonal_matrix() with the right arguments.
 
         EXAMPLES::
 
@@ -1606,18 +1606,36 @@ class MatrixSpace(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             TypeError: diagonal matrix must be square
+            sage: Er = MS1.diagonal_matrix([1, 2, 3, 4, 5])
+            Traceback (most recent call last):
+            ...
+            TypeError: number of diagonal matrix entries (5) exceeds the matrix size (4)
 
         TESTS::
 
             sage: MS1.diag([1, 2, 3, 4])[1,2] = 3
             Traceback (most recent call last):
             ...
-            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).   
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+
+        Check different implementations::
+
+            sage: M1 = MatrixSpace(ZZ, 2, implementation='flint')
+            sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
+
+            sage: type(M1.diagonal_matrix([1, 2]))
+            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            sage: type(M2.diagonal_matrix([1, 2]))
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>   
 
         """
         if self.__nrows != self.__ncols:
             raise TypeError("diagonal matrix must be square")
-        A = sage.matrix.special.diagonal_matrix(self.base_ring(), self.dims()[0], entries)
+        if self.__nrows < len(entries):
+            raise ValueError('number of diagonal matrix entries (%s) exceeds the matrix size (%s)' % (len(entries), self.__nrows))
+        A = self.zero_matrix().__copy__()
+        for i in range(len(entries)):
+            A[i, i] = entries[i]
         A.set_immutable()
         return A
 

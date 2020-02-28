@@ -1588,9 +1588,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         ``self`` must be a space of square matrices. Length of ``entries`` must be less 
         than or equal to matrix dimensions.If length of ``entries`` is less than matrix 
-        dimensions, ``entries`` is padded with zeroes at the end. 
-        The returned matrix is immutable. Please use ``copy`` if
-        you want a modified copy.
+        dimensions, ``entries`` is padded with zeroes at the end.
 
         EXAMPLES::
 
@@ -1611,13 +1609,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             TypeError: number of diagonal matrix entries (5) exceeds the matrix size (4)
 
-        TESTS::
-
-            sage: MS1.diag([1, 2, 3, 4])[1,2] = 3
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
-
         Check different implementations::
 
             sage: M1 = MatrixSpace(ZZ, 2, implementation='flint')
@@ -1636,7 +1627,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
         A = self.zero_matrix().__copy__()
         for i in range(len(entries)):
             A[i, i] = entries[i]
-        A.set_immutable()
         return A
 
     diag = diagonal_matrix

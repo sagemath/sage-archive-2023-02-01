@@ -7203,9 +7203,9 @@ class Polyhedron_base(Element):
 
     def h_star_vector(self):
         r"""
-        Return the h*-vector of the lattice polytope.
+        Return the `h^*`-vector of the lattice polytope.
 
-        The h*-vector records the coefficients of the polynomial in the
+        The `h^*`-vector records the coefficients of the polynomial in the
         numerator of the Ehrhart series of a lattice polytope.
 
         INPUT:
@@ -7214,17 +7214,17 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        A list whose entries give the h*-vector.
+        A list whose entries give the `h^*`-vector.
 
         .. NOTE:
 
-            The ``backend`` of ``self`` should be ``'normaliz'``.
+            The backend of ``self`` should be ``'normaliz'``.
             This function depends on Normaliz (i.e. the ``pynormaliz`` optional
             package). See the Normaliz documentation for further details.
 
         EXAMPLES:
 
-        The h*-vector of a unimodular simplex S (a simplex with
+        The `h^*`-vector of a unimodular simplex S (a simplex with
         volume = $\frac{1}{dim(S)!} ) is always 1. Here we test this on
         simplices up to dimension 3::
 
@@ -7275,7 +7275,7 @@ class Polyhedron_base(Element):
 
     def _h_star_vector_normaliz(self):
         r"""
-        Return the h*-vector of a lattice polytope with backend = 'normaliz'.
+        Return the `h^*`-vector of a lattice polytope with backend = 'normaliz'.
 
         INPUT:
 
@@ -7283,11 +7283,11 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        The h*-vector as a list.
+        The `h^*`-vector as a list.
 
-        ..NOTE:
+        .. NOTE:
 
-        The ``backend`` of ``self`` should be ``'normaliz'``.
+        The backend of ``self`` should be ``'normaliz'``.
 
         TESTS::
 

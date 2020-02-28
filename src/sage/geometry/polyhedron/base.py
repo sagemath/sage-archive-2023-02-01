@@ -2043,7 +2043,7 @@ class Polyhedron_base(Element):
         chain_indices = [face.ambient_V_indices() for face in chain]
         basis_indices = []
 
-        # We use in the folling that elements in ``chain_indices`` are sorted lists
+        # We use in the following that elements in ``chain_indices`` are sorted lists
         # of V-indices.
         # Thus for each two faces we can easily find the first vertex that differs.
         for dim,face in enumerate(chain_indices):

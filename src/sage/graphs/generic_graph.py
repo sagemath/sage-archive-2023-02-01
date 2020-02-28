@@ -17755,7 +17755,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({1: [2, 3], 2: [4], 3: [4], 4: [1, 5], 5: [2, 6]})
             sage: list(D.depth_first_search(1, edges=True))
             [(1, 3), (3, 4), (4, 5), (5, 6), (5, 2)]
-            sage: D = DiGraph({1: [2, 3], 2: [4], 3: [4], 4: [1, 5], 5: [2, 6]})
             sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))
             [(1, 4), (4, 5), (5, 6), (5, 2), (4, 3)]
 
@@ -17764,11 +17763,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({1: [0], 2: [0]})
             sage: list(D.depth_first_search(0))
             [0]
+            sage: G = DiGraph([(0, 1), (1, 2), (3, 4), (4, 5)])
+            sage: list(G.depth_first_search([0], edges=True))
+            [(0, 1), (1, 2)]
+            sage: list(G.depth_first_search([0, 3], edges=True))
+            [(0, 1), (1, 2), (3, 4), (4, 5)]
             sage: D = DiGraph({1: [2, 3], 3: [4, 6], 4: [6], 5: [4, 7], 6: [7]})
             sage: list(D.depth_first_search(1))
             [1, 3, 6, 7, 4, 2]
             sage: list(D.depth_first_search(1, edges=True))
             [(1, 3), (3, 6), (6, 7), (3, 4), (1, 2)]
+            sage: list(D.depth_first_search([1, 3], edges=True))
+            [(1, 3), (3, 6), (6, 7), (3, 4), (1, 2)]
+            sage: list(D.depth_first_search([], ignore_direction=True, edges=True))
+            []
             sage: list(D.depth_first_search(1, ignore_direction=True))
             [1, 3, 6, 4, 5, 7, 2]
             sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))

@@ -1584,11 +1584,17 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
     def diagonal_matrix(self, entries):
         """
-        Return a diagonal matrix in ``self`` containing the elements specified in the list.
+        Create a diagonal matrix in ``self`` using the specified elements
 
-        ``self`` must be a space of square matrices. Length of ``entries`` must be less 
-        than or equal to matrix dimensions.If length of ``entries`` is less than matrix 
-        dimensions, ``entries`` is padded with zeroes at the end.
+        INPUT:
+
+        - ``entries`` -- the elements to use as the diagonal entries
+
+        ``self`` must be a space of square matrices. The length of
+        ``entries`` must be less than or equal to the matrix
+        dimensions. If the length of ``entries`` is less than the
+        matrix dimensions, ``entries`` is padded with zeroes at the
+        end.
 
         EXAMPLES::
 
@@ -1600,14 +1606,18 @@ class MatrixSpace(UniqueRepresentation, Parent):
             [0 2 0 0]
             [0 0 3 0]
             [0 0 0 4]
-            sage: Er = MS2.diagonal_matrix([1, 2])
+            sage: MS2.diagonal_matrix([1, 2])
             Traceback (most recent call last):
             ...
             TypeError: diagonal matrix must be square
-            sage: Er = MS1.diagonal_matrix([1, 2, 3, 4, 5])
+            sage: MS1.diagonal_matrix([1, 2, 3, 4, 5])
             Traceback (most recent call last):
             ...
-            TypeError: number of diagonal matrix entries (5) exceeds the matrix size (4)
+            ValueError: number of diagonal matrix entries (5) exceeds the matrix size (4)
+            sage: MS1.diagonal_matrix([1/2, 2, 3, 4])
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
 
         Check different implementations::
 
@@ -1617,8 +1627,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: type(M1.diagonal_matrix([1, 2]))
             <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: type(M2.diagonal_matrix([1, 2]))
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>   
-
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         """
         if self.__nrows != self.__ncols:
             raise TypeError("diagonal matrix must be square")
@@ -1629,8 +1638,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
             A[i, i] = entries[i]
         return A
 
-    diag = diagonal_matrix
-            
     def is_dense(self):
         """
         Return whether matrices in ``self`` are dense.

@@ -8792,7 +8792,7 @@ class Polyhedron_base(Element):
             if not self.is_compact():
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
             affine_basis = self.an_affine_basis()
-            # We implicitely translate the first vertex of the affine basis to zero.
+            # We implicitly translate the first vertex of the affine basis to zero.
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(),
                        [v.vector() - affine_basis[0].vector() for v in affine_basis[1:]])
 

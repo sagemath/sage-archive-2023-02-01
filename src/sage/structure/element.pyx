@@ -3403,6 +3403,21 @@ cdef class Vector(ModuleElement):
         return self / other
 
     def __truediv__(self, right):
+        """
+        Divide this vector by a scalar, vector or matrix.
+
+        TESTS::
+
+            sage: A = matrix([[1, 2], [0, 3]])
+            sage: b = vector([0, 1])
+            sage: x = b / A; x
+            (0, 1/3)
+            sage: x == b * ~A
+            True
+            sage: A = matrix([[1, 2], [0, 3], [1, 5]])
+            sage: (b / A) * A == b
+            True
+        """
         right = py_scalar_to_element(right)
         if isinstance(right, RingElement):
             # Let __mul__ do the job
@@ -3416,6 +3431,8 @@ cdef class Vector(ModuleElement):
                     raise ZeroDivisionError("division by zero vector")
                 else:
                     raise ArithmeticError("vector is not in free module")
+        if is_Matrix(right):
+            return right.solve_left(self)
         raise bin_op_exception('/', self, right)
 
     def _magma_init_(self, magma):
@@ -3752,9 +3769,23 @@ cdef class Matrix(ModuleElement):
             sage: operator.truediv(c, a)
             [-5/2  3/2]
             [-1/2  5/2]
+
+        TESTS::
+
+            sage: a = matrix(ZZ, [[1, 2], [0, 3]])
+            sage: b = matrix(ZZ, 3, 2, range(6))
+            sage: x = b / a; x
+            [   0  1/3]
+            [   2 -1/3]
+            [   4   -1]
+            sage: x == b * ~a
+            True
+            sage: a = matrix(ZZ, [[1, 2], [0, 3], [1, 5]])
+            sage: (b / a) * a == b
+            True
         """
-        if have_same_parent(left, right):
-            return left * ~right
+        if is_Matrix(right):
+            return right.solve_left(left)
         return coercion_model.bin_op(left, right, truediv)
 
     def __div__(left, right):
@@ -3806,9 +3837,7 @@ cdef class Matrix(ModuleElement):
             [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
             [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
-        if have_same_parent(left, right):
-            return left * ~right
-        return coercion_model.bin_op(left, right, truediv)
+        return left / right
 
     cdef _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError

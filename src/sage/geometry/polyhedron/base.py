@@ -2818,12 +2818,23 @@ class Polyhedron_base(Element):
              A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices]
             sage: [face.ambient_V_indices() for face in chain]
             [(), (0,), (0, 4), (0, 1, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
+
+        TESTS::
+
+        Check output for the empty polyhedron::
+
+            sage: P = Polyhedron()
+            sage: P.a_maximal_chain()
+            [A -1-dimensional face of a Polyhedron in ZZ^0]
         """
         comb_chain = self.combinatorial_polyhedron().a_maximal_chain()
 
         from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face
         empty_face = self.faces(-1)[0]
         universe = self.faces(self.dim())[0]
+
+        if self.dim() == -1:
+            return [empty_face]
 
         return [empty_face] + \
                [combinatorial_face_to_polyhedral_face(self, face)

@@ -912,7 +912,10 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             sage: CBG2._test_matrix_group()
         """
         tester = self._tester(**options)
-        F3 = GF(3); r63 = F3(2); F4 = GF(4); r64 = F4.gen()
+        F3 = GF(3)
+        r63 = F3(2)
+        F4 = GF(4)
+        r64 = F4.gen()
         MatDEF = self.as_matrix_group()
         self._internal_test_attached_group(MatDEF, tester)
 
@@ -1261,7 +1264,8 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             # now 1 + 2*cos(\pi/6)*i\theta = 1 + sqrt(3)*(-sqrt(3)/2 + I/2) = 1- 3/2 + sqrt(3)I/2 = z12^4 = - ~z12^2
             # finally: Coxeter's Realization is the unitary Burau representation of Squier for s = ~z12
             # -----------------------------------------------------------------------------------------------
-            UCF = UniversalCyclotomicField(); z12 = UCF.gen(12)
+            UCF = UniversalCyclotomicField()
+            z12 = UCF.gen(12)
             classical_group = self.as_matrix_group(root_bur=~z12, domain=UCF, reduced='unitary')
             self._classical_group            = classical_group
             self._classical_base_group       = classical_group

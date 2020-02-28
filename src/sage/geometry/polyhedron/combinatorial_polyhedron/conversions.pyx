@@ -314,7 +314,7 @@ def incidence_matrix_to_bit_rep_of_facets(matrix):
         # "i-th column" of the original matrix (but we have transposed).
         incidences_to_bit_rep(tuple(matrix[i]), facets_data[i], facets.face_length)
     return facets
-incidence_matrix_to_bit_repr_of_facets = deprecated_function_alias(28616, incidence_matrix_to_bit_rep_of_facets)
+incidence_matrix_to_bit_repr_of_facets = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_facets)
 
 def incidence_matrix_to_bit_rep_of_Vrep(matrix):
     r"""
@@ -412,7 +412,7 @@ def incidence_matrix_to_bit_rep_of_Vrep(matrix):
         # "i-th row" of the original matrix (but we have transposed).
         incidences_to_bit_rep(tuple(matrix.column(i)), Vrep_data[i], Vrep.face_length)
     return Vrep
-incidence_matrix_to_bit_repr_of_Vrepr = deprecated_function_alias(28616, incidence_matrix_to_bit_rep_of_Vrep)
+incidence_matrix_to_bit_repr_of_Vrepr = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_Vrep)
 
 def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
     r"""
@@ -475,7 +475,7 @@ def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
         # filling each facet with the data from the corresponding facet
         Vrep_list_to_bit_rep(facets_input[i], facets_data[i], face_length)
     return facets
-facets_tuple_to_bit_repr_of_facets = deprecated_function_alias(28616, facets_tuple_to_bit_rep_of_facets)
+facets_tuple_to_bit_repr_of_facets = deprecated_function_alias(28608, facets_tuple_to_bit_rep_of_facets)
 
 def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
     r"""
@@ -560,7 +560,7 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
             # input-facet is a Vrep of intput-Vrep.
             Vrep_data[input_Vrep][position] += vertex_to_bit_dictionary(value)
     return Vrep
-facets_tuple_to_bit_repr_of_Vrepr = deprecated_function_alias(28616, facets_tuple_to_bit_rep_of_Vrep)
+facets_tuple_to_bit_repr_of_Vrepr = deprecated_function_alias(28608, facets_tuple_to_bit_rep_of_Vrep)
 
 cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
                                            size_t face_length) except -1:

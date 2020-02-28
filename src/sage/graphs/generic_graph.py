@@ -17695,7 +17695,7 @@ class GenericGraph(GenericGraph_pyx):
           digraph, the ``neighbors`` function defaults to the
           :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
-        - ``edges`` -- boolean (default ``False``); whether to return the edges
+        - ``edges`` -- boolean (default: ``False``); whether to return the edges
           of the DFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.
 
@@ -17803,13 +17803,11 @@ class GenericGraph(GenericGraph_pyx):
                         yield v
                         seen.add(v)
                         if distance is None or d < distance:
-                                for w in neighbors(v):
-                                    if w not in seen:
-                                        queue.append((w, d + 1))
-            
+                            for w in neighbors(v):
+                                if w not in seen:
+                                    queue.append((w, d + 1))
             else:
-                v, d = queue.pop()
-                queue.append((None, v, d))
+                queue = [(None, v, d) for v, d in queue]
                 while queue:
                     v, w, d = queue.pop()
                     if w not in seen:

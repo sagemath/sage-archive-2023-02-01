@@ -7219,26 +7219,26 @@ class Polyhedron_base(Element):
         .. NOTE:
 
             The backend of ``self`` should be ``'normaliz'``.
-            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
+            This function depends on Normaliz (i.e. the ``'pynormaliz'`` optional
             package). See the Normaliz documentation for further details.
 
         EXAMPLES:
 
         The `h^*`-vector of a unimodular simplex S (a simplex with
-        volume = $\frac{1}{dim(S)!} ) is always 1. Here we test this on
+        volume = `\frac{1}{dim(S)!}`) is always 1. Here we test this on
         simplices up to dimension 3::
 
-            sage: s1 = polytopes.simplex(1,backend = 'normaliz')              # optional - pynormaliz
-            sage: s2 = polytopes.simplex(2,backend = 'normaliz')              # optional - pynormaliz
-            sage: s3 = polytopes.simplex(3,backend = 'normaliz')              # optional - pynormaliz
+            sage: s1 = polytopes.simplex(1,backend='normaliz')              # optional - pynormaliz
+            sage: s2 = polytopes.simplex(2,backend='normaliz')              # optional - pynormaliz
+            sage: s3 = polytopes.simplex(3,backend='normaliz')              # optional - pynormaliz
             sage: [s1.h_star_vector(),s2.h_star_vector(),s3.h_star_vector()]  # optional - pynormaliz
             [[1], [1], [1]]
 
-        For a less trivial example, we compute the h-star vector of the
+        For a less trivial example, we compute the `h^*`-vector of the
         `0/1`-cube, which has the Eulerian numbers `(3,i)` for `i \in [0,2]`
-        as an h-star vector::
+        as an `h^*`-vector::
 
-            sage: cube = polytopes.cube(intervals = 'zero_one', backend = 'normaliz') # optional - pynormaliz
+            sage: cube = polytopes.cube(intervals='zero_one', backend='normaliz') # optional - pynormaliz
             sage: cube.h_star_vector()   # optional - pynormaliz
             [1, 4, 1]
             sage: from sage.combinat.combinat import eulerian_number
@@ -7253,13 +7253,13 @@ class Polyhedron_base(Element):
             ...
             TypeError: The backend of self must be normaliz
 
-            sage: t = Polyhedron(vertices = [[0],[1/2]])
+            sage: t = Polyhedron(vertices=[[0],[1/2]])
             sage: t.h_star_vector()
             Traceback (most recent call last):
             ...
             TypeError: The h_star vector is only defined for lattice polytopes
 
-            sage: t2 = Polyhedron(vertices = [[AA(sqrt(2))],[1/2]])
+            sage: t2 = Polyhedron(vertices=[[AA(sqrt(2))],[1/2]])
             sage: t2.h_star_vector()
             Traceback (most recent call last):
             ...

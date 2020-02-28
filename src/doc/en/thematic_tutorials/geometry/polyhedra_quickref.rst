@@ -143,7 +143,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.ehrhart_polynomial` | the Ehrhart polynomial for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`
     :meth:`~sage.geometry.polyhedron.base_QQ.Polyhedron_QQ.ehrhart_polynomial` | the Ehrhart polynomial for :class:`Polyhedron over QQ <sage.geometry.polyhedron.base_QQ.Polyhedron_QQ>`
     :meth:`~sage.geometry.polyhedron.base_QQ.Polyhedron_QQ.ehrhart_quasipolynomial` | the Ehrhart quasipolynomial for :class:`Polyhedron over QQ <sage.geometry.polyhedron.base_QQ.Polyhedron_QQ>`
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.h_star_vector` | the h_star vector for polytopes with integral vertices
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.h_star_vector` | the `h^*`-vector for polytopes with integral vertices
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integral_points` | list of integral points
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integral_points_count` | number of integral points
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.get_integral_point` | get the i-th integral point without computing all interior lattice points

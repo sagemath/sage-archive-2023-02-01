@@ -2038,16 +2038,12 @@ class Polyhedron_base(Element):
         """
         if not self.is_compact():
             raise NotImplementedError("this function is not implemented for unbounded polyhedra")
-        if self.dimension() == -1:
-            return []
-        if self.dimension() == 0:
-            return list(self.vertices())
 
-        chain = self.combinatorial_polyhedron().a_maximal_chain()
+        chain = self.a_maximal_chain()[1:]  # we exclude the empty face
         chain_indices = [face.ambient_V_indices() for face in chain]
         basis_indices = []
 
-        # We just in the folling that element in ``chain_indices`` is a sorted list
+        # We use in the folling that elements in ``chain_indices`` are sorted lists
         # of V-indices.
         # Thus for each two faces we can easily find the first vertex that differs.
         for dim,face in enumerate(chain_indices):
@@ -2066,15 +2062,6 @@ class Polyhedron_base(Element):
                 # ``prev_face`` contains all the same vertices as ``face`` until now.
                 # But ``face`` is guaranteed to contain one more vertex (at least).
                 basis_indices.append(face[len(prev_face)])
-
-        # Finally append some vertex not contained in ``face``,
-        # which is a facet of ``self`` now.
-        for i in range(len(face)):
-            if face[i] != i:
-                basis_indices.append(i)
-                break
-        else:  # no break
-            basis_indices.append(len(face))
 
         return [self.Vrepresentation()[i] for i in basis_indices]
 

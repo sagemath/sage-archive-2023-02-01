@@ -1314,10 +1314,10 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def flag_f_vector(self, *args):
         r"""
-        Return the `flag_f_vector`.
+        Return the flag f-vector.
 
-        For each `-1 < i_0 < \dots < i_n < d` the `flag_f_vector`
-        counts the number of flags `F_0 \subset \dots \subset F_n
+        For each `-1 < i_0 < \dots < i_n < d` the flag f-vector
+        counts the number of flags `F_0 \subset \dots \subset F_n`
         with `F_i` of dimension `i_0` for each `0 \leq i \leq n`,
         where `d` is the dimension of the polyhedron.
 
@@ -1328,9 +1328,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         OUTPUT:
 
-        - a dictionary, if no arguments where given
+        - a dictionary, if no arguments were given
 
-        - an Integer, if arguments where given
+        - an Integer, if arguments were given
 
         EXAMPLES:
 

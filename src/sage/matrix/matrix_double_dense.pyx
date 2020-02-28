@@ -1616,7 +1616,8 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     def _solve_right_nonsingular_square(self, B, check_rank=False):
         """
-        Compute a solution to the equation `A x = b` for a square matrix `A`.
+        Find a solution `X` to the equation `A X = B` if ``self`` is a square
+        matrix `A`.
 
         EXAMPLES::
 
@@ -1637,7 +1638,8 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     def _solve_right_general(self, B, check=False):
         """
-        Compute a least-squares solution to the equation `A x = b`.
+        Compute a least-squares solution `X` to the equation `A X = B` where
+        ``self`` is the matrix `A`.
 
         EXAMPLES::
 
@@ -1658,7 +1660,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     def solve_right(self, b, check=False):
         r"""
-        Solve the matrix equation ``A*x = b`` for any matrix ``A``.
+        Try to find a solution `x` to the matrix equation `A x = b`.
 
         INPUT:
 
@@ -1809,7 +1811,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     def solve_left(self, b, check=False):
         r"""
-        Solve the matrix equation ``x*A = b`` for any matrix ``A``.
+        Try to find a solution `x` to the matrix equation `x A = b`.
 
         INPUT:
 

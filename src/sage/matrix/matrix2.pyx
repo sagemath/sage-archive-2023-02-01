@@ -196,7 +196,7 @@ cdef class Matrix(Matrix1):
 
     def solve_left(self, B, check=True):
         """
-        Compute a solution to the equation `X A = B`.
+        Try to find a solution `X` to the equation `X A = B`.
 
         If ``self`` is a matrix `A`, then this function returns a
         vector or matrix `X` such that `X A = B`. If
@@ -268,7 +268,7 @@ cdef class Matrix(Matrix1):
 
     def solve_right(self, B, check=True):
         r"""
-        Compute a solution to the equation `A X = B`.
+        Try to find a solution `X` to the equation `A X = B`.
 
         If ``self`` is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If

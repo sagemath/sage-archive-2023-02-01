@@ -5885,7 +5885,7 @@ class Polyhedron_base(Element):
 
         For each `-1 < i_0 < \dots < i_n < d` the flag f-vector
         counts the number of flags `F_0 \subset \dots \subset F_n`
-        with `F_i` of dimension `i_0` for each `0 \leq i \leq n`,
+        with `F_j` of dimension `i_j` for each `0 \leq j \leq n`,
         where `d` is the dimension of the polyhedron.
 
         INPUT:

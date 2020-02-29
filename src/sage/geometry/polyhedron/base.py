@@ -7403,6 +7403,104 @@ class Polyhedron_base(Element):
             return list(lp.points())
         return [p for p in lp.points() if self.contains(p)]
 
+    def h_star_vector(self):
+        r"""
+        Return the `h^*`-vector of the lattice polytope.
+
+        The `h^*`-vector records the coefficients of the polynomial in the
+        numerator of the Ehrhart series of a lattice polytope.
+
+        INPUT:
+
+        - ``self`` -- A lattice polytope.
+
+        OUTPUT:
+
+        A list whose entries give the `h^*`-vector.
+
+        .. NOTE:
+
+            The backend of ``self`` should be ``'normaliz'``.
+            This function depends on Normaliz (i.e. the ``'pynormaliz'`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLES:
+
+        The `h^*`-vector of a unimodular simplex S (a simplex with
+        volume = `\frac{1}{dim(S)!}`) is always 1. Here we test this on
+        simplices up to dimension 3::
+
+            sage: s1 = polytopes.simplex(1,backend='normaliz')              # optional - pynormaliz
+            sage: s2 = polytopes.simplex(2,backend='normaliz')              # optional - pynormaliz
+            sage: s3 = polytopes.simplex(3,backend='normaliz')              # optional - pynormaliz
+            sage: [s1.h_star_vector(),s2.h_star_vector(),s3.h_star_vector()]  # optional - pynormaliz
+            [[1], [1], [1]]
+
+        For a less trivial example, we compute the `h^*`-vector of the
+        `0/1`-cube, which has the Eulerian numbers `(3,i)` for `i \in [0,2]`
+        as an `h^*`-vector::
+
+            sage: cube = polytopes.cube(intervals='zero_one', backend='normaliz') # optional - pynormaliz
+            sage: cube.h_star_vector()   # optional - pynormaliz
+            [1, 4, 1]
+            sage: from sage.combinat.combinat import eulerian_number
+            sage: [eulerian_number(3,i) for i in range(3)]
+            [1, 4, 1]
+
+        TESTS::
+
+            sage: s3 = polytopes.simplex(3)
+            sage: s3.h_star_vector()
+            Traceback (most recent call last):
+            ...
+            TypeError: The backend of self must be normaliz
+
+            sage: t = Polyhedron(vertices=[[0],[1/2]])
+            sage: t.h_star_vector()
+            Traceback (most recent call last):
+            ...
+            TypeError: The h_star vector is only defined for lattice polytopes
+
+            sage: t2 = Polyhedron(vertices=[[AA(sqrt(2))],[1/2]])
+            sage: t2.h_star_vector()
+            Traceback (most recent call last):
+            ...
+            TypeError: The h_star vector is only defined for lattice polytopes
+        """
+        if self.is_empty():
+            return 0
+        if not self.is_lattice_polytope():
+            raise TypeError('The h_star vector is only defined for lattice polytopes')
+        if not self.backend() == 'normaliz':
+            raise TypeError('The backend of self must be normaliz')
+        return self._h_star_vector_normaliz()
+
+    def _h_star_vector_normaliz(self):
+        r"""
+        Return the `h^*`-vector of a lattice polytope with backend = 'normaliz'.
+
+        INPUT:
+
+        - ``self`` -- A lattice polytope.
+
+        OUTPUT:
+
+        The `h^*`-vector as a list.
+
+        .. NOTE:
+
+        The backend of ``self`` should be ``'normaliz'``.
+
+        TESTS::
+
+            sage: s3 = polytopes.simplex(3)
+            sage: s3._h_star_vector_normaliz()
+            Traceback (most recent call last):
+            ...
+            TypeError: the backend should be normaliz
+        """
+        raise TypeError("the backend should be normaliz")
+
     @cached_method
     def bounding_box(self, integral=False, integral_hull=False):
         r"""

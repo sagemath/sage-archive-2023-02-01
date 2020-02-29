@@ -456,13 +456,8 @@ class LocalizationElement(IntegralDomainElement):
          return sval._richcmp_(oval, op)
 
 
-
-
-
-
-
 class Localization(IntegralDomain, UniqueRepresentation):
-    """
+    r"""
     The localization generalizes the construction of the field of fractions of an integral domain to
     an arbitrary ring. Given a (not necessarily commutative) ring `R` and a subset `S` of `R`,
     there exists a ring `R[S^{-1}]` together with the ring homomorphism `R \longrightarrow R[S^{-1}]`

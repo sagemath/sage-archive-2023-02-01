@@ -1977,6 +1977,94 @@ class Polyhedron_base(Element):
         m.set_immutable()
         return m
 
+    def an_affine_basis(self):
+        """
+        Return vertices that are a basis for the affine
+        span of the polytope.
+
+        This basis is obtained by considering a maximal chain of faces
+        in the face lattice and picking for each cover relation
+        one vertex that is in the difference. Thus this method
+        is independent of the concrete realization of the polytope.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.an_affine_basis()
+            [A vertex at (-1, -1, -1),
+             A vertex at (1, -1, -1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, 1, -1)]
+
+            sage: P = polytopes.permutahedron(5)
+            sage: P.an_affine_basis()
+            [A vertex at (4, 1, 5, 2, 3),
+             A vertex at (5, 1, 4, 2, 3),
+             A vertex at (4, 2, 5, 1, 3),
+             A vertex at (4, 1, 5, 3, 2),
+             A vertex at (1, 2, 3, 4, 5)]
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+
+        TESTS:
+
+        Checking for various inputs, that this actually works::
+
+            sage: def test_affine_basis(P):
+            ....:     b = P.an_affine_basis()
+            ....:     m = Matrix(b).transpose().stack(Matrix([[1]*len(b)]))
+            ....:     assert m.rank() == P.dim() + 1
+            ....:
+            sage: test_affine_basis(polytopes.permutahedron(5))
+            sage: test_affine_basis(polytopes.Birkhoff_polytope(4))
+            sage: test_affine_basis(polytopes.hypercube(6))
+            sage: test_affine_basis(polytopes.dodecahedron())
+            sage: test_affine_basis(polytopes.cross_polytope(5))
+
+        Small-dimensional cases:
+
+            sage: Polyhedron([[1]]).an_affine_basis()
+            [A vertex at (1)]
+            sage: Polyhedron([[]]).an_affine_basis()
+            [A vertex at ()]
+            sage: Polyhedron().an_affine_basis()
+            []
+        """
+        if not self.is_compact():
+            raise NotImplementedError("this function is not implemented for unbounded polyhedra")
+
+        chain = self.a_maximal_chain()[1:]  # we exclude the empty face
+        chain_indices = [face.ambient_V_indices() for face in chain]
+        basis_indices = []
+
+        # We use in the following that elements in ``chain_indices`` are sorted lists
+        # of V-indices.
+        # Thus for each two faces we can easily find the first vertex that differs.
+        for dim,face in enumerate(chain_indices):
+            if dim == 0:
+                # Append the vertex.
+                basis_indices.append(face[0])
+                continue
+
+            prev_face = chain_indices[dim-1]
+            for i in range(len(prev_face)):
+                if prev_face[i] != face[i]:
+                    # We found a vertex that ``face`` has, but its facet does not.
+                    basis_indices.append(face[i])
+                    break
+            else:  # no break
+                # ``prev_face`` contains all the same vertices as ``face`` until now.
+                # But ``face`` is guaranteed to contain one more vertex (at least).
+                basis_indices.append(face[len(prev_face)])
+
+        return [self.Vrepresentation()[i] for i in basis_indices]
+
     def ray_generator(self):
         """
         Return a generator for the rays of the polyhedron.
@@ -2717,12 +2805,23 @@ class Polyhedron_base(Element):
              A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices]
             sage: [face.ambient_V_indices() for face in chain]
             [(), (0,), (0, 4), (0, 1, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
+
+        TESTS::
+
+        Check output for the empty polyhedron::
+
+            sage: P = Polyhedron()
+            sage: P.a_maximal_chain()
+            [A -1-dimensional face of a Polyhedron in ZZ^0]
         """
         comb_chain = self.combinatorial_polyhedron().a_maximal_chain()
 
         from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face
         empty_face = self.faces(-1)[0]
         universe = self.faces(self.dim())[0]
+
+        if self.dim() == -1:
+            return [empty_face]
 
         return [empty_face] + \
                [combinatorial_face_to_polyhedral_face(self, face)
@@ -2829,13 +2928,13 @@ class Polyhedron_base(Element):
             sage: square.is_inscribed()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this function is implemented for full-dimensional polyhedron only
+            NotImplementedError: this function is implemented for full-dimensional polyhedra only
 
             sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
             sage: p.is_inscribed()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this function is not implemented for unbounded polyhedron
+            NotImplementedError: this function is not implemented for unbounded polyhedra
 
         TESTS:
 
@@ -2901,37 +3000,25 @@ class Polyhedron_base(Element):
         """
 
         if not self.is_compact():
-            raise NotImplementedError("this function is not implemented for unbounded polyhedron")
+            raise NotImplementedError("this function is not implemented for unbounded polyhedra")
 
         if not self.is_full_dimensional():
-            raise NotImplementedError("this function is implemented for full-dimensional polyhedron only")
+            raise NotImplementedError("this function is implemented for full-dimensional polyhedra only")
 
         dimension = self.dimension()
         vertices = self.vertices()
 
-        # We greedily construct a full-dimensional simplex made of vertices
-        # around some vertex of self.
-        vertex = vertices[0]
-        v0 = vertex.vector()
-        M = matrix(self.base_ring(), dimension, 0)
-        simplex_vertices = [vertex]
-        for v in vertex.neighbors():
-            MA = M.augment(v.vector()-v0)
-            if MA.rank() > M.rank():
-                simplex_vertices.append(v)
-                M = MA
-            if M.rank() == dimension:
-                break
-
+        # We obtain vertices that are an affine basis of the affine hull.
+        affine_basis = self.an_affine_basis()
         raw_data = []
-        for vertex in simplex_vertices:
+        for vertex in affine_basis:
             vertex_vector = vertex.vector()
             raw_data += [[sum(i**2 for i in vertex_vector)] +
                          [i for i in vertex_vector] + [1]]
         matrix_data = matrix(raw_data)
 
-        # The determinant "a" should not be zero because the polytope is full
-        # dimensional and also the simplex.
+        # The determinant "a" should not be zero because
+        # the vertices in ``affine_basis`` are an affine basis.
         a = matrix_data.matrix_from_columns(range(1, dimension+2)).determinant()
 
         minors = [(-1)**(i)*matrix_data.matrix_from_columns([j for j in range(dimension+2) if j != i]).determinant()
@@ -2943,11 +3030,11 @@ class Polyhedron_base(Element):
 
         # Checking if the circumcenter has the correct sign
         if not all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius
-                   for v in vertices if v in simplex_vertices):
+                   for v in vertices if v in affine_basis):
             circumcenter = - circumcenter
 
         is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius
-                           for v in vertices if v not in simplex_vertices)
+                           for v in vertices if v not in affine_basis)
 
         if certificate:
             if is_inscribed:

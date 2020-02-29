@@ -1844,7 +1844,7 @@ class FindStatCombinatorialStatistic(SageObject):
         if self._first_terms_cache is None:
             self._first_terms_cache = self._fetch_first_terms()
         # a shallow copy suffices - tuples are immutable
-        return dict(self._first_terms_cache)
+        return OrderedDict(self._first_terms_cache)
 
     def _first_terms_raw(self, max_values):
         """
@@ -2593,8 +2593,8 @@ class FindStatStatisticQuery(FindStatStatistic):
              sage: r.first_terms()                                              # optional -- internet
              {[]: 0, [(1, 2)]: 0}
         """
-        return {objs[0]: vals[0] for objs, vals in self._known_terms
-                if len(vals) == 1}
+        return OrderedDict((objs[0], vals[0]) for objs, vals in self._known_terms
+                           if len(vals) == 1)
 
     def _first_terms_raw(self, max_values):
         """
@@ -2728,7 +2728,10 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
         """
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
-        values = requests.get(url).json()["included"]["CompoundStatistics"][self.id_str()]["Values"]
+        if len(self._maps):
+            values = requests.get(url).json()["included"]["CompoundStatistics"][self.id_str()]["Values"]
+        else:
+            values = requests.get(url).json()["included"]["Statistics"][self.id_str()]["Values"]
         return [(sequence[0], sequence[-1]) for sequence in values]
 
     def domain(self):

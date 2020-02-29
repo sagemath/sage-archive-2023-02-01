@@ -70,6 +70,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dim` |  the dimension of the polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dimension` |  alias of dim
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.f_vector` |  the `f`-vector (number of faces of each dimension)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.flag_f_vector` |  the flag-`f`-vector (number of chains of faces)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.neighborliness` | highest cardinality for which all `k`-subsets of the vertices are faces of the polyhedron
 
 **Implementation properties**

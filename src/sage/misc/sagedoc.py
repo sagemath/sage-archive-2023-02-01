@@ -258,7 +258,7 @@ def skip_TESTS_block(docstring):
 
     - ``docstring``, a string
 
-    A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
+    A "TESTS" block is a block starting "TESTS:" (or
     the same with two colons), on a line on its own, and ending either
     with a line indented less than "TESTS", or with a line with the
     same level of indentation -- not more -- matching one of the
@@ -284,7 +284,7 @@ def skip_TESTS_block(docstring):
 
         sage: from sage.misc.sagedoc import skip_TESTS_block
         sage: start = ' Docstring\n\n'
-        sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
+        sage: test = ' TESTS: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
         sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
 
     Test lines starting with "REFERENCES:"::

@@ -119,7 +119,6 @@ See :trac:`13394` for a discussion of some of the design considerations.
 # ****************************************************************************
 
 import weakref
-import six
 from weakref import KeyedRef
 from copy import deepcopy
 
@@ -348,7 +347,7 @@ cdef class WeakValueDictionary(dict):
             True
         """
         try:
-            data = six.iteritems(data)
+            data = iter(data.items())
         except AttributeError:
             pass
         for (k, v) in data:

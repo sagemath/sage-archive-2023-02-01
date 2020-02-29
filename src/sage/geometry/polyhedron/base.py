@@ -8652,7 +8652,7 @@ class Polyhedron_base(Element):
             sage: A = L.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
-            (A vertex at (0), A vertex at (1.414213562373095?))
+            (A vertex at (1.414213562373095?), A vertex at (0))
 
         More generally::
 
@@ -8680,10 +8680,10 @@ class Polyhedron_base(Element):
             sage: A = S.affine_hull(orthonormal=True, extend=True); A
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
-            (A vertex at (0, 0, 0),
-             A vertex at (1.414213562373095?, 0, 0),
+            (A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?),
              A vertex at (0.7071067811865475?, 1.224744871391589?, 0),
-             A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?))
+             A vertex at (1.414213562373095?, 0, 0),
+             A vertex at (0, 0, 0))
 
         More examples with the ``orthonormal`` parameter::
 
@@ -8781,10 +8781,9 @@ class Polyhedron_base(Element):
             sage: A, b = P.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
             sage: Q = P.affine_hull(orthonormal=True, extend=True)
             sage: Q.center()
-            (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)
+            (0.7071067811865475?, 0.7071067811865475?, 2)
             sage: A(P.center()) + b == Q.center()
             True
-
 
         For unbounded, non full-dimensional polyhedra, the ``orthogonal=True`` and ``orthonormal=True``
         is not implemented::
@@ -8856,6 +8855,26 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices=[[0,0], [1,0]], backend='field')
             sage: P.affine_hull(orthogonal=True, orthonormal=True, extend=True).backend()
             'field'
+
+        Check that :trac:`29116` is fixed::
+
+            sage: V =[
+            ....:    [1, 0, -1, 0, 0],
+            ....:    [1, 0, 0, -1, 0],
+            ....:    [1, 0, 0, 0, -1],
+            ....:    [1, 0, 0, +1, 0],
+            ....:    [1, 0, 0, 0, +1],
+            ....:    [1, +1, 0, 0, 0]
+            ....:     ]
+            sage: P = Polyhedron(V)
+            sage: P.affine_hull()
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 6 vertices
+            sage: P.affine_hull(orthonormal=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the base ring needs to be extended; try with "extend=True"
+            sage: P.affine_hull(orthonormal=True, extend=True)
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 6 vertices
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
@@ -8867,13 +8886,11 @@ class Polyhedron_base(Element):
             # see TODO
             if not self.is_compact():
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
-            # translate 0th vertex to the origin
-            Q = self.translation(-vector(self.vertices()[0]))
-            v = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
-            # finding the zero in Q; checking that Q actually has a vertex zero
-            assert v.vector() == Q.ambient_space().zero()
-            # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            affine_basis = self.an_affine_basis()
+            # We implicitly translate the first vertex of the affine basis to zero.
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(),
+                       [v.vector() - affine_basis[0].vector() for v in affine_basis[1:]])
+
             # Switch base_ring to AA if necessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
@@ -8886,9 +8903,11 @@ class Polyhedron_base(Element):
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
-                return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
+                return linear_transformation(A, side='right'), -A*vector(A.base_ring(), affine_basis[0])
+
+            translate_vector = vector(A.base_ring(), affine_basis[0])
             parent = self.parent().change_ring(A.base_ring(), ambient_dim=self.dim())
-            new_vertices = [A*vector(A.base_ring(), w) for w in Q.vertices()]
+            new_vertices = [A*(vector(A.base_ring(), w) - translate_vector) for w in self.vertices()]
             return parent.element_class(parent, [new_vertices, [], []], None)
 
         # translate one vertex to the origin

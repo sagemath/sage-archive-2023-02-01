@@ -232,6 +232,7 @@ import tempfile
 import inspect
 import cgi
 import requests
+import sys
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -289,8 +290,6 @@ FINDSTAT_MAX_SUBMISSION_VALUES = 1200
 
 # separates name from description
 FINDSTAT_SEPARATOR_NAME = "\n"
-# separates references
-FINDSTAT_SEPARATOR_REFERENCES = "\n"
 # separates values
 FINDSTAT_VALUE_SEPARATOR = ";"
 FINDSTAT_MAP_SEPARATOR = "o"
@@ -465,7 +464,9 @@ def _submit(args, url):
             verbose("writing argument %s" % key, caller_name='FindStat')
             value_encoded = cgi.escape(value, quote=True)
             html = FINDSTAT_FORM_FORMAT % (key, value_encoded)
-            f.write(html.encode("utf-8"))
+            if sys.version_info[0] < 3:
+                html = html.encode("utf-8")
+            f.write(html)
         else:
             verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
     f.write(FINDSTAT_FORM_FOOTER)
@@ -1517,7 +1518,6 @@ class FindStatFunction(SageObject):
             s = "%s(modified): %s" % (self.id_str(), self.name())
         else:
             s = "%s: %s" % (self.id_str(), self.name())
-        import sys
         if sys.version_info[0] < 3:
             return s.encode("utf-8")
         return s
@@ -1534,14 +1534,15 @@ class FindStatFunction(SageObject):
             sage: s.reset(); s                                                  # optional -- internet
             Mp00062: Lehmer-code to major-code bijection
 
-        Check that new statistics and maps are not affected::
+        TESTS:
 
-            sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)])             # optional -- internet
-            sage: q.set_description("Random values on Dyck paths.\nNot for submission.")  # optional -- internet
-            sage: print(q.description())                                                  # optional -- internet
+        Check that new statistics and maps cannot be reset::
+
+            sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)])   # optional -- internet
+            sage: q.set_description("Random values on Dyck paths.")             # optional -- internet
+            sage: print(q.description())                                        # optional -- internet
             Random values on Dyck paths.
-            Not for submission.
-            sage: q.reset()                                                               # optional -- internet
+            sage: q.reset()                                                     # optional -- internet
             Traceback (most recent call last):
             ...
             ValueError: cannot reset values of St000000: a new statistic on Dyck paths
@@ -1676,7 +1677,7 @@ class FindStatFunction(SageObject):
         result = []
         refs = self.references_raw()
         if refs:
-            refs = refs.split(FINDSTAT_SEPARATOR_REFERENCES)
+            refs = refs.splitlines()
         else:
             return FancyTuple([])
         bibs = self._data()["Bibliography"]
@@ -1698,7 +1699,6 @@ class FindStatFunction(SageObject):
                                              if e)
                     result.append(comment + author_title + " " + "".join(parts[1:]))
 
-        import sys
         if sys.version_info[0] < 3:
             return FancyTuple([ref.encode("utf-8") for ref in result])
 
@@ -1722,10 +1722,12 @@ class FindStatFunction(SageObject):
 
         INPUT:
 
-        - a string -- the individual references should be separated
-          by FINDSTAT_SEPARATOR_REFERENCES, which is "\\r\\n".
+        - a string -- each reference should be on a single line, and
+          consist of one or more links to the same item.
 
-        OUTPUT:
+        FindStat will automatically resolve the links, if possible.
+        A complete list of supported services can be found at
+        <https://findstat.org/NewStatistic>.
 
         This information is used when submitting the statistic with
         :meth:`submit`.
@@ -1733,10 +1735,10 @@ class FindStatFunction(SageObject):
         EXAMPLES::
 
             sage: q = findstat([(d, randint(1, 1000)) for d in DyckWords(4)])   # optional -- internet
-            sage: q.set_references_raw("[1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].\r\n[2] [[oeis:A000001]]") # optional -- internet
+            sage: q.set_references_raw("[[arXiv:1102.4226]]\n[[oeis:A000001]]") # optional -- internet
             sage: q.references()                                                # optional -- internet
-            0: [1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].
-            1: [2] [[oeis:A000001]]
+            0: [[arXiv:1102.4226]]
+            1: [[oeis:A000001]]
         """
         if value != self.references_raw():
             self._modified = True
@@ -1772,19 +1774,13 @@ class FindStatFunction(SageObject):
 
         INPUT:
 
-        - a string -- contributors are encouraged to submit sage code
-          in the form::
+        - a string -- SageMath code producing the values of the statistic or map.
 
-            def statistic(x):
-                ...
-
-        or::
-
-            def mapping(x):
-                ...
-
-        This information is used when submitting the statistic with
-        :meth:`submit`.
+        Contributors are encouraged to submit code for statistics
+        using :meth:`FindStatStatistic.set_code`.  Modifying the
+        "verified" SageMath code using this method is restricted to
+        members of the FindStatCrew, for all other contributors this
+        method has no effect.
 
         EXAMPLES::
 
@@ -2273,11 +2269,14 @@ class FindStatStatistic(Element,
 
         INPUT:
 
-        - a string -- contributors are encouraged to submit sage code
-          in the form::
+        - a string -- code producing the values of the statistic.
+
+        Contributors are encouraged to submit SageMath code in the form::
 
             def statistic(x):
                 ...
+
+        However, code for any other platform is accepted also.
 
         This information is used when submitting the statistic with
         :meth:`submit`.
@@ -2362,7 +2361,7 @@ class FindStatStatistics(UniqueRepresentation, Parent):
     EXAMPLES:
 
     We can print a list of the first few statistics currently in
-    FindStat, in a given domain::
+    FindStat in a given domain::
 
         sage: from sage.databases.findstat import FindStatStatistics
         sage: for st, _ in zip(FindStatStatistics("Perfect Matchings"), range(3)):        # optional -- internet
@@ -3197,7 +3196,7 @@ class FindStatMaps(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
-    We can print a sample map, for each domain and codomain::
+    We can print a sample map for each domain and codomain::
 
         sage: from sage.databases.findstat import FindStatCollections, FindStatMaps
         sage: ccs = sorted(FindStatCollections())[:3]                           # optional -- internet

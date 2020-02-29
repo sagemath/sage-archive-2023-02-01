@@ -5946,7 +5946,7 @@ class Polyhedron_base(Element):
         """
         return self.faces(self.dimension()-1)
 
-    @cached_method
+    @cached_method(do_pickle=True)
     def f_vector(self):
         r"""
         Return the f-vector.
@@ -5995,6 +5995,15 @@ class Polyhedron_base(Element):
         Check that :trac:`28828` is fixed::
 
             sage: P.f_vector().is_immutable()
+            True
+
+        The cache of the f-vector is being pickled::
+
+            sage: P = polytopes.cube()
+            sage: P.f_vector()
+            (1, 8, 12, 6, 1)
+            sage: Q = loads(dumps(P))
+            sage: Q.f_vector.is_in_cache()
             True
         """
         return self.combinatorial_polyhedron().f_vector()
@@ -6827,7 +6836,7 @@ class Polyhedron_base(Element):
         """
         raise TypeError("the backend should be normaliz")
 
-    @cached_method
+    @cached_method(do_pickle=True)
     def volume(self, measure='ambient', engine='auto', **kwds):
         """
         Return the volume of the polytope.
@@ -6999,6 +7008,17 @@ class Polyhedron_base(Element):
             The empty polyhedron in ZZ^0
             sage: P.volume()
             0
+
+        TESTS:
+
+        The cache of the volume is being pickled::
+
+            sage: P = polytopes.cube()
+            sage: P.volume()
+            8
+            sage: Q = loads(dumps(P))
+            sage: Q.volume.is_in_cache()
+            True
         """
         from sage.features import FeatureNotPresentError, PythonModule
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:

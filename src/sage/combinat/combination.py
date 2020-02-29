@@ -7,6 +7,8 @@ AUTHORS:
 
 - Vincent Delecroix (2011): cleaning, bug corrections, doctests
 
+- Antoine Genitrini (2020) : new implementation of the lexicographic unranking of combinations
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -533,32 +535,14 @@ def rank(comb, n, check=True):
 
     return binomial(n,k)-t-1
 
-def _comb_largest(a,b,x):
-    r"""
-    Returns the largest `w < a` such that `binomial(w,b) <= x`.
 
-    EXAMPLES::
-
-        sage: from sage.combinat.combination import _comb_largest
-        sage: _comb_largest(6,3,10)
-        5
-        sage: _comb_largest(6,3,5)
-        4
-    """
-    w = a - 1
-
-    while binomial(w,b) > x:
-        w -= 1
-
-    return w
-
-def from_rank(r, n, k):
+def from_rank(r, n0, k):
     r"""
     Returns the combination of rank ``r`` in the subsets of
     ``range(n)`` of size ``k`` when listed in lexicographic order.
 
-    The algorithm used is based on combinadics and James McCaffrey's
-    MSDN article. See: :wikipedia:`Combinadic`
+    The algorithm used is based on factoradics and presented in [DGH20].
+    It is there compared to the other from the literature.
 
     EXAMPLES::
 
@@ -582,24 +566,60 @@ def from_rank(r, n, k):
     """
     if k < 0:
         raise ValueError("k must be > 0")
-    if k > n:
-        raise ValueError("k must be <= n")
-
-    a = n
-    b = k
-    x = binomial(n, k) - 1 - r  # x is the 'dual' of m
-    comb = [None] * k
-
-    for i in range(k):
-        comb[i] = _comb_largest(a, b, x)
-        x = x - binomial(comb[i], b)
-        a = comb[i]
-        b = b - 1
-
-    for i in range(k):
-        comb[i] = (n - 1) - comb[i]
-
-    return tuple(comb)
+    if k > n0:
+        raise ValueError("k must be <= n0")
+    B = binomial(n0, k)
+    if r < 0 and r >= B:
+        raise ValueError("r must satisfy  0 <= r < binomial(n0, k)")
+    
+    n = n0
+    D = [0 for i in range(k)]
+    inverse = False
+    if k < n/2:
+        inverse = True
+        k = n-k
+        r = B - 1 - r
+    
+    B = (B * k) // n
+    m = 0
+    i = 0
+    j = 0
+    m2 = 0
+    d = 0
+    while d < k-1:
+        if B > r:
+            if i < k - 2:
+                if n-1-m==0:
+                    B = 1
+                else:
+                    B = (B * (k-1-i))//(n-1-m)
+            d = d + 1
+            if inverse:
+                for e in range(m2, m+i):
+                    D[j] = e
+                    j = j + 1
+                m2 = m + i + 1
+            else:
+                D[i] = m + i
+            i = i + 1
+            n = n - 1
+        else:
+            r = r - B
+            if n - 1 - m == 0:
+                B = 1
+            else:
+                B = (B * (n-m-k+i))//(n-1-m)
+            m = m + 1
+    if inverse:
+        for e in range(m2, n+r+i-B):
+            D[j] = e
+            j = j + 1
+        for e in range(n+r+i+1-B, n0):
+            D[j] = e
+            j = j + 1
+    else:
+        D[k-1] = n+r+k-1-B
+    return tuple(D)
 
 ##########################################################
 # Deprecations

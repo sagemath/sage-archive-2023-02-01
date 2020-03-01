@@ -980,7 +980,8 @@ def stirling_number2(n, k, algorithm=None):
          ...
          ValueError: unknown algorithm: CloudReading
     """
-    n = ZZ(n);  k = ZZ(k)
+    n = ZZ(n)
+    k = ZZ(k)
     if algorithm is None:
         return _stirling_number2(n, k)
     elif algorithm == 'gap':

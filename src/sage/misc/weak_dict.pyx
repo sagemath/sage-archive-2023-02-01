@@ -347,10 +347,10 @@ cdef class WeakValueDictionary(dict):
             True
         """
         try:
-            data = iter(data.items())
+            data = data.items()
         except AttributeError:
             pass
-        for (k, v) in data:
+        for k, v in data:
             self._set_item(k, v)
 
     def __copy__(self):

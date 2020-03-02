@@ -4407,7 +4407,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         pol_frac = PF(self) 
                         pol_frac_fact = pol_frac.factor(**kwargs)
                         if R(pol_frac_fact.unit()).is_unit():
-                            # Note: :meth:`base_change` may coerce the unit to a non unit
+                            # Note: :meth:`base_change` may convert the unit to a non unit
                             return pol_frac_fact.base_change(self.parent())
                     except (TypeError, AttributeError, NotImplementedError):
                         raise NotImplementedError

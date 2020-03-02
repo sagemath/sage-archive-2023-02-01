@@ -230,7 +230,8 @@ cdef class Matrix(Matrix1):
             sage: M.solve_left(B)
             Traceback (most recent call last):
             ...
-            ValueError: number of columns of self must equal number of columns of B
+            ValueError: number of columns of self must equal number of columns
+            of right-hand side
 
         TESTS::
 
@@ -253,7 +254,8 @@ cdef class Matrix(Matrix1):
             sage: M.solve_left(B)
             Traceback (most recent call last):
             ...
-            ValueError: number of columns of self must equal number of columns of B
+            ValueError: number of columns of self must equal number of columns
+            of right-hand side
         """
         if is_Vector(B):
             try:
@@ -278,7 +280,7 @@ cdef class Matrix(Matrix1):
         .. NOTE::
 
            In Sage one can also write ``A \ B`` for
-           ``A.solve_right(B)``, i.e., Sage implements "the
+           ``A.solve_right(B)``, that is, Sage implements "the
            MATLAB/Octave backslash operator".
 
         INPUT:
@@ -344,7 +346,8 @@ cdef class Matrix(Matrix1):
             sage: X = A.solve_right(B)
             Traceback (most recent call last):
             ...
-            ValueError: number of rows of self must equal number of rows of B
+            ValueError: number of rows of self must equal number of rows of
+            right-hand side
 
         We solve with A singular::
 
@@ -457,9 +460,10 @@ cdef class Matrix(Matrix1):
 
             sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
             sage: b = vector(RDF, [5, 6, 1])
-            sage: x = A.solve_right(b)
-            sage: (A * x - b).norm()  # tol 1e-14
-            3.2692119900020438
+            sage: A.solve_right(b)  # tol 1e-14
+            (1.4782608695652177, 0.35177865612648235)
+            sage: ~(A.T * A) * A.T * b  # closed form solution, tol 1e-14
+            (1.4782608695652177, 0.35177865612648235)
 
         TESTS:
 
@@ -501,10 +505,10 @@ cdef class Matrix(Matrix1):
         b_is_vec = is_Vector(B)
         if b_is_vec:
             if self.nrows() != B.degree():
-                raise ValueError("number of rows of self must equal degree of B")
+                raise ValueError("number of rows of self must equal degree of right-hand side")
         else:
             if self.nrows() != B.nrows():
-                raise ValueError("number of rows of self must equal number of rows of B")
+                raise ValueError("number of rows of self must equal number of rows of right-hand side")
 
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing

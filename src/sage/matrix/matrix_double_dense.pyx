@@ -1619,12 +1619,12 @@ cdef class Matrix_double_dense(Matrix_dense):
         Find a solution `X` to the equation `A X = B` if ``self`` is a square
         matrix `A`.
 
-        EXAMPLES::
+        TESTS::
 
             sage: A = matrix(CDF, [[1, 2], [3, 3+I]])
             sage: b = matrix(CDF, [[1, 0], [2, 1]])
-            sage: x = A.solve_right(b)  # indirect doctest
-            sage: (A * x - b).norm() < 1e-15
+            sage: x = A._solve_right_nonsingular_square(b)
+            sage: (A * x - b).norm() < 1e-14
             True
         """
         global scipy
@@ -1641,13 +1641,14 @@ cdef class Matrix_double_dense(Matrix_dense):
         Compute a least-squares solution `X` to the equation `A X = B` where
         ``self`` is the matrix `A`.
 
-        EXAMPLES::
+        TESTS::
 
             sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
             sage: b = matrix(RDF, 3, 2, [5, 6, 1, 0, 0, 2])
-            sage: x = A.solve_right(b)  # indirect doctest
-            sage: (A * x - b).norm()    # tol 1e-14
-            6.804148931919923
+            sage: x = A._solve_right_general(b)
+            sage: y = ~(A.T * A) * A.T * b  # closed form solution
+            sage: (x - y).norm() < 1e-14
+            True
         """
         global scipy
         if scipy is None:
@@ -1677,7 +1678,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         singular, a ``LinAlgError`` may be raised.
 
         If `A` is a non-square matrix, the result is the least-squares
-        solution of the equation, such that the 2-norm `|A x - b|`
+        solution of the equation, such that the 2-norm `\|A x - b\|`
         is minimized.
 
         If `b` is a vector, the result is returned as a vector, as well,
@@ -1770,7 +1771,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            ValueError: number of rows of self must equal degree of B
+            ValueError: number of rows of self must equal degree of
+            right-hand side
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::
@@ -1828,7 +1830,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         singular, a ``LinAlgError`` may be raised.
 
         If `A` is a non-square matrix, the result is the least-squares
-        solution of the equation, such that the 2-norm `|x A - b|`
+        solution of the equation, such that the 2-norm `\|x A - b\|`
         is minimized.
 
         If `b` is a vector, the result is returned as a vector, as well,
@@ -1924,7 +1926,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            ValueError: number of columns of self must equal degree of B
+            ValueError: number of columns of self must equal degree of
+            right-hand side
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::

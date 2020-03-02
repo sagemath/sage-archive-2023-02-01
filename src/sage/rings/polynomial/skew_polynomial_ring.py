@@ -477,24 +477,18 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: S.coerce_map_from(S)
             Identity endomorphism of Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
         """
+        base_ring = self.base_ring()
         try:
-            connecting = self.base_ring().coerce_map_from(P)
+            connecting = base_ring.coerce_map_from(P)
             if connecting is not None:
-                return self.coerce_map_from(self.base_ring()) * connecting
+                return self.coerce_map_from(base_ring) * connecting
         except TypeError:
             pass
-        try:
-            if isinstance(P, SkewPolynomialRing_general):
-                if self.__is_sparse and not P.is_sparse():
-                    return False
-                if P.variable_name() == self.variable_name():
-                    if (P.base_ring() is self.base_ring()
-                            and self.base_ring() is ZZ):
-                       if self._implementation_names == ('NTL',):
-                            return False
-                    return self.base_ring().has_coerce_map_from(P.base_ring())
-        except AttributeError:
-            pass
+        if isinstance(P, SkewPolynomialRing_general):
+            if self.__is_sparse and not P.is_sparse():
+                return False
+            if P.variable_name() == self.variable_name():
+                return base_ring.has_coerce_map_from(P.base_ring())
 
     def _repr_(self):
         r"""

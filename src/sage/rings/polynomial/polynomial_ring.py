@@ -302,10 +302,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         self.__cyclopoly_cache = {}
         self._has_singular = False
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
-        self._populate_coercion_lists_(
-                #coerce_list = [base_inject],
-                #convert_list = [list, base_inject],
-                convert_method_name = '_polynomial_')
+        self._populate_coercion_lists_(convert_method_name='_polynomial_')
 
     def __reduce__(self):
         from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing

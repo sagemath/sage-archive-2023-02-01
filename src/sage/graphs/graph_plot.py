@@ -165,7 +165,7 @@ for key, value in iteritems(graphplot_options):
 __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
 
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2009   Emily Kirkman
 #                    2009   Robert L. Miller <rlmillster@gmail.com>
 #
@@ -178,8 +178,8 @@ __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from math import sqrt, cos, sin, atan, pi
@@ -385,8 +385,6 @@ class GraphPlot(SageObject):
                 sphinx_plot(GP)
 
         """
-        from sage.misc.superseded import deprecation
-
         # Handle base vertex options
         voptions = {}
 
@@ -406,10 +404,6 @@ class GraphPlot(SageObject):
             vertex_color = '#fec7b8'
         else:
             vertex_color = self._options['vertex_color']
-
-        if ('vertex_colors' in self._options and
-            not isinstance(self._options['vertex_colors'], dict)):
-            deprecation(21048, "Use of vertex_colors=<string> is deprecated, use vertex_color=<string> and/or vertex_colors=<dict>.")
 
         if 'vertex_colors' not in self._options or self._options['vertex_colors'] is None:
             if self._options['partition'] is not None:

@@ -524,7 +524,8 @@ class Polyhedron_ZZ(Polyhedron_QQ):
     @cached_method
     def is_reflexive(self):
         """
-        A lattice polytope is reflexive if it is polar to a lattice polytope.
+        A lattice polytope is reflexive if it contains the origin in its interior
+        and its polar with respect to the origin is a lattice polytope.
 
         Equivalently, it is reflexive if it is of the form `{x \in \mathbb{R}^d: Ax \leq 1}`
         for some integer matrix `A` and `d` the ambient dimension.
@@ -549,10 +550,10 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p.is_reflexive()
             Traceback (most recent call last):
             ...
-            ValueError: not a polytope
+            ValueError: the polyhedron should be compact
         """
         if not self.is_compact():
-            raise ValueError("not a polytope")
+            raise ValueError("the polyhedron should be compact")
 
         for H in self.Hrepresentation():
             if H.is_equation():

@@ -1693,7 +1693,6 @@ def formatannotation(annotation, base_module=None):
         sage: import inspect
         sage: def foo(a, *, b:int, **kwargs): # py3
         ....:     pass
-        ....:
         sage: s = inspect.signature(foo) # py3
 
         sage: a = s.parameters['a'].annotation # py3

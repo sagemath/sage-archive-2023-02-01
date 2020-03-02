@@ -70,9 +70,10 @@ we call
     \left[\mathrm{tr}\left( f\left( \frac{\Omega}{2 \pi i} \right)
         \right)\right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
 
-the *additive Chern f-genus*.
+the *additive characteristic class associated to* `f` of the complex vector
+bundle `E`.
 
-Important and predefined additive Chern genera are:
+Important and predefined additive classes are:
 
 - *Chern Character* with `f(x) = \exp(x)`
 
@@ -84,7 +85,8 @@ In the **real** case, let `g` be a holomorphic function around zero with
     \left[\mathrm{tr}\left( \frac{1}{2} g\left( -\frac{\Omega^2}{4 \pi^2}
         \right) \right)\right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
 
-the *additive Pontryagin g-genus*.
+the *additive characteristic class associated to* `g` of the **real** vector
+bundle `E`.
 
 EXAMPLES:
 
@@ -130,9 +132,10 @@ Then we call
     \left[\det\left( f\left( \frac{\Omega}{2 \pi i} \right)
         \right)\right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
 
-the *multiplicative Chern f-genus*.
+the *multiplicative characteristic class associated to* `f` of the complex
+vector bundle `E`.
 
-Important and predefined multiplicative Chern genera are:
+Important and predefined multiplicative classes on complex vector bundles are:
 
 - *Chern class* with `f(x) = 1+x`
 - *Todd class* with `f(x) = \frac{x}{1-\exp(-x)}`
@@ -145,9 +148,10 @@ In the **real** case, let `g` be a holomorphic function around zero with
     \left[\det\left( \sqrt{ g \left( -\frac{\Omega^2}{4 \pi^2} \right) } \right)
         \right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
 
-the *multiplicative Pontryagin g-genus*.
+the *multiplicative characteristic class associated to* `g` on the **real**
+vector bundle `E`.
 
-Important and predefined multiplicative Pontryagin genera are:
+Important and predefined multiplicative classes on real vector bundles are:
 
 - *Pontryagin class* with `g(x) = 1+x`
 - `\hat{A}` *class* with `g(x) = \frac{\sqrt{x}/2}{\sinh(\sqrt{x}/2)}`

@@ -854,7 +854,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             raise ValueError("no algorithm '%s'"%algorithm)
 
     def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank=False):
-        """
+        r"""
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
         `B` is a vector then `X` is a vector and if
@@ -862,7 +862,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         .. NOTE::
 
-           In Sage one can also write ``A  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 

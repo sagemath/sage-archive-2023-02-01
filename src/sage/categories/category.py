@@ -751,7 +751,7 @@ class Category(UniqueRepresentation, SageObject):
 
     def is_abelian(self):
         """
-        Returns whether this category is abelian.
+        Return whether this category is abelian.
 
         An abelian category is a category satisfying:
 
@@ -783,6 +783,7 @@ class Category(UniqueRepresentation, SageObject):
             True
             sage: Semigroups().is_abelian()
             Traceback (most recent call last):
+            ...
             NotImplementedError: is_abelian
         """
         raise NotImplementedError("is_abelian")

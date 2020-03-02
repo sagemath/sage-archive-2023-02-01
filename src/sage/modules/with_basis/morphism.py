@@ -178,17 +178,19 @@ class ModuleMorphism(Morphism):
                 raise ValueError("codomain(=%s) needs to have a base_ring attribute"%(codomain))
             # codomain should be a module over base_ring
             # The natural test would be ``codomains in Modules(base_ring)``
-            # But this is not properly implemented yet:
+            # But this is not properly implemented yet::
+            #
             #     sage: CC in Modules(QQ)
             #     False
             #     sage: QQ in Modules(QQ)
             #     False
             #     sage: CC[x] in Modules(QQ)
             #     False
+
             # The test below is a bit more restrictive
             if (not codomain.base_ring().has_coerce_map_from(base_ring)) \
                and (not codomain.has_coerce_map_from(base_ring)):
-                raise ValueError("codomain(=%s) should be a module over the base ring of the domain(=%s)"%(codomain, domain))
+                raise ValueError("codomain(=%s) should be a module over the base ring of the domain(=%s)" % (codomain, domain))
 
             if affine:
                 # We don't yet have a category whose morphisms are affine morphisms
@@ -1533,7 +1535,6 @@ def pointwise_inverse_function(f):
 
         sage: from sage.modules.with_basis.morphism import pointwise_inverse_function
         sage: def f(x): return x
-        ....:
         sage: g = pointwise_inverse_function(f)
         sage: g(1), g(2), g(3)
         (1, 1/2, 1/3)

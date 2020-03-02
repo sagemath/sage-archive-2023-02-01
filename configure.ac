@@ -433,14 +433,6 @@ done
 
 AC_SUBST([SAGE_SCRIPTS])
 
-SAGE_EXTCODE='\
-'
-for file in `find "$SAGE_SRC"/ext -type f`; do
-    SAGE_EXTCODE+="    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"$'\n'
-done
-
-AC_SUBST([SAGE_EXTCODE])
-
 SAGE_MAKE_DEPS="$SAGE_ROOT/build/make/deps"
 AC_SUBST_FILE([SAGE_MAKE_DEPS])
 

@@ -31,9 +31,6 @@ where the sum ranges over all induced subgraphs `H` of `G`.
 Functions
 ---------
 """
-
-from six import itervalues
-
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -626,7 +623,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
 
     uG = underlying_graph(G)
     em = edge_multiplicities(G)
-    d = list(itervalues(em))
+    d = list(em.values())
 
     def yy(start, end):
         return sum(y**i for i in range(start, end+1))

@@ -1285,6 +1285,34 @@ class Polyhedron_normaliz(Polyhedron_base):
         return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
                                                                normaliz_cone=cone)
 
+    def _h_star_vector_normaliz(self):
+        r"""
+        Return the `h^*`-vector of the lattice polytope.
+
+        INPUT:
+
+        - ``self`` -- A lattice polytope with backend ``'normaliz'``.
+
+        OUTPUT:
+
+        The `h^*`-vector as a list.
+
+        EXAMPLES:
+
+        The `h^*`-vector of a unimodular simplex is 1::
+
+            sage: s3 = polytopes.simplex(3,backend='normaliz')   # optional - pynormaliz
+            sage: s3._h_star_vector_normaliz()                   # optional - pynormaliz
+            [1]
+
+        The `h^*`-vector of the `0/1`-cube is [1,4,1]::
+
+            sage: cube = polytopes.cube(intervals='zero_one', backend='normaliz') # optional - pynormaliz
+            sage: cube.h_star_vector()   # optional - pynormaliz
+            [1, 4, 1]
+        """
+        return self.ehrhart_series().numerator().coefficients()
+
     def _volume_normaliz(self, measure='euclidean'):
         r"""
         Computes the volume of a polytope using normaliz.

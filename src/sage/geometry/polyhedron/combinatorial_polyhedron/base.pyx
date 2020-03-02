@@ -1320,6 +1320,147 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_vector.set_immutable()
         return f_vector
 
+    def flag_f_vector(self, *args):
+        r"""
+        Return the flag f-vector.
+
+        For each `-1 < i_0 < \dots < i_n < d` the flag f-vector
+        counts the number of flags `F_0 \subset \dots \subset F_n`
+        with `F_j` of dimension `i_j` for each `0 \leq j \leq n`,
+        where `d` is the dimension of the polyhedron.
+
+        INPUT:
+
+        - ``args`` -- integers (optional); specify an entry of the
+          flag-f-vector; must be an increasing sequence of integers
+
+        OUTPUT:
+
+        - a dictionary, if no arguments were given
+
+        - an Integer, if arguments were given
+
+        EXAMPLES:
+
+        Obtain the entire flag-f-vector::
+
+            sage: C = polytopes.hypercube(4).combinatorial_polyhedron()
+            sage: C.flag_f_vector()
+                {(-1,): 1,
+                 (0,): 16,
+                 (0, 1): 64,
+                 (0, 1, 2): 192,
+                 (0, 1, 2, 3): 384,
+                 (0, 1, 3): 192,
+                 (0, 2): 96,
+                 (0, 2, 3): 192,
+                 (0, 3): 64,
+                 (1,): 32,
+                 (1, 2): 96,
+                 (1, 2, 3): 192,
+                 (1, 3): 96,
+                 (2,): 24,
+                 (2, 3): 48,
+                 (3,): 8,
+                 (4,): 1}
+
+        Specify an entry::
+
+            sage: C.flag_f_vector(0,3)
+            64
+            sage: C.flag_f_vector(2)
+            24
+
+        Leading ``-1`` and trailing entry of dimension are allowed::
+
+            sage: C.flag_f_vector(-1,0,3)
+            64
+            sage: C.flag_f_vector(-1,0,3,4)
+            64
+
+        One can get the number of trivial faces::
+
+            sage: C.flag_f_vector(-1)
+            1
+            sage: C.flag_f_vector(4)
+            1
+
+        Polyhedra with lines, have ``0`` entries accordingly::
+
+            sage: C = (Polyhedron(lines=[[1]]) * polytopes.hypercube(2)).combinatorial_polyhedron()
+            sage: C.flag_f_vector()
+            {(-1,): 1, (0, 1): 0, (0, 2): 0, (0,): 0, (1, 2): 8, (1,): 4, (2,): 4, 3: 1}
+
+        If the arguments are not stricly increasing or out of range, a key error is raised::
+
+            sage: C.flag_f_vector(-1,0,3,5)
+            Traceback (most recent call last):
+            ...
+            KeyError: (0, 3, 5)
+            sage: C.flag_f_vector(-1,3,0)
+            Traceback (most recent call last):
+            ...
+            KeyError: (3, 0)
+        """
+        flag = self._flag_f_vector()
+        if len(args) == 0:
+            return flag
+        elif len(args) == 1:
+            return flag[(args[0],)]
+        else:
+            dim = self.dimension()
+            if args[0] == -1:
+                args = args[1:]
+            if args[-1] == dim:
+                args = args[:-1]
+            return flag[tuple(args)]
+
+    @cached_method
+    def _flag_f_vector(self):
+        r"""
+        Obtain the flag-f-vector from the flag-f-polynomial from the face lattice.
+
+        See :meth:`flag_f_vector`.
+
+        TESTS::
+
+            sage: C = CombinatorialPolyhedron(3)
+            sage: C._flag_f_vector()
+            {(-1,): 1, (0, 1): 0, (0, 2): 0, (0,): 0, (1, 2): 0, (1,): 0, (2,): 0, 3: 1}
+        """
+        poly = self.face_lattice().flag_f_polynomial()
+        variables = poly.variables()
+        dim = self.dimension()
+        flag = {(smallInteger(-1),): smallInteger(1)}
+        for term in poly.monomials():
+            index = tuple([variables.index(var) for var in term.variables()[:-1]])
+            if index == ():
+                flag[(dim,)] = smallInteger(1)
+            else:
+                flag[index] = poly.monomial_coefficient(term)
+
+        n_lines = sum([1 for x in self.f_vector() if x == 0])
+        if n_lines:
+            # The polyhedron has lines and we have to account for that.
+            # So we basically shift all entries up by the number of lines
+            # and add zero entries for the lines.
+            from itertools import combinations
+            flag_old = flag
+            flag = {(smallInteger(-1),): smallInteger(1)}
+            ran = [smallInteger(i) for i in range(self.dim())]
+            for k in range(1, self.dim()):
+                for comb in combinations(ran, self.dim() - k):
+                    if comb[0] < n_lines:
+                        # There are no faces of dimension 0,...,n_lines.
+                        flag[comb] = smallInteger(0)
+                    else:
+                        # Shift the old entires up by the number of lines.
+                        flag[comb] = flag_old[tuple(i - n_lines for i in comb)]
+
+            flag[self.dimension()] = smallInteger(1)
+
+        return flag
+
     def is_simplicial(self):
         r"""
         Test whether the polytope is simplicial.

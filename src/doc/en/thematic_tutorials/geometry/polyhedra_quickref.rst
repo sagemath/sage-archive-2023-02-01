@@ -70,6 +70,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dim` |  the dimension of the polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dimension` |  alias of dim
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.f_vector` |  the `f`-vector (number of faces of each dimension)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.flag_f_vector` |  the flag-`f`-vector (number of chains of faces)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.neighborliness` | highest cardinality for which all `k`-subsets of the vertices are faces of the polyhedron
 
 **Implementation properties**
@@ -140,7 +141,10 @@ List of Polyhedron methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.ehrhart_polynomial` | the Ehrhart polynomial (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
+    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.ehrhart_polynomial` | the Ehrhart polynomial for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`
+    :meth:`~sage.geometry.polyhedron.base_QQ.Polyhedron_QQ.ehrhart_polynomial` | the Ehrhart polynomial for :class:`Polyhedron over QQ <sage.geometry.polyhedron.base_QQ.Polyhedron_QQ>`
+    :meth:`~sage.geometry.polyhedron.base_QQ.Polyhedron_QQ.ehrhart_quasipolynomial` | the Ehrhart quasipolynomial for :class:`Polyhedron over QQ <sage.geometry.polyhedron.base_QQ.Polyhedron_QQ>`
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.h_star_vector` | the `h^*`-vector for polytopes with integral vertices
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integral_points` | list of integral points
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integral_points_count` | number of integral points
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.get_integral_point` | get the i-th integral point without computing all interior lattice points

@@ -138,7 +138,6 @@ ADD build ./build
 ADD src/bin/sage-version.sh src/bin/sage-version.sh
 $RUN ./bootstrap
 #:configuring:
-ADD src/ext src/ext
 ADD src/bin src/bin
 ADD src/Makefile.in src/Makefile.in
 ARG EXTRA_CONFIGURE_ARGS=""

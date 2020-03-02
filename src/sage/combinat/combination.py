@@ -536,12 +536,12 @@ def rank(comb, n, check=True):
     return binomial(n,k)-t-1
 
 
-def from_rank(r, n0, k):
+def from_rank(r, n, k):
     r"""
     Returns the combination of rank ``r`` in the subsets of
     ``range(n)`` of size ``k`` when listed in lexicographic order.
 
-    The algorithm used is based on factoradics and presented in [DGH20].
+    The algorithm used is based on factoradics and presented in [DGH2020].
     It is there compared to the other from the literature.
 
     EXAMPLES::
@@ -566,59 +566,59 @@ def from_rank(r, n0, k):
     """
     if k < 0:
         raise ValueError("k must be > 0")
-    if k > n0:
-        raise ValueError("k must be <= n0")
-    B = binomial(n0, k)
+    if k > n:
+        raise ValueError("k must be <= n")
+    B = binomial(n, k)
     if r < 0 and r >= B:
-        raise ValueError("r must satisfy  0 <= r < binomial(n0, k)")
+        raise ValueError("r must satisfy  0 <= r < binomial(n, k)")
     
-    n = n0
-    D = [0 for i in range(k)]
+    n0 = n
+    D = [0]*k
     inverse = False
-    if k < n/2:
+    if k < n0 / 2:
         inverse = True
-        k = n-k
+        k = n - k
         r = B - 1 - r
     
-    B = (B * k) // n
+    B = (B * k) // n0
     m = 0
     i = 0
     j = 0
     m2 = 0
     d = 0
-    while d < k-1:
+    while d < k - 1:
         if B > r:
             if i < k - 2:
-                if n-1-m==0:
+                if n0 - 1 - m == 0:
                     B = 1
                 else:
-                    B = (B * (k-1-i))//(n-1-m)
-            d = d + 1
+                    B = (B * (k-1-i)) // (n0-1-m)
+            d += 1
             if inverse:
                 for e in range(m2, m+i):
                     D[j] = e
-                    j = j + 1
+                    j += 1
                 m2 = m + i + 1
             else:
                 D[i] = m + i
-            i = i + 1
-            n = n - 1
+            i += 1
+            n0 -= 1
         else:
-            r = r - B
-            if n - 1 - m == 0:
+            r -= B
+            if n0 - 1 - m == 0:
                 B = 1
             else:
-                B = (B * (n-m-k+i))//(n-1-m)
-            m = m + 1
+                B = (B * (n0-m-k+i)) // (n0-1-m)
+            m += 1
     if inverse:
-        for e in range(m2, n+r+i-B):
+        for e in range(m2, n0+r+i-B):
             D[j] = e
-            j = j + 1
-        for e in range(n+r+i+1-B, n0):
+            j += 1
+        for e in range(n0+r+i+1-B, n):
             D[j] = e
-            j = j + 1
+            j += 1
     else:
-        D[k-1] = n+r+k-1-B
+        D[k-1] = n0 + r + k - 1 - B
     return tuple(D)
 
 ##########################################################

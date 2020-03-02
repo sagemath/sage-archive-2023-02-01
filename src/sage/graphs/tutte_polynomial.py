@@ -668,7 +668,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
                                                       for d_i in d[:-2])
         return result
 
-    # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-eaars
+    # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-ears
     ear = Ear.find_ear(uG)
     if ear is not None:
         if (ear.is_cycle and ear.vertices == G.vertices()):

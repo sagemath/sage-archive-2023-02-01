@@ -24,7 +24,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>
 #       Copyright (C) 2006-2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Jason Grout
@@ -32,8 +32,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import zip
 from six import integer_types
@@ -80,7 +80,7 @@ def _parse_figsize(figsize):
     - ``figsize`` -- width or [width, height] in inches; if only the width is
       provided, the height is computed from matplotlib's default aspect ratio
 
-    OUPUT:
+    OUTPUT:
 
     - a pair of ``float``'s representing ``(width, height)``
 

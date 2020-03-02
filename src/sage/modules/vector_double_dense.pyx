@@ -208,7 +208,7 @@ cdef class Vector_double_dense(FreeModuleElement):
                 try:
                     z = self._python_dtype(entries)
                 except TypeError:
-                    raise TypeError("cannot coerce entry to type %s"%self._python_dtype)
+                    raise TypeError("unable to convert {!r} to {}".format(entries, self._python_dtype))
                 if z != 0:
                     raise TypeError("entries must be a list or 0")
                 else:

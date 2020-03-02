@@ -325,6 +325,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
 
         sage: f = Family({1:'a', 2:'b', 3:'c'}, lazy=True)
         Traceback (most recent call last):
+        ...
         ValueError: lazy keyword only makes sense together with function keyword !
 
     ::

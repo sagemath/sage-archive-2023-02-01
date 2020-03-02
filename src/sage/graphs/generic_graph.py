@@ -425,7 +425,7 @@ Methods
 # ****************************************************************************
 from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
-from six import itervalues, iteritems, integer_types
+from six import iteritems, integer_types
 
 from copy import copy
 
@@ -5977,12 +5977,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.CubeGraph(3)
             sage: for e in label_dict:
             ....:     g.set_edge_label(e[0], e[1], label_dict[e])
-            ....:
             sage: gd = g.planar_dual()
             sage: incident_labels = []
             sage: for v in gd:
             ....:     incident_labels.append(sorted([l for _, _, l in gd.edges_incident(v) if l]))
-            ....:
             sage: sorted(incident_labels)
             [[], [1], [1, 2, 3, 4], [2], [3], [4]]
 
@@ -11161,7 +11159,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.allow_loops(True); G.allow_multiple_edges(True)
             sage: for e in G.edges(sort=False):
             ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
-            ....:
             sage: G.contract_edge(0, 1); G.edges()
             [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
             sage: G.contract_edge(0, 2, 4); G.edges()
@@ -16010,11 +16007,11 @@ class GenericGraph(GenericGraph_pyx):
                 return Integer(tr // 6)
             elif algorithm == "sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return sum(itervalues(triangles_count(self))) // 3
+                return sum(triangles_count(self).values()) // 3
             elif algorithm == "dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return sum(itervalues(triangles_count(self))) // 3
-            elif algorithm=='matrix':
+                return sum(triangles_count(self).values()) // 3
+            elif algorithm == 'matrix':
                 return (self.adjacency_matrix(vertices=list(self))**3).trace() // 6
             else:
                 raise ValueError('unknown algorithm "{}"'.format(algorithm))

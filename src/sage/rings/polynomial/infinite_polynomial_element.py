@@ -95,6 +95,7 @@ from sage.rings.integer import Integer
 from sage.structure.element import RingElement
 from sage.structure.richcmp import richcmp
 from sage.misc.cachefunc import cached_method
+from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 import copy
 
 
@@ -150,12 +151,13 @@ def InfinitePolynomial(A, p):
         alpha_2^2 + 2*alpha_2*alpha_1 + alpha_1^2
 
     In the sparse implementation, it is not checked whether the
-    polynomial really belongs to the parent::
+    polynomial really belongs to the parent, and when it does not,
+    the results may be unexpected due to coercions::
 
         sage: Y.<alpha,beta> = InfinitePolynomialRing(GF(2), implementation='sparse')
         sage: a = (alpha_1+alpha_2)^2
         sage: InfinitePolynomial(Y, a)
-        alpha_1^2 + 2*alpha_1*alpha_2 + alpha_2^2
+        alpha_0^2 + beta_0^2
 
     However, it is checked when doing a conversion::
 
@@ -242,6 +244,15 @@ class InfinitePolynomial_sparse(RingElement):
             True
 
         """
+
+        # Despite the above comment, it can still happen that p is in
+        # the wrong ring and we get here without going through
+        # _element_constructor_.  See trac 22514 for examples.
+        # So a little extra checking is done here.
+        if not is_MPolynomial(p) or p.base_ring() is not A.base_ring():
+            # coerce to a convenient multivariate polynomial ring
+            p = A._minP(p)
+
         self._has_footprint = False
         self._footprint = {}
         self._p = p
@@ -1554,4 +1565,3 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
 
         # else, n is supposed to be an integer
         return InfinitePolynomial_dense(self.parent(), self._p**n)
-

@@ -1865,7 +1865,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         number field into this number field.
 
         INPUT:
-            x -- string
+
+        - x -- string
 
         EXAMPLES::
 
@@ -1874,11 +1875,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             -1/3*theta25 - 1
 
         This function is called by the coerce method when it gets a string
-        as input:
+        as input::
+
             sage: k('theta25^3 + (1/3)*theta25')
             -1/3*theta25 - 1
         """
-        w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
+        w = sage.misc.all.sage_eval(x, locals=self.gens_dict())
         if not (is_Element(w) and w.parent() is self):
             return self(w)
         else:
@@ -2161,7 +2163,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         better to use ``self.change_generator``, which gives
         isomorphisms in both directions.
         """
-        if not names is None:
+        if names is not None:
             name = names
         if name is None:
             name = self.variable_name() + '0'
@@ -2228,7 +2230,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: to_K(from_K(c))
             c
         """
-        if not names is None:
+        if names is not None:
             name = names
         alpha = self(alpha)
         K, from_K = self.subfield(alpha, name=name)
@@ -7150,6 +7152,32 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                         elements.append(some_element)
 
         return elements
+
+    def lmfdb_page(self):
+        r"""
+        Open the LMFDB web page of the number field in a browser.
+
+        See https://www.lmfdb.org
+
+        EXAMPLES::
+
+            sage: E = QuadraticField(-1)
+            sage: E.lmfdb_page()  # optional -- webbrowser
+
+        Even if the variable name is different it works::
+
+            sage: R.<y>= PolynomialRing(QQ, "y")
+            sage: K = NumberField(y^2 + 1 , "i")
+            sage: K.lmfdb_page()  # optional -- webbrowser
+        """
+        import webbrowser
+        from urllib.parse import quote
+        lmfdb_url = 'https://www.lmfdb.org/NumberField/?natural={}'
+        poly = self.absolute_polynomial()
+        f = poly.parent().change_var('x')(poly)
+        poly = pari(f).polredabs()
+        url = lmfdb_url.format(quote(str(poly)))
+        webbrowser.open(url)
 
 
 class NumberField_absolute(NumberField_generic):

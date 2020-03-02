@@ -102,6 +102,7 @@ distclean: build-clean
 # source tarball
 bootstrap-clean:
 	rm -rf config configure build/make/Makefile-auto.in
+	rm -f src/doc/en/installation/*.txt
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
@@ -193,7 +194,7 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4
+configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d
 
 install: all

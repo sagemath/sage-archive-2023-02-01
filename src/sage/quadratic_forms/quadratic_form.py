@@ -8,15 +8,15 @@ AUTHORS:
 - Simon Brandhorst (2019-10-15): :meth:``quadratic_form_from_invariants``
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
 from warnings import warn
@@ -895,6 +895,7 @@ class QuadraticForm(SageObject):
 #        Multiply (on the right) the quadratic form Q by an element of the ring that Q is defined over.
 #
 #        EXAMPLES::
+#
 #            sage: Q = QuadraticForm(ZZ, 2, [1,4,10])
 #            sage: Q*2
 #            Quadratic form in 2 variables over Integer Ring with coefficients:
@@ -927,10 +928,10 @@ class QuadraticForm(SageObject):
                 Q' = v^t * Q * v.
 
 
-        EXAMPLES::
+        EXAMPLES:
 
-            ## Evaluate a quadratic form at a vector:
-            ## --------------------------------------
+        Evaluate a quadratic form at a vector::
+
             sage: Q = QuadraticForm(QQ, 3, range(6))
             sage: Q
             Quadratic form in 3 variables over Rational Field with coefficients:
@@ -944,10 +945,8 @@ class QuadraticForm(SageObject):
             sage: Q([1,1,1])
             15
 
-    ::
+        Evaluate a quadratic form using a column matrix::
 
-            ## Evaluate a quadratic form using a column matrix:
-            ## ------------------------------------------------
             sage: Q = QuadraticForm(QQ, 2, range(1,4))
             sage: A = Matrix(ZZ,2,2,[-1,0,0,1])
             sage: Q(A)
@@ -963,10 +962,8 @@ class QuadraticForm(SageObject):
             Quadratic form in 1 variables over Rational Field with coefficients:
             [ 1 ]
 
-        ::
+        Simple 2x2 change of variables::
 
-            ## Simple 2x2 change of variables:
-            ## -------------------------------
             sage: Q = QuadraticForm(ZZ, 2, [1,0,1])
             sage: Q
             Quadratic form in 2 variables over Integer Ring with coefficients:
@@ -981,10 +978,8 @@ class QuadraticForm(SageObject):
             [ 1 2 ]
             [ * 2 ]
 
-        ::
+        Some more tests::
 
-            ## Some more tests:
-            ## ----------------
             sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
             sage: Q([1,2,3])
             14

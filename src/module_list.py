@@ -1564,6 +1564,9 @@ ext_modules = [
 
     Extension('sage.schemes.elliptic_curves.period_lattice_region',
               sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx']),
+    
+    Extension('sage.schemes.elliptic_curves.mod_sym_num',
+              sources = ['sage/schemes/elliptic_curves/mod_sym_num.pyx']),
 
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',

@@ -1548,7 +1548,6 @@ class BipartiteGraph(Graph):
             sage: G = BipartiteGraph(graphs.CubeGraph(3))
             sage: for e in G.edges():
             ....:     G.set_edge_label(e[0], e[1], int(e[0]) + int(e[1]))
-            ....:
             sage: G.allow_multiple_edges(True)
             sage: G.matching(use_edge_labels=True, value_only=True)
             444

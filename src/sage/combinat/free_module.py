@@ -29,8 +29,8 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.all import Category, Sets, ModulesWithBasis, GradedAlgebrasWithBasis
 from sage.categories.tensor import tensor
 import sage.data_structures.blas_dict as blas
-from sage.typeset.ascii_art import AsciiArt
-from sage.typeset.unicode_art import UnicodeArt
+from sage.typeset.ascii_art import AsciiArt, ascii_art
+from sage.typeset.unicode_art import UnicodeArt, unicode_art
 from sage.misc.superseded import deprecation
 
 import six
@@ -487,7 +487,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: unicode_art(R.one())  # indirect doctest
             1
         """
-        from sage.typeset.unicode_art import UnicodeArt
         try:
             if m == self.one_basis():
                 return UnicodeArt(["1"])
@@ -585,7 +584,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: QS3.monomial(P([2,3,1]))   # indirect doctest
             [2, 3, 1]
 
-        or:
+        or::
+
             sage: B = QS3.basis()
             sage: B[P([2,3,1])]
             [2, 3, 1]
@@ -1354,11 +1354,16 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
                 sage: R = NonCommutativeSymmetricFunctions(QQ).R()
                 sage: Partitions.options(diagram_str="#", convention="french")
-                sage: ascii_art(tensor((R[1,2], R[3,1,2])))
+                sage: s = ascii_art(tensor((R[1,2], R[3,1,2]))); s
                 R   # R
                  #     ###
                  ##      #
                          ##
+
+            Check that the breakpoints are correct (:trac:`29202`)::
+
+                sage: s._breakpoints
+                [6]
             """
             if hasattr(self, "_print_options"):
                 symb = self._print_options['tensor_symbol']
@@ -1366,13 +1371,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                     symb = tensor.symbol
             else:
                 symb = tensor.symbol
-            it = iter(zip(self._sets, term))
-            module, t = next(it)
-            rpr = module._ascii_art_term(t)
-            for (module,t) in it:
-                rpr += AsciiArt([symb], [len(symb)])
-                rpr += module._ascii_art_term(t)
-            return rpr
+            return ascii_art(*(module._ascii_art_term(t)
+                               for module, t in zip(self._sets, term)),
+                             sep=AsciiArt([symb], breakpoints=[len(symb)]))
 
         _ascii_art_term = _ascii_art_
 
@@ -1382,12 +1383,17 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
                 sage: R = NonCommutativeSymmetricFunctions(QQ).R()
                 sage: Partitions.options(diagram_str="#", convention="french")
-                sage: unicode_art(tensor((R[1,2], R[3,1,2])))
+                sage: s = unicode_art(tensor((R[1,2], R[3,1,2]))); s
                 R    # R
                  ┌┐     ┌┬┬┐
                  ├┼┐    └┴┼┤
                  └┴┘      ├┼┐
                           └┴┘
+
+            Check that the breakpoints are correct (:trac:`29202`)::
+
+                sage: s._breakpoints
+                [7]
             """
             if hasattr(self, "_print_options"):
                 symb = self._print_options['tensor_symbol']
@@ -1395,13 +1401,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                     symb = tensor.symbol
             else:
                 symb = tensor.symbol
-            it = iter(zip(self._sets, term))
-            module, t = next(it)
-            rpr = module._unicode_art_term(t)
-            for (module, t) in it:
-                rpr += UnicodeArt([symb], [len(symb)])
-                rpr += module._unicode_art_term(t)
-            return rpr
+            return unicode_art(*(module._unicode_art_term(t)
+                                 for module, t in zip(self._sets, term)),
+                               sep=UnicodeArt([symb], breakpoints=[len(symb)]))
 
         _unicode_art_term = _unicode_art_
 

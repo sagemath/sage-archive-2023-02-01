@@ -137,6 +137,9 @@ usage_advanced() {
     echo "  -R [...]            -- run Sage's R with given arguments"
     echo "  -scons [...]        -- run Sage's scons"
     echo "  -sh [...]           -- run \$SHELL ($SHELL) with Sage environment variables"
+    echo "                         as they are set in the runtime of Sage"
+    echo "  -buildsh [...]      -- run \$SHELL ($SHELL) with Sage environment variables"
+    echo "                         as they are set while building Sage and its packages"
     echo "  -singular [...]     -- run Sage's singular with given arguments"
     echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
     echo "  -twistd [...]       -- run Twisted server"
@@ -660,13 +663,26 @@ if [ "$1" = '-git-branch' -o "$1" = '--git-branch' ]; then
     exec git --git-dir="$SAGE_ROOT"/.git rev-parse --abbrev-ref HEAD
 fi
 
-if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
+if [ "$1" = '-sh' -o "$1" = '--sh' -o "$1" = '-buildsh' -o "$1" = '--buildsh' ]; then
     # AUTHORS:
     # - Carl Witty and William Stein: initial version
     # - Craig Citro: add options for not loading profile
     # - Martin Albrecht: fix zshell prompt (#11866)
     # - John Palmieri: shorten the prompts, and don't print messages if
     #   there are more arguments to 'sage -sh' (#11790)
+    if [ -z "$SAGE_SHPROMPT_PREFIX" ]; then
+        SAGE_SHPROMPT_PREFIX=sage-sh
+    fi
+    if [ "$1" = '-buildsh' -o "$1" = '--buildsh' ]; then
+        if [ ! -r "$SAGE_ROOT"/build/bin/sage-build-env-config ]; then
+           echo "error: '$SAGE_ROOT' does not contain build/bin/sage-build-env-config.  Run configure first."
+           exit 1
+        fi
+        . "$SAGE_ROOT"/build/bin/sage-build-env-config || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env-config"; exit 1)
+        export SAGE_SHPROMPT_PREFIX=sage-buildsh
+        # We export it so that recursive invocation of 'sage-sh' from a sage-buildsh shows the sage-buildsh prompt;
+        # this makes sense because all environment variables set in build/bin/sage-build-env-config are exported.
+    fi
     shift
     # If $SHELL is unset, default to bash
     if [ -z "$SHELL" ]; then
@@ -693,9 +709,9 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
         bash)
             SHELL_OPTS="--norc"
             if [ "$color_prompt" = yes ]; then
-                PS1="\[$(tput rev)\](sage-sh)\[$(tput sgr0)\] \u@\h:\W\$ "
+                PS1="\[$(tput rev)\]($SAGE_SHPROMPT_PREFIX)\[$(tput sgr0)\] \u@\h:\W\$ "
             else
-                PS1="(sage-sh) \u@\h:\w\$ "
+                PS1="($SAGE_SHPROMPT_PREFIX) \u@\h:\w\$ "
             fi
             export PS1
             ;;
@@ -708,9 +724,9 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
         ksh)
             SHELL_OPTS="-p"
             if [ "$color_prompt" = yes ] ; then
-                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+                PS1="$(tput rev)($SAGE_SHPROMPT_PREFIX)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
             else
-                PS1="(sage-sh) $USER@`hostname -s`:\${PWD##*/}$ "
+                PS1="($SAGE_SHPROMPT_PREFIX) $USER@`hostname -s`:\${PWD##*/}$ "
             fi
             export PS1
             ;;
@@ -719,9 +735,9 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
             # bash, but this is not guaranteed), so we don't set
             # SHELL_OPTS.
             if [ "$color_prompt" = yes ] ; then
-                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+                PS1="$(tput rev)($SAGE_SHPROMPT_PREFIX)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
             else
-                PS1="(sage-sh) $USER@`hostname -s`:\${PWD}$ "
+                PS1="($SAGE_SHPROMPT_PREFIX) $USER@`hostname -s`:\${PWD}$ "
             fi
             export PS1
             ;;
@@ -732,7 +748,7 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
             SHELL_OPTS="-f"
             ;;
         zsh)
-            PS1="%S(sage-sh)%s %n@%m:%~$ "
+            PS1="%S($SAGE_SHPROMPT_PREFIX)%s %n@%m:%~$ "
             # In zsh, the system /etc/zshenv is *always* run,
             # and this may change the path (like on OSX), so we'll
             # create a temporary .zshenv to reset the path
@@ -744,7 +760,7 @@ EOF
             export PS1
             ;;
         *)
-            export PS1='(sage-sh) $ '
+            export PS1='($SAGE_SHPROMPT_PREFIX) $ '
             ;;
     esac
     if [ -n "$oldPS1" ]; then

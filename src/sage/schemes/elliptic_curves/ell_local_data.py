@@ -1120,6 +1120,7 @@ def check_prime(K,P):
         TypeError: The ideal Fractional ideal (5) is not a prime ideal of Number Field in a with defining polynomial x^2 - 5
         sage: check_prime(K, L.ideal(b))
         Traceback (most recent call last):
+        ...
         TypeError: No compatible natural embeddings found for Number Field in a with defining polynomial x^2 - 5 and Number Field in b with defining polynomial x^2 + 3
     """
     if K is QQ:

@@ -39,14 +39,14 @@ if not title:
 title = title.replace(u'`', u'$')
 
 # General information about the project.
-project = u'Sage Reference Manual: ' + title
+project = u'Sage {} Reference Manual: '.format(release) + title
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = u'Sage Reference Manual v' + release + ': ' + title
+html_title = project
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = title
+html_short_title = project
 
 # HTML theme (e.g., 'default', 'sphinxdoc').  The pages for the
 # reference manual use a custom theme, a slight variant on the 'sage'

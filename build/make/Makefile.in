@@ -82,8 +82,6 @@ SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
 
 SCRIPTS = @SAGE_SCRIPTS@
 
-EXTCODE = @SAGE_EXTCODE@
-
 # Packages that use the 'normal' build rules
 NORMAL_PACKAGES = @SAGE_NORMAL_PACKAGES@
 
@@ -267,12 +265,12 @@ endif
 define SCRIPT_PACKAGE_templ
 $(1): $(2)
 	$(AM_V_at)cd '$$(SAGE_ROOT)' && \
-		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
-		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 
 endef

@@ -523,11 +523,11 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
     @cached_method
     def is_reflexive(self):
-        """
+        r"""
         A lattice polytope is reflexive if it contains the origin in its interior
         and its polar with respect to the origin is a lattice polytope.
 
-        Equivalently, it is reflexive if it is of the form `{x \in \mathbb{R}^d: Ax \leq 1}`
+        Equivalently, it is reflexive if it is of the form `\{x \in \mathbb{R}^d: Ax \leq 1\}`
         for some integer matrix `A` and `d` the ambient dimension.
 
         EXAMPLES::

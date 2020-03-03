@@ -3652,27 +3652,17 @@ def CubeConnectedCycle(d):
         # only d = 1 requires loops
         G.add_edges([((0,0),(0,1)), ((0,0),(0,0)), ((0,1),(0,1))])
         return G
-    
+
     if d == 2:
         # only d = 2 require multiple edges
         G.allow_multiple_edges(True)
-        for x in range(1<<d):
-            G.add_cycle([(x, y) for y in range(d)])
-
-        # disallowing multiple edges for next step
-        G.allow_multiple_edges(False,check=False)
-
-        for x, y in G.vertices():
-            G.add_edge((x, y), (x^(1<<y), y))
-
-        # restoring multiple edges property for d = 2
-        G.allow_multiple_edges(True)
+        G.add_edges([((0, 0), (0, 1)), ((0, 0), (0, 1)), ((0, 0), (1, 0)), ((0, 1), (2, 1)), ((1, 0), (1, 1)), ((1, 0), (1, 1)), ((1, 1), (3, 1)), ((2, 0), (2, 1)), ((2, 0), (2, 1)), ((2, 0), (3, 0)), ((3, 0), (3, 1)), ((3, 0), (3, 1))])
         return G
 
     for x in range(1<<d):
         G.add_cycle([(x, y) for y in range(d)])
 
-    for x, y in G.vertices():
+    for x, y in G:
         G.add_edge((x, y), (x^(1<<y), y))
-    
+
     return G

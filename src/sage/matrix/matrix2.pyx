@@ -489,6 +489,15 @@ cdef class Matrix(Matrix1):
             sage: b = vector(ZZ, [1,1,1])
             sage: A.solve_right(b).base_ring() is Zmod(6)
             True
+
+        Check that the coercion mechanism invokes the method ``solve_right`` on
+        the new matrix `A` after changing rings (:trac:`12406`)::
+
+            sage: A = matrix(ZZ, [[1, 2, 3], [2, 0, 2], [3, 2, 5]])
+            sage: b = vector(RDF, [1, 1, 1])
+            sage: A.solve_right(b) == A.change_ring(RDF).solve_right(b)
+            ...
+            True
         """
         K = self.base_ring()
         L = B.base_ring()

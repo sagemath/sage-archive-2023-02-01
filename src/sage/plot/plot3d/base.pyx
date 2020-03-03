@@ -420,8 +420,9 @@ cdef class Graphics3d(SageObject):
                     opacity = p.all[0].texture.opacity
                     self += arrow3d(translated[0], translated[1], width=width, color=color, opacity=opacity)
                 if hasattr(p.all[0], 'string'):
-                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                 p.all[0].string, t[0], t[1], t[2]))
+                    color = '#' + p.all[0].texture.hex_rgb();
+                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}, "color":"{}"}}'.format(
+                                 p.all[0].string, t[0], t[1], t[2], color))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'

@@ -159,7 +159,7 @@ appropriate subdirectories of ``SAGE_ROOT/src/sage/ext_data/``. They will then b
 automatically copied to the corresponding subdirectories of
 ``SAGE_ROOT/local/share/sage/ext/`` during the build process and can be
 accessed at runtime using ``SAGE_EXTCODE``.  For example, if ``file`` is placed
-in ``SAGE_ROOT/src/ext/directory/`` it can be accessed with ::
+in ``SAGE_ROOT/src/sage/ext_data/directory/`` it can be accessed with ::
 
     from sage.env import SAGE_EXTCODE
     file = os.path.join(SAGE_EXTCODE, 'directory', 'file')

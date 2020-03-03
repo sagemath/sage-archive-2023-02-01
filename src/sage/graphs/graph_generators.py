@@ -211,6 +211,7 @@ __append_to_doc(
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
+     "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
      "EgawaGraph",
      "FibonacciTree",
@@ -2049,6 +2050,7 @@ class GraphGenerators():
     chang_graphs           = staticmethod(families.chang_graphs)
     CirculantGraph         = staticmethod(families.CirculantGraph)
     CubeGraph              = staticmethod(families.CubeGraph)
+    CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)

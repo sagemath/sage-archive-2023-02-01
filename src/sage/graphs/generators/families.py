@@ -3592,17 +3592,17 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
 def CubeConnectedCycle(d):
     r"""
-    Returns the cube-connected cycle of dimension `d`.
+    Return the cube-connected cycle of dimension `d`.
 
     The cube-connected cycle of order `d` is the `d`-dimensional hypercube
     with each of its vertices replaced by a cycle of length `d`. This graph has
     order `d \times 2^d`.
     The construction is as follows:
-    Construct vertex `(x,y)` for `0 <= x < 2^d`, `0 <= y < d`.
+    Construct vertex `(x,y)` for `0 \leq x < 2^d`, `0 \leq y < d`.
     For each vertex, `(x,y)`, add an edge between it and `(x, (y-1) \mod d))`,
     `(x,(y+1) \mod d)`, and `(x \oplus 2^y, y)`, where `\oplus` is the bitwise
     xor operator.
-
+    
     For `d=1` and `2`, the cube-connected cycle graph contains self-loops or
     multiple edges between a pair of vertices, but for all other `d`, it is
     simple.
@@ -3617,33 +3617,33 @@ def CubeConnectedCycle(d):
 
     The order of the graph is `d \times 2^d` ::
 
-        sage: d = 10
+        sage: d = 3
         sage: g = graphs.CubeConnectedCycle(d)
         sage: len(g) == d*2**d
         True
 
     The diameter of cube-connected cycles for `d > 3` is
     `2d + \lfloor \frac{d}{2} \rfloor - 2` ::
-        sage: d = 9
+        sage: d = 4
         sage: g = graphs.CubeConnectedCycle(d)
         sage: g.diameter() == 2*d+d//2-2
         True
 
     All vertices have degree `3` when `d > 1` ::
 
-        sage: g = graphs.CubeConnectedCycle(12)
+        sage: g = graphs.CubeConnectedCycle(5)
         sage: all(g.degree(v) == 3 for v in g)
         True
 
-    TEST::
+    TESTS::
 
         sage: g = graphs.CubeConnectedCycle(0)
         Traceback (most recent call last):
         ...
-        ValueError: d must be greater than 0.
+        ValueError: the dimension d must be greater than 0
     """
-    if d<1:
-        raise ValueError('d must be greater than 0.')
+    if d < 1:
+        raise ValueError('the dimension d must be greater than 0')
 
     G = Graph(name="Cube-Connected Cycle of dimension {}".format(d))
 
@@ -3653,18 +3653,12 @@ def CubeConnectedCycle(d):
         G.add_edges([((0,0),(0,1)), ((0,0),(0,0)), ((0,1),(0,1))])
         return G
 
+    for x in range(1<<d):
+        G.add_cycle([(x, y) for y in range(d)])
+
     if d == 2:
-        #only d = 2 require multiple edges
-        #G.allow_multiple_edges(True)
-        for x in range(1<<d):
-            G.add_edge((x,0),(x,1))
-
-    if d >= 3:
-        for x in range(1<<d):
-            G.add_cycle([(x, y) for y in range(d)])
-
-    #G.allow_loops(False, check=False)
-    #G.allow_multiple_edges(False, check=False)
+        # only d = 2 require multiple edges
+        G.allow_multiple_edges(True)
 
     for x, y in G.vertices():
         G.add_edge((x, y), (x^(1<<y), y))

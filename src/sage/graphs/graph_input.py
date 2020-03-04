@@ -383,7 +383,7 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
         ...
         ValueError: each column represents an edge: -1 goes to 1
     
-    Handle incidence matrix containing a column with only zeros (:trac:`29276`)::
+    Handle incidence matrix containing a column with only zeros (:trac:`29275`)::
 
         sage: m = Matrix([[0,1],[0,-1],[0,0]])
         sage: m

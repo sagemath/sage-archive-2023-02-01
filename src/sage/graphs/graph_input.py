@@ -391,8 +391,8 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
         NZ = c.nonzero_positions()
         if len(NZ) != 2:
             raise ValueError("there must be two nonzero entries (-1 & 1) per column")
-        L = sorted(set(c.list()))
-        if L != [-1, 0, 1] and L != [-1, 1]:
+        L = sorted([c[i] for i in NZ])
+        if L != [-1, 1]:
             raise ValueError("each column represents an edge: -1 goes to 1")
         if c[NZ[0]] == -1:
             positions.append(tuple(NZ))

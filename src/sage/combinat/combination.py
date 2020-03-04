@@ -569,7 +569,7 @@ def from_rank(r, n, k):
     if k > n:
         raise ValueError("k must be <= n")
     B = binomial(n, k)
-    if r < 0 and r >= B:
+    if r < 0 or r >= B:
         raise ValueError("r must satisfy  0 <= r < binomial(n, k)")
     
     n0 = n

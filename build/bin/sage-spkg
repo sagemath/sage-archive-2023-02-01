@@ -746,7 +746,7 @@ fi
 
 __EOF__
 
-    cat "$script" >> "$tmpscript"
+    cat "$script.in" >> "$tmpscript"
     mv "$tmpscript" "$script"
     chmod +x "$script"
 
@@ -772,8 +772,8 @@ for script in $WRAPPED_SCRIPTS; do
 
     if [ -f "$script" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
-            if [ -x "$script" ]; then
-                msg="$script should not be marked executable in the build/pkgs directory"
+            if [ -x "$script.in" ]; then
+                msg="$script.in should not be marked executable in the build/pkgs directory"
                 if [ "$UNAME" = "CYGWIN" ]; then
                     # On Cygwin we can't necessarily rely on file permissions
                     # being sane, so just issue a warning; on other platforms

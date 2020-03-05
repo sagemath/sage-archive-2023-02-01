@@ -3609,9 +3609,9 @@ def CubeConnectedCycle(d):
 
     INPUT:
 
-        - ``d`` -- The dimension of the desired hypercube as well as the length
-          of the cycle to be placed at each vertex of the `d`-dimensional
-          hypercube. `d` must be a positive integer.
+    - ``d`` -- The dimension of the desired hypercube as well as the length
+      of the cycle to be placed at each vertex of the `d`-dimensional
+      hypercube. `d` must be a positive integer.
 
     EXAMPLES:
 
@@ -3624,6 +3624,7 @@ def CubeConnectedCycle(d):
 
     The diameter of cube-connected cycles for `d > 3` is
     `2d + \lfloor \frac{d}{2} \rfloor - 2` ::
+
         sage: d = 4
         sage: g = graphs.CubeConnectedCycle(d)
         sage: g.diameter() == 2*d+d//2-2
@@ -3656,7 +3657,10 @@ def CubeConnectedCycle(d):
     if d == 2:
         # only d = 2 require multiple edges
         G.allow_multiple_edges(True)
-        G.add_edges([((0, 0), (0, 1)), ((0, 0), (0, 1)), ((0, 0), (1, 0)), ((0, 1), (2, 1)), ((1, 0), (1, 1)), ((1, 0), (1, 1)), ((1, 1), (3, 1)), ((2, 0), (2, 1)), ((2, 0), (2, 1)), ((2, 0), (3, 0)), ((3, 0), (3, 1)), ((3, 0), (3, 1))])
+        G.add_edges([((0, 0), (0, 1)), ((0, 0), (0, 1)), ((0, 0), (1, 0)),
+                     ((0, 1), (2, 1)), ((1, 0), (1, 1)), ((1, 0), (1, 1)),
+                     ((1, 1), (3, 1)), ((2, 0), (2, 1)), ((2, 0), (2, 1)),
+                     ((2, 0), (3, 0)), ((3, 0), (3, 1)), ((3, 0), (3, 1))])
         return G
 
     for x in range(1<<d):

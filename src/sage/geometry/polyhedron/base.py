@@ -4420,22 +4420,53 @@ class Polyhedron_base(Element):
             sage: P = polytopes.simplex(backend='field')
             sage: P.dilation(3).backend()
             'field'
+
+        Dilation with both Vrep and Hrep works correctly::
+
+            sage: def test_dilation(P):
+            ....:     Q = P.change_ring(P.base_ring(), backend='field')
+            ....:     assert 2*Q == 2*P
+            ....:     assert 1/2*Q == 1/2*P
+            ....:     assert (-3)*Q == (-3)*P
+            ....:     assert (-1/2)*Q == (-1/2)*P
+            sage: test_dilation(polytopes.cube())
+            sage: test_dilation(polytopes.cross_polytope(3))
+            sage: test_dilation(polytopes.simplex(4))
+            sage: test_dilation(polytopes.permutahedron(3))
+            sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1],[1,2,3]]))
+            sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]]))
         """
+        parent = self.parent().base_extend(scalar)
+        one = parent.base_ring().one()
         if scalar > 0:
             new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
             new_rays = self.rays()
             new_lines = self.lines()
+            new_inequalities = [f.vector()*one for f in self.inequality_generator()]
+            for f in new_inequalities:
+                f[0] *= scalar
+            new_equations = [e.vector()*one for e in self.equation_generator()]
+            for e in new_equations:
+                e[0] *= scalar
         elif scalar < 0:
             new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
             new_rays = [ list(-r.vector()) for r in self.ray_generator()]
             new_lines = self.lines()
+            new_inequalities = [-f.vector()*one for f in self.inequality_generator()]
+            for f in new_inequalities:
+                f[0] *= scalar
+            new_equations = [-e.vector()*one for e in self.equation_generator()]
+            for e in new_equations:
+                e[0] *= scalar
         else:
             new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
             new_rays = []
             new_lines = []
+            return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
-        parent = self.parent().base_extend(scalar)
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines],
+                                    [new_inequalities, new_equations],
+                                    Vrep_minimal=True, Hrep_minimal=True)
 
     def linear_transformation(self, linear_transf):
         """

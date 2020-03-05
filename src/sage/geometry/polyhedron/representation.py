@@ -751,7 +751,7 @@ class Inequality(Hrepresentation):
             [True, True, True, True, True, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
         """
         try:
             if Vobj.is_vector(): # assume we were passed a point
@@ -778,7 +778,7 @@ class Inequality(Hrepresentation):
             [False, True, True, False, False, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.interior_contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
 
         If you pass a vector, it is assumed to be the coordinate vector of a point::
 

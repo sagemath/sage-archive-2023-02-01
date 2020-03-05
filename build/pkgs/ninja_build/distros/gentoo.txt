@@ -1,1 +1,1 @@
-dev-utils/ninja
+dev-util/ninja

@@ -205,32 +205,35 @@ cdef class Matrix(Matrix1):
 
         Over inexact rings, the output of this function may not be an
         exact solution. For example, over the :func:`real or complex
-        double field <.Matrix_double_dense.solve_right>`, this
-        computes a least-squares solution. But in general, "exact
-        solution" is simply hard to define over inexact rings.
+        double field <.Matrix_double_dense.solve_right>`, this method
+        sometimes computes a least-squares solution.
 
         INPUT:
 
         - ``B`` -- a matrix or vector
 
         - ``check`` -- boolean (default: ``True``); verify the answer
-          if the system is non-square and if its entries lie in an
-          exact ring. This is faster, but you may get only an
-          approximate solution.
+          if the system is non-square or rank-deficient, and if its
+          entries lie in an exact ring. Meaningless over inexact rings,
+          or when the system is square and of full rank.
 
         OUTPUT:
 
-        If ``self`` is a square matrix `A`, the result of this
-        computation is the unique solution `X` to the matrix equation
-        `X A = B`. If `A` is singular, a ``ValueError`` or
-        ``LinAlgError`` may be raised.
+        If the system is not square or does not have full rank, then a
+        solution is attempted via other means. For example, over
+        ``RDF`` or ``CDF`` a least-squares solution is returned, as
+        with MATLAB's "backslash" operator. For inexact rings, the
+        ``check`` parameter is ignored because an approximate solution
+        will be returned in any case. Over exact rings, on the other
+        hand, the ``check`` parameter determines whether or not the
+        solution actually solves the system exactly.
 
-        If `A` is a non-square matrix, then a priori the result is the
-        least-squares solution of the equation, such that the 2-norm
-        `\|X A - B\|` is minimized. If working over an exact ring, the
-        ``check`` parameter determines whether or not an approximate
-        solution will suffice. Over inexact rings, all solutions are
-        approximate.
+        If the system is square and has full rank, the unique solution
+        is returned, and no check is done on the answer. Over inexact
+        rings, you should expect this answer to be inexact as
+        well. Moreover, due to the numerical issues involved, an error
+        may be thrown in this case -- specifically if the system is
+        singular but if SageMath fails to notice that.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -339,16 +342,18 @@ cdef class Matrix(Matrix1):
             sage: A.solve_left(vector(RDF,[]))
             ()
 
-        The coefficient matrix must be nonsingular.  ::
+        If the coefficient matrix is nonsingular and over an inexact
+        ring like ``RDF``, then an approximate solution will be returned::
 
             sage: A = matrix(RDF, 5, range(25))
+            sage: A.rank()
+            3
             sage: b = vector(RDF, [1,2,3,4,5])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix equation has no solutions
+            sage: x = A.solve_left(b)
+            sage: (x*A - b).norm() # tol 1e-14
+            0
 
-        The vector of constants needs the correct degree.  ::
+        The vector of constants needs the correct degree::
 
             sage: A = matrix(RDF, 5, range(25))
             sage: b = vector(RDF, [1,2,3,4])
@@ -359,7 +364,7 @@ cdef class Matrix(Matrix1):
             right-hand side
 
         The vector of constants needs to be compatible with
-        the base ring of the coefficient matrix.  ::
+        the base ring of the coefficient matrix::
 
             sage: F.<a> = FiniteField(27)
             sage: b = vector(F, [a,a,a,a,a])
@@ -399,9 +404,8 @@ cdef class Matrix(Matrix1):
 
         Over inexact rings, the output of this function may not be an
         exact solution. For example, over the :func:`real or complex
-        double field <.Matrix_double_dense.solve_right>`, this
-        computes a least-squares solution. But in general, "exact
-        solution" is simply hard to define over inexact rings.
+        double field <.Matrix_double_dense.solve_right>`, this method
+        sometimes computes a least-squares solution.
 
         .. NOTE::
 
@@ -414,23 +418,27 @@ cdef class Matrix(Matrix1):
         - ``B`` -- a matrix or vector
 
         - ``check`` -- boolean (default: ``True``); verify the answer
-          if the system is non-square and if its entries lie in an
-          exact ring. This is faster, but you may get only an
-          approximate solution.
+          if the system is non-square or rank-deficient, and if its
+          entries lie in an exact ring. Meaningless over inexact rings,
+          or when the system is square and of full rank.
 
         OUTPUT:
 
-        If ``self`` is a square matrix `A`, the result of this
-        computation is the unique solution `X` to the matrix equation
-        `A X = B`. If `A` is singular, a ``ValueError`` or
-        ``LinAlgError`` may be raised.
+        If the system is not square or does not have full rank, then a
+        solution is attempted via other means. For example, over
+        ``RDF`` or ``CDF`` a least-squares solution is returned, as
+        with MATLAB's "backslash" operator. For inexact rings, the
+        ``check`` parameter is ignored because an approximate solution
+        will be returned in any case. Over exact rings, on the other
+        hand, the ``check`` parameter determines whether or not the
+        solution actually solves the system exactly.
 
-        If `A` is a non-square matrix, then a priori the result is the
-        least-squares solution of the equation, such that the 2-norm
-        `\|A X - B\|` is minimized. If working over an exact ring, the
-        ``check`` parameter determines whether or not an approximate
-        solution will suffice. Over inexact rings, all solutions are
-        approximate.
+        If the system is square and has full rank, the unique solution
+        is returned, and no check is done on the answer. Over inexact
+        rings, you should expect this answer to be inexact as
+        well. Moreover, due to the numerical issues involved, an error
+        may be thrown in this case -- specifically if the system is
+        singular but if SageMath fails to notice that.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -687,19 +695,13 @@ cdef class Matrix(Matrix1):
             sage: A.solve_right(b).base_ring() is Zmod(6)
             True
 
-        Check that the coercion mechanism doesn't obscure the fact that
-        this system is singular (:trac:`12406`)::
+        Check that the coercion mechanism invokes the method ``solve_right``
+        on the new matrix `A` after changing rings (:trac:`12406`)::
 
             sage: A = matrix(ZZ, [[1, 2, 3], [2, 0, 2], [3, 2, 5]])
             sage: b = vector(RDF, [1, 1, 1])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix equation has no solutions
-            sage: A.change_ring(RDF).solve_right(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix equation has no solutions
+            sage: A.solve_right(b) == A.change_ring(RDF).solve_right(b)
+            True
 
         A degenerate case::
 
@@ -707,18 +709,23 @@ cdef class Matrix(Matrix1):
             sage: A.solve_right(vector(RDF,[]))
             ()
 
-        The coefficient matrix must be nonsingular.  ::
+        If the coefficient matrix is nonsingular and over an inexact
+        ring like ``RDF``, then an approximate solution will be returned::
 
             sage: A = matrix(RDF, 5, range(25))
+            sage: A.rank()
+            3
             sage: b = vector(RDF, [1,2,3,4,5])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix equation has no solutions
+            sage: x = A.solve_right(b)
+            sage: (A*x - b).norm() # tol 1e-14
+            0
 
-        ::
+        An error may still be raised for square systems over inexact
+        rings when Sage cannot determinate that a system is singular::
 
             sage: A = matrix(RDF, [[3,5],[30,50]])
+            sage: A.rank()
+            2
             sage: b = vector(RDF,[0,0])
             sage: A.solve_right(b)
             Traceback (most recent call last):
@@ -838,16 +845,13 @@ cdef class Matrix(Matrix1):
 
         C = B.column() if b_is_vec else B
 
-        if self.is_square():
-            if full_row_rank:
-                # Our ability to check the rank of the matrix has not
-                # improved since the method was invoked, and we already
-                # checked it.
-                X = self._solve_right_nonsingular_square(C, check_rank=False)
-            else:
-                raise ValueError("matrix equation has no solutions")
-        else:
+        if not self.is_square() or not full_row_rank:
             X = self._solve_right_general(C, check=check)
+        else:
+            # Our ability to check the rank of the matrix has not
+            # improved since the method was invoked, and we already
+            # checked it.
+            X = self._solve_right_nonsingular_square(C, check_rank=False)
 
         if b_is_vec:
             # Convert back to a vector

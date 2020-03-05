@@ -442,7 +442,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
         sage: M1(m * m) == M1(m) * M1(m)
         True
     """
-    _no_generic_basering_coercion = True
 
     @staticmethod
     def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None):
@@ -968,19 +967,17 @@ class MatrixSpace(UniqueRepresentation, Parent):
         except TypeError:
             return None
 
-    def _coerce_map_from_(self, S):
+    def _coerce_map_from_base_ring(self):
         """
-        Canonical coercion from ``S`` to this matrix space.
+        Return a coercion map from the base ring of ``self``.
+
+        .. NOTE::
+
+            This is only called for algebras of square matrices.
 
         EXAMPLES::
 
             sage: MS1 = MatrixSpace(QQ, 3)
-            sage: MS2 = MatrixSpace(ZZ, 3)
-            sage: MS1.coerce_map_from(MS2)
-            Coercion map:
-              From: Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
-              To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
-            sage: MS2.coerce_map_from(MS1)
             sage: MS1.coerce_map_from(QQ)
             Coercion map:
               From: Rational Field
@@ -996,11 +993,31 @@ class MatrixSpace(UniqueRepresentation, Parent):
                       Coercion map:
                       From: Rational Field
                       To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+
+            sage: MS2 = MatrixSpace(ZZ, 3)
             sage: MS2.coerce_map_from(QQ)
             sage: MS2.coerce_map_from(ZZ)
             Coercion map:
               From: Integer Ring
               To:   Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+
+            sage: MatrixSpace(QQ, 1, 3).coerce_map_from(QQ)
+        """
+        return self._generic_coerce_map(self.base_ring())
+
+    def _coerce_map_from_(self, S):
+        """
+        Canonical coercion from ``S`` to this matrix space.
+
+        EXAMPLES::
+
+            sage: MS1 = MatrixSpace(QQ, 3)
+            sage: MS2 = MatrixSpace(ZZ, 3)
+            sage: MS1.coerce_map_from(MS2)
+            Coercion map:
+              From: Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+              To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+            sage: MS2.coerce_map_from(MS1)
 
         There are also coercions possible from matrix group and
         arithmetic subgroups::
@@ -1081,11 +1098,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ....:         dummy = (a * b) + (a - b)
         """
         B = self.base()
-
-        if S is B:
-            # Coercion from base ring to a scalar matrix,
-            # but only if matrices are square.
-            return self.nrows() == self.ncols()
 
         if isinstance(S, MatrixSpace):
             # Disallow coercion if dimensions do not match

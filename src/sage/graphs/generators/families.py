@@ -407,7 +407,8 @@ def EgawaGraph(p, s):
             prefix = v[:i]
             suffix = v[i+1:]
             for el in X:
-                if el == v[i]: continue
+                if el == v[i]:
+                    continue
                 u = prefix + (el,) + suffix
                 g.add_edge(v,u)
     return g
@@ -488,7 +489,8 @@ def HammingGraph(n, q, X=None):
             prefix = v[:i]
             suffix = v[i+1:]
             for el in X:
-                if el == v[i]: continue
+                if el == v[i]:
+                    continue
                 u = prefix + (el,) + suffix
                 g.add_edge(v,u)
     return g
@@ -1561,7 +1563,8 @@ def FibonacciTree(n):
 
     def fib(level, node, y):
         pos[node] = (node, y)
-        if level < 2: return
+        if level < 2:
+            return
         level -= 1
         y -= s
         diff = F[level]
@@ -1900,7 +1903,8 @@ def MycielskiGraph(k=1, relabel=True):
     g0 = MycielskiGraph(k-1)
     g = MycielskiStep(g0)
     g.name("Mycielski Graph " + str(k))
-    if relabel: g.relabel()
+    if relabel:
+        g.relabel()
 
     return g
 
@@ -2480,7 +2484,8 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
         one = Integer(1)
         if positions:
             radius_multiplier = 1 + csc(pi/pegs)
-            sine = []; cosine = []
+            sine = []
+            cosine = []
             for i in range(pegs):
                 angle = 2*i*pi/float(pegs)
                 sine.append(sin(angle))
@@ -2493,7 +2498,8 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
                 mapping[i] = tuple(state)
                 state.reverse()
             if positions:
-                locx = 0.0; locy = 0.0
+                locx = 0.0
+                locy = 0.0
                 radius = 1.0
                 parity = -1.0
                 for index in range(disks):

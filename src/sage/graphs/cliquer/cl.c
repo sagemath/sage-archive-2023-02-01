@@ -112,8 +112,11 @@ int sage_find_all_clique(graph_t *g,int **list, int min_size, int max_size){
 			     maximal,opts);
   free(opts);
 
-  int size=set_size(sage_clique_list[0]);
-  *list=malloc(sizeof(int)*(size+1)*sage_clique_count);
+  int size=0;
+  for (i=0; i<sage_clique_count; i++) {
+    size += set_size(sage_clique_list[i]) + 1;
+  }
+  *list=malloc(sizeof(int)*size);
   l=0;
 
   for (j=0; j<sage_clique_count; j++) {
@@ -127,7 +130,7 @@ int sage_find_all_clique(graph_t *g,int **list, int min_size, int max_size){
     *((*list)+l)=-1;
     l++;
   }
-  return (1+size)*sage_clique_count;
+  return size;
 }
 
 

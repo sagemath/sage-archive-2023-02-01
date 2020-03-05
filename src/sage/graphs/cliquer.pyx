@@ -169,7 +169,8 @@ def all_cliques(graph, min_size, max_size):
     Returns the vertex sets of *ALL* the complete subgraphs.
 
     Returns the list of all cliques inbetween min_size and max_size,
-    with each clique represented by a list of vertices. A clique is an induced complete subgraph.
+    with each clique represented by a list of vertices.
+    A clique is an induced complete subgraph.
 
     .. NOTE::
 
@@ -184,48 +185,51 @@ def all_cliques(graph, min_size, max_size):
     EXAMPLES::
 
         sage: G = graphs.CompleteGraph(5)
-        sage: sage.graphs.cliquer.all_cliques(some_graph, 2, 3)
+        sage: sage.graphs.cliquer.all_cliques(G, 2, 3)
         [[0, 1],
-        [0, 1, 2],
-        [0, 1, 3],
-        [0, 1, 4],
-        [0, 2],
-        [0, 2, 3],
-        [0, 2, 4],
-        [1, 2],
-        [1, 2, 3],
-        [1, 2, 4],
-        [1, 3],
-        [1, 3, 4],
-        [1, 4],
-        [2, 3],
-        [2, 3, 4],
-        [2, 4],
-        [3, 4]]
-    TESTS::
+         [0, 1, 2],
+         [0, 1, 3],
+         [0, 1, 4],
+         [0, 2],
+         [0, 2, 3],
+         [0, 2, 4],
+         [0, 3],
+         [0, 3, 4],
+         [0, 4],
+         [1, 2],
+         [1, 2, 3],
+         [1, 2, 4],
+         [1, 3],
+         [1, 3, 4],
+         [1, 4],
+         [2, 3],
+         [2, 3, 4],
+         [2, 4],
+         [3, 4]]
 
-        sage: G = graphs.CompleteGraph(5)
-        sage: sage.graphs.cliquer.all_cliques(some_graph, 2, 3)
-        [[0, 1],
-        [0, 1, 2],
-        [0, 1, 3],
-        [0, 1, 4],
-        [0, 2],
-        [0, 2, 3],
-        [0, 2, 4],
-        [1, 2],
-        [1, 2, 3],
-        [1, 2, 4],
-        [1, 3],
-        [1, 3, 4],
-        [1, 4],
-        [2, 3],
-        [2, 3, 4],
-        [2, 4],
-        [3, 4]]
+    TESTS::
+        sage: G = graphs.CompleteGraph(3)
+        sage: sage.graphs.cliquer.all_cliques(G, 2, 3)
+        [[0, 1], [0, 1, 2], [0, 2], [1, 2]]
+
+        sage: G = graphs.EmptyGraph()
+        sage: sage.graphs.cliquer.all_cliques(G, 2, 3)
+        [[]]
+
+        sage: G = Graph(multiedges=True)
+        sage: G.add_vertex()
+        0
+        sage: G.add_vertex()
+        1
+        sage: G.add_edge(0,1)
+        sage: G.add_edge(0,1)
+        sage: sage.graphs.cliquer.all_cliques(G, 2, 2)
+        [[0, 1]]
     """
     if not graph.order():
         return [[]]
+    if min_size == 0 and max_size > 0:
+        raise ValueError("max_size>0 is incompatible with min_size=0")
 
     cdef int i
     cdef list int_to_vertex = list(graph)

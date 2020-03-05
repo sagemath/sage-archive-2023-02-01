@@ -207,9 +207,10 @@ cdef class Matrix(Matrix1):
 
         - ``B`` -- a matrix or vector
 
-        - ``check`` -- boolean (default: ``True``); if ``False`` and ``self``
-          is non-square, may not raise an error message even if there is no
-          solution. This is faster but more dangerous.
+        - ``check`` -- boolean (default: ``True``); verify the answer
+          if the system is non-square and if its entries lie in an
+          exact ring. This is faster, but you may get only an
+          approximate solution.
 
         OUTPUT: a matrix or vector
 
@@ -287,9 +288,10 @@ cdef class Matrix(Matrix1):
 
         - ``B`` -- a matrix or vector
 
-        - ``check`` -- boolean (default: ``True``); if ``False`` and ``self``
-          is non-square, may not raise an error message even if there is no
-          solution. This is faster but more dangerous.
+        - ``check`` -- boolean (default: ``True``); verify the answer
+          if the system is non-square and if its entries lie in an
+          exact ring. This is faster, but you may get only an
+          approximate solution.
 
         OUTPUT: a matrix or vector
 
@@ -490,16 +492,42 @@ cdef class Matrix(Matrix1):
             sage: A.solve_right(b).base_ring() is Zmod(6)
             True
 
-        Check that the coercion mechanism invokes the method ``solve_right`` on
-        the new matrix `A` after changing rings (:trac:`12406`)::
+        Check that the coercion mechanism doesn't obscure the fact that
+        this system is singular (:trac:`12406`)::
 
             sage: A = matrix(ZZ, [[1, 2, 3], [2, 0, 2], [3, 2, 5]])
             sage: b = vector(RDF, [1, 1, 1])
-            sage: A.solve_right(b) == A.change_ring(RDF).solve_right(b)
+            sage: A.solve_right(b)
+            Traceback (most recent call last):
             ...
-            True
+            ValueError: matrix equation has no solutions
+            sage: A.change_ring(RDF).solve_right(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
         """
+        b_is_vec = is_Vector(B)
+        if b_is_vec:
+            if self.nrows() != B.degree():
+                raise ValueError("number of rows of self must equal " +
+                                 "degree of right-hand side")
+        else:
+            if self.nrows() != B.nrows():
+                raise ValueError("number of rows of self must equal " +
+                                 "number of rows of right-hand side")
+
         K = self.base_ring()
+
+        # If our field is inexact, checking the answer is doomed anyway.
+        check = (K.is_exact() and check)
+
+        # Compute our rank before we coerce our entries into a base
+        # ring that might confuse the rank() method, like ZZ -> RDF.
+        full_row_rank = False
+        if K.is_integral_domain():
+            full_row_rank = (self.change_ring(K.fraction_field()).rank() ==
+                             self.nrows())
+
         L = B.base_ring()
         if L is not K:
             # first coerce both elements to parent over same base ring
@@ -507,19 +535,12 @@ cdef class Matrix(Matrix1):
             if L is not P:
                 B = B.change_ring(P)
             if K is not P:
-                A = self.change_ring(P)
-                return A.solve_right(B, check=check)
-            # now K is P and both elements have the same base ring
-
-        b_is_vec = is_Vector(B)
-        if b_is_vec:
-            if self.nrows() != B.degree():
-                raise ValueError("number of rows of self must equal degree of right-hand side")
-        else:
-            if self.nrows() != B.nrows():
-                raise ValueError("number of rows of self must equal number of rows of right-hand side")
+                K = P
+                self = self.change_ring(P)
 
         if not K.is_integral_domain():
+            # The non-integral-domain case is handled almost entirely
+            # separately.
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
                 from sage.libs.pari import pari
@@ -542,17 +563,26 @@ cdef class Matrix(Matrix1):
                     ret = ret.Vec().sage()
                     return (K ** self.ncols())(ret)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
+
         if K not in _Fields:
+            # We need to find the fraction field *after* coercion, otherwise
+            # we may not wind up with a fraction field at all.
             K = K.fraction_field()
             self = self.change_ring(K)
+            B = B.change_ring(K)
 
         C = B.column() if b_is_vec else B
 
-        if not self.is_square() or ((check or K.is_exact())
-                                    and self.rank() != self.nrows()):
-            X = self._solve_right_general(C, check=check)
+        if self.is_square():
+            if full_row_rank:
+                # Our ability to check the rank of the matrix has not
+                # improved since the method was invoked, and we already
+                # checked it.
+                X = self._solve_right_nonsingular_square(C, check_rank=False)
+            else:
+                raise ValueError("matrix equation has no solutions")
         else:
-            X = self._solve_right_nonsingular_square(C, check_rank=False)
+            X = self._solve_right_general(C, check=check)
 
         if b_is_vec:
             # Convert back to a vector

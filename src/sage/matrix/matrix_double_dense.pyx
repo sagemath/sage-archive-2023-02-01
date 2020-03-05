@@ -1762,6 +1762,15 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
+            ValueError: matrix equation has no solutions
+
+        ::
+
+            sage: A = matrix(RDF, [[3,5],[30,50]])
+            sage: b = vector(RDF,[0,0])
+            sage: A.solve_right(b)
+            Traceback (most recent call last):
+            ...
             LinAlgError: Matrix is singular.
 
         The vector of constants needs the correct degree.  ::
@@ -1809,7 +1818,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             deprecation(17405, "solve_right should be called with a vector "
                                "or matrix")
             b = vector(b)
-        return super(Matrix_double_dense, self).solve_right(b, check=False)
+        return super(Matrix_double_dense, self).solve_right(b, check=check)
 
     def solve_left(self, b, check=False):
         r"""
@@ -1917,7 +1926,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            LinAlgError: Matrix is singular.
+            ValueError: matrix equation has no solutions
 
         The vector of constants needs the correct degree.  ::
 
@@ -1948,7 +1957,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: b = vector(QQ[I], [1+I, 2])
             sage: x = A.solve_left(b)
         """
-        return super(Matrix_double_dense, self).solve_left(b, check=False)
+        return super(Matrix_double_dense, self).solve_left(b, check=check)
 
     def determinant(self):
         """

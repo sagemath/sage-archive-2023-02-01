@@ -2765,11 +2765,13 @@ class MagmaGBLogPrettyPrinter:
     """
     A device which filters Magma Groebner basis computation logs.
     """
-    cmd_inpt = re.compile("^>>>$")
-    app_inpt = re.compile(r"^Append\(~_sage_, 0\);$")
+    cmd_inpt = re.compile(b"^>>>$")
+    app_inpt = re.compile(b"^Append\\(~_sage_, 0\\);$")
 
-    deg_curr = re.compile(r"^Basis length\: (\d+), queue length\: (\d+), step degree\: (\d+), num pairs\: (\d+)$")
-    pol_curr = re.compile(r"^Number of pair polynomials\: (\d+), at (\d+) column\(s\), .*")
+    deg_curr = re.compile(
+        b"^Basis length\\: (\\d+), queue length\\: (\\d+), step degree\\: (\\d+), num pairs\\: (\\d+)$"
+    )
+    pol_curr = re.compile(b"^Number of pair polynomials\\: (\\d+), at (\\d+) column\\(s\\), .*")
 
     def __init__(self, verbosity=1, style='magma'):
         """
@@ -2915,7 +2917,7 @@ class MagmaGBLogPrettyPrinter:
                               (self.curr_deg, self.curr_npairs))
 
             if style == "magma" and verbosity >= 1:
-                print(line)
+                print(line.decode(sys.stdout.encoding))
 
     def flush(self):
         """

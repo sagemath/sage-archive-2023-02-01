@@ -1589,7 +1589,7 @@ class StdOutContext:
         if self.silent:
             return
         self.interface._expect.logfile.flush()
-        self.stdout.write("\n")
+        self.stdout.write(b"\n")
         self.interface._expect.logfile = self._logfile_backup
 
 

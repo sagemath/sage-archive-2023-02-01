@@ -11,13 +11,15 @@ https://wiki.haskell.org/The_Monad.Reader/Previous_issues
 
 AUTHORS:
 
-- D.K. Sunko (2020-02-19): initial version
-- F. Chapoton (2020-02-22): conversion to iterators and shorter doctests
-  and doc tweaks
+- D\. K\. Sunko (2020-02-19): initial version
+- F\. Chapoton (2020-02-22): conversion to iterators and shorter doctests and
+  doc tweaks
+- T\. Scrimshaw (2020-03-06): Cython optimizations and doc tweaks
 """
 ################################################################################
 #          Copyright (C) 2020 Denis Sunko <dks@phy.hr>                         #
 #          Copyright (C) 2020 Frédéric Chapoton <chapoton@math.unistra.fr>     #
+#          Copyright (C) 2020 Travis Scrimshaw <tscrims@gmail.com>             #
 #                                                                              #
 # This program is free software: you can redistribute it and/or modify         #
 # it under the terms of the GNU General Public License as published by         #
@@ -97,7 +99,7 @@ def recursive_within_from_to(list m, list s, list e, bint useS, bint useE):
 
         The flags ``useS`` and ``useE`` are used to implement the condition
         efficiently. Because testing it loops over the vector, re-testing
-        for each step as the vector grows is inefficient: all but the last
+        at each step as the vector is parsed is inefficient: all but the last
         comparison have been done cumulatively already. This code tests
         only for the last one, using the flags to accumulate information
         from previous calls.
@@ -231,7 +233,7 @@ cdef inline list vector_sub(list a, list b):
     """
     Return ``a - b`` considered as vectors.
 
-    This assumes ``len(a) >= len(b)``.
+    This assumes ``len(b) >= len(a)``.
     """
     cdef Py_ssize_t i
     cdef list ret = []
@@ -290,8 +292,8 @@ def fast_vector_partitions(v, min_vals=None):
 
     A list of lists, each representing a vector partition of ``v``.
 
-    If ``min`` is given, only partitions with parts ``p >= min_vals`` in the
-    lexicographic ordering will appear.
+    If ``min_vals`` is given, only partitions with parts ``p >= min_vals`` in
+    the lexicographic ordering will appear.
 
     If ``min_vals`` is given and ``len(min_vals) != len(v)``, an error
     is raised.

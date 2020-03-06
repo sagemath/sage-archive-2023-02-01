@@ -27,8 +27,6 @@ AUTHORS:
 ################################################################################
 #
 # To understand the code below, consult the ALGORITHM.
-#
-# Use at own risk.
 
 cdef list vector_halve(list v):
     r"""
@@ -63,13 +61,13 @@ cdef list vector_halve(list v):
         ``sqrt(N)``, halving the exponents in the prime decomposition.
         However, here "v / 2" does not mean halving each coordinate.
     """
-    cdef list result = []
+    cdef list result = list(v)  # make a copy
     cdef Py_ssize_t i, vv
     for i in range(len(v)):
         vv = <Py_ssize_t> v[i]
-        result.append(vv // 2)
+        result[i] = vv // 2
         if vv % 2:
-            result.extend(v[i+1:]) # the less significant part is just copied
+            # the less significant part is just copied
             return result
     return result
 

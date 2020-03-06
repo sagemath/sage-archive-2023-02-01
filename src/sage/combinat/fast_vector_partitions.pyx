@@ -30,9 +30,11 @@ AUTHORS:
 #
 # Use at own risk.
 
-def vector_halve(v):
+cdef list vector_halve(list v):
     r"""
-    Internal part of the current implementation of fast_vector_partitions().
+    Return the vector halfway (lexicographically) between ``v`` and zero.
+
+    Internal part of :func:`fast_vector_partitions`.
 
     INPUT:
 
@@ -45,33 +47,39 @@ def vector_halve(v):
 
     EXAMPLES::
 
-        sage: from sage.combinat.fast_vector_partitions import vector_halve
-        sage: vector_halve([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        sage: from sage.combinat.fast_vector_partitions import vector_halve  # not tested
+        sage: vector_halve([1, 2, 3, 4, 5, 6, 7, 8, 9])  # not tested
         [0, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: vector_halve([2, 4, 6, 8, 5, 6, 7, 8, 9])
+        sage: vector_halve([2, 4, 6, 8, 5, 6, 7, 8, 9])  # not tested
         [1, 2, 3, 4, 2, 6, 7, 8, 9]
 
     .. NOTE::
 
-        For vectors, ``v=a+b`` implies ``v=b+a``, which means that a
-        downward search for such splittings, starting with ``v=v+0``, need
-        only look as far as some "v/2", given precise meaning here.
+        For vectors, ``v = a + b`` implies ``v = b + a``, which means that a
+        downward search for such splittings, starting with ``v = v + 0``, need
+        only look as far as some "v / 2", given precise meaning here.
 
         A similar logic is to stop the search for divisors of ``N`` at
         ``sqrt(N)``, halving the exponents in the prime decomposition.
-        However, here "v/2" does not mean halving each coordinate.
+        However, here "v / 2" does not mean halving each coordinate.
     """
-    result = []
-    for i, vv in enumerate(v):
-        result += [vv // 2]
+    cdef list result = []
+    cdef Py_ssize_t i, vv
+    for i in range(len(v)):
+        vv = <Py_ssize_t> v[i]
+        result.append(vv // 2)
         if vv % 2:
-            return result + v[i+1:] # the less significant part is just copied
+            result.extend(v[i+1:]) # the less significant part is just copied
+            return result
     return result
 
 
-def recursive_within_from_to(m, s, e, useS, useE):
+def recursive_within_from_to(list m, list s, list e, bint useS, bint useE):
     r"""
-    Internal part of the current implementation of fast_vector_partitions().
+    Iterate over a lexicographically ordered list of lists ``v`` satisfying
+    ``e <= v <= s`` and ``v <|= m`` as vectors.
+
+    Internal part of :func:`fast_vector_partitions`.
 
     INPUT:
 
@@ -80,11 +88,6 @@ def recursive_within_from_to(m, s, e, useS, useE):
     - ``e`` -- list of non-negative integers, understood as a vector
     - ``useS``  -- boolean
     - ``useE``  -- boolean
-
-    OUTPUT:
-
-    Lexicographically ordered list of lists ``v`` satisfying
-    ``e <= v <= s`` and ``v <|= m`` as vectors.
 
     EXAMPLES::
 
@@ -105,32 +108,43 @@ def recursive_within_from_to(m, s, e, useS, useE):
 
         Expects to be called with ``s <|= m``.
 
-        Expects to be called first with ``useS==useE==True``.
+        Expects to be called first with ``useS == useE == True``.
     """
+    cdef Py_ssize_t start, end, x
+    cdef bint useSS, useEE
+
     if useS:
-        start = s[0]
+        start = <Py_ssize_t> s[0]
     else:
-        start = m[0]
+        start = <Py_ssize_t> m[0]
 
     if useE:
-        end = e[0]
+        end = <Py_ssize_t> e[0]
     else:
         end = 0
 
-    for x in range(start, end - 1, -1):
-        useSS = useS and x == s[0]
-        useEE = useE and x == e[0]
-        if len(m) > 1:
-            out = recursive_within_from_to(m[1:], s[1:], e[1:], useSS, useEE)
-            for o in out:
-                yield [x] + o
-        else:
+    if len(m) == 1:
+        # We use this style of Cython code for now in order to get this to convert
+        #   to an optimized pure C for loop. See Cython github issue #532.
+        #for x in range(start, end - 1, -1):
+        for x from start >= x >= end by 1:
             yield [x]  # we know the answer for singletons
+    else:
+        # We use this style of Cython code for now in order to get this to convert
+        #   to an optimized pure C for loop. See Cython github issue #532.
+        #for x in range(start, end - 1, -1):
+        for x from start >= x >= end by 1:
+            useSS = useS and x == <Py_ssize_t> s[0]
+            useEE = useE and x == <Py_ssize_t> e[0]
+            for o in recursive_within_from_to(m[1:], s[1:], e[1:], useSS, useEE):
+                yield [x] + o
 
-
-def within_from_to(m, s, e):
+def within_from_to(list m, list s, list e):
     r"""
-    Internal part of the current implementation of fast_vector_partitions().
+    Iterate over a lexicographically ordered list of lists ``v`` satisfying
+    ``e <= v <= s`` and ``v <|= m`` as vectors.
+
+    Internal part of :func:`fast_vector_partitions`.
 
     INPUT:
 
@@ -138,15 +152,10 @@ def within_from_to(m, s, e):
     - ``s`` -- list of non-negative integers, understood as a vector
     - ``e`` -- list of non-negative integers, understood as a vector
 
-    OUTPUT:
-
-    Lexicographically ordered list of lists ``v`` satisfying
-    ``e <= v <= s`` and ``v <|= m`` as vectors.
-
     EXAMPLES::
 
         sage: from sage.combinat.fast_vector_partitions import within_from_to
-        sage: list(within_from_to([1, 2, 3],[1, 2, 2],[1, 1, 1]))
+        sage: list(within_from_to([1, 2, 3], [1, 2, 2], [1, 1, 1]))
         [[1, 2, 2], [1, 2, 1], [1, 2, 0], [1, 1, 3], [1, 1, 2], [1, 1, 1]]
 
     .. NOTE::
@@ -156,12 +165,13 @@ def within_from_to(m, s, e):
 
         To understand the input check, some line art is helpful. Assume
         that ``(a,b)`` are the two least significant coordinates of some
-        vector. Say
+        vector. Say::
 
-        ``e=(2,3), s=(7,6), m=(9,8)``.
+            e = (2,3), s = (7,6), m = (9,8).
 
-        In the figure, these values are denoted by E, S, and M, while the
-        letter X stands for all other allowed values of ``v=(a,b)``::
+        In the figure, these values are denoted by ``E``, ``S``, and ``M``,
+        while the letter ``X`` stands for all other allowed values of
+        ``v = (a,b)``::
 
             b ^
               |
@@ -184,50 +194,65 @@ def within_from_to(m, s, e):
             0 ----|---|---X---X---X---X---X---|---|--->
               0   1   2   3   4   5   6   7   8   9   a
 
-        If S moves horizontally, the full-height columns fill the box in
-        until S reaches M, at which point it remains the limit in the
+        If ``S`` moves horizontally, the full-height columns fill the box in
+        until ``S`` reaches ``M``, at which point it remains the limit in the
         b-direction as it moves out of the box, while M takes over as the
-        limit in the a-direction, so the M-column remains filled only up to
-        S, no matter how much S moves further to the right.
+        limit in the a-direction, so the ``M``-column remains filled only up to
+        ``S``, no matter how much ``S`` moves further to the right.
 
-        If S moves vertically, its column will be filled to the top of the
-        box, but it remains the relevant limit in the a-direction, while M
-        takes over in the b-direction as S goes out of the box upwards.
+        If ``S`` moves vertically, its column will be filled to the top of the
+        box, but it remains the relevant limit in the a-direction, while ``M``
+        takes over in the b-direction as ``S`` goes out of the box upwards.
 
-        Both behaviors are captured by using the smaller coordinate of S
-        and M, whenever S is outside the box defined by M. The input will
-        be "clipped" accordingly in that case.
+        Both behaviors are captured by using the smaller coordinate of ``S``
+        and ``M``, whenever ``S`` is outside the box defined by M. The input
+        will be "clipped" accordingly in that case.
 
     .. WARNING::
 
-        The "clipping" behavior is transparent to the user, but may be puzzling
-        when comparing outputs with the function
+        The "clipping" behavior is transparent to the user, but may be
+        puzzling when comparing outputs with the function
         :func:`recursive_within_from_to` which has no input protection.
     """
-    ss = s
+    cdef list ss = s
     # if s is not in the box defined by m, we must clip:
-    if not all(x <= y for x, y in zip(s, m)): # slightly slower without the if
-        ss = [min(x, y) for x, y in zip(s, m)]  # rebuilding the list is costly
+    cdef Py_ssize_t i, j
+    for i in range(len(m)):  # should have the same length as s
+        if s[i] > m[i]:
+            ss = list(ss)  # make a copy
+            ss[i] = m[i]
+            for j in range(i+1, len(m)):
+                if ss[j] > m[j]:
+                    ss[j] = m[j]
+            break
     if e > ss:
         return
     yield from recursive_within_from_to(m, ss, e, True, True)
 
+cdef inline list vector_sub(list a, list b):
+    """
+    Return ``a - b`` considered as vectors.
 
-def recursive_vector_partitions(v, vL):
+    This assumes ``len(a) >= len(b)``.
+    """
+    cdef Py_ssize_t i
+    cdef list ret = []
+    for i in range(len(a)):
+        ret.append((<Py_ssize_t> a[i]) - (<Py_ssize_t> b[i]))
+    return ret
+
+def recursive_vector_partitions(list v, list vL):
     r"""
-    Internal part of the current implementation of
-    :func:`fast_vector_partitions`.
+    Iterate over a lexicographically ordered list of lists, each list
+    representing a vector partition of ``v``, such that no part of any
+    partition is lexicographically smaller than ``vL``.
+
+    Internal part of :func:`fast_vector_partitions`.
 
     INPUT:
 
     - ``v`` -- list of non-negative integers, understood as a vector
     - ``vL`` -- list of non-negative integers, understood as a vector
-
-    OUTPUT:
-
-    Lexicographically ordered list of lists, each list representing
-    a vector partition of ``v``, such that no part of any partition is
-    lexicographically smaller than ``vL``.
 
     EXAMPLES::
 
@@ -243,33 +268,35 @@ def recursive_vector_partitions(v, vL):
          [[1, 0, 2], [1, 2, 0]],
          [[1, 0, 1], [1, 2, 1]]]
     """
+    cdef list v_minus_vv, pp, vv
     yield [v]
     for vv in within_from_to(v, vector_halve(v), vL):
-        v_minus_vv = [x - y for x, y in zip(v, vv)]
+        v_minus_vv = vector_sub(v, vv)
         for pp in recursive_vector_partitions(v_minus_vv, vv):
             yield [vv] + pp
 
 
-def fast_vector_partitions(v, min=None):
+def fast_vector_partitions(v, min_vals=None):
     r"""
     Brent Yorgey's fast algorithm for integer vector (multiset) partitions.
 
     INPUT:
 
-    - ``v``   -- list of non-negative integers, understood as the vector
-                 to be partitioned
+    - ``v`` -- list of non-negative integers, understood as the vector
+      to be partitioned
 
-    - ``min`` -- optional list of non-negative integers, of same length
-                 as ``v``
+    - ``min_vals`` -- optional list of non-negative integers, of same
+      length as ``v``
 
     OUTPUT:
 
     A list of lists, each representing a vector partition of ``v``.
 
-    If ``min`` is given, only partitions with parts ``p>=min`` in the
+    If ``min`` is given, only partitions with parts ``p >= min_vals`` in the
     lexicographic ordering will appear.
 
-    If ``min`` is given and ``len(min)!=len(v)``, ``None`` is returned.
+    If ``min_vals`` is given and ``len(min_vals) != len(v)``, an error
+    is raised.
 
     EXAMPLES:
 
@@ -282,7 +309,7 @@ def fast_vector_partitions(v, min=None):
         True
         sage: len(fastvparts)
         686
-        sage: list(fast_vector_partitions([1, 2, 3], min=[0, 1, 1]))
+        sage: list(fast_vector_partitions([1, 2, 3], min_vals=[0, 1, 1]))
         [[[1, 2, 3]],
          [[0, 2, 3], [1, 0, 0]],
          [[0, 2, 2], [1, 0, 1]],
@@ -293,8 +320,8 @@ def fast_vector_partitions(v, min=None):
          [[0, 1, 1], [1, 1, 2]],
          [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
          [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
-        sage: L1 = list(fast_vector_partitions([5, 7, 6], min=[1, 3, 2]))
-        sage: L1 == list(VectorPartitions([5, 7, 6], min = [1, 3, 2]))[::-1]
+        sage: L1 = list(fast_vector_partitions([5, 7, 6], min_vals=[1, 3, 2]))
+        sage: L1 == list(VectorPartitions([5, 7, 6], min=[1, 3, 2]))[::-1]
         True
 
     .. NOTE::
@@ -311,10 +338,9 @@ def fast_vector_partitions(v, min=None):
         The ordering of the partitions is reversed with respect to the output of
         Sage class :class:`~sage.combinat.vector_partition.VectorPartitions`.
     """
-    if min is None:
-        min = (len(v) - 1) * [0] + [1]  # lexicographically smallest vector > 0
-        return recursive_vector_partitions(v, min)
-    elif len(v) == len(min):
-            return recursive_vector_partitions(v, min)
-    else:
-        return
+    if min_vals is None:
+        min_vals = (len(v) - 1) * [0] + [1]  # lexicographically smallest vector > 0
+    if len(v) != len(min_vals):
+        raise ValueError("the length of v and min_vals must be equal")
+    return recursive_vector_partitions(list(v), list(min_vals))
+

@@ -1,0 +1,1 @@
+    $ apt-cyg install make m4 flex git gcc-core gcc-g++ gcc-fortran diffutils liblapack0 liblapack-devel zlib-devel libreadline-devel libiconv-devel libcrypt-devel openssl-devel python3 ccache bc libbz2-devel libcurl-devel libffi-devel libgmp-devel liblzma-devel libmpc-devel libmpfr-devel libzmq-devel patch yasm

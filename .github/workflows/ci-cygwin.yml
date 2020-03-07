@@ -24,7 +24,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c ./bootstrap
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && ./bootstrap'
     - name: install additional cygwin packages with choco
       if: matrix.pkgs == 'standard'
       shell: bash {0}
@@ -33,7 +33,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c ./configure
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'MAKE="make -j8" make V=0'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && MAKE="make -j8" make V=0'

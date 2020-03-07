@@ -9,10 +9,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: install prerequisites
+    - name: install cygwin with choco
       run: |
         choco --version
-        choco install bash make libssl-devel cygwin-devel gcc-core libgcc1 binutils zlib-devel --source cygwin
-        apt-cyg --version
-    - name: build
-      run: C:\\tools\\cygwin\\bin\\bash -lc 'cd $OLDPWD && pwd'
+        choco install bash sed --source cygwin
+    - name: install prerequisites with choco
+      shell: C:\\tools\\cygwin\\bin\\bash
+      run: |
+        echo xyxyxyxy $PACKAGES
+    - name: bootstrap
+      shell: C:\\tools\\cygwin\\bin\\bash
+      run: |
+        ./bootstrap
+    - name: configure
+      shell: C:\\tools\\cygwin\\bin\\bash
+      run: |
+        ./configure || (cat config.log; exit 1)
+    - name: make
+      shell: C:\\tools\\cygwin\\bin\\bash
+      run: |
+        MAKE="make -j8" make V=0

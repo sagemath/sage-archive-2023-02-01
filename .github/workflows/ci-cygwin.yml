@@ -20,23 +20,21 @@ jobs:
     - name: install minimal prerequisites with choco
       shell: bash {0}
       run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
-    - name: install cygwin packages with choco
+    - name: bootstrap
+      shell: /tools/cygwin/bin/bash {0}
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -c ./bootstrap
+    - name: install additional cygwin packages with choco
       if: matrix.pkgs == 'standard'
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      shell: /tools/cygwin/bin/bash {0}
-      run: |
-        ./bootstrap
     - name: configure
-      shell: /tools/cygwin/bin/bash {0}
       run: |
-        ./configure || (cat config.log; exit 1)
+        C:\\tools\\cygwin\\bin\\bash -c ./configure
     - name: make
-      shell: /tools/cygwin/bin/bash {0}
       run: |
-        MAKE="make -j8" make V=0
+        C:\\tools\\cygwin\\bin\\bash -c 'MAKE="make -j8" make V=0'

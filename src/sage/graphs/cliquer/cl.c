@@ -113,6 +113,8 @@ int sage_find_all_clique(graph_t *g,int **list, int min_size, int max_size){
   free(opts);
 
   int size=0;
+  // All the cliques in the output set will be delimited with -1 value.
+  // The size of the output with delimiters has to be computed now.
   for (i=0; i<sage_clique_count; i++) {
     size += set_size(sage_clique_list[i]) + 1;
   }
@@ -132,7 +134,6 @@ int sage_find_all_clique(graph_t *g,int **list, int min_size, int max_size){
   }
   return size;
 }
-
 
 int sage_clique_number(graph_t *g){
   sage_reset_global_variables();

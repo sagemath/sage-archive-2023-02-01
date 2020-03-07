@@ -166,8 +166,6 @@ def all_max_clique(graph):
 
 def all_cliques(graph, min_size, max_size):
     """
-    Returns the vertex sets of *ALL* the complete subgraphs.
-
     Returns the list of all cliques inbetween min_size and max_size,
     with each clique represented by a list of vertices.
     A clique is an induced complete subgraph.
@@ -177,6 +175,14 @@ def all_cliques(graph, min_size, max_size):
         Currently only implemented for undirected graphs. Use
         :meth:`~sage.graphs.digraph.DiGraph.to_undirected` to convert a digraph
         to an undirected graph.
+
+    INPUT:
+
+    - ``min_size`` -- Search for cliques with weight at least N. If N=0,
+                      searches for maximum weight clique (default).
+    - ``max_size`` -- Search for cliques with weight at most N. If N=0,
+                      no limit is imposed (default).  N being positive is
+                      incompatible with "--min 0" ("--min 1" is assum
 
     ALGORITHM:
 
@@ -226,7 +232,7 @@ def all_cliques(graph, min_size, max_size):
         sage: sage.graphs.cliquer.all_cliques(G, 2, 2)
         [[0, 1]]
     """
-    if not graph.order():
+    if not graph:
         return [[]]
     if min_size == 0 and max_size > 0:
         raise ValueError("max_size>0 is incompatible with min_size=0")
@@ -244,6 +250,7 @@ def all_cliques(graph, min_size, max_size):
     sig_on()
     size = sage_find_all_clique(g, &list_of_vertices, min_size, max_size)
     sig_off()
+    graph_free(g)
     cdef list b = []
     cdef list c = []
     for i in range(size):
@@ -254,7 +261,6 @@ def all_cliques(graph, min_size, max_size):
             c = []
 
     sig_free(list_of_vertices)
-    graph_free(g)
 
     return sorted(b)
 

@@ -19,4 +19,6 @@ AS_HELP_STRING([--disable-]SPKG_NAME,
   AS_CASE([$is_installed-$want_spkg],
           [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
           [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_CLEANED_PACKAGES, "$spkg_line")])
+  m4_popdef([SPKG_TYPE])
+  m4_popdef([SPKG_NAME])
 ])

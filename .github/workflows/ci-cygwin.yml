@@ -1,0 +1,18 @@
+name: windows-latest
+
+on: [push]
+
+jobs:
+  cygwin:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: install prerequisites
+      run: |
+        choco --version
+        choco install bash make libssl-devel cygwin-devel gcc-core libgcc1 binutils zlib-devel --source cygwin
+        apt-cyg --version
+    - name: build
+      run: C:\\tools\\cygwin\\bin\\bash -lc 'cd $OLDPWD && pwd'

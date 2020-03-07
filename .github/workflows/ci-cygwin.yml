@@ -23,7 +23,6 @@ jobs:
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
-      shell: /tools/cygwin/bin/bash {0}
       run: |
         C:\\tools\\cygwin\\bin\\bash -c ./bootstrap
     - name: install additional cygwin packages with choco

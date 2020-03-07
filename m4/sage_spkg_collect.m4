@@ -174,11 +174,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     script)
         message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
         ;;
-    pip)
-        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
-        ;;
     *)
-        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'])
+        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', or 'script'])
         ;;
     esac
 
@@ -253,39 +250,52 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         SAGE_SDIST_PACKAGES+="    $SPKG_NAME \\"$'\n'
     fi
 
+    # Determine package source
+    #
+    if test -f "$DIR/requirements.txt"; then
+        SPKG_SOURCE=pip
+    elif test ! -f "$DIR/checksums.ini"; then
+        SPKG_SOURCE=script
+    else
+        SPKG_SOURCE=normal
+    fi
+
     # Determine package dependencies
-    DEP_FILE="$SAGE_ROOT/build/pkgs/$SPKG_NAME/dependencies"
+    #
+    DEP_FILE="$DIR/dependencies"
     if test -f "$DEP_FILE"; then
         # - the # symbol is treated as comment which is removed
         DEPS=`sed 's/^ *//; s/ *#.*//; q' $DEP_FILE`
     else
+        ORDER_ONLY_DEPS=""
         case "$SPKG_TYPE" in
-        optional)
-            DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
-            ;;
-        script)
-            DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
-            ;;
-        pip)
-            DEPS=' | pip'
-            ;;
-        *)
-            DEPS=""
+        optional|experimental)
+            ORDER_ONLY_DEPS='$ORDER_ONLY_DEPS $(STANDARD_PACKAGES)'
             ;;
         esac
+        case "$SPKG_SOURCE" in
+        pip)
+            ORDER_ONLY_DEPS='pip'
+            ;;
+        esac
+        if test -n "$ORDER_ONLY_DEPS"; then
+            DEPS="| $ORDER_ONLY_DEPS"
+        else
+            DEPS=""
+        fi
     fi
 
     SAGE_PACKAGE_DEPENDENCIES+="deps_$SPKG_NAME = $DEPS"$'\n'
 
     # Determine package build rules
-    case "$SPKG_TYPE" in
+    case "$SPKG_SOURCE" in
     pip)
         SAGE_PIP_PACKAGES+="    $SPKG_NAME \\"$'\n'
         ;;
     script)
         SAGE_SCRIPT_PACKAGES+="    $SPKG_NAME \\"$'\n'
         ;;
-    *)
+    normal)
         SAGE_NORMAL_PACKAGES+="    $SPKG_NAME \\"$'\n'
         ;;
     esac

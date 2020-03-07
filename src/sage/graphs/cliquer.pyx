@@ -182,7 +182,7 @@ def all_cliques(graph, min_size, max_size):
                       searches for maximum weight clique (default).
     - ``max_size`` -- Search for cliques with weight at most N. If N=0,
                       no limit is imposed (default).  N being positive is
-                      incompatible with "--min 0" ("--min 1" is assum
+                      incompatible with "--min 0" ("--min 1" is assumed).
 
     ALGORITHM:
 

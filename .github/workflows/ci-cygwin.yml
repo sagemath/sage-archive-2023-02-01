@@ -12,6 +12,7 @@ jobs:
         pkgs: [minimal, standard]
 
     steps:
+    - run: git config --global core.autocrlf false
     - uses: actions/checkout@v1
     - name: install cygwin with choco
       run: |

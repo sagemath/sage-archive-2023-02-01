@@ -364,21 +364,28 @@ cdef class Graphics3d(SageObject):
             OutputSceneThreejs container
         """
         options = self._process_viewing_options(kwds)
-        # Threejs specific options
-        options.setdefault('axes_labels', ['x','y','z'])
-        options.setdefault('decimals', 2)
         options.setdefault('online', False)
-        options.setdefault('projection', 'perspective')
-        if options['projection'] not in ['perspective', 'orthographic']:
-            import warnings
-            warnings.warn('projection={} is not supported; using perspective'.format(options['projection']))
-            options['projection'] = 'perspective'
-        # Normalization of options values for proper JSONing
-        options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
-        options['decimals'] = int(options['decimals'])
 
-        if not options['frame']:
-            options['axes_labels'] = False
+        js_options = {} # options passed to Three.js template
+
+        js_options['aspectRatio'] = options.get('aspect_ratio', [1,1,1])
+        js_options['axes'] = options.get('axes', False)
+        js_options['axesLabels'] = options.get('axes_labels', ['x','y','z'])
+        js_options['decimals'] = options.get('decimals', 2)
+        js_options['frame'] = options.get('frame', True)
+        js_options['projection'] = options.get('projection', 'perspective')
+
+        if js_options['projection'] not in ['perspective', 'orthographic']:
+            import warnings
+            warnings.warn('projection={} is not supported; using perspective'.format(js_options['projection']))
+            js_options['projection'] = 'perspective'
+
+        # Normalization of options values for proper JSONing
+        js_options['aspectRatio'] = [float(i) for i in js_options['aspectRatio']]
+        js_options['decimals'] = int(js_options['decimals'])
+
+        if not js_options['frame']:
+            js_options['axesLabels'] = False
 
         from sage.repl.rich_output import get_display_manager
         scripts = get_display_manager().threejs_scripts(options['online'])
@@ -420,8 +427,9 @@ cdef class Graphics3d(SageObject):
                     opacity = p.all[0].texture.opacity
                     self += arrow3d(translated[0], translated[1], width=width, color=color, opacity=opacity)
                 if hasattr(p.all[0], 'string'):
-                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                 p.all[0].string, t[0], t[1], t[2]))
+                    color = '#' + p.all[0].texture.hex_rgb();
+                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}, "color":"{}"}}'.format(
+                                 p.all[0].string, t[0], t[1], t[2], color))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -437,8 +445,6 @@ cdef class Graphics3d(SageObject):
             html = f.read()
 
         html = html.replace('SAGE_SCRIPTS', scripts)
-        js_options = dict((key, options[key]) for key in
-            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame', 'projection'])
         html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)

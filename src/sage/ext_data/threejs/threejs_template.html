@@ -8,16 +8,18 @@
 
     body { margin: 0px; overflow: hidden; }
 
-    #menu-container { position: absolute; bottom: 30px; right: 40px; }
+    #menu-container { position: absolute; bottom: 30px; right: 40px; cursor: default; }
 
     #menu-message { position: absolute; bottom: 0px; right: 0px; white-space: nowrap;
-                    display: none; background-color: #F5F5F5; padding: 10px }
+                    display: none; background-color: #F5F5F5; padding: 10px; }
 
     #menu-content { position: absolute; bottom: 0px; right: 0px;
                     display: none; background-color: #F5F5F5; border-bottom: 1px solid black;
                     border-right: 1px solid black; border-left: 1px solid black; }
 
     #menu-content div { border-top: 1px solid black; padding: 10px; white-space: nowrap; }
+
+    #menu-content div:hover { background-color: #FEFEFE;; }
   
 </style>
 </head>
@@ -61,12 +63,12 @@ SAGE_SCRIPTS
     var yRange = b[1].y - b[0].y;
     var zRange = b[1].z - b[0].z;
 
-    var ar = options.aspect_ratio;
+    var ar = options.aspectRatio;
     var a = [ ar[0], ar[1], ar[2] ]; // aspect multipliers
     var autoAspect = 2.5;
     if ( zRange > autoAspect * rRange && a[2] === 1 ) a[2] = autoAspect * rRange / zRange;
 
-    // Distance from (xMid,yMid,zMid) to any corner of the bounding box, after applying aspect_ratio.
+    // Distance from (xMid,yMid,zMid) to any corner of the bounding box, after applying aspectRatio
     var midToCorner = Math.sqrt( a[0]*a[0]*xRange*xRange + a[1]*a[1]*yRange*yRange + a[2]*a[2]*zRange*zRange ) / 2;
 
     var xMid = ( b[0].x + b[1].x ) / 2;
@@ -79,11 +81,11 @@ SAGE_SCRIPTS
     var boxMesh = new THREE.Line( box );
     if ( options.frame ) scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
-    if ( options.axes_labels ) {
+    if ( options.axesLabels ) {
 
         var d = options.decimals; // decimals
         var offsetRatio = 0.1;
-        var al = options.axes_labels;
+        var al = options.axesLabels;
 
         var offset = offsetRatio * a[1]*( b[1].y - b[0].y );
         var xm = xMid.toFixed(d);
@@ -108,9 +110,7 @@ SAGE_SCRIPTS
 
     }
 
-    function addLabel( text, x, y, z ) {
-
-        var fontsize = 14;
+    function addLabel( text, x, y, z, color='black', fontsize=14  ) {
 
         var canvas = document.createElement( 'canvas' );
         var pixelRatio = Math.round( window.devicePixelRatio );
@@ -121,7 +121,7 @@ SAGE_SCRIPTS
 
         var context = canvas.getContext( '2d' );
         context.scale( pixelRatio, pixelRatio );
-        context.fillStyle = 'black';
+        context.fillStyle = color;
         context.font = fontsize + 'px monospace';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
@@ -213,7 +213,7 @@ SAGE_SCRIPTS
 
     var texts = SAGE_TEXTS;
     for ( var i=0 ; i < texts.length ; i++ )
-        addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z );
+        addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z, texts[i].color );
 
     var points = SAGE_POINTS;
     for ( var i=0 ; i < points.length ; i++ ) addPoint( points[i] );
@@ -413,13 +413,15 @@ SAGE_SCRIPTS
 
     function getViewpoint() {
 
+        function roundTo( x, n ) { return +x.toFixed(n); }
+
         var v = camera.quaternion.inverse();
         var r = Math.sqrt( v.x*v.x + v.y*v.y + v.z*v.z );
-        var axis = [ v.x / r, v.y / r, v.z / r ];
-        var angle = 2 * Math.atan2( r, v.w ) * 180 / Math.PI;
+        var axis = [ roundTo( v.x / r, 4 ), roundTo( v.y / r, 4 ), roundTo( v.z / r, 4 ) ];
+        var angle = roundTo( 2 * Math.atan2( r, v.w ) * 180 / Math.PI, 2 );
 
         var textArea = document.createElement( 'textarea' );
-        textArea.textContent = JSON.stringify( axis ) + ', ' + angle;
+        textArea.textContent = JSON.stringify( axis ) + ',' + angle;
         textArea.style.csstext = 'position: absolute; top: -100%';
         document.body.append( textArea );
         textArea.select();

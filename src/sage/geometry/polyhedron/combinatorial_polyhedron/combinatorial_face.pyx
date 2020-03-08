@@ -548,12 +548,12 @@ cdef class CombinatorialFace(SageObject):
             return self.ambient_H_indices()
         cdef size_t length
         if not self._dual:
-            # if not dual, the facet-represention corresponds to the coatom-representation
+            # if not dual, the facet-representation corresponds to the coatom-representation
             length = self.set_coatom_rep()  # fill self.coatom_repr_face
             return tuple(self._ambient_facets[self.coatom_rep[i]]
                          for i in range(length)) + self._equalities
         else:
-            # if dual, the facet-represention corresponds to the atom-representation
+            # if dual, the facet-representation corresponds to the atom-representation
             length = self.set_atom_rep()  # fill self.atom_repr_face
             return tuple(self._ambient_facets[self.atom_rep[i]]
                          for i in range(length)) + self._equalities
@@ -595,12 +595,12 @@ cdef class CombinatorialFace(SageObject):
         """
         cdef size_t length
         if not self._dual:
-            # if not dual, the facet-represention corresponds to the coatom-representation
+            # if not dual, the facet-representation corresponds to the coatom-representation
             length = self.set_coatom_rep()  # fill self.coatom_repr_face
             return tuple(smallInteger(self.coatom_rep[i])
                          for i in range(length))
         else:
-            # if dual, the facet-represention corresponds to the atom-representation
+            # if dual, the facet-representation corresponds to the atom-representation
             length = self.set_atom_rep()  # fill self.atom_repr_face
             return tuple(smallInteger(self.atom_rep[i])
                          for i in range(length))

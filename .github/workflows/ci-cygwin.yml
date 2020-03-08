@@ -17,7 +17,9 @@ jobs:
       MAKE: make -j8
 
     steps:
-    - run: git config --global core.autocrlf false
+    - run: |
+        git config --global core.autocrlf false
+        git config --global core.symlinks true
     - uses: actions/checkout@v1
     - name: install cygwin and minimal prerequisites with choco
       shell: bash {0}

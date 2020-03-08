@@ -1223,7 +1223,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             we can find a random element in a trivial module::
 
                 sage: class Foo(CombinatorialFreeModule):
-                ....:     _no_generic_basering_coercion = True
                 ....:     def _element_constructor_(self,x):
                 ....:         if x in self:
                 ....:             return x

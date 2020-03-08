@@ -116,7 +116,7 @@ Note that the letterplace implementation can only be used if the corresponding
     sage: FreeAlgebra(FreeAlgebra(ZZ,2,'ab'), 2, 'x', implementation='letterplace')
     Traceback (most recent call last):
     ...
-    TypeError: The base ring Free Algebra on 2 generators (a, b) over Integer Ring is not a commutative ring
+    NotImplementedError: polynomials over Free Algebra on 2 generators (a, b) over Integer Ring are not supported in Singular
 """
 
 #*****************************************************************************

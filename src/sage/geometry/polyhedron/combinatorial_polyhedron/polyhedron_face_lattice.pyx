@@ -460,7 +460,7 @@ cdef class PolyhedronFaceLattice:
         """
         cdef size_t length
         if self.dual:
-            # if dual, the Vrepresention corresponds to the coatom-representation
+            # if dual, the Vrepresentation corresponds to the coatom-representation
             dimension = self.dimension - 1 - dimension  # if dual, the dimensions are reversed
         return CombinatorialFace(self, dimension=dimension, index=index)
 

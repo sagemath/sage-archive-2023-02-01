@@ -535,12 +535,12 @@ class PolyhedronFace(SageObject):
             sage: P = polytopes.cube()
             sage: F = P.faces(2)
             sage: [f.ambient_V_indices() for f in F]
-            [(0, 1, 4, 5),
-             (0, 2, 4, 6),
-             (0, 1, 2, 3),
+            [(0, 3, 4, 5),
+             (0, 1, 5, 6),
              (4, 5, 6, 7),
-             (2, 3, 6, 7),
-             (1, 3, 5, 7)]
+             (2, 3, 4, 7),
+             (1, 2, 6, 7),
+             (0, 1, 2, 3)]
         """
         return self._ambient_Vrepresentation_indices
 

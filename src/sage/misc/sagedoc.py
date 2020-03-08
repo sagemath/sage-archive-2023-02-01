@@ -31,20 +31,21 @@ Check that sphinx is not imported at Sage start-up::
     sage: "sphinx" in sys.modules
     False
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six import string_types, text_type
 
-import os, re, sys
+import os
+import re
+import sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
 from .viewer import browser
@@ -258,7 +259,7 @@ def skip_TESTS_block(docstring):
 
     - ``docstring``, a string
 
-    A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
+    A "TESTS" block is a block starting "TESTS:" (or
     the same with two colons), on a line on its own, and ending either
     with a line indented less than "TESTS", or with a line with the
     same level of indentation -- not more -- matching one of the
@@ -284,7 +285,7 @@ def skip_TESTS_block(docstring):
 
         sage: from sage.misc.sagedoc import skip_TESTS_block
         sage: start = ' Docstring\n\n'
-        sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
+        sage: test = ' TESTS: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
         sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
 
     Test lines starting with "REFERENCES:"::
@@ -710,9 +711,11 @@ def format(s, embedded=False):
         i_0 = 0
         while True:
             i = s[i_0:].find("<<<")
-            if i == -1: break
+            if i == -1:
+                break
             j = s[i_0+i+3:].find('>>>')
-            if j == -1: break
+            if j == -1:
+                break
             obj = s[i_0+i+3 : i_0+i+3+j]
             if obj in docs:
                 t = ''
@@ -769,9 +772,11 @@ def format_src(s):
     import sage.all
     while True:
         i = s.find("<<<")
-        if i == -1: break
+        if i == -1:
+            break
         j = s[i+3:].find('>>>')
-        if j == -1: break
+        if j == -1:
+            break
         obj = s[i+3:i+3+j]
         if obj in docs:
             t = ''

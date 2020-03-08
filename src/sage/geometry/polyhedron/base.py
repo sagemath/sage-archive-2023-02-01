@@ -1430,7 +1430,7 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.hypercube(3)
             sage: p.Hrepresentation(0)
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: p.Hrepresentation(0) == p.Hrepresentation() [0]
             True
         """
@@ -1522,7 +1522,7 @@ class Polyhedron_base(Element):
 
             sage: c = polytopes.cube()
             sage: c.Hrepresentation_str(separator=', ', style='positive')
-            '1 >= x2, 1 >= x1, 1 >= x0, x0 + 1 >= 0, x2 + 1 >= 0, x1 + 1 >= 0'
+            '1 >= x0, 1 >= x1, 1 >= x2, x0 + 1 >= 0, x2 + 1 >= 0, x1 + 1 >= 0'
         """
         pretty_hs = [h.repr_pretty(split=True, latex=latex, style=style, **kwds) for h in self.Hrepresentation()]
         shift = any(pretty_h[2].startswith('-') for pretty_h in pretty_hs)
@@ -1574,7 +1574,7 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.hypercube(3)
             sage: next(p.Hrep_generator())
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
         """
         for H in self.Hrepresentation():
             yield H
@@ -1993,8 +1993,8 @@ class Polyhedron_base(Element):
             sage: P.an_affine_basis()
             [A vertex at (-1, -1, -1),
              A vertex at (1, -1, -1),
-             A vertex at (-1, -1, 1),
-             A vertex at (-1, 1, -1)]
+             A vertex at (1, -1, 1),
+             A vertex at (1, 1, -1)]
 
             sage: P = polytopes.permutahedron(5)
             sage: P.an_affine_basis()
@@ -2804,7 +2804,7 @@ class Polyhedron_base(Element):
              A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
              A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices]
             sage: [face.ambient_V_indices() for face in chain]
-            [(), (0,), (0, 4), (0, 1, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
+            [(), (5,), (0, 5), (0, 3, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
 
         TESTS::
 
@@ -3333,14 +3333,14 @@ class Polyhedron_base(Element):
             True
             sage: P.is_prism(certificate=True)
             (True,
-             [[A vertex at (-1, -1, 1),
-               A vertex at (-1, 1, 1),
-               A vertex at (1, -1, 1),
-               A vertex at (1, 1, 1)],
-              [A vertex at (-1, -1, -1),
+             [[A vertex at (1, -1, -1),
+               A vertex at (1, 1, -1),
+               A vertex at (1, 1, 1),
+               A vertex at (1, -1, 1)],
+              [A vertex at (-1, -1, 1),
+               A vertex at (-1, -1, -1),
                A vertex at (-1, 1, -1),
-               A vertex at (1, -1, -1),
-               A vertex at (1, 1, -1)]])
+               A vertex at (-1, 1, 1)]])
             sage: Q = polytopes.cyclic_polytope(3,8)
             sage: Q.is_prism()
             False
@@ -3740,13 +3740,15 @@ class Polyhedron_base(Element):
             sage: triangulation = cube.triangulate(
             ....:    engine='internal') # to make doctest independent of TOPCOM
             sage: triangulation
-            (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
+            (<0,1,2,7>, <0,1,5,7>, <0,2,3,7>, <0,3,4,7>, <0,4,5,7>, <1,5,6,7>)
             sage: simplex_indices = triangulation[0]; simplex_indices
             (0, 1, 2, 7)
             sage: simplex_vertices = [ cube.Vrepresentation(i) for i in simplex_indices ]
             sage: simplex_vertices
-            [A vertex at (-1, -1, -1), A vertex at (-1, -1, 1),
-             A vertex at (-1, 1, -1), A vertex at (1, 1, 1)]
+            [A vertex at (1, -1, -1),
+             A vertex at (1, 1, -1),
+             A vertex at (1, 1, 1),
+             A vertex at (-1, 1, 1)]
             sage: Polyhedron(simplex_vertices)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
 
@@ -4418,22 +4420,53 @@ class Polyhedron_base(Element):
             sage: P = polytopes.simplex(backend='field')
             sage: P.dilation(3).backend()
             'field'
+
+        Dilation with both Vrep and Hrep works correctly::
+
+            sage: def test_dilation(P):
+            ....:     Q = P.change_ring(P.base_ring(), backend='field')
+            ....:     assert 2*Q == 2*P
+            ....:     assert 1/2*Q == 1/2*P
+            ....:     assert (-3)*Q == (-3)*P
+            ....:     assert (-1/2)*Q == (-1/2)*P
+            sage: test_dilation(polytopes.cube())
+            sage: test_dilation(polytopes.cross_polytope(3))
+            sage: test_dilation(polytopes.simplex(4))
+            sage: test_dilation(polytopes.permutahedron(3))
+            sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1],[1,2,3]]))
+            sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]]))
         """
+        parent = self.parent().base_extend(scalar)
+        one = parent.base_ring().one()
         if scalar > 0:
             new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
             new_rays = self.rays()
             new_lines = self.lines()
+            new_inequalities = [f.vector()*one for f in self.inequality_generator()]
+            for f in new_inequalities:
+                f[0] *= scalar
+            new_equations = [e.vector()*one for e in self.equation_generator()]
+            for e in new_equations:
+                e[0] *= scalar
         elif scalar < 0:
             new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
             new_rays = [ list(-r.vector()) for r in self.ray_generator()]
             new_lines = self.lines()
+            new_inequalities = [-f.vector()*one for f in self.inequality_generator()]
+            for f in new_inequalities:
+                f[0] *= scalar
+            new_equations = [-e.vector()*one for e in self.equation_generator()]
+            for e in new_equations:
+                e[0] *= scalar
         else:
             new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
             new_rays = []
             new_lines = []
+            return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
-        parent = self.parent().base_extend(scalar)
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines],
+                                    [new_inequalities, new_equations],
+                                    Vrep_minimal=True, Hrep_minimal=True)
 
     def linear_transformation(self, linear_transf):
         """
@@ -4860,13 +4893,13 @@ class Polyhedron_base(Element):
             sage: edge_trunc.f_vector()
             (1, 10, 15, 7, 1)
             sage: tuple(f.ambient_V_indices() for f in edge_trunc.faces(2))
-            ((0, 4, 5, 6),
-             (0, 1, 6, 7),
-             (5, 6, 7, 8, 9),
-             (3, 4, 5, 9),
-             (1, 2, 7, 8),
-             (2, 3, 8, 9),
-             (0, 1, 2, 3, 4))
+            ((0, 5, 6, 7),
+             (1, 4, 5, 6, 8),
+             (6, 7, 8, 9),
+             (0, 2, 3, 7, 9),
+             (1, 2, 8, 9),
+             (0, 3, 4, 5),
+             (1, 2, 3, 4))
              sage: face_trunc = Cube.face_truncation(Cube.faces(2)[2])
              sage: face_trunc.vertices()
              (A vertex at (1, -1, -1),
@@ -5840,23 +5873,27 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.hypercube(4)
             sage: list(f.ambient_V_indices() for f in p.faces(3))
-            [(0, 2, 4, 6, 8, 10, 12, 14),
-             (0, 1, 4, 5, 8, 9, 12, 13),
-             (0, 1, 2, 3, 8, 9, 10, 11),
-             (0, 1, 2, 3, 4, 5, 6, 7),
-             (1, 3, 5, 7, 9, 11, 13, 15),
-             (2, 3, 6, 7, 10, 11, 14, 15),
-             (4, 5, 6, 7, 12, 13, 14, 15),
-             (8, 9, 10, 11, 12, 13, 14, 15)]
+            [(0, 5, 6, 7, 8, 9, 14, 15),
+             (1, 4, 5, 6, 10, 13, 14, 15),
+             (1, 2, 6, 7, 8, 10, 11, 15),
+             (8, 9, 10, 11, 12, 13, 14, 15),
+             (0, 3, 4, 5, 9, 12, 13, 14),
+             (0, 2, 3, 7, 8, 9, 11, 12),
+             (1, 2, 3, 4, 10, 11, 12, 13),
+             (0, 1, 2, 3, 4, 5, 6, 7)]
 
             sage: face = p.faces(3)[3]
             sage: face.ambient_Hrepresentation()
             (An inequality (1, 0, 0, 0) x + 1 >= 0,)
             sage: face.vertices()
-            (A vertex at (-1, -1, -1, -1), A vertex at (-1, -1, -1, 1),
-             A vertex at (-1, -1, 1, -1), A vertex at (-1, -1, 1, 1),
-             A vertex at (-1, 1, -1, -1), A vertex at (-1, 1, -1, 1),
-             A vertex at (-1, 1, 1, -1), A vertex at (-1, 1, 1, 1))
+            (A vertex at (-1, -1, 1, -1),
+             A vertex at (-1, -1, 1, 1),
+             A vertex at (-1, 1, -1, -1),
+             A vertex at (-1, 1, 1, -1),
+             A vertex at (-1, 1, 1, 1),
+             A vertex at (-1, 1, -1, 1),
+             A vertex at (-1, -1, -1, 1),
+             A vertex at (-1, -1, -1, -1))
 
         You can use the
         :meth:`~sage.geometry.polyhedron.representation.PolyhedronRepresentation.index`
@@ -5866,19 +5903,19 @@ class Polyhedron_base(Element):
             sage: [get_idx(_) for _ in face.ambient_Hrepresentation()]
             [4]
             sage: [get_idx(_) for _ in face.ambient_Vrepresentation()]
-            [0, 1, 2, 3, 4, 5, 6, 7]
+            [8, 9, 10, 11, 12, 13, 14, 15]
 
             sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()],
             ....:    [get_idx(_) for _ in face.ambient_Hrepresentation()])
             ....:   for face in p.faces(3) ]
-                [([0, 2, 4, 6, 8, 10, 12, 14], [7]),
-                 ([0, 1, 4, 5, 8, 9, 12, 13], [6]),
-                 ([0, 1, 2, 3, 8, 9, 10, 11], [5]),
-                 ([0, 1, 2, 3, 4, 5, 6, 7], [4]),
-                 ([1, 3, 5, 7, 9, 11, 13, 15], [3]),
-                 ([2, 3, 6, 7, 10, 11, 14, 15], [2]),
-                 ([4, 5, 6, 7, 12, 13, 14, 15], [1]),
-                 ([8, 9, 10, 11, 12, 13, 14, 15], [0])]
+            [([0, 5, 6, 7, 8, 9, 14, 15], [7]),
+             ([1, 4, 5, 6, 10, 13, 14, 15], [6]),
+             ([1, 2, 6, 7, 8, 10, 11, 15], [5]),
+             ([8, 9, 10, 11, 12, 13, 14, 15], [4]),
+             ([0, 3, 4, 5, 9, 12, 13, 14], [3]),
+             ([0, 2, 3, 7, 8, 9, 11, 12], [2]),
+             ([1, 2, 3, 4, 10, 11, 12, 13], [1]),
+             ([0, 1, 2, 3, 4, 5, 6, 7], [0])]
 
         TESTS::
 
@@ -6498,7 +6535,7 @@ class Polyhedron_base(Element):
 
         It works with a polyhedral face as well::
 
-            sage: vv = cube.faces(0)[0]
+            sage: vv = cube.faces(0)[1]
             sage: ops_cube2 = cube.one_point_suspension(vv)
             sage: ops_cube == ops_cube2
             True
@@ -6674,7 +6711,7 @@ class Polyhedron_base(Element):
             sage: schlegel_edge_indices = sch_proj.lines
             sage: schlegel_edges = [sch_proj.coordinates_of(x) for x in schlegel_edge_indices]
             sage: len([x for x in schlegel_edges if x[0][0] > 0])
-            4
+            5
         """
         proj = self.projection()
         if projection_dir is None:

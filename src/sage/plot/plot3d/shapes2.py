@@ -1125,7 +1125,7 @@ def point3d(v, size=5, **kwds):
 
         sage: c = polytopes.hypercube(3)
         sage: v = c.vertices()[0];  v
-        A vertex at (-1, -1, -1)
+        A vertex at (1, -1, -1)
         sage: print(point(v))
         Graphics3d Object
 

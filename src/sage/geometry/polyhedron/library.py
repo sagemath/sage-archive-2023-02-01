@@ -86,6 +86,7 @@ from sage.rings.all import ZZ, QQ, RDF, RR, AA, QQbar
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from .constructor import Polyhedron
+from .parent import Polyhedra
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
 
@@ -2759,7 +2760,7 @@ class Polytopes():
 
             sage: z_cube = polytopes.hypercube(4,intervals = 'zero_one')
             sage: z_cube.vertices()[0]
-            A vertex at (0, 0, 0, 0)
+            A vertex at (1, 0, 1, 1)
             sage: z_cube.is_simple()
             True
             sage: z_cube.base_ring()
@@ -2792,6 +2793,13 @@ class Polytopes():
             ...
             ValueError: the dimension of the hypercube must match the number of intervals
 
+        The intervals must be pairs `(a, b)` with `a < b`::
+
+            sage: w_cube = polytopes.hypercube(3, intervals = [[0,1],[3,2],[0,3]])
+            Traceback (most recent call last):
+            ...
+            ValueError: each interval must be a pair `(a, b)` with `a < b`
+
         If a string besides 'zero_one' is passed to ``intervals``, return an
         error::
 
@@ -2799,19 +2807,71 @@ class Polytopes():
             Traceback (most recent call last):
             ...
             ValueError: the only allowed string is 'zero_one'
+
+        Check that we set up the hypercube correctly::
+
+            sage: ls = [randint(-100,100) for _ in range(4)]
+            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: ls = [randint(-100,100) for _ in range(4)]
+            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: P = polytopes.hypercube(4, intervals, backend='field')
+            sage: P1 = polytopes.hypercube(4, intervals, backend='ppl')
+            sage: assert P == P1
+
+        Check that coercion for input invervals is handled correctly::
+
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1.0]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, AA(2).sqrt()]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1.0]], backend='ppl')
+            Traceback (most recent call last):
+            ...
+            ValueError: specified backend ppl cannot handle the intervals
         """
+        parent = Polyhedra(ZZ, dim, backend=backend)
+        convert = False
+
+        # Preparing the inequalities:
+        # If the intervals are (a_1,b_1), ..., (a_dim, b_dim),
+        # then the inequalites correspond to
+        # b_1,b_2,...,b_dim, a_1,a_2,...,a_dim
+        # in that order.
+        ieqs = [[0]*(dim+1) for _ in range(2*dim)]
+        for i in range(dim):
+            ieqs[i][i+1] = -1
+            ieqs[dim+i][i+1] = 1
+
         if intervals is None:
             cp = list(itertools.product([-1,1], repeat=dim))
+            for i in range(dim):
+                ieqs[i][0]     = 1  # An inequality -x_i + 1 >= 0
+                ieqs[i+dim][0] = 1  # An inequality  x_i + 1 >= 0
         elif isinstance(intervals, str):
             if intervals == 'zero_one':
                 cp = list(itertools.product([0,1], repeat=dim))
+                for i in range(dim):
+                    ieqs[i][0] = 1  # An inequality -x_i + 1 >= 0
             else:
                 raise ValueError("the only allowed string is 'zero_one'")
         elif len(intervals) == dim:
+            if not all(a < b for a,b in intervals):
+                raise ValueError("each interval must be a pair `(a, b)` with `a < b`")
+            parent = parent.base_extend(sum(a + b for a,b in intervals))
+            if parent.base_ring() not in (ZZ, QQ):
+                convert = True
+            if backend and parent.backend() is not backend:
+                # If the parent changed backends, but a backend was specified,
+                # the specified backend cannot handle the intervals.
+                raise ValueError("specified backend {} cannot handle the intervals".format(backend))
+
             cp = list(itertools.product(*intervals))
+            for i in range(dim):
+                ieqs[i][0]     =  intervals[i][1]  # An inequality -x_i + b_i >= 0
+                ieqs[i+dim][0] = -intervals[i][0]  # An inequality  x_i - a_i >= 0
+
         else:
             raise ValueError("the dimension of the hypercube must match the number of intervals")
-        return Polyhedron(vertices=cp, backend=backend)
+        return parent([cp, [], []], [ieqs, []], convert=convert, Vrep_minimal=True, Hrep_minimal=True )
 
     def cube(self, intervals=None, backend=None):
         r"""
@@ -2862,14 +2922,14 @@ class Polytopes():
 
             sage: cc = polytopes.cube(intervals ='zero_one')
             sage: cc.vertices_list()
-            [[0, 0, 0],
-            [0, 0, 1],
-            [0, 1, 0],
-            [0, 1, 1],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 1, 0],
-            [1, 1, 1]]
+            [[1, 0, 0],
+             [1, 1, 0],
+             [1, 1, 1],
+             [1, 0, 1],
+             [0, 0, 1],
+             [0, 0, 0],
+             [0, 1, 0],
+             [0, 1, 1]]
         """
         return self.hypercube(3, backend=backend, intervals=intervals)
 

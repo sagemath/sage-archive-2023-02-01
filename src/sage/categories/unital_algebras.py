@@ -79,9 +79,11 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
                 sage: coercion_model = sage.structure.element.get_coercion_model()
                 sage: coercion_model.discover_coercion(QQ, A)
-                (Generic morphism:
-                  From: Rational Field
-                  To:   An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field, None)
+                ((map internal to coercion system -- copy before use)
+                 Generic morphism:
+                   From: Rational Field
+                   To:   An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field,
+                 None)
                 sage: A(1)          # indirect doctest
                 B[word: ]
 
@@ -102,16 +104,17 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 sage: F(3)
                 3*B[0]
 
+                sage: class Bar(Parent):
+                ....:     _no_generic_basering_coercion = True
+                sage: Bar(category=Algebras(QQ))
+                doctest:warning...:
+                DeprecationWarning: the attribute _no_generic_basering_coercion is deprecated, implement _coerce_map_from_base_ring() instead
+                See http://trac.sagemath.org/19225 for details.
+                <__main__.Bar_with_category object at 0x...>
             """
-            # If self has an attribute _no_generic_basering_coercion
-            # set to True, then this declaration is skipped.
-            # This trick, introduced in #11900, is used in
-            # sage.matrix.matrix_space.py and
-            # sage.rings.polynomial.polynomial_ring.
-            # It will hopefully be refactored into something more
-            # conceptual later on.
             if getattr(self, '_no_generic_basering_coercion', False):
-                return
+                from sage.misc.superseded import deprecation
+                deprecation(19225, "the attribute _no_generic_basering_coercion is deprecated, implement _coerce_map_from_base_ring() instead")
 
             base_ring = self.base_ring()
             if base_ring is self:
@@ -127,6 +130,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
             mor = self._coerce_map_from_base_ring()
             if mor is not None:
+                mor._make_weak_references()
                 try:
                     self.register_coercion(mor)
                 except AssertionError:

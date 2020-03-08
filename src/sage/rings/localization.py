@@ -167,7 +167,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 
@@ -456,13 +456,8 @@ class LocalizationElement(IntegralDomainElement):
          return sval._richcmp_(oval, op)
 
 
-
-
-
-
-
 class Localization(IntegralDomain, UniqueRepresentation):
-    """
+    r"""
     The localization generalizes the construction of the field of fractions of an integral domain to
     an arbitrary ring. Given a (not necessarily commutative) ring `R` and a subset `S` of `R`,
     there exists a ring `R[S^{-1}]` together with the ring homomorphism `R \longrightarrow R[S^{-1}]`
@@ -495,7 +490,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     - :wikipedia:`Ring_(mathematics)#Localization`
 
-    EAXAMPLES::
+    EXAMPLES::
 
         sage: L = Localization(ZZ, (3,5))
         sage: 1/45 in L
@@ -554,7 +549,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         """
         Python constructor of Localization.
 
-        TEST::
+        TESTS::
 
             sage: L = Localization(ZZ, (3,5))
             sage: TestSuite(L).run()

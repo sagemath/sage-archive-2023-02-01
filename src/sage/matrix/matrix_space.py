@@ -442,7 +442,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
         sage: M1(m * m) == M1(m) * M1(m)
         True
     """
-    _no_generic_basering_coercion = True
 
     @staticmethod
     def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None):
@@ -968,19 +967,17 @@ class MatrixSpace(UniqueRepresentation, Parent):
         except TypeError:
             return None
 
-    def _coerce_map_from_(self, S):
+    def _coerce_map_from_base_ring(self):
         """
-        Canonical coercion from ``S`` to this matrix space.
+        Return a coercion map from the base ring of ``self``.
+
+        .. NOTE::
+
+            This is only called for algebras of square matrices.
 
         EXAMPLES::
 
             sage: MS1 = MatrixSpace(QQ, 3)
-            sage: MS2 = MatrixSpace(ZZ, 3)
-            sage: MS1.coerce_map_from(MS2)
-            Coercion map:
-              From: Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
-              To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
-            sage: MS2.coerce_map_from(MS1)
             sage: MS1.coerce_map_from(QQ)
             Coercion map:
               From: Rational Field
@@ -996,11 +993,31 @@ class MatrixSpace(UniqueRepresentation, Parent):
                       Coercion map:
                       From: Rational Field
                       To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+
+            sage: MS2 = MatrixSpace(ZZ, 3)
             sage: MS2.coerce_map_from(QQ)
             sage: MS2.coerce_map_from(ZZ)
             Coercion map:
               From: Integer Ring
               To:   Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+
+            sage: MatrixSpace(QQ, 1, 3).coerce_map_from(QQ)
+        """
+        return self._generic_coerce_map(self.base_ring())
+
+    def _coerce_map_from_(self, S):
+        """
+        Canonical coercion from ``S`` to this matrix space.
+
+        EXAMPLES::
+
+            sage: MS1 = MatrixSpace(QQ, 3)
+            sage: MS2 = MatrixSpace(ZZ, 3)
+            sage: MS1.coerce_map_from(MS2)
+            Coercion map:
+              From: Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+              To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+            sage: MS2.coerce_map_from(MS1)
 
         There are also coercions possible from matrix group and
         arithmetic subgroups::
@@ -1081,11 +1098,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ....:         dummy = (a * b) + (a - b)
         """
         B = self.base()
-
-        if S is B:
-            # Coercion from base ring to a scalar matrix,
-            # but only if matrices are square.
-            return self.nrows() == self.ncols()
 
         if isinstance(S, MatrixSpace):
             # Disallow coercion if dimensions do not match
@@ -1581,6 +1593,62 @@ class MatrixSpace(UniqueRepresentation, Parent):
         return A
 
     one = identity_matrix
+
+    def diagonal_matrix(self, entries):
+        """
+        Create a diagonal matrix in ``self`` using the specified elements
+
+        INPUT:
+
+        - ``entries`` -- the elements to use as the diagonal entries
+
+        ``self`` must be a space of square matrices. The length of
+        ``entries`` must be less than or equal to the matrix
+        dimensions. If the length of ``entries`` is less than the
+        matrix dimensions, ``entries`` is padded with zeroes at the
+        end.
+
+        EXAMPLES::
+
+            sage: MS1 = MatrixSpace(ZZ,4)
+            sage: MS2 = MatrixSpace(QQ,3,4)
+            sage: I = MS1.diagonal_matrix([1, 2, 3, 4])
+            sage: I
+            [1 0 0 0]
+            [0 2 0 0]
+            [0 0 3 0]
+            [0 0 0 4]
+            sage: MS2.diagonal_matrix([1, 2])
+            Traceback (most recent call last):
+            ...
+            TypeError: diagonal matrix must be square
+            sage: MS1.diagonal_matrix([1, 2, 3, 4, 5])
+            Traceback (most recent call last):
+            ...
+            ValueError: number of diagonal matrix entries (5) exceeds the matrix size (4)
+            sage: MS1.diagonal_matrix([1/2, 2, 3, 4])
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+
+        Check different implementations::
+
+            sage: M1 = MatrixSpace(ZZ, 2, implementation='flint')
+            sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
+
+            sage: type(M1.diagonal_matrix([1, 2]))
+            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            sage: type(M2.diagonal_matrix([1, 2]))
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        """
+        if self.__nrows != self.__ncols:
+            raise TypeError("diagonal matrix must be square")
+        if self.__nrows < len(entries):
+            raise ValueError('number of diagonal matrix entries (%s) exceeds the matrix size (%s)' % (len(entries), self.__nrows))
+        A = self.zero_matrix().__copy__()
+        for i in range(len(entries)):
+            A[i, i] = entries[i]
+        return A
 
     def is_dense(self):
         """

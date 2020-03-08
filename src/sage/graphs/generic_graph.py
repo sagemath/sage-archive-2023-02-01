@@ -17674,7 +17674,7 @@ class GenericGraph(GenericGraph_pyx):
                                 yield w
 
     def depth_first_search(self, start, ignore_direction=False,
-                           distance=None, neighbors=None):
+                           distance=None, neighbors=None, edges=False):
         """
         Return an iterator over the vertices in a depth-first ordering.
 
@@ -17694,6 +17694,10 @@ class GenericGraph(GenericGraph_pyx):
           ``neighbors`` is by default the :meth:`.neighbors` function. For a
           digraph, the ``neighbors`` function defaults to the
           :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
+
+        - ``edges`` -- boolean (default: ``False``); whether to return the edges
+          of the DFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
 
         .. SEEALSO::
 
@@ -17745,13 +17749,38 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(5, neighbors=D.neighbors_out))
             [5, 33, 6, 34, 7, 35, 8, 9]
 
+        You can get edges of the DFS tree instead of the vertices using the
+        ``edges`` parameter::
+
+            sage: D = DiGraph({1: [2, 3], 2: [4], 3: [4], 4: [1, 5], 5: [2, 6]})
+            sage: list(D.depth_first_search(1, edges=True))
+            [(1, 3), (3, 4), (4, 5), (5, 6), (5, 2)]
+            sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))
+            [(1, 4), (4, 5), (5, 6), (5, 2), (4, 3)]
+
         TESTS::
 
             sage: D = DiGraph({1: [0], 2: [0]})
             sage: list(D.depth_first_search(0))
             [0]
-            sage: list(D.depth_first_search(0, ignore_direction=True))
-            [0, 2, 1]
+            sage: G = DiGraph([(0, 1), (1, 2), (3, 4), (4, 5)])
+            sage: list(G.depth_first_search([0], edges=True))
+            [(0, 1), (1, 2)]
+            sage: list(G.depth_first_search([0, 3], edges=True))
+            [(0, 1), (1, 2), (3, 4), (4, 5)]
+            sage: D = DiGraph({1: [2, 3], 3: [4, 6], 4: [6], 5: [4, 7], 6: [7]})
+            sage: list(D.depth_first_search(1))
+            [1, 3, 6, 7, 4, 2]
+            sage: list(D.depth_first_search(1, edges=True))
+            [(1, 3), (3, 6), (6, 7), (3, 4), (1, 2)]
+            sage: list(D.depth_first_search([1, 3], edges=True))
+            [(1, 3), (3, 6), (6, 7), (3, 4), (1, 2)]
+            sage: list(D.depth_first_search([], ignore_direction=True, edges=True))
+            []
+            sage: list(D.depth_first_search(1, ignore_direction=True))
+            [1, 3, 6, 4, 5, 7, 2]
+            sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))
+            [(1, 3), (3, 6), (6, 7), (7, 5), (5, 4), (1, 2)]
 
         """
         if distance is not None:
@@ -17759,7 +17788,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
-                and hasattr(self._backend, "depth_first_search")):
+                and hasattr(self._backend, "depth_first_search") and not edges):
             for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
@@ -17774,16 +17803,29 @@ class GenericGraph(GenericGraph_pyx):
                 queue = [(v, 0) for v in reversed(start)]
             else:
                 queue = [(start, 0)]
-
-            while queue:
-                v, d = queue.pop()
-                if v not in seen:
-                    yield v
-                    seen.add(v)
-                    if distance is None or d < distance:
-                        for w in neighbors(v):
-                            if w not in seen:
-                                queue.append((w, d + 1))
+            
+            if not edges:
+                while queue:
+                    v, d = queue.pop()
+                    if v not in seen:
+                        yield v
+                        seen.add(v)
+                        if distance is None or d < distance:
+                            for w in neighbors(v):
+                                if w not in seen:
+                                    queue.append((w, d + 1))
+            else:
+                queue = [(None, v, d) for v, d in queue]
+                while queue:
+                    v, w, d = queue.pop()
+                    if w not in seen:
+                        if v is not None:
+                            yield v, w                        
+                        seen.add(w)
+                        if distance is None or d < distance:
+                            for x in neighbors(w):
+                                if x not in seen:
+                                    queue.append((w, x, d + 1))
 
     ### Constructors
 

@@ -17,7 +17,8 @@ python3
 perl
 perl-ExtUtils-MakeMaker
 tar
-gcc
+gcc-core
+gcc-g++
 # Needed according to embray at https://trac.sagemath.org/ticket/26964:
 # The need for which comes [...] from MPIR's configure script
 findutils

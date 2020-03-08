@@ -2509,8 +2509,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.is_unitary()
             False
 
-        The smallest cases.  The Schur decomposition used by the
-        orthonormal algorithm will fail on a matrix of size zero.  ::
+        The smallest cases::
 
             sage: P = matrix(CDF, 0, 0)
             sage: P.is_unitary(algorithm='naive')
@@ -2522,9 +2521,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
             sage: P = matrix(CDF, 0, 0,)
             sage: P.is_unitary(algorithm='orthonormal')
-            Traceback (most recent call last):
-            ...
-            error: ((lwork==-1)||(lwork >= MAX(1,2*n))) failed for 3rd keyword lwork: zgees:lwork=0
+            True
 
         TESTS::
 
@@ -2549,6 +2546,12 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         - Rob Beezer (2011-05-04)
         """
+        if self.dimensions() == (0,0):
+            # The "orthonormal" algorithm would otherwise fail in this
+            # corner case. Returning `True` is consistent with the
+            # other implementations of this method.
+            return True
+
         global numpy
         try:
             tol = float(tol)

@@ -11,6 +11,9 @@ jobs:
       matrix:
         pkgs: [minimal, standard]
 
+    env:
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-homebrew-macos-${{ matrix.tox_packages_factor }}
+
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v1
@@ -39,9 +42,23 @@ jobs:
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && ./configure'
-    - name: save pwd
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'pwd'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && MAKE="make -j8" make V=0'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'pwd && cd "$OLDPWD" && echo "$OLDPWD" && export MAKE="make -j8" && make V=0 all'
+    - name: Prepare logs artifact
+      shell: bash
+      run: |
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/pkgs/* "artifacts/$LOGS_ARTIFACT_NAME"
+      if: always()
+    - uses: actions/upload-artifact@v1
+      with:
+        path: artifacts
+        name: ${{ env.LOGS_ARTIFACT_NAME }}
+      if: always()
+    - name: Print out logs for immediate inspection
+      # The markup in the output is a GitHub Actions logging command
+      # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+      shell: bash
+      run: |
+        find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+      if: always()

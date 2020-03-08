@@ -19,13 +19,10 @@ jobs:
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v1
-    - name: install cygwin with choco
-      run: |
-        choco --version
-        choco install bash sed --source cygwin
-    - name: install minimal prerequisites with choco
+    - name: install cygwin and minimal prerequisites with choco
       shell: bash {0}
       run: |
+        choco --version
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap

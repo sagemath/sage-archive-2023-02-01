@@ -1046,7 +1046,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     def LU(self):
         r"""
-        Returns a decomposition of the (row-permuted) matrix as a product of
+        Return a decomposition of the (row-permuted) matrix as a product of
         a lower-triangular matrix ("L") and an upper-triangular matrix ("U").
 
         OUTPUT:
@@ -1076,13 +1076,14 @@ cdef class Matrix_double_dense(Matrix_dense):
         the zero entries of ``U``.
 
         .. NOTE::
-            The behaviour of ``LU()`` has been changed. Earlier ``LU()`` 
-            returned ``P,L,U`` such that ``P*A=L*U``, where ``P`` represents
-            the permutation and is the matrix inverse of the ``P`` returned
-            by this method. The computation of this matrix inverse can be accomplished
+            The behaviour of ``LU()`` has changed in Sage version 9.1.
+            Earlier, ``LU()`` returned ``P,L,U`` such that ``P*A=L*U``,
+            where ``P`` represents the permutation and is
+            the matrix inverse of the ``P`` returned by this method.
+            The computation of this matrix inverse can be accomplished
             quickly with just a transpose as the matrix is orthogonal/unitary.
-                
-            For Details See :trac:`18365`.
+
+            For details see :trac:`18365`.
 
         EXAMPLES::
 
@@ -1093,8 +1094,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 4.0  5.0  6.0  7.0]
             [ 8.0  9.0 10.0 11.0]
             [12.0 13.0 14.0 15.0]
-            
-        Below example illustrate the change in behaviour of ``LU()``. ::
+
+        Below example illustrates the change in behaviour of ``LU()``. ::
 
             sage: m == P*L*U
             True
@@ -1158,7 +1159,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         The results are immutable since they are cached.  ::
 
             sage: P, L, U = matrix(RDF, 2, 2, range(4)).LU()
-            sage: L[0,0] = 0    
+            sage: L[0,0] = 0
             Traceback (most recent call last):
                 ...
             ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
@@ -1196,8 +1197,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         if numpy is None:
             import numpy
         PM, LM, UM = scipy.linalg.lu(self._matrix_numpy)
-        # Numpy has a different convention than we had with GSL
-        # So we invert (transpose) the P to match our prior behavior
         # TODO: It's an awful waste to store a huge matrix for P, which
         # is just a simple permutation, really.
         P = self._new(m, m)

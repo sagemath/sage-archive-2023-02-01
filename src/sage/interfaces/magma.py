@@ -2869,7 +2869,11 @@ class MagmaGBLogPrettyPrinter:
         verbosity, style = self.verbosity, self.style
 
         if isinstance(s, bytes):
-            s = s.decode(sys.stdout.encoding)
+            # sys.stdout.encoding can be None or something else
+            if isinstance(sys.stdout.encoding, str):
+                s = s.decode(sys.stdout.encoding)
+            else:
+                s = s.decode("UTF-8")
 
         if self.storage:
             s = self.storage + s

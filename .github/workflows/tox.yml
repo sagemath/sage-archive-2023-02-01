@@ -15,6 +15,10 @@ name: Run SAGE_ROOT/tox.ini
 
 on: [push, pull_request]
 
+env:
+  # We test everything BLAS-related and other problematic packages
+  TARGETS: cbc csdp fflas_ffpack gsl iml numpy scipy r suitesparse cvxopt rpy2 ecl maxima fpylll linbox
+
 jobs:
   tox:
     runs-on: ubuntu-latest
@@ -25,8 +29,6 @@ jobs:
         tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      # We test everything BLAS-related and other problematic packages
-      TARGETS: cbc csdp fflas_ffpack gsl iml numpy r suitesparse cvxopt rpy2 ecl maxima
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
     steps:
       - uses: actions/checkout@v2
@@ -66,7 +68,7 @@ jobs:
         run: |
           brew install tox
       - run: |
-          tox -e $TOX_ENV
+          tox -e $TOX_ENV -- $TARGETS
       - name: Prepare logs artifact
         run: |
           mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"

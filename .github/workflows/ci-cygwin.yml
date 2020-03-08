@@ -12,7 +12,7 @@ jobs:
         pkgs: [minimal, standard]
 
     env:
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-homebrew-macos-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
     steps:
     - run: git config --global core.autocrlf false
@@ -26,13 +26,9 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
-    # trick from https://github.com/haproxy/haproxy/blob/master/.github/workflows/windows-latest.yml
-    - name: save pwd
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'pwd; env'
     - name: bootstrap
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && env && ./bootstrap'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
       if: matrix.pkgs == 'standard'
       shell: bash {0}
@@ -41,10 +37,10 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && env && export MAKE="make -j8" && make -w V=0 all'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && export MAKE="make -j8" && make -w V=0 all'
     - name: Prepare logs artifact
       shell: bash
       run: |

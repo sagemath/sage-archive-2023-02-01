@@ -29,10 +29,10 @@ jobs:
     # trick from https://github.com/haproxy/haproxy/blob/master/.github/workflows/windows-latest.yml
     - name: save pwd
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'pwd'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'pwd; env'
     - name: bootstrap
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && ./bootstrap'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && env && ./bootstrap'
     - name: install additional cygwin packages with choco
       if: matrix.pkgs == 'standard'
       shell: bash {0}
@@ -44,7 +44,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'pwd && cd "$OLDPWD" && echo "$OLDPWD" && export MAKE="make -j8" && make V=0 all'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && env && export MAKE="make -j8" && make -w V=0 all'
     - name: Prepare logs artifact
       shell: bash
       run: |

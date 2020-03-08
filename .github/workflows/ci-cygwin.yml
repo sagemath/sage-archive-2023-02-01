@@ -39,6 +39,9 @@ jobs:
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && ./configure'
+    - name: save pwd
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'pwd'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd "$OLDPWD" && MAKE="make -j8" make V=0'

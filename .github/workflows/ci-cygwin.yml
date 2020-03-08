@@ -13,6 +13,7 @@ jobs:
 
     env:
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
+      MAKE: make -j8
 
     steps:
     - run: git config --global core.autocrlf false
@@ -40,7 +41,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && export MAKE="make -j8" && make -w V=0 all'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && make -w V=0 all'
     - name: Prepare logs artifact
       shell: bash
       run: |

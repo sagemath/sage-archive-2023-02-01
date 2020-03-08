@@ -99,7 +99,7 @@ a minimum the following files:
     |-- checksums.ini
     |-- dependencies
     |-- package-version.txt
-    |-- spkg-install
+    |-- spkg-install.in
     |-- SPKG.txt
     `-- type
 
@@ -111,7 +111,7 @@ The following are some additional files which can be added:
     |-- patches
     |   |-- bar.patch
     |   `-- baz.patch
-    |-- spkg-check
+    |-- spkg-check.in
     `-- spkg-src
 
 We discuss the individual files in the following sections.
@@ -130,30 +130,36 @@ See :ref:`section-package-types` for the meaning of these types.
 Build and install scripts
 -------------------------
 
-The ``spkg-build`` and ``spkg-install`` files are ``bash`` scripts that
-build and/or install the package.  If no ``spkg-build`` exists, then the
-``spkg-install`` is responsible for both steps, though separating them is
-encouraged where possible.
+The ``spkg-build.in`` and ``spkg-install.in`` files are templates for
+``bash`` scripts ``spkg-build`` and ``spkg-install``, which build
+and/or install the package.
 
-It is also possible to include similar scripts named ``spkg-preinst`` or
-``spkg-postinst`` to run additional steps before or after the package has been
-installed into ``$SAGE_LOCAL``. It is encouraged to put steps which modify
-already installed files in a separate ``spkg-postinst`` script rather than
-combinging them with ``spkg-install``.  This is because since :trac:`24106`,
-``spkg-install`` does not necessarily install packages directly to
-``$SAGE_LOCAL``.  However, by the time ``spkg-postinst`` is run, the
-installation to ``$SAGE_LOCAL`` is complete.
+The ``*.in`` script templates should *not* be prefixed with a shebang
+line (``#!...``) and should not have the executable bit set in their
+permissions.  These are added automatically when generating the
+scripts, along with some additional boilerplate, when the package is
+installed.
 
-These scripts should *not* be prefixed with a shebang line (``#!...``) and
-should not have the executable bit set in their permissions.  These are
-added automatically, along with some additional boilerplate, when the
-package is installed.  The ``spkg-build`` and ``spkg-install`` files in the
-Sage source tree need only focus on the specific steps for building and
-installing that package.
+The ``spkg-build.in`` and ``spkg-install.in`` files in the Sage source
+tree need only focus on the specific steps for building and installing
+that package.  If no ``spkg-build.in`` exists, then the
+``spkg-install.in`` is responsible for both steps, though separating
+them is encouraged where possible.
+
+It is also possible to include similar script templatess named
+``spkg-preinst.in`` or ``spkg-postinst.in`` to run additional steps
+before or after the package has been installed into
+``$SAGE_LOCAL``. It is encouraged to put steps which modify already
+installed files in a separate ``spkg-postinst.in`` script template
+rather than combining them with ``spkg-install.in``.  This is because
+since :trac:`24106`, ``spkg-install`` does not necessarily install
+packages directly to ``$SAGE_LOCAL``.  However, by the time
+``spkg-postinst`` is run, the installation to ``$SAGE_LOCAL`` is
+complete.
 
 In the best case, the upstream project can simply be installed by the
-usual configure / make / make install steps. In that case, the build
-script would simply consist of:
+usual configure / make / make install steps. In that case, the
+``spkg-build.in`` script template would simply consist of:
 
 .. CODE-BLOCK:: bash
 
@@ -164,7 +170,7 @@ script would simply consist of:
 See :ref:`section-sdh-helpers` for more on the helper functions
 ``sdh_configure``, ``sdh_make``, etc.
 
-The install script would consist of:
+The ``spkg-install.in`` script template would consist of:
 
 .. CODE-BLOCK:: bash
 
@@ -188,6 +194,9 @@ something like the following to install it:
 
 .. note::
 
+    Prior to Sage 9.1, the script templates were called ``spkg-build``,
+    ``spkg-install``, etc., without the extension ``.in``.
+
     Prior to Sage 8.1 the shebang line was included, and the scripts were
     marked executable.  However, this is no longer the case as of
     :trac:`23179`.  Now the scripts in the source tree are deliberately
@@ -196,7 +205,7 @@ something like the following to install it:
 
     Build/install scripts may still be written in Python, but the Python
     code should go in a separate file (e.g. ``spkg-install.py``), and can
-    then be executed from the real ``spkg-install`` like:
+    then be executed from the real ``spkg-install.in`` like:
 
     .. CODE-BLOCK:: text
 
@@ -221,18 +230,18 @@ something like the following to install it:
    expect Sage's Python to already be built.
 
 Many packages currently do not separate the build and install steps and only
-provide a ``spkg-install`` file that does both.  The separation is useful in
+provide a ``spkg-install.in`` file that does both.  The separation is useful in
 particular for root-owned install hierarchies, where something like ``sudo``
 must be used to install files.  For this purpose Sage uses an environment
 variable ``$SAGE_SUDO``, the value of which may be provided by the developer
 at build time,  which should to the appropriate system-specific
 ``sudo``-like command (if any).  The following rules are then observed:
 
-- If ``spkg-build`` exists, it is first called, followed by
-  ``$SAGE_SUDO spkg-install``.
+- If ``spkg-build.in`` exists, the generated script ``spkg-build`` is first
+  called, followed by ``$SAGE_SUDO spkg-install``.
 
 - Otherwise, only ``spkg-install`` is called (without ``$SAGE_SUDO``).  Such
-  packages should prefix all commands in ``spkg-install`` that write into
+  packages should prefix all commands in ``spkg-install.in`` that write into
   the installation hierarchy with ``$SAGE_SUDO``.
 
 
@@ -340,13 +349,14 @@ The following are also available, but rarely used.
 Self-Tests
 ----------
 
-The ``spkg-check`` file is an optional, but highly recommended, script to
-run self-tests of the package.  The format for the ``spkg-check`` is the
-same as ``spkg-build`` and ``spkg-install``.  It is run after building and
-installing if the ``SAGE_CHECK`` environment variable is set, see the Sage
-installation guide. Ideally, upstream has some sort of tests suite that can
-be run with the standard ``make check`` target. In that case, the
-``spkg-check`` script would simply contain:
+The ``spkg-check.in`` file is an optional, but highly recommended,
+script template to run self-tests of the package.  The format for the
+``spkg-check`` is the same as ``spkg-build`` and ``spkg-install``.  It
+is run after building and installing if the ``SAGE_CHECK`` environment
+variable is set, see the Sage installation guide. Ideally, upstream
+has some sort of tests suite that can be run with the standard ``make
+check`` target. In that case, the ``spkg-check.in`` script template
+would simply contain:
 
 .. CODE-BLOCK:: bash
 
@@ -360,7 +370,7 @@ Python-based packages
 ---------------------
 
 The best way to install a Python-based package is to use pip, in which
-case the ``spkg-install`` script might just consist of
+case the ``spkg-install.in`` script template might just consist of
 
 .. CODE-BLOCK:: bash
 
@@ -371,11 +381,11 @@ points to the correct ``pip`` for the Python used by Sage, and includes some
 default flags needed for correct installation into Sage.
 
 If pip will not work but a command like ``python setup.py install``
-will, then the ``spkg-install`` script should call ``sage-python23``
-rather than ``python``. This will ensure that the correct version of
-Python is used to build and install the package. The same holds for
-``spkg-check`` scripts; for example, the ``scipy`` ``spkg-check``
-file contains the line
+will, then the ``spkg-install.in`` script template should call
+``sage-python23`` rather than ``python``. This will ensure that the
+correct version of Python is used to build and install the
+package. The same holds for ``spkg-check.in`` script templates; for
+example, the ``scipy`` ``spkg-check.in`` file contains the line
 
 .. CODE-BLOCK:: bash
 

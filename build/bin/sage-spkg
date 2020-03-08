@@ -708,7 +708,7 @@ write_script_wrapper() {
 
     trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
 
-    if head -1 "$script" | grep '^#!.*$' >/dev/null; then
+    if head -1 "$script.in" | grep '^#!.*$' >/dev/null; then
         echo >&2 "Error: ${script##*/} should not contain a shebang line; it will be prepended automatically."
         exit 1
     fi
@@ -750,7 +750,7 @@ fi
 
 __EOF__
 
-    cat "$script" >> "$tmpscript"
+    cat "$script.in" >> "$tmpscript"
     mv "$tmpscript" "$script"
     chmod +x "$script"
 
@@ -774,10 +774,10 @@ for script in $WRAPPED_SCRIPTS; do
 
     script="spkg-$script"
 
-    if [ -f "$script" ]; then
+    if [ -f "$script.in" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
-            if [ -x "$script" ]; then
-                msg="$script should not be marked executable in the build/pkgs directory"
+            if [ -x "$script.in" ]; then
+                msg="$script.in should not be marked executable in the build/pkgs directory"
                 if [ "$UNAME" = "CYGWIN" ]; then
                     # On Cygwin we can't necessarily rely on file permissions
                     # being sane, so just issue a warning; on other platforms

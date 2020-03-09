@@ -3,7 +3,7 @@
 # #29241: gfortran on 32bit: Configure for the same ABI as gcc
 ARCH=`$CC -print-multiarch 2>/dev/null || $CC -print-target-triple 2> /dev/null || echo unknown`
 case `uname -m`,"$ARCH" in
-    x86_64,i386*)
+    x86_64,i[3-6]86*)
         EXTRA_GCC_CONFIGURE="--build=$ARCH"
         ;;
 esac

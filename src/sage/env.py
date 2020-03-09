@@ -194,7 +194,7 @@ var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA',                        'maxima')
 var('MAXIMA_FAS')
-var('SAGE_NAUTY_BINS_PREFIX', '')
+var('SAGE_NAUTY_BINS_PREFIX',        '')
 var('ARB_LIBRARY',                   'arb')
 
 # misc

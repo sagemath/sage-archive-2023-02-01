@@ -568,13 +568,15 @@ def from_rank(r, n, k):
         raise ValueError("k must be > 0")
     if k > n:
         raise ValueError("k must be <= n")
-    if n == 0:
+    if n == 0 or k == 0:
         return tuple()
     if n < 0:
         raise ValueError("n must be >= 0")
     B = binomial(n, k)
     if r < 0 or r >= B:
         raise ValueError("r must satisfy  0 <= r < binomial(n, k)")
+    if k == 1:
+        return (r, )
     
     n0 = n
     D = [0]*k

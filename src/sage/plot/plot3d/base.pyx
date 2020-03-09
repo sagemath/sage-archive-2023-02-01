@@ -16,7 +16,7 @@ AUTHORS:
     finish integrating tachyon -- good default lights, camera
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -28,8 +28,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cpython.list cimport *
 from cpython.object cimport PyObject
@@ -64,6 +64,7 @@ from libc.math cimport INFINITY
 
 default_texture = Texture()
 pi = RDF.pi()
+
 
 cdef class Graphics3d(SageObject):
     """
@@ -363,21 +364,28 @@ cdef class Graphics3d(SageObject):
             OutputSceneThreejs container
         """
         options = self._process_viewing_options(kwds)
-        # Threejs specific options
-        options.setdefault('axes_labels', ['x','y','z'])
-        options.setdefault('decimals', 2)
         options.setdefault('online', False)
-        options.setdefault('projection', 'perspective')
-        if options['projection'] not in ['perspective', 'orthographic']:
-            import warnings
-            warnings.warn('projection={} is not supported; using perspective'.format(options['projection']))
-            options['projection'] = 'perspective'
-        # Normalization of options values for proper JSONing
-        options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
-        options['decimals'] = int(options['decimals'])
 
-        if not options['frame']:
-            options['axes_labels'] = False
+        js_options = {} # options passed to Three.js template
+
+        js_options['aspectRatio'] = options.get('aspect_ratio', [1,1,1])
+        js_options['axes'] = options.get('axes', False)
+        js_options['axesLabels'] = options.get('axes_labels', ['x','y','z'])
+        js_options['decimals'] = options.get('decimals', 2)
+        js_options['frame'] = options.get('frame', True)
+        js_options['projection'] = options.get('projection', 'perspective')
+
+        if js_options['projection'] not in ['perspective', 'orthographic']:
+            import warnings
+            warnings.warn('projection={} is not supported; using perspective'.format(js_options['projection']))
+            js_options['projection'] = 'perspective'
+
+        # Normalization of options values for proper JSONing
+        js_options['aspectRatio'] = [float(i) for i in js_options['aspectRatio']]
+        js_options['decimals'] = int(js_options['decimals'])
+
+        if not js_options['frame']:
+            js_options['axesLabels'] = False
 
         from sage.repl.rich_output import get_display_manager
         scripts = get_display_manager().threejs_scripts(options['online'])
@@ -419,8 +427,9 @@ cdef class Graphics3d(SageObject):
                     opacity = p.all[0].texture.opacity
                     self += arrow3d(translated[0], translated[1], width=width, color=color, opacity=opacity)
                 if hasattr(p.all[0], 'string'):
-                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                 p.all[0].string, t[0], t[1], t[2]))
+                    color = '#' + p.all[0].texture.hex_rgb();
+                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}, "color":"{}"}}'.format(
+                                 p.all[0].string, t[0], t[1], t[2], color))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -436,8 +445,6 @@ cdef class Graphics3d(SageObject):
             html = f.read()
 
         html = html.replace('SAGE_SCRIPTS', scripts)
-        js_options = dict((key, options[key]) for key in
-            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame', 'projection'])
         html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
@@ -1660,13 +1667,16 @@ end_scene""" % (render_params.antialiasing,
 
         .. WARNING::
 
-            This only works for surfaces, not for general plot objects!
+            This only works for surfaces, transforms and unions of surfaces,
+            but not for general plot objects!
 
         OUTPUT:
 
         A binary string that represents the surface in the binary STL format.
 
         See :wikipedia:`STL_(file_format)`
+
+        .. SEEALSO:: :meth:`stl_ascii_string`
 
         EXAMPLES::
 
@@ -1688,52 +1698,12 @@ end_scene""" % (render_params.antialiasing,
             STL binary file / made by SageMath / ###
         """
         import struct
-        from sage.modules.free_module import FreeModule
-        RR3 = FreeModule(RDF, 3)
-
         header = b'STL binary file / made by SageMath / '
         header += b'#' * (80 - len(header))
         # header = 80 bytes, arbitrary ascii characters
-
-        faces = self.face_list()
-        if not faces:
-            self.triangulate()
-            faces = self.face_list()
-
-        faces_iter = faces.__iter__()
-
-        def chopped_faces_iter():
-            for face in faces_iter:
-                n = len(face)
-                if n == 3:
-                    yield face
-                else:
-                    # naive cut into triangles
-                    v = face[-1]
-                    for i in range(n - 2):
-                        yield [v, face[i], face[i + 1]]
-
-        main_data = []
-        N_triangles = 0
-        for i, j, k in chopped_faces_iter():
-            N_triangles += 1
-            ij = RR3(j) - RR3(i)
-            ik = RR3(k) - RR3(i)
-            n = ij.cross_product(ik)
-            n = n / n.norm()
-            fill = struct.pack('H', 0)
-            # 50 bytes per facet
-            # 12 times 4 bytes (float) for n, i, j, k
-            fill = b''.join(struct.pack('<f', x) for x in n)
-            fill += b''.join(struct.pack('<f', x) for x in i)
-            fill += b''.join(struct.pack('<f', x) for x in j)
-            fill += b''.join(struct.pack('<f', x) for x in k)
-            # plus 2 more bytes
-            fill += b'00'
-            main_data.append(fill)
-
-        main_data = [header, struct.pack('I', N_triangles)] + main_data
-        return b''.join(main_data)
+        data = self.stl_binary_repr(self.default_render_params())
+        N_triangles = len(data)
+        return b''.join([header, struct.pack('I', N_triangles)] + data)
 
     def stl_ascii_string(self, name="surface"):
         """
@@ -1752,6 +1722,8 @@ end_scene""" % (render_params.antialiasing,
         A string that represents the surface in the STL format.
 
         See :wikipedia:`STL_(file_format)`
+
+        .. SEEALSO:: :meth:`stl_binary`
 
         EXAMPLES::
 
@@ -2177,6 +2149,25 @@ class Graphics3dGroup(Graphics3d):
         """
         return [g.jmol_repr(render_params) for g in self.all]
 
+    def stl_binary_repr(self, render_params):
+        r"""
+        The stl binary representation of a group is simply the
+        concatenation of the representation of its objects.
+
+        The STL binary representation is a list of binary strings,
+        one for each triangle.
+
+        EXAMPLES::
+
+            sage: G = sphere() + sphere((1,2,3))
+            sage: len(G.stl_binary_repr(G.default_render_params()))
+            2736
+        """
+        data = []
+        for sub in self.all:
+            data.extend(sub.stl_binary_repr(render_params))
+        return data
+
     def texture_set(self):
         """
         The texture set of a group is simply the union of the textures of
@@ -2237,6 +2228,7 @@ class Graphics3dGroup(Graphics3d):
 
     def plot(self):
         return self
+
 
 class TransformGroup(Graphics3dGroup):
     """
@@ -2329,9 +2321,26 @@ class TransformGroup(Graphics3dGroup):
             sage: G.json_repr(G.default_render_params())
             [['{"vertices":[{"x":0.5,"y":0.589368,"z":0.390699},...']]
         """
-
         render_params.push_transform(self.get_transformation())
         rep = [g.json_repr(render_params) for g in self.all]
+        render_params.pop_transform()
+        return rep
+
+    def stl_binary_repr(self, render_params):
+        """
+        Transformations are applied at the leaf nodes.
+
+        The STL binary representation is a list of binary strings,
+        one for each triangle.
+
+        EXAMPLES::
+
+            sage: G = sphere().translate((1,2,0))
+            sage: len(G.stl_binary_repr(G.default_render_params()))
+            1368
+        """
+        render_params.push_transform(self.get_transformation())
+        rep = sum([g.stl_binary_repr(render_params) for g in self.all], [])
         render_params.pop_transform()
         return rep
 

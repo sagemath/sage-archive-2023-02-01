@@ -290,7 +290,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         """
         raise TypeError("The polyhedron's backend should be 'normaliz'")
 
-    @cached_method
+    @cached_method(do_pickle=True)
     def ehrhart_polynomial(self, engine=None, variable='t', verbose=False, dual=None,
             irrational_primal=None, irrational_all_primal=None, maxdet=None,
             no_decomposition=None, compute_vertex_cones=None, smith_form=None,
@@ -439,6 +439,17 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             Traceback (most recent call last):
             ...
             ValueError: Ehrhart polynomial only defined for compact polyhedra
+
+        TESTS:
+
+        The cache of the Ehrhart polynomial is being pickled::
+
+            sage: P = polytopes.cube()
+            sage: P.ehrhart_polynomial()  # optional - latte_int
+            8*t^3 + 12*t^2 + 6*t + 1
+            sage: Q = loads(dumps(P))
+            sage: Q.ehrhart_polynomial.is_in_cache()  # optional - latte_int
+            True
         """
         if self.is_empty():
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

@@ -433,21 +433,13 @@ done
 
 AC_SUBST([SAGE_SCRIPTS])
 
-SAGE_EXTCODE='\
-'
-for file in `find "$SAGE_SRC"/ext -type f`; do
-    SAGE_EXTCODE+="    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"$'\n'
-done
-
-AC_SUBST([SAGE_EXTCODE])
-
 SAGE_MAKE_DEPS="$SAGE_ROOT/build/make/deps"
 AC_SUBST_FILE([SAGE_MAKE_DEPS])
 
 
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
-AC_CONFIG_FILES([src/bin/sage-env-config])
+AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])
 
 AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])
 

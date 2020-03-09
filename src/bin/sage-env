@@ -283,7 +283,6 @@ fi
 # depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
-export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_PKGCONFIG="$SAGE_LOCAL/lib/pkgconfig"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"

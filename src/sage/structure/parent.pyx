@@ -1997,7 +1997,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         (in which case it will be wrapped in a Map), or True (in which case
         a generic map will be provided).
         """
-        return None
+        try:
+            # Try possible _coerce_map_from_() methods defined in
+            # ParentMethods classes of categories.
+            return super(Parent, self)._coerce_map_from_(S)
+        except AttributeError:
+            return None
 
     cpdef coerce_map_from(self, S):
         """

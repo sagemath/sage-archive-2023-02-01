@@ -408,7 +408,7 @@ Sage notebook.
 Notebook additional features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**attention: Sage's notebook is deprecated. Use Jupyter notebook instead**
+**attention: Sage's notebook is deprecated, and notebook() command has been removed. Use Jupyter notebook instead**
 
 By default, the Sage notebook uses the
 `HTTP <https://en.wikipedia.org/wiki/HTTP>`_

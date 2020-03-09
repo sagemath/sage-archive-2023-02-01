@@ -16,7 +16,6 @@ if [ $? -ne 0 ]; then
 fi
 
 export SAGE_SHARE="$SAGE_LOCAL/share"
-export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_PKGCONFIG="$SAGE_LOCAL/lib/pkgconfig"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"

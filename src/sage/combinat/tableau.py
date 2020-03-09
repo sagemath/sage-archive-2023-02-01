@@ -2463,8 +2463,7 @@ class Tableau(ClonableList):
             return SemistandardTableau(new_t), to_move
         return Tableau(new_t), to_move
 
-
-    def bump_multiply(left, right):
+    def bump_multiply(self, other):
         """
         Multiply two tableaux using Schensted's bump.
 
@@ -2482,18 +2481,18 @@ class Tableau(ClonableList):
             sage: t.bump_multiply(t2)
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
-        if not isinstance(right, Tableau):
-            raise TypeError("right must be a Tableau")
+        if not isinstance(other, Tableau):
+            raise TypeError("other must be a Tableau")
 
-        row = len(right)
-        product = Tableau([list(a) for a in left])   # create deep copy of left
-        while row > 0:
+        row = len(other)
+        product = Tableau([list(a) for a in self])  # create deep copy of self
+        while row:
             row -= 1
-            for i in right[row]:
+            for i in other[row]:
                 product = product.bump(i)
         return product
 
-    def slide_multiply(left, right):
+    def slide_multiply(self, other):
         """
         Multiply two tableaux using jeu de taquin.
 
@@ -2513,14 +2512,14 @@ class Tableau(ClonableList):
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
         st = []
-        if len(left) == 0:
-            return right
+        if len(self) == 0:
+            return other
         else:
-            l = len(left[0])
+            l = len(self[0])
 
-        for row in right:
+        for row in other:
             st.append((None,)*l + row)
-        for row in left:
+        for row in self:
             st.append(row)
 
         from sage.combinat.skew_tableau import SkewTableau

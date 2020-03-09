@@ -50,6 +50,8 @@ import sage.rings.complex_double
 
 from .matrix cimport Matrix
 from .args cimport MatrixArgs_init
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element import is_Matrix
 from sage.structure.element cimport ModuleElement,Vector
 from .constructor import matrix
 from sage.modules.free_module_element import vector
@@ -601,9 +603,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
-            doctest:warning
-            ...
-            ...ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...
@@ -688,7 +687,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             import numpy
         import sage.rings.infinity
         import sage.rings.integer
-        import sage.rings.real_double
+        from sage.rings.real_double import RDF
         if p == sage.rings.infinity.Infinity:
             p = numpy.inf
         elif p == -sage.rings.infinity.Infinity:
@@ -709,7 +708,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         if c == numpy.inf:
             return sage.rings.infinity.Infinity
         else:
-            return sage.rings.real_double.RDF(c)
+            return RDF(c.real if numpy.iscomplexobj(c) else c)
 
     def norm(self, p=2):
         r"""
@@ -1407,12 +1406,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         if scipy is None:
             import scipy
         import scipy.linalg
-        if self._nrows == 0:
-            return []
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
         global numpy
         if numpy is None:
             import numpy
@@ -1620,20 +1613,19 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     def solve_right(self, b):
         r"""
-        Solve the vector equation ``A*x = b`` for a nonsingular ``A``.
+        Solve the matrix equation ``A*x = b`` for a nonsingular ``A``.
 
         INPUT:
 
         - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector of the correct size.  Elements of the vector
-          must coerce into the base ring of the coefficient matrix.  In
-          particular, if ``b`` has entries from ``CDF`` then ``self``
-          must have ``CDF`` as its base ring.
+        - ``b`` - a vector or a matrix;
+          the dimension (if a vector), or the number of rows (if
+          a matrix) must match the dimension of ``self``
 
         OUTPUT:
 
-        The unique solution ``x`` to the matrix equation ``A*x = b``,
-        as a vector over the same base ring as ``self``.
+        the unique solution ``x`` to the matrix equation ``A*x = b``,
+        as a vector or matrix over a suitable common base ring
 
         ALGORITHM:
 
@@ -1641,7 +1633,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         EXAMPLES:
 
-        Over the reals. ::
+        Over the reals::
 
             sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
             [ 1.0  2.0  5.0]
@@ -1655,7 +1647,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A*x  # tol 1e-14
             (1.0, 1.9999999999999996, 3.0000000000000004)
 
-        Over the complex numbers.  ::
+        Over the complex numbers::
 
             sage: A = matrix(CDF, [[      0, -1 + 2*I,  1 - 3*I,        I],
             ....:                  [2 + 4*I, -2 + 3*I, -1 + 2*I,   -1 - I],
@@ -1669,17 +1661,18 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: abs(A*x - b) < 1e-14
             True
 
-        The vector of constants, ``b``, can be given in a
-        variety of forms, so long as it coerces to a vector
-        over the same base ring as the coefficient matrix.  ::
+        If ``b`` is given as a matrix, the result will be a matrix, as well::
 
-            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: A.solve_right([1]*5)  # tol 1e-11
-            (5.0, -120.0, 630.0, -1120.0, 630.0)
+            sage: A = matrix(RDF, 3, 3, [1, 2, 2, 3, 4, 5, 2, 2, 2])
+            sage: b = matrix(RDF, 3, 2, [3, 2, 3, 2, 3, 2])
+            sage: A.solve_right(b) # tol 1e-14
+            [ 0.0  0.0]
+            [ 4.5  3.0]
+            [-3.0 -2.0]
 
         TESTS:
 
-        A degenerate case. ::
+        A degenerate case::
 
             sage: A = matrix(RDF, 0, 0, [])
             sage: A.solve_right(vector(RDF,[]))
@@ -1692,7 +1685,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            ValueError: coefficient matrix of a system over RDF/CDF must be square, not 2 x 3
+            NotImplementedError: coefficient matrix of a system over RDF/CDF must be square, not 2 x 3
 
         The coefficient matrix must be nonsingular.  ::
 
@@ -1710,7 +1703,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Real Double Field incompatible with matrix over Real Double Field
+            ValueError: dimensions of linear system over RDF/CDF do not match:
+            b has size 4, but coefficient matrix has size 5
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::
@@ -1720,59 +1714,86 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
+            TypeError: no common canonical parent for objects with parents: ...
 
-        With a coefficient matrix over ``RDF``, a vector of constants
-        over ``CDF`` can be accommodated by converting the base ring
-        of the coefficient matrix.  ::
+        Check that coercions work correctly (:trac:`17405`)::
 
             sage: A = matrix(RDF, 2, range(4))
-            sage: b = vector(CDF, [1+I,2])
+            sage: b = vector(CDF, [1+I, 2])
             sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Complex Double Field incompatible with matrix over Real Double Field
-
-            sage: B = A.change_ring(CDF)
-            sage: B.solve_right(b)
             (-0.5 - 1.5*I, 1.0 + 1.0*I)
-        """
-        if not self.is_square():
-            raise ValueError("coefficient matrix of a system over RDF/CDF must be square, not %s x %s " % (self.nrows(), self.ncols()))
-        M = self._column_ambient_module()
-        try:
-            vec = M(b)
-        except TypeError:
-            raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.ncols():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of columns for the coefficient matrix, not %s" % vec.degree() )
+            sage: b = vector(QQ[I], [1+I, 2])
+            sage: x = A.solve_right(b)
 
-        if self._ncols == 0:
-            return M.zero_vector()
+        Calling this method with anything but a vector or matrix is
+        deprecated::
+
+            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
+            sage: x = A.solve_right([1]*5)
+            doctest:...: DeprecationWarning: solve_right should be called with
+            a vector or matrix
+            See http://trac.sagemath.org/17405 for details.
+        """
+        R = self.base_ring()
+        try:
+            R2 = b.base_ring()
+        except AttributeError:
+            from sage.misc.superseded import deprecation
+            deprecation(17405, "solve_right should be called with a vector "
+                               "or matrix")
+            b = vector(b)
+            R2 = b.base_ring()
+        if R2 is not R:
+            # first coerce both elements to parent over same base ring
+            P = coercion_model.common_parent(R, R2)
+            if R2 is not P:
+                b = b.change_ring(P)
+            if R is not P:
+                a = self.change_ring(P)
+                return a.solve_right(b)
+            # now R is P and both elements have the same base ring RDF/CDF
+
+        if not self.is_square():
+            # TODO this is too restrictive; use lstsq for non-square matrices
+            raise NotImplementedError("coefficient matrix of a system over "
+                                      "RDF/CDF must be square, not %s x %s "
+                                      % (self.nrows(), self.ncols()))
+
+        b_is_matrix = is_Matrix(b)
+        if not b_is_matrix:
+            # turn b into a matrix
+            b = b.column()
+        if b.nrows() != self._nrows:
+            raise ValueError("dimensions of linear system over RDF/CDF do not "
+                             "match: b has size %s, but coefficient matrix "
+                             "has size %s" % (b.nrows(), self.nrows()) )
 
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
+
+        # AX = B, so X.nrows() = self.ncols() and X.ncols() = B.ncols()
+        X = self._new(self._ncols, b.ncols())
         # may raise a LinAlgError for a singular matrix
-        return M(scipy.linalg.solve(self._matrix_numpy, vec.numpy()))
+        X._matrix_numpy = scipy.linalg.solve(self._matrix_numpy, b.numpy())
+        return X if b_is_matrix else X.column(0)
 
     def solve_left(self, b):
         r"""
-        Solve the vector equation ``x*A = b`` for a nonsingular ``A``.
+        Solve the matrix equation ``x*A = b`` for a nonsingular ``A``.
 
         INPUT:
 
         - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector of the correct size.  Elements of the vector
-          must coerce into the base ring of the coefficient matrix.  In
-          particular, if ``b`` has entries from ``CDF`` then ``self``
-          must have ``CDF`` as its base ring.
+        - ``b`` - a vector or a matrix;
+          the dimension (if a vector), or the number of rows (if
+          a matrix) must match the dimension of ``self``
 
         OUTPUT:
 
-        The unique solution ``x`` to the matrix equation ``x*A = b``,
-        as a vector over the same base ring as ``self``.
+        the unique solution ``x`` to the matrix equation ``x*A = b``,
+        as a vector or matrix over a suitable common base ring
 
         ALGORITHM:
 
@@ -1781,7 +1802,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         EXAMPLES:
 
-        Over the reals. ::
+        Over the reals::
 
             sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
             [ 1.0  2.0  5.0]
@@ -1795,7 +1816,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: x*A  # tol 1e-14
             (0.9999999999999999, 1.9999999999999998, 3.0)
 
-        Over the complex numbers.  ::
+        Over the complex numbers::
 
             sage: A = matrix(CDF, [[      0, -1 + 2*I,  1 - 3*I,        I],
             ....:                  [2 + 4*I, -2 + 3*I, -1 + 2*I,   -1 - I],
@@ -1809,17 +1830,17 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: abs(x*A - b) < 1e-14
             True
 
-        The vector of constants, ``b``, can be given in a
-        variety of forms, so long as it coerces to a vector
-        over the same base ring as the coefficient matrix.  ::
+        If ``b`` is given as a matrix, the result will be a matrix, as well::
 
-            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: A.solve_left([1]*5)  # tol 1e-11
-            (5.0, -120.0, 630.0, -1120.0, 630.0)
+            sage: A = matrix(RDF, 3, 3, [2, 5, 0, 7, 7, -2, -4.3, 0, 1])
+            sage: b = matrix(RDF, 2, 3, [2, -4, -5, 1, 1, 0.1])
+            sage: A.solve_left(b) # tol 1e-14
+            [  -6.495454545454545    4.068181818181818   3.1363636363636354]
+            [  0.5277272727272727  -0.2340909090909091 -0.36818181818181817]
 
         TESTS:
 
-        A degenerate case. ::
+        A degenerate case::
 
             sage: A = matrix(RDF, 0, 0, [])
             sage: A.solve_left(vector(RDF,[]))
@@ -1832,7 +1853,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            ValueError: coefficient matrix of a system over RDF/CDF must be square, not 2 x 3
+            NotImplementedError: coefficient matrix of a system over RDF/CDF must be square, not 3 x 2
 
         The coefficient matrix must be nonsingular.  ::
 
@@ -1850,7 +1871,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Real Double Field incompatible with matrix over Real Double Field
+            ValueError: dimensions of linear system over RDF/CDF do not match:
+            b has size 4, but coefficient matrix has size 5
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::
@@ -1860,43 +1882,22 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
+            TypeError: no common canonical parent for objects with parents: ...
 
-        With a coefficient matrix over ``RDF``, a vector of constants
-        over ``CDF`` can be accommodated by converting the base ring
-        of the coefficient matrix.  ::
+        Check that coercions work correctly (:trac:`17405`)::
 
             sage: A = matrix(RDF, 2, range(4))
-            sage: b = vector(CDF, [1+I,2])
+            sage: b = vector(CDF, [1+I, 2])
             sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Complex Double Field incompatible with matrix over Real Double Field
-
-            sage: B = A.change_ring(CDF)
-            sage: B.solve_left(b)
             (0.5 - 1.5*I, 0.5 + 0.5*I)
+            sage: b = vector(QQ[I], [1+I, 2])
+            sage: x = A.solve_left(b)
         """
-        if not self.is_square():
-            raise ValueError("coefficient matrix of a system over RDF/CDF must be square, not %s x %s " % (self.nrows(), self.ncols()))
-        M = self._row_ambient_module()
-        try:
-            vec = M(b)
-        except TypeError:
-            raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.nrows():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of rows for the coefficient matrix, not %s" % vec.degree() )
-
-        if self._nrows == 0:
-            return M.zero_vector()
-
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-        # may raise a LinAlgError for a singular matrix
-        # call "right solve" routine with the transpose
-        return M(scipy.linalg.solve(self._matrix_numpy.T, vec.numpy()))
+        if is_Matrix(b):
+            return self.T.solve_right(b.T).T
+        else:
+            # b is a vector and so is the result
+            return self.T.solve_right(b)
 
     def determinant(self):
         """

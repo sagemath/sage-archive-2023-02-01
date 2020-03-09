@@ -95,4 +95,10 @@ gitlab-build-docker.log
 /src/build
 /src/Makefile
 /src/bin/sage-env-config
+/build/bin/sage-build-env-config
 
+#######################
+# tox generated files #
+#######################
+
+/.tox

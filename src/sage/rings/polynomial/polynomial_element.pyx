@@ -4277,6 +4277,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
             sage: p.factor()
             (x - 5) * (x - 2*t) * (x^2 - 2)
+
+        Check that :trac:`29266` is fixed:
+
+            sage: f = t*x + t
+            sage: f.is_irreducible()
+            True
+            sage: f = 2*x + 4
+            sage: f.is_irreducible()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -4394,8 +4405,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         F = R.fraction_field()
                         PF = F[self.variable_name()]
                         pol_frac = PF(self) 
-                        return pol_frac.factor(**kwargs).base_change(self.parent())
-                    except (TypeError, AttributeError):
+                        pol_frac_fact = pol_frac.factor(**kwargs)
+                        if R(pol_frac_fact.unit()).is_unit():
+                            # Note: :meth:`base_change` may convert the unit to a non unit
+                            return pol_frac_fact.base_change(self.parent())
+                    except (TypeError, AttributeError, NotImplementedError):
                         raise NotImplementedError
                     
                 raise NotImplementedError

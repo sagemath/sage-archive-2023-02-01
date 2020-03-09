@@ -82,8 +82,8 @@ else
 fi
 AC_SUBST([SAGE_GCC_DEP])
 
-AC_MSG_CHECKING([SPKGs to install])
-AC_MSG_RESULT([])
+AS_BOX([Build status for each package:                                         ]) >& AS_MESSAGE_FD
+AS_BOX([Build status for each package:                                         ]) >& AS_MESSAGE_LOG_FD
 
 # Usage: newest_version $pkg
 # Print version number of latest package $pkg
@@ -96,15 +96,21 @@ newest_version() {
     fi
 }
 
-# Lists of packages that are actually built/installed and dummy packages
+# Packages that are actually built/installed as opposed to packages that are
+# not required on this platform or that can be taken from the underlying system
+# installation. Note that this contains packages that are not actually going to
+# be installed by most users because they are optional/experimental.
 SAGE_BUILT_PACKAGES='\
 '
+# The complement of SAGE_BUILT_PACKAGES, i.e., packages that are not required
+# on this platform or packages where we found a suitable package on the
+# underlying system.
 SAGE_DUMMY_PACKAGES='\
 '
-# List of all standard packages
+# Standard packages
 SAGE_STANDARD_PACKAGES='\
 '
-# List of all installed and to-be-installed optional packages - filled in SAGE_SPKG_ENABLE
+# List of currently installed and to-be-installed optional packages - filled in SAGE_SPKG_ENABLE
 #SAGE_OPTIONAL_INSTALLED_PACKAGES
 # List of optional packages to be uninstalled - filled in SAGE_SPKG_ENABLE
 #SAGE_OPTIONAL_CLEANED_PACKAGES
@@ -135,7 +141,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     if test -f "$SPKG_TYPE_FILE"; then
         SPKG_TYPE=`cat $SPKG_TYPE_FILE`
     else
-        AC_MSG_ERROR(["$SPKG_TYPE_FILE" is missing.])
+        AC_MSG_WARN(["$SPKG_TYPE_FILE" is missing.  Leftovers from another branch?])
+        continue
     fi
 
     SPKG_NAME=$(basename $DIR)
@@ -143,17 +150,31 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     in_sdist=no
 
+    uninstall_message=""
     # Check consistency of 'DIR/type' file
     case "$SPKG_TYPE" in
-    base) ;;
+    base)
+        message="came preinstalled with the SageMath tarball"
+        ;;
     standard)
         SAGE_STANDARD_PACKAGES+="    $SPKG_NAME \\"$'\n'
         in_sdist=yes
+        message="will be installed as an SPKG"
         ;;
-    optional) ;;
-    experimental) ;;
-    script) ;;
-    pip) ;;
+    optional)
+        message="optional, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
+        ;;
+    experimental)
+        message="experimental, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
+        ;;
+    script)
+        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
+        ;;
+    pip)
+        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
+        ;;
     *)
         AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'])
         ;;
@@ -161,19 +182,40 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'
 
-    # If $sage_spkg_install_{SPKG_NAME} is set to no, then set inst_<pkgname> to
-    # some dummy file to skip the installation. Note that an explicit
-    # "./sage -i SPKG_NAME" will still install the package.
     if test "$SPKG_NAME" != "$SPKG_VERSION"; then
-        sage_spkg_install="sage_spkg_install_${SPKG_NAME}"
+        AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
+        AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
+        AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
 
-        if test "${!sage_spkg_install}" != no ; then
-            SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION])
-        else
+        # If $sage_spkg_install_{SPKG_NAME} is set to no, then set inst_<pkgname> to
+        # some dummy file to skip the installation. Note that an explicit
+        # "./sage -i SPKG_NAME" will still install the package.
+        AS_VAR_IF([sage_spkg_install], [no], [
+            dnl We will use the system package (or not required for this platform.)
             SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION will not be installed (configure check)])
-        fi
+            AS_VAR_IF([sage_require], [yes], [ message="using system package; SPKG will not be installed"
+            ],                               [ message="not required on your platform; SPKG will not be installed"
+            ])
+        ], [
+            dnl We won't use the system package.
+            SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
+            AS_VAR_SET_IF([sage_use_system], [
+                AS_VAR_COPY([reason], [sage_use_system])
+                AS_CASE([$reason],
+                [yes],                       [ message="no suitable system package; $message" ],
+                [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
+                                             [ message="$reason; $message" ])
+            ], [
+                # Package does not use spkg-configure.m4 yet
+                message="does not support check for system package; $message"
+            ])
+        ])
+        formatted_message=$(printf '%-45s%s' "$SPKG_NAME-$SPKG_VERSION:" "$message")
+        AC_MSG_RESULT([$formatted_message])
+
+        AS_VAR_POPDEF([sage_use_system])dnl
+        AS_VAR_POPDEF([sage_require])dnl
+        AS_VAR_POPDEF([sage_spkg_install])dnl
     fi
 
     # Packages that should be included in the source distribution

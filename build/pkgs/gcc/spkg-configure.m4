@@ -94,6 +94,10 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
         IS_REALLY_GCC=yes
     fi
 
+    # Save the value of CXX without special flags to enable C++11 support
+    AS_VAR_SET([SAGE_CXX_WITHOUT_STD], [$CXX])
+    AC_SUBST(SAGE_CXX_WITHOUT_STD)
+    # Modify CXX to include an option that enables C++11 support if necessary
     AX_CXX_COMPILE_STDCXX_11([], optional)
     if test $HAVE_CXX11 != 1; then
         SAGE_MUST_INSTALL_GCC([your C++ compiler does not support C++11])

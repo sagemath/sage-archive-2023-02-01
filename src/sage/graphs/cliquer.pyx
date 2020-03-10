@@ -164,7 +164,7 @@ def all_max_clique(graph):
 
 # computes all cliques with given size in a graph and return its list
 
-def all_cliques(graph, min_size, max_size):
+def all_cliques(graph, min_size=0, max_size=0):
     """
     Returns the list of all cliques inbetween min_size and max_size,
     with each clique represented by a list of vertices.
@@ -178,11 +178,11 @@ def all_cliques(graph, min_size, max_size):
 
     INPUT:
 
-    - ``min_size`` -- Search for cliques with weight at least N. If N=0,
-                      searches for maximum weight clique (default).
-    - ``max_size`` -- Search for cliques with weight at most N. If N=0,
-                      no limit is imposed (default).  N being positive is
-                      incompatible with "--min 0" ("--min 1" is assumed).
+    - ``min_size`` -- Search for cliques with size at least N. If N=0,
+      searches for maximum clique (default).
+    - ``max_size`` -- Search for cliques with size at most N. If N=0,
+      no limit is imposed (default). N being positive is
+      incompatible with "--min 0" ("--min 1" is assumed).
 
     ALGORITHM:
 
@@ -191,8 +191,18 @@ def all_cliques(graph, min_size, max_size):
     EXAMPLES::
 
         sage: G = graphs.CompleteGraph(5)
-        sage: sage.graphs.cliquer.all_cliques(G, 2, 3)
-        [[0, 1],
+        sage: list(sage.graphs.cliquer.all_cliques(G, 2, 3))
+        [[3, 4],
+         [2, 3],
+         [2, 3, 4],
+         [2, 4],
+         [1, 2],
+         [1, 2, 3],
+         [1, 2, 4],
+         [1, 3],
+         [1, 3, 4],
+         [1, 4],
+         [0, 1],
          [0, 1, 2],
          [0, 1, 3],
          [0, 1, 4],
@@ -201,26 +211,16 @@ def all_cliques(graph, min_size, max_size):
          [0, 2, 4],
          [0, 3],
          [0, 3, 4],
-         [0, 4],
-         [1, 2],
-         [1, 2, 3],
-         [1, 2, 4],
-         [1, 3],
-         [1, 3, 4],
-         [1, 4],
-         [2, 3],
-         [2, 3, 4],
-         [2, 4],
-         [3, 4]]
+         [0, 4]]
 
     TESTS::
         sage: G = graphs.CompleteGraph(3)
-        sage: sage.graphs.cliquer.all_cliques(G, 2, 3)
-        [[0, 1], [0, 1, 2], [0, 2], [1, 2]]
+        sage: list(sage.graphs.cliquer.all_cliques(G, 2, 3))
+        [[1, 2], [0, 1], [0, 1, 2], [0, 2]]
 
         sage: G = graphs.EmptyGraph()
-        sage: sage.graphs.cliquer.all_cliques(G, 2, 3)
-        [[]]
+        sage: list(sage.graphs.cliquer.all_cliques(G, 2, 3))
+        []
 
         sage: G = Graph(multiedges=True)
         sage: G.add_vertex()
@@ -229,8 +229,13 @@ def all_cliques(graph, min_size, max_size):
         1
         sage: G.add_edge(0,1)
         sage: G.add_edge(0,1)
-        sage: sage.graphs.cliquer.all_cliques(G, 2, 2)
+        sage: list(sage.graphs.cliquer.all_cliques(G, 2, 2))
         [[0, 1]]
+
+        sage: G = graphs.CompleteGraph(5)
+        sage: G.delete_edge([1,3])
+        sage: list(sage.graphs.cliquer.all_cliques(G))
+        [[0, 2, 3, 4], [0, 1, 2, 4]]
     """
     if not graph:
         return [[]]
@@ -251,18 +256,15 @@ def all_cliques(graph, min_size, max_size):
     size = sage_find_all_clique(g, &list_of_vertices, min_size, max_size)
     sig_off()
     graph_free(g)
-    cdef list b = []
     cdef list c = []
     for i in range(size):
         if list_of_vertices[i] != -1:
             c.append(int_to_vertex[list_of_vertices[i]])
         else:
-            b.append(c)
+            yield c
             c = []
 
     sig_free(list_of_vertices)
-
-    return sorted(b)
 
 
 #computes the clique number of a graph

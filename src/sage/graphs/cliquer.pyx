@@ -162,13 +162,15 @@ def all_max_clique(graph):
 
     return sorted(b)
 
-# computes all cliques with given size in a graph and return its list
 
 def all_cliques(graph, min_size=0, max_size=0):
-    """
-    Returns the list of all cliques inbetween min_size and max_size,
-    with each clique represented by a list of vertices.
-    A clique is an induced complete subgraph.
+    r"""
+    Iterator over the cliques in ``graph``.
+
+    A clique is an induced complete subgraph. This method is an iterator over
+    all the cliques with size in between ``min_size`` and ``max_size``. By
+    default, this method returns only maximum cliques. Each yielded clique is
+    represented by a list of vertices.
 
     .. NOTE::
 
@@ -178,11 +180,13 @@ def all_cliques(graph, min_size=0, max_size=0):
 
     INPUT:
 
-    - ``min_size`` -- Search for cliques with size at least N. If N=0,
-      searches for maximum clique (default).
-    - ``max_size`` -- Search for cliques with size at most N. If N=0,
-      no limit is imposed (default). N being positive is
-      incompatible with "--min 0" ("--min 1" is assumed).
+    - ``min_size`` -- integer (default: 0); minimum size of reported cliques.
+      When set to 0 (default), this method searches for maximum cliques. In such
+      case, parameter ``max_size`` must also be set to 0.
+
+    - ``max_size`` -- integer (default: 0); maximum size of reported cliques.
+      When set to 0 (default), the maximum size of the cliques is unbounded.
+      When ``min_size`` is set to 0, this parameter must be set to 0.
 
     ALGORITHM:
 
@@ -191,6 +195,8 @@ def all_cliques(graph, min_size=0, max_size=0):
     EXAMPLES::
 
         sage: G = graphs.CompleteGraph(5)
+        sage: list(sage.graphs.cliquer.all_cliques(G))
+        [[0, 1, 2, 3, 4]]
         sage: list(sage.graphs.cliquer.all_cliques(G, 2, 3))
         [[3, 4],
          [2, 3],
@@ -212,8 +218,12 @@ def all_cliques(graph, min_size=0, max_size=0):
          [0, 3],
          [0, 3, 4],
          [0, 4]]
+        sage: G.delete_edge([1,3])
+        sage: list(sage.graphs.cliquer.all_cliques(G))
+        [[0, 2, 3, 4], [0, 1, 2, 4]]
 
     TESTS::
+
         sage: G = graphs.CompleteGraph(3)
         sage: list(sage.graphs.cliquer.all_cliques(G, 2, 3))
         [[1, 2], [0, 1], [0, 1, 2], [0, 2]]
@@ -222,25 +232,24 @@ def all_cliques(graph, min_size=0, max_size=0):
         sage: list(sage.graphs.cliquer.all_cliques(G, 2, 3))
         []
 
-        sage: G = Graph(multiedges=True)
-        sage: G.add_vertex()
-        0
-        sage: G.add_vertex()
-        1
-        sage: G.add_edge(0,1)
-        sage: G.add_edge(0,1)
+        sage: G = Graph([(0, 1), (0, 1)], multiedges=True)
         sage: list(sage.graphs.cliquer.all_cliques(G, 2, 2))
         [[0, 1]]
 
-        sage: G = graphs.CompleteGraph(5)
-        sage: G.delete_edge([1,3])
-        sage: list(sage.graphs.cliquer.all_cliques(G))
-        [[0, 2, 3, 4], [0, 1, 2, 4]]
+        sage: list(sage.graphs.cliquer.all_cliques(G, 0, 2))
+        Traceback (most recent call last):
+        ...
+        ValueError: max_size > 0 is incompatible with min_size == 0
+
+    .. TODO::
+
+        Use the re-entrant functionality of Cliquer [NO2003]_ to avoid storing
+        all cliques.
     """
+    if not min_size and max_size > 0:
+        raise ValueError("max_size > 0 is incompatible with min_size == 0")
     if not graph:
-        return [[]]
-    if min_size == 0 and max_size > 0:
-        raise ValueError("max_size>0 is incompatible with min_size=0")
+        return
 
     cdef int i
     cdef list int_to_vertex = list(graph)

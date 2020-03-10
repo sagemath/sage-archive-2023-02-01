@@ -129,6 +129,8 @@ SAGE_PIP_PACKAGES='\
 SAGE_SCRIPT_PACKAGES='\
 '
 
+SAGE_NEED_SYSTEM_PACKAGES=""
+
 # for each package in pkgs/, add them to the SAGE_PACKAGE_VERSIONS and
 # SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
 # depending on the package type and other criteria (such as whether or not it
@@ -202,7 +204,9 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
-                [yes],                       [ message="no suitable system package; $message" ],
+                [yes],                       [ message="no suitable system package; $message"
+                                               AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES], [" $SPKG_NAME"])
+                                             ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
             ], [
@@ -279,4 +283,26 @@ AC_SUBST([SAGE_STANDARD_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_INSTALLED_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_CLEANED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])
+])
+
+AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
+    AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
+        AC_MSG_NOTICE([Hint: The following SPKGs did not find equivalent system packages:])
+        AC_MSG_NOTICE([ $SAGE_NEED_SYSTEM_PACKAGES])
+        AC_MSG_CHECKING([for the package system in use])
+        SYSTEM=$(build/bin/sage-guess-package-system)
+        AC_MSG_RESULT([$SYSTEM])
+        AS_IF([test $SYSTEM != unknown], [
+            SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES)
+            AS_IF([test -n "$SYSTEM_PACKAGES"], [
+                COMMAND=$(build/bin/sage-print-system-package-command $SYSTEM install $SYSTEM_PACKAGES)
+                AC_MSG_NOTICE([Hint: Installing the following system packages is recommended and may avoid building some of the above SPKGs from source:])
+                AC_MSG_NOTICE([  \$ $COMMAND])
+                AC_MSG_NOTICE([After installation, re-run configure using:])
+                AC_MSG_NOTICE([  \$ ./config.status --recheck && ./config.status])
+            ], [
+                AC_MSG_NOTICE([No equivalent system packages for $SYSTEM are known to Sage])
+            ])
+        ])
+    ])
 ])

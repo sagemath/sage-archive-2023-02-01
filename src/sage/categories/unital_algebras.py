@@ -115,6 +115,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             if getattr(self, '_no_generic_basering_coercion', False):
                 from sage.misc.superseded import deprecation
                 deprecation(19225, "the attribute _no_generic_basering_coercion is deprecated, implement _coerce_map_from_base_ring() instead")
+                return
 
             base_ring = self.base_ring()
             if base_ring is self:

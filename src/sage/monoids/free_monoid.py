@@ -234,6 +234,11 @@ class FreeMonoid(Monoid_class, UniqueRepresentation):
             a^2*b^2*c*a*b*a*c
             sage: F(Word([]))
             1
+
+        TESTS::
+
+            sage: F(F(w), check=False)
+            a^2*b^2*c*a*b*a*c
         """
         # There should really be some careful type checking here...
         if isinstance(x, FreeMonoidElement) and x.parent() is self:

@@ -489,9 +489,6 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             -x
 
         """
-        P = parent(x)
-        if P is self:
-            return x
         if not isinstance(x, six.string_types):
             try:
                 return self.element_class(self, self.__ring(x) , check=True)

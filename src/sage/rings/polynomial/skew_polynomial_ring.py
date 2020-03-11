@@ -378,6 +378,11 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             0
             sage: S(0).list()
             []
+
+        TESTS::
+
+            sage: S(x, check=True)
+            x
         """
         C = self._polynomial_class
         if isinstance(a, list):

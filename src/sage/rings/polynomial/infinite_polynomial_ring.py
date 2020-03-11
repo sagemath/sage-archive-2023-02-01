@@ -891,9 +891,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             ...
             ValueError: Can't convert 1/3 into an element of Infinite polynomial ring in x over Integer Ring
         """
-        # if x is in self, there's nothing left to do
-        if parent(x) is self:
-            return x
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
         # In many cases, the easiest solution is to "simply" evaluate
         # the string representation.

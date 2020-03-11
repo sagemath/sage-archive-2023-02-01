@@ -1,25 +1,31 @@
 SAGE_SPKG_CONFIGURE([openblas], [
  SAGE_SPKG_DEPCHECK([gfortran], [
   PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.2.20], [
+    SAVE_LIBS="$LIBS"
+    LIBS="$OPENBLAS_LIBS $LIBS"
+    SAVE_CFLAGS="$CFLAGS"
+    CFLAGS="$OPENBLAS_CFLAGS $CFLAGS"
     PKG_CHECK_VAR([OPENBLASPCDIR], [openblas], [pcfiledir], [
        sage_install_blas_pc=yes
-       AC_SEARCH_LIBS([cblas_dgemm], [openblas], [dnl openblas works as cblas
+       AC_CHECK_FUNC([cblas_dgemm], [dnl openblas works as cblas
              sage_install_cblas_pc=yes
              ], [
-             dnl openblas does not work as cblas; try to use system's cblas as is
+             dnl openblas does not work as cblas; try to use system cblas as is
              PKG_CHECK_MODULES([CBLAS], [cblas], [], [sage_spkg_install_openblas=yes])
           ])
        AC_FC_FREEFORM([AC_FC_FUNC([dgeqrf])])
-       AC_SEARCH_LIBS([$dgeqrf], [openblas], [dnl openblas works as lapack
+       AC_SEARCH_LIBS([$dgeqrf], [], [dnl openblas works as lapack
              sage_install_lapack_pc=yes
              ], [
-             dnl openblas does not work as lapack; try to use system's lapack as is
+             dnl openblas does not work as lapack; try to use system lapack as is
              PKG_CHECK_MODULES([LAPACK], [lapack], [], [sage_spkg_install_openblas=yes])
           ])
        ], [
        AC_MSG_WARN([Unable to locate the directory of openblas.pc. This should not happen!])
        sage_spkg_install_openblas=yes
        ])
+    LIBS="$SAVE_LIBS"
+    CFLAGS="$SAVE_CFLAGS"
     ], [sage_spkg_install_openblas=yes])
     AS_IF([test x$sage_spkg_install_openblas != xyes], [
        m4_foreach([blaslibnam], [blas, cblas, lapack], [

@@ -169,7 +169,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             """
             Return a suitable coercion map from the base ring of ``self``.
 
-            TESTS:
+            TESTS::
 
                 sage: A = cartesian_product((QQ['z'],)); A
                 The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
@@ -179,6 +179,14 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 Generic morphism:
                 From: Rational Field
                 To:   The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+
+            Check that :trac:`29312` is fixed::
+
+                sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
+                sage: F._coerce_map_from_base_ring()
+                Generic morphism:
+                  From: Rational Field
+                  To:   Free Associative Unital Algebra on 3 generators (x, y, z) over Rational Field
             """
             base_ring = self.base_ring()
 
@@ -211,7 +219,8 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             # If there is a specialised from_base_ring(), then it should
             # be used unconditionally.
             generic_from_base_ring = self.category().parent_class.from_base_ring
-            if type(self).from_base_ring != generic_from_base_ring:
+            from_base_ring = self.from_base_ring   # bound method
+            if from_base_ring.__func__ != generic_from_base_ring:
                 # Custom from_base_ring()
                 use_from_base_ring = True
             if isinstance(generic_from_base_ring, lazy_attribute):
@@ -231,7 +240,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
             mor = None
             if use_from_base_ring:
-                mor = SetMorphism(function=self.from_base_ring, parent=H)
+                mor = SetMorphism(function=from_base_ring, parent=H)
             else:
                 # We have the multiplicative unit, so implement the
                 # coercion from the base ring as multiplying with that.

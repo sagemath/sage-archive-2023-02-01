@@ -13,8 +13,14 @@ SAGE_SPKG_CONFIGURE([openblas], [
              dnl openblas does not work as cblas; try to use system cblas as is
              PKG_CHECK_MODULES([CBLAS], [cblas], [], [sage_spkg_install_openblas=yes])
           ])
-       AC_FC_FREEFORM([AC_FC_FUNC([dgeqrf])])
-       AC_SEARCH_LIBS([$dgeqrf], [], [dnl openblas works as lapack
+       dnl Check all name manglings that AC_FC_FUNC could check based on the
+       dnl characteristics of the Fortran compiler
+       m4_foreach([dgeqrf_mangled], [dgeqrf, dgeqrf_, DGEQRF, DGEQRF_], [
+          AC_CHECK_FUNC(dgeqrf_mangled, [
+             AS_VAR_SET([HAVE_DGEQRF], [yes])
+          ])
+       ])
+       AS_IF([test x$HAVE_DGEQRF = xyes], [dnl openblas works as lapack
              sage_install_lapack_pc=yes
              ], [
              dnl openblas does not work as lapack; try to use system lapack as is

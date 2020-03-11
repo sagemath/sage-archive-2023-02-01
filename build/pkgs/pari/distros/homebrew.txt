@@ -1,1 +1,2 @@
-pari
+## cannot currently be used by Sage because the pari packages are not in Homebrew
+#pari

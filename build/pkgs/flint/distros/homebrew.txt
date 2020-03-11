@@ -1,1 +1,1 @@
-flint
+sagemath/science/flint

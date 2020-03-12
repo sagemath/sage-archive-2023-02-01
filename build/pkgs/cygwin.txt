@@ -23,3 +23,5 @@ gcc-g++
 # The need for which comes [...] from MPIR's configure script
 findutils
 which
+# For python3 build
+libcrypt0

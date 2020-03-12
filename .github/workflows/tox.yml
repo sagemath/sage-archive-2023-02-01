@@ -16,8 +16,9 @@ name: Run SAGE_ROOT/tox.ini
 on: [push, pull_request]
 
 env:
-  # We test everything BLAS-related and other problematic packages
-  TARGETS: cbc csdp fflas_ffpack gsl iml numpy scipy r suitesparse cvxopt rpy2 ecl maxima fpylll linbox
+  ## We test everything BLAS-related and other problematic packages
+  #TARGETS: cbc csdp fflas_ffpack gsl iml numpy scipy r suitesparse cvxopt rpy2 ecl maxima fpylll linbox
+  TARGETS: build
 
 jobs:
   tox:

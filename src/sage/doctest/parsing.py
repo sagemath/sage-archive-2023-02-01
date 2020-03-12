@@ -39,6 +39,11 @@ from .external import available_software
 
 float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+# Version 4.65 of glpk prints the warning "Long-step dual simplex will
+# be used" frequently. When Sage uses a system installation of glpk
+# which has not been patched, we need to ignore that message.
+# See :trac:`29317`.
+glpk_simplex_warning_regex = re.compile(r'(Long-step dual simplex will be used)')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
@@ -1071,6 +1076,7 @@ class SageOutputChecker(doctest.OutputChecker):
             <class 'float'>
         """
         got = self.human_readable_escape_sequences(got)
+        got = glpk_simplex_warning_regex.sub('', got)
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True

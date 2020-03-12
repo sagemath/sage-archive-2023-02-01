@@ -830,8 +830,9 @@ fi
 # package's spkg-install script can use this variable.
 #
 # Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.
-if [ -z "$SAGE_CHECK_PACKAGES" ]; then
+# its test suite by default.  However, if SAGE_CHECK=warn, we do not
+# do that.
+if [ x"$SAGE_CHECK" = xyes -a -z "$SAGE_CHECK_PACKAGES" ]; then
     SAGE_CHECK_PACKAGES='!python2,!python3'
 fi
 # Allow spaces, commas, or colons as separator (the documentation suggests commas).

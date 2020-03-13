@@ -4383,7 +4383,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
               -1/13*a^2 + 6/13*a + 345/13,
               -1,
               2/13*a^2 + 1/13*a - 755/13,
-              1/13*a^2 - 19/13*a - 7/13],
+              1/13*a^2 + 20/13*a - 7/13],
              [(Fractional ideal (11, a - 2), 2), (Fractional ideal (19, a + 7), 2)])
 
         Number fields defined by non-monic and non-integral
@@ -4541,9 +4541,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
              -1/13*a^2 + 6/13*a + 345/13,
              -1,
              2/13*a^2 + 1/13*a - 755/13,
-             1/13*a^2 - 19/13*a - 7/13,
-             -1/13*a^2 + 45/13*a - 97/13,
-             2/13*a^2 + 40/13*a - 27/13]
+             1/13*a^2 + 20/13*a - 7/13,
+             1/13*a^2 - 45/13*a + 97/13,
+             -2/13*a^2 - 40/13*a + 27/13]
 
         Verify that :trac:`16708` is fixed::
 
@@ -5188,7 +5188,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
             sage: K.elements_of_norm(7)
-            [7/225*a^2 - 7/75*a - 42/25]
+            [28/225*a^2 + 77/75*a - 133/25]
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
@@ -5291,7 +5291,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: pari('setrand(2)')
             sage: L.<b> = K.extension(x^2 - 7)
             sage: f = L.factor(a + 1); f
-            (Fractional ideal (1/2*a*b - a + 1/2)) * (Fractional ideal (-1/2*a*b - a + 1/2))
+            (Fractional ideal (-1/2*b + 1/2*a + 1)) * (Fractional ideal (-1/2*a*b - a + 1/2))
             sage: f.value() == a+1
             True
 
@@ -6368,7 +6368,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: [K.uniformizer(P) for P,e in factor(K.ideal(5))]
             [t^2 - t + 1, t + 2, t - 2]
             sage: [K.uniformizer(P) for P,e in factor(K.ideal(7))]
-            [t^2 + 3*t + 1]
+            [t^2 - 4*t + 1]
             sage: [K.uniformizer(P) for P,e in factor(K.ideal(67))]
             [t + 23, t + 26, t - 32, t - 18]
 
@@ -7638,11 +7638,11 @@ class NumberField_absolute(NumberField_generic):
              Ring morphism:
                From: Number Field in a1 with defining polynomial x^3 - 7*x - 7
                To:   Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
-               Defn: a1 |--> 7/225*a^2 - 7/75*a - 42/25,
+               Defn: a1 |--> 28/225*a^2 + 77/75*a - 133/25,
              Ring morphism:
                From: Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
                To:   Number Field in a1 with defining polynomial x^3 - 7*x - 7
-               Defn: a |--> -15/7*a1^2 + 9)
+               Defn: a |--> -60/7*a1^2 + 15*a1 + 39)
         """
         if name is None:
             name = self.variable_names()

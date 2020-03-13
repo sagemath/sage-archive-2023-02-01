@@ -4079,14 +4079,36 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron([[0,0],[1,0],[0,1]], base_ring=ZZ, backend='field')
             sage: P.translation([2,1]).backend()
             'field'
+
+        Check that precomputed data is set up correctly::
+
+            sage: P = polytopes.permutahedron(4)*Polyhedron(lines=[[1]])
+            sage: Q = P.change_ring(P.base_ring(), backend='field')
+            sage: P + vector([1,2,3,4,5]) == Q + vector([1,2,3,4,5])
+            True
+            sage: P + vector([1,2,3,4,5/2]) == Q + vector([1,2,3,4,5/2])
+            True
         """
         displacement = vector(displacement)
-        new_vertices = [x.vector()+displacement for x in self.vertex_generator()]
+        new_vertices = tuple(x.vector()+displacement for x in self.vertex_generator())
         new_rays = self.rays()
         new_lines = self.lines()
-
         parent = self.parent().base_extend(displacement)
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+
+        # Replace a hyperplane of the form A*x + b >= 0 by
+        # A(x-displacement) + b >= 0 <=> Ax + b - A*displacement >= 0.
+        # Likewise for equations.
+        def get_new(x):
+            y = x.vector().change_ring(parent.base_ring())
+            y[0] -= x.A()*displacement
+            return y
+
+        new_ieqs = tuple(get_new(x) for x in self.inequality_generator())
+        new_eqns = tuple(get_new(x) for x in self.equation_generator())
+
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines],
+                                    [new_ieqs, new_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True)
 
     def product(self, other):
         """

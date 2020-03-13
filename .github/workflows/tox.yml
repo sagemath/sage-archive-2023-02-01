@@ -18,7 +18,7 @@ on: [push, pull_request]
 env:
   ## We test everything BLAS-related and other problematic packages
   #TARGETS: cbc csdp fflas_ffpack gsl iml numpy scipy r suitesparse cvxopt rpy2 ecl maxima fpylll linbox
-  TARGETS: build
+  TARGETS: build ptest
 
 jobs:
   tox:

@@ -165,16 +165,15 @@ cat <<EOF
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k"
+ENV SAGE_CHECK=warn
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 #:toolchain:
 $RUN make \${USE_MAKEFLAGS} base-toolchain
 #:make:
-# Avoid running the lengthy testsuite of the following.
-$RUN make \${USE_MAKEFLAGS} cython
-# By default, compile something tricky but that does not take too long. scipy uses BLAS.
-ARG TARGETS="scipy"
-$RUN make SAGE_SPKG="sage-spkg -y -o" SAGE_CHECK=warn SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl" \${USE_MAKEFLAGS} \${TARGETS}
+ARG TARGETS_PRE="sagelib-build-deps"
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE}
 ADD src src
-$RUN make \${USE_MAKEFLAGS} build
-$RUN make \${USE_MAKEFLAGS} ptest
+ARG TARGETS="build ptest"
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS}
 #:end:
 EOF

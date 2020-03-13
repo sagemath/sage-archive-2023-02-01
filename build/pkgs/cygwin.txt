@@ -24,4 +24,4 @@ gcc-g++
 findutils
 which
 # For python3 build
-libcrypt0
+libcrypt-devel

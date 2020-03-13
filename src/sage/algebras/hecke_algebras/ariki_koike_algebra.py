@@ -552,12 +552,15 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
                     sage: LT = algebras.ArikiKoike(4, 3).LT()
                     sage: LT.some_elements()
-                    [1 + T[2,1] + 3*T[1] + 2*T[2],
-                     T[2] + T[1] + L3 + L2 + L1,
-                     L1, L2, L3, T[1], T[2]]
+                    [1 + 2*T[2] + 3*T[1] + T[2,1],
+                     L1, L2, L3, T[1], T[2], L1^2, L2^2]
                 """
                 G = self.algebra_generators()
-                return [self.an_element(), self.sum(G)] + list(G)
+                elts = [self.an_element()] + list(G)
+                elts += [self.L(1)**2]
+                if self._n > 1:
+                    elts += [self.L(2)**(self._r//2)]
+                return elts
 
     # -----------------------------------------------------
     # Basis classes
@@ -585,7 +588,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 sage: LT = algebras.ArikiKoike(2, 3).LT()
                 sage: TestSuite(LT).run()
                 sage: LT = algebras.ArikiKoike(3, 4).LT()
-                sage: TestSuite(LT).run() # long time
+                sage: TestSuite(LT).run()  # long time
             """
             _Basis.__init__(self, algebra, prefix='LT')
             self._assign_names(self.algebra_generators().keys())
@@ -919,8 +922,8 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                     c = ret[p]
                     # We have to flip the side due to Sage's
                     # convention for multiplying permutations
-                    pi = p.apply_simple_reflection(i, side="right")
-                    if p.has_descent(i, side="right"):
+                    pi = p.apply_simple_reflection(i, side="left")
+                    if p.has_descent(i, side="left"):
                         iaxpy(1, {p: c * qm1, pi: c * self._q}, temp)
                     else:
                         iaxpy(1, {pi: c}, temp)
@@ -1416,11 +1419,20 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 sage: x = T.T(0) * T.T(1)
                 sage: (x*x)*x == x*(x*x)
                 True
+
+                sage: T = algebras.ArikiKoike(3, 4).T()
+                sage: L1 = T.L(1)
+                sage: L2 = T.L(2)
+                sage: (L2 * L1^2) * L2 == L2 * (L1^2 * L2)
+                True
+                sage: T1 = T.T(1)
+                sage: (T1 * L1^2) * T1 * L1 * L1 == (T1 * L1^2) * T1 * L1^2
+                True
             """
             # We represent T_i for i > 0 as S_i in comments to avoid confusion.
             # Product is of the form t1*s1 * t2*s2: separate the T's and permutations.
-            t1,s1 = m1
-            t2,s2 = m2
+            t1, s1 = m1
+            t2, s2 = m2
             one = self.base_ring().one()
             q = self._q
             qm1 = q - one
@@ -1450,7 +1462,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 return L * M * R
 
             # The current product of T's and the type A Hecke algebra
-            tprod = [( [(k,a) for k,a in enumerate(t2) if a != 0], {s2: one} )]
+            tprod = [( [(k, a) for k, a in enumerate(t2) if a != 0], {s2: one} )]
 
             # s1 through t2
             for i in reversed(s1.reduced_word()):
@@ -1460,7 +1472,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                     T, sprod = tprod[index]
                     absorbed = False
                     for ind in range(len(T)):
-                        k,a = T[ind]
+                        k, a = T[ind]
                         # -1 from i since k is 0-based but i is 1-based
                         if j < k:
                             j += 1
@@ -1469,8 +1481,8 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                             # Quadratic relation: S_k^2 = (q - 1) S_k + q
                             # So S_{k-1} T_{k,a} = (q-1) T_{k,a} + q T_{k-1,a}
                             # Make a copy of T since we need to mutate it
-                            new_t.append((list(T), {s: q*sprod[s] for s in sprod}))
-                            new_t[-1][0][ind] = (k-1,a)
+                            new_t.append((list(T), {s: q * sprod[s] for s in sprod}))
+                            new_t[-1][0][ind] = (k-1, a)
                             for s in sprod:
                                 sprod[s] *= qm1
                             break
@@ -1490,8 +1502,8 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                         c = sprod[p]
                         # We have to flip the side due to Sage's
                         # convention for multiplying permutations
-                        pj = p.apply_simple_reflection(j, side="right")
-                        if p.has_descent(j, side="right"):
+                        pj = p.apply_simple_reflection(j, side="left")
+                        if p.has_descent(j, side="left"):
                             iaxpy(1, {p: c * qm1, pj: c * self._q}, temp)
                         else:
                             iaxpy(1, {pj: c}, temp)
@@ -1501,10 +1513,10 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             # Compute t1 * T * sprod
             def compute(T, sprod):
                 if not T: # T=1, so just do t1 * sprod, each of which is in order
-                    return self._from_dict({(t1,s): sprod[s] for s in sprod},
+                    return self._from_dict({(t1, s): sprod[s] for s in sprod},
                                            remove_zeros=False, coerce=False)
 
-                s_elt = self._from_dict({(self._zero_tuple,s): sprod[s] for s in sprod},
+                s_elt = self._from_dict({(self._zero_tuple, s): sprod[s] for s in sprod},
                                          remove_zeros=False, coerce=False)
                 # Break T into basis vectors as much as possible to best take
                 #   advantage of the caching
@@ -1580,17 +1592,17 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             cur = z ** exp
             while cur.degree() >= self._r:
                 cur = (PR.sum(coeff * self._T0_polynomial * z**e
-                             for e,coeff in enumerate(cur.list()[self._r:]))
+                             for e, coeff in enumerate(cur.list()[self._r:]))
                        + cur.truncate(self._r))
             return cur
 
         @cached_method
         def _product_TT(self, kp, a, k, b):
             """
-            Return the product `T_{k',a} T_{k,b}` with `kp \geq k` in terms
+            Return the product `T_{k',a} T_{k,b}` with `k' \geq k` in terms
             of the basis elements of ``self``.
 
-            From [BM1997]_, we have
+            From Lemma 2.3 of [BM1997]_, we have
 
             .. MATH::
 
@@ -1622,17 +1634,40 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                  + ((u0*u1*u2+u0*u1*u3+u0*u2*u3+u1*u2*u3))*T[1,0]
                  + ((-u0*u1-u0*u2-u1*u2-u0*u3-u1*u3-u2*u3))*T[1,0,0]
                  + ((u0+u1+u2+u3))*T[1,0,0,0]
-                sage: T._product_TT(2,1,0,3)
+                sage: T._product_TT(2, 1, 0, 3)
                 (-u0*u1*u2*u3)*T[2,1]
                  + ((u0*u1*u2+u0*u1*u3+u0*u2*u3+u1*u2*u3))*T[2,1,0]
                  + ((-u0*u1-u0*u2-u1*u2-u0*u3-u1*u3-u2*u3))*T[2,1,0,0]
                  + ((u0+u1+u2+u3))*T[2,1,0,0,0]
+
+            TESTS::
+
+                sage: H = algebras.ArikiKoike(3, 4)
+                sage: T = H.T()
+                sage: T._product_TT(1, 2, 1, 2)
+                (-u0*u1*u2+u0*u1*u2*q)*T[1,0]
+                 + (u0*u1*u2-u0*u1*u2*q)*T[0,1]
+                 + ((u0+u1+u2)+(-u0-u1-u2)*q)*T[0,1,0,0]
+                 + ((-u0-u1-u2)+(u0+u1+u2)*q)*T[0,0,1,0]
+                 + T[0,0,1,0,0,1]
+                sage: T._product_TT(2,2,2,2)
+                (-u0*u1*u2+u0*u1*u2*q)*T[2,1,0,2]
+                 + (u0*u1*u2-u0*u1*u2*q)*T[1,0,2,1]
+                 + ((u0+u1+u2)+(-u0-u1-u2)*q)*T[1,0,2,1,0,0]
+                 + ((-u0-u1-u2)+(u0+u1+u2)*q)*T[1,0,0,2,1,0]
+                 + T[1,0,0,2,1,0,0,1]
+                sage: T._product_TT(3,2,3,2)
+                (-u0*u1*u2+u0*u1*u2*q)*T[3,2,1,0,3,2]
+                 + (u0*u1*u2-u0*u1*u2*q)*T[2,1,0,3,2,1]
+                 + ((u0+u1+u2)+(-u0-u1-u2)*q)*T[2,1,0,3,2,1,0,0]
+                 + ((-u0-u1-u2)+(u0+u1+u2)*q)*T[2,1,0,0,3,2,1,0]
+                 + T[2,1,0,0,3,2,1,0,0,1]
             """
             # Quadratic relation: S_i^2 - (q - 1) S_i - q == 0
             # [BM1997]_: S_i^2 - (q_1 + q_2) S_i + q_1 q_2 == 0
             # Implies q_1 = q, q_2 = -1
             one = self.base_ring().one()
-            # Case T_{k,a} T_0^b = T_{k,a+b}
+            # Case T_{k',a} T_0^b = T_{k',a+b}
             if k == 0:
                 if a + b < self._r:
                     T = list(self._zero_tuple)
@@ -1646,13 +1681,14 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                         return (tuple(T), self._one_perm)
                     # Note that kp is 0-based, but our 0-index in the T portion
                     #   is the power of T_0
-                    perm = self._Pn.prod(self._Pn.simple_reflection(j)
-                                         for j in range(1,kp+1))
+                    perm = self._Pn.one()
+                    for j in range(1, kp+1):
+                        perm = perm.apply_simple_reflection_left(j)
                     return (self._zero_tuple, perm)
                 p = self._reduced_T0_power(a + b)
                 zero = self.base_ring().zero()
                 return self._from_dict({key(exp): coeff
-                                        for exp,coeff in enumerate(p)
+                                        for exp, coeff in enumerate(p)
                                         if coeff != zero},
                                        remove_zeros=False, coerce=False)
 
@@ -1670,7 +1706,6 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 T[ind] = exp
                 T[indp] = i
                 return tuple(T)
-
             for i in range(1, b+1):
                 if a + b - i == i:
                     continue
@@ -1686,9 +1721,27 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                     p = self._reduced_T0_power(a + b - i)
                     temp = {(T_index(exp, k-1, i, kp), self._one_perm): qm1 * coeff
                             for exp, coeff in enumerate(p) if coeff != zero}
+                    if p[0] != zero and k > 1:
+                        # We need to add back in the permutation for the "T_{k-1,0}"
+                        #    in the reduction from T_{k-1,a+b-i}
+                        perm = self._Pn.one()
+                        for j in range(2, k+1):  # Recall k is 0-based, we add 1 back from Lemma 2.3(a)
+                            perm = perm.apply_simple_reflection_left(j)
+                        tind = T_index(0, k-1, i, kp)
+                        temp[(tind, perm)] = temp[(tind, self._one_perm)]
+                        del temp[(tind, self._one_perm)]
                     iaxpy(1, temp, ret)
                     temp = {(T_index(exp, kp, i, k-1), self._one_perm): -qm1 * coeff
                             for exp, coeff in enumerate(p) if coeff != zero}
+                    if p[0] != zero:
+                        # We need to add back in the permutation for the "T_{k',0}"
+                        #    in the reduction from T_{k',a+b-i}
+                        perm = self._Pn.one()
+                        for j in range(1, kp+1):  # Recall kp is 0-based
+                            perm = perm.apply_simple_reflection_left(j)
+                        tind = T_index(0, kp, i, k-1)
+                        temp[(tind, perm)] = temp[(tind, self._one_perm)]
+                        del temp[(tind, self._one_perm)]
                     iaxpy(1, temp, ret)
 
             return self._from_dict(ret, remove_zeros=False)

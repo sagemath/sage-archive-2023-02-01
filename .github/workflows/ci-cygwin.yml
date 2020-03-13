@@ -1,6 +1,6 @@
 name: windows-latest
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   cygwin:

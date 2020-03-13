@@ -1745,10 +1745,10 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The facet has at most two non-vertices and corresponds to
                 # two symmetric vertices or a vertex at the origin
                 # in the Gale transform.
-                facet.set_atom_repr()
+                facet.set_atom_rep()
                 counter = 0
                 while counter < length:
-                    if facet.atom_repr[counter] != counter:
+                    if facet.atom_rep[counter] != counter:
                         # We have found our first non-vertex.
                         one = counter
                         break
@@ -1765,7 +1765,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                     # The facet corresponds to two symmetric vertices
                     # of the Gale transform.
                     while counter < length:
-                        if facet.atom_repr[counter] != counter + 1:
+                        if facet.atom_rep[counter] != counter + 1:
                             # We have found our second non-vertex.
                             two = counter + 1
                             break

@@ -2117,11 +2117,11 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.permutahedron(5)
             sage: P.an_affine_basis()
-            [A vertex at (4, 1, 5, 2, 3),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (4, 2, 5, 1, 3),
-             A vertex at (4, 1, 5, 3, 2),
-             A vertex at (1, 2, 3, 4, 5)]
+            [A vertex at (1, 2, 3, 5, 4),
+             A vertex at (2, 1, 3, 5, 4),
+             A vertex at (1, 3, 2, 5, 4),
+             A vertex at (4, 1, 3, 5, 2),
+             A vertex at (4, 2, 5, 3, 1)]
 
         The method is not implemented for unbounded polyhedra::
 
@@ -9719,7 +9719,7 @@ class Polyhedron_base(Element):
             sage: A, b = P.affine_hull_projection(orthonormal=True, as_affine_map=True, extend=True)
             sage: Q = P.affine_hull_projection(orthonormal=True, extend=True)
             sage: Q.center()
-            (0.7071067811865475?, 0.7071067811865475?, 2.000000000000000?)
+            (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)
             sage: A(P.center()) + b == Q.center()
             True
 

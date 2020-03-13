@@ -9000,14 +9000,19 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: "orthogonal=True" and "orthonormal=True" work only for compact polyhedra
 
-        Setting ``as_affine_map`` to ``True`` only works in combination
-        with ``orthogonal`` or ``orthonormal`` set to ``True``::
+        Setting ``as_affine_map`` to ``True``
+        without ``orthogonal`` or ``orthonormal`` set to ``True``::
 
             sage: S = polytopes.simplex()
             sage: S.affine_hull(as_affine_map=True)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: "as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"
+            (Vector space morphism represented by the matrix:
+             [1 0 0]
+             [0 1 0]
+             [0 0 1]
+             [0 0 0]
+             Domain: Vector space of dimension 4 over Rational Field
+             Codomain: Vector space of dimension 3 over Rational Field,
+             (0, 0, 0))
 
         If the polyhedron is full-dimensional, it is returned::
 
@@ -9019,7 +9024,8 @@ class Polyhedron_base(Element):
              [0 1 0]
              [0 0 1]
              Domain: Vector space of dimension 3 over Rational Field
-             Codomain: Vector space of dimension 3 over Rational Field, (0, 0, 0))
+             Codomain: Vector space of dimension 3 over Rational Field,
+             (0, 0, 0))
 
         TESTS:
 
@@ -9103,9 +9109,7 @@ class Polyhedron_base(Element):
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), affine_basis[0])
 
             translate_vector = vector(A.base_ring(), affine_basis[0])
-            parent = self.parent().change_ring(A.base_ring(), ambient_dim=self.dim())
-            new_vertices = [A*(vector(A.base_ring(), w) - translate_vector) for w in self.vertices()]
-            return parent.element_class(parent, [new_vertices, [], []], None)
+            return A*(self.change_ring(A.base_ring()) - translate_vector)
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()
@@ -9120,15 +9124,11 @@ class Polyhedron_base(Element):
         # Pick subset of coordinates to coordinatize the affine span
         pivots = matrix(gens).pivots()
 
-        def pivot(indexed):
-            return [indexed[i] for i in pivots]
-
-        vertices = [pivot(_) for _ in self.vertices()]
-        rays = [pivot(_) for _ in self.rays()]
-        lines = [pivot(_) for _ in self.lines()]
+        A = matrix([[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
         if as_affine_map:
-            raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
-        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring(), backend=self.backend())
+            return linear_transformation(A, side='right'), vector(self.base_ring(), self.dim())
+        else:
+            return A*self
 
     def _polymake_init_(self):
         """

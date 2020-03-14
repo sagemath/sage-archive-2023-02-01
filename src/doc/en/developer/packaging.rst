@@ -60,6 +60,52 @@ optional and experimental ones:
   some problems, the package can still be accepted.
 
 
+.. _section-package-source-types:
+
+Package source types
+--------------------
+
+Orthogonal to the division by package types, a package has exactly one of
+the following source types:
+
+#. A ``normal`` package:
+
+   - comes from the tarball named in the required file ``checksums.ini`` and
+     hosted on the Sage mirrors;
+
+   - its version number is defined by the required file ``package-version.txt``;
+
+   - Sage installs the package using build and install scripts
+     (see :ref:`section-spkg-install`);
+
+   - Sage records the version number of the package installed using a file in
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     if ``package-version.txt`` changes.
+
+#. A ``pip`` package:
+
+   - is obtained directly from https://pypi.org/;
+
+   - the version to be installed is determined using the required file
+     ``requirements.txt`` (see
+     https://pip.pypa.io/en/stable/reference/pip_install/#requirements-file-format);
+
+   - Sage installs the package using the ``pip`` package manager;
+
+   - Sage delegates the recording of installed package version numbers to it;
+
+   - by policy, no ``standard`` package is allowed to be a ``pip`` package.
+
+#. A ``script`` package:
+
+   - does not have a version and is not associated with a tarball;
+
+   - installing the package runs the build and install scripts
+     (see :ref:`section-spkg-install`);
+
+   - Sage does not keep track whether the package has been installed.
+
+
 .. _section-directory-structure:
 
 Directory Structure
@@ -127,8 +173,8 @@ See :ref:`section-package-types` for the meaning of these types.
 
 .. _section-spkg-install:
 
-Build and install scripts
--------------------------
+Build and install scripts of normal packages
+--------------------------------------------
 
 The ``spkg-build.in`` and ``spkg-install.in`` files are templates for
 ``bash`` scripts ``spkg-build`` and ``spkg-install``, which build
@@ -243,6 +289,12 @@ at build time,  which should to the appropriate system-specific
 - Otherwise, only ``spkg-install`` is called (without ``$SAGE_SUDO``).  Such
   packages should prefix all commands in ``spkg-install.in`` that write into
   the installation hierarchy with ``$SAGE_SUDO``.
+
+Build and install scripts of script packages
+--------------------------------------------
+
+The build and install scripts of script packages are not subject to templating
+described in the previous section.  They need to be executable shell scripts.
 
 
 .. _section-sdh-helpers:

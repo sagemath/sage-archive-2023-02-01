@@ -290,12 +290,15 @@ at build time,  which should to the appropriate system-specific
   packages should prefix all commands in ``spkg-install.in`` that write into
   the installation hierarchy with ``$SAGE_SUDO``.
 
-Build and install scripts of script packages
---------------------------------------------
+Install scripts of script packages
+----------------------------------
 
-The build and install scripts of script packages are not subject to templating
-described in the previous section.  They need to be executable shell scripts.
+A script package has a single install script named ``spkg-install``.
+It needs to be an executable shell script; it is not subject to the templating
+described in the previous section.
 
+Sage runs ``spkg-install`` from the ``$SAGE_ROOT`` directory in the environment
+obtained by sourcing the files ``src/bin/sage-env`` and ``build/bin/sage-build-env-config``.
 
 .. _section-sdh-helpers:
 

@@ -2402,7 +2402,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 fwd, _, q = do_polred(p)
         else:
             q = p
-            fwd = back = self.polynomial_ring().gen()
+            fwd = self.polynomial_ring().gen()
 
         new_gen = fwd(gen)
         assert new_gen.minpoly() == q

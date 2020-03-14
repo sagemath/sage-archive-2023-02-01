@@ -219,20 +219,20 @@ endif
 # two rules in the form:
 #
 # <pkgname>: <dependencies>
-#     $(AM_V_at)sage-logger -p 'sage --pip install <pkgname>' '$(SAGE_LOGS)/<pkgname>.log'
+#     $(AM_V_at)sage-logger -p 'sage --pip install ...' '$(SAGE_LOGS)/<pkgname>.log'
 #
 # <pkgname>-clean:
-#     -sage --pip uninstall -y <pkgname>
+#     -sage --pip uninstall -y ...
 
 # Positional arguments:
 #     $(1): package name
 #     $(2): package dependencies
 define PIP_PACKAGE_templ
 $(1): $(2)
-	$(AM_V_at)sage-logger -p 'sage --pip install $(1)' '$$(SAGE_LOGS)/$(1).log'
+	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
-	-sage --pip uninstall -y $(1)
+	-sage --pip uninstall -y -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
 
 endef
 

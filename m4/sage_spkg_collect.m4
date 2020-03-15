@@ -197,7 +197,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'
 
-    if test "$SPKG_NAME" != "$SPKG_VERSION"; then
         AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
         AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
         AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
@@ -233,7 +232,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         AS_VAR_POPDEF([sage_use_system])dnl
         AS_VAR_POPDEF([sage_require])dnl
         AS_VAR_POPDEF([sage_spkg_install])dnl
-    fi
 
     # Packages that should be included in the source distribution
     # This includes all standard packages and two special cases

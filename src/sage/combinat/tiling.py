@@ -481,7 +481,7 @@ class Polyomino(SageObject):
     - ``color`` -- string (default: ``'gray'``), color for display
     - ``dimension`` -- integer (default: ``None``), dimension of the space, 
       if ``None``, it is guessed from the ``coords`` if ``coords`` is non
-      empty.
+      empty
 
     EXAMPLES::
 
@@ -527,7 +527,7 @@ class Polyomino(SageObject):
                 self._dimension = ZZ(len(coords[0]))
             else:
                 raise ValueError("dimension(={}) must be provided for"
-                             " the empty polyomino".format(dimension))
+                                 " the empty polyomino".format(dimension))
         else:
             self._dimension = dimension
         self._free_module = FreeModule(ZZ, self._dimension)
@@ -652,7 +652,7 @@ class Polyomino(SageObject):
 
     def __eq__(self, other):
         r"""
-        Return whether self is equal to other.
+        Return whether ``self`` is equal to ``other``.
 
         INPUT:
 
@@ -677,7 +677,7 @@ class Polyomino(SageObject):
 
     def __ne__(self, other):
         r"""
-        Return whether self is not equal to other.
+        Return whether ``self`` is not equal to ``other``.
 
         INPUT:
 
@@ -702,7 +702,7 @@ class Polyomino(SageObject):
 
     def __le__(self, other):
         r"""
-        Return whether self is inside of other.
+        Return whether ``self`` is inside of ``other``.
 
         INPUT:
 
@@ -726,7 +726,7 @@ class Polyomino(SageObject):
 
     def __ge__(self, other):
         r"""
-        Return whether self contains other.
+        Return whether ``self`` contains ``other``.
 
         INPUT:
 
@@ -750,7 +750,7 @@ class Polyomino(SageObject):
 
     def __lt__(self, other):
         r"""
-        Return whether self is strictly inside of other.
+        Return whether ``self`` is strictly inside of ``other``.
 
         INPUT:
 
@@ -774,7 +774,7 @@ class Polyomino(SageObject):
 
     def __gt__(self, other):
         r"""
-        Return whether self strictly contains other.
+        Return whether ``self`` strictly contains ``other``.
 
         INPUT:
 
@@ -798,7 +798,7 @@ class Polyomino(SageObject):
 
     def intersection(self, other):
         r"""
-        Return the intersection of self and other.
+        Return the intersection of ``self`` and ``other``.
 
         INPUT:
 
@@ -806,7 +806,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            polyomino
+        polyomino
 
         EXAMPLES::
 
@@ -821,11 +821,11 @@ class Polyomino(SageObject):
         if not isinstance(other, Polyomino):
             raise TypeError("other(={}) must be a polyomino".format(other))
         return Polyomino(self.frozenset() & other.frozenset(),
-                color=self._color, dimension=self._dimension)
+                         color=self._color, dimension=self._dimension)
 
     def __sub__(self, v):
         r"""
-        Return a translated copy of self by the opposite of the
+        Return a translated copy of ``self`` by the opposite of the
         vector v.
 
         INPUT:
@@ -848,7 +848,7 @@ class Polyomino(SageObject):
 
     def __add__(self, v):
         r"""
-        Return a translated copy of self by the vector v.
+        Return a translated copy of ``self`` by the vector v.
 
         INPUT:
 
@@ -907,7 +907,7 @@ class Polyomino(SageObject):
 
     def canonical(self):
         r"""
-        Return the translated copy of self having minimal and nonnegative
+        Return the translated copy of ``self`` having minimal and nonnegative
         coordinates
 
         EXAMPLES::
@@ -934,14 +934,14 @@ class Polyomino(SageObject):
     def canonical_isometric_copies(self, orientation_preserving=True,
             mod_box_isometries=False):
         r"""
-        Return the list of image of self under isometries of the `n`-cube
+        Return the list of image of ``self`` under isometries of the `n`-cube
         where the coordinates are all nonnegative and minimal.
 
         INPUT:
 
-        - ``orientation_preserving`` -- bool (optional, default: ``True``),
-          If True, the group of isometries of the `n`-cube is restricted to
-          those that preserve the orientation, i.e. of determinant 1.
+        - ``orientation_preserving`` -- bool (optional, default: ``True``);
+          if ``True``, the group of isometries of the `n`-cube is restricted
+          to those that preserve the orientation, i.e. of determinant 1.
 
         - ``mod_box_isometries`` -- bool (default: ``False``), whether to
           quotient the group of isometries of the `n`-cube by the
@@ -992,7 +992,7 @@ class Polyomino(SageObject):
 
     def translated_copies(self, box):
         r"""
-        Return an iterator over the translated images of self inside a
+        Return an iterator over the translated images of ``self`` inside a
         polyomino.
 
         INPUT:
@@ -1096,7 +1096,7 @@ class Polyomino(SageObject):
     def translated_copies_intersection(self, box):
         r"""
         Return the set of non empty intersections of translated images of
-        self with a polyomino.
+        ``self`` with a polyomino.
 
         INPUT:
 
@@ -1104,7 +1104,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            set of 3d polyominoes
+        set of 3d polyominoes
 
         EXAMPLES::
 
@@ -1121,7 +1121,7 @@ class Polyomino(SageObject):
              [(1, 1)],
              [(1, 2)]]
 
-        Using a Polyomino as input ::
+        Using a Polyomino as input::
 
             sage: b = Polyomino([(0,0), (0,1), (0,2), (1,0), (2,0)])
             sage: p = Polyomino([(0,0), (1,0)])
@@ -1154,15 +1154,15 @@ class Polyomino(SageObject):
     def isometric_copies(self, box, orientation_preserving=True,
             mod_box_isometries=False):
         r"""
-        Return the translated and isometric images of self that lies in the box.
+        Return the translated and isometric images of ``self`` that lies in the box.
 
         INPUT:
 
         - ``box`` -- Polyomino or tuple of integers (size of a box)
 
-        - ``orientation_preserving`` -- bool (optional, default: ``True``),
-          If True, the group of isometries of the `n`-cube is restricted to
-          those that preserve the orientation, i.e. of determinant 1.
+        - ``orientation_preserving`` -- bool (optional, default: ``True``);
+          If ``True``, the group of isometries of the `n`-cube is restricted
+          to those that preserve the orientation, i.e. of determinant 1.
 
         - ``mod_box_isometries`` -- bool (default: ``False``), whether to
           quotient the group of isometries of the `n`-cube by the
@@ -1223,15 +1223,15 @@ class Polyomino(SageObject):
     def isometric_copies_intersection(self, box, orientation_preserving=True):
         r"""
         Return the set of non empty intersections of isometric images of
-        self with a polyomino.
+        ``self`` with a polyomino.
 
         INPUT:
 
         - ``box`` -- Polyomino or tuple of integers (size of a box)
 
-        - ``orientation_preserving`` -- bool (optional, default: ``True``),
-          If True, the group of isometries of the `n`-cube is restricted to
-          those that preserve the orientation, i.e. of determinant 1.
+        - ``orientation_preserving`` -- bool (optional, default: ``True``);
+          if ``True``, the group of isometries of the `n`-cube is restricted
+          to those that preserve the orientation, i.e. of determinant 1.
 
         EXAMPLES::
 
@@ -1255,11 +1255,8 @@ class Polyomino(SageObject):
         """
         all_distinct_cano = self.canonical_isometric_copies(orientation_preserving,
                                                             mod_box_isometries=False)
-        S = set()
-        for cano in all_distinct_cano:
-            for t in cano.translated_copies_intersection(box=box):
-                S.add(t)
-        return S
+        return set([t for cano in all_distinct_cano
+                    for t in cano.translated_copies_intersection(box=box)])
 
     def neighbor_edges(self):
         r"""
@@ -1445,9 +1442,9 @@ class Polyomino(SageObject):
 
 
     def self_surrounding(self, radius, remove_incomplete_copies=True,
-            ncpus=None):
+                         ncpus=None):
         r"""
-        Return a list of isometric copies of self surrounding it with an
+        Return a list of isometric copies of ``self`` surrounding it with an
         annulus of given radius.
 
         INPUT:
@@ -1455,7 +1452,7 @@ class Polyomino(SageObject):
         - ``self`` - a polyomino of dimension 2
         - ``radius`` - integer
         - ``remove_incomplete_copies`` -- bool (default: ``True``), whether
-          to keep only complete copies of self in the output
+          to keep only complete copies of ``self`` in the output
         - ``ncpus`` -- integer (default: ``None``), maximal number of
           subprocesses to use at the same time. If ``None``, it detects the
           number of effective CPUs in the system using
@@ -1464,7 +1461,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            list of polyominoes
+        list of polyominoes
 
         EXAMPLES::
 
@@ -1508,7 +1505,7 @@ class Polyomino(SageObject):
         # Solve
         solution = d.one_solution(ncpus=ncpus)
         if solution is None:
-            raise Exception('No solution was found with radius={}, '
+            raise ValueError('No solution was found with radius={}, '
             'this tile can not be surrounded by itself'.format(radius))
 
         # Recover the polyominoes

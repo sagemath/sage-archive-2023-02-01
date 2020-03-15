@@ -70,11 +70,11 @@ from sage.data_structures.blas_dict import iaxpy
 
 # ABC for basis classes
 class _Basis(CombinatorialFreeModule, BindableClass):
-    """
+    r"""
     Abstract base class for bases of the Ariki-Koike algebra.
     """
     def __init__(self, algebra, prefix='AK'):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
@@ -265,7 +265,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
     """
     @staticmethod
     def __classcall_private__(cls, r, n, q=None, u=None, R=None):
-        """
+        r"""
         Standardize input to ensure a unique representation.
 
         TESTS::
@@ -315,7 +315,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
         return super(ArikiKoikeAlgebra, cls).__classcall__(cls, r, n, q, u, R)
 
     def __init__(self, r, n, q, u, R):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
@@ -342,7 +342,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
         LT.module_morphism(T._from_LT_basis, codomain=T).register_as_coercion()
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -398,7 +398,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
     u = cyclotomic_parameters
 
     def a_realization(self):
-        """
+        r"""
         Return a realization of ``self``.
 
         EXAMPLES::
@@ -467,7 +467,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             specialized in a basis.
             """
             def _repr_(self):
-                """
+                r"""
                 Text representation of this basis of Iwahori-Hecke algebra.
 
                 EXAMPLES::
@@ -576,7 +576,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
         renormalized Jucys-Murphy elements.
         """
         def __init__(self, algebra):
-            """
+            r"""
             Initialize ``self``.
 
             EXAMPLES::
@@ -594,7 +594,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             self._assign_names(self.algebra_generators().keys())
 
         def _repr_term(self, m):
-            """
+            r"""
             Return a string representation of the basis element indexed by ``m``.
 
             EXAMPLES::
@@ -637,7 +637,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             return lhs + ' ' + ' '.join("T_{%d}"%i for i in redword)
 
         def _from_T_basis(self, t):
-            """
+            r"""
             Return the image of the `T` basis element indexed
             by ``t`` in ``self``.
 
@@ -1152,7 +1152,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
         element in `\mathfrak{S}_n`.
         """
         def __init__(self, algebra):
-            """
+            r"""
             Initialize ``self``.
 
             EXAMPLES::
@@ -1170,7 +1170,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             self._assign_names(['T%s'%i for i in range(self._n)])
 
         def _repr_term(self, t):
-            """
+            r"""
             Return a string representation of the basis element indexed by ``m``.
 
             EXAMPLES::
@@ -1212,7 +1212,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                            for i in redword)
 
         def _from_LT_basis(self, m):
-            """
+            r"""
             Return the image of the `LT` basis element indexed
             by ``m`` in ``self``.
 
@@ -1364,7 +1364,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
         @cached_method
         def product_on_basis(self, m1, m2):
-            """
+            r"""
             Return the product of the basis elements indexed
             by ``m1`` and ``m2``.
 
@@ -1544,7 +1544,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
         @lazy_attribute
         def _T0_polynomial(self):
-            """
+            r"""
             Return `p` such that `T0^{r-1} - p = \prod_{i=0}^{r-1} (T_0 - u_i)`.
 
             OUTPUT:
@@ -1565,7 +1565,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             return -prod(z - val for val in self._u).truncate(self._r)
 
         def _reduced_T0_power(self, exp):
-            """
+            r"""
             Return the element `T_0` to the power ``exp`` in terms
             of `T_0^k` for `k < r`.
 
@@ -1598,7 +1598,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
         @cached_method
         def _product_TT(self, kp, a, k, b):
-            """
+            r"""
             Return the product `T_{k',a} T_{k,b}` with `k' \geq k` in terms
             of the basis elements of ``self``.
 

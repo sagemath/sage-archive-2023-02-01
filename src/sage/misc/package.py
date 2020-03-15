@@ -284,7 +284,7 @@ def list_packages(*pkg_types, **opts):
                 pkg['remote_version'] = f.read().strip()
             pkg['installed_version'] = installed.get(p)
         else:
-            pkg['remote_version'] = p
+            pkg['remote_version'] = 'none'
 
         pkgs[p] = pkg
 

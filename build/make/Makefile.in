@@ -201,6 +201,7 @@ $(1)-clean:
 	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
 		$(1) '$(SAGE_LOCAL)'
 
+.PHONY: $(1) $(1)-clean
 endef
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\
@@ -234,6 +235,7 @@ $(1): $(2)
 $(1)-clean:
 	-sage --pip uninstall -y -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
 
+.PHONY: $(1) $(1)-clean
 endef
 
 $(foreach pkgname,$(PIP_PACKAGES),\
@@ -280,6 +282,7 @@ $(1)-clean:
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 	-rm -f "$$(INST)/$(1)-$(2)"
 
+.PHONY: $(1) $(1)-clean
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\

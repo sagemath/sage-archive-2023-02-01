@@ -98,12 +98,16 @@ the following source types:
 
 #. A ``script`` package:
 
-   - does not have a version and is not associated with a tarball;
+   - is not associated with a tarball;
+
+   - the file ``package-version.txt`` is optional;
 
    - installing the package runs the build and install scripts
      (see :ref:`section-spkg-install`);
 
-   - Sage does not keep track whether the package has been installed.
+   - Sage records the version number of the package installed using a file in
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     if ``package-version.txt`` changes.
 
 
 .. _section-directory-structure:

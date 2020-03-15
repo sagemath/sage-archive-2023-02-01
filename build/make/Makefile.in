@@ -249,10 +249,12 @@ endif
 # Generate build rules for 'script' packages; this template is used to generate
 # two rules in the form:
 #
-# <pkgname>: <dependencies>
+# $(INST)/<pkgname>-<pkgvers>: <dependencies>
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\
 #         source '$SAGE_ROOT/src/bin/sage-env' && \\
 #         sage-logger -p '$SAGE_ROOT/build/pkgs/<pkgname>/spkg-install' '$(SAGE_LOGS)/<pkgname>.log'
+#
+# <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
 # <pkgname>-clean:
 #     -$(AM_V_at)cd '$SAGE_ROOT' && \\
@@ -261,27 +263,32 @@ endif
 
 # Positional arguments:
 #     $(1): package name
-#     $(2): package dependencies
+#     $(2): package version
+#     $(3): package dependencies
 define SCRIPT_PACKAGE_templ
-$(1): $(2)
+$$(INST)/$(1)-$(2): $(3)
 	$(AM_V_at)cd '$$(SAGE_ROOT)' && \
 		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1).log'
+	touch "$$@"
+
+$(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
 		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
+	-rm -f "$$(INST)/$(1)-$(2)"
 
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
-	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
 
 ifdef DEBUG_RULES
 $(info # Rules for script packages)
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
-	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
 endif
 
 

@@ -92,7 +92,7 @@ newest_version() {
     if test -f "$SAGE_ROOT/build/pkgs/$SPKG/package-version.txt" ; then
         cat "$SAGE_ROOT/build/pkgs/$SPKG/package-version.txt"
     else
-        echo "$SPKG"
+        echo none
     fi
 }
 

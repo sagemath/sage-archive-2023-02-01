@@ -171,11 +171,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         message="experimental, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
         uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
-    script)
-        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
-        ;;
     *)
-        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', or 'script'])
+        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', or 'experimental'])
         ;;
     esac
 

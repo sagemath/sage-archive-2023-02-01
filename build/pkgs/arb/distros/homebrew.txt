@@ -1,1 +1,3 @@
-sagemath/science/arb
+## This package depends on ntl, the homebrew package of which we cannot use
+## because it is built with NTL_THREADS.  See https://trac.sagemath.org/ticket/29339
+# sagemath/science/arb

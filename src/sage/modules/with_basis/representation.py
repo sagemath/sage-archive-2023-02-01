@@ -549,3 +549,78 @@ class TrivialRepresentation(Representation_abstract):
 
         _rmul_ = _lmul_ = _acted_upon_
 
+
+class SignRepresentation(Representation_abstract):
+    """
+    The sign representation of a semigroup.
+
+    The sign representation of a semigroup `S` over a commutative ring
+    `R` is the `1`-dimensional `R`-module on which every element of `S`
+    acts by 1 if order of element is even (including 0) or -1 if order of element if odd.
+
+    This is simultaneously a left and right representation.
+
+    INPUT:
+
+    - ``semigroup`` -- a semigroup
+    - ``base_ring`` -- the base ring for the representation
+
+    REFERENCES:
+
+    - :wikipedia:`Representation_theory_of_the_symmetric_group`
+    """
+
+    def __init__(self, semigroup, base_ring):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.PGL(2, 3)
+            sage: V = G.sign_representation()
+            sage: TestSuite(V).run()
+        """
+        cat = Modules(base_ring).WithBasis().FiniteDimensional()
+        Representation_abstract.__init__(
+            self, semigroup, base_ring, ["+", "-"], category=cat
+        )
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: G.sign_representation()
+            Sign representation of Dihedral group of order 8
+             as a permutation group over Integer Ring
+        """
+        return "Sign representation of {} over {}".format(
+            self._semigroup, self.base_ring()
+        )
+
+    def side(self):
+        """
+        Return that ``self`` is a two-sided representation.
+
+        OUTPUT:
+
+        - the string ``"twosided"``
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: R = G.sign_representation()
+            sage: R.side()
+            'twosided'
+        """
+        return "twosided"
+
+    class Element(CombinatorialFreeModule.Element):
+
+        def _acted_upon_(self, scalar, self_on_left=False):
+            # TODO: Implement the twosided action
+            pass
+
+        _rmul_ = _lmul_ = _acted_upon_

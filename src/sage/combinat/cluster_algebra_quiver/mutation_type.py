@@ -1,4 +1,6 @@
 r"""
+Helper functions for mutation types of quivers
+
 This file contains helper functions for detecting the mutation type of
 a cluster algebra or quiver.
 

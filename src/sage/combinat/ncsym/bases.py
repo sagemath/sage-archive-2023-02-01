@@ -1,16 +1,16 @@
 r"""
-Bases for `NCSym`.
+Bases for `NCSym`
 
 AUTHORS:
 
 - Travis Scrimshaw (08-04-2013): Initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -21,6 +21,7 @@ from sage.categories.realizations import Category_realization_of_parent #, Reali
 from sage.categories.all import ModulesWithBasis, tensor, Hom
 from sage.combinat.set_partition import SetPartition, SetPartitions
 from sage.combinat.free_module import CombinatorialFreeModule
+
 
 class NCSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """

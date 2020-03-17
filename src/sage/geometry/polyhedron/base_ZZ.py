@@ -550,10 +550,10 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p.is_reflexive()
             Traceback (most recent call last):
             ...
-            ValueError: the polyhedron should be compact
+            ValueError: the polyhedron is not compact
         """
         if not self.is_compact():
-            raise ValueError("the polyhedron should be compact")
+            raise ValueError("the polyhedron is not compact")
 
         for H in self.Hrepresentation():
             if H.is_equation():

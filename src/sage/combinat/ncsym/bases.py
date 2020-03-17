@@ -17,7 +17,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
-from sage.categories.realizations import Category_realization_of_parent #, Realizations
+from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.all import ModulesWithBasis, tensor, Hom
 from sage.combinat.set_partition import SetPartition, SetPartitions
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -46,6 +46,7 @@ class NCSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         if isinstance(x, (list, tuple)):
             x = SetPartition(x)
         return super(NCSymBasis_abstract, self)._element_constructor_(x)
+
 
 class NCSymOrNCSymDualBases(Category_realization_of_parent):
     r"""
@@ -110,10 +111,10 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                  deformed_coarse_powersum basis with parameter q
             """
             str = "{} in the {} basis".format(self.realization_of(), self._realization_name())
-            if hasattr(self,'_q'):
+            if hasattr(self, '_q'):
                 str += " with parameter q"
-                if repr(self._q)!='q':
-                    str += "="+repr(self._q)
+                if repr(self._q) != 'q':
+                    str += "=" + repr(self._q)
             return str
 
         def __getitem__(self, i):
@@ -300,9 +301,9 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
             from sage.matrix.constructor import matrix
             # TODO: generalize to keys indexing the basis of the graded component
             return matrix(self.base_ring(),
-                    [[self.duality_pairing(self[I], basis[J]) \
-                            for J in SetPartitions(degree)] \
-                            for I in SetPartitions(degree)])
+                    [[self.duality_pairing(self[I], basis[J])
+                      for J in SetPartitions(degree)]
+                     for I in SetPartitions(degree)])
 
     class ElementMethods:
         def duality_pairing(self, other):
@@ -326,6 +327,7 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                 0
             """
             return self.parent().duality_pairing(self, other)
+
 
 class NCSymBases(Category_realization_of_parent):
     r"""
@@ -454,7 +456,7 @@ class NCSymBases(Category_realization_of_parent):
             p = self.realization_of().p()
             return self(p.primitive(A, i))
 
-        @abstract_method(optional = True)
+        @abstract_method(optional=True)
         def internal_coproduct_on_basis(self, i):
             """
             The internal coproduct of the algebra on the basis (optional).
@@ -647,16 +649,16 @@ class NCSymBases(Category_realization_of_parent):
             R = parent.base_ring()
             m = NCSym.monomial()
             from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctions
-            from sage.combinat.set_partition_ordered import OrderedSetPartition
             M = WordQuasiSymmetricFunctions(R).M()
             from itertools import permutations
             OSP = M.basis().keys()
+
             def to_wqsym_on_m_basis(A):
                 # Return the image of `\mathbf{m}_A` under the inclusion
                 # map `NCSym \to WQSym`.
                 l = len(A)
                 return M.sum_of_terms(((OSP([A[ui] for ui in u]), 1)
-                                         for u in permutations(range(l))),
+                                       for u in permutations(range(l))),
                                       distinct=True)
             return M.linear_combination((to_wqsym_on_m_basis(A), coeff)
                                         for A, coeff in m(self))
@@ -722,6 +724,7 @@ class NCSymBases(Category_realization_of_parent):
             e = P.realization_of().e()
             h = P.realization_of().h()
             return P(h.sum_of_terms(e(self)))
+
 
 class MultiplicativeNCSymBases(Category_realization_of_parent):
     r"""
@@ -825,10 +828,11 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
                 sage: p.product_on_basis(A,B)==p(e(p(A))*e(p(B)))
                 True
             """
-            return self.monomial( A.pipe(B) )
+            return self.monomial(A.pipe(B))
 
     class ElementMethods:
         pass
+
 
 class NCSymDualBases(Category_realization_of_parent):
     r"""
@@ -872,4 +876,3 @@ class NCSymDualBases(Category_realization_of_parent):
         """
         return "Category of bases of dual symmetric functions in non-commuting"\
                " variables over the {}".format(self.base().base_ring())
-

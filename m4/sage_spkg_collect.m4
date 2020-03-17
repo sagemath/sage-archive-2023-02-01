@@ -182,6 +182,25 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         ;;
     esac
 
+    case "$SPKG_TYPE" in
+    optional|experimental)
+        stampfile=""
+        for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do
+            AS_IF([test -r "$f"], [
+                AS_IF([test -n "$stampfile"], [
+                    AC_MSG_ERROR(m4_normalize([
+                        multiple installation records for $SPKG_NAME:
+                        m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
+                        m4_newline([only one should exist, so please delete some or all
+                        of these files and re-run \"$srcdir/configure\"])
+                    ]))
+                ])
+                stampfile=yes
+            ])
+        done
+        ;;
+    esac
+
     SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'
 
     if test "$SPKG_NAME" != "$SPKG_VERSION"; then

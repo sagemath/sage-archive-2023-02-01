@@ -278,8 +278,24 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
         'cdd'
 
     A gale transform corresponds to a polytope if and only if
-    every (linear) hyperplane not containing any vector
+    every oriented (linear) hyperplane
     has at least two vectors on each side.
+    See Theorem 6.19 of [Zie2007]_.
+    If this is not the case, one of two errors is raised.
+
+    If there is such a hyperplane with no vector on one side,
+    the vectors are not totally cyclic::
+
+        sage: gale_transform_to_polytope([(0,1), (1,1), (1,0), (-1,0)])
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
+
+    If every hyperplane has at least one vector on each side, then the gale
+    transform corresponds to a point configuration.
+    It corresponds to a polytope if and only if this point configuration is
+    convex if and only if every hyperplane contains at least two vectors of
+    the gale transform on each side.
 
     If this is not the case, an error is raised::
 
@@ -287,11 +303,6 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
         Traceback (most recent call last):
         ...
         ValueError: the gale transform does not correspond to a polytope
-
-        sage: gale_transform_to_polytope([(0,1), (1,1), (1,0), (-1,0)])
-        Traceback (most recent call last):
-        ...
-        ValueError: input vectors not totally cyclic
 
     TESTS::
 
@@ -309,8 +320,16 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
     """
     vertices = gale_transform_to_primal(vectors, base_ring, backend)
     P = Polyhedron(vertices=vertices, base_ring=base_ring, backend=backend)
+
     if not P.n_vertices() == len(vertices):
+        # If the input vectors are not totally cyclic, ``gale_transform_to_primal``
+        # raises an error.
+        # As no error was raised so far, the gale transform corresponds to
+        # to a point configuration.
+        # It corresponds to a polytope if and only if
+        # ``vertices`` are in convex position.
         raise ValueError("the gale transform does not correspond to a polytope")
+
     return P
 
 def gale_transform_to_primal(vectors, base_ring=None, backend=None):
@@ -346,22 +365,23 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     ALGORITHM:
 
-    We assume the centroid of the (input) vectors to be the origin.
-    We stack ``Matrix(vectors)`` by a row of ones.
-    The right kernel of this is the dual point configuration.
+    Step 1: If the centroid of the (input) vectors is not the origin,
+    we do an appropriate transformation to make it so.
 
-    More concretely, the dual vector configuration is obtained by
-    taking a basis of the right kernel of ``Matrix(vectors)``.
+    Step 2: We add a row of ones on top of ``Matrix(vectors)``.
+    The right kernel of this larger matrix is the dual configuration space,
+    and a basis of this space provides the dual point configuration.
 
+    More concretely, the dual vector configuration (inhomogeneous)
+    is obtained by taking a basis of the right kernel of ``Matrix(vectors)``.
     If the centroid of the (input) vectors is the origin,
-    we can extend the all-ones vector to a basis of the right kernel.
-    In this case the dual vector configuration can be taken to be
-    the columns of ``[[1], [V]]``, where ``[1]`` represents
-    a row of all-ones. Clearly, ``V`` is a dehomogenization.
+    there exists a basis of the right kernel of the form
+    ``[[1], [V]]``, where ``[1]`` represents a row of ones.
+    Then, ``V`` is a dehomogenization and thus the dual point configuration.
 
-    Extending the all-ones vector to a basis of the right kernel is
-    done by stacking a row of ones on ``Matrix(vectors)`` and then
-    taking the right kernel.
+    To extend ``[1]`` to a basis of ``Matrix(vectors)``, we add
+    a row of ones to ``Matrix(vectors)`` and calculate a basis of the
+    right kernel of the obtained matrix.
 
     REFERENCES:
 
@@ -426,6 +446,13 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
         Traceback (most recent call last):
         ...
         ValueError: input vectors not totally cyclic
+
+        sage: gale_transform_to_primal(
+        ....:     [(1,1,0), (-1,-1,0), (1,0,0),
+        ....:      (-1,0,0), (1,-1,0), (-2,1,0)], backend='field')
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
     """
     from sage.modules.free_module_element import vector
     from sage.matrix.all import Matrix
@@ -473,6 +500,12 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
         m = Matrix(base_ring, vectors).transpose().stack(Matrix(base_ring, [[1]*len(vectors)]))
     else:
         m = Matrix(vectors).transpose().stack(Matrix([[1]*len(vectors)]))
+
+    if m.rank() != len(vectors[0]) + 1:
+        # The given vectors do not span the ambient space,
+        # then there exists a nonnegative value vector.
+        raise ValueError("input vectors not totally cyclic")
+
     return m.right_kernel_matrix(basis='computed').columns()
 
 

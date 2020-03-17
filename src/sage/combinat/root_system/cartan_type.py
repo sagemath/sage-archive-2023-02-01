@@ -3066,21 +3066,21 @@ class CartanType_simple_finite(object):
 
             sage: pg_CartanType_simple_finite = unpickle_global('sage.combinat.root_system.cartan_type', 'CartanType_simple_finite')
             sage: si1 = unpickle_newobj(pg_CartanType_simple_finite, ())
-            sage: pg_unpickleModule = unpickle_global('twisted.persisted.styles', 'unpickleModule')
-            sage: pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
-            sage: si2 = pg_make_integer('4')
-            sage: unpickle_build(si1, {'tools':pg_unpickleModule('sage.combinat.root_system.type_A'), 't':['A', si2], 'letter':'A', 'n':si2})
+            sage: pg_unpickleModule = unpickle_global('twisted.persisted.styles', 'unpickleModule') # optional - twisted
+            sage: pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer') # optional - twisted
+            sage: si2 = pg_make_integer('4') # optional - twisted
+            sage: unpickle_build(si1, {'tools':pg_unpickleModule('sage.combinat.root_system.type_A'), 't':['A', si2], 'letter':'A', 'n':si2}) # optional - twisted
 
-            sage: si1
+            sage: si1 # optional - twisted
             ['A', 4]
-            sage: si1.dynkin_diagram()
+            sage: si1.dynkin_diagram() # optional - twisted
             O---O---O---O
             1   2   3   4
             A4
 
         This is quite hacky; in particular unique representation is not preserved::
 
-            sage: si1 == CartanType(["A", 4]) # todo: not implemented
+            sage: si1 == CartanType(["A", 4]) # todo: not implemented # optional - twisted
             True
         """
         T = CartanType([dict['letter'], dict['n']])

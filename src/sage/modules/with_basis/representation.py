@@ -552,9 +552,9 @@ class TrivialRepresentation(Representation_abstract):
 
 class SignRepresentation(Representation_abstract):
     """
-    The sign representation of a semigroup.
+    The sign representation of a permutation group.
 
-    The sign representation of a semigroup `S` over a commutative ring
+    The sign representation of a permutation `S` over a commutative ring
     `R` is the `1`-dimensional `R`-module on which every element of `S`
     acts by 1 if order of element is even (including 0) or -1 if order of element if odd.
 
@@ -562,7 +562,7 @@ class SignRepresentation(Representation_abstract):
 
     INPUT:
 
-    - ``semigroup`` -- a semigroup
+    - ``permgroup`` -- a permgroup
     - ``base_ring`` -- the base ring for the representation
 
     REFERENCES:
@@ -570,7 +570,7 @@ class SignRepresentation(Representation_abstract):
     - :wikipedia:`Representation_theory_of_the_symmetric_group`
     """
 
-    def __init__(self, semigroup, base_ring):
+    def __init__(self, permGroup, base_ring):
         """
         Initialize ``self``.
 
@@ -581,8 +581,10 @@ class SignRepresentation(Representation_abstract):
             sage: TestSuite(V).run()
         """
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
+        self._on_basis =lambda g,m:self.term( m,g.sign())
+
         Representation_abstract.__init__(
-            self, semigroup, base_ring, ["+", "-"], category=cat
+            self, permGroup, base_ring, ["v"], category=cat
         )
 
     def _repr_(self):
@@ -620,7 +622,22 @@ class SignRepresentation(Representation_abstract):
     class Element(CombinatorialFreeModule.Element):
 
         def _acted_upon_(self, scalar, self_on_left=False):
-            # TODO: Implement the twosided action
-            pass
+            if isinstance(scalar, Element):
+                P = self.parent()
+                if scalar.parent() is P._semigroup:
+                    if not self:
+                        return self
+                    return P.linear_combination(((P._on_basis(scalar, m), c)
+                                                 for m,c in self), not self_on_left)
+
+                if scalar.parent() is P._semigroup_algebra:
+                    if not self:
+                        return self
+                    ret = P.zero()
+                    for ms,cs in scalar:
+                        ret += P.linear_combination(((P._on_basis(ms, m), cs*c)
+                                                    for m,c in self), not self_on_left)
+                    return ret
+            return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_

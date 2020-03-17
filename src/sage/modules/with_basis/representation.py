@@ -580,6 +580,9 @@ class SignRepresentation(Representation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
+        if not isinstance(G,FiniteGroup):
+            raise ValueError("Sign Representation is only defined over FiniteGroups and not over {}".format(type(G)))
+
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
         self._on_basis =lambda g,m:self.term( m,g.sign())
 

@@ -274,8 +274,8 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
         sage: gale_transform_to_polytope(
         ....:     [(1,1), (-1,-1), (1,0),
         ....:      (-1,0), (1,-1), (-2,1)],
-        ....:     backend='cdd', base_ring=RDF)
-        A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 6 vertices
+        ....:     backend='cdd', base_ring=RDF).backend()
+        'cdd'
 
     A gale transform corresponds to a polytope if and only if
     every (linear) hyperplane not containing any vector

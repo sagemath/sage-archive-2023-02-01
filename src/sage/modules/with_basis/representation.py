@@ -580,11 +580,15 @@ class SignRepresentation(Representation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
-        if not isinstance(G,FiniteGroup):
-            raise ValueError("Sign Representation is only defined over FiniteGroups and not over {}".format(type(G)))
+        if not isinstance(permGroup, FiniteGroup):
+            raise ValueError(
+                "Sign Representation is only defined over FiniteGroups and not over {}".format(
+                    type(permGroup)
+                )
+            )
 
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
-        self._on_basis =lambda g,m:self.term( m,g.sign())
+        self._on_basis = lambda g, m: self.term(m, g.sign())
 
         Representation_abstract.__init__(
             self, permGroup, base_ring, ["v"], category=cat
@@ -658,23 +662,29 @@ class SignRepresentation(Representation_abstract):
                 sage:(c-s)*x
                 4*B['v']
             """
+
         def _acted_upon_(self, scalar, self_on_left=False):
             if isinstance(scalar, Element):
                 P = self.parent()
                 if scalar.parent() is P._semigroup:
                     if not self:
                         return self
-                    return P.linear_combination(((P._on_basis(scalar, m), c)
-                                                 for m,c in self), not self_on_left)
+                    return P.linear_combination(
+                        ((P._on_basis(scalar, m), c) for m, c in self), not self_on_left
+                    )
 
                 if scalar.parent() is P._semigroup_algebra:
                     if not self:
                         return self
                     ret = P.zero()
-                    for ms,cs in scalar:
-                        ret += P.linear_combination(((P._on_basis(ms, m), cs*c)
-                                                    for m,c in self), not self_on_left)
+                    for ms, cs in scalar:
+                        ret += P.linear_combination(
+                            ((P._on_basis(ms, m), cs * c) for m, c in self),
+                            not self_on_left,
+                        )
                     return ret
-            return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
+            return CombinatorialFreeModule.Element._acted_upon_(
+                self, scalar, self_on_left
+            )
 
         _rmul_ = _lmul_ = _acted_upon_

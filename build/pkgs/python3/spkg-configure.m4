@@ -13,8 +13,8 @@ SAGE_SPKG_CONFIGURE([python3], [
                             dnl Because the system python is not used directly but rather in a venv without site-packages,
                             dnl we test whether the module will be available in a venv.
                             dnl Otherwise, some system site-package may be providing this module to the system python.
-                            rm -rf config_venv
-                            AS_IF(["$ac_path_PYTHON3" -m venv --without-pip --symlinks config_venv && config_venv/bin/python3 -c "import $check_modules"], [
+                            rm -rf conftest_venv
+                            AS_IF(["$ac_path_PYTHON3" -m venv --without-pip --symlinks conftest_venv && conftest_venv/bin/python3 -c "import $check_modules"], [
                                 AC_LANG_PUSH([C])
                                 AC_LANG_CONFTEST([
                                     AC_LANG_SOURCE([[
@@ -50,7 +50,7 @@ modules = list((Extension("config_check_distutils", list(("conftest.c",))),))
 setup(name="config_check_distutils", ext_modules=modules)
 exit(0)
 EOF
-                                AS_IF([config_venv/bin/python3 conftest.py --quiet build --build-base=conftest.dir], [
+                                AS_IF([conftest_venv/bin/python3 conftest.py --quiet build --build-base=conftest.dir], [
                                     ac_cv_path_PYTHON3="$ac_path_PYTHON3"
                                     ac_path_PYTHON3_found=:
                                     AC_MSG_RESULT([yes])

@@ -580,6 +580,7 @@ class SignRepresentation(Representation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
+        from sage.groups.group import FiniteGroup
         if not isinstance(permGroup, FiniteGroup):
             raise ValueError(
                 "Sign Representation is only defined over FiniteGroups and not over {}".format(

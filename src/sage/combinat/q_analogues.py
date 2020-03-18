@@ -104,12 +104,19 @@ def q_factorial(n, q=None):
         sage: q_factorial(-2)
         Traceback (most recent call last):
         ...
-        ValueError: Argument (-2) must be a nonnegative integer.
+        ValueError: argument (-2) must be a nonnegative integer
+
+    TESTS::
+
+        sage: q_factorial(0).parent()
+        Univariate Polynomial Ring in q over Integer Ring
     """
-    if n in ZZ and n >= 0:
-        return prod(q_int(i, q) for i in range(1, n + 1))
-    else:
-        raise ValueError("Argument (%s) must be a nonnegative integer." % n)
+    if n in ZZ:
+        if n == 0:
+            return q_int(1, q)
+        elif n >= 1:
+            return prod(q_int(i, q) for i in range(1, n + 1))
+    raise ValueError("argument (%s) must be a nonnegative integer" % n)
 
 
 def q_binomial(n, k, q=None, algorithm='auto'):

@@ -257,8 +257,6 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -sdist              -- build a source distribution of Sage"
-    echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
-    echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
     echo "                         the packages located in upstream/"
 
@@ -1020,16 +1018,6 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
         sage-spkg --info "$PKG" || exit $?
     done
     exit 0
-fi
-
-if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
-    shift
-    exec sage-pkg "$@"
-fi
-
-if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
-    shift
-    exec sage-pkg -n "$@"
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then

@@ -213,6 +213,24 @@ class Polyhedron_cdd(Polyhedron_base):
             sage: p = Polyhedron(vertices = [[0,0],[1,0],[0,1],[1,1]], backend='cdd', base_ring=QQ) # indirect doctest
             sage: p.vertices()
             (A vertex at (0, 0), A vertex at (1, 0), A vertex at (0, 1), A vertex at (1, 1))
+
+        Check that :trac:`29176` is fixed::
+
+            sage: e = [[11582947.657000002, 5374.38, 4177.06, 1.0], [11562795.9322, 5373.62, 4168.38, 1.0]]
+            sage: p = Polyhedron(ieqs=e); p
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 2 rays, 1 line
+            sage: p.incidence_matrix()
+            [1 1]
+            [1 0]
+            [0 1]
+            [1 1]
+
+            sage: P = [[-2687.19, -2088.53], [-2686.81, -2084.19]]
+            sage: V = VoronoiDiagram(P)
+            sage: R = V.regions()
+            sage: R
+            {P(-2686.81000000000, -2084.19000000000): A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+             P(-2687.19000000000, -2088.53000000000): A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line}
         """
         cddout = cddout.splitlines()
 

@@ -13,8 +13,9 @@ SAGE_SPKG_CONFIGURE([python3], [
                             dnl Because the system python is not used directly but rather in a venv without site-packages,
                             dnl we test whether the module will be available in a venv.
                             dnl Otherwise, some system site-package may be providing this module to the system python.
+                            dnl m4_define([conftest_venv], [config-venv]) .... for debugging only
                             rm -rf conftest_venv
-                            AS_IF(["$ac_path_PYTHON3" -m venv --without-pip --symlinks conftest_venv && conftest_venv/bin/python3 -c "import $check_modules"], [
+                            AS_IF(["$ac_path_PYTHON3" build/bin/sage-venv conftest_venv && conftest_venv/bin/python3 -c "import $check_modules"], [
                                 AC_LANG_PUSH([C])
                                 AC_LANG_CONFTEST([
                                     AC_LANG_SOURCE([[

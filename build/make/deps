@@ -31,16 +31,6 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 	doc-clean doc-src-clean doc-output-clean \
 	clean sagelib-clean build-clean python3_venv _clean-broken-gcc
 
-
-define SAGE_make_venv
-import venv
-b = venv.EnvBuilder()
-c = b.ensure_directories("$(SAGE_LOCAL)")
-b.setup_python(c)
-b.create_configuration(c)
-endef
-
-
 ifneq ($(PYTHON_FOR_VENV),)
 # Special rule for making the Python virtualenv from the system Python (Python
 # 3 only).  $(PYTHON) is set in Makefile to python3_venv.
@@ -52,9 +42,8 @@ ifneq ($(PYTHON_FOR_VENV),)
 PYTHON = python3_venv
 inst_python3_venv = $(SAGE_LOCAL)/pyvenv.cfg
 
-export SAGE_make_venv
 $(inst_python3_venv):
-	$(PYTHON_FOR_VENV) -c "$$SAGE_make_venv"
+	$(PYTHON_FOR_VENV) $(SAGE_ROOT)/build/bin/sage-venv "$(SAGE_LOCAL)"
 endif
 
 # Build everything and start Sage.

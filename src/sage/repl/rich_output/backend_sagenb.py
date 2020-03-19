@@ -54,22 +54,21 @@ Tables are typeset as html in SageNB::
     </table>
     </div></html>
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 import io
 import os
 import stat
 from sage.misc.cachefunc import cached_method
 from sage.misc.html import html
-from sage.misc.temporary_file import graphics_filename
+from sage.misc.temporary_file import tmp_filename
 from sage.repl.rich_output.backend_base import BackendBase
 from sage.repl.rich_output.output_catalog import *
 from sage.repl.rich_output.output_video import OutputVideoBase
@@ -137,7 +136,7 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
         import PIL.Image
         width, height = PIL.Image.open(io.BytesIO(self.preview_png.get())).size
         ext = '-size{0}.jmol'.format(width)
-        return graphics_filename(ext=ext)
+        return tmp_filename(ext=ext)
 
     @cached_method
     def _base_filename(self):
@@ -390,7 +389,7 @@ class BackendSageNB(BackendBase):
         elif isinstance(rich_output, OutputSceneJmol):
             rich_output.embed()
         elif isinstance(rich_output, OutputSceneThreejs):
-            filename = graphics_filename(ext='.html')
+            filename = tmp_filename(ext='.html')
             rich_output.html.save_as(filename)
             world_readable(filename)
             iframe = IFRAME_TEMPLATE.format(
@@ -439,12 +438,12 @@ class BackendSageNB(BackendBase):
             sage: os.path.exists('sage0.png')
             True
         """
-        filename = graphics_filename(ext=file_ext)
+        filename = tmp_filename(ext=file_ext)
         output_buffer.save_as(filename)
         world_readable(filename)
 
     def embed_video(self, video_output):
-        filename = graphics_filename(ext=video_output.ext)
+        filename = tmp_filename(ext=video_output.ext)
         video_output.video.save_as(filename)
         world_readable(filename)
         html(video_output.html_fragment(

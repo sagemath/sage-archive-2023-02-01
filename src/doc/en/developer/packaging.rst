@@ -87,8 +87,9 @@ the following source types:
    - is obtained directly from https://pypi.org/;
 
    - the version to be installed is determined using the required file
-     ``requirements.txt`` (see
-     https://pip.pypa.io/en/stable/reference/pip_install/#requirements-file-format);
+     ``requirements.txt`` -- in its simplest form, this file just
+     contains the name of the package (more details at
+     https://pip.pypa.io/en/stable/user_guide/#requirements-files);
 
    - Sage installs the package using the ``pip`` package manager;
 

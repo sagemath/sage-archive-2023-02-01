@@ -110,6 +110,11 @@ the following source types:
      ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
      if ``package-version.txt`` changes.
 
+To summarize: the package source type is determined as follows: if
+there is a file ``requirements.txt``, it is a ``pip`` package. If not,
+then if there is a ``checksums.ini`` file, it is ``normal``;
+otherwise, it is a ``script`` package.
+
 
 .. _section-directory-structure:
 

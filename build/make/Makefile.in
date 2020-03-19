@@ -249,7 +249,7 @@ endif
 
 # ============================= script packages ==============================
 # Generate build rules for 'script' packages; this template is used to generate
-# two rules in the form:
+# three rules in the form:
 #
 # $(INST)/<pkgname>-<pkgvers>: <dependencies>
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\

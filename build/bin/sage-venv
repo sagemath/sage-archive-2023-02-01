@@ -10,7 +10,7 @@ import argparse
 parser = argparse.ArgumentParser(prog=__name__,
                                  description='Creates a virtual Python '
                                              'environment in a target directory.')
-parser.add_argument('env_dir', metavar='ENV_DIR', nargs=1,
+parser.add_argument('env_dir', metavar='ENV_DIR',
                     help='A directory in which to create the'
                          'virtual environment.')
 
@@ -33,7 +33,7 @@ parser.add_argument('--upgrade', default=False, action='store_true',
                                          'has been upgraded '
                                          'in-place.')
 
-options = parser.parse_args(args)
+options = parser.parse_args()
 if options.upgrade and options.clear:
     raise ValueError('you cannot supply --upgrade and --clear together.')
 

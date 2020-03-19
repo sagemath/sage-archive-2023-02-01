@@ -350,14 +350,12 @@ cdef class PolyhedronFaceLattice:
             ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
             ....: cimport CombinatorialPolyhedron, FaceIterator, PolyhedronFaceLattice
             ....:
-            ....: def find_face_from_iterator(it, C1):
-            ....:     cdef FaceIterator face_iter = it
-            ....:     cdef CombinatorialPolyhedron C = C1
+            ....: def find_face_from_iterator(FaceIterator it, CombinatorialPolyhedron C):
             ....:     C._record_all_faces()
             ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
             ....:     if not (all_faces.dual == it.dual):
             ....:         raise ValueError("iterator and allfaces not in same mode")
-            ....:     return all_faces.find_face(face_iter.structure.current_dimension, face_iter.structure.face)
+            ....:     return all_faces.find_face(it.structure.current_dimension, it.structure.face)
             ....: ''')
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
@@ -436,15 +434,13 @@ cdef class PolyhedronFaceLattice:
             ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
             ....: cimport CombinatorialPolyhedron, FaceIterator, PolyhedronFaceLattice
             ....:
-            ....: def face_via_all_faces_from_iterator(it, C1):
-            ....:     cdef FaceIterator face_iter = it
-            ....:     cdef CombinatorialPolyhedron C = C1
-            ....:     cdef int dimension = face_iter.structure.current_dimension
+            ....: def face_via_all_faces_from_iterator(FaceIterator it, CombinatorialPolyhedron C):
+            ....:     cdef int dimension = it.structure.current_dimension
             ....:     C._record_all_faces()
             ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
             ....:     if not (all_faces.dual == it.dual):
             ....:         raise ValueError("iterator and allfaces not in same mode")
-            ....:     index = all_faces.find_face(dimension, face_iter.structure.face)
+            ....:     index = all_faces.find_face(dimension, it.structure.face)
             ....:     return all_faces.get_face(dimension, index)
             ....: ''')
             sage: P = polytopes.permutahedron(4)

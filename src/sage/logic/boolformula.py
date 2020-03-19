@@ -1511,5 +1511,50 @@ class BooleanFormula(object):
             i += 1
         return str[i]
 
+    def __len__(self):
+        r"""
+        Return the length of a Boolean formula.
+
+        OUTPUT:
+
+        The length of the Boolean formula. This is the number of operators plus
+        the number of variables (counting multiplicity). Parentheses are ignored.
+
+        EXAMPLES::
+
+            sage: import sage.logic.propcalc as propcalc
+            sage: s = propcalc.formula("a")
+            sage: len(s)
+            1
+            sage: s = propcalc.formula("(a)")
+            sage: len(s)
+            1
+            sage: s = propcalc.formula("~a")
+            sage: len(s)
+            2
+            sage: s = propcalc.formula("a -> b")
+            sage: len(s)
+            3
+            sage: s = propcalc.formula("alpha -> beta")
+            sage: len(s)
+            3
+            sage: s = propcalc.formula("a -> a")
+            sage: len(s)
+            3
+            sage: s = propcalc.formula("~(a -> b)")
+            sage: len(s)
+            4
+            sage: s = propcalc.formula("((a&b)|(a&c))->~d")
+            sage: len(s)
+            10
+
+        TESTS::
+
+            sage: s = propcalc.formula("(((alpha) -> ((beta))))")
+            sage: len(s)
+            3
+        """
+        return len(flatten(self.full_tree()))
+
 # allow is_consequence to be called as a function (not only as a method of BooleanFormula)
 is_consequence = BooleanFormula.is_consequence

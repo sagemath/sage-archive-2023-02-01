@@ -1014,7 +1014,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             .. MATH::
 
                 L_i^m = q^{-1} T_{i-1} L_{i-1}^m T_{i-1}
-                  + (1 - q^{-1}) \sum_{c=1}^{m-1} L_i^c L_{i-1}^{m-c} T_{i-1}
+                  + (1 - q^{-1}) \sum_{c=1}^{m-1} L_i^c L_{i-1}^{m-c} T_{i-1}.
 
             EXAMPLES::
 
@@ -1046,6 +1046,10 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 - (q^-2-2*q^-1+1)*L1*L3^2*T[1,2] - (q^-2-q^-1)*L1*L3^2*T[2,1,2]
                 - (q^-2-2*q^-1+1)*L1*L2*L3*T[1,2] - (q^-2-2*q^-1+1)*L1^2*L3*T[1,2]
                 - (q^-2-q^-1)*L1^2*L3*T[2,1,2]
+
+                sage: L2 = H.L(2)
+                sage: H._Li_power(2, 4) == L2^4
+                True
             """
             # shorthand for returning a tuple of the form (0,...,a,b,...,0) with a,b
             # in the (i-1)th and i-th positions, respectively
@@ -1063,9 +1067,12 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             if i > 1:
                 si = self._Pn.simple_reflections()[i-1]
                 qsum = self.base_ring().one() - self._q**-1
+                Tim1 = self.T(i-1)
                 # by calling _Li_power we avoid infinite recursion here
-                return ( self.sum_of_terms( ((Ltuple(c, m-c), si), qsum) for c in range(1, m) )
-                         + self._q**-1 * self.T(i-1) * self._Li_power(i-1, m) * self.T(i-1) )
+                return ( self.sum_of_terms( ((Ltuple(c, m-c), si), qsum) for c in range(max(1,m-self._r+1), min(self._r,m)) )
+                         + qsum * sum(self._Li_power(i, c) * self._Li_power(i-1, m-c) * Tim1 for c in range(1, m-self._r+1) )
+                         + qsum * sum(self._Li_power(i, c) * self._Li_power(i-1, m-c) * Tim1 for c in range(self._r, m) )
+                         + self._q**-1 * Tim1 * self._Li_power(i-1, m) * Tim1 )
 
             # now left with the case i = 1 and m >= r
             if m > self._r:

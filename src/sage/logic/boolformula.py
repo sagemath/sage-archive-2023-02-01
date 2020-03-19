@@ -753,8 +753,6 @@ class BooleanFormula(object):
 
         - ``*hypotheses`` -- instances of :class:`BooleanFormula`
 
-        - ``self`` -- instance of :class:`BooleanFormula` (the desired conclusion)
-
         OUTPUT:
 
         A boolean value to be determined as follows:
@@ -818,7 +816,7 @@ class BooleanFormula(object):
             if not isinstance(formula, BooleanFormula):
                 raise TypeError("is_consequence only takes instances of BooleanFormula() class as input")
 
-        if not(hypotheses):
+        if not hypotheses:
             # if there are no hypotheses, then we just want to know whether self is a tautology
             return self.is_tautology()
         else:

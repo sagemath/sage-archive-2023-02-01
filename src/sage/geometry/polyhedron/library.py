@@ -215,7 +215,7 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
 
         The order of the input vectors will not be preserved.
 
-        If the centroid of the (input) vectors is the origin,
+        If the center of the (input) vectors is the origin,
         the function is much faster and might give a nicer representation
         of the polytope.
 
@@ -294,7 +294,7 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
     If every hyperplane has at least one vector on each side, then the gale
     transform corresponds to a point configuration.
     It corresponds to a polytope if and only if this point configuration is
-    convex if and only if every hyperplane contains at least two vectors of
+    convex and if and only if every hyperplane contains at least two vectors of
     the gale transform on each side.
 
     If this is not the case, an error is raised::
@@ -349,14 +349,14 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     - ``backend`` -- string (default: `None`);
       the backend to be use to construct a polyhedral,
-      used interally in case the centroid is not the origin,
+      used interally in case the center is not the origin,
       see :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
 
     OUTPUT: An ordered point configuration as list of vectors.
 
     .. NOTE::
 
-        If the centroid of the (input) vectors is the origin,
+        If the center of the (input) vectors is the origin,
         the function is much faster and might give a nicer representation
         of the point configuration.
 
@@ -365,7 +365,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     ALGORITHM:
 
-    Step 1: If the centroid of the (input) vectors is not the origin,
+    Step 1: If the center of the (input) vectors is not the origin,
     we do an appropriate transformation to make it so.
 
     Step 2: We add a row of ones on top of ``Matrix(vectors)``.
@@ -374,7 +374,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     More concretely, the dual vector configuration (inhomogeneous)
     is obtained by taking a basis of the right kernel of ``Matrix(vectors)``.
-    If the centroid of the (input) vectors is the origin,
+    If the center of the (input) vectors is the origin,
     there exists a basis of the right kernel of the form
     ``[[1], [V]]``, where ``[1]`` represents a row of ones.
     Then, ``V`` is a dehomogenization and thus the dual point configuration.
@@ -462,7 +462,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
         vectors = tuple(vector(x) for x in vectors)
 
     if not sum(vectors).is_zero():
-        # The centroid of the input vectors shall be the origin.
+        # The center of the input vectors shall be the origin.
         # If this is not the case, we scale them accordingly.
         # This has the adventage that right kernel of ``vectors`` can be
         # presented in the form ``[[1], [V]]``, where ``V`` are the points

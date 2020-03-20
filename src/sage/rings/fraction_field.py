@@ -79,7 +79,6 @@ import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import Element
 from sage.structure.richcmp import richcmp
 from sage.structure.parent import Parent
 from sage.structure.coerce import py_scalar_to_element

@@ -57,7 +57,7 @@ from sage.structure.category_object import normalize_names
 from sage.structure.factory import UniqueFactory
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
-from sage.all import sage_eval, parent
+from sage.all import sage_eval
 
 from sage.structure.richcmp import richcmp
 

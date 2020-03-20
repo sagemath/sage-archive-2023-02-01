@@ -1,2 +1,8 @@
+# packages from community/
+pari
+# extra packages needed so that pari is picked from the system
+# packages from community/
 pari-galdata
-pari-seadata-small
+# packages from aur/
+pari-seadata
+pari-elldata

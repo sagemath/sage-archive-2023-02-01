@@ -303,7 +303,7 @@ fi
 
 # Check for system python
 AC_MSG_CHECKING([for Python])
-if SAGE_SYSTEM_PYTHON=`build/bin/sage-system-python -c "import sys; print(sys.executable)"`; then
+if SAGE_SYSTEM_PYTHON=$(build/bin/sage-system-python -c "import sys; print(sys.executable)"); then
     AC_MSG_RESULT([$SAGE_SYSTEM_PYTHON])
 else
     AC_MSG_ERROR([You do not have a suitable version of Python installed])

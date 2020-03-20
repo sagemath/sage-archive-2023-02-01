@@ -2747,6 +2747,82 @@ class Polyhedron_base(Element):
             vertex_sum.set_immutable()
             return vertex_sum / self.n_vertices()
 
+    @cached_method(do_pickle=True)
+    def centroid(self, engine='auto', **kwds):
+        r"""
+        Return the center of the mass of the polytope.
+
+        The mass is taken with respect to the induces Lebesgue measure,
+        see :meth:`volume`.
+
+        INPUT:
+
+        - ``engine`` -- either 'auto' (default), 'internal',
+          'TOPCOM', or 'normaliz'.  The 'internal' and 'TOPCOM' instruct
+          this package to always use its own triangulation algorithms
+          or TOPCOM's algorithms, respectively. By default ('auto'),
+          TOPCOM is used if it is available and internal routines otherwise.
+
+        - ``**kwds`` -- keyword arguments that are passed to the
+          triangulation engine (see :meth:`triangulate`).
+
+        OUTPUT: The centroid as vector.
+
+        If the polyhedron is not compact, a ``NotImplementedError`` is
+        raised.
+
+        ALGORITHM:
+
+        We triangulate the polytope and find the barycenter of the simplices.
+        We add the individual barycenters weighted by the fraction of the total
+        mass.
+
+        EXAMPLES::
+
+            sage: P = polytopes.hypercube(2).pyramid()
+            sage: P.centroid()
+            (1/4, 0, 0)
+
+            sage: P = polytopes.associahedron(['A',2])
+            sage: P.centroid()
+            (2/21, 2/21)
+
+            sage: P = polytopes.permutahedron(4, backend='normaliz')  # optional - pynormaliz
+            sage: P.centroid()                                        # optional - pynormaliz
+            (5/2, 5/2, 5/2, 5/2)
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: P = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: P.centroid()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the polyhedron is not compact
+        """
+        if not self.is_compact():
+            raise NotImplementedError("the polyhedron is not compact")
+        triangulation = self.triangulate(engine=engine, **kwds)
+
+        if self.ambient_dim() == self.dim():
+            pc = triangulation.point_configuration()
+        else:
+            from sage.geometry.triangulation.point_configuration import PointConfiguration
+            A,b = self.affine_hull(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
+            pc = PointConfiguration((A(v.vector()) for v in self.Vrep_generator()))
+
+        barycenters = [sum(self.Vrepresentation(i).vector() for i in simplex)/(self.dim() + 1) for simplex in triangulation]
+        volumes =  [pc.volume(simplex) for simplex in triangulation]
+
+        centroid = sum(volumes[i]*barycenters[i] for i in range(len(volumes)))/sum(volumes)
+        if self.ambient_dim() != self.dim():
+            # By the affine hull projection, the centroid has base ring ``AA``,
+            # we try return the centroid in a reasonable ring.
+            try:
+                return centroid.change_ring(self.base_ring().fraction_field())
+            except ValueError:
+                pass
+        return centroid
+
     @cached_method
     def representative_point(self):
         """

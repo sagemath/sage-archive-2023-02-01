@@ -1,1 +1,4 @@
 freetype
+harfbuzz
+glib
+glib2

@@ -986,7 +986,7 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
 cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
                                         uint32_t source):
     r"""
-    Lower bound on the diameter of using directed version of 2-sweep.
+    Lower bound on the diameter of digraph using directed version of 2-sweep.
 
     This method computes a lower bound on the diameter of an unweighted directed
     graph using directed version of the 2-sweep algorithm [Broder2000]_.
@@ -1021,10 +1021,11 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
     cdef bitset_t seen_1, seen_2
 
     # Memory allocation
+    cdef MemoryAllocator mem = MemoryAllocator()
     bitset_init(seen_1, n)
     bitset_init(seen_2, n)
-    cdef uint32_t * distances_1 = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
-    cdef uint32_t * distances_2 = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * distances_1 = <uint32_t *>mem.malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * distances_2 = <uint32_t *>mem.malloc(3 * n * sizeof(uint32_t))
     if not distances_1 or not distances_2:
         bitset_free(seen_1)
         bitset_free(seen_2)
@@ -1039,44 +1040,45 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
     # eccentricity
     LB_1 = simple_BFS(g, source_1, distances_1, NULL, waiting_list_1, seen_1)
 
-    # If the forward eccentricity of the source1 is infinite
+    # If the forward eccentricity of the source_1 is infinite
     # then the graph is not connected and so its diameter is infinite.
     if LB_1 == UINT32_MAX:
-        sig_free(distances_1)
         bitset_free(seen_1)
-        sig_free(distances_2)
         bitset_free(seen_2)
         return (UINT32_MAX, 0, 0, 0)
 
     # Then we perform backward BFS from the last visited vertex and obtain its
     # backward eccentricity.
-    source1 = waiting_list_1[g.n - 1]
+    source_1 = waiting_list_1[n - 1]
     LB_1 = simple_BFS(rev_g, source_1, distances_1, predecessors_1, waiting_list_1, seen_1)
+
+    # if the computed lower bound LB_1 is infinite,
+    # then the graph is not connected and so its diameter is infinite.
+    if LB_1 == UINT32_MAX:
+        bitset_free(seen_1)
+        bitset_free(seen_2)
+        return (UINT32_MAX, 0, 0, 0)
 
     # In second part, we perform backward BFS from source and get its backward
     # eccentricity
     LB_2 = simple_BFS(rev_g, source_2, distances_2, NULL, waiting_list_2, seen_2)
 
-    # If the backward eccentricity of the source2 is infinite
+    # If the backward eccentricity of the source_2 is infinite
     # then the graph is not connected and so its diameter is infinite.
     if LB_2 == UINT32_MAX:
-        sig_free(distances_1)
         bitset_free(seen_1)
-        sig_free(distances_2)
         bitset_free(seen_2)
         return (UINT32_MAX, 0, 0, 0)
 
     # Then we perform forward BFS from the last visited vertex and obtain its
     # forward eccentricity.
-    source2 = waiting_list_2[g.n - 1]
+    source_2 = waiting_list_2[n - 1]
     LB_2 = simple_BFS(g, source_2, distances_2, predecessors_2, waiting_list_2, seen_2)
 
-    # if any of the computed lower bound is infinite,
+    # if the computed lower bound LB_2 is infinite,
     # then the graph is not connected and so its diameter is infinite.
-    if LB_1 == UINT32_MAX or LB_2 == UINT32_MAX:
-        sig_free(distances_1)
+    if LB_2 == UINT32_MAX:
         bitset_free(seen_1)
-        sig_free(distances_2)
         bitset_free(seen_2)
         return (UINT32_MAX, 0, 0, 0)
 
@@ -1098,6 +1100,10 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
         m = d
         while distances_1[m] > LB1:
             m = predecessors_1[m]
+
+    bitset_free(seen_1)
+    bitset_free(seen_2)
+    free_short_digraph(rev_g)
 
     return (LB, s, m, d)
 
@@ -1272,8 +1278,8 @@ def diameter(G, algorithm=None, source=None):
     Return the diameter of `G`.
 
     This algorithm returns Infinity if the (di)graph is not connected. It can
-    also quickly return a lower bound on the diameter using the ``2sweep`` and
-    ``multi-sweep`` schemes.
+    also quickly return a lower bound on the diameter using the ``2sweep``,
+    ``2Dsweep`` and ``multi-sweep`` schemes.
 
     INPUT:
 
@@ -1291,7 +1297,7 @@ def diameter(G, algorithm=None, source=None):
         of `G`.  The time complexity of this algorithm is linear in the size of
         `G`.
 
-      - ``'2-Dsweep'`` -- Computes lower bound on the diameter of an
+      - ``'2Dsweep'`` -- Computes lower bound on the diameter of an
         unweighted directed graph using directed version of 2sweep as proposed
         in [Broder2000]_.
 
@@ -1348,7 +1354,7 @@ def diameter(G, algorithm=None, source=None):
         sage: diameter(G, algorithm='iFUB')
         +Infinity
         sage: G = digraphs.Circuit(n=6)
-        sage: diameter(G, algorithm='2-Dsweep')
+        sage: diameter(G, algorithm='2Dsweep')
         5
 
 
@@ -1388,7 +1394,7 @@ def diameter(G, algorithm=None, source=None):
     if G.is_directed():
         if algorithm is None:
             algorithm = 'standard'
-        elif not algorithm in ['2-Dsweep', 'standard']:
+        elif not algorithm in ['2Dsweep', 'standard']:
             raise ValueError("unknown algorithm for computing the diameter of directed graph")
     else:
         if algorithm is None:
@@ -1431,7 +1437,7 @@ def diameter(G, algorithm=None, source=None):
 
         bitset_free(seen)
         sig_free(tab)
-    elif algorithm == '2-Dsweep':
+    elif algorithm == '2Dsweep':
         LB = diameter_lower_bound_2Dsweep(sd, isource)[0]
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]

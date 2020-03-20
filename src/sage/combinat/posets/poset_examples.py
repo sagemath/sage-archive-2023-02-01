@@ -1,5 +1,5 @@
 r"""
-A catalog of posets and lattices.
+Catalog of posets and lattices
 
 Some common posets can be accessed through the ``posets.<tab>`` object::
 

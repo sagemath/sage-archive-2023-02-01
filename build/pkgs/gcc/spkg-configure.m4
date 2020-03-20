@@ -200,7 +200,7 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     CRTI=`$CC -print-file-name=crti.o 2>/dev/null || true`
     if test -n "$CRTI" ; then
         SAGE_CRTI_DIR=$(dirname -- "$CRTI")
-        if test "$SAGE_CRTI_DIR" == "." ; then
+        if test "$SAGE_CRTI_DIR" = "." ; then
             SAGE_CRTI_DIR=
         fi
     fi

@@ -1048,7 +1048,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         For an `m\times n` matrix ``A`` this method returns a triple of
         immutable matrices ``P, L, U`` such that
 
-        - ``P*A = L*U``
+        - ``A = P*L*U``
         - ``P`` is a square permutation matrix, of size `m\times m`,
           so is all zeroes, but with exactly a single one in each
           row and each column.
@@ -1070,27 +1070,31 @@ cdef class Matrix_double_dense(Matrix_dense):
         the zero entries of ``U``.
 
         .. NOTE::
-
-            Sometimes this decomposition is written as ``A=P*L*U``,
-            where ``P`` represents the inverse permutation and is
+            The behaviour of ``LU()`` has changed in Sage version 9.1.
+            Earlier, ``LU()`` returned ``P,L,U`` such that ``P*A=L*U``,
+            where ``P`` represents the permutation and is
             the matrix inverse of the ``P`` returned by this method.
             The computation of this matrix inverse can be accomplished
             quickly with just a transpose as the matrix is orthogonal/unitary.
+
+            For details see :trac:`18365`.
 
         EXAMPLES::
 
             sage: m = matrix(RDF,4,range(16))
             sage: P,L,U = m.LU()
-            sage: P*m
-            [12.0 13.0 14.0 15.0]
+            sage: P*L*U # rel tol 2e-16
             [ 0.0  1.0  2.0  3.0]
-            [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
-            sage: L*U # rel tol 2e-16
+            [ 8.0  9.0 10.0 11.0]
             [12.0 13.0 14.0 15.0]
-            [ 0.0  1.0  2.0  3.0]
-            [ 8.0  9.0 10.0 11.0]
-            [ 4.0  5.0  6.0  7.0]
+
+        Below example illustrates the change in behaviour of ``LU()``. ::
+
+            sage: m == P*L*U
+            True
+            sage: P*m == L*U
+            False
 
         :trac:`10839` made this routine available for rectangular matrices.  ::
 
@@ -1102,11 +1106,11 @@ cdef class Matrix_double_dense(Matrix_dense):
             [24.0 25.0 26.0 27.0 28.0 29.0]
             sage: P, L, U = A.LU()
             sage: P
+            [0.0 1.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 1.0]
-            [1.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 1.0 0.0 0.0]
             [0.0 0.0 0.0 1.0 0.0]
-            [0.0 1.0 0.0 0.0 0.0]
+            [1.0 0.0 0.0 0.0 0.0]
             sage: L.zero_at(0)   # Use zero_at(0) to get rid of signed zeros
             [ 1.0  0.0  0.0  0.0  0.0]
             [ 0.0  1.0  0.0  0.0  0.0]
@@ -1119,13 +1123,13 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 0.0  0.0  0.0  0.0  0.0  0.0]
             [ 0.0  0.0  0.0  0.0  0.0  0.0]
             [ 0.0  0.0  0.0  0.0  0.0  0.0]
-            sage: P*A-L*U
+            sage: P.transpose()*A-L*U
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
-            sage: P.transpose()*L*U
+            sage: P*L*U
             [ 0.0  1.0  2.0  3.0  4.0  5.0]
             [ 6.0  7.0  8.0  9.0 10.0 11.0]
             [12.0 13.0 14.0 15.0 16.0 17.0]
@@ -1143,7 +1147,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             Full MatrixSpace of 5 by 5 dense matrices over Real Double Field
             sage: U.parent()
             Full MatrixSpace of 5 by 0 dense matrices over Real Double Field
-            sage: P*A-L*U
+            sage: A-P*L*U
             []
 
         The results are immutable since they are cached.  ::
@@ -1187,14 +1191,12 @@ cdef class Matrix_double_dense(Matrix_dense):
         if numpy is None:
             import numpy
         PM, LM, UM = scipy.linalg.lu(self._matrix_numpy)
-        # Numpy has a different convention than we had with GSL
-        # So we invert (transpose) the P to match our prior behavior
         # TODO: It's an awful waste to store a huge matrix for P, which
         # is just a simple permutation, really.
         P = self._new(m, m)
         L = self._new(m, m)
         U = self._new(m, n)
-        P._matrix_numpy = PM.T.copy()
+        P._matrix_numpy = numpy.ascontiguousarray(PM)
         L._matrix_numpy = numpy.ascontiguousarray(LM)
         U._matrix_numpy = numpy.ascontiguousarray(UM)
         PLU = (P, L, U)
@@ -2509,8 +2511,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.is_unitary()
             False
 
-        The smallest cases.  The Schur decomposition used by the
-        orthonormal algorithm will fail on a matrix of size zero.  ::
+        The smallest cases::
 
             sage: P = matrix(CDF, 0, 0)
             sage: P.is_unitary(algorithm='naive')
@@ -2522,9 +2523,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
             sage: P = matrix(CDF, 0, 0,)
             sage: P.is_unitary(algorithm='orthonormal')
-            Traceback (most recent call last):
-            ...
-            error: ((lwork==-1)||(lwork >= MAX(1,2*n))) failed for 3rd keyword lwork: zgees:lwork=0
+            True
 
         TESTS::
 
@@ -2549,6 +2548,12 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         - Rob Beezer (2011-05-04)
         """
+        if self.dimensions() == (0,0):
+            # The "orthonormal" algorithm would otherwise fail in this
+            # corner case. Returning `True` is consistent with the
+            # other implementations of this method.
+            return True
+
         global numpy
         try:
             tol = float(tol)

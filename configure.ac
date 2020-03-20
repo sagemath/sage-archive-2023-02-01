@@ -473,4 +473,6 @@ AC_CONFIG_COMMANDS(mkdirs,
 
 AC_OUTPUT()
 
+SAGE_SYSTEM_PACKAGE_NOTICE()
+
 dnl vim:syntax=m4

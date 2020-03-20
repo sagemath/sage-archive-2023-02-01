@@ -50,6 +50,7 @@ Sage is supported on a number of `Linux <https://en.wikipedia.org/wiki/Linux>`_,
 `macOS <https://www.apple.com/macosx/>`_ ,
 Sun/Oracle `Solaris <https://www.oracle.com/solaris>`_ releases,
 but not necessarily all versions of these operating systems.
+
 There is no native version of Sage which installs on
 `Microsoft Windows <https://en.wikipedia.org/wiki/Microsoft_Windows>`_,
 although Sage can be used on Windows with the aid of a
@@ -286,6 +287,43 @@ a registration.
 
 - Alternately, https://developer.apple.com/opensource/ should have a link
   to Command Line Tools.
+
+
+.. _section_cygwinprereqs:
+
+Cygwin prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sage can be built only on the 64-bit version of Cygwin.  See the
+`Cygwin64Port <https://trac.sagemath.org/wiki/Cygwin64Port>`_ wiki page for
+the most up-to-date instructions for building Sage on Cygwin.
+
+Although it is possible to install Sage's dependencies using the Cygwin
+graphical installer, it is recommended to install the `apt-cyg
+<https://github.com/transcode-open/apt-cyg>`_ command-line package
+installer, which is used for the remainder of these instructions.  To
+run `apt-cyg`, you must have already installed (using the graphical
+installer) the following packages at a minimum::
+
+    bzip2 coreutils gawk gzip tar wget
+
+With the exception of ``wget`` most of these are included in the default
+package selection when you install Cygwin.  Then, to install ``apt-cyg``
+run::
+
+    $ curl -OL https://rawgit.com/transcode-open/apt-cyg/master/apt-cyg
+    $ install apt-cyg /usr/local/bin
+    $ rm -f apt-cyg
+
+To install the current set of system packages known to work for building
+Sage, run:
+
+.. literalinclude:: cygwin.txt
+
+Optional packages that are also known to be installable via system packages
+include:
+
+.. literalinclude:: cygwin-optional.txt
 
 Other platforms
 ^^^^^^^^^^^^^^^

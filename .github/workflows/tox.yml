@@ -1,6 +1,8 @@
 name: Run SAGE_ROOT/tox.ini
 
-## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments.
+## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments,
+## whenever a GitHub pull request is opened or synchronized in a repository
+## where GitHub Actions are enabled.
 ##
 ## It builds and checks some sage spkgs as defined in TARGETS.
 ##
@@ -13,7 +15,11 @@ name: Run SAGE_ROOT/tox.ini
 ## After all jobs have finished (or are canceled) and a short delay,
 ## tar files of all logs are made available as "build artifacts".
 
-on: [push, pull_request]
+#on: [push, pull_request]
+
+on:
+  pull_request:
+    types: [opened, synchronize]
 
 env:
   ## We test everything BLAS-related and other problematic packages

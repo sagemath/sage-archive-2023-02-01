@@ -4,6 +4,7 @@ Representations Of A Semigroup
 AUTHORS:
 
 - Travis Scrimshaw (2015-11-21): Initial version
+- Siddharth Singh  (2020-03-21): Signed Representation
 """
 
 ####################################################################################
@@ -581,6 +582,7 @@ class SignRepresentation(Representation_abstract):
             sage: TestSuite(V).run()
         """
         from sage.groups.group import FiniteGroup
+
         if not isinstance(permGroup, FiniteGroup):
             raise ValueError(
                 "Sign Representation is only defined over FiniteGroups and not over {}".format(
@@ -632,6 +634,8 @@ class SignRepresentation(Representation_abstract):
             Return the action of ``scalar`` on ``self``.
 
             EXAMPLES::
+
+
                 sage:G = PermutationGroup(gens=[(1,2,3), (1,2)])
                 sage:S = G.sign_representation()
                 sage:x = S.an_element(); x
@@ -670,9 +674,10 @@ class SignRepresentation(Representation_abstract):
                 if scalar.parent() is P._semigroup:
                     if not self:
                         return self
-                    return P.linear_combination(
-                        ((P._on_basis(scalar, m), c) for m, c in self), not self_on_left
-                    )
+                    if scalar.sign() < 0:
+                        return -self
+                    else:
+                        return self
 
                 if scalar.parent() is P._semigroup_algebra:
                     if not self:
@@ -680,7 +685,7 @@ class SignRepresentation(Representation_abstract):
                     ret = P.zero()
                     for ms, cs in scalar:
                         ret += P.linear_combination(
-                            ((P._on_basis(ms, m), cs * c) for m, c in self),
+                            ((P.term(m, ms.sign()), cs * c) for m, c in self),
                             not self_on_left,
                         )
                     return ret

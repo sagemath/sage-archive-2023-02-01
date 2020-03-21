@@ -449,6 +449,7 @@ AC_CONFIG_COMMANDS(mkdirs,
         for d in "$SAGE_LOGS" "$SAGE_LOCAL" \
             "$SAGE_LOCAL/bin" "$SAGE_LOCAL/etc" \
             "$SAGE_LOCAL/include" "$SAGE_LOCAL/lib" \
+            "$SAGE_LOCAL/lib/pkgconfig" \
             "$SAGE_SHARE" "$SAGE_INST"; do
                 AC_MSG_NOTICE([creating directory $d])
                 mkdir -p "$d" || AC_MSG_ERROR(could not create $d)

@@ -427,7 +427,7 @@ class Function_log_integral(BuiltinFunction):
 
     """
     def __init__(self):
-        """
+        r"""
         See the docstring for ``Function_log_integral``.
 
         EXAMPLES::
@@ -622,8 +622,8 @@ class Function_log_integral_offset(BuiltinFunction):
     """
 
     def __init__(self):
-        """
-        See the docstring for ``Function_log_integral-offset``.
+        r"""
+        See the docstring for ``Function_log_integral_offset``.
 
         EXAMPLES::
 

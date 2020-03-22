@@ -4439,27 +4439,27 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(scalar)
         one = parent.base_ring().one()
         if scalar > 0:
-            new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
+            new_vertices = tuple(scalar*v.vector() for v in self.vertex_generator())
             new_rays = self.rays()
             new_lines = self.lines()
-            new_inequalities = [f.vector()*one for f in self.inequality_generator()]
+            new_inequalities = tuple(f.vector()*one for f in self.inequality_generator())
             for f in new_inequalities:
                 f[0] *= scalar
-            new_equations = [e.vector()*one for e in self.equation_generator()]
+            new_equations = tuple(e.vector()*one for e in self.equation_generator())
             for e in new_equations:
                 e[0] *= scalar
         elif scalar < 0:
-            new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
-            new_rays = [ list(-r.vector()) for r in self.ray_generator()]
+            new_vertices = tuple(scalar*v.vector() for v in self.vertex_generator())
+            new_rays = tuple(-r.vector() for r in self.ray_generator())
             new_lines = self.lines()
-            new_inequalities = [-f.vector()*one for f in self.inequality_generator()]
+            new_inequalities = tuple(-f.vector()*one for f in self.inequality_generator())
             for f in new_inequalities:
                 f[0] *= scalar
-            new_equations = [-e.vector()*one for e in self.equation_generator()]
+            new_equations = tuple(-e.vector()*one for e in self.equation_generator())
             for e in new_equations:
                 e[0] *= scalar
         else:
-            new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
+            new_vertices = tuple(self.ambient_space().zero() for v in self.vertex_generator())
             new_rays = []
             new_lines = []
             return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
@@ -7945,8 +7945,8 @@ class Polyhedron_base(Element):
 
         A case where rounding in the right direction goes a long way::
 
-            sage: P = 1/10*polytopes.hypercube(14)  # long time
-            sage: P.integral_points()  # long time
+            sage: P = 1/10*polytopes.hypercube(14, backend='field')
+            sage: P.integral_points()
             ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),)
 
         Finally, the 3-d reflexive polytope number 4078::

@@ -2836,19 +2836,19 @@ class Polytopes():
         # then the inequalites correspond to
         # b_1,b_2,...,b_dim, a_1,a_2,...,a_dim
         # in that order.
-        ieqs = [[0]*(dim+1) for _ in range(2*dim)]
+        ieqs = tuple([0]*(dim+1) for _ in range(2*dim))
         for i in range(dim):
             ieqs[i][i+1] = -1
             ieqs[dim+i][i+1] = 1
 
         if intervals is None:
-            cp = list(itertools.product([-1,1], repeat=dim))
+            cp = tuple(itertools.product([-1,1], repeat=dim))
             for i in range(dim):
                 ieqs[i][0]     = 1  # An inequality -x_i + 1 >= 0
                 ieqs[i+dim][0] = 1  # An inequality  x_i + 1 >= 0
         elif isinstance(intervals, str):
             if intervals == 'zero_one':
-                cp = list(itertools.product([0,1], repeat=dim))
+                cp = tuple(itertools.product([0,1], repeat=dim))
                 for i in range(dim):
                     ieqs[i][0] = 1  # An inequality -x_i + 1 >= 0
             else:
@@ -2864,7 +2864,7 @@ class Polytopes():
                 # the specified backend cannot handle the intervals.
                 raise ValueError("specified backend {} cannot handle the intervals".format(backend))
 
-            cp = list(itertools.product(*intervals))
+            cp = tuple(itertools.product(*intervals))
             for i in range(dim):
                 ieqs[i][0]     =  intervals[i][1]  # An inequality -x_i + b_i >= 0
                 ieqs[i+dim][0] = -intervals[i][0]  # An inequality  x_i - a_i >= 0

@@ -301,6 +301,14 @@ if test -z "$MAKE"; then
           [AC_MSG_ERROR([[found GNU make in $ac_cv_path_MAKE, but it's not the first "make" program in your PATH]])])
 fi
 
+# Check for system python
+AC_MSG_CHECKING([for Python])
+if SAGE_SYSTEM_PYTHON=$(build/bin/sage-system-python -c "import sys; print(sys.executable)"); then
+    AC_MSG_RESULT([$SAGE_SYSTEM_PYTHON])
+else
+    AC_MSG_ERROR([You do not have a suitable version of Python installed])
+fi
+
 # Check for Latex, the use of which is less important in Sage than
 # it used to be, as it was at one time required to build any documentation
 # but this is no longer so.

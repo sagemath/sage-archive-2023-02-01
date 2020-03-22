@@ -283,16 +283,6 @@ def isalphadigit_(s):
     """
     return s.isalpha() or s.isdigit() or s == "_"
 
-keywords = """
-and       del       from      not       while
-as        elif      global    or        with
-assert    else      if        pass      yield
-break     except    import    print
-class     exec      in        raise
-continue  finally   is        return
-def       for       lambda    try
-""".split()
-
 in_single_quote = False
 in_double_quote = False
 in_triple_quote = False
@@ -1444,12 +1434,21 @@ def implicit_mul(code, level=5):
         '1r + 1e3 + 5*exp(2)'
         sage: implicit_mul('f(a)(b)', level=10)
         'f(a)*(b)'
+
+    TESTS:
+
+    Check handling of Python 3 keywords (:trac:`29391`)::
+
+        sage: implicit_mul('nonlocal a')  # py3
+        'nonlocal a'
     """
+    from keyword import iskeyword
+
     def re_no_keyword(pattern, code):
         for _ in range(2): # do it twice in because matches don't overlap
             for m in reversed(list(re.finditer(pattern, code))):
                 left, right = m.groups()
-                if left not in keywords and right not in keywords:
+                if not iskeyword(left) and not iskeyword(right):
                     code = "%s%s*%s%s" % (code[:m.start()],
                                           left,
                                           right,

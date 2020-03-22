@@ -6,7 +6,7 @@ SAGE_SPKG_CONFIGURE([gsl], [
           GSL_PC="$GSLPCDIR"/gsl.pc
           AC_SUBST([SAGE_SYSTEM_FACADE_PC_FILES])
           AS_VAR_APPEND([SAGE_SYSTEM_FACADE_PC_FILES], [" \$(SAGE_PKGCONFIG)/gsl.pc"])
-          AC_SUBST([SAGE_GSL_PC_COMMAND],["\$(SED) -e \"s/\${GSL_CBLAS_LIB}\ //\" -e \"s/GSL_CBLAS_LIB.*/Requires: cblas/\" \"$GSL_PC\" > \"\$(@)\""])
+          AC_SUBST([SAGE_GSL_PC_COMMAND],["\$(SED) -e 's/\$\${GSL_CBLAS_LIB}//' -e \"s/^GSL_CBLAS_LIB=.*/Requires: cblas/\" \"$GSL_PC\" > \"\$(@)\""])
         ], [
         AC_MSG_WARN([Unable to locate the directory of gsl.pc. This should not happen!])
        sage_spkg_install_gsl=yes

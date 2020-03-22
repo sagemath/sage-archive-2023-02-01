@@ -338,10 +338,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         cdef GEx exp
         if is_Expression(x):
-            if (<Expression>x)._parent is self:
-                return x
-            else:
-                return new_Expression_from_GEx(self, (<Expression>x)._gobj)
+            return new_Expression_from_GEx(self, (<Expression>x)._gobj)
         if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):

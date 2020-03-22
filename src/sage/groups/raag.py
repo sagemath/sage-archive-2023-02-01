@@ -295,8 +295,6 @@ class RightAngledArtinGroup(ArtinGroup):
             1
         """
         if isinstance(x, RightAngledArtinGroup.Element):
-            if x.parent() is self:
-                return x
             raise ValueError("there is no coercion from {} into {}".format(x.parent(), self))
         if x == 1:
             return self.one()

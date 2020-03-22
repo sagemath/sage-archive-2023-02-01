@@ -367,6 +367,8 @@ class ToricDivisorGroup(DivisorGroup_generic):
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
+            sage: TDiv(TDiv.gen(0), check=True)
+            V(x)
         """
         if is_ToricDivisor(x):
             if x.parent() is self:

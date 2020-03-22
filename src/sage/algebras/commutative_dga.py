@@ -1244,6 +1244,12 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A.<x,y,z,t> = GradedCommutativeAlgebra(GF(5))
             sage: A({(1,3,0,1): 2, (2,2,1,2): 3})
             0
+
+        TESTS::
+
+            sage: B = A.cdg_algebra({})
+            sage: B(x, coerce=False)
+            x
         """
         if isinstance(x, QuotientRingElement):
             if x.parent() is self:

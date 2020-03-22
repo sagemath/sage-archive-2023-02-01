@@ -2752,7 +2752,7 @@ class Polyhedron_base(Element):
         r"""
         Return the center of the mass of the polytope.
 
-        The mass is taken with respect to the induces Lebesgue measure,
+        The mass is taken with respect to the induced Lebesgue measure,
         see :meth:`volume`.
 
         INPUT:

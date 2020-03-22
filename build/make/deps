@@ -39,7 +39,9 @@ ifneq ($(PYTHON_FOR_VENV),)
 # TODO: If we reconfigure to build our own Python after having used the system
 # Python, files installed to create the virtualenv should be *removed*.  That
 # could either be done here by the makefile, or in an spkg-preinst for python3
+ifeq ($(PYTHON),python3)
 PYTHON = python3_venv
+endif
 inst_python3_venv = $(SAGE_LOCAL)/pyvenv.cfg
 
 $(inst_python3_venv):

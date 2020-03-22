@@ -104,7 +104,7 @@ build-start: all-build
 # sage-starts runs sage-location, which should be run after installing
 # any package.
 $(STARTED): $(STANDARD_PACKAGE_INSTS)
-	$(AM_V_at)"$(SAGE_LOCAL)/bin/sage-starts"
+	$(AM_V_at)"$(SAGE_ROOT)/build/bin/sage-starts"
 
 
 ###############################################################################

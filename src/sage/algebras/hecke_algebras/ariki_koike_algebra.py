@@ -1016,6 +1016,24 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 L_i^m = q^{-1} T_{i-1} L_{i-1}^m T_{i-1}
                   + (1 - q^{-1}) \sum_{c=1}^{m-1} L_i^c L_{i-1}^{m-c} T_{i-1}.
 
+            .. WARNING::
+
+                This function is used internally by the multiplication and
+                may return elements that are not in the basis. However
+                these will be eventually resolved after the product has
+                been computed.
+
+                    sage: H = algebras.ArikiKoike(3, 2).LT()
+                    sage: L2 = H.L(2)
+                    sage: H._Li_power(2, 4)
+                    ((u0^2*u1*u2+u0*u1^2*u2+u0*u1*u2^2)) + ...
+                     - (q^-1-1)*L1*L2^3*T[1] ...
+                     - (q^-1-1)*L1^3*L2*T[1]
+                    sage: H._Li_power(2, 4) == L2^4
+                    False
+                    sage: L2 * H._Li_power(2, 4) == L2^5
+                    True
+
             EXAMPLES::
 
                 sage: H = algebras.ArikiKoike(3, 3).LT()
@@ -1046,10 +1064,6 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 - (q^-2-2*q^-1+1)*L1*L3^2*T[1,2] - (q^-2-q^-1)*L1*L3^2*T[2,1,2]
                 - (q^-2-2*q^-1+1)*L1*L2*L3*T[1,2] - (q^-2-2*q^-1+1)*L1^2*L3*T[1,2]
                 - (q^-2-q^-1)*L1^2*L3*T[2,1,2]
-
-                sage: L2 = H.L(2)
-                sage: H._Li_power(2, 4) == L2^4
-                True
             """
             # shorthand for returning a tuple of the form (0,...,a,b,...,0) with a,b
             # in the (i-1)th and i-th positions, respectively
@@ -1069,10 +1083,8 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 qsum = self.base_ring().one() - self._q**-1
                 Tim1 = self.T(i-1)
                 # by calling _Li_power we avoid infinite recursion here
-                return ( self.sum_of_terms( ((Ltuple(c, m-c), si), qsum) for c in range(max(1,m-self._r+1), min(self._r,m)) )
-                         + qsum * sum(self._Li_power(i, c) * self._Li_power(i-1, m-c) * Tim1 for c in range(1, m-self._r+1) )
-                         + qsum * sum(self._Li_power(i, c) * self._Li_power(i-1, m-c) * Tim1 for c in range(self._r, m) )
-                         + self._q**-1 * Tim1 * self._Li_power(i-1, m) * Tim1 )
+                return ( self.sum_of_terms( ((Ltuple(c, m-c), si), qsum) for c in range(1, m) )
+                         + self._q**-1 * self.T(i-1) * self._Li_power(i-1, m) * self.T(i-1) )
 
             # now left with the case i = 1 and m >= r
             if m > self._r:

@@ -1,5 +1,14 @@
 SAGE_SPKG_CONFIGURE([python3], [
-    SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [
+   SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [
+      AS_IF([test $SAGE_PYTHON_VERSION = 2], [
+        dnl If we use Python 2 for Sage, we install Python 3 too and do NOT attempt to do
+        dnl venv using system python3 over SAGE_LOCAL.
+        dnl (In particular, the setuptools and pip install scripts are not prepared for
+        dnl handling this situation.)
+        sage_spkg_install_python3=yes
+      ], [
+        dnl Using Python 3 for Sage.  Check if we can do venv with a system python3
+        dnl instead of building our own copy.
         check_modules="sqlite3, ctypes, math, hashlib, crypt, readline, socket, zlib, distutils.core"
         AC_CACHE_CHECK([for python3 >= 3.7.3, < 3.8 with modules $check_modules], [ac_cv_path_PYTHON3], [
             AC_MSG_RESULT([])
@@ -76,7 +85,8 @@ EOF
         ])
         AS_IF([test -z "$ac_cv_path_PYTHON3"],
               [sage_spkg_install_python3=yes])
-    ])
+      ])
+   ])
 ],, [
     dnl PRE
 ], [

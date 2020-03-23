@@ -16,6 +16,9 @@
 
 /m4/sage_spkg_configures.m4
 
+# no longer generated, but may still be in user worktrees
+/src/lib/pkgconfig
+
 ###################
 # Temporary Files #
 ###################

@@ -1081,7 +1081,6 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             if i > 1:
                 si = self._Pn.simple_reflections()[i-1]
                 qsum = self.base_ring().one() - self._q**-1
-                Tim1 = self.T(i-1)
                 # by calling _Li_power we avoid infinite recursion here
                 return ( self.sum_of_terms( ((Ltuple(c, m-c), si), qsum) for c in range(1, m) )
                          + self._q**-1 * self.T(i-1) * self._Li_power(i-1, m) * self.T(i-1) )

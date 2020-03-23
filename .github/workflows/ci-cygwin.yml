@@ -2,8 +2,14 @@ name: windows-latest
 
 on: [push, pull_request]
 
+env:
+  MAKE: make -j8
+  SAGE_SPKG: sage-spkg -y -o
+  SAGE_CHECK: warn
+  SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+
 jobs:
-  cygwin:
+  cygwin-stage1:
 
     runs-on: windows-latest
 
@@ -11,11 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         pkgs: [minimal, standard]
-
     env:
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
-      MAKE: make -j8
-
+      TARGETS: flint
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -41,7 +45,15 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -w V=0 all'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+    - uses: actions/upload-artifact@v1
+      with:
+        path: .
+        name: build-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
+    - uses: actions/upload-artifact@v1
+      with:
+        path: C:\\tools\\cygwin
+        name: cygwin-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -59,3 +71,33 @@ jobs:
       run: |
         find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
       if: always()
+
+  cygwin-stage2:
+    runs-on: windows-latest
+
+    needs: cygwin-stage1
+
+    strategy:
+      fail-fast: false
+      matrix:
+        pkgs: [minimal, standard]
+    env:
+      TARGETS: build
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage2
+
+    steps:
+    - uses: actions/download-artifact@v1
+      with:
+        path: .
+        name: build-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
+    - uses: actions/download-artifact@v1
+      with:
+        path: C:\\tools\\cygwin
+        name: cygwin-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
+    - name: make
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+    - uses: actions/upload-artifact@v1
+      with:
+        path: .
+        name: build-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1

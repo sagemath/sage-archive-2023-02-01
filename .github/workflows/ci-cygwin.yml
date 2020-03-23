@@ -9,7 +9,7 @@ env:
   SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 
 jobs:
-  cygwin-stage1:
+  cygwin-stage-i:
 
     runs-on: windows-latest
 
@@ -18,8 +18,8 @@ jobs:
       matrix:
         pkgs: [minimal, standard]
     env:
-      TARGETS: flint
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
+      TARGETS: singular cvxopt
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-i
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -48,12 +48,8 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
     - uses: actions/upload-artifact@v1
       with:
-        path: .
-        name: build-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
-    - uses: actions/upload-artifact@v1
-      with:
-        path: C:\\tools\\cygwin
-        name: cygwin-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
+        path: local
+        name: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-i
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -72,32 +68,57 @@ jobs:
         find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
       if: always()
 
-  cygwin-stage2:
+  cygwin-stage-ii:
     runs-on: windows-latest
 
-    needs: cygwin-stage1
+    needs: cygwin-stage-i
 
     strategy:
       fail-fast: false
       matrix:
         pkgs: [minimal, standard]
     env:
-      TARGETS: build
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage2
+      TARGETS: build ptest
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-ii
 
     steps:
+    - run: |
+        git config --global core.autocrlf false
+        git config --global core.symlinks true
+    - uses: actions/checkout@v1
+    - name: install cygwin and minimal prerequisites with choco
+      shell: bash {0}
+      run: |
+        choco --version
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        choco install $PACKAGES --source cygwin
+    - name: bootstrap
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
+    - name: install additional cygwin packages with choco
+      if: matrix.pkgs == 'standard'
+      shell: bash {0}
+      run: |
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v1
       with:
-        path: .
-        name: build-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
-    - uses: actions/download-artifact@v1
-      with:
-        path: C:\\tools\\cygwin
-        name: cygwin-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
+        path: local
+        name: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-i
+    - name: configure
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
     - uses: actions/upload-artifact@v1
       with:
-        path: .
-        name: build-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage1
+        path: local
+        name: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-ii
+    - name: Print out logs for immediate inspection
+      # The markup in the output is a GitHub Actions logging command
+      # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+      shell: bash
+      run: |
+        find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+      if: always()

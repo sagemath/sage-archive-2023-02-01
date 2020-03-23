@@ -7091,7 +7091,7 @@ class Graph(GenericGraph):
             (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
 
         We can choose output to be a
-        :class:`<sage.combinat.rooted_tree.LabelledRootedTree>`::
+        :class:`~sage.combinat.rooted_tree.LabelledRootedTree`::
 
             sage: g.modular_decomposition(style='tree')
             SERIES[0[], PARALLEL[5[], 6[], SERIES[1[], 2[], 3[], 4[]]]]

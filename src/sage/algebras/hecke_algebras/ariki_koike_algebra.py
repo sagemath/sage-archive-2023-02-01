@@ -1075,9 +1075,6 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
             if m < self._r:
                 return self.monomial( (Ltuple(0, m), self._one_perm) )
 
-            def L(exp):
-                return tuple([exp if j == i else 0 for j in range(1, self._n+1)])
-
             if i > 1:
                 si = self._Pn.simple_reflections()[i-1]
                 qsum = self.base_ring().one() - self._q**-1

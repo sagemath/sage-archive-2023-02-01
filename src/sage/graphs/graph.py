@@ -6999,11 +6999,12 @@ class Graph(GenericGraph):
           - ``'habib'`` -- `O(n^3)` algorithm of [HM1979]_. This algorithm is
             much simpler and so possibly less prone to errors.
 
-        - ``style`` -- string (default: ``'tuple'``); specifies the output form:
+        - ``style`` -- string (default: ``'tuple'``); specifies the output
+          format:
 
           - ``'tuple'`` -- as nested tuples.
 
-          - ``'tree'`` -- as `LabelledRootedTree`.
+          - ``'tree'`` -- as :class:`~sage.combinat.rooted_tree.LabelledRootedTree`.
 
         OUTPUT:
 

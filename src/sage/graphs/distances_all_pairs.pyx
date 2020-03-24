@@ -1036,51 +1036,27 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
     cdef uint32_t * waiting_list_1 = distances_1 + 2 * n
     cdef uint32_t * waiting_list_2 = distances_2 + 2 * n
 
-    # In first part, we perform forward BFS from source and get its forward
-    # eccentricity
+    # we perform forward and backward BFS from source and get its forward and
+    # backward eccentricity
     LB_1 = simple_BFS(g, source_1, distances_1, NULL, waiting_list_1, seen_1)
+    LB_2 = simple_BFS(rev_g, source_2, distances_2, NULL, waiting_list_2, seen_2)
 
-    # If the forward eccentricity of the source_1 is infinite
-    # then the graph is not connected and so its diameter is infinite.
-    if LB_1 == UINT32_MAX:
+    # if forward or backward eccentricity of source is infinite, then graph is
+    # not strongly connected and its diameter is infinite
+    if LB_1 == UINT32_MAX or LB_2 == UINT32_MAX:
         bitset_free(seen_1)
         bitset_free(seen_2)
         return (UINT32_MAX, 0, 0, 0)
 
-    # Then we perform backward BFS from the last visited vertex and obtain its
-    # backward eccentricity.
+    # Then we perform backward BFS from the last visited vertex of forward BFS
+    # from source and obtain its backward eccentricity.
     source_1 = waiting_list_1[n - 1]
     LB_1 = simple_BFS(rev_g, source_1, distances_1, predecessors_1, waiting_list_1, seen_1)
 
-    # if the computed lower bound LB_1 is infinite,
-    # then the graph is not connected and so its diameter is infinite.
-    if LB_1 == UINT32_MAX:
-        bitset_free(seen_1)
-        bitset_free(seen_2)
-        return (UINT32_MAX, 0, 0, 0)
-
-    # In second part, we perform backward BFS from source and get its backward
-    # eccentricity
-    LB_2 = simple_BFS(rev_g, source_2, distances_2, NULL, waiting_list_2, seen_2)
-
-    # If the backward eccentricity of the source_2 is infinite
-    # then the graph is not connected and so its diameter is infinite.
-    if LB_2 == UINT32_MAX:
-        bitset_free(seen_1)
-        bitset_free(seen_2)
-        return (UINT32_MAX, 0, 0, 0)
-
-    # Then we perform forward BFS from the last visited vertex and obtain its
-    # forward eccentricity.
+    # Then we perform forward BFS from the last visited vertex of backward BFS
+    # from source and obtain its forward eccentricity.
     source_2 = waiting_list_2[n - 1]
     LB_2 = simple_BFS(g, source_2, distances_2, predecessors_2, waiting_list_2, seen_2)
-
-    # if the computed lower bound LB_2 is infinite,
-    # then the graph is not connected and so its diameter is infinite.
-    if LB_2 == UINT32_MAX:
-        bitset_free(seen_1)
-        bitset_free(seen_2)
-        return (UINT32_MAX, 0, 0, 0)
 
     # we select best found lower bound as LB, s and d as source and destination
     # of that BFS call and m as vertex at a distance from/to LB/2 from s and d
@@ -1356,7 +1332,6 @@ def diameter(G, algorithm=None, source=None):
         sage: G = digraphs.Circuit(n=6)
         sage: diameter(G, algorithm='2Dsweep')
         5
-
 
     Although max( ) is usually defined as -Infinity, since the diameter will
     never be negative, we define it to be zero::

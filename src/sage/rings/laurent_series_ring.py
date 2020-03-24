@@ -245,8 +245,6 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
             category = category.Commutative()
-        else:
-            raise ValueError('unrecognized base ring')
 
         if base_ring.is_zero():
             category = category.Finite()

@@ -1159,12 +1159,11 @@ cdef class ImplicitSurface(IndexFaceSet):
                'faces': [[0, 1, 2],
                 ...
                'opacity': 1.0,
-               'vertices': [{'x': 1.0,
-                 'y': -0.9743589743589743,
-                 'z': -0.02564102564102566},
+               'vertices': [{'x': ...,
+                 'y': -0.9743589743589...,
+                 'z': -0.02564102564102...},
                 ...
-                {'x': -1.0, 'y': 0.9487179487179487, 'z': 0.05128205128205132}]})]
-
+                {'x': -1.0, 'y': 0.9487179487179..., 'z': 0.05128205128205...}]})]
         """
         self.triangulate()
         return IndexFaceSet.threejs_repr(self, render_params)

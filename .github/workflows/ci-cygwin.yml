@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard]
+        pkgs: [standard]
     env:
       TARGETS: singular cvxopt
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-i
@@ -76,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard]
+        pkgs: [standard]
     env:
       TARGETS: build ptest
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-ii

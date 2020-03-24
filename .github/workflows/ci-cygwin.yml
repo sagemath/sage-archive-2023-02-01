@@ -55,10 +55,12 @@ jobs:
       run: |
         rm -f local/lib64
         if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
+      if: always()
     - uses: actions/upload-artifact@v1
       with:
         path: local
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+      if: always()
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -123,10 +125,12 @@ jobs:
       run: |
         rm -f local/lib64
         if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
+      if: always()
     - uses: actions/upload-artifact@v1
       with:
         path: local
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+      if: always()
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -202,10 +206,12 @@ jobs:
       run: |
         rm -f local/lib64
         if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
+      if: always()
     - uses: actions/upload-artifact@v1
       with:
         path: local
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+      if: always()
     - name: Print out logs for immediate inspection
       # The markup in the output is a GitHub Actions logging command
       # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions

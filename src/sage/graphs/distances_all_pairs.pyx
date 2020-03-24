@@ -1046,7 +1046,7 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
         bitset_free(seen_2)
         return (UINT32_MAX, 0, 0, 0)
 
-    # we perform forward BFS from source and get its backward eccentricity
+    # we perform backward BFS from source and get its backward eccentricity
     LB_2 = simple_BFS(rev_g, source_2, distances_2, NULL, waiting_list_2, seen_2)
 
     # if backward eccentricity of source is infinite, then graph is

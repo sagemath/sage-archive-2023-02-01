@@ -86,6 +86,8 @@ Options:
        use at your own risk"
    -n: automatically reply "n" for all prompts regarding
        experimental and old-style packages
+   -o: allow fetching the package from its upstream URL
+       when it is not available from the Sage mirrors (yet)
 EOF
 }
 
@@ -222,6 +224,8 @@ while true; do
             export SAGE_CHECK=yes;;
         -k|--keep-existing)
             KEEP_EXISTING=yes;;
+        -o|--allow-upstream)
+            SAGE_DOWNLOAD_FILE_OPTIONS="--allow-upstream";;
         -*)
             echo >&2 "Error: unknown option '$1'"
             exit 2;;
@@ -349,10 +353,49 @@ fi
 if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     cat "$PKG_SCRIPTS/SPKG.txt"
     if [ -r "$PKG_SCRIPTS/type" ] ; then
+        echo
         echo "== Type =="
         echo
         cat "$PKG_SCRIPTS/type"
+        echo
     fi
+    echo "== Equivalent System Packages =="
+    echo
+    PKG_DISTROS="$PKG_SCRIPTS"/distros
+    for system_package_file in "$PKG_DISTROS"/debian*.txt "$PKG_DISTROS"/fedora*.txt "$PKG_DISTROS"/*conda*.txt "$PKG_DISTROS"/homebrew*.txt  "$PKG_DISTROS"/arch*.txt ; do
+        if [ -f "$system_package_file" ]; then
+            system=$(basename "$system_package_file" .txt)
+            system_packages="$(echo $(sed 's/#.*//;' $system_package_file))"
+            case $system in
+                debian)
+                    # Generic
+                    echo "Debian/Ubuntu:"
+                    ;;
+                fedora)
+                    # Generic
+                    echo "Fedora/Redhat/CentOS:"
+                    ;;
+                *)
+                    echo "$system:"
+                    ;;
+            esac
+            echo -n "  "
+            sage-print-system-package-command $system install $system_packages
+        fi
+    done
+    if [ -z "$system" ]; then
+        echo "(none known)"
+    else
+        echo
+        if [ -f "$PKG_SCRIPTS"/spkg-configure.m4 ]; then
+            echo "If the system package is installed, ./configure will check whether it can be used."
+        else
+            echo "However, these system packages will not be used for building Sage"
+            echo "because spkg-configure.m4 has not been written for this package;"
+            echo "see https://trac.sagemath.org/ticket/27330"
+        fi
+    fi
+    echo
     exit 0
 fi
 
@@ -360,7 +403,7 @@ fi
 if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
         # This is the new-style package way of downloading the tarball
-        if ! sage-download-file "$PKG_NAME_UPSTREAM"; then
+        if ! sage-download-file $SAGE_DOWNLOAD_FILE_OPTIONS "$PKG_NAME_UPSTREAM"; then
             error_msg "Error downloading $PKG_NAME_UPSTREAM"
             exit 1
         fi
@@ -665,7 +708,7 @@ write_script_wrapper() {
 
     trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
 
-    if head -1 "$script" | grep '^#!.*$' >/dev/null; then
+    if head -1 "$script.in" | grep '^#!.*$' >/dev/null; then
         echo >&2 "Error: ${script##*/} should not contain a shebang line; it will be prepended automatically."
         exit 1
     fi
@@ -684,7 +727,7 @@ export PKG_NAME="$PKG_NAME"
 export PKG_BASE="$PKG_BASE"
 export PKG_VER="$PKG_VER"
 
-for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env" ; do
+for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env" "\$SAGE_ROOT/build/bin/sage-build-env-config"; do
     source "\$lib"
     if [ \$? -ne 0 ]; then
         echo >&2 "Error: failed to source \$lib"
@@ -707,7 +750,7 @@ fi
 
 __EOF__
 
-    cat "$script" >> "$tmpscript"
+    cat "$script.in" >> "$tmpscript"
     mv "$tmpscript" "$script"
     chmod +x "$script"
 
@@ -731,10 +774,10 @@ for script in $WRAPPED_SCRIPTS; do
 
     script="spkg-$script"
 
-    if [ -f "$script" ]; then
+    if [ -f "$script.in" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
-            if [ -x "$script" ]; then
-                msg="$script should not be marked executable in the build/pkgs directory"
+            if [ -x "$script.in" ]; then
+                msg="$script.in should not be marked executable in the build/pkgs directory"
                 if [ "$UNAME" = "CYGWIN" ]; then
                     # On Cygwin we can't necessarily rely on file permissions
                     # being sane, so just issue a warning; on other platforms

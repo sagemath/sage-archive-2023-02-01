@@ -2801,15 +2801,16 @@ class DyckWord_complete(DyckWord):
         return DyckWord(image)
 
     @combinatorial_map(name="Bounce-area to area-dinv")
-    def bounce_area_to_area_dinv_map(D):
+    def bounce_area_to_area_dinv_map(self):
         r"""
         Return the image of the Dyck word under the map which sends a
         Dyck word with ``bounce`` equal to `r` and ``area`` equal to `s` to a
         Dyck word with ``area`` equal to `r` and ``dinv`` equal to `s` .
 
-        This implementation uses a recursive method by saying that
-        the last entry in the area sequence of `D` is equal to the number of
-        touch points of the Dyck path minus 1 of the image of this map.
+        This implementation uses a recursive method by saying that the
+        last entry in the area sequence of the Dyck word ``self`` is
+        equal to the number of touch points of the Dyck path minus 1
+        of the image of this map.
 
         The inverse of this map is :meth:`area_dinv_to_bounce_area_map`.
 
@@ -2837,7 +2838,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord([1,0,1,0]).bounce_area_to_area_dinv_map()
             [1, 1, 0, 0]
         """
-        aseq = D.to_area_sequence()
+        aseq = self.to_area_sequence()
         out = []
         zeros = []
         for i in range(len(aseq)):

@@ -2188,6 +2188,21 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: forget()
 
+        TESTS:
+
+        Check if :trac:`18630` is fixed::
+
+            sage: (log(1/2)).is_negative()
+            True
+            sage: e.is_positive()
+            True
+            sage: (e+1).is_positive()
+            True
+            sage: (2*e).is_positive()
+            True
+            sage: (e^3).is_positive()
+            True
+
         ::
 
             sage: cosh(x).is_positive()
@@ -2216,6 +2231,21 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: sin(2 - I).is_positive()
             False
+
+        ::
+
+            sage: (log(1/3) * log(1/2)).is_positive()
+            True
+            sage: log((2**500+1)/2**500).is_positive()
+            True
+            sage: log(2*500/(2**500-1)).is_negative()
+            True
+            sage: ((-pi^(1/5))^2).is_positive()
+            True
+            sage: (pi^2).is_positive()
+            True
+            sage: ((-pi)^2).is_positive()
+            True
         """
         return self._gobj.info(info_positive)
 

@@ -922,7 +922,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             ....:     E = EllipticCurve([2, 3])
             ....:     p = E(3, 6, 1)
             ....:     return p
-            ....:
             sage: p = compute_E()
             sage: 2*p
             (-23/144 : 2827/1728 : 1)

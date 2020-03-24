@@ -2981,7 +2981,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             Basis matrix:
             []
 
-        We do an example with a split prime and show both the quo and lift maps:
+        We do an example with a split prime and show both the quo
+        and lift maps::
+
             sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
             sage: I = K.factor(5)[0][0]
             sage: Q,quo,lift = I._p_quotient(5)
@@ -3061,6 +3063,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             -1
             sage: F2(a)
             Traceback (most recent call last):
+            ...
             ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
 
         An example with a relative number field::

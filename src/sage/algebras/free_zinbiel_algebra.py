@@ -15,8 +15,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import iteritems
-
 from sage.misc.cachefunc import cached_method
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.categories.magmas import Magmas
@@ -101,7 +99,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
     .. WARNING::
 
-        Currently the basis is indexed by all words over the variables,
+        Currently the basis is indexed by all finite words over the variables,
         including the empty word. This is a slight abuse as it is supposed
         to be indexed by all non-empty words.
 
@@ -139,6 +137,16 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         6*Z[xxxx]
         sage: (((x*x)*x)*x)*x
         24*Z[xxxxx]
+
+    TESTS::
+
+        sage: Z.basis().keys()
+        Finite words over {'x', 'y', 'z'}
+
+        sage: A = algebras.FreeZinbiel(QQ,'z2,z3')
+        sage: x, y = A.gens()
+        sage: x*y
+        Z[z2,z3]
 
     REFERENCES:
 
@@ -179,7 +187,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             n = len(names)
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        return super(FreeZinbielAlgebra, cls).__classcall__(cls, R, n, tuple(names))
+        superclass = super(FreeZinbielAlgebra, cls)
+        return superclass.__classcall__(cls, R, n, tuple(names))
 
     def __init__(self, R, n, names):
         """
@@ -197,9 +206,9 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             ...
             TypeError: argument R must be a ring
         """
-        if R not in Rings:
+        if R not in Rings():
             raise TypeError("argument R must be a ring")
-        indices = Words(Alphabet(n, names=names))
+        indices = Words(Alphabet(n, names=names), infinite=False)
         cat = MagmaticAlgebras(R).WithBasis().Graded()
         self._n = n
         CombinatorialFreeModule.__init__(self, R, indices, prefix='Z',
@@ -243,7 +252,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             [Z[x], Z[y], Z[z]]
         """
         A = self.variable_names()
-        return Family(A, lambda g: self.monomial(self._indices(g)))
+        return Family(A, lambda g: self.monomial(self._indices([g])))
 
     def change_ring(self, R):
         """
@@ -313,7 +322,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         """
         if not x:
             return self.monomial(y)
-        x0 = self._indices(x[0])
+        x0 = self._indices([x[0]])
         return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
 
     def _element_constructor_(self, x):
@@ -353,7 +362,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         except AttributeError:
             raise TypeError('not able to convert this to this algebra')
         if isinstance(P, FreeZinbielAlgebra) and self._coerce_map_from_(P):
-            return self.element_class(self, x.monomial_coefficients(copy=False))
+            return self.element_class(self,
+                                      x.monomial_coefficients(copy=False))
         else:
             raise TypeError('not able to convert this to this algebra')
         # Ok, not a Zinbiel algebra element (or should not be viewed as one).
@@ -480,8 +490,8 @@ class ZinbielFunctor(ConstructionFunctor):
         """
         EXAMPLES::
 
-            sage: F = sage.algebras.free_zinbiel_algebra.ZinbielFunctor(['x','y'])
-            sage: F
+            sage: functor = sage.algebras.free_zinbiel_algebra.ZinbielFunctor
+            sage: F = functor(['x','y']); F
             Zinbiel[x,y]
             sage: F(ZZ)
             Free Zinbiel algebra on generators (Z[x], Z[y]) over Integer Ring
@@ -515,15 +525,17 @@ class ZinbielFunctor(ConstructionFunctor):
             sage: R = algebras.FreeZinbiel(ZZ, 'x').construction()[0]
             sage: R(ZZ.hom(GF(3)))  # indirect doctest
             Generic morphism:
-              From: Free Zinbiel algebra on generators (Z[x],) over Integer Ring
-              To:   Free Zinbiel algebra on generators (Z[x],) over Finite Field of size 3
+              From: Free Zinbiel algebra on generators (Z[x],)
+                    over Integer Ring
+              To:   Free Zinbiel algebra on generators (Z[x],)
+                    over Finite Field of size 3
         """
         dom = self(f.domain())
         codom = self(f.codomain())
 
         def action(x):
             return codom._from_dict({a: f(b)
-                                     for a, b in iteritems(x.monomial_coefficients(copy=False))})
+                                     for a, b in x.monomial_coefficients(copy=False).items()})
         return dom.module_morphism(function=action, codomain=codom)
 
     def __eq__(self, other):
@@ -556,7 +568,7 @@ class ZinbielFunctor(ConstructionFunctor):
             True
         """
         return hash(repr(self))
-    
+
     def __mul__(self, other):
         """
         If two Zinbiel functors are given in a row, form a single
@@ -564,8 +576,9 @@ class ZinbielFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: F = sage.algebras.free_zinbiel_algebra.ZinbielFunctor(['x','y'])
-            sage: G = sage.algebras.free_zinbiel_algebra.ZinbielFunctor(['t'])
+            sage: functor = sage.algebras.free_zinbiel_algebra.ZinbielFunctor
+            sage: F = functor(['x','y'])
+            sage: G = functor(['t'])
             sage: G * F
             Zinbiel[x,y,t]
         """
@@ -589,8 +602,9 @@ class ZinbielFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: F = sage.algebras.free_zinbiel_algebra.ZinbielFunctor(['x','y'])
-            sage: G = sage.algebras.free_zinbiel_algebra.ZinbielFunctor(['t'])
+            sage: functor = sage.algebras.free_zinbiel_algebra.ZinbielFunctor
+            sage: F = functor(['x','y'])
+            sage: G = functor(['t'])
             sage: F.merge(G)
             Zinbiel[x,y,t]
             sage: F.merge(F)

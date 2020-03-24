@@ -91,6 +91,11 @@ Raw and hex work correctly::
     sage: type(0Xa1R)
     <type 'int'>
 
+The preparser can handle PEP 515 (see :trac:`28490`)::
+
+    sage: 1_000_000 + 3_000 # py3
+    1003000
+
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
 
@@ -736,6 +741,68 @@ def preparse_numeric_literals(code, extract=False):
         '0xEA'
         sage: preparse_numeric_literals('0x1012Fae')
         'Integer(0x1012Fae)'
+
+    Test underscores as digit separators (PEP 515,
+    https://www.python.org/dev/peps/pep-0515/)::
+
+        sage: preparse_numeric_literals('123_456')
+        'Integer(123_456)'
+        sage: preparse_numeric_literals('123_456.78_9_0')
+        "RealNumber('123_456.78_9_0')"
+        sage: preparse_numeric_literals('0b11_011')
+        'Integer(0b11_011)'
+        sage: preparse_numeric_literals('0o76_321')
+        'Integer(0o76_321)'
+        sage: preparse_numeric_literals('0xaa_aaa')
+        'Integer(0xaa_aaa)'
+        sage: preparse_numeric_literals('1_3.2_5e-2_2')
+        "RealNumber('1_3.2_5e-2_2')"
+
+        sage: for f in ["1_1.", "11_2.", "1.1_1", "1_1.1_1", ".1_1", ".1_1e1_1", ".1e1_1",
+        ....:           "1e12_3", "1_1e1_1", "1.1_3e1_2", "1_1e1_1", "1e1", "1.e1_1",
+        ....:           "1.0", "1_1.0"]:
+        ....:     preparse_numeric_literals(f)
+        ....:     assert preparse(f) == preparse_numeric_literals(f), f
+        "RealNumber('1_1.')"
+        "RealNumber('11_2.')"
+        "RealNumber('1.1_1')"
+        "RealNumber('1_1.1_1')"
+        "RealNumber('.1_1')"
+        "RealNumber('.1_1e1_1')"
+        "RealNumber('.1e1_1')"
+        "RealNumber('1e12_3')"
+        "RealNumber('1_1e1_1')"
+        "RealNumber('1.1_3e1_2')"
+        "RealNumber('1_1e1_1')"
+        "RealNumber('1e1')"
+        "RealNumber('1.e1_1')"
+        "RealNumber('1.0')"
+        "RealNumber('1_1.0')"
+
+    Having consecutive underscores is not valid Python syntax, so
+    it is not preparsed, and similarly with a trailing underscore::
+
+        sage: preparse_numeric_literals('123__45')
+        '123__45'
+        sage: 123__45 # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 123__45 # py3
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
+
+        sage: preparse_numeric_literals('3040_1_')
+        '3040_1_'
+        sage: 3040_1_ # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 3040_1_ # py3
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
     """
     literals = {}
     last = 0
@@ -743,14 +810,13 @@ def preparse_numeric_literals(code, extract=False):
 
     global all_num_regex
     if all_num_regex is None:
-        dec_num = r"\b\d+"
-        hex_num = r"\b0x[0-9a-f]+"
-        oct_num = r"\b0o[0-7]+"
-        bin_num = r"\b0b[01]+"
+        hex_num = r"\b0x[0-9a-f]+(_[0-9a-f]+)*"
+        oct_num = r"\b0o[0-7]+(_[0-7]+)*"
+        bin_num = r"\b0b[01]+(_[01]+)*"
         # This is slightly annoying as floating point numbers may start
         # with a decimal point, but if they do the \b will not match.
-        float_num = r"((\b\d+([.]\d*)?)|([.]\d+))(e[-+]?\d+)?"
-        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num, dec_num)
+        float_num = r"((\b\d+(_\d+)*([.](\d+(_\d+)*)?)?)|([.]\d+(_\d+)*))(e[-+]?\d+(_\d+)*)?"
+        all_num = r"((%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num)
         all_num_regex = re.compile(all_num, re.I)
 
     for m in all_num_regex.finditer(code):
@@ -784,7 +850,7 @@ def preparse_numeric_literals(code, extract=False):
                         # handle 4.sqrt()
                         end -= 1
                         num = num[:-1]
-            elif end < len(code) and code[end] == '.' and not postfix and re.match(r'\d+$', num):
+            elif end < len(code) and code[end] == '.' and not postfix and re.match(r'\d+(_\d+)*$', num):
                 # \b does not match after the . for floating point
                 # two dots in a row would be an ellipsis
                 if end+1 == len(code) or code[end+1] != '.':
@@ -1213,7 +1279,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Generators
     # R.0 -> R.gen(0)
-    L = re.sub(r'([_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+    L = re.sub(r'(\b[_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
     # Use ^ for exponentiation and ^^ for xor
     # (A side effect is that **** becomes xor as well.)

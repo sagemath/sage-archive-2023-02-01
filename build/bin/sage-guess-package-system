@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# First test for user-installable package systems, then system package systems
+if conda --version > /dev/null 2>&1; then
+    echo conda
+elif brew --version > /dev/null 2>&1; then
+    echo homebrew
+elif emerge --version > /dev/null 2>&1; then
+    echo gentoo
+elif apt-get --version > /dev/null 2>&1; then
+    echo debian
+elif yum --version > /dev/null 2>&1; then
+    echo fedora
+elif pacman --version > /dev/null 2>&1; then
+    echo arch
+elif zypper --version > /dev/null 2>&1; then
+    echo opensuse
+elif apk --version > /dev/null 2>&1; then
+    echo alpine
+else
+    case `uname -s` in
+        CYGWIN*)
+            echo cygwin
+            ;;
+        *)
+            echo unknown
+            ;;
+    esac
+fi

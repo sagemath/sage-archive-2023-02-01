@@ -4160,7 +4160,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         .. NOTE::
 
-           In Sage one can also write ``A  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 

@@ -43,7 +43,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six import itervalues, iteritems
+from six import iteritems
 from six.moves import range
 
 from sage.rings.continued_fraction import convergents
@@ -712,7 +712,7 @@ class ManinMap(object):
             (1 + O(11^2), 2 + O(11))
         """
         sd = self._dict
-        for val in itervalues(sd):
+        for val in sd.values():
             val.normalize()
         return self
 

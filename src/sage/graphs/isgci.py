@@ -393,8 +393,6 @@ Methods
 """
 from __future__ import print_function
 
-from six import itervalues
-
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
@@ -871,7 +869,7 @@ class GraphClasses(UniqueRepresentation):
         DB = _XML_to_dict(root)
 
         classes = {c['id']: c for c in DB['GraphClasses']["GraphClass"]}
-        for c in itervalues(classes):
+        for c in classes.values():
             c["problem"] = {pb.pop("name"): pb for pb in c["problem"]}
 
         inclusions = DB['Inclusions']['incl']

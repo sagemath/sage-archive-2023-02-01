@@ -50,6 +50,7 @@ Sage is supported on a number of `Linux <https://en.wikipedia.org/wiki/Linux>`_,
 `macOS <https://www.apple.com/macosx/>`_ ,
 Sun/Oracle `Solaris <https://www.oracle.com/solaris>`_ releases,
 but not necessarily all versions of these operating systems.
+
 There is no native version of Sage which installs on
 `Microsoft Windows <https://en.wikipedia.org/wiki/Microsoft_Windows>`_,
 although Sage can be used on Windows with the aid of a
@@ -221,40 +222,27 @@ The method of installing additional software varies from distribution to
 distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 `Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
 you would use
-`apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
+`apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_.
 
-     # debian (Buster or newer) / ubuntu
-     $ sudo apt-get install binutils pixz gcc g++ gfortran make m4 perl tar \
-       git patch openssl libssl-dev libz-dev bc libbz2-dev liblzma-dev libgmp-dev \
-       libffi-dev libgf2x-dev libcurl4-openssl-dev libzmq3-dev curl yasm \
-       pkg-config libntl-dev libmpfr-dev libmpc-dev libflint-dev \
-       libpcre3-dev libgd-dev libflint-dev libflint-arb-dev \
-       libsymmetrica2-dev gmp-ecm libecm-dev libisl-dev libgivaro-dev \
-       libpari-dev pari-gp2c libec-dev liblrcalc-dev \
-       libm4ri-dev libm4rie-dev liblfunction-dev lcalc \
-       libopenblas-dev r-base-dev libgsl-dev libcliquer-dev cliquer
+On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
+.. literalinclude:: debian.txt
 
-     # redhat / fedora / centos
-     $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
-       tar git patch perl-ExtUtils-MakeMaker openssl openssl-devel zlib-devel \
-       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm \
-       pkg-config ntl-devel mpfr-devel libmpc-devel libsymmetrica-devel \
-       eclib-devel gmp-ecm-devel lrcalc-devel isl-devel givaro-devel \
-       pari-devel pari-elldata pari-seadata pari-galdata pari-galpol \
-       m4ri-devel m4rie-devel L-function-devel \
-       openblas openblas-devel R R-devel gsl gsl-devel cliquer cliquer-devel
+On Fedora / Redhat / CentOS:
+
+.. literalinclude:: fedora.txt
 
 (These examples suppose that you choose to use a systemwide OpenSSL library.)
-In addition, if you don't want Sage to build other packages that might be available from
-your OS, cf. the growing list of such packages on :trac:`27330`, install::
 
-     # debian / ubuntu --  not for standard Sage spkgs
-     $ sudo apt-get install cmake libterm-readline-gnu-perl ninja-build \
-     librw-dev
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
-     # redhat / fedora / centos -- not for standard Sage spkgs
-     $ sudo yum install cmake perl-Term-ReadLine-Gnu ninja-build rw-devel
+.. literalinclude:: debian-optional.txt
+
+On Fedora / Redhat / CentOS:
+
+.. literalinclude:: fedora-optional.txt
 
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
@@ -299,6 +287,43 @@ a registration.
 
 - Alternately, https://developer.apple.com/opensource/ should have a link
   to Command Line Tools.
+
+
+.. _section_cygwinprereqs:
+
+Cygwin prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sage can be built only on the 64-bit version of Cygwin.  See the
+`Cygwin64Port <https://trac.sagemath.org/wiki/Cygwin64Port>`_ wiki page for
+the most up-to-date instructions for building Sage on Cygwin.
+
+Although it is possible to install Sage's dependencies using the Cygwin
+graphical installer, it is recommended to install the `apt-cyg
+<https://github.com/transcode-open/apt-cyg>`_ command-line package
+installer, which is used for the remainder of these instructions.  To
+run `apt-cyg`, you must have already installed (using the graphical
+installer) the following packages at a minimum::
+
+    bzip2 coreutils gawk gzip tar wget
+
+With the exception of ``wget`` most of these are included in the default
+package selection when you install Cygwin.  Then, to install ``apt-cyg``
+run::
+
+    $ curl -OL https://rawgit.com/transcode-open/apt-cyg/master/apt-cyg
+    $ install apt-cyg /usr/local/bin
+    $ rm -f apt-cyg
+
+To install the current set of system packages known to work for building
+Sage, run:
+
+.. literalinclude:: cygwin.txt
+
+Optional packages that are also known to be installable via system packages
+include:
+
+.. literalinclude:: cygwin-optional.txt
 
 Other platforms
 ^^^^^^^^^^^^^^^
@@ -421,7 +446,7 @@ Sage notebook.
 Notebook additional features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**attention: Sage's notebook is deprecated. Use Jupyter notebook instead**
+**attention: Sage's notebook is deprecated, and notebook() command has been removed. Use Jupyter notebook instead**
 
 By default, the Sage notebook uses the
 `HTTP <https://en.wikipedia.org/wiki/HTTP>`_

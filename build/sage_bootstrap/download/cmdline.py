@@ -60,6 +60,10 @@ def make_parser():
         help='Timeout for network operations')
 
     parser.add_argument(
+        '--allow-upstream', action="store_true",
+        help='Whether to fall back to downloading from the upstream URL')
+
+    parser.add_argument(
         'url_or_tarball', type=str, nargs='?', default=None,
         help="""A http:// url or a tarball filename. In the latter case, the
         tarball is downloaded from the mirror network and its checksum
@@ -95,7 +99,7 @@ def run():
     elif is_url(args.url_or_tarball):
         app.download_url(args.url_or_tarball, args.destination)
     else:
-        app.download_tarball(args.url_or_tarball, args.destination)
+        app.download_tarball(args.url_or_tarball, args.destination, args.allow_upstream)
 
 
 def format_error(message):

@@ -1036,14 +1036,22 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
     cdef uint32_t * waiting_list_1 = distances_1 + 2 * n
     cdef uint32_t * waiting_list_2 = distances_2 + 2 * n
 
-    # we perform forward and backward BFS from source and get its forward and
-    # backward eccentricity
+    # we perform forward BFS from source and get its forward eccentricity
     LB_1 = simple_BFS(g, source_1, distances_1, NULL, waiting_list_1, seen_1)
+
+    # if forward eccentricity of source is infinite, then graph is
+    # not strongly connected and its diameter is infinite
+    if LB_1 == UINT32_MAX:
+        bitset_free(seen_1)
+        bitset_free(seen_2)
+        return (UINT32_MAX, 0, 0, 0)
+
+    # we perform forward BFS from source and get its backward eccentricity
     LB_2 = simple_BFS(rev_g, source_2, distances_2, NULL, waiting_list_2, seen_2)
 
-    # if forward or backward eccentricity of source is infinite, then graph is
+    # if backward eccentricity of source is infinite, then graph is
     # not strongly connected and its diameter is infinite
-    if LB_1 == UINT32_MAX or LB_2 == UINT32_MAX:
+    if LB_2 == UINT32_MAX:
         bitset_free(seen_1)
         bitset_free(seen_2)
         return (UINT32_MAX, 0, 0, 0)

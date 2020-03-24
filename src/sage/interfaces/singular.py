@@ -1680,12 +1680,15 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
         Test that :trac:`29396` is fixed::
 
-            sage: R.<x,z> = RR[]
+            sage: Rxz.<x,z> = RR[]
             sage: f = x**3 + x*z + 1
             sage: f.discriminant(x)
             -4.00000000000000*z^3 - 27.0000000000000
-            sage: R("x + 1")._singular_().sage_poly()
-            x + 1.00000
+            sage: Rx.<x> = RR[]
+            sage: Rx("x + 7.5")._singular_().sage_poly()
+            x + 7.50000
+            sage: Rx("x + 7.5")._singular_().sage_poly(Rx)
+            x + 7.50000000000000
 
         AUTHORS:
 
@@ -1803,7 +1806,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 monomial = singular_poly_list[i]
                 exp = int(0)
 
-                if monomial!="1":
+                if not(monomial in ['1', '(1.000e+00)']):
                     term =  monomial.split("^")
                     if len(term)==int(2):
                         exp = int(term[1])

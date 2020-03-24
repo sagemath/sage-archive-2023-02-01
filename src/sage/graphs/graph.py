@@ -7134,6 +7134,7 @@ class Graph(GenericGraph):
             None[]
 
         Singleton Vertex::
+
             sage: Graph(1).modular_decomposition(algorithm='habib')
             (PRIME, [0])
             sage: Graph(1).modular_decomposition(algorithm='tedder')
@@ -7162,8 +7163,11 @@ class Graph(GenericGraph):
             ...
             ValueError: style must be 'tuple' or 'tree'
         """
-        from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition,\
-            NodeType, habib_maurer_algorithm, create_prime_node, create_normal_node
+        from sage.graphs.graph_decompositions.modular_decomposition import (modular_decomposition,
+                                                                            NodeType,
+                                                                            habib_maurer_algorithm,
+                                                                            create_prime_node,
+                                                                            create_normal_node)
 
         self._scream_if_not_simple()
 

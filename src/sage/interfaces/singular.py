@@ -1778,7 +1778,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 exp = dict()
                 monomial = singular_poly_list[i]
 
-                if not(monomial in ['1', '(1.000e+00)']):
+                if monomial not in ['1', '(1.000e+00)']:
                     variables = [var.split("^") for var in monomial.split("*") ]
                     for e in variables:
                         var = e[0]
@@ -1806,7 +1806,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 monomial = singular_poly_list[i]
                 exp = int(0)
 
-                if not(monomial in ['1', '(1.000e+00)']):
+                if monomial not in ['1', '(1.000e+00)']:
                     term =  monomial.split("^")
                     if len(term)==int(2):
                         exp = int(term[1])

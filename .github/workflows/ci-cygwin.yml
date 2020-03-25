@@ -188,10 +188,16 @@ jobs:
       with:
         path: local
         name: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-ii-a
+    - shell: bash {0}
+      run: |
+        ls -l local local/var/lib/sage/installed/ local/bin/
     - uses: actions/download-artifact@v1
       with:
         path: local
         name: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-ii-b
+    - shell: bash {0}
+      run: |
+        ls -l local local/var/lib/sage/installed/ local/bin/
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'

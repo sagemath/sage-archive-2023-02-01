@@ -55,7 +55,7 @@ jobs:
         rm -f local/lib64
         if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
       if: always()
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2-preview
       with:
         path: local
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
@@ -65,7 +65,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/pkgs/* "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2-preview
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -125,7 +125,7 @@ jobs:
         rm -f local/lib64
         if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
       if: always()
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2-preview
       with:
         path: local
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
@@ -135,7 +135,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/* "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2-preview
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -184,14 +184,14 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2-preview
       with:
         path: local
         name: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-ii-a
     - shell: bash {0}
       run: |
         ls -l local local/var/lib/sage/installed/ local/bin/
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2-preview
       with:
         path: local
         name: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}-stage-ii-b
@@ -212,7 +212,7 @@ jobs:
         rm -f local/lib64
         if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
       if: always()
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2-preview
       with:
         path: local
         name: ${{ env.LOCAL_ARTIFACT_NAME }}

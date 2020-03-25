@@ -720,6 +720,28 @@ class CoxeterGroups(Category_singleton):
             from sage.sets.family import Family
             return Family(self.index_set(), lambda i: self.simple_projection(i, side=side, length_increasing=length_increasing))
 
+        def sign_representation(self, base_ring=None, side="twosided"):
+            r"""
+            Return the sign representation of ``self`` over ``base_ring``.
+
+            INPUT:
+
+            - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
+            - ``side`` -- ignored
+
+            EXAMPLES::
+
+                sage: W = sg.WeylGroup(["A", 1,1])
+                sage: W.sign_representation()
+                Sign representation of The symmetric group on {0, ..., 3} over Integer Ring
+                
+            """
+            if base_ring is None:
+                from sage.rings.all import ZZ
+                base_ring = ZZ
+            from sage.modules.with_basis.representation import SignRepresentation
+            return SignRepresentation(self, base_ring)
+
         def demazure_product(self, Q):
             r"""
             Return the Demazure product of the list ``Q`` in ``self``.

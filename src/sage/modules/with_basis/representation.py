@@ -571,7 +571,7 @@ class SignRepresentation(Representation_abstract):
     - :wikipedia:`Representation_theory_of_the_symmetric_group`
     """
 
-    def __init__(self, permGroup, base_ring):
+    def __init__(self, group, base_ring):
         """
         Initialize ``self``.
 
@@ -582,20 +582,23 @@ class SignRepresentation(Representation_abstract):
             sage: TestSuite(V).run()
         """
         from sage.groups.group import FiniteGroup
+        from sage.categories.coxeter_groups import CoxeterGroups
 
-        if not isinstance(permGroup, FiniteGroup):
-            raise ValueError(
-                "Sign Representation is only defined over FiniteGroups and not over {}".format(
-                    type(permGroup)
+        if not (isinstance(group, FiniteGroup) or (group in CoxeterGroups)):
+            raise NotImplementedError(
+                "Sign Representation is only defined over FiniteGroups and CoxeterGroups, and not over {}".format(
+                    type(group)
                 )
             )
-
+        if group in CoxeterGroups:
+            self.using_length_as_sign = True
+            self._on_basis = lambda g, m: self.term(m, g.length())
+        else:
+            self.using_length_as_sign = False
+            self._on_basis = lambda g, m: self.term(m, g.sign())
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
-        self._on_basis = lambda g, m: self.term(m, g.sign())
 
-        Representation_abstract.__init__(
-            self, permGroup, base_ring, ["v"], category=cat
-        )
+        Representation_abstract.__init__(self, group, base_ring, ["v"], category=cat)
 
     def _repr_(self):
         """
@@ -674,7 +677,12 @@ class SignRepresentation(Representation_abstract):
                 if scalar.parent() is P._semigroup:
                     if not self:
                         return self
-                    if scalar.sign() < 0:
+                    if P.using_length_as_sign:
+                        if scalar.length() % 2 == 0:
+                            return self
+                        else:
+                            return -self
+                    elif scalar.sign() < 0:
                         return -self
                     else:
                         return self
@@ -683,11 +691,21 @@ class SignRepresentation(Representation_abstract):
                     if not self:
                         return self
                     ret = P.zero()
-                    for ms, cs in scalar:
-                        ret += P.linear_combination(
-                            ((P.term(m, ms.sign()), cs * c) for m, c in self),
-                            not self_on_left,
-                        )
+                    if P.using_length_as_sign:
+                        for ms, cs in scalar:
+                            ret += P.linear_combination(
+                                (
+                                    (P.term(m, (-1) ** ms.length()), cs * c)
+                                    for m, c in self
+                                ),
+                                not self_on_left,
+                            )
+                    else:
+                        for ms, cs in scalar:
+                            ret += P.linear_combination(
+                                ((P.term(m, ms.sign()), cs * c) for m, c in self),
+                                not self_on_left,
+                            )
                     return ret
             return CombinatorialFreeModule.Element._acted_upon_(
                 self, scalar, self_on_left

@@ -372,7 +372,7 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     echo "== Equivalent System Packages =="
     echo
     PKG_DISTROS="$PKG_SCRIPTS"/distros
-    for system_package_file in "$PKG_DISTROS"/debian*.txt "$PKG_DISTROS"/fedora*.txt "$PKG_DISTROS"/*conda*.txt "$PKG_DISTROS"/homebrew*.txt  "$PKG_DISTROS"/arch*.txt ; do
+    for system_package_file in "$PKG_DISTROS"/*.txt; do
         if [ -f "$system_package_file" ]; then
             system=$(basename "$system_package_file" .txt)
             system_packages="$(echo $(sed 's/#.*//;' $system_package_file))"

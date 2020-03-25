@@ -29,6 +29,9 @@ case $system:$command in
     homebrew*:install)
         echo "brew install $system_packages"
         ;;
+    slackware*:install)
+        echo "sudo slackpkg install $system_packages"
+        ;;
     cygwin*:install)
         echo "# first install apt-cyg from https://github.com/transcode-open/apt-cyg"
         echo "apt-cyg install $system_packages"

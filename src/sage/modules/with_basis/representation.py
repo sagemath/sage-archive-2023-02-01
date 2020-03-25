@@ -649,7 +649,8 @@ class SignRepresentation(Representation_abstract):
                 sage:S = G.sign_representation()
                 sage:x = S.an_element(); x
                 2*B['v']
-                sage:c,s = G.gens()
+                sage:c,s = G.gens(); c
+                (1,2,3)
                 sage:c*x
                 -2*B['v']
                 sage:c*x*c

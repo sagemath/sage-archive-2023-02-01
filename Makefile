@@ -33,9 +33,13 @@ sageruntime: base-toolchain
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
 
+# CONFIG_FILES lists all files that appear in AC_CONFIG_FILES in configure.ac;
+# except for build/make/Makefile-auto, which is unused by the build system
+CONFIG_FILES = build/make/Makefile src/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
+
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs/*/*
+build/make/Makefile: configure build/make/deps build/pkgs/*/* $(CONFIG_FILES:%=%.in)
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log

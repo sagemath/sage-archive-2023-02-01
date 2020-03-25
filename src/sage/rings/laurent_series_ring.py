@@ -35,6 +35,7 @@ from __future__ import print_function, absolute_import
 
 from sage.categories.rings import Rings
 from sage.rings.infinity import infinity
+from sage.categories.algebras import Algebras
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
@@ -124,7 +125,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         sage: R.<x> = k[[]]
         sage: F = Frac(R)
         sage: F.category()
-        Category of infinite complete discrete valuation fields
+        Join of Category of complete discrete valuation fields and Category of commutative algebras over (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
         sage: TestSuite(F).run()
 
     TESTS:
@@ -145,11 +146,11 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
     Check categories (:trac:`24420`)::
 
         sage: LaurentSeriesRing(ZZ, 'x').category()
-        Category of infinite integral domains
+        Category of infinite commutative no zero divisors algebras over (euclidean domains and infinite enumerated sets and metric spaces)
         sage: LaurentSeriesRing(QQ, 'x').category()
-        Category of infinite complete discrete valuation fields
+        Join of Category of complete discrete valuation fields and Category of commutative algebras over (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: LaurentSeriesRing(Zmod(4), 'x').category()
-        Category of infinite commutative rings
+        Category of infinite commutative algebras over (finite commutative rings and subquotients of monoids and quotients of semigroups and finite enumerated sets)
 
     Check coercions (:trac:`24431`)::
 
@@ -213,49 +214,48 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
 
             sage: RZZ = LaurentSeriesRing(ZZ, 't')
             sage: RZZ.category()
-            Category of infinite integral domains
+            Category of infinite commutative no zero divisors algebras over (euclidean domains and infinite enumerated sets and metric spaces)
             sage: TestSuite(RZZ).run()
 
             sage: R1 = LaurentSeriesRing(Zmod(1), 't')
             sage: R1.category()
-            Category of finite commutative rings
+            Category of finite commutative algebras over (finite commutative rings and subquotients of monoids and quotients of semigroups and finite enumerated sets)
             sage: TestSuite(R1).run()
 
             sage: R2 = LaurentSeriesRing(Zmod(2), 't')
             sage: R2.category()
-            Category of infinite complete discrete valuation fields
+            Join of Category of complete discrete valuation fields and Category of commutative algebras over (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
             sage: TestSuite(R2).run()
 
             sage: R4 = LaurentSeriesRing(Zmod(4), 't')
             sage: R4.category()
-            Category of infinite commutative rings
+            Category of infinite commutative algebras over (finite commutative rings and subquotients of monoids and quotients of semigroups and finite enumerated sets)
             sage: TestSuite(R4).run()
 
             sage: RQQ = LaurentSeriesRing(QQ, 't')
             sage: RQQ.category()
-            Category of infinite complete discrete valuation fields
+            Join of Category of complete discrete valuation fields and Category of commutative algebras over (number fields and quotient fields and metric spaces) and Category of infinite sets
             sage: TestSuite(RQQ).run()
         """
         base_ring = power_series.base_ring()
+        category = Algebras(base_ring.category())
         if base_ring in Fields():
-            category = CompleteDiscreteValuationFields()
+            category &= CompleteDiscreteValuationFields()
         elif base_ring in IntegralDomains():
-            category = IntegralDomains()
+            category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
-            category = Rings().Commutative()
-        else:
-            raise ValueError('unrecognized base ring')
+            category = category.Commutative()
 
         if base_ring.is_zero():
             category = category.Finite()
         else:
             category = category.Infinite()
 
+        self._power_series_ring = power_series
+        self._one_element = self.element_class(self, power_series.one())
         CommutativeRing.__init__(self, base_ring,
                 names=power_series.variable_names(),
                 category=category)
-
-        self._power_series_ring = power_series
 
     def base_extend(self, R):
         """
@@ -584,12 +584,6 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             True
         """
         A = self.base_ring()
-        if A is P:
-            return True
-        f = A.coerce_map_from(P)
-        if f is not None:
-            return self.coerce_map_from(A) * f
-
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.power_series_ring import is_PowerSeriesRing
         from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing

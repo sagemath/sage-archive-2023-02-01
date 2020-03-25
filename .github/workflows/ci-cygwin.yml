@@ -50,8 +50,13 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
       shell: bash
+      # Symlinks are not saved/restored correctly on Windows.
+      # Remove some that can be recreated by the next stage,
+      # and replace others by copies.
       run: |
-        tar cf sage-local-${{ env.STAGE }}.tar local
+        rm -f local/lib64
+        if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
+        tar -c --dereference -f sage-local-${{ env.STAGE }}.tar local
       if: always()
     - uses: actions/upload-artifact@v2-preview
       # upload-artifact@v2-preview does not support whitespace in file names.
@@ -119,11 +124,14 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
-      # upload-artifact@v2-preview does not support whitespace in file names.
-      # so we tar up the directory ourselves
       shell: bash
+      # Symlinks are not saved/restored correctly on Windows.
+      # Remove some that can be recreated by the next stage,
+      # and replace others by copies.
       run: |
-        tar cf sage-local-${{ env.STAGE }}.tar local
+        rm -f local/lib64
+        if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
+        tar -c --dereference -f sage-local-${{ env.STAGE }}.tar local
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -201,11 +209,14 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
-      # upload-artifact@v2-preview does not support whitespace in file names.
-      # so we tar up the directory ourselves
       shell: bash
+      # Symlinks are not saved/restored correctly on Windows.
+      # Remove some that can be recreated by the next stage,
+      # and replace others by copies.
       run: |
-        tar cf sage-local-${{ env.STAGE }}.tar local
+        rm -f local/lib64
+        if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
+        tar -c --dereference -f sage-local-${{ env.STAGE }}.tar local
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:

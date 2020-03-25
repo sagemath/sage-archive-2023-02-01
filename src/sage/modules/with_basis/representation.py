@@ -582,20 +582,26 @@ class SignRepresentation(Representation_abstract):
             sage: TestSuite(V).run()
         """
         from sage.groups.group import FiniteGroup
+        from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+        from sage.rings.infinity import Infinity
         from sage.categories.coxeter_groups import CoxeterGroups
 
-        if not (isinstance(group, FiniteGroup) or (group in CoxeterGroups)):
+        if not ((group.order() < Infinity) or (group in CoxeterGroups)):
             raise NotImplementedError(
                 "Sign Representation is only defined over FiniteGroups and CoxeterGroups, and not over {}".format(
                     type(group)
                 )
             )
-        if group in CoxeterGroups:
-            self.using_length_as_sign = True
-            self._on_basis = lambda g, m: self.term(m, g.length())
-        else:
-            self.using_length_as_sign = False
-            self._on_basis = lambda g, m: self.term(m, g.sign())
+
+        # We define sign_analogue as a function which returns 1 if +ve sign else -1
+        #
+        if isinstance(group, FiniteGroup):
+            self.sign_analogue = lambda x: ((x.order() % 2) * -2) + 1
+        elif group in CoxeterGroups:
+            self.sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
+        elif isinstance(group, PermutationGroup_generic):
+            self.sign_analogue = lambda x: x.sign()
+
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
 
         Representation_abstract.__init__(self, group, base_ring, ["v"], category=cat)
@@ -677,36 +683,18 @@ class SignRepresentation(Representation_abstract):
                 if scalar.parent() is P._semigroup:
                     if not self:
                         return self
-                    if P.using_length_as_sign:
-                        if scalar.length() % 2 == 0:
-                            return self
-                        else:
-                            return -self
-                    elif scalar.sign() < 0:
-                        return -self
-                    else:
-                        return self
+                    return (P.sign_analogue(scalar)) * self
 
                 if scalar.parent() is P._semigroup_algebra:
                     if not self:
                         return self
-                    ret = P.zero()
-                    if P.using_length_as_sign:
-                        for ms, cs in scalar:
-                            ret += P.linear_combination(
-                                (
-                                    (P.term(m, (-1) ** ms.length()), cs * c)
-                                    for m, c in self
-                                ),
-                                not self_on_left,
-                            )
-                    else:
-                        for ms, cs in scalar:
-                            ret += P.linear_combination(
-                                ((P.term(m, ms.sign()), cs * c) for m, c in self),
-                                not self_on_left,
-                            )
-                    return ret
+                    d = self.monomial_coefficients(copy=True)
+                    sum_scalar_coeff = 0
+                    for ms, cs in scalar:
+                        sum_scalar_coeff += P.sign_analogue(ms) * cs
+                    d["v"] *= sum_scalar_coeff
+                    return self.parent()._from_dict(d)
+
             return CombinatorialFreeModule.Element._acted_upon_(
                 self, scalar, self_on_left
             )

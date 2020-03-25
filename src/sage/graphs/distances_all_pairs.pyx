@@ -984,6 +984,7 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
 
 
 cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
+                                        short_digraph rev_g,
                                         uint32_t source):
     r"""
     Lower bound on the diameter of digraph using directed version of 2-sweep.
@@ -997,24 +998,22 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
     `source` is at maximum distance and then it calculates forward eccentricity
     of `vb` using a forward BFS from `vb`. It then calculates lower bound LB of
     diameter as the maximum of backward eccentricity of `vf` and forward
-    eccentricity of `vb` and s as respective vertex.
-    This method returns (LB, s, m, d), where LB is best found lower bound on
-    diameter, s is vertex whose forward/backward eccentricity is LB, d is vertex
-    at a distance LB from/to s, m is vertex at distance LB/2 from/to both s and
-    d.
+    eccentricity of `vb` and `s` as respective vertex.
+    This method returns (`LB`, `s`, `m`, `d`), where `LB` is best found lower
+    bound on diameter, `s` is vertex whose forward/backward eccentricity is
+    `LB`, `d` is vertex at a distance `LB` from/to `s`, `m` is vertex at
+    distance `LB/2` from/to both `s` and `d`.
 
     INPUT:
 
     - ``g`` -- a short_digraph
 
-    - ``source`` -- starting node of the forward or backward BFS
+    - ``rev_g`` -- a copy of `g` with edges reversed.
+
+    - ``source`` -- starting node of the forward and backward BFS
 
     """
-    # graph with edges reverse to perform backward BFS
-    cdef short_digraph rev_g
-    init_reverse(rev_g, g)
-
-    cdef uint32_t LB_1, LB_2, LB, m
+    cdef uint32_t LB_1, LB_2, LB, LB_m, m, s, d
     cdef uint32_t n = g.n
     cdef uint32_t source_1 = source
     cdef uint32_t source_2 = source
@@ -1067,27 +1066,26 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
     LB_2 = simple_BFS(g, source_2, distances_2, predecessors_2, waiting_list_2, seen_2)
 
     # we select best found lower bound as LB, s and d as source and destination
-    # of that BFS call and m as vertex at a distance from/to LB/2 from s and d
+    # of that BFS call and m as vertex at a distance LB/2 from/to both s and d
     if LB_1 < LB_2:
         LB = LB_2
         s = waiting_list_2[0]
         d = waiting_list_2[n - 1]
-        LB2 = LB_2 / 2
+        LB_m = LB_2 / 2
         m = d
-        while distances_2[m] > LB2:
+        while distances_2[m] > LB_m:
             m = predecessors_2[m]
     else:
         LB = LB_1
         s = waiting_list_1[0]
         d = waiting_list_1[n - 1]
-        LB1 = LB_1 / 2
+        LB_m = LB_1 / 2
         m = d
-        while distances_1[m] > LB1:
+        while distances_1[m] > LB_m:
             m = predecessors_1[m]
 
     bitset_free(seen_1)
     bitset_free(seen_2)
-    free_short_digraph(rev_g)
 
     return (LB, s, m, d)
 
@@ -1282,8 +1280,8 @@ def diameter(G, algorithm=None, source=None):
         `G`.
 
       - ``'2Dsweep'`` -- Computes lower bound on the diameter of an
-        unweighted directed graph using directed version of 2sweep as proposed
-        in [Broder2000]_.
+        unweighted directed graph using directed version of ``2sweep`` as
+        proposed in [Broder2000]_.
 
       - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
         unweighted undirected graph using several iterations of the ``2sweep``
@@ -1369,8 +1367,15 @@ def diameter(G, algorithm=None, source=None):
         sage: G = graphs.PathGraph(1)
         sage: diameter(G, algorithm='iFUB')
         0
+
+    Diameter of weakly connected digraph is infinity ::
+
+        sage: from sage.graphs.distances_all_pairs import diameter
+        sage: G = DiGraph([(0,1)])
+        sage: diameter(G, algorithm='2Dsweep')
+        +Infinity
     """
-    cdef int n = G.order()
+    cdef uint32_t n = G.order()
     if not n:
         return 0
 
@@ -1392,20 +1397,20 @@ def diameter(G, algorithm=None, source=None):
     elif not G.has_vertex(source):
         raise ValueError("the specified source is not a vertex of the input Graph")
 
-
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
     # module sage.graphs.base.static_sparse_graph
     cdef list int_to_vertex = list(G)
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+    cdef short_digraph rev_sd # to store copy of sd with edges reversed
 
     # and we map the source to an int in [0,n-1] 
     cdef uint32_t isource = 0 if source is None else int_to_vertex.index(source)
 
     cdef bitset_t seen
     cdef uint32_t* tab
-    cdef int LB
+    cdef uint32_t LB
 
     if algorithm == '2sweep':
         # We need to allocate arrays and bitset
@@ -1420,8 +1425,12 @@ def diameter(G, algorithm=None, source=None):
 
         bitset_free(seen)
         sig_free(tab)
+
     elif algorithm == '2Dsweep':
-        LB = diameter_lower_bound_2Dsweep(sd, isource)[0]
+        init_reverse(rev_sd, sd)
+        LB = diameter_lower_bound_2Dsweep(sd, rev_sd, isource)[0]
+        free_short_digraph(rev_sd)
+
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
 
@@ -1436,8 +1445,6 @@ def diameter(G, algorithm=None, source=None):
         return +Infinity
     else:
         return int(LB)
-
-
 
 ################
 # Wiener index #

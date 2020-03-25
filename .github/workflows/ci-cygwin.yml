@@ -6,6 +6,7 @@ env:
   MAKE: make -j8
   SAGE_CHECK: warn
   SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+  CYGWIN: winsymlinks:native
 
 jobs:
   cygwin-stage-ii-a:
@@ -49,14 +50,10 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
-      shell: bash
-      # Symlinks are not saved/restored correctly on Windows.
-      # Remove some that can be recreated by the next stage,
-      # and replace others by copies.
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        rm -f local/lib64
-        if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
-        tar -c --dereference -f sage-local-${{ env.STAGE }}.tar local
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       # upload-artifact@v2-preview does not support whitespace in file names.
@@ -86,7 +83,7 @@ jobs:
   cygwin-stage-ii-b:
     env:
       STAGE: ii-b
-      TARGETS: ppl
+      TARGETS: bliss
       #singular maxima gap pari
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
@@ -124,14 +121,10 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
-      shell: bash
-      # Symlinks are not saved/restored correctly on Windows.
-      # Remove some that can be recreated by the next stage,
-      # and replace others by copies.
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        rm -f local/lib64
-        if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
-        tar -c --dereference -f sage-local-${{ env.STAGE }}.tar local
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -197,11 +190,9 @@ jobs:
     - uses: actions/download-artifact@v2-preview
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
-    - shell: bash {0}
+    - name: Extract sage-local artifact
       run: |
-        ls -l sage-local*.tar
-        for a in sage-local-$PREVIOUS_STAGES.tar; do echo Extracting $a; tar xf $a; done
-        ls -l local local/var/lib/sage/installed/
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; ls -l local local/var/lib/sage/installed/'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
@@ -209,14 +200,10 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
-      shell: bash
-      # Symlinks are not saved/restored correctly on Windows.
-      # Remove some that can be recreated by the next stage,
-      # and replace others by copies.
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        rm -f local/lib64
-        if [ -f local/pyvenv.cfg ]; then rm -f local/pyvenv.cfg local/bin/python*; fi
-        tar -c --dereference -f sage-local-${{ env.STAGE }}.tar local
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:

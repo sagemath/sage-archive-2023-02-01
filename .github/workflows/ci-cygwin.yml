@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 env:
   MAKE: make -j8
-  SAGE_SPKG: sage-spkg -y -o
   SAGE_CHECK: warn
   SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 
@@ -47,7 +46,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 SAGE_SPKG=\"$SAGE_SPKG\" $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
       shell: bash
       # Remove symlinks, which are not saved/restored correctly on Windows
@@ -117,7 +116,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 SAGE_SPKG="$SAGE_SPKG" $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
     - name: Prepare sage-local artifact
       shell: bash
       # Remove symlinks, which are not saved/restored correctly on Windows

@@ -1435,20 +1435,43 @@ def implicit_mul(code, level=5):
         sage: implicit_mul('f(a)(b)', level=10)
         'f(a)*(b)'
 
+    Note that the `IPython automagic
+    <https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-automagic>`_
+    feature cannot be used if ``level >= 3``::
+
+        sage: implicit_mul('cd Documents', level=3)
+        'cd*Documents'
+        sage: implicit_mul('cd Documents', level=2)
+        'cd Documents'
+
+    In this case, one can use the explicit syntax for IPython magics such as
+    ``%cd Documents``.
+
     TESTS:
 
     Check handling of Python 3 keywords (:trac:`29391`)::
 
         sage: implicit_mul('nonlocal a')  # py3
         'nonlocal a'
+
+    Although these are not keywords in Python 3, we explicitly avoid implicit
+    multiplication in these cases because the error message will be more
+    helpful (:trac:`29391`)::
+
+        sage: implicit_mul('print 2')
+        'print 2'
+        sage: implicit_mul('exec s')
+        'exec s'
     """
     from keyword import iskeyword
+    keywords_py2 = ['print', 'exec']
 
     def re_no_keyword(pattern, code):
         for _ in range(2): # do it twice in because matches don't overlap
             for m in reversed(list(re.finditer(pattern, code))):
                 left, right = m.groups()
-                if not iskeyword(left) and not iskeyword(right):
+                if not iskeyword(left) and not iskeyword(right) \
+                   and left not in keywords_py2:
                     code = "%s%s*%s%s" % (code[:m.start()],
                                           left,
                                           right,

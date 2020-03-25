@@ -35,10 +35,22 @@ PYTHON = python@SAGE_PYTHON_VERSION@
 MP_LIBRARY = @SAGE_MP_LIBRARY@
 BLAS = @SAGE_BLAS@
 
-# Because some .pc files are generated at configure time we can't write their
-# names explicitly the Makefile, so we use the wildcard function here at make
-# runtime
-PCFILES = $(subst $(SAGE_SRC),$(SAGE_LOCAL),$(wildcard $(SAGE_SRC)/lib/pkgconfig/*.pc))
+# pkgconfig files generated/installed at build time
+PCFILES = @SAGE_SYSTEM_FACADE_PC_FILES@
+
+LN = ln
+SED = sed
+
+# Generate/install sage-specific .pc files.
+# see build/pkgs/gsl/spkg-configure.m4
+$(SAGE_PKGCONFIG)/gsl.pc:
+	-rm -f $@
+	@SAGE_GSL_PC_COMMAND@
+
+# see build/pkgs/openblas/spkg-configure.m4
+$(SAGE_PKGCONFIG)/blas.pc $(SAGE_PKGCONFIG)/cblas.pc $(SAGE_PKGCONFIG)/lapack.pc:
+	-rm -f $@
+	@SAGE_OPENBLAS_PC_COMMAND@
 
 # Files to track installation of packages
 BUILT_PACKAGES = @SAGE_BUILT_PACKAGES@

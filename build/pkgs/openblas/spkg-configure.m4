@@ -34,9 +34,12 @@ SAGE_SPKG_CONFIGURE([openblas], [
     CFLAGS="$SAVE_CFLAGS"
     ], [sage_spkg_install_openblas=yes])
     AS_IF([test x$sage_spkg_install_openblas != xyes], [
+       AC_SUBST([SAGE_SYSTEM_FACADE_PC_FILES])
+       AC_SUBST([SAGE_OPENBLAS_PC_COMMAND], ["\$(LN) -sf \"$OPENBLASPCDIR/openblas.pc\" \"\$(@)\""])
        m4_foreach([blaslibnam], [blas, cblas, lapack], [
         AS_IF([test x$sage_install_]blaslibnam[_pc = xyes], [
-         AC_CONFIG_LINKS([$SAGE_SRC/lib/pkgconfig/]blaslibnam[.pc:$OPENBLASPCDIR/openblas.pc])])
+           AS_VAR_APPEND([SAGE_SYSTEM_FACADE_PC_FILES], [" \$(SAGE_PKGCONFIG)/]blaslibnam[.pc"])
+        ])
        ])
     ])
  ])

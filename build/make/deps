@@ -191,11 +191,6 @@ sagelib: \
 $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
 	$(AM_V_at)cp $< $@
 
-# Install sage-specific generated .pc files
-$(SAGE_PKGCONFIG)/%.pc: $(SAGE_SRC)/lib/pkgconfig/%.pc
-	@mkdir -p "$(@D)"
-	$(AM_V_at)cp -P $< $@
-
 ###############################################################################
 # Building the documentation
 ###############################################################################

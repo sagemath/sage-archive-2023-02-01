@@ -65,7 +65,7 @@ def restore_cwd(chdir=None):
         sage: from sage.misc.misc import SAGE_TMP
         sage: cwd = os.getcwd()
         sage: with restore_cwd(str(SAGE_TMP)):
-        ....:     print(os.getcwd() == SAGE_TMP)
+        ....:     print(os.getcwd() == os.path.realpath(SAGE_TMP))
         True
         sage: cwd == os.getcwd()
         True

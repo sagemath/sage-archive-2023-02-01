@@ -126,6 +126,14 @@ Running Sage's tests
 
    doctesting
 
+Testing on multiple platforms
+-----------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   portability_testing
+
 Contributing to Manuals and Tutorials
 -------------------------------------
 

@@ -205,9 +205,9 @@ var('SAGE_IMPORTALL', 'yes')
 
 def _get_shared_lib_filename(libname, *additional_libnames):
     """
-    Return the full path to a shared library file installed in the standard
-    location for the system within the ``LIBDIR`` prefix (or
-    ``$SAGE_LOCAL/lib`` in the case of manual build of Sage).
+    Return the full path to a shared library file installed in
+    ``$SAGE_LOCAL/lib`` or the directories associated with the
+    Python sysconfig.
 
     This can also be passed more than one library name (e.g. for cases where
     some library may have multiple names depending on the platform) in which
@@ -244,11 +244,17 @@ def _get_shared_lib_filename(libname, *additional_libnames):
 
     for libname in (libname,) + additional_libnames:
         if sys.platform == 'cygwin':
-            bindir = sysconfig.get_config_var('BINDIR')
+            # Later down we take the last matching DLL found, so search
+            # SAGE_LOCAL second so that it takes precedence
+            bindirs = [
+                sysconfig.get_config_var('BINDIR'),
+                os.path.join(SAGE_LOCAL, 'bin')
+            ]
             pats = ['cyg{}.dll'.format(libname), 'cyg{}-*.dll'.format(libname)]
             filenames = []
-            for pat in pats:
-                filenames += glob.glob(os.path.join(bindir, pat))
+            for bindir in bindirs:
+                for pat in pats:
+                    filenames += glob.glob(os.path.join(bindir, pat))
 
             # Note: This is not very robust, since if there are multi DLL
             # versions for the same library this just selects one more or less
@@ -262,10 +268,13 @@ def _get_shared_lib_filename(libname, *additional_libnames):
             else:
                 ext = 'so'
 
-            libdirs = [sysconfig.get_config_var('LIBDIR')]
+            libdirs = [
+                os.path.join(SAGE_LOCAL, 'lib'),
+                sysconfig.get_config_var('LIBDIR')
+            ]
             multilib = sysconfig.get_config_var('MULTILIB')
             if multilib:
-                libdirs.insert(0, os.path.join(libdirs[0], multilib))
+                libdirs.insert(1, os.path.join(libdirs[0], multilib))
 
             for libdir in libdirs:
                 basename = 'lib{}.{}'.format(libname, ext)

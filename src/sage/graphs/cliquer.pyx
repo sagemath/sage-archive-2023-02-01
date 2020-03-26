@@ -261,19 +261,27 @@ def all_cliques(graph, min_size=0, max_size=0):
 
     cdef int* list_of_vertices
     cdef int size
-    sig_on()
-    size = sage_find_all_clique(g, &list_of_vertices, min_size, max_size)
-    sig_off()
-    graph_free(g)
-    cdef list c = []
-    for i in range(size):
-        if list_of_vertices[i] != -1:
-            c.append(int_to_vertex[list_of_vertices[i]])
-        else:
-            yield c
-            c = []
-
-    sig_free(list_of_vertices)
+    cdef list c
+    try:
+        try:
+            sig_on()
+            size = sage_find_all_clique(g, &list_of_vertices, min_size, max_size)
+            sig_off()
+        finally:
+            graph_free(g)
+        c = []
+        for i in range(size):
+            if list_of_vertices[i] != -1:
+                c.append(int_to_vertex[list_of_vertices[i]])
+            else:
+                yield c
+                c = []
+    finally:
+        if list_of_vertices:
+            # We free ``list_of_vertices``,
+            # but only if previosly computations weren't interrupted before
+            # allocating memory for ``list_of_vertices``.
+            sig_free(list_of_vertices)
 
 
 #computes the clique number of a graph

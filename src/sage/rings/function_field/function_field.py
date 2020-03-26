@@ -4665,6 +4665,35 @@ class RationalFunctionField_global(RationalFunctionField):
         """
         return self.maximal_order_infinite().prime_ideal().place()
 
+    def get_place(self, degree):
+        """
+        Return a place of ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(2)
+            sage: K.<x> = FunctionField(F)
+            sage: K.get_place(1)
+            Place (x)
+            sage: K.get_place(2)
+            Place (x^2 + x + 1)
+            sage: K.get_place(3)
+            Place (x^3 + x + 1)
+            sage: K.get_place(4)
+            Place (x^4 + x + 1)
+            sage: K.get_place(5)
+            Place (x^5 + x^2 + 1)
+
+        """
+        for p in self._places_finite(degree):
+            return p
+
+        assert False, "there is a bug around"
+
     @cached_method
     def higher_derivation(self):
         """

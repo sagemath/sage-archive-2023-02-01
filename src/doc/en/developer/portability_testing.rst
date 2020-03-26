@@ -131,11 +131,12 @@ reminder::
   root@39d693b2a75d:/sage# build/bin/sage-print-system-package-command debian install gcc
   sudo apt-get install gcc
 
-We are already root, so we can drop the ``sudo``, of course::
+We are already root, so we can drop the ``sudo``, of course.
+And we remember that we need to fetch the current package lists
+from the server first::
 
+  root@39d693b2a75d:/sage# apt-get update
   root@39d693b2a75d:/sage# apt-get install gcc
-
-.. actually this needs an apt-get update first.
 
 Using Sage's database of distribution prerequisites
 ---------------------------------------------------

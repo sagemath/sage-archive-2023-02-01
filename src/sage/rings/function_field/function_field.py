@@ -4647,11 +4647,12 @@ class RationalFunctionField_global(RationalFunctionField):
         """
         O = self.maximal_order()
         R = O._ring
-        G = R.polynomials(of_degree=degree)
+        G = R.polynomials(max_degree=degree - 1)
+        lm = R.monomial(degree)
         for g in G:
-            if not (g.is_monic() and g.is_irreducible()):
-                continue
-            yield O.ideal(g).place()
+            h = lm + g
+            if h.is_irreducible():
+                yield O.ideal(h).place()
 
     def place_infinite(self):
         """

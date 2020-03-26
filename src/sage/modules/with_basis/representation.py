@@ -713,21 +713,6 @@ class SignRepresentationPermgroup(SignRepresentation_abstract):
         sign_analogue = lambda x: x.sign()
         SignRepresentation_abstract.__init__(self, group, base_ring, sign_analogue)
 
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = groups.permutation.Dihedral(4)
-            sage: G.sign_representation()
-            Sign representation of Dihedral group of order 8
-             as a permutation group over Integer Ring
-        """
-        return 'Sign representation of Permutation group "{}" over {}'.format(
-            self._semigroup, self.base_ring()
-        )
-
 
 class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
     def __init__(self, group, base_ring):
@@ -742,21 +727,3 @@ class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
         """
         sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
         SignRepresentation_abstract.__init__(self, group, base_ring, sign_analogue)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = groups.permutation.Dihedral(4)
-            sage: G.sign_representation()
-            Sign representation of Dihedral group of order 8
-             as a permutation group over Integer Ring
-        """
-        return 'Sign representation of Coxeter group "{}" over {}'.format(
-            self._semigroup, self.base_ring()
-        )
-
-            self._semigroup, self.base_ring()
-        )

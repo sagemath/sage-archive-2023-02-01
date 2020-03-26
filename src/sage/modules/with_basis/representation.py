@@ -551,7 +551,7 @@ class TrivialRepresentation(Representation_abstract):
         _rmul_ = _lmul_ = _acted_upon_
 
 
-class SignRepresentation(Representation_abstract):
+class SignRepresentation_abstract(Representation_abstract):
     """
     The sign representation of a permutation group.
 
@@ -565,13 +565,14 @@ class SignRepresentation(Representation_abstract):
 
     - ``permgroup`` -- a permgroup
     - ``base_ring`` -- the base ring for the representation
+    - ``sign_analogue`` -- a function which returns 1 or -1 depending on the elements sign
 
     REFERENCES:
 
     - :wikipedia:`Representation_theory_of_the_symmetric_group`
     """
 
-    def __init__(self, group, base_ring):
+    def __init__(self, group, base_ring, sign_analogue=None):
         """
         Initialize ``self``.
 
@@ -581,26 +582,26 @@ class SignRepresentation(Representation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
-        from sage.groups.group import FiniteGroup
-        from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-        from sage.rings.infinity import Infinity
-        from sage.categories.coxeter_groups import CoxeterGroups
+        if sign_analogue is None:
+            from sage.groups.group import FiniteGroup
+            from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+            from sage.rings.infinity import Infinity
+            from sage.categories.coxeter_groups import CoxeterGroups
 
-        if not ((group.order() < Infinity) or (group in CoxeterGroups)):
-            raise NotImplementedError(
-                "Sign Representation is only defined over FiniteGroups and CoxeterGroups, and not over {}".format(
-                    type(group)
+            if not ((group.order() < Infinity) or (group in CoxeterGroups)):
+                raise NotImplementedError(
+                    "Sign Representation is only defined over FiniteGroups and CoxeterGroups, and not over {}".format(
+                        type(group)
+                    )
                 )
-            )
-
-        # We define sign_analogue as a function which returns 1 if +ve sign else -1
-        #
-        if isinstance(group, FiniteGroup):
-            self.sign_analogue = lambda x: ((x.order() % 2) * -2) + 1
-        elif group in CoxeterGroups:
-            self.sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
-        elif isinstance(group, PermutationGroup_generic):
-            self.sign_analogue = lambda x: x.sign()
+            # We define sign_analogue as a function which returns 1 if +ve sign else -1
+            #
+            if isinstance(group, PermutationGroup_generic):
+                self.sign_analogue = lambda x: x.sign()
+            elif group in CoxeterGroups:
+                self.sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
+            elif isinstance(group, FiniteGroup):
+                self.sign_analogue = lambda x: ((x.order() % 2) * -2) + 1
 
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
 

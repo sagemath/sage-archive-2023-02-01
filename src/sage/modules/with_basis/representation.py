@@ -697,3 +697,33 @@ class SignRepresentation_abstract(Representation_abstract):
             )
 
         _rmul_ = _lmul_ = _acted_upon_
+
+
+class SignRepresentationPermgroup(SignRepresentation_abstract):
+    def __init__(self, group, base_ring):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.PGL(2, 3)
+            sage: V = G.sign_representation()
+            sage: TestSuite(V).run()
+        """
+        sign_analogue = lambda x: x.sign()
+        SignRepresentation_abstract.__init__(self, group, base_ring, sign_analogue)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: G.sign_representation()
+            Sign representation of Dihedral group of order 8
+             as a permutation group over Integer Ring
+        """
+        return 'Sign representation of Permutationgroup "{}" over {}'.format(
+            self._semigroup, self.base_ring()
+        )

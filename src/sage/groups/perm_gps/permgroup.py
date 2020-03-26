@@ -4672,26 +4672,26 @@ class PermutationGroup_generic(FiniteGroup):
 
     from sage.groups.generic import structure_description
     def sign_representation(self, base_ring=None, side="twosided"):
-            r"""
-            Return the sign representation of ``self`` over ``base_ring``.
+        r"""
+        Return the sign representation of ``self`` over ``base_ring``.
 
-            INPUT:
+        INPUT:
 
-            - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
-            - ``side`` -- ignored
+        - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
+        - ``side`` -- ignored
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: G = groups.permutation.Dihedral(4)
-                sage: G.sign_representation()
-                Sign representation of Dihedral group of order 8
-                 as a permutation group over Integer Ring
-            """
-            if base_ring is None:
-                from sage.rings.all import ZZ
-                base_ring = ZZ
-            from sage.modules.with_basis.representation import SignRepresentation
-            return SignRepresentation(self, base_ring)
+            sage: G = groups.permutation.Dihedral(4)
+            sage: G.sign_representation()
+            Sign representation of Dihedral group of order 8
+             as a permutation group over Integer Ring
+        """
+        if base_ring is None:
+            from sage.rings.all import ZZ
+            base_ring = ZZ
+        from sage.modules.with_basis.representation import SignRepresentationPermgroup
+        return SignRepresentationPermgroup(self, base_ring)
 
 
 

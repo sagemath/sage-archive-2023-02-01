@@ -1057,8 +1057,8 @@ REFERENCES:
              :doi:`10.1109/SFCS.1989.63516`,
              <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
 
-.. [Broder2000] Broder, A.Z., Kumar, R., Maghoul, F., Raghavan, P., Rajagopalan
-                , S., Stata, R., Tomkins, A., Wiener, J.L.: Graph structure in
+.. [Broder2000] Broder, A.Z., Kumar, R., Maghoul, F., Raghavan, P., Rajagopalan,
+                S., Stata, R., Tomkins, A., Wiener, J.L.: Graph structure in
                 the web. Computer Networks 33(1-6), 309–320 (2000)
 
 .. [BRS2015] \A. Boussicault, S. Rinaldi et S. Socci.

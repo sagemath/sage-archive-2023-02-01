@@ -1273,7 +1273,8 @@ def diameter(G, algorithm=None, source=None):
 
     INPUT:
 
-    - ``algorithm`` -- (default: None) specifies the algorithm to use among:
+    - ``algorithm`` -- string (default: ``None``); specifies the algorithm to
+      use among:
 
       - ``'standard'`` -- Computes the diameter of the input (di)graph as the
         largest eccentricity of its vertices. This is the classical algorithm
@@ -1329,7 +1330,7 @@ def diameter(G, algorithm=None, source=None):
         by the remark above. The worst case time complexity of the iFUB
         algorithm is `O(nm)`, but it can be very fast in practice.
 
-    - ``source`` -- (default: None) vertex from which to start the first BFS.
+    - ``source`` -- (default: ``None``) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
       when ``algorithm=='standard'``.

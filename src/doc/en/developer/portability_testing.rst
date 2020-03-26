@@ -12,7 +12,7 @@ Sage is intended to build and run on a variety of platforms,
 including all major Linux distributions, as well as MacOS, and
 Windows (with Cygwin).
 
-There is considerable variation between these platforms.
+There is considerable variation among these platforms.
 To ensure that Sage continues to build correctly on users'
 machines, it is crucial to test changes to Sage, in particular
 when external packages are added or upgraded, on a wide

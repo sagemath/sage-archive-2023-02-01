@@ -9,7 +9,7 @@ Testing on multiple platforms
 =============================
 
 Sage is intended to build and run on a variety of platforms,
-including all major Linux distributions, as well as macOS, and
+including all major Linux distributions, as well as MacOS, and
 Windows (with Cygwin).
 
 There is considerable variation between these platforms.
@@ -142,7 +142,9 @@ Using Sage's database of distribution prerequisites
 
 The source code of the Sage distribution contains a database of
 package names in various distributions' package managers.  For
-example, the file ``build/pkgs/debian.txt`` contains the following::
+example, the file ``build/pkgs/debian.txt`` contains the following
+
+.. code-block:: yaml
 
   # This file, build/pkgs/debian.txt, contains names of Debian/Ubuntu packages
   # needed for installation of Sage from source.

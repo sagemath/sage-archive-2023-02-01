@@ -260,7 +260,7 @@ def all_cliques(graph, min_size=0, max_size=0):
         GRAPH_ADD_EDGE(g, vertex_to_int[u], vertex_to_int[v])
 
     cdef int* list_of_vertices
-    cdef int size
+    cdef int size = 0
     cdef list c
     try:
         try:
@@ -279,7 +279,7 @@ def all_cliques(graph, min_size=0, max_size=0):
     finally:
         if list_of_vertices:
             # We free ``list_of_vertices``,
-            # but only if previosly computations weren't interrupted before
+            # but only if previous computations weren't interrupted before
             # allocating memory for ``list_of_vertices``.
             sig_free(list_of_vertices)
 

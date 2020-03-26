@@ -21,13 +21,13 @@ spectrum of platforms.
 Sage patchbots
 ==============
 
-The Sage patchbots will automatically test your Trac ticket
+The `Sage patchbots <https://wiki.sagemath.org/patchbot>`_ will automatically test your Trac ticket
 by attempting an incremental build of Sage and running doctests.
 
 Sage buildbots
 ==============
 
-The Sage Release buildbot <https://wiki.sagemath.org/buildbot>`_
+The `Sage Release buildbot <https://wiki.sagemath.org/buildbot>`_
 builds entire tarballs (e.g., all the development releases) on a
 variety of machines.
 
@@ -36,20 +36,20 @@ Developers' and users' tests on sage-release
 
 Sage developers and users are encouraged to contribute to testing
 releases that are announced on
-https://groups.google.com/forum/#!forum/sage-release on their machines
+`Sage Release <https://groups.google.com/forum/#!forum/sage-release>`_ on their machines
 and to report test results (success and failures) by responding to the
 announcements.
 
 Testing Sage on a different platform using Docker
 =================================================
 
-Docker (https://www.docker.com/) is a popular virtualization software,
+`Docker <https://www.docker.com>`_ is a popular virtualization software,
 running Linux operating system images in containers on a shared Linux
 kernel.  Using Docker Desktop for Mac and Windows, the containers can
 also be run on these platforms.
 
 All major Linux distributions provide ready-to-use Docker images,
-which are published at https://hub.docker.com.  For example, to run
+which are published via `Docker Hub <https://hub.docker.com>`_.  For example, to run
 the current stable (LTS) version of Ubuntu interactively, you can use
 the shell command::
 
@@ -199,7 +199,7 @@ Let's just follow this helpful hint::
 Using Sage's database of equivalent distribution packages
 ---------------------------------------------------------
 
-At the end of the ``configure`` run, Sage issued a message like the
+At the end of the ``./configure`` run, Sage issued a message like the
 following::
 
   configure: notice: the following SPKGs did not find equivalent system packages: arb boost boost_cropped bzip2 ... yasm zeromq zlib
@@ -330,9 +330,7 @@ Symbolic names of system configurations
 
 To facilitate communication about host system configurations and for
 automating testing, Sage defines symbolic names composed of several
-"factors"
-(https://tox.readthedocs.io/en/latest/config.html#complex-factor-conditions)
-in the file ``$SAGE_ROOT/tox.ini``.
+`Tox "factors" <https://tox.readthedocs.io/en/latest/config.html#complex-factor-conditions>`_ in the file ``$SAGE_ROOT/tox.ini``.
 
 The **system factor** describes a base operating system
 image.
@@ -418,8 +416,8 @@ on tox, is defined in the file
 ``$SAGE_ROOT/.github/workflows/ci-cygwin.yml``.
 
 GitHub Actions runs these build jobs on 2-core machines with 7 GB of
-RAM memory and 14 GB of SSD disk space
-(https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources),
+RAM memory and 14 GB of SSD disk space, cf.
+`here <https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources>`_,
 and has a time limit of 6h per job. This is just barely enough for a
 typical ``minimal`` build followed by make ptest to succeed; and
 plenty of time for a typical ``standard`` build to succeed.

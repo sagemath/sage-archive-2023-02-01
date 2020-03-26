@@ -739,8 +739,8 @@ class CoxeterGroups(Category_singleton):
             if base_ring is None:
                 from sage.rings.all import ZZ
                 base_ring = ZZ
-            from sage.modules.with_basis.representation import SignRepresentation
-            return SignRepresentation(self, base_ring)
+            from sage.modules.with_basis.representation import SignRepresentationCoxeterGroup
+            return SignRepresentationCoxeterGroup(self, base_ring)
 
         def demazure_product(self, Q):
             r"""

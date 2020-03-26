@@ -415,7 +415,14 @@ An additional GitHub Actions workflow for testing on Cygwin, not based
 on tox, is defined in the file
 ``$SAGE_ROOT/.github/workflows/ci-cygwin.yml``.
 
-    
+GitHub Actions runs these build jobs on 2-core machines with 7 GB of
+RAM memory and 14 GB of SSD disk space
+(https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources),
+and has a time limit of 6h per job. This is just barely enough for a
+typical ``minimal`` build followed by make ptest to succeed; and
+plenty of time for a typical ``standard`` build to succeed.
+
+
 ..
    Workflow for responding to portability bug reports
    ==================================================

@@ -80,6 +80,76 @@ jobs:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
+  cygwin-stage-i-b:
+    env:
+      STAGE: i-b
+      TARGETS: cython setuptools_scm
+      LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
+
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        pkgs: [standard]
+    steps:
+    - run: |
+        git config --global core.autocrlf false
+        git config --global core.symlinks true
+    - uses: actions/checkout@v1
+    - name: install cygwin and minimal prerequisites with choco
+      shell: bash {0}
+      run: |
+        choco --version
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        choco install $PACKAGES --source cygwin
+    - name: bootstrap
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
+    - name: install additional cygwin packages with choco
+      if: matrix.pkgs == 'standard'
+      shell: bash {0}
+      run: |
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        choco install $PACKAGES --source cygwin
+    - name: configure
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+    - name: make
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+    - name: Prepare logs artifact
+      shell: bash
+      run: |
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      with:
+        path: artifacts
+        name: ${{ env.LOGS_ARTIFACT_NAME }}
+      if: always()
+    - name: Print out logs for immediate inspection
+      # The markup in the output is a GitHub Actions logging command
+      # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+      shell: bash
+      run: |
+        find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+      if: always()
+    - name: Prepare sage-local artifact
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      # upload-artifact@v2-preview does not support whitespace in file names.
+      # so we tar up the directory ourselves
+      with:
+        path: sage-local-${{ env.STAGE }}.tar
+        name: ${{ env.LOCAL_ARTIFACT_NAME }}
+      if: always()
+
   cygwin-stage-ii-a:
     env:
       STAGE: ii-a
@@ -88,7 +158,7 @@ jobs:
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
-    needs: [cygwin-stage-i-a]
+    needs: [cygwin-stage-i-a, cygwin-stage-i-b]
 
     runs-on: windows-latest
 
@@ -170,7 +240,7 @@ jobs:
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
-    needs: [cygwin-stage-i-a]
+    needs: [cygwin-stage-i-a, cygwin-stage-i-b]
 
     runs-on: windows-latest
 
@@ -406,7 +476,87 @@ jobs:
     env:
       STAGE: iv-b
       PREVIOUS_STAGES: iii
-      TARGETS: pynormaliz topcom latte_int cryptominisat
+      TARGETS: pynormaliz topcom lrslib latte_int cryptominisat
+      LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
+
+    needs: [cygwin-stage-iii]
+
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        pkgs: [standard]
+    steps:
+    - run: |
+        git config --global core.autocrlf false
+        git config --global core.symlinks true
+    - uses: actions/checkout@v1
+    - name: install cygwin and minimal prerequisites with choco
+      shell: bash {0}
+      run: |
+        choco --version
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        choco install $PACKAGES --source cygwin
+    - name: bootstrap
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
+    - name: install additional cygwin packages with choco
+      if: matrix.pkgs == 'standard'
+      shell: bash {0}
+      run: |
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        choco install $PACKAGES --source cygwin
+    - uses: actions/download-artifact@v2-preview
+      with:
+        name: ${{ env.LOCAL_ARTIFACT_NAME }}
+    - name: Extract sage-local artifact
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We set the installation records to the same mtime so that no rebuilds due to dependencies
+      # among these packages are triggered.
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; touch local/var/lib/sage/installed/*; ls -l local local/var/lib/sage/installed/'
+    - name: configure
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+    - name: make
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+    - name: Prepare logs artifact
+      shell: bash
+      run: |
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      with:
+        path: artifacts
+        name: ${{ env.LOGS_ARTIFACT_NAME }}
+      if: always()
+    - name: Print out logs for immediate inspection
+      # The markup in the output is a GitHub Actions logging command
+      # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+      shell: bash
+      run: |
+        find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+      if: always()
+    - name: Prepare sage-local artifact
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      with:
+        path: sage-local-${{ env.STAGE }}.tar
+        name: ${{ env.LOCAL_ARTIFACT_NAME }}
+      if: always()
+
+  cygwin-stage-iv-c:
+    env:
+      STAGE: iv-c
+      PREVIOUS_STAGES: iii
+      TARGETS: sage_numerical_backends_coin
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 

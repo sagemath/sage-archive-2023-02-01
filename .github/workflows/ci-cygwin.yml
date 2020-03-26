@@ -208,6 +208,16 @@ jobs:
         path: sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
+    - name: Prepare logs artifact
+      shell: bash
+      run: |
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/* local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      with:
+        path: artifacts
+        name: ${{ env.LOGS_ARTIFACT_NAME }}
+      if: always()
     - name: Print out logs for immediate inspection
       # The markup in the output is a GitHub Actions logging command
       # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions

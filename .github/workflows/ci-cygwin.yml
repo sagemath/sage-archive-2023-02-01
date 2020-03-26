@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 env:
   MAKE: make -j8
+  SAGE_NUM_THREADS: 3
   SAGE_CHECK: warn
   SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
   CYGWIN: winsymlinks:native
@@ -12,8 +13,7 @@ jobs:
   cygwin-stage-ii-a:
     env:
       STAGE: ii-a
-      TARGETS: cddlib
-        #cvxopt rpy2
+      TARGETS: cvxopt rpy2 networkx
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -83,8 +83,7 @@ jobs:
   cygwin-stage-ii-b:
     env:
       STAGE: ii-b
-      TARGETS: bliss
-      #singular maxima gap pari
+      TARGETS: ppl singular maxima gap pari gfan palp flintqs ratpoints arb ecm glpk givaro
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -154,8 +153,7 @@ jobs:
     env:
       STAGE: iii
       PREVIOUS_STAGES: ii-*
-      TARGETS: cddlib ppl setuptools
-        #build ptest
+      TARGETS: build ptest
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 

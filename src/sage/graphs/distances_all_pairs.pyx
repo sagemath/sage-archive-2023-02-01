@@ -1012,6 +1012,14 @@ cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
 
     - ``source`` -- starting node of the forward and backward BFS
 
+    TESTS:
+
+    Diameter of weakly connected digraph is infinity ::
+
+        sage: from sage.graphs.distances_all_pairs import diameter
+        sage: G = DiGraph([(0,1)])
+        sage: diameter(G, algorithm='2Dsweep')
+        +Infinity
     """
     cdef uint32_t LB_1, LB_2, LB, LB_m, m, s, d
     cdef uint32_t n = g.n
@@ -1335,7 +1343,7 @@ def diameter(G, algorithm=None, source=None):
         sage: G = Graph({0: [], 1: [], 2: [1]})
         sage: diameter(G, algorithm='iFUB')
         +Infinity
-        sage: G = digraphs.Circuit(n=6)
+        sage: G = digraphs.Circuit(6)
         sage: diameter(G, algorithm='2Dsweep')
         5
 
@@ -1367,13 +1375,6 @@ def diameter(G, algorithm=None, source=None):
         sage: G = graphs.PathGraph(1)
         sage: diameter(G, algorithm='iFUB')
         0
-
-    Diameter of weakly connected digraph is infinity ::
-
-        sage: from sage.graphs.distances_all_pairs import diameter
-        sage: G = DiGraph([(0,1)])
-        sage: diameter(G, algorithm='2Dsweep')
-        +Infinity
     """
     cdef uint32_t n = G.order()
     if not n:

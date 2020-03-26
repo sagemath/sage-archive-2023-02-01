@@ -639,11 +639,11 @@ class SignRepresentation(Representation_abstract):
         return "twosided"
 
     class Element(CombinatorialFreeModule.Element):
-        """
+        def _acted_upon_(self, scalar, self_on_left=False):
+            """
             Return the action of ``scalar`` on ``self``.
 
             EXAMPLES::
-
 
                 sage:G = PermutationGroup(gens=[(1,2,3), (1,2)])
                 sage:S = G.sign_representation()
@@ -657,7 +657,6 @@ class SignRepresentation(Representation_abstract):
                 2*B['v']
                 sage:c*x*c*c
                 -2*B['v']
-        
                 sage:A = G.algebra(ZZ)
                 sage:s,c = A.algebra_generators()
                 sage:c
@@ -677,8 +676,6 @@ class SignRepresentation(Representation_abstract):
                 sage:(c-s)*x
                 4*B['v']
             """
-
-        def _acted_upon_(self, scalar, self_on_left=False):
             if isinstance(scalar, Element):
                 P = self.parent()
                 if scalar.parent() is P._semigroup:

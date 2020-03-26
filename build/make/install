@@ -104,8 +104,8 @@ The following package(s) may have failed to build (not necessarily
 during this run of 'make $@'):
 EOF
 
-    look_for_errors "$SAGE_LOGS/*.log" 20 "^Error" package
-    look_for_errors "$SAGE_LOGS/../doc*.log" 100 "^Error" documentation
+    look_for_errors "$SAGE_LOGS/*.log" 20 "^Error" package >&2
+    look_for_errors "$SAGE_LOGS/../doc*.log" 100 "^Error" documentation >&2
 
     cat >&2 <<EOF
 
@@ -119,13 +119,17 @@ EOF
     exit 1
 
 elif [ "$SAGE_CHECK" = "warn" ]; then
-    cat >&2 <<EOF
+    echo "SAGE_CHECK=warn, so scanning the log files. This may take a few seconds."
+    warnings=`look_for_errors "$SAGE_LOGS/*.log" 20 "^Warning: Error testing" package`
+    if [ -n "$warnings" ]; then
+        cat >&2 <<EOF
 ***************************************************************
 Warning: the following package(s) may have failed their test suites
 (not necessarily during this run of 'make $@'):
 EOF
 
-    look_for_errors "$SAGE_LOGS/*.log" 20 "^Warning: Error testing" package
+        echo $warnings >&2
+    fi
 
 fi
 

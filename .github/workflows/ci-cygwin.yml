@@ -49,23 +49,10 @@ jobs:
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
-    - name: Prepare sage-local artifact
-      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
-      # We remove the local/lib64 link, which will be recreated by the next stage.
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
-      if: always()
-    - uses: actions/upload-artifact@v2-preview
-      # upload-artifact@v2-preview does not support whitespace in file names.
-      # so we tar up the directory ourselves
-      with:
-        path: sage-local-${{ env.STAGE }}.tar
-        name: ${{ env.LOCAL_ARTIFACT_NAME }}
-      if: always()
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/* local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -78,6 +65,19 @@ jobs:
       shell: bash
       run: |
         find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+      if: always()
+    - name: Prepare sage-local artifact
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      # upload-artifact@v2-preview does not support whitespace in file names.
+      # so we tar up the directory ourselves
+      with:
+        path: sage-local-${{ env.STAGE }}.tar
+        name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
   cygwin-stage-ii-a:
@@ -131,23 +131,10 @@ jobs:
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
-    - name: Prepare sage-local artifact
-      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
-      # We remove the local/lib64 link, which will be recreated by the next stage.
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
-      if: always()
-    - uses: actions/upload-artifact@v2-preview
-      # upload-artifact@v2-preview does not support whitespace in file names.
-      # so we tar up the directory ourselves
-      with:
-        path: sage-local-${{ env.STAGE }}.tar
-        name: ${{ env.LOCAL_ARTIFACT_NAME }}
-      if: always()
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/* local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -160,6 +147,19 @@ jobs:
       shell: bash
       run: |
         find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+      if: always()
+    - name: Prepare sage-local artifact
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      # upload-artifact@v2-preview does not support whitespace in file names.
+      # so we tar up the directory ourselves
+      with:
+        path: sage-local-${{ env.STAGE }}.tar
+        name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
   cygwin-stage-ii-b:
@@ -213,21 +213,10 @@ jobs:
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
-    - name: Prepare sage-local artifact
-      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
-      # We remove the local/lib64 link, which will be recreated by the next stage.
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
-      if: always()
-    - uses: actions/upload-artifact@v2-preview
-      with:
-        path: sage-local-${{ env.STAGE }}.tar
-        name: ${{ env.LOCAL_ARTIFACT_NAME }}
-      if: always()
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/* local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -241,7 +230,17 @@ jobs:
       run: |
         find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
       if: always()
-
+    - name: Prepare sage-local artifact
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      with:
+        path: sage-local-${{ env.STAGE }}.tar
+        name: ${{ env.LOCAL_ARTIFACT_NAME }}
+      if: always()
       
   cygwin-stage-iii:
     env:
@@ -294,21 +293,10 @@ jobs:
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
-    - name: Prepare sage-local artifact
-      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
-      # We remove the local/lib64 link, which will be recreated by the next stage.
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
-      if: always()
-    - uses: actions/upload-artifact@v2-preview
-      with:
-        path: sage-local-${{ env.STAGE }}.tar
-        name: ${{ env.LOCAL_ARTIFACT_NAME }}
-      if: always()
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/* local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -321,4 +309,15 @@ jobs:
       shell: bash
       run: |
         find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+      if: always()
+    - name: Prepare sage-local artifact
+      # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
+      # We remove the local/lib64 link, which will be recreated by the next stage.
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+      if: always()
+    - uses: actions/upload-artifact@v2-preview
+      with:
+        path: sage-local-${{ env.STAGE }}.tar
+        name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()

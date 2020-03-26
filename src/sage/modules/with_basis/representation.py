@@ -582,7 +582,8 @@ class SignRepresentation_abstract(Representation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
-        if sign_analogue is None:
+        self.sign_analogue = sign_analogue
+        if self.sign_analogue is None:
             from sage.groups.group import FiniteGroup
             from sage.groups.perm_gps.permgroup import PermutationGroup_generic
             from sage.rings.infinity import Infinity
@@ -679,20 +680,17 @@ class SignRepresentation_abstract(Representation_abstract):
             """
             if isinstance(scalar, Element):
                 P = self.parent()
+                if not self:
+                    return self
                 if scalar.parent() is P._semigroup:
-                    if not self:
-                        return self
                     return (P.sign_analogue(scalar)) * self
 
                 if scalar.parent() is P._semigroup_algebra:
-                    if not self:
-                        return self
                     d = self.monomial_coefficients(copy=True)
                     sum_scalar_coeff = 0
                     for ms, cs in scalar:
                         sum_scalar_coeff += P.sign_analogue(ms) * cs
-                    d["v"] *= sum_scalar_coeff
-                    return self.parent()._from_dict(d)
+                    return sum_scalar_coeff * self
 
             return CombinatorialFreeModule.Element._acted_upon_(
                 self, scalar, self_on_left

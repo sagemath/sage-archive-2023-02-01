@@ -44,10 +44,21 @@ responding to the announcements.
 Testing Sage on a different platform using Docker
 =================================================
 
-`Docker <https://www.docker.com>`_ is a popular virtualization software,
-running Linux operating system images in containers on a shared Linux
-kernel.  Using Docker Desktop for Mac and Windows, the containers can
-also be run on these platforms.
+`Docker <https://www.docker.com>`_ is a popular virtualization
+software, running Linux operating system images ("Docker images") in
+containers on a shared Linux kernel.  These containers can be run
+using a Docker client on your Linux, Mac, or Windows box, as well as
+on various cloud services.
+
+To get started, you need to install a `Docker client
+<https://docs.docker.com/install/>`.  The clients are available for
+Linux, Mac, and Windows.  The clients for the latter are known as
+"Docker Desktop".
+
+All examples in this section were obtained using Docker Desktop for
+Mac; but the `command-line user interface
+<https://docs.docker.com/engine/reference/commandline/cli/>` for the
+other platforms is identical.
 
 All major Linux distributions provide ready-to-use Docker images,
 which are published via `Docker Hub <https://hub.docker.com>`_.  For

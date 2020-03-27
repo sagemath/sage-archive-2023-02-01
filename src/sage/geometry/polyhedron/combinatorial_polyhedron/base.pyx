@@ -2213,7 +2213,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: D = C.dual()
             sage: D.f_vector()
             (1, 6, 12, 8, 1)
-            sage: D1 = P.dual().combinatorial_polyhedron()
+            sage: D1 = P.polar().combinatorial_polyhedron()
             sage: D1.face_lattice().is_isomorphic(D.face_lattice())
             True
 
@@ -2488,7 +2488,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         Compute the ridges of the polyhedron.
 
-        If ``dual`` is ``True``, compute the ridges of the polar.
+        If ``dual`` is ``True``, compute the ridges of the dual.
 
         See :meth:`edges` and :meth:`ridges`.
         """

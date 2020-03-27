@@ -708,26 +708,28 @@ positional arguments (separated from tox options by ``--``)::
 
 Let's investigate what happened here::
 
-  [mkoeppe@sage worktree-local]$ ls -l
+  [mkoeppe@sage worktree-local]$ ls -la
   total 2576
-  -rw-r--r--   1 mkoeppe  staff   66501 Mar 26 20:34 COPYING.txt
+  drwxr-xr-x  35 mkoeppe  staff    1120 Mar 26 22:20 .
+  drwxr-xr-x  63 mkoeppe  staff    2016 Mar 27 09:35 ..
+  ...
+  lrwxr-xr-x   1 mkoeppe  staff      10 Mar 26 20:34 .dockerignore -> .gitignore
+  -rw-r--r--   1 mkoeppe  staff      74 Mar 26 20:34 .git
+  ...
+  -rw-r--r--   1 mkoeppe  staff    1212 Mar 26 20:41 .gitignore
+  ...
+  drwxr-xr-x   7 mkoeppe  staff     224 Mar 26 22:11 .tox
+  ...
   -rw-r--r--   1 mkoeppe  staff    7542 Mar 26 20:41 Makefile
-  -rw-r--r--   1 mkoeppe  staff   19862 Mar 26 20:34 README.md
-  -rw-r--r--   1 mkoeppe  staff      53 Mar 26 20:34 VERSION.txt
-  -rw-r--r--   1 mkoeppe  staff  133587 Mar 26 20:45 aclocal.m4
-  drwxr-xr-x   7 mkoeppe  staff     224 Mar 26 20:45 autom4te.cache
-  -rwxr-xr-x   1 mkoeppe  staff    7583 Mar 26 20:34 bootstrap
-  drwxr-xr-x  11 mkoeppe  staff     352 Mar 26 20:34 build
-  -rw-r--r--   1 mkoeppe  staff     223 Mar 26 20:34 condarc.yml
-  drwxr-xr-x   8 mkoeppe  staff     256 Mar 26 20:45 config
-  lrwxr-xr-x   1 mkoeppe  staff     114 Mar 26 20:45 config.log -> /Users/mkoeppe/.../worktree-local/.tox/local-direct/log/config.log
+  ...
+  lrwxr-xr-x   1 mkoeppe  staff     114 Mar 26 20:45 config.log -> .tox/local-direct/log/config.log
   -rwxr-xr-x   1 mkoeppe  staff   90411 Mar 26 20:46 config.status
   -rwxr-xr-x   1 mkoeppe  staff  887180 Mar 26 20:45 configure
   -rw-r--r--   1 mkoeppe  staff   17070 Mar 26 20:41 configure.ac
-  drwxr-xr-x   8 mkoeppe  staff     256 Mar 26 20:34 docker
-  lrwxr-xr-x   1 mkoeppe  staff     103 Mar 26 20:45 logs -> /Users/mkoeppe/.../worktree-local/.tox/local-direct/log
+  ...
+  lrwxr-xr-x   1 mkoeppe  staff     103 Mar 26 20:45 logs -> .tox/local-direct/log
   drwxr-xr-x  24 mkoeppe  staff     768 Mar 26 20:45 m4
-  lrwxr-xr-x   1 mkoeppe  staff     105 Mar 26 20:45 prefix -> /Users/mkoeppe/.../worktree-local/.tox/local-direct/local
+  lrwxr-xr-x   1 mkoeppe  staff     105 Mar 26 20:45 prefix -> .tox/local-direct/local
   -rwxr-xr-x   1 mkoeppe  staff    4868 Mar 26 20:34 sage
   drwxr-xr-x  16 mkoeppe  staff     512 Mar 26 20:46 src
   -rw-r--r--   1 mkoeppe  staff   13478 Mar 26 20:41 tox.ini

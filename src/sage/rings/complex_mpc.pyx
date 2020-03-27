@@ -1996,7 +1996,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         return ~(self.tan())
 
-    cotan = cot # provide this alias for backwards compatibility (2020-3-25)
+    cotan = cot # provide this alias for backward compatibility in #29409
 
     ################################
     # Other functions

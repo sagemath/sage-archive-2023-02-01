@@ -679,7 +679,6 @@ positional arguments (separated from tox options by ``--``)::
   sage-logger -p 'sage-spkg -y -o  ratpoints-2.1.3.p5' '/Users/mkoeppe/.../worktree-local/logs/pkgs/ratpoints-2.1.3.p5.log'
   [ratpoints-2.1.3.p5] installing. Log file: /Users/mkoeppe/.../worktree-local/logs/pkgs/ratpoints-2.1.3.p5.log
     [ratpoints-2.1.3.p5] successfully installed.
-    [ratpoints-2.1.3.p5] build times: 
   ...
     local-direct: commands succeeded
     congratulations :)
@@ -757,18 +756,79 @@ locations to be a bug of the Sage distribution, which should be
 reported and fixed on a ticket.
 
 
-..
-   Automatic build testing on macOS with best-effort isolated installation of Homebrew
-   -----------------------------------------------------------------------------------
+Automatic build testing on macOS with a best-effort isolated installation of Homebrew
+-------------------------------------------------------------------------------------
 
-   adds toxenvs local-homebrew-macos-{minimal,standard} for testing with (best-effort) isolated installations of homebrew on macOS (not using docker).
+XCode on macOS does not provide the prerequisites for bootstrapping
+the Sage distribution.  A good way to install them is using the
+Homebrew package manager.
 
-   To test:
+In fact, Sage provides a tox environment that automatically installs
+an isolated copy of Homebrew with all prerequisites for bootstrapping::
 
+  [mkoeppe@sage worktree-local]$ tox -e local-homebrew-macos-minimal -- lrslib
+  local-homebrew-macos-minimal create: /Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal
+  local-homebrew-macos-minimal run-test-pre: PYTHONHASHSEED='4246149402'
+  ...
+  Initialized empty Git repository in /Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/.git/
+  ...
+  Tapped 2 commands and 4942 formulae (5,205 files, 310.7MB).
+  ==> Downloading https://ftp.gnu.org/gnu/gettext/gettext-0.20.1.tar.xz
+  ...
+  ==> Pouring autoconf-2.69.catalina.bottle.4.tar.gz
+  ...
+  ==> Pouring pkg-config-0.29.2.catalina.bottle.1.tar.gz
+    /Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/Cellar/pkg-config/0.29.2: 11 files, 623.4KB
+  ==> Caveats
+  ==> gettext
+  gettext is keg-only, which means it was not symlinked into /Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew,
+  because macOS provides the BSD gettext library & some software gets confused if both are in the library path.
 
-   This is currently only
-        implemented for ``local-homebrew-macos``; see below.
-    
+  If you need to have gettext first in your PATH run:
+    echo 'export PATH="/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/opt/gettext/bin:$PATH"' >> ~/.bash_profile
+
+  For compilers to find gettext you may need to set:
+    export LDFLAGS="-L/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/opt/gettext/lib"
+    export CPPFLAGS="-I/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/opt/gettext/include"
+  ...
+  local-homebrew-macos-minimal run-test: commands[0] | bash -c 'export PATH=/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin && . .homebrew-build-env && ./bootstrap && ./configure --prefix=/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/local    && make -k V=0 base-toolchain && make -k V=0 SAGE_SPKG="sage-spkg -y -o" SAGE_CHECK=warn SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl" lrslib'
+  ...
+  bootstrap:69: installing 'config/config.rpath'
+  ...
+  checking for a BSD-compatible install... /usr/bin/install -c
+  checking whether build environment is sane... yes
+  ...
+  configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cliquer cmake eclib ecm flint fplll gf2x gfan gfortran givaro glpk gp2c gsl lcalc libatomic_ops libsemigroups lrcalc m4ri m4rie mpfi nauty ninja_build ntl openblas pari pari_elldata pari_galdata pari_galpol pari_nftables pari_seadata pari_seadata_small patch perl_term_readline_gnu planarity r readline rw symmetrica tachyon xz yasm zeromq
+  checking for the package system in use... homebrew
+  configure: hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:
+  configure:   $ brew install cmake gcc gsl mpfi ninja openblas gpatch r readline xz yasm zeromq
+  configure: After installation, re-run configure using:
+  configure:   $ ./config.status --recheck && ./config.status
+  ...
+  sage-logger -p 'sage-spkg -y -o  lrslib-062+autotools-2017-03-03.p1' '/Users/mkoeppe/.../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log'
+  [lrslib-062+autotools-2017-03-03.p1] installing. Log file: /Users/mkoeppe/.../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log
+    [lrslib-062+autotools-2017-03-03.p1] successfully installed.
+  ...
+    local-homebrew-macos-minimal: commands succeeded
+    congratulations :)
+  
+The tox environment uses the subdirectory ``homebrew`` of the
+environment directory ``.tox/local-homebrew-macos-minimal`` as the
+Homebrew prefix.  This installation does not interact in any way with
+a Homebrew installation in ``/usr/local`` that you may have.
+
+The test script sets the ``PATH`` to the ``bin`` directory of the
+Homebrew prefix, followed by ``/usr/bin:/bin:/usr/sbin:/sbin``.  It
+then uses the script ``$SAGE_ROOT/.homebrew-build-env`` to set
+environment variables so that Sage's build scripts will find
+"keg-only" packages such as ``gettext``.
+
+The ``local-homebrew-macos-standard`` environment additionally
+installs (in its separate isolated copy of Homebrew) all Homebrew
+packages known to Sage for which an ``spkg-configure.m4`` is
+available; this is similar to the ``docker`` tox environments
+described earlier.
+
 
 Automatic parallel tox runs on GitHub Actions
 ---------------------------------------------

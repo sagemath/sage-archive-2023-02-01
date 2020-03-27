@@ -195,6 +195,10 @@ on our container to install the necessary build prerequisites::
   ...
   Done.
 
+(The Sage `Installation Guide <../installation/index.html>`_ also
+provides such command lines for some distributions; these are
+automatically generated from the database of package names.)
+
 Now we can start the build::
 
   root@39d693b2a75d:/sage# ./configure 

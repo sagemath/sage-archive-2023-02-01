@@ -21,8 +21,9 @@ spectrum of platforms.
 Sage patchbots
 ==============
 
-The `Sage patchbots <https://wiki.sagemath.org/patchbot>`_ will automatically test your Trac ticket
-by attempting an incremental build of Sage and running doctests.
+The `Sage patchbots <https://wiki.sagemath.org/patchbot>`_ will
+automatically test your Trac ticket by attempting an incremental build
+of Sage and running doctests.
 
 Sage buildbots
 ==============
@@ -35,10 +36,10 @@ Developers' and users' tests on sage-release
 ============================================
 
 Sage developers and users are encouraged to contribute to testing
-releases that are announced on
-`Sage Release <https://groups.google.com/forum/#!forum/sage-release>`_ on their machines
-and to report test results (success and failures) by responding to the
-announcements.
+releases that are announced on `Sage Release
+<https://groups.google.com/forum/#!forum/sage-release>`_ on their
+machines and to report test results (success and failures) by
+responding to the announcements.
 
 Testing Sage on a different platform using Docker
 =================================================
@@ -49,9 +50,9 @@ kernel.  Using Docker Desktop for Mac and Windows, the containers can
 also be run on these platforms.
 
 All major Linux distributions provide ready-to-use Docker images,
-which are published via `Docker Hub <https://hub.docker.com>`_.  For example, to run
-the current stable (LTS) version of Ubuntu interactively, you can use
-the shell command::
+which are published via `Docker Hub <https://hub.docker.com>`_.  For
+example, to run the current stable (LTS) version of Ubuntu
+interactively, you can use the shell command::
 
   [mkoeppe@sage sage]$ docker run -it ubuntu:latest
   root@9f3398da43c2:/# 
@@ -93,8 +94,8 @@ This is not bootstrapped (``configure`` is missing), so let's bootstrap it::
   [mkoeppe@sage worktree-ubuntu-latest] make configure
   ...
 
-We can start a container again with same image, ``ubuntu:latest``, but this time let's
-mount the current directory into it::
+We can start a container again with same image, ``ubuntu:latest``, but
+this time let's mount the current directory into it::
 
   [mkoeppe@sage worktree-ubuntu-latest]$ docker run -it --mount type=bind,source=$(pwd),target=/sage ubuntu:latest
   root@39d693b2a75d:/# mount | grep sage
@@ -560,7 +561,9 @@ Symbolic names of system configurations
 
 To facilitate communication about host system configurations and for
 automating testing, Sage defines symbolic names composed of several
-`Tox "factors" <https://tox.readthedocs.io/en/latest/config.html#complex-factor-conditions>`_ in the file ``$SAGE_ROOT/tox.ini``.
+`Tox "factors"
+<https://tox.readthedocs.io/en/latest/config.html#complex-factor-conditions>`_
+in the file ``$SAGE_ROOT/tox.ini``.
 
 The **system factor** describes a base operating system
 image.
@@ -594,7 +597,7 @@ such as ``debian-buster-standard`` and ``centos-7-i386-minimal``.
 Automatic Docker-based build testing using tox
 ----------------------------------------------
 
-``tox`` is Python package that is widely used for automating tests of
+``tox`` is a Python package that is widely used for automating tests of
 Python projects.
 
 Install ``tox`` for use with your system Python, for example using::

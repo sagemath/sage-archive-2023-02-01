@@ -235,15 +235,24 @@ implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'
 
 def implicit_multiplication(level=None):
-    """
-    Turns implicit multiplication on or off, optionally setting a
-    specific ``level``.  Returns the current ``level`` if no argument
-    is given.
+    r"""
+    Turn implicit multiplication on or off, optionally setting a
+    specific ``level``.
 
     INPUT:
 
-    - ``level`` - an integer (default: None); see :func:`implicit_mul`
-      for a list
+    - ``level`` -- a boolean or integer (default: 5); how aggressive to be in
+      placing \*'s
+
+      -  0 - Do nothing
+      -  1 - Numeric followed by alphanumeric
+      -  2 - Closing parentheses followed by alphanumeric
+      -  3 - Spaces between alphanumeric
+      - 10 - Adjacent parentheses (may mangle call statements)
+
+    OUTPUT:
+
+    The current ``level`` if no argument is given.
 
     EXAMPLES::
 
@@ -255,6 +264,19 @@ def implicit_multiplication(level=None):
       sage: implicit_multiplication(False)
       sage: preparse('2x')
       '2x'
+
+    Note that the `IPython automagic
+    <https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-automagic>`_
+    feature cannot be used if ``level >= 3``::
+
+        sage: from sage.repl.preparse import implicit_mul
+        sage: implicit_mul('cd Documents', level=3)
+        'cd*Documents'
+        sage: implicit_mul('cd Documents', level=2)
+        'cd Documents'
+
+    In this case, one can use the explicit syntax for IPython magics such as
+    ``%cd Documents``.
     """
     global implicit_mul_level
     if level is None:
@@ -1410,14 +1432,8 @@ def implicit_mul(code, level=5):
 
     - ``code``  -- a string; the code with missing \*'s
 
-    - ``level`` -- an integer (default: 5); how aggressive to be in
-      placing \*'s
-
-      -  0 - Do nothing
-      -  1 - Numeric followed by alphanumeric
-      -  2 - Closing parentheses followed by alphanumeric
-      -  3 - Spaces between alphanumeric
-      - 10 - Adjacent parentheses (may mangle call statements)
+    - ``level`` -- an integer (default: 5); see :func:`implicit_multiplication`
+      for a list
 
     OUTPUT:
 
@@ -1434,18 +1450,6 @@ def implicit_mul(code, level=5):
         '1r + 1e3 + 5*exp(2)'
         sage: implicit_mul('f(a)(b)', level=10)
         'f(a)*(b)'
-
-    Note that the `IPython automagic
-    <https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-automagic>`_
-    feature cannot be used if ``level >= 3``::
-
-        sage: implicit_mul('cd Documents', level=3)
-        'cd*Documents'
-        sage: implicit_mul('cd Documents', level=2)
-        'cd Documents'
-
-    In this case, one can use the explicit syntax for IPython magics such as
-    ``%cd Documents``.
 
     TESTS:
 

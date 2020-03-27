@@ -850,6 +850,20 @@ and has a time limit of 6h per job. This is just barely enough for a
 typical ``minimal`` build followed by ``make ptest`` to succeed; and
 plenty of time for a typical ``standard`` build to succeed.
 
+Build logs become available as "artifacts" when all jobs of the
+workflow have finished.  Each job generates one tarball.
+"Annotations" highlight certain top-level errors or warnings issued
+during the build.
+
+The following procedure seems to work well for testing branches during
+development.  Create a branch from a recent beta release that contains
+the default GitHub Actions configuration; name it ``TESTER``, say.
+Edit ``$SAGE_ROOT/.github/workflows/tox.yml`` to include the system
+configurations that you wish to test.  Commit and push the branch to
+your GitHub fork of sage.  Next, push your development branch to your
+GitHub repository and create a pull request against the ``TESTER``
+branch.  This will trigger the GitHub Actions workflow.
+
 
 ..
    Workflow for responding to portability bug reports

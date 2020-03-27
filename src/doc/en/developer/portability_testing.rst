@@ -288,7 +288,10 @@ have no access to the worktree::
 The image ``ubuntu-latest-minimal-17`` can be run in as many
 containers as we want and can also be shared with other users or
 developers so that they can run it in a container on their machine.
-(See the Docker documentation on how to do this.)
+(See the Docker documentation on how to `share images on Docker Hub
+<https://docs.docker.com/get-started/part3/>` or to `save images to a
+tar archive
+<https://docs.docker.com/engine/reference/commandline/save/>`.)
 
 This facilitates collaboration on fixing portability bugs of the Sage
 distribution.  After reproducing a portability bug on a container,

@@ -2196,27 +2196,36 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     # Methods to obtain a different combinatorial polyhedron.
 
-    cpdef CombinatorialPolyhedron polar(self):
+    cpdef CombinatorialPolyhedron dual(self):
         r"""
-        Return the polar/dual of self.
+        Return the dual/polar of self.
 
         Only defined for bounded polyhedra.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.polar`.
 
         EXAMPLES::
 
             sage: P = polytopes.cube()
             sage: C = P.combinatorial_polyhedron()
-            sage: D = C.polar()
+            sage: D = C.dual()
             sage: D.f_vector()
             (1, 6, 12, 8, 1)
-            sage: D1 = P.polar().combinatorial_polyhedron()
+            sage: D1 = P.dual().combinatorial_polyhedron()
             sage: D1.face_lattice().is_isomorphic(D.face_lattice())
             True
+
+        Polar is an alias to be consistent with :class:`~sage.geometry.polyhedron.base.Polyhedron_base`::
+
+            sage: C.polar().f_vector()
+            (1, 6, 12, 8, 1)
 
         For unbounded polyhedra, an error is raised::
 
             sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
-            sage: C.polar()
+            sage: C.dual()
             Traceback (most recent call last):
             ...
             ValueError: self must be bounded
@@ -2227,6 +2236,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef ListOfFaces new_Vrep = self.bitrep_facets().__copy__()
 
         return CombinatorialPolyhedron((new_facets, new_Vrep))
+
+    polar = dual
 
 
     # Internal methods.

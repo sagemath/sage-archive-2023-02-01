@@ -54,7 +54,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple far_face_tuple(self)
 
     # Methods to obtain a different combinatorial polyhedron.
-    cpdef CombinatorialPolyhedron polar(self)
+    cpdef CombinatorialPolyhedron dual(self)
 
     # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
     # Upon success they are copied to ``_mem_tuple``.

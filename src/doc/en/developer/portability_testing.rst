@@ -610,11 +610,9 @@ that we introduced above, there are the following factors:
 
 The **technology** factor describes how the environment is run:
 
-- ``docker`` builds a Docker image as described above
+- ``docker`` builds a Docker image as described above.
 
-..
-   - ``local`` runs testing on the host OS instead.  This is currently only
-     implemented for ``local-homebrew-macos``; see below.
+- ``local`` runs testing on the host OS instead.  See below.
 
 The **configuration** factor (allowed to be empty):
 
@@ -634,6 +632,143 @@ a silent build (``make V=0``), use::
   [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=0\"" \
     tox -e docker-ubuntu-bionic-standard
 
+Automatic build testing on the host OS using tox -e local-direct
+----------------------------------------------------------------
+
+The ``local`` technology runs testing on the host OS instead.
+
+In contrast to the ``docker`` technology, it does not make a copy of
+the source tree.  It is most straightforward to run it from a
+separate, distclean git worktree.
+
+Let us try a first variant of the ``local`` technology, the tox
+environment called ``local-direct``.  Because all builds with tox
+begin by bootstrapping the source tree, you will need autotools and
+other prerequisites installed in your system.  See
+``build/pkgs/*-bootstrap.txt`` for a list of system packages that
+provide these prerequisites.
+
+We start by creating a fresh (distclean) git worktree.
+
+  [mkoeppe@sage sage] git worktree add worktree-local
+  [mkoeppe@sage sage] cd worktree-local
+  [mkoeppe@sage worktree-local] ls
+  COPYING.txt ... Makefile ... configure.ac ... src tox.ini
+
+Again we build only a small package.  Build targets can be passed as
+positional arguments (separated from tox options by ``--``)::
+
+  [mkoeppe@sage worktree-local] tox -e local-direct -- ratpoints
+  local-direct create: /Users/mkoeppe/.../worktree-local/.tox/local-direct
+  local-direct run-test-pre: PYTHONHASHSEED='2211987514'
+  ...
+  rm -rf config configure build/make/Makefile-auto.in
+  rm -f src/doc/en/installation/*.txt
+  src/doc/bootstrap:48: installing src/doc/en/installation/debian.txt and src/doc/en/installation/debian-optional.txt
+  src/doc/bootstrap:48: installing src/doc/en/installation/fedora.txt and src/doc/en/installation/fedora-optional.txt
+  src/doc/bootstrap:48: installing src/doc/en/installation/cygwin.txt and src/doc/en/installation/cygwin-optional.txt
+  bootstrap:69: installing 'config/config.rpath'
+  configure.ac:328: installing 'config/compile'
+  configure.ac:113: installing 'config/config.guess'
+  configure.ac:113: installing 'config/config.sub'
+  configure.ac:68: installing 'config/install-sh'
+  configure.ac:68: installing 'config/missing'
+  checking for a BSD-compatible install... /usr/bin/install -c
+  checking whether build environment is sane... yes
+  ...
+  sage-logger -p 'sage-spkg -y -o  ratpoints-2.1.3.p5' '/Users/mkoeppe/.../worktree-local/logs/pkgs/ratpoints-2.1.3.p5.log'
+  [ratpoints-2.1.3.p5] installing. Log file: /Users/mkoeppe/.../worktree-local/logs/pkgs/ratpoints-2.1.3.p5.log
+    [ratpoints-2.1.3.p5] successfully installed.
+    [ratpoints-2.1.3.p5] build times: 
+  ...
+    local-direct: commands succeeded
+    congratulations :)
+
+Let's investigate what happened here::
+
+  [mkoeppe@sage worktree-local]$ ls -l
+  total 2576
+  -rw-r--r--   1 mkoeppe  staff   66501 Mar 26 20:34 COPYING.txt
+  -rw-r--r--   1 mkoeppe  staff    7542 Mar 26 20:41 Makefile
+  -rw-r--r--   1 mkoeppe  staff   19862 Mar 26 20:34 README.md
+  -rw-r--r--   1 mkoeppe  staff      53 Mar 26 20:34 VERSION.txt
+  -rw-r--r--   1 mkoeppe  staff  133587 Mar 26 20:45 aclocal.m4
+  drwxr-xr-x   7 mkoeppe  staff     224 Mar 26 20:45 autom4te.cache
+  -rwxr-xr-x   1 mkoeppe  staff    7583 Mar 26 20:34 bootstrap
+  drwxr-xr-x  11 mkoeppe  staff     352 Mar 26 20:34 build
+  -rw-r--r--   1 mkoeppe  staff     223 Mar 26 20:34 condarc.yml
+  drwxr-xr-x   8 mkoeppe  staff     256 Mar 26 20:45 config
+  lrwxr-xr-x   1 mkoeppe  staff     114 Mar 26 20:45 config.log -> /Users/mkoeppe/.../worktree-local/.tox/local-direct/log/config.log
+  -rwxr-xr-x   1 mkoeppe  staff   90411 Mar 26 20:46 config.status
+  -rwxr-xr-x   1 mkoeppe  staff  887180 Mar 26 20:45 configure
+  -rw-r--r--   1 mkoeppe  staff   17070 Mar 26 20:41 configure.ac
+  drwxr-xr-x   8 mkoeppe  staff     256 Mar 26 20:34 docker
+  lrwxr-xr-x   1 mkoeppe  staff     103 Mar 26 20:45 logs -> /Users/mkoeppe/.../worktree-local/.tox/local-direct/log
+  drwxr-xr-x  24 mkoeppe  staff     768 Mar 26 20:45 m4
+  lrwxr-xr-x   1 mkoeppe  staff     105 Mar 26 20:45 prefix -> /Users/mkoeppe/.../worktree-local/.tox/local-direct/local
+  -rwxr-xr-x   1 mkoeppe  staff    4868 Mar 26 20:34 sage
+  drwxr-xr-x  16 mkoeppe  staff     512 Mar 26 20:46 src
+  -rw-r--r--   1 mkoeppe  staff   13478 Mar 26 20:41 tox.ini
+  drwxr-xr-x   4 mkoeppe  staff     128 Mar 26 20:46 upstream
+
+There is no ``local`` subdirectory.  This is part of a strategy to
+keep the source tree clean to the extent possible. In particular:
+
+- ``tox`` configured the build to use a separate ``$SAGE_LOCAL``
+  hierarchy in a directory under the tox environment directory
+  ``.tox/local-direct``.  It created a symbolic link ``prefix`` that
+  points there, for convenience::
+
+    [mkoeppe@sage worktree-local]$ ls -l prefix/lib/*rat*
+    -rw-r--r--  1 mkoeppe  staff  165968 Mar 26 20:46 prefix/lib/libratpoints.a
+
+- Likewise, it created a separate ``logs`` directory, again under the
+  tox environment directory, and a symbolic link.
+
+This makes it possible for advanced users to test several ``local``
+tox environments (such as ``local-direct`` and
+``local-direct-python2``) out of one worktree.  However, because a
+build still writes configuration scripts and build artefacts (such as
+``config.status``) into the worktree, only one ``local`` build can run
+at a time in a given worktree.
+
+The tox environment directory will be reused for the next ``tox`` run,
+which will therefore do an incremental build.  To start a fresh build,
+you can use the ``-r`` option.
+
+Automatic build testing on the host OS with best-effort isolation using tox -e local
+------------------------------------------------------------------------------------
+
+``tox -e local`` (without ``-direct``) attempts a best-effort
+isolation from the user's environment as follows:
+
+- All environment variables are set to standard values; with the
+  exception of ``MAKE`` and ``EXTRA_CONFIGURE_ARGS``.  In particular,
+  ``PATH`` is set to just ``/usr/bin:/bin:/usr/sbin:/sbin``; it does
+  not include ``/usr/local/bin``.
+
+
+Note, however, that various packages have build scripts that use
+``/usr/local`` or other popular file system locations such as
+``/opt/sfw/``.  Therefore, the isolation is not complete.  Using
+``/usr/local`` is considered standard behavior.  On the other hand, we
+consider a package build script that inspects other file system
+locations to be a bug of the Sage distribution, which should be
+reported and fixed on a ticket.
+
+
+..
+   Automatic build testing on macOS with best-effort isolated installation of Homebrew
+   -----------------------------------------------------------------------------------
+
+   adds toxenvs local-homebrew-macos-{minimal,standard} for testing with (best-effort) isolated installations of homebrew on macOS (not using docker).
+
+   To test:
+
+
+   This is currently only
+        implemented for ``local-homebrew-macos``; see below.
+    
 
 Automatic parallel tox runs on GitHub Actions
 ---------------------------------------------
@@ -652,7 +787,7 @@ GitHub Actions runs these build jobs on 2-core machines with 7 GB of
 RAM memory and 14 GB of SSD disk space, cf.
 `here <https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources>`_,
 and has a time limit of 6h per job. This is just barely enough for a
-typical ``minimal`` build followed by make ptest to succeed; and
+typical ``minimal`` build followed by ``make ptest`` to succeed; and
 plenty of time for a typical ``standard`` build to succeed.
 
 

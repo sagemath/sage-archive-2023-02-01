@@ -814,19 +814,17 @@ an isolated copy of Homebrew with all prerequisites for bootstrapping::
     export LDFLAGS="-L/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/opt/gettext/lib"
     export CPPFLAGS="-I/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/opt/gettext/include"
   ...
-  local-homebrew-macos-minimal run-test: commands[0] | bash -c 'export PATH=/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin && . .homebrew-build-env && ./bootstrap && ./configure --prefix=/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/local    && make -k V=0 base-toolchain && make -k V=0 SAGE_SPKG="sage-spkg -y -o" SAGE_CHECK=warn SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl" lrslib'
+  local-homebrew-macos-minimal run-test: commands[0] | bash -c 'export PATH=/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin && . .homebrew-build-env && ./bootstrap && ./configure --prefix=/Users/mkoeppe/.../worktree-local/.tox/local-homebrew-macos-minimal/local    && make -k V=0 ... lrslib'
   ...
   bootstrap:69: installing 'config/config.rpath'
   ...
   checking for a BSD-compatible install... /usr/bin/install -c
   checking whether build environment is sane... yes
   ...
-  configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cliquer cmake eclib ecm flint fplll gf2x gfan gfortran givaro glpk gp2c gsl lcalc libatomic_ops libsemigroups lrcalc m4ri m4rie mpfi nauty ninja_build ntl openblas pari pari_elldata pari_galdata pari_galpol pari_nftables pari_seadata pari_seadata_small patch perl_term_readline_gnu planarity r readline rw symmetrica tachyon xz yasm zeromq
+  configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cliquer ... tachyon xz yasm zeromq
   checking for the package system in use... homebrew
   configure: hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:
   configure:   $ brew install cmake gcc gsl mpfi ninja openblas gpatch r readline xz yasm zeromq
-  configure: After installation, re-run configure using:
-  configure:   $ ./config.status --recheck && ./config.status
   ...
   sage-logger -p 'sage-spkg -y -o  lrslib-062+autotools-2017-03-03.p1' '/Users/mkoeppe/.../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log'
   [lrslib-062+autotools-2017-03-03.p1] installing. Log file: /Users/mkoeppe/.../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log
@@ -848,9 +846,9 @@ environment variables so that Sage's build scripts will find
 
 The ``local-homebrew-macos-standard`` environment additionally
 installs (in its separate isolated copy of Homebrew) all Homebrew
-packages known to Sage for which an ``spkg-configure.m4`` is
-available; this is similar to the ``docker`` tox environments
-described earlier.
+packages known to Sage for which the ``spkg-configure.m4`` mechanism
+is implemented; this is similar to the ``docker-standard`` tox
+environments described earlier.
 
 
 Automatic parallel tox runs on GitHub Actions

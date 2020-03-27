@@ -579,12 +579,33 @@ Symbolic names of system configurations
 
 To facilitate communication about host system configurations and for
 automating testing, Sage defines symbolic names composed of several
-`Tox "factors"
-<https://tox.readthedocs.io/en/latest/config.html#complex-factor-conditions>`_
-in the file ``$SAGE_ROOT/tox.ini``.
 
-The **system factor** describes a base operating system
-image.
+
+
+Automatic Docker-based build testing using tox
+----------------------------------------------
+
+`tox <https://tox.readthedocs.io/en/latest/>` is a Python package that
+is widely used for automating tests of Python projects.
+
+Install ``tox`` for use with your system Python, for example using::
+
+  [mkoeppe@sage sage]$ pip install --user tox
+
+A tox "environment" is identified by a symbolic name composed of
+several `Tox "factors"
+<https://tox.readthedocs.io/en/latest/config.html#complex-factor-conditions>`_,
+which are defined in the file ``$SAGE_ROOT/tox.ini``.
+
+The **technology** factor describes how the environment is run:
+
+- ``docker`` builds a Docker image as described above.
+
+- ``local`` runs testing on the host OS instead.  We explain this
+  technology in a later section.
+
+The next two factors determine the host system configuration: The
+**system factor** describes a base operating system image.
 
 - Examples are ``ubuntu-focal``, ``debian-buster``,
   ``archlinux-latest``, ``fedora-30``, ``slackware-14.2``,
@@ -611,34 +632,18 @@ installed on the system before building Sage:
 The factors are connected by a hyphen to name a system configuration,
 such as ``debian-buster-standard`` and ``centos-7-i386-minimal``.
 
-
-Automatic Docker-based build testing using tox
-----------------------------------------------
-
-``tox`` is a Python package that is widely used for automating tests of
-Python projects.
-
-Install ``tox`` for use with your system Python, for example using::
-
-  [mkoeppe@sage sage]$ pip install --user tox
-
-A tox "environment" is identified by a name composed of several
-factors.  In addition to the system factor and the packages factor
-that we introduced above, there are the following factors:
-
-The **technology** factor describes how the environment is run:
-
-- ``docker`` builds a Docker image as described above.
-
-- ``local`` runs testing on the host OS instead.  See below.
-
-The **configuration** factor (allowed to be empty):
+Finally, the **configuration** factor (which is allowed to be empty)
+controls how the ``configure`` script is run.
 
 - ``python2`` adds the argument ``--with-python=2`` to the
   ``configure`` run.
 
-The factors are connected by a hyphen to name a tox environment.  To
-run an environment::
+The factors are connected by a hyphen to name a tox environment.  (The
+order of the factors does not matter; however, for consistency and
+because the ordered name is used for caching purposes, we recommend to
+use the factors in the listed order.)
+
+To run an environment::
 
   [mkoeppe@sage sage]$ tox -e docker-slackware-14.2-minimal
   [mkoeppe@sage sage]$ tox -e docker-ubuntu-bionic-standard-python2

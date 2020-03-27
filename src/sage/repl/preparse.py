@@ -269,11 +269,13 @@ def implicit_multiplication(level=None):
     <https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-automagic>`_
     feature cannot be used if ``level >= 3``::
 
-        sage: from sage.repl.preparse import implicit_mul
-        sage: implicit_mul('cd Documents', level=3)
+        sage: implicit_multiplication(3)
+        sage: preparse('cd Documents')
         'cd*Documents'
-        sage: implicit_mul('cd Documents', level=2)
+        sage: implicit_multiplication(2)
+        sage: preparse('cd Documents')
         'cd Documents'
+        sage: implicit_multiplication(False)
 
     In this case, one can use the explicit syntax for IPython magics such as
     ``%cd Documents``.

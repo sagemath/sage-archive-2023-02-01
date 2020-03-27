@@ -8810,14 +8810,13 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        A full-dimensional polyhedron or a linear transformation,
+        A full-dimensional polyhedron or an affine transformation,
         depending on the parameter ``as_affine_map``.
 
         .. TODO::
 
             - make the parameters ``orthogonal`` and ``orthonormal`` work
               with unbounded polyhedra.
-            - allow to return ``as_affine_map=True`` for default setting
 
         EXAMPLES::
 

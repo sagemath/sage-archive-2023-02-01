@@ -51,13 +51,13 @@ using a Docker client on your Linux, Mac, or Windows box, as well as
 on various cloud services.
 
 To get started, you need to install a `Docker client
-<https://docs.docker.com/install/>`.  The clients are available for
+<https://docs.docker.com/install/>`_.  The clients are available for
 Linux, Mac, and Windows.  The clients for the latter are known as
 "Docker Desktop".
 
 All examples in this section were obtained using Docker Desktop for
 Mac; but the `command-line user interface
-<https://docs.docker.com/engine/reference/commandline/cli/>` for the
+<https://docs.docker.com/engine/reference/commandline/cli/>`_ for the
 other platforms is identical.
 
 All major Linux distributions provide ready-to-use Docker images,
@@ -574,7 +574,7 @@ automating testing, Sage defines symbolic names composed of several
 Automatic Docker-based build testing using tox
 ----------------------------------------------
 
-`tox <https://tox.readthedocs.io/en/latest/>` is a Python package that
+`tox <https://tox.readthedocs.io/en/latest/>`_ is a Python package that
 is widely used for automating tests of Python projects.
 
 Install ``tox`` for use with your system Python, for example using::

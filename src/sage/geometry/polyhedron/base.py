@@ -2798,9 +2798,25 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             NotImplementedError: the polyhedron is not compact
+
+        The centroid of an empty polyhedron is not defined::
+
+            sage: Polyhedron().centroid()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+
+        TESTS::
+
+            sage: Polyhedron(vertices=[[0,1]]).centroid()
+            (0, 1)
         """
         if not self.is_compact():
             raise NotImplementedError("the polyhedron is not compact")
+        if self.n_vertices() == self.dim() + 1:
+            # The centroid of a simplex is its center.
+            return self.center()
+
         triangulation = self.triangulate(engine=engine, **kwds)
 
         if self.ambient_dim() == self.dim():

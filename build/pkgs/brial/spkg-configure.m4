@@ -13,12 +13,19 @@ SAGE_SPKG_CONFIGURE([brial], [
         #include <polybori/groebner/groebner_alg.h>
         USING_NAMESPACE_PBORI
         USING_NAMESPACE_PBORIGB
+
+	class MyConstant : public BooleConstant{
+          public: void negate() { this->m_value = !this->m_value; }
+        };
       ],[
         BoolePolyRing r = BoolePolyRing(2, COrderEnums::dlex);
         ReductionStrategy rs = ReductionStrategy(r);
-        rs.llReduceAll();
+        rs.llReduceAll(); // uses groebner lib
         if (2 != r.nVariables()) { return 1; }
         if (r.constant(true) == r.constant(false)) { return 2; }
+        MyConstant f = MyConstant();
+        f.negate(); // ensures v1.1.0+ if m_value isn't const
+        if (!f.isOne()) { return 3; }
         return 0;
       ])
     ],

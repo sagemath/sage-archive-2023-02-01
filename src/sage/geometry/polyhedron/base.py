@@ -25,6 +25,7 @@ from sage.cpython.string import bytes_to_str
 
 from sage.misc.all import cached_method, prod
 from sage.misc.randstate import current_randstate
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
@@ -890,7 +891,7 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: plotting of 5-dimensional polyhedra not implemented
 
-        If the polyhedron is not full-dimensional, the :meth:`affine_hull` is used if necessary::
+        If the polyhedron is not full-dimensional, the :meth:`affine_hull_projection` is used if necessary::
 
             sage: type(Polyhedron([(0,), (1,)]).plot())
             <class 'sage.plot.graphics.Graphics'>
@@ -936,7 +937,7 @@ class Polyhedron_base(Element):
         try:
             plot_method = projection.plot
         except AttributeError:
-            projection = project(self.affine_hull())
+            projection = project(self.affine_hull_projection())
             try:
                 plot_method = projection.plot
             except AttributeError:
@@ -2583,7 +2584,7 @@ class Polyhedron_base(Element):
             [1 1 1 0 1]
             [1 1 0 1 1]
             [1 0 1 1 1]
-            sage: simplex = simplex.affine_hull(); simplex
+            sage: simplex = simplex.affine_hull_projection(); simplex
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: simplex.incidence_matrix()
             [1 1 1 0]
@@ -7118,9 +7119,9 @@ class Polyhedron_base(Element):
             if engine == 'normaliz':
                 return self._volume_normaliz(measure='euclidean')
             # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
-            A, b = self.affine_hull(orthogonal=True, as_affine_map=True)
+            A, b = self.affine_hull_projection(orthogonal=True, as_affine_map=True)
             Adet = (A.matrix().transpose() * A.matrix()).det()
-            return self.affine_hull(orthogonal=True).volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
+            return self.affine_hull_projection(orthogonal=True).volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
         elif measure == 'induced_rational':
             # if the polyhedron is unbounded, return infinity
             if not self.is_compact():
@@ -8774,14 +8775,13 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def affine_hull(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
+    def affine_hull_projection(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
         """
-        Return the affine hull.
+        Return the polyhedron projected into its affine hull.
 
         Each polyhedron is contained in some smallest affine subspace
-        (possibly the entire ambient space). The affine hull is the
-        same polyhedron but thought of as a full-dimensional
-        polyhedron in this subspace. We provide a projection of the ambient
+        (possibly the entire ambient space) -- its affine hull.
+        We provide a projection of the ambient
         space of the polyhedron to Euclidian space of dimension of the
         polyhedron. Then the image of the polyhedron under this
         projection (or, depending on the parameter ``as_affine_map``,
@@ -8810,43 +8810,42 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        A full-dimensional polyhedron or a linear transformation,
+        A full-dimensional polyhedron or an affine transformation,
         depending on the parameter ``as_affine_map``.
 
         .. TODO::
 
             - make the parameters ``orthogonal`` and ``orthonormal`` work
               with unbounded polyhedra.
-            - allow to return ``as_affine_map=True`` for default setting
 
         EXAMPLES::
 
             sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]);  triangle
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
-            sage: triangle.affine_hull()
+            sage: triangle.affine_hull_projection()
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
 
             sage: half3d = Polyhedron(vertices=[(3,2,1)], rays=[(1,0,0)])
-            sage: half3d.affine_hull().Vrepresentation()
+            sage: half3d.affine_hull_projection().Vrepresentation()
             (A ray in the direction (1), A vertex at (3))
 
         The resulting affine hulls depend on the parameter ``orthogonal`` and ``orthonormal``::
 
             sage: L = Polyhedron([[1,0],[0,1]]); L
             A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
-            sage: A = L.affine_hull(); A
+            sage: A = L.affine_hull_projection(); A
             A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (1))
-            sage: A = L.affine_hull(orthogonal=True); A
+            sage: A = L.affine_hull_projection(orthogonal=True); A
             A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (2))
-            sage: A = L.affine_hull(orthonormal=True)
+            sage: A = L.affine_hull_projection(orthonormal=True)
             Traceback (most recent call last):
             ...
             ValueError: the base ring needs to be extended; try with "extend=True"
-            sage: A = L.affine_hull(orthonormal=True, extend=True); A
+            sage: A = L.affine_hull_projection(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (1.414213562373095?), A vertex at (0))
@@ -8860,21 +8859,21 @@ class Polyhedron_base(Element):
              A vertex at (0, 0, 1, 0),
              A vertex at (0, 1, 0, 0),
              A vertex at (1, 0, 0, 0))
-            sage: A = S.affine_hull(); A
+            sage: A = S.affine_hull_projection(); A
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
             (A vertex at (0, 0, 0),
              A vertex at (0, 0, 1),
              A vertex at (0, 1, 0),
              A vertex at (1, 0, 0))
-            sage: A = S.affine_hull(orthogonal=True); A
+            sage: A = S.affine_hull_projection(orthogonal=True); A
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
             (A vertex at (0, 0, 0),
              A vertex at (2, 0, 0),
              A vertex at (1, 3/2, 0),
              A vertex at (1, 1/2, 4/3))
-            sage: A = S.affine_hull(orthonormal=True, extend=True); A
+            sage: A = S.affine_hull_projection(orthonormal=True, extend=True); A
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
             (A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?),
@@ -8886,15 +8885,15 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.permutahedron(3); P
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
-            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, extend=True).volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull_projection(orthonormal=True, extend=True).volume() for F in P.affine_hull_projection().faces(1)]) == {1, sqrt(AA(2))}
             True
-            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, extend=True).volume() for F in P.affine_hull(orthonormal=True, extend=True).faces(1)]) == {sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull_projection(orthonormal=True, extend=True).volume() for F in P.affine_hull_projection(orthonormal=True, extend=True).faces(1)]) == {sqrt(AA(2))}
             True
             sage: D = polytopes.dodecahedron()
             sage: F = D.faces(2)[0].as_polyhedron()
-            sage: F.affine_hull(orthogonal=True)
+            sage: F.affine_hull_projection(orthogonal=True)
             A 2-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^2 defined as the convex hull of 5 vertices
-            sage: F.affine_hull(orthonormal=True, extend=True)
+            sage: F.affine_hull_projection(orthonormal=True, extend=True)
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 5 vertices
             sage: K.<sqrt2> = QuadraticField(2)
             sage: P = Polyhedron([2*[K.zero()],2*[sqrt2]])
@@ -8903,7 +8902,7 @@ class Polyhedron_base(Element):
             A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as the convex hull of 2 vertices
             sage: P.vertices()
             (A vertex at (0, 0), A vertex at (sqrt2, sqrt2))
-            sage: A = P.affine_hull(orthonormal=True); A
+            sage: A = P.affine_hull_projection(orthonormal=True); A
             A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (2))
@@ -8912,11 +8911,11 @@ class Polyhedron_base(Element):
             A 1-dimensional polyhedron in (Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^2 defined as the convex hull of 2 vertices
             sage: P.vertices()
             (A vertex at (0, 0), A vertex at (sqrt3, sqrt3))
-            sage: A = P.affine_hull(orthonormal=True)
+            sage: A = P.affine_hull_projection(orthonormal=True)
             Traceback (most recent call last):
             ...
             ValueError: the base ring needs to be extended; try with "extend=True"
-            sage: A = P.affine_hull(orthonormal=True, extend=True); A
+            sage: A = P.affine_hull_projection(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (2.449489742783178?))
@@ -8927,18 +8926,18 @@ class Polyhedron_base(Element):
 
         The affine hull is combinatorially equivalent to the input::
 
-            sage: P.is_combinatorially_isomorphic(P.affine_hull())
+            sage: P.is_combinatorially_isomorphic(P.affine_hull_projection())
             True
-            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthogonal=True))
+            sage: P.is_combinatorially_isomorphic(P.affine_hull_projection(orthogonal=True))
             True
-            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthonormal=True, extend=True))
+            sage: P.is_combinatorially_isomorphic(P.affine_hull_projection(orthonormal=True, extend=True))
             True
 
         The ``orthonormal=True`` parameter preserves volumes;
         it provides an isometric copy of the polyhedron::
 
             sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
-            sage: P = Pentagon.affine_hull(orthonormal=True, extend=True)
+            sage: P = Pentagon.affine_hull_projection(orthonormal=True, extend=True)
             sage: _, c= P.is_inscribed(certificate=True)
             sage: c
             (0.4721359549995794?, 0.6498393924658126?)
@@ -8959,9 +8958,9 @@ class Polyhedron_base(Element):
         affine transformation times its transpose::
 
             sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
-            sage: Pnormal = Pentagon.affine_hull(orthonormal=True, extend=True)
-            sage: Pgonal = Pentagon.affine_hull(orthogonal=True)
-            sage: A, b = Pentagon.affine_hull(orthogonal=True, as_affine_map=True)
+            sage: Pnormal = Pentagon.affine_hull_projection(orthonormal=True, extend=True)
+            sage: Pgonal = Pentagon.affine_hull_projection(orthogonal=True)
+            sage: A, b = Pentagon.affine_hull_projection(orthogonal=True, as_affine_map=True)
             sage: Adet = (A.matrix().transpose()*A.matrix()).det()
             sage: Pnormal.volume()
             1.53406271079097?
@@ -8975,8 +8974,8 @@ class Polyhedron_base(Element):
         An other example with ``as_affine_map=True``::
 
             sage: P = polytopes.permutahedron(4)
-            sage: A, b = P.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
-            sage: Q = P.affine_hull(orthonormal=True, extend=True)
+            sage: A, b = P.affine_hull_projection(orthonormal=True, as_affine_map=True, extend=True)
+            sage: Q = P.affine_hull_projection(orthonormal=True, extend=True)
             sage: Q.center()
             (0.7071067811865475?, 0.7071067811865475?, 2)
             sage: A(P.center()) + b == Q.center()
@@ -8991,35 +8990,41 @@ class Polyhedron_base(Element):
             False
             sage: P.is_full_dimensional()
             False
-            sage: P.affine_hull(orthogonal=True)
+            sage: P.affine_hull_projection(orthogonal=True)
             Traceback (most recent call last):
             ...
             NotImplementedError: "orthogonal=True" and "orthonormal=True" work only for compact polyhedra
-            sage: P.affine_hull(orthonormal=True)
+            sage: P.affine_hull_projection(orthonormal=True)
             Traceback (most recent call last):
             ...
             NotImplementedError: "orthogonal=True" and "orthonormal=True" work only for compact polyhedra
 
-        Setting ``as_affine_map`` to ``True`` only works in combination
-        with ``orthogonal`` or ``orthonormal`` set to ``True``::
+        Setting ``as_affine_map`` to ``True``
+        without ``orthogonal`` or ``orthonormal`` set to ``True``::
 
             sage: S = polytopes.simplex()
-            sage: S.affine_hull(as_affine_map=True)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: "as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"
+            sage: S.affine_hull_projection(as_affine_map=True)
+            (Vector space morphism represented by the matrix:
+             [1 0 0]
+             [0 1 0]
+             [0 0 1]
+             [0 0 0]
+             Domain: Vector space of dimension 4 over Rational Field
+             Codomain: Vector space of dimension 3 over Rational Field,
+             (0, 0, 0))
 
         If the polyhedron is full-dimensional, it is returned::
 
-            sage: polytopes.cube().affine_hull()
+            sage: polytopes.cube().affine_hull_projection()
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
-            sage: polytopes.cube().affine_hull(as_affine_map=True)
+            sage: polytopes.cube().affine_hull_projection(as_affine_map=True)
             (Vector space morphism represented by the matrix:
              [1 0 0]
              [0 1 0]
              [0 0 1]
              Domain: Vector space of dimension 3 over Rational Field
-             Codomain: Vector space of dimension 3 over Rational Field, (0, 0, 0))
+             Codomain: Vector space of dimension 3 over Rational Field,
+             (0, 0, 0))
 
         TESTS:
 
@@ -9027,11 +9032,11 @@ class Polyhedron_base(Element):
 
             sage: P = Polyhedron([[7]]); P
             A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
-            sage: P.affine_hull()
+            sage: P.affine_hull_projection()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
-            sage: P.affine_hull(orthonormal='True')
+            sage: P.affine_hull_projection(orthonormal='True')
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
-            sage: P.affine_hull(orthogonal='True')
+            sage: P.affine_hull_projection(orthogonal='True')
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
 
         Check that :trac:`24047` is fixed::
@@ -9039,18 +9044,18 @@ class Polyhedron_base(Element):
             sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
             sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
             sage: P = P1.intersection(P2)
-            sage: A, b = P.affine_hull(as_affine_map=True, orthonormal=True, extend=True)
+            sage: A, b = P.affine_hull_projection(as_affine_map=True, orthonormal=True, extend=True)
 
-            sage: Polyhedron([(2,3,4)]).affine_hull()
+            sage: Polyhedron([(2,3,4)]).affine_hull_projection()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
 
         Check that backend is preserved::
 
-            sage: polytopes.simplex(backend='field').affine_hull().backend()
+            sage: polytopes.simplex(backend='field').affine_hull_projection().backend()
             'field'
 
             sage: P = Polyhedron(vertices=[[0,0], [1,0]], backend='field')
-            sage: P.affine_hull(orthogonal=True, orthonormal=True, extend=True).backend()
+            sage: P.affine_hull_projection(orthogonal=True, orthonormal=True, extend=True).backend()
             'field'
 
         Check that :trac:`29116` is fixed::
@@ -9064,14 +9069,20 @@ class Polyhedron_base(Element):
             ....:    [1, +1, 0, 0, 0]
             ....:     ]
             sage: P = Polyhedron(V)
-            sage: P.affine_hull()
+            sage: P.affine_hull_projection()
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 6 vertices
-            sage: P.affine_hull(orthonormal=True)
+            sage: P.affine_hull_projection(orthonormal=True)
             Traceback (most recent call last):
             ...
             ValueError: the base ring needs to be extended; try with "extend=True"
-            sage: P.affine_hull(orthonormal=True, extend=True)
+            sage: P.affine_hull_projection(orthonormal=True, extend=True)
             A 4-dimensional polyhedron in AA^4 defined as the convex hull of 6 vertices
+
+        ``affine_hull`` is a deprecated alias::
+
+            sage: _ = P.affine_hull()
+            doctest:...: DeprecationWarning: affine_hull is deprecated. Please use affine_hull_projection instead.
+            See https://trac.sagemath.org/29326 for details.
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
@@ -9103,9 +9114,7 @@ class Polyhedron_base(Element):
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), affine_basis[0])
 
             translate_vector = vector(A.base_ring(), affine_basis[0])
-            parent = self.parent().change_ring(A.base_ring(), ambient_dim=self.dim())
-            new_vertices = [A*(vector(A.base_ring(), w) - translate_vector) for w in self.vertices()]
-            return parent.element_class(parent, [new_vertices, [], []], None)
+            return A*(self.change_ring(A.base_ring()) - translate_vector)
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()
@@ -9120,15 +9129,13 @@ class Polyhedron_base(Element):
         # Pick subset of coordinates to coordinatize the affine span
         pivots = matrix(gens).pivots()
 
-        def pivot(indexed):
-            return [indexed[i] for i in pivots]
-
-        vertices = [pivot(_) for _ in self.vertices()]
-        rays = [pivot(_) for _ in self.rays()]
-        lines = [pivot(_) for _ in self.lines()]
+        A = matrix([[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
         if as_affine_map:
-            raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
-        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring(), backend=self.backend())
+            return linear_transformation(A, side='right'), vector(self.base_ring(), self.dim())
+        else:
+            return A*self
+
+    affine_hull = deprecated_function_alias(29326, affine_hull_projection)
 
     def _polymake_init_(self):
         """

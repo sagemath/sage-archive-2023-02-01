@@ -93,10 +93,10 @@ from sage.geometry.lattice_polytope import LatticePolytopeClass
 from sage.structure.element         import Matrix
 from sage.misc.misc                 import is_iterator
 from .conversions \
-        import incidence_matrix_to_bit_repr_of_facets, \
-               incidence_matrix_to_bit_repr_of_Vrep, \
-               facets_tuple_to_bit_repr_of_facets, \
-               facets_tuple_to_bit_repr_of_Vrep
+        import incidence_matrix_to_bit_rep_of_facets, \
+               incidence_matrix_to_bit_rep_of_Vrep, \
+               facets_tuple_to_bit_rep_of_facets, \
+               facets_tuple_to_bit_rep_of_Vrep
 from sage.misc.cachefunc            import cached_method
 
 from sage.rings.integer             cimport smallInteger
@@ -195,12 +195,12 @@ cdef class CombinatorialPolyhedron(SageObject):
     tuple of ``ListOfFaces``::
 
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....:     import facets_tuple_to_bit_repr_of_facets, \
-        ....:            facets_tuple_to_bit_repr_of_Vrep
+        ....:     import facets_tuple_to_bit_rep_of_facets, \
+        ....:            facets_tuple_to_bit_rep_of_Vrep
         sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
         ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
-        sage: facets = facets_tuple_to_bit_repr_of_facets(bi_pyr, 6)
-        sage: Vrep = facets_tuple_to_bit_repr_of_Vrep(bi_pyr, 6)
+        sage: facets = facets_tuple_to_bit_rep_of_facets(bi_pyr, 6)
+        sage: Vrep = facets_tuple_to_bit_rep_of_Vrep(bi_pyr, 6)
         sage: C = CombinatorialPolyhedron((facets, Vrep)); C
         A 3-dimensional combinatorial polyhedron with 8 facets
         sage: C.f_vector()
@@ -408,16 +408,16 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Vrepresentation = data.nrows()
 
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = incidence_matrix_to_bit_repr_of_facets(data)
+            self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = incidence_matrix_to_bit_repr_of_Vrep(data)
+            self._bitrep_Vrep = incidence_matrix_to_bit_rep_of_Vrep(data)
 
             self._n_facets = self.bitrep_facets().n_faces
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), self._n_Vrepresentation)
+                self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), self._n_Vrepresentation)
             else:
                 self._far_face = None
 
@@ -430,10 +430,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._dimension = data
 
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = facets_tuple_to_bit_repr_of_facets((), 0)
+            self._bitrep_facets = facets_tuple_to_bit_rep_of_facets((), 0)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = facets_tuple_to_bit_repr_of_Vrep((), 0)
+            self._bitrep_Vrep = facets_tuple_to_bit_rep_of_Vrep((), 0)
 
             self._far_face = None
 
@@ -448,7 +448,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), self._n_Vrepresentation)
+                self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), self._n_Vrepresentation)
             else:
                 self._far_face = None
 
@@ -484,14 +484,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Hrepresentation = len(facets)
 
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = facets_tuple_to_bit_repr_of_facets(facets, n_Vrepresentation)
+            self._bitrep_facets = facets_tuple_to_bit_rep_of_facets(facets, n_Vrepresentation)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = facets_tuple_to_bit_repr_of_Vrep(facets, n_Vrepresentation)
+            self._bitrep_Vrep = facets_tuple_to_bit_rep_of_Vrep(facets, n_Vrepresentation)
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), n_Vrepresentation)
+                self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), n_Vrepresentation)
             else:
                 self._far_face = None
 

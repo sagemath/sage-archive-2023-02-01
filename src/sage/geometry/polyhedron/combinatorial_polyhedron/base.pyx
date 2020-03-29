@@ -123,9 +123,11 @@ cdef class CombinatorialPolyhedron(SageObject):
          if the polyhedron contains no lines, the rays can be thought of
          as the vertices of the facets deleted from a bounded polyhedron see
          :class:`~sage.geometry.polyhedron.parent.Polyhedron_base` on how to use
-         rays and lines.
+         rays and lines
        * or an integer, representing the dimension of a polyhedron equal to its
          affine hull
+       * or a tuple consisting of facets and vertices as two
+         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
     - ``Vrep`` -- (optional) when ``data`` is an incidence matrix, it should
       be the list of ``[vertices, rays, lines]``, if the rows in the incidence_matrix
       should correspond to names
@@ -135,9 +137,9 @@ cdef class CombinatorialPolyhedron(SageObject):
     - ``unbounded`` -- value will be overwritten if ``data`` is a polyhedron;
       if ``unbounded`` and ``data`` is incidence matrix or a list of facets,
       need to specify ``far_face``
-    - ``far_face`` -- (semi-optional) when ``data` is an incidence matrix or a
-      list of facets and the polyhedron is unbounded this needs to be set to
-      the list of indices of the rays and lines
+    - ``far_face`` -- (semi-optional); if the polyhedron is unbounded this
+      needs to be set to the list of indices of the rays and line unless ``data`` is
+      an instance of :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`.
 
     EXAMPLES:
 
@@ -189,6 +191,20 @@ cdef class CombinatorialPolyhedron(SageObject):
         (1, 1)
         sage: CombinatorialPolyhedron(5).f_vector()
         (1, 0, 0, 0, 0, 0, 1)
+
+    tuple of ``ListOfFaces``::
+
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:     import facets_tuple_to_bit_repr_of_facets, \
+        ....:            facets_tuple_to_bit_repr_of_Vrep
+        sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
+        ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+        sage: facets = facets_tuple_to_bit_repr_of_facets(bi_pyr, 6)
+        sage: Vrep = facets_tuple_to_bit_repr_of_Vrep(bi_pyr, 6)
+        sage: C = CombinatorialPolyhedron((facets, Vrep)); C
+        A 3-dimensional combinatorial polyhedron with 8 facets
+        sage: C.f_vector()
+        (1, 6, 12, 8, 1)
 
     Specifying that a polyhedron is unbounded is important. The following with a
     polyhedron works fine::
@@ -420,6 +436,21 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._bitrep_Vrep = facets_tuple_to_bit_repr_of_Vrep((), 0)
 
             self._far_face = None
+
+        elif isinstance(data, (tuple, list)) and len(data) == 2 and isinstance(data[0], ListOfFaces) and isinstance(data[1], ListOfFaces):
+            # Initialize self from two ``ListOfFaces``.
+            self._bitrep_facets = data[0]
+            self._bitrep_Vrep   = data[1]
+
+            self._n_Hrepresentation = self._bitrep_facets.n_faces
+            self._n_Vrepresentation = self._bitrep_Vrep.n_faces
+            self._n_facets = self._n_Hrepresentation
+
+            # Initialize far_face if unbounded.
+            if not self._bounded:
+                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), self._n_Vrepresentation)
+            else:
+                self._far_face = None
 
         else:
             # Input is a "list" of facets.
@@ -2162,6 +2193,55 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self._far_face_tuple
 
+
+    # Methods to obtain a different combinatorial polyhedron.
+
+    cpdef CombinatorialPolyhedron dual(self):
+        r"""
+        Return the dual/polar of self.
+
+        Only defined for bounded polyhedra.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.polar`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: D = C.dual()
+            sage: D.f_vector()
+            (1, 6, 12, 8, 1)
+            sage: D1 = P.polar().combinatorial_polyhedron()
+            sage: D1.face_lattice().is_isomorphic(D.face_lattice())
+            True
+
+        Polar is an alias to be consistent with :class:`~sage.geometry.polyhedron.base.Polyhedron_base`::
+
+            sage: C.polar().f_vector()
+            (1, 6, 12, 8, 1)
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be bounded
+        """
+        if not self.is_bounded():
+            raise ValueError("self must be bounded")
+        cdef ListOfFaces new_facets = self.bitrep_Vrep().__copy__()
+        cdef ListOfFaces new_Vrep = self.bitrep_facets().__copy__()
+
+        return CombinatorialPolyhedron((new_facets, new_Vrep))
+
+    polar = dual
+
+
+    # Internal methods.
+
     cdef int _compute_f_vector(self) except -1:
         r"""
         Compute the ``f_vector`` of the polyhedron.
@@ -2408,7 +2488,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         Compute the ridges of the polyhedron.
 
-        If ``dual`` is ``True``, compute the ridges of the polar.
+        If ``dual`` is ``True``, compute the ridges of the dual.
 
         See :meth:`edges` and :meth:`ridges`.
         """

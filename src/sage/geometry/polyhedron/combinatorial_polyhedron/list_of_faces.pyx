@@ -84,6 +84,7 @@ from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
 from .bit_vector_operations cimport chunksize, get_next_level, count_atoms
+from libc.string            cimport memcpy
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -171,6 +172,40 @@ cdef class ListOfFaces:
             self.data[i] = <uint64_t *> \
                 self._mem.aligned_malloc(chunksize//8, self.face_length*8)
 
+    def __copy__(self):
+        r"""
+        Return a copy of self.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
+            ....:     import ListOfFaces
+            sage: facets = ListOfFaces(5, 13)
+            sage: copy(facets).n_atoms
+            13
+            sage: copy(facets).n_faces
+            5
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+            ....:     import facets_tuple_to_bit_repr_of_facets
+            sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
+            ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+            sage: facets = facets_tuple_to_bit_repr_of_facets(bi_pyr, 6)
+            sage: facets.compute_dimension()
+            3
+            sage: copy(facets).compute_dimension()
+            3
+            sage: copy(facets) is facets
+            False
+        """
+        cdef ListOfFaces copy = ListOfFaces(self.n_faces, self.n_atoms)
+        cdef size_t i
+        for i in range(self.n_faces):
+            memcpy(copy.data[i], self.data[i], self.face_length*8)
+        return copy
+
     cpdef int compute_dimension(self) except -2:
         r"""
         Compute the dimension of a polyhedron by its facets.
@@ -179,8 +214,6 @@ cdef class ListOfFaces:
 
         EXAMPLES::
 
-            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-            ....:     import ListOfFaces
             sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
             ....:     import facets_tuple_to_bit_repr_of_facets, \
             ....:            facets_tuple_to_bit_repr_of_Vrep

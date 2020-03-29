@@ -563,14 +563,6 @@ create an image from the container::
 A standard case of bitrot.
   
 
-Symbolic names of system configurations
----------------------------------------
-
-To facilitate communication about host system configurations and for
-automating testing, Sage defines symbolic names composed of several
-
-
-
 Automatic Docker-based build testing using tox
 ----------------------------------------------
 

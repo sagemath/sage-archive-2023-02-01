@@ -757,6 +757,15 @@ cdef class Matrix(Matrix1):
             doctest:...: DeprecationWarning: solve_right should be called with
             a vector or matrix
             See http://trac.sagemath.org/17405 for details.
+
+        Over inexact rings, the ``check`` parameter is ignored as the result is
+        only an approximate solution (:trac:`13932`)::
+
+            sage: RF = RealField(52)
+            sage: B = matrix(RF, 2, 2, 1)
+            sage: A = matrix(RF, [[0.24, 1, 0], [1, 0, 0]])
+            sage: (A * A.solve_right(B) - B).norm() < 1e-14
+            True
         """
         try:
             L = B.base_ring()

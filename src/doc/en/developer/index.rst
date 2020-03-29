@@ -159,7 +159,6 @@ Packaging Third-Party Code
    :maxdepth: 3
 
    packaging
-   packaging_old_spkgs
 
 Sage Notebook Developer Guide
 =============================

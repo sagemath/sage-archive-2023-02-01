@@ -1,1 +1,2 @@
-pari-seadata-small
+### see pari -- only makes sense as a set
+## pari-seadata-small

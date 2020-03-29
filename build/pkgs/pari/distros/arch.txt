@@ -1,8 +1,12 @@
-# packages from community/
-pari
-# extra packages needed so that pari is picked from the system
-# packages from community/
-pari-galdata
-# packages from aur/
-pari-seadata
-pari-elldata
+# The packages only make sense as a set.
+# And we cannot use the packages from AUR because
+# we have no scripts to install them.
+#
+## # packages from community/
+## pari
+## # extra packages needed so that pari is picked from the system
+## # packages from community/
+## pari-galdata
+## # packages from aur/
+## pari-seadata
+## pari-elldata

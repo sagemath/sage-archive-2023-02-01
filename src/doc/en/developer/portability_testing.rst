@@ -854,20 +854,17 @@ workflow have finished.  Each job generates one tarball.
 during the build.
 
 The following procedure seems to work well for testing branches during
-development.  Create a branch from a recent beta release that contains
-the default GitHub Actions configuration; name it ``TESTER``, say.
-Edit ``$SAGE_ROOT/.github/workflows/tox.yml`` to include the system
-configurations that you wish to test.  Commit and push the branch to
-your GitHub fork of sage.  Next, push your development branch to your
-GitHub repository and create a pull request against the ``TESTER``
-branch.  This will trigger the GitHub Actions workflow.
+development:
 
+- Create a branch from a recent beta release that contains the default
+  GitHub Actions configuration; name it ``TESTER``, say.
 
-..
-   Workflow for responding to portability bug reports
-   ==================================================
+- Edit ``$SAGE_ROOT/.github/workflows/tox.yml`` to include the system
+  config wish to test.
 
-   1. Reproduce the platform and the bug.
+- Commit and push the branch to your GitHub fork of sage.
 
-   2. Fix the bug.
+- Push your development branch to your GitHub repository and create a
+  pull request against the ``TESTER`` branch. This will trigger the
+  GitHub Actions workflow.
 

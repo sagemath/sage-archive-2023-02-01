@@ -1,1 +1,1 @@
-ncurses-devel
+libncurses-devel

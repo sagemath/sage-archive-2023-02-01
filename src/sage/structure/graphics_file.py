@@ -201,9 +201,9 @@ class GraphicsFile(SageObject):
         directory. The notebook will then try to guess what we want
         with it.
         """
-        from sage.misc.temporary_file import graphics_filename
+        from sage.misc.temporary_file import tmp_filename
         ext = "." + Mime.extension(self.mime())
-        fn = graphics_filename(ext=ext)
+        fn = tmp_filename(ext=ext)
         self.save_as(fn)
         # Client-server sagenb requires this to be world-readable.
         # See Trac #17755.

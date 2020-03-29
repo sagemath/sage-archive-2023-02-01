@@ -36,6 +36,8 @@ if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
     export SAGE_PYTHON3=yes
 fi
 
+export PYTHON_FOR_VENV="@PYTHON_FOR_VENV@"
+
 export SAGE_PKG_CONFIG_PATH="@SAGE_PKG_CONFIG_PATH@"
 if [ -n "$SAGE_PKG_CONFIG_PATH" ]; then
     # set up external pkg-config to look into SAGE_LOCAL/lib/pkgconfig/

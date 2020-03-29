@@ -15,6 +15,12 @@ else
     CFLAGS="-g -O2 $CFLAGS"
     FCFLAGS="-g -O2 $FCFLAGS"
 fi
+# #29170: Compilation errors caused by a silently failing configure check
+# "for type of 'hidden' Fortran character lengths"
+# on ubuntu-bionic-minimal, ubuntu-eoan/focal-minimal, debian-buster/bullseye/sid-minimal,
+# linuxmint-19.3-minimal, archlinux-latest-minimal
+CFLAGS="$CFLAGS -fPIC"
+FCFLAGS="$FCFLAGS -fPIC"
 
 export CFLAGS CPPFLAGS FCFLAGS LDFLAGS
 

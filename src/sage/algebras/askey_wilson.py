@@ -757,7 +757,9 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
         mu = la + inv
         nu = (self._q**2 + self._q**-2) * mu + mu**2
         nuI = M(nu)
-        category = Algebras(Rings().Commutative())
+        # After #29374 is fixed, the category can become
+        # Algebras(Rings().Commutative()) as it was before #29399.
+        category = Rings()
         return AlgebraMorphism(self, [q*A + q**-1*Ai, q*B + q**-1*Bi, q*C + q**-1*Ci,
                                       nuI, nuI, nuI],
                                codomain=M, category=category)

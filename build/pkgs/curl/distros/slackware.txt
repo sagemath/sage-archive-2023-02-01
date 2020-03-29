@@ -1,2 +1,5 @@
 curl
 cyrus-sasl
+# giac build needs libldap
+openldap-client
+libssh2

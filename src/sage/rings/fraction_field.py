@@ -79,7 +79,6 @@ import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import Element
 from sage.structure.richcmp import richcmp
 from sage.structure.parent import Parent
 from sage.structure.coerce import py_scalar_to_element
@@ -611,8 +610,6 @@ class FractionField_generic(ring.Field):
             (s^2 + 2*s)/(s^2 - 1)
         """
         if y is None:
-            if isinstance(x, Element) and x.parent() is self:
-                return x
             ring_one = self.ring().one()
             try:
                 return self._element_class(self, x, ring_one, coerce=coerce)

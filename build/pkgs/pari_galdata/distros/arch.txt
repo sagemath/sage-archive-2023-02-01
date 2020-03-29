@@ -1,2 +1,1 @@
-# see pari - only makes sense as a set
-## pari-galdata
+pari-galdata

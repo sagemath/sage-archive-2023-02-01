@@ -834,11 +834,8 @@ cdef class Matrix(Matrix1):
         else:
             try:
                 X = self._solve_right_nonsingular_square(C, check_rank=True)
-            except ValueError as e:
-                if 'not of full rank' in str(e):
-                    X = self._solve_right_general(C, check=check)
-                else:
-                    raise e
+            except NotFullRankError:
+                X = self._solve_right_general(C, check=check)
 
         if b_is_vec:
             # Convert back to a vector
@@ -882,7 +879,7 @@ cdef class Matrix(Matrix1):
         # this could probably be optimized so that the rank computation is
         # avoided
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("not of full rank")
+            raise NotFullRankError
         D = self.augment(B)
         D.echelonize()
         return D.matrix_from_columns(range(self.ncols(),D.ncols()))
@@ -16469,3 +16466,15 @@ def _matrix_power_symbolic(A, n):
         Pinv = ~P
 
     return P * M * Pinv
+
+class NotFullRankError(ValueError):
+    """
+    An error that indicates that a matrix is not of full rank.
+
+    The fact that a square system is rank-deficient sometimes only becomes
+    apparent while attempting to solve it. The methods
+    :meth:`.Matrix.solve_left` and :meth:`.Matrix.solve_right` defer to
+    :meth:`.Matrix._solve_right_nonsingular_square` for square systems, and
+    that method raises this error if the system turns out to be singular.
+    """
+    pass

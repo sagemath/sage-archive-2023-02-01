@@ -348,7 +348,7 @@ cdef class TateAlgebraTerm(MonoidElement):
     #    """
     #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
-    cdef long _cmp_c(self, TateAlgebraTerm other):
+    cdef long _cmp_c(self, TateAlgebraTerm other) except? 300:
         r"""
         Compare the Tate algebra term with ``other``.
 
@@ -937,7 +937,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         return self._divides_c(other, integral)
-
+    
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral):
         r"""
         Return ``True`` if this term divides ``other``.
@@ -969,6 +969,33 @@ cdef class TateAlgebraTerm(MonoidElement):
             if self._exponent[i] > other._exponent[i]:
                 return False
         return True
+
+
+    cpdef _mon_floordiv_(self,other):
+        return (<TateAlgebraTerm>self)._mon_floordiv_c(<TateAlgebraTerm>other)
+  
+    
+    cdef TateAlgebraTerm _mon_floordiv_c(self, TateAlgebraTerm other):
+        r"""
+        Return the result of the exact division of this term by ``other``, assuming
+        that the coefficient of ``other`` is of the form ``\pi^v``.
+
+        INPUT:
+
+        - ``other`` - a Tate term with coefficient ``\pi^v``
+
+        EXAMPLES:
+
+        TODO (how to write tests for cython calls?)
+
+        If ``other`` is not of the required form, or if it does not divide this
+        term, the result is unspecified.
+
+        """
+        cdef TateAlgebraTerm ans = self._new_c()
+        ans._exponent = self.exponent().esub(other.exponent())
+        ans._coeff = self._coeff >> other.valuation()
+        return ans
 
     cpdef _floordiv_(self, other):
         r"""
@@ -1002,6 +1029,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("the division is not exact")
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
+        
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
         r"""
         Return the result of the exact division of this term by ``other``.
@@ -1979,6 +2007,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             ...0000000001*x^3 + ...0000000001*x + ...00000000010*x^2
             sage: f << 2  # indirect doctest
             ...000000000100*x^3 + ...000000000100*x + ...0000000001000*x^2
+            sage: Ao = A.integer_ring()
+            sage: g = Ao(f).add_bigoh(5); g
+            ...00001*x^3 + ...00001*x + ...00010*x^2 + O(2^5 * <x, y>)
+            sage: g << 2
+            ...0000100*x^3 + ...0000100*x + ...0001000*x^2 + O(2^7 * <x, y>)
 
         """
         cdef dict coeffs = { }
@@ -1997,7 +2030,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             for (e,c) in self._poly.__repn.items():
                 minval = ZZ(e.dotprod(<ETuple>parent._log_radii)).ceil()
                 coeffs[e] = field(base(c) >> (minval-n)) << minval
-            ans._prec = max(ZZ(0), self._prec - n)
+            ans._prec = max(ZZ(0), self._prec + n)
         ans._poly = PolyDict(coeffs, None)
         return ans
 
@@ -3203,6 +3236,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return q
         if rem:
             return r
+
+    def quo_rem_no_check(self, divisors, integral):
+        return self._quo_rem_c(divisors, True, True, integral)
 
     def quo_rem(self, divisors):
         """

@@ -15,16 +15,18 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cpdef _mul_(self, other)
     cpdef _floordiv_(self, other)
+    cpdef _mon_floordiv_(self, other)
 
     cdef TateAlgebraTerm _new_c(self)
     cdef long _valuation_c(self)
-    cdef long _cmp_c(self, TateAlgebraTerm other)
+    cdef long _cmp_c(self, TateAlgebraTerm other) except? 300
     cdef Element _call_c(self, list arg)
     cpdef TateAlgebraTerm monomial(self)
     cpdef TateAlgebraTerm monic(self)
     cdef TateAlgebraTerm _gcd_c(self, TateAlgebraTerm other)
     cdef TateAlgebraTerm _lcm_c(self, TateAlgebraTerm other)
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral)
+    cdef TateAlgebraTerm _mon_floordiv_c(self, TateAlgebraTerm other)
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other)
 
 

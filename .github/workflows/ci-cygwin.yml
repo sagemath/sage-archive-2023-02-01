@@ -194,7 +194,8 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; touch local/var/lib/sage/installed/*; ls -l local local/var/lib/sage/installed/'
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
@@ -276,7 +277,7 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; touch local/var/lib/sage/installed/*; ls -l local local/var/lib/sage/installed/'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
@@ -356,7 +357,7 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; touch local/var/lib/sage/installed/*; ls -l local local/var/lib/sage/installed/'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
@@ -436,7 +437,7 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; touch local/var/lib/sage/installed/*; ls -l local local/var/lib/sage/installed/'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
@@ -516,7 +517,7 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; touch local/var/lib/sage/installed/*; ls -l local local/var/lib/sage/installed/'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
@@ -596,7 +597,7 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; touch local/var/lib/sage/installed/*; ls -l local local/var/lib/sage/installed/'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'

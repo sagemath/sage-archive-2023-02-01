@@ -821,11 +821,40 @@ then uses the script ``$SAGE_ROOT/.homebrew-build-env`` to set
 environment variables so that Sage's build scripts will find
 "keg-only" packages such as ``gettext``.
 
+The ``local-homebrew-macos-minimal`` environment does not install
+Homebrew's ``python3`` package.  It uses XCode's ``/usr/bin/python3``
+as system python.  However, because various packages are missing
+that Sage considers as dependencies, Sage builds its own copy of
+these packages and of ``python3``.
+
 The ``local-homebrew-macos-standard`` environment additionally
 installs (in its separate isolated copy of Homebrew) all Homebrew
 packages known to Sage for which the ``spkg-configure.m4`` mechanism
 is implemented; this is similar to the ``docker-standard`` tox
-environments described earlier.
+environments described earlier.  In particular it installs and uses
+Homebrew's ``python3`` package.
+
+By using configuration factors, more variants can be tested.
+The ``local-homebrew-macos-standard-python3_xcode`` environment
+installs the same packages, but uses XCode's ``/usr/bin/python3``.
+
+The ``local-homebrew-macos-standard-python3_pythonorg`` expects an
+installation of Python 3.7 in
+``/Library/Frameworks/Python.framework``; this is where the binary
+packages provided by python.org install themselves.
+
+
+Automatic build testing with a best-effort isolated installation of Conda
+-------------------------------------------------------------------------
+
+Sage provides environments ``local-conda-forge-standard`` and
+``local-conda-forge-minimal`` that create isolated installations of
+Miniconda in the subdirectory ``conda`` of the environment directory.
+They do not interact in any way with other installations of Anaconda
+or Miniconda that you may have on your system.
+
+The environments use the conda-forge channel and use the ``python``
+package and the compilers from this channel.
 
 
 Automatic parallel tox runs on GitHub Actions

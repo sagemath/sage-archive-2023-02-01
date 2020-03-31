@@ -1,8 +1,6 @@
 # Exit on error
 set -e
 
-# To work around #26996: Set a symlink so that writes into lib64/ end up in lib/
-(mkdir -p "$SAGE_DESTDIR_LOCAL" && cd "$SAGE_DESTDIR_LOCAL" && ln -sf lib lib64)
 . ./set-library-path
 
 cd gcc-build
@@ -11,6 +9,3 @@ sdh_make_install
 # The spkg still installs a minimal C compiler that needs to be removed
 # so it doesn't conflict with the configured C compiler.
 rm "$SAGE_DESTDIR_LOCAL"/bin/gcc "$SAGE_DESTDIR_LOCAL"/bin/cpp
-
-# To work around #26996: Remove the symlink set, or we get "cp: cannot overwrite directory"
-rm -f "$SAGE_DESTDIR_LOCAL/lib64"

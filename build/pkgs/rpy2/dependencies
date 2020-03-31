@@ -1,4 +1,4 @@
-$(PYTHON) r six singledispatch | $(PYTHON_TOOLCHAIN)
+$(PYTHON) r cffi | $(PYTHON_TOOLCHAIN) pycparser
 
 ----------
 All lines of this file are ignored except the first.

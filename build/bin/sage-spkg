@@ -904,8 +904,8 @@ if [ "$KEEP_EXISTING" != "yes" ]; then
     sage-spkg-uninstall "$PKG_BASE"
 fi
 
-# To work around #26996: Set a symlink so that writes into lib64/ end up in lib/
-(mkdir -p "$SAGE_DESTDIR_LOCAL" && cd "$SAGE_DESTDIR_LOCAL" && ln -sf lib lib64)
+# To work around #26996: Create lib and set a symlink so that writes into lib64/ end up in lib/
+(mkdir -p "$SAGE_DESTDIR_LOCAL/lib" && cd "$SAGE_DESTDIR_LOCAL" && ln -sf lib lib64)
 
 # Run the pre-install script, if any
 if [ -f spkg-preinst ]; then

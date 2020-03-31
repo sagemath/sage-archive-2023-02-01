@@ -1,0 +1,16 @@
+diff --git a/setup.py b/setup.py
+index a9f96f8..e82ca80 100755
+--- a/setup.py
++++ b/setup.py
+@@ -182,11 +182,3 @@ if __name__ == '__main__':
+         package_data={'rpy2': ['rinterface_lib/R_API.h',
+                                'rinterface_lib/R_API_eventloop.h']}
+     )
+-
+-    print('---')
+-    if 'rpy2/_rinterface_cffi_build.py:ffibuilder_abi' in cffi_modules:
+-        print('ABI mode interface built and installed')
+-    if 'rpy2/_rinterface_cffi_build.py:ffibuilder_api' in cffi_modules:
+-        print('API mode interface built and installed')
+-    else:
+-        print('API mode interface not build because: %s' % c_extension_status)

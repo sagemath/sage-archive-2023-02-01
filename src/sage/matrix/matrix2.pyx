@@ -764,7 +764,7 @@ cdef class Matrix(Matrix1):
             sage: RF = RealField(52)
             sage: B = matrix(RF, 2, 2, 1)
             sage: A = matrix(RF, [[0.24, 1, 0], [1, 0, 0]])
-            sage: (A * A.solve_right(B) - B).norm() < 1e-14
+            sage: 0 < (A * A.solve_right(B) - B).norm() < 1e-14
             True
         """
         try:

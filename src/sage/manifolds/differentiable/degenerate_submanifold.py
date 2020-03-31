@@ -104,8 +104,8 @@ from sage.manifolds.differentiable.differentiable_submanifold import \
 from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
-from sage.misc.cachefunc import cached_method
 from sage.symbolic.expression import Expression
+
 
 class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     r"""

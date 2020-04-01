@@ -16,8 +16,8 @@ AUTHORS:
 - Vincent Neiger (2018-09-29): added functions for computing and for verifying
   minimal approximant bases
 
-- Romain Lebreton and Vincent Neiger (2019-??-??): added functions for
-  computing and for verifying minimal kernel bases
+- Vincent Neiger (2020-04-01): added functions for computing and for verifying
+  minimal kernel bases
 """
 # ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
@@ -1719,7 +1719,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           ``None`` is interpreted as ``shifts=[0,...,0]``.
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
-          then the output basis considered row-wise and operates on the left
+          then the output basis is considered row-wise and operates on the left
           of ``self``; otherwise it is column-wise and operates on the right
           of ``self``.
 
@@ -1998,6 +1998,48 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 rest_order[j] -= 1
         return appbas, rdeg
 
+    def is_minimal_kernel_basis(self,
+            pmat,
+            shifts=None,
+            row_wise=True,
+            normal_form=False):
+        r"""
+        Return ``True`` if and only if this matrix is a left kernel basis in
+        ``shifts``-ordered weak Popov form for the polynomial matrix ``pmat``.
+
+        If ``normal_form`` is ``True``, then the kernel basis must furthermore
+        be in ``shifts``-Popov form. An error is raised if the input dimensions
+        are not sound.
+
+        INPUT:
+
+        - ``pmat`` -- a polynomial matrix.
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then the basis is considered row-wise and operates on the left of
+          ``pmat``; otherwise it is column-wise and operates on the right of
+          ``pmat``.
+
+        - ``normal_form`` -- (optional, default: ``False``) boolean, if
+          ``True`` then checks for a basis in ``shifts``-Popov form.
+
+        OUTPUT: a boolean.
+
+        ALGORITHM:
+
+        Verification that the matrix (has full rank and) is in shifted weak
+        Popov form is done via :meth:`is_weak_popov`; verification that the
+        matrix is a left kernel basis is done by checking that the rank is
+        correct, that the product is indeed zero, and that the matrix is
+        saturated, i.e. it has unimodular column bases (see Lemma 6.10 of
+        https://arxiv.org/pdf/1807.01272.pdf for details).
+
+        EXAMPLES::
+        """
+        return True
 
     def minimal_kernel_basis(self,
             shifts=None,

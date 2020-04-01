@@ -970,33 +970,6 @@ cdef class TateAlgebraTerm(MonoidElement):
                 return False
         return True
 
-
-    cpdef _mon_floordiv_(self,other):
-        return (<TateAlgebraTerm>self)._mon_floordiv_c(<TateAlgebraTerm>other)
-  
-    
-    cdef TateAlgebraTerm _mon_floordiv_c(self, TateAlgebraTerm other):
-        r"""
-        Return the result of the exact division of this term by ``other``, assuming
-        that the coefficient of ``other`` is of the form ``\pi^v``.
-
-        INPUT:
-
-        - ``other`` - a Tate term with coefficient ``\pi^v``
-
-        EXAMPLES:
-
-        TODO (how to write tests for cython calls?)
-
-        If ``other`` is not of the required form, or if it does not divide this
-        term, the result is unspecified.
-
-        """
-        cdef TateAlgebraTerm ans = self._new_c()
-        ans._exponent = self.exponent().esub(other.exponent())
-        ans._coeff = self._coeff >> other.valuation()
-        return ans
-
     cpdef _floordiv_(self, other):
         r"""
         Return the result of the exact division of this term by ``other``.
@@ -3236,9 +3209,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return q
         if rem:
             return r
-
-    def quo_rem_no_check(self, divisors, integral):
-        return self._quo_rem_c(divisors, True, True, integral)
 
     def quo_rem(self, divisors):
         """

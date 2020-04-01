@@ -22,7 +22,6 @@ from six.moves import range
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.set_from_iterator import EnumeratedSetFromIterator
 
-from inspect import isgenerator
 import sage.misc.prandom as rnd
 from sage.misc.mrange import xmrange_iter, _is_finite, _len
 from .ranker import unrank

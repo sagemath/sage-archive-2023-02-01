@@ -949,7 +949,7 @@ def groebner_basis_pote(I, prec, verbose=0):
                 # We update the current strong Grobner basis
                 # and the J-pairs accordingly
                 vv = v.monic() << v.valuation()
-                if vv == 0 :
+                if vv == 0:
                     print("/!\ v={}+... normalizes to 0".format(v.leading_term()))
                     return v
                 p = (s,vv)

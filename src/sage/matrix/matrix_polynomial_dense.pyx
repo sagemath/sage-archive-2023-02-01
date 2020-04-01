@@ -2037,9 +2037,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
             sage: pR.<x> = GF(97)[]
             sage: pmat = Matrix(pR, [[1],[x],[x**2]])
+
             sage: kerbas = Matrix(pR, [[x,-1,0],[0,x,-1]])
             sage: kerbas.is_minimal_kernel_basis(pmat)
             True
+
+        A matrix in Popov form which has the right rank, all rows in the
+        kernel, but does not generate the kernel::
+
+            sage: kerbas = Matrix(pR, [[x**2,0,-1],[0,x,-1]])
+            sage: kerbas.is_minimal_kernel_basis(pmat)
+            False
         """
         m = pmat.nrows()
         n = pmat.ncols()
@@ -2068,15 +2076,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if (not normal_form) and (not self.is_weak_popov(shifts, row_wise, True, False)):
             return False
 
-        #print "full rank / owP --> ok"
-
         # check that self consists of kernel vectors
         if row_wise and self * pmat != 0:
             return False
         if (not row_wise) and pmat * self != 0:
             return False
-
-        #print "in kernel --> ok"
 
         # check self.rank() is right (the above weak Popov test ensures self
         # has full row rank if row wise, and full column rank if column wise)
@@ -2085,8 +2089,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return False
         if (not row_wise) and self.ncols()!=n-rk:
             return False
-
-        #print "good rank --> ok"
 
         # final check: self is row saturated (assuming row wise),
         # since self has full rank this is equivalent to the fact that its
@@ -2100,8 +2102,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # TODO replace by popov_form (likely more efficient) once it is written
         if hnf != 1:
             return False
-
-        #print "saturated --> ok"
 
         return True
 
@@ -2150,16 +2150,22 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
-            sage: F = Matrix([[(x+1)*(x+3)],[(x+1)*(x+3)+1]])
-            sage: F.minimal_kernel_basis()
+            sage: pmat = Matrix([[(x+1)*(x+3)],[(x+1)*(x+3)+1]])
+            sage: pmat.minimal_kernel_basis()
             [6*x^2 + 3*x + 3   x^2 + 4*x + 3]
 
-            sage: F = Matrix([[(x+1)*(x+3)],[(x+1)*(x+4)]])
-            sage: F.minimal_kernel_basis()
+            sage: pmat = Matrix([[(x+1)*(x+3)],[(x+1)*(x+4)]])
+            sage: pmat.minimal_kernel_basis()
             [6*x + 3   x + 3]
 
-            sage: F.minimal_kernel_basis(row_wise=False)
+            sage: pmat.minimal_kernel_basis(row_wise=False)
             [6*x^2 + 3*x + 3   x^2 + 4*x + 3]
+
+            sage: pmat = Matrix(pR, [[1,x,x**2]])
+            sage: pmat.minimal_kernel_basis(row_wise=False)
+            [x 0]
+            [6 x]
+            [0 6]
         """
         m = self.nrows()
         n = self.ncols()

@@ -2030,7 +2030,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         ALGORITHM:
 
-        Verification that the matrix (has full rank and) is in shifted weak
+        Verification that the matrix has full rank and is in shifted weak
         Popov form is done via :meth:`is_weak_popov`; verification that the
         matrix is a left kernel basis is done by checking that the rank is
         correct, that the product is indeed zero, and that the matrix is
@@ -2039,7 +2039,43 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         EXAMPLES::
         """
-        return True
+        m = pmat.nrows()
+        n = pmat.ncols()
+
+        # set default shifts / check shifts dimension
+        if shifts is None:
+            shifts = [0] * m if row_wise else [0] * n
+        elif row_wise and len(shifts) != m:
+            raise ValueError('shifts length should be the row dimension of' \
+                                                      + ' the input matrix')
+        elif (not row_wise) and len(shifts) != n:
+            raise ValueError('shifts length should be the column dimension' \
+                                                   + ' of the input matrix')
+
+        # raise an error if self does not have the right dimension
+        if row_wise and self.ncols() != m:
+            raise ValueError("column dimension should be the row dimension" \
+                                                    + " of the input matrix")
+        elif (not row_wise) and self.nrows() != n:
+            raise ValueError("row dimension should be the column dimension" \
+                                                    + " of the input matrix")
+
+        # check full rank and shifts-(ordered weak) Popov form
+        if normal_form:
+            if not self.is_popov(shifts, row_wise, False, False):
+                return False
+        else:
+            if not self.is_weak_popov(shifts, row_wise, True, False):
+                return False
+
+        # check that self consists of kernel vectors
+        if row_wise and self * pmat != 0:
+            return False
+        elif (not row_wise) and pmat * self != 0:
+            return False
+
+        # check rank TODO
+        # check saturated TODO
 
     def minimal_kernel_basis(self,
             shifts=None,

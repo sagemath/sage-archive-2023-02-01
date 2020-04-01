@@ -2035,6 +2035,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         https://arxiv.org/pdf/1807.01272.pdf for details).
 
         EXAMPLES::
+            sage: pR.<x> = GF(97)[]
+            sage: pmat = Matrix(pR, [[1],[x],[x**2]])
+            sage: kerbas = Matrix(pR, [[x,-1,0],[0,x,-1]])
+            sage: kerbas.is_minimal_kernel_basis(pmat)
+            True
         """
         m = pmat.nrows()
         n = pmat.ncols()
@@ -2063,19 +2068,25 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if (not normal_form) and (not self.is_weak_popov(shifts, row_wise, True, False)):
             return False
 
+        #print "full rank / owP --> ok"
+
         # check that self consists of kernel vectors
         if row_wise and self * pmat != 0:
             return False
         if (not row_wise) and pmat * self != 0:
             return False
 
+        #print "in kernel --> ok"
+
         # check self.rank() is right (the above weak Popov test ensures self
         # has full row rank if row wise, and full column rank if column wise)
         rk = pmat.rank()
-        if row_wise and self.nrows()==m-rk:
+        if row_wise and self.nrows()!=m-rk:
             return False
-        if (not row_wise) and self.ncols()==n-rk:
+        if (not row_wise) and self.ncols()!=n-rk:
             return False
+
+        #print "good rank --> ok"
 
         # final check: self is row saturated (assuming row wise),
         # since self has full rank this is equivalent to the fact that its
@@ -2089,6 +2100,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # TODO replace by popov_form (likely more efficient) once it is written
         if hnf != 1:
             return False
+
+        #print "saturated --> ok"
 
         return True
 
@@ -2130,9 +2143,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         OUTPUT: a polynomial matrix.
 
-        ALGORITHM:
-
-        TODO (approximation large order + ZLS 12 ?).
+        ALGORITHM: uses minimal approximant basis computation at a
+        sufficiently large order so that the approximant basis contains
+        a kernel basis as a submatrix.
 
         EXAMPLES::
 
@@ -2189,7 +2202,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 return Matrix.identity(self.base_ring(), n, n)
 
             if n <= m and self(0).rank() == n: # early exit: kernel is empty
-                print self.base_ring()
                 return Matrix(self.base_ring(), n, 0)
 
             # degree bounds on the kernel basis

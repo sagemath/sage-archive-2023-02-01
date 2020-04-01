@@ -78,6 +78,9 @@ class TateAlgebraIdeal(Ideal_generic):
           - ``VaPoTe``: a F5-type algorithm where signatures are ordered
             by valuation over position over term
 
+          We refer to [CVV2019]_ and [CVV2020]_ for a detailed description
+          of these algorithms.
+
         - ``options`` -- extra arguments that are passed in to the
           algorithm; this notably include the keyword ``verbose`` (only 
           available for ``PoTe`` and ``VaPoTe``) which is an integer
@@ -113,7 +116,7 @@ class TateAlgebraIdeal(Ideal_generic):
         - it is sorted, in the sense that the leading term of `g_i` is greater
           than the leading of `g_{i+1}` for all `i`.
 
-        NOTE::
+        NOTE:
 
         The result of this method is cached.
 

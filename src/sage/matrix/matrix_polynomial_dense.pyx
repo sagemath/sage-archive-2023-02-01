@@ -1617,12 +1617,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if not self.is_square():
             return False
         # check nonsingular and shifts-(ordered weak) Popov form
-        if normal_form:
-            if not self.is_popov(shifts, row_wise, False, False):
-                return False
-        else:
-            if not self.is_weak_popov(shifts, row_wise, True, False):
-                return False
+        if normal_form and (not self.is_popov(shifts, row_wise, False, False)):
+            return False
+        if (not normal_form) and (not self.is_weak_popov(shifts, row_wise, True, False)):
+            return False
 
         # check that self is a basis of the set of approximants
         if row_wise:
@@ -2061,21 +2059,26 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                                                     + " of the input matrix")
 
         # check full rank and shifts-(ordered weak) Popov form
-        if normal_form:
-            if not self.is_popov(shifts, row_wise, False, False):
-                return False
-        else:
-            if not self.is_weak_popov(shifts, row_wise, True, False):
-                return False
+        if normal_form and (not self.is_popov(shifts, row_wise, False, False)):
+            return False
+        if (not normal_form) and (not self.is_weak_popov(shifts, row_wise, True, False)):
+            return False
 
         # check that self consists of kernel vectors
         if row_wise and self * pmat != 0:
             return False
-        elif (not row_wise) and pmat * self != 0:
+        if (not row_wise) and pmat * self != 0:
             return False
 
-        # check rank TODO
-        # check saturated TODO
+        # check self.rank() is right (the above weak Popov test ensures self
+        # has full row rank if row wise, and full column rank if column wise)
+        rk = pmat.rank()
+        if row_wise and self.nrows()==m-rk:
+            return False
+        if (not row_wise) and self.ncols()==n-rk:
+            return False
+
+        # check saturated
 
     def minimal_kernel_basis(self,
             shifts=None,

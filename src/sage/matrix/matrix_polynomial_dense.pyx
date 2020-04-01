@@ -1675,7 +1675,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         return True
 
-
     def minimal_approximant_basis(self,
             order,
             shifts=None,
@@ -2078,7 +2077,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if (not row_wise) and self.ncols()==n-rk:
             return False
 
-        # check saturated
+        # final check: self is row saturated (assuming row wise),
+        # since self has full rank this is equivalent to the fact that its
+        # columns generate the identity matrix of size m; in particular the
+        # column Popov and column Hermite forms of self are the identity
+        if row_wise:
+            hnf = self.transpose().hermite_form(include_zero_rows=False)
+            # TODO replace by popov_form (likely more efficient) once it is written
+        else:
+            hnf = self.hermite_form(include_zero_rows=False)
+            # TODO replace by popov_form (likely more efficient) once it is written
+        if hnf != 1:
+            return False
+
+        return True
 
     def minimal_kernel_basis(self,
             shifts=None,

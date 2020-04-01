@@ -326,6 +326,11 @@ class CharacterArtFactory(SageObject):
             { 0:/\/\/\, 1:/\/  \, 2:/  \/\, 3:/    \, 4:/    \ }
             sage: art._breakpoints
             [11, 21, 31, 41]
+
+        Check that :trac:`29447` is fixed::
+
+            sage: ascii_art({'a': '', '': ''})  # py3
+            { a:, : }
         """
         comma = self.art_type([self.string_type(', ')],
                               baseline=0,
@@ -335,8 +340,10 @@ class CharacterArtFactory(SageObject):
             k = self.build(k)
             v = self.build(v)
             elt = k + colon + v
-            elt._breakpoints.remove(k._l)
-            elt._breakpoints.remove(k._l + 1)
+            if k._l:
+                elt._breakpoints.remove(k._l)
+            if v._l:
+                elt._breakpoints.remove(k._l + 1)
             return elt
         repr_elems = self.concatenate(
                 (concat_no_breakpoint(k, v) for k, v in iteritems(d)),

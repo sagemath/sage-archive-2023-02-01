@@ -25,14 +25,14 @@ from sage.functions.other import ceil
 from sage.matrix.constructor import zero_matrix, matrix
 from sage.rings.ring cimport Ring
 from sage.matrix.matrix_dense cimport Matrix_dense
-from polynomial_element cimport Polynomial
+from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport RingElement
-from polynomial_ring_constructor import PolynomialRing
-from skew_polynomial_element cimport SkewPolynomial_generic_dense
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial_generic_dense
 
 cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
-    def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
+    def __init__(self, parent, x=None, int check=1, int construct=0, **kwds):
         """
         This method constructs a generic dense skew polynomial over a field equipped
         with an automorphism of finite order.
@@ -44,8 +44,6 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         - ``x`` -- list of coefficients from which ``self`` can be constructed
 
         - ``check`` -- flag variable to normalize the polynomial
-
-        - ``is_gen`` -- boolean (default: ``False``)
 
         - ``construct`` -- boolean (default: ``False``)
 
@@ -74,7 +72,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             True
 
         """
-        SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
+        SkewPolynomial_generic_dense.__init__ (self, parent, x, check, construct, **kwds)
         self._norm = None
         self._optbound = None
 
@@ -385,10 +383,8 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         We finally check that if `a` is a central skew polynomial,
         then ``a.bound()`` returns simply `a`::
 
-            sage: a = S(Z.random_element(degree=4)); a
-            2*x^12 + x^9 + 2*x^3
-            sage: b = a.bound(); b
-            2*(x^3)^4 + (x^3)^3 + 2*(x^3)
+            sage: a = S(Z.random_element(degree=4))
+            sage: b = a.bound()
             sage: a == b
             True
         """

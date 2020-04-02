@@ -174,8 +174,7 @@ class TachyonRT(SageObject):
             sage: t = TachyonRT()
             sage: t.usage(use_pager=False)
             ...
-            Usage:
-              tachyon modelfile [options]
+              tachyon modelfile [options]...
             <BLANKLINE>
             Model file formats supported:
               filename.dat ...

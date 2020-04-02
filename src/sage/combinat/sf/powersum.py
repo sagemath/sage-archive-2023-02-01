@@ -708,17 +708,20 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
         def principal_specialization(self, n=infinity, q=None):
             r"""
-            Return the principal specialization of the symmetric function.
+            Return the principal specialization of a symmetric function.
 
-            The principal specialization of order `n` is the ring
-            homomorphism given by setting `x_i = q^i` for `i \in
-            \{0,\dots,n-1\}` and `x_i = 0` for `i\geq n`, see Section
-            7.8 of [EnumComb2]_.
+            The *principal specialization* of order `n` is the ring
+            homomorphism from the ring of symmetric functions to another
+            commutative ring `R` given by `x_i \mapsto q^{i-1}` for
+            `i \in \{1,\dots,n\}` and `x_i \mapsto 0` for `i > n`.
+            Here, `q` is a given element of `R`.
+            See Section 7.8 of [EnumComb2]_.
 
-            The stable principal specialization is the ring
-            homomorphism given by setting `x_i = q^i` for all `i`.
-            Note that setting `q = 1` in the stable principal
-            specialization is an invalid operation.
+            The *stable principal specialization* is the ring
+            homomorphism given by `x_i \mapsto q^{i-1}` for all `i`.
+            This is well-defined only if the resulting infinite sums
+            converge; thus, in particular, setting `q = 1` in the
+            stable principal specialization is an invalid operation.
 
             INPUT:
 
@@ -727,11 +730,12 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
               specialization of order ``n`` or the stable principal
               specialization.
 
-            - ``q`` (default: ``None``) -- the value to use for `q`,
-              the default is to create a ring (or fraction field) of
-              polynomials in ``q`` over the coefficient ring.
+            - ``q`` (default: ``None``) -- the value to use for `q`; the
+              default is to create a ring of polynomials in ``q``
+              (or a field of rational functions in ``q``) over the
+              given coefficient ring.
 
-            We use the formulas from Proposition 7.8.3 of [EnumComb2]_
+            We use the formulas from Proposition 7.8.3 of [EnumComb2]_:
 
             .. MATH::
 

@@ -1121,7 +1121,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
         return self._section
 
 
-class CenterSkewPolynomialRing(PolynomialRing_general):
+class CenterSkewPolynomialRing(PolynomialRing_general, UniqueRepresentation):
     """
     A class for the centre of a skew polynomial ring
 
@@ -1132,7 +1132,7 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
         sage: Z = S.centre()
         sage: TestSuite(Z).run()  
     """
-    def __init__ (self, skew_ring, names=None, sparse=False, element_class=None):
+    def __init__ (self, skew_ring, names=None, sparse=False):
         r"""
         Initialize this ring
 
@@ -1155,15 +1155,11 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
             raise NotImplementedError
         self.__is_sparse = sparse
         self._PolynomialRing_general__is_sparse = sparse
-        if element_class:
-            self._polynomial_class = element_class
+        if sparse:
+            raise NotImplementedError("sparse skew polynomials are not implemented")
         else:
-            if sparse:
-                raise NotImplementedError("sparse skew polynomials are not implemented")
-            else:
-                from sage.rings.polynomial.skew_polynomial_element import CenterSkewPolynomial_generic_dense
-                self._polynomial_class = CenterSkewPolynomial_generic_dense
-        self.Element = self._polynomial_class
+            from sage.rings.polynomial.skew_polynomial_element import CenterSkewPolynomial_generic_dense
+            self.Element = self._polynomial_class = CenterSkewPolynomial_generic_dense
 
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
         # tries to provide a conversion from the base ring, if it does not exist.
@@ -1173,27 +1169,50 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
         Algebra.__init__(self, kfixed, names=names, normalize=True, category=None)
 
         if names is None:
+            self._pickling_variable_name = None
             if order == 1:
                 self._variable_name = skew_ring.variable_name()
                 self._latex_variable_name = skew_ring.latex_variable_names()[0]
                 self._parenthesis = False
             else:
-                self._variable_name = skew_ring.variable_name () + "^" + str(order)
+                self._variable_name = skew_ring.variable_name() + "^" + str(order)
                 self._latex_variable_name = skew_ring.latex_variable_names()[0] + "^{" + str (order) + "}"
                 self._parenthesis = True
         else:
-            self._variable_name = Algebra.variable_name(self)
+            self._pickling_variable_name = self._variable_name = Algebra.variable_name(self)
             self._latex_variable_name = Algebra.latex_variable_names(self)[0]
             self._parenthesis = False
         self._names = [ self._variable_name ]
-        self.__generator = self._polynomial_class (self, [0,1], is_gen=True)
-        base_inject = PolynomialBaseringInjection(kfixed,self)
+        self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
+        base_inject = PolynomialBaseringInjection(kfixed, self)
         center_inject = SkewPolynomialCenterInjection (self, skew_ring, embed, order)
         self._unset_coercions_used()
         self._populate_coercion_lists_(
             coerce_list = [base_inject],
             convert_list = [list, base_inject],
             embedding = center_inject)
+
+    def __reduce__(self):
+        r"""
+        Return a function and a list of arguments that reconstruct
+        this object
+
+        TESTS::
+
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = SkewPolynomialRing(k, Frob)
+            sage: Z = S.centre()
+            sage: Z.__reduce__()
+            (<class 'sage.rings.polynomial.skew_polynomial_ring.CenterSkewPolynomialRing'>,
+             (Skew Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5,
+              None,
+              False))
+
+            sage: loads(dumps(Z)) is Z
+            True
+        """
+        return CenterSkewPolynomialRing, (self._skew_ring, self._pickling_variable_name, self.is_sparse())
 
     def _repr_ (self):
         r"""
@@ -1331,7 +1350,6 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
 
     def __init__(self, base_ring, twist_map, name, sparse, element_class):
         SkewPolynomialRing_general.__init__(self, base_ring, twist_map, name, sparse, element_class)
-        self._center = {}
         self._order = twist_map.order()
 
     def center(self, names=None, name=None):
@@ -1417,9 +1435,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
             name = names
         if name is not None:
             name = normalize_names(1,name)[0]
-        if name not in self._center:
-            self._center[name] = CenterSkewPolynomialRing(self, sparse=self.is_sparse(), names=name)
-        return self._center[name]
+        return CenterSkewPolynomialRing(self, name, self.is_sparse())
 
     def centre(self, names=None, name=None):
         r"""

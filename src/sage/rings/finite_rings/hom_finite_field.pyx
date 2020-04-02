@@ -184,6 +184,15 @@ cdef class SectionFiniteFieldHomomorphism_generic(Section):
 cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
     """
     A class implementing embeddings between finite fields.
+
+    TESTS::
+
+        sage: from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
+        sage: k.<t> = GF(3^7)
+        sage: K.<T> = GF(3^21)
+        sage: f = FiniteFieldHomomorphism_generic(Hom(k, K))
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, parent, im_gens=None, base_map=None, check=True, section_class=None):
         """

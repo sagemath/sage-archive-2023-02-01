@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tox_system_factor: [homebrew-macos-python2, homebrew-macos, homebrew-macos-python3_xcode-macos, conda-forge-macos]
+        tox_system_factor: [homebrew-macos-python2, homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, conda-forge-macos]
         tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}

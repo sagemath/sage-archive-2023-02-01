@@ -3,7 +3,11 @@ SAGE_SPKG_CONFIGURE([openblas], [
  SAGE_SPKG_DEPCHECK([gfortran], [
   SAVE_LIBS="$LIBS"
   SAVE_CFLAGS="$CFLAGS"
-  PKG_CHECK_MODULES([OPENBLAS], [openblas >= 0.2.20], [
+  m4_pushdef([SAGE_OPENBLAS_MIN_VERSION_MAJOR], [0])
+  m4_pushdef([SAGE_OPENBLAS_MIN_VERSION_MINOR], [2])
+  m4_pushdef([SAGE_OPENBLAS_MIN_VERSION_MICRO], [20])
+  m4_pushdef([SAGE_OPENBLAS_MIN_VERSION], [SAGE_OPENBLAS_MIN_VERSION_MAJOR.SAGE_OPENBLAS_MIN_VERSION_MINOR.SAGE_OPENBLAS_MIN_VERSION_MICRO])
+  PKG_CHECK_MODULES([OPENBLAS], [openblas >= 999]SAGE_OPENBLAS_MIN_VERSION, [
     LIBS="$OPENBLAS_LIBS $LIBS"
     CFLAGS="$OPENBLAS_CFLAGS $CFLAGS"
     PKG_CHECK_VAR([OPENBLASPCDIR], [openblas], [pcfiledir], [
@@ -42,6 +46,47 @@ SAGE_SPKG_CONFIGURE([openblas], [
      ])
     ], [
       dnl No openblas.pc
+      AS_CASE([$host],
+        [*-*-cygwin*], [dnl #29398: cygwin uses openblas only to provide a binary-compatible
+                        dnl dll, /usr/bin/cygblas-0.dll, which shadows /usr/lib/lapack/cygblas-0.dll
+                        dnl There is no .pc file, and openblas-specific functions such as
+                        dnl openblas_get_config are not exported.  We only accept the system BLAS
+                        dnl if it is provided by OpenBLAS.
+                        AC_MSG_CHECKING([whether cygblas-0.dll is openblas])
+                        AS_IF([grep -q openblas_get_config $(which cygblas-0.dll)],
+                              [AS_VAR_SET([HAVE_OPENBLAS], [yes])],
+                              [AS_VAR_SET([HAVE_OPENBLAS], [no])])
+                        AC_MSG_RESULT([$HAVE_OPENBLAS])
+                       ],
+                       [dnl Recent OpenBLAS (>= 0.3.4, Dec 2018) provides the version number as
+                        dnl part of openblas_get_config.  We reject all older versions.
+                        AC_SEARCH_LIBS([openblas_get_config], [openblas cblas blas], [
+                         AS_IF([test x"$ac_cv_search_openblas_get_config" != x"none required"], [
+                           AS_VAR_APPEND([OPENBLAS_LIBS], ["$ac_cv_search_openblas_get_config "])
+                           ])
+                         AC_MSG_CHECKING([whether openblas_get_config indicates version >= ]SAGE_OPENBLAS_MIN_VERSION)
+                         AC_LANG_PUSH([C])
+                         AC_RUN_IFELSE([
+                           AC_LANG_PROGRAM([[#include <stdio.h>
+                                             char *openblas_get_config(void);
+                                             int version[3]; ]],
+                                           [[version[0] = version[1] = version[2] = 0;
+                                             /*printf("%s", openblas_get_config());*/
+                                             if (sscanf(openblas_get_config(), "OpenBLAS %d.%d.%d", 
+                                                        version, version+1, version+2) < 1)
+                                               return 1;
+                                             if (  10000 * version[0]
+                                                   + 100 * version[1]
+                                                         + version[2]
+                                                 < 10000 * ]]SAGE_OPENBLAS_MIN_VERSION_MAJOR[[
+                                                   + 100 * ]]SAGE_OPENBLAS_MIN_VERSION_MINOR[[
+                                                         + ]]SAGE_OPENBLAS_MIN_VERSION_MICRO[[)
+                                               return 1;]])
+                         ], [AS_VAR_SET([HAVE_OPENBLAS], [yes])], [AS_VAR_SET([HAVE_OPENBLAS], [no])])
+                         AC_LANG_POP([C])
+                         AC_MSG_RESULT([$HAVE_OPENBLAS])
+                       ])
+                      ])
       AC_SEARCH_LIBS([cblas_dgemm], [openblas cblas blas], [
         AS_VAR_SET([HAVE_CBLAS_DGEMM], [yes])
         AS_IF([test x"$ac_cv_search_cblas_dgemm" != x"none required"], [
@@ -56,7 +101,7 @@ SAGE_SPKG_CONFIGURE([openblas], [
            ])
          ], [], [-lgfortran])
       ])
-      AS_IF([test x"$HAVE_CBLAS_DGEMM" = xyes -a x"$HAVE_DGEQRF" = xyes], [
+      AS_IF([test x"$HAVE_OPENBLAS" = xyes -a x"$HAVE_CBLAS_DGEMM" = xyes -a x"$HAVE_DGEQRF" = xyes], [
         AC_SUBST([OPENBLAS_LIBS])
         AC_SUBST([SAGE_SYSTEM_FACADE_PC_FILES])
         AC_SUBST([SAGE_OPENBLAS_PC_COMMAND], ["  (echo \"Name: openblas\"; echo \"Description: OpenBLAS\"; echo \"Version: 0.3\"; echo \"Libs: $OPENBLAS_LIBS\") > \"\$(@)\""])

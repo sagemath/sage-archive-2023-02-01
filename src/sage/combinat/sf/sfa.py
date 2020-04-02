@@ -5549,8 +5549,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             {'the stable principal specialization at q=1 is not defined'}
 
         """
-        p = self.parent().realization_of().powersum()
-        return p(self).principal_specialization(n, q=q)
+        m = self.parent().realization_of().monomial()
+        return m(self).principal_specialization(n, q=q)
 
     def exponential_specialization(self, t=None, q=1):
         r"""

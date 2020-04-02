@@ -5448,6 +5448,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         commutative ring `R` given by `x_i \mapsto q^{i-1}` for
         `i \in \{1,\dots,n\}` and `x_i \mapsto 0` for `i > n`.
         Here, `q` is a given element of `R`.
+        (To be more precise, it is a `K`-algebra homomorphism,
+        where `K` is the base ring.)
         See Section 7.8 of [EnumComb2]_.
 
         The *stable principal specialization* is the ring
@@ -5564,7 +5566,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         By analogy, the `q`-exponential specialization is a ring
         homomorphism defined on the complete homogeneous symmetric
-        functions as
+        functions by
 
         .. MATH::
 

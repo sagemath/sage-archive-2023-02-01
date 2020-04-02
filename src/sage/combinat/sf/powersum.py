@@ -715,6 +715,8 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             commutative ring `R` given by `x_i \mapsto q^{i-1}` for
             `i \in \{1,\dots,n\}` and `x_i \mapsto 0` for `i > n`.
             Here, `q` is a given element of `R`.
+            (To be more precise, it is a `K`-algebra homomorphism,
+            where `K` is the base ring.)
             See Section 7.8 of [EnumComb2]_.
 
             The *stable principal specialization* is the ring
@@ -804,8 +806,9 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             on the basis of homogeneous functions it is given by `ex(h_n)
             = t^n / n!`, see Proposition 7.8.4 of [EnumComb2]_.
 
-            By analogy `q`-exponential specialization is a ring homomorphism
-            defined on homogeneous symmetric functions `f` of degree `n` as
+            By analogy, the `q`-exponential specialization is a ring
+            homomorphism defined on the complete homogeneous symmetric
+            functions `f` by
 
             .. MATH::
 

@@ -2035,6 +2035,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         https://arxiv.org/pdf/1807.01272.pdf for details).
 
         EXAMPLES::
+
             sage: pR.<x> = GF(97)[]
             sage: pmat = Matrix(pR, [[1],[x],[x**2]])
 
@@ -2049,7 +2050,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: kerbas.is_minimal_kernel_basis(pmat)
             False
 
-        Shifts and right kernel bases are supported (with `row_wise`); one can test whether the kernel basis is normalized in shifted-Popov form (with `normal_form`)::
+        Shifts and right kernel bases are supported (with ``row_wise``), and one can test whether the kernel basis is normalized in shifted-Popov form (with ``normal_form``)::
 
             sage: kerbas = Matrix(pR, [[-x,-x**2],[1,0],[0,1]])
             sage: kerbas.is_minimal_kernel_basis(pmat.transpose(),row_wise=False,normal_form=True,shifts=[0,1,2])

@@ -14,8 +14,10 @@ SAGE_SPKG_CONFIGURE([fflas_ffpack], [
     # fflas-ffpack SPKG as well.
     sage_spkg_install_fflas_ffpack=yes
   ])
-
-  # Warning: this doesn't get executed with --without-system-fflas-ffpack
+],[],[],[
+  # Run this AFTER the check above, unconditionally, so that in particular
+  # it gets run if the user passes --without-system-fflas-ffpack to the
+  # ./configure script.
   AS_IF([test "x$sage_spkg_install_fflas_ffpack" = "xyes"],[
     dnl https://github.com/linbox-team/fflas-ffpack/blob/master/macros/instr_set.m4
     dnl discovers these flags from the processor but fails to check whether

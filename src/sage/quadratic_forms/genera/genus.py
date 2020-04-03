@@ -1529,7 +1529,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         A `p`-adic square class `r` is called automorphous if it is
         the spinor norm of a proper `p`-adic integral automorphism of this form.
-        These classes form a group. See [CS]_ Chapter 15, 9.6 for details.
+        These classes form a group. See [Co1999]_ Chapter 15, 9.6 for details.
 
         OUTPUT:
 
@@ -2527,9 +2527,7 @@ class GenusSymbol_global_ring(object):
             ....:     assert all(g==Genus(g.representative()) for g in G) # long time
         """
         from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice, local_modification
-        even = self.is_even()
         q = self.rational_representative()
-        n = q.nrows()
         # the associated quadratic form xGx.T/2 should be integral
         L = IntegralLattice(4*q).maximal_overlattice()
         p = 2

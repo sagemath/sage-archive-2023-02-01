@@ -217,7 +217,7 @@ def _lagrange_polynomial(R, eval_pts, values):
 # Generic implementation of skew polynomial rings
 #################################################
 
-class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
+class SkewPolynomialRing_general(Algebra):
     r"""
     A general implementation of univariate skew polynomialring over a commutative ring.
 
@@ -283,38 +283,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
         :mod:`sage.rings.polynomial.skew_polynomial_element`
     """
-    @staticmethod
-    def __classcall__(cls, base_ring, twist_map=None, name=None, sparse=False,
-                      element_class=None):
-        r"""
-        Set the default values for ``name``, ``sparse`` and ``element_class``.
-
-        EXAMPLES::
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R, sigma)
-            sage: S.__class__(R, sigma, x)
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
-             twisted by t |--> t + 1
-        """
-        if not element_class:
-            if sparse:
-                raise NotImplementedError("sparse skew polynomials are not implemented")
-            else:
-                from sage.rings.polynomial import skew_polynomial_element
-                element_class = skew_polynomial_element.SkewPolynomial_generic_dense
-        if twist_map is None:
-            twist_map = IdentityMorphism(base_ring)
-        else:
-            if not isinstance(twist_map, Morphism):
-                raise TypeError("given map is not a ring homomorphism")
-            if twist_map.domain() != base_ring or twist_map.codomain() != base_ring:
-                raise TypeError("given map is not an automorphism of %s" % base_ring)
-        return super(SkewPolynomialRing_general,cls).__classcall__(cls,
-                         base_ring, twist_map, name, sparse, element_class)
-
-    def __init__(self, base_ring, twist_map, name, sparse, element_class):
+    def __init__(self, base_ring, twist_map, name, sparse, element_class=None):
         r"""
         Initialize ``self``.
 
@@ -356,7 +325,10 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: TestSuite(T).run(skip=["_test_pickling", "_test_elements"])
         """
         self.__is_sparse = sparse
-        self._polynomial_class = element_class
+        if element_class is None:
+            from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial_generic_dense
+            element_class = SkewPolynomial_generic_dense
+        self.Element = self._polynomial_class = element_class
         self._map = twist_map
         self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
         Algebra.__init__(self, base_ring, names=name, normalize=True,
@@ -1380,17 +1352,10 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
         :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
         :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
     """
-    @staticmethod
-    def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
-        if not element_class:
-            if sparse:
-                raise NotImplementedError("sparse skew polynomials are not implemented")
-            else:
-                from sage.rings.polynomial import skew_polynomial_finite_order
-                element_class = skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
-        return super(SkewPolynomialRing_general,cls).__classcall__(cls, base_ring, map, name, sparse, element_class)
-
-    def __init__(self, base_ring, twist_map, name, sparse, element_class):
+    def __init__(self, base_ring, twist_map, name, sparse, element_class=None):
+        if element_class is None:
+            from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
+            element_class = SkewPolynomial_finite_order_dense
         SkewPolynomialRing_general.__init__(self, base_ring, twist_map, name, sparse, element_class)
         self._order = twist_map.order()
 

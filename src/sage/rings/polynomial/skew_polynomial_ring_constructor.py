@@ -26,6 +26,7 @@ AUTHOR:
 # ***************************************************************************
 
 from __future__ import print_function, absolute_import, division
+from sage.structure.factory import UniqueFactory
 from sage import categories
 from sage.structure.category_object import normalize_names
 from sage.categories.morphism import Morphism, IdentityMorphism
@@ -34,8 +35,7 @@ from sage.categories.fields import Fields
 from sage.categories.commutative_rings import CommutativeRings
 
 
-
-def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, sparse=False):
+class SkewPolynomialRingFactory(UniqueFactory):
     r"""
     Return the globally unique skew polynomial ring with the given properties
     and variable names.
@@ -191,36 +191,76 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         - Multivariate Skew Polynomial Ring
         - Add derivations.
     """
-    if base_ring not in categories.rings.Rings().Commutative():
-        raise TypeError("base_ring must be a commutative ring")
-    if base_ring not in CommutativeRings():
-        raise TypeError('base_ring must be a commutative ring')
-    if base_ring_automorphism is None:
-        base_ring_automorphism = IdentityMorphism(base_ring)
-    else:
-        if (not isinstance(base_ring_automorphism,Morphism)
-                or base_ring_automorphism.domain() != base_ring
-                or base_ring_automorphism.codomain() != base_ring):
-            raise TypeError("base_ring_automorphism must be a ring automorphism of base_ring (=%s)" % base_ring)
-    if sparse:
-        raise NotImplementedError("sparse skew polynomial rings are not implemented")
-    if names is None:
-        raise TypeError("you must specify the name of the variable")
-    try:
-        names = normalize_names(1, names)[0]
-    except IndexError:
-        raise NotImplementedError("multivariate skew polynomials rings not supported")
+    def create_key(self, base_ring, base_ring_automorphism=None, names=None, sparse=False):
+        r"""
+        Create a key from the input parameters
 
-    import sage.rings.polynomial.skew_polynomial_ring as spr
+        INPUT:
 
-    # We check whether sigma has finite order
-    if base_ring in Fields():
+        - ``base_ring`` -- a ring
+
+        - ``base_ring_automorphism`` -- a homomorphism of rings
+
+        - ``names`` -- a string; names of the indeterminates
+
+        - ``sparse`` - a boolean
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(11^2)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: SkewPolynomialRing.create_key(k, Frob, 'x')
+            (Finite Field in a of size 11^2,
+             Frobenius endomorphism a |--> a^11 on Finite Field in a of size 11^2,
+             'x',
+             False)
+        """
+        if base_ring not in categories.rings.Rings().Commutative():
+            raise TypeError("base_ring must be a commutative ring")
+        if base_ring not in CommutativeRings():
+            raise TypeError('base_ring must be a commutative ring')
+        if base_ring_automorphism is None:
+            base_ring_automorphism = IdentityMorphism(base_ring)
+        else:
+            if (not isinstance(base_ring_automorphism,Morphism)
+                    or base_ring_automorphism.domain() != base_ring
+                    or base_ring_automorphism.codomain() != base_ring):
+                raise TypeError("base_ring_automorphism must be a ring automorphism of base_ring (=%s)" % base_ring)
+        if sparse:
+            raise NotImplementedError("sparse skew polynomial rings are not implemented")
+        if names is None:
+            raise TypeError("you must specify the name of the variable")
         try:
-            order = base_ring_automorphism.order()
-            if order is not Infinity:
-                return spr.SkewPolynomialRing_finite_order(base_ring, base_ring_automorphism, names, sparse)
-        except AttributeError:
-            pass
+            names = normalize_names(1, names)[0]
+        except IndexError:
+            raise NotImplementedError("multivariate skew polynomials rings not supported")
+        return (base_ring, base_ring_automorphism, names, sparse)
 
-    # Generic implementation
-    return spr.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
+    def create_object(self, version, key):
+        """
+        Create an object using the given key
+
+        TESTS::
+
+            sage: k.<a> = GF(11^2)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: key = SkewPolynomialRing.create_key(k, Frob, 'x')
+            sage: SkewPolynomialRing.create_object((9,1,9), key)
+            Skew Polynomial Ring in x over Finite Field in a of size 11^2 twisted by a |--> a^11
+        """
+        import sage.rings.polynomial.skew_polynomial_ring as spr
+        (base_ring, base_ring_automorphism, names, sparse) = key
+
+        # We check if the twisting morphism has finite order
+        if base_ring in Fields():
+            try:
+                order = base_ring_automorphism.order()
+                if order is not Infinity:
+                    return spr.SkewPolynomialRing_finite_order(base_ring, base_ring_automorphism, names, sparse)
+            except AttributeError:
+                pass
+
+        # We fallback to generic implementation
+        return spr.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
+
+SkewPolynomialRing = SkewPolynomialRingFactory("SkewPolynomialRing")

@@ -410,8 +410,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             # one can give an Integer as Input.
             if data < -1:
                 ValueError("any polyhedron must have dimension at least -1")
-            self._n_facets = 0
             self._dimension = data
+
+            if self._dimension == 0:
+                self._n_facets = 1
+                self._n_Vrepresentation = 1
+            else:
+                self._n_facets = 0
+                self._n_Vrepresentation = 0
 
             # Initializing the facets in their Bit-representation.
             self._bitrep_facets = facets_tuple_to_bit_repr_of_facets((), 0)
@@ -1831,9 +1837,30 @@ cdef class CombinatorialPolyhedron(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: polyhedron has to be compact
+
+        TESTS::
+
+            sage: CombinatorialPolyhedron(-1).is_pyramid()
+            False
+            sage: CombinatorialPolyhedron(-1).is_pyramid(True)
+            (False, None)
+            sage: CombinatorialPolyhedron(0).is_pyramid()
+            True
+            sage: CombinatorialPolyhedron(0).is_pyramid(True)
+            (True, 0)
         """
         if not self.is_bounded():
             raise ValueError("polyhedron has to be compact")
+
+        if self.dim() == -1:
+            if certificate:
+                return (False, None)
+            return False
+
+        if self.dim() == 0:
+            if certificate:
+                return (True, self.Vrepresentation()[0])
+            return True
 
         # Find a vertex that is incident to all elements in Hrepresentation but one.
         vertex_iter = self._face_iter(True, 0)

@@ -3170,6 +3170,17 @@ class Polyhedron_base(Element):
             sage: Q = polytopes.octahedron()
             sage: Q.is_pyramid()
             False
+
+        For the `0`-dimensional polyhedron, the output is ``True``,
+        but it cannot be constructed as a pyramid over the empty polyhedron::
+
+            sage: P = Polyhedron([[0]])
+            sage: P.is_pyramid()
+            True
+            sage: Polyhedron().pyramid()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
         if not self.is_compact():
             raise ValueError("polyhedron has to be compact")

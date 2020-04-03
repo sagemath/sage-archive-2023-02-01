@@ -1783,6 +1783,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         return not any(vertices)
 
+    @cached_method
     def is_pyramid(self, certificate=False):
         r"""
         Test whether the polytope is a pyramid over one of its facets.

@@ -76,15 +76,31 @@ then
   no_ppl=yes
 else
   PPL_CPPFLAGS=`$PPL_CONFIG $ppl_config_args --cppflags`
-  PPL_LDFLAGS=`$PPL_CONFIG $ppl_config_args --ldflags`
+  PPL_LDFLAGS=""
+  PPL_LIBS=""
+  for flag in $($PPL_CONFIG $ppl_config_args --ldflags); do
+    dnl Check if each "ldflag" starts with -l or not. The ones that do
+    dnl start with -l are libs and belong in PPL_LIBS, the others belong
+    dnl in PPL_LDFLAGS. The LDFLAGS and LIBS variables get appended at
+    dnl different locations in the link command, so the distinction is
+    dnl not academic.
+    if test "x${flag#-l}" = "x$flag"; then
+      dnl this flag doesn't start with -l
+      PPL_LDFLAGS="$PPL_LDFLAGS $flag"
+    else
+      PPL_LIBS="$PPL_LIBS $flag"
+    fi
+  done
   ppl_config_version="`$PPL_CONFIG $ppl_config_args --version`"
 
   if test "x$enable_ppltest" = xyes
   then
     ac_save_CPPFLAGS="$CPPFLAGS"
     ac_save_LDFLAGS="$LDFLAGS"
+    ac_save_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $PPL_CPPFLAGS"
     LDFLAGS="$PPL_LDFLAGS $LDFLAGS"
+    LIBS="$LIBS $PPL_LIBS"
 
 dnl Now check if the installed PPL is sufficiently new.
 dnl (Also sanity checks the results of ppl-config to some extent.)
@@ -224,6 +240,7 @@ main() {
 
     CPPFLAGS="$ac_save_CPPFLAGS"
     LDFLAGS="$ac_save_LDFLAGS"
+    LIBS="$ac_save_LIBS"
   fi
 fi
 
@@ -247,6 +264,7 @@ else
       echo "*** Could not run PPL test program, checking why..."
       CPPFLAGS="$CPPFLAGS $PPL_CPPFLAGS"
       LDFLAGS="$LDFLAGS $PPL_LDFLAGS"
+      LIBS="$LIBS $PPL_LIBS"
       AC_TRY_LINK([
 #include <ppl.hh>
 using namespace Parma_Polyhedra_Library;
@@ -276,13 +294,16 @@ using namespace Parma_Polyhedra_Library;
 ])
       CPPFLAGS="$ac_save_CPPFLAGS"
       LDFLAGS="$ac_save_LDFLAGS"
+      LIBS="$ac_save_LIBS"
     fi
   fi
   PPL_CPPFLAGS=""
   PPL_LDFLAGS=""
+  PPL_LIBS=""
   ifelse([$3], , :, [$3])
 fi
 AC_SUBST(PPL_CPPFLAGS)
 AC_SUBST(PPL_LDFLAGS)
+AC_SUBST(PPL_LIBS)
 rm -f conf.ppltest
 ])

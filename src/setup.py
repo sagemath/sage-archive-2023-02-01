@@ -1,7 +1,12 @@
 #!/usr/bin/env python
+
 from __future__ import print_function
 
-import os, sys, time, errno, platform, subprocess
+import os
+import sys
+import time
+import errno
+import subprocess
 import json
 from distutils import log
 from distutils.core import setup
@@ -76,12 +81,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "sdist":
 else:
     sdist = False
 
-try:
-    compile_result_dir = os.environ['XML_RESULTS']
-    keep_going = True
-except KeyError:
-    compile_result_dir = None
-    keep_going = False
+keep_going = False
 
 # search for dependencies and add to gcc -I<path>
 include_dirs = sage_include_directories(use_sources=True)
@@ -114,58 +114,6 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
 #########################################################
 ### Testing related stuff
 #########################################################
-
-class CompileRecorder(object):
-
-    def __init__(self, f):
-        self._f = f
-        self._obj = None
-
-    def __get__(self, obj, type=None):
-        # Act like a method...
-        self._obj = obj
-        return self
-
-    def __call__(self, *args):
-        t = time.time()
-        try:
-            if self._obj:
-                res = self._f(self._obj, *args)
-            else:
-                res = self._f(*args)
-        except Exception as ex:
-            print(ex)
-            res = ex
-        t = time.time() - t
-
-        errors = failures = 0
-        if self._f is compile_command0:
-            name = "cythonize." + args[0][1].name
-            failures = int(bool(res))
-        else:
-            name = "gcc." + args[0][1].name
-            errors = int(bool(res))
-        if errors or failures:
-            type = "failure" if failures else "error"
-            failure_item = """<%(type)s/>""" % locals()
-        else:
-            failure_item = ""
-        output = open("%s/%s.xml" % (compile_result_dir, name), "w")
-        output.write("""
-            <?xml version="1.0" ?>
-            <testsuite name="%(name)s" errors="%(errors)s" failures="%(failures)s" tests="1" time="%(t)s">
-            <testcase classname="%(name)s" name="compile">
-            %(failure_item)s
-            </testcase>
-            </testsuite>
-        """.strip() % locals())
-        output.close()
-        return res
-
-if compile_result_dir:
-    record_compile = CompileRecorder
-else:
-    record_compile = lambda x: x
 
 # Remove (potentially invalid) star import caches
 import sage.misc.lazy_import_cache
@@ -284,13 +232,13 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            language_level="3str",
             preliminary_late_includes_cy28=True,
             profile=self.profile,
         )
         self.compile_time_env = dict(
             PY_VERSION_HEX=sys.hexversion,
             PY_MAJOR_VERSION=sys.version_info[0],
-            HAVE_GMPY2=have_module("gmpy2"),
         )
 
         # We check the Cython version and some relevant configuration
@@ -657,40 +605,6 @@ class sage_build_ext(build_ext):
             print(self.compiler.linker_so)
             # There are further interesting variables...
 
-
-        # At least on MacOS X, the library dir of the *original* Sage
-        # installation is "hard-coded" into the linker *command*, s.t.
-        # that directory is always searched *first*, which causes trouble
-        # after the Sage installation has been moved (or its directory simply
-        # been renamed), especially in conjunction with upgrades (cf. #9896).
-        # (In principle, the Python configuration should be modified on
-        # Sage relocations as well, but until that's done, we simply fix
-        # the most important.)
-        # Since the following is performed only once per call to "setup",
-        # and doesn't hurt on other systems, we unconditionally replace *any*
-        # library directory specified in the (dynamic) linker command by the
-        # current Sage library directory (if it doesn't already match that),
-        # and issue a warning message:
-
-        if True or sys.platform[:6]=="darwin":
-
-            sage_libdir = os.path.realpath(SAGE_LOCAL+"/lib")
-            ldso_cmd = self.compiler.linker_so # a list of strings, like argv
-
-            for i in range(1, len(ldso_cmd)):
-
-                if ldso_cmd[i][:2] == "-L":
-                    libdir = os.path.realpath(ldso_cmd[i][2:])
-                    self.debug_print(
-                      "Library dir found in dynamic linker command: " +
-                      "\"%s\"" % libdir)
-                    if libdir != sage_libdir:
-                        self.compiler.warn(
-                          "Replacing library search directory in linker " +
-                          "command:\n  \"%s\" -> \"%s\"\n" % (libdir,
-                                                              sage_libdir))
-                        ldso_cmd[i] = "-L"+sage_libdir
-
         if DEBUG:
             print("self.compiler.linker_so (after fixing library dirs):")
             print(self.compiler.linker_so)
@@ -706,7 +620,7 @@ class sage_build_ext(build_ext):
         for ext in self.extensions:
             need_to_compile, p = self.prepare_extension(ext)
             if need_to_compile:
-                compile_commands.append((record_compile(self.build_extension), p))
+                compile_commands.append((self.build_extension, p))
 
         execute_list_of_commands(compile_commands)
 
@@ -922,6 +836,16 @@ class sage_install(install):
         # Construct the complete module name from this.
         py_modules = ["{0}.{1}".format(*m) for m in py_modules]
 
+        # Determine all files of package data and Cythonized package files
+        # example of entries of cmd_build_cython.get_cythonized_package_files():
+        #   ('sage/media', ['./sage/media/channels.pyx'])
+        data_files = cmd_build_cython.get_cythonized_package_files()
+        # examples of entries of build_py.data_files:
+        #   ('sage.libs.gap', 'sage/libs/gap', 'build/lib.macosx-10.9-x86_64-3.7/sage/libs/gap', ['sage.gaprc'])
+        #   ('sage', 'sage', 'build/lib.macosx-10.9-x86_64-3.7/sage', ['ext_data/nodoctest.py', 'ext_data/kenzo/S4.txt', ...])
+        nobase_data_files = [(src_dir, [os.path.join(src_dir, filename) for filename in filenames])
+                             for package, src_dir, build_dir, filenames in cmd_build_py.data_files]
+
         # Clean install directory (usually, purelib and platlib are the same)
         # and build directory.
         output_dirs = [self.install_purelib, self.install_platlib, self.build_lib]
@@ -932,8 +856,8 @@ class sage_install(install):
                     dist.packages,
                     py_modules,
                     dist.ext_modules,
-                    cmd_build_cython.get_cythonized_package_files())
-
+                    data_files,
+                    nobase_data_files)
 
 #########################################################
 ### Distutils
@@ -944,9 +868,37 @@ code = setup(name = 'sage',
       description = 'Sage: Open Source Mathematics Software',
       license     = 'GNU Public License (GPL)',
       author      = 'William Stein et al.',
-      author_email= 'http://groups.google.com/group/sage-support',
-      url         = 'http://www.sagemath.org',
+      author_email= 'https://groups.google.com/group/sage-support',
+      url         = 'https://www.sagemath.org',
       packages    = python_packages,
+      package_data = {
+          'sage.libs.gap': ['sage.gaprc'],
+          'sage.doctest':  ['tests/*'],
+          'sage': ['ext_data/*',
+                   'ext_data/kenzo/*',
+                   'ext_data/singular/*',
+                   'ext_data/singular/function_field/*',
+                   'ext_data/images/*',
+                   'ext_data/doctest/*',
+                   'ext_data/doctest/invalid/*',
+                   'ext_data/doctest/rich_output/*',
+                   'ext_data/doctest/rich_output/example_wavefront/*',
+                   'ext_data/gap/*',
+                   'ext_data/gap/joyner/*',
+                   'ext_data/mwrank/*',
+                   'ext_data/notebook-ipython/*',
+                   'ext_data/nbconvert/*',
+                   'ext_data/graphs/*',
+                   'ext_data/pari/*',
+                   'ext_data/pari/dokchitser/*',
+                   'ext_data/pari/buzzard/*',
+                   'ext_data/pari/simon/*',
+                   'ext_data/magma/*',
+                   'ext_data/magma/latex/*',
+                   'ext_data/magma/sage/*',
+                   'ext_data/valgrind/*',
+                   'ext_data/threejs/*']
+      },
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,

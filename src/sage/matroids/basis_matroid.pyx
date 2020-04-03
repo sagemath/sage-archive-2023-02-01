@@ -71,7 +71,6 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 
@@ -234,7 +233,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 for B in nonbases:
                     b = frozenset(B)
                     if len(b) != self._matroid_rank:
-                        raise ValueError("nonbasis has wrong cardinalty.")
+                        raise ValueError("nonbasis has wrong cardinality")
                     if not b.issubset(self._groundset):
                         raise ValueError("nonbasis is not a subset of the groundset")
                     self.__pack(self._b, b)
@@ -916,8 +915,12 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 bitset_add(b2, morph[j])
                 j = bitset_next(self._b, j + 1)
             if bitset_in((<BasisMatroid>other)._bb, set_to_index(b2)):
+                bitset_free(b2)
+                bitset_free(bb_comp)
                 return False
             i = bitset_next(bb_comp, i + 1)
+        bitset_free(b2)
+        bitset_free(bb_comp)
         return True
 
     cpdef _is_isomorphism(self, other, morphism):

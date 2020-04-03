@@ -11,7 +11,6 @@ Datatypes for finite words
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 from itertools import islice
@@ -408,8 +407,8 @@ cdef class WordDatatype_str(WordDatatype):
             False
 
         """
-        # we need to override the non standard comportement of
-        # the comportment of the __contains__ of python str
+        # we need to override the non standard behaviour of
+        # the __contains__ of python str
         if not isinstance(a, str):
             return False
         if len(a) != 1:

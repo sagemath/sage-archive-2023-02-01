@@ -13,7 +13,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 from six.moves import range
 
@@ -274,7 +274,6 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             return self.monomial(a * b)
         G = self._indices.monoid_generators()
         one = self.base_ring().one()
-        ret = self.zero()
         q = self._q
         qi = q ** -1
         monomial = b
@@ -709,12 +708,8 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
     REFERENCES:
 
-    .. [DD91] \R. Dipper and S. Donkin. *Quantum* `GL_n`.
-       Proc. London Math. Soc. (3) **63** (1991), no. 1, pp. 165-211.
-
-    .. [Karimipour93] Vahid Karimipour.
-       *Representations of the coordinate ring of* `GL_q(n)`.
-       (1993). :arxiv:`hep-th/9306058`.
+    - [DD1991]_
+    - [Kar1993]_
     """
     @staticmethod
     def __classcall_private__(cls, n, q=None, bar=None, R=None):
@@ -974,19 +969,27 @@ def _generator_key(t):
     Helper function to make ``'c'`` less that all other indices for
     sorting the monomials in :class:`QuantumGL`.
 
+    INPUT:
+
+    a tuple (index, exponent)
+
+    OUTPUT:
+
+    a tuple made from the index only
+
     EXAMPLES::
 
         sage: from sage.algebras.quantum_matrix_coordinate_algebra import _generator_key as k
-        sage: k((1,2)) < k('c')
+        sage: k(((1,2),1)) < k(('c',1))
         False
-        sage: k((1,2)) < k((1,3))
+        sage: k(((1,2),1)) < k(((1,3),1))
         True
-        sage: k((1,2)) < k((3,1))
+        sage: k(((1,2),1)) < k(((3,1),1))
         True
-        sage: k('c') < k((1,1))
+        sage: k(('c',2)) < k(((1,1),1))
         True
     """
+    t = t[0]
     if isinstance(t, tuple):
         return t
     return ()
-

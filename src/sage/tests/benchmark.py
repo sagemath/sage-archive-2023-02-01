@@ -1761,8 +1761,9 @@ class FiniteExtFieldMult(Benchmark):
         v = magma('[e*f : i in [1..%s]]'%self.__times)
         return magma.cputime(t)
 
+
 class FiniteExtFieldAdd(Benchmark):
-    def __init__(self,field,times):
+    def __init__(self, field, times):
         self.__times = times
         self.field = field
         self.e = field.gen()**(field.cardinality()/3)
@@ -1826,7 +1827,8 @@ class FiniteExtFieldAdd(Benchmark):
 
 
 """
-TODO:
+.. TODO::
+
    * multiply reals
    * modular degree
    * anlist

@@ -1310,7 +1310,7 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
     incorrect, see :trac:`23971`::
 
         sage: v.shift(1, -1).parent()
-        Number Field in I with defining polynomial x^2 + 1
+        Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
     """
     def __init__(self, parent, approximant, G, approximants):

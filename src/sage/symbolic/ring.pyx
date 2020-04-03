@@ -2,7 +2,7 @@
 The symbolic ring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #
@@ -10,9 +10,8 @@ The symbolic ring
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.ext.cplusplus cimport ccrepr
 
@@ -31,7 +30,14 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC, ZZ
 
+import keyword
 import operator
+import parser
+
+# Do not allow any of these keywords as identifiers for symbolic variables
+KEYWORDS = set(keyword.kwlist).union(['exec', 'print', 'None', 'True',
+                                      'False', 'nonlocal'])
+
 
 cdef class SymbolicRing(CommutativeRing):
     """
@@ -196,7 +202,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             from .subring import GenericSymbolicSubring
 
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
+            if R._is_numerical():
                 # Almost anything with a coercion into any precision of CC
                 return R not in (RLF, CLF)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R) or is_LaurentPolynomialRing(R):
@@ -305,7 +311,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert R Interpreter to a symbolic expression
+            TypeError: unsupported operand type(s) for ** or pow(): 'R' and 'sage.rings.rational.Rational'
 
         Check that :trac:`22068` is fixed::
 
@@ -823,24 +829,43 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: cannot specify n for multiple symbol names
+
+        Check that :trac:`28353` is fixed: Constructions that suggest multiple
+        variables but actually only give one variable name return a 1-tuple::
+
+            sage: SR.var(['x'])
+            (x,)
+            sage: SR.var('x,')
+            (x,)
+            sage: SR.var(['x'], n=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot specify n for multiple symbol names
         """
         if is_Expression(name):
             return name
-        if not isinstance(name, (basestring,list,tuple)):
+        if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)
 
-        if isinstance(name, (list,tuple)):
+        is_multiple = False
+
+        if isinstance(name, (list, tuple)):
             names_list = [s.strip() for s in name]
-        elif ',' in name:
-            names_list = [s.strip() for s in name.split(',' )]
-        elif ' ' in name:
-            names_list = [s.strip() for s in name.split()]
+            is_multiple = True
         else:
-            names_list = [name]
+            name = name.strip()
+            if ',' in name:
+                names_list = [s.strip() for s in name.split(',') if s.strip()]
+                is_multiple = True
+            elif ' ' in name:
+                names_list = [s.strip() for s in name.split()]
+                is_multiple = True
+            else:
+                names_list = [name] if name else []
 
         for s in names_list:
             if not isidentifier(s):
-                raise ValueError('The name "'+s+'" is not a valid Python identifier.')
+                raise ValueError(f'The name "{s}" is not a valid Python identifier.')
 
         formatted_latex_name = None
         if latex_name is not None and n is None:
@@ -850,9 +875,16 @@ cdef class SymbolicRing(CommutativeRing):
             except TypeError:
                 formatted_latex_name = '{{{0}}}'.format(latex_name)
 
-        if len(names_list) == 0:
+        if not names_list:
             raise ValueError('You need to specify the name of the new variable.')
-        if len(names_list) == 1:
+
+        if is_multiple:
+            if latex_name is not None:
+                raise ValueError("cannot specify latex_name for multiple symbol names")
+            if n is not None:
+                raise ValueError("cannot specify n for multiple symbol names")
+            return tuple([self.symbol(s, domain=domain) for s in names_list])
+        else:
             if n is not None:
                 if n > 0:
                     name = [name + str(i) for i in range(n)]
@@ -865,12 +897,6 @@ cdef class SymbolicRing(CommutativeRing):
                     raise ValueError("the number of variables should be a positive integer")
             else:
                 return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
-        if len(names_list) > 1:
-            if latex_name is not None:
-                raise ValueError("cannot specify latex_name for multiple symbol names")
-            if n is not None:
-                raise ValueError("cannot specify n for multiple symbol names")
-            return tuple([self.symbol(s, domain=domain) for s in names_list])
 
     def _repr_element_(self, Expression x):
         """
@@ -961,7 +987,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: f(z=2)
             Gamma(2, w)
         """
-        if len(args) == 0:
+        if not args:
             d = None
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
@@ -1073,7 +1099,20 @@ cdef class SymbolicRing(CommutativeRing):
         from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(SR)          # indirect doctest, optional - fricas
+            Expression(Integer)
+        """
+        return 'Expression Integer'
+
+
 SR = SymbolicRing()
+
 
 cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
     """
@@ -1299,9 +1338,10 @@ def var(name, **kwds):
     """
     return SR.var(name, **kwds)
 
+
 def is_SymbolicVariable(x):
     """
-    Returns True if x is a variable.
+    Return ``True`` if ``x`` is a variable.
 
     EXAMPLES::
 
@@ -1318,20 +1358,22 @@ def is_SymbolicVariable(x):
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
+
 def isidentifier(x):
     """
     Return whether ``x`` is a valid identifier.
 
-    When we switch to Python 3 this function can be replaced by the
-    official Python function of the same name.
-
     INPUT:
 
-    - ``x`` -- a string.
+    - ``x`` -- a string
 
     OUTPUT:
 
     Boolean. Whether the string ``x`` can be used as a variable name.
+
+    This function should return ``False`` for keywords, so we can not
+    just use the ``isidentifier`` method of strings (in Python 3),
+    because, for example, it returns ``True`` for "def" and for "None".
 
     EXAMPLES::
 
@@ -1350,10 +1392,24 @@ def isidentifier(x):
         True
         sage: isidentifier('lambda s:s+1')
         False
+        sage: isidentifier('None')
+        False
+        sage: isidentifier('lambda')
+        False
+        sage: isidentifier('def')
+        False
     """
-    import parser
+    if x in KEYWORDS:
+        return False
+    try:
+        if not x.isidentifier():  # py3
+            return False
+    except AttributeError:
+        pass  # py2
+
     try:
         code = parser.expr(x).compile()
-    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError), msg:
+    except (MemoryError, OverflowError, SyntaxError,
+            SystemError, parser.ParserError):
         return False
     return len(code.co_names) == 1 and code.co_names[0] == x

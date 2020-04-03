@@ -176,10 +176,13 @@ Individual Categories
    sage/categories/super_hopf_algebras_with_basis
    sage/categories/super_modules
    sage/categories/super_modules_with_basis
+   sage/categories/supercommutative_algebras
+   sage/categories/supercrystals
    sage/categories/topological_spaces
    sage/categories/triangular_kac_moody_algebras
    sage/categories/unique_factorization_domains
    sage/categories/unital_algebras
+   sage/categories/vector_bundles
    sage/categories/vector_spaces
    sage/categories/weyl_groups
 
@@ -201,6 +204,7 @@ Functorial constructions
 
    sage/categories/cartesian_product
    sage/categories/tensor
+   sage/categories/signed_tensor
    sage/categories/dual
    sage/categories/algebra_functor
 

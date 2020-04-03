@@ -86,7 +86,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -625,10 +624,14 @@ cdef class FastDoubleFunc:
             Traceback (most recent call last):
             ...
             TypeError: Wrong number of arguments (need at least 3, got 1)
-            sage: f('blah', 1, 2, 3)
+            sage: f('blah', 1, 2, 3) # py2
             Traceback (most recent call last):
             ...
             TypeError: a float is required
+            sage: f('blah', 1, 2, 3) # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: must be real number, not str
         """
         if len(args) < self.nargs:
             raise TypeError("Wrong number of arguments (need at least %s, got %s)" % (self.nargs, len(args)))
@@ -1285,7 +1288,7 @@ def fast_float_constant(x):
     This is all that goes on under the hood::
 
         sage: fast_float_constant(pi).op_list()
-        ['push 3.14159265359']
+        ['push 3.1415926535...']
     """
     return FastDoubleFunc('const', x)
 

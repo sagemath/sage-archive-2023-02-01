@@ -333,7 +333,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         from sage.rings.rational_field import RationalField
         if (not base_ring.has_coerce_map_from(RationalField())) and self._scalar == sage.combinat.sf.sfa.zee:
             # This is the case when (due to the base ring not being a
-            # \mathbb{Q}-algebra) we cannot use the power-sum basis,
+            # \QQ-algebra) we cannot use the power-sum basis,
             # but (due to zee being the standard zee function) we can
             # use the Schur basis.
 

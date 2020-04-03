@@ -358,7 +358,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         try:
             return f.map_coefficients(self._base_valuation.reduce, self._base_valuation.residue_field())
         except Exception:
-            if check and not all([v>=0 for v in self.valuations(f)]):
+            if check and not all(v >= 0 for v in self.valuations(f)):
                 raise ValueError("reduction not defined for non-integral elements and %r is not integral over %r"%(f, self))
             raise
 

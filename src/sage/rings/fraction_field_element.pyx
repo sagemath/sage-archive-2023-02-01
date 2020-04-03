@@ -6,14 +6,7 @@ AUTHORS:
 - William Stein (input from David Joyner, David Kohel, and Joe Wetherell)
 
 - Sebastian Pancratz (2010-01-06): Rewrite of addition, multiplication and
-  derivative to use Henrici's algorithms [Ho72]
-
-REFERENCES:
-
-.. [Ho72] \E. Horowitz, "Algorithms for Rational Function Arithmetic
-   Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
-   the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
-
+  derivative to use Henrici's algorithms [Hor1972]_
 """
 
 #*****************************************************************************
@@ -26,10 +19,9 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from sage.structure.element cimport FieldElement, parent
 from sage.structure.richcmp cimport richcmp
+# from sage.rings.polynomial.flatten import SpecializationMorphism
 
 from . import integer_ring
 from .integer_ring import ZZ
@@ -132,7 +124,7 @@ cdef class FractionFieldElement(FieldElement):
         if self.__denominator.is_zero():
             raise ZeroDivisionError("fraction field element division by zero")
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         EXAMPLES::
 
@@ -153,9 +145,20 @@ cdef class FractionFieldElement(FieldElement):
             (a^2 + 2*a*b + b^2)/(a*b)
             sage: (x^2/y)._im_gens_(K, [a, a*b])
             a/b
+
+        ::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<a,b> = K[]
+            sage: F = R.fraction_field()
+            sage: phi = F.hom([F(b),F(a)], base_map=cc)
+            sage: phi(i/a)
+            ((-i))/b
         """
-        nnum = codomain.coerce(self.__numerator._im_gens_(codomain, im_gens))
-        nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens))
+        nnum = codomain.coerce(self.__numerator._im_gens_(codomain, im_gens, base_map=base_map))
+        nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens, base_map=base_map))
         return codomain.coerce(nnum/nden)
 
     cpdef reduce(self):
@@ -380,6 +383,14 @@ cdef class FractionFieldElement(FieldElement):
             sage: s == t
             True
             sage: len(set([s,t]))
+            1
+
+        Check that :trac:`25199` is fixed::
+
+            sage: R.<x,y,z>=QQbar[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: ((x+1)/(x^2+1)).subs({x:1})
             1
         """
         if self.__denominator.is_one():
@@ -1075,6 +1086,13 @@ cdef class FractionFieldElement(FieldElement):
 
         raise NotImplementedError
 
+    def specialization(self, D=None, phi=None):
+        """
+        Returns the specialization of a fraction element of a polynomial ring
+        """
+        numerator = self.numerator().specialization(D, phi)
+        denominator = self.denominator().specialization(D, phi)
+        return numerator / denominator
 
 cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """

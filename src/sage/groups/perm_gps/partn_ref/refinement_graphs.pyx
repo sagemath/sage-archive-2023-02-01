@@ -11,19 +11,15 @@ REFERENCE:
   Vol. 30 (1981), pp. 45-87.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import print_function
-
-from sage.misc.decorators import rename_keyword
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .data_structures cimport *
 include "sage/data_structures/bitset.pxi"
@@ -120,7 +116,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             G = <CGraph> G_in
             if n == -1:
                 n = G.num_verts
-            elif n != G.num_verts:
+            elif n != <int>G.num_verts:
                 return False
             if not loops:
                 for i from 0 <= i < n:
@@ -177,7 +173,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     sig_free(output)
     return output_py
 
-@rename_keyword(deprecation=21111, certify='certificate')
+
 def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificate=False,
                     verbosity=0, use_indicator_function=True, sparse=True,
                     base=False, order=False):
@@ -376,14 +372,6 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
 
         sage: st(Graph(':Dkw'), [range(5)], lab=False, dig=True)
         [[4, 1, 2, 3, 0], [0, 2, 1, 3, 4]]
-
-    TESTS::
-
-        sage: G = Graph()
-        sage: st(G, [], certify=True)
-        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-        See http://trac.sagemath.org/21111 for details.
-        ([], Graph on 0 vertices, {})
     """
     cdef CGraph G
     cdef int i, j, n
@@ -474,7 +462,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
     # prepare output
     list_of_gens = []
     for i from 0 <= i < output.num_gens:
-        list_of_gens.append([output.generators[j+i*G.num_verts] for j from 0 <= j < G.num_verts])
+        list_of_gens.append([output.generators[j+i*G.num_verts] for j from 0 <= j < <int>G.num_verts])
     return_tuple = [list_of_gens]
     if dict_rep:
         ddd = {}
@@ -496,7 +484,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         return_tuple.append(G_C)
     if certificate:
         dd = {}
-        for i from 0 <= i < G.num_verts:
+        for i from 0 <= i < <int>G.num_verts:
             dd[frm[i]] = output.relabeling[i]
         return_tuple.append(dd)
     if base:
@@ -544,7 +532,7 @@ cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, 
     cdef int *degrees = GS.scratch # length 3n+1
     cdef bint necessary_to_split_cell
     cdef int against_index
-    if G.num_verts != PS.degree and PS.depth == 0:
+    if <int>G.num_verts != PS.degree and PS.depth == 0:
         # should be less verts, then, so place the "nonverts" in separate cell at the end
         current_cell = 0
         while current_cell < PS.degree:
@@ -662,14 +650,14 @@ cdef int compare_graphs(int *gamma_1, int *gamma_2, void *S1, void *S2, int degr
     - ``gamma_1``, ``gamma_2`` -- list permutations (inverse)
     - ``S1``, ``S2`` -- graph struct objects
     """
-    cdef int i, j, m
+    cdef size_t i, j
     cdef GraphStruct GS1 = <GraphStruct> S1
     cdef GraphStruct GS2 = <GraphStruct> S2
     cdef CGraph G1 = GS1.G
     cdef CGraph G2 = GS2.G
     if G1.active_vertices.size != G2.active_vertices.size or \
        not bitset_cmp(G1.active_vertices, G2.active_vertices):
-        for i from 0 <= i < degree:
+        for i from 0 <= i < <size_t>degree:
             if G1.has_vertex(gamma_1[i]) != G2.has_vertex(gamma_2[i]):
                 return G1.has_vertex(gamma_1[i]) - G2.has_vertex(gamma_2[i])
     for i from 0 <= i < G1.num_verts:

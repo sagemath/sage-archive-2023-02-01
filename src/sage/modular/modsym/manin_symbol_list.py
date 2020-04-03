@@ -277,7 +277,7 @@ class ManinSymbolList(Parent):
             sage: m.index(m.symbol_list()[2])
             2
             sage: S = m.symbol_list()
-            sage: all([i == m.index(S[i]) for i in range(len(S))])
+            sage: all(i == m.index(S[i]) for i in range(len(S)))
             True
         """
         if x in self._index:

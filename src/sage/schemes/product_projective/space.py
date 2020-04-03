@@ -42,7 +42,6 @@ We can also construct the product by specifying the dimensions and the base ring
 
 import six
 from sage.misc.cachefunc import cached_method
-from sage.misc.mrange import xmrange
 from sage.misc.all import prod
 from sage.rings.all import (PolynomialRing, QQ, Integer, CommutativeRing)
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
@@ -78,9 +77,10 @@ def is_ProductProjectiveSpaces(x):
     """
     return isinstance(x, ProductProjectiveSpaces_ring)
 
+
 def ProductProjectiveSpaces(n, R=None, names='x'):
     r"""
-    Returns the Cartesian product of projective spaces.
+    Return the Cartesian product of projective spaces.
 
     Can input either a list of projective space over the same base \
     ring or the list of dimensions, the base ring, and the variable names.
@@ -1141,7 +1141,7 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         Bound check is strict for the rational field. Requires the base field of this space to be a number field.
         Uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        computing algebraic numbers up to a given height [DK2013]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.
@@ -1210,7 +1210,6 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         for i in range(1, len(dim)):
             dim_prefix.append(dim_prefix[i] + dim[i])
 
-        pts = []
         P = []
         for i in range(m):
             pt = next(iters[i])

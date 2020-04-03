@@ -22,6 +22,11 @@ C++ excerpt:
 translates into::
 
     sage: from sage.libs.ppl import Variable, Constraint_System, C_Polyhedron
+    doctest:warning
+    ...
+    DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+    Please use import 'ppl' instead of 'sage.libs.ppl'.
+    See http://trac.sagemath.org/23024 for details.
     sage: x = Variable(0)
     sage: y = Variable(1)
     sage: cs = Constraint_System()
@@ -135,6 +140,9 @@ AUTHORS:
 
 - Volker Braun (2010-10-08): initial version.
 - Risan (2012-02-19): extension for MIP_Problem class
+- Vincent Klein (2017-12-21) : Deprecate this module. 
+  Future change should be done in the standalone package pplpy 
+  (https://github.com/videlec/pplpy).
 """
 
 #*****************************************************************************
@@ -145,8 +153,8 @@ AUTHORS:
 #  the License, or (at youroption) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
+from sage.misc.superseded import deprecation
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.sage_object cimport SageObject
@@ -157,6 +165,10 @@ from sage.rings.rational cimport Rational
 
 from libcpp cimport bool as cppbool
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+
+deprecation(23024, "The Sage wrappers around ppl are now superseded " +
+            "by the standalone pplpy. Please use import 'ppl' instead" +
+            " of 'sage.libs.ppl'.")
 
 ####################################################
 # Potentially expensive operations:
@@ -174,7 +186,6 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
 
 # but with PPL's rounding the gsl will be very unhappy; must turn off!
 restore_pre_PPL_rounding()
-
 
 ####################################################
 # Cython does not support ctypedef within cppclass; Hack around this restriction:
@@ -270,6 +281,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         bint OK()
 
     cdef cppclass PPL_Constraint:
+        PPL_Constraint()
         PPL_Constraint(PPL_Constraint &g)
         PPL_dimension_type space_dimension()
         PPL_ConstraintType type()
@@ -2987,7 +2999,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             space_dim 2
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
             con_sys (up-to-date)
@@ -3011,6 +3027,34 @@ cdef class Polyhedron(_mutable_or_immutable):
             2 x 2
             0 0
             0 1
+            sage: print(err)  # long time py3
+            space_dim 2
+            -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
+            con_sys (up-to-date)
+            topology NECESSARILY_CLOSED
+            2 x 2 SPARSE (sorted)
+            index_first_pending 2
+            size 3 -1 3 2 = (C)
+            size 3 1 0 0 >= (C)
+            <BLANKLINE>
+            gen_sys (up-to-date)
+            topology NECESSARILY_CLOSED
+            2 x 2 DENSE (not_sorted)
+            index_first_pending 2
+            size 3 0 2 -3 L (C)
+            size 3 2 0 1 P (C)
+            <BLANKLINE>
+            sat_c
+            0 x 0
+            <BLANKLINE>
+            sat_g
+            2 x 2
+            0 0
+            0 1
+            <BLANKLINE>
+            /...: DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy. Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         sig_on()
         self.thisptr.ascii_dump()
@@ -3861,7 +3905,7 @@ cdef class Variables_Set(object):
             sage: Variables_Set()
             Variables_Set of cardinality 0
         """
-        if len(args)==0:
+        if not args:
             self.thisptr = new PPL_Variables_Set()
         elif len(args)==1:
             v = <Variable?>args[0]
@@ -3940,10 +3984,20 @@ cdef class Variables_Set(object):
             sage: sage_cmd += 'S.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             <BLANKLINE>
             variables( 1 )
             123
+            sage: print(err)  # long time py3
+            variables( 1 )
+            123 /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         self.thisptr.ascii_dump()
 
@@ -4043,12 +4097,12 @@ cdef class Linear_Expression(object):
             a = args[0]
             b = args[1]
             ex = Linear_Expression(0)
-            for i in range(0,len(a)):
+            for i in range(len(a)):
                 ex += Variable(i) * Integer(a[i])
             arg = ex + b
         elif len(args)==1:
             arg = args[0]
-        elif len(args)==0:
+        elif not args:
             self.thisptr = new PPL_Linear_Expression()
             return
         else:
@@ -4224,8 +4278,17 @@ cdef class Linear_Expression(object):
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             size 3 1 3 2
+            sage: print(err)  # long time py3
+            size 3 1 3 2/... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         self.thisptr.ascii_dump()
 
@@ -5118,8 +5181,18 @@ cdef class Generator(object):
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             size 3 1 3 2 P (C)
+            sage: print(err)  # long time py3
+            size 3 1 3 2 P (C)
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         self.thisptr.ascii_dump()
 
@@ -5419,11 +5492,24 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: sage_cmd += 'gs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             topology NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
             size 3 1 3 2 P (C)
+            sage: print(err)  # long time py3
+            topology NECESSARILY_CLOSED
+            1 x 2 SPARSE (sorted)
+            index_first_pending 1
+            size 3 1 3 2 P (C)
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         self.thisptr.ascii_dump()
 
@@ -5643,8 +5729,16 @@ cdef class Generator_System_iterator(object):
 cdef _wrap_Constraint(PPL_Constraint constraint):
     """
     Wrap a C++ ``PPL_Constraint`` into a Cython ``Constraint``.
+
+    Check that :trac:`27278` is fixed::
+
+    sage: from sage.libs.ppl import Variable, Constraint
+    sage: x=Variable(0)
+    sage: c = x == 0
+    sage: type(Constraint(c))
+    <class 'sage.libs.ppl.Constraint'>
     """
-    cdef Constraint c = Constraint(True)
+    cdef Constraint c = Constraint.__new__(Constraint)
     c.thisptr = new PPL_Constraint(constraint)
     return c
 
@@ -5720,8 +5814,15 @@ cdef class Constraint(object):
 
     cdef PPL_Constraint *thisptr
 
+    def __init__(self, arg=None):
+        if arg is None:
+            self.thisptr = new PPL_Constraint()
+        elif isinstance(arg, Constraint):
+            self.thisptr = new PPL_Constraint((<Constraint> arg).thisptr[0])
+        else:
+            raise TypeError("invalid argument for Constraint")
 
-    def __cinit__(self, do_not_construct_manually=False):
+    def __cinit__(self):
         """
         The Cython constructor.
 
@@ -5734,7 +5835,6 @@ cdef class Constraint(object):
             sage: x>0   # indirect doctest
             x0>0
         """
-        assert(do_not_construct_manually)
         self.thisptr = NULL
 
 
@@ -6107,8 +6207,18 @@ cdef class Constraint(object):
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             size 4 1 3 2 -1 > (NNC)
+            sage: print(err)  # long time py3
+            size 4 1 3 2 -1 > (NNC)
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         self.thisptr.ascii_dump()
 
@@ -6240,8 +6350,7 @@ cdef _wrap_Constraint_System(PPL_Constraint_System constraint_system):
     """
     Wrap a C++ ``PPL_Constraint_System`` into a Cython ``Constraint_System``.
     """
-    cdef Constraint_System cs = Constraint_System()
-    del cs.thisptr
+    cdef Constraint_System cs = Constraint_System.__new__(Constraint_System)
     cs.thisptr = new PPL_Constraint_System(constraint_system)
     return cs
 
@@ -6272,18 +6381,7 @@ cdef class Constraint_System(object):
     cdef PPL_Constraint_System *thisptr
 
 
-    def __cinit__(self, arg=None):
-        """
-        The Cython constructor.
-
-        See :class:`Constraint_System` for documentation.
-
-        TESTS::
-
-            sage: from sage.libs.ppl import Constraint_System
-            sage: Constraint_System()
-            Constraint_System {}
-        """
+    def __init__(self, arg=None):
         if arg is None:
             self.thisptr = new PPL_Constraint_System()
             return
@@ -6302,6 +6400,19 @@ cdef class Constraint_System(object):
             return
         raise ValueError('Cannot initialize with '+str(arg)+'.')
 
+    def __cinit__(self, arg=None):
+        """
+        The Cython constructor.
+
+        See :class:`Constraint_System` for documentation.
+
+        Tests:
+
+        >>> from ppl import Constraint_System
+        >>> Constraint_System()
+        Constraint_System {}
+        """
+        self.thisptr = NULL
 
     def __dealloc__(self):
         """
@@ -6453,11 +6564,22 @@ cdef class Constraint_System(object):
             sage: sage_cmd += 'cs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            ...
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
             size 4 -1 3 -2 -1 > (NNC)
+            sage: print(err)  # long time py3
+            topology NOT_NECESSARILY_CLOSED
+            1 x 2 SPARSE (sorted)
+            index_first_pending 1
+            size 4 -1 3 -2 -1 > (NNC)
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            ...
         """
         self.thisptr.ascii_dump()
 
@@ -6804,8 +6926,17 @@ cdef class Poly_Gen_Relation(object):
             sage: sage_cmd += 'Poly_Gen_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             NOTHING
+            sage: print(err)  # long time py3
+            NOTHING/... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         self.thisptr.ascii_dump()
 
@@ -7054,8 +7185,17 @@ cdef class Poly_Con_Relation(object):
             sage: sage_cmd += 'Poly_Con_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print(err)  # long time
+            sage: print(err)  # long time py2
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             NOTHING
+            sage: print(err)  # long time py3
+            NOTHING/... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
         """
         self.thisptr.ascii_dump()
 

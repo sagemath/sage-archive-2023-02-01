@@ -42,7 +42,6 @@ from six.moves import range
 from six import integer_types
 
 import os
-import stat
 import sys
 import time
 import resource
@@ -61,7 +60,7 @@ LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
 #################################################################
 
 
-def sage_makedirs(dir):
+def sage_makedirs(dirname, mode=0o777):
     """
     Python version of ``mkdir -p``: try to create a directory, and also
     create all intermediate directories as necessary.  Succeed silently
@@ -74,47 +73,27 @@ def sage_makedirs(dir):
         sage: sage_makedirs(DOT_SAGE) # no output
 
     The following fails because we are trying to create a directory in
-    place of an ordinary file (the main Sage executable)::
+    place of an ordinary file::
 
-        sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
-        sage: sage_makedirs(sage_executable)
+        sage: filename = tmp_filename()
+        sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: ...
+        OSError: [Errno ...] File exists: ...
     """
     try:
-        os.makedirs(dir)
+        os.makedirs(dirname)
     except OSError:
-        if not os.path.isdir(dir):
+        if not os.path.isdir(dirname):
             raise
 
 
-#################################################
-# Now that the variable DOT_SAGE has been set,
-# we make sure that the DOT_SAGE directory
-# has restrictive permissions, since otherwise
-# possibly just anybody can easily see every
-# command you type, since it is in the history,
-# and every worksheet you create, etc.
-# We do the following:
-#   1. If there is no DOT_SAGE, we create it.
-#   2. Check to see if the permissions on DOT_SAGE are
-#      sufficiently restrictive.  If not, we change them.
+# We create the DOT_SAGE directory (if it doesn't exist yet; note in particular
+# that it may already have been created by the bin/sage script) with
+# restrictive permissions, since otherwise possibly just anybody can easily see
+# every command you type.
 
-sage_makedirs(DOT_SAGE)
-
-if hasattr(os, 'chmod'):
-    _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-    _desired_mode = 0o40700     # drwx------
-    if _mode != _desired_mode:
-        # On Cygwin, if the sage directory is not in a filesystem mounted with
-        # 'acl' support, setting the permissions may fail silently, so only
-        # print the message after we've changed the permissions and confirmed
-        # that the change succeeded
-        os.chmod(DOT_SAGE, _desired_mode)
-        if os.stat(DOT_SAGE)[stat.ST_MODE] == _desired_mode:
-            print("Setting permissions of DOT_SAGE directory so only you "
-                  "can read and write it.")
+sage_makedirs(DOT_SAGE, mode=0o700)
 
 def try_read(obj, splitlines=False):
     r"""
@@ -215,10 +194,10 @@ def try_read(obj, splitlines=False):
     return data
 
 
-
 #################################################
 # Next we create the Sage temporary directory.
 #################################################
+
 
 @lazy_string
 def SAGE_TMP():
@@ -598,7 +577,7 @@ def set_verbose(level, files='all'):
 
     INPUT:
 
-    - ``level`` - an integer between 0 and 2, inclusive.
+    - ``level`` -- an integer between 0 and 2, inclusive.
 
     - ``files`` (default: 'all'): list of files to make verbose, or
        'all' to make ALL files verbose (the default).
@@ -617,6 +596,8 @@ def set_verbose(level, files='all'):
         [no output]
         sage: set_verbose(0)
     """
+    if level is None:
+        level = -1
     if isinstance(level, str):
         set_verbose_files([level])
     global LEVEL
@@ -712,14 +693,83 @@ def uniq(x):
 
     EXAMPLES::
 
-        sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
-        sage: v            # potentially random ordering of output
-        ['a', 'x', -5, 1, 3, 8]
-        sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
+        sage: uniq([1, 1, 8, -5, 3, -5, -13, 13, -13])
+        doctest:...: DeprecationWarning: the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output
+        See https://trac.sagemath.org/27014 for details.
+        [-13, -5, 1, 3, 8, 13]
+    """
+    # After deprecation period, rename _stable_uniq -> uniq
+    from sage.misc.superseded import deprecation
+    deprecation(27014, "the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output")
+    return sorted(set(x))
+
+
+def _stable_uniq(L):
+    """
+    Iterate over the elements of ``L``, yielding every element at most
+    once: keep only the first occurance of any item.
+
+    The items must be hashable.
+
+    INPUT:
+
+    - ``L`` -- iterable
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import _stable_uniq
+        sage: L = [1, 1, 8, -5, 3, -5, 'a', 'x', 'a']
+        sage: it = _stable_uniq(L)
+        sage: it
+        <generator object _stable_uniq at ...>
+        sage: list(it)
+        [1, 8, -5, 3, 'a', 'x']
+    """
+    seen = set()
+    for x in L:
+        if x in seen:
+            continue
+        yield x
+        seen.add(x)
+
+
+def exactly_one_is_true(iterable):
+    r"""
+    Return whether exactly one element of ``iterable`` evaluates ``True``.
+
+    INPUT:
+
+    - ``iterable`` -- an iterable object
+
+    OUTPUT:
+
+    A boolean.
+
+    .. NOTE::
+
+        The implementation is suggested by
+        `stackoverflow entry <https://stackoverflow.com/a/16801605/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import exactly_one_is_true
+        sage: exactly_one_is_true([])
+        False
+        sage: exactly_one_is_true([True])
+        True
+        sage: exactly_one_is_true([False])
+        False
+        sage: exactly_one_is_true([True, True])
+        False
+        sage: exactly_one_is_true([False, True])
+        True
+        sage: exactly_one_is_true([True, False, True])
+        False
+        sage: exactly_one_is_true([False, True, False])
         True
     """
-    v = sorted(set(x))
-    return v
+    it = iter(iterable)
+    return any(it) and not any(it)
 
 
 def coeff_repr(c, is_latex=False):
@@ -851,7 +901,7 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False,
             try:
                 if c < 0:
                     negative = True
-            except NotImplementedError:
+            except (NotImplementedError, TypeError):
                 # comparisons may not be implemented for some coefficients
                 pass
             if negative:
@@ -1327,7 +1377,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs), x))
-        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs) - 1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 
@@ -1548,7 +1598,7 @@ class AttrCallObject(object):
             sage: series(sin(x), 4)
             1*x + (-1/6)*x^3 + Order(x^4)
         """
-        return getattr(x, self.name)(*(self.args+args), **self.kwds)
+        return getattr(x, self.name)(*(self.args + args), **self.kwds)
 
     def __repr__(self):
         """
@@ -1637,7 +1687,7 @@ class AttrCallObject(object):
         unique representation of parents taking ``attrcall`` objects
         as input; see :trac:`8911`.
         """
-        return hash((self.args, tuple(self.kwds.items())))
+        return hash((self.args, tuple(sorted(self.kwds.items()))))
 
 
 def attrcall(name, *args, **kwds):
@@ -1709,8 +1759,8 @@ def is_in_string(line, pos):
         # which is the case if the previous character isn't
         # a backslash, or it is but both previous characters
         # are backslashes.
-        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i:i+3] in ['"""', "'''"]:
+        if line[i - 1: i] != '\\' or line[i - 2: i] == '\\\\':
+            if line[i: i + 3] in ['"""', "'''"]:
                 if not in_quote():
                     in_triple_quote = True
                 elif in_triple_quote:

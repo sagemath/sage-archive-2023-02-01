@@ -18,17 +18,15 @@ from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
-    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
-      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
+            ('gamma', 'log_gamma', 'gamma_inc',
+             'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.libs.pynac.pynac import (register_symbol, symbol_table, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
-from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
-from sage.misc.decorators import rename_keyword
 import math
 
 from sage.structure.element import coercion_model
@@ -36,11 +34,7 @@ from sage.structure.element import coercion_model
 # avoid name conflicts with `parent` as a function parameter
 from sage.structure.all import parent as s_parent
 
-from sage.symbolic.constants import pi
-from sage.functions.log import exp
 from sage.functions.trig import arctan2
-from sage.functions.exp_integral import Ei
-from sage.libs.mpmath import utils as mpmath_utils
 from sage.arith.all import binomial as arith_binomial
 
 one_half = SR.one() / SR(2)
@@ -121,16 +115,19 @@ class Function_abs(GinacFunction):
             abs(x)*e^2
             sage: abs((pi+e)*x)
             (pi + e)*abs(x)
+
+            sage: fricas(abs(x)).sage().derivative()  # optional - fricas
+            1/2*(x + conjugate(x))/abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
                                conversions=dict(sympy='Abs',
                                                 mathematica='Abs',
-                                                giac='abs'))
+                                                giac='abs',
+                                                fricas='abs'))
 
 abs = abs_symbolic = Function_abs()
 
 
-@rename_keyword(deprecation=22079, maximum_bits="bits")
 def _eval_floor_ceil(self, x, method, bits=0, **kwds):
     """
     Helper function to compute ``floor(x)`` or ``ceil(x)``.
@@ -170,7 +167,7 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         sage: ceil(f, bits=10000)
         0
 
-    These don't work but fail gracefully::
+    These do not work but fail gracefully::
 
         sage: ceil(Infinity)
         Traceback (most recent call last):
@@ -180,13 +177,6 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: Calling ceil() on infinity or NaN
-
-    TESTS::
-
-        sage: floor(pi, maximum_bits=0)
-        doctest:...: DeprecationWarning: use the option 'bits' instead of 'maximum_bits'
-        See http://trac.sagemath.org/22079 for details.
-        3
     """
     # First, some obvious things...
     try:
@@ -649,8 +639,6 @@ class Function_Order(GinacFunction):
             Order(x)
             sage: (x^2 + x).Order()
             Order(x^2 + x)
-            sage: x.Order()._sympy_()
-            O(x)
 
         TESTS:
 
@@ -660,10 +648,40 @@ class Function_Order(GinacFunction):
             Order
         """
         GinacFunction.__init__(self, "Order",
-                conversions=dict(sympy='O'),
+                conversions=dict(),
                 latex_name=r"\mathcal{O}")
 
+    def _sympy_(self, arg):
+        """
+        EXAMPLES::
+
+            sage: x.Order()._sympy_()
+            O(x)
+            sage: SR(1).Order()._sympy_()
+            O(1)
+            sage: ((x-1)^3).Order()._sympy_()
+            O((x - 1)**3, (x, 1))
+            sage: exp(x).series(x==1, 3)._sympy_()
+            E + E*(x - 1) + E*(x - 1)**2/2 + O((x - 1)**3, (x, 1))
+
+            sage: (-(pi-x)^3).Order()._sympy_()
+            O((x - pi)**3, (x, pi))
+            sage: cos(x).series(x==pi, 3)._sympy_()
+            -1 + (pi - x)**2/2 + O((x - pi)**3, (x, pi))
+        """
+        roots = arg.solve(arg.default_variable(), algorithm='sympy',
+                          multiplicities=False, explicit_solutions=True)
+        if len(roots) == 1:
+            arg = (arg, (roots[0].lhs(), roots[0].rhs()))
+        elif len(roots) > 1:
+            raise ValueError("order term %s has multiple roots" % arg)
+        # else there are no roots, e.g. O(1), so we leave arg unchanged
+        import sympy
+        return sympy.O(*sympy.sympify(arg, evaluate=False))
+
+
 Order = Function_Order()
+
 
 class Function_frac(BuiltinFunction):
     def __init__(self):
@@ -1447,6 +1465,13 @@ class Function_factorial(GinacFunction):
 
             sage: factorial(RBF(2)**64)
             [+/- 2.30e+347382171326740403407]
+
+        Check that :trac:`26749` is fixed::
+
+            sage: factorial(float(3.2))        # abs tol 1e-14
+            7.7566895357931776
+            sage: type(factorial(float(3.2)))
+            <type 'float'>
         """
         if isinstance(x, Integer):
             try:
@@ -1457,7 +1482,11 @@ class Function_factorial(GinacFunction):
             from sage.functions.gamma import gamma
             return gamma(x + 1)
         elif self._is_numerical(x):
-            return (x + 1).gamma()
+            try:
+                return (x + 1).gamma()
+            except AttributeError:
+                from sage.functions.gamma import gamma
+                return gamma(x + 1)
 
 factorial = Function_factorial()
 
@@ -1869,11 +1898,11 @@ class Function_limit(BuiltinFunction):
 
             sage: t = var('t')
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
-            \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x^-}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
-            \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x^+}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
-            \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
         """
         if repr(direction) == 'minus':
             dir_str = '^-'
@@ -1941,10 +1970,14 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()
+            sage: cases()  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
+            sage: cases()  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() missing 1 required positional argument: 'l'
 
             sage: cases(x)
             Traceback (most recent call last):

@@ -37,7 +37,7 @@ echo ""
 # Use newer version of config.guess and config.sub (see Trac #19732)
 cp "$SAGE_ROOT"/config/config.* src
 
-sdh_configure --with-gmp-prefix=$SAGE_LOCAL --disable-threads \
+sdh_configure $SAGE_CONFIGURE_GMP --disable-threads \
               --enable-unicode=yes $ECL_CONFIGURE
 
 # Before running make we touch build/TAGS so its building process is never triggered
@@ -48,14 +48,6 @@ touch build/TAGS
 exec </dev/null
 
 sdh_make
-
-# Remove old install of ECL, if any.
-rm -rf "$SAGE_LOCAL/lib/ecl-"*
-if [ $? -ne 0 ]; then
-    echo >&2 "Error - Failed to remove old ECL install ... exiting"
-    exit 1
-fi
-
 sdh_make_install
 
 # Create symbolic link to lib/ecl-version directory.

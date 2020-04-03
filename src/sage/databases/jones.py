@@ -108,7 +108,8 @@ class JonesDatabase:
         while filename[j].isalpha() or filename[j] in [".", "_"]:
             j -= 1
         S = sorted([eval(z) for z in filename[i:j + 1].split("-")])
-        data = open(path + "/" + filename).read()
+        with open(path + "/" + filename) as f:
+            data = f.read()
         data = data.replace("^", "**")
         x = PolynomialRing(RationalField(), 'x').gen()  # used next line
         v = eval(data)
@@ -233,7 +234,7 @@ class JonesDatabase:
             S = list(S)
         except TypeError:
             S = [S]
-        if not all([p.is_prime() for p in S]):
+        if not all(p.is_prime() for p in S):
             raise ValueError("S must be a list of primes")
         S.sort()
         s = tuple(S)

@@ -9,15 +9,15 @@ AUTHORS:
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 import os
@@ -27,13 +27,12 @@ import random
 import doctest
 from Cython.Utils import is_package_dir
 from sage.cpython.string import bytes_to_str
-from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
 from .parsing import SageDocTestParser
 from .util import NestedName
 from sage.structure.dynamic_class import dynamic_class
-from sage.env import SAGE_SRC, SAGE_LOCAL
+from sage.env import SAGE_SRC, SAGE_LIB
 
 # Python file parsing
 triple_quotes = re.compile(r"\s*[rRuU]*((''')|(\"\"\"))")
@@ -49,6 +48,7 @@ skip = re.compile(r".*%skip.*")
 # ReST file parsing
 link_all = re.compile(r"^\s*\.\.\s+linkall\s*$")
 double_colon = re.compile(r"^(\s*).*::\s*$")
+code_block = re.compile(r"^(\s*)[.][.]\s*code-block\s*::.*$")
 
 whitespace = re.compile(r"\s*")
 bitness_marker = re.compile('#.*(32|64)-bit')
@@ -89,7 +89,7 @@ def get_basename(path):
     # If the file is in the sage library, we can use our knowledge of
     # the directory structure
     dev = SAGE_SRC
-    sp = os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages')
+    sp = SAGE_LIB
     if path.startswith(dev):
         # there will be a branch name
         i = path.find(os.path.sep, len(dev))
@@ -108,6 +108,7 @@ def get_basename(path):
     if os.path.split(path)[1] == '__init__.py':
         fully_qualified_path = fully_qualified_path[:-9]
     return fully_qualified_path.replace(os.path.sep, '.')
+
 
 class DocTestSource(object):
     """
@@ -277,7 +278,6 @@ class DocTestSource(object):
         self.linking = False
         doctests = []
         in_docstring = False
-        tab_found = False
         unparsed_doc = False
         doc = []
         start = None
@@ -341,12 +341,13 @@ class DocTestSource(object):
             # we want to randomize even when self.randorder = 0
             random.seed(self.options.randorder)
             randomized = []
-            while len(doctests) > 0:
-                i = random.randint(0, len(doctests)-1)
+            while doctests:
+                i = random.randint(0, len(doctests) - 1)
                 randomized.append(doctests.pop(i))
             return randomized, extras
         else:
             return doctests, extras
+
 
 class StringDocTestSource(DocTestSource):
     r"""
@@ -669,7 +670,7 @@ class FileDocTestSource(DocTestSource):
 
     def create_doctests(self, namespace):
         r"""
-        Returns a list of doctests for this file.
+        Return a list of doctests for this file.
 
         INPUT:
 
@@ -709,7 +710,7 @@ class FileDocTestSource(DocTestSource):
 
             sage: import sys
             sage: bitness = '64' if sys.maxsize > (1 << 32) else '32'
-            sage: n = -920390823904823094890238490238484; hash(n) > 0
+            sage: gp.get_precision() == 38
             False # 32-bit
             True  # 64-bit
             sage: ex = doctests[18].examples[13]
@@ -768,12 +769,10 @@ class FileDocTestSource(DocTestSource):
             ....:         _, ext = os.path.splitext(F)
             ....:         if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst'):
             ....:             filename = os.path.join(path, F)
-            ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
+            ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True, optional=True, force_lib=True))
             ....:             FDS._test_enough_doctests(verbose=False)
-            There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
-            There are 3 tests in sage/rings/invariants/invariant_theory.py that are not being run
             sage: os.chdir(cwd)
         """
         expected = []
@@ -795,8 +794,10 @@ class FileDocTestSource(DocTestSource):
                         in_block = False
                         skipping = False
                 if not in_block:
-                    m = double_colon.match(line)
-                    if m and not line.strip().startswith(".."):
+                    m1 = double_colon.match(line)
+                    m2 = code_block.match(line.lower())
+                    starting = (m1 and not line.strip().startswith(".. ")) or m2
+                    if starting:
                         if ".. skip" in last_line:
                             skipping = True
                         in_block = True
@@ -1041,23 +1042,23 @@ class PythonSource(SourceLanguage):
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.starting_docstring("r'''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
             sage: FDS.ending_docstring("'''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
             sage: FDS.qualified_name = NestedName(FDS.basename)
             sage: FDS.starting_docstring("class MyClass(object):")
             sage: FDS.starting_docstring("    def hello_world(self):")
             sage: FDS.starting_docstring("        '''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
             sage: FDS.qualified_name
             sage.doctest.sources.MyClass.hello_world
             sage: FDS.ending_docstring("    '''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
             sage: FDS.starting_docstring("class NewClass(object):")
             sage: FDS.starting_docstring("    '''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
             sage: FDS.ending_docstring("    '''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
             sage: FDS.qualified_name
             sage.doctest.sources.NewClass
             sage: FDS.starting_docstring("print(")
@@ -1065,7 +1066,7 @@ class PythonSource(SourceLanguage):
             sage: FDS.starting_docstring("    ''')")
             sage: FDS.starting_docstring("def foo():")
             sage: FDS.starting_docstring("    '''This is a docstring'''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
         """
         indent = whitespace.match(line).end()
         quotematch = None
@@ -1119,7 +1120,7 @@ class PythonSource(SourceLanguage):
             sage: FDS._init()
             sage: FDS.quotetype = "'''"
             sage: FDS.ending_docstring("'''")
-            <_sre.SRE_Match object...>
+            <...Match object...>
             sage: FDS.ending_docstring('\"\"\"')
         """
         quotematch = triple_quotes.match(line)
@@ -1130,8 +1131,8 @@ class PythonSource(SourceLanguage):
 
     def _neutralize_doctests(self, reindent):
         r"""
-        Returns a string containing the source of self, but with
-        doctests modified so they aren't tested.
+        Return a string containing the source of ``self``, but with
+        doctests modified so they are not tested.
 
         This function is used in creating doctests for ReST files,
         since docstrings of Python functions defined inside verbatim
@@ -1389,7 +1390,8 @@ class RestSource(SourceLanguage):
 
     def starting_docstring(self, line):
         """
-        A line ending with a double quote starts a verbatim block in a ReST file.
+        A line ending with a double colon starts a verbatim block in a ReST file,
+        as does a line containing ``.. CODE-BLOCK:: language``.
 
         This function also determines whether the docstring block
         should be joined with the previous one, or should be skipped.
@@ -1431,11 +1433,13 @@ class RestSource(SourceLanguage):
                 self.skipping = False
             else:
                 return False
-        m = double_colon.match(line)
-        starting = m and not line.strip().startswith(".. ")
+        m1 = double_colon.match(line)
+        m2 = code_block.match(line.lower())
+        starting = (m1 and not line.strip().startswith(".. ")) or m2
         if starting:
             self.linking = self.link_all or '.. link' in self.last_line
             self.first_line = True
+            m = m1 or m2
             indent = len(m.groups()[0])
             if '.. skip' in self.last_line:
                 self.skipping = True

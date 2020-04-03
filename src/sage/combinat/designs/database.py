@@ -300,8 +300,8 @@ MOLS_constructions = {
 }
 
 # Add this data to the module's doc
-LIST_OF_MOLS_CONSTRUCTIONS = ", ".join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
-                                        for n,(k,_) in MOLS_constructions.items()])
+LIST_OF_MOLS_CONSTRUCTIONS = ", ".join(":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
+                                       for n,(k,_) in MOLS_constructions.items())
 
 def OA_7_18():
     r"""
@@ -424,7 +424,7 @@ def OA_7_66():
     # base block of a (73,9,1) BIBD
     B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
     # The corresponding BIBD
-    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    BIBD = [[(x+i)%73 for x in B] for i in range(73)]
     # the first 7 elements of an oval
     #
     # (this is the only difference with the OA(7,68) construction)
@@ -464,7 +464,7 @@ def OA_7_68():
     # base block of a (73,9,1) BIBD
     B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
     # The corresponding BIBD
-    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    BIBD = [[(x+i)%73 for x in B] for i in range(73)]
     # the first 5 elements of an oval
     #
     # (this is the only difference with the OA(7,66) construction)
@@ -503,7 +503,7 @@ def OA_8_69():
     # base block of a (73,9,1) BIBD
     B = [1,2,4,8,16,32,37,55,64]
     # The corresponding BIBD
-    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    BIBD = [[(x+i)%73 for x in B] for i in range(73)]
     oval = [72,71,69,65]
     # PBD minus the oval
     PBD = [[x for x in B if x not in oval] for B in BIBD]
@@ -577,7 +577,7 @@ def OA_7_74():
     # base block of a (91,10,1) BIBD
     B = [0,1,3,9,27,81,61,49,56,77]
     # The corresponding BIBD
-    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    BIBD = [[(x+i)%91 for x in B] for i in range(91)]
     # an oval
     oval = [(-x)%91 for x in B][-7:]
     # PBD minus the oval+B
@@ -616,7 +616,7 @@ def OA_8_76():
     # base block of a (91,10,1) BIBD
     B = [0,1,3,9,27,81,61,49,56,77]
     # The corresponding BIBD
-    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    BIBD = [[(x+i)%91 for x in B] for i in range(91)]
     oval = [2,4,5,12,24]
     to_remove = oval + B
     # PBD minus the oval
@@ -703,7 +703,7 @@ def OA_15_112():
     r"""
     Returns an OA(15,112)
 
-    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that 112 = `2^4
+    Published by Julian R. Abel in [Ab1995]_. Uses the fact that 112 = `2^4
     \times 7` and that `7` is prime.
 
     .. SEEALSO::
@@ -882,7 +882,7 @@ def OA_11_160():
     r"""
     Returns an OA(11,160)
 
-    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `160 = 2^5
+    Published by Julian R. Abel in [Ab1995]_. Uses the fact that `160 = 2^5
     \times 5` is a product of a power of `2` and a prime number.
 
     .. SEEALSO::
@@ -925,7 +925,7 @@ def OA_16_176():
     r"""
     Returns an OA(16,176)
 
-    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `176 = 2^4
+    Published by Julian R. Abel in [Ab1995]_. Uses the fact that `176 = 2^4
     \times 11` is a product of a power of `2` and a prime number.
 
     .. SEEALSO::
@@ -1124,7 +1124,7 @@ def OA_16_208():
     r"""
     Returns an OA(16,208)
 
-    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `208 = 2^4
+    Published by Julian R. Abel in [Ab1995]_. Uses the fact that `208 = 2^4
     \times 13` is a product of `2` and a prime number.
 
     .. SEEALSO::
@@ -1183,7 +1183,7 @@ def OA_15_224():
     r"""
     Returns an OA(15,224)
 
-    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `224=2^5
+    Published by Julian R. Abel in [Ab1995]_ (uses the fact that `224=2^5
     \times 7` is a product of a power of `2` and a prime number).
 
     .. SEEALSO::
@@ -1269,7 +1269,7 @@ def OA_20_352():
     r"""
     Returns an OA(20,352)
 
-    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `352=2^5
+    Published by Julian R. Abel in [Ab1995]_ (uses the fact that `352=2^5
     \times 11` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
@@ -1328,7 +1328,7 @@ def OA_20_416():
     r"""
     Returns an OA(20,416)
 
-    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `416=2^5
+    Published by Julian R. Abel in [Ab1995]_ (uses the fact that `416=2^5
     \times 13` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
@@ -1388,7 +1388,7 @@ def OA_20_544():
     r"""
     Returns an OA(20,544)
 
-    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that
+    Published by Julian R. Abel in [Ab1995]_ (uses the fact that
     `544=2^5 \times 17` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
@@ -1516,7 +1516,7 @@ def OA_11_640():
     r"""
     Returns an OA(11,640)
 
-    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `640=2^7
+    Published by Julian R. Abel in [Ab1995]_ (uses the fact that `640=2^7
     \times 5` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
@@ -4327,7 +4327,7 @@ def BIBD_111_6_1():
             ((26,0), (34,0), ( 1,1), ( 7,1), (10,2), (33,2))]
     gens = lambda B: [frozenset(((x*10)%37,(y+1)%3) for x,y in B),
                       frozenset(((x+1) %37,      y) for x,y in B)]
-    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
 def BIBD_126_6_1():
@@ -4381,7 +4381,7 @@ def BIBD_136_6_1():
             ( inf ,( 0,0), ( 9,0), (18,0), (27,0), (36,0))]
     gens = lambda B: [frozenset(((x*16)%45,(y+1)%3) if (x,y)!=inf else inf for x,y in B),
                       frozenset(((x+1) %45,y)       if (x,y)!=inf else inf for x,y in B)]
-    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
 
@@ -4413,7 +4413,7 @@ def BIBD_141_6_1():
 
     gens = lambda B: [frozenset(((x*16)%35,(y+1)%3 if y!=a else a) if (x,y)!=inf else inf for x,y in B),
                       frozenset(((x+1) %35, y )                    if (x,y)!=inf else inf for x,y in B)]
-    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
 def BIBD_171_6_1():
@@ -4441,7 +4441,7 @@ def BIBD_171_6_1():
 
     gens = lambda B: [frozenset(((x*7) %57,(y+1)%3) for x,y in B),
                       frozenset(((x+1) %57,      y) for x,y in B)]
-    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
 def HigmanSimsDesign():
@@ -4460,7 +4460,8 @@ def HigmanSimsDesign():
 
     The design is then obtained from the incidence structure produced by the
     blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
-    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
+    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of
+    [BL1984]_.
 
     EXAMPLES::
 
@@ -4534,7 +4535,7 @@ def BIBD_196_6_1():
 
     gens = lambda B: [frozenset(((x*30)%49,(y+1)%3 if y!=a else a) for x,y in B),
                       frozenset(((x+1) %49,   y)                   for x,y in B)]
-    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
 def BIBD_201_6_1():
@@ -4563,7 +4564,7 @@ def BIBD_201_6_1():
 
     gens = lambda B: [frozenset(((x*29)%67,y) for x,y in B),
                       frozenset(((x+1) %67,y) for x,y in B)]
-    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
 # Index of the BIBD constructions

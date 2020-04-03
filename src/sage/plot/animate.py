@@ -18,10 +18,10 @@ alternative which works without any extra dependencies.
 
 .. WARNING::
 
-    Note that ImageMagick and FFmpeg are not included with Sage, and
+    Note that ``ImageMagick`` and ``FFmpeg`` are not included with Sage, and
     must be installed by the user.  On unix systems, type ``which
     convert`` at a command prompt to see if ``convert`` (part of the
-    ImageMagick suite) is installed.  If it is, you will be given its
+    ``ImageMagick`` suite) is installed.  If it is, you will be given its
     location.  Similarly, you can check for ``ffmpeg`` with ``which
     ffmpeg``.  See the websites of ImageMagick_ or FFmpeg_ for
     installation instructions.
@@ -45,7 +45,7 @@ Animate as an APNG_::
 
     sage: a.apng()  # long time
 
-An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
+An animated :class:`sage.plot.multigraphics.GraphicsArray` of rotating ellipses::
 
     sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15)))
     sage: str(E)    # animations produced from a generator do not have a known length
@@ -109,7 +109,7 @@ REFERENCES:
 ############################################################################
 #  Copyright (C) 2007 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ############################################################################
 from __future__ import print_function, absolute_import
 
@@ -475,10 +475,10 @@ class Animation(WithEqualityById, SageObject):
 
     def graphics_array(self, ncols=3):
         r"""
-        Return a :class:`sage.plot.graphics.GraphicsArray` with plots of the
+        Return a :class:`sage.plot.multigraphics.GraphicsArray` with plots of the
         frames of this animation, using the given number of columns.
         The frames must be acceptable inputs for
-        :class:`sage.plot.graphics.GraphicsArray`.
+        :class:`sage.plot.multigraphics.GraphicsArray`.
 
 
         EXAMPLES::
@@ -802,43 +802,43 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
     def ffmpeg(self, savefile=None, show_path=False, output_format=None,
                ffmpeg_options='', delay=None, iterations=0, pix_fmt='rgb24'):
         r"""
-        Returns a movie showing an animation composed from rendering
-        the frames in self.
+        Return a movie showing an animation composed from rendering
+        the frames in ``self``.
 
-        This method will only work if ffmpeg is installed.  See
-        http://www.ffmpeg.org for information about ffmpeg.
+        This method will only work if ``ffmpeg`` is installed.  See
+        https://www.ffmpeg.org for information about ``ffmpeg``.
 
         INPUT:
 
-        -  ``savefile`` - file that the mpeg gets saved to.
+        - ``savefile`` -- file that the mpeg gets saved to.
 
-        .. warning:
+        .. warning::
 
             This will overwrite ``savefile`` if it already exists.
 
-        - ``show_path`` - boolean (default: False); if True, print the
-          path to the saved file
+        - ``show_path`` -- boolean (default: ``False``); if ``True``,
+          print the path to the saved file
 
-        - ``output_format`` - string (default: None); format and
-          suffix to use for the video.  This may be 'mpg', 'mpeg',
-          'avi', 'gif', or any other format that ffmpeg can handle.
-          If this is None and the user specifies ``savefile`` with a
+        - ``output_format`` - string (default: ``None``); format and
+          suffix to use for the video.  This may be ``'mpg'``, ``'mpeg'``,
+          ``'avi'``, ``'gif'``, or any other format that ``ffmpeg`` can handle.
+          If this is ``None`` and the user specifies ``savefile`` with a
           suffix, say ``savefile='animation.avi'``, try to determine the
-          format ('avi' in this case) from that file name.  If no file
-          is specified or if the suffix cannot be determined, 'mpg' is
+          format (``'avi'`` in this case) from that file name.  If no file
+          is specified or if the suffix cannot be determined, ``'mpg'`` is
           used.
 
-        - ``ffmpeg_options`` - string (default: ''); this string is
+        - ``ffmpeg_options`` - string (default: ``''``); this string is
           passed directly to ffmpeg.
 
-        - ``delay`` - integer (default: None); delay in hundredths of a
+        - ``delay`` - integer (default: ``None``); delay in hundredths of a
           second between frames.  The framerate is 100/delay.
           This is not supported for mpeg files: for mpegs, the frame
           rate is always 25 fps.
 
         - ``iterations`` - integer (default: 0); number of iterations
           of animation. If 0, loop forever.  This is only supported
-          for animated gif output and requires ffmpeg version 0.9 or
+          for animated gif output and requires ``ffmpeg`` version 0.9 or
           later.  For older versions, set ``iterations=None``.
 
         - ``pix_fmt`` - string (default: 'rgb24'); used only for gif
@@ -1122,7 +1122,6 @@ class APngAssembler(object):
         ....:             png = os.path.join(pngdir, "{:08d}.png".format(i))
         ....:             apng.add_frame(png, delay=10*i + 10)
         ....:     return outfile
-        ....:
         sage: assembleAPNG()  # long time
         '...png'
 

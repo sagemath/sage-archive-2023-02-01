@@ -67,11 +67,11 @@ For general help, enter ``Sandpile.help()``, ``SandpileConfig.help()``, and
 A weighted directed graph given as a Python dictionary::
 
     sage: from sage.sandpiles import *
-    sage: g = {0: {},                    \
-               1: {0: 1, 2: 1, 3: 1},    \
-               2: {1: 1, 3: 1, 4: 1},    \
-               3: {1: 1, 2: 1, 4: 1},    \
-               4: {2: 1, 3: 1}}
+    sage: g = {0: {},
+    ....:      1: {0: 1, 2: 1, 3: 1},
+    ....:      2: {1: 1, 3: 1, 4: 1},
+    ....:      3: {1: 1, 2: 1, 4: 1},
+    ....:      4: {2: 1, 3: 1}}
 
 The associated sandpile with 0 chosen as the sink::
 
@@ -250,7 +250,6 @@ Distribution of avalanche sizes::
     ....:     m = m.add_random()
     ....:     m, f = m.stabilize(True)
     ....:     a.append(sum(f.values()))
-    ....:
     sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
@@ -320,6 +319,8 @@ from collections import Counter
 from copy import deepcopy
 from inspect import getdoc
 from textwrap import dedent
+
+from IPython.lib import pretty
 
 import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
@@ -528,8 +529,8 @@ class Sandpile(DiGraph):
 
         ::
 
-            sage: g = {'a': {'a':2, 'b':1, 'c':3}, 'b': {'a':1, 'd':1},\
-                       'c': {'a':1,'d': 1}, 'd': {'b':1, 'c':1}}
+            sage: g = {'a': {'a':2, 'b':1, 'c':3}, 'b': {'a':1, 'd':1},
+            ....:      'c': {'a':1,'d': 1}, 'd': {'b':1, 'c':1}}
             sage: G = Sandpile(g,'d')
 
         Here is a square with unweighted edges.  In this example, the graph is
@@ -1079,8 +1080,8 @@ class Sandpile(DiGraph):
 
         EXAMPLES::
 
-            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1}, \
-                       3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
+            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},
+            ....:      3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
             sage: S = Sandpile(g,0)
             sage: S._set_burning_config()
         """
@@ -1120,8 +1121,8 @@ class Sandpile(DiGraph):
 
         EXAMPLES::
 
-            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1}, \
-                       3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
+            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},
+            ....:      3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
             sage: S = Sandpile(g,0)
             sage: S.burning_config()
             {1: 2, 2: 0, 3: 1, 4: 1, 5: 0}
@@ -1172,8 +1173,8 @@ class Sandpile(DiGraph):
 
         EXAMPLES::
 
-            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},\
-            3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
+            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},
+            ....:      3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
             sage: S = Sandpile(g,0)
             sage: S.burning_config()
             {1: 2, 2: 0, 3: 1, 4: 1, 5: 0}
@@ -1672,7 +1673,7 @@ class Sandpile(DiGraph):
         """
         Compute the avalanche polynomial.  See ``self.avalanche_polynomial`` for details.
 
-        Examples::
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
             sage: s._set_avalanche_polynomial()
@@ -2004,7 +2005,7 @@ class Sandpile(DiGraph):
         r"""
         Find representatives for the elements of the Jacobian group.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(3)
             sage: s._set_jacobian_representatives()
@@ -3468,8 +3469,9 @@ class SandpileConfig(dict):
 
     def values(self):
         r"""
-        The values of the configuration as a list.  The list is sorted in the
-        order of the vertices.
+        The values of the configuration as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -3479,14 +3481,14 @@ class SandpileConfig(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: c = SandpileConfig(S, {'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: c = SandpileConfig(S, {'b':1, 'c':2})
             sage: c
-            {1: 2, 'b': 1}
+            {'b': 1, 'c': 2}
             sage: c.values()
-            [2, 1]
+            [1, 2]
             sage: S.nonsink_vertices()
-            [1, 'b']
+            ['b', 'c']
         """
         return [self[v] for v in self._vertices]
 
@@ -3754,7 +3756,6 @@ class SandpileConfig(dict):
             ....:     m = m.add_random()
             ....:     m, f = m.stabilize(True)
             ....:     a.append(sum(f.values()))
-            ....:
             sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
             sage: p.axes_labels(['log(N)','log(D(N))'])
             sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
@@ -4174,6 +4175,15 @@ class SandpileConfig(dict):
             T.show(vertex_colors=vc,**kwds)
         else:
             T.show(**kwds)
+
+
+# Note: There ought to be a better way to do this: sage.repl.display is
+# intended to help extend pretty-printing capabilities but it still doesn't
+# provide an interface to do something as simple as this (in this case we are
+# informing IPython that SandpileConfig, being a dict subclass, should be
+# pretty-printed in the same way a dict)
+pretty.for_type(SandpileConfig, pretty.for_type(dict, None))
+
 
 ###############################################
 ########### SandpileDivisor Class #############
@@ -4738,8 +4748,9 @@ class SandpileDivisor(dict):
 
     def values(self):
         r"""
-        The values of the divisor as a list.  The list is sorted in the order of
-        the vertices.
+        The values of the divisor as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -4749,14 +4760,14 @@ class SandpileDivisor(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 'c':2})
             sage: D
-            {'a': 0, 1: 2, 'b': 1}
+            {'a': 0, 'b': 1, 'c': 2}
             sage: D.values()
-            [2, 0, 1]
+            [0, 1, 2]
             sage: S.vertices()
-            [1, 'a', 'b']
+            ['a', 'b', 'c']
         """
         return [self[v] for v in self._vertices]
 
@@ -6053,6 +6064,10 @@ class SandpileDivisor(dict):
             T.relabel(a)
         T.show(**kwds)
 
+
+# See note about this after the definition of SandpileConfig
+pretty.for_type(SandpileDivisor, pretty.for_type(dict, None))
+
 #######################################
 ######### Some test graphs ############
 #######################################
@@ -6153,7 +6168,6 @@ def sandlib(selector=None):
 #################################################
 
 
-
 def triangle_sandpile(n):
     r"""
     A triangular sandpile.  Each nonsink vertex has out-degree six.  The
@@ -6174,7 +6188,7 @@ def triangle_sandpile(n):
         sage: T.group_order()
         135418115000
     """
-    T = {'sink':{}}
+    T = {(-1, -1):{}}
     for i in range(n):
         for j in range(n-i):
             T[(i,j)] = {}
@@ -6189,16 +6203,17 @@ def triangle_sandpile(n):
                 T[(i,j)][(i+1,j-1)] = 1
             d = len(T[(i,j)])
             if d<6:
-                T[(i,j)]['sink'] = 6-d
-    T = Sandpile(T,'sink')
+                T[(i,j)][(-1, -1)] = 6-d
+    T = Sandpile(T, (-1, -1))
     pos = {}
     for x in T.nonsink_vertices():
         coords = list(x)
         coords[0]+=QQ(1)/2*coords[1]
         pos[x] = coords
-    pos['sink'] = (-1,-1)
+    pos[(-1, -1)] = (-1,-1)
     T.set_pos(pos)
     return T
+
 
 def aztec_sandpile(n):
     r"""
@@ -6215,31 +6230,10 @@ def aztec_sandpile(n):
     EXAMPLES::
 
         sage: from sage.sandpiles.sandpile import aztec_sandpile
-        sage: aztec_sandpile(2)
-        {'sink': {(-3/2, -1/2): 2,
-          (-3/2, 1/2): 2,
-          (-1/2, -3/2): 2,
-          (-1/2, 3/2): 2,
-          (1/2, -3/2): 2,
-          (1/2, 3/2): 2,
-          (3/2, -1/2): 2,
-          (3/2, 1/2): 2},
-         (-3/2, -1/2): {'sink': 2, (-3/2, 1/2): 1, (-1/2, -1/2): 1},
-         (-3/2, 1/2): {'sink': 2, (-3/2, -1/2): 1, (-1/2, 1/2): 1},
-         (-1/2, -3/2): {'sink': 2, (-1/2, -1/2): 1, (1/2, -3/2): 1},
-         (-1/2, -1/2): {(-3/2, -1/2): 1,
-          (-1/2, -3/2): 1,
-          (-1/2, 1/2): 1,
-          (1/2, -1/2): 1},
-         (-1/2, 1/2): {(-3/2, 1/2): 1, (-1/2, -1/2): 1, (-1/2, 3/2): 1, (1/2, 1/2): 1},
-         (-1/2, 3/2): {'sink': 2, (-1/2, 1/2): 1, (1/2, 3/2): 1},
-         (1/2, -3/2): {'sink': 2, (-1/2, -3/2): 1, (1/2, -1/2): 1},
-         (1/2, -1/2): {(-1/2, -1/2): 1, (1/2, -3/2): 1, (1/2, 1/2): 1, (3/2, -1/2): 1},
-         (1/2, 1/2): {(-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 3/2): 1, (3/2, 1/2): 1},
-         (1/2, 3/2): {'sink': 2, (-1/2, 3/2): 1, (1/2, 1/2): 1},
-         (3/2, -1/2): {'sink': 2, (1/2, -1/2): 1, (3/2, 1/2): 1},
-         (3/2, 1/2): {'sink': 2, (1/2, 1/2): 1, (3/2, -1/2): 1}}
-        sage: Sandpile(aztec_sandpile(2),'sink').group_order()
+        sage: T = aztec_sandpile(2)
+        sage: sorted(len(v) for u, v in T.items())
+        [3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 8]
+        sage: Sandpile(T,(0, 0)).group_order()
         4542720
 
     .. NOTE::
@@ -6248,7 +6242,7 @@ def aztec_sandpile(n):
         vertices have edges to the sink so that each vertex has degree 4.
     """
     aztec_sandpile = {}
-    half = QQ(1)/2
+    half = QQ((1, 2))
     for i in xsrange(n):
         for j in xsrange(n-i):
             aztec_sandpile[(half+i,half+j)] = {}
@@ -6256,7 +6250,7 @@ def aztec_sandpile(n):
             aztec_sandpile[(half+i,-half-j)] = {}
             aztec_sandpile[(-half-i,-half-j)] = {}
     non_sinks = list(aztec_sandpile)
-    aztec_sandpile['sink'] = {}
+    aztec_sandpile[(0, 0)] = {}
     for vert in non_sinks:
         weight = abs(vert[0]) + abs(vert[1])
         x = vert[0]
@@ -6274,9 +6268,10 @@ def aztec_sandpile(n):
                 aztec_sandpile[vert][(x,y-1)] = 1
             if len(aztec_sandpile[vert]) < 4:
                 out_degree = 4 - len(aztec_sandpile[vert])
-                aztec_sandpile[vert]['sink'] = out_degree
-                aztec_sandpile['sink'][vert] = out_degree
+                aztec_sandpile[vert][(0, 0)] = out_degree
+                aztec_sandpile[(0, 0)][vert] = out_degree
     return aztec_sandpile
+
 
 def random_DAG(num_verts, p=0.5, weight_max=1):
     r"""
@@ -6362,15 +6357,15 @@ def glue_graphs(g, h, glue_g, glue_h):
         sage: glue_x = {1: 1, 3: 2}
         sage: glue_y = {0: 1, 1: 2, 3: 1}
         sage: z = glue_graphs(x,y,glue_x,glue_y); z
-        {0: {},
-         'x0': {0: 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
+        {'sink': {},
+         'x0': {'sink': 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
          'x1': {'x0': 1},
          'x2': {'x0': 1, 'x1': 1},
          'x3': {'x0': 1, 'x1': 1, 'x2': 1},
-         'y1': {0: 2},
+         'y1': {'sink': 2},
          'y2': {'y1': 2},
-         'y3': {0: 1, 'y2': 1}}
-        sage: S = Sandpile(z,0)
+         'y3': {'sink': 1, 'y2': 1}}
+        sage: S = Sandpile(z,'sink')
         sage: S.h_vector()
         [1, 6, 17, 31, 41, 41, 31, 17, 6, 1]
         sage: S.resolution()
@@ -6382,7 +6377,7 @@ def glue_graphs(g, h, glue_g, glue_h):
         `g` and `h`.  The sink of `g` is replaced by a vertex that
         is connected to the vertices of `g` as specified by ``glue_g``
         the vertices of `h` as specified in ``glue_h``.  The sink of the glued
-        graph is `0`.
+        graph is ``'sink'``.
 
         Both ``glue_g`` and ``glue_h`` are dictionaries with entries of the form
         ``v:w`` where ``v`` is the vertex to be connected to and ``w`` is the weight
@@ -6397,7 +6392,7 @@ def glue_graphs(g, h, glue_g, glue_h):
         if h[i] == {}:
             h_sink = i
             break
-    k = {0: {}}  # the new graph dictionary, starting with the sink
+    k = {'sink': {}}  # the new graph dictionary, starting with the sink
     for i in g:
         if i != g_sink:
             new_edges = {}
@@ -6409,7 +6404,7 @@ def glue_graphs(g, h, glue_g, glue_h):
             new_edges = {}
             for j in h[i]:
                 if j == h_sink:
-                    new_edges[0] = h[i][j]
+                    new_edges['sink'] = h[i][j]
                 else:
                     new_edges['y'+str(j)] = h[i][j]
             k['y'+str(i)] = new_edges
@@ -6419,11 +6414,12 @@ def glue_graphs(g, h, glue_g, glue_h):
         new_edges['x'+str(i)] = glue_g[i]
     for i in glue_h:
         if i == h_sink:
-            new_edges[0] = glue_h[i]
+            new_edges['sink'] = glue_h[i]
         else:
             new_edges['y'+str(i)] = glue_h[i]
     k['x'+str(g_sink)] = new_edges
     return k
+
 
 def firing_graph(S, eff):
     r"""

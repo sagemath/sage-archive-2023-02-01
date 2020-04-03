@@ -1582,7 +1582,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         ret = self._pow(self._Q_reciprocal(1), e, error=v*e, effective_degree=0)
 
         assert self.is_equivalence_unit(ret)
-        # esentially this checks that the reduction of Q'*phi^tau is the
+        # essentially this checks that the reduction of Q'*phi^tau is the
         # generator of the residue field
         assert self._base_valuation.reduce(self._Q(e)*ret)(self._residue_field_generator()).is_one()
 
@@ -1783,9 +1783,9 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         f = self.domain().coerce(f)
 
         if effective_degree is not None:
-            if (QQ(f.degree())/self.phi().degree()).ceil() > effective_degree:
+            if (QQ(f.degree()) / self.phi().degree()).ceil() > effective_degree:
                 from itertools import islice
-                f = self.domain().change_ring(self.domain())(list(islice(self.coefficients(f), 0, effective_degree + 1, 1)))(self.phi())
+                f = self.domain().change_ring(self.domain())(list(islice(self.coefficients(f), 0, int(effective_degree) + 1, 1)))(self.phi())
 
         if f.degree() < self.phi().degree():
             return self._base_valuation.simplify(f, error=error, force=force, size_heuristic_bound=size_heuristic_bound, phiadic=phiadic)
@@ -1815,9 +1815,10 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             # This is a quite expensive operation but small coefficients can
             # speed up the surrounding calls drastically.
             for i in range(f.degree(), -1, -1):
-                j = i//self.phi().degree()
+                j = i // self.phi().degree()
                 from itertools import islice
-                coefficients = list(islice(f.list(), j*self.phi().degree(), i+1))
+                coefficients = list(islice(f.list(), int(j * self.phi().degree()),
+                                           int(i) + 1))
                 g = self.domain()(coefficients)
                 ng = self._base_valuation.simplify(g, error=error-j*self._mu, force=force, phiadic=False)
                 if g != ng:
@@ -1931,14 +1932,13 @@ class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValu
 class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugmentedValuation):
     r"""
     An augmented valuation which is discrete, i.e., which assigns a finite
-    valuation to its last key polynomial, and which can be augmented furter.
+    valuation to its last key polynomial, and which can be augmented further.
 
     EXAMPLES::
 
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, QQ.valuation(2))
         sage: w = v.augmentation(x, 1)
-
     """
     def __init__(self, parent, v, phi, mu):
         r"""

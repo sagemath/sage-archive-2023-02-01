@@ -15,8 +15,6 @@ from six.moves import range
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
-from sage.misc.decorators import rename_keyword
-
 
 def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
     r"""
@@ -282,13 +280,14 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
         return f.find_local_minimum(a=a, b=b, tol=tol, maxfun=maxfun)
     except AttributeError:
         pass
-    a = float(a); b = float(b)
+    a = float(a)
+    b = float(b)
     import scipy.optimize
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
 
-@rename_keyword(deprecation=23062, disp='verbose')
-def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
+
+def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
              verbose=False, **args):
     r"""
     This function is an interface to a variety of algorithms for computing
@@ -386,7 +385,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
-    import scipy
+    import numpy
     from scipy import optimize
     if isinstance(func, Expression):
         var_list=func.variables()
@@ -395,7 +394,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
         fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in range(len(gradient_list))]
-        gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        gradient=lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
 
@@ -418,7 +417,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
-                hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
+                hessian_p=lambda p,v: scipy.dot(numpy.array(hessian(p)),v)
                 min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
                       fhess=hessian, fhess_p=hessian_p, disp=verbose, **args)
     return vector(RDF, min)
@@ -505,7 +504,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (805.985..., 1005.985...)
     """
     from sage.symbolic.expression import Expression
-    import scipy
+    import numpy
     from scipy import optimize
     function_type = type(lambda x,y: x+y)
 
@@ -516,13 +515,13 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         f = lambda p: fast_f(*p)
         gradient_list = func.gradient()
         fast_gradient_functions = [gi._fast_float_(*var_names) for gi in gradient_list]
-        gradient = lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        gradient = lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
         if isinstance(cons, Expression):
             fast_cons = cons._fast_float_(*var_names)
-            cons = lambda p: scipy.array([fast_cons(*p)])
+            cons = lambda p: numpy.array([fast_cons(*p)])
         elif isinstance(cons, list) and isinstance(cons[0], Expression):
             fast_cons = [ci._fast_float_(*var_names) for ci in cons]
-            cons = lambda p: scipy.array([a(*p) for a in fast_cons])
+            cons = lambda p: numpy.array([a(*p) for a in fast_cons])
     else:
         f = func
 

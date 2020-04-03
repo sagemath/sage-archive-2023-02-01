@@ -20,8 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -409,7 +407,7 @@ def binary_string_to_graph6(x):
     r"""
     Transforms a binary string into its graph6 representation.
 
-    This helper function is named `R` in [McK]_.
+    This helper function is named `R` in [McK2015]_.
 
     INPUT:
 
@@ -420,11 +418,6 @@ def binary_string_to_graph6(x):
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
         'vUqwK@?G'
-
-    REFERENCES:
-
-    .. [McK] McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
-       http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
     """
     # The length of x must be a multiple of 6. We extend it with 0s.
     x += '0' * ( (6 - (len(x) % 6)) % 6)
@@ -440,7 +433,7 @@ def small_integer_to_graph6(n):
     r"""
     Encodes a small integer (i.e. a number of vertices) as a graph6 string.
 
-    This helper function is named `N` [McK]_.
+    This helper function is named `N` [McK2015]_.
 
     INPUT:
 
@@ -466,7 +459,7 @@ def length_and_string_from_graph6(s):
     r"""
     Returns a pair ``(length,graph6_string)`` from a graph6 string of unknown length.
 
-    This helper function is the inverse of `N` from [McK]_.
+    This helper function is the inverse of `N` from [McK2015]_.
 
     INPUT:
 
@@ -490,7 +483,7 @@ def length_and_string_from_graph6(s):
     else: # only first byte is N
         o = ord(s[0])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         n = o - 63
         s = s[1:]
     return n, s
@@ -499,7 +492,7 @@ def binary_string_from_graph6(s, n):
     r"""
     Decodes a binary string from its graph6 representation
 
-    This helper function is the inverse of `R` from [McK]_.
+    This helper function is the inverse of `R` from [McK2015]_.
 
     INPUT:
 
@@ -521,7 +514,7 @@ def binary_string_from_graph6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -551,7 +544,7 @@ def binary_string_from_dig6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -571,8 +564,8 @@ cdef class SubgraphSearch:
 
     The algorithm is a brute-force search.  Let `V(H) =
     \{h_1,\dots,h_k\}`.  It first tries to find in `G` a possible
-    representant of `h_1`, then a representant of `h_2` compatible
-    with `h_1`, then a representant of `h_3` compatible with the first
+    representative of `h_1`, then a representative of `h_2` compatible
+    with `h_1`, then a representative of `h_3` compatible with the first
     two, etc.
 
     This way, most of the time we need to test far less than `k!
@@ -625,7 +618,7 @@ cdef class SubgraphSearch:
 
     def __iter__(self):
         r"""
-        Returns an iterator over all the labeleld subgraphs of `G`
+        Return an iterator over all the labeled subgraphs of `G`
         isomorphic to `H`.
 
         EXAMPLES:
@@ -734,7 +727,7 @@ cdef class SubgraphSearch:
         self.stack[0] = 0
         self.stack[1] = -1
 
-        # Number of representants we have already found. Set to 1 as vertex 0
+        # Number of representatives we have already found. Set to 1 as vertex 0
         # is already part of the partial copy of H in G.
         self.active = 1
 
@@ -841,7 +834,7 @@ cdef class SubgraphSearch:
         # as long as there is a non-void partial copy of H in G
         while self.active >= 0:
             # If we are here and found nothing yet, we try the next possible
-            # vertex as a representant of the active i-th vertex of H.
+            # vertex as a representative of the active i-th vertex of H.
             self.i = self.stack[self.active] + 1
             # Looking for a vertex that is not busy and compatible with the
             # partial copy we have of H.
@@ -868,7 +861,7 @@ cdef class SubgraphSearch:
                     else:
                         self.i += 1
 
-            # If we have found a good representant of H's i-th vertex in G
+            # If we have found a good representative of H's i-th vertex in G
             if self.i < self.ng:
 
                 # updating the last vertex of the stack
@@ -890,7 +883,7 @@ cdef class SubgraphSearch:
                     # we begin the search of the next vertex at 0
                     self.stack[self.active] = -1
 
-            # If we found no representant for the i-th vertex, it
+            # If we found no representative for the i-th vertex, it
             # means that we cannot extend the current copy of H so we
             # update the status of stack[active] and prepare to change
             # the previous vertex.
@@ -1231,7 +1224,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
         (False, [0, 1, 2, 3])
         sage: fh(G, find_path=True)
         (False, [0, 1, 2, 3])
-        
+
     """
     from sage.misc.prandom import randint
     cdef int n = G.order()

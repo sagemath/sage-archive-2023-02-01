@@ -33,7 +33,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 
 import os
 import sys
@@ -169,7 +169,7 @@ def init_sage():
     from sage.cpython._py2_random import Random
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
-    import sage.all_cmdline
+    import sage.repl.ipython_kernel.all_jupyter
     sage.interfaces.quit.invalidate_all()
 
     # Disable cysignals debug messages in doctests: this is needed to
@@ -197,7 +197,7 @@ def init_sage():
     debug.refine_category_hash_check = True
 
     # We import readline before forking, otherwise Pdb doesn't work
-    # os OS X: http://trac.sagemath.org/14289
+    # on OS X: http://trac.sagemath.org/14289
     import readline
 
     try:
@@ -545,16 +545,26 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         Check that :trac:`26038` is fixed::
 
-            sage: a = 1
+            sage: a = 1 # py2
             ....: b = 2
             Traceback (most recent call last):
             ...
             SyntaxError: doctest is not a single statement
-            sage: a = 1
+            sage: a = 1 # py3
+            ....: b = 2
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
+            sage: a = 1 # py2
             ....: @syntax error
             Traceback (most recent call last):
             ...
             SyntaxError: invalid syntax
+            sage: a = 1 # py3
+            ....: @syntax error
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
         """
         # Ensure that injecting globals works as expected in doctests
         set_globals(test.globs)
@@ -602,7 +612,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             # If 'SKIP' is set, then skip this example.
             if self.optionflags & doctest.SKIP:
                 continue
-            
+
             # Record that we started this example.
             tries += 1
 
@@ -673,6 +683,16 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                 raise
             except BaseException:
                 exception = sys.exc_info()
+                # On Python 2, the exception lives in sys.exc_info() as
+                # long we are in the same stack frame. To ensure that
+                # sig_occurred() works correctly, we need to clear the
+                # exception. This is not an issue on Python 3, where the
+                # exception is cleared as soon as we are outside of the
+                # "except" clause.
+                try:
+                    sys.exc_clear()
+                except AttributeError:
+                    pass  # Python 3
             finally:
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
@@ -699,8 +719,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
             # The example raised an exception: check if it was expected.
             else:
-                exc_info = exception
-                exc_msg = traceback.format_exception_only(*exc_info[:2])[-1]
+                exc_msg = traceback.format_exception_only(*exception[:2])[-1]
 
                 if six.PY3 and example.exc_msg is not None:
                     # On Python 3 the exception repr often includes the
@@ -709,7 +728,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     # normalize Python 3 exceptions to match tests written to
                     # Python 2
                     # See https://trac.sagemath.org/ticket/24271
-                    exc_cls = exc_info[0]
+                    exc_cls = exception[0]
                     exc_name = exc_cls.__name__
                     if exc_cls.__module__:
                         exc_fullname = (exc_cls.__module__ + '.' +
@@ -736,7 +755,25 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                                     break
 
                 if not quiet:
-                    got += doctest._exception_traceback(exc_info)
+                    exc_tb = doctest._exception_traceback(exception)
+                    if not isinstance(exc_tb, six.text_type):
+                        # On Python 2, if the traceback contains non-ASCII
+                        # text we can get a UnicodeDecodeError here if we
+                        # don't explicitly decode it first; first try utf-8
+                        # and then fall back on latin-1.
+                        try:
+                            exc_tb = exc_tb.decode('utf-8')
+                        except UnicodeDecodeError:
+                            exc_tb = exc_tb.decode('latin-1')
+
+                    got += exc_tb
+
+                if not isinstance(exc_msg, six.text_type):
+                    # Same here as above
+                    try:
+                        exc_msg = exc_msg.decode('utf-8')
+                    except UnicodeDecodeError:
+                        exc_msg = exc_msg.decode('latin-1')
 
                 # If `example.exc_msg` is None, then we weren't expecting
                 # an exception.
@@ -770,7 +807,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             elif outcome is BOOM:
                 if not quiet:
                     self.report_unexpected_exception(out, test, example,
-                                                     exc_info)
+                                                     exception)
                 failures += 1
             else:
                 assert False, ("unknown outcome", outcome)
@@ -1377,7 +1414,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     shell(header='', stack_depth=2)
                 except KeyboardInterrupt:
                     # Assume this is a *real* interrupt. We need to
-                    # escalate this to the master docbuilding process.
+                    # escalate this to the master doctesting process.
                     if not self.options.serial:
                         os.kill(os.getppid(), signal.SIGINT)
                     raise
@@ -1510,7 +1547,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     self.debugger.interaction(None, exc_tb)
                 except KeyboardInterrupt:
                     # Assume this is a *real* interrupt. We need to
-                    # escalate this to the master docbuilding process.
+                    # escalate this to the master doctesting process.
                     if not self.options.serial:
                         os.kill(os.getppid(), signal.SIGINT)
                     raise
@@ -1954,7 +1991,12 @@ class DocTestDispatcher(SageObject):
             # Hack to ensure multiprocessing leaves these processes
             # alone (in particular, it doesn't wait for them when we
             # exit).
-            multiprocessing.current_process()._children = set()
+            if six.PY2:
+                p = multiprocessing.current_process()
+            else:
+                p = multiprocessing.process
+            assert hasattr(p, '_children')
+            p._children = set()
 
     def dispatch(self):
         """
@@ -2069,7 +2111,7 @@ class DocTestWorker(multiprocessing.Process):
         # Temporary file for stdout/stderr of the child process.
         # Normally, this isn't used in the master process except to
         # debug timeouts/crashes.
-        self.outtmpfile = tempfile.TemporaryFile()
+        self.outtmpfile = tempfile.NamedTemporaryFile(delete=False)
 
         # Create string for the master process to store the messages
         # (usually these are the doctest failures) of the child.
@@ -2130,22 +2172,6 @@ class DocTestWorker(multiprocessing.Process):
             task(self.options, self.outtmpfile, msgpipe, self.result_queue)
         finally:
             msgpipe.close()
-            # Note: This closes the tempfile in the child process, but in the
-            # parent process self.outtmpfile will not be closed yet, and can
-            # still be accessed in save_result_output
-            if hasattr(self.outtmpfile, 'delete'):
-                # On some platforms (notably Cygwin) tempfile.TemporaryFile is
-                # actually replaced by tempfile.NamedTemporaryFile with
-                # delete=True for this file
-                # This means that we end up with two NamedTemporaryFile
-                # instances--one on the parent process and one on the worker
-                # process.  Since NamedTemporaryFile automatically unlinks the
-                # file when it is closed, this can lead to an unhandled
-                # exception in the parent process if the child process closes
-                # this file first.  See https://trac.sagemath.org/ticket/25107#comment:14
-                # for more details.
-                self.outtmpfile.delete = False
-
             self.outtmpfile.close()
 
     def start(self):
@@ -2260,11 +2286,21 @@ class DocTestWorker(multiprocessing.Process):
 
         self.outtmpfile.seek(0)
         self.output = bytes_to_str(self.outtmpfile.read())
+        self.outtmpfile.close()
+        try:
+            # Now it is safe to delete the outtmpfile; we manage this manually
+            # so that the file does not get deleted via TemporaryFile.__del__
+            # in the worker process
+            os.unlink(self.outtmpfile.name)
+        except OSError as exc:
+            if exc.errno != errno.ENOENT:
+                raise
+
         del self.outtmpfile
 
     def kill(self):
         """
-        Kill this worker.  Returns ``True`` if the signal(s) are sent
+        Kill this worker.  Return ``True`` if the signal(s) are sent
         successfully or ``False`` if the worker process no longer exists.
 
         This method is only called if there is something wrong with the
@@ -2497,7 +2533,9 @@ class DocTestTask(object):
         if self.source.basename.startswith("sagenb."):
             import sage.all_notebook as sage_all
         else:
-            import sage.all_cmdline as sage_all
+            # Import Jupyter globals to doctest the Jupyter
+            # implementation of widgets and interacts
+            import sage.repl.ipython_kernel.all_jupyter as sage_all
         dict_all = sage_all.__dict__
         # Remove '__package__' item from the globals since it is not
         # always in the globals in an actual Sage session.

@@ -45,18 +45,15 @@ all-build: toolchain-deps
 
 
 # The 2 preliminary build phases: base and toolchain.
-# During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
-# such that packages can do different things when they are built
-# as prerequisite of GCC.
 base-toolchain: _clean-broken-gcc base
-	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
+	$(MAKE) toolchain
 
 # All targets except for the base packages
 all-sage: \
 		sagelib \
 		$(STANDARD_PACKAGE_INSTS) \
 		$(OPTIONAL_INSTALLED_PACKAGE_INSTS) \
-		$(EXTCODE) \
+                $(OPTIONAL_CLEANED_PACKAGES_CLEANS) \
 		$(SCRIPTS)
 
 # Download all packages which should be inside an sdist tarball (the -B
@@ -67,7 +64,7 @@ download-for-sdist:
 
 # TOOLCHAIN consists of dependencies determined by configure.
 # These are built after the "base" target but before anything else.
-toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
+toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname))) $(PCFILES)
 
 # Build all packages that GCC links against serially, otherwise this
 # leads to race conditions where some library which is used by GCC gets
@@ -126,10 +123,11 @@ base: $(inst_patch) $(inst_pkgconf)
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
+		$(SCRIPTS) \
 		$(inst_arb) \
-		$(BLAS) \
+		$(inst_boost_cropped) \
+		$(inst_$(BLAS)) \
 		$(inst_brial) \
-		$(inst_cephes) \
 		$(inst_cliquer) \
 		$(inst_cypari) \
 		$(inst_cysignals) \
@@ -139,8 +137,10 @@ sagelib: \
 		$(inst_ecm) \
 		$(inst_flint) \
 		$(inst_libgd) \
+		$(inst_gap) \
 		$(inst_givaro) \
 		$(inst_glpk) \
+		$(inst_gmpy2) \
 		$(inst_gsl) \
 		$(inst_iml) \
 		$(inst_jinja2) \
@@ -148,7 +148,6 @@ sagelib: \
 		$(inst_lcalc) \
 		$(inst_lrcalc) \
 		$(inst_libbraiding) \
-		$(inst_libgap) \
 		$(inst_libhomfly) \
 		$(inst_libpng) \
 		$(inst_linbox) \
@@ -157,7 +156,7 @@ sagelib: \
 		$(inst_mpc) \
 		$(inst_mpfi) \
 		$(inst_mpfr) \
-		$(MP_LIBRARY) \
+		$(inst_$(MP_LIBRARY)) \
 		$(inst_ntl) \
 		$(inst_numpy) \
 		$(inst_pari) \
@@ -165,40 +164,37 @@ sagelib: \
 		$(inst_pkgconfig) \
 		$(inst_planarity) \
 		$(inst_ppl) \
+		$(inst_pplpy) \
 		$(inst_pycygwin) \
 		$(inst_pynac) \
-		$(inst_python2) \
-		$(inst_python3) \
+		$(inst_$(PYTHON)) \
 		$(inst_ratpoints) \
 		$(inst_readline) \
 		$(inst_rw) \
+		$(inst_sage_conf) \
 		$(inst_singular) \
 		$(inst_six) \
 		$(inst_symmetrica) \
 		$(inst_zn_poly) \
-		$(EXTCODE)
+		$(PCFILES)
 	$(AM_V_at)if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && source bin/sage-env && \
+		cd $(SAGE_SRC) && source bin/sage-env && source $(SAGE_ROOT)/build/bin/sage-build-env-config && \
 		sage-logger -p 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
 	fi
 
 
 ###############################################################################
-# Building scripts and extcode
+# Building scripts
 ###############################################################################
 
 # Don't just use "install" since we don't want to change permissions
 $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
 	$(AM_V_at)cp $< $@
 
-# Don't just use "install -D" since we don't want to change permissions.
-# cp won't correctly setup the SAGE_EXTCODE directory structure
-# (unlike install), so we need a mkdir here such that cp can copy into
-# an existing folder.
-$(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
+# Install sage-specific generated .pc files
+$(SAGE_PKGCONFIG)/%.pc: $(SAGE_SRC)/lib/pkgconfig/%.pc
 	@mkdir -p "$(@D)"
-	$(AM_V_at)cp $< $@
-
+	$(AM_V_at)cp -P $< $@
 
 ###############################################################################
 # Building the documentation
@@ -218,7 +214,7 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 # Building the documentation has many dependencies, because all
 # documented modules are imported and because we use matplotlib to
 # produce plots.
-DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
+DOC_DEPENDENCIES = sagelib $(inst_sphinx) \
 	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) $(inst_sympy) \
 	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \

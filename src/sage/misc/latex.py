@@ -17,7 +17,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
@@ -27,9 +27,7 @@ import re
 import shutil
 import subprocess
 
-from six import iteritems, integer_types
-
-from sage.cpython.string  import str_to_bytes
+from six import integer_types
 
 from sage.misc import sage_eval
 from sage.misc.cachefunc import cached_function, cached_method
@@ -368,7 +366,7 @@ def dict_function(x):
     """
     return "".join([r"\left\{",
                     ", ".join(r"%s : %s" % (latex(key), latex(value))
-                              for key, value in iteritems(x)),
+                              for key, value in x.items()),
                     r"\right\}"])
 
 # One can add to the latex_table in order to install latexing
@@ -616,7 +614,6 @@ def latex_extra_preamble():
 
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print(latex_extra_preamble())
-        ...
         <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
@@ -625,8 +622,8 @@ def latex_extra_preamble():
         \newcommand{\QQ}{\Bold{Q}}
         \newcommand{\QQbar}{\overline{\QQ}}
         \newcommand{\GF}[1]{\Bold{F}_{#1}}
-        \newcommand{\Zp}[1]{\ZZ_{#1}}
-        \newcommand{\Qp}[1]{\QQ_{#1}}
+        \newcommand{\Zp}[1]{\Bold{Z}_{#1}}
+        \newcommand{\Qp}[1]{\Bold{Q}_{#1}}
         \newcommand{\Zmod}[1]{\ZZ/#1\ZZ}
         \newcommand{\CDF}{\Bold{C}}
         \newcommand{\CIF}{\Bold{C}}
@@ -693,8 +690,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
 
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w')
-        sage: _ = O.write(_latex_file_([ZZ['x'], RR])); O.close()
+        sage: with open(file, 'w') as O:
+        ....:     _ = O.write(_latex_file_([ZZ['x'], RR]))
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
@@ -862,7 +859,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     if not e:
         print("An error occurred.")
         try:
-            print(open(base + '/' + filename + '.log').read())
+            with open(base + '/' + filename + '.log') as f:
+                print(f.read())
         except IOError:
             pass
         return "Error latexing slide."
@@ -1033,7 +1031,7 @@ class Latex(LatexCall):
                 k = str(latex(sage_eval.sage_eval(var, locals)))
             except Exception as msg:
                 print(msg)
-                k = '\\mbox{\\rm [%s undefined]}'%var
+                k = '\\mbox{\\rm [%s undefined]}' % var
             s = s[:i] + k + t[j+1:]
 
     def eval(self, x, globals, strip=False, filename=None, debug=None,
@@ -1083,7 +1081,7 @@ class Latex(LatexCall):
             sage: fn = tmp_filename()
             sage: latex.eval("$\\ZZ[x]$", locals(), filename=fn) # not tested
             ''
-            sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
+            sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
             An error occurred...
             No pages of output...
         """
@@ -1112,7 +1110,7 @@ class Latex(LatexCall):
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        O.write(str_to_bytes(x, encoding='utf-8'))
+        O.write(x)
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
@@ -2153,7 +2151,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: g = sage.misc.latex.latex_examples.graph()
         sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w'); _ = O.write(_latex_file_(g)); O.close()
+        sage: with open(file, 'w') as O:
+        ....:     _ = O.write(_latex_file_(g))
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
 
@@ -2232,7 +2231,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     # command line or notebook with viewer
     tmp = tmp_dir('sage_viewer')
     tex_file = os.path.join(tmp, "sage.tex")
-    open(tex_file,'w').write(s)
+    with open(tex_file, 'w') as file:
+        file.write(s)
     suffix = _run_latex_(tex_file, debug=debug, engine=engine, png=False)
     if suffix == "pdf":
         from sage.misc.viewer import pdf_viewer
@@ -2304,7 +2304,8 @@ def png(x, filename, density=150, debug=False,
     tex_file = os.path.join(tmp, "sage.tex")
     png_file = os.path.join(tmp, "sage.png")
     # write latex string to file
-    open(tex_file,'w').write(s)
+    with open(tex_file, 'w') as file:
+        file.write(s)
     # run latex on the file, producing png output to png_file
     e = _run_latex_(tex_file, density=density, debug=debug,
                     png=True, engine=engine)
@@ -2384,7 +2385,7 @@ def repr_lincomb(symbols, coeffs):
         sage: x = EllipticCurve('64a1').modular_symbol_space(sign=1).basis()[0]
         sage: from sage.misc.latex import repr_lincomb
         sage: latex(x.modular_symbol_rep())
-        \left\{\frac{-1}{3}, \frac{-1}{4}\right\} - \left\{\frac{1}{5}, \frac{1}{4}\right\}
+        \left\{\frac{-3}{11}, \frac{-1}{4}\right\} - \left\{\frac{3}{13}, \frac{1}{4}\right\}
 
     Verify that it works when the symbols are numbers::
 
@@ -2441,11 +2442,12 @@ def repr_lincomb(symbols, coeffs):
 
 def pretty_print_default(enable=True):
     r"""
-    Enable or disable default pretty printing. Pretty printing means
-    rendering things so that MathJax or some other latex-aware front end
-    can render real math.
+    Enable or disable default pretty printing.
 
-    This function is pretty useless without the notebook, it shoudn't
+    Pretty printing means rendering things so that MathJax or some
+    other latex-aware front end can render real math.
+
+    This function is pretty useless without the notebook, it should not
     be in the global namespace.
 
     INPUT:
@@ -2614,10 +2616,15 @@ def latex_variable_name(x, is_fname=False):
         'C'
         sage: latex_variable_name('_K1')
         'K_{1}'
+
+        sage: latex_variable_name('5')
+        '5'
     """
+    # if x is an integer (it might be the case for padics), we return x
+    if re.match(r'\d+$', x):
+        return x
     underscore = x.find("_")
     if underscore == -1:
-        import re
         # * The "\d|[.,]" means "decimal digit" or period or comma
         # * The "+" means "1 or more"
         # * The "$" means "at the end of the line"
@@ -2816,7 +2823,7 @@ should get a nice picture."""
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.knot()._repr_()) > 300
@@ -2868,7 +2875,7 @@ should get a nice picture.
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.diagram()._repr_()) > 300

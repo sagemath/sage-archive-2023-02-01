@@ -42,7 +42,7 @@ Words
 - :class:`Words`
 - :ref:`sage.combinat.subword`
 - :ref:`sage.combinat.necklace`
-- :ref:`sage.combinat.lyndon_word`
+- :ref:`sage.combinat.words.lyndon_word`
 - :ref:`sage.combinat.dyck_word`
 - :ref:`sage.combinat.debruijn_sequence`
 - :ref:`sage.combinat.shuffle`
@@ -68,6 +68,11 @@ Partitions, tableaux, ...
 -------------------------
 
 See: :ref:`sage.combinat.catalog_partitions`
+
+Polyominoes
+-----------
+
+See: :ref:`sage.combinat.parallelogram_polyomino`
 
 Integer matrices, ...
 ---------------------

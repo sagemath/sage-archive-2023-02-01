@@ -182,12 +182,11 @@ class Monoids(CategoryWithAxiom):
                 sage: S._test_prod(elements = (S('a'), S('b')))
             """
             tester = self._tester(**options)
-            tester.assertTrue(self.prod([]) == self.one())
+            tester.assertEqual(self.prod([]), self.one())
             for x in tester.some_elements():
-                tester.assertTrue(self.prod([x]) == x)
-                tester.assertTrue(self.prod([x, x]) == x**2)
-                tester.assertTrue(self.prod([x, x, x]) == x**3)
-
+                tester.assertEqual(self.prod([x]), x)
+                tester.assertEqual(self.prod([x, x]), x**2)
+                tester.assertEqual(self.prod([x, x, x]), x**3)
 
         def submonoid(self, generators, category=None):
             r"""
@@ -509,17 +508,18 @@ class Monoids(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: SG4=SymmetricGroupAlgebra(ZZ,4)
+                    sage: SG4 = SymmetricGroupAlgebra(ZZ,4)
                     sage: SG4(1).is_central()
                     True
                     sage: SG4(Permutation([1,3,2,4])).is_central()
                     False
-                    sage: A=GroupAlgebras(QQ).example(); A
+                    sage: A = GroupAlgebras(QQ).example(); A
                     Algebra of Dihedral group of order 8 as a permutation group over Rational Field
                     sage: sum(i for i in A.basis()).is_central()
                     True
                 """
-                return all([i*self == self*i for i in self.parent().algebra_generators()])
+                return all(i * self == self * i
+                           for i in self.parent().algebra_generators())
 
     class CartesianProducts(CartesianProductsCategory):
         """

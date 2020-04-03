@@ -1854,7 +1854,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         In particular, they sum to Hilbert series of the coinvariant
         algebra of ``self``.
 
-        ..NOTE::
+        .. NOTE::
 
             The ordering follows the one in Chevie and is not compatible with
             the current implementation of :meth:`irredubile_characters()`.
@@ -1906,8 +1906,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W = ReflectionGroup(["H",4])               # optional - gap3
             sage: W.coxeter_number()                         # optional - gap3
             30
-            sage: all([W.coxeter_number(chi).is_integer()    # optional - gap3
-            ....:     for chi in W.irreducible_characters()])
+            sage: all(W.coxeter_number(chi).is_integer()    # optional - gap3
+            ....:     for chi in W.irreducible_characters())
             True
             sage: W = ReflectionGroup(14)                    # optional - gap3
             sage: W.coxeter_number()                         # optional - gap3

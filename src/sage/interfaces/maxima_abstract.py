@@ -58,7 +58,7 @@ import sys
 import subprocess
 
 from sage.env import DOT_SAGE
-COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
+COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj' % DOT_SAGE
 
 from sage.cpython.string import bytes_to_str
 
@@ -68,7 +68,7 @@ from sage.structure.richcmp import richcmp, rich_to_bool
 import sage.server.support
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
-  InterfaceFunction, AsciiArtString)
+                        InterfaceFunction, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 
@@ -168,7 +168,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
             ...
         """
-        cmd = 'maxima --very-quiet -r "%s(%s);" '%(command, s)
+        cmd = 'maxima --very-quiet --batch-string="%s(%s);" '%(command, s)
         if sage.server.support.EMBEDDED_MODE:
             cmd += '< /dev/null'
 
@@ -178,9 +178,9 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         if redirect:
             res = bytes_to_str(subprocess.check_output(cmd, shell=True,
                                                        env=env))
-            # We get 4 lines of commented verbosity
-            # every time Maxima starts, so we need to get rid of them
-            for _ in range(4):
+            # We get 4 lines of commented verbosity every time Maxima starts
+            # and the input is echoed, so we need to get rid of them
+            for _ in range(5):
                 res = res[res.find('\n')+1:]
 
             return AsciiArtString(res)
@@ -969,12 +969,12 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: u = maxima.unit_quadratic_integer(101); u
             a + 10
             sage: u.parent()
-            Number Field in a with defining polynomial x^2 - 101
+            Number Field in a with defining polynomial x^2 - 101 with a = 10.04987562112089?
             sage: u = maxima.unit_quadratic_integer(13)
             sage: u
             5*a + 18
             sage: u.parent()
-            Number Field in a with defining polynomial x^2 - 13
+            Number Field in a with defining polynomial x^2 - 13 with a = 3.605551275463990?
         """
         from sage.rings.all import Integer
         from sage.rings.number_field.number_field import QuadraticField
@@ -1119,7 +1119,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         """
         return self.display2d(onscreen=False)
 
-    def bool(self):
+    def __bool__(self):
         """
         Convert ``self`` into a boolean.
 
@@ -1129,13 +1129,22 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: maxima(0).bool()
+            sage: bool(maxima(0))
             False
-            sage: maxima(1).bool()
+            sage: bool(maxima(1))
+            True
+            sage: bool(maxima('false'))
+            False
+            sage: bool(maxima('true'))
             True
         """
         P = self._check_valid()
-        return P.eval('is(%s = 0);'%self.name()) == P._false_symbol() # but be careful, since for relations things like is(equal(a,b)) are what Maxima needs
+        return (P.eval('is({0} = 0 or {0} = false);'.format(self.name()))
+                != P._true_symbol())
+        # but be careful, since for relations things like is(equal(a,b)) are
+        # what Maxima needs
+
+    __nonzero__ = __bool__
 
     def _richcmp_(self, other, op):
         """
@@ -1226,12 +1235,19 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             [  1   y y^2]
             [  1 1/2 1/4]
 
+        TESTS:
+
         Check if :trac:`7661` is fixed::
 
             sage: var('delta')
             delta
             sage: (2*delta).simplify()
             2*delta
+
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: maxima('true')._sage_(), maxima('false')._sage_()
+            (True, False)
         """
         import sage.calculus.calculus as calculus
         return calculus.symbolic_expression_from_maxima_string(self.name(),

@@ -148,13 +148,12 @@ AUTHORS:
 - Simon King (08/2012): Use category and coercion framework, :trac:`13412`
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six import iteritems, integer_types
 
 from sage.structure.richcmp import richcmp
@@ -301,6 +300,25 @@ class MPowerSeries(PowerSeries):
             - the foreground polynomial ring
             - a ring that coerces to one of the above two
 
+        EXAMPLES::
+
+            sage: R.<s,t> = PowerSeriesRing(ZZ); R
+            Multivariate Power Series Ring in s, t over Integer Ring
+            sage: f = 1 + t + s + s*t + R.O(3)
+            sage: g = (1/2) * f; g
+            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
+            sage: g.parent()
+            Multivariate Power Series Ring in s, t over Rational Field
+            sage: g = (1/2)*f; g
+            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
+            sage: g.parent()
+            Multivariate Power Series Ring in s, t over Rational Field
+
+            sage: K = NumberField(x-3,'a')
+            sage: g = K.random_element()*f
+            sage: g.parent()
+            Multivariate Power Series Ring in s, t over Number Field in a with defining polynomial x - 3
+
         TESTS::
 
             sage: S.<s,t> = PowerSeriesRing(ZZ)
@@ -437,9 +455,22 @@ class MPowerSeries(PowerSeries):
             sage: s = M.hom([u, u+v])
             sage: s(M.one())
             1
+
+        Since :trac:`26105` you can specify a map on the base ring::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<s,t> = PowerSeriesRing(K)
+            sage: f = s^2 + i*s*t + (3+4*i)*s^3 + R.O(4); f
+            s^2 + (i)*s*t + (4*i + 3)*s^3 + O(s, t)^4
+            sage: f(t, s, base_map=cc)
+            (-i)*s*t + t^2 + (-4*i + 3)*t^3 + O(s, t)^4
         """
         if len(x) != self.parent().ngens():
             raise ValueError("Number of arguments does not match number of variables in parent.")
+        if kwds:
+            return self._subs_formal(*x, **kwds)
 
         sub_dict = {}
         valn_list = []
@@ -449,7 +480,7 @@ class MPowerSeries(PowerSeries):
             except (AttributeError, TypeError):
                 # Input does not coerce to parent ring of self
                 # attempt formal substitution
-                return self._subs_formal(*x,**kwds)
+                return self._subs_formal(*x, **kwds)
             if xi.valuation() == 0 and self.prec() is not infinity:
                 raise TypeError("Substitution defined only for elements of positive valuation, unless self has infinite precision.")
             elif xi.valuation() > 0:
@@ -520,8 +551,11 @@ class MPowerSeries(PowerSeries):
             return self
 
         y = 0
+        base_map = kwds.get('base_map')
+        if base_map is None:
+            base_map = lambda t: t
         for m, c in iteritems(self.dict()):
-                y += c*prod([x[i]**m[i] for i in range(n) if m[i] != 0])
+            y += base_map(c)*prod([x[i]**m[i] for i in range(n) if m[i] != 0])
         if self.prec() == infinity:
             return y
         else:
@@ -578,7 +612,7 @@ class MPowerSeries(PowerSeries):
             -t0^4*t1^3*t2^4 - 2*t0*t1^4*t2^7 + 2*t1*t2^12 + 2*t0^7*t1^5*t2^2
             + O(t0, t1, t2)^15
             sage: f._latex_()
-            '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
+            '-t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
             + O(t_{0}, t_{1}, t_{2})^{15}'
 
@@ -599,7 +633,7 @@ class MPowerSeries(PowerSeries):
                  'prec':self._prec}
 
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Returns the image of this series under the map that sends the
         generators to ``im_gens``. This is used internally for computing
@@ -619,7 +653,11 @@ class MPowerSeries(PowerSeries):
             sage: phi(a+b+3*a*b^2 + A.O(5))  # indirect doctest
             x + 2*y + 12*x*y^2 + O(x, y)^5
         """
-        return codomain(self(*im_gens))
+        if base_map is None:
+            # __call__ might be faster if codomain coerces into the base ring
+            return codomain(self(*im_gens))
+        else:
+            return codomain(self._subs_formal(*im_gens, base_map=base_map))
 
     def __getitem__(self,n):
         """
@@ -1033,46 +1071,6 @@ class MPowerSeries(PowerSeries):
         else:
             return quo
 
-#    def _r_action_(self, c):
-#        # multivariate power series rings are assumed to be commutative
-#        return self._l_action_(c)
-
-    def _l_action_(self, c):
-        """
-        Multivariate power series support multiplication by any ring for
-        which there is a supported action on the base ring.
-
-        EXAMPLES::
-
-            sage: R.<s,t> = PowerSeriesRing(ZZ); R
-            Multivariate Power Series Ring in s, t over Integer Ring
-            sage: f = 1 + t + s + s*t + R.O(3)
-            sage: g = f._l_action_(1/2); g
-            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
-            sage: g.parent()
-            Multivariate Power Series Ring in s, t over Rational Field
-            sage: g = (1/2)*f; g
-            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
-            sage: g.parent()
-            Multivariate Power Series Ring in s, t over Rational Field
-
-            sage: K = NumberField(x-3,'a')
-            sage: g = K.random_element()*f
-            sage: g.parent()
-            Multivariate Power Series Ring in s, t over Number Field in a with defining polynomial x - 3
-
-        """
-        try:
-            f = c * self._bg_value
-            if f.parent() == self.parent()._bg_ps_ring():
-                return MPowerSeries(self.parent(), f, prec=f.prec())
-            else:
-                from sage.rings.all import PowerSeriesRing
-                new_parent = PowerSeriesRing(f.base_ring().base_ring(), num_gens = f.base_ring().ngens(), names = f.base_ring().gens())
-                return MPowerSeries(new_parent, f, prec=f.prec())
-        except (TypeError, AttributeError):
-            raise TypeError("Action not defined.")
-
     def __mod__(self, other):
         """
         TESTS::
@@ -1183,11 +1181,11 @@ class MPowerSeries(PowerSeries):
             sage: R.<a,b,c> = PowerSeriesRing(ZZ); R
             Multivariate Power Series Ring in a, b, c over Integer Ring
             sage: f = 1 + a + b - a*b - b*c - a*c + R.O(4)
-            sage: f.monomials()
-            [1, b*c, b, a, a*c, a*b]
+            sage: sorted(f.monomials())
+            [b*c, a*c, a*b, b, a, 1]
             sage: f = 1 + 2*a + 7*b - 2*a*b - 4*b*c - 13*a*c + R.O(4)
-            sage: f.monomials()
-            [1, b*c, b, a, a*c, a*b]
+            sage: sorted(f.monomials())
+            [b*c, a*c, a*b, b, a, 1]
             sage: f = R.zero()
             sage: f.monomials()
             []
@@ -1418,7 +1416,7 @@ class MPowerSeries(PowerSeries):
             # at this stage, self is probably a non-zero
             # element of the base ring
             for a in range(len(self._bg_value.list())):
-                if self._bg_value.list()[a] is not 0:
+                if self._bg_value.list()[a] != 0:
                     return a
 
     def is_nilpotent(self):

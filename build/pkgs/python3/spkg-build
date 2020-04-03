@@ -107,7 +107,7 @@ fi
 
 echo "Testing importing of various modules..."
 import_errors=false
-test_modules="ctypes math hashlib crypt readline socket"
+test_modules="ctypes math hashlib crypt readline socket zlib sqlite3"
 if [ "$UNAME" = "Darwin" ]; then
     test_modules="$test_modules _scproxy"
 fi

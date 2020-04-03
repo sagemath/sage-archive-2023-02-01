@@ -570,7 +570,7 @@ class AffinePermutationTypeA(AffinePermutation):
                 res = self[m] % (self.k + 1)
                 if res == i:
                     l.append(self[m] + 1)
-                elif res == 0 :
+                elif res == 0:
                     l.append(self[m] - 1)
                 else:
                     l.append(self[m])
@@ -991,7 +991,7 @@ class AffinePermutationTypeA(AffinePermutation):
         Finds a tableau on the Lehmer code of ``self`` corresponding
         to the given reduced word.
 
-        For a full description of this algorithm, see [D2012]_.
+        For a full description of this algorithm, see [Den2012]_.
 
         INPUT:
 
@@ -1001,12 +1001,6 @@ class AffinePermutationTypeA(AffinePermutation):
         - ``side`` -- ``'right'`` or ``'left'``
         - ``alpha`` -- a content vector; ``w`` should be of type ``alpha``;
           specifying ``alpha`` produces semistandard tableaux
-
-        REFERENCES:
-
-        .. [D2012] tom denton. Canonical Decompositions of Affine Permutations,
-           Affine Codes, and Split `k`-Schur Functions.  Electronic Journal of
-           Combinatorics, 2012.
 
         EXAMPLES::
 
@@ -1321,8 +1315,8 @@ class AffinePermutationTypeB(AffinePermutationTypeC):
                 raise ValueError("entries must have distinct residues")
             reslist.append(r)
         # Check that we have an even number of 'small' elements right of the zeroth entry.
-        s = sum(-i // self.N+1 for i in [self.value(j) for j in range(1,self.N+1)] if i < 0)
-        if s % 2 != 0:
+        s = sum(-i // self.N+1 for i in (self.value(j) for j in range(1,self.N+1)) if i < 0)
+        if s % 2:
             raise ValueError("type B affine permutations have an even number of "
                              "entries less than 0 to the right of the 0th position")
 
@@ -1485,13 +1479,13 @@ class AffinePermutationTypeD(AffinePermutationTypeC):
             reslist.append(r)
         # Check that we have an even number of 'big' elements left of the kth entry.
         s = sum(i // self.N + 1 - (i % self.N <= self.k)
-                for i in [self.value(j) for j in range(-self.k,self.k+1)] if i > self.k)
-        if s % 2 != 0:
+                for i in (self.value(j) for j in range(-self.k,self.k+1)) if i > self.k)
+        if s % 2:
             raise ValueError("type D affine permutations have an even number of entries"
                              " greater than x.k weakly to the left of the x.k position")
         # Check that we have an even number of 'small' elements right of the zeroth entry.
-        s = sum(-i // self.N+1 for i in [self.value(j) for j in range(1,self.N+1)] if i < 0)
-        if s % 2 != 0:
+        s = sum(-i // self.N+1 for i in (self.value(j) for j in range(1,self.N+1)) if i < 0)
+        if s % 2:
             raise ValueError("type D affine permutations have an even number of entries"
                              " less than 0 to the right of the 0th position")
 
@@ -1547,42 +1541,42 @@ class AffinePermutationTypeD(AffinePermutationTypeC):
             raise ValueError('index not in index set')
         j = self.N - i
         l = []
-        if i != self.k and i != 0:
+        if i and i != self.k:
             for m in range(self.k):
-                res=self[m]%self.N
-                if res==i  :
+                res = self[m] % self.N
+                if res == i:
                     l.append(self[m]+1)
-                elif res==i+1:
+                elif res == i+1:
                     l.append(self[m]-1)
-                elif res==j:
+                elif res == j:
                     l.append(self[m]-1)
-                elif res==j-1:
+                elif res == j-1:
                     l.append(self[m]+1)
                 else:
                     l.append(self[m])
         elif i == 0:
             for m in range(self.k):
-                res=self[m]%self.N
-                if res==1:
+                res = self[m] % self.N
+                if res == 1:
                     l.append(self[m]-3)
-                elif res==self.N-2:
+                elif res == self.N-2:
                     l.append(self[m]+3)
-                elif res==2:
+                elif res == 2:
                     l.append(self[m]-3)
-                elif res==self.N-1:
+                elif res == self.N-1:
                     l.append(self[m]+3)
                 else:
                     l.append(self[m])
         elif i == self.k:
             for m in range(self.k):
-                res=self[m]%self.N
-                if res==self.k:
+                res = self[m] % self.N
+                if res == self.k:
                     l.append(self[m]+2)
-                elif res==self.k+2:
+                elif res == self.k+2:
                     l.append(self[m]-2)
-                elif res==self.k-1:
+                elif res == self.k-1:
                     l.append(self[m]+2)
-                elif res==self.k+1:
+                elif res == self.k+1:
                     l.append(self[m]-2)
                 else:
                     l.append(self[m])
@@ -1653,12 +1647,12 @@ class AffinePermutationTypeG(AffinePermutation):
             raise ValueError("length of list must be 6")
         #Check that we have an even number of 'big' elements left of the 7th entry.
         s = sum(i//6 - (i%6 == 0) for i in self if i > 6)
-        if s % 2 != 0:
+        if s % 2:
             raise ValueError("type G affine permutations have an even number of"
                              " entries greater than 6 to the left of the 7th position")
         #Check that we have an even number of 'small' elements right of the zeroth entry.
         s = sum(-i//6 + 1 for i in self if i <= 0)
-        if s % 2 != 0:
+        if s % 2:
             raise ValueError("type G affine permutations have an even number of"
                              " entries less than 0 to the right of the 0th position")
 
@@ -1860,13 +1854,7 @@ def AffinePermutationGroup(cartan_type):
 
     These are combinatorial implementations of the affine Weyl groups of
     types `A`, `B`, `C`, `D`, and `G` as permutations of the set of all integers.
-    the basic algorithms are derived from [BjBr]_ and [Erik]_.
-
-    REFERENCES:
-
-    .. [BjBr] Bjorner and Brenti. Combinatorics of Coxeter Groups. Springer, 2005.
-    .. [Erik] \H. Erikson.  Computational and Combinatorial Aspects of Coxeter
-       Groups.  Thesis, 1995.
+    the basic algorithms are derived from [BB2005]_ and [Eri1995]_.
 
     EXAMPLES::
 

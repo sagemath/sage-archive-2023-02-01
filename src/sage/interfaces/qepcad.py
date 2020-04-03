@@ -604,8 +604,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six import string_types
 
 from sage.env import SAGE_LOCAL
@@ -613,12 +612,14 @@ import pexpect
 import re
 import sys
 
+from sage.cpython.string import bytes_to_str
 from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
-from .expect import Expect, ExpectFunction, AsciiArtString
+from .expect import Expect, ExpectFunction
+from sage.interfaces.interface import AsciiArtString
 
 
 def _qepcad_atoms(formula):
@@ -690,7 +691,7 @@ def _update_command_info():
 
         while True:
             cmd_line = help.readline()
-            while len(cmd_line.strip()) == 0:
+            while not cmd_line.strip():
                 cmd_line = help.readline()
             cmd_line = cmd_line.strip()
             if cmd_line == '@@@':
@@ -1067,7 +1068,7 @@ class Qepcad:
         if match == pexpect.EOF:
             return 'EXITED'
         else:
-            return match.group(1)
+            return bytes_to_str(match.group(1))
 
     def _parse_answer_stats(self):
         r"""
@@ -1089,7 +1090,7 @@ class Qepcad:
         """
         if self.phase() != 'EXITED':
             raise ValueError("QEPCAD is not finished yet")
-        final = self._qex.expect().before
+        final = bytes_to_str(self._qex.expect().before)
         match = re.search('\nAn equivalent quantifier-free formula:(.*)\n=+  The End  =+\r\n\r\n(.*)$', final, re.DOTALL)
 
         if match:
@@ -1686,7 +1687,7 @@ def qepcad_console(memcells=None):
     """
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
-        raise RuntimeError('Can use the console only in the terminal. Try %%qepcat magics instead.')
+        raise RuntimeError('Can use the console only in the terminal. Try %%qepcad magics instead.')
     # This will only spawn local processes
     os.system(_qepcad_cmd(memcells))
 
@@ -1717,7 +1718,7 @@ def qepcad_banner():
     """
     qex = Qepcad_expect()
     qex._start()
-    banner = qex.expect().before
+    banner = bytes_to_str(qex.expect().before)
     return AsciiArtString(banner)
 
 def qepcad_version():

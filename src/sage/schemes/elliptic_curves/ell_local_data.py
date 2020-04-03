@@ -727,13 +727,15 @@ class EllipticCurveLocalData(SageObject):
         else:
             principal_flag = False
 
-        if (K is QQ) or principal_flag :
+        if (K is QQ) or principal_flag:
             pi = P.gens_reduced()[0]
-            verbose("P is principal, generator pi = %s"%pi, t, 1)
+            verbose("P is principal, generator pi = %s" % pi, t, 1)
         else:
             pi = K.uniformizer(P, 'positive')
-            verbose("uniformizer pi = %s"%pi, t, 1)
-        pi2 = pi*pi; pi3 = pi*pi2; pi4 = pi*pi3
+            verbose("uniformizer pi = %s" % pi, t, 1)
+        pi2 = pi * pi
+        pi3 = pi * pi2
+        pi4 = pi * pi3
         pi_neg = None
         prime = pi if K is QQ else P
 
@@ -1114,10 +1116,11 @@ def check_prime(K,P):
         sage: L.<b> = NumberField(x^2+3)
         sage: check_prime(K, L.ideal(5))
         Traceback (most recent call last):
-        ..
+        ...
         TypeError: The ideal Fractional ideal (5) is not a prime ideal of Number Field in a with defining polynomial x^2 - 5
         sage: check_prime(K, L.ideal(b))
         Traceback (most recent call last):
+        ...
         TypeError: No compatible natural embeddings found for Number Field in a with defining polynomial x^2 - 5 and Number Field in b with defining polynomial x^2 + 3
     """
     if K is QQ:

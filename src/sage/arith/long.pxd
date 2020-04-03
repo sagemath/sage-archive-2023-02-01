@@ -2,7 +2,7 @@ r"""
 Fast conversion of Python objects to C long
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Vincent Delecroix <20100.delecroix@gmail.com>
 #       Copyright (C) 2017 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
@@ -10,16 +10,16 @@ Fast conversion of Python objects to C long
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from libc.limits cimport LONG_MIN
+from libc.limits cimport LONG_MIN, LONG_MAX
 
 from cpython.object cimport Py_SIZE
 from cpython.int cimport PyInt_AS_LONG
 from cpython.long cimport PyLong_AsLong
 from cpython.number cimport PyNumber_Index, PyIndex_Check
-from cpython.longintrepr cimport PyLongObject, PyLong_SHIFT, digit
+from cpython.longintrepr cimport py_long, PyLong_SHIFT, digit
 
 from sage.libs.gmp.mpz cimport mpz_fits_slong_p, mpz_get_si
 from sage.rings.integer_fake cimport is_Integer, Integer_AS_MPZ
@@ -208,7 +208,7 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
         return 0
 
     # x is a Python "long" (called "int" on Python 3)
-    cdef const digit* D = (<PyLongObject*>x).ob_digit
+    cdef const digit* D = (<py_long>x).ob_digit
     cdef Py_ssize_t size = Py_SIZE(x)
 
     # We assume that PyLong_SHIFT is 15 on a 32-bit system and 30 on a
@@ -261,3 +261,32 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
         # 4 digits or more: guaranteed overflow
         err[0] = ERR_OVERFLOW
     return 1
+
+
+cdef inline bint is_small_python_int(obj):
+    """
+    Test whether Python object is a small Python integer.
+
+    Meaning that that it can be converted to a C long. In Python 2,
+    this is equivalent to it being the ``int`` Python type. In Python
+    3, the ``int`` Python type has unlimited precision so we need to
+    check its range.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from sage.arith.long cimport is_small_python_int
+        ....: def is_small_wrapper(x):
+        ....:     return is_small_python_int(x)
+        ....: ''')
+        sage: is_small_wrapper(int(3))
+        True
+        sage: is_small_wrapper(ZZ(3))   # not a Python int
+        False
+        sage: import sys
+        sage: is_small_wrapper(int(sys.maxsize))   # does fit into C long
+        True
+        sage: is_small_wrapper(int(sys.maxsize + 1))   # does not fit into C long
+        False
+    """
+    return (type(obj) is int) and (LONG_MIN <= obj <= LONG_MAX)

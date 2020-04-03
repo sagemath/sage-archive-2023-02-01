@@ -20,7 +20,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -33,8 +33,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 import six
 from six import integer_types
@@ -226,7 +226,7 @@ class Set_object(Set_generic):
 
     TESTS:
 
-    See trac ticket :trac:`14486`::
+    See :trac:`14486`::
 
         sage: 0 == Set([1]), Set([1]) == 0
         (False, False)
@@ -365,8 +365,8 @@ class Set_object(Set_generic):
             False
             sage: 5/3 in GF(7)
             False
-            sage: Set(GF(7)).union(Set(GF(5)))
-            {0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 0}
+            sage: sorted(Set(GF(7)).union(Set(GF(5))), key=int)
+            [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6]
             sage: Set(GF(7)).intersection(Set(GF(5)))
             {}
         """
@@ -399,7 +399,7 @@ class Set_object(Set_generic):
         The following is random, illustrating that comparison of
         sets is not the subset relation, when they are not equal::
 
-            sage: Primes() < Set(QQ)             # random
+            sage: Primes() < Set(QQ)             # random  # py2
             True or False
         """
         if not isinstance(right, Set_object):
@@ -424,8 +424,8 @@ class Set_object(Set_generic):
             True
             sage: GF(5)(2) in X
             False
-            sage: Set(GF(7)) + Set(GF(3))
-            {0, 1, 2, 3, 4, 5, 6, 1, 2, 0}
+            sage: sorted(Set(GF(7)) + Set(GF(3)), key=int)
+            [0, 0, 1, 1, 2, 2, 3, 4, 5, 6]
         """
         if isinstance(X, Set_generic):
             if self is X:
@@ -445,8 +445,8 @@ class Set_object(Set_generic):
             {0, 1, 2, 0, 1}
             sage: Set(GF(2)) + Set(GF(4,'a'))
             {0, 1, a, a + 1}
-            sage: Set(GF(8,'b')) + Set(GF(4,'a'))
-            {0, 1, b, b + 1, b^2, b^2 + 1, b^2 + b, b^2 + b + 1, a, a + 1, 1, 0}
+            sage: sorted(Set(GF(8,'b')) + Set(GF(4,'a')), key=str)
+            [0, 0, 1, 1, a, a + 1, b, b + 1, b^2, b^2 + 1, b^2 + b, b^2 + b + 1]
         """
         return self.union(X)
 
@@ -706,6 +706,42 @@ class Set_object(Set_generic):
         from sage.combinat.subset import Subsets
         return Subsets(self,size)
 
+    def subsets_lattice(self):
+        """
+        Return the lattice of subsets ordered by containment.
+
+        EXAMPLES::
+
+            sage: X = Set([1,2,3])
+            sage: X.subsets_lattice()
+            Finite lattice containing 8 elements
+            sage: Y = Set()
+            sage: Y.subsets_lattice()
+            Finite lattice containing 1 elements
+
+        """
+        if not self.is_finite():
+            raise NotImplementedError(
+                "this method is only implemented for finite sets")
+        from sage.combinat.posets.lattices import FiniteLatticePoset
+        from sage.graphs.graph import DiGraph
+        from sage.rings.integer import Integer
+        n = self.cardinality()
+        # list, contains at position 0 <= i < 2^n 
+        # the i-th subset of self
+        subset_of_index = [Set([self[i] for i in range(n) if v&(1<<i)])
+                           for v in range(2**n)]
+        # list, contains at position 0 <= i < 2^n
+        # the list of indices of all immediate supersets
+        upper_covers = [[Integer(x|(1<<y)) for y in range(n) if not x&(1<<y)]
+                        for x in range(2**n)]
+        # DiGraph, every subset points to all immediate supersets
+        D = DiGraph({subset_of_index[v] : 
+                     [subset_of_index[w] for w in upper_covers[v]]
+                     for v in range(2**n)})
+        # Lattice poset, defined by hasse diagram D
+        L = FiniteLatticePoset(hasse_diagram=D)
+        return L
 
 class Set_object_enumerated(Set_object):
     """
@@ -892,9 +928,10 @@ class Set_object_enumerated(Set_object):
             TypeError: unhashable type: 'set'
             sage: s = X.frozenset(); s
             frozenset({0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1})
-            sage: hash(s)
-            -1390224788            # 32-bit
-             561411537695332972    # 64-bit
+
+            sage: hash(s) != hash(tuple(X.set()))
+            True
+
             sage: type(s)
             <... 'frozenset'>
         """
@@ -1002,10 +1039,10 @@ class Set_object_enumerated(Set_object):
             sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
-            sage: Y
-            {1, c, 3, 2}
-            sage: X.union(Y)
-            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1, 2, 3}
+            sage: sorted(Y)
+            [1, 2, 3, c]
+            sage: sorted(X.union(Y), key=str)
+            [0, 1, 2, 3, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1]
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.union(self, other)
@@ -1706,19 +1743,3 @@ class Set_object_symmetric_difference(Set_object_binary):
         """
         return (x in self._X and x not in self._Y) \
                or (x in self._Y and x not in self._X)
-
-def is_Set(x):
-    """
-    Deprecated. Use ``isinstance(x, Set_generic)`` instead.
-
-    TESTS::
-
-        sage: from sage.sets.set import is_Set
-        sage: is_Set(Primes())
-        doctest:...: DeprecationWarning: Please use isinstance(x, Set_generic)
-        See http://trac.sagemath.org/24443 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(24443, "Please use isinstance(x, Set_generic)")
-    return isinstance(x, Set_generic)

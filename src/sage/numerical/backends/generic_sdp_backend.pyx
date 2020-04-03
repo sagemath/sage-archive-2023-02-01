@@ -26,8 +26,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-
 
 cdef class GenericSDPBackend:
 
@@ -391,13 +389,13 @@ cdef class GenericSDPBackend:
         """
         raise NotImplementedError()
 
-    cpdef problem_name(self, char * name = NULL):
+    cpdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
+        - ``name`` (``str``) -- the problem's name. When set to
           ``NULL`` (default), the method returns the problem's name.
 
         EXAMPLES::

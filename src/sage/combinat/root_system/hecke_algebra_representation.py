@@ -358,7 +358,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
             sage: q1, q2 = K.gens()
             sage: KW = W.algebra(K)
             sage: x = KW.an_element(); x
-            2*12321 + 3*1231 + 123 + e
+            123 + 3*32 + 2*3 + e
 
             sage: T = KW.demazure_lusztig_operators(q1,q2)
             sage: T12 = T.Tw( (1,2) )
@@ -602,6 +602,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # (co)weight space, because the alcove walks currently uses
         # rho_classical and, in type BC, the later does not have
         # integral coefficients:
+
         # sage: RootSystem(["BC",2,2]).coweight_lattice().rho_classical()
 
         # On the other hand, at this point we need the expression of
@@ -626,7 +627,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # and Macdonald polynomials)
         if self._side == "left":
             word = tuple([x for x in reversed(word)])
-            signs= tuple([x for x in reversed(signs)])
+            signs = tuple([x for x in reversed(signs)])
         # The power of q implements the fact that Y^\deltacheck = 1/q.
         # The classical simple coroots have no \deltacheck term.
         # alpha[0] has a \deltacheck with coefficient one

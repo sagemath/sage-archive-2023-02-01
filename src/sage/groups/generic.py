@@ -133,9 +133,6 @@ from sage.arith.srange import xsrange
 multiplication_names = ( 'multiplication', 'times', 'product', '*')
 addition_names       = ( 'addition', 'plus', 'sum', '+')
 
-# deprecation(24256)
-from sage.structure.element import generic_power as power
-
 
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""
@@ -1362,8 +1359,6 @@ def structure_description(G, latex=False):
 
     This methods wraps GAP's ``StructureDescription`` method.
 
-    Requires the *optional* ``database_gap`` package.
-
     For full details, including the form of the returned string and the
     algorithm to build it, see `GAP's documentation
     <http://www.gap-system.org/Manuals/doc/ref/chap39.html>`_.
@@ -1388,42 +1383,39 @@ def structure_description(G, latex=False):
     EXAMPLES::
 
         sage: G = CyclicPermutationGroup(6)
-        sage: G.structure_description()             # optional - database_gap
+        sage: G.structure_description()
         'C6'
-        sage: G.structure_description(latex=True)   # optional - database_gap
+        sage: G.structure_description(latex=True)
         'C_{6}'
         sage: G2 = G.direct_product(G, maps=False)
-        sage: LatexExpr(G2.structure_description(latex=True))   # optional - database_gap
+        sage: LatexExpr(G2.structure_description(latex=True))
         C_{6} \times C_{6}
 
     This method is mainly intended for small groups or groups with few
     normal subgroups. Even then there are some surprises::
 
         sage: D3 = DihedralGroup(3)
-        sage: D3.structure_description()    # optional - database_gap
+        sage: D3.structure_description()
         'S3'
 
     We use the Sage notation for the degree of dihedral groups::
 
         sage: D4 = DihedralGroup(4)
-        sage: D4.structure_description()    # optional - database_gap
+        sage: D4.structure_description()
         'D4'
 
     Works for finitely presented groups (:trac:`17573`)::
 
         sage: F.<x, y> = FreeGroup()
         sage: G=F / [x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1]
-        sage: G.structure_description()     # optional - database_gap
+        sage: G.structure_description()
         'C7'
 
     And matrix groups (:trac:`17573`)::
 
-        sage: groups.matrix.GL(4,2).structure_description() # optional - database_gap
+        sage: groups.matrix.GL(4,2).structure_description()
         'A8'
     """
-    from sage.features.gap import SmallGroupsLibrary
-    SmallGroupsLibrary().require()
-
     import re
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2)) // 2)

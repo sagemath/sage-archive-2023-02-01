@@ -162,6 +162,7 @@ class RegularCrystals(Category_singleton):
 
         # TODO: this could be a method in Crystals.Algebras.ElementMethods, so that
         # one could do:
+        #
         #   sage: C = crystals.Tableaux(['A',2], shape=[2,1])
         #   sage: M = C.algebra(QQ)
         #   sage: m = M.an_element()
@@ -237,11 +238,11 @@ class RegularCrystals(Category_singleton):
                 sage: t = T.highest_weight_vector()
                 sage: S = T.demazure_subcrystal(t, [1,2])
                 sage: list(S)
-                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                [[[1, 1], [2]], [[1, 2], [2]], [[1, 1], [3]],
                  [[1, 2], [3]], [[2, 2], [3]]]
                 sage: S = T.demazure_subcrystal(t, [2,1])
                 sage: list(S)
-                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                [[[1, 1], [2]], [[1, 2], [2]], [[1, 1], [3]],
                  [[1, 3], [2]], [[1, 3], [3]]]
 
             We construct an example where we don't only want the arrows

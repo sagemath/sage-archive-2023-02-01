@@ -106,8 +106,8 @@ Conjunctive Normal Form::
     sage: _ = solver.write()
     sage: print(open(fn).read())
     p cnf 3 2
-    1 0
     -2 0
+    1 0
     <BLANKLINE>
 
 Details on Specific Converterts

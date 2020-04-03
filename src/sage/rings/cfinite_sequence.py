@@ -10,7 +10,7 @@ C-finite infinite sequences satisfy homogenous linear recurrences with constant 
 
 CFiniteSequences are completely defined by their ordinary generating function (o.g.f., which
 is always a :mod:`fraction <sage.rings.fraction_field_element>` of
-:mod:`polynomials <sage.rings.polynomial.polynomial_element>` over `\mathbb{Z}` or `\mathbb{Q}` ).
+:mod:`polynomials <sage.rings.polynomial.polynomial_element>` over `\ZZ` or `\QQ` ).
 
 EXAMPLES::
 
@@ -71,16 +71,10 @@ AUTHORS:
 
 REFERENCES:
 
-.. [GK82] Daniel H. Greene and Donald E. (1982), "2.1.1 Constant
-   coefficients - A) Homogeneous equations", Mathematics for the Analysis
-   of Algorithms (2nd ed.), Birkhauser, p. 17.
-.. [KP11] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
-   Springer-Verlag, 2011.
-.. [SZ94] Bruno Salvy and Paul Zimmermann. - Gfun: a Maple package for
-   the manipulation of generating and holonomic functions in one variable.
-   - Acm transactions on mathematical software, 20.2:163-177, 1994.
-.. [Z11] Doron Zeilberger. "The C-finite ansatz." The Ramanujan Journal
-   (2011): 1-10.
+- [GK1982]_
+- [KP2011]_
+- [SZ1994]_
+- [Zei2011]_
 """
 
 #*****************************************************************************
@@ -119,7 +113,7 @@ def CFiniteSequences(base_ring, names = None, category = None):
     r"""
     Return the ring of C-Finite sequences.
 
-    The ring is defined over a base ring (`\mathbb{Z}` or `\mathbb{Q}` )
+    The ring is defined over a base ring (`\ZZ` or `\QQ` )
     and each element is represented by its ordinary generating function (ogf)
     which is a rational function over the base ring.
 
@@ -806,7 +800,7 @@ class CFiniteSequence(FieldElement):
         where ``r_i`` are the roots of the characteristic equation and
         ``c_i(n)`` is a polynomial (whose degree equals the multiplicity of
         ``r_i`` minus one).  This is a natural generalization of Binet's
-        formula for Fibonacci numbers.  See, for instance, [KP, Theorem 4.1].
+        formula for Fibonacci numbers.  See, for instance, [KP2011, Theorem 4.1].
 
         Note that if the o.g.f. has a polynomial part, that is, if the
         numerator degree is not strictly less than the denominator degree,
@@ -905,7 +899,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
         INPUT:
 
         - ``base_ring`` -- the base ring for the o.g.f (either ``QQ`` or ``ZZ``)
-        - ``names`` -- an iterable of variables (shuould contain only one variable)
+        - ``names`` -- an iterable of variables (should contain only one variable)
         - ``category`` -- the category of the ring (default: ``Fields()``)
 
         TESTS::

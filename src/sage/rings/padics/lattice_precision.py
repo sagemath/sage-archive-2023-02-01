@@ -27,9 +27,10 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from __future__ import division
 from collections import defaultdict
 
 from sage.misc.misc import walltime
@@ -376,7 +377,7 @@ class pRational:
             val = self._valuation + other._valuation
         return self.__class__(self.p, self.x * other.x, self.exponent + other.exponent, valuation=val)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of ``self`` by ``other``.
 
@@ -395,6 +396,8 @@ class pRational:
         else:
             val = self._valuation - other._valuation
         return self.__class__(self.p, self.x / other.x, self.exponent - other.exponent, valuation=val)
+
+    __div__ = __truediv__
 
     def _quo_rem(self, other):
         """
@@ -777,7 +780,7 @@ class DifferentialPrecisionGeneric(SageObject):
         Return the dimension of the vector space in which the precision
         module/lattice lives.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = ZpLC(2, label='ambient_dim')
             sage: prec = R.precision()
@@ -1263,7 +1266,7 @@ class DifferentialPrecisionGeneric(SageObject):
 
         - ``separate_reduce`` -- a boolean (default: ``False``); specify
           whether partial/full Hermite reduction should be displayed
-          separatedly
+          separately
 
         - ``timings`` -- a boolean (default: ``True``); specify whether
           timings should be displayed
@@ -1440,7 +1443,7 @@ class DifferentialPrecisionGeneric(SageObject):
             for (event, index, tme) in self._history:
                 if event == 'partial reduce' or event == 'full reduce':
                     if separate_reduce:
-                        if total_time > 0:
+                        if status:
                             hist.append(self._format_history(total_time, status, timings))
                         if event == 'partial reduce': code = 'r'
                         else: code = 'R'
@@ -1452,7 +1455,7 @@ class DifferentialPrecisionGeneric(SageObject):
                         total_time += tme
                     continue
                 if not compact or event != oldevent:
-                    if total_time > 0:
+                    if status:
                         hist.append(self._format_history(total_time, status, timings))
                     total_time = 0
                     oldevent = event
@@ -1466,7 +1469,7 @@ class DifferentialPrecisionGeneric(SageObject):
                     status[index] = '~'
                 elif event == 'del':
                     del status[index]
-            if total_time > 0 or oldevent == '':
+            if status or oldevent == '':
                 hist.append(self._format_history(total_time, status, timings))
             return '\n'.join(hist)
         else:
@@ -1485,7 +1488,7 @@ class DifferentialPrecisionGeneric(SageObject):
           a dictionary
 
         Here are the meanings of the keywords above:
-        - ``add``: time spent in adding new colunmns to the precision matrix
+        - ``add``: time spent in adding new columns to the precision matrix
           (corresponding to the creation of new elements)
         - ``mark``: time spent in marking elements for deletion
         - ``del``: time spent in deleting columns of the precision matrix
@@ -1817,7 +1820,6 @@ class PrecisionLattice(UniqueRepresentation, DifferentialPrecisionGeneric):
             sage: prec.precision_lattice()
             []
         """
-        p = self._p
         n = len(self._elements)
 
         # We mark new collected elements for deletion
@@ -1891,7 +1893,7 @@ class PrecisionLattice(UniqueRepresentation, DifferentialPrecisionGeneric):
         The new precision lattice is computed as the intersection
         of the current precision lattice with the subspace
 
-        ..MATH::
+        .. MATH::
 
             p^{prec} \Z_p dx \oplus \bigoplus_{y \neq x} \Q_p dy
 
@@ -2414,8 +2416,6 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
             sage: prec.precision_lattice()
             []
         """
-        p = self._p
-
         # We mark new collected elements for deletion
         # The list self._collected_references can be updated while
         # the loop runs.
@@ -2439,7 +2439,8 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
                 # if the column is not a pivot, we erase it without delay
                 # (btw, is it a good idea?)
                 del self._elements[index]
-                self._marked_for_deletion = [ i if i < index else i-1 for i in self._marked_for_deletion ]
+                self._marked_for_deletion = [i if i < index else i - 1
+                                             for i in self._marked_for_deletion]
                 if self._history is not None:
                     self._history.append(('del', index, walltime(tme)))
         del self._collected_references[:count]
@@ -2518,12 +2519,12 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
 
         - ``prec`` -- the new precision
 
-        NOTE:
+        .. NOTE::
 
-        The new precision lattice is computed as the intersection
-        of the current precision lattice with the subspace
+            The new precision lattice is computed as the intersection
+            of the current precision lattice with the subspace.
 
-        ..MATH::
+        .. MATH::
 
             p^{prec} \Z_p dx \oplus \bigoplus_{y \neq x} \Q_p dy
 

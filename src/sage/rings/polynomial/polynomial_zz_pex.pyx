@@ -1,5 +1,5 @@
 """
-Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
+Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX
 
 AUTHOR:
 
@@ -228,7 +228,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         TESTS:
 
-        The work around provided in :trac:`10475` is superseeded by :trac:`24072`::
+        The work around provided in :trac:`10475` is superseded by :trac:`24072`::
 
             sage: F.<x> = GF(4)
             sage: P.<y> = F[]

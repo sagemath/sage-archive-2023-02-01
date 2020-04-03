@@ -68,14 +68,14 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: TestSuite(mg).run()
         """
         i = len(data)-1
-        while i >= 0 and len(data[i]) == 0:
+        while i >= 0 and not data[i]:
             data.pop()
             i -= 1
         self.rows = len(data)
-        if data == []:
+        if not data:
             self.cols = 0
         else:
-            self.cols = max([len(r) for r in data])
+            self.cols = max(len(r) for r in data)
         self.data = data
         CombinatorialElement.__init__(self, parent, data)
 

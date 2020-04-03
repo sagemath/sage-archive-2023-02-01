@@ -47,7 +47,7 @@ AUTHORS:
 
 - Simon King (2013-02): added examples
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>, William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -59,8 +59,8 @@ AUTHORS:
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -70,9 +70,7 @@ from sage.structure.parent import Parent, Set_generic
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.dynamic_class import dynamic_class
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.constant_function import ConstantFunction
 from sage.misc.lazy_attribute import lazy_attribute
-import types
 
 ###################################
 # Use the weak "triple" dictionary
@@ -571,16 +569,15 @@ class Homset(Set_generic):
 
     Conversely, homsets of non-unique parents are non-unique::
 
-        sage: H = End(ProjectiveSpace(2, names='x,y,z'))
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
+        sage: H = End(ProductProjectiveSpaces(QQ, [1, 1]))
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) is ProductProjectiveSpaces(QQ, [1, 1])
         False
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) == ProductProjectiveSpaces(QQ, [1, 1])
         True
         sage: loads(dumps(H)) is H
         False
         sage: loads(dumps(H)) == H
         True
-
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
         r"""
@@ -900,13 +897,13 @@ class Homset(Set_generic):
             ...
             TypeError: unable to convert 0 to an element of
              Set of Morphisms from Free Group on generators {x, y, z}
-             to Free Group on generators {x, y, z} in Category of groups
+             to Free Group on generators {x, y, z} in Category of infinite groups
             sage: H("whatever")
             Traceback (most recent call last):
             ...
             TypeError: unable to convert 'whatever' to an element of
              Set of Morphisms from Free Group on generators {x, y, z}
-             to Free Group on generators {x, y, z} in Category of groups
+             to Free Group on generators {x, y, z} in Category of infinite groups
             sage: HH = Hom(H, H)
             sage: HH(HH.identity(), foo="bar")
             Traceback (most recent call last):
@@ -925,6 +922,8 @@ class Homset(Set_generic):
             try:
                 call_with_keywords = self.__call_on_basis__
             except AttributeError:
+                if 'base_map' in options:
+                    raise NotImplementedError("base_map not supported for this Homset; you may need to specify a category")
                 raise NotImplementedError("no keywords are implemented for constructing elements of {}".format(self))
             options.setdefault("category", self.homset_category())
             return call_with_keywords(**options)
@@ -997,7 +996,7 @@ class Homset(Set_generic):
             sage: H.category()
             Category of homsets of unital magmas
             sage: cls = H._abstract_element_class; cls
-            <class 'sage.categories.homsets.Homset_with_category._abstract_element_class'>
+            <class 'sage.categories.homsets.GroupHomset_libgap_with_category._abstract_element_class'>
             sage: cls.__bases__ == (H.category().element_class, H.homset_category().morphism_class)
             True
 
@@ -1170,7 +1169,7 @@ class Homset(Set_generic):
 
             sage: K = GaussianIntegers()
             sage: End(K).one()
-            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
         """
         return self.identity()
 

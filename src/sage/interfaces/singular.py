@@ -308,19 +308,19 @@ see :trac:`11645`::
     ''
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 David Joyner and William Stein
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types, string_types
+from six import reraise as raise_
 
 import io
 import os
@@ -337,11 +337,10 @@ from sage.structure.element import RingElement
 
 import sage.rings.integer
 
+from sage.env import SINGULARPATH
 from sage.misc.misc import get_verbose
-from sage.misc.superseded import deprecation
 from sage.docs.instancedoc import instancedoc
 
-from six import reraise as raise_
 
 class SingularError(RuntimeError):
     """
@@ -2263,8 +2262,7 @@ def generate_docstring_dictionary():
     nodes.clear()
     node_names.clear()
 
-    import os
-    singular_docdir = os.environ['SINGULARPATH']+"/../info/"
+    singular_docdir = SINGULARPATH + "/../info/"
 
     new_node = re.compile(r"File: singular\.hlp,  Node: ([^,]*),.*")
     new_lookup = re.compile(r"\* ([^:]*):*([^.]*)\..*")
@@ -2612,7 +2610,6 @@ class SingularGBDefaultContext:
             7*b+210*c^3-79*c^2+3*c,
             7*a-420*c^3+158*c^2+8*c-7
         """
-        from sage.interfaces.singular import SingularError
         try:
             self.bck_degBound = int(self.singular.eval('degBound'))
         except SingularError:
@@ -2650,16 +2647,16 @@ class SingularGBDefaultContext:
             7*b+210*c^3-79*c^2+3*c,
             7*a-420*c^3+158*c^2+8*c-7
         """
-        from sage.interfaces.singular import SingularError
-        self.singular.option("set",self.o)
+        self.singular.option("set", self.o)
         try:
-            self.singular.eval('degBound=%d'%self.bck_degBound)
+            self.singular.eval('degBound=%d' % self.bck_degBound)
         except SingularError:
             pass
         try:
-            self.singular.eval('multBound=%d'%self.bck_multBound)
+            self.singular.eval('multBound=%d' % self.bck_multBound)
         except SingularError:
             pass
+
 
 def singular_gb_standard_options(func):
     r"""
@@ -2681,7 +2678,8 @@ def singular_gb_standard_options(func):
         sage: sage_getargspec(I.interreduced_basis)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
         sage: sage_getsourcelines(I.interreduced_basis)
-        (['    @singular_gb_standard_options\n',
+        (['    @handle_AA_and_QQbar\n',
+          '    @singular_gb_standard_options\n',
           '    @libsingular_gb_standard_options\n',
           '    def interreduced_basis(self):\n', '
           ...

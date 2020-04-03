@@ -17,8 +17,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division, print_function
-
 from sage.structure.element cimport parent
 from sage.structure.richcmp cimport richcmp, rich_to_bool
 from cpython.object cimport Py_NE, Py_EQ
@@ -26,8 +24,8 @@ from cpython.object cimport Py_NE, Py_EQ
 from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
-from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art
+from sage.typeset.ascii_art import AsciiArt, empty_ascii_art, ascii_art
+from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art, unicode_art
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.data_structures.blas_dict cimport add, negate, scal, axpy
 
@@ -107,15 +105,17 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']
-            sage: hash(f)
-            6429418278783588506           # 64-bit
-            726440090                     # 32-bit
+            sage: hash(f) == hash(B['a'] + 3*B['c'])
+            True
+            sage: hash(f) == hash(B['a'] + 4*B['c'])
+            False
 
             sage: F = RootSystem(['A',2]).ambient_space()
             sage: f = F.simple_root(0)
-            sage: hash(f)
-            6920829894162680369           # 64-bit
-            -528971215                    # 32-bit
+            sage: hash(f) == hash(F.simple_root(0))
+            True
+            sage: hash(f) == hash(F.simple_root(1))
+            False
 
         This uses the recipe that was proposed for frozendicts in
         :pep:`416` (and adds the hash of the parent). This recipe
@@ -316,7 +316,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if repr_monomial is None:
             repr_monomial = str
 
-        s = empty_ascii_art # ""
+        chunks = []
         first = True
 
         if scalar_mult is None:
@@ -345,8 +345,12 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                         break_points = [2]
                     else:
                         coeff = "%s"%coeff
-                s += AsciiArt([coeff], break_points) + b
+                if coeff:
+                    chunks.append(AsciiArt([coeff], break_points))
+                if b._l:
+                    chunks.append(b)
                 first = False
+        s = ascii_art(*chunks)
         if first:
             return AsciiArt(["0"])
         elif s == empty_ascii_art:
@@ -366,6 +370,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                ├┤      ├┤       ├┼┘      ┌┼┤    └┴┘
                ├┤      └┘       └┘       └┴┘
                └┘
+
+        The following test failed before :trac:`26850` ::
+
+            sage: unicode_art([M.zero()])  # indirect doctest
+            [ 0 ]
         """
         from sage.misc.misc import coeff_repr
         terms = self._sorted_items_for_printing()
@@ -376,7 +385,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if repr_monomial is None:
             repr_monomial = str
 
-        s = empty_unicode_art  # ""
+        chunks = []
         first = True
 
         if scalar_mult is None:
@@ -405,10 +414,14 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                         break_points = [2]
                     else:
                         coeff = "%s" % coeff
-                s += UnicodeArt([coeff], break_points) + b
+                if coeff:
+                    chunks.append(UnicodeArt([coeff], break_points))
+                if b._l:
+                    chunks.append(b)
                 first = False
+        s = unicode_art(*chunks)
         if first:
-            return "0"
+            return UnicodeArt(["0"])
         elif s == empty_unicode_art:
             return UnicodeArt(["1"])
         else:
@@ -627,45 +640,29 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                                (<IndexedFreeModuleElement>other)._monomial_coefficients,
                                self._monomial_coefficients))
 
-    cpdef _coefficient_fast(self, m):
-        """
-        Return the coefficient of ``m`` in ``self``, where ``m`` is key in
-        ``self._monomial_coefficients``.
-
-        EXAMPLES::
-
-            sage: p = Partition([2,1])
-            sage: q = Partition([1,1,1])
-            sage: s = SymmetricFunctions(QQ).schur()
-            sage: a = s(p)
-            sage: a._coefficient_fast([2,1])
-            Traceback (most recent call last):
-            ...
-            TypeError: unhashable type: 'list'
-
-        ::
-
-            sage: a._coefficient_fast(p)
-            1
-            sage: a._coefficient_fast(q)
-            0
-        """
-        return self._monomial_coefficients.get(m, self.base_ring().zero())
-
     def __getitem__(self, m):
         """
+        Return the coefficient of ``m`` in ``self``.
+
         EXAMPLES::
 
-            sage: s = SymmetricFunctions(QQ).schur()
             sage: p = Partition([2,1])
             sage: q = Partition([1,1,1])
+            sage: s = SymmetricFunctions(QQ).schur()
             sage: a = s(p)
             sage: a[p]
             1
             sage: a[q]
             0
+            sage: a[[2,1]]
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'list'
         """
-        return self._coefficient_fast(m)
+        res = self._monomial_coefficients.get(m)
+        if res is None:
+            return self.base_ring().zero()
+        return res
 
     def _vector_(self, new_base_ring=None):
         """
@@ -771,14 +768,14 @@ cdef class IndexedFreeModuleElement(ModuleElement):
 
         TESTS::
 
-            sage: F.get_action(QQ, operator.mul, True)
+            sage: coercion_model.get_action(F, QQ, operator.mul)
             Right scalar multiplication by Rational Field on Free module generated by {'a', 'b', 'c'} over Rational Field
-            sage: F.get_action(QQ, operator.mul, False)
+            sage: coercion_model.get_action(QQ, F, operator.mul)
             Left scalar multiplication by Rational Field on Free module generated by {'a', 'b', 'c'} over Rational Field
-            sage: F.get_action(ZZ, operator.mul, True)
+            sage: coercion_model.get_action(F, ZZ, operator.mul)
             Right scalar multiplication by Integer Ring on Free module generated by {'a', 'b', 'c'} over Rational Field
-            sage: F.get_action(F, operator.mul, True)
-            sage: F.get_action(F, operator.mul, False)
+            sage: print(coercion_model.get_action(F, F, operator.mul))
+            None
 
         This also works when a coercion of the coefficient is needed, for
         example with polynomials or fraction fields (:trac:`8832`)::

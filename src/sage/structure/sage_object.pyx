@@ -1,69 +1,12 @@
 # -*- encoding: utf-8 -*-
 r"""
 Abstract base class for Sage objects
-
-TESTS:
-
-Test deprecations::
-
-    sage: from sage.structure.sage_object import (
-    ....:     richcmp, richcmp_not_equal,
-    ....:     rich_to_bool, py_rich_to_bool, rich_to_bool_sgn,
-    ....:     op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
-    sage: richcmp(2, 3, op_EQ)
-    doctest:...: DeprecationWarning: Importing richcmp from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_EQ from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    False
-    sage: richcmp_not_equal(2, 3, op_LT)
-    doctest:...: DeprecationWarning: Importing richcmp_not_equal from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_LT from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    True
-    sage: rich_to_bool(op_NE, 0)
-    doctest:...: DeprecationWarning: Importing rich_to_bool from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_NE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    False
-    sage: py_rich_to_bool(op_GT, 1)
-    doctest:...: DeprecationWarning: Importing rich_to_bool from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/21128 for details.
-    doctest:...: DeprecationWarning: Importing op_GT from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    True
-    sage: rich_to_bool_sgn(op_LE, -123)
-    doctest:...: DeprecationWarning: Importing rich_to_bool_sgn from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_LE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    True
-    sage: op_GE
-    doctest:...: DeprecationWarning: Importing op_GE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    5
 """
-
-from __future__ import absolute_import, print_function
 
 from sage.misc.persist import (_base_dumps, _base_save,
                                register_unpickle_override, make_None)
 
 from sage.misc.lazy_import import LazyImport
-richcmp = LazyImport('sage.structure.richcmp', 'richcmp', deprecation=23103)
-richcmp_not_equal = LazyImport('sage.structure.richcmp', 'richcmp_not_equal', deprecation=23103)
-rich_to_bool = LazyImport('sage.structure.richcmp', 'rich_to_bool', deprecation=23103)
-py_rich_to_bool = LazyImport('sage.structure.richcmp', 'rich_to_bool', deprecation=21128)
-rich_to_bool_sgn = LazyImport('sage.structure.richcmp', 'rich_to_bool_sgn', deprecation=23103)
-op_LT = LazyImport('sage.structure.richcmp', 'op_LT', deprecation=23103)
-op_LE = LazyImport('sage.structure.richcmp', 'op_LE', deprecation=23103)
-op_EQ = LazyImport('sage.structure.richcmp', 'op_EQ', deprecation=23103)
-op_NE = LazyImport('sage.structure.richcmp', 'op_NE', deprecation=23103)
-op_GT = LazyImport('sage.structure.richcmp', 'op_GT', deprecation=23103)
-op_GE = LazyImport('sage.structure.richcmp', 'op_GE', deprecation=23103)
-
 
 # NOTE: These imports are just for backwards-compatibility
 loads = LazyImport('sage.misc.persist', 'loads', deprecation=25153)
@@ -84,6 +27,10 @@ register_unpickle_override('sage.structure.generators', 'make_list_gens',
 
 
 __all__ = ['SageObject']
+
+
+# The _interface_init_ for these interfaces takes the interface as argument
+_interface_init_with_interface = set(['magma', 'macaulay2'])
 
 
 cdef class SageObject:
@@ -371,10 +318,19 @@ cdef class SageObject:
             1
             sage: type(_)
             <class 'sage.typeset.unicode_art.UnicodeArt'>
+
+        Check that breakpoints and baseline are preserved (:trac:`29202`)::
+
+            sage: F = FreeAbelianMonoid(index_set=ZZ)
+            sage: f = prod(F.gen(i) for i in range(5))
+            sage: s, t = ascii_art(f), unicode_art(f)
+            sage: s._breakpoints == t._breakpoints and s._baseline == t._baseline
+            True
         """
         from sage.typeset.unicode_art import UnicodeArt
-        lines = [unicode(z) for z in self._ascii_art_()]
-        return UnicodeArt(lines)
+        s = self._ascii_art_()
+        lines = [unicode(z) for z in s]
+        return UnicodeArt(lines, s._breakpoints, s._baseline)
 
     def __hash__(self):
         r"""
@@ -690,29 +646,11 @@ cdef class SageObject:
     def _sage_(self):
         return self
 
-    def _pari_(self):
-        """
-        Deprecated alias for ``__pari__``.
-
-        TESTS::
-
-            sage: class NewStylePari(SageObject):
-            ....:     def __pari__(self):
-            ....:         return pari(42)
-            sage: NewStylePari()._pari_()
-            doctest:...: DeprecationWarning: the _pari_ method is deprecated, use __pari__ instead
-            See http://trac.sagemath.org/22470 for details.
-            42
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(22470, 'the _pari_ method is deprecated, use __pari__ instead')
-        return self.__pari__()
-
     def _interface_(self, I):
         """
         Return coercion of self to an object of the interface I.
 
-        The result of coercion is cached, unless self is not a C
+        The result of coercion is cached, unless self is a C
         extension class or ``self._interface_is_cached_()`` returns
         False.
         """
@@ -734,7 +672,10 @@ cdef class SageObject:
         nm = I.name()
         init_func = getattr(self, '_%s_init_' % nm, None)
         if init_func is not None:
-            s = init_func()
+            if nm in _interface_init_with_interface:
+                s = init_func(I)
+            else:
+                s = init_func()
         else:
             try:
                 s = self._interface_init_(I)
@@ -770,6 +711,17 @@ cdef class SageObject:
         import sage.interfaces.gap
         I = sage.interfaces.gap.gap
         return self._interface_init_(I)
+
+    def _libgap_(self):
+        from sage.libs.gap.libgap import libgap
+        return libgap.eval(self._libgap_init_())
+
+    def _libgap_init_(self):
+        """
+        For consistency's sake we provide a ``_libgap_init_`` but in most cases
+        we can use the same as ``_gap_init_`` here.
+        """
+        return self._gap_init_()
 
     def _gp_(self, G=None):
         if G is None:
@@ -894,10 +846,11 @@ cdef class SageObject:
             G = sage.interfaces.macaulay2.macaulay2
         return self._interface_(G)
 
-    def _macaulay2_init_(self):
-        import sage.interfaces.macaulay2
-        I = sage.interfaces.macaulay2.macaulay2
-        return self._interface_init_(I)
+    def _macaulay2_init_(self, macaulay2=None):
+        if macaulay2 is None:
+            import sage.interfaces.macaulay2
+            macaulay2 = sage.interfaces.macaulay2.macaulay2
+        return self._interface_init_(macaulay2)
 
     def _maple_(self, G=None):
         if G is None:

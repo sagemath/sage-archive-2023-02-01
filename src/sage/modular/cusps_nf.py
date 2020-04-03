@@ -1,5 +1,5 @@
 r"""
-The set `\mathbb{P}^1(K)` of cusps of a number field K
+The set `\mathbb{P}^1(K)` of cusps of a number field `K`
 
 AUTHORS:
 
@@ -34,10 +34,10 @@ Different operations with cusps over a number field::
     7
     sage: alpha.ideal()
     Fractional ideal (7, a + 3)
-    sage: alpha.ABmatrix()
+    sage: M = alpha.ABmatrix(); M # random
     [a + 10, 2*a + 6, 7, a + 5]
-    sage: alpha.apply([0, 1, -1,0])
-    Cusp [7: -a - 10] of Number Field in a with defining polynomial x^2 + 5
+    sage: NFCusp(k, oo).apply(M)
+    Cusp [a + 10: 7] of Number Field in a with defining polynomial x^2 + 5
 
 Check Gamma0(N)-equivalence of cusps::
 
@@ -255,10 +255,14 @@ class NFCuspsSpace(UniqueRepresentation, Parent):
 
             sage: k.<a> = NumberField(x^2 + 5)
             sage: kCusps = NFCusps(k)
-            sage: c = kCusps(a,2)
+            sage: c = kCusps(a,2)  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (3 given)
+            sage: c = kCusps(a,2)  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() takes 2 positional arguments but 3 were given
 
          ::
 
@@ -1007,33 +1011,25 @@ def Gamma0_NFCusps(N):
 
     A list of inequivalent number field cusps.
 
-    EXAMPLES:
-
-    ::
+    EXAMPLES::
 
         sage: k.<a> = NumberField(x^2 + 5)
         sage: N = k.ideal(3)
         sage: L = Gamma0_NFCusps(N)
 
-    The cusps in the list are inequivalent:
+    The cusps in the list are inequivalent::
 
-    ::
+        sage: any(L[i].is_Gamma0_equivalent(L[j], N)
+        ....:     for i in range(len(L)) for j in range(len(L)) if i < j)
+        False
 
-        sage: all([not L[i].is_Gamma0_equivalent(L[j], N) for i, j in \
-                                             mrange([len(L), len(L)]) if i<j])
-        True
-
-    We test that we obtain the right number of orbits:
-
-    ::
+    We test that we obtain the right number of orbits::
 
         sage: from sage.modular.cusps_nf import number_of_Gamma0_NFCusps
         sage: len(L) == number_of_Gamma0_NFCusps(N)
         True
 
-    Another example:
-
-    ::
+    Another example::
 
         sage: k.<a> = NumberField(x^4 - x^3 -21*x^2 + 17*x + 133)
         sage: N = k.ideal(5)
@@ -1159,7 +1155,7 @@ def NFCusps_ideal_reps_for_levelN(N, nlists=1):
         sage: NFCusps_ideal_reps_for_levelN(N)
         [(Fractional ideal (1), Fractional ideal (2, a + 1))]
         sage: L = NFCusps_ideal_reps_for_levelN(N, 3)
-        sage: all([len(L[i])==k.class_number() for i in range(len(L))])
+        sage: all(len(L[i]) == k.class_number() for i in range(len(L)))
         True
 
     ::
@@ -1240,7 +1236,7 @@ def units_mod_ideal(I):
         Unit group with structure C6 x Z of Number Field in a with defining polynomial x^4 - x^3 - 21*x^2 + 17*x + 133
         sage: I = k.ideal(3)
         sage: U = units_mod_ideal(I)
-        sage: all([U[j].is_unit() and not (U[j] in I) for j in range(len(U))])
+        sage: all(U[j].is_unit() and (U[j] not in I) for j in range(len(U)))
         True
     """
     k = I.number_field()

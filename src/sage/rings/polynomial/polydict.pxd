@@ -17,6 +17,7 @@ cdef class ETuple:
     cpdef ETuple emin(ETuple self, ETuple self)
     cpdef ETuple emax(ETuple self, ETuple self)
     cpdef ETuple eadd_p(ETuple self, int other, int pos)
+    cpdef int dotprod(ETuple self, ETuple other)
     cpdef ETuple escalar_div(ETuple self, int n)
     cdef ETuple divide_by_gcd(self, ETuple other)
     cdef ETuple divide_by_var(self, size_t index)

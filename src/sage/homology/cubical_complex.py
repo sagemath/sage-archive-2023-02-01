@@ -79,8 +79,8 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import rename_keyword
 from functools import total_ordering
+
 
 @total_ordering
 class Cube(SageObject):
@@ -198,9 +198,9 @@ class Cube(SageObject):
 
         t = self.tuple()
         u = other.tuple()
-        embed = len(u)
-        if len(t) == embed: # these must be equal for self to be a face of other
-            return all([is_subinterval(t[i], u[i]) for i in range(embed)])
+        if len(t) == len(u):
+            # these must be equal for self to be a face of other
+            return all(is_subinterval(ti, ui) for ti, ui in zip(t, u))
         else:
             return False
 
@@ -339,7 +339,7 @@ class Cube(SageObject):
         :param upper: if True, return the "upper" nth primary face;
           otherwise, return the "lower" nth primary face.
         :type upper: boolean; optional, default=True
-        :return: the cube obtained by replacing the nth non-degenrate
+        :return: the cube obtained by replacing the nth non-degenerate
           interval with either its upper or lower endpoint.
 
         EXAMPLES::
@@ -797,7 +797,7 @@ class CubicalComplex(GenericCellComplex):
 
         sage: S2 = simplicial_complexes.Sphere(2)
         sage: C2 = CubicalComplex(S2)
-        sage: all([C2.homology(n) == S2.homology(n) for n in range(3)])
+        sage: all(C2.homology(n) == S2.homology(n) for n in range(3))
         True
 
     You can get the set of maximal cells or a dictionary of all cells::
@@ -1128,7 +1128,6 @@ class CubicalComplex(GenericCellComplex):
         """
         return set(self.n_cells(n, subcomplex))
 
-    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):

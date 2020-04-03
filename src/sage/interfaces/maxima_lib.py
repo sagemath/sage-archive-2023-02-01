@@ -50,7 +50,7 @@ which is anyway set to raise an error::
     ...
     RuntimeError: Maxima interface in library mode can only be instantiated once
 
-Changed besselexpand to true in init_code -- automatically simplify bessel functions to trig functions when appropriate when true. Examples:
+Changed besselexpand to true in init_code -- automatically simplify Bessel functions to trig functions when appropriate when true. Examples:
 
 For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
 
@@ -70,7 +70,7 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -82,10 +82,9 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 from six import string_types
 
 from sage.symbolic.ring import SR
@@ -170,7 +169,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 
 init_code = ['besselexpand : true', 'display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)', 'load(diag)']
+            'load(diag)']
 
 
 # Turn off the prompt labels, since computing them *very
@@ -725,7 +724,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sgn(x) - sgn(1-x), x)
+            sage: integrate(sgn(x) - sgn(1-x), x)  # known bug
             abs(x - 1) + abs(x)
 
         This is a known bug in Sage symbolic limits code, see
@@ -736,12 +735,12 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(1/(1 + abs(x)), x)
+            sage: integrate(1/(1 + abs(x)), x)  # known bug
             1/2*(log(x + 1) + log(-x + 1))*sgn(x) + 1/2*log(x + 1) - 1/2*log(-x + 1)
 
         ::
 
-            sage: integrate(cos(x + abs(x)), x)
+            sage: integrate(cos(x + abs(x)), x)  # known bug
             -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
 
         The last example relies on the following simplification::
@@ -752,7 +751,7 @@ class MaximaLib(MaximaAbstract):
         An example from sage-support thread e641001f8b8d1129::
 
             sage: f = e^(-x^2/2)/sqrt(2*pi) * sgn(x-1)
-            sage: integrate(f, x, -Infinity, Infinity)
+            sage: integrate(f, x, -Infinity, Infinity)  # known bug
             -erf(1/2*sqrt(2))
 
         From :trac:`8624`::
@@ -762,12 +761,12 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()
+            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()  # known bug
             1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::
 
-            sage: integrate(abs(x^2 - 1), x, -2, 2)
+            sage: integrate(abs(x^2 - 1), x, -2, 2)  # known bug
             4
 
         This definite integral returned zero (incorrectly) in at least
@@ -776,24 +775,6 @@ class MaximaLib(MaximaAbstract):
             sage: f = (x^2)*exp(x) / (1+exp(x))^2
             sage: integrate(f, (x, -infinity, infinity))
             1/3*pi^2
-
-        Sometimes one needs different simplification settings, such as
-        ``radexpand``, to compute an integral (see :trac:`10955`)::
-
-            sage: f = sqrt(x + 1/x^2)
-            sage: maxima = sage.calculus.calculus.maxima
-            sage: maxima('radexpand')
-            true
-            sage: integrate(f, x)
-            integrate(sqrt(x + 1/x^2), x)
-            sage: maxima('radexpand: all')
-            all
-            sage: g = integrate(f, x); g
-            2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
-            sage: (f - g.diff(x)).canonicalize_radical()
-            0
-            sage: maxima('radexpand: true')
-            true
 
         The following integral was computed incorrectly in versions of
         Maxima before 5.27 (see :trac:`12947`)::
@@ -1240,6 +1221,7 @@ sage_op_dict = {
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.error.erf : "%ERF",
     sage.functions.gamma.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.other.conjugate : "$CONJUGATE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1460,8 +1442,8 @@ def dummy_integrate(expr):
         sage: dummy_integrate(f.ecl())
         integrate(f(x), x, 0, 10)
     """
-    args=[max_to_sr(a) for a in cdr(expr)]
-    if len(args) == 4 :
+    args = [max_to_sr(a) for a in cdr(expr)]
+    if len(args) == 4:
         return sage.symbolic.integration.integral.definite_integral(*args,
                                                                 hold=True)
     else:

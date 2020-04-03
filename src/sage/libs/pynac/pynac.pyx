@@ -13,7 +13,6 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
 from libc cimport math
@@ -30,7 +29,8 @@ from sage.cpython.string cimport str_to_bytes, char_to_str
 
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
-from sage.structure.element cimport Element, parent, coercion_model
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element, parent
 from sage.misc.persist import loads, dumps
 
 from sage.rings.integer_ring import ZZ
@@ -287,7 +287,12 @@ cdef subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& 
         ....:         print("len(args): %s, types: %s"%(len(args), str(list(map(type, args)))))
         ....:         return args[-1]
         sage: tfunc = TFunc()
-        sage: tfunc(x).subs(x=1)
+        sage: tfunc(x).subs(x=1)   # py3
+        len(args): 3, types: [<class 'sage.symbolic.substitution_map.SubstitutionMap'>,
+          <class 'int'>,
+          <class 'sage.symbolic.expression.Expression'>]
+        x
+        sage: tfunc(x).subs(x=1)   # py2
         len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
           <type 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
@@ -1726,7 +1731,7 @@ cdef py_log(x):
             return math.log(real)
         elif real < 0:
             res = gsl_complex_log(gsl_complex_rect(real, 0))
-            return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+            return PyComplex_FromDoubles(res.real, res.imag)
         else:
             return float('-inf')
     elif type(x) is complex:
@@ -1735,7 +1740,7 @@ cdef py_log(x):
         if real == 0 and imag == 0:
             return float('-inf')
         res = gsl_complex_log(gsl_complex_rect(real, imag))
-        return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+        return PyComplex_FromDoubles(res.real, res.imag)
     elif isinstance(x, Integer):
         return x.log().n()
     elif hasattr(x, 'log'):
@@ -2195,7 +2200,7 @@ cdef GConstant py_get_constant(const char* name):
     """
     from sage.symbolic.constants import constants_name_table
     cdef PynacConstant pc
-    c = constants_name_table.get(name, None)
+    c = constants_name_table.get(char_to_str(name), None)
     if c is None:
         raise RuntimeError
     else:

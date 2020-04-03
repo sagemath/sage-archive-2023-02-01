@@ -83,7 +83,7 @@ def norm_unram(self, base = None):
 
         ``base`` -- a subfield of the parent `L` of this element.
                     The norm is the relative norm from ``L`` to ``base``.
-                    Defaults to the absolute norm down to `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+                    Defaults to the absolute norm down to `\QQ_p` or `\ZZ_p`.
 
     EXAMPLES::
 
@@ -159,7 +159,7 @@ def trace_unram(self, base = None):
     norm from `L` to ``base``.
 
     In all other cases, the norm is the absolute norm down to
-    `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+    `\QQ_p` or `\ZZ_p`.
 
     EXAMPLES::
 

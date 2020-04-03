@@ -56,6 +56,7 @@ from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
 from sage.homology.chains import Chains, Cochains
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix
 from sage.homology.simplicial_complex import Simplex, lattice_paths, SimplicialComplex
@@ -63,7 +64,7 @@ from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.arith.all import binomial
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import rename_keyword
+
 
 class DeltaComplex(GenericCellComplex):
     r"""
@@ -426,8 +427,7 @@ class DeltaComplex(GenericCellComplex):
         """
         if isinstance(data, (list, tuple)):
             data = dict(zip(range(len(data)), data))
-        else:
-            data = data
+
         # new_dict: dictionary for constructing the subcomplex
         new_dict = {}
         # new_data: dictionary of all cells in the subcomplex: store
@@ -571,7 +571,6 @@ class DeltaComplex(GenericCellComplex):
             cells[-1] = (None,)
         return cells
 
-    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):

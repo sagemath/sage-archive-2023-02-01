@@ -35,3 +35,12 @@ export SAGE_PYTHON_VERSION=@SAGE_PYTHON_VERSION@
 if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
     export SAGE_PYTHON3=yes
 fi
+
+export SAGE_PKG_CONFIG_PATH="@SAGE_PKG_CONFIG_PATH@"
+if [ -n "$SAGE_PKG_CONFIG_PATH" ]; then
+    # set up external pkg-config to look into SAGE_LOCAL/lib/pkgconfig/
+    # (Sage's pkgconf spkg takes care of this, if installed)
+    export PKG_CONFIG_PATH="$SAGE_PKG_CONFIG_PATH${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi
+
+export SAGE_NAUTY_BINS_PREFIX="@SAGE_NAUTY_BINS_PREFIX@"

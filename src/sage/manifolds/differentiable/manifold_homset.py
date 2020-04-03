@@ -49,7 +49,6 @@ from sage.manifolds.differentiable.curve import DifferentiableCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedAutoparallelCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedGeodesic
-from sage.misc.cachefunc import cached_method
 
 class DifferentiableManifoldHomset(TopologicalManifoldHomset):
     r"""
@@ -783,7 +782,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
     def _element_constructor_(self, equations_rhs, velocities,
                  curve_parameter, initial_tangent_vector, chart=None,
-                 name=None, latex_name=None, verbose=False):
+                 name=None, latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated curve
         `I \to M`, where `I` is a real interval and `M` some
@@ -815,7 +814,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         # Standard construction
         return self.element_class(self, equations_rhs, velocities,
                 curve_parameter, initial_tangent_vector, chart=chart,
-                name=name, latex_name=latex_name, verbose=verbose)
+                name=name, latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -858,7 +857,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.22732435599328793, 0.0)
+            (0.2273243562383228, 0.0)
             sage: H = IntegratedCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated curve in the Real interval (-1, 2)
@@ -880,7 +879,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (0.840986533989932,)
+            (0.8409865343211089,)
 
         """
 
@@ -891,8 +890,6 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         dom = self.domain()
         t = dom.canonical_coordinate()
         t_min = dom.lower_bound() # this is either an expression or a
-        # finite value thanks to tests in '__init__'
-        t_max = dom.upper_bound() # this is either an expression or a
         # finite value thanks to tests in '__init__'
 
         codom = self.codomain()
@@ -1231,7 +1228,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
     def _element_constructor_(self, affine_connection, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, verbose=False):
+                    latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated
         autoparallel curve `I \to M`, where `I` is a real interval and
@@ -1265,7 +1262,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         # Standard construction
         return self.element_class(self, affine_connection,
                  curve_parameter, initial_tangent_vector, chart=chart,
-                 name=name,latex_name=latex_name, verbose=verbose)
+                 name=name,latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -1312,7 +1309,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.1749660043664451, -0.2499999999999998)
+            (0.1749660044707089, -0.25)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, I)
             sage: c = H._an_element_() ; c
@@ -1338,7 +1335,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (1.0565635215890166,)
+            (1.0565635217644918,)
 
         """
 
@@ -1358,7 +1355,6 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         dim = codom.dim()
         i0 = codom.start_index()
         chart2 = codom.default_chart()
-        x = chart2[:][0]
         # In case the codomain coincides with the domain,
         # it is important to distinguish between the canonical
         # coordinate, and the curve parameter since, in such a
@@ -1686,7 +1682,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
 
     def _element_constructor_(self, metric, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, verbose=False):
+                    latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated geodesic
         `I \to M`, where `I` is a real interval and
@@ -1718,7 +1714,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         # Standard construction
         return self.element_class(self, metric, curve_parameter,
                  initial_tangent_vector, chart=chart, name=name,
-                 latex_name=latex_name, verbose=verbose)
+                 latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -1769,7 +1765,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: p = c(3) ; p
             Point on the 4-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.2307056927167852, 0.0, 0.0, 0.0)
+            (0.23070569283209164, 0.0, 0.0, 0.0)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, I)
             sage: c = H._an_element_() ; c
@@ -1795,7 +1791,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (1.0565635215890166,)
+            (1.0565635217644918,)
 
         """
 

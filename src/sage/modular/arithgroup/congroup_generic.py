@@ -17,7 +17,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
 ################################################################################
 from __future__ import absolute_import
@@ -101,7 +101,7 @@ def CongruenceSubgroup_constructor(*args):
     if not hasattr(R, "cover_ring") or R.cover_ring() != ZZ:
         raise TypeError("Ring of definition must be Z / NZ for some N")
 
-    if not all([x.matrix().det() == 1 for x in G.gens()]):
+    if not all(x.matrix().det() == 1 for x in G.gens()):
         raise ValueError("Group must be contained in SL(2, Z / N)")
     GG = _minimize_level(G)
     if GG in ZZ:
@@ -605,8 +605,8 @@ def _minimize_level(G):
 
     # now sanitize the generators (remove duplicates and copies of the identity)
     new_gens = [x.matrix() for x in G.gens() if x.matrix() != 1]
-    all([x.set_immutable() for x in new_gens])
+    all(x.set_immutable() for x in new_gens)
     new_gens = list(Set(new_gens))
-    if new_gens == []:
+    if not new_gens:
         return ZZ(N)
     return MatrixGroup(new_gens)

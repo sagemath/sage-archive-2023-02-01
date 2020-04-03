@@ -16,12 +16,11 @@ Catch warnings produced by :func:`check_tkz_graph`::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import print_function
 from builtins import zip
-from six import itervalues
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -248,6 +247,7 @@ class Crystals(Category_singleton):
             """
             return self.first()
 
+        @cached_method
         def weight_lattice_realization(self):
             """
             Return the weight lattice realization used to express weights
@@ -370,8 +370,8 @@ class Crystals(Category_singleton):
                 sage: g = C.__iter__()
                 sage: for _ in range(5): next(g)
                 (-Lambda[0] + Lambda[2],)
-                (Lambda[0] - Lambda[1] + delta,)
                 (Lambda[1] - Lambda[2],)
+                (Lambda[0] - Lambda[1] + delta,)
                 (Lambda[0] - Lambda[1],)
                 (Lambda[1] - Lambda[2] + delta,)
 
@@ -435,15 +435,15 @@ class Crystals(Category_singleton):
 
                 sage: C = crystals.KirillovReshetikhin(['A',3,1], 1, 2)
                 sage: S = list(C.subcrystal(index_set=[1,2])); S
-                [[[1, 1]], [[1, 2]], [[1, 3]], [[2, 2]], [[2, 3]], [[3, 3]]]
+                [[[1, 1]], [[1, 2]], [[2, 2]], [[1, 3]], [[2, 3]], [[3, 3]]]
                 sage: C.cardinality()
                 10
                 sage: len(S)
                 6
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)]))
-                [[[1, 4]], [[1, 3]], [[2, 4]], [[2, 3]]]
+                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], max_depth=1))
-                [[[1, 4]], [[1, 3]], [[2, 4]]]
+                [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='upper'))
                 [[[1, 4]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='lower'))
@@ -788,7 +788,7 @@ class Crystals(Category_singleton):
                         codomain = on_gens[0].parent()
                 elif isinstance(on_gens, dict):
                     if on_gens:
-                        codomain = next(itervalues(on_gens)).parent()
+                        codomain = next(iter(on_gens.values())).parent()
                 else:
                     for x in self.module_generators:
                         y = on_gens(x)
@@ -865,7 +865,7 @@ class Crystals(Category_singleton):
                 sage: t = B.highest_weight_vector()
                 sage: D = B.demazure_subcrystal(t, [2,1])
                 sage: list(D)
-                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                [[[1, 1], [2]], [[1, 2], [2]], [[1, 1], [3]],
                  [[1, 3], [2]], [[1, 3], [3]]]
                 sage: view(D)  # optional - dot2tex graphviz, not tested (opens external window)
 
@@ -1720,9 +1720,9 @@ class Crystals(Category_singleton):
                 sage: C = crystals.KirillovReshetikhin(['A',3,1], 1, 2)
                 sage: elt = C(1,4)
                 sage: list(elt.subcrystal(index_set=[1,3]))
-                [[[1, 4]], [[1, 3]], [[2, 4]], [[2, 3]]]
+                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], max_depth=1))
-                [[[1, 4]], [[1, 3]], [[2, 4]]]
+                [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='upper'))
                 [[[1, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='lower'))
@@ -2096,8 +2096,8 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             [[[1]], [[2]], [[1]]] |--> [[1, 1], [2]]
             [[[3]], [[2]], [[1]]] |--> None
         """
-        return '\n'.join(['{} |--> {}'.format(mg, im)
-                          for mg, im in zip(self._gens, self.im_gens())])
+        return '\n'.join('{} |--> {}'.format(mg, im)
+                         for mg, im in zip(self._gens, self.im_gens()))
 
     def _check(self):
         """
@@ -2232,7 +2232,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         ef = [[]]
         indices = [[]]
 
-        while len(todo) > 0:
+        while todo:
             cur = todo.pop(0)
             cur_ef = ef.pop(0)
             cur_indices = indices.pop(0)

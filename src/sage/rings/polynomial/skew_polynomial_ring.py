@@ -35,30 +35,29 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
-from __future__ import print_function, absolute_import, division
-
+from sage.structure.richcmp import op_EQ
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
+from sage.structure.category_object import normalize_names
+import sage.misc.latex as latex
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.rings.ring import Algebra
+from sage.rings.ring import Field
 from sage.categories.algebras import Algebras
 from sage.rings.integer import Integer
-from sage.rings.ring import Field
+
 from sage.categories.morphism import Morphism, IdentityMorphism
-from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
-from sage.structure.category_object import normalize_names
-from sage.misc.prandom import randint
-from sage.categories.homset import Hom
-from sage.categories.morphism import Morphism
-from sage.categories.morphism import IdentityMorphism
-from sage.categories.map import Section
 from sage.rings.morphism import RingHomomorphism
+from sage.categories.homset import Hom
+from sage.categories.map import Section
+
 from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
-import sage.misc.latex as latex
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
+from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
 
 
 # Helper functions
@@ -1032,6 +1031,28 @@ class SectionSkewPolynomialCenterInjection(Section):
                 mod = 0
         return self.codomain()(l)
 
+    def _richcmp_(self, right, op):
+        r"""
+        Compare this morphism with ``right``
+
+        TESTS::
+
+            sage: k.<a> = GF(5^3)
+            sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
+            sage: Z = S.centre()
+            sage: iota = S.coerce_map_from(Z)
+            sage: sigma = iota.section()
+ 
+            sage: s = loads(dumps(sigma))
+            sage: s == sigma
+            True
+            sage: s is sigma
+            False
+        """
+        if op == op_EQ:
+            return (self.domain() is right.domain()) and (self.codomain() is right.codomain()) 
+        return NotImplemented
+
 
 class SkewPolynomialCenterInjection(RingHomomorphism):
     r"""
@@ -1103,6 +1124,27 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
         for c in x.list():
             l += [ self._embed(c) ] + lz
         return self._codomain (l)
+
+    def _richcmp_(self, right, op):
+        r"""
+        Compare this morphism with ``right``
+
+        TESTS::
+
+            sage: k.<a> = GF(5^3)
+            sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
+            sage: Z = S.centre()
+            sage: iota = S.coerce_map_from(Z)
+ 
+            sage: i = loads(dumps(iota))
+            sage: i == iota
+            True
+            sage: i is iota
+            False
+        """
+        if op == op_EQ:
+            return (self.domain() is right.domain()) and (self.codomain() is right.codomain()) 
+        return NotImplemented
 
     def section(self):
         r"""

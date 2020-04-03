@@ -2048,6 +2048,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: kerbas = Matrix(pR, [[x**2,0,-1],[0,x,-1]])
             sage: kerbas.is_minimal_kernel_basis(pmat)
             False
+
+        Shifts and right kernel bases are supported (with `row_wise`); one can test whether the kernel basis is normalized in shifted-Popov form (with `normal_form`)::
+
+            sage: kerbas = Matrix(pR, [[-x,-x**2],[1,0],[0,1]])
+            sage: kerbas.is_minimal_kernel_basis(pmat.transpose(),row_wise=False,normal_form=True,shifts=[0,1,2])
+            True
         """
         m = pmat.nrows()
         n = pmat.ncols()
@@ -2159,13 +2165,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [6*x + 3   x + 3]
 
             sage: pmat.minimal_kernel_basis(row_wise=False)
-            [6*x^2 + 3*x + 3   x^2 + 4*x + 3]
+            []
 
             sage: pmat = Matrix(pR, [[1,x,x**2]])
-            sage: pmat.minimal_kernel_basis(row_wise=False)
+            sage: pmat.minimal_kernel_basis(row_wise=False,normal_form=True)
             [x 0]
             [6 x]
             [0 6]
+
+            sage: pmat.minimal_kernel_basis(row_wise=False,normal_form=True,shifts=[0,1,2])
+            [  6*x 6*x^2]
+            [    1     0]
+            [    0     1]
         """
         m = self.nrows()
         n = self.ncols()
@@ -2182,9 +2193,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # compute kernel basis
         if row_wise:
             if d is -1: # matrix is zero
+                from sage.matrix.constructor import Matrix
                 return Matrix.identity(self.base_ring(), m, m)
 
             if m <= n and self(0).rank() == m: # early exit: kernel is empty
+                from sage.matrix.constructor import Matrix
                 return Matrix(self.base_ring(), 0, m)
 
             # degree bounds on the kernel basis
@@ -2205,9 +2218,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         else:
             if d is -1: # matrix is zero
+                from sage.matrix.constructor import Matrix
                 return Matrix.identity(self.base_ring(), n, n)
 
             if n <= m and self(0).rank() == n: # early exit: kernel is empty
+                from sage.matrix.constructor import Matrix
                 return Matrix(self.base_ring(), n, 0)
 
             # degree bounds on the kernel basis

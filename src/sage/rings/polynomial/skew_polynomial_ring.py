@@ -46,6 +46,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.rings.ring import Algebra
 from sage.rings.ring import Field
+from sage.categories.rings import Rings
 from sage.categories.algebras import Algebras
 from sage.rings.integer import Integer
 
@@ -283,7 +284,7 @@ class SkewPolynomialRing_general(Algebra):
         :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
         :mod:`sage.rings.polynomial.skew_polynomial_element`
     """
-    def __init__(self, base_ring, twist_map, name, sparse, element_class=None):
+    def __init__(self, base_ring, twist_map, name, sparse, category=None, element_class=None):
         r"""
         Initialize ``self``.
 
@@ -298,6 +299,8 @@ class SkewPolynomialRing_general(Algebra):
 
         - ``sparse`` -- boolean (default: ``False``)
 
+        - ``category`` -- a category
+
         - ``element_class`` -- class representing the type of element to
           be used in ring
 
@@ -307,7 +310,7 @@ class SkewPolynomialRing_general(Algebra):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = SkewPolynomialRing(R,sigma)
             sage: S.category()
-            Category of algebras over (unique factorization domains and commutative algebras over (euclidean domains and infinite enumerated sets and metric spaces) and infinite sets)
+            Category of algebras over Univariate Polynomial Ring in t over Integer Ring
             sage: S([1]) + S([-1])
             0
             sage: TestSuite(S).run()
@@ -317,7 +320,7 @@ class SkewPolynomialRing_general(Algebra):
             sage: T.<x> = k['x', Frob]; T
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: T.category()
-            Category of algebras over finite enumerated fields
+            Category of algebras over Finite Field in t of size 5^3
 
         We skip the pickling tests currently because ``Frob`` does not
         pickle correctly (see note on :trac:`13215`)::
@@ -331,8 +334,9 @@ class SkewPolynomialRing_general(Algebra):
         self.Element = self._polynomial_class = element_class
         self._map = twist_map
         self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
-        Algebra.__init__(self, base_ring, names=name, normalize=True,
-                         category=Algebras(base_ring.category()))
+        if category is None:
+            category = Algebras(base_ring)
+        Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
 
     def _element_constructor_(self, a=None, check=True, construct=False, **kwds):
         r"""
@@ -967,7 +971,7 @@ class SectionSkewPolynomialCenterInjection(Section):
         sage: Z = S.centre()
         sage: iota = S.coerce_map_from(Z)
         sage: sigma = iota.section()
-        sage: TestSuite(sigma).run()
+        sage: TestSuite(sigma).run(skip=['_test_category'])
     """
     def _call_ (self, x):
         r"""
@@ -1037,9 +1041,9 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
         sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
         sage: Z = S.centre()
         sage: iota = S.coerce_map_from(Z)
-        sage: TestSuite(iota).run()
+        sage: TestSuite(iota).run(skip=['_test_category'])
     """
-    def __init__(self,domain,codomain,embed,order):
+    def __init__(self, domain, codomain, embed, order):
         r"""
         Initialize this morphism
 
@@ -1051,7 +1055,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: S.coerce_map_from(Z)   # indirect doctest
             Embedding of the center of Skew Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring
         """
-        RingHomomorphism.__init__(self,Hom(domain,codomain))
+        RingHomomorphism.__init__(self, Hom(domain, codomain, category=Rings()))
         self._embed = embed
         self._order = order
         self._codomain = codomain
@@ -1352,11 +1356,11 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
         :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
         :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
     """
-    def __init__(self, base_ring, twist_map, name, sparse, element_class=None):
+    def __init__(self, base_ring, twist_map, name, sparse, category=None, element_class=None):
         if element_class is None:
             from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
             element_class = SkewPolynomial_finite_order_dense
-        SkewPolynomialRing_general.__init__(self, base_ring, twist_map, name, sparse, element_class)
+        SkewPolynomialRing_general.__init__(self, base_ring, twist_map, name, sparse, category, element_class)
         self._order = twist_map.order()
 
     def center(self, names=None, name=None):

@@ -1557,7 +1557,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     @cached_method
     def linear_extensions(self, facade=False):
         """
-        Returns the enumerated set of all the linear extensions of this poset
+        Return the enumerated set of all the linear extensions of this poset
 
         INPUT:
 
@@ -1631,21 +1631,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
-    def spectrum(self,a):
+    def spectrum(self, a):
         r"""
-        Returns the a-spectrum of this poset.
+        Return the `a`-spectrum of this poset.
 
         The `a`-spectrum in this poset is the list of integers whose
-        i-th position contains the number of linear extensions of this poset
-        that have `a` in the i-th location.
+        `i`-th position contains the number of linear extensions of this poset
+        that have `a` in the `i`-th location.
 
         INPUT:
 
         - ``a`` -- an element of this poset.
 
-        OUTPUT: The a-spectrum, returned as a list, of this poset.
+        OUTPUT: The `a`-spectrum of this poset, returned as a list.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = posets.ChainPoset(5)
             sage: P.spectrum(2)
@@ -1658,10 +1658,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.AntichainPoset(4)
             sage: P.spectrum(3)
             [6, 6, 6, 6]
-
         """
         if a not in self:
-            raise ValueError, "Input element is not in poset!"
+            raise ValueError("Input element is not in poset!")
 
         aspec = []
         for i in range(len(self)):
@@ -1674,29 +1673,29 @@ class FinitePoset(UniqueRepresentation, Parent):
     @staticmethod
     def _glue_spectra(aspec, bspec, orientation):
         r"""
-        Returns the a-spectrum of a poset by merging `aspec` and `bspec`.
+        Return the `a`-spectrum of a poset by merging ``aspec`` and ``bspec``.
 
-        `aspec` and `bspec` are the a-spectrum and b-spectrum of two different
-        posets (see :meth:`atkinson` for the definition of a-spectrum).
+        ``aspec`` and ``bspec`` are the `a`-spectrum and `b`-spectrum of two different
+        posets (see :meth:`atkinson` for the definition of `a`-spectrum).
 
-        The orientation determines whether a < b or b < a in the combined poset.
+        The orientation determines whether `a < b` or `b < a` in the combined poset.
 
         This is a helper method for :meth:`atkinson`.
 
         INPUT:
 
-        - ``aspec`` -- list; the a-spectrum of a poset P.
+        - ``aspec`` -- list; the `a`-spectrum of a poset `P`.
 
-        - ``bspec`` -- list; the b-spectrum of a poset Q.
+        - ``bspec`` -- list; the `b`-spectrum of a poset `Q`.
 
-        - ``orientation`` -- boolean; True if a < b, False otherwise.
+        - ``orientation`` -- boolean; ``True`` if `a < b`, ``False`` otherwise.
 
-        OUTPUT: The a-spectrum (or b-spectrum, depending on orientation),
+        OUTPUT: The `a`-spectrum (or `b`-spectrum, depending on orientation),
                 returned as a list, of the poset which is a disjoint union
-                of P and Q, together with the additional
-                covering relation a < b.
+                of `P` and `Q`, together with the additional
+                covering relation `a < b`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.combinat.posets.posets import FinitePoset
             sage: Pdata = [0, 1, 2, 0]
@@ -1708,7 +1707,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Qdata = [0, 1]
             sage: FinitePoset._glue_spectra(Pdata, Qdata, False)
             [0, 0, 0, 0, 8]
-
         """
         newaspec = []
 
@@ -1731,8 +1729,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def _split(self, a, b):
         r"""
-        Deletes the edge a < b from a poset. Returns the two resulting connected
-        components.
+        Return the two connected components obtained by deleting the covering relation
+        `a < b` from a poset whose Hasse daigram is a tree.
 
         This is a helper method for :meth:`atkinson`.
 
@@ -1740,15 +1738,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``self`` -- a poset.
 
-        - ``a`` -- an element of the poset P.
+        - ``a`` -- an element of the poset.
 
-        - ``b`` -- an element of the poset P.
+        - ``b`` -- an element of the poset which covers ``a``.
 
-        OUTPUT: A list [P', Q'] containing two posets P' and Q', which are the
-                connected components of the poset P after deleting the covering
-                relation a < b.
+        OUTPUT: A list containing two posets which are the connected components
+                of this poset after deleting the covering relation `a < b`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = Poset({0: [1, 2], 1: [], 2: []})
             sage: P._split(0, 1)
@@ -1757,14 +1754,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.ChainPoset(5)
             sage: P._split(1, 2)
             [Finite poset containing 2 elements, Finite poset containing 3 elements]
-
         """
         covers = self.cover_relations()
         covers.remove([a, b])
-        bothPPandQ = Poset((self.list(), covers), cover_relations = True)
+        bothPPandQ = Poset((self.list(), covers), cover_relations=True)
         com = bothPPandQ.connected_components()
         if not len(com) == 2:
-            raise ValueError, "Wrong number of connected components after the covering relation is deleted!"
+            raise ValueError("Wrong number of connected components after the covering relation is deleted!")
         if a in com[0]:
             return com
         else:
@@ -1772,7 +1768,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def _spectrum_of_tree(self, a):
         r"""
-        Computes the a-spectrum of a poset whose underlying graph is a tree.
+        Return the `a`-spectrum of a poset whose underlying graph is a tree.
 
         This is a helper method for :meth:`atkinson`.
 
@@ -1782,9 +1778,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``a`` -- an element of the poset.
 
-        OUTPUT: The a-spectrum, returned as a list, of the poset self.
+        OUTPUT: The `a`-spectrum of this poset, returned as a list.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
             sage: P._spectrum_of_tree(0)
@@ -1797,7 +1793,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
             sage: P._spectrum_of_tree(3)
             [0, 0, 0, 2, 2]
-
         """
         UC = self.upper_covers(a)
         LC = self.lower_covers(a)
@@ -1817,13 +1812,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def atkinson(self, a):
         r"""
-        Compute the a-spectrum of this poset, whose underlying undirected graph
-        is a forest.
+        Return the `a`-spectrum of a poset whose Hasse diagram is cycle-free as
+        an undirected graph.
 
-        This poset is expected to have its underlying undirected graph be a
-        forest. Given an element `a` in a poset `P`, the `a`-spectrum is
-        the list of integers whose i-th position contains the number of linear
-        extensions of `P` that have `a` in the i-th location.
+        Given an element `a` in a poset `P`, the `a`-spectrum is the list of
+        integers whose `i`-th term contains the number of linear extensions of
+        `P` with element `a` located in the i-th position.
 
         INPUT:
 
@@ -1831,9 +1825,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``a`` -- an element of the poset.
 
-        OUTPUT: The a-spectrum, as a list, of the poset.
+        OUTPUT: The `a`-spectrum of this poset, returned as a list.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
             sage: P.atkinson(0)
@@ -1850,13 +1844,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. NOTE::
 
             This function is the implementation of the algorithm from [At1990]_.
-
         """
         if a not in self:
-            raise ValueError, "Input element is not in poset!"
+            raise ValueError("Input element is not in poset!")
 
         if not self.hasse_diagram().to_undirected().is_forest():
-            raise ValueError, "This poset is not a forest."
+            raise ValueError("This poset is not a forest.")
 
         n = self.cardinality()
 
@@ -1892,7 +1885,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_linear_extension(self, l):
         """
-        Returns whether ``l`` is a linear extension of ``self``
+        Return whether ``l`` is a linear extension of ``self``
 
         INPUT:
 

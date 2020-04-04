@@ -313,18 +313,6 @@ class SkewPolynomialRing_general(Algebra):
             sage: S([1]) + S([-1])
             0
             sage: TestSuite(S).run()
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: T.<x> = k['x', Frob]; T
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-            sage: T.category()
-            Category of algebras over Finite Field in t of size 5^3
-
-        We skip the pickling tests currently because ``Frob`` does not
-        pickle correctly (see note on :trac:`13215`)::
-
-            sage: TestSuite(T).run(skip=["_test_pickling", "_test_elements"])
         """
         self.__is_sparse = sparse
         if element_class is None:
@@ -420,7 +408,8 @@ class SkewPolynomialRing_general(Algebra):
             Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: t.parent()
             Univariate Polynomial Ring in t over Integer Ring
-            sage: y = x + t; y
+            sage: y = x + t  # indirect doctest
+            sage: y
             x + t
             sage: y.parent() is S
             True
@@ -1355,6 +1344,20 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
         :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
     """
     def __init__(self, base_ring, twist_map, name, sparse, category=None, element_class=None):
+        r"""
+        Initialize this skew polynomial
+
+        TESTS::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]; S
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            sage: S.category()
+            Category of algebras over Finite Field in t of size 5^3
+
+            sage: TestSuite(S).run()
+        """
         if element_class is None:
             from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
             element_class = SkewPolynomial_finite_order_dense

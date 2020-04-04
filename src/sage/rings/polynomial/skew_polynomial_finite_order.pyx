@@ -37,7 +37,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         This method constructs a generic dense skew polynomial over a field equipped
         with an automorphism of finite order.
 
-        INPUT::
+        INPUT:
 
         - ``parent`` -- parent of ``self``
 

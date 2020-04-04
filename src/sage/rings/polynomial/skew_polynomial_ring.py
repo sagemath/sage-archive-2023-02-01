@@ -1388,7 +1388,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
         The center of this skew polynomial ring.
 
         If ``name`` is given, the name of the variable of the center
-        (which is a polynomial ring) is assigned to �t.
+        (which is a polynomial ring) is assigned to it.
         Otherwise, the notation `(x^r)` (where `x` is the name of the
         variable of this skew polynomial ring and `r` is the order of
         `\sigma`) is used.

@@ -714,7 +714,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             .. MATH::
 
-                ex_{n,q}(s_\lambda) = t^n q^{\sum_i i\lambda_i}
+                ex_{q}(s_\lambda) = t^{|\lambda|} q^{\sum_i i\lambda_i}
                                       / \prod_{u\in\lambda} (1 + \dots + q^{h(u)-1})
 
             where `h(u)` is the hook length of a cell `u` in `\lambda`.
@@ -723,7 +723,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             .. MATH::
 
-                ex_{n,1}(s_\lambda) = f^\lambda t^n / n!
+                ex_{1}(s_\lambda) = f^\lambda t^{|\lambda|} / |\lambda|!
 
             where `f^\lambda` is the number of standard Young
             tableaux of shape `\lambda`.

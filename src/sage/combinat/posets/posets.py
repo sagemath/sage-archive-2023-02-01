@@ -1662,20 +1662,19 @@ class FinitePoset(UniqueRepresentation, Parent):
         if a not in self:
             raise ValueError("Input element is not in poset!")
 
-        aspec = []
-        for i in range(len(self)):
-            aspec.append(0)
-
+        a_spec = [0] * len(self)
         for L in self.linear_extensions():
-            aspec[L.index(a)] = aspec[L.index(a)] + 1
-        return aspec
+            idx = L.index(a)
+            a_spec[idx] += 1
+
+        return a_spec
 
     @staticmethod
-    def _glue_spectra(aspec, bspec, orientation):
+    def _glue_spectra(a_spec, b_spec, orientation):
         r"""
-        Return the `a`-spectrum of a poset by merging ``aspec`` and ``bspec``.
+        Return the `a`-spectrum of a poset by merging ``a_spec`` and ``b_spec``.
 
-        ``aspec`` and ``bspec`` are the `a`-spectrum and `b`-spectrum of two different
+        ``a_spec`` and ``b_spec`` are the `a`-spectrum and `b`-spectrum of two different
         posets (see :meth:`atkinson` for the definition of `a`-spectrum).
 
         The orientation determines whether `a < b` or `b < a` in the combined poset.
@@ -1684,9 +1683,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``aspec`` -- list; the `a`-spectrum of a poset `P`.
+        - ``a_spec`` -- list; the `a`-spectrum of a poset `P`.
 
-        - ``bspec`` -- list; the `b`-spectrum of a poset `Q`.
+        - ``b_spec`` -- list; the `b`-spectrum of a poset `Q`.
 
         - ``orientation`` -- boolean; ``True`` if `a < b`, ``False`` otherwise.
 
@@ -1708,24 +1707,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: FinitePoset._glue_spectra(Pdata, Qdata, False)
             [0, 0, 0, 0, 8]
         """
-        newaspec = []
+        new_a_spec = []
 
         if orientation is False:
-            aspec, bspec = bspec, aspec
+            a_spec, b_spec = b_spec, a_spec
 
-        p = len(aspec)
-        q = len(bspec)
+        p = len(a_spec)
+        q = len(b_spec)
 
         for r in range(1, p+q+1):
-            newaspec.append(0)
+            new_a_spec.append(0)
             for i in range(max(1, r-q), min(p, r) + 1):
-                kval = binomial(r-1, i-1) * binomial(p+q-r, p-i)
+                k_val = binomial(r-1, i-1) * binomial(p+q-r, p-i)
                 if orientation:
-                    inner_sum = sum(bspec[j-1] for j in range(r-i + 1, len(bspec) + 1))
+                    inner_sum = sum(b_spec[j-1] for j in range(r-i + 1, len(b_spec) + 1))
                 else:
-                    inner_sum = sum(bspec[j-1] for j in range(1, r-i + 1))
-                newaspec[-1] = newaspec[-1] + (aspec[i-1] * kval * inner_sum)
-        return newaspec
+                    inner_sum = sum(b_spec[j-1] for j in range(1, r-i + 1))
+                new_a_spec[-1] = new_a_spec[-1] + (a_spec[i-1] * k_val * inner_sum)
+
+        return new_a_spec
 
     def _split(self, a, b):
         r"""
@@ -1757,14 +1757,17 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         covers = self.cover_relations()
         covers.remove([a, b])
-        bothPPandQ = Poset((self.list(), covers), cover_relations=True)
-        com = bothPPandQ.connected_components()
-        if not len(com) == 2:
+        split_poset = Poset((self.list(), covers), cover_relations=True)
+        components = split_poset.connected_components()
+
+        if not len(components) == 2:
             raise ValueError("Wrong number of connected components after the covering relation is deleted!")
-        if a in com[0]:
-            return com
-        else:
-            return [com[1], com[0]]
+
+        c1, c2 = components
+        if a in c2:
+            c1, c2 = c2, c1
+
+        return [c1, c2]
 
     def _spectrum_of_tree(self, a):
         r"""
@@ -1794,20 +1797,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P._spectrum_of_tree(3)
             [0, 0, 0, 2, 2]
         """
-        UC = self.upper_covers(a)
-        LC = self.lower_covers(a)
-        if not UC and not LC:
+        upper_covers = self.upper_covers(a)
+        lower_covers = self.lower_covers(a)
+        if not upper_covers and not lower_covers:
             return [1]
-        if UC:
-            b = UC[0]
+        if upper_covers:
+            b = upper_covers[0]
             orientation = True
         else:
             (a, b) = (self.lower_covers(a)[0], a)
             orientation = False
-        PP, Q = self._split(a, b)
-        aspec = PP._spectrum_of_tree(a)
-        bspec = Q._spectrum_of_tree(b)
-        return FinitePoset._glue_spectra(aspec, bspec, orientation)
+        P, Q = self._split(a, b)
+        a_spec = P._spectrum_of_tree(a)
+        b_spec = Q._spectrum_of_tree(b)
+        return FinitePoset._glue_spectra(a_spec, b_spec, orientation)
 
 
     def atkinson(self, a):
@@ -1854,34 +1857,34 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = self.cardinality()
 
         # Compute the component of this poset containing `a` and its complement
-        com = self.connected_components()
-        remainderposet = Poset()
+        components = self.connected_components()
+        remainder_poset = Poset()
 
-        for X in com:
+        for X in components:
             if a in X:
                 main = X
             else:
-                remainderposet = remainderposet.disjoint_union(X)
+                remainder_poset = remainder_poset.disjoint_union(X)
 
-        aspec = main._spectrum_of_tree(a)
+        a_spec = main._spectrum_of_tree(a)
 
-        if remainderposet.cardinality() == 0:
-            return aspec
+        if remainder_poset.cardinality() == 0:
+            return a_spec
 
-        b = remainderposet.an_element()
-        bspec = remainderposet.atkinson(b)
-        nlinexts = sum(bspec)
+        b = remainder_poset.an_element()
+        b_spec = remainder_poset.atkinson(b)
+        n_lin_exts = sum(b_spec)
 
-        newaspec = []
+        new_a_spec = []
         k = main.cardinality()
 
         # Compute number of shuffles of linear extensions of the two posets
         for r in range(1, n+1):
-            newaspec.append(0)
+            new_a_spec.append(0)
             for i in range(max(1, r-n+k), min(r,k) + 1):
-                kval = binomial(r-1, i-1) * binomial(n - r, k - i)
-                newaspec[-1] += kval * aspec[i-1] * nlinexts
-        return newaspec
+                k_val = binomial(r-1, i-1) * binomial(n - r, k - i)
+                new_a_spec[-1] += k_val * a_spec[i-1] * n_lin_exts
+        return new_a_spec
 
     def is_linear_extension(self, l):
         """

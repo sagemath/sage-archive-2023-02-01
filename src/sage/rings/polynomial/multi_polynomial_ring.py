@@ -110,7 +110,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
     def __init__(self, base_ring, n, names, order):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order,n)
-        MPolynomialRing_base.__init__(self, base_ring, n, names, order)
+        # MPolynomialRing_base.__init__() normally initialises the base ring,
+        # but it also needs the generators to construct a coercion map from the
+        # base ring, and the base ring must be set to initialise the generators.
+        # We set the base ring manually to break this circular dependency.
+        self._base = base_ring
         # Construct the generators
         v = [0] * n
         one = base_ring(1);
@@ -122,17 +126,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             v[i] = 0
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)
+        MPolynomialRing_base.__init__(self, base_ring, n, names, order)
         self._has_singular = can_convert_to_singular(self)
-        # This polynomial ring should belong to Algebras(base_ring).
-        # Algebras(...).parent_class, which was called from MPolynomialRing_base.__init__,
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
-        # wipe the memory and construct the conversion from scratch.
-        if n:
-            from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
-            base_inject = PolynomialBaseringInjection(base_ring, self)
-            self.register_coercion(base_inject)
 
     def _monomial_order_function(self):
         return self.__monomial_order_function

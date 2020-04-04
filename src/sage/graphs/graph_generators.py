@@ -211,6 +211,7 @@ __append_to_doc(
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
+     "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
      "EgawaGraph",
      "FibonacciTree",
@@ -793,7 +794,8 @@ class GraphGenerators():
             gens = []
             for i in range(vertices-1):
                 gen = list(range(i))
-                gen.append(i+1); gen.append(i)
+                gen.append(i+1)
+                gen.append(i)
                 gen += list(range(i + 2, vertices))
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, loops=loops, sparse=sparse):
@@ -2049,6 +2051,7 @@ class GraphGenerators():
     chang_graphs           = staticmethod(families.chang_graphs)
     CirculantGraph         = staticmethod(families.CirculantGraph)
     CubeGraph              = staticmethod(families.CubeGraph)
+    CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
@@ -2426,7 +2429,8 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, sparse=T
         max_size = n*(n-1)
     else:
         max_size = (n*(n-1))>>1 # >> 1 is just / 2 (this is n choose 2)
-    if loops: max_size += n
+    if loops:
+        max_size += n
     if g.size() < max_size:
         # build a list representing C(g) - the edge to be added
         # is one of max_size choices

@@ -143,6 +143,11 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         sage: Z.basis().keys()
         Finite words over {'x', 'y', 'z'}
 
+        sage: A = algebras.FreeZinbiel(QQ,'z2,z3')
+        sage: x, y = A.gens()
+        sage: x*y
+        Z[z2,z3]
+
     REFERENCES:
 
     - :wikipedia:`Zinbiel_algebra`
@@ -247,7 +252,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             [Z[x], Z[y], Z[z]]
         """
         A = self.variable_names()
-        return Family(A, lambda g: self.monomial(self._indices(g)))
+        return Family(A, lambda g: self.monomial(self._indices([g])))
 
     def change_ring(self, R):
         """
@@ -317,7 +322,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         """
         if not x:
             return self.monomial(y)
-        x0 = self._indices(x[0])
+        x0 = self._indices([x[0]])
         return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
 
     def _element_constructor_(self, x):

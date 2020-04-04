@@ -1465,6 +1465,13 @@ class Function_factorial(GinacFunction):
 
             sage: factorial(RBF(2)**64)
             [+/- 2.30e+347382171326740403407]
+
+        Check that :trac:`26749` is fixed::
+
+            sage: factorial(float(3.2))        # abs tol 1e-14
+            7.7566895357931776
+            sage: type(factorial(float(3.2)))
+            <type 'float'>
         """
         if isinstance(x, Integer):
             try:
@@ -1475,7 +1482,11 @@ class Function_factorial(GinacFunction):
             from sage.functions.gamma import gamma
             return gamma(x + 1)
         elif self._is_numerical(x):
-            return (x + 1).gamma()
+            try:
+                return (x + 1).gamma()
+            except AttributeError:
+                from sage.functions.gamma import gamma
+                return gamma(x + 1)
 
 factorial = Function_factorial()
 

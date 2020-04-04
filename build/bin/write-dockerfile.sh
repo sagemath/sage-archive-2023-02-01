@@ -54,6 +54,15 @@ FROM \${BASE_IMAGE}
 EOF
         INSTALL="yum install -y"
         ;;
+    slackware*)
+        # https://docs.slackware.com/slackbook:package_management
+        cat <<EOF
+ARG BASE_IMAGE=vbatts/slackware:latest
+FROM \${BASE_IMAGE}
+EOF
+        UPDATE="slackpkg update &&"
+        INSTALL="slackpkg install"
+        ;;
     arch*)
         # https://hub.docker.com/_/archlinux/
         cat <<EOF
@@ -132,12 +141,12 @@ cat <<EOF
 RUN mkdir -p /sage
 WORKDIR /sage
 ADD Makefile VERSION.txt README.md bootstrap configure.ac sage ./
+ADD src/doc/bootstrap src/doc/bootstrap
 ADD m4 ./m4
 ADD build ./build
 ADD src/bin/sage-version.sh src/bin/sage-version.sh
 $RUN ./bootstrap
 #:configuring:
-ADD src/ext src/ext
 ADD src/bin src/bin
 ADD src/Makefile.in src/Makefile.in
 ARG EXTRA_CONFIGURE_ARGS=""

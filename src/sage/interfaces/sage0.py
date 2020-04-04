@@ -387,7 +387,7 @@ class Sage(ExtraTabCompletion, Expect):
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
             | SageMath version ..., Release Date: ...                            |
-            | Type notebook() for the GUI, and license() for information.        |
+            | Using Python ....   Type "help()" for help.                        |
             ----------------------------------------------------------------------
             ...
         """
@@ -602,7 +602,7 @@ def sage0_console():
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
         | SageMath version ..., Release Date: ...                            |
-        | Type notebook() for the GUI, and license() for information.        |
+        | Using Python ....   Type "help()" for help.                        |
         ----------------------------------------------------------------------
         ...
     """

@@ -1,0 +1,36 @@
+# Source this -*- shell-script -*- to set some environment variables
+# that activate keg-only homebrew package installations
+
+HOMEBREW=`brew --prefix` || return 1
+for l in gettext; do
+    if [ -d "$HOMEBREW/opt/$l/bin" ]; then
+        PATH="$HOMEBREW/opt/$l/bin:$PATH"
+    fi
+done
+export PATH
+PKG_CONFIG_PATH="$HOMEBREW/lib/pkgconfig:$PKG_CONFIG_PATH"
+# libpng.pc depends on zlib.pc
+for l in openblas openssl readline sqlite zlib; do
+    if [ -d "$HOMEBREW/opt/$l/lib/pkgconfig" ]; then
+       PKG_CONFIG_PATH="$HOMEBREW/opt/$l/lib/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+done
+export PKG_CONFIG_PATH
+LDFLAGS="-L$HOMEBREW/lib $LDFLAGS"
+CPPFLAGS="-I$HOMEBREW/include $CPPFLAGS"
+for l in readline; do
+    if [ -d "$HOMEBREW/opt/$l/lib" ]; then
+        LDFLAGS="-L$HOMEBREW/opt/$l/lib $LDFLAGS"
+    fi
+    if [ -d "$HOMEBREW/opt/$l/include" ]; then
+        CPPFLAGS="-I$HOMEBREW/opt/$l/include $CPPFLAGS"
+    fi
+done
+export LDFLAGS
+export CPPFLAGS
+for l in gettext; do
+    if [ -d "$HOMEBREW/opt/$l/share/aclocal" ]; then
+        ACLOCAL_PATH="$HOMEBREW/opt/$l/share/aclocal:$ACLOCAL_PATH"
+    fi
+done
+export ACLOCAL_PATH

@@ -864,6 +864,13 @@ REFERENCES:
 .. [BM1983] Buer, B., and Mohring, R. H.  A fast algorithm for decomposition of
             graphs and posets, Math. Oper. Res., Vol 8 (1983): 170-184.
 
+.. [BM1993] \M. Broué and G. Malle, *Zyklotomische Heckealgebren*,
+            Asterisque, **212** (1993), 119-89.
+
+.. [BM1997] \K. Bremke and G. Malle,
+            *Reduced words and a length function for* `G(e,1,n)`.
+            Indag. Mathem., N.S., **8** (1997), no. 4, 453-469.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 
@@ -1121,6 +1128,11 @@ REFERENCES:
             Discrete Applied Math. 140 (2004)
             :doi:`10.1016/j.dam.2003.06.002`
             http://jl.baril.u-bourgogne.fr/derange.pdf
+
+.. [BV2009] Stephen Boyd and Lieven Vandenberghe.
+            Convex Optimization.
+            Cambridge University Press, Cambridge, 2009.
+            ISBN 9780521833783.
 
 .. [BvR1982] Andries Brouwer and John van Rees,
              More mutually orthogonal Latin squares,
@@ -1727,6 +1739,10 @@ REFERENCES:
             standards et permutations de Baxter, proceedings of
             Formal Power Series and Algebraic Combinatorics, 1994.
 
+.. [DGH2020] \C. Donnot, A. Genitrini and Y. Herida. Unranking Combinations
+            Lexicographically: an efficient new strategy compared with others, 2020,
+            https://hal.archives-ouvertes.fr/hal-02462764v1 
+
 .. [DGMPPS2019] \N. Datta, A. Ghoshal, D. Mukhopadhyay, S. Patranabis,
                 S. Picek, R. Sashukhan. "TRIFLE"
                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/trifle-spec.pdf
@@ -2269,6 +2285,11 @@ REFERENCES:
 .. [GJ2007] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
             2007, :arxiv:`0801.1655`.
 
+.. [GJ2016] Muddappa Seetharama Gowda and Juyoung Jeong.
+            Spectral cones in Euclidean Jordan algebras.
+            Linear Algebra and its Applications, 509:286-305, 2016.
+            :doi:`10.1016/j.laa.2016.08.004`.
+
 .. [GJKPRSS2019] \D. Goudarzi, J. Jean, S. Koelbl, T. Peyrin, M. Rivain, Y. Sasaki, S. M. Sim.
                  "Pyjamask"
                  https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/Pyjamask-spec.pdf
@@ -2414,6 +2435,12 @@ REFERENCES:
 
 .. [GS1999] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
             Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
+
+.. [GS2010] Daniel Gourion and Alberto Seeger.
+            Critical angles in polyhedral convex cones: numerical and
+            statistical considerations.
+            Mathematical Programming, 123:173-198, 2010.
+            :doi:`10.1007/s10107-009-0317-2`.
 
 .. [Go1993] David M. Goldschmidt.
             *Group characters, symmetric functions, and the Hecke algebras*.
@@ -2704,6 +2731,12 @@ REFERENCES:
             Mathematische Zeitschrift 105(2): 110-113, 1968.
             :doi:`10.1007/BF01110435`.
 
+.. [HS2010] Rene Henrion and Alberto Seeger.
+            Inradius and Circumradius of Various Convex Cones Arising in
+            Applications.
+            Set-Valued and Variational Analysis, 18(3-4):483-511, 2010.
+            :doi:`10.1007/s11228-010-0150-z`.
+
 .. [HS2018] \B. Hutz, M. Stoll. "Smallest representatives of
             `SL(2,\ZZ)`-orbits of binary forms and endomorphisms of P1",
             :arxiv:`1805.08579`, 2018.
@@ -2806,6 +2839,11 @@ REFERENCES:
             Modern Number Theory*, Springer-Verlag, GTM volume
             84, 1990.
 
+.. [IS2005] Alfredo Iusem and Alberto Seeger.
+            On pairs of vectors achieving the maximal angle of a convex cone.
+            Mathematical Programming, 104(2-3):501-523, 2005.
+            :doi:`10.1007/s10107-005-0626-z`.
+
 .. [ISSK2009] \M. Izadi, B. Sadeghiyan, S. S. Sadeghian, H. A. Khanooki,
               *MIBS: A new lightweight block cipher*; in
               CANS, (2009), pp. 334-348.
@@ -2835,6 +2873,10 @@ REFERENCES:
 
 .. [Jet2008] \D. Jetchev. Global divisibility of Heegner points and
              Tamagawa numbers. Compos. Math. 144 (2008), no. 4, 811--826.
+
+.. [Jeong2017] Juyoung Jeong.
+               Spectral sets and functions on Euclidean Jordan algebras.
+               University of Maryland, Baltimore County, Ph.D. thesis, 2017.
 
 .. [JK1981] Gordon James, Adalbert Kerber,
             *The Representation Theory of the Symmetric Group*,
@@ -3835,6 +3877,10 @@ REFERENCES:
              Systèmes dynamiques/Dynamical
              Systems. :arxiv:`math/0304469v1`
 
+.. [MM1998] Gunter Malle and Andrew Mathas.
+            *Symmetric cyclotomic Hecke algebras* J. Algebra.
+            **205** (1998) pp. 275-293.
+
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
 
@@ -4769,6 +4815,11 @@ REFERENCES:
               J. Combin. Theory Ser. A, **133** (2015) pp. 29-75.
               :arxiv:`1404.6539`.
 
+.. [SS2016] Alberto Seeger and David Sossa.
+            Critical angles between two convex cones I. General theory.
+            TOP, 24(1):44-65, 2016.
+            :doi:`10.1007/s11750-015-0375-y`.
+
 .. [SS2017] Ben Salisbury and Travis Scrimshaw.
             *Rigged configurations for all symmetrizable types*.
             Electron. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
@@ -4804,10 +4855,6 @@ REFERENCES:
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
 
-.. [St2011b] \W. Stein, "Toward a Generalization of the Gross-Zagier
-            Conjecture", Int Math Res Notices (2011),
-            :doi:`10.1093/imrn/rnq075`
-
 .. [Sta1973] \H. M. Stark, Class-Numbers of Complex Quadratic
              Fields. In: Kuijk W. (eds) Modular Functions of One
              Variable I. Lecture Notes in Mathematics,
@@ -4842,6 +4889,15 @@ REFERENCES:
 
 .. [Star2011] Š. Starosta, *On Theta-palindromic Richness*,
               Theoret. Comp. Sci. 412 (2011) 1111--1121
+
+.. [St2011b] \W. Stein, *Toward a Generalization of the Gross-Zagier
+            Conjecture*, Int Math Res Notices (2011),
+            :doi:`10.1093/imrn/rnq075`
+            
+.. [St2007] \W. Stein. *Modular Forms, a Computational Approach*. 
+            With an appendix by Paul E. Gunnells. 
+            AMS Graduate Studies in Mathematics, Volume 79, 2007.
+            :doi:`10.1090/gsm/079`
 
 .. [Sei2002] \T. R. Seifullin, *Computation of determinants, adjoint
              matrices, and characteristic polynomials without division*
@@ -5317,10 +5373,14 @@ REFERENCES:
             submitted to NIST, (2008), available at
             http://www3.ntu.edu.sg/home/wuhj/research/jh/jh_round3.pdf
 
-.. [Wu2004] Wuthrich, C. (2004). On p-adic heights in families of
-            elliptic curves. Journal of the London Mathematical
-            Society, 70(1), 23-40.
-
+.. [Wu2004] Wuthrich, Christian. *On p-adic heights in families of
+            elliptic curves*. Journal of the London Mathematical
+            Society, 70(1), 23-40, (2004).
+            
+.. [Wu2018] Wuthrich, Christian.
+            *Numerical modular symbols for elliptic curves*. 
+            Math. Comp. 87 (2018), no. 313, 2393–2423. 
+            
 .. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
             and set partition statistics*, Journal of Combinatorial
             Theory, Series A 56.1 (1991): 27-46.

@@ -16,6 +16,7 @@ from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 
@@ -315,6 +316,60 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             True
         """
         return LaurentPolynomial_univariate, (self._parent, self.__u, self.__n)
+
+    def _polynomial_(self, R):
+        r"""
+        TESTS::
+
+            sage: Lx = LaurentPolynomialRing(QQ, "x")
+            sage: Px = PolynomialRing(QQ, "x")
+            sage: Pxy = PolynomialRing(QQ, "x,y")
+            sage: Paxb = PolynomialRing(QQ, "a,x,b")
+            sage: Qx = PolynomialRing(ZZ, "x")
+            sage: Rx = PolynomialRing(GF(2), "x")
+            sage: p1 = Lx.gen()
+            sage: p2 = Lx.zero()
+            sage: p3 = Lx.one()
+            sage: p4 = Lx.gen()**3 - 3
+            sage: p5 = Lx.gen()**3 + 2*Lx.gen()**2
+            sage: p6 = Lx.gen() >> 2
+
+            sage: for P,x in [(Px, Px.gen()), (Qx, Qx.gen()), (Rx, Rx.gen()),
+            ....:             (Pxy, Pxy.gen(0)), (Paxb, Paxb.gen(1))]:
+            ....:     assert P(p1) == x and parent(P(p1)) is P
+            ....:     assert P(p2) == P.zero() and parent(P(p2)) is P
+            ....:     assert P(p3) == P.one() and parent(P(p3)) is P
+            ....:     assert P(p4) == x**3 - 3 and parent(P(p4)) is P
+            ....:     assert P(p5) == x**3 + 2*x**2 and parent(P(p5)) is P
+            ....:     try: P(p6)
+            ....:     except ValueError: pass
+            ....:     else: raise RuntimeError
+
+            sage: Pa = ZZ["a"]
+            sage: Px = ZZ["x"]
+            sage: Pax = ZZ["a,x"]
+            sage: Pxa = ZZ["x,a"]
+            sage: Pa_x = ZZ["a"]["x"]
+            sage: Px_a = ZZ["x"]["a"]
+            sage: Lax = LaurentPolynomialRing(Pa, "x")
+            sage: Lxa = LaurentPolynomialRing(Px, "a")
+            sage: for poly in ["2*a*x^2 - 5*x*a + 3", "a*x^2 - 3*a^3*x"]:
+            ....:     assert Pax(Lax(poly)) == Pax(Lxa(poly)) == Pax(poly)
+            ....:     assert Pxa(Lax(poly)) == Pxa(Lxa(poly)) == Pxa(poly)
+            ....:     assert Pa_x(Lax(poly)) == Pa_x(poly)
+            ....:     assert Px_a(Lxa(poly)) == Px_a(poly)
+        """
+        if self.__n < 0:
+            raise ValueError("Laurent polynomial with negative valuation can not be converted to polynomial")
+
+        if is_PolynomialRing(R):
+            return R(self.__u) << self.__n
+        elif self.__n == 0:
+            return R(self.__u)
+        else:
+            u = R(self.__u)
+            x = R(self.__u._parent.gen())
+            return x**self.__n * u
 
     def is_unit(self):
         """

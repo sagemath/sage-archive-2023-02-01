@@ -35,7 +35,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 from six import iteritems, integer_types, string_types
@@ -45,6 +45,7 @@ import operator
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, parent
+from sage.structure.richcmp import rich_to_bool
 
 import sage.misc.sage_eval
 from sage.misc.fast_methods import WithEqualityById
@@ -892,7 +893,7 @@ class InterfaceElement(Element):
         """
         return hash('%s' % self)
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Comparison of interface elements.
 
@@ -933,26 +934,21 @@ class InterfaceElement(Element):
         try:
             if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
                                      other.name())) == P._true_symbol():
-                return 0
+                return rich_to_bool(op, 0)
         except RuntimeError:
             pass
         try:
             if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-                return -1
+                return rich_to_bool(op, -1)
         except RuntimeError:
             pass
         try:
             if P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-                return 1
+                return rich_to_bool(op, 1)
         except Exception:
             pass
 
-        # everything is supposed to be comparable in Python, so we define
-        # the comparison thus when no comparison is available in interfaced system.
-        if hash(self) < hash(other):
-            return -1
-        else:
-            return 1
+        return NotImplemented
 
     def is_string(self):
         """

@@ -92,7 +92,7 @@ newest_version() {
     if test -f "$SAGE_ROOT/build/pkgs/$SPKG/package-version.txt" ; then
         cat "$SAGE_ROOT/build/pkgs/$SPKG/package-version.txt"
     else
-        echo "$SPKG"
+        echo none
     fi
 }
 
@@ -128,6 +128,8 @@ SAGE_PIP_PACKAGES='\
 '
 SAGE_SCRIPT_PACKAGES='\
 '
+
+SAGE_NEED_SYSTEM_PACKAGES=""
 
 # for each package in pkgs/, add them to the SAGE_PACKAGE_VERSIONS and
 # SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
@@ -169,20 +171,32 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         message="experimental, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
         uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
-    script)
-        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
-        ;;
-    pip)
-        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
-        ;;
     *)
-        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'])
+        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', or 'experimental'])
+        ;;
+    esac
+
+    case "$SPKG_TYPE" in
+    optional|experimental)
+        stampfile=""
+        for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do
+            AS_IF([test -r "$f"], [
+                AS_IF([test -n "$stampfile"], [
+                    AC_MSG_ERROR(m4_normalize([
+                        multiple installation records for $SPKG_NAME:
+                        m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
+                        m4_newline([only one should exist, so please delete some or all
+                        of these files and re-run \"$srcdir/configure\"])
+                    ]))
+                ])
+                stampfile=yes
+            ])
+        done
         ;;
     esac
 
     SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'
 
-    if test "$SPKG_NAME" != "$SPKG_VERSION"; then
         AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
         AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
         AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
@@ -202,7 +216,9 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
-                [yes],                       [ message="no suitable system package; $message" ],
+                [yes],                       [ message="no suitable system package; $message"
+                                               AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES], [" $SPKG_NAME"])
+                                             ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
             ], [
@@ -216,7 +232,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         AS_VAR_POPDEF([sage_use_system])dnl
         AS_VAR_POPDEF([sage_require])dnl
         AS_VAR_POPDEF([sage_spkg_install])dnl
-    fi
 
     # Packages that should be included in the source distribution
     # This includes all standard packages and two special cases
@@ -230,39 +245,52 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         SAGE_SDIST_PACKAGES+="    $SPKG_NAME \\"$'\n'
     fi
 
+    # Determine package source
+    #
+    if test -f "$DIR/requirements.txt"; then
+        SPKG_SOURCE=pip
+    elif test ! -f "$DIR/checksums.ini"; then
+        SPKG_SOURCE=script
+    else
+        SPKG_SOURCE=normal
+    fi
+
     # Determine package dependencies
-    DEP_FILE="$SAGE_ROOT/build/pkgs/$SPKG_NAME/dependencies"
+    #
+    DEP_FILE="$DIR/dependencies"
     if test -f "$DEP_FILE"; then
         # - the # symbol is treated as comment which is removed
         DEPS=`sed 's/^ *//; s/ *#.*//; q' $DEP_FILE`
     else
-        case "$SPKG_TYPE" in
-        optional)
-            DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
-            ;;
-        script)
-            DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
-            ;;
+        ORDER_ONLY_DEPS=""
+        case "$SPKG_SOURCE" in
         pip)
-            DEPS=' | pip'
-            ;;
-        *)
-            DEPS=""
+            ORDER_ONLY_DEPS='pip'
             ;;
         esac
+        case "$SPKG_TYPE" in
+        optional|experimental)
+            ORDER_ONLY_DEPS="$ORDER_ONLY_DEPS"' $(STANDARD_PACKAGES)'
+            ;;
+        esac
+        if test -n "$ORDER_ONLY_DEPS"; then
+            DEPS="| $ORDER_ONLY_DEPS"
+        else
+            DEPS=""
+        fi
     fi
 
     SAGE_PACKAGE_DEPENDENCIES+="deps_$SPKG_NAME = $DEPS"$'\n'
 
     # Determine package build rules
-    case "$SPKG_TYPE" in
+    case "$SPKG_SOURCE" in
     pip)
         SAGE_PIP_PACKAGES+="    $SPKG_NAME \\"$'\n'
         ;;
     script)
         SAGE_SCRIPT_PACKAGES+="    $SPKG_NAME \\"$'\n'
         ;;
-    *)
+    normal)
         SAGE_NORMAL_PACKAGES+="    $SPKG_NAME \\"$'\n'
         ;;
     esac
@@ -279,4 +307,26 @@ AC_SUBST([SAGE_STANDARD_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_INSTALLED_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_CLEANED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])
+])
+
+AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
+    AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
+        AC_MSG_NOTICE([Hint: The following SPKGs did not find equivalent system packages:])
+        AC_MSG_NOTICE([ $SAGE_NEED_SYSTEM_PACKAGES])
+        AC_MSG_CHECKING([for the package system in use])
+        SYSTEM=$(build/bin/sage-guess-package-system)
+        AC_MSG_RESULT([$SYSTEM])
+        AS_IF([test $SYSTEM != unknown], [
+            SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES)
+            AS_IF([test -n "$SYSTEM_PACKAGES"], [
+                COMMAND=$(build/bin/sage-print-system-package-command $SYSTEM install $SYSTEM_PACKAGES)
+                AC_MSG_NOTICE([Hint: Installing the following system packages is recommended and may avoid building some of the above SPKGs from source:])
+                AC_MSG_NOTICE([  \$ $COMMAND])
+                AC_MSG_NOTICE([After installation, re-run configure using:])
+                AC_MSG_NOTICE([  \$ ./config.status --recheck && ./config.status])
+            ], [
+                AC_MSG_NOTICE([No equivalent system packages for $SYSTEM are known to Sage])
+            ])
+        ])
+    ])
 ])

@@ -1,0 +1,12 @@
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "SAGE_LOCAL undefined - exiting..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+cd src
+
+# Install new version
+echo "Installing nose..."
+sdh_pip_install .
+echo

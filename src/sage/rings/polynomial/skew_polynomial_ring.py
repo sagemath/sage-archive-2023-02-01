@@ -50,14 +50,13 @@ from sage.categories.rings import Rings
 from sage.categories.algebras import Algebras
 from sage.rings.integer import Integer
 
-from sage.categories.morphism import Morphism, IdentityMorphism
+from sage.categories.morphism import IdentityMorphism
 from sage.rings.morphism import RingHomomorphism
 from sage.categories.homset import Hom
 from sage.categories.map import Section
 
 from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
 
 
@@ -1165,7 +1164,6 @@ class CenterSkewPolynomialRing(PolynomialRing_general, UniqueRepresentation):
         if not isinstance (skew_ring, SkewPolynomialRing_general):
             raise TypeError("%s is not a Skew Polynomial Ring" % skew_ring)
         self._skew_ring = skew_ring
-        base_ring = skew_ring.base_ring()
         kfixed, embed = skew_ring._map.fixed_field()
         self._embed_basering = embed
         order = skew_ring._map.order()

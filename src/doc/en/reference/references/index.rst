@@ -295,6 +295,9 @@ REFERENCES:
              Math., Combinatorics (T. S. Motzkin, ed.), vol. 19, AMS,
              Providence 1971
 
+.. [At1990] \M. D. Atkinson. *On computing the number of linear extensions of a
+            tree.* Order 7 (1990) 20-25.
+
 .. [At1992] \M. D. Atkinson. *Solomon's descent algebra revisited.*
             Bull. London Math. Soc. 24 (1992) 545-551.
             http://www.cs.otago.ac.nz/staffpriv/mike/Papers/Descent/DescAlgRevisited.pdf

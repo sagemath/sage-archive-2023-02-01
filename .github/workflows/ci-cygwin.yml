@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -93,7 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -166,7 +166,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -249,7 +249,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -329,7 +329,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -409,7 +409,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -489,7 +489,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -569,7 +569,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [standard]
+        pkgs: [minimal, standard, standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false

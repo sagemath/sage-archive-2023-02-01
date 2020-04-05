@@ -96,10 +96,8 @@ else
   if test "x$enable_ppltest" = xyes
   then
     ac_save_CPPFLAGS="$CPPFLAGS"
-    ac_save_LDFLAGS="$LDFLAGS"
     ac_save_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $PPL_CPPFLAGS"
-    LDFLAGS="$PPL_LDFLAGS $LDFLAGS"
     LIBS="$LIBS $PPL_LIBS"
 
 dnl Now check if the installed PPL is sufficiently new.
@@ -239,7 +237,6 @@ main() {
     AC_LANG_POP
 
     CPPFLAGS="$ac_save_CPPFLAGS"
-    LDFLAGS="$ac_save_LDFLAGS"
     LIBS="$ac_save_LIBS"
   fi
 fi
@@ -263,7 +260,6 @@ else
     else
       echo "*** Could not run PPL test program, checking why..."
       CPPFLAGS="$CPPFLAGS $PPL_CPPFLAGS"
-      LDFLAGS="$LDFLAGS $PPL_LDFLAGS"
       LIBS="$LIBS $PPL_LIBS"
       AC_TRY_LINK([
 #include <ppl.hh>
@@ -293,7 +289,6 @@ using namespace Parma_Polyhedra_Library;
   echo "*** the library."
 ])
       CPPFLAGS="$ac_save_CPPFLAGS"
-      LDFLAGS="$ac_save_LDFLAGS"
       LIBS="$ac_save_LIBS"
     fi
   fi

@@ -1065,7 +1065,11 @@ please install it and try again."""
             sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
             sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xff\x0bNETSCAPE2.0\x03\x01\x02\x00\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f:  # optional -- ImageMagick
+            ....:      check1 = b'!\xff\x0bNETSCAPE2.0\x03\x01\x02\x00\x00'
+            ....:      check2 = b'!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00'
+            ....:      data = f.read()
+            ....:      print(check1 in data or check2 in data)
             True
         """
         if filename is None:

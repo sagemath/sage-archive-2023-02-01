@@ -1658,6 +1658,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.AntichainPoset(4)
             sage: P.spectrum(3)
             [6, 6, 6, 6]
+
+        TESTS::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.spectrum(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input element is not in poset!
         """
         if a not in self:
             raise ValueError("Input element is not in poset!")
@@ -1754,6 +1762,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.ChainPoset(5)
             sage: P._split(1, 2)
             [Finite poset containing 2 elements, Finite poset containing 3 elements]
+
+        TESTS::
+
+            sage: P = posets.BooleanLattice(3)
+            sage: P._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Wrong number of connected components after the covering relation is deleted!
+
+            sage: P = Poset({0: [1], 1: [], 2: []})
+            sage: P._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Wrong number of connected components after the covering relation is deleted!
         """
         covers = self.cover_relations()
         covers.remove([a, b])
@@ -1843,6 +1865,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.AntichainPoset(10)
             sage: P.atkinson(0)
             [362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880]
+
+        TESTS::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.atkinson(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input element is not in poset!
+
+            sage: P = posets.BooleanLattice(2)
+            sage: P.atkinson(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: This poset is not a forest.
 
         .. NOTE::
 

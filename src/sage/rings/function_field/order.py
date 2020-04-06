@@ -954,25 +954,29 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
             True
             sage: to_R(e1 + e2) == to_R(e1) + to_R(e2)
             True
+
+            sage: to_R(e1).parent() is R
+            True
+            sage: to_R(e2).parent() is R
+            True
         """
         F = self.function_field()
         K = F.constant_base_field()
 
         q = ideal.gen().element().numerator()
 
-        if F.is_global():
+        if q.degree() == 1:
+            R = K
+            _from_R = lambda e: e
+            _to_R = lambda e: R(e % q)
+        elif F.is_global():
             R, _from_R, _to_R = self._residue_field_global(q, name=name)
         elif isinstance(K, NumberField) or K is QQbar:
             if name is None:
                 name = 'a'
-            if q.degree() == 1:
-                R = K
-                _from_R = lambda e: e
-                _to_R = lambda e: e % q
-            else:
-                R = K.extension(q, names=name)
-                _from_R = lambda e: self._ring(list(R(e)))
-                _to_R = lambda e: (e % q)(R.gen(0))
+            R = K.extension(q, names=name)
+            _from_R = lambda e: self._ring(list(R(e)))
+            _to_R = lambda e: (e % q)(R.gen(0))
         else:
             raise NotImplementedError
 

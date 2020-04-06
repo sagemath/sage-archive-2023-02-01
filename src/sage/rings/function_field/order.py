@@ -920,9 +920,11 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
 
         - a field isomorphic to the residue field
 
-        - an isomorphism from the finite field to the residue field
+        - the natural embedding homomorphism from the residue field to the
+          function field
 
-        - the inverse isomorphism
+        - the reduction homomorphism, mod ``ideal``, from the function field
+          to the residue field
 
         The residue field is by definition `k[x]/q` where `q` is the irreducible
         polynomial generating the prime ideal and `k` is the constant base field.

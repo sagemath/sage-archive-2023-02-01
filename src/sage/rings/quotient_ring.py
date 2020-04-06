@@ -987,6 +987,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+
+        TESTS::
+
+            sage: S(x, coerce=False)
+            a
         """
         if isinstance(x, quotient_ring_element.QuotientRingElement):
             if x.parent() is self:

@@ -41,7 +41,6 @@ from sage.structure.element import Element
 from sage.rings.ring import Algebra
 from sage.categories.algebras import Algebras
 from sage.rings.integer import Integer
-from sage.rings.integer_ring import ZZ
 from sage.rings.ring import Field
 from sage.categories.morphism import Morphism, IdentityMorphism
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
@@ -378,6 +377,11 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             0
             sage: S(0).list()
             []
+
+        TESTS::
+
+            sage: S(x, check=True)
+            x
         """
         C = self._polynomial_class
         if isinstance(a, list):

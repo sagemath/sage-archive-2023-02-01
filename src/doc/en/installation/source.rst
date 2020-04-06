@@ -1022,7 +1022,9 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   or when installing packages manually,
-  run the test suite for each package which has one.
+  run the test suite for each package which has one, and stop with an error
+  if tests are failing.  If set to ``warn``, then only a warning is printed
+  in this case.
   See also :envvar:`SAGE_CHECK_PACKAGES`.
 
 - :envvar:`SAGE_CHECK_PACKAGES` - if :envvar:`SAGE_CHECK` is set to ``yes``,

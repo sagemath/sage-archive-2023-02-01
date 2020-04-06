@@ -54,6 +54,15 @@ FROM \${BASE_IMAGE}
 EOF
         INSTALL="yum install -y"
         ;;
+    slackware*)
+        # https://docs.slackware.com/slackbook:package_management
+        cat <<EOF
+ARG BASE_IMAGE=vbatts/slackware:latest
+FROM \${BASE_IMAGE}
+EOF
+        UPDATE="slackpkg update &&"
+        INSTALL="slackpkg install"
+        ;;
     arch*)
         # https://hub.docker.com/_/archlinux/
         cat <<EOF

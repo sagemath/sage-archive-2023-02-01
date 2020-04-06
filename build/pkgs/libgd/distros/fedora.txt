@@ -1,1 +1,1 @@
-gd
+gd gd-devel

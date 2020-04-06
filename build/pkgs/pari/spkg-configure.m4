@@ -15,12 +15,24 @@ SAGE_SPKG_CONFIGURE([pari], [
         AC_MSG_NOTICE([gp is not found])
         sage_spkg_install_pari=yes
     else
-        AC_PATH_PROG([GPHELP], [gphelp]) dnl needed for cypari2 installation; see #29319
+        AC_PATH_PROG([GPHELP], [gphelp])
+        dnl needed for cypari2 installation; see #29319
         if test x$GPHELP = x; then
             AC_MSG_NOTICE([gphelp is not found; cannot use system pari/GP without gphelp])
             AC_MSG_NOTICE([Install a system package that provides it, possibly pari-doc.])
             AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
             sage_spkg_install_pari=yes
+        else
+            AC_MSG_CHECKING([whether gphelp has access to the documentation])
+            dnl this is needed for cypari2, see #29342
+            if $GPHELP -raw Catalan > /dev/null 2>&1; then
+                AC_MSG_RESULT([yes])
+            else
+                AC_MSG_RESULT([no])
+                AC_MSG_NOTICE([Install a system package that provides the documentation.])
+                AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+                sage_spkg_install_pari=yes
+            fi
         fi
         AC_MSG_CHECKING([is pari_elldata installed? ])
         gp_ell_check=`echo "r=ellinit(\"11a1\"); r[[11]]" | $GP -qf 2>> config.log`

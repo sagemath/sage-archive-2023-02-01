@@ -257,8 +257,6 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -sdist              -- build a source distribution of Sage"
-    echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
-    echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
     echo "                         the packages located in upstream/"
 
@@ -382,7 +380,16 @@ if [ "$1" = '-i' ]; then
     # Now install the packages
     for PKG in $PACKAGES; do
         echo
-        # First check that $PKG is actually a Makefile target
+        # First check that $PKG is an optional or experimental package
+        # so that it can be handled by configure --enable-PKG
+        SPKG_TYPE="$(cat "build/pkgs/$PKG/type" 2>/dev/null || true)"
+        case "$SPKG_TYPE" in
+            optional|experimental)
+                ENABLE_ARGS="$ENABLE_ARGS '--enable-$PKG'"
+                continue
+                ;;
+        esac
+        # Otherwise check that $PKG is actually a Makefile target
         # See https://trac.sagemath.org/ticket/25078
         if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
@@ -391,10 +398,18 @@ if [ "$1" = '-i' ]; then
         fi
         $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
     done
-
-    echo "New packages may have been installed."
-    echo "Re-running configure and make in case any dependent packages need updating."
-    touch "$SAGE_ROOT/configure" && $MAKE all-build
+    if [ -n "$ENABLE_ARGS" ]; then
+        # Adapted from config.status --recheck.
+        # ./config.status --config returns single-quoted arguments such as
+        #   'CC=gcc -Wall' '--enable-e_antic'
+        CONFIG_CMD="./configure $(./config.status --config) $ENABLE_ARGS"
+        echo >&2 "running $CONFIG_CMD"
+        bash -c "$CONFIG_CMD" && $MAKE all-build
+    else
+        echo "New packages may have been installed."
+        echo "Re-running configure and make in case any dependent packages need updating."
+        touch "$SAGE_ROOT/configure" && $MAKE all-build
+    fi
     exit 0
 fi
 
@@ -1020,16 +1035,6 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
         sage-spkg --info "$PKG" || exit $?
     done
     exit 0
-fi
-
-if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
-    shift
-    exec sage-pkg "$@"
-fi
-
-if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
-    shift
-    exec sage-pkg -n "$@"
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then

@@ -568,6 +568,11 @@ class pAdicLatticeGeneric(pAdicGeneric):
             1 + O(2^10)
             sage: x - y
             O(2^50)
+
+        TESTS::
+
+            sage: R(x, prec=5)
+            1 + O(2^5)
         """
         # We first try the _copy method which is sharp on precision
         try:

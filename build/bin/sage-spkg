@@ -11,6 +11,10 @@
 #       installing; instead simply overwrite existing files.
 #   -c: after installing, run the test suite for the spkg. This should
 #       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       Exit with an error if the test suite fails.
+#   -w: after installing, run the test suite for the spkg. This should
+#       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       Print a warning if the test suite fails.
 #   -d: only download the package
 #   -y: automatically reply "y" for all prompts regarding
 #       experimental and old-style packages
@@ -78,7 +82,10 @@ found, install it.
 
 Options:
    -s: do not delete the temporary build directory
-   -c: after installing, run the test suite for the package
+   -c: after installing, run the test suite for the package;
+       exit with an error on test suite failures
+   -w: after installing, run the test suite for the package;
+       print a warning on test suite failures
    -d: only download the package
    -y: automatically reply "y" for all prompts regarding
        experimental and old-style packages; warning: there
@@ -222,6 +229,9 @@ while true; do
         -c|--check)
             SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=yes;;
+        -w|--check-warning-only)
+            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
+            export SAGE_CHECK=warn;;
         -k|--keep-existing)
             KEEP_EXISTING=yes;;
         -o|--allow-upstream)
@@ -362,7 +372,7 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     echo "== Equivalent System Packages =="
     echo
     PKG_DISTROS="$PKG_SCRIPTS"/distros
-    for system_package_file in "$PKG_DISTROS"/debian*.txt "$PKG_DISTROS"/fedora*.txt "$PKG_DISTROS"/*conda*.txt "$PKG_DISTROS"/homebrew*.txt  "$PKG_DISTROS"/arch*.txt ; do
+    for system_package_file in "$PKG_DISTROS"/*.txt; do
         if [ -f "$system_package_file" ]; then
             system=$(basename "$system_package_file" .txt)
             system_packages="$(echo $(sed 's/#.*//;' $system_package_file))"
@@ -824,8 +834,9 @@ fi
 # package's spkg-install script can use this variable.
 #
 # Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.
-if [ -z "$SAGE_CHECK_PACKAGES" ]; then
+# its test suite by default.  However, if SAGE_CHECK=warn, we do not
+# do that.
+if [ x"$SAGE_CHECK" = xyes -a -z "$SAGE_CHECK_PACKAGES" ]; then
     SAGE_CHECK_PACKAGES='!python2,!python3'
 fi
 # Allow spaces, commas, or colons as separator (the documentation suggests commas).
@@ -1013,15 +1024,21 @@ fi
 # spkg-check scripts were written before use of DESTDIR installs, and so
 # fail in many cases.  This might be good to change later.
 
-if [ "$SAGE_CHECK" = "yes" ]; then
+if [ "$SAGE_CHECK" = "yes" -o "$SAGE_CHECK" = "warn" ]; then
     if [ -f spkg-check ]; then
         echo "Running the test suite for $PKG_NAME..."
         time ./spkg-check
         if [ $? -ne 0 ]; then
-            error_msg "Error testing package $PKG_NAME" "make check"
-            exit 1
+            TEST_SUITE_RESULT="failed"
+            if [ "$SAGE_CHECK" = "warn" ]; then
+                error_msg "Warning: Error testing package $PKG_NAME (ignored)" "make check"
+            else
+                error_msg "Error testing package $PKG_NAME" "make check"
+                exit 1
+            fi
+        else
+            TEST_SUITE_RESULT="passed"
         fi
-        TEST_SUITE_RESULT="passed"
     else
         echo "Package $PKG_NAME has no test suite."
         TEST_SUITE_RESULT="not available"

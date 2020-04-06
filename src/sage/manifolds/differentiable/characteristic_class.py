@@ -1,18 +1,18 @@
 r"""
 Characteristic Classes
 
-Let `E \to M` be a topological vector bundle of rank `n` over a topological
-manifold `M` and `R` be any ring.
-A *characteristic class* `c(E)` is an element of the cohomology ring
-`H^{*}(M, R)` such that for any continuous map `f: M \to N`, where `N` is
-another topological manifold, the *naturality condition* is satisfied:
+A *characteristic class* `\kappa` is a natural transformation that
+associates to each vector bundle `E \to M` a cohomology class
+`\kappa(E) \in H^*(M;R)` such that for any continuous map `f\colon N \to M`
+from another topological manifold `N`, the *naturality condition* is
+satisfied:
 
 .. MATH::
 
-    c(f^*E) = f^*c(E) .
+    f^*\kappa(E) = \kappa(f^* E) \in H^*(N;R)
 
-Roughly speaking, characteristic classes measure the non-triviality of the
-vector bundle `E`.
+Roughly speaking, characteristic classes measure the non-triviality of
+vector bundles.
 
 One way to obtain and compute characteristic classes in the de Rham cohomology
 with coefficients in the ring `\CC` is via the so-called *Chern-Weil theory*

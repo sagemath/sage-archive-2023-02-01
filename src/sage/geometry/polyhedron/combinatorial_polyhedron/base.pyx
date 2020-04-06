@@ -90,6 +90,7 @@ from sage.graphs.digraph            import DiGraph
 from sage.combinat.posets.lattices  import FiniteLatticePoset
 from sage.geometry.polyhedron.base  import Polyhedron_base
 from sage.geometry.lattice_polytope import LatticePolytopeClass
+from sage.geometry.cone             import ConvexRationalPolyhedralCone
 from sage.structure.element         import Matrix
 from sage.misc.misc                 import is_iterator
 from .conversions \
@@ -114,6 +115,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     - ``data`` -- an instance of
        * :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
        * or a :class:`~sage.geometry.lattice_polytope.LatticePolytopeClass`
+       * or a :class:`~sage.geometry.cone.ConvexRationalPolyhedralCone`
        * or an ``incidence_matrix`` as in
          :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
          In this case you should also specify the ``Vrep`` and ``facets`` arguments
@@ -156,6 +158,12 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: L = LatticePolytope(points)
         sage: CombinatorialPolyhedron(L)
         A 3-dimensional combinatorial polyhedron with 8 facets
+
+    a cone::
+
+        sage: M = Cone([(1,0), (0,1)])
+        sage: CombinatorialPolyhedron(M)
+        A 2-dimensional combinatorial polyhedron with 2 facets
 
     an incidence matrix::
 
@@ -358,10 +366,22 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._bounded = True
             Vrep = data.vertices()
             self._n_Vrepresentation = len(Vrep)
-            facets = data.facets()
+            facets = tuple(data.facet_normals())
             self._n_Hrepresentation = len(facets)
-            data = tuple(tuple(vert for vert in facet.vertices())
-                         for facet in facets)
+            data = data.incidence_matrix()
+        elif isinstance(data, ConvexRationalPolyhedralCone):
+            # input is ``Cone``
+            self._bounded = False
+            Vrep = tuple(data.rays()) + (data.lattice().zero(),)
+            self._n_Vrepresentation = len(Vrep)
+            facets = tuple(data.facet_normals())
+            self._n_Hrepresentation = len(facets)
+            far_face = tuple(i for i in range(len(Vrep) - 1))
+            self._dimension = data.dim()
+            from sage.matrix.all import matrix
+            from sage.rings.all  import ZZ
+            data = matrix(ZZ, data.incidence_matrix().rows()
+                              + [[ZZ.one() for _ in range(len(facets))]])
         else:
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
             if not unbounded:
@@ -607,6 +627,17 @@ cdef class CombinatorialPolyhedron(SageObject):
              A ray in the direction (1, 0, 0),
              A vertex at (0, 0, 0),
              A ray in the direction (0, 1, 0))
+
+            sage: points = [(1,0,0), (0,1,0), (0,0,1),
+            ....: (-1,0,0), (0,-1,0), (0,0,-1)]
+            sage: L = LatticePolytope(points)
+            sage: C = CombinatorialPolyhedron(L)
+            sage: C.Vrepresentation()
+            (M(1, 0, 0), M(0, 1, 0), M(0, 0, 1), M(-1, 0, 0), M(0, -1, 0), M(0, 0, -1))
+
+            sage: M = Cone([(1,0), (0,1)])
+            sage: CombinatorialPolyhedron(M).Vrepresentation()
+            (N(1, 0), N(0, 1), N(0, 0))
         """
         if self.Vrep() is not None:
             return self.Vrep()
@@ -629,6 +660,24 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (0, 1, 0) x - 1 >= 0,
              An inequality (0, 1, 1) x - 3 >= 0,
              An inequality (0, 0, 1) x - 1 >= 0)
+
+            sage: points = [(1,0,0), (0,1,0), (0,0,1),
+            ....: (-1,0,0), (0,-1,0), (0,0,-1)]
+            sage: L = LatticePolytope(points)
+            sage: C = CombinatorialPolyhedron(L)
+            sage: C.Hrepresentation()
+            (N(1, -1, -1),
+             N(1, 1, -1),
+             N(1, 1, 1),
+             N(1, -1, 1),
+             N(-1, -1, 1),
+             N(-1, -1, -1),
+             N(-1, 1, -1),
+             N(-1, 1, 1))
+
+            sage: M = Cone([(1,0), (0,1)])
+            sage: CombinatorialPolyhedron(M).Hrepresentation()
+            (M(0, 1), M(1, 0))
         """
         if self.facet_names() is not None:
             return self.equalities() + self.facet_names()

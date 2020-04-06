@@ -904,6 +904,9 @@ if [ "$KEEP_EXISTING" != "yes" ]; then
     sage-spkg-uninstall "$PKG_BASE"
 fi
 
+# To work around #26996: Create lib and set a symlink so that writes into lib64/ end up in lib/
+(mkdir -p "$SAGE_DESTDIR_LOCAL/lib" && cd "$SAGE_DESTDIR_LOCAL" && ln -sf lib lib64)
+
 # Run the pre-install script, if any
 if [ -f spkg-preinst ]; then
     echo "Running pre-install script for $PKG_NAME."
@@ -934,6 +937,9 @@ else
         exit 1
     fi
 fi
+
+# To work around #26996: Remove the symlink set, or we get "cp: cannot overwrite directory"
+rm -f "$SAGE_DESTDIR_LOCAL/lib64"
 
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_DESTDIR installation was not used

@@ -2388,7 +2388,7 @@ class Polytopes():
                 transf_col += [new_col]
                 m = matrix(AA, transf_col)
                 col = bf.column(i)
-                rhs = vector(list(col[:i+1]))
+                rhs = vector(AA, list(col[:i+1]))
                 adjusted_col = m.solve_right(rhs)
                 # Then scales the images so that the polytope is inscribed
                 c = 1 - sum(adjusted_col[j]**2 for j in range(n) if j != i)

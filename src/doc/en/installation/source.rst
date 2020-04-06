@@ -232,6 +232,10 @@ On Fedora / Redhat / CentOS:
 
 .. literalinclude:: fedora.txt
 
+On Arch Linux:
+
+.. literalinclude:: arch.txt
+
 (These examples suppose that you choose to use a systemwide OpenSSL library.)
 
 In addition to these, if you don't want Sage to build optional packages that might
@@ -243,6 +247,10 @@ install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 On Fedora / Redhat / CentOS:
 
 .. literalinclude:: fedora-optional.txt
+
+On Arch Linux:
+
+.. literalinclude:: arch-optional.txt
 
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,

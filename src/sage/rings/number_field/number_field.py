@@ -3425,7 +3425,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: d = K.ideals_of_bdd_norm(10)
             sage: for n in d:
             ....:     print(n)
-            ....:     for I in d[n]:
+            ....:     for I in sorted(d[n]):
             ....:         print(I)
             1
             Fractional ideal (1)
@@ -3436,25 +3436,25 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Fractional ideal (3, 1/2*a - 1/2)
             Fractional ideal (3, 1/2*a + 1/2)
             4
-            Fractional ideal (4, 1/2*a + 3/2)
             Fractional ideal (2)
+            Fractional ideal (4, 1/2*a + 3/2)
             Fractional ideal (4, 1/2*a + 5/2)
             5
             6
             Fractional ideal (1/2*a - 1/2)
+            Fractional ideal (1/2*a + 1/2)
             Fractional ideal (6, 1/2*a + 5/2)
             Fractional ideal (6, 1/2*a + 7/2)
-            Fractional ideal (1/2*a + 1/2)
             7
             8
-            Fractional ideal (1/2*a + 3/2)
             Fractional ideal (4, a - 1)
             Fractional ideal (4, a + 1)
+            Fractional ideal (1/2*a + 3/2)
             Fractional ideal (1/2*a - 3/2)
             9
-            Fractional ideal (9, 1/2*a + 11/2)
             Fractional ideal (3)
             Fractional ideal (9, 1/2*a + 7/2)
+            Fractional ideal (9, 1/2*a + 11/2)
             10
         """
         hnf_ideals = self.pari_nf().ideallist(bound)
@@ -4541,17 +4541,25 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K._S_class_group_and_units( (K.ideal(5),) )
             ([5, -1], [])
 
-        TESTS::
+        TESTS:
+
+        Note for the following test that the representation of
+        the units depends on the PARI version::
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
-            sage: K._S_class_group_and_units(tuple(K.primes_above(13)))
-            ([2/13*a^2 + 1/13*a - 677/13,
-              1/13*a^2 + 7/13*a - 332/13,
-              -1/13*a^2 + 6/13*a + 345/13,
-              -1,
-              2/13*a^2 + 1/13*a - 755/13,
-              1/13*a^2 - 19/13*a - 7/13],
-             [(Fractional ideal (11, a - 2), 2), (Fractional ideal (19, a + 7), 2)])
+            sage: units, clpg_gens = K._S_class_group_and_units(tuple(K.primes_above(13)))
+            sage: clpg_gens
+            [(Fractional ideal (11, a - 2), 2), (Fractional ideal (19, a + 7), 2)]
+            sage: units[:5]
+            [2/13*a^2 + 1/13*a - 677/13,
+             1/13*a^2 + 7/13*a - 332/13,
+             -1/13*a^2 + 6/13*a + 345/13,
+             -1,
+             2/13*a^2 + 1/13*a - 755/13]
+            sage: units[5] in (1/13*a^2 - 19/13*a - 7/13, 1/13*a^2 + 20/13*a - 7/13)
+            True
+            sage: len(units) == 6
+            True
 
         Number fields defined by non-monic and non-integral
         polynomials are supported (:trac:`252`)::
@@ -4699,18 +4707,25 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: S in ([2, a + 1, a], [2, a + 1, -a], [2, -a - 1, a], [2, -a - 1, -a]) or S
             True
 
-        Verify that :trac:`14489` is fixed::
+        Verify that :trac:`14489` is fixed;
+        the representation depends on the PARI version::
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
-            sage: K.selmer_group(K.primes_above(13), 2)
+            sage: gens = K.selmer_group(K.primes_above(13), 2)
+            sage: len(gens) == 8
+            True
+            sage: gens[:5]
             [2/13*a^2 + 1/13*a - 677/13,
              1/13*a^2 + 7/13*a - 332/13,
              -1/13*a^2 + 6/13*a + 345/13,
              -1,
-             2/13*a^2 + 1/13*a - 755/13,
-             1/13*a^2 - 19/13*a - 7/13,
-             -1/13*a^2 + 45/13*a - 97/13,
-             2/13*a^2 + 40/13*a - 27/13]
+             2/13*a^2 + 1/13*a - 755/13]
+            sage: gens[5] in (1/13*a^2 - 19/13*a - 7/13, 1/13*a^2 + 20/13*a - 7/13)
+            True
+            sage: gens[6] in (-1/13*a^2 + 45/13*a - 97/13, 1/13*a^2 - 45/13*a + 97/13)
+            True
+            sage: gens[7] in (2/13*a^2 + 40/13*a - 27/13, -2/13*a^2 - 40/13*a + 27/13)
+            True
 
         Verify that :trac:`16708` is fixed::
 
@@ -5351,11 +5366,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         TESTS:
 
         Number fields defined by non-monic and non-integral
-        polynomials are supported (:trac:`252`)::
+        polynomials are supported (:trac:`252`);
+        the representation depends on the PARI version::
 
             sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
-            sage: K.elements_of_norm(7)
-            [7/225*a^2 - 7/75*a - 42/25]
+            sage: [x] = K.elements_of_norm(7)
+            sage: x in (7/225*a^2 - 7/75*a - 42/25, 28/225*a^2 + 77/75*a - 133/25)
+            True
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
@@ -5457,7 +5474,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: pari('setrand(2)')
             sage: L.<b> = K.extension(x^2 - 7)
-            sage: f = L.factor(a + 1); f
+            sage: f = L.factor(a + 1)
+            sage: f                                      # representation varies, not tested
             (Fractional ideal (1/2*a*b - a + 1/2)) * (Fractional ideal (-1/2*a*b - a + 1/2))
             sage: f.value() == a+1
             True
@@ -5472,6 +5490,18 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         AUTHORS:
 
         - Alex Clemesha (2006-05-20), Francis Clarke (2009-04-21): examples
+
+        TESTS:
+
+        We test the above doctest. The representation depends on the PARI version::
+
+            sage: (fi, fj) = f[::]
+            sage: (fi[1], fj[1])
+            (1, 1)
+            sage: fi[0] == L.fractional_ideal(1/2*a*b - a + 1/2)
+            True
+            sage: fj[0] == L.fractional_ideal(-1/2*a*b - a + 1/2)
+            True
         """
         return self.ideal(n).factor()
 
@@ -6151,7 +6181,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if algorithm is None:
             algorithm = 'pari'
-        
+
         if algorithm == 'gp':
             from sage.lfunctions.all import Dokchitser
             r1, r2 = self.signature()
@@ -6534,7 +6564,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [t - 1]
             sage: [K.uniformizer(P) for P,e in factor(K.ideal(5))]
             [t^2 - t + 1, t + 2, t - 2]
-            sage: [K.uniformizer(P) for P,e in factor(K.ideal(7))]
+            sage: [K.uniformizer(P) for P,e in factor(K.ideal(7))]  # representation varies, not tested
             [t^2 + 3*t + 1]
             sage: [K.uniformizer(P) for P,e in factor(K.ideal(67))]
             [t + 23, t + 26, t - 32, t - 18]
@@ -6545,6 +6575,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             :pari:`idealprimedec` in the "positive" case. Use :pari:`idealappr`
             with exponent of -1 and invert the result in the "negative"
             case.
+
+        TESTS:
+
+        We test the above doctest. The representation depends on the PARI version::
+
+            sage: [x] = [K.uniformizer(P) for P,e in factor(K.ideal(7))]
+            sage: x in (t^2 + 3*t +1, t^2 - 4*t +1)
+            True
         """
         if not is_NumberFieldIdeal(P):
             P = self.ideal(P)
@@ -7800,7 +7838,7 @@ class NumberField_absolute(NumberField_generic):
         polynomials are supported (:trac:`252`)::
 
             sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
-            sage: K.optimized_representation()
+            sage: K.optimized_representation()  # representation varies, not tested
             (Number Field in a1 with defining polynomial x^3 - 7*x - 7,
              Ring morphism:
                From: Number Field in a1 with defining polynomial x^3 - 7*x - 7
@@ -7810,6 +7848,26 @@ class NumberField_absolute(NumberField_generic):
                From: Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
                To:   Number Field in a1 with defining polynomial x^3 - 7*x - 7
                Defn: a |--> -15/7*a1^2 + 9)
+
+        TESTS:
+
+        We test the above doctest. The representation depends on the PARI version::
+
+            sage: N, M1, M2 = K.optimized_representation(); N, M1, M2
+            (Number Field in a1 with defining polynomial x^3 - 7*x - 7,
+             Ring morphism:
+               From: Number Field in a1 with defining polynomial x^3 - 7*x - 7
+               To:   Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+               Defn: a1 |--> ...,
+             Ring morphism:
+               From: Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+               To:   Number Field in a1 with defining polynomial x^3 - 7*x - 7
+               Defn: a |--> ...)
+            sage: a1 = M1.domain().gens()[0]
+            sage: M2(a) in (-15/7*a1^2 + 9, -60/7*a1^2 + 15*a1 + 39)
+            True
+            sage: M1(M2(a)) == a
+            True
         """
         if name is None:
             name = self.variable_names()

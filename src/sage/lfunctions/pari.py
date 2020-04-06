@@ -422,7 +422,7 @@ class LFunction(SageObject):
         50
         sage: L.taylor_series(1,4)
         0.000000000000000 + 0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + O(z^4)
-        sage: L.check_functional_equation()
+        sage: L.check_functional_equation()  # abs tol 4e-19
         1.08420217248550e-19
 
     .. RUBRIC:: Rank 2 elliptic curve

@@ -1,0 +1,96 @@
+name: Run SAGE_ROOT/tox.ini
+
+## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments,
+## whenever a GitHub pull request is opened or synchronized in a repository
+## where GitHub Actions are enabled.
+##
+## It builds and checks some sage spkgs as defined in TARGETS.
+##
+## A job succeeds if there is no error.
+##
+## The build is run with "make V=0", so the build logs of individual packages are suppressed.
+##
+## At the end, all package build logs that contain an error are printed out.
+##
+## After all jobs have finished (or are canceled) and a short delay,
+## tar files of all logs are made available as "build artifacts".
+
+#on: [push, pull_request]
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+env:
+  ## We test everything BLAS-related and other problematic packages
+  #TARGETS: cbc csdp fflas_ffpack gsl iml numpy scipy r suitesparse cvxopt rpy2 ecl maxima fpylll linbox
+  TARGETS: build ptest
+
+jobs:
+  tox:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-buster, debian-bullseye, debian-sid, linuxmint-19.3, fedora-26, fedora-28, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, slackware-14.2, conda-forge, conda-anaconda3, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386, ubuntu-bionic-arm64, ubuntu-bionic-armhf]
+        tox_packages_factor: [minimal, standard, standard-python2]
+    env:
+      TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install test prerequisites
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
+      - run: |
+          set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=4\" --build-arg TARGETS=\"$TARGETS\"" tox -e $TOX_ENV 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
+      - name: Copy logs from the build container
+        run: |
+          mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/Dockerfile .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"; for CONTAINER in `docker ps -q -a`; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done
+        if: always()
+      - uses: actions/upload-artifact@v1
+        with:
+          path: artifacts
+          name: ${{ env.LOGS_ARTIFACT_NAME }}
+        if: always()
+      - name: Print out logs for immediate inspection
+        # The markup in the output is a GitHub Actions logging command
+        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        run: |
+          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+        if: always()
+  tox-local-homebrew-macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tox_packages_factor: [minimal, standard]
+    env:
+      TOX_ENV: local-homebrew-macos-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-homebrew-macos-${{ matrix.tox_packages_factor }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install test prerequisites
+        run: |
+          brew install tox
+      - name: Build and test with tox
+        # We use a high parallelization on purpose in order to catch possible parallelization bugs in the build scripts.
+        # For doctesting, we use a lower parallelization to avoid timeouts.
+        run: |
+          tox -e $TOX_ENV -- MAKE="make -j12" SAGE_NUM_THREADS=4 $TARGETS
+      - name: Prepare logs artifact
+        run: |
+          mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"
+        if: always()
+      - uses: actions/upload-artifact@v1
+        with:
+          path: artifacts
+          name: ${{ env.LOGS_ARTIFACT_NAME }}
+        if: always()
+      - name: Print out logs for immediate inspection
+        # The markup in the output is a GitHub Actions logging command
+        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        run: |
+          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+        if: always()

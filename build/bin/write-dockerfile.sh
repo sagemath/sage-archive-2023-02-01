@@ -149,6 +149,7 @@ $RUN ./bootstrap
 #:configuring:
 ADD src/bin src/bin
 ADD src/Makefile.in src/Makefile.in
+RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF
 if [ ${WITH_SYSTEM_SPKG} = "force" ]; then
@@ -165,13 +166,15 @@ cat <<EOF
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k"
+ENV SAGE_CHECK=warn
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 #:toolchain:
 $RUN make \${USE_MAKEFLAGS} base-toolchain
 #:make:
-# Avoid running the lengthy testsuite of the following.
-$RUN make \${USE_MAKEFLAGS} cython
-# By default, compile something tricky but that does not take too long. scipy uses BLAS.
-ARG TARGETS="scipy"
-$RUN SAGE_CHECK=yes SAGE_CHECK_PACKAGES="!r,!python3,!python2,!nose" make \${USE_MAKEFLAGS} \${TARGETS}
+ARG TARGETS_PRE="sagelib-build-deps"
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE}
+ADD src src
+ARG TARGETS="build ptest"
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS}
 #:end:
 EOF

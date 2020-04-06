@@ -1,6 +1,8 @@
 name: windows-latest
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   cygwin:
@@ -41,11 +43,11 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
     - name: make
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -w V=0 all'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 SAGE_SPKG="sage-spkg -y -o" SAGE_CHECK=warn SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl" build'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/pkgs/* "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/* "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v1
       with:

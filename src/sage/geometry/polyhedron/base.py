@@ -3171,21 +3171,22 @@ class Polyhedron_base(Element):
             sage: Q = polytopes.octahedron()
             sage: Q.is_pyramid()
             False
+
+        For the `0`-dimensional polyhedron, the output is ``True``,
+        but it cannot be constructed as a pyramid over the empty polyhedron::
+
+            sage: P = Polyhedron([[0]])
+            sage: P.is_pyramid()
+            True
+            sage: Polyhedron().pyramid()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
         if not self.is_compact():
             raise ValueError("polyhedron has to be compact")
 
-        # Find a vertex that is incident to all elements in Hrepresentation but one.
-        IM = self.incidence_matrix()
-        for index in range(self.n_vertices()):
-            vertex_incidences = IM.row(index)
-            if sum(vertex_incidences) == IM.ncols() - 1:
-                if certificate:
-                    return (True, self.vertices()[index])
-                return True
-        if certificate:
-            return (False, None)
-        return False
+        return self.combinatorial_polyhedron().is_pyramid(certificate)
 
     def is_bipyramid(self, certificate=False):
         r"""
@@ -5411,18 +5412,7 @@ class Polyhedron_base(Element):
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
 
-        n = self.n_vertices()
-        vertices = list(range(n))
-        facets = self.incidence_matrix().columns()
-
-        for facet in facets:
-            facet_vertices = facet.nonzero_positions()
-            if len(facet_vertices) == n-1 or len(facet_vertices) == n-2:
-                facet_non_vertices = [i for i in range(n) if i not in facet_vertices]
-                if all(vertex in vertices for vertex in facet_non_vertices):
-                    for vertex in facet_non_vertices:
-                        vertices.remove(vertex)
-        return not vertices
+        return self.combinatorial_polyhedron().is_lawrence_polytope()
 
     def barycentric_subdivision(self, subdivision_frac=None):
         r"""

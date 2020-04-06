@@ -910,6 +910,9 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
         """
         Return a field isomorphic to the residue field at the prime ideal.
 
+        The residue field is by definition `k[x]/q` where `q` is the irreducible
+        polynomial generating the prime ideal and `k` is the constant base field.
+
         INPUT:
 
         - ``ideal`` -- prime ideal of the order
@@ -920,14 +923,9 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
 
         - a field isomorphic to the residue field
 
-        - the natural embedding homomorphism from the residue field to the
-          function field
+        - a morphism from the field to `k[x]` via the residue field
 
-        - the reduction homomorphism, mod ``ideal``, from the function field
-          to the residue field
-
-        The residue field is by definition `k[x]/q` where `q` is the irreducible
-        polynomial generating the prime ideal and `k` is the constant base field.
+        - a morphism from `k[x]` to the field via the residue field
 
         EXAMPLES::
 
@@ -1008,18 +1006,19 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
 
         q = ideal.gen().element().numerator()
 
-        if q.degree() == 1:
-            R = K
-            _from_R = lambda e: e
-            _to_R = lambda e: R(e % q)
-        elif F.is_global():
+        if F.is_global():
             R, _from_R, _to_R = self._residue_field_global(q, name=name)
         elif isinstance(K, NumberField) or K is QQbar:
             if name is None:
                 name = 'a'
-            R = K.extension(q, names=name)
-            _from_R = lambda e: self._ring(list(R(e)))
-            _to_R = lambda e: (e % q)(R.gen(0))
+            if q.degree() == 1:
+                R = K
+                _from_R = lambda e: e
+                _to_R = lambda e: R(e % q)
+            else:
+                R = K.extension(q, names=name)
+                _from_R = lambda e: self._ring(list(R(e)))
+                _to_R = lambda e: (e % q)(R.gen(0))
         else:
             raise NotImplementedError
 

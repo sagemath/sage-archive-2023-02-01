@@ -9,7 +9,6 @@ SAGE_SPKG_CONFIGURE([pari], [
         sage_spkg_install_pari=yes
     else
       AC_MSG_RESULT([no])
-      AC_MSG_CHECKING([installing PARI/GP packages? ])
     AC_PATH_PROG([GP], [gp])
     if test x$GP = x; then dnl GP test
         AC_MSG_NOTICE([gp is not found])
@@ -74,10 +73,20 @@ SAGE_SPKG_CONFIGURE([pari], [
             AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
             sage_spkg_install_pari=yes
         fi
+        AC_MSG_CHECKING([whether bnfisunit bug of pari 2.11.3 is fixed])
+        bug_check=$(echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)" | $GP -qf 2>> config.log)
+        expected="[[0, 2, Mod(0, 2)]]~"
+        if test x"$bug_check" = x"$expected"; then
+           AC_MSG_RESULT([yes])
+        else
+           AC_MSG_RESULT([no; cannot use system pari/GP with known bug])
+           AC_MSG_NOTICE([Upgrade your system package and reconfigure.])
+           AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+           sage_spkg_install_pari=yes
+        fi
     fi dnl end GP test
 
-      if test x$sage_spkg_install_pari = x; then dnl main PARI test
-        AC_MSG_RESULT([no])
+      if test x$sage_spkg_install_pari = xno; then dnl main PARI test
         AC_CHECK_HEADER([pari/pari.h], [], [sage_spkg_install_pari=yes])
         dnl matpermanent appears in pari 2.11
         AC_SEARCH_LIBS([matpermanent], [pari], [
@@ -124,9 +133,7 @@ SAGE_SPKG_CONFIGURE([pari], [
 ], [], [], [
     if test x$sage_spkg_install_pari = xyes; then
         AC_SUBST(SAGE_PARI_PREFIX, ['$SAGE_LOCAL'])
-        AC_MSG_RESULT([using Sage's pari SPKG])
     else
        AC_SUBST(SAGE_PARI_PREFIX, [''])
-       AC_MSG_RESULT([using pari/gp from the system])
     fi
 ])

@@ -937,10 +937,36 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
             Finite Field in z2 of size 2^2
             sage: [to_R(fr_R(e)) == e for e in R]
             [True, True, True, True]
+            sage: [to_R(fr_R(e)).parent() is R for e in R]
+            [True, True, True, True]
             sage: e1, e2 = fr_R(R.random_element()), fr_R(R.random_element())
             sage: to_R(e1 * e2) == to_R(e1) * to_R(e2)
             True
             sage: to_R(e1 + e2) == to_R(e1) + to_R(e2)
+            True
+            sage: to_R(e1).parent() is R
+            True
+            sage: to_R(e2).parent() is R
+            True
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x + 1)
+            sage: R, fr_R, to_R = O._residue_field(I)
+            sage: R
+            Finite Field of size 2
+            sage: [to_R(fr_R(e)) == e for e in R]
+            [True, True]
+            sage: [to_R(fr_R(e)).parent() is R for e in R]
+            [True, True]
+            sage: e1, e2 = fr_R(R.random_element()), fr_R(R.random_element())
+            sage: to_R(e1 * e2) == to_R(e1) * to_R(e2)
+            True
+            sage: to_R(e1 + e2) == to_R(e1) + to_R(e2)
+            True
+            sage: to_R(e1).parent() is R
+            True
+            sage: to_R(e2).parent() is R
             True
 
             sage: F.<x> = FunctionField(QQ)
@@ -954,7 +980,22 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
             True
             sage: to_R(e1 + e2) == to_R(e1) + to_R(e2)
             True
+            sage: to_R(e1).parent() is R
+            True
+            sage: to_R(e2).parent() is R
+            True
 
+            sage: F.<x> = FunctionField(QQ)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x + 1)
+            sage: R, fr_R, to_R = O._residue_field(I)
+            sage: R
+            Rational Field
+            sage: e1, e2 = fr_R(R.random_element()), fr_R(R.random_element())
+            sage: to_R(e1 * e2) == to_R(e1) * to_R(e2)
+            True
+            sage: to_R(e1 + e2) == to_R(e1) + to_R(e2)
+            True
             sage: to_R(e1).parent() is R
             True
             sage: to_R(e2).parent() is R

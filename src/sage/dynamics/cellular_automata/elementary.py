@@ -23,6 +23,7 @@ from sage.typeset.unicode_art import UnicodeArt
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 from sage.plot.matrix_plot import matrix_plot
+from sage.misc.constant_function import ConstantFunction
 
 class ElementaryCellularAutomata(SageObject):
     r"""
@@ -54,12 +55,19 @@ class ElementaryCellularAutomata(SageObject):
     - ``width`` -- (optional) the width of the ECA
     - ``initial_state`` -- (optional) the initial state given
       as a list of ``0`` and ``1``
+    - ``boundary`` -- (default: ``(0, 0)``) a tuple of the left and right
+      boundary conditions repsectively or ``None`` for periodic boundary
+      conditions
 
     Either ``width`` or ``initial_state`` must be given. If ``width``
     is less than the length of ``initial_state``, then ``initial_state``
     has ``0`` prepended so the resulting list has length ``width``.
     If only ``width`` is given, then the initial state is constructed
     randomly.
+
+    The boundary conditions can either be ``0``, ``1``, or a function that
+    takes an integer ``n`` corresponding to the state and outputs either
+    ``0`` or ``1``.
 
     EXAMPLES:
 
@@ -90,6 +98,89 @@ class ElementaryCellularAutomata(SageObject):
          X X X X
         X       X
          X     X X
+
+    We now construct it with different boundary conditions. The first is
+    with the left boundary being `1` (instead of `0`)::
+
+        sage: ECA = cellular_automata.Elementary(90, width=20, initial_state=[1], boundary=(1,0))
+        sage: ECA.evolve(20)
+        sage: ascii_art(ECA)
+                           X
+        X                 X
+        XX               X X
+         XX             X
+         XXX           X X
+         X XX         X   X
+           XXX       X X X X
+        X XX XX     X
+        X XX XXX   X X
+        X XX X XX X   X
+        X XX   XX  X X X
+        X XXX XXXXX     X
+        X X X X   XX   X X
+        X      X XXXX X   X
+        XX    X  X  X  X X X
+         XX  X XX XX XX
+         XXXX  XX XX XXX
+         X  XXXXX XX X XX
+          XXX   X XX   XXX
+        XXX XX X  XXX XX XX
+          X XX  XXX X XX XXX
+
+    Now we consider the right boundary as being `1` on every third value::
+
+        sage: def rbdry(n): return 1 if n % 3 == 0 else 0
+        sage: ECA = cellular_automata.Elementary(90, width=20, initial_state=[1], boundary=(0,rbdry))
+        sage: ECA.evolve(20)
+        sage: ascii_art(ECA)
+                           X
+                          X
+                         X X
+                        X  X
+                       X XX
+                      X  XXX
+                     X XXX
+                    X  X XX
+                   X XX  XXX
+                  X  XXXXX
+                 X XXX   XX
+                X  X XX XXXX
+               X XX  XX X
+              X  XXXXXX  X
+             X XXX    XXX X
+            X  X XX  XX X
+           X XX  XXXXXX  X
+          X  XXXXX    XXX X
+         X XXX   XX  XX X
+        X  X XX XXXXXXX  X
+         XX  XX X     XXX X
+
+    Lastly we consider it with periodic boundary condition::
+
+        sage: ECA = cellular_automata.Elementary(90, width=20, initial_state=[1], boundary=None)
+        sage: ECA.evolve(20)
+        sage: ascii_art(ECA)
+                           X
+        X                 X
+         X               X
+        X X             X X
+           X           X
+          X X         X X
+         X   X       X   X
+        X X X X     X X X X
+               X   X
+              X X X X
+             X       X
+            X X     X X
+           X   X   X   X
+          X X X X X X X X
+         X               X
+        X X             X X
+           X           X
+          X X         X X
+         X   X       X   X
+        X X X X     X X X X
+               X   X
 
     We show the local evolution rules for rule `110`::
 
@@ -143,11 +234,25 @@ class ElementaryCellularAutomata(SageObject):
         P = ECA.plot()
         sphinx_plot(P)
 
+    With periodic boundary condition for rule `90`::
+
+        sage: ECA = cellular_automata.Elementary(90, initial_state=[1]+[0]*254+[1], boundary=None)
+        sage: ECA.evolve(256)
+        sage: ECA.plot()
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        ECA = cellular_automata.Elementary(90, initial_state=[1]+[0]*254+[1], boundary=None)
+        ECA.evolve(256)
+        P = ECA.plot()
+        sphinx_plot(P)
+
     REFERENCES:
 
     :wikipedia:`Elementary_cellular_automaton`
     """
-    def __init__(self, rule, width=None, initial_state=None):
+    def __init__(self, rule, width=None, initial_state=None, boundary=(0, 0)):
         """
         Initialize ``self``.
 
@@ -181,13 +286,19 @@ class ElementaryCellularAutomata(SageObject):
                 raise ValueError("the width must be at least the length of"
                                  " the initial state")
         self._states = [initial_state]
+        if boundary is not None:
+            self._bdry = tuple(boundary)
+            self._lbdry = ConstantFunction(boundary[0]) if boundary[0] in [0,1] else boundary[0]
+            self._rbdry = ConstantFunction(boundary[1]) if boundary[1] in [0,1] else boundary[1]
+        else:
+            self._bdry = boundary
 
     def __eq__(self, other):
         """
         Check equality.
 
-        Two ECAs are equal when they have the same rule, width, and
-        initial state.
+        Two ECAs are equal when they have the same rule, width,
+        initial state, and boundary conditions.
 
         TESTS::
 
@@ -196,6 +307,7 @@ class ElementaryCellularAutomata(SageObject):
             sage: ECA3 = cellular_automata.Elementary(110, [1,0,0,1,1,0,0,1,1,0])
             sage: ECA4 = cellular_automata.Elementary(110, [0,1,0,0,1,1,0,0,1,0,1])
             sage: ECA5 = cellular_automata.Elementary(110, [1,0,0,1,1,0,0,1,0,1])
+            sage: ECA6 = cellular_automata.Elementary(110, [1,0,0,1,1,0,0,1,0,1], boundary=(1, 1))
             sage: ECA1 == ECA5
             True
             sage: ECA1 == ECA2
@@ -204,11 +316,14 @@ class ElementaryCellularAutomata(SageObject):
             False
             sage: ECA1 == ECA4
             False
+            sage: ECA1 == ECA6
+            False
         """
         return (isinstance(other, ElementaryCellularAutomata)
                 and self._rule == other._rule
                 and self._width == other._width
-                and self._states[0] == other._states[0])
+                and self._states[0] == other._states[0]
+                and self._bdry == other._bdry)
 
     def __ne__(self, other):
         """
@@ -221,6 +336,7 @@ class ElementaryCellularAutomata(SageObject):
             sage: ECA3 = cellular_automata.Elementary(110, [1,0,0,1,1,0,0,1,1,0])
             sage: ECA4 = cellular_automata.Elementary(110, [0,1,0,0,1,1,0,0,1,0,1])
             sage: ECA5 = cellular_automata.Elementary(110, [1,0,0,1,1,0,0,1,0,1])
+            sage: ECA6 = cellular_automata.Elementary(110, [1,0,0,1,1,0,0,1,0,1], boundary=(1, 1))
             sage: ECA1 != ECA2
             True
             sage: ECA1 != ECA3
@@ -229,6 +345,8 @@ class ElementaryCellularAutomata(SageObject):
             True
             sage: ECA1 != ECA5
             False
+            sage: ECA1 != ECA6
+            True
         """
         return not (self == other)
 
@@ -277,8 +395,13 @@ class ElementaryCellularAutomata(SageObject):
         next_state = [None] * self._width
         def to_int(triple):
             return ZZ(list(reversed(triple)), base=2)
-        next_state[0] = self._rule[to_int([0] + prev_state[:2])]
-        next_state[-1] = self._rule[to_int(prev_state[-2:] + [0])]
+        if self._bdry is None:
+            next_state[0] = self._rule[to_int([prev_state[-1]] + prev_state[:2])]
+            next_state[-1] = self._rule[to_int(prev_state[-2:] + [prev_state[0]])]
+        else:
+            n = len(self._states)
+            next_state[0] = self._rule[to_int([self._lbdry(n)] + prev_state[:2])]
+            next_state[-1] = self._rule[to_int(prev_state[-2:] + [self._rbdry(n)])]
 
         for i in range(1, self._width-1):
             next_state[i] = self._rule[to_int(prev_state[i-1:i+2])]

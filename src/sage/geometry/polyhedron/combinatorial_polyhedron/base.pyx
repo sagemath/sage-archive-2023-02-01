@@ -911,9 +911,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: P = Polyhedron([[0,0]])
             sage: P.incidence_matrix()
-            [1, 1]
-            sage: P.combinatorial_polyehdron().incidence_matrix()
-            [1, 1]
+            [1 1]
+            sage: P.combinatorial_polyhedron().incidence_matrix()
+            [1 1]
 
         TESTS:
 

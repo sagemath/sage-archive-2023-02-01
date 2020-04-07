@@ -171,7 +171,7 @@ FROM configured as with-base-toolchain
 # We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
-ARG USE_MAKEFLAGS="-k"
+ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 #:toolchain:

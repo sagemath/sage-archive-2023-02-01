@@ -529,7 +529,7 @@ class WeilPolynomials():
         True
         True
 
-    Test that :trac:`30000` is resolved::
+    Test that :trac:`29475` is resolved::
 
         sage: P.<x> = QQ[]
         sage: u = x^6 + x^5 + 6*x^4 - 2*x^3 + 66*x^2 + 121*x + 1331

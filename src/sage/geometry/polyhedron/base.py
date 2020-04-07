@@ -137,6 +137,30 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: if both Vrep and Hrep are provided, they must be minimal...
+
+        Illustration of ``pref_rep``.
+        Note that ``ppl`` doesn't support precomputed data::
+
+            sage: from sage.geometry.polyhedron.backend_ppl import Polyhedron_QQ_ppl
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_QQ_ppl
+            sage: parent = Polyhedra_QQ_ppl(QQ, 1, 'ppl')
+            sage: p = Polyhedron_QQ_ppl(parent, Vrep, 'nonsense',
+            ....:                       Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
+            sage: p = Polyhedron_QQ_ppl(parent, 'nonsense', Hrep,
+            ....:                       Vrep_minimal=True, Hrep_minimal=True, pref_rep='Hrep')
+            sage: p = Polyhedron_QQ_ppl(parent, 'nonsense', Hrep,
+            ....:                       Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrepresentation')
+            Traceback (most recent call last):
+            ...
+            ValueError: ``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``
+
+        If the backend supports precomputed data, ``pref_rep`` is ignored::
+
+            sage: p = Polyhedron_field(parent, Vrep, 'nonsense',
+            ....:                      Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
+            Traceback (most recent call last):
+            ...
+            TypeError: _init_Hrepresentation() takes 3 positional arguments but 9 were given
         """
         Element.__init__(self, parent=parent)
         if Vrep is not None and Hrep is not None:
@@ -160,7 +184,7 @@ class Polyhedron_base(Element):
                 elif pref_rep == 'Hrep':
                     Vrep = None
                 else:
-                    ValueError("``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``")
+                    raise ValueError("``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``")
         if Vrep is not None:
             vertices, rays, lines = Vrep
             if vertices or rays or lines:

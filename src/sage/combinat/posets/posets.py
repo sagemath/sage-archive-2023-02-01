@@ -1738,7 +1738,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     def _split(self, a, b):
         r"""
         Return the two connected components obtained by deleting the covering relation
-        `a < b` from a poset whose Hasse daigram is a tree.
+        `a < b` from a poset whose Hasse diagram is a tree.
 
         This is a helper method for :meth:`atkinson`.
 

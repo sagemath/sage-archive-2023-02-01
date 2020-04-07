@@ -2874,7 +2874,7 @@ def strongly_regular_graph_lazy(int v,int k,int l,int mu=-1,bint existence=False
         sage: g(p)
         complement(Multipartite Graph with set sizes [4, 4, 4]): Graph on 12 vertices
         sage: g=strongly_regular_graph_lazy(539,250,105); g
-        (<cyfunction is_twograph_descendant_of_srg.<locals>.la at 0x7d1b27ce56c0>,
+        (<cyfunction is_twograph_descendant_of_srg.<locals>.la at...>,
          5,
          11)
         sage: g[0](*g[1:])

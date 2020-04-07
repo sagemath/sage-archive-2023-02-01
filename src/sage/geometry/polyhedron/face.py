@@ -341,9 +341,9 @@ class PolyhedronFace(SageObject):
             sage: square = polytopes.hypercube(2)
             sage: f = square.faces(1)
             sage: matrix(4,4, lambda i,j: ZZ(f[i] <= f[j]))
-            [1 1 0 0]
-            [0 1 0 0]
             [1 1 1 0]
+            [0 1 0 0]
+            [0 1 1 0]
             [1 1 1 1]
             sage: matrix(4,4, lambda i,j: ZZ(f[i] == f[j])) == 1
             True
@@ -379,16 +379,16 @@ class PolyhedronFace(SageObject):
             sage: square = polytopes.hypercube(2)
             sage: for face in square.face_lattice():
             ....:     print(face.ambient_Hrepresentation())
-            (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
-             An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
-            (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
-            (An inequality (1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
-            (An inequality (0, 1) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0)
+            (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0,
+             An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
+            (An inequality (-1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
-            (An inequality (1, 0) x + 1 >= 0,)
-            (An inequality (0, 1) x + 1 >= 0,)
+            (An inequality (0, -1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0)
+            (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0,)
             (An inequality (0, -1) x + 1 >= 0,)
+            (An inequality (1, 0) x + 1 >= 0,)
+            (An inequality (0, 1) x + 1 >= 0,)
             ()
         """
         if index is None:
@@ -421,16 +421,16 @@ class PolyhedronFace(SageObject):
             sage: for fl in square.face_lattice():
             ....:     print(fl.ambient_Vrepresentation())
             ()
-            (A vertex at (-1, -1),)
-            (A vertex at (-1, 1),)
             (A vertex at (1, -1),)
             (A vertex at (1, 1),)
-            (A vertex at (-1, -1), A vertex at (-1, 1))
-            (A vertex at (-1, -1), A vertex at (1, -1))
+            (A vertex at (-1, 1),)
+            (A vertex at (-1, -1),)
             (A vertex at (1, -1), A vertex at (1, 1))
-            (A vertex at (-1, 1), A vertex at (1, 1))
-            (A vertex at (-1, -1), A vertex at (-1, 1),
-             A vertex at (1, -1), A vertex at (1, 1))
+            (A vertex at (1, 1), A vertex at (-1, 1))
+            (A vertex at (-1, 1), A vertex at (-1, -1))
+            (A vertex at (1, -1), A vertex at (-1, -1))
+            (A vertex at (1, -1), A vertex at (1, 1),
+             A vertex at (-1, 1), A vertex at (-1, -1))
         """
         if index is None:
             return self._ambient_Vrepresentation

@@ -103,6 +103,10 @@ class Polyhedron_base(Element):
 
     - ``Hrep_minimal`` (optional) -- see below
 
+    - ``pref_rep`` -- string (default: ``None``);
+       one of``Vrep`` or ``Hrep`` to pick this in case the backend
+       cannot initialize from complete double description
+
     If both ``Vrep`` and ``Hrep`` are provided, then
     ``Vrep_minimal`` and ``Hrep_minimal`` must be set to ``True``.
 
@@ -112,7 +116,7 @@ class Polyhedron_base(Element):
         sage: TestSuite(p).run()
     """
 
-    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, **kwds):
         """
         Initializes the polyhedron.
 
@@ -143,11 +147,20 @@ class Polyhedron_base(Element):
                 self._init_from_Vrepresentation_and_Hrepresentation(Vrep, Hrep)
                 return
             else:
-                # Initialize from Hrepresentation if this seems simpler.
-                Vrep = [tuple(Vrep[0]), tuple(Vrep[1]), Vrep[2]]
-                Hrep = [tuple(Hrep[0]), Hrep[1]]
-                if len(Hrep[0]) < len(Vrep[0]) + len(Vrep[1]):
+                if pref_rep is None:
+                    # Initialize from Hrepresentation if this seems simpler.
+                    Vrep = [tuple(Vrep[0]), tuple(Vrep[1]), Vrep[2]]
+                    Hrep = [tuple(Hrep[0]), Hrep[1]]
+                    if len(Hrep[0]) < len(Vrep[0]) + len(Vrep[1]):
+                        pref_rep = 'Hrep'
+                    else:
+                        pref_rep = 'Vrep'
+                if pref_rep == 'Vrep':
+                    Hrep = None
+                elif pref_rep == 'Hrep':
                     Vrep = None
+                else:
+                    ValueError("``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``")
         if Vrep is not None:
             vertices, rays, lines = Vrep
             if vertices or rays or lines:
@@ -1079,11 +1092,12 @@ class Polyhedron_base(Element):
             H-representation
             begin
              4 3 rational
-             1 1 0
-             1 0 1
              1 -1 0
              1 0 -1
+             1 1 0
+             1 0 1
             end
+            <BLANKLINE>
 
             sage: triangle = Polyhedron(vertices = [[1,0],[0,1],[1,1]],base_ring=AA)
             sage: triangle.base_ring()
@@ -4456,9 +4470,11 @@ class Polyhedron_base(Element):
         new_inequalities = map(make_new_Hrep, self.inequality_generator())
         new_equations = map(make_new_Hrep, self.equation_generator())
 
+        pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() <= self.n_inequalities() else 'Hrep'
+
         return parent.element_class(parent, [new_vertices, new_rays, new_lines],
                                     [new_inequalities, new_equations],
-                                    Vrep_minimal=True, Hrep_minimal=True)
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     def linear_transformation(self, linear_transf):
         """
@@ -5601,20 +5617,20 @@ class Polyhedron_base(Element):
             sage: fl = square.face_lattice();fl
             Finite lattice containing 10 elements with distinguished linear extension
             sage: list(f.ambient_V_indices() for f in fl)
-            [(), (0,), (1,), (2,), (3,), (0, 1), (0, 2), (2, 3), (1, 3), (0, 1, 2, 3)]
+            [(), (0,), (1,), (2,), (3,), (0, 1), (1, 2), (2, 3), (0, 3), (0, 1, 2, 3)]
             sage: poset_element = fl[6]
             sage: a_face = poset_element
             sage: a_face
             A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 2 vertices
             sage: a_face.ambient_V_indices()
-            (0, 2)
+            (1, 2)
             sage: set(a_face.ambient_Vrepresentation()) == \
-            ....: set([square.Vrepresentation(0), square.Vrepresentation(2)])
+            ....: set([square.Vrepresentation(1), square.Vrepresentation(2)])
             True
             sage: a_face.ambient_Vrepresentation()
-            (A vertex at (-1, -1), A vertex at (1, -1))
+            (A vertex at (1, 1), A vertex at (-1, 1))
             sage: a_face.ambient_Hrepresentation()
-            (An inequality (0, 1) x + 1 >= 0,)
+            (An inequality (0, -1) x + 1 >= 0,)
 
         A more complicated example::
 

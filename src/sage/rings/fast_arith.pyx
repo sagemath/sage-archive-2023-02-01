@@ -68,8 +68,12 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
           "pari_isprime".) This is fast but may crash if there is insufficient memory
           (and will not be used when stop > 436273009).
 
-        - ``py_ints`` -- optional boolean (default ``False``), return Python ints rather
-          than Sage Integers (faster). Ignored unless algorithm "pari_primes" is being used.
+        - "pari_isprime": Wrapper for ``list(primes(start, stop))``. Each (odd)
+          integer in the specified range is tested for primality by applying PARI's
+          isprime function. This is slower but will work for much larger input.
+
+    - ``py_ints`` -- optional boolean (default ``False``), return Python ints rather
+      than Sage Integers (faster). Ignored unless algorithm "pari_primes" is being used.
 
     EXAMPLES::
 

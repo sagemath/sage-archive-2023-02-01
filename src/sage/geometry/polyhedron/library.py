@@ -2980,7 +2980,7 @@ class Polytopes():
         """
         verts = tuple((ZZ**dim).basis())
         verts += tuple(-v for v in verts)
-        ieqs = ((1,) + x for x in itertools.product([-1,1], repeat=dim))
+        ieqs = ((1,) + x for x in itertools.product((-1,1), repeat=dim))
         parent = Polyhedra(ZZ, dim, backend=backend)
         return parent([verts, [], []], [ieqs, []], Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
 

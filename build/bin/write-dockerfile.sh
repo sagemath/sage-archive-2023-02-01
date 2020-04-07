@@ -178,11 +178,21 @@ ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysign
 $RUN make \${USE_MAKEFLAGS} base-toolchain
 
 FROM with-base-toolchain as with-targets-pre
+ARG NUMPROC=8
+ENV MAKE="make -j\${NUMPROC}"
+ARG USE_MAKEFLAGS="-k V=0"
+ENV SAGE_CHECK=warn
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 #:make:
 ARG TARGETS_PRE="sagelib-build-deps"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE}
 
 FROM with-targets-pre as with-targets
+ARG NUMPROC=8
+ENV MAKE="make -j\${NUMPROC}"
+ARG USE_MAKEFLAGS="-k V=0"
+ENV SAGE_CHECK=warn
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 ADD src src
 ARG TARGETS="build ptest"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS}

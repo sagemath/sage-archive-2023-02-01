@@ -4437,32 +4437,24 @@ class Polyhedron_base(Element):
             sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]]))
         """
         parent = self.parent().base_extend(scalar)
-        one = parent.base_ring().one()
-        if scalar > 0:
-            new_vertices = tuple(scalar*v.vector() for v in self.vertex_generator())
-            new_rays = self.rays()
-            new_lines = self.lines()
-            new_inequalities = tuple(f.vector()*one for f in self.inequality_generator())
-            for f in new_inequalities:
-                f[0] *= scalar
-            new_equations = tuple(e.vector()*one for e in self.equation_generator())
-            for e in new_equations:
-                e[0] *= scalar
-        elif scalar < 0:
-            new_vertices = tuple(scalar*v.vector() for v in self.vertex_generator())
-            new_rays = tuple(-r.vector() for r in self.ray_generator())
-            new_lines = self.lines()
-            new_inequalities = tuple(-f.vector()*one for f in self.inequality_generator())
-            for f in new_inequalities:
-                f[0] *= scalar
-            new_equations = tuple(-e.vector()*one for e in self.equation_generator())
-            for e in new_equations:
-                e[0] *= scalar
-        else:
+
+        if scalar == 0:
             new_vertices = tuple(self.ambient_space().zero() for v in self.vertex_generator())
             new_rays = []
             new_lines = []
             return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+
+        one = parent.base_ring().one()
+        sign = one if scalar > 0 else -one
+
+        make_new_Hrep = lambda h : tuple(scalar*sign*x if i == 0 else sign*x
+                                         for i,x in enumerate(h._vector))
+
+        new_vertices = map(lambda v : tuple(scalar*x for x in v._vector), self.vertex_generator())
+        new_rays     = map(lambda r : tuple(sign*x   for x in r._vector), self.ray_generator())
+        new_lines = self.line_generator()
+        new_inequalities = map(make_new_Hrep, self.inequality_generator())
+        new_equations = map(make_new_Hrep, self.equation_generator())
 
         return parent.element_class(parent, [new_vertices, new_rays, new_lines],
                                     [new_inequalities, new_equations],

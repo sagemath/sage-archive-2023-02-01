@@ -629,12 +629,66 @@ To run an environment::
   [mkoeppe@sage sage]$ tox -e docker-slackware-14.2-minimal
   [mkoeppe@sage sage]$ tox -e docker-ubuntu-bionic-standard-python2
   
-Extra arguments to ``docker build`` can be supplied through the
-environment variable ``EXTRA_DOCKER_BUILD_ARGS``.  For example, for
-a silent build (``make V=0``), use::
+Arbitrary extra arguments to ``docker build`` can be supplied through
+the environment variable ``EXTRA_DOCKER_BUILD_ARGS``.  For example,
+for a non-silent build (``make V=1``), use::
   
-  [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=0\"" \
+  [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=1\"" \
     tox -e docker-ubuntu-bionic-standard
+
+By default, tox uses ``TARGETS_PRE=sagelib-build-deps`` and
+``TARGETS=build``, leading to a complete build of Sage without the
+documentation.  If you pass positional arguments to tox (separated
+from tox options by ``--``), then both ``TARGETS_PRE`` and ``TARGETS``
+are set to these arguments.  In this way, you can build some specific
+packages instead of all of Sage, for example::
+
+  [mkoeppe@sage sage]$ tox -e docker-centos-8-standard -- ratpoints
+
+If the build succeeds, this will create a new image named
+``sage-docker-centos-8-standard-with-targets:9.1.beta9-431-gca4b5b2f33-dirty``,
+where
+
+- the image name is derived from the tox environment name and the
+  suffix ``with-targets`` expresses that the ``make`` targets given in
+  ``TARGETS`` have been built;
+
+- the tag name describes the git revision of the source tree as per
+  ``git describe --dirty``.
+
+You can ask for tox to create named intermediate images as well.  For
+example, to create the images corresponding to the state of the OS
+after installing all system packages (``with-system-packages``) and
+the one just after running the ``configure`` script (``configured``)::
+
+  [mkoeppe@sage sage]$ DOCKER_TARGETS="with-system-packages configured with-targets" \
+    tox -e docker-centos-8-standard -- ratpoints
+  ...
+  Sending build context to Docker daemon ...
+  Step 1/109 : ARG BASE_IMAGE=fedora:latest
+  Step 2/109 : FROM ${BASE_IMAGE} as with-system-packages
+  ...
+  Step 109/109 : RUN yum install -y zlib-devel || echo "(ignoring error)"
+  ...
+  Successfully built 4bb14c3d5646
+  Successfully tagged sage-docker-centos-8-standard-with-system-packages:9.1.beta9-435-g861ba33bbc-dirty
+  Sending build context to Docker daemon ...
+  ...
+  Successfully tagged sage-docker-centos-8-standard-configured:9.1.beta9-435-g861ba33bbc-dirty
+  ...
+  Sending build context to Docker daemon ...
+  ...
+  Successfully tagged sage-docker-centos-8-standard-with-targets:9.1.beta9-435-g861ba33bbc-dirty
+
+Let's verify that the images are available::
+
+  (base) egret:~/s/sage/sage-rebasing/worktree-algebraic-2018-spring (mkoeppe *$%>)$ docker images | head
+  REPOSITORY                                                TAG                               IMAGE ID
+  sage-docker-centos-8-standard-with-targets                9.1.beta9-435-g861ba33bbc-dirty   7ecfa86fceab
+  sage-docker-centos-8-standard-configured                  9.1.beta9-435-g861ba33bbc-dirty   4314929e2b4c
+  sage-docker-centos-8-standard-with-system-packages        9.1.beta9-435-g861ba33bbc-dirty   4bb14c3d5646
+  ...
+
 
 Automatic build testing on the host OS using tox -e local-direct
 ----------------------------------------------------------------

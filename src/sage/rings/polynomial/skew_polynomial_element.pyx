@@ -77,11 +77,6 @@ from sage.rings.polynomial.polynomial_element cimport _dict_to_list
 from sage.structure.element import coerce_binop
 from sage.misc.superseded import experimental
 
-cdef class CenterSkewPolynomial_generic_dense(Polynomial_generic_dense):
-    """
-    A class for elements in the center of a skew polynomial ring.
-    """
-    pass
 
 cdef class SkewPolynomial(AlgebraElement):
     r"""

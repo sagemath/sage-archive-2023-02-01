@@ -169,21 +169,26 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
-            sage: a = S.random_element(degree=3,monic=True); a  #random
-            x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
-            sage: T = a.reduced_trace(); T                      #random
-            3*(x^3) + 4
+            sage: a = x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
+            sage: tr = a.reduced_trace(); tr                      #random
+            3*z + 4
 
-        Note that the parent of `T` is the center of the `S`
-        (and not `S` itself)::
+        The reduced trace lies in the center of `S`, which is a univariate
+        polynomial ring in the variable `z = x^3` over `GF(5)`. 
 
-            sage: T.parent()
-            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
-            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
-            sage: T.parent() == S.center()
+            sage: tr.parent()
+            Univariate Polynomial Ring in z over Finite Field of size 5
+            sage: tr.parent() is S.center()
             True
 
-        We check that the reduced trace is additive:
+        We can use explicit conversion to view ``tr`` as a skew polynomial::
+
+            sage: S(tr)
+            3*x^3 + 4
+
+        TESTS:
+
+        We check that the reduced trace is additive::
 
             sage: a = S.random_element(degree=5)
             sage: b = S.random_element(degree=7)
@@ -198,8 +203,8 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             for _ in range(order-1):
                 tr = c + twist_map(tr)
             coeffs.append(tr)
-        return self.parent().center()(coeffs)
-
+        Z = self.parent().center()
+        return Z(coeffs)
 
     def reduced_norm(self):
         r"""
@@ -208,6 +213,42 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         .. NOTE::
 
             The result is cached.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
+            sage: N = a.reduced_norm(); N
+            z^3 + 4*z^2 + 4
+
+        The reduced norm lies in the center of `S`, which is a univariate
+        polynomial ring in the variable `z = x^3` over `GF(5)`. 
+
+            sage: N.parent()
+            Univariate Polynomial Ring in z over Finite Field of size 5
+            sage: N.parent() is S.center()
+            True
+
+        We can use explicit conversion to view ``tr`` as a skew polynomial::
+
+            sage: S(N)
+            x^9 + 4*x^6 + 4
+
+        We check that `N` is a multiple of `a`::
+
+            sage: S(N).is_right_divisible_by(a)
+            True
+            sage: S(N).is_left_divisible_by(a)
+            True
+
+        We check that the reduced norm is a multiplicative map::
+
+            sage: a = S.random_element(degree=5)
+            sage: b = S.random_element(degree=7)
+            sage: a.reduced_norm() * b.reduced_norm() == (a*b).reduced_norm()
+            True
 
         ALGORITHM:
 
@@ -219,67 +260,17 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         rank `r` over `K[X^r]`.
 
         Otherwise, the reduced norm is computed as the characteristic
-        polynomial (considered as a polynomial of the variable `X^r`)
-        of the left multiplication by `X` on the quotient
-        `K[X,\sigma] / K[X,\sigma]*P` (which is a `K`-vector space
+        polynomial of the left multiplication by `X` on the quotient
+        `K[X,\sigma] / K[X,\sigma] P` (which is a `K`-vector space
         of dimension `d`).
 
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = S.random_element(degree=3,monic=True); a
-            x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
-            sage: N = a.reduced_norm(); N
-            (x^3)^3 + 4*(x^3)^2 + 4
-
-        Note that the parent of `N` is the center of the `S`
-        (and not `S` itself)::
-
-            sage: N.parent()
-            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
-            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
-            sage: N.parent() == S.center()
-            True
-
-        In any case, coercion works fine::
-
-            sage: S(N)
-            x^9 + 4*x^6 + 4
-            sage: N + a
-            x^9 + 4*x^6 + x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 1
-
-        We check that `N` is a multiple of `a`::
-
-            sage: S(N).is_right_divisible_by(a)
-            True
-            sage: S(N).is_left_divisible_by(a)
-            True
-
-        .. NOTE::
-
-            We really need to coerce first `N` into `S`. Otherwise an
-            error occurs::
-
-                 sage: N.is_right_divisible_by(a)
-                 Traceback (most recent call last):
-                 ...
-                 AttributeError: 'sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense' object has no attribute 'is_right_divisible_by'
-
-        We check that the reduced norm is a multiplicative map::
-
-            sage: a = S.random_element(degree=5)
-            sage: b = S.random_element(degree=7)
-            sage: a.reduced_norm() * b.reduced_norm() == (a*b).reduced_norm()
-            True
         """
         if self._norm is None:
             center = self.parent().center()
             if self.is_zero():
                 self._norm = center(0)
             else:
-                section = center._embed_basering.section()
+                section = self._parent._embed_constants.section()
                 exp = (self.parent().base_ring().cardinality() - 1) / (center.base_ring().cardinality() - 1)
                 order = self.parent()._order
                 lc = section(self.leading_coefficient()**exp)
@@ -345,20 +336,20 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
-            sage: Z = S.center()
+            sage: Z = S.center(); Z
+            Univariate Polynomial Ring in z over Finite Field of size 5
 
             sage: a = x^2 + (4*t + 2)*x + 4*t^2 + 3
             sage: b = a.bound(); b
-            (x^3)^2 + (x^3) + 4
+            z^2 + z + 4
 
-        Note that the parent of `b` is the center of the `S`
-        (and not `S` itself)::
+        We observe that the bound is explicity given as an element of the
+        center (which is a univariate polynomial ring in the variable
+        `z`).
+        We can use conversion to send it in the skew polynomial ring::
 
-            sage: b.parent()
-            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
-            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
-            sage: b.parent() == Z
-            True
+            sage: S(b)
+            x^6 + x^3 + 4
 
         We check that `b` is divisible by `a`::
 
@@ -376,15 +367,17 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         it affects the behaviour of ``bound()``::
 
             sage: a.optimal_bound()
-            (x^3) + 3
+            z + 3
             sage: a.bound()
-            (x^3) + 3
+            z + 3
 
-        We finally check that if `a` is a central skew polynomial,
-        then ``a.bound()`` returns simply `a`::
+        TESTS:
 
-            sage: a = S(Z.random_element(degree=4))
-            sage: b = a.bound()
+        We check that when the input skew polynomial lies in
+        the center, the output is the skew polynomial itself::
+
+            sage: a = Z.random_element(degree=4)
+            sage: b = S(a).bound()
             sage: a == b
             True
         """
@@ -413,20 +406,20 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
-            sage: Z = S.center()
+            sage: Z = S.center(); Z
+            Univariate Polynomial Ring in z over Finite Field of size 5
 
             sage: a = x^2 + (4*t + 2)*x + 4*t^2 + 3
             sage: b = a.optimal_bound(); b
-            (x^3) + 3
+            z + 3
 
-        Note that the parent of `b` is the center of the `S`
-        (and not `S` itself)::
+        We observe that the bound is explicity given as an element of the
+        center (which is a univariate polynomial ring in the variable
+        `z`).
+        We can use conversion to send it in the skew polynomial ring::
 
-            sage: b.parent()
-            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
-            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
-            sage: b.parent() == Z
-            True
+            sage: S(b)
+            x^3 + 3
 
         We check that `b` is divisible by `a`::
 
@@ -441,11 +434,11 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 self._optbound = center(self).monic()
             except ValueError:
                 bound = self._matphir_c().minimal_polynomial()
-                section = center._embed_basering.section()
+                section = self._parent._embed_constants.section()
                 self._optbound = [ section(x) for x in bound.list() ]
         return center(self._optbound)
 
 
      # TODO:
      # fast multiplication
-     # reduced trace, reduced characteristic polynomial     
+     # reduced characteristic polynomial     

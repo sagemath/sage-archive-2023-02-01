@@ -67,7 +67,7 @@ EOF
         # https://hub.docker.com/_/archlinux/
         cat <<EOF
 ARG BASE_IMAGE=archlinux:latest
-FROM \${BASE_IMAGE}
+FROM \${BASE_IMAGE} as with-system-packages
 EOF
         INSTALL="pacman -Syu --noconfirm"
         ;;

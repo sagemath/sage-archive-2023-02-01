@@ -56,7 +56,7 @@ class ElementaryCellularAutomata(SageObject):
     - ``initial_state`` -- (optional) the initial state given
       as a list of ``0`` and ``1``
     - ``boundary`` -- (default: ``(0, 0)``) a tuple of the left and right
-      boundary conditions repsectively or ``None`` for periodic boundary
+      boundary conditions respectively or ``None`` for periodic boundary
       conditions
 
     Either ``width`` or ``initial_state`` must be given. If ``width``

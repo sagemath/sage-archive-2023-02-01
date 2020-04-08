@@ -584,25 +584,33 @@ class SignRepresentation_abstract(Representation_abstract):
         """
         self.sign_analogue = sign_analogue
         if self.sign_analogue is None:
-            from sage.groups.group import FiniteGroup
-            from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-            from sage.rings.infinity import Infinity
-            from sage.categories.coxeter_groups import CoxeterGroups
-
-            if not ((group.order() < Infinity) or (group in CoxeterGroups)):
+            if self.__default_sign is not None:
+                self.sign_analogue = self.__default_sign
+            else:
                 raise NotImplementedError(
                     "Sign Representation is only defined over FiniteGroups and CoxeterGroups, and not over {}".format(
                         type(group)
                     )
                 )
-            # We define sign_analogue as a function which returns 1 if +ve sign else -1
-            #
-            if isinstance(group, PermutationGroup_generic):
-                self.sign_analogue = lambda x: x.sign()
-            elif group in CoxeterGroups:
-                self.sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
-            elif isinstance(group, FiniteGroup):
-                self.sign_analogue = lambda x: ((x.order() % 2) * -2) + 1
+            # from sage.groups.group import FiniteGroup
+            # from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+            # from sage.rings.infinity import Infinity
+            # from sage.categories.coxeter_groups import CoxeterGroups
+
+            # if not ((group.order() < Infinity) or (group in CoxeterGroups)):
+            #     raise NotImplementedError(
+            #         "Sign Representation is only defined over FiniteGroups and CoxeterGroups, and not over {}".format(
+            #             type(group)
+            #         )
+            #     )
+            # # We define sign_analogue as a function which returns 1 if +ve sign else -1
+            # #
+            # if isinstance(group, PermutationGroup_generic):
+            #     self.sign_analogue = lambda x: x.sign()
+            # elif group in CoxeterGroups:
+            #     self.sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
+            # elif isinstance(group, FiniteGroup):
+            #     self.sign_analogue = lambda x: ((x.order() % 2) * -2) + 1
 
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
 
@@ -713,8 +721,19 @@ class SignRepresentationPermgroup(SignRepresentation_abstract):
         sign_analogue = lambda x: x.sign()
         SignRepresentation_abstract.__init__(self, group, base_ring, sign_analogue)
 
+    def __default_sign(self, elem):
+        """
+        The default sign analogue defined for this class. Returns the sign of the element
 
-class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
+        INPUT:
+      
+        - ``elem`` -- the element of the group
+        """
+
+        return elem.sign()
+
+
+class SignRepresentationFinitegroup(SignRepresentation_abstract):
     def __init__(self, group, base_ring):
         """
         Initialize ``self``.
@@ -725,5 +744,43 @@ class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
-        sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
+        sign_analogue = lambda x: x.sign()
         SignRepresentation_abstract.__init__(self, group, base_ring, sign_analogue)
+
+    def __default_sign(self, elem):
+        """
+        The default sign analogue defined for this class. Returns the sign of the element
+
+        INPUT:
+
+        - ``elem`` -- the element of the group
+        """
+        return ((elem.order() % 2) * -2) + 1
+
+
+class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
+    def __init__(self, group, base_ring):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(["A", 1, 1])
+            sage: V = G.sign_representation()
+            sage: TestSuite(V).run()
+        """
+        sign_analogue = lambda x: ((x.length() % 2) * -2) + 1
+        self.__default_sign = sign_analogue
+        SignRepresentation_abstract.__init__(self, group, base_ring, sign_analogue)
+
+    def __default_sign(self, elem):
+        """
+        The default sign analogue defined for this class. It returns the +1 or
+        -1 depending on the element in the coxeter group
+
+        INPUT:
+
+        - ``elem`` -- the element of the group
+        """
+
+        return ((elem.length() % 2) * -2) + 1

@@ -4488,8 +4488,8 @@ class Polyhedron_base(Element):
         make_new_Hrep = lambda h : tuple(scalar*sign*x if i == 0 else sign*x
                                          for i,x in enumerate(h._vector))
 
-        new_vertices = map(lambda v : tuple(scalar*x for x in v._vector), self.vertex_generator())
-        new_rays     = map(lambda r : tuple(sign*x   for x in r._vector), self.ray_generator())
+        new_vertices = (tuple(scalar*x for x in v._vector) for v in self.vertex_generator())
+        new_rays = (tuple(sign*x for x in r._vector) for r in self.ray_generator())
         new_lines = self.line_generator()
         new_inequalities = map(make_new_Hrep, self.inequality_generator())
         new_equations = map(make_new_Hrep, self.equation_generator())

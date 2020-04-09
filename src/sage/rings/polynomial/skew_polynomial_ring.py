@@ -38,20 +38,15 @@ AUTHOR:
 import sage
 
 from sage.structure.richcmp import op_EQ
-from sage.structure.parent import Parent
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 from sage.structure.category_object import normalize_names
-import sage.misc.latex as latex
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
-from sage.rings.ring import Algebra
-from sage.rings.ring import Field
+from sage.rings.ring import Algebra, Field
 from sage.rings.integer import Integer
 
-from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.algebras import Algebras
 from sage.categories.fields import Fields
@@ -61,7 +56,6 @@ from sage.rings.morphism import RingHomomorphism
 from sage.categories.homset import Hom
 from sage.categories.map import Section
 
-from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
 
@@ -527,7 +521,7 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         C = self.Element
         if isinstance(a, list):
             return C(self, a, check=check, construct=construct)
-        if isinstance(a, Element):
+        if isinstance(a, sage.structure.element.Element):
             P = a.parent()
             def build(check):
                 if a.is_zero():
@@ -1205,7 +1199,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: S.convert_map_from(Z)   # indirect doctest
             Embedding of the center of Skew Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring
         """
-        RingHomomorphism.__init__(self, Hom(domain, codomain))  # category=Rings()
+        RingHomomorphism.__init__(self, Hom(domain, codomain))
         self._embed = embed
         self._order = order
         self._codomain = codomain
@@ -1297,8 +1291,8 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
         :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
     """
-    # This doesn't work, but I don't understand why:
-    # Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
+    import sage.rings.polynomial.skew_polynomial_finite_order
+    Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
 
     def __init__(self, base_ring, twist_map, name, sparse, category=None):
         r"""
@@ -1316,7 +1310,6 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: TestSuite(S).run()
         """
         from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
-        self.Element = SkewPolynomial_finite_order_dense
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()

@@ -21,10 +21,7 @@ AUTHOR::
 
 import copy
 import cysignals
-from sage.functions.other import ceil
-from sage.matrix.constructor import zero_matrix, matrix
 from sage.rings.ring cimport Ring
-from sage.matrix.matrix_dense cimport Matrix_dense
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport RingElement
@@ -77,22 +74,25 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         self._optbound = None
 
 
-    cdef Matrix_dense _matphir_c(self):
+    cdef _matphir_c(self):
         r"""
         Return the matrix of the multiplication by `X^r` on
         the quotient `K[X,\sigma] / K[X,\sigma]*self`.
         """
+        from sage.matrix.constructor import matrix
+        parent = self._parent
         cdef Py_ssize_t i, j, col, exp, n
         cdef Py_ssize_t d = self.degree()
-        cdef Py_ssize_t r = self.parent()._order
-        parent = self._parent
+        cdef Py_ssize_t r = parent._order
         cdef k = parent.base_ring()
-        cdef Matrix_dense phir = <Matrix_dense?>zero_matrix(k,d,d)
         cdef RingElement zero = k(0)
         cdef RingElement one = k(1)
+        cdef list line, phir = [ ]
         if r < d:
             for i from 0 <= i < d-r:
-                phir.set_unsafe(r+i,i,one)
+                line = d * [zero]
+                line[r+i] = one
+                phir.append(line)
             col = d-r
             exp = d
         else:
@@ -115,17 +115,17 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 v = v.conjugate(n)
                 v = (v * powx) % self
             exp = exp >> 1
-        l = v.list()
-        for i from 0 <= i < len(l):
-            phir.set_unsafe(i,col,l[i])
+        line = v.list()
+        line += (d - len(line)) * [zero]
+        phir.append(line)
         for j from col+1 <= j < d:
             v <<= 1
             v = v.conjugate(1) % self
-            for i from 0 <= i <= v.degree():
-                phir.set_unsafe(i,j,v._coeffs[i])
-        return phir
+            line = v._coeffs[:] + (d - len(v._coeffs)) * [zero]
+            phir.append(line)
+        return matrix(k, phir)
 
-    cdef Matrix_dense _matmul_c(self):
+    cdef _matmul_c(self):
         r"""
         Return the matrix of the multiplication by ``self`` on
         `K[X,\sigma]` considered as a free module over `K[X^r]`
@@ -135,13 +135,14 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
             Does not work if self is not monic.
         """
+        from sage.matrix.constructor import matrix
         cdef Py_ssize_t i, j, deb, k, r = self.parent()._order
         cdef Py_ssize_t d = self.degree ()
         cdef Ring base_ring = <Ring?>self.parent().base_ring()
         cdef RingElement minusone = <RingElement?>base_ring(-1)
         cdef RingElement zero = <RingElement?>base_ring(0)
         cdef Polk = PolynomialRing (base_ring, 'xr')
-        cdef Matrix_dense M = <Matrix_dense?>zero_matrix(Polk,r,r)
+        cdef list M = [ ]
         cdef list l = self.list()
         for j from 0 <= j < r:
             for i from 0 <= i < r:
@@ -153,11 +154,10 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                     deb = i-j
                 for k from deb <= k <= d by r:
                     pol.append(l[k])
-                M.set_unsafe(i,j,Polk(pol))
-
+                M.append(Polk(pol))
             for i from 0 <= i <= d:
                 l[i] = self._parent.twist_map()(l[i])
-        return M
+        return matrix(Polk, r, r, M)
 
 
     def reduced_trace(self):

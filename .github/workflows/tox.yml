@@ -27,7 +27,7 @@ env:
   TARGETS: build ptest
 
 jobs:
-  tox:
+  docker:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -61,7 +61,7 @@ jobs:
           find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
         if: always()
 
-  tox-local-macos:
+  local-macos:
 
     runs-on: macos-latest
     strategy:
@@ -98,7 +98,7 @@ jobs:
           find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
         if: always()
 
-  tox-local-ubuntu:
+  local-ubuntu:
 
     runs-on: ubuntu-latest
     strategy:

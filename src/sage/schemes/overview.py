@@ -50,7 +50,7 @@ Ambients
   Toric varieties are (partial) compactifications of algebraic tori `(\CC^*)^n`
   compatible with torus action. Affine and projective spaces are examples of
   toric varieties, but it is not envisioned that these special cases should
-  inherit from ``ToricVariety``.
+  inherit from :class:`~sage.schemes.toric.variety.ToricVariety`.
 
 Subschemes
 ----------
@@ -97,7 +97,7 @@ Point sets
   A projective space object in the category of schemes is a locally free object
   -- the images of the generator functions *locally* determine a point.  Over a
   field, one can choose one of the standard affine patches by the condition
-  that a coordinate function `X_i \ne 0`
+  that a coordinate function `X_i \ne 0`.
 
   ::
 
@@ -143,7 +143,7 @@ AUTHORS:
 
 - David Kohel, William Stein (2006-01-03): initial version
 
-- Andrey Novoseltsev (2010-09-24): update due to addition of toric varieties
+- Andrey Novoseltsev (2010-09-24): updated due to addition of toric varieties
 
 """
 

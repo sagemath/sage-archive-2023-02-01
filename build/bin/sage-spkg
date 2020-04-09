@@ -235,7 +235,7 @@ while true; do
         -k|--keep-existing)
             KEEP_EXISTING=yes;;
         -o|--allow-upstream)
-            SAGE_DOWNLOAD_FILE_OPTIONS="--allow-upstream";;
+            SAGE_DOWNLOAD_FILE_OPTIONS+=" --allow-upstream";;
         -*)
             echo >&2 "Error: unknown option '$1'"
             exit 2;;

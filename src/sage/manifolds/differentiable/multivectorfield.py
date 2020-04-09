@@ -162,7 +162,7 @@ class MultivectorField(TensorField):
         TESTS:
 
         Construction via ``parent.element_class``, and not via a direct call
-        to ``MultivectorField`, to fit with the category framework::
+        to ``MultivectorField``, to fit with the category framework::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')

@@ -28,6 +28,7 @@ from sage.structure.element cimport RingElement
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial_generic_dense
 
+
 cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
     def __init__(self, parent, x=None, int check=1, int construct=0, **kwds):
         """

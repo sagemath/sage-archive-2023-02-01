@@ -1309,7 +1309,6 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
             sage: TestSuite(S).run()
         """
-        from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()

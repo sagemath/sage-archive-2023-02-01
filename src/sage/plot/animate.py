@@ -100,9 +100,9 @@ AUTHORS:
 REFERENCES:
 
 - `ImageMagick <https://www.imagemagick.org>`_
-- `FFmpeg <http://www.ffmpeg.org>`_
+- `FFmpeg <https://www.ffmpeg.org>`_
 - `APNG <https://wiki.mozilla.org/APNG_Specification>`_
-- `browsers which support it <http://caniuse.com/#feat=apng>`_
+- `browsers which support it <https://caniuse.com/#feat=apng>`_
 
 """
 
@@ -577,11 +577,6 @@ class Animation(WithEqualityById, SageObject):
               packages, so please install one of them and try again.
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
-
-        REFERENCES:
-
-        - `ImageMagick <http://www.imagemagick.org>`_
-        - `FFmpeg <http://www.ffmpeg.org>`_
         """
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
@@ -1128,12 +1123,7 @@ class APngAssembler(object):
         ....:     return outfile
         sage: assembleAPNG()  # long time
         '...png'
-
-    REFERENCES:
-
-    - `APNG <https://wiki.mozilla.org/APNG_Specification>`_
     """
-
     magic = b"\x89PNG\x0d\x0a\x1a\x0a"
     mustmatch = frozenset([b"IHDR", b"PLTE", b"bKGD", b"cHRM", b"gAMA",
                            b"pHYs", b"sBIT", b"tRNS"])

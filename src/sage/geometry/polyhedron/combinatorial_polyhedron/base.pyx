@@ -955,6 +955,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         return tuple(facets)
 
+    @cached_method
     def incidence_matrix(self):
         """
         Return the incidence matrix.
@@ -990,11 +991,40 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = P.combinatorial_polyhedron()
             sage: C.incidence_matrix() == P.incidence_matrix()
             True
+
+        The incidence matrix is consistent with
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`::
+
+            sage: P = Polyhedron([[0,0]])
+            sage: P.incidence_matrix()
+            [1 1]
+            sage: P.combinatorial_polyhedron().incidence_matrix()
+            [1 1]
+
+        TESTS:
+
+        Check that :trac:`29455` is fixed::
+
+            sage: C = Polyhedron([[0]]).combinatorial_polyhedron()
+            sage: C.incidence_matrix()
+            [1]
+            sage: C = CombinatorialPolyhedron(-1)
+            sage: C.incidence_matrix()
+            []
         """
         from sage.rings.all import ZZ
         from sage.matrix.constructor import matrix
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
+
+        if self.dim() < 1:
+            # Small cases.
+            if self.dim() == 0:
+                # To be consistent with ``Polyhedron_base``,
+                for i in range(self.n_Hrepresentation()):
+                    incidence_matrix[0,i] = 1
+            incidence_matrix.set_immutable()
+            return incidence_matrix
 
         # If equalities are present, we add them as first columns.
         n_equalities = 0
@@ -1009,6 +1039,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             Hindex = facet.ambient_H_indices()[0] + n_equalities
             for Vindex in facet.ambient_V_indices():
                 incidence_matrix[Vindex, Hindex] = 1
+
+        incidence_matrix.set_immutable()
 
         return incidence_matrix
 

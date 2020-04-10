@@ -1313,7 +1313,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()
 
-    def center(self, name='z', names=None, coerce=False):
+    def center(self, name='z', names=None, coerce=True):
         r"""
         Return the center of this skew polynomial ring.
 
@@ -1359,12 +1359,21 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: y.parent() is Zy
             True
 
-        By default, conversion maps between the center and the skew
-        polynomial ring are set in both directions, but no coercion
-        map is defined::
+        By default, the canonical inclusion of the center into the skew
+        polynomial ring is a coercion map::
+            
+            sage: S.has_coerce_map_from(Zy)
+            True
 
-            sage: S(y^2 + 2*y + 3)
-            x^6 + 2*x^3 + 3
+            sage: P = y + x; P
+            x^3 + x
+            sage: P.parent()
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            sage: P.parent() is S
+            True
+
+        Moreover, a conversion map in the other direction is set::
+
             sage: Zy(x^6 + 2*x^3 + 3)
             y^2 + 2*y + 3
 
@@ -1373,32 +1382,24 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             ...
             ValueError: x^2 is not in the center
 
-        We now illustrate the fact that no coercion map is set::
+        It is possible to disable the coercion by passing in the
+        argument ``coerce=False``::
 
-            sage: S.has_coerce_map_from(Zy)
-            False
-            sage: Zy.has_coerce_map_from(S)
-            False
-            
-            sage: P = y + x; P
-            y + x
-            sage: P.parent()
-            Univariate Polynomial Ring in y over Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-            sage: P.parent() is S
-            False
-        
-        Nevertheless, if the user wants to promote the embedding from the
-        center to the skew polynomial ring as a coercion map, he/she can
-        pass in the argument ``coerce=True``::
-
-            sage: Zu.<u> = S.center(coerce=True)
+            sage: Zu.<u> = S.center(coerce=False)
             sage: S.has_coerce_map_from(Zu)
-            True
+            False
 
             sage: Q = u + x; Q
-            x^3 + x
+            u + x
+            sage: Q.parent()
+            Univariate Polynomial Ring in u over Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: Q.parent() is S
-            True
+            False
+
+        However, in this case, convertion continues to work::
+
+            sage: S(u)
+            x^3
 
         TESTS::
 
@@ -1412,13 +1413,15 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         names = normalize_names(1, names)
         center = PolynomialRing(self._constants, names)
         embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
-        if coerce:
-            self.register_coercion(embed)
-            center.register_conversion(embed.section())
-        else:
-            try:
+        try:
+            if coerce:
+                self.register_coercion(embed)
+            else:
                 self.register_conversion(embed)
-                center.register_conversion(embed.section())
-            except AssertionError:
-                pass
+        except AssertionError:
+            pass
+        try:
+            center.register_conversion(embed.section())
+        except AssertionError:
+            pass
         return center

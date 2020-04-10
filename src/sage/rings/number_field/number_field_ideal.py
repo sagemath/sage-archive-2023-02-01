@@ -2436,6 +2436,10 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         Check the above doctests, where the representation
         depends on the PARI version::
 
+            sage: k.<a> = NumberField(x^2 + 23)
+            sage: A = k.ideal(a+1)
+            sage: B = k.ideal(3)
+            sage: lam = A.idealcoprime(B)
             sage: lam in (-1/6*a + 1/6, 1/6*a - 1/6)
             True
         """

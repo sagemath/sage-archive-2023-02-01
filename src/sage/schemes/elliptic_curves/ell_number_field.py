@@ -809,8 +809,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
-            sage: M = E.global_integral_model()
-            sage: M # choice varies, not tested
+            sage: M = E.global_integral_model(); M # choice varies, not tested
             Elliptic Curve defined by y^2 + (2094779518028859*v-1940492905300351)*x*y + (477997268472544193101178234454165304071127500*v-442791377441346852919930773849502871958097500)*y = x^3 + (26519784690047674853185542622500*v-24566525306469707225840460652500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
 
         :trac:`14476`::
@@ -825,6 +824,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         Check the skipped test from above::
 
+            sage: K.<v> = NumberField(x^2 + 161*x - 150)
+            sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
+            sage: M = E.global_integral_model()
             sage: b = M.ainvs()
             sage: b[0] in (2094779518028859*v-1940492905300351, 33872485050625*v - 31078224284250)
             True

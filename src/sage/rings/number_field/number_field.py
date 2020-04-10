@@ -5474,8 +5474,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: pari('setrand(2)')
             sage: L.<b> = K.extension(x^2 - 7)
-            sage: f = L.factor(a + 1)
-            sage: f                                      # representation varies, not tested
+            sage: f = L.factor(a + 1); f        # representation varies, not tested
             (Fractional ideal (1/2*a*b - a + 1/2)) * (Fractional ideal (-1/2*a*b - a + 1/2))
             sage: f.value() == a+1
             True
@@ -5495,6 +5494,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         We test the above doctest. The representation depends on the PARI version::
 
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: L.<b> = K.extension(x^2 - 7)
+            sage: f = L.factor(a + 1)
             sage: (fi, fj) = f[::]
             sage: (fi[1], fj[1])
             (1, 1)
@@ -6580,6 +6582,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         We test the above doctest. The representation depends on the PARI version::
 
+            sage: K.<t> = NumberField(x^4 - x^3 - 3*x^2 - x + 1)
             sage: [x] = [K.uniformizer(P) for P,e in factor(K.ideal(7))]
             sage: x in (t^2 + 3*t +1, t^2 - 4*t +1)
             True
@@ -7853,6 +7856,7 @@ class NumberField_absolute(NumberField_generic):
 
         We test the above doctest. The representation depends on the PARI version::
 
+            sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
             sage: N, M1, M2 = K.optimized_representation(); N, M1, M2
             (Number Field in a1 with defining polynomial x^3 - 7*x - 7,
              Ring morphism:

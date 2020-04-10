@@ -5474,7 +5474,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: pari('setrand(2)')
             sage: L.<b> = K.extension(x^2 - 7)
-            sage: f = L.factor(a + 1); f        # representation varies, not tested
+            sage: f = L.factor(a + 1)
+            sage: f                               # representation varies, not tested
             (Fractional ideal (1/2*a*b - a + 1/2)) * (Fractional ideal (-1/2*a*b - a + 1/2))
             sage: f.value() == a+1
             True

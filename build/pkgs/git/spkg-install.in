@@ -3,8 +3,6 @@ die () {
     exit 1
 }
 
-[ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
-
 # Path to "install" command
 for cmd in /usr/ucb/install ginstall install; do
     [ -z "$INSTALL" ] || break

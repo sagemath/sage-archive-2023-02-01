@@ -2,12 +2,6 @@
 ## PARI
 ###########################################
 
-if [ -z "$SAGE_LOCAL" ]; then
-    echo "SAGE_LOCAL undefined ... exiting"
-    echo "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 if [ "x$SAGE_DEBUG" = xyes ] ; then
     CFLAGS="$CFLAGS -O0 -g" # Disable optimisation, add debug symbols. Good
                             # for debugging or working around compiler bugs.

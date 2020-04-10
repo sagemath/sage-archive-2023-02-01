@@ -24,7 +24,8 @@ on:
 env:
   ## We test everything BLAS-related and other problematic packages
   #TARGETS: cbc csdp fflas_ffpack gsl iml numpy scipy r suitesparse cvxopt rpy2 ecl maxima fpylll linbox
-  TARGETS: build ptest
+  TARGETS: build doc-html
+  TARGETS_OPTIONAL: ptest
 
 jobs:
   docker:
@@ -37,6 +38,7 @@ jobs:
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      DOCKER_TARGETS: with-targets with-targets-optional
     steps:
       - uses: actions/checkout@v2
       - name: Install test prerequisites
@@ -44,7 +46,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
       - run: |
-          set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\" --build-arg TARGETS=\"$TARGETS\"" tox -e $TOX_ENV 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
+          set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\" --build-arg TARGETS_PRE=\"$TARGETS_PRE\" --build-arg TARGETS=\"$TARGETS\" --build-arg TARGETS_OPTIONAL=\"$TARGETS_OPTIONAL\"" tox -e $TOX_ENV 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
       - name: Copy logs from the build container
         run: |
           mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/Dockerfile .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"; for CONTAINER in `docker ps -q -a`; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done
@@ -55,10 +57,9 @@ jobs:
           name: ${{ env.LOGS_ARTIFACT_NAME }}
         if: always()
       - name: Print out logs for immediate inspection
-        # The markup in the output is a GitHub Actions logging command
-        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        # and markup the output with GitHub Actions logging commands
         run: |
-          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+          .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()
 
   local-macos:
@@ -92,10 +93,9 @@ jobs:
           name: ${{ env.LOGS_ARTIFACT_NAME }}
         if: always()
       - name: Print out logs for immediate inspection
-        # The markup in the output is a GitHub Actions logging command
-        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        # and markup the output with GitHub Actions logging commands
         run: |
-          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+          .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()
 
   local-ubuntu:
@@ -130,10 +130,7 @@ jobs:
           name: ${{ env.LOGS_ARTIFACT_NAME }}
         if: always()
       - name: Print out logs for immediate inspection
-        # The markup in the output is a GitHub Actions logging command
-        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        # and markup the output with GitHub Actions logging commands
         run: |
-          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+          .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()
-
-

@@ -40,15 +40,12 @@ If you'd like to contribute to Sage, be sure to read the
 Supported Platforms
 -------------------
 
-Sage fully supports several Linux distributions, recent versions of
-Mac OS X, Windows (using virtualization), as well as a number of
-Solaris and OpenSolaris releases.
+Sage fully supports all major Linux distributions, recent versions of
+Mac OS X, and Windows (using Cygwin or using virtualization).
 
-Ports are in progress to some other, less common platforms. The list of
-supported platforms and their current statuses are given in [our wiki](https://wiki.sagemath.org/SupportedPlatforms).
-
-If you are interested in helping port Sage to a new platform, please let
-us know at the [sage-devel mailing list](https://groups.google.com/group/sage-devel).
+We highly appreciate contributions to Sage that fix portability bugs
+and help port Sage to new platforms; let us know at the [sage-devel
+mailing list](https://groups.google.com/group/sage-devel).
 
 Quick Instructions to Build from Source
 ---------------------------------------
@@ -107,9 +104,29 @@ files installed
 
        tar zxvf sage-*.tar.gz
 
-1. cd into the Sage directory and type make
+1. cd into the Sage directory and
 
        cd sage-*/
+
+1. Optionally, review the configuration options, which includes
+   many optional packages:
+
+       ./configure --help
+
+1. type ./configure
+
+       ./configure
+
+1. At the end of a successful ./configure run, you may see messages
+   recommending to install extra system packages using your package
+   manager.  Only the most recent releases of your distribution will
+   have all of these packages.  If you choose to install the system
+   packages, a re-run of ./configure will test whether the versions
+   installed are usable for Sage; if they are, this will reduce the
+   compilation time and disk space needed by Sage.
+
+1. Type make
+
        make
 
    That's it! Everything is automatic and non-interactive. The build
@@ -151,10 +168,6 @@ More Detailed Instructions to Build from Source
    sign up, and download the free Xcode package. Usually, Xcode's command line
    tools suffice to build Sage, although several times new releases of Xcode broke this.
    Only OS X >= 10.4 is supported, and (as of May 2019) we only test Sage on OS X >= 10.6.
-
-   * __Solaris and OpenSolaris:__ Building Sage on these platforms is more
-   tricky than on Linux or OS X. For details on how to build Sage on
-   these platforms, see [our wiki](https://wiki.sagemath.org/solaris) (outdated as of May 2019).
 
    * __Windows:__ [Download and install VirtualBox](https://www.virtualbox.org/wiki/Downloads),
    and then download the [Sage virtual appliance](https://wiki.sagemath.org/SageAppliance).
@@ -234,16 +247,6 @@ More Detailed Instructions to Build from Source
 1. Optional: It is recommended that you have both LaTeX and the
    ImageMagick tools (e.g. the "convert" command) installed since some
    plotting functionality benefits from it.
-
-1. Optional: Read this if you are intending to run a Sage notebook
-   server for multiple users. For security (i.e., to run
-   `notebook(secure=True)`) you want to access the server using the
-   HTTPS protocol. First, install OpenSSL and the OpenSSL development
-   headers on your system if they are not already installed. Then
-   install pyOpenSSL by building Sage and then typing
-   `./sage -i pyopenssl`.
-   Note that this command requires internet access. Alternatively,
-   `make ssl` builds Sage and installs pyOpenSSL.
 
 Troubleshooting
 ---------------

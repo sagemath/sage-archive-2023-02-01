@@ -5,6 +5,6 @@ LOGS=${1-logs}
 find "$LOGS" -type f -name "*.log" -exec sh -c '\
     if tail -100 "{}" 2>/dev/null | grep "^Error" >/dev/null; then \
         echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat "{}" ; \
-    elif tail -20 "{}" 2>/dev/null | grep -E "^Warning: Error testing|make:.* test.*Error" >/dev/null; then \
+    elif tail -20 "{}" 2>/dev/null | grep -E "^(Warning: Error testing|make: .*test.*Error)" >/dev/null; then \
         echo :":"warning file={}:":" ==== LOG FILE {} CONTAINS A TESTSUITE FAILURE ====; cat "{}"; \
     fi' \;

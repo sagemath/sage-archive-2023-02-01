@@ -1312,6 +1312,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()
+        self._center = { }
 
     def center(self, name='z', names=None, coerce=True):
         r"""
@@ -1411,17 +1412,21 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         if names is None:
             names = (name,)
         names = normalize_names(1, names)
-        center = PolynomialRing(self._constants, names)
-        embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
         try:
-            if coerce:
-                self.register_coercion(embed)
+            if names in self._center:
+                center, c = self._center[names]
+                if coerce and not c:
+                    embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
+                    self.register_coercion(embed)
             else:
-                self.register_conversion(embed)
+                center = PolynomialRing(self._constants, names)
+                embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
+                if coerce:
+                    self.register_coercion(embed)
+                else:
+                    self.register_conversion(embed)
+                center.register_conversion(embed.section())
+                self._center[names] = (center, coerce)
         except AssertionError:
-            pass
-        try:
-            center.register_conversion(embed.section())
-        except AssertionError:
-            pass
+            raise ValueError("creation of coercion/conversion map fails; consider using another variable name")
         return center

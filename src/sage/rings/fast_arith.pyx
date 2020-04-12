@@ -128,22 +128,6 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         sage: prime_range(4652360, 4652400)
         []
 
-    Confirm the fix in :trac:`28467`::
-
-        sage: prime_range(436273009, 436273010)
-        [436273009]
-
-    Confirm the fix in :trac:`28712`::
-
-        sage: prime_range(9.5, "14", "pari_primes")
-        [11, 13]
-        sage: prime_range(9.5, "14", "pari_isprime")
-        [11, 13]
-        sage: prime_range(sqrt(10), "10.2", "pari_primes")
-        [3, 5, 7]
-        sage: prime_range(sqrt(10), "10.2", "pari_isprime")
-        [3, 5, 7]
-
     Test for non-existing algorithm::
 
         sage: prime_range(55, algorithm='banana')
@@ -160,16 +144,22 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         ...
         ValueError: algorithm "pari_primes" cannot compute primes larger than 436273008
 
-    To avoid a doctest error in functions/prime_pi.pyx, prime_range must allow real input::
+    To avoid a doctest error in functions/prime_pi.pyx, the default algorithm of prime_range
+    must allow real input::
 
         sage: prime_range(9.5, 14.3)
         [11, 13]
-        sage: prime_range(9.5, 14.3, algorithm="pari_primes")
+
+    Confirm the fix in :trac:`28712`::
+
+        sage: prime_range(9.5, "14", "pari_primes")
         [11, 13]
-        sage: prime_range(9.5, 14.3, algorithm="pari_isprime")
-        Traceback (most recent call last):
-        ...
-        TypeError: Attempt to coerce non-integral RealNumber to Integer
+        sage: prime_range(9.5, "14", "pari_isprime")
+        [11, 13]
+        sage: prime_range(sqrt(10), "10.2", "pari_primes")
+        [3, 5, 7]
+        sage: prime_range(sqrt(10), "10.2", "pari_isprime")
+        [3, 5, 7]
 
     AUTHORS:
 

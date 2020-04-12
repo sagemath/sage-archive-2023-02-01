@@ -37,7 +37,7 @@ sageruntime: base-toolchain
 # except for build/make/Makefile-auto, which is unused by the build system
 CONFIG_FILES = build/make/Makefile src/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
 
-# PKG_FILES contains all files that influence the SAGE_SPKG_COLLECT macro
+# SPKG_COLLECT_FILES contains all files that influence the SAGE_SPKG_COLLECT macro
 SPKG_COLLECT_FILES = build/pkgs/*/type build/pkgs/*/package-version.txt build/pkgs/*/dependencies build/pkgs/*/requirements.txt build/pkgs/*/checksums.ini build/pkgs/*/spkg-install
 
 # If configure was run before, rerun it with the old arguments.

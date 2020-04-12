@@ -1486,10 +1486,8 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
                 strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True) is True:
                 try:
                     g = strongly_regular_graph_lazy(v+1, k, l - 2*mu + k) # Sage might not know how to build g
-                    # print("g=",g)
                     def la(*gr):
                         from sage.combinat.designs.twographs import twograph_descendant
-                    #    print("in la:", g[0], gr)
                         gg = g[0](*gr)
                         if (gg.name() is None) or (gg.name() == ''):
                             gg = Graph(gg, name=str((v+1, k, l - 2*mu + k , k - mu))+"-strongly regular graph")
@@ -2811,8 +2809,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         descendant of (540, 264, 138, 120)-strongly regular graph at 0: Graph on 539 vertices
         sage: graphs.strongly_regular_graph(539, 250, 105, 125)
         descendant of (540, 275, 130, 150)-strongly regular graph at 0: Graph on 539 vertices
+        sage: graphs.strongly_regular_graph(209, 100, 45, 50)
+        descendant of complement(merging of S_7 on Circulant(6,[1,4])s) at 11: Graph on 209 vertices
 
-    Check that all of our constructions are correct::
+
+    Check that all of our constructions are correct - you will need gap_packages spkg installed::
 
         sage: from sage.graphs.strongly_regular_db import apparently_feasible_parameters
         sage: for p in sorted(apparently_feasible_parameters(1300)):   # not tested
@@ -2900,7 +2901,7 @@ def strongly_regular_graph_lazy(int v,int k,int l,int mu=-1,bint existence=False
         return True if existence else (val[0], *val[1:])
     if params_complement in _small_srg_database:
         val = _small_srg_database[params_complement]
-        return True if existence else (lambda t: val[0](t).complement(), *val[1:])
+        return True if existence else (lambda *t: val[0](*t).complement(), *val[1:])
 
     test_functions = [is_complete_multipartite, # must be 1st, to prevent 0-divisions
                       is_paley, is_johnson,

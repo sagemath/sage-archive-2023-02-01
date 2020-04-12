@@ -1402,6 +1402,32 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: S(u)
             x^3
 
+        Two different skew polynomial rings can share the same center::
+
+            sage: S1.<x1> = k['x1', Frob]
+            sage: S2.<x2> = k['x2', Frob]
+            sage: S1.center() is S2.center()
+            True
+
+        Sage's coercion mecanism does not allow to promote a conversion map 
+        to a coercion map. So the following fails::
+
+            sage: Zv.<v> = S.center(coerce=False)
+            sage: Zv.<v> = S.center(coerce=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: a conversion map was already set; consider using another variable name
+
+        On the contrary, the same construction in the other direction works::
+
+            sage: Zw.<w> = S.center(coerce=True)
+            sage: Zw.<w> = S.center(coerce=False)
+        
+        However, the second call to :meth:`center` does not disable the coercion map::
+
+            sage: S.has_coerce_map_from(Zw)
+            True
+
         TESTS::
 
             sage: C.<a,b> = S.center()
@@ -1416,8 +1442,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             if names in self._center:
                 center, c = self._center[names]
                 if coerce and not c:
-                    embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
-                    self.register_coercion(embed)
+                    raise ValueError("a conversion map was already set; consider using another variable name")
             else:
                 center = PolynomialRing(self._constants, names)
                 embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)

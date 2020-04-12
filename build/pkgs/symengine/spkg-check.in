@@ -1,2 +1,2 @@
 cd src/build
-sdh_make test
+ctest

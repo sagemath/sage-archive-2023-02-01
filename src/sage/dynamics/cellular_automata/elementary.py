@@ -43,7 +43,7 @@ class ElementaryCellularAutomata(SageObject):
     .. MATH::
 
         \begin{array}{cccccccc}
-        111 & 110 & 101 & 100 & 011 & 010 & 001 & 000
+        111 & 110 & 101 & 100 & 011 & 010 & 001 & 000 \\
         b_7 & b_6 & b_5 & b_4 & b_3 & b_2 & b_1 & b_0
         \end{array}
 

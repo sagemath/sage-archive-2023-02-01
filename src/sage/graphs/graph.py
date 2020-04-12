@@ -4347,6 +4347,15 @@ class Graph(GenericGraph):
         the method :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of
         the class :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
 
+        OUTPUT:
+
+        - When ``value_only=False``, this method returns :class:`list` object
+          containing edges in maximum matching of `G`.
+
+        - When ``value_only=True``, this method returns,
+          sum of edge labels (default: ``1``) in maximum matching of `G`.
+          Output type may vary according to edge labels or algorithm used.
+
         ALGORITHM:
 
         The problem is solved using Edmond's algorithm implemented in NetworkX,

@@ -1,0 +1,15 @@
+= symengine =
+
+== Description ==
+
+SymEngine is a standalone fast C++ symbolic manipulation library.
+
+Website: https://github.com/symengine/symengine
+
+== License ==
+
+BSD 3-clause
+
+== Upstream Contact ==
+
+ *  https://github.com/symengine/symengine

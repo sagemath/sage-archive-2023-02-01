@@ -1,0 +1,2 @@
+cd src/build
+sage-python23 -c 'import symengine; symengine.test()'

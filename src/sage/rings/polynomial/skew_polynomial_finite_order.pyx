@@ -49,7 +49,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
             sage: R.<t> = GF(5^3)
             sage: Frob = R.frobenius_endomorphism()
-            sage: S.<x> = R['x',Frob]; S
+            sage: S.<x> = R['x', Frob]; S
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
         We create a skew polynomial from a list::
@@ -161,17 +161,22 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         return matrix(Polk, r, r, M)
 
 
-    def reduced_trace(self):
+    def reduced_trace(self, var=None):
         r"""
         Return the reduced trace of this skew polynomial.
+
+        INPUT:
+
+        - ``var`` -- a string or ``None`` (default: ``None``);
+          the variable name
 
         EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
             sage: a = x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
-            sage: tr = a.reduced_trace(); tr                      #random
+            sage: tr = a.reduced_trace(); tr
             3*z + 4
 
         The reduced trace lies in the center of `S`, which is a univariate
@@ -186,6 +191,14 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
             sage: S(tr)
             3*x^3 + 4
+
+        By default, the name of the central variable is usually ``z`` (see
+        :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomiaRing_finite_order.center`
+        for more details about this). 
+        However, the user can speciy a different variable name if he/she wish::
+
+            sage: a.reduced_trace(var='u')
+            3*u + 4
 
         TESTS:
 
@@ -204,12 +217,17 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             for _ in range(order-1):
                 tr = c + twist_map(tr)
             coeffs.append(tr)
-        Z = self.parent().center()
+        Z = self.parent().center(name=var)
         return Z(coeffs)
 
-    def reduced_norm(self):
+    def reduced_norm(self, var=None):
         r"""
         Return the reduced norm of this skew polynomial.
+
+        INPUT:
+
+        - ``var`` -- a string or ``None`` (default: ``None``);
+          the variable name
 
         .. NOTE::
 
@@ -219,7 +237,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
             sage: a = x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
             sage: N = a.reduced_norm(); N
             z^3 + 4*z^2 + 4
@@ -232,10 +250,20 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: N.parent() is S.center()
             True
 
-        We can use explicit conversion to view ``tr`` as a skew polynomial::
+        We can use explicit conversion to view ``N`` as a skew polynomial::
 
             sage: S(N)
             x^9 + 4*x^6 + 4
+
+        By default, the name of the central variable is usually ``z`` (see
+        :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomiaRing_finite_order.center`
+        for more details about this). 
+        However, the user can speciy a different variable name if he/she wish::
+
+            sage: a.reduced_norm(var='u')
+            u^3 + 4*u^2 + 4
+
+        TESTS::
 
         We check that `N` is a multiple of `a`::
 
@@ -266,10 +294,10 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         of dimension `d`).
 
         """
+        center = self.parent().center(name=var)
         if self._norm is None:
-            center = self.parent().center()
             if self.is_zero():
-                self._norm = center(0)
+                self._norm = 0 
             else:
                 section = self._parent._embed_constants.section()
                 exp = (self.parent().base_ring().cardinality() - 1) / (center.base_ring().cardinality() - 1)
@@ -277,11 +305,11 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 lc = section(self.leading_coefficient()**exp)
                 if order < self.degree():
                     M = self._matmul_c()
-                    self._norm = center([ lc*section(x) for x in M.determinant().monic().list() ])
+                    self._norm = [ lc*section(x) for x in M.determinant().monic().list() ]
                 else:
                     charpoly = self._matphir_c().characteristic_polynomial()
-                    self._norm = center([ lc*section(x) for x in charpoly.list() ])
-        return self._norm
+                    self._norm = [ lc*section(x) for x in charpoly.list() ]
+        return center(self._norm)
 
 
     def is_central(self):
@@ -292,7 +320,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
 
             sage: x.is_central()
             False
@@ -336,7 +364,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
             sage: Z = S.center(); Z
             Univariate Polynomial Ring in z over Finite Field of size 5
 
@@ -406,7 +434,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
             sage: Z = S.center(); Z
             Univariate Polynomial Ring in z over Finite Field of size 5
 

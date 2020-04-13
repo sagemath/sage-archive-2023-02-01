@@ -23,6 +23,7 @@ from sage.categories.pushout import (ConstructionFunctor,
                                      IdentityConstructionFunctor)
 from sage.categories.rings import Rings
 from sage.categories.functor import Functor
+from sage.categories.sets_cat import Sets
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.words import Words
 from sage.combinat.words.alphabet import Alphabet
@@ -174,6 +175,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
             sage: algebras.FreeZinbiel(QQ, ('x', 'y'))
             Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
+
+            sage: Z = algebras.FreeZinbiel(QQ, ZZ)
         """
         if isinstance(n, (list, tuple)):
             names = n
@@ -188,6 +191,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         if R not in Rings():
             raise TypeError("argument R must be a ring")
         superclass = super(FreeZinbielAlgebra, cls)
+        if names is None:
+            return superclass.__classcall__(cls, R, n, None)
         return superclass.__classcall__(cls, R, n, tuple(names))
 
     def __init__(self, R, n, names):
@@ -199,6 +204,10 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
             sage: TestSuite(Z).run()
 
+            sage: Z = algebras.FreeZinbiel(QQ, ZZ)
+            sage: G = Z.algebra_generators()
+            sage: TestSuite(Z).run(elements=[Z.an_element(), G[1], G[1]*G[2]*G[0]])
+
         TESTS::
 
             sage: Z.<x,y,z> = algebras.FreeZinbiel(5)
@@ -208,12 +217,17 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        indices = Words(Alphabet(n, names=names), infinite=False)
+        if names is None:
+            indices = Words(Alphabet(n), infinite=False)
+            self._n = None
+        else:
+            indices = Words(Alphabet(n, names=names), infinite=False)
+            self._n = n
         cat = MagmaticAlgebras(R).WithBasis().Graded()
-        self._n = n
         CombinatorialFreeModule.__init__(self, R, indices, prefix='Z',
                                          category=cat)
-        self._assign_names(names)
+        if self._n is not None:
+            self._assign_names(names)
 
     def _repr_term(self, t):
         """
@@ -236,7 +250,14 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z.<x,y> = algebras.FreeZinbiel(QQ)
             sage: Z
             Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
+
+            sage: Z = algebras.FreeZinbiel(QQ, ZZ)
+            sage: Z
+            Free Zinbiel algebra on generators indexed by Integer Ring over Rational Field
         """
+        if self._n is None:
+            return "Free Zinbiel algebra on generators indexed by {} over {}".format(
+                self._indices.alphabet(), self.base_ring())
         return "Free Zinbiel algebra on generators {} over {}".format(
             self.gens(), self.base_ring())
 
@@ -251,7 +272,10 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: list(Z.algebra_generators())
             [Z[x], Z[y], Z[z]]
         """
-        A = self.variable_names()
+        if self._n is None:
+            A = self._indices.alphabet()
+        else:
+            A = self.variable_names()
         return Family(A, lambda g: self.monomial(self._indices([g])))
 
     def change_ring(self, R):
@@ -283,6 +307,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z.gens()
             (Z[x], Z[y], Z[z])
         """
+        if self._n is None:
+            return self.algebra_generators()
         return tuple(self.algebra_generators())
 
     def degree_on_basis(self, t):
@@ -423,18 +449,27 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             True
             sage: F._coerce_map_from_(H)
             True
-            sage: F._coerce_map_from_(QQ)
-            False
-            sage: G._coerce_map_from_(QQ)
-            False
+            sage: F._coerce_map_from_(QQ) is None
+            True
+            sage: G._coerce_map_from_(QQ) is None
+            True
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
+            False
+
+            sage: I = algebras.FreeZinbiel(ZZ, ZZ)
+            sage: F._coerce_map_from_(I)
+            False
+            sage: I._coerce_map_from_(F)
             False
         """
         # free Zinbiel algebras in a subset of variables
         # over any base that coerces in:
-        return (isinstance(R, FreeZinbielAlgebra)
-                and all(x in self.variable_names() for x in R.variable_names())
-                and self.base_ring().has_coerce_map_from(R.base_ring()))
+        if isinstance(R, FreeZinbielAlgebra):
+            if self._n is None or R._n is None:
+                return False
+            return (all(x in self.variable_names() for x in R.variable_names())
+                    and self.base_ring().has_coerce_map_from(R.base_ring()))
+        return super(FreeZinbielAlgebra, self)._coerce_map_from_(R)
 
     def construction(self):
         """
@@ -576,15 +611,31 @@ class ZinbielFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: functor = sage.algebras.free_zinbiel_algebra.ZinbielFunctor
+            sage: from sage.algebras.free_zinbiel_algebra import ZinbielFunctor as functor
             sage: F = functor(['x','y'])
             sage: G = functor(['t'])
             sage: G * F
             Zinbiel[x,y,t]
+
+        With an infinite generating set::
+
+            sage: H = functor(ZZ)
+            sage: H * G
+            Traceback (most recent call last):
+            ...
+            CoercionException: Unable to determine overlap for infinite sets
+            sage: G * H
+            Traceback (most recent call last):
+            ...
+            CoercionException: Unable to determine overlap for infinite sets
         """
         if isinstance(other, IdentityConstructionFunctor):
             return self
         if isinstance(other, ZinbielFunctor):
+            def check(x):
+                return isinstance(x, (list, tuple)) or x in Sets().Finite()
+            if not check(self.vars) or not check(other.vars):
+                raise CoercionException("Unable to determine overlap for infinite sets")
             if set(self.vars).intersection(other.vars):
                 raise CoercionException("Overlapping variables (%s,%s)" %
                                         (self.vars, other.vars))
@@ -610,6 +661,16 @@ class ZinbielFunctor(ConstructionFunctor):
             sage: F.merge(F)
             Zinbiel[x,y]
 
+        With an infinite generating set::
+
+            sage: H = functor(ZZ)
+            sage: H.merge(H) is H
+            True
+            sage: H.merge(F) is None
+            True
+            sage: F.merge(H) is None
+            True
+
         Now some actual use cases::
 
             sage: R = algebras.FreeZinbiel(ZZ, 'x,y,z')
@@ -631,6 +692,10 @@ class ZinbielFunctor(ConstructionFunctor):
         if isinstance(other, ZinbielFunctor):
             if self.vars == other.vars:
                 return self
+            def check(x):
+                return isinstance(x, (list, tuple)) or x in Sets().Finite()
+            if not check(self.vars) or not check(other.vars):
+                return None
             ret = list(self.vars)
             cur_vars = set(ret)
             for v in other.vars:
@@ -648,3 +713,4 @@ class ZinbielFunctor(ConstructionFunctor):
             Zinbiel[x,y,z,t]
         """
         return "Zinbiel[%s]" % ','.join(self.vars)
+

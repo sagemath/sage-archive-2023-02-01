@@ -60,6 +60,62 @@ optional and experimental ones:
   some problems, the package can still be accepted.
 
 
+.. _section-package-source-types:
+
+Package source types
+--------------------
+
+Orthogonal to the division by package types, a package has exactly one of
+the following source types:
+
+#. A ``normal`` package:
+
+   - comes from the tarball named in the required file ``checksums.ini`` and
+     hosted on the Sage mirrors;
+
+   - its version number is defined by the required file ``package-version.txt``;
+
+   - Sage installs the package using build and install scripts
+     (see :ref:`section-spkg-install`);
+
+   - Sage records the version number of the package installed using a file in
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     if ``package-version.txt`` changes.
+
+#. A ``pip`` package:
+
+   - is obtained directly from https://pypi.org/;
+
+   - the version to be installed is determined using the required file
+     ``requirements.txt`` -- in its simplest form, this file just
+     contains the name of the package (more details at
+     https://pip.pypa.io/en/stable/user_guide/#requirements-files);
+
+   - Sage installs the package using the ``pip`` package manager;
+
+   - Sage delegates the recording of installed package version numbers to it;
+
+   - by policy, no ``standard`` package is allowed to be a ``pip`` package.
+
+#. A ``script`` package:
+
+   - is not associated with a tarball;
+
+   - the file ``package-version.txt`` is optional;
+
+   - installing the package runs the build and install scripts
+     (see :ref:`section-spkg-install`);
+
+   - Sage records the version number of the package installed using a file in
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     if ``package-version.txt`` changes.
+
+To summarize: the package source type is determined as follows: if
+there is a file ``requirements.txt``, it is a ``pip`` package. If not,
+then if there is a ``checksums.ini`` file, it is ``normal``;
+otherwise, it is a ``script`` package.
+
+
 .. _section-directory-structure:
 
 Directory Structure
@@ -127,8 +183,8 @@ See :ref:`section-package-types` for the meaning of these types.
 
 .. _section-spkg-install:
 
-Build and install scripts
--------------------------
+Build and install scripts of normal packages
+--------------------------------------------
 
 The ``spkg-build.in`` and ``spkg-install.in`` files are templates for
 ``bash`` scripts ``spkg-build`` and ``spkg-install``, which build
@@ -244,6 +300,15 @@ at build time,  which should to the appropriate system-specific
   packages should prefix all commands in ``spkg-install.in`` that write into
   the installation hierarchy with ``$SAGE_SUDO``.
 
+Install scripts of script packages
+----------------------------------
+
+A script package has a single install script named ``spkg-install``.
+It needs to be an executable shell script; it is not subject to the templating
+described in the previous section.
+
+Sage runs ``spkg-install`` from the ``$SAGE_ROOT`` directory in the environment
+obtained by sourcing the files ``src/bin/sage-env`` and ``build/bin/sage-build-env-config``.
 
 .. _section-sdh-helpers:
 

@@ -4255,7 +4255,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         # in the non-full rank case.  In any case, we do this for now,
         # since rank is very fast and infinite loops are evil.
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("self must be of full rank.")
+            from .matrix2 import NotFullRankError
+            raise NotFullRankError
 
         if not self.is_square():
             raise NotImplementedError("the input matrix must be square.")

@@ -29,7 +29,24 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 	sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean doc-src-clean doc-output-clean \
-	clean sagelib-clean build-clean _clean-broken-gcc
+	clean sagelib-clean build-clean python3_venv _clean-broken-gcc
+
+ifneq ($(PYTHON_FOR_VENV),)
+# Special rule for making the Python virtualenv from the system Python (Python
+# 3 only).  $(PYTHON) is set in Makefile to python3_venv.
+# Thus $(inst_python3_venv) will be the dependency of every Python package.
+#
+# TODO: If we reconfigure to build our own Python after having used the system
+# Python, files installed to create the virtualenv should be *removed*.  That
+# could either be done here by the makefile, or in an spkg-preinst for python3
+ifeq ($(PYTHON),python3)
+PYTHON = python3_venv
+endif
+inst_python3_venv = $(SAGE_LOCAL)/pyvenv.cfg
+
+$(inst_python3_venv):
+	$(PYTHON_FOR_VENV) $(SAGE_ROOT)/build/bin/sage-venv "$(SAGE_LOCAL)"
+endif
 
 # Build everything and start Sage.
 # Note that we put the "doc" target first in the rule below because
@@ -104,7 +121,7 @@ build-start: all-build
 # sage-starts runs sage-location, which should be run after installing
 # any package.
 $(STARTED): $(STANDARD_PACKAGE_INSTS)
-	$(AM_V_at)"$(SAGE_LOCAL)/bin/sage-starts"
+	$(AM_V_at)"$(SAGE_ROOT)/build/bin/sage-starts"
 
 
 ###############################################################################
@@ -122,7 +139,7 @@ base: $(inst_patch) $(inst_pkgconf)
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
-sagelib: \
+sagelib-build-deps: \
 		$(SCRIPTS) \
 		$(inst_arb) \
 		$(inst_boost_cropped) \
@@ -171,12 +188,15 @@ sagelib: \
 		$(inst_ratpoints) \
 		$(inst_readline) \
 		$(inst_rw) \
+		$(inst_sage_brial) \
 		$(inst_sage_conf) \
 		$(inst_singular) \
 		$(inst_six) \
 		$(inst_symmetrica) \
 		$(inst_zn_poly) \
 		$(PCFILES)
+
+sagelib: sagelib-build-deps
 	$(AM_V_at)if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && source $(SAGE_ROOT)/build/bin/sage-build-env-config && \
 		sage-logger -p 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
@@ -190,11 +210,6 @@ sagelib: \
 # Don't just use "install" since we don't want to change permissions
 $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
 	$(AM_V_at)cp $< $@
-
-# Install sage-specific generated .pc files
-$(SAGE_PKGCONFIG)/%.pc: $(SAGE_SRC)/lib/pkgconfig/%.pc
-	@mkdir -p "$(@D)"
-	$(AM_V_at)cp -P $< $@
 
 ###############################################################################
 # Building the documentation

@@ -409,24 +409,6 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         1
 
-    Check that Sage refuses to run doctests from a directory whose
-    permissions are too loose. Note that this is relevant only for
-    Sage's Python 2, which is patched to produce this behavior. We
-    create a world-writable directory inside a safe temporary
-    directory to test this::
-
-        sage: d = os.path.join(tmp_dir(), "test")
-        sage: os.mkdir(d)
-        sage: os.chmod(d, 0o777)
-        sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d) # py2
-        sage: print(err) # py2
-        ...
-        RuntimeError: refusing to run doctests...
-        sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d) # py2
-        sage: print(err) # py2
-        ...
-        RuntimeError: refusing to run doctests...
-
     Now run a test for the fixdoctests script and, in particular, check that the
     issues raised in :trac:`10589` are fixed. We have to go to slightly silly
     lengths to doctest the output.::

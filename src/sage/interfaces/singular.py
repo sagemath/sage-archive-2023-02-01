@@ -1678,6 +1678,18 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: P2.0.lift().parent()
             Multivariate Polynomial Ring in x, y over Rational Field
 
+        Test that :trac:`29396` is fixed::
+
+            sage: Rxz.<x,z> = RR[]
+            sage: f = x**3 + x*z + 1
+            sage: f.discriminant(x)
+            -4.00000000000000*z^3 - 27.0000000000000
+            sage: Rx.<x> = RR[]
+            sage: Rx("x + 7.5")._singular_().sage_poly()
+            x + 7.50000
+            sage: Rx("x + 7.5")._singular_().sage_poly(Rx)
+            x + 7.50000000000000
+
         AUTHORS:
 
         - Martin Albrecht (2006-05-18)
@@ -1766,7 +1778,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 exp = dict()
                 monomial = singular_poly_list[i]
 
-                if monomial!="1":
+                if monomial not in ['1', '(1.000e+00)']:
                     variables = [var.split("^") for var in monomial.split("*") ]
                     for e in variables:
                         var = e[0]
@@ -1794,7 +1806,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 monomial = singular_poly_list[i]
                 exp = int(0)
 
-                if monomial!="1":
+                if monomial not in ['1', '(1.000e+00)']:
                     term =  monomial.split("^")
                     if len(term)==int(2):
                         exp = int(term[1])

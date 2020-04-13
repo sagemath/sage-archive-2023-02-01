@@ -914,7 +914,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [0 2]
         """
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("not of full rank")
+            from .matrix2 import NotFullRankError
+            raise NotFullRankError
 
         if self.base_ring() != B.base_ring():
             B = B.change_ring(self.base_ring())

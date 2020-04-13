@@ -6981,7 +6981,7 @@ class Graph(GenericGraph):
             return list(core.values())
 
     @doc_index("Leftovers")
-    def modular_decomposition(self, algorithm='habib'):
+    def modular_decomposition(self, algorithm='habib', style='tuple'):
         r"""
         Return the modular decomposition of the current graph.
 
@@ -7001,6 +7001,13 @@ class Graph(GenericGraph):
 
           - ``'habib'`` -- `O(n^3)` algorithm of [HM1979]_. This algorithm is
             much simpler and so possibly less prone to errors.
+
+        - ``style`` -- string (default: ``'tuple'``); specifies the output
+          format:
+
+          - ``'tuple'`` -- as nested tuples.
+
+          - ``'tree'`` -- as :class:`~sage.combinat.rooted_tree.LabelledRootedTree`.
 
         OUTPUT:
 
@@ -7073,18 +7080,32 @@ class Graph(GenericGraph):
             (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
-        interesting decomposition ::
+        interesting decomposition::
 
             sage: g = graphs.CompleteGraph(5)
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
-            sage: g.modular_decomposition()
+            sage: g.modular_decomposition(algorithm='habib')
             (SERIES, [(PARALLEL, [(SERIES, [1, 2, 3, 4]), 5, 6]), 0])
 
         We get an equivalent tree when we use the algorithm of [TCHP2008]_::
 
             sage: g.modular_decomposition(algorithm='tedder')
             (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
+
+        We can choose output to be a
+        :class:`~sage.combinat.rooted_tree.LabelledRootedTree`::
+
+            sage: g.modular_decomposition(style='tree')
+            SERIES[0[], PARALLEL[5[], 6[], SERIES[1[], 2[], 3[], 4[]]]]
+            sage: ascii_art(g.modular_decomposition(style='tree'))
+              __SERIES
+             /      /
+            0   ___PARALLEL
+               / /     /
+              5 6   __SERIES
+                   / / / /
+                  1 2 3 4
 
         ALGORITHM:
 
@@ -7097,12 +7118,31 @@ class Graph(GenericGraph):
 
             - :meth:`is_prime` -- Tests whether a graph is prime.
 
+            - :class:`~sage.combinat.rooted_tree.LabelledRootedTree`.
+
         TESTS:
 
         Empty graph::
 
-            sage: graphs.EmptyGraph().modular_decomposition()
+            sage: graphs.EmptyGraph().modular_decomposition(algorithm='habib')
             ()
+            sage: graphs.EmptyGraph().modular_decomposition(algorithm='tedder')
+            ()
+            sage: graphs.EmptyGraph().modular_decomposition(algorithm='habib', style='tree')
+            None[]
+            sage: graphs.EmptyGraph().modular_decomposition(algorithm='tedder', style='tree')
+            None[]
+
+        Singleton Vertex::
+
+            sage: Graph(1).modular_decomposition(algorithm='habib')
+            (PRIME, [0])
+            sage: Graph(1).modular_decomposition(algorithm='tedder')
+            (PRIME, [0])
+            sage: Graph(1).modular_decomposition(algorithm='habib', style='tree')
+            PRIME[0[]]
+            sage: Graph(1).modular_decomposition(algorithm='tedder', style='tree')
+            PRIME[0[]]
 
         Vertices may be arbitrary --- check that :trac:`24898` is fixed::
 
@@ -7115,31 +7155,56 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: algorithm must be 'habib' or 'tedder'
+
+        Unknown style::
+
+            sage: graphs.PathGraph(2).modular_decomposition(style='xyz')
+            Traceback (most recent call last):
+            ...
+            ValueError: style must be 'tuple' or 'tree'
         """
-        from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, NodeType, habib_maurer_algorithm
+        from sage.graphs.graph_decompositions.modular_decomposition import (modular_decomposition,
+                                                                            NodeType,
+                                                                            habib_maurer_algorithm,
+                                                                            create_prime_node,
+                                                                            create_normal_node)
 
         self._scream_if_not_simple()
 
         if not self.order():
-            return tuple()
-
-        if self.order() == 1:
-            return (NodeType.PRIME, list(self))
-
-        if algorithm == 'habib':
-            D = habib_maurer_algorithm(self)
-        elif algorithm == 'tedder':
-            D = modular_decomposition(self)
+            D = None
+        elif self.order() == 1:
+            D = create_prime_node()
+            D.children.append(create_normal_node(self.vertices()[0]))
         else:
-            raise ValueError("algorithm must be 'habib' or 'tedder'")
-
-        def relabel(x):
-            if x.node_type == NodeType.NORMAL:
-                return x.children[0]
+            if algorithm == 'habib':
+                D = habib_maurer_algorithm(self)
+            elif algorithm == 'tedder':
+                D = modular_decomposition(self)
             else:
-                return x.node_type, [relabel(y) for y in x.children]
+                raise ValueError("algorithm must be 'habib' or 'tedder'")
 
-        return relabel(D)
+        if style == 'tuple':
+            if D is None:
+                return tuple()
+            def relabel(x):
+                if x.node_type == NodeType.NORMAL:
+                    return x.children[0]
+                else:
+                    return x.node_type, [relabel(y) for y in x.children]
+            return relabel(D)
+        elif style == 'tree':
+            from sage.combinat.rooted_tree import LabelledRootedTree
+            if D is None:
+                return LabelledRootedTree([])
+            def to_tree(x):
+                if x.node_type == NodeType.NORMAL:
+                    return LabelledRootedTree([], label=x.children[0])
+                else:
+                    return LabelledRootedTree([to_tree(y) for y in x.children], label=x.node_type)
+            return to_tree(D)
+        else:
+            raise ValueError("style must be 'tuple' or 'tree'")
 
     @doc_index("Graph properties")
     def is_polyhedral(self):

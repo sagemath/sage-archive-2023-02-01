@@ -737,12 +737,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
                 return self.element_class(self, {(i,): c for i,c in iteritems(x)})
             return self.element_class(self, {(i,): R(c) for i,c in iteritems(x) if R(c) != R.zero()})
 
-        if isinstance(x, CliffordAlgebraElement):
-            if x.parent() is self:
-                return x
-            if self.has_coerce_map_from(x.parent()):
-                R = self.base_ring()
-                return self.element_class(self, {i: R(c) for i,c in x if R(c) != R.zero()})
+        if (isinstance(x, CliffordAlgebraElement)
+            and self.has_coerce_map_from(x.parent())):
+            R = self.base_ring()
+            return self.element_class(self, {i: R(c) for i,c in x if R(c) != R.zero()})
 
         return super(CliffordAlgebra, self)._element_constructor_(x)
 

@@ -75,6 +75,10 @@ def make_parser():
         will be downloaded and the content written to stdout and a
         tarball will be saved under {SAGE_DISTFILES}""".format(SAGE_DISTFILES=SAGE_DISTFILES))
     
+    parser.add_argument(
+        '--no-check-certificate', action='store_true',
+        help='Do not check SSL certificates for https connections')
+
     return parser
 
 
@@ -88,6 +92,12 @@ def run():
         level = getattr(logging, args.log.upper())
         log.setLevel(level=level)
     log.debug('Commandline arguments: %s', args)
+    if args.no_check_certificate:
+        try:
+            import ssl
+            ssl._create_default_https_context = ssl._create_unverified_context
+        except ImportError:
+            pass
     app = Application(timeout=args.timeout, quiet=args.quiet)
     if (not args.print_fastest_mirror) and (args.url_or_tarball is None):
         parser.print_help()

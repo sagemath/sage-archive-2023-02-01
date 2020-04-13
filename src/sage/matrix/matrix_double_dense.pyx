@@ -54,7 +54,6 @@ from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Matrix
 from sage.structure.element cimport ModuleElement,Vector
 from .constructor import matrix
-from sage.modules.free_module_element import vector
 cimport sage.structure.element
 from .matrix_space import MatrixSpace
 from sage.misc.decorators import rename_keyword
@@ -1613,293 +1612,51 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     eigenvectors_right = right_eigenvectors
 
-    def solve_right(self, b):
-        r"""
-        Solve the matrix equation ``A*x = b`` for a nonsingular ``A``.
-
-        INPUT:
-
-        - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector or a matrix;
-          the dimension (if a vector), or the number of rows (if
-          a matrix) must match the dimension of ``self``
-
-        OUTPUT:
-
-        the unique solution ``x`` to the matrix equation ``A*x = b``,
-        as a vector or matrix over a suitable common base ring
-
-        ALGORITHM:
-
-        Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module.
-
-        EXAMPLES:
-
-        Over the reals::
-
-            sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
-            [ 1.0  2.0  5.0]
-            [ 7.6  2.3  1.0]
-            [ 1.0  2.0 -1.0]
-            sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_right(b); x  # tol 1e-14
-            (-0.1136950904392765, 1.3901808785529717, -0.33333333333333337)
-            sage: x.parent()
-            Vector space of dimension 3 over Real Double Field
-            sage: A*x  # tol 1e-14
-            (1.0, 1.9999999999999996, 3.0000000000000004)
-
-        Over the complex numbers::
-
-            sage: A = matrix(CDF, [[      0, -1 + 2*I,  1 - 3*I,        I],
-            ....:                  [2 + 4*I, -2 + 3*I, -1 + 2*I,   -1 - I],
-            ....:                  [  2 + I,    1 - I,       -1,        5],
-            ....:                  [    3*I,   -1 - I,   -1 + I,   -3 + I]])
-            sage: b = vector(CDF, [2 -3*I, 3, -2 + 3*I, 8])
-            sage: x = A.solve_right(b); x
-            (1.96841637... - 1.07606761...*I, -0.614323843... + 1.68416370...*I, 0.0733985765... + 1.73487544...*I, -1.6018683... + 0.524021352...*I)
-            sage: x.parent()
-            Vector space of dimension 4 over Complex Double Field
-            sage: abs(A*x - b) < 1e-14
-            True
-
-        If ``b`` is given as a matrix, the result will be a matrix, as well::
-
-            sage: A = matrix(RDF, 3, 3, [1, 2, 2, 3, 4, 5, 2, 2, 2])
-            sage: b = matrix(RDF, 3, 2, [3, 2, 3, 2, 3, 2])
-            sage: A.solve_right(b) # tol 1e-14
-            [ 0.0  0.0]
-            [ 4.5  3.0]
-            [-3.0 -2.0]
-
-        TESTS:
-
-        A degenerate case::
-
-            sage: A = matrix(RDF, 0, 0, [])
-            sage: A.solve_right(vector(RDF,[]))
-            ()
-
-        The coefficient matrix must be square. ::
-
-            sage: A = matrix(RDF, 2, 3, range(6))
-            sage: b = vector(RDF, [1,2,3])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: coefficient matrix of a system over RDF/CDF must be square, not 2 x 3
-
-        The coefficient matrix must be nonsingular.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4,5])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Matrix is singular.
-
-        The vector of constants needs the correct degree.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: dimensions of linear system over RDF/CDF do not match:
-            b has size 4, but coefficient matrix has size 5
-
-        The vector of constants needs to be compatible with
-        the base ring of the coefficient matrix.  ::
-
-            sage: F.<a> = FiniteField(27)
-            sage: b = vector(F, [a,a,a,a,a])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: no common canonical parent for objects with parents: ...
-
-        Check that coercions work correctly (:trac:`17405`)::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: b = vector(CDF, [1+I, 2])
-            sage: A.solve_right(b)
-            (-0.5 - 1.5*I, 1.0 + 1.0*I)
-            sage: b = vector(QQ[I], [1+I, 2])
-            sage: x = A.solve_right(b)
-
-        Calling this method with anything but a vector or matrix is
-        deprecated::
-
-            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: x = A.solve_right([1]*5)
-            doctest:...: DeprecationWarning: solve_right should be called with
-            a vector or matrix
-            See http://trac.sagemath.org/17405 for details.
+    def _solve_right_nonsingular_square(self, B, check_rank=False):
         """
-        R = self.base_ring()
-        try:
-            R2 = b.base_ring()
-        except AttributeError:
-            from sage.misc.superseded import deprecation
-            deprecation(17405, "solve_right should be called with a vector "
-                               "or matrix")
-            b = vector(b)
-            R2 = b.base_ring()
-        if R2 is not R:
-            # first coerce both elements to parent over same base ring
-            P = coercion_model.common_parent(R, R2)
-            if R2 is not P:
-                b = b.change_ring(P)
-            if R is not P:
-                a = self.change_ring(P)
-                return a.solve_right(b)
-            # now R is P and both elements have the same base ring RDF/CDF
+        Find a solution `X` to the equation `A X = B` if ``self`` is a square
+        matrix `A`.
 
-        if not self.is_square():
-            # TODO this is too restrictive; use lstsq for non-square matrices
-            raise NotImplementedError("coefficient matrix of a system over "
-                                      "RDF/CDF must be square, not %s x %s "
-                                      % (self.nrows(), self.ncols()))
+        TESTS::
 
-        b_is_matrix = is_Matrix(b)
-        if not b_is_matrix:
-            # turn b into a matrix
-            b = b.column()
-        if b.nrows() != self._nrows:
-            raise ValueError("dimensions of linear system over RDF/CDF do not "
-                             "match: b has size %s, but coefficient matrix "
-                             "has size %s" % (b.nrows(), self.nrows()) )
-
+            sage: A = matrix(CDF, [[1, 2], [3, 3+I]])
+            sage: b = matrix(CDF, [[1, 0], [2, 1]])
+            sage: x = A._solve_right_nonsingular_square(b)
+            sage: (A * x - b).norm() < 1e-14
+            True
+        """
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
-
-        # AX = B, so X.nrows() = self.ncols() and X.ncols() = B.ncols()
-        X = self._new(self._ncols, b.ncols())
+        X = self._new(self._ncols, B.ncols())
         # may raise a LinAlgError for a singular matrix
-        X._matrix_numpy = scipy.linalg.solve(self._matrix_numpy, b.numpy())
-        return X if b_is_matrix else X.column(0)
+        X._matrix_numpy = scipy.linalg.solve(self._matrix_numpy, B.numpy())
+        return X
 
-    def solve_left(self, b):
-        r"""
-        Solve the matrix equation ``x*A = b`` for a nonsingular ``A``.
-
-        INPUT:
-
-        - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector or a matrix;
-          the dimension (if a vector), or the number of rows (if
-          a matrix) must match the dimension of ``self``
-
-        OUTPUT:
-
-        the unique solution ``x`` to the matrix equation ``x*A = b``,
-        as a vector or matrix over a suitable common base ring
-
-        ALGORITHM:
-
-        Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module,
-        after taking the transpose of the coefficient matrix.
-
-        EXAMPLES:
-
-        Over the reals::
-
-            sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
-            [ 1.0  2.0  5.0]
-            [ 7.6  2.3  1.0]
-            [ 1.0  2.0 -1.0]
-            sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(2e-17) # fix noisy zeroes
-            (0.666666666..., 0.0, 0.333333333...)
-            sage: x.parent()
-            Vector space of dimension 3 over Real Double Field
-            sage: x*A  # tol 1e-14
-            (0.9999999999999999, 1.9999999999999998, 3.0)
-
-        Over the complex numbers::
-
-            sage: A = matrix(CDF, [[      0, -1 + 2*I,  1 - 3*I,        I],
-            ....:                  [2 + 4*I, -2 + 3*I, -1 + 2*I,   -1 - I],
-            ....:                  [  2 + I,    1 - I,       -1,        5],
-            ....:                  [    3*I,   -1 - I,   -1 + I,   -3 + I]])
-            sage: b = vector(CDF, [2 -3*I, 3, -2 + 3*I, 8])
-            sage: x = A.solve_left(b); x
-            (-1.55765124... - 0.644483985...*I, 0.183274021... + 0.286476868...*I, 0.270818505... + 0.246619217...*I, -1.69003558... - 0.828113879...*I)
-            sage: x.parent()
-            Vector space of dimension 4 over Complex Double Field
-            sage: abs(x*A - b) < 1e-14
-            True
-
-        If ``b`` is given as a matrix, the result will be a matrix, as well::
-
-            sage: A = matrix(RDF, 3, 3, [2, 5, 0, 7, 7, -2, -4.3, 0, 1])
-            sage: b = matrix(RDF, 2, 3, [2, -4, -5, 1, 1, 0.1])
-            sage: A.solve_left(b) # tol 1e-14
-            [  -6.495454545454545    4.068181818181818   3.1363636363636354]
-            [  0.5277272727272727  -0.2340909090909091 -0.36818181818181817]
-
-        TESTS:
-
-        A degenerate case::
-
-            sage: A = matrix(RDF, 0, 0, [])
-            sage: A.solve_left(vector(RDF,[]))
-            ()
-
-        The coefficient matrix must be square. ::
-
-            sage: A = matrix(RDF, 2, 3, range(6))
-            sage: b = vector(RDF, [1,2,3])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: coefficient matrix of a system over RDF/CDF must be square, not 3 x 2
-
-        The coefficient matrix must be nonsingular.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4,5])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Matrix is singular.
-
-        The vector of constants needs the correct degree.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: dimensions of linear system over RDF/CDF do not match:
-            b has size 4, but coefficient matrix has size 5
-
-        The vector of constants needs to be compatible with
-        the base ring of the coefficient matrix.  ::
-
-            sage: F.<a> = FiniteField(27)
-            sage: b = vector(F, [a,a,a,a,a])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: no common canonical parent for objects with parents: ...
-
-        Check that coercions work correctly (:trac:`17405`)::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: b = vector(CDF, [1+I, 2])
-            sage: A.solve_left(b)
-            (0.5 - 1.5*I, 0.5 + 0.5*I)
-            sage: b = vector(QQ[I], [1+I, 2])
-            sage: x = A.solve_left(b)
+    def _solve_right_general(self, B, check=False):
         """
-        if is_Matrix(b):
-            return self.T.solve_right(b.T).T
-        else:
-            # b is a vector and so is the result
-            return self.T.solve_right(b)
+        Compute a least-squares solution `X` to the equation `A X = B` where
+        ``self`` is the matrix `A`.
+
+        TESTS::
+
+            sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
+            sage: b = matrix(RDF, 3, 2, [5, 6, 1, 0, 0, 2])
+            sage: x = A._solve_right_general(b)
+            sage: y = ~(A.T * A) * A.T * b  # closed form solution
+            sage: (x - y).norm() < 1e-14
+            True
+        """
+        global scipy
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+        X = self._new(self._ncols, B.ncols())
+        arr, resid, rank, s = scipy.linalg.lstsq(self._matrix_numpy, B.numpy())
+        X._matrix_numpy = arr
+        return X
+
 
     def determinant(self):
         """

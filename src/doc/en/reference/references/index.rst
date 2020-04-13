@@ -864,6 +864,13 @@ REFERENCES:
 .. [BM1983] Buer, B., and Mohring, R. H.  A fast algorithm for decomposition of
             graphs and posets, Math. Oper. Res., Vol 8 (1983): 170-184.
 
+.. [BM1993] \M. Broué and G. Malle, *Zyklotomische Heckealgebren*,
+            Asterisque, **212** (1993), 119-89.
+
+.. [BM1997] \K. Bremke and G. Malle,
+            *Reduced words and a length function for* `G(e,1,n)`.
+            Indag. Mathem., N.S., **8** (1997), no. 4, 453-469.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 
@@ -1056,6 +1063,10 @@ REFERENCES:
              Computer Science, 1989, pp. 442-447.
              :doi:`10.1109/SFCS.1989.63516`,
              <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
+
+.. [Broder2000] Broder, A.Z., Kumar, R., Maghoul, F., Raghavan, P., Rajagopalan,
+                S., Stata, R., Tomkins, A., Wiener, J.L.: Graph structure in
+                the web. Computer Networks 33(1-6), 309–320 (2000)
 
 .. [BRS2015] \A. Boussicault, S. Rinaldi et S. Socci.
              *The number of directed k-convex polyominoes*
@@ -3869,6 +3880,10 @@ REFERENCES:
              maps", C. R. Acad. Sci. Paris, projet de Note, 2003
              Systèmes dynamiques/Dynamical
              Systems. :arxiv:`math/0304469v1`
+
+.. [MM1998] Gunter Malle and Andrew Mathas.
+            *Symmetric cyclotomic Hecke algebras* J. Algebra.
+            **205** (1998) pp. 275-293.
 
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.

@@ -2388,7 +2388,7 @@ class Polytopes():
                 transf_col += [new_col]
                 m = matrix(AA, transf_col)
                 col = bf.column(i)
-                rhs = vector(list(col[:i+1]))
+                rhs = vector(AA, list(col[:i+1]))
                 adjusted_col = m.solve_right(rhs)
                 # Then scales the images so that the polytope is inscribed
                 c = 1 - sum(adjusted_col[j]**2 for j in range(n) if j != i)
@@ -2871,7 +2871,7 @@ class Polytopes():
 
         else:
             raise ValueError("the dimension of the hypercube must match the number of intervals")
-        return parent([cp, [], []], [ieqs, []], convert=convert, Vrep_minimal=True, Hrep_minimal=True )
+        return parent([cp, [], []], [ieqs, []], convert=convert, Vrep_minimal=True, Hrep_minimal=True)
 
     def cube(self, intervals=None, backend=None):
         r"""
@@ -2960,10 +2960,19 @@ class Polytopes():
 
             sage: cp = polytopes.cross_polytope(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(cp).run()                                   # optional - pynormaliz
+
+        Check that double description is set up correctly::
+
+            sage: P = polytopes.cross_polytope(6, backend='ppl')
+            sage: Q = polytopes.cross_polytope(6, backend='ppl')
+            sage: P == Q
+            True
         """
-        verts = list((ZZ**dim).basis())
-        verts.extend([-v for v in verts])
-        return Polyhedron(vertices=verts, backend=backend)
+        verts = tuple((ZZ**dim).basis())
+        verts += tuple(-v for v in verts)
+        ieqs = tuple((1,) + x for x in itertools.product([-1,1], repeat=dim))
+        parent = Polyhedra(ZZ, dim, backend=backend)
+        return parent([verts, [], []], [ieqs, []], Vrep_minimal=True, Hrep_minimal=True)
 
     def parallelotope(self, generators, backend=None):
         r"""

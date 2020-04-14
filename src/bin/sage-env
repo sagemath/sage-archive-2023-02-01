@@ -545,11 +545,6 @@ if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
 fi
 
-if [ "$UNAME" = "Darwin" ]; then
-    # Trac #21175 - export empty ARCHFLAGS for the benefit of Perl modules
-    ARCHFLAGS="" && export ARCHFLAGS
-fi
-
 if [ "$CP" = "" ]; then
     CP="cp"  && export CP
 fi

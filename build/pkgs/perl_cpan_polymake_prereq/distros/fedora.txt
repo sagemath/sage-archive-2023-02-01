@@ -1,2 +1,1 @@
-# known correct on Fedora 23
 perl-ExtUtils-Embed perl-File-Slurp perl-JSON perl-MongoDB perl-Term-ReadLine-Gnu

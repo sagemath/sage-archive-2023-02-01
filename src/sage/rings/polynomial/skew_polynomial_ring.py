@@ -1335,7 +1335,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
                 self._working_center = self.center()
                 self._center_variable_name = None
             except ValueError:
-                varname = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+                self._center_variable_name = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
                 pass
 
 

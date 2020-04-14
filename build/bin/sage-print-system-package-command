@@ -28,6 +28,9 @@ case $system:$command in
         ;;
     homebrew*:install)
         echo "brew install $system_packages"
+        echo "# Afterwards, to automatically take care of homebrew messages regarding "
+        echo "# keg-only packages for the current shell session:"
+        echo "source ./.homebrew-build-env"
         ;;
     slackware*:install)
         echo "sudo slackpkg install $system_packages"

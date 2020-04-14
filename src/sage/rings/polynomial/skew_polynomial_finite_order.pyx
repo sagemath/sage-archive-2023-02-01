@@ -167,8 +167,8 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         INPUT:
 
-        - ``var`` -- a string or ``None`` (default: ``None``);
-          the variable name
+        - ``var`` -- a string or ``False`` or ``None`` (default: ``None``);
+          the variable name; if ``False``, return the list of coefficients
 
         EXAMPLES::
 
@@ -200,6 +200,12 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: a.reduced_trace(var='u')
             3*u + 4
 
+        When passing in ``var=False``, the list of coefficients (instead of 
+        an actual polynomial) is returned::
+
+            sage: a.reduced_trace(var=False)
+            [4, 3]
+
         TESTS:
 
         We check that the reduced trace is additive::
@@ -217,6 +223,8 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             for _ in range(order-1):
                 tr = c + twist_map(tr)
             coeffs.append(tr)
+        if var is False:
+            return coeffs
         Z = self.parent().center(name=var)
         return Z(coeffs)
 
@@ -226,8 +234,8 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         INPUT:
 
-        - ``var`` -- a string or ``None`` (default: ``None``);
-          the variable name
+        - ``var`` -- a string or ``False`` or ``None`` (default: ``None``);
+          the variable name; if ``False``, return the list of coefficients
 
         .. NOTE::
 
@@ -263,8 +271,14 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: a.reduced_norm(var='u')
             u^3 + 4*u^2 + 4
 
-        TESTS::
+        When passing in ``var=False``, the list of coefficients (instead of 
+        an actual polynomial) is returned::
 
+            sage: a.reduced_norm(var=False)
+            [4, 0, 4, 1]
+
+        TESTS:
+    
         We check that `N` is a multiple of `a`::
 
             sage: S(N).is_right_divisible_by(a)
@@ -294,13 +308,13 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         of dimension `d`).
 
         """
-        center = self.parent().center(name=var)
         if self._norm is None:
             if self.is_zero():
                 self._norm = 0 
             else:
-                section = self._parent._embed_constants.section()
-                exp = (self.parent().base_ring().cardinality() - 1) / (center.base_ring().cardinality() - 1)
+                parent = self._parent
+                section = parent._embed_constants.section()
+                exp = (parent.base_ring().cardinality() - 1) / (parent._constants.cardinality() - 1)
                 order = self.parent()._order
                 lc = section(self.leading_coefficient()**exp)
                 if order < self.degree():
@@ -309,6 +323,9 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 else:
                     charpoly = self._matphir_c().characteristic_polynomial()
                     self._norm = [ lc*section(x) for x in charpoly.list() ]
+        if var is False:
+            return self._norm
+        center = self.parent().center(name=var)
         return center(self._norm)
 
 
@@ -329,7 +346,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: (x^6 + x^3).is_central()
             True
         """
-        center = self.parent().center()
+        center = self.parent()._working_center
         try:
             center(self)
             return True

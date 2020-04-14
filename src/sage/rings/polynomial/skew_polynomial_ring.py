@@ -1308,12 +1308,36 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             Category of algebras over Finite Field in t of size 5^3
 
             sage: TestSuite(S).run()
+
+        We check that a call to the method
+        :meth:`sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order.is_central`
+        does not affect the behaviour of default central variable names::
+
+            sage: k.<a> = GF(7^4)
+            sage: phi = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', phi]
+            sage: (x^4).is_central()
+            True
+            sage: Z.<u> = S.center()
+            sage: S.center() is Z
+            True
         """
+        import random, string
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()
+
+        # Configure and create center
         self._center = { }
-        self._center_variable_name = None
+        self._center_variable_name = 'z'
+        while self._center_variable_name is not None:
+            try:
+                self._working_center = self.center()
+                self._center_variable_name = None
+            except ValueError:
+                varname = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+                pass
+
 
     def center(self, name=None, names=None, default=False):
         r"""
@@ -1447,3 +1471,4 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         if default or (self._center_variable_name is None):
             self._center_variable_name = name
         return center
+        

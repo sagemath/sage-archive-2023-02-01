@@ -60,8 +60,7 @@ TESTS::
     sage: beta^10
     27*beta0
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004-2009 William Stein <wstein@gmail.com>
 #                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -69,9 +68,8 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 from six import integer_types
 
@@ -111,7 +109,7 @@ CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
 def is_RelativeNumberField(x):
     r"""
-    Return True if `x` is a relative number field.
+    Return ``True`` if `x` is a relative number field.
 
     EXAMPLES::
 
@@ -127,6 +125,7 @@ def is_RelativeNumberField(x):
         False
     """
     return isinstance(x, NumberField_relative)
+
 
 class NumberField_relative(NumberField_generic):
     """
@@ -274,7 +273,8 @@ class NumberField_relative(NumberField_generic):
         """
         if embedding is not None:
             raise NotImplementedError("Embeddings not implemented for relative number fields")
-        if not names is None: name = names
+        if names is not None:
+            name = names
         if not is_NumberField(base):
             raise TypeError("base (=%s) must be a number field"%base)
         if not isinstance(polynomial, polynomial_element.Polynomial):
@@ -295,7 +295,7 @@ class NumberField_relative(NumberField_generic):
         # polynomial in y to satisfy PARI's ordering requirements.
 
         if base.is_relative():
-            abs_base = base.absolute_field(name+'0')
+            abs_base = base.absolute_field(name + '0')
             from_abs_base, to_abs_base = abs_base.structure()
         else:
             abs_base = base
@@ -604,7 +604,8 @@ class NumberField_relative(NumberField_generic):
         if not isinstance(other, NumberField_generic):
             raise TypeError("other must be a number field.")
         if names is None:
-            sv = self.variable_name(); ov = other.variable_name()
+            sv = self.variable_name()
+            ov = other.variable_name()
             names = sv + (ov if ov != sv else "")
 
         self_abs = self.absolute_field('w')

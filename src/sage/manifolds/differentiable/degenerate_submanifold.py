@@ -233,7 +233,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         r"""
         Construct a pseudo-Riemannian submanifold.
 
-        EXAMPLES::
+        EXAMPLES:
 
         A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
 
@@ -293,7 +293,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         If no ambient manifold is specified, the submanifold is considered
         as a manifold.
 
-        TESTS::
+        TESTS:
 
         A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
 
@@ -676,11 +676,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     def _ambient_decomposition(self, screen=None):
         r"""
-        Return a list ``[screen, rad, normal, rig]`` where `screen`
+        Return a list ``[screen, rad, normal, rig]`` where ``screen``
         is a list a vector fields on the ambient manifold `M` spanning
-        the giving screen distribution, `rad` a list of vector fields
-        spanning radical distribution, `normal` list of normal transversal
-        vector fields, and `rig` list of rigging vector fields
+        the giving screen distribution, ``rad`` a list of vector fields
+        spanning radical distribution, ``normal`` list of normal transversal
+        vector fields, and ``rig`` list of rigging vector fields
         corresponding to the giving screen.
 
         INPUT:
@@ -1584,12 +1584,12 @@ class Screen(VectorFieldModule):
         INPUT:
 
         - ``i`` -- index of the coordinate; if the slice ``[:]``, then all
-            the coordinates are returned
+          the coordinates are returned
 
         OUTPUT:
 
         - a vector field on the ambient manifold that belong to
-        the screen distribution
+          the screen distribution
 
         TESTS::
 

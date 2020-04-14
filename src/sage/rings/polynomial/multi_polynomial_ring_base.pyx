@@ -1146,8 +1146,8 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         INPUT:
 
         - ``mon_deg_tuple`` -- a list representing a monomial of a degree `d`
-        - ``dlist`` -- a list of degrees `d_i` of the polynomials in question, where
-        `d =  sum(dlist) - len(dlist) + 1`
+        - ``dlist`` -- a list of degrees ``d_i`` of the polynomials in
+          question, where ``d = sum(dlist) - len(dlist) + 1``
 
         OUTPUT:
 

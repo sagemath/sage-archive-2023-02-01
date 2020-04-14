@@ -98,7 +98,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.intersection` | intersection of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.join` | join of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.convex_hull` | convex hull of the union of two polyhedra
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull` | constructs an affinely equivalent full dimensional polyhedra
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull_projection` | constructs an affinely equivalent full-dimensional polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.barycentric_subdivision` | constructs a geometric realization of the barycentric subdivision
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dilation` |  scalar dilation
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_truncation` | truncates a specific face

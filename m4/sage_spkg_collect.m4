@@ -311,8 +311,7 @@ AC_SUBST([SAGE_SDIST_PACKAGES])
 
 AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
     AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
-        AC_MSG_NOTICE([Hint: The following SPKGs did not find equivalent system packages:])
-        AC_MSG_NOTICE([ $SAGE_NEED_SYSTEM_PACKAGES])
+        AC_MSG_NOTICE([notice: the following SPKGs did not find equivalent system packages:$SAGE_NEED_SYSTEM_PACKAGES])
         AC_MSG_CHECKING([for the package system in use])
         SYSTEM=$(build/bin/sage-guess-package-system)
         AC_MSG_RESULT([$SYSTEM])
@@ -320,7 +319,7 @@ AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
             SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES)
             AS_IF([test -n "$SYSTEM_PACKAGES"], [
                 COMMAND=$(build/bin/sage-print-system-package-command $SYSTEM install $SYSTEM_PACKAGES)
-                AC_MSG_NOTICE([Hint: Installing the following system packages is recommended and may avoid building some of the above SPKGs from source:])
+                AC_MSG_NOTICE([hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:])
                 AC_MSG_NOTICE([  \$ $COMMAND])
                 AC_MSG_NOTICE([After installation, re-run configure using:])
                 AC_MSG_NOTICE([  \$ ./config.status --recheck && ./config.status])

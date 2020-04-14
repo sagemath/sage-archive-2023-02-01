@@ -90,13 +90,14 @@ from sage.graphs.digraph            import DiGraph
 from sage.combinat.posets.lattices  import FiniteLatticePoset
 from sage.geometry.polyhedron.base  import Polyhedron_base
 from sage.geometry.lattice_polytope import LatticePolytopeClass
+from sage.geometry.cone             import ConvexRationalPolyhedralCone
 from sage.structure.element         import Matrix
 from sage.misc.misc                 import is_iterator
 from .conversions \
-        import incidence_matrix_to_bit_repr_of_facets, \
-               incidence_matrix_to_bit_repr_of_Vrep, \
-               facets_tuple_to_bit_repr_of_facets, \
-               facets_tuple_to_bit_repr_of_Vrep
+        import incidence_matrix_to_bit_rep_of_facets, \
+               incidence_matrix_to_bit_rep_of_Vrep, \
+               facets_tuple_to_bit_rep_of_facets, \
+               facets_tuple_to_bit_rep_of_Vrep
 from sage.misc.cachefunc            import cached_method
 
 from sage.rings.integer             cimport smallInteger
@@ -114,6 +115,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     - ``data`` -- an instance of
        * :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
        * or a :class:`~sage.geometry.lattice_polytope.LatticePolytopeClass`
+       * or a :class:`~sage.geometry.cone.ConvexRationalPolyhedralCone`
        * or an ``incidence_matrix`` as in
          :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
          In this case you should also specify the ``Vrep`` and ``facets`` arguments
@@ -123,9 +125,11 @@ cdef class CombinatorialPolyhedron(SageObject):
          if the polyhedron contains no lines, the rays can be thought of
          as the vertices of the facets deleted from a bounded polyhedron see
          :class:`~sage.geometry.polyhedron.parent.Polyhedron_base` on how to use
-         rays and lines.
+         rays and lines
        * or an integer, representing the dimension of a polyhedron equal to its
          affine hull
+       * or a tuple consisting of facets and vertices as two
+         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
     - ``Vrep`` -- (optional) when ``data`` is an incidence matrix, it should
       be the list of ``[vertices, rays, lines]``, if the rows in the incidence_matrix
       should correspond to names
@@ -135,9 +139,9 @@ cdef class CombinatorialPolyhedron(SageObject):
     - ``unbounded`` -- value will be overwritten if ``data`` is a polyhedron;
       if ``unbounded`` and ``data`` is incidence matrix or a list of facets,
       need to specify ``far_face``
-    - ``far_face`` -- (semi-optional) when ``data` is an incidence matrix or a
-      list of facets and the polyhedron is unbounded this needs to be set to
-      the list of indices of the rays and lines
+    - ``far_face`` -- (semi-optional); if the polyhedron is unbounded this
+      needs to be set to the list of indices of the rays and line unless ``data`` is
+      an instance of :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`.
 
     EXAMPLES:
 
@@ -154,6 +158,12 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: L = LatticePolytope(points)
         sage: CombinatorialPolyhedron(L)
         A 3-dimensional combinatorial polyhedron with 8 facets
+
+    a cone::
+
+        sage: M = Cone([(1,0), (0,1)])
+        sage: CombinatorialPolyhedron(M)
+        A 2-dimensional combinatorial polyhedron with 2 facets
 
     an incidence matrix::
 
@@ -189,6 +199,20 @@ cdef class CombinatorialPolyhedron(SageObject):
         (1, 1)
         sage: CombinatorialPolyhedron(5).f_vector()
         (1, 0, 0, 0, 0, 0, 1)
+
+    tuple of ``ListOfFaces``::
+
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:     import facets_tuple_to_bit_rep_of_facets, \
+        ....:            facets_tuple_to_bit_rep_of_Vrep
+        sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
+        ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+        sage: facets = facets_tuple_to_bit_rep_of_facets(bi_pyr, 6)
+        sage: Vrep = facets_tuple_to_bit_rep_of_Vrep(bi_pyr, 6)
+        sage: C = CombinatorialPolyhedron((facets, Vrep)); C
+        A 3-dimensional combinatorial polyhedron with 8 facets
+        sage: C.f_vector()
+        (1, 6, 12, 8, 1)
 
     Specifying that a polyhedron is unbounded is important. The following with a
     polyhedron works fine::
@@ -342,10 +366,22 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._bounded = True
             Vrep = data.vertices()
             self._n_Vrepresentation = len(Vrep)
-            facets = data.facets()
+            facets = tuple(data.facet_normals())
             self._n_Hrepresentation = len(facets)
-            data = tuple(tuple(vert for vert in facet.vertices())
-                         for facet in facets)
+            data = data.incidence_matrix()
+        elif isinstance(data, ConvexRationalPolyhedralCone):
+            # input is ``Cone``
+            self._bounded = False
+            Vrep = tuple(data.rays()) + (data.lattice().zero(),)
+            self._n_Vrepresentation = len(Vrep)
+            facets = tuple(data.facet_normals())
+            self._n_Hrepresentation = len(facets)
+            far_face = tuple(i for i in range(len(Vrep) - 1))
+            self._dimension = data.dim()
+            from sage.matrix.all import matrix
+            from sage.rings.all  import ZZ
+            data = matrix(ZZ, data.incidence_matrix().rows()
+                              + [[ZZ.one() for _ in range(len(facets))]])
         else:
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
             if not unbounded:
@@ -392,16 +428,16 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Vrepresentation = data.nrows()
 
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = incidence_matrix_to_bit_repr_of_facets(data)
+            self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = incidence_matrix_to_bit_repr_of_Vrep(data)
+            self._bitrep_Vrep = incidence_matrix_to_bit_rep_of_Vrep(data)
 
             self._n_facets = self.bitrep_facets().n_faces
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), self._n_Vrepresentation)
+                self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), self._n_Vrepresentation)
             else:
                 self._far_face = None
 
@@ -410,16 +446,37 @@ cdef class CombinatorialPolyhedron(SageObject):
             # one can give an Integer as Input.
             if data < -1:
                 ValueError("any polyhedron must have dimension at least -1")
-            self._n_facets = 0
             self._dimension = data
 
+            if self._dimension == 0:
+                self._n_facets = 1
+                self._n_Vrepresentation = 1
+            else:
+                self._n_facets = 0
+                self._n_Vrepresentation = 0
+
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = facets_tuple_to_bit_repr_of_facets((), 0)
+            self._bitrep_facets = facets_tuple_to_bit_rep_of_facets((), 0)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = facets_tuple_to_bit_repr_of_Vrep((), 0)
+            self._bitrep_Vrep = facets_tuple_to_bit_rep_of_Vrep((), 0)
 
             self._far_face = None
+
+        elif isinstance(data, (tuple, list)) and len(data) == 2 and isinstance(data[0], ListOfFaces) and isinstance(data[1], ListOfFaces):
+            # Initialize self from two ``ListOfFaces``.
+            self._bitrep_facets = data[0]
+            self._bitrep_Vrep   = data[1]
+
+            self._n_Hrepresentation = self._bitrep_facets.n_faces
+            self._n_Vrepresentation = self._bitrep_Vrep.n_faces
+            self._n_facets = self._n_Hrepresentation
+
+            # Initialize far_face if unbounded.
+            if not self._bounded:
+                self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), self._n_Vrepresentation)
+            else:
+                self._far_face = None
 
         else:
             # Input is a "list" of facets.
@@ -453,14 +510,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Hrepresentation = len(facets)
 
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = facets_tuple_to_bit_repr_of_facets(facets, n_Vrepresentation)
+            self._bitrep_facets = facets_tuple_to_bit_rep_of_facets(facets, n_Vrepresentation)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = facets_tuple_to_bit_repr_of_Vrep(facets, n_Vrepresentation)
+            self._bitrep_Vrep = facets_tuple_to_bit_rep_of_Vrep(facets, n_Vrepresentation)
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                self._far_face = facets_tuple_to_bit_repr_of_facets((tuple(far_face),), n_Vrepresentation)
+                self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), n_Vrepresentation)
             else:
                 self._far_face = None
 
@@ -576,6 +633,17 @@ cdef class CombinatorialPolyhedron(SageObject):
              A ray in the direction (1, 0, 0),
              A vertex at (0, 0, 0),
              A ray in the direction (0, 1, 0))
+
+            sage: points = [(1,0,0), (0,1,0), (0,0,1),
+            ....: (-1,0,0), (0,-1,0), (0,0,-1)]
+            sage: L = LatticePolytope(points)
+            sage: C = CombinatorialPolyhedron(L)
+            sage: C.Vrepresentation()
+            (M(1, 0, 0), M(0, 1, 0), M(0, 0, 1), M(-1, 0, 0), M(0, -1, 0), M(0, 0, -1))
+
+            sage: M = Cone([(1,0), (0,1)])
+            sage: CombinatorialPolyhedron(M).Vrepresentation()
+            (N(1, 0), N(0, 1), N(0, 0))
         """
         if self.Vrep() is not None:
             return self.Vrep()
@@ -598,6 +666,24 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (0, 1, 0) x - 1 >= 0,
              An inequality (0, 1, 1) x - 3 >= 0,
              An inequality (0, 0, 1) x - 1 >= 0)
+
+            sage: points = [(1,0,0), (0,1,0), (0,0,1),
+            ....: (-1,0,0), (0,-1,0), (0,0,-1)]
+            sage: L = LatticePolytope(points)
+            sage: C = CombinatorialPolyhedron(L)
+            sage: C.Hrepresentation()
+            (N(1, -1, -1),
+             N(1, 1, -1),
+             N(1, 1, 1),
+             N(1, -1, 1),
+             N(-1, -1, 1),
+             N(-1, -1, -1),
+             N(-1, 1, -1),
+             N(-1, 1, 1))
+
+            sage: M = Cone([(1,0), (0,1)])
+            sage: CombinatorialPolyhedron(M).Hrepresentation()
+            (M(0, 1), M(1, 0))
         """
         if self.facet_names() is not None:
             return self.equalities() + self.facet_names()
@@ -756,7 +842,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The Polyhedron has no vertex.
                 return ()
         if names and self.Vrep():
-            return tuple(self.Vrep()[i]     for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
+            return tuple(self.Vrep()[i]  for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
         else:
             return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
 
@@ -869,6 +955,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         return tuple(facets)
 
+    @cached_method
     def incidence_matrix(self):
         """
         Return the incidence matrix.
@@ -904,11 +991,40 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = P.combinatorial_polyhedron()
             sage: C.incidence_matrix() == P.incidence_matrix()
             True
+
+        The incidence matrix is consistent with
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`::
+
+            sage: P = Polyhedron([[0,0]])
+            sage: P.incidence_matrix()
+            [1 1]
+            sage: P.combinatorial_polyhedron().incidence_matrix()
+            [1 1]
+
+        TESTS:
+
+        Check that :trac:`29455` is fixed::
+
+            sage: C = Polyhedron([[0]]).combinatorial_polyhedron()
+            sage: C.incidence_matrix()
+            [1]
+            sage: C = CombinatorialPolyhedron(-1)
+            sage: C.incidence_matrix()
+            []
         """
         from sage.rings.all import ZZ
         from sage.matrix.constructor import matrix
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
+
+        if self.dim() < 1:
+            # Small cases.
+            if self.dim() == 0:
+                # To be consistent with ``Polyhedron_base``,
+                for i in range(self.n_Hrepresentation()):
+                    incidence_matrix[0,i] = 1
+            incidence_matrix.set_immutable()
+            return incidence_matrix
 
         # If equalities are present, we add them as first columns.
         n_equalities = 0
@@ -923,6 +1039,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             Hindex = facet.ambient_H_indices()[0] + n_equalities
             for Vindex in facet.ambient_V_indices():
                 incidence_matrix[Vindex, Hindex] = 1
+
+        incidence_matrix.set_immutable()
 
         return incidence_matrix
 
@@ -1684,6 +1802,191 @@ cdef class CombinatorialPolyhedron(SageObject):
                 d = dim
         return smallInteger(simplicity)
 
+    @cached_method
+    def is_lawrence_polytope(self):
+        """
+        Return ``True`` if ``self`` is a Lawrence polytope.
+
+        A polytope is called a Lawrence polytope if it has a centrally
+        symmetric (normalized) Gale diagram.
+
+        Equivalently, there exists a partition `P_1,\dots,P_k`
+        of the vertices `V` such that each part
+        `P_i` has size `2` or `1` and for each part there exists
+        a facet with vertices exactly `V \setminus P_i`.
+
+        EXAMPLES::
+
+            sage: C = polytopes.simplex(5).combinatorial_polyhedron()
+            sage: C.is_lawrence_polytope()
+            True
+            sage: P = polytopes.hypercube(4).lawrence_polytope()
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_lawrence_polytope()
+            True
+            sage: P = polytopes.hypercube(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_lawrence_polytope()
+            False
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_lawrence_polytope()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
+
+        AUTHORS:
+
+        - Laith Rastanawi
+        - Jonathan Kliem
+
+        REFERENCES:
+
+            For more information, see [BaSt1990]_.
+        """
+        if not self.is_compact():
+            raise NotImplementedError("this function is implemented for polytopes only")
+        if self.n_Vrepresentation() <= 2:
+            return True
+
+        cdef FaceIterator facet_iterator = self._face_iter(False, self.dimension()-1)
+        cdef CombinatorialFace facet
+        cdef size_t n_vertices = self.n_Vrepresentation()
+        cdef size_t one, two, length, counter
+        cdef list vertices = [1 for _ in range(n_vertices)]
+
+        for facet in facet_iterator:
+            length = facet.n_atom_rep()
+            if length >= n_vertices - 2:
+                # The facet has at most two non-vertices and corresponds to
+                # two symmetric vertices or a vertex at the origin
+                # in the Gale transform.
+                facet.set_atom_rep()
+                counter = 0
+                while counter < length:
+                    if facet.atom_rep[counter] != counter:
+                        # We have found our first non-vertex.
+                        one = counter
+                        break
+                    counter += 1
+                else:
+                    # The facet contains the first ``length`` vertices.
+                    one = length
+
+                if length == n_vertices - 1:
+                    # The facet corresponds to a vertex at the origin
+                    # of the Gale transform.
+                    vertices[one] = 0
+                else:
+                    # The facet corresponds to two symmetric vertices
+                    # of the Gale transform.
+                    while counter < length:
+                        if facet.atom_rep[counter] != counter + 1:
+                            # We have found our second non-vertex.
+                            two = counter + 1
+                            break
+                        counter += 1
+                    else:
+                        # The second non-vertex is the very last vertex.
+                        two = length + 1
+
+                    if vertices[one] == vertices[two]:
+                        # Possibly the Gale transform contains duplicates,
+                        # we must make sure that the mulitplicites are symmetric as well.
+                        # (And not two vertices are symmetric to just one).
+                        vertices[one] = 0
+                        vertices[two] = 0
+
+        return not any(vertices)
+
+    @cached_method
+    def is_pyramid(self, certificate=False):
+        r"""
+        Test whether the polytope is a pyramid over one of its facets.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+          to return a vertex of the polytope which is the apex of a pyramid,
+          if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. The apex of the pyramid or ``None``.
+
+        If ``certificate`` is ``False`` returns a boolean.
+
+        AUTHORS:
+
+        - Laith Rastanawi
+        - Jonathan Kliem
+
+        EXAMPLES::
+
+            sage: C = polytopes.cross_polytope(4).combinatorial_polyhedron()
+            sage: C.is_pyramid()
+            False
+            sage: C.is_pyramid(certificate=True)
+            (False, None)
+            sage: C = polytopes.cross_polytope(4).pyramid().combinatorial_polyhedron()
+            sage: C.is_pyramid()
+            True
+            sage: C.is_pyramid(certificate=True)
+            (True, A vertex at (0, -1, 0, 0, 0))
+            sage: C = polytopes.simplex(5).combinatorial_polyhedron()
+            sage: C.is_pyramid(certificate=True)
+            (True, A vertex at (0, 0, 0, 0, 0, 1))
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.is_pyramid()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+
+        TESTS::
+
+            sage: CombinatorialPolyhedron(-1).is_pyramid()
+            False
+            sage: CombinatorialPolyhedron(-1).is_pyramid(True)
+            (False, None)
+            sage: CombinatorialPolyhedron(0).is_pyramid()
+            True
+            sage: CombinatorialPolyhedron(0).is_pyramid(True)
+            (True, 0)
+        """
+        if not self.is_bounded():
+            raise ValueError("polyhedron has to be compact")
+
+        if self.dim() == -1:
+            if certificate:
+                return (False, None)
+            return False
+
+        if self.dim() == 0:
+            if certificate:
+                return (True, self.Vrepresentation()[0])
+            return True
+
+        # Find a vertex that is incident to all elements in Hrepresentation but one.
+        vertex_iter = self._face_iter(True, 0)
+        n_facets = self.n_facets()
+        for index, vertex in enumerate(vertex_iter):
+            if vertex.n_ambient_Hrepresentation() == n_facets - 1:
+                if certificate:
+                    return (True, self.Vrepresentation()[index])
+                return True
+
+        if certificate:
+            return (False, None)
+        return False
+
     def face_iter(self, dimension=None, dual=None):
         r"""
         Iterator over all proper faces of specified dimension.
@@ -2162,6 +2465,55 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self._far_face_tuple
 
+
+    # Methods to obtain a different combinatorial polyhedron.
+
+    cpdef CombinatorialPolyhedron dual(self):
+        r"""
+        Return the dual/polar of self.
+
+        Only defined for bounded polyhedra.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.polar`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: D = C.dual()
+            sage: D.f_vector()
+            (1, 6, 12, 8, 1)
+            sage: D1 = P.polar().combinatorial_polyhedron()
+            sage: D1.face_lattice().is_isomorphic(D.face_lattice())
+            True
+
+        Polar is an alias to be consistent with :class:`~sage.geometry.polyhedron.base.Polyhedron_base`::
+
+            sage: C.polar().f_vector()
+            (1, 6, 12, 8, 1)
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be bounded
+        """
+        if not self.is_bounded():
+            raise ValueError("self must be bounded")
+        cdef ListOfFaces new_facets = self.bitrep_Vrep().__copy__()
+        cdef ListOfFaces new_Vrep = self.bitrep_facets().__copy__()
+
+        return CombinatorialPolyhedron((new_facets, new_Vrep))
+
+    polar = dual
+
+
+    # Internal methods.
+
     cdef int _compute_f_vector(self) except -1:
         r"""
         Compute the ``f_vector`` of the polyhedron.
@@ -2408,7 +2760,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         Compute the ridges of the polyhedron.
 
-        If ``dual`` is ``True``, compute the ridges of the polar.
+        If ``dual`` is ``True``, compute the ridges of the dual.
 
         See :meth:`edges` and :meth:`ridges`.
         """

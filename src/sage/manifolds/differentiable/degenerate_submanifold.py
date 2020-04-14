@@ -75,6 +75,67 @@ Let us define the horizon as a degenerate hypersurface::
     degenerate hypersurface H embedded in 4-dimensional differentiable
     manifold M
 
+A `2`-dimensional degenerate submanifold of a Lorentzian manifold::
+
+    sage: M = Manifold(4, 'M', structure="Lorentzian")
+    sage: X.<t,x,y,z> = M.chart()
+    sage: S = Manifold(2, 'S', ambient=M, structure='degenerate_metric')
+    sage: S
+    2-dimensional degenerate submanifold S embedded in 4-dimensional
+    differentiable manifold M
+    sage: X_S.<u,v> = S.chart()
+    sage: Phi = S.diff_map(M, {(X_S, X): [u, u, u, v]},
+    ....:         name='Phi', latex_name=r'\Phi');
+    sage: Phi_inv = M.diff_map(S, {(X, X_S): [x,y]}, name='Phi_inv',
+    ....:           latex_name=r'\Phi^{-1}');
+    sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
+    sage: g = M.metric()
+    sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
+    sage: S.set_transverse(rigging=[x,y])
+    sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
+    sage: V = M.vector_field(); V[3] = 1
+    sage: Sc = S.screen('Sc', V, xi)
+
+    sage: S.default_screen()
+    screen distribution Sc along the 2-dimensional degenerate submanifold
+    S embedded in 4-dimensional differentiable manifold M mapped into
+    the 4-dimensional Lorentzian manifold M
+
+    sage: S.ambient_metric()
+    Lorentzian metric g on the 4-dimensional Lorentzian manifold M
+
+    sage: S.induced_metric()
+    degenerate metric gamma on the 2-dimensional degenerate submanifold S
+    embedded in 4-dimensional differentiable manifold M
+
+    sage: S.first_fundamental_form()
+    Field of symmetric bilinear forms g|S along the 2-dimensional
+    degenerate submanifold S embedded in 4-dimensional differentiable manifold M
+    with values on the 4-dimensional Lorentzian manifold M
+
+    sage: S.adapted_frame()
+    Vector frame (S, (vv_0,vv_1,vv_2,vv_3)) with values on the 4-dimensional Lorentzian manifold M
+
+    sage: S.projection(V)
+    Tensor field of type (1,0) along the 2-dimensional degenerate submanifold S
+    embedded in 4-dimensional differentiable manifold M
+    with values on the 4-dimensional Lorentzian manifold M
+
+    sage: S.weingarten_map()  # long time
+    Tensor field nabla_g(xi)|X(S) of type (1,1) along the 2-dimensional
+    degenerate submanifold S embedded in 4-dimensional differentiable manifold M
+    with values on the 4-dimensional Lorentzian manifold M
+
+    sage: SO = S.shape_operator()  # long time
+    sage: SO.display()             # long time
+    A^* = 0
+
+    sage: S.is_tangent(xi.along(Phi))
+    True
+    sage: v = M.vector_field(); v[1] = 1
+    sage: S.is_tangent(v.along(Phi))
+    False
+
 AUTHORS:
 
 - Hans Fotsing Tetsing (2019) : initial version
@@ -104,7 +165,6 @@ from sage.manifolds.differentiable.differentiable_submanifold import \
 from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
-from sage.misc.cachefunc import cached_method
 from sage.symbolic.expression import Expression
 
 class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
@@ -165,7 +225,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         :mod:`~sage.manifolds.manifold` and
         :mod:`~sage.manifolds.differentiable.differentiable_submanifold`
 
-   """
+    """
     def __init__(self, n, name, ambient=None, metric_name='g', signature=None,
                  base_manifold=None, diff_degree=infinity, latex_name=None,
                  metric_latex_name=None, start_index=0, category=None,
@@ -317,12 +377,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi)
-            sage: S.default_screen()
+            sage: Sc = S.screen('Sc', (U,V), xi)  # long time
+            sage: S.default_screen()              # long time
             screen distribution Sc along the degenerate hypersurface S embedded
             in 4-dimensional differentiable manifold M mapped into the 4-dimensional
             Lorentzian manifold M
-
 
         """
         return self._default_screen
@@ -354,8 +413,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi)
-            sage: S.list_of_screens()
+            sage: Sc = S.screen('Sc', (U,V), xi)  # long time
+            sage: S.list_of_screens()             # long time
             {'Sc': screen distribution Sc along the degenerate hypersurface S
             embedded in 4-dimensional differentiable manifold M mapped into the
             4-dimensional Lorentzian manifold M}
@@ -485,11 +544,10 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); Sc
+            sage: Sc = S.screen('Sc', (U,V), xi); Sc  # long time
             screen distribution Sc along the degenerate hypersurface S embedded
             in 4-dimensional differentiable manifold M mapped into the 4-dimensional
             Lorentzian manifold M
-
         """
         if isinstance(screen, (list, tuple)):
             screen = [elt for elt in screen]
@@ -562,7 +620,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_immersion(Phi, inverse=Phi_inv); S.declare_embedding()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1,1,1,1
-            sage: h = S.induced_metric(); h
+            sage: h = S.induced_metric(); h  # long time
             degenerate metric gamma on the 2-dimensional degenerate
             submanifold S embedded in 4-dimensional differentiable manifold M
 
@@ -604,8 +662,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: h = S.first_fundamental_form()
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: h = S.first_fundamental_form()   # long time
 
         """
         if self._first_fundamental_form is None:
@@ -662,8 +720,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: S._ambient_decomposition()
+            sage: Sc = S.screen('Sc', (U,V), xi);   # long time
+            sage: S._ambient_decomposition()        # long time
             [[Vector field on the 4-dimensional Lorentzian manifold M,
               Vector field on the 4-dimensional Lorentzian manifold M],
              [Vector field on the 4-dimensional Lorentzian manifold M],
@@ -733,8 +791,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: T = S._adapted_frame_();
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: T = S._adapted_frame_();         # long time
 
         """
 
@@ -827,8 +885,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: T = S.adapted_frame(); T
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: T = S.adapted_frame(); T         # long time
             Vector frame (S, (vv_0,vv_1,vv_2,vv_3)) with values on the 4-dimensional
             Lorentzian manifold M
 
@@ -895,9 +953,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: B = S.second_fundamental_form();
-            sage: B.display()
+            sage: Sc = S.screen('Sc', (U,V), xi);   # long time
+            sage: B = S.second_fundamental_form();  # long time
+            sage: B.display()                       # long time
             B = 0
 
         """
@@ -957,8 +1015,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: U1 = S.projection(U)
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: U1 = S.projection(U)             # long time
 
         """
         if tensor.tensor_type()[0]!=1:
@@ -1000,8 +1058,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: U1 = S.screen_projection(U);
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: U1 = S.screen_projection(U);     # long time
 
         """
         if tensor.tensor_type()[0]!=1:
@@ -1067,9 +1125,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=v)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: W = S.weingarten_map();
-            sage: W.display()
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: W = S.weingarten_map();          # long time
+            sage: W.display()                      # long time
             nabla_g(xi)|X(S) = 0
 
         """
@@ -1124,9 +1182,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=v)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: SO = S.shape_operator();
-            sage: SO.display()
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: SO = S.shape_operator();         # long time
+            sage: SO.display()                     # long time
             A^* = 0
 
         """
@@ -1180,9 +1238,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: K = S.gauss_curvature();
-            sage: K.display()
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: K = S.gauss_curvature();         # long time
+            sage: K.display()                      # long time
             S --> R
             (u, v, w) |--> 0
 
@@ -1235,9 +1293,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi); T = S.adapted_frame()
-            sage: PD = S.principal_directions()
-            sage: PD[2][0].display(T)
+            sage: Sc = S.screen('Sc', (U,V), xi); T = S.adapted_frame()  # long time
+            sage: PD = S.principal_directions()                          # long time
+            sage: PD[2][0].display(T)                                    # long time
             e_2 = xi
 
         """
@@ -1301,11 +1359,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=x)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: m = S.mean_curvature(); m
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: m = S.mean_curvature(); m        # long time
             Scalar field on the degenerate hypersurface S embedded in 4-dimensional
             differentiable manifold M
-            sage: m.display()
+            sage: m.display()                      # long time
             S --> R
             (u, v, w) |--> 0
 
@@ -1355,10 +1413,10 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: S.set_transverse(rigging=v)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: S.is_tangent(xi.along(Phi))
+            sage: Sc = S.screen('Sc', (U,V), xi);  # long time
+            sage: S.is_tangent(xi.along(Phi))      # long time
             True
-            sage: S.is_tangent(v.along(Phi))
+            sage: S.is_tangent(v.along(Phi))       # long time
             False
 
         """
@@ -1428,7 +1486,7 @@ class Screen(VectorFieldModule):
     A screen distribution for the Schwarzschild black hole horizon::
 
         sage: H.set_transverse(rigging=v)
-        sage: S = H.screen('S', [e1, e2], (xi)); S
+        sage: S = H.screen('S', [e1, e2], (xi)); S  # long time
         screen distribution S along the degenerate hypersurface H embedded
         in 4-dimensional differentiable manifold M mapped into the
         4-dimensional Lorentzian manifold M
@@ -1436,14 +1494,14 @@ class Screen(VectorFieldModule):
     The corresponding normal tangent null vector field and null
     transversal vector field::
 
-        sage: xi = S.normal_tangent_vector(); xi.display()
+        sage: xi = S.normal_tangent_vector(); xi.display()  # long time
         xi = -d/dt
-        sage: N = S.rigging(); N.display()
+        sage: N = S.rigging(); N.display()  # long time
         N = d/dt - d/dr
 
     Those vector fields are normalized by `g(\xi,N)=1`::
 
-        sage: g.along(Phi)(xi, N).display()
+        sage: g.along(Phi)(xi, N).display()  # long time
         g(xi,N): H --> R
         (ht, hth, hph) |--> 1
 
@@ -1588,8 +1646,8 @@ class Screen(VectorFieldModule):
             sage: S.set_transverse(rigging=v)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: Rad = Sc.normal_tangent_vector(); Rad.display()
+            sage: Sc = S.screen('Sc', (U,V), xi);                  # long time
+            sage: Rad = Sc.normal_tangent_vector(); Rad.display()  # long time
             xi = d/dt + d/dx
 
         """
@@ -1632,8 +1690,8 @@ class Screen(VectorFieldModule):
             sage: S.set_transverse(rigging=v)
             sage: xi = M.vector_field(); xi[0] = 1; xi[1] = 1
             sage: U = M.vector_field(); U[2] = 1; V = M.vector_field(); V[3] = 1
-            sage: Sc = S.screen('Sc', (U,V), xi);
-            sage: rig = Sc.rigging(); rig.display()
+            sage: Sc = S.screen('Sc', (U,V), xi);    # long time
+            sage: rig = Sc.rigging(); rig.display()  # long time
             N = -1/2 d/dt + 1/2 d/dx
 
         """

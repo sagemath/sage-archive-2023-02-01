@@ -23,7 +23,7 @@ mkdir -p "$OUTPUT_DIR"
 
 shopt -s extglob
 
-for SYSTEM in debian fedora cygwin; do
+for SYSTEM in arch debian fedora cygwin; do
     SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} build/pkgs/$SYSTEM.txt))
     for PKG_SCRIPTS in build/pkgs/*; do
         if [ -d $PKG_SCRIPTS ]; then

@@ -303,7 +303,7 @@ def installed_packages(exclude_pip=True):
     EXAMPLES::
 
         sage: installed_packages()  # optional - build
-        {...'brial': ...'pynac': ...}
+        {...'alabaster': ...'pynac': ...}
 
     .. SEEALSO::
 

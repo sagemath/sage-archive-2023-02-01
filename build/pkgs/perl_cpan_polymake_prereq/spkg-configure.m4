@@ -4,7 +4,7 @@ SAGE_SPKG_CONFIGURE(
     AX_PROG_PERL_MODULES(MODULES,
       [],
       [sage_spkg_install_perl_cpan_polymake_prereq=yes
-       AS_CASE([SAGE_OPTIONAL_INSTALLED_PACKAGES],
+       AS_CASE(["$SAGE_OPTIONAL_INSTALLED_PACKAGES"],
          [*polymake*], [
            dnl We do not exit with AC_MSG_ERROR so that the system package notice at
            dnl the end of configure will be displayed.

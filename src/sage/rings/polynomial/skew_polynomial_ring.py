@@ -1330,7 +1330,8 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         - ``name`` -- a string or ``None`` (default: ``None``); 
           the name for the central variable (namely `x^r`)
 
-        - ``default`` -- a boolean (default: ``False``)
+        - ``default`` -- a boolean (default: ``False``); if ``True``,
+          set the default variable name for the center to ``name``
 
         EXAMPLES::
 

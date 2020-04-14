@@ -293,6 +293,13 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: a.reduced_norm() * b.reduced_norm() == (a*b).reduced_norm()
             True
 
+        We check that the reduced norm is correctly computed for a
+        constant polynomial::
+
+            sage: c = k.random_element()
+            sage: S(c).reduced_norm() == c.norm()
+            True
+
         ALGORITHM:
 
         If `r` (= the order of the twist map) is small compared
@@ -306,7 +313,6 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         polynomial of the left multiplication by `X` on the quotient
         `K[X,\sigma] / K[X,\sigma] P` (which is a `K`-vector space
         of dimension `d`).
-
         """
         if self._norm is None:
             if self.is_zero():
@@ -317,7 +323,9 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 exp = (parent.base_ring().cardinality() - 1) / (parent._constants.cardinality() - 1)
                 order = self.parent()._order
                 lc = section(self.leading_coefficient()**exp)
-                if order < self.degree():
+                if self.degree() == 0:
+                    self._norm = [ lc ]
+                elif order < self.degree():
                     M = self._matmul_c()
                     self._norm = [ lc*section(x) for x in M.determinant().monic().list() ]
                 else:

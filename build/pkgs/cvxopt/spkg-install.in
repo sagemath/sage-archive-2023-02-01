@@ -1,10 +1,5 @@
 cd src
 
-# Ensure FreeBSD build finds new, local math.h and complex.h
-if [ "$UNAME" = FreeBSD ]; then
-    export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-fi
-
 # Stolen from Gentoo
 pkg_libs() {
 	pkg-config --libs-only-l $* | \

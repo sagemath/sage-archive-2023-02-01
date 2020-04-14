@@ -24,25 +24,17 @@ Term::ReadLine::Gnu JSON SVG).  The Polymake interface in Sage
 additionally needs File::Slurp.  For full functionality including
 polymake's polyDB, also the Perl module MongoDB is required.
 
-Perl itself is not provided by any spkg.
+These are not provided by a Sage package.  The script package
+perl_cpan_polymake_prereq will signal an error at build time if these
+prerequisites are not met.
 
-If any of the required Perl modules are not provided by the system,
-Sage will install them via the perl_cpan_polymake_prereq and
-perl_term_readline_gnu spkgs.
+The configure script will inform you about the equivalent system
+packages that you should install.  Otherwise, you can use CPAN
+(see below).
 
-To avoid compilation and installation of these Perl packages into the
-local Sage hierarchy, you can install them wide using your package
-manager.
-
-On Ubuntu/Debian, use:
- sudo apt-get install libxml-libxslt-perl libxml-writer-perl libxml2-dev libperl-dev libfile-slurp-perl libjson-perl libsvg-perl libterm-readkey-perl libterm-readline-gnu-perl libmongodb-perl
-
-On Fedora 23, use:
- sudo yum install perl-ExtUtils-Embed perl-File-Slurp perl-JSON perl-MongoDB perl-Term-ReadLine-Gnu
-
-On Gentoo, use
- emerge --ask XML-Writer XML-LibXML XML-LibXSLT File-Slurp dev-perl/Term-ReadLine-Gnu JSON SVG dev-perl/MongoDB
-
+Sage might install the Term::ReadLine::Gnu module, however, when you
+install polymake, if it is not provided by the system, or if Sage
+installs its own readline library.
 
 On Mac OS X, to build Term::Readline::Gnu, on macOS 10.14 (Mojave), one
 needs to do the following:

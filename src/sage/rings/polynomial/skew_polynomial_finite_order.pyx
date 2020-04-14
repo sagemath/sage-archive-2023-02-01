@@ -200,11 +200,11 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: a.reduced_trace(var='u')
             3*u + 4
 
-        When passing in ``var=False``, the list of coefficients (instead of 
+        When passing in ``var=False``, a tuple of coefficients (instead of 
         an actual polynomial) is returned::
 
             sage: a.reduced_trace(var=False)
-            [4, 3]
+            (4, 3)
 
         TESTS:
 
@@ -224,7 +224,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 tr = c + twist_map(tr)
             coeffs.append(tr)
         if var is False:
-            return coeffs
+            return tuple(coeffs)
         Z = self.parent().center(name=var)
         return Z(coeffs)
 
@@ -271,11 +271,11 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: a.reduced_norm(var='u')
             u^3 + 4*u^2 + 4
 
-        When passing in ``var=False``, the list of coefficients (instead of 
+        When passing in ``var=False``, a tuple of coefficients (instead of 
         an actual polynomial) is returned::
 
             sage: a.reduced_norm(var=False)
-            [4, 0, 4, 1]
+            (4, 0, 4, 1)
 
         TESTS:
     
@@ -324,13 +324,13 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 order = self.parent()._order
                 lc = section(self.leading_coefficient()**exp)
                 if self.degree() == 0:
-                    self._norm = [ lc ]
+                    self._norm = (lc,)
                 elif order < self.degree():
                     M = self._matmul_c()
-                    self._norm = [ lc*section(x) for x in M.determinant().monic().list() ]
+                    self._norm = tuple(lc*section(x) for x in M.determinant().monic().list())
                 else:
                     charpoly = self._matphir_c().characteristic_polynomial()
-                    self._norm = [ lc*section(x) for x in charpoly.list() ]
+                    self._norm = tuple(lc*section(x) for x in charpoly.list())
         if var is False:
             return self._norm
         center = self.parent().center(name=var)

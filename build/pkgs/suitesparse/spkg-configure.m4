@@ -7,4 +7,10 @@ SAGE_SPKG_CONFIGURE([suitesparse], [
         sage_spkg_install_suitesparse=yes
      ])
   ])
+], [], [], [
+    AS_IF([test x$sage_spkg_install_suitesparse = xyes], [
+       AC_SUBST(SAGE_SUITESPARSE_PREFIX, ['$SAGE_LOCAL'])
+    ], [
+       AC_SUBST(SAGE_SUITESPARSE_PREFIX, [''])
+    ])
 ])

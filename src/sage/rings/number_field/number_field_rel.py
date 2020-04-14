@@ -98,7 +98,8 @@ from .number_field import (NumberField, NumberField_generic,
     put_natural_embedding_first, proof_flag,
     is_NumberFieldHomsetCodomain)
 from sage.rings.number_field.number_field_base import is_NumberField
-from sage.rings.number_field.order import RelativeOrder
+from sage.rings.number_field.order import (RelativeOrder, is_NumberFieldOrder,
+                                           relative_order_from_ring_generators)
 from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
 from sage.libs.pari.all import pari_gen
 
@@ -1001,7 +1002,6 @@ class NumberField_relative(NumberField_generic):
             return self._generic_coerce_map(R)
         elif R in (ZZ, QQ, self.base_field()):
             return self._generic_coerce_map(R)
-        from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
             return self._generic_coerce_map(R)
         mor = self.base_field()._internal_coerce_map_from(R)
@@ -1426,7 +1426,7 @@ class NumberField_relative(NumberField_generic):
             True
         """
         if base is not None and base is not self.base_field():
-            ValueError("Relative vector space base must be the base field")
+            raise ValueError("Relative vector space base must be the base field")
         return self.free_module(self.base_field(), *args, **kwds)
 
     def absolute_vector_space(self, base=None, *args, **kwds):
@@ -2338,16 +2338,14 @@ class NumberField_relative(NumberField_generic):
             ...
             ValueError: the rank of the span of gens is wrong
         """
-        import sage.rings.number_field.order as order
         if len(gens) == 0:
             return NumberField_generic.order(self)
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
         gens = [self(x) for x in gens]
-        return order.relative_order_from_ring_generators(gens, **kwds)
+        return relative_order_from_ring_generators(gens, **kwds)
 
-
-    def galois_group(self, type = 'pari', algorithm='pari', names=None):
+    def galois_group(self, type='pari', algorithm='pari', names=None):
         r"""
         Return the Galois group of the Galois closure of this number
         field as an abstract group.  Note that even though this is an

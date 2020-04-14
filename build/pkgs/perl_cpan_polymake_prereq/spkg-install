@@ -1,3 +1,4 @@
+#! /usr/bin/env bash
 # -*- mode: shell-script -*-
 echo Install CPAN packages $(cat build/pkgs/perl_cpan_polymake_prereq/distros/cpan.txt)
 exit 1

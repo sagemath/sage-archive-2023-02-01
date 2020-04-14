@@ -37,9 +37,12 @@ sageruntime: base-toolchain
 # except for build/make/Makefile-auto, which is unused by the build system
 CONFIG_FILES = build/make/Makefile src/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
 
+# SPKG_COLLECT_FILES contains all files that influence the SAGE_SPKG_COLLECT macro
+SPKG_COLLECT_FILES = build/pkgs/*/type build/pkgs/*/package-version.txt build/pkgs/*/dependencies build/pkgs/*/requirements.txt build/pkgs/*/checksums.ini build/pkgs/*/spkg-install
+
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/make/deps build/pkgs/*/* $(CONFIG_FILES:%=%.in)
+build/make/Makefile: configure build/make/deps $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log
@@ -200,7 +203,7 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*.txt build/pkgs/*/distros/*.txt
+configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d
 
 install: all

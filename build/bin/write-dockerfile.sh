@@ -43,6 +43,7 @@ case $SYSTEM in
 ARG BASE_IMAGE=ubuntu:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        EXISTS="2>/dev/null >/dev/null apt-cache show"
         UPDATE="apt-get update &&"
         INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
         CLEAN="&& apt-get clean"
@@ -52,6 +53,7 @@ EOF
 ARG BASE_IMAGE=fedora:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        EXISTS="2>/dev/null >/dev/null yum info"
         INSTALL="yum install -y"
         ;;
     slackware*)
@@ -60,6 +62,8 @@ EOF
 ARG BASE_IMAGE=vbatts/slackware:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        # slackpkg install ignores packages that it does not know, so we do not have to filter
+        EXISTS="true"
         UPDATE="slackpkg update &&"
         INSTALL="slackpkg install"
         ;;
@@ -69,7 +73,9 @@ EOF
 ARG BASE_IMAGE=archlinux:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
-        INSTALL="pacman -Syu --noconfirm"
+        UPDATE="pacman -Sy &&"
+        EXISTS="pacman -Si"
+        INSTALL="pacman -Su --noconfirm"
         ;;
     conda*)
         cat <<EOF

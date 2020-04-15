@@ -227,6 +227,10 @@ if [ "$UNAME" = "Darwin" ]; then
     export OBJC OBJCXX
 fi
 
+if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
+    export SAGE_PYTHON3=yes
+fi
+
 # Set other Fortran-related compiler variables
 export F77="$FC"
 export F90="$FC"   # Needed for SciPy
@@ -290,6 +294,12 @@ export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC_SRC="$SAGE_SRC/doc"
 export SAGE_DOC="$SAGE_SHARE/doc/sage"
+
+if [ -n "$SAGE_PKG_CONFIG_PATH" ]; then
+    # set up external pkg-config to look into SAGE_LOCAL/lib/pkgconfig/
+    # (Sage's pkgconf spkg takes care of this, if installed)
+    export PKG_CONFIG_PATH="$SAGE_PKG_CONFIG_PATH${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi
 
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH

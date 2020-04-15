@@ -2004,6 +2004,10 @@ REFERENCES:
 
 **F**
 
+.. [Fag1983] Fagin, Ronald. *Degrees of acyclicity for hypergraphs and
+             relational database schemes.* Journal of the ACM (JACM) 30.3
+             (1983): 514-550.
+
 .. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
                 higher-level canonical bases*. J. Pure Appl. Algebra
                 **214** (2010), no. 12, 2186-2198. :arxiv:`0908.1749v3`.

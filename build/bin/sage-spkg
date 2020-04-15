@@ -121,7 +121,7 @@ If you want to try to fix the problem yourself, *don't* just cd to
 `pwd` and type '$2' or whatever is appropriate.
 Instead, the following commands setup all environment variables
 correctly and load a subshell for you to debug the error:
-  (cd '`pwd`' && '$SAGE_ROOT/sage' --sh)
+  (cd '`pwd`' && '$SAGE_ROOT/sage' --buildsh)
 When you are done debugging, you can type "exit" to leave the subshell.
 MESSAGE
 fi

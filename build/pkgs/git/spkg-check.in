@@ -5,11 +5,3 @@ export NO_APPLE_COMMON_CRYPTO=1
 export GIT_TEST_HTTPD=false
 
 cd src
-
-echo "Testing git..."
-$MAKE test
-if [ $? -ne 0 ]; then
-    echo >&2 "Error running git's test suite."
-    exit 1
-fi
-

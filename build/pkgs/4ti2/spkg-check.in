@@ -3,11 +3,4 @@ cd src
 # We don't have to set up any environment variables here since the
 # Makefiles already have them from 'configure'.
 
-echo "Now running 4ti2's test suite..."
 $MAKE check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: The 4ti2 test suite failed."
-    exit 1
-fi
-
-echo "The 4ti2 test suite passed successfully."

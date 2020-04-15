@@ -3,11 +3,4 @@
 
 cd src
 
-echo
-echo "Now running eclib's test suite..."
 $MAKE check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: eclib's test suite failed to pass."
-    exit 1
-fi
-echo "eclib's test suite passed without errors."

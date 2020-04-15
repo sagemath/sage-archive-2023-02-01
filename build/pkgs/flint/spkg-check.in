@@ -6,8 +6,3 @@
 
 cd src
 $MAKE check AT= QUIET_CC= QUIET_CXX= QUIET_AR=
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: FLINT failed to pass its test suite."
-    exit 1
-fi

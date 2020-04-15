@@ -17,8 +17,6 @@ if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=PRESCOTT"
 fi
 
-echo "Running OpenBLAS testsuite"
-
 sdh_make tests $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
     # First make sure we already didn't set a target

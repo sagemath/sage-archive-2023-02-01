@@ -4,9 +4,3 @@ mv src/icas src/icas.orig
 # testing the newly installed version of giac
 ln -s $SAGE_LOCAL/bin/giac src/icas
 $MAKE check
-
-if [ $? -ne 0 ]; then
-  echo "There was a problem during the giac tests."
-  exit 1
-fi
-

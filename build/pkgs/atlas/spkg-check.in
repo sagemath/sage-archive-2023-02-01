@@ -22,7 +22,7 @@ make_check()
     # make sure everything builds correctly
     $MAKE check
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: The ATLAS self-tests failed."
+        echo >&2 "The ATLAS self-tests failed."
         exit 1
     else
         echo "The ATLAS self-tests successfully passed."
@@ -35,7 +35,7 @@ make_time()
     # collect some timings
     $MAKE time
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: The ATLAS timing data failed to be collected."
+        echo >&2 "The ATLAS timing data failed to be collected."
         exit 1
     else
         echo "The ATLAS timing data was successfully collected."

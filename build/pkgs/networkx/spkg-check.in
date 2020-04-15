@@ -5,12 +5,4 @@ if ! command -v nosetests ; then
     exit 1
 fi
 
-echo "Testing networkx..."
-
 nosetests networkx -v
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error running self tests."
-    exit 1
-fi
-

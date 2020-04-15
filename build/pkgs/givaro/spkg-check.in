@@ -15,8 +15,3 @@ cd src/
 
 echo "Building and running Givaro's test suite..."
 $MAKE check
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error while building or running Givaro's test suite."
-    exit 1
-fi
-echo "Givaro's test suite passed."

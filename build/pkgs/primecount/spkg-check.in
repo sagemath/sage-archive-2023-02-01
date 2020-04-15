@@ -6,8 +6,3 @@
 
 cd src
 $MAKE test
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: primecount failed to pass its test suite."
-    exit 1
-fi

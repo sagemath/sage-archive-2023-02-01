@@ -1,8 +1,3 @@
 cd src
 
 $MAKE check
-if [ $? -ne 0 ]; then
-   echo "Error testing lrcalc."
-   exit 1
-fi
-

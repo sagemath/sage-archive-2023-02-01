@@ -5,11 +5,4 @@ if [ "$UNAME" = "CYGWIN" ]; then
     MAKE="$MAKE -j1"
 fi
 
-echo "Now building and running libfplll test suite..."
 $MAKE check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: The libfplll test suite failed."
-    exit 1
-fi
-
-echo "The libfplll test suite passed successfully."

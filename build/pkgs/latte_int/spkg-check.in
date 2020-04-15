@@ -1,5 +1,3 @@
-CUR=`pwd`
-
 if [ "x$SAGE_DEBUG" = xyes ] ; then
     CFLAGS="$CFLAGS -g -O0" # No optimisation, aids debugging.
 else
@@ -8,11 +6,5 @@ fi
 
 export CFLAGS
 
-dirsr="$CUR"/src
-echo "Testing in $dirsr"
-cd "$dirsr"
+cd src
 $MAKE check
-if [ $? -ne 0 ]; then
-     echo >&2 "Error: tests failed"
-     exit 1
-fi

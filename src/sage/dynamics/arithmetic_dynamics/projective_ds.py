@@ -6908,7 +6908,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         returns the conjugation as a matrix if ``self`` is Newton or ``None``
         otherwise.
 
-        The conjugation may be defined over an extension if the maps has
+        The conjugation may be defined over an extension if the map has
         fixed points not defined over the base field.
 
         EXAMPLES::

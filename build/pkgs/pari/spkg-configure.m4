@@ -73,6 +73,17 @@ SAGE_SPKG_CONFIGURE([pari], [
             AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
             sage_spkg_install_pari=yes
         fi
+        AC_MSG_CHECKING([whether hyperellcharpoly bug is fixed])
+        bug_check=$(echo "hyperellcharpoly([x^10 + x^9 + x^8 + x,0]*Mod(1,3))" | $GP -qf 2>> config.log)
+        expected="%1 = x^8 + 731*x^7 + 6*x^6 - 720*x^5 + 18*x^4 - 2160*x^3 + 54*x^2 + 19737*x + 81"
+        if test x"$bug_check" = x"$expected"; then
+           AC_MSG_RESULT([yes])
+        else
+           AC_MSG_RESULT([no; cannot use system pari/GP with known bug])
+           AC_MSG_NOTICE([Upgrade your system package and reconfigure.])
+           AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+           sage_spkg_install_pari=yes
+        fi
         AC_MSG_CHECKING([whether bnfisunit bug of pari 2.11.3 is fixed])
         bug_check=$(echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)" | $GP -qf 2>> config.log)
         expected="[[0, 2, Mod(0, 2)]]~"

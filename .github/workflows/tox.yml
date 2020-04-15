@@ -93,7 +93,7 @@ jobs:
         run: |
           curl -o python3.pkg https://www.python.org/ftp/python/3.7.7/python-3.7.7-macosx10.9.pkg
           installer -verbose -pkg python3.pkg -target /
-        if: contains('python3_xcode', matrix.tox_system_factor)
+        if: contains('python3_pythonorg', matrix.tox_system_factor)
       - name: Build and test with tox
         # We use a high parallelization on purpose in order to catch possible parallelization bugs in the build scripts.
         # For doctesting, we use a lower parallelization to avoid timeouts.

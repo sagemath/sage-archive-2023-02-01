@@ -910,8 +910,8 @@ cdef class SymbolicRing(CommutativeRing):
         return ccrepr(x._gobj)
 
     def _latex_element_(self, Expression x):
-        """
-        Returns the standard LaTeX version of the expression *x*.
+        r"""
+        Returns the standard LaTeX version of the expression `x`.
 
         EXAMPLES::
 

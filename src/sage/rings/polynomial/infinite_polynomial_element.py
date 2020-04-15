@@ -767,15 +767,14 @@ class InfinitePolynomial_sparse(RingElement):
     # order, leading term/monomial, symmetric cancellation order
 
     def _richcmp_(self, x, op):
-        """
+        r"""
         Comparison of Infinite Polynomials.
 
         NOTE:
 
         Let x and y be generators of the parent of self. We only consider
-        monomial orderings in which
-            x[m] > y[n] iff x appears earlier in the list of generators than y, or
-                            x==y and m>n
+        monomial orderings in which x[m] > y[n] iff x appears earlier in the
+        list of generators than y, or x==y and m>n
 
         Under this restriction, the monomial ordering can be 'lex' (default),
         'degrevlex' or 'deglex'.
@@ -801,8 +800,7 @@ class InfinitePolynomial_sparse(RingElement):
         A classical and an infinite sparse polynomial ring. Note that
         the Sage coercion system allows comparison only if a common
         parent for the two rings can be constructed. This is why we
-        have to have the order 'degrevlex'.
-        ::
+        have to have the order 'degrevlex'::
 
             sage: X.<x,y> = InfinitePolynomialRing(ZZ,order='degrevlex', implementation='sparse')
             sage: Y.<z,x_3,x_1> = QQ[]
@@ -1400,8 +1398,8 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
             return res
 
     def _richcmp_(self, x, op):
-        """
-        TESTS::
+        r"""
+        TESTS:
 
         A classical and an infinite polynomial ring::
 

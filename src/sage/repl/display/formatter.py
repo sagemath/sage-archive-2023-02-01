@@ -251,7 +251,7 @@ class SagePlainTextFormatter(PlainTextFormatter):
         super(SagePlainTextFormatter, self).__init__(*args, **kwds)
 
     def __call__(self, obj):
-        """
+        r"""
         Compute the pretty representation of the object.
 
         Adapted from ``IPython.core.formatters.PlainTextPrettyPrint``.

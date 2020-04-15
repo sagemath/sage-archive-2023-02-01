@@ -144,23 +144,6 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         ...
         ValueError: algorithm "pari_primes" cannot compute primes larger than 436273008
 
-    To avoid a doctest error in functions/prime_pi.pyx, the default algorithm of prime_range
-    must allow real input::
-
-        sage: prime_range(9.5, 14.3)
-        [11, 13]
-
-    Confirm the fix in :trac:`28712`::
-
-        sage: prime_range(9.5, "14", "pari_primes")
-        [11, 13]
-        sage: prime_range(9.5, "14", "pari_isprime")
-        [11, 13]
-        sage: prime_range(sqrt(10), "10.2", "pari_primes")
-        [3, 5, 7]
-        sage: prime_range(sqrt(10), "10.2", "pari_isprime")
-        [3, 5, 7]
-
     AUTHORS:
 
     - William Stein (original version)

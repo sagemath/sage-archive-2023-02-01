@@ -1,4 +1,4 @@
-$(PYTHON) | $(PYTHON_TOOLCHAIN) notedown
+$(PYTHON) pandoc | $(PYTHON_TOOLCHAIN) notedown
 
 ----------
 All lines of this file are ignored except the first.

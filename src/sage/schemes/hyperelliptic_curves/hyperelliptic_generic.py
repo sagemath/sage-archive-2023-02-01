@@ -612,9 +612,10 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         Find rational points on the hyperelliptic curve, all arguments are passed
         on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: # LMFDB genus 2 curve 932.a.3728.1
+        For the LMFDB genus 2 curve `932.a.3728.1 <https://www.lmfdb.org/Genus2Curve/Q/932/a/3728/1>`::
+
             sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, -1, 1, 0, 1, -2, 1]), R([1]));
             sage: C.rational_points(bound=8)
             [(-1 : -3 : 1),
@@ -627,10 +628,9 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             (1 : -1 : 1),
             (1 : 0 : 1)]
 
-        Check that :trac:`29509` is fixed::
+        Check that :trac:`29509` is fixed for the LMFDB genus 2 curve
+        `169.a.169.1 <https://www.lmfdb.org/Genus2Curve/Q/169/a/169/1>`::
 
-            sage: R.<x> = PolynomialRing(QQ);
-            sage: # LMFDB genus 2 curve 169.a.169.1
             sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
             sage: C.rational_points(bound=10)
             [(-1 : 0 : 1),

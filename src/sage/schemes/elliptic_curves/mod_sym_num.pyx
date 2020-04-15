@@ -3310,6 +3310,14 @@ cdef class ModularSymbolNumerical:
             0.000000000000000
             sage: M._evaluate_approx(1/17,0.01) # abs tol 1e-4
             1.08712582106239 - 0.548379251277093*I
+            
+       Test that is also works for non-unitary cusps (:trac:`29476`) ::
+       
+            sage: E = EllipticCurve("20a1")
+            sage: m = E.modular_symbol_numerical()
+            sage: m(1/2)          #abs tol 1e-4
+            -0.166666666666667
+
         """
         #verbose("       enter _evaluate_approx with r=%s, eps=%s"%(r,eps),
         #        level=5)
@@ -3327,45 +3335,47 @@ cdef class ModularSymbolNumerical:
         r = a/m
         B = m.gcd(N)
         Q = N // B
-        #verbose("     cusp is %s/%s of width %s"%(a,m,Q), level=4)
+        verbose("     cusp is %s/%s of width %s"%(a,m,Q), level=4)
 
         if r == 0:
             return self._from_ioo_to_r_approx(r, eps, use_partials=0)
-
+        
+        M = N//Q
+        if Q.gcd(M) != 1:
+            return self._symbol_non_unitary_approx(r, eps)
+        
         if m < self._cut_val:
             # now at some point we go directly to ioo
-            M = N//Q
-            if Q.gcd(M) == 1:
-                res = self._from_ioo_to_r_approx(r, eps, use_partials=0)
-            else:
-                res = self._symbol_non_unitary_approx(r, eps)
-        else:
-            _, y, x = a.xgcd(m)
-            y = y % m
-            if 2*y > m:
+            return self._from_ioo_to_r_approx(r, eps, use_partials=0)
+        
+        _, y, x = a.xgcd(m)
+        y = y % m
+        if 2*y > m:
+            y -= m
+        x = (1-y*a) // m
+        #verbose("     smallest xgcd is "
+        #        + " %s = %s * %s + %s * %s"%(a.gcd(m),a,y,x,m),
+        #        level=4)
+        # make the cusp -x/y unitary if possible.
+        B = y.gcd(N)
+        if B.gcd(N//B) != 1:
+            if y > 0:
                 y -= m
-            x = (1-y*a) // m
-            #verbose("     smallest xgcd is "
-            #        + " %s = %s * %s + %s * %s"%(a.gcd(m),a,y,x,m),
-            #        level=4)
-            # make the cusp -x/y unitary if possible.
-            B = y.gcd(N)
-            if B.gcd(N//B) != 1:
-                if y > 0:
-                    y -= m
-                    x += a
-                else:
-                    y += m
-                    x -= a
-            if Q.gcd(N//Q) != 1: # still bad ex: N=36 a=2, m=5
-                res = self._from_ioo_to_r_approx(r, eps, use_partials=2)
+                x += a
             else:
-                r2 = - x/y
-                verbose("Next piece: integrate to the cusp %s "%r2, level=2)
-                res = self._from_r_to_rr_approx(r, r2, eps,
-                                                use_partials=2)
-                res += self._evaluate_approx(r2, eps)
+                y += m
+                x -= a
+        r2 = - x/y
+        B = y.gcd(N)
+        Q = N // B
+        if Q.gcd(N//Q) != 1: # r2 is not unitary
+            return  self._symbol_non_unitary_approx(r, eps)
 
+        r2 = - x/y
+        verbose("Next piece: integrate to the cusp %s "%r2, level=2)
+        res = self._from_r_to_rr_approx(r, r2, eps,
+                                        use_partials=2)
+        res += self._evaluate_approx(r2, eps)
         return res
 
     def _symbol_non_unitary_approx(self, Rational r, double eps):

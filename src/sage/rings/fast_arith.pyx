@@ -137,17 +137,6 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         ...
         ValueError: algorithm "pari_primes" cannot compute primes larger than 436273008
 
-    To avoid a doctest error in functions/prime_pi.pyx, prime_range must allow real input::
-
-        sage: prime_range(9.5, 14.3)
-        [11, 13]
-        sage: prime_range(9.5, 14.3, algorithm="pari_primes")
-        [11, 13]
-        sage: prime_range(9.5, 14.3, algorithm="pari_isprime")
-        Traceback (most recent call last):
-        ...
-        TypeError: Attempt to coerce non-integral RealNumber to Integer
-
     AUTHORS:
 
     - William Stein (original version)

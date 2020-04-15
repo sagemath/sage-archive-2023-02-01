@@ -99,10 +99,10 @@ AUTHORS:
 
 REFERENCES:
 
-- `ImageMagick <http://www.imagemagick.org>`_
-- `FFmpeg <http://www.ffmpeg.org>`_
+- `ImageMagick <https://www.imagemagick.org>`_
+- `FFmpeg <https://www.ffmpeg.org>`_
 - `APNG <https://wiki.mozilla.org/APNG_Specification>`_
-- `browsers which support it <http://caniuse.com/#feat=apng>`_
+- `browsers which support it <https://caniuse.com/#feat=apng>`_
 
 """
 
@@ -560,7 +560,7 @@ class Animation(WithEqualityById, SageObject):
             sage: td = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
-            sage: with open(td + 'my_animation.gif', 'rb') as f: print('\x21\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'my_animation.gif', 'rb') as f: print(b'\x21\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
@@ -577,11 +577,6 @@ class Animation(WithEqualityById, SageObject):
               packages, so please install one of them and try again.
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
-
-        REFERENCES:
-
-        - `ImageMagick <http://www.imagemagick.org>`_
-        - `FFmpeg <http://www.ffmpeg.org>`_
         """
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
@@ -1053,26 +1048,30 @@ please install it and try again."""
         GIF image (see :trac:`18176`)::
 
             sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             True
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', delay=35)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f:  # optional -- ImageMagick
+            ....:      check1 = b'!\xff\x0bNETSCAPE2.0\x03\x01\x02\x00\x00'
+            ....:      check2 = b'!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00'
+            ....:      data = f.read()
+            ....:      print(check1 in data or check2 in data)
             True
         """
         if filename is None:
             suffix = '.gif'
         else:
             suffix = os.path.splitext(filename)[1]
-            if len(suffix) == 0:
+            if not suffix:
                 suffix = '.gif'
 
         if filename is None or suffix == '.gif':
@@ -1124,12 +1123,7 @@ class APngAssembler(object):
         ....:     return outfile
         sage: assembleAPNG()  # long time
         '...png'
-
-    REFERENCES:
-
-    - `APNG <https://wiki.mozilla.org/APNG_Specification>`_
     """
-
     magic = b"\x89PNG\x0d\x0a\x1a\x0a"
     mustmatch = frozenset([b"IHDR", b"PLTE", b"bKGD", b"cHRM", b"gAMA",
                            b"pHYs", b"sBIT", b"tRNS"])

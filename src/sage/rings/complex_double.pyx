@@ -965,7 +965,7 @@ cdef class ComplexDoubleElement(FieldElement):
             1.4142135623730951
         """
         if self._complex.imag:
-            raise TypeError(f"unable to convert {self} to float; use abs() or real_part() as desired")
+            raise TypeError(f"unable to convert {self!s} to float; use abs() or real_part() as desired")
         return self._complex.real
 
     def __complex__(self):
@@ -1078,6 +1078,21 @@ cdef class ComplexDoubleElement(FieldElement):
                 s += " + "
 
         return s + double_repr(y) + "*I"
+
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this complex number.
+
+        EXAMPLES::
+
+            sage: format(CDF(32/3, 0), ' .4f')
+            ' 10.6667+0.0000j'
+            sage: format(CDF(-2/3, -2/3), '.4e')
+            '-6.6667e-01-6.6667e-01j'
+            sage: '{: 18}'.format(CDF(-1/80, -1/2))
+            '    (-0.0125-0.5j)'
+        """
+        return format(complex(self), format_spec)
 
     def _latex_(self):
         """

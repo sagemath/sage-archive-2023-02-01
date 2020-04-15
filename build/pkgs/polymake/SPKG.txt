@@ -19,26 +19,22 @@ include various flavors of Linux, Free BSD and Mac OS.
 == Dependencies ==
 
 Polymake needs a working installation of Perl, including its shared
-library and some modules (XML::Writer XML::LibXML XML::LibXSLT).
-The Polymake interface in Sage additionally needs File::Slurp.
-For full functionality including polymake's polyDB,
-also install the Perl module MongoDB.
+library and some modules (XML::Writer XML::LibXML XML::LibXSLT
+Term::ReadLine::Gnu JSON SVG).  The Polymake interface in Sage
+additionally needs File::Slurp.  For full functionality including
+polymake's polyDB, also the Perl module MongoDB is required.
 
-These are not provided by a Sage package.
+These are not provided by a Sage package.  The script package
+perl_cpan_polymake_prereq will signal an error at build time if these
+prerequisites are not met.
 
-Sage might install the Term::ReadLine::Gnu module, however, when you install polymake.
-Alternatively, as of #27795, Sage will try to use system's
-Term::ReadLine::Gnu, if available.
+The configure script will inform you about the equivalent system
+packages that you should install.  Otherwise, you can use CPAN
+(see below).
 
-
-On Ubuntu/Debian, use:
- sudo apt-get install libxml-libxslt-perl libxml-writer-perl libxml2-dev libperl-dev libfile-slurp-perl libjson-perl libsvg-perl libterm-readkey-perl libterm-readline-gnu-perl libmongodb-perl
-
-On Fedora 23, use:
- sudo yum install perl-ExtUtils-Embed perl-File-Slurp perl-JSON perl-MongoDB perl-Term-ReadLine-Gnu
-
-On Gentoo, use
- emerge --ask XML-Writer XML-LibXML XML-LibXSLT File-Slurp dev-perl/Term-ReadLine-Gnu JSON SVG dev-perl/MongoDB
+Sage might install the Term::ReadLine::Gnu module, however, when you
+install polymake, if it is not provided by the system, or if Sage
+installs its own readline library.
 
 On Mac OS X, to build Term::Readline::Gnu, on macOS 10.14 (Mojave), one
 needs to do the following:
@@ -49,9 +45,9 @@ or a "fatal error: 'EXTERN.h' file not found" will be signalled.
 
 
 A distribution-independent way to install Perl modules (into a user's
-home directory) is using CPAN.  This is also the way to install the
-modules on macOS.  For this, if you don't have root access, you will
-need the local::lib Perl module installed.
+home directory or /usr/local) is using CPAN.  This is also the way to
+install the modules on macOS.  For this, if you don't have root
+access, you will need the local::lib Perl module installed.
 
  cpan -i XML::Writer XML::LibXML XML::LibXSLT File::Slurp Term::ReadLine::Gnu JSON SVG MongoDB
 

@@ -1,10 +1,4 @@
-if [ -z "$SAGE_LOCAL" ] ; then
-    echo >&2 "Error - SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
-cd src/
+cd src
 
 ./configure --prefix=$SAGE_LOCAL
 if [ $? -ne 0 ]; then

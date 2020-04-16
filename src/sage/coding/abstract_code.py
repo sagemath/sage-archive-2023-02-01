@@ -55,8 +55,6 @@ from sage.rings.integer import Integer
 import inspect
 from sage.misc.sageinspect import sage_getargspec
 
-from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-
 
 def _explain_constructor(cl):
     r"""

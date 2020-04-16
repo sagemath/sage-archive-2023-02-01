@@ -167,6 +167,7 @@ from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.symbolic.expression import Expression
 
+
 class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     r"""
     Degenerate submanifolds

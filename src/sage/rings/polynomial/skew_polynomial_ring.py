@@ -1466,6 +1466,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             center = PolynomialRing(self._constants, names)
             embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
             try:
+                assert not self.has_coerce_map_from(center)
                 self.register_coercion(embed)
                 center.register_conversion(embed.section())
             except AssertionError:

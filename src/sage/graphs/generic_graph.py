@@ -1419,7 +1419,7 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self, copy=True, weight_function=None):
+    def networkx_graph(self, weight_function=None):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
 
@@ -1447,8 +1447,6 @@ class GenericGraph(GenericGraph_pyx):
             OutMultiEdgeDataView([(1, 2, {'weight': 1}), (1, 3, {'weight': 4}), (2, 3, {'weight': 3}), (3, 4, {'weight': 5}), (3, 4, {'weight': 4})])
 
         """
-        if copy is not True:
-            deprecation(27491, "parameter copy is removed")
         if weight_function is not None:
             self._check_weight_function(weight_function)
         import networkx
@@ -17677,7 +17675,7 @@ class GenericGraph(GenericGraph_pyx):
                                 yield w
 
     def depth_first_search(self, start, ignore_direction=False,
-                           distance=None, neighbors=None, edges=False):
+                           neighbors=None, edges=False):
         """
         Return an iterator over the vertices in a depth-first ordering.
 
@@ -17689,8 +17687,6 @@ class GenericGraph(GenericGraph_pyx):
         - ``ignore_direction`` -- boolean (default ``False``); only applies to
           directed graphs. If ``True``, searches across edges in either
           direction.
-
-        - ``distance`` -- Deprecated. Broken, do not use.
 
         - ``neighbors`` -- function (default: ``None``); a function that inputs
           a vertex and return a list of vertices. For an undirected graph,
@@ -17786,11 +17782,8 @@ class GenericGraph(GenericGraph_pyx):
             [(1, 3), (3, 6), (6, 7), (7, 5), (5, 4), (1, 2)]
 
         """
-        if distance is not None:
-            deprecation(19227, "Parameter 'distance' is broken. Do not use.")
-
         # Preferably use the Cython implementation
-        if (neighbors is None and not isinstance(start, list) and distance is None
+        if (neighbors is None and not isinstance(start, list)
                 and hasattr(self._backend, "depth_first_search") and not edges):
             for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
                 yield v
@@ -17813,10 +17806,9 @@ class GenericGraph(GenericGraph_pyx):
                     if v not in seen:
                         yield v
                         seen.add(v)
-                        if distance is None or d < distance:
-                            for w in neighbors(v):
-                                if w not in seen:
-                                    queue.append((w, d + 1))
+                        for w in neighbors(v):
+                            if w not in seen:
+                                queue.append((w, d + 1))
             else:
                 queue = [(None, v, d) for v, d in queue]
                 while queue:
@@ -17825,10 +17817,9 @@ class GenericGraph(GenericGraph_pyx):
                         if v is not None:
                             yield v, w                        
                         seen.add(w)
-                        if distance is None or d < distance:
-                            for x in neighbors(w):
-                                if x not in seen:
-                                    queue.append((w, x, d + 1))
+                        for x in neighbors(w):
+                            if x not in seen:
+                                queue.append((w, x, d + 1))
 
     ### Constructors
 
@@ -22864,7 +22855,7 @@ class GenericGraph(GenericGraph_pyx):
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 
-    def canonical_label(self, partition=None, certificate=False, verbosity=0,
+    def canonical_label(self, partition=None, certificate=False,
                         edge_labels=False, algorithm=None, return_graph=True):
         r"""
         Return the canonical graph.
@@ -22905,8 +22896,6 @@ class GenericGraph(GenericGraph_pyx):
           ``False``, returns the list of edges of the canonical graph
           instead of the canonical graph; only available when ``'bliss'``
           is explicitly set as algorithm.
-
-        - ``verbosity`` -- deprecated, does nothing
 
         EXAMPLES:
 
@@ -23046,9 +23035,6 @@ class GenericGraph(GenericGraph_pyx):
             ....:             assert gcan0 == gcan1, (edges, labels, part, pp)
             ....:             assert gcan0 == gcan2, (edges, labels, part, pp)
         """
-        # Deprecation
-        if verbosity != 0:
-            deprecation(19517, "Verbosity-parameter is removed.")
 
         # Check parameter combinations
         if algorithm not in [None, 'sage', 'bliss']:

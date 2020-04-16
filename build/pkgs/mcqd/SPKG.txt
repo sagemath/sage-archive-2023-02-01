@@ -12,7 +12,7 @@ GPL 3
 == Upstream Contact ==
 
 MCQD is currently being maintained by Janez Konc.
-http://www.sicmm.org/~konc/
+https://gitlab.com/janezkonc/mcqd
 
 == Dependencies ==
 

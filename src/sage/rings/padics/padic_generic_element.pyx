@@ -32,6 +32,7 @@ from cysignals.memory cimport sig_malloc, sig_free
 
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
+from sage.arith.srange import srange
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.rational cimport Rational
@@ -4013,18 +4014,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         raise NotImplementedError
 
-    def _polylog_res_1(self, n):
+    def _polylog_res_1(self, n, p_branch = 0):
         """
         Return `Li_n(`self`)` , the `n`th `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
         This is an internal function, used by :meth:`polylog`.
 
         INPUT:
 
-            - ``n`` -- a non-negative integer
+        - ``n`` -- a non-negative integer
 
         OUTPUT:
 
-            - Li_n(self)
+        - `Li_n(`self`)`
 
         EXAMPLES ::
 
@@ -4044,6 +4045,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         if self == 1:
             raise ValueError('Polylogarithm is not defined for 1.')
+        if n <= 1:
+            raise ValueError('Polylogarithm only implemented for n at least 2.')
 
         p = self.parent().prime()
         prec = self.precision_absolute()
@@ -4051,7 +4054,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         K = self.parent().fraction_field()
         z = K(self)
 
-        hsl = max(prec / ((z - 1).valuation()) + 1, prec*(p == 2))
+        hsl = max(prec / ((z - 1).valuation()) + 1, prec*(p == 2), 2)
         N = floor(prec - n*(hsl - 1).log(p))
 
         verbose(hsl, level=3)
@@ -4059,7 +4062,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         def bound(m):
             return prec - m + Integer(1-2**(m-1)).valuation(p) - m*(hsl - 1).log(p)
 
-        gsl = max([_findprec(1/(p-1), 1, _polylog_c(m,p) + bound(m), p) for m in range(2,n+1)])
+        gsl = max([_findprec(1/(p-1), 1, _polylog_c(m,p) + bound(m), p) for m in range(2,n+1)] + [2])
         verbose(gsl, level=3)
         g = _compute_g(p, n, max([bound(m) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
         verbose(g, level=3)
@@ -4076,7 +4079,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         verbose(G, level=3)
 
         H = (n+1)*[0]
-        H[2] = -sum([((-t)**i)/Integer(i)**2 for i in range(1,hsl+2)])
+        H[2] = -sum([((-t)**i)/i**2 for i in srange(1,hsl+2)])
         for i in range(2, n):
             H[i+1] = (H[i]/(1+t) + G[i]/t).integral()
             if (i + 1) % 2 == 1:
@@ -4086,19 +4089,22 @@ cdef class pAdicGenericElement(LocalGenericElement):
                     H[i+1] += (2**i*H[i+1](K(-2)))/(1 - 2**(i+1))
 
         verbose(H, level=3)
-        return (H[n](z - 1) - ((z.log(0))**(n-1)*(1 - z).log(0))/Integer(n-1).factorial()).add_bigoh(N)
+        return (H[n](z - 1) - ((z.log(p_branch))**(n-1)*(1 - z).log(p_branch))/Integer(n-1).factorial()).add_bigoh(N)
 
-    def polylog(self, n):
+    def polylog(self, n, p_branch = 0):
         """
         Return `Li_n(self)` , the `n`th `p`-adic polylogarithm of this element.
 
         INPUT:
 
-            - ``n`` -- a non-negative integer
+        - ``n`` -- a non-negative integer
+        - ``p_branch`` -- an element in the base ring or its fraction
+          field; the implementation will choose the branch of the
+          logarithm which sends `p` to ``branch``.
 
         OUTPUT:
 
-            - `Li_n(self)`
+        - `Li_n(`self`)`
 
         EXAMPLES:
 
@@ -4143,6 +4149,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Qp(11)(0).polylog(7)
             0
 
+        Check that :trac:`29222` is fixed ::
+
+            sage: K = Qp(7)
+            sage: print(K(1 + 7^11).polylog(4))
+            6*7^14 + 3*7^15 + 7^16 + 7^17 + O(7^18)
+
         ALGORITHM:
 
         The algorithm of Besser-de Jeu, as described in [BdJ2008]_ is used.
@@ -4168,6 +4180,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self.parent().absolute_degree() != 1:
             raise NotImplementedError("Polylogarithms are not currently implemented for elements of extensions")
             # TODO implement this (possibly after the change method for padic generic elements is added).
+        if n == 0:
+            return self/(1-self)
+        if n == 1:
+            return -(1-self).log(p_branch)
+        if n < 0:
+            raise ValueError('Polylogarithm only implemented for n at least 0.')
 
         prec = self.precision_absolute()
 
@@ -4179,7 +4197,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         if z.valuation() < 0:
             verbose("residue oo, using functional equation for reciprocal. %d %s"%(n,str(self)), level=2)
-            return (-1)**(n+1)*(1/z).polylog(n)-(z.log(0)**n)/K(n.factorial())
+            return (-1)**(n+1)*(1/z).polylog(n)-(z.log(p_branch)**n)/K(n.factorial())
 
         zeta = K.teichmuller(z)
 
@@ -4202,12 +4220,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if z == 1:
                 raise ValueError("Polylogarithm is not defined for 1.")
             verbose("residue 1, using _polylog_res_1. %d %s"%(n,str(self)), level=2)
-            return self._polylog_res_1(n)
+            return self._polylog_res_1(n, p_branch)
 
         # Set up precision bounds
         tsl = prec / (z - zeta).valuation() + 1
         N = floor(prec - n*(tsl - 1).log(p))
-        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) - m*(tsl - 1).log(p), p) for m in range(1,n+1)])
+        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) - m*(tsl - 1).log(p), p) for m in range(1,n+1)] + [2])
 
         gtr = _compute_g(p, n, prec + n*(gsl - 1).log(p), gsl)
 

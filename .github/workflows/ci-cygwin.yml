@@ -55,7 +55,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -125,7 +125,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -207,7 +207,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -289,7 +289,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -369,7 +369,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -450,7 +450,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -530,7 +530,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -610,7 +610,7 @@ jobs:
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; mv local/var/tmp/sage/build "artifacts/$LOGS_ARTIFACT_NAME"; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$a.tar" $a; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:

@@ -1382,6 +1382,26 @@ cdef class SkewPolynomial(AlgebraElement):
         return A
 
     def _left_lcm_cofactor(self, other):
+        r"""
+        Return a skew polynomial `U` such that `U P = c L`
+        where `P` is this skew polynomial (``self``), `L`
+        is the left lcm of `P` and ``other`` and `c` is a
+        constant
+
+        TESTS::
+
+            sage: k.<a> = GF(7^5)
+            sage: Frob = k.frobenius_endomorphism(3)
+            sage: S.<x> = k['x', Frob]
+
+            sage: D = S.random_element()
+            sage: P = S.random_element() * D
+            sage: Q = S.random_element() * D
+            sage: L = P.left_lcm(Q)
+            sage: U = P._left_lcm_cofactor(Q)
+            sage: (U*P).right_monic() == L
+            True
+        """
         R = self._parent
         U = R.one()
         G = self
@@ -1399,9 +1419,28 @@ cdef class SkewPolynomial(AlgebraElement):
     @coerce_binop
     def left_xlcm(self, other, monic=True):
         r"""
-        Return the left lcm of ``self`` and ``other`` together
-        with two skew polynomials `u` and `v` such that
-        `u \cdot \text{self} = v \cdot \text{other} = \text{llcm``
+        Return the left lcm `L` of ``self`` and ``other`` together
+        with two skew polynomials `U` and `V` such that
+        
+        .. MATH::
+
+            `U \cdot \text{self} = V \cdot \text{other} = L`
+        
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: P = (x + t^2) * (x + t)
+            sage: Q = 2 * (x^2 + t + 1) * (x * t)
+            sage: L, U, V = P.left_xlcm(Q)
+            sage: L
+            x^5 + (2*t^2 + t + 4)*x^4 + (3*t^2 + 4)*x^3 + (3*t^2 + 3*t + 2)*x^2 + (t^2 + t + 2)*x
+
+            sage: U*P == L
+            True
+            sage: V*Q == L
+            True
         """
         if self.base_ring() not in Fields:
             raise TypeError("the base ring must be a field")
@@ -1416,6 +1455,26 @@ cdef class SkewPolynomial(AlgebraElement):
         return L, V1, L // other
 
     def _right_lcm_cofactor(self, other):
+        r"""
+        Return a skew polynomial `U` such that `P U = L c`
+        where `P` is this skew polynomial (``self``), `L`
+        is the right lcm of `P` and ``other`` and `c` is a
+        constant
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(7^5)
+            sage: Frob = k.frobenius_endomorphism(3)
+            sage: S.<x> = k['x', Frob]
+
+            sage: D = S.random_element()
+            sage: P = D * S.random_element()
+            sage: Q = D * S.random_element()
+            sage: L = P.right_lcm(Q)
+            sage: U = P._right_lcm_cofactor(Q)
+            sage: (P*U).left_monic() == L
+            True
+        """
         R = self._parent
         U = R.one()
         G = self
@@ -1432,6 +1491,36 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def right_xlcm(self, other, monic=True):
+        r"""
+        Return the right lcm `L` of ``self`` and ``other`` together
+        with two skew polynomials `U` and `V` such that
+        
+        .. MATH::
+
+            `\text{self} \cdot U = \text{other} \cdot V = L`
+        
+        INPUT:
+
+        - ``other`` -- a skew polynomial in the same ring as ``self``
+
+        - ``monic`` -- a boolean (default: ``True``); whether the right lcm
+          should be normalized to be monic
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: P = (x + t) * (x + t^2)
+            sage: Q = 2 * (x + t) * (x^2 + t + 1)
+            sage: L, U, V = P.right_xlcm(Q)
+            sage: L
+            x^4 + (2*t^2 + t + 2)*x^3 + (3*t^2 + 4*t + 1)*x^2 + (3*t^2 + 4*t + 1)*x + t^2 + 4
+            sage: P*U == L
+            True
+            sage: Q*V == L
+            True
+        """
         if self.base_ring() not in Fields:
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
@@ -1439,7 +1528,8 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = self._right_lcm_cofactor(other)
         L = self * V1
         if monic:
-            s = self._parent.twist_map(-self.degree())(~(L.leading_coefficient()))
+            s = self.base_ring()(~L.leading_coefficient())
+            s = self._parent.twist_map(-L.degree())(s)
             L = L * s
             V1 = V1 * s
         W1, _ = L.left_quo_rem(other)

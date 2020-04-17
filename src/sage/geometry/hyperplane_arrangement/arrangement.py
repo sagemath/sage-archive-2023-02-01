@@ -64,6 +64,18 @@ supported::
     sage: a = H([(1,2,3), 4], [(5,6,7), 8]);  a
     Arrangement <y + 2*z + 3 | x + 2*y + 3*z + 4>
 
+Number fields are also possible::
+
+    sage: NF.<a> = NumberField(x^4 - 5*x^2 + 5,embedding=1.90)
+    sage: H.<y,z> = HyperplaneArrangements(NF)
+    sage: A = H([[(-a^3 + 3*a, -a^2 + 4), 1], [(a^3 - 4*a, -1), 1],
+    ....:        [(0, 2*a^2 - 6), 1], [(-a^3 + 4*a, -1), 1],
+    ....:        [(a^3 - 3*a, -a^2 + 4), 1]])
+    sage: A
+    Arrangement of 5 hyperplanes of dimension 2 and rank 2
+    sage: A.base_ring()
+    Number Field in a with defining polynomial x^4 - 5*x^2 + 5 with a = 1.902113032590308?
+
 Notation (iii): a list or tuple of hyperplanes::
 
     sage: H.<x,y,z> = HyperplaneArrangements(GF(5))
@@ -115,6 +127,9 @@ New arrangements from old::
     sage: b = a.restriction(h)
     sage: b == hyperplane_arrangements.coordinate(3)
     True
+
+Properties of Arrangements
+--------------------------
 
 A hyperplane arrangement is *essential* if the normals to its
 hyperplanes span the ambient space.  Otherwise, it is *inessential*.

@@ -1381,6 +1381,71 @@ cdef class SkewPolynomial(AlgebraElement):
             A = A.left_monic()
         return A
 
+    def _left_lcm_cofactor(self, other):
+        R = self._parent
+        U = R.one()
+        G = self
+        V1 = R.zero()
+        V3 = other
+        while not V3.is_zero():
+            Q, R = G.right_quo_rem(V3)
+            T = U - Q*V1
+            U = V1
+            G = V3
+            V1 = T
+            V3 = R
+        return V1
+
+    @coerce_binop
+    def left_xlcm(self, other, monic=True):
+        r"""
+        Return the left lcm of ``self`` and ``other`` together
+        with two skew polynomials `u` and `v` such that
+        `u \cdot \text{self} = v \cdot \text{other} = \text{llcm``
+        """
+        if self.base_ring() not in Fields:
+            raise TypeError("the base ring must be a field")
+        if self.is_zero() or other.is_zero():
+            raise ZeroDivisionError("division by zero is not valid")
+        V1 = self._left_lcm_cofactor(other)
+        L = V1 * self
+        if monic:
+            s = ~(L.leading_coefficient())
+            L = s * L
+            V1 = s * V1
+        return L, V1, L // other
+
+    def _right_lcm_cofactor(self, other):
+        R = self._parent
+        U = R.one()
+        G = self
+        V1 = R.zero()
+        V3 = other
+        while not V3.is_zero():
+            Q, R = G.left_quo_rem(V3)
+            T = U - V1*Q
+            U = V1
+            G = V3
+            V1 = T
+            V3 = R
+        return V1
+
+    @coerce_binop
+    def right_xlcm(self, other, monic=True):
+        if self.base_ring() not in Fields:
+            raise TypeError("the base ring must be a field")
+        if self.is_zero() or other.is_zero():
+            raise ZeroDivisionError("division by zero is not valid")
+        V1 = self._right_lcm_cofactor(other)
+        L = self * V1
+        if monic:
+            s = self._parent.twist_map(-self.degree())(~(L.leading_coefficient()))
+            L = L * s
+            V1 = V1 * s
+        W1, _ = L.left_quo_rem(other)
+        return L, V1, W1
+
+
     @coerce_binop
     def left_lcm(self, other, monic=True):
         r"""
@@ -1444,21 +1509,10 @@ cdef class SkewPolynomial(AlgebraElement):
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
-        U = self._parent.one()
-        G = self
-        V1 = self._parent.zero()
-        V3 = other
-        while not V3.is_zero():
-            Q, R = G.right_quo_rem(V3)
-            T = U - Q*V1
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
-        V1 = V1 * self
+        L = self._left_lcm_cofactor(other) * self
         if monic:
-            V1 = V1.right_monic()
-        return V1
+            L = L.right_monic()
+        return L
 
     @coerce_binop
     def right_lcm(self, other, monic=True):
@@ -1539,22 +1593,10 @@ cdef class SkewPolynomial(AlgebraElement):
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
-        R = self.parent()
-        U = R.one()
-        G = self
-        V1 = R.zero()
-        V3 = other
-        while not V3.is_zero():
-            Q, R = G.left_quo_rem(V3)
-            T = U - V1*Q
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
-        V1 = self * V1
+        L = self * self._right_lcm_cofactor(other)
         if monic:
-            V1 = V1.left_monic()
-        return V1
+            L = L.left_monic()
+        return L
 
     def _repr_(self, name=None):
         r"""

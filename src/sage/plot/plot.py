@@ -589,7 +589,8 @@ import sage.misc.misc
 from sage.arith.srange import srange
 
 from sage.misc.randstate import current_randstate #for plot adaptive refinement
-from math import sin, cos, pi #for polar_plot
+from math import sin, cos, pi, log, exp #for polar_plot and log scaling
+
 
 from sage.ext.fast_eval import fast_float, is_fast_float
 
@@ -1946,7 +1947,11 @@ def plot(funcs, *args, **kwds):
         raise ValueError('only one of color or rgbcolor should be specified')
     elif 'color' in kwds:
         kwds['rgbcolor'] = kwds.pop('color', (0,0,1)) # take blue as default ``rgbcolor``
+
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
+
+    if 'scale' in G_kwds:
+        kwds['scale'] = G_kwds['scale'] # pass down so plot knows if log-scale
 
     original_opts = kwds.pop('__original_opts', {})
     do_show = kwds.pop('show',False)
@@ -2102,6 +2107,12 @@ def _plot(funcs, xrange, parametric=False,
     # or we have only a single function to be plotted:
     else:
         f = funcs
+
+    #check to see if this is a log scale graph on the x axis
+    exp_points = False
+    if ('scale' in options.keys() and not parametric and
+            (options['scale'] == 'loglog' or options['scale'] == 'semilogx')):
+        exp_points = True
 
     # Keep ``rgbcolor`` option 'automatic' only for lists of functions.
     # Otherwise, let the plot color be 'blue'.
@@ -2277,11 +2288,11 @@ def _plot(funcs, xrange, parametric=False,
                                  for x in excluded_points], [])
         data = generate_plot_points(f, xrange, plot_points,
                                     adaptive_tolerance, adaptive_recursion,
-                                    randomize, initial_points)
+                                    randomize, initial_points, exp_dist=exp_points)
     else:
         data = generate_plot_points(f, xrange, plot_points,
                                     adaptive_tolerance, adaptive_recursion,
-                                    randomize)
+                                    randomize, exp_dist=exp_points)
 
 
     for i in range(len(data)-1):
@@ -2334,7 +2345,7 @@ def _plot(funcs, xrange, parametric=False,
                     fill_f = fill
 
                 filldata = generate_plot_points(fill_f, xrange, plot_points, adaptive_tolerance, \
-                                                adaptive_recursion, randomize)
+                                                adaptive_recursion, randomize, exp_dist=exp_points)
                 filldata.reverse()
                 filldata += data
             else:
@@ -2345,7 +2356,7 @@ def _plot(funcs, xrange, parametric=False,
 
             if not hasattr(fill, '__call__') and polar:
                 filldata = generate_plot_points(lambda x: base_level, xrange, plot_points, adaptive_tolerance, \
-                                                adaptive_recursion, randomize)
+                                                adaptive_recursion, randomize, exp_dist=exp_points)
                 filldata.reverse()
                 filldata += data
             if not hasattr(fill, '__call__') and not polar:
@@ -3794,7 +3805,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         return []
 
 
-def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None):
+def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None, exp_dist=False):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a
@@ -3821,6 +3832,9 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
       the algorithm will consider it significant.
 
     - ``initial_points`` - (default: None) a list of points that should be evaluated.
+
+    - ``exp_dist`` - (default: False) whether points should be distributed linearly
+      (False) or exponentially (True) within the range specified
 
     OUTPUT:
 
@@ -3871,6 +3885,16 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         [97, 499, 2681]
     """
     from sage.plot.misc import setup_for_eval_on_grid
+
+    f_actual = f
+    xrange_actual = xrange
+    if exp_dist:
+        if xrange[0] <= 0:
+            sage.misc.misc.verbose("Unable to perform exponential scale on negative range, clipping...", 1)
+            xrange[0] = 0.01
+        f = lambda x: f_actual(exp(x))
+        xrange = (log(xrange[0]), log(xrange[1]))
+
     ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)
     xmin, xmax, delta = ranges[0]
     data = srange(*ranges[0], include_endpoint=True)
@@ -3959,5 +3983,9 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
         sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points." % exceptions, level=0)
         sage.misc.misc.verbose("Last error message: '%s'" % msg, level=0)
+
+    if exp_dist:
+        for i in range(len(data)):
+            data[i] = (exp(data[i][0]), data[i][1])
 
     return data

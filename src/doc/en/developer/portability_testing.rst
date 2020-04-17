@@ -951,3 +951,39 @@ development:
   pull request against the ``TESTER`` branch. This will trigger the
   GitHub Actions workflow.
 
+Here is how to read it.  Each of the items in the left pane represents
+a full build of Sage on a particular system configuration.  A test
+item in the left pane is marked with a green checkmark in the left
+pane if ``make build doc-html`` finished without error.  (It also runs
+package testsuites and the Sage doctests but failures in these are not
+in reflected in the left pane; see below.)
+
+The right pane ("Artifacts") offers archives of the logs for download.
+
+Scrolling down in the right pane shows "Annotations":
+
+* Red "check failure" annotations appear for each log file that
+  contains a build error. For example, you might see::
+
+    docker (fedora-28, standard)
+    artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-28-standard/logs/pkgs/sagetex-3.4.log#L1
+    ==== ERROR IN LOG FILE artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-28-standard/logs/pkgs/sagetex-3.4.log ====
+
+* Yellow "check warning" annotations. There are 2 types of these:
+
+  a) Package testsuite or Sage doctest failures, like the following::
+
+       docker (fedora-30, standard)
+       artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-30-standard/logs/ptest.log#L1
+       ==== TESTSUITE FAILURE IN LOG FILE artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-30-standard/logs/ptest.log ====
+
+  b) Notices from ./configure about not finding equivalent system
+     packages, like the following::
+
+       docker (fedora-31, standard)
+       artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-31-standard/config.log#L1
+       configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cddlib cmake eclib ecm fflas_ffpack flint flintqs fplll givaro gp
+
+Clicking on the annotations does not take you to a very useful
+place. To view details, click on one of the items in the pane. This
+changes the right pane to a log viewer.

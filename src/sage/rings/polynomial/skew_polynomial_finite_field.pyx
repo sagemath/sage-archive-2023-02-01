@@ -3,7 +3,7 @@ Univariate Dense Skew Polynomials over Finite Fields
 
 This module provides the :class:`~sage.rings.polynomial.skew_polynomial_finite_field.SkewPolynomial_finite_field_dense`
 which constructs a single univariate skew polynomial over a finite field equipped with the Frobenius
-Endomorphism.
+endomorphism. Among other things, it implements the fast factorization algorithm designed in [CL2017]_.
 
 AUTHOR::
 

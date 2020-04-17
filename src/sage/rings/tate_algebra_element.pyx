@@ -2233,6 +2233,74 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         self._normalize()
         return dict(self._poly.__repn)
 
+    def coefficient(self, exponent):
+        r"""
+        Return the coefficient corresponding to the given exponent
+
+        INPUT:
+
+        - ``exponent`` -- a tuple of integers
+
+        EXAMPLES::
+
+            sage: R = Zp(2, prec=10, print_mode='terse')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 2*x^2 + 53*x*y + y^3
+
+            sage: f.coefficient((2,0))   # coeff in x^2
+            2 + O(2^11)
+            sage: f.coefficient((1,1))   # coeff in x*y
+            53 + O(2^10)
+            sage: f.coefficient((3,0))   # coeff in x^3
+            0
+
+            sage: g = f.add_bigoh(5)
+            sage: g.coefficient((2,0))   # coeff in x^2
+            2 + O(2^5)
+            sage: g.coefficient((1,1))   # coeff in x*y
+            21 + O(2^5)
+            sage: g.coefficient((3,0))   # coeff in x^3
+            O(2^5)
+        """
+        if not self._is_normalized:
+            self._normalize()
+        try:
+            e = ETuple(exponent)
+        except TypeError:
+            raise IndexError("%s is not a correct exponent" % exponent)
+        if len(e) != self.parent().ngens():
+            raise IndexError("lengths do not match")
+        if e in self._poly.__repn:
+            return self._poly.__repn[e]
+        else:
+            return self.base_ring()(0, self.precision_absolute())
+
+    def __getitem__(self, exponent):
+        r"""
+        Return the coefficient corresponding to the given exponent
+
+        INPUT:
+
+        - ``exponent`` -- a tuple of integers
+
+        TESTS::
+
+            sage: R = Zp(2, prec=10, print_mode='terse')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 2*x^2 + 53*x*y + y^3
+
+            sage: f['hello']
+            Traceback (most recent call last):
+            ...
+            IndexError: hello is not a correct exponent
+            
+            sage: f[1,2,3]
+            Traceback (most recent call last):
+            ...
+            IndexError: lengths do not match 
+        """
+        return self.coefficient(exponent)
+
     def coefficients(self):
         r"""
         Return the list of coefficients of this series.

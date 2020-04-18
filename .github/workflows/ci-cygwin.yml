@@ -42,7 +42,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
@@ -112,7 +112,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
@@ -185,7 +185,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
@@ -267,7 +267,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
@@ -347,7 +347,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
@@ -427,7 +427,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
@@ -508,7 +508,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
@@ -588,7 +588,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
     - name: install additional cygwin packages with choco
-      if: matrix.pkgs == 'standard'
+      if: contains(matrix.pkgs, 'standard')
       shell: bash {0}
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)

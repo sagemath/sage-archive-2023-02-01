@@ -3266,18 +3266,18 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Fractional ideal (2, 1/2*a - 1/2)
             Fractional ideal (2, 1/2*a + 1/2)
             3
-            Fractional ideal (3, 1/2*a - 1/2)
             Fractional ideal (3, 1/2*a + 1/2)
+            Fractional ideal (3, 1/2*a - 1/2)
             4
             Fractional ideal (4, 1/2*a + 3/2)
             Fractional ideal (2)
             Fractional ideal (4, 1/2*a + 5/2)
             5
             6
-            Fractional ideal (1/2*a - 1/2)
-            Fractional ideal (6, 1/2*a + 5/2)
             Fractional ideal (6, 1/2*a + 7/2)
             Fractional ideal (1/2*a + 1/2)
+            Fractional ideal (1/2*a - 1/2)
+            Fractional ideal (6, 1/2*a + 5/2)
             7
             8
             Fractional ideal (1/2*a + 3/2)
@@ -3285,9 +3285,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Fractional ideal (4, a + 1)
             Fractional ideal (1/2*a - 3/2)
             9
-            Fractional ideal (9, 1/2*a + 11/2)
-            Fractional ideal (3)
             Fractional ideal (9, 1/2*a + 7/2)
+            Fractional ideal (3)
+            Fractional ideal (9, 1/2*a + 11/2)
             10
         """
         hnf_ideals = self.pari_nf().ideallist(bound)

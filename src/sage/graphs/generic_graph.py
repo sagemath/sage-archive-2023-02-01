@@ -5318,6 +5318,25 @@ class GenericGraph(GenericGraph_pyx):
             sage: pos2 = G.layout('planar', save_pos=True)
             sage: pos1 == pos2
             False
+        
+        Check that :trac:`29522` is fixed::
+
+            sage: G = graphs.CycleGraph(4) + graphs.CycleGraph(5)
+            sage: G.layout_planar() # random
+            {1: [3.0, 1],
+             0: [1.0, 2],
+             2: [2.0, 0],
+             3: [2.0, 1],
+             5: [6.0, 1],
+             4: [4.0, 2],
+             6: [5.0, 0],
+             7: [5.0, 1]}
+            sage: K1 = graphs.CompleteGraph(1)
+            sage: K1.layout_planar()
+            {0: [0, 0]}
+            sage: K2 = graphs.CompleteGraph(2)
+            sage: K2.layout_planar()
+            {0: [0, 0], 1: [0, 1]}
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates

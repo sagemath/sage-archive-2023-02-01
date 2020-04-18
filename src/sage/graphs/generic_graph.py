@@ -5396,13 +5396,13 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError('Cannot fix the external face for a'
                                  'disconnected graph')
             # Compute the layout component by component
-            pos = layout_split(G,
-                                G.__class__.layout_planar,
-                                set_embedding=set_embedding,
-                                on_embedding=on_embedding,
-                                external_face=None,
-                                test=test,
-                                **options)
+            pos = layout_split(G.__class__.layout_planar,
+                               G,
+                               set_embedding=set_embedding,
+                               on_embedding=on_embedding,
+                               external_face=None,
+                               test=test,
+                               **options)
             if set_embedding:
                 self.set_embedding(G._embedding)
             return pos

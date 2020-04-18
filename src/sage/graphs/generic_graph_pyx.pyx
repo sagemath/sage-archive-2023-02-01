@@ -43,13 +43,13 @@ cdef class GenericGraph_pyx(SageObject):
     pass
 
 
-def layout_split(G, layout_function, **options):
+def layout_split(layout_function, G, **options):
     """
-    Graph each component of G separately, placing them adjacent to
-    each other.
+    Graph each component of ``G`` separately with ``layout_function``,
+    placing them adjacent to each other.
 
-    This is done because several layout methods have to be applied on
-    connected graphs. For instance, on a disconnected graph, the spring
+    This is done because several layout methods need the input graph to
+    be connected. For instance, on a disconnected graph, the spring
     layout will push components further and further from each other
     without bound, resulting in very tight clumps for each component.
 
@@ -103,14 +103,14 @@ def spring_layout_fast_split(G, **options):
     Graph each component of G separately, placing them adjacent to
     each other.
 
-    In ticket :trac:`12345` the function was modified so that it can
+    In ticket :trac:`29522` the function was modified so that it can
     work with any layout method and renamed ``layout_split``.
-    Please use ``layout_split`` from now on.
+    Please use :func:`layout_split` from now on.
     """
     from sage.misc.superseded import deprecation
-    deprecation(12345, ('this function is deprecated, please use '
+    deprecation(29522, ('this function is deprecated, please use '
                         'layout_split instead'))
-    return layout_split(G, spring_layout_fast, **options)
+    return layout_split(spring_layout_fast, G, **options)
 
 
 def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False, by_component = False, **options):
@@ -159,9 +159,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         True
     """
     if by_component:
-        return spring_layout_fast_split(G, iterations=iterations, dim = dim,
-                                        vpos = vpos, rescale = rescale, height = height,
-                                        **options)
+        return layout_split(spring_layout_fast, G, iterations=iterations,
+                            dim = dim, vpos = vpos, rescale = rescale,
+                            height = height, **options)
 
     G = G.to_undirected()
     vlist = list(G) # this defines a consistent order

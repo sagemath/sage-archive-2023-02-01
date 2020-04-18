@@ -1069,7 +1069,7 @@ cdef class ModularSymbolNumerical:
         p = Integer(1)
         co = 0
         t0 = Integer(0)
-        while co < 3 or p < 100:
+        while co < 5 or p < max(100,10*delta) and p < self._lans:
             p += delta
             if p.is_prime() and N % p != 0:
                 t0 = t0.gcd( p + 1 - self._ans[p] )
@@ -2691,6 +2691,12 @@ cdef class ModularSymbolNumerical:
             1/4
             sage: M._symbol_non_unitary(1/7,sign=-1)
             5/28
+            
+        Test for :trac:`28476` ::
+        
+            sage: M = ModularSymbolNumerical(EllipticCurve("361a1"))
+            sage: M._symbol_non_unitary(1/19)
+            5/19
         """
         #verbose("       enter _symbol_non_unitary with r=%s,"
         #        " sign=%s"%(r,sign), level=5)

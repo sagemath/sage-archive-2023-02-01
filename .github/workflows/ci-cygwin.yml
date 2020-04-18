@@ -10,6 +10,7 @@ env:
   SAGE_CHECK: warn
   SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
   CYGWIN: winsymlinks:native
+  CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url
 
 jobs:
   cygwin-stage-i-a:
@@ -48,7 +49,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
@@ -118,7 +119,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
@@ -200,7 +201,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; src/bin/sage-rebase.sh local'
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
@@ -282,7 +283,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; src/bin/sage-rebase.sh local'
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
@@ -362,7 +363,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; ; src/bin/sage-rebase.sh local'
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
@@ -443,7 +444,7 @@ jobs:
         src\\bin\\sage-rebaseall.bat
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
@@ -523,7 +524,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; src/bin/sage-rebase.sh local'
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
@@ -603,7 +604,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; src/bin/sage-rebase.sh local'
     - name: configure
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
     - name: make
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'

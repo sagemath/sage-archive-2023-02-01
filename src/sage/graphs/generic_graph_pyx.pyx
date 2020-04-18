@@ -42,14 +42,16 @@ from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
 cdef class GenericGraph_pyx(SageObject):
     pass
 
-def spring_layout_fast_split(G, **options):
+
+def layout_split(G, layout_function, **options):
     """
     Graph each component of G separately, placing them adjacent to
     each other.
 
-    This is done because on a disconnected graph, the spring layout
-    will push components further and further from each other without
-    bound, resulting in very tight clumps for each component.
+    This is done because several layout methods have to be applied on
+    connected graphs. For instance, on a disconnected graph, the spring
+    layout will push components further and further from each other
+    without bound, resulting in very tight clumps for each component.
 
     .. NOTE::
 
@@ -61,8 +63,8 @@ def spring_layout_fast_split(G, **options):
 
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
-        sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
-        sage: D = spring_layout_fast_split(G); D  # random
+        sage: from sage.graphs.generic_graph_pyx import layout_split
+        sage: D = layout_split(G, spring_layout_fast); D  # random
         {0: [0.77..., 0.06...],
          ...
          902: [3.13..., 0.22...]}
@@ -76,7 +78,7 @@ def spring_layout_fast_split(G, **options):
     left = 0
     buffer = 1/sqrt(len(G))
     for g in Gs:
-        cur_pos = spring_layout_fast(g, **options)
+        cur_pos = layout_function(g, **options)
         xmin = min(x[0] for x in cur_pos.values())
         xmax = max(x[0] for x in cur_pos.values())
         if len(g) > 1:
@@ -85,7 +87,30 @@ def spring_layout_fast_split(G, **options):
             loc[0] += left - xmin + buffer
             pos[v] = loc
         left += xmax - xmin + buffer
+
+
+    if hasattr(options, 'set_embedding'):
+        if options['set_embedding']:
+            embedding = dict()
+            for g in Gs:
+                embedding.update(g)
+            G.set_embedding(embedding)
     return pos
+
+
+def spring_layout_fast_split(G, **options):
+    """
+    Graph each component of G separately, placing them adjacent to
+    each other.
+
+    In ticket :trac:`12345` the function was modified so that it can
+    work with any layout method and renamed ``layout_split``.
+    Please use ``layout_split`` from now on.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(12345, ('this function is deprecated, please use '
+                        'layout_split instead'))
+    return layout_split(G, spring_layout_fast, **options)
 
 
 def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False, by_component = False, **options):

@@ -41,7 +41,7 @@ case $SYSTEM in
     debian*|ubuntu*)
         cat <<EOF
 ARG BASE_IMAGE=ubuntu:latest
-FROM \${BASE_IMAGE}
+FROM \${BASE_IMAGE} as with-system-packages
 EOF
         UPDATE="apt-get update &&"
         INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
@@ -50,7 +50,7 @@ EOF
     fedora*|redhat*|centos*)
         cat <<EOF
 ARG BASE_IMAGE=fedora:latest
-FROM \${BASE_IMAGE}
+FROM \${BASE_IMAGE} as with-system-packages
 EOF
         INSTALL="yum install -y"
         ;;
@@ -58,7 +58,7 @@ EOF
         # https://docs.slackware.com/slackbook:package_management
         cat <<EOF
 ARG BASE_IMAGE=vbatts/slackware:latest
-FROM \${BASE_IMAGE}
+FROM \${BASE_IMAGE} as with-system-packages
 EOF
         UPDATE="slackpkg update &&"
         INSTALL="slackpkg install"
@@ -67,14 +67,14 @@ EOF
         # https://hub.docker.com/_/archlinux/
         cat <<EOF
 ARG BASE_IMAGE=archlinux:latest
-FROM \${BASE_IMAGE}
+FROM \${BASE_IMAGE} as with-system-packages
 EOF
         INSTALL="pacman -Syu --noconfirm"
         ;;
     conda*)
         cat <<EOF
 ARG BASE_IMAGE=continuumio/miniconda3:latest
-FROM \${BASE_IMAGE}
+FROM \${BASE_IMAGE} as with-system-packages
 ARG USE_CONDARC=condarc.yml
 ADD *condarc*.yml /tmp/
 RUN echo \${CONDARC}; cd /tmp && conda config --stdin < \${USE_CONDARC}
@@ -137,6 +137,8 @@ EOF
         ;;
 esac
 cat <<EOF
+
+FROM with-system-packages as bootstrapped
 #:bootstrapping:
 RUN mkdir -p /sage
 WORKDIR /sage
@@ -146,6 +148,8 @@ ADD m4 ./m4
 ADD build ./build
 ADD src/bin/sage-version.sh src/bin/sage-version.sh
 $RUN ./bootstrap
+
+FROM bootstrapped as configured
 #:configuring:
 ADD src/bin src/bin
 ADD src/Makefile.in src/Makefile.in
@@ -162,19 +166,45 @@ $RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARG
 EOF
 fi
 cat <<EOF
+
+FROM configured as with-base-toolchain
 # We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
-ARG USE_MAKEFLAGS="-k"
+ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 #:toolchain:
 $RUN make \${USE_MAKEFLAGS} base-toolchain
+
+FROM with-base-toolchain as with-targets-pre
+ARG NUMPROC=8
+ENV MAKE="make -j\${NUMPROC}"
+ARG USE_MAKEFLAGS="-k V=0"
+ENV SAGE_CHECK=warn
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 #:make:
 ARG TARGETS_PRE="sagelib-build-deps"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE}
+
+FROM with-targets-pre as with-targets
+ARG NUMPROC=8
+ENV MAKE="make -j\${NUMPROC}"
+ARG USE_MAKEFLAGS="-k V=0"
+ENV SAGE_CHECK=warn
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
 ADD src src
-ARG TARGETS="build ptest"
+ARG TARGETS="build"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS}
+
+FROM with-targets as with-targets-optional
+ARG NUMPROC=8
+ENV MAKE="make -j\${NUMPROC}"
+ARG USE_MAKEFLAGS="-k V=0"
+ENV SAGE_CHECK=warn
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+ARG TARGETS_OPTIONAL="ptest"
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_OPTIONAL} || echo "(error ignored)"
+
 #:end:
 EOF

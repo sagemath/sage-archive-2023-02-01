@@ -22,32 +22,43 @@ on:
     types: [opened, synchronize]
 
 env:
-  ## We test everything BLAS-related and other problematic packages
-  #TARGETS: cbc csdp fflas_ffpack gsl iml numpy scipy r suitesparse cvxopt rpy2 ecl maxima fpylll linbox
-  TARGETS: build ptest
+  TARGETS_PRE: sagelib-build-deps
+  TARGETS: build doc-html
+  TARGETS_OPTIONAL: ptest
 
 jobs:
-  tox:
+  docker:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-buster, debian-bullseye, debian-sid, linuxmint-19.3, fedora-26, fedora-28, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, slackware-14.2, conda-forge, conda-anaconda3, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386, ubuntu-bionic-arm64, ubuntu-bionic-armhf]
+        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, slackware-14.2, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386]
         tox_packages_factor: [minimal, standard, standard-python2]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      DOCKER_TARGETS: with-targets-optional
     steps:
       - uses: actions/checkout@v2
+      - name: free disk space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
       - name: Install test prerequisites
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
       - run: |
-          set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=4\" --build-arg TARGETS=\"$TARGETS\"" tox -e $TOX_ENV 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
+          set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
       - name: Copy logs from the build container
         run: |
-          mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/Dockerfile .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"; for CONTAINER in `docker ps -q -a`; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done
+          mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"
+          cp -r .tox/$TOX_ENV/Dockerfile .tox/$TOX_ENV/log "artifacts/$LOGS_ARTIFACT_NAME"
+          if [ -f .tox/$TOX_ENV/Dockertags ]; then CONTAINERS=$(docker create $(tail -1 .tox/$TOX_ENV/Dockertags)); else CONTAINERS=$(docker ps -q -a); fi
+          for CONTAINER in $CONTAINERS; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done
         if: always()
       - uses: actions/upload-artifact@v1
         with:
@@ -55,19 +66,18 @@ jobs:
           name: ${{ env.LOGS_ARTIFACT_NAME }}
         if: always()
       - name: Print out logs for immediate inspection
-        # The markup in the output is a GitHub Actions logging command
-        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        # and markup the output with GitHub Actions logging commands
         run: |
-          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+          .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()
 
-  tox-local-macos:
+  local-macos:
 
     runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        tox_system_factor: [homebrew-macos, conda-forge-macos]
+        tox_system_factor: [homebrew-macos-python2, homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, conda-forge-macos]
         tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
@@ -77,11 +87,18 @@ jobs:
       - name: Install test prerequisites
         run: |
           brew install tox
+      - name: Install python3 from python.org
+        # As of 2020-03-30 (https://github.com/actions/virtual-environments/blob/master/images/macos/macos-10.15-Readme.md),
+        # Python 3.7.7 is installed on GitHub Actions runners.  But we install our own copy from the python.org binary package.
+        run: |
+          curl -o python3.pkg https://www.python.org/ftp/python/3.7.7/python-3.7.7-macosx10.9.pkg
+          sudo installer -verbose -pkg python3.pkg -target /
+        if: contains(matrix.tox_system_factor, 'python3_pythonorg')
       - name: Build and test with tox
         # We use a high parallelization on purpose in order to catch possible parallelization bugs in the build scripts.
         # For doctesting, we use a lower parallelization to avoid timeouts.
         run: |
-          tox -e $TOX_ENV -- MAKE="make -j12" SAGE_NUM_THREADS=4 $TARGETS
+          MAKE="make -j12" tox -e $TOX_ENV -- SAGE_NUM_THREADS=4 $TARGETS
       - name: Prepare logs artifact
         run: |
           mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"
@@ -92,8 +109,44 @@ jobs:
           name: ${{ env.LOGS_ARTIFACT_NAME }}
         if: always()
       - name: Print out logs for immediate inspection
-        # The markup in the output is a GitHub Actions logging command
-        # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions
+        # and markup the output with GitHub Actions logging commands
         run: |
-          find "artifacts/$LOGS_ARTIFACT_NAME" -type f -name "*.log" -exec sh -c 'if tail -20 "{}" 2>/dev/null | grep "^Error" >/dev/null; then echo :":"error file={}:":" ==== LOG FILE {} CONTAINS AN ERROR ====; cat {} ; fi' \;
+          .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
+        if: always()
+
+  local-ubuntu:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tox_system_factor: [conda-forge-ubuntu]
+        tox_packages_factor: [minimal, standard, standard-python2]
+    env:
+      TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install test prerequisites
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
+      - name: Build and test with tox
+        # We use a high parallelization on purpose in order to catch possible parallelization bugs in the build scripts.
+        # For doctesting, we use a lower parallelization to avoid timeouts.
+        run: |
+          MAKE="make -j12" tox -e $TOX_ENV -- SAGE_NUM_THREADS=4 $TARGETS
+      - name: Prepare logs artifact
+        run: |
+          mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"
+        if: always()
+      - uses: actions/upload-artifact@v1
+        with:
+          path: artifacts
+          name: ${{ env.LOGS_ARTIFACT_NAME }}
+        if: always()
+      - name: Print out logs for immediate inspection
+        # and markup the output with GitHub Actions logging commands
+        run: |
+          .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()

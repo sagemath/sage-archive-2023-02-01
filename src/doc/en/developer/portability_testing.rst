@@ -629,12 +629,66 @@ To run an environment::
   [mkoeppe@sage sage]$ tox -e docker-slackware-14.2-minimal
   [mkoeppe@sage sage]$ tox -e docker-ubuntu-bionic-standard-python2
   
-Extra arguments to ``docker build`` can be supplied through the
-environment variable ``EXTRA_DOCKER_BUILD_ARGS``.  For example, for
-a silent build (``make V=0``), use::
+Arbitrary extra arguments to ``docker build`` can be supplied through
+the environment variable ``EXTRA_DOCKER_BUILD_ARGS``.  For example,
+for a non-silent build (``make V=1``), use::
   
-  [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=0\"" \
+  [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=1\"" \
     tox -e docker-ubuntu-bionic-standard
+
+By default, tox uses ``TARGETS_PRE=sagelib-build-deps`` and
+``TARGETS=build``, leading to a complete build of Sage without the
+documentation.  If you pass positional arguments to tox (separated
+from tox options by ``--``), then both ``TARGETS_PRE`` and ``TARGETS``
+are set to these arguments.  In this way, you can build some specific
+packages instead of all of Sage, for example::
+
+  [mkoeppe@sage sage]$ tox -e docker-centos-8-standard -- ratpoints
+
+If the build succeeds, this will create a new image named
+``sage-docker-centos-8-standard-with-targets:9.1.beta9-431-gca4b5b2f33-dirty``,
+where
+
+- the image name is derived from the tox environment name and the
+  suffix ``with-targets`` expresses that the ``make`` targets given in
+  ``TARGETS`` have been built;
+
+- the tag name describes the git revision of the source tree as per
+  ``git describe --dirty``.
+
+You can ask for tox to create named intermediate images as well.  For
+example, to create the images corresponding to the state of the OS
+after installing all system packages (``with-system-packages``) and
+the one just after running the ``configure`` script (``configured``)::
+
+  [mkoeppe@sage sage]$ DOCKER_TARGETS="with-system-packages configured with-targets" \
+    tox -e docker-centos-8-standard -- ratpoints
+  ...
+  Sending build context to Docker daemon ...
+  Step 1/109 : ARG BASE_IMAGE=fedora:latest
+  Step 2/109 : FROM ${BASE_IMAGE} as with-system-packages
+  ...
+  Step 109/109 : RUN yum install -y zlib-devel || echo "(ignoring error)"
+  ...
+  Successfully built 4bb14c3d5646
+  Successfully tagged sage-docker-centos-8-standard-with-system-packages:9.1.beta9-435-g861ba33bbc-dirty
+  Sending build context to Docker daemon ...
+  ...
+  Successfully tagged sage-docker-centos-8-standard-configured:9.1.beta9-435-g861ba33bbc-dirty
+  ...
+  Sending build context to Docker daemon ...
+  ...
+  Successfully tagged sage-docker-centos-8-standard-with-targets:9.1.beta9-435-g861ba33bbc-dirty
+
+Let's verify that the images are available::
+
+  (base) egret:~/s/sage/sage-rebasing/worktree-algebraic-2018-spring (mkoeppe *$%>)$ docker images | head
+  REPOSITORY                                                TAG                               IMAGE ID
+  sage-docker-centos-8-standard-with-targets                9.1.beta9-435-g861ba33bbc-dirty   7ecfa86fceab
+  sage-docker-centos-8-standard-configured                  9.1.beta9-435-g861ba33bbc-dirty   4314929e2b4c
+  sage-docker-centos-8-standard-with-system-packages        9.1.beta9-435-g861ba33bbc-dirty   4bb14c3d5646
+  ...
+
 
 Automatic build testing on the host OS using tox -e local-direct
 ----------------------------------------------------------------
@@ -821,11 +875,40 @@ then uses the script ``$SAGE_ROOT/.homebrew-build-env`` to set
 environment variables so that Sage's build scripts will find
 "keg-only" packages such as ``gettext``.
 
+The ``local-homebrew-macos-minimal`` environment does not install
+Homebrew's ``python3`` package.  It uses XCode's ``/usr/bin/python3``
+as system python.  However, because various packages are missing
+that Sage considers as dependencies, Sage builds its own copy of
+these packages and of ``python3``.
+
 The ``local-homebrew-macos-standard`` environment additionally
 installs (in its separate isolated copy of Homebrew) all Homebrew
 packages known to Sage for which the ``spkg-configure.m4`` mechanism
 is implemented; this is similar to the ``docker-standard`` tox
-environments described earlier.
+environments described earlier.  In particular it installs and uses
+Homebrew's ``python3`` package.
+
+By using configuration factors, more variants can be tested.
+The ``local-homebrew-macos-standard-python3_xcode`` environment
+installs the same packages, but uses XCode's ``/usr/bin/python3``.
+
+The ``local-homebrew-macos-standard-python3_pythonorg`` expects an
+installation of Python 3.7 in
+``/Library/Frameworks/Python.framework``; this is where the binary
+packages provided by python.org install themselves.
+
+
+Automatic build testing with a best-effort isolated installation of Conda
+-------------------------------------------------------------------------
+
+Sage provides environments ``local-conda-forge-standard`` and
+``local-conda-forge-minimal`` that create isolated installations of
+Miniconda in the subdirectory ``conda`` of the environment directory.
+They do not interact in any way with other installations of Anaconda
+or Miniconda that you may have on your system.
+
+The environments use the conda-forge channel and use the ``python``
+package and the compilers from this channel.
 
 
 Automatic parallel tox runs on GitHub Actions
@@ -868,3 +951,39 @@ development:
   pull request against the ``TESTER`` branch. This will trigger the
   GitHub Actions workflow.
 
+Here is how to read it.  Each of the items in the left pane represents
+a full build of Sage on a particular system configuration.  A test
+item in the left pane is marked with a green checkmark in the left
+pane if ``make build doc-html`` finished without error.  (It also runs
+package testsuites and the Sage doctests but failures in these are not
+in reflected in the left pane; see below.)
+
+The right pane ("Artifacts") offers archives of the logs for download.
+
+Scrolling down in the right pane shows "Annotations":
+
+* Red "check failure" annotations appear for each log file that
+  contains a build error. For example, you might see::
+
+    docker (fedora-28, standard)
+    artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-28-standard/logs/pkgs/sagetex-3.4.log#L1
+    ==== ERROR IN LOG FILE artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-28-standard/logs/pkgs/sagetex-3.4.log ====
+
+* Yellow "check warning" annotations. There are 2 types of these:
+
+  a) Package testsuite or Sage doctest failures, like the following::
+
+       docker (fedora-30, standard)
+       artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-30-standard/logs/ptest.log#L1
+       ==== TESTSUITE FAILURE IN LOG FILE artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-30-standard/logs/ptest.log ====
+
+  b) Notices from ./configure about not finding equivalent system
+     packages, like the following::
+
+       docker (fedora-31, standard)
+       artifacts/logs-commit-8ca1c2df8f1fb4c6d54b44b34b4d8320ebecb164-tox-docker-fedora-31-standard/config.log#L1
+       configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cddlib cmake eclib ecm fflas_ffpack flint flintqs fplll givaro gp
+
+Clicking on the annotations does not take you to a very useful
+place. To view details, click on one of the items in the pane. This
+changes the right pane to a log viewer.

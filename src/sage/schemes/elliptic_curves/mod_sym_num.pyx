@@ -885,7 +885,7 @@ cdef class ModularSymbolNumerical:
         elif isinstance(r, sage.rings.infinity.PlusInfinity):
             return Rational(0)
         else: #who knows
-            raise ValueError("The modular symbol can be evaluated at a"
+            raise ValueError("The modular symbol can be evaluated at a "
                              "rational number only.")
         if use_twist:
             if self._D == -1:
@@ -1056,7 +1056,7 @@ cdef class ModularSymbolNumerical:
         # now determine the bound for E0 coming from the
         # theorem of Manin and Drinfeld.
         # delta is such that the cusps are all defined over
-        # the cyclotomic fireld zeta_delta
+        # the cyclotomic field zeta_delta
         delta = Integer(1)
         for p in N.prime_divisors():
             delta *= p ** (N.valuation(p)//2)
@@ -1256,7 +1256,7 @@ cdef class ModularSymbolNumerical:
             #from warnings import warn
             #warn(Rounded an error of %s, looks like a bug."%err,
             # RuntimeWarning, stacklevel=5)
-            print ( "Warning: Rounded an error of ", err, ", looks like a bug"
+            print ( "Warning: Rounded an error of ", err, ", looks like a bug "
                     + "in mod_sym_num.pyx.")
         verbose("    rounding with an error of %s"%err, level=3)
         return res
@@ -2662,7 +2662,7 @@ cdef class ModularSymbolNumerical:
             lap = la.real()
         else:
             lap = la.imag()
-        return self._round(lap, sign, False)
+        return self._round(lap, sign, True)
 
     #@cached_method
     def _symbol_non_unitary(self, Rational r, int sign=0):

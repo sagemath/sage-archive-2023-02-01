@@ -1,11 +1,3 @@
-unset RM
-
-if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting"
-    echo "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 INCLUDES="-I$SAGE_LOCAL/include"
 LIBDIRS="-L$SAGE_LOCAL/lib"
 
@@ -17,12 +9,4 @@ export CXXFLAGS
 
 cd src
 
-echo "Testing the M4RI library"
-
 $MAKE check
-
-if [ $? -ne 0 ]; then
-    echo "Error testing M4RI"
-    exit 1
-fi
-

@@ -1,2 +1,2 @@
 cd src
-sdh_make check
+sdh_make_check

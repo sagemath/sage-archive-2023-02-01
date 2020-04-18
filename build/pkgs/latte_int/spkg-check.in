@@ -1,11 +1,3 @@
-if [ -z "$SAGE_LOCAL" ] ; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
-CUR=`pwd`
-
 if [ "x$SAGE_DEBUG" = xyes ] ; then
     CFLAGS="$CFLAGS -g -O0" # No optimisation, aids debugging.
 else
@@ -14,11 +6,5 @@ fi
 
 export CFLAGS
 
-dirsr="$CUR"/src
-echo "Testing in $dirsr"
-cd "$dirsr"
+cd src
 $MAKE check
-if [ $? -ne 0 ]; then
-     echo >&2 "Error: tests failed"
-     exit 1
-fi

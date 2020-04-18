@@ -41,6 +41,12 @@ PCFILES = @SAGE_SYSTEM_FACADE_PC_FILES@
 LN = ln
 SED = sed
 
+# We need to be able to override this to support ./sage -i -c PKG
+SAGE_SPKG = sage-spkg
+
+# These are added to SAGE_SPKG in the call
+SAGE_SPKG_OPTIONS = @SAGE_SPKG_OPTIONS@
+
 # Generate/install sage-specific .pc files.
 # see build/pkgs/gsl/spkg-configure.m4
 $(SAGE_PKGCONFIG)/gsl.pc:
@@ -203,7 +209,7 @@ pkg_deps = \
 #     $(3): package dependencies
 define NORMAL_PACKAGE_templ
 $$(INST)/$(1)-$(2): $(3)
-	+$(AM_V_at)sage-logger -p '$$(SAGE_SPKG) \
+	+$(AM_V_at)sage-logger -p '$$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
 		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
 		$(1)-$(2)' '$$(SAGE_LOGS)/$(1)-$(2).log'
 

@@ -8,6 +8,7 @@ from docutils import nodes
 from docutils.transforms import Transform
 from sphinx.ext.doctest import blankline_re
 from sphinx import highlighting
+import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
@@ -173,13 +174,8 @@ todo_include_todos = True
 
 # Cross-links to other project's online documentation.
 python_version = sys.version_info.major
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common",
-                             "python{}.inv".format(python_version))),
-    'pplpy': (PPLPY_DOCS, None)}
 
-def set_intersphinx_mappings(app):
+def set_intersphinx_mappings(app, config):
     """
     Add precompiled inventory (the objects.inv)
     """
@@ -190,7 +186,11 @@ def set_intersphinx_mappings(app):
         app.config.intersphinx_mapping = {}
         return
 
-    app.config.intersphinx_mapping = intersphinx_mapping
+    app.config.intersphinx_mapping =  {
+    'python': ('https://docs.python.org/',
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version))),
+    'pplpy': (PPLPY_DOCS, None)}
 
     # Add master intersphinx mapping
     dst = os.path.join(invpath, 'objects.inv')
@@ -205,6 +205,7 @@ def set_intersphinx_mappings(app):
             dst = os.path.join(invpath, directory, 'objects.inv')
             app.config.intersphinx_mapping[src] = dst
 
+    intersphinx.normalize_intersphinx_mapping(app, config)
 
 # By default document are not master.
 multidocs_is_master = True
@@ -673,7 +674,7 @@ def call_intersphinx(app, env, node, contnode):
     """
     debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
-    res =  sphinx.ext.intersphinx.missing_reference(
+    res =  intersphinx.missing_reference(
         app, env, node, contnode)
     if res:
         # Replace absolute links to $SAGE_DOC by relative links: this
@@ -856,11 +857,10 @@ def setup(app):
     if app.srcdir.startswith(SAGE_DOC_SRC):
         app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
+        app.connect('config-inited', set_intersphinx_mappings)
+        app.connect('builder-inited', intersphinx.load_mappings)
         # We do *not* fully initialize intersphinx since we call it by hand
         # in find_sage_dangling_links.
         #   app.connect('missing-reference', missing_reference)
         app.connect('missing-reference', find_sage_dangling_links)
-        import sphinx.ext.intersphinx
-        app.connect('builder-inited', set_intersphinx_mappings)
-        app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)

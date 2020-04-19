@@ -1192,30 +1192,6 @@ Here are some of the more commonly used variables affecting the build process:
   supports :envvar:`SAGE_SUDO`, into a root-owned installation
   hierarchy (:envvar:`SAGE_LOCAL`).
 
-Variables to set if you're trying to build Sage with an unusual setup, e.g.,
-an unsupported machine or an unusual compiler:
-
-- :envvar:`SAGE_PORT` - if you try to build Sage on a platform which is
-  recognized as being unsupported (e.g. AIX, or HP-UX), or with a compiler
-  which is unsupported (anything except GCC), you will see a message saying
-  something like:
-
-  .. CODE-BLOCK:: text
-
-      You are attempting to build Sage on IBM's AIX operating system,
-      which is not a supported platform for Sage yet. Things may or
-      may not work. If you would like to help port Sage to AIX,
-      please join the sage-devel discussion list -- see
-      https://groups.google.com/group/sage-devel
-      The Sage community would also appreciate any patches you submit.
-
-      To get past this message and try building Sage anyway,
-      export the variable SAGE_PORT to something non-empty.
-
-  If this is case and you want to try to build Sage anyway, follow the
-  directions: set :envvar:`SAGE_PORT` to something non-empty (and expect to
-  run into problems).
-
 Environment variables dealing with specific Sage packages:
 
 - :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``

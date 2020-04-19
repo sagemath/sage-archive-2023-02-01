@@ -49,15 +49,15 @@ def merge_environment(app, env):
     logger.info(bold('Merging environment/index files...'))
     if not hasattr(env, "todo_all_todos"):
         env.todo_all_todos = []
-    if not hasattr(env.domaindata["std"], "citations"):
-        env.domaindata["std"]["citations"] = dict()
+    if not env.domaindata['citation'].get('citations'):
+        env.domaindata['citation']['citations'] = dict()
     for curdoc in app.env.config.multidocs_subdoc_list:
         logger.info("    %s:"%curdoc, nonl=1)
         docenv = get_env(app, curdoc)
         if docenv is not None:
             fixpath = lambda path: os.path.join(curdoc, path)
             todos = docenv.todo_all_todos if hasattr(docenv, "todo_all_todos") else []
-            citations = docenv.domaindata["std"].get("citations", dict())
+            citations = docenv.domaindata['citation'].get('citations', dict())
             logger.info(" %s todos, %s index, %s citations"%(
                     len(todos),
                     len(docenv.indexentries),
@@ -95,7 +95,7 @@ def merge_environment(app, env):
             for ind, (path, tag, lineno) in six.iteritems(citations):
                 # TODO: Warn on conflicts
                 newcite[ind] = (fixpath(path), tag, lineno)
-            env.domaindata["std"]["citations"].update(newcite)
+            env.domaindata['citation']['citations'].update(newcite)
             # merge the py:module indexes
             newmodules = {}
             for ind,(modpath,v1,v2,v3) in (
@@ -106,9 +106,9 @@ def merge_environment(app, env):
     logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(
             len(env.todo_all_todos),
             len(env.indexentries),
-            len(env.domaindata["std"]["citations"]),
+            len(env.domaindata['citation']['citations']),
             len(env.domaindata['py']['modules'])))
-    write_citations(app, env.domaindata["std"]["citations"])
+    write_citations(app, env.domaindata['citation']['citations'])
 
 
 def get_env(app, curdoc):

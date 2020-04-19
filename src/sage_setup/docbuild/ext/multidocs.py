@@ -58,9 +58,10 @@ def merge_environment(app, env):
             fixpath = lambda path: os.path.join(curdoc, path)
             todos = docenv.todo_all_todos if hasattr(docenv, "todo_all_todos") else []
             citations = docenv.domaindata['citation'].get('citations', dict())
+            indexentries = docenv.domaindata['index'].get('entries', dict())
             logger.info(" %s todos, %s index, %s citations"%(
                     len(todos),
-                    len(docenv.indexentries),
+                    len(indexentries),
                     len(citations)
                     ), nonl=1)
 
@@ -73,12 +74,12 @@ def merge_environment(app, env):
             env.todo_all_todos += todos
             # merge the html index links
             newindex = {}
-            for ind in docenv.indexentries:
+            for ind in indexentries:
                 if ind.startswith('sage/'):
-                    newindex[fixpath(ind)] = docenv.indexentries[ind]
+                    newindex[fixpath(ind)] = indexentries[ind]
                 else:
-                    newindex[ind] = docenv.indexentries[ind]
-            env.indexentries.update(newindex)
+                    newindex[ind] = indexentries[ind]
+            env.domaindata['index']['entries'].update(newindex)
             # merge the all_docs links, needed by the js index
             newalldoc = {}
             for ind in docenv.all_docs:
@@ -105,7 +106,7 @@ def merge_environment(app, env):
             logger.info(", %s modules"%(len(newmodules)))
     logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(
             len(env.todo_all_todos),
-            len(env.indexentries),
+            len(env.domaindata['index']['entries']),
             len(env.domaindata['citation']['citations']),
             len(env.domaindata['py']['modules'])))
     write_citations(app, env.domaindata['citation']['citations'])

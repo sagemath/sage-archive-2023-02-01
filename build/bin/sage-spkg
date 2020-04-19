@@ -1031,6 +1031,7 @@ if [ "$SAGE_CHECK" = "yes" -o "$SAGE_CHECK" = "warn" ]; then
             fi
         else
             TEST_SUITE_RESULT="passed"
+            echo "Passed the test suite for $PKG_NAME."
         fi
     else
         echo "Package $PKG_NAME has no test suite."

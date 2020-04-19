@@ -3,7 +3,3 @@ cd src
 # -j1 needed to avoid a possible race condition in the tests
 # see https://trac.sagemath.org/ticket/23217
 $MAKE -j1 check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error checking yasm."
-    exit 1
-fi

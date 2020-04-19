@@ -6,10 +6,4 @@ else
     export CFLAGS="-O2 -g $CFLAGS"
 fi
 
-
-echo "Testing the IML library"
 $MAKE check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error testing IML."
-    exit 1
-fi

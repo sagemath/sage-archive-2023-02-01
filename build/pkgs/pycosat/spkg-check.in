@@ -1,9 +1,2 @@
-echo "Testing pycosat..."
-
 cd src
 python test_pycosat.py
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error running self tests."
-    exit 1
-fi

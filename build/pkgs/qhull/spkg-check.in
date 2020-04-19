@@ -1,8 +1,3 @@
 cd src
 
 $MAKE test
-if [ $? -ne 0 ]; then
-   echo "Error in testing qhull"
-   exit 1
-fi
-

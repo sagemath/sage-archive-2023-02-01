@@ -9,12 +9,4 @@ export CXXFLAGS
 
 cd src
 
-echo "Testing the M4RI library"
-
 $MAKE check
-
-if [ $? -ne 0 ]; then
-    echo "Error testing M4RI"
-    exit 1
-fi
-

@@ -8,9 +8,4 @@ export CPPFLAGS LDFLAGS
 
 cd src/
 
-echo "Running GLPK's testsuite..."
 $MAKE check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error testing GLPK."
-    exit 1
-fi

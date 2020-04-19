@@ -24,5 +24,3 @@ fi
 if [ -d ../parigit ]; then
     echo "WARNING: You should delete the parigit directory before submitting this spkg."
 fi
-
-echo "The PARI self-tests all passed"

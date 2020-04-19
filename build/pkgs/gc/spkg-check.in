@@ -7,8 +7,3 @@ else
 fi
 
 $MAKE check
-
-if [ $? -ne 0 ]; then
-   echo "Error testing BoehmGC."
-   exit 1
-fi

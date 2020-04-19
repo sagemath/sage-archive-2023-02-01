@@ -11,9 +11,6 @@ for file in test_*.py; do
     sage-python23 $file || passed=false
 done
 echo
-if $passed; then
-    echo "dot2tex's test suite passed successfully."
-else
-    echo >&2 "Error(s) running dot2tex's test suite."
+if ! $passed; then
     exit 1
 fi

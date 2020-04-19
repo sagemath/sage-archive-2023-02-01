@@ -6,12 +6,4 @@ unset RM
 
 cd src
 
-echo
-echo "Now building and running MPFR's test suite..."
 $MAKE check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building or running MPFR's test suite."
-    exit 1
-fi
-echo
-echo "MPFR's test suite passed without errors."
